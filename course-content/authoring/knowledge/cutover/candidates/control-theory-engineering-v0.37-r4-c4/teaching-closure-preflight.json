@@ -1,0 +1,45 @@
+{
+  "contract": "coordinated-teaching-closure-receipt/v1",
+  "builderVersion": "latest-authority-oss-cutover-builder/v1",
+  "scopeHash": "dda4e749e7191250e4b56c74e37143aff980f59d931d8eed410b5600c28db292",
+  "authorityCaptureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "status": "COMPLETE",
+  "zeroUnresolved": true,
+  "familyCounts": [
+    {
+      "family": "containment",
+      "memberCount": 7476,
+      "closedCount": 7476,
+      "admittedRelationCount": 138,
+      "noRelationCount": 7336,
+      "courseRootCount": 2,
+      "rejectedCount": 0,
+      "modifiedCount": 0,
+      "unresolvedCount": 0
+    },
+    {
+      "family": "prerequisite",
+      "memberCount": 7476,
+      "closedCount": 7476,
+      "admittedRelationCount": 141,
+      "noRelationCount": 7335,
+      "courseRootCount": 0,
+      "rejectedCount": 0,
+      "modifiedCount": 0,
+      "unresolvedCount": 0
+    },
+    {
+      "family": "association",
+      "memberCount": 7476,
+      "closedCount": 7476,
+      "admittedRelationCount": 139,
+      "noRelationCount": 7337,
+      "courseRootCount": 0,
+      "rejectedCount": 0,
+      "modifiedCount": 0,
+      "unresolvedCount": 0
+    }
+  ],
+  "countsHash": "f8ee4ce02511e0c6c77e0646b2f75e6dcbfaafcbb8f7104b34111a94c447c9f1",
+  "receiptHash": "df5bcd93cb687eb40c0d54dbdbc6c773585dfe6a7b165cf42a2fa7fb2d61d6a9"
+}

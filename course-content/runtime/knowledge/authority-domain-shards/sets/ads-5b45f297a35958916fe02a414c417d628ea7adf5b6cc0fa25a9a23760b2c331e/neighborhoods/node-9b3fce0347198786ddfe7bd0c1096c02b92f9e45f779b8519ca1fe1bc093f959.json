@@ -1,0 +1,322 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogVersion": "v0.37-r4-c4-candidate"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctc:c782502fe412ef828c662650",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:c782502fe412ef828c662650",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-13a9994c50acce777819aa2a",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-69118dc66489d66b1732901b",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctf:271493cf25b80d68408cd792",
+      "canonicalType": "Formula",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "canonicalType": "Formula",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "canonicalType": "Formula",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "canonicalType": "Formula",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:3c8a4ef50d031af2624409d7",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:271493cf25b80d68408cd792",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-0c9a5619ccd07957c5601f61",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-5beaf69f9e21d157aafda52f",
+      "predicate": "association",
+      "sourceId": "ctc:v11g-69118dc66489d66b1732901b",
+      "targetId": "ctc:c782502fe412ef828c662650",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-5e8f7118fe5776489851bbfe",
+      "predicate": "part_of",
+      "sourceId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "targetId": "ctc:c782502fe412ef828c662650",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-830409381546c9331019e1ec",
+      "predicate": "derived_from",
+      "sourceId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "targetId": "ctc:c782502fe412ef828c662650",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-b496048ed7c4a0e4c19dabc8",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

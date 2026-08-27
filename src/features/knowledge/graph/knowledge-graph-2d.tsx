@@ -373,6 +373,9 @@ export function KnowledgeGraph2D({
   const completedBlankGestureRef = useRef<KnowledgeCanvasBlankGesture | null>(null);
   const consumedFitSignatureRef = useRef<string | null>(null);
   const fitTimerRef = useRef<number | null>(null);
+  const labelProjectionTimerRef = useRef<number | null>(null);
+  const labelRefreshTimerRef = useRef<number | null>(null);
+  const syncRichLabelLayerRef = useRef<(scale?: number) => void>(() => undefined);
   const labelPlacementCacheRef = useRef<{
     nodes: readonly unknown[];
     scale: number;
@@ -458,6 +461,9 @@ export function KnowledgeGraph2D({
   }, [graphVersion]);
 
   useEffect(() => () => {
+    if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
+    if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
+    if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
     presentationGateRef.current.dispose();
     cameraTransitionRef.current.dispose();
     motionFrameLoopRef.current?.dispose();
@@ -991,6 +997,7 @@ export function KnowledgeGraph2D({
           projectedScale: globalScale,
           bodyRadius,
           isRootBubble: Boolean(rootPacking),
+          isKeyNode: candidate.labelPriority,
           importance: candidate.importance,
           labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
             name: candidate.name, bodyRadius,
@@ -1381,15 +1388,17 @@ export function KnowledgeGraph2D({
     freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode);
   }, [graphData.nodes]);
 
-  const handleEngineTick = useCallback(() => {
+  const syncRichLabelLayer = useCallback((projectedScale?: number) => {
     labelProjectionRevisionRef.current += 1;
     const layer = rootRef.current?.querySelector('[data-knowledge-2d-dom-label-layer="true"]');
     const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
     if (!layer || !projector) return;
-    const scale = Number(fgRef.current?.zoom?.() ?? 1);
+    const richNodes = (graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>)
+      .filter((node) => node.richTitle);
+    if (richNodes.length === 0) return;
+    const scale = Number(projectedScale ?? fgRef.current?.zoom?.() ?? 1);
     const placements = getFrameLabelPlacements(scale);
-    for (const node of graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>) {
-      if (!node.richTitle) continue;
+    for (const node of richNodes) {
       const element = layer.querySelector<HTMLElement>(`[data-semantic-label-id="${CSS.escape(node.id)}"]`);
       if (!element) continue;
       const placement = placements.get(node.id);
@@ -1407,6 +1416,24 @@ export function KnowledgeGraph2D({
       element.style.fontSize = `${placement.fontSize}px`;
     }
   }, [getFrameLabelPlacements, graphData.nodes]);
+  syncRichLabelLayerRef.current = syncRichLabelLayer;
+
+  const handleEngineTick = useCallback(() => {
+    syncRichLabelLayer();
+  }, [syncRichLabelLayer]);
+
+  useEffect(() => {
+    if (!(graphData.nodes as KnowledgeNodeData[]).some((node) => node.richTitle)) return;
+    if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
+    labelRefreshTimerRef.current = window.setTimeout(() => {
+      syncRichLabelLayerRef.current();
+      labelRefreshTimerRef.current = null;
+    }, 400);
+    return () => {
+      if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
+      labelRefreshTimerRef.current = null;
+    };
+  }, [graphData.nodes, height, hoveredNode?.id, labelMode, selectedNode?.id, width]);
 
   const handleCanvasPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const canvas = event.currentTarget.querySelector<HTMLCanvasElement>('canvas');
@@ -1555,6 +1582,7 @@ export function KnowledgeGraph2D({
       y: node.y ?? 0,
       bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
       isRootBubble: Boolean(node.__knowledgeRootPacking),
+      isKeyNode: node.labelPriority,
       importance: node.importance,
       labelBounds: getKnowledgeNodeLabelBounds({
         name: node.name,
@@ -1571,14 +1599,19 @@ export function KnowledgeGraph2D({
       hoveredNodeId: hoveredNode?.id,
     });
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
+    if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
     fitTimerRef.current = window.setTimeout(() => {
       fgRef.current?.centerAt?.(fit.centerX, fit.centerY, 320);
-      fgRef.current?.zoom?.(
-        compactRootView ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE) : fit.scale,
-        320
-      );
+      const projectedScale = compactRootView
+        ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE)
+        : fit.scale;
+      fgRef.current?.zoom?.(projectedScale, 320);
       consumedFitSignatureRef.current = fitSignature;
       fitTimerRef.current = null;
+      labelProjectionTimerRef.current = window.setTimeout(() => {
+        syncRichLabelLayerRef.current(projectedScale);
+        labelProjectionTimerRef.current = null;
+      }, 360);
     }, 0);
     return () => {
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
@@ -1855,6 +1888,7 @@ export function KnowledgeGraph2D({
         onBackgroundClick={handleBackgroundClick}
         onEngineStop={handleEngineStop}
         onEngineTick={handleEngineTick}
+        onZoomEnd={() => syncRichLabelLayer()}
         enableNodeDrag={true}
 
         // 物理引擎配置

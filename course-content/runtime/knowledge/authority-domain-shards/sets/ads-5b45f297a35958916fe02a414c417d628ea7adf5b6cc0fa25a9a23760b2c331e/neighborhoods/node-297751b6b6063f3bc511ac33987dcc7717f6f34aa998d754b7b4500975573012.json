@@ -1,0 +1,255 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogVersion": "v0.37-r4-c4-candidate"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-35fc6cfad00e51855cd920f4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b1b4033e6ebea4962e8359b3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "canonicalType": "KnowledgeStatement",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ce3d93e5599e6eabe171b14e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1h:relation-9444cd9630d0b94bd841d0d3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b1b4033e6ebea4962e8359b3",
+      "targetId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-a9dc65a6c3c4e4b024d68f53",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "targetId": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-b425f5b079ff33c029464c56",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-35fc6cfad00e51855cd920f4",
+      "targetId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-cb491c4fab9079e58a3a028a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "targetId": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-d6b983989e15320fdfb7e005",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "targetId": "ctkg:v3e-object-ce3d93e5599e6eabe171b14e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

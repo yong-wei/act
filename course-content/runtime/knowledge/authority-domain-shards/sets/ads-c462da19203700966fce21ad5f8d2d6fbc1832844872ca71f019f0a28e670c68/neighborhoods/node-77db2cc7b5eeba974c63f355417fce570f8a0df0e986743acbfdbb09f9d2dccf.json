@@ -1,0 +1,279 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-canonical-05f37fc926639480a8089057",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：A system of Type 1 or higher has a closed-loop DC gain of 1.0, meaning T(0)=1.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-18db1468a28a055ec76dc1e4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题：For a non-unity feedback system, compute the system error E(s) = R(s) - Y(s) = R(s) - T(s)R(s), then apply the Final Value Theorem to find the steady-state error for a polynomial reference input. The system type is determined by the degree of the polynomial for which the steady-state error is a nonzero constant.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-5a4a77a71f1c81a525d73595",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：System type is a robust property with respect to parameter changes in the unity feedback structure. For example, if the process parameters change without removing the pole at the origin in a Type 1 system, the velocity constant will change but the system will still have zero steady-state error in response to a constant input and will still be Type 1.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-88d9e641e70caac92a383362",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：For an electric motor position control with tachometer feedback (G(s)=1/(s(τs+1)), D_c(s)=k_P, H(s)=1+k_t s), the system is Type 1 and the velocity constant is K_v = k_P/(1+k_t k_P). Using tachometer feedback to improve dynamic response usually increases steady-state error.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "canonicalType": "DomainConcept",
+      "label": "系统类型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e708253d85c5caf6dc8ad0a3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：For a speed control example with proportional plus integral control (D_c = k_P + k_I/s) and plant G = A/(τs+1), the loop transfer function is G D_cl(s) = A(k_P s + k_I) / (s(τs+1)). The system is Type 1 and the velocity constant is K_v = A k_I.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1f-v3e-relation-5e3b13e0c0e975ed33907c3c",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-18db1468a28a055ec76dc1e4",
+      "targetId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-6593ab4e43ca6b3c9ec64b0e",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-05f37fc926639480a8089057",
+      "targetId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-834833fdc7e9e265be1c0411",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-e708253d85c5caf6dc8ad0a3",
+      "targetId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-cf38bc56561abe9d22d198ea",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-88d9e641e70caac92a383362",
+      "targetId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-f7767e398eeb13c2b17e84d1",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-5a4a77a71f1c81a525d73595",
+      "targetId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}

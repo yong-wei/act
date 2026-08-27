@@ -11,9 +11,8 @@
  * releases/<projectionId>/ and never touches a current pointer.
  */
 
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
@@ -46,11 +45,9 @@ import type {
 const ROOT = process.cwd();
 const REMEDIATION_ROOT = 'course-content/authoring/knowledge/formal-resource-remediation';
 const PROJECTION_DIR = `${REMEDIATION_ROOT}/teaching-projection`;
-const SNAPSHOT_DIR = 'course-content/authoring/knowledge/authority/releases/snap-3ba36b03e535b4ff4e3ff4edbb6e1a5f0bb1d24903f8fd236a5fc0978aca7dfe';
 const TEACHING_STORE_ROOT = 'course-content/runtime/knowledge/projection';
 const PREREQ_STORE_ROOT = 'course-content/runtime/knowledge/prerequisites';
 const CURATOR_ID = 'course-owner';
-const DECIDED_AT = '2026-08-25T12:00:00.000Z';
 const CONSUMER_STORE_ROOT = 'course-content/runtime/knowledge/consumer-activation';
 // The shared capture identity is the ACT-side build revision that the
 // authority snapshot sealed as its captureRevision (same source as
@@ -91,6 +88,43 @@ function readJson<T>(filePath: string): T {
   return JSON.parse(readFileSync(absolute(filePath), 'utf8')) as T;
 }
 
+function parseArgs(argv: readonly string[]): {
+  readonly snapshotDir: string;
+  readonly scopePath: string;
+  readonly governanceOut: string;
+  readonly stagedAt: string;
+} {
+  const values = new Map<string, string>();
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = argv[index];
+    const value = argv[index + 1];
+    if (!key?.startsWith('--') || !value || value.startsWith('--') || values.has(key)) {
+      throw new Error(`invalid argument near ${key ?? '<end>'}`);
+    }
+    values.set(key, value);
+  }
+  const required = (key: string): string => {
+    const value = values.get(key);
+    if (!value) throw new Error(`missing ${key}`);
+    return value;
+  };
+  for (const key of values.keys()) {
+    if (!['--snapshot-dir', '--scope-path', '--governance-out', '--staged-at'].includes(key)) {
+      throw new Error(`unknown option ${key}`);
+    }
+  }
+  const stagedAt = required('--staged-at');
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(stagedAt)) {
+    throw new Error('--staged-at must be a millisecond RFC3339 UTC timestamp');
+  }
+  return {
+    snapshotDir: required('--snapshot-dir'),
+    scopePath: required('--scope-path'),
+    governanceOut: required('--governance-out'),
+    stagedAt,
+  };
+}
+
 /**
  * Deterministic remediation-id -> teaching-projection-id normalization.
  * The projection store requires act:<type>:<slug>; the remediation ids stay
@@ -108,14 +142,19 @@ function normalizeResourceId(resourceId: string, subtype: string): string {
 }
 
 function main(): void {
+  const args = parseArgs(process.argv.slice(2));
   const manifest = readJson<{
     readonly releaseId: string;
     readonly releaseSetId: string;
     readonly snapshotId: string;
     readonly snapshotHash: string;
-  }>(`${SNAPSHOT_DIR}/manifest.json`);
-  const engineering = readJson<{ readonly objects: readonly { canonicalId: string; publicationStatus: string | null }[] }>(`${SNAPSHOT_DIR}/engineering.json`);
-  const authoringRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
+    readonly captureRevision: string;
+  }>(path.join(args.snapshotDir, 'manifest.json'));
+  if (!/^[a-f0-9]{40}$/u.test(manifest.captureRevision)) {
+    throw new Error('snapshot manifest captureRevision must be a Git commit');
+  }
+  const engineering = readJson<{ readonly objects: readonly { canonicalId: string; publicationStatus: string | null }[] }>(path.join(args.snapshotDir, 'engineering.json'));
+  const authoringRevision = manifest.captureRevision;
 
   // Resources: every remediation governance resource enters the projection
   // surface; resources without bindings stay OPTIONAL (honest, ungated).
@@ -142,7 +181,17 @@ function main(): void {
   // Bindings: rebuild the modality-independent rows from the sealed binding
   // sources (same sources the projection seal used). Audio anchor ids are
   // normalized onto the envelope resource id form media-<unit>-audio.
-  const scopeArtifact = readJson<{ members: { canonicalId: string; preferredDomainId: string }[] }>('course-content/authoring/knowledge/teaching-projection/act-relations/ctr-release-control-theory-engineering-v0.37/scope.json');
+  const scopeArtifact = readJson<{
+    scopeHash: string;
+    authority: { releaseId: string; releaseSetId: string; snapshotId: string; snapshotHash: string };
+    members: { canonicalId: string; preferredDomainId: string }[];
+  }>(args.scopePath);
+  if (scopeArtifact.authority.releaseId !== manifest.releaseId
+    || scopeArtifact.authority.releaseSetId !== manifest.releaseSetId
+    || scopeArtifact.authority.snapshotId !== manifest.snapshotId
+    || scopeArtifact.authority.snapshotHash !== manifest.snapshotHash) {
+    throw new Error('scope Authority identity does not match the staged snapshot');
+  }
   const coveredMemberIds = new Set(
     scopeArtifact.members
       .filter((member) => !(EXCLUDED_DOMAINS as readonly string[]).includes(member.preferredDomainId))
@@ -214,10 +263,23 @@ function main(): void {
   // Prerequisites: the prerequisite-family published edges from the sealed
   // fifteen-domain ledgers (evidence refs travel with each row).
   const prerequisites: TeachingPrerequisiteAuthoring[] = [];
+  const suppressedSelfLoopPrerequisites: {
+    canonicalId: string;
+    edgeId: string;
+    evidenceRefs: readonly string[];
+  }[] = [];
   for (const domain of ALL_DOMAINS) {
     const ledger = readJson<{ rows: { canonicalId: string; family: string; disposition: string; target: string | null; evidenceRefs: string[] }[] }>(`${REMEDIATION_ROOT}/${domain}-closure/final-ledger.json`);
     for (const row of ledger.rows) {
       if (row.family !== 'prerequisite' || row.disposition !== 'PUBLISHED_EDGE' || !row.target) continue;
+      if (row.target === row.canonicalId) {
+        suppressedSelfLoopPrerequisites.push({
+          canonicalId: row.canonicalId,
+          edgeId: row.edgeId,
+          evidenceRefs: row.evidenceRefs,
+        });
+        continue;
+      }
       prerequisites.push({
         sourceCanonicalId: row.canonicalId,
         targetCanonicalId: row.target,
@@ -233,14 +295,30 @@ function main(): void {
   for (const binding of bindings) {
     if (!firstBindingByResource.has(binding.resourceId)) firstBindingByResource.set(binding.resourceId, binding.canonicalId);
   }
-  const cards: TeachingCardAuthoring[] = processingRows
+  const cardCandidates = processingRows
     .filter((row) => row.resourceSubtype === 'card' && firstBindingByResource.has(normalizedIdByRaw.get(row.resourceId) ?? ''))
-    .map((row) => ({
-      cardId: normalizedIdByRaw.get(row.resourceId) as string,
+    .map((row) => {
+      const resourceId = normalizedIdByRaw.get(row.resourceId) as string;
+      return {
+      resourceId,
+      cardId: resourceId.replace(/^act:card:/u, ''),
       canonicalId: firstBindingByResource.get(normalizedIdByRaw.get(row.resourceId) ?? '') as string,
-      active: true,
       required: false,
-    }));
+      };
+    })
+    .sort((left, right) => left.resourceId.localeCompare(right.resourceId));
+  const firstActiveCardByCanonical = new Map<string, string>();
+  for (const card of cardCandidates) {
+    if (!firstActiveCardByCanonical.has(card.canonicalId)) {
+      firstActiveCardByCanonical.set(card.canonicalId, card.resourceId);
+    }
+  }
+  const cards: TeachingCardAuthoring[] = cardCandidates.map((card) => ({
+    cardId: card.cardId,
+    canonicalId: card.canonicalId,
+    active: firstActiveCardByCanonical.get(card.canonicalId) === card.resourceId,
+    required: card.required,
+  }));
 
   const authorityNodes: AuthorityNodeIndexEntry[] = engineering.objects.map((object) => ({
     canonicalId: object.canonicalId,
@@ -298,7 +376,7 @@ function main(): void {
   for (const domain of ALL_DOMAINS) {
     const ledger = readJson<{ rows: { canonicalId: string; family: string; disposition: string; target: string | null; edgeId: string; evidenceRefs: string[] }[] }>(`${REMEDIATION_ROOT}/${domain}-closure/final-ledger.json`);
     for (const row of ledger.rows) {
-      if (row.family !== 'prerequisite' || row.disposition !== 'PUBLISHED_EDGE' || !row.target) continue;
+      if (row.family !== 'prerequisite' || row.disposition !== 'PUBLISHED_EDGE' || !row.target || row.target === row.canonicalId) continue;
       const decisionId = `dec-${row.edgeId.slice(0, 24)}`;
       prerequisiteEdges.push({
         edgeId: row.edgeId,
@@ -329,7 +407,7 @@ function main(): void {
     projectionCaptureId: staged.projectionId,
     authoringRevision,
     decisionId: edge.authorDecisionId ?? undefined,
-    decidedAt: DECIDED_AT,
+    decidedAt: args.stagedAt,
   }));
   const coreNodeRows: CoreNodeAuthoringRow[] = [...coreNodeEvidence.entries()]
     .sort((left, right) => left[0].localeCompare(right[0]))
@@ -337,7 +415,7 @@ function main(): void {
       canonicalId,
       scopeId: SCOPE_ID,
       pathEligible: true,
-      cardPolicy: 'optional',
+      cardPolicy: 'OPTIONAL',
       moduleId: null,
       rationale: rationaleByMember.get(canonicalId) ?? 'prerequisite endpoint of the #1515 three-family closure',
       sourceKind: 'PREREQUISITE_ENDPOINT',
@@ -346,6 +424,7 @@ function main(): void {
 
   const prereqStore = resolvePrerequisiteStorePaths(absolute(PREREQ_STORE_ROOT));
   const publication = stagePrerequisitePublication(prereqStore, {
+    useCurrentAsPrior: false,
     scopeId: SCOPE_ID,
     authoringRevision,
     authorityReleaseId: manifest.releaseId,
@@ -356,6 +435,24 @@ function main(): void {
     decisions: publicationDecisions,
   });
 
+  const governanceAdjustment = {
+    contract: 'act-coordinated-projection-adjustments/v1',
+    scopeHash: scopeArtifact.scopeHash,
+    authoritySnapshotHash: manifest.snapshotHash,
+    stagedAt: args.stagedAt,
+    suppressedSelfLoopPrerequisites,
+    inactiveDuplicateCards: cardCandidates
+      .filter((card) => firstActiveCardByCanonical.get(card.canonicalId) !== card.resourceId)
+      .map((card) => ({ resourceId: card.resourceId, canonicalId: card.canonicalId })),
+  };
+  const governanceOut = absolute(args.governanceOut);
+  mkdirSync(path.dirname(governanceOut), { recursive: true });
+  const governanceContent = `${JSON.stringify(governanceAdjustment, null, 2)}\n`;
+  if (existsSync(governanceOut) && readFileSync(governanceOut, 'utf8') !== governanceContent) {
+    throw new Error(`refusing to overwrite immutable governance adjustment ${governanceOut}`);
+  }
+  if (!existsSync(governanceOut)) writeFileSync(governanceOut, governanceContent, 'utf8');
+
   console.log(JSON.stringify({
     projectionId: staged.projectionId,
     projectionHash: staged.projectionHash.slice(0, 16),
@@ -364,6 +461,8 @@ function main(): void {
     bindings: bindings.length,
     prerequisites: prerequisites.length,
     cards: cards.length,
+    suppressedSelfLoopPrerequisites: suppressedSelfLoopPrerequisites.length,
+    inactiveDuplicateCards: governanceAdjustment.inactiveDuplicateCards.length,
     authorityNodes: authorityNodes.length,
     authoritySnapshotId: manifest.snapshotId,
     pointerWritten: false,
@@ -381,7 +480,7 @@ function main(): void {
   // ---- Consumer activation surface ----
   // Stages the shared-consumer activation manifest over the rehashed
   // authority snapshot and teaching projection artifacts (six consumers).
-  const snapshotDirAbs = absolute(SNAPSHOT_DIR);
+  const snapshotDirAbs = absolute(args.snapshotDir);
   const projectionDirAbs = absolute(`${TEACHING_STORE_ROOT}/releases/${staged.projectionId}`);
   const stagedProjectionManifest = readJson<{ gatePassed: boolean; projectionHash: string }>(`${TEACHING_STORE_ROOT}/releases/${staged.projectionId}/projection-manifest.json`);
   const hashFile = (filePath: string): string => createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
@@ -406,8 +505,8 @@ function main(): void {
         snapshotHash: manifest.snapshotHash,
         captureRevision: authoringRevision,
         artifactHashes: {
-          'manifest.json': hashFile(`${SNAPSHOT_DIR}/manifest.json`),
-          'engineering.json': hashFile(`${SNAPSHOT_DIR}/engineering.json`),
+          'manifest.json': hashFile(path.join(args.snapshotDir, 'manifest.json')),
+          'engineering.json': hashFile(path.join(args.snapshotDir, 'engineering.json')),
         },
         artifactPaths: {
           'manifest.json': `${snapshotDirAbs}/manifest.json`,
@@ -429,7 +528,7 @@ function main(): void {
         hasImpactReport: true,
       },
     },
-    stagedAt: DECIDED_AT,
+    stagedAt: args.stagedAt,
   });
 
   console.log(JSON.stringify({

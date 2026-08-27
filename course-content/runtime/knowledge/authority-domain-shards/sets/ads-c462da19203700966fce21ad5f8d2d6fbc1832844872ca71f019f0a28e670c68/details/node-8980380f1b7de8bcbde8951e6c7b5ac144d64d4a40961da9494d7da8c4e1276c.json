@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-d0bbd47344ce89d1aa32ba41",
+    "canonicalType": "KnowledgeStatement",
+    "label": "继电特性常常使系统产生振荡现象。当系统受扰使|x（t）|≠0，从而输出c（t）偏离原平衡状态，随后由于|x（t）|的减小，k随之增大，在力图使输出回到原平衡状态的过程中，因为实际系统中的继电特性具有一定的开关速度，c（t）呈现为零附近的高频小幅度振荡。",
+    "aliases": [],
+    "description": "继电特性常常使系统产生振荡现象。当系统受扰使|x(t)|≠0，从而输出c(t)偏离原平衡状态，随后由于|x(t)|的减小，k随之增大，在力图使输出回到原平衡状态的过程中，因为实际系统中的继电特性具有一定的开关速度，c(t)呈现为零附近的高频小幅度振荡。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

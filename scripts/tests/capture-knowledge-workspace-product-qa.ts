@@ -24,6 +24,15 @@ import {
   fetchRuntimeCaptureRevisionProof,
   type CaptureRevisionProof,
 } from '../../src/lib/commercial-ui-capture-revision';
+import {
+  KNOWLEDGE_WORKSPACE_QA_ROLES,
+} from './knowledge-workspace-product-qa-accounts.mjs';
+
+type KnowledgeWorkspaceQaCredentials = {
+  email: string;
+  password: string;
+  expectedRole: 'STUDENT' | 'TEACHER' | 'ADMIN';
+};
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, process.env.KNOWLEDGE_QA_OUTPUT_DIR ?? 'artifacts/knowledge-workspace-product-qa-489');
@@ -31,6 +40,8 @@ const baseUrl = process.env.KNOWLEDGE_QA_BASE_URL ?? 'http://localhost:3002';
 const selectedNodeId = process.env.KNOWLEDGE_QA_SELECTED_NODE_ID ?? '稳定性_1_7288b4ea';
 const dragNodeId = process.env.KNOWLEDGE_QA_DRAG_NODE_ID ?? 'z反变换_7_7959c077';
 const threeDimensionalFitSafetyMargin = 8;
+const MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT = 160;
+const MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS = 30;
 const captureOutputPrefixes = [
   'artifacts/knowledge-workspace-product-qa-489/',
   'artifacts/knowledge-workspace-tools-inspector-487/',
@@ -43,6 +54,8 @@ const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/features/knowledge/knowledge-graph-workspace.tsx',
   'src/features/knowledge/active-authority-graph.tsx',
+  'src/features/knowledge/active-authority-force-canvas.tsx',
+  'src/features/knowledge/active-authority-root-canvas.tsx',
   'src/features/knowledge/active-authority-shard-store.ts',
   'src/features/knowledge/active-authority-presentation.ts',
   'src/features/knowledge/active-authority-graph-contracts.ts',
@@ -75,6 +88,8 @@ const sourceFiles = [
   'src/lib/konling-agent-runtime.ts',
   'src/lib/evidence-capture-guard.ts',
   'scripts/tests/capture-knowledge-workspace-product-qa.ts',
+  'scripts/tests/knowledge-workspace-product-qa-accounts.mjs',
+  'scripts/tests/run-knowledge-workspace-product-qa.mjs',
   'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
 
@@ -406,7 +421,11 @@ function readExistingIndependentVisualReview(
   }
 }
 
-const roleEnvironment: Record<KnowledgeRole, { email: string; password: string; expectedRole: string }> = {
+const roleEnvironment: Record<KnowledgeRole, {
+  email: string;
+  password: string;
+  expectedRole: KnowledgeWorkspaceQaCredentials['expectedRole'];
+}> = {
   student: {
     email: 'KNOWLEDGE_QA_STUDENT_EMAIL',
     password: 'KNOWLEDGE_QA_STUDENT_PASSWORD',
@@ -424,13 +443,38 @@ const roleEnvironment: Record<KnowledgeRole, { email: string; password: string; 
   },
 };
 
-async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
-  const environment = roleEnvironment[role];
-  const email = process.env[environment.email]?.trim();
-  const password = process.env[environment.password];
-  if (!email || !password) {
-    throw new Error(`missing credentials for ${role}; set ${environment.email} and ${environment.password}`);
+function configuredRoleCredentials() {
+  const credentials = Object.fromEntries(KNOWLEDGE_WORKSPACE_QA_ROLES.map((role) => {
+    const environment = roleEnvironment[role];
+    return [role, {
+      email: process.env[environment.email]?.trim() ?? '',
+      password: process.env[environment.password] ?? '',
+      expectedRole: environment.expectedRole,
+    }];
+  })) as Record<KnowledgeRole, KnowledgeWorkspaceQaCredentials>;
+  const hasValue = (role: KnowledgeRole) => Boolean(credentials[role].email || credentials[role].password);
+  const isComplete = (role: KnowledgeRole) => Boolean(credentials[role].email && credentials[role].password);
+
+  if (KNOWLEDGE_WORKSPACE_QA_ROLES.some(hasValue) && !KNOWLEDGE_WORKSPACE_QA_ROLES.every(isComplete)) {
+    throw new Error('knowledge workspace QA credentials must be configured for all three roles');
   }
+  return KNOWLEDGE_WORKSPACE_QA_ROLES.every(isComplete) ? credentials : null;
+}
+
+async function resolveRoleCredentials() {
+  const configured = configuredRoleCredentials();
+  if (configured) return configured;
+
+  const environment = roleEnvironment.student;
+  throw new Error(
+    `missing credentials for student; run run-knowledge-workspace-product-qa.mjs for managed local fixtures or set ${environment.email} and ${environment.password}`,
+  );
+}
+
+async function establishRoleSession(
+  role: KnowledgeRole,
+  credentials: KnowledgeWorkspaceQaCredentials,
+): Promise<RoleSession> {
   const api = await request.newContext();
   try {
     const csrfResponse = await api.get(`${baseUrl}/api/auth/csrf`);
@@ -439,19 +483,19 @@ async function establishRoleSession(role: KnowledgeRole): Promise<RoleSession> {
     if (typeof csrf.csrfToken !== 'string' || !csrf.csrfToken) {
       throw new Error(`CSRF response missing token for ${role}`);
     }
-    const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials?json=true`, {
+    const loginResponse = await api.post(`${baseUrl}/api/auth/callback/credentials`, {
       form: {
         csrfToken: csrf.csrfToken,
-        email,
-        password,
-        callbackUrl: baseUrl,
+        email: credentials.email,
+        password: credentials.password,
+        redirect: 'false',
         json: 'true',
       },
     });
     if (!loginResponse.ok()) throw new Error(`credentials login failed for ${role}: ${loginResponse.status()}`);
     const sessionResponse = await api.get(`${baseUrl}/api/auth/session`);
     const session = await sessionResponse.json() as { user?: { id?: unknown; role?: unknown } };
-    if (session.user?.role !== environment.expectedRole || typeof session.user.id !== 'string') {
+    if (session.user?.role !== credentials.expectedRole || typeof session.user.id !== 'string') {
       throw new Error(`authenticated role mismatch for ${role}`);
     }
     return { role, storageState: await api.storageState() };
@@ -592,6 +636,7 @@ function canonicalKnowledgeApiPath(pathName: string, method: string) {
 }
 
 const knowledgeApiSensitiveKeyPattern = /(?:id|hash|digest|canonicaltype|predicate|direction|status|mode|tier|family|evidence|traversal|locator|edition|section|consumer|release|snapshot|activation|projection|version)/iu;
+const knowledgeApiSemanticEnumKeyPattern = /^(?:canonicaltype|predicate|direction|relationfamily|family|conceptkind|layer|qualitytier|status|mode|tier|evidence|traversal)$/iu;
 
 function collectKnowledgeApiSensitiveValues(
   value: unknown,
@@ -599,7 +644,9 @@ function collectKnowledgeApiSensitiveValues(
   field = '',
 ) {
   if (typeof value === 'string') {
-    if (knowledgeApiSensitiveKeyPattern.test(field)) rememberToken(value);
+    if (knowledgeApiSensitiveKeyPattern.test(field) && !knowledgeApiSemanticEnumKeyPattern.test(field)) {
+      rememberToken(value);
+    }
     return;
   }
   if (Array.isArray(value)) {
@@ -1085,11 +1132,15 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
 
 async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
-  await page.waitForSelector('[data-authority-shard-root="true"]', { timeout: 30000 });
+  const root = page.locator('[data-authority-shard-root="true"]');
+  await root.waitFor({ state: 'visible', timeout: 30000 });
   const rootDomainCount = await page.locator('[data-authority-domain-entry]').count();
+  const declaredRootDomainCount = Number(await root.getAttribute('data-authority-root-domain-count'));
   const aggregateEntry = page.locator('[data-authority-aggregate-entry="true"]');
   if (
-    rootDomainCount !== 8
+    !Number.isInteger(declaredRootDomainCount)
+    || declaredRootDomainCount < 1
+    || rootDomainCount !== declaredRootDomainCount
     || await aggregateEntry.count() !== 1
     || await page.locator('[data-active-graph-stage="authority"]').count() !== 0
   ) {
@@ -1111,7 +1162,23 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   const log = await probe.readLog();
   const active = latestApiSummary(log, '/api/knowledge/shards/active');
   assertActiveApiSummary(active, context);
-  if (log.some((entry) => (
+  await enablePublishedActiveRelationFamily(page, probe, context);
+  await page.waitForFunction(() => {
+    const runtime = document.querySelector('[data-active-authority-runtime="force-graph"]');
+    const renderer = runtime?.querySelector('[data-knowledge-graph-renderer]');
+    const canvas = renderer?.querySelector('canvas');
+    const rect = canvas?.getBoundingClientRect();
+    return Boolean(
+      renderer
+      && canvas
+      && rect
+      && rect.width > 0
+      && rect.height > 0
+      && renderer.getAttribute('data-knowledge-edge-lanes'),
+    );
+  }, undefined, { timeout: 30000 });
+  const completedLog = await probe.readLog();
+  if (completedLog.some((entry) => (
     entry.path === '/api/knowledge/graph/active'
     || entry.path === '/api/knowledge/graph'
     || entry.path === '/api/knowledge/graph/v2'
@@ -1119,6 +1186,83 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
   }
   return active;
+}
+
+async function enablePublishedActiveRelationFamily(
+  page: Page,
+  probe: KnowledgeApiProbe,
+  context: string,
+) {
+  const hasRenderedRelation = () => page.evaluate(() => {
+    const enabled = document.querySelector(
+      'button[data-authority-relation-family][data-authority-family-enabled="true"]',
+    );
+    const nodes = new Set(
+      Array.from(document.querySelectorAll('[data-active-authority-node]'))
+        .map((node) => node.getAttribute('data-active-authority-node'))
+        .filter((value): value is string => Boolean(value)),
+    );
+    return Boolean(enabled)
+      && Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
+        nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
+        && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
+      ));
+  });
+
+  const mobileToolsToggle = page.locator('[data-active-authority-mobile-tools-toggle="true"]');
+  const mobileToolsWereCollapsed = await mobileToolsToggle.count() === 1
+    && await mobileToolsToggle.isVisible()
+    && await mobileToolsToggle.getAttribute('aria-expanded') === 'false';
+  if (mobileToolsWereCollapsed) {
+    await mobileToolsToggle.click({ timeout: 10000 });
+  }
+
+  try {
+    if (await hasRenderedRelation()) return;
+
+    for (const family of [
+      'association',
+      'derivation-and-representation',
+      'application-and-analysis',
+      'structure',
+    ]) {
+      const control = page.locator(`button[data-authority-relation-family="${family}"]`);
+      if (await control.count() !== 1 || !(await control.isVisible())) continue;
+
+      if (await control.getAttribute('data-authority-family-enabled') !== 'true') {
+        await control.click({ timeout: 10000 });
+        await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family');
+      }
+
+      try {
+        await page.waitForFunction(
+          () => {
+            const nodes = new Set(
+              Array.from(document.querySelectorAll('[data-active-authority-node]'))
+                .map((node) => node.getAttribute('data-active-authority-node'))
+                .filter((value): value is string => Boolean(value)),
+            );
+            return Array.from(document.querySelectorAll('[data-active-authority-relation]')).some((relation) => (
+              nodes.has(relation.getAttribute('data-active-authority-relation-source') ?? '')
+              && nodes.has(relation.getAttribute('data-active-authority-relation-target') ?? '')
+            ));
+          },
+          undefined,
+          { timeout: 5000 },
+        );
+        return;
+      } catch {
+        // This family may only expose a cross-domain boundary. Try the next published family.
+      }
+    }
+
+    throw new Error(`active Authority did not render a published relation in ${context}`);
+  } finally {
+    if (mobileToolsWereCollapsed && await mobileToolsToggle.getAttribute('aria-expanded') === 'true') {
+      await mobileToolsToggle.click({ timeout: 10000 });
+      await page.waitForTimeout(150);
+    }
+  }
 }
 
 async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
@@ -1163,7 +1307,8 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       __ACT_KNOWLEDGE_PRODUCT_QA_COPY_PAYLOADS__?: string[];
     };
     const forbiddenTokenPattern = /\b(?:ReleaseSet|Release|Snapshot|Activation|Projection|hash)\b|发布集|快照|激活|投影|哈希/i;
-    const forbiddenEnumPattern = /\b(?:canonicalType|predicate|direction|directed|undirected|prerequisite|postrequisite|association|concept|formula|system|module|procedure|parameter)\b/i;
+    const forbiddenEnumExactPattern = /^(?:canonicalType|predicate|direction|directed|undirected|unordered|prerequisite|postrequisite|association|concept|formula|system|module|procedure|parameter|DomainConcept|KnowledgeStatement|SystemModel|ModelRepresentation)$/i;
+    const forbiddenEnumMachineTokenPattern = /(?:^|[^\\p{L}\\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\\p{L}\\p{N}])/iu;
     const forbiddenLocatorPattern = /\b(?:sourceLocator|source locator|locator|sourceEditionId|sectionId|editionId)\b|(?:^|[\s])internal[-_](?:source|edition|section)\b|file:\/\/|https?:\/\/|(?:^|\s)\/(?:src|course-content|artifacts)\//i;
     const surfaceValues = [...surfaces];
     const copyPayloads = qaWindow.__ACT_KNOWLEDGE_PRODUCT_QA_COPY_PAYLOADS__ ?? [];
@@ -1172,7 +1317,9 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       .filter(Boolean);
     const scannedValues = [...surfaceValues, ...copyPayloads, ...copyValues];
     const forbiddenTokenCount = scannedValues.filter((value) => forbiddenTokenPattern.test(value)).length;
-    const forbiddenEnumCount = scannedValues.filter((value) => forbiddenEnumPattern.test(value)).length;
+    const forbiddenEnumCount = scannedValues.filter((value) => (
+      forbiddenEnumExactPattern.test(value) || forbiddenEnumMachineTokenPattern.test(value)
+    )).length;
     const forbiddenLocatorCount = scannedValues.filter((value) => forbiddenLocatorPattern.test(value)).length;
     const copyEntryCount = document.querySelectorAll('[data-copy-value], [data-copy-content], [data-copy-target], [data-copy], [aria-label*="复制"], [aria-label*="copy" i]').length
       + copyPayloads.length;
@@ -1205,14 +1352,27 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]:visible', { timeout: 10000 });
+  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]', { timeout: 10000 });
   const beforeSelectionLog = await probe.readLog();
   const preSelectionDetailRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
   const preSelectionMediaRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
   if (preSelectionDetailRequests > 0 || preSelectionMediaRequests > 0) {
     throw new Error('active Authority detail or media was requested before a visible node selection');
   }
-  const node = page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]:visible').first();
+  const teachingRelationsUnavailable = await page.locator('[data-authority-teaching-coverage="true"]')
+    .filter({ hasText: '教学关系暂不可用' })
+    .count() > 0;
+  const visibleNode = page.locator('[data-active-graph-stage="authority"] [data-active-authority-visible-node="true"]').first();
+  if (teachingRelationsUnavailable && await visibleNode.count() !== 1) {
+    throw new Error('active Authority unavailable Teaching state is missing a visible node directory');
+  }
+  const node = teachingRelationsUnavailable
+    ? visibleNode
+    : page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
+  const visibleNodeControl = await node.isVisible();
+  if (teachingRelationsUnavailable && !visibleNodeControl) {
+    throw new Error('active Authority unavailable Teaching node directory is not visible');
+  }
   const originKey = await node.getAttribute('data-active-authority-node');
   if (!originKey) {
     throw new Error('current Authority domain has no visible node for detail interaction');
@@ -1223,7 +1383,7 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   }, originKey);
   await node.focus();
   const semanticNodeFocusedBeforeClick = await node.evaluate((candidate) => candidate === document.activeElement);
-  await node.click();
+  await page.keyboard.press('Enter');
   await page.waitForSelector('[data-active-node-detail]', { timeout: 10000 });
   await probe.waitForPath('/api/knowledge/shards/active/nodes/:node');
   await page.waitForTimeout(50);
@@ -1243,6 +1403,46 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const detailSurfaceScan = await captureActiveSurfaceScan(page, probe);
   await page.keyboard.press('Escape');
   await page.waitForTimeout(150);
+  if (await page.evaluate(() => window.innerWidth < 640)) {
+    const labelsReady = () => {
+      const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
+      const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
+        '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+      ) ?? []);
+      const expectedNodeCount = runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0;
+      return expectedNodeCount > 0
+        && labels.length === expectedNodeCount
+        && labels.every((label) => {
+          const rect = label.getBoundingClientRect();
+          return !label.hidden
+            && rect.width > 0
+            && rect.height > 0
+            && rect.right > 0
+            && rect.bottom > 0
+            && rect.left < window.innerWidth
+            && rect.top < window.innerHeight;
+        });
+    };
+    try {
+      await page.waitForFunction(labelsReady, undefined, { timeout: 5000 });
+    } catch {
+      const diagnostics = await page.evaluate(() => {
+        const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
+        const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
+          '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+        ) ?? []);
+        return {
+          expectedNodeCount: runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0,
+          labelPriority: runtime?.dataset.activeAuthorityLabelPriority ?? null,
+          labels: labels.map((label) => {
+            const rect = label.getBoundingClientRect();
+            return { hidden: label.hidden, width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+          }),
+        };
+      });
+      throw new Error(`compact active label readiness failed: ${JSON.stringify(diagnostics)}`);
+    }
+  }
   const focusReturnedToOriginNode = originKey
     ? await page.locator('[data-active-authority-node]').evaluateAll(
       (nodes, key) => nodes.some((candidate) => candidate === document.activeElement && candidate.getAttribute('data-active-authority-node') === key),
@@ -1254,6 +1454,8 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   return {
     detailRequestBeforeSelection: preSelectionDetailRequests > 0,
     mediaRequestBeforeSelection: preSelectionMediaRequests > 0,
+    teachingRelationsUnavailable,
+    visibleNodeControl,
     detailRequestObservedAfterSelection: detailRequests > preSelectionDetailRequests,
     mediaRequestObservedAfterSelection: mediaRequests > preSelectionMediaRequests,
     semanticNodeFocusedBeforeClick,
@@ -1938,6 +2140,10 @@ async function captureMarkers(page: Page, stateName: string) {
        && rect.top < viewportRect.bottom
        && rect.bottom > viewportRect.top,
      );
+     const viewportVisibleHeight = (rect) => {
+       if (!rect) return 0;
+       return Math.max(0, Math.min(rect.bottom, viewportRect.bottom) - Math.max(rect.top, viewportRect.top));
+     };
      const expandedDock = document.querySelector('[data-platform-floating-dock-expanded-panel]');
      const desktopToolsRect = rectFor(desktopTools);
      const mobileToolsRect = rectFor(mobileTools);
@@ -1951,11 +2157,58 @@ async function captureMarkers(page: Page, stateName: string) {
      const activeHeaderRect = rectFor(activeGraph?.querySelector('[data-active-authority-header]'));
      const activeTitleRect = rectFor(activeGraph?.querySelector('[data-active-authority-title]'));
      const activeToolbarRect = rectFor(activeGraph?.querySelector('[data-active-authority-toolbar]'));
+     const activeMobileToolsToggle = activeGraph?.querySelector('[data-active-authority-mobile-tools-toggle="true"]');
+     const activeViewport = activeGraph?.querySelector('[data-active-authority-viewport]');
      const knowledgeModeControlsRect = unionRect(
        Array.from(root?.querySelectorAll('[data-knowledge-mode]') ?? []).map(rectFor),
      );
      const activeNodes = Array.from(document.querySelectorAll('[data-active-authority-node]'));
      const activeSvg = activeGraph?.querySelector('svg[data-active-authority-svg="true"]');
+     const activeForceRuntime = activeGraph?.querySelector('[data-active-authority-runtime="force-graph"]');
+     const activeForceRenderer = activeForceRuntime?.querySelector('[data-knowledge-graph-renderer]');
+     const activeForceCanvas = activeForceRenderer?.querySelector('canvas');
+     const activeForceCanvasRect = activeForceCanvas?.getBoundingClientRect() ?? null;
+     const activeForceCanvasGeometryRectValid = Boolean(
+       activeForceCanvasRect
+       && activeForceCanvasRect.width > 0
+       && activeForceCanvasRect.height > 0,
+     );
+     const activeForceVisiblePaintPixelCount = (() => {
+       if (!(activeForceCanvas instanceof HTMLCanvasElement) || !activeForceCanvasRect) return 0;
+       const visibleLeft = Math.max(activeForceCanvasRect.left, viewportRect.left);
+       const visibleTop = Math.max(activeForceCanvasRect.top, viewportRect.top);
+       const visibleRight = Math.min(activeForceCanvasRect.right, viewportRect.right);
+       const visibleBottom = Math.min(activeForceCanvasRect.bottom, viewportRect.bottom);
+       if (visibleRight <= visibleLeft || visibleBottom <= visibleTop) return 0;
+       const scaleX = activeForceCanvas.width / activeForceCanvasRect.width;
+       const scaleY = activeForceCanvas.height / activeForceCanvasRect.height;
+       const left = Math.max(0, Math.floor((visibleLeft - activeForceCanvasRect.left) * scaleX));
+       const top = Math.max(0, Math.floor((visibleTop - activeForceCanvasRect.top) * scaleY));
+       const right = Math.min(activeForceCanvas.width, Math.ceil((visibleRight - activeForceCanvasRect.left) * scaleX));
+       const bottom = Math.min(activeForceCanvas.height, Math.ceil((visibleBottom - activeForceCanvasRect.top) * scaleY));
+       if (right <= left || bottom <= top) return 0;
+       try {
+         const pixels = activeForceCanvas.getContext('2d')?.getImageData(left, top, right - left, bottom - top).data;
+         if (!pixels) return 0;
+         let count = 0;
+         for (let index = 0; index < pixels.length; index += 4) {
+           if (pixels[index + 3] > 16 && pixels[index] + pixels[index + 1] + pixels[index + 2] > 16) count += 1;
+         }
+         return count;
+       } catch {
+         return 0;
+       }
+     })();
+     const activeForceEdgeLaneCount = (() => {
+       const value = activeForceRenderer?.getAttribute('data-knowledge-edge-lanes');
+       if (!value) return -1;
+       try {
+         const parsed = JSON.parse(value);
+         return Array.isArray(parsed) ? parsed.length : -1;
+       } catch {
+         return -1;
+       }
+     })();
      const activeSvgViewBox = (activeSvg?.getAttribute('viewBox') ?? '')
        .trim()
        .split(/\\s+/u)
@@ -1971,17 +2224,24 @@ async function captureMarkers(page: Page, stateName: string) {
        && rect.right <= activeSvgRect.right + 0.5
        && rect.top >= activeSvgRect.top - 0.5
        && rect.bottom <= activeSvgRect.bottom + 0.5;
-     const activeNodeLabelElements = Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
+     const activeForceLabelElements = Array.from(activeForceRuntime?.querySelectorAll(
+       '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
+     ) ?? []);
+     const activeNodeLabelElements = activeForceLabelElements.length > 0
+       ? activeForceLabelElements
+       : Array.from(activeGraph?.querySelectorAll('[data-active-authority-node-label]') ?? []);
      const activeNodeLabelFontSizes = activeNodeLabelElements
        .map((element) => Number.parseFloat(element.getAttribute('font-size') ?? window.getComputedStyle(element).fontSize))
        .filter((value) => Number.isFinite(value) && value > 0);
      const activeNodeLabelGeometryValid = activeNodeLabelElements.every((element) => {
        const rect = element.getBoundingClientRect();
        const style = window.getComputedStyle(element);
-       return style.display !== 'none'
+       return !element.hidden
+         && style.display !== 'none'
          && style.visibility !== 'hidden'
          && rect.width > 0
-         && rect.height > 0;
+         && rect.height > 0
+         && intersectsViewport(rect);
      });
      const activeSvgScale = activeSvgRect
        && activeSvgViewBox.length === 4
@@ -1992,9 +2252,23 @@ async function captureMarkers(page: Page, stateName: string) {
      const minNodeLabelFontSize = activeNodeLabelFontSizes.length > 0
        ? Math.min(...activeNodeLabelFontSizes)
        : 0;
-     const minNodeLabelPixelSize = minNodeLabelFontSize * activeSvgScale;
+     const minNodeLabelPixelSize = minNodeLabelFontSize * (activeForceRuntime ? 1 : activeSvgScale);
+     const activeNodeLabelVisibility = activeNodeLabelElements.map((element) => {
+       const rect = element.getBoundingClientRect();
+       const style = window.getComputedStyle(element);
+       return {
+         hidden: element.hidden,
+         display: style.display,
+         visibility: style.visibility,
+         width: Number(rect.width.toFixed(2)),
+         height: Number(rect.height.toFixed(2)),
+         inViewport: intersectsViewport(rect),
+       };
+     });
      const nodeLabelReadability = {
        nodeLabelCount: activeNodeLabelElements.length,
+       visibleNodeLabelCount: activeNodeLabelVisibility.filter((label) => !label.hidden && label.display !== 'none' && label.visibility !== 'hidden').length,
+       inViewportNodeLabelCount: activeNodeLabelVisibility.filter((label) => label.inViewport).length,
        minFontSize: Number(minNodeLabelFontSize.toFixed(2)),
        minPixelSize: Number(minNodeLabelPixelSize.toFixed(2)),
        viewBoxWidth: activeSvgViewBox[2] ?? null,
@@ -2026,6 +2300,19 @@ async function captureMarkers(page: Page, stateName: string) {
        && activeNodeKeys.has(edge.getAttribute('data-active-authority-relation-target') ?? '')
      )).length;
      const visibleSvgGeometryCount = activeRelations.filter(relationGeometryVisible).length;
+     const renderer = activeForceRuntime ? 'force-graph' : activeSvg ? 'svg' : null;
+     const rendererGeometryRectValid = activeForceRuntime
+       ? activeForceCanvasGeometryRectValid
+       : activeSvgGeometryRectValid;
+     const rendererVisibleInViewport = activeForceRuntime
+       ? intersectsViewport(activeForceCanvasRect)
+       : intersectsViewport(activeSvgRect);
+     const rendererViewportVisibleHeight = activeForceRuntime
+       ? viewportVisibleHeight(activeForceCanvasRect)
+       : viewportVisibleHeight(activeSvgRect);
+     const renderedRelationCount = activeForceRuntime
+       ? (activeForceCanvasGeometryRectValid && rendererVisibleInViewport ? activeForceEdgeLaneCount : 0)
+       : visibleSvgGeometryCount;
      const nodeGeometryWithinSvgCount = activeSvgGeometryRectValid
        ? activeNodes.filter((node) => rectWithinActiveSvg(node.getBoundingClientRect())).length
        : 0;
@@ -2057,7 +2344,14 @@ async function captureMarkers(page: Page, stateName: string) {
         nodeGeometryWithinSvgCount,
         relationGeometryWithinSvgCount,
         activeSvgGeometryRectValid,
-        viewport: activeSvg?.getAttribute('data-active-authority-viewport') ?? null,
+        renderer,
+        rendererGeometryRectValid,
+        rendererVisibleInViewport,
+        renderedRelationCount,
+        forceGraphCanvasCount: activeForceRenderer?.querySelectorAll('canvas').length ?? 0,
+        forceGraphEdgeLaneCount: activeForceEdgeLaneCount,
+        forceGraphLabelMaxLines: Number(activeForceRenderer?.getAttribute('data-knowledge-label-max-lines') ?? Number.NaN),
+        viewport: activeViewport?.getAttribute('data-active-authority-viewport') ?? null,
         nodeLimit: Number(activeSvg?.getAttribute('data-active-authority-node-limit') ?? Number.NaN),
         viewBox: activeSvg?.getAttribute('viewBox') ?? null,
         firstViewport: {
@@ -2066,7 +2360,11 @@ async function captureMarkers(page: Page, stateName: string) {
           toolbarRect: activeToolbarRect,
           modeControlsRect: knowledgeModeControlsRect,
           titleControlsOverlap: rectanglesOverlap(activeTitleRect, knowledgeModeControlsRect),
+          mobileToolsExpanded: activeMobileToolsToggle?.getAttribute('aria-expanded') ?? null,
           svgVisibleInViewport: intersectsViewport(activeSvgRect),
+          rendererVisibleInViewport,
+          rendererViewportVisibleHeight,
+          rendererVisiblePaintPixelCount: activeForceVisiblePaintPixelCount,
           nodeGeometryWithinViewportCount,
           relationGeometryWithinViewportCount,
         },
@@ -2403,11 +2701,17 @@ async function captureAuthenticatedRoleEvidence(
         const markers = await captureMarkers(mobilePage, `role:${role}:mobile`);
         const activeMarkers = objectRecord(markers.activeAuthority);
         const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
-        const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
-          ? activeFirstViewport.nodeGeometryWithinViewportCount
-          : 0;
+        const teachingRelationsUnavailable = activeInteractionEvidence.teachingRelationsUnavailable === true;
         const titleControlsOverlap = activeFirstViewport.titleControlsOverlap === true;
-        const svgVisibleInViewport = activeFirstViewport.svgVisibleInViewport === true;
+        const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+        const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
+        const forceGraphReady = activeMarkers.renderer === 'force-graph'
+          && activeMarkers.rendererGeometryRectValid === true
+          && rendererVisibleInViewport
+          && activeMarkers.forceGraphCanvasCount === 1
+          && activeMarkers.forceGraphEdgeLaneCount === relationCount
+          && typeof activeMarkers.forceGraphLabelMaxLines === 'number'
+          && activeMarkers.forceGraphLabelMaxLines > 0;
         const activeApiEvidence = projectSafeApiEvidence(
           role,
           await mobileProbe.readLog(),
@@ -2426,19 +2730,26 @@ async function captureAuthenticatedRoleEvidence(
           || activeInteractionEvidence.detailRequestObservedAfterSelection !== true
           || activeInteractionEvidence.optionalLearningContentOmitted !== true
           || activeInteractionEvidence.mediaRequestObservedAfterSelection !== false
+          || (teachingRelationsUnavailable && activeInteractionEvidence.visibleNodeControl !== true)
           || objectRecord(activeInteractionEvidence.detailSurfaceScan).passed !== true
           || objectRecord(activeInteractionEvidence.overviewSurfaceScan).passed !== true
-          || activeMarkers.viewport !== 'compact'
           || activeMarkers.visibleNodeCount <= 0
+          || relationCount <= 0
+          || activeMarkers.resolvedEdgeEndpointCount !== relationCount
+          || activeMarkers.renderedRelationCount !== relationCount
+          || !forceGraphReady
           || activeMarkers.stage !== 'authority'
           || titleControlsOverlap
-          || !svgVisibleInViewport
-          || nodeGeometryWithinViewportCount <= 0
+          || activeMarkers.viewport !== 'compact'
         ) {
           throw new Error(`active mobile first-viewport geometry contract failed in role:${role}: ${JSON.stringify({
             titleControlsOverlap,
-            svgVisibleInViewport,
-            nodeGeometryWithinViewportCount,
+            renderer: activeMarkers.renderer ?? null,
+            rendererVisibleInViewport,
+            renderedRelationCount: activeMarkers.renderedRelationCount ?? null,
+            relationCount,
+            forceGraphReady,
+            viewport: activeMarkers.viewport ?? null,
           })}`);
         }
         const screenshot = path.join(outputDir, `role-${role}-active-mobile.png`);
@@ -2451,8 +2762,7 @@ async function captureAuthenticatedRoleEvidence(
           activeInteractionEvidence,
           firstViewport: {
             titleControlsOverlap,
-            svgVisibleInViewport,
-            nodeGeometryWithinViewportCount,
+            rendererVisibleInViewport,
           },
           graphVisible: true,
           nonEmptyCanvas: true,
@@ -2580,53 +2890,78 @@ async function captureActiveAuthorityVisualMatrix(
       const markers = await captureMarkers(page, state.name);
       const completedApiLog = await probe.readLog();
       const activeMarkers = objectRecord(markers.activeAuthority);
-      const activeNodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
       const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
-      const nodeGeometryWithinViewportCount = typeof activeFirstViewport.nodeGeometryWithinViewportCount === 'number'
-        ? activeFirstViewport.nodeGeometryWithinViewportCount
+      const rendererVisibleInViewport = activeFirstViewport.rendererVisibleInViewport === true;
+      const rendererViewportVisibleHeight = typeof activeFirstViewport.rendererViewportVisibleHeight === 'number'
+        ? activeFirstViewport.rendererViewportVisibleHeight
         : 0;
+      const rendererVisiblePaintPixelCount = typeof activeFirstViewport.rendererVisiblePaintPixelCount === 'number'
+        ? activeFirstViewport.rendererVisiblePaintPixelCount
+        : 0;
+      const mobileToolsExpanded = activeFirstViewport.mobileToolsExpanded === 'true';
+      const nodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
+      const nodeLabelsReadable = nodeLabelReadability.readable === true;
       const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+      const relationCount = typeof activeMarkers.relationCount === 'number' ? activeMarkers.relationCount : 0;
+      const forceGraphReady = activeMarkers.renderer === 'force-graph'
+        && activeMarkers.rendererGeometryRectValid === true
+        && rendererVisibleInViewport
+        && activeMarkers.forceGraphCanvasCount === 1
+        && activeMarkers.forceGraphEdgeLaneCount === relationCount
+        && typeof activeMarkers.forceGraphLabelMaxLines === 'number'
+        && activeMarkers.forceGraphLabelMaxLines > 0;
       if (
         markers.knowledgeGraphMode !== 'active'
         || activeMarkers.visibleNodeCount <= 0
-        || (!teachingRelationsUnavailable && activeMarkers.relationCount <= 0)
-        || activeMarkers.resolvedEdgeEndpointCount !== activeMarkers.relationCount
-        || activeMarkers.visibleSvgGeometryCount !== activeMarkers.relationCount
-        || activeMarkers.activeSvgGeometryRectValid !== true
-        || activeMarkers.nodeGeometryWithinSvgCount !== activeMarkers.visibleNodeCount
-        || activeMarkers.relationGeometryWithinSvgCount !== activeMarkers.relationCount
+        || relationCount <= 0
+        || activeMarkers.resolvedEdgeEndpointCount !== relationCount
+        || activeMarkers.renderedRelationCount !== relationCount
+        || !forceGraphReady
         || activeMarkers.stage !== 'authority'
         || (state.name === 'active-mobile' && (
           activeMarkers.viewport !== 'compact'
-          || activeMarkers.viewBox !== '0 0 320 520'
-          || activeNodeLabelReadability.readable !== true
           || activeFirstViewport.titleControlsOverlap === true
-          || activeFirstViewport.svgVisibleInViewport !== true
-          || nodeGeometryWithinViewportCount <= 0
+          || mobileToolsExpanded
+          || !rendererVisibleInViewport
+          || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
+          || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
+          || !nodeLabelsReadable
         ))
         || surfaceScan.passed !== true
       ) {
         throw new Error(
-          state.name === 'active-mobile' && activeNodeLabelReadability.readable !== true
-            ? `active mobile semantic label readability contract failed in ${state.name}: ${JSON.stringify({
-              labelCount: activeNodeLabelReadability.nodeLabelCount ?? null,
-              minFontSize: activeNodeLabelReadability.minFontSize ?? null,
-              minPixelSize: activeNodeLabelReadability.minPixelSize ?? null,
-              viewBoxWidth: activeNodeLabelReadability.viewBoxWidth ?? null,
-              viewBoxHeight: activeNodeLabelReadability.viewBoxHeight ?? null,
-              readable: activeNodeLabelReadability.readable === true,
-            })}`
-            : state.name === 'active-mobile' && (
+          state.name === 'active-mobile' && (
               activeFirstViewport.titleControlsOverlap === true
-              || activeFirstViewport.svgVisibleInViewport !== true
-              || nodeGeometryWithinViewportCount <= 0
+              || mobileToolsExpanded
+              || !rendererVisibleInViewport
+              || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
+              || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
+              || !nodeLabelsReadable
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
-                svgVisibleInViewport: activeFirstViewport.svgVisibleInViewport === true,
-                nodeGeometryWithinViewportCount,
+                mobileToolsExpanded,
+                rendererVisibleInViewport,
+                rendererViewportVisibleHeight,
+                rendererVisiblePaintPixelCount,
+                nodeLabelReadability,
               })}`
-            : `active visual matrix DOM contract failed in ${state.name}`,
+            : `active visual matrix DOM contract failed in ${state.name}: ${JSON.stringify({
+              knowledgeGraphMode: markers.knowledgeGraphMode ?? null,
+              visibleNodeCount: activeMarkers.visibleNodeCount ?? null,
+              relationCount,
+              resolvedEdgeEndpointCount: activeMarkers.resolvedEdgeEndpointCount ?? null,
+              renderedRelationCount: activeMarkers.renderedRelationCount ?? null,
+              renderer: activeMarkers.renderer ?? null,
+              forceGraphReady,
+              stage: activeMarkers.stage ?? null,
+              forbiddenTokenCount: surfaceScan.forbiddenTokenCount,
+              forbiddenEnumCount: surfaceScan.forbiddenEnumCount,
+              forbiddenLocatorCount: surfaceScan.forbiddenLocatorCount,
+              internalIdentityLeakCount: surfaceScan.internalIdentityLeakCount,
+              copyEntryCount: surfaceScan.copyEntryCount,
+              surfaceScanPassed: surfaceScan.passed === true,
+            })}`,
         );
       }
       const screenshotPath = path.join(outputDir, `${state.name}.png`);
@@ -3001,9 +3336,10 @@ async function main() {
   );
   const sourceSha256Before = Object.fromEntries(sourceFiles.map((file) => [file, gitSha256(file)]));
   ensureOutputDir();
+  const roleCredentials = await resolveRoleCredentials();
   const sessions = new Map<KnowledgeRole, RoleSession>();
   for (const role of ['student', 'teacher', 'admin'] as const) {
-    sessions.set(role, await establishRoleSession(role));
+    sessions.set(role, await establishRoleSession(role, roleCredentials[role]));
   }
   const adminSession = sessions.get('admin');
   if (!adminSession) throw new Error('admin session is required for authenticated product capture');

@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogVersion": "v0.37-r4-c4-candidate"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-deb4c027e8b4c5c4e94f70b7",
+    "canonicalType": "KnowledgeStatement",
+    "label": "名称暂不可用",
+    "aliases": [],
+    "description": "再求闭环脉冲传递函数Φ(z)=G(z)/(1+G(z))=0.368z+0.264/(z^2-z+0.632)。将R(z)=z/(z-1)代入上式，求出单位阶跃序列响应的z变换：C(z)=Φ(z)R(z)=0.368z^{-1}+0.264z^{-2}/(1-2z^{-1}+1.632z^{-2}-0.632z^{-3})。通过综合除法，将C(z)展成无穷幂级数。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

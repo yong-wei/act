@@ -1,0 +1,24 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation-receipt/v1",
+  "receiptId": "coordinated-r4-c4-consumers-v022",
+  "activationId": "activation-cebf24e4de846c1e49c8564c",
+  "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+  "previousActivationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+  "previousActivationHash": "63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129",
+  "activatedAt": "2026-08-26T08:06:00.000Z",
+  "status": "activated",
+  "advancedConsumerIds": [
+    "course-runtime",
+    "engineering-graph",
+    "engineering-rag",
+    "konling",
+    "learning-path",
+    "teaching-resource-rag"
+  ],
+  "pinnedConsumerIds": [],
+  "blockedConsumerIds": [],
+  "shadowConsumerIds": [],
+  "reasons": [
+    "coordinated-runtime-candidate-selector"
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogVersion": "v0.37-r4-c4-candidate"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "canonicalType": "DomainConcept",
+      "label": "名称暂不可用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1f-v3e-relation-0ceca1df3df7ed5f471eb533",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-1387262dcf65d5c728f35c1a",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-47c888d7189288c2d84b72ce",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-4c52a895caf66a03d22c280c",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-6150abda86d66a0528db94f2",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

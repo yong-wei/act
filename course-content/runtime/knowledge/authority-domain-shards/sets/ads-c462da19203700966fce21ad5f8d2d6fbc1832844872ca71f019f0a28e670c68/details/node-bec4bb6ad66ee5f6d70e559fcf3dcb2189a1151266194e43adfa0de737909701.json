@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-781c9fafdf5057053440fcf4",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 变换系统使输出等于第一个状态。2. 将状态划分为已测量的 x_a 与未测量的 x_b。3. 将已知项视为输入，写出 x_b 的动态方程。4. 利用测量动态特性为 x_b 设计估计器。",
+    "aliases": [],
+    "description": "1. Transform system so that output equals the first state. 2. Partition state into measured x_a and unmeasured x_b. 3. Write dynamics for x_b treating known terms as input. 4. Use measured dynamics to design estimator for x_b.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

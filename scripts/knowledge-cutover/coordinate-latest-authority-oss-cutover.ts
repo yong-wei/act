@@ -23,7 +23,7 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { readdirSync } from 'node:fs';
+import { readdirSync, realpathSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -46,6 +46,7 @@ import {
 } from '@/lib/latest-authority-oss-cutover/denominator';
 import {
   assertCandidateReceiptSelfHash,
+  assertAllocationRecordSealed,
   bindInnerArtifact,
   reopenAndVerifyCandidate,
   sealCoordinatedCandidateReceipt,
@@ -66,8 +67,21 @@ import { reopenRemediationHandoff } from '@/lib/formal-resource-remediation/hand
 import type { RemediationAllocation } from '@/lib/formal-resource-remediation/allocation';
 import type { RemediationHandoffManifest } from '@/lib/formal-resource-remediation/contracts';
 import { projectionDigest } from '@/lib/teaching-projection/hash';
-import { resolveLatestStableAggregate } from '../actkg-release/latest-stable-aggregate';
 import { REVIEWED_V0_18_V2_REGISTRY } from '../actkg-release/bundle-compatibility-registry-v2';
+import {
+  adapterSupportsPublicBundle3,
+  assertMaterializedActkgDirectoryRegular,
+  assertMaterializedActkgFileRegular,
+  assertSealedActkgTreeDirectory,
+  assertSealedActkgTreeFile,
+  capturedPublicContractFromBundle,
+  discoverLatestCompleteAggregate,
+  inspectActkgWorktreeDirty,
+  materializeSealedActkgCommit,
+  parseSixKindComponentClosure,
+  readSealedBundleIdentity,
+  resolveSealedActkgMainCommit,
+} from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
 
 const execFileAsync = promisify(execFile);
 
@@ -154,70 +168,128 @@ async function runCapture(values: Map<string, string>): Promise<void> {
       fail(`git fetch --tags failed in ${actkgRoot}: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
-  const resolution = await resolveLatestStableAggregate({
-    actkgRoot,
-    mainRef,
-  });
-  const binding = resolution.binding;
-  const componentsFile = values.get('--components');
-  const components: AuthorityComponentIdentity[] = componentsFile
-    ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
-    : fail('--components <json> with the six-kind component closure is required');
-  const supported = values.get('--supported-contract')
-    ? (await readJson(values.get('--supported-contract') as string)) as SupportedPublicContract
-    : defaultSupportedContract();
-  const capturedPublicContract: CapturedPublicContract = {
-    schemaVersion: binding.schemaVersion,
-    schemaSha256: binding.schemaSha256,
-    contractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
-    requiredMembers: supported.requiredMembers,
-    profiles: [...new Set(supported.profiles)],
-    // resolveLatestStableAggregate already performs the complete bundle
-    // validation (SHA256SUMS, manifest, validation report, closure), which
-    // is the representative adapter parse for the captured tree.
-    representativeParse: 'COMPLETE',
+  const dirty = inspectActkgWorktreeDirty(actkgRoot);
+  const actkgMainCommit = resolveSealedActkgMainCommit(actkgRoot, mainRef);
+  const checkedRoot = realpathSync(actkgRoot);
+  const toSealedRelative = (input: string, label: string, directory = false): string => {
+    const absolute = directory
+      ? assertSealedActkgTreeDirectory(actkgRoot, actkgMainCommit, input, label)
+      : assertSealedActkgTreeFile(actkgRoot, actkgMainCommit, input, label);
+    return path.relative(checkedRoot, absolute);
   };
-  const input: AuthorityCaptureInput = {
-    capturedAt: new Date().toISOString(),
-    actkgMainCommit: binding.actkgMainCommit,
-    sourceCommit: binding.sourceCommit,
-    sourceTag: binding.sourceTag,
-    packagingCommit: binding.packagingCommit,
-    stableTag: binding.stableTag,
-    releaseId: binding.releaseId,
-    releaseVersion: binding.releaseVersion,
-    bundleId: binding.bundleId,
-    bundleDigest: binding.bundleDigest,
-    manifestSha256: binding.manifestSha256,
-    sha256sumsSha256: binding.sha256sumsSha256,
-    validationReportSha256: binding.validationReportSha256,
-    actkgWorktreeDirty: false,
-    componentIdentities: components,
-    predecessorBundleId: binding.predecessorBundleId,
-    candidateChain: binding.candidateChain,
-    capturedPublicContract,
-    adapterContractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
-    supportedPublicContract: supported,
-  };
-  const receipt = sealAuthorityCaptureReceipt(input);
-  await writeImmutable(
-    path.join(outDir, 'authority-capture.json'),
-    `${JSON.stringify(receipt, null, 2)}\n`,
+  const explicitBundleRelative = values.get('--bundle-dir')
+    ? toSealedRelative(values.get('--bundle-dir') as string, '--bundle-dir', true)
+    : undefined;
+  const lineageRelative = toSealedRelative(
+    values.get('--lineage')
+      ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json'),
+    '--lineage',
   );
-  if (receipt.compatibility.classification !== 'COMPATIBLE') {
-    process.stdout.write(
-      `ADAPTATION_REQUIRED\n${receipt.compatibility.incompatibleReasons.join('\n')}\n`,
+  const registrySummaryRelative = toSealedRelative(
+    values.get('--registry-summary')
+      ?? path.join(actkgRoot, 'docs/experiments/control-theory-residual-successor-registry-v14.summary.json'),
+    '--registry-summary',
+  );
+  const componentsRelative = values.get('--components')
+    ? toSealedRelative(values.get('--components') as string, '--components')
+    : undefined;
+  const sealedRoot = materializeSealedActkgCommit(actkgRoot, actkgMainCommit);
+  try {
+    const sealed = explicitBundleRelative
+      ? readSealedBundleIdentity(assertMaterializedActkgDirectoryRegular(
+        sealedRoot,
+        path.join(sealedRoot, explicitBundleRelative),
+        '--bundle-dir',
+      ))
+      : discoverLatestCompleteAggregate(sealedRoot);
+    const bundleDir = assertMaterializedActkgDirectoryRegular(
+      sealedRoot,
+      sealed.bundleDir,
+      `aggregate bundle ${sealed.stableTag}`,
     );
-    process.exitCode = 2;
-    return;
+    const lineagePath = assertMaterializedActkgFileRegular(
+      sealedRoot,
+      path.join(sealedRoot, lineageRelative),
+      '--lineage',
+    );
+    const registrySummaryPath = assertMaterializedActkgFileRegular(
+      sealedRoot,
+      path.join(sealedRoot, registrySummaryRelative),
+      '--registry-summary',
+    );
+    const componentsFile = componentsRelative
+      ? assertMaterializedActkgFileRegular(
+        sealedRoot,
+        path.join(sealedRoot, componentsRelative),
+        '--components',
+      )
+      : undefined;
+    const components: AuthorityComponentIdentity[] = componentsFile
+      ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
+      : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
+    const baseSupported = values.get('--supported-contract')
+      ? (await readJson(values.get('--supported-contract') as string)) as SupportedPublicContract
+      : defaultSupportedContract();
+    const capturedPublicContract = capturedPublicContractFromBundle(bundleDir, 'COMPLETE');
+    const supported = adapterSupportsPublicBundle3(
+      baseSupported,
+      capturedPublicContract.schemaVersion,
+      capturedPublicContract.schemaSha256,
+    );
+    const input: AuthorityCaptureInput = {
+      capturedAt: new Date().toISOString(),
+      actkgMainCommit,
+      sourceCommit: sealed.sourceCommit,
+      sourceTag: sealed.sourceTag,
+      packagingCommit: actkgMainCommit,
+      stableTag: sealed.stableTag,
+      releaseId: sealed.releaseId,
+      releaseVersion: sealed.releaseVersion,
+      bundleId: sealed.bundleId,
+      bundleDigest: sealed.bundleDigest,
+      manifestSha256: sealed.manifestSha256,
+      sha256sumsSha256: sealed.sha256sumsSha256,
+      validationReportSha256: sealed.validationReportSha256,
+      actkgWorktreeDirty: dirty,
+      componentIdentities: components,
+      predecessorBundleId: sealed.predecessorBundleId,
+      candidateChain: [sealed.bundleId],
+      capturedPublicContract,
+      adapterContractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
+      supportedPublicContract: supported,
+    };
+    const receipt = sealAuthorityCaptureReceipt(input);
+    await writeImmutable(
+      path.join(outDir, 'authority-capture.json'),
+      `${JSON.stringify(receipt, null, 2)}\n`,
+    );
+    if (receipt.compatibility.classification !== 'COMPATIBLE') {
+      process.stdout.write(
+        `ADAPTATION_REQUIRED\n${receipt.compatibility.incompatibleReasons.join('\n')}\n`,
+      );
+      process.exitCode = 2;
+      return;
+    }
+    process.stdout.write(
+      `capture=${receipt.captureId}\nrelease=${receipt.releaseId} (${receipt.releaseVersion})\ncompatibility=COMPATIBLE\n`,
+    );
+  } finally {
+    rmSync(sealedRoot, { recursive: true, force: true });
   }
-  process.stdout.write(
-    `capture=${receipt.captureId}\nrelease=${receipt.releaseId} (${receipt.releaseVersion})\ncompatibility=COMPATIBLE\n`,
-  );
 }
 
 interface PrepareInputs {
+  /**
+   * Immutable resource-baseline identity. Its lifecycle generation belongs to
+   * the frozen resource inventory rather than a later desired-state write.
+   */
   readonly activeRelease: ActiveRuntimeReleaseIdentity;
+  /**
+   * The live predecessor used by the Runtime lifecycle binding. It may have a
+   * later generation after non-selectable staging while retaining the exact
+   * immutable active Runtime bytes and receipt captured by activeRelease.
+   */
+  readonly runtimePredecessorForBinding?: ActiveRuntimeReleaseIdentity;
   readonly entries: ActiveBaselineEntry[];
   readonly delta?: ExplicitDeltaInput[];
   readonly dispositions: ResourceSuccessorDisposition[];
@@ -246,6 +318,11 @@ interface PrepareInputs {
   readonly transactionImplementationIdentity: string;
   readonly rollbackPlanHash: string;
   readonly verificationPolicyHash: string;
+  /**
+   * Optional allocation sealed before any dependent candidate artifact. This
+   * is used when the formal resource envelope itself binds the allocation.
+   */
+  readonly allocation?: CoordinationAllocationRecord;
 }
 
 interface RemediationBinding {
@@ -326,6 +403,12 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     : capture!.captureHash;
 
   const baseline = buildActiveBaseline({ activeRelease: input.activeRelease, entries: input.entries });
+  const runtimePredecessor = input.runtimePredecessorForBinding ?? input.activeRelease;
+  for (const field of ['releaseId', 'manifestSha256', 'treeSha256', 'activeReceiptHash'] as const) {
+    if (runtimePredecessor[field] !== input.activeRelease[field]) {
+      fail(`runtime predecessor binding differs from the frozen active baseline at ${field}`);
+    }
+  }
   const delta = buildExplicitDelta(input.delta ?? []);
   const denominator = buildCombinedDenominator(baseline, delta);
   const continuity = evaluateContinuityGate({
@@ -346,7 +429,25 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
   // only an unbound run seals a fresh allocation record.
   const allocation: CoordinationAllocationRecord = remediation
     ? remediation.allocation
-    : sealCoordinationAllocationRecord({
+    : input.allocation
+      ? (() => {
+        assertAllocationRecordSealed(input.allocation as CoordinationAllocationRecord);
+        const presealed = input.allocation as CoordinationAllocationRecord;
+        if (presealed.captureHash !== authorityCaptureHash
+          || presealed.scopeHash !== input.scope.scopeHash
+          || presealed.denominatorHash !== denominator.denominatorHash) {
+          fail('presealed allocation does not bind this capture, scope, and denominator');
+        }
+        if (presealed.policyVersions.continuity !== 'resource-continuity/v1'
+          || presealed.policyVersions.teachingClosure !== 'coordinated-teaching-closure/v1'
+          || presealed.policyVersions.rollback !== 'coordinated-cutover-rollback/v1'
+          || presealed.implementationIdentities.builder !== 'latest-authority-oss-cutover-builder/v1'
+          || presealed.implementationIdentities.transaction !== input.transactionImplementationIdentity) {
+          fail('presealed allocation policy or implementation identity does not match this prepare run');
+        }
+        return presealed;
+      })()
+      : sealCoordinationAllocationRecord({
         sealedAt: new Date().toISOString(),
         capture: { captureHash: authorityCaptureHash, compatibility: capture!.compatibility },
         scopeHash: input.scope.scopeHash,
@@ -374,9 +475,9 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     prerequisitePublicationHash: inner.prerequisitePublicationHash,
     consumerActivationHash: inner.consumerActivationHash,
     allocationHash: allocation.allocationHash,
-    predecessorRuntimeReleaseId: input.activeRelease.releaseId,
-    predecessorRuntimeManifestSha256: input.activeRelease.manifestSha256,
-    predecessorLifecycleGeneration: input.activeRelease.lifecycleGeneration,
+    predecessorRuntimeReleaseId: runtimePredecessor.releaseId,
+    predecessorRuntimeManifestSha256: runtimePredecessor.manifestSha256,
+    predecessorLifecycleGeneration: runtimePredecessor.lifecycleGeneration,
   });
   const runtimeExtensionHash = projectionDigest({
     successorManifest: inner.successorRuntimeManifest,
@@ -572,7 +673,17 @@ async function runActivationPlan(values: Map<string, string>): Promise<void> {
 async function main(): Promise<void> {
   const { command, values } = parseArgs(process.argv.slice(2));
   const allowedByCommand: Record<string, readonly string[]> = {
-    capture: ['--actkg-root', '--main-ref', '--out', '--components', '--supported-contract', '--skip-fetch'],
+    capture: [
+      '--actkg-root',
+      '--main-ref',
+      '--out',
+      '--bundle-dir',
+      '--lineage',
+      '--registry-summary',
+      '--components',
+      '--supported-contract',
+      '--skip-fetch',
+    ],
     prepare: ['--capture', '--input', '--out', '--remediation-handoff', '--remediation-allocation'],
     qualify: ['--candidate', '--artifacts', '--remediation-root', '--remediation-allocation'],
     'activation-plan': ['--candidate', '--out'],

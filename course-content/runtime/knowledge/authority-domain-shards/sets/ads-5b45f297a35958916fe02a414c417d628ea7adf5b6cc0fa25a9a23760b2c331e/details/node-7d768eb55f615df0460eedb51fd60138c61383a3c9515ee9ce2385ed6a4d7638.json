@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogVersion": "v0.37-r4-c4-candidate"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-0aaa7975b016c43649f38356",
+    "canonicalType": "KnowledgeStatement",
+    "label": "名称暂不可用",
+    "aliases": [],
+    "description": "采用反证法。反设 rank S < n，则存在非零向量 α 使 α^T S = 0，即 α^T A^i B = 0, i=0,1,...,n-1。根据凯莱-哈密顿定理，A^n, A^{n+1},...均可表示为 A 的 n-1 阶多项式，因而 α^T A^i B = 0 对任意 i 成立。从而对任意 t1>0 有 α^T e^{-At} B = 0，进而可导出 α^T W(0, t1) α = 0，即 W(0, t1) 奇异，与系统完全可控矛盾。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

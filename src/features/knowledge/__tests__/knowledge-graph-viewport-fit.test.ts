@@ -400,6 +400,28 @@ describe('knowledge graph viewport fit', () => {
       .map((placement) => `${placement.offsetX}:${placement.offsetY}`)).size).toBe(2);
   });
 
+  it('keeps compact-priority labels visible when no collision-free viewport placement remains', () => {
+    const nodes = ['key-a', 'key-b'].map((id) => ({
+      id,
+      x: -240,
+      y: -180,
+      bodyRadius: 12,
+      isKeyNode: true,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: `重点节点${id}WWWMMMM`, bodyRadius: 12 }),
+    }));
+    const placements = placeKnowledgeGraphLabels({
+      nodes,
+      width: 320,
+      height: 270,
+      padding: 16,
+      enforceViewport: true,
+      scale: 1,
+      labelMode: 'focus',
+    });
+    expect(placements.get('key-a')?.visible).toBe(true);
+    expect(placements.get('key-b')?.visible).toBe(true);
+  });
+
   it('uses packing state rather than chapter ids when placing root labels', () => {
     const node = {
       id: 'chapter-node:shared', x: 160, y: 135, bodyRadius: 12,

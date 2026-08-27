@@ -1,0 +1,18 @@
+{
+  "contract": "coordinated-formal-resource-envelope-reuse/v1",
+  "allocationHash": "8806c51009a5fcc747d96aa89c5ff799e06eb4b6a0fdfe11c06ed7e2ef230ba9",
+  "authorityCaptureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "scopeHash": "dda4e749e7191250e4b56c74e37143aff980f59d931d8eed410b5600c28db292",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "sourceEnvelope": {
+    "contract": "remediation-formal-resource-envelope/v1",
+    "allocationHash": "92fe43d66a8e0b668edeeebc6b7eac20652c0387aae8ef5d3c5489c4daefbbfd",
+    "envelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+    "envelopeSha256": "0a07d2f74840cca839a2b8c23fcc32b7088fcbf8efeba302e6be39e768b49dd3",
+    "resourceCount": 1058,
+    "atomCount": 13522,
+    "bindingCount": 2575,
+    "artifactCount": 30
+  },
+  "envelopeHash": "36d1b70ea77467894b7855436b0f55ea2eeb6517091a1e3b4d73f807991afe0f"
+}

@@ -1,0 +1,10 @@
+{
+  "contract": "coordinated-baseline-derivation-receipt/v1",
+  "allocationHash": "8806c51009a5fcc747d96aa89c5ff799e06eb4b6a0fdfe11c06ed7e2ef230ba9",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "resourceEnvelopeHash": "36d1b70ea77467894b7855436b0f55ea2eeb6517091a1e3b4d73f807991afe0f",
+  "dispositionHash": "8691efb28bb23a6d859e970beee00d0af60108da1ffb09f631acb4d1d21ff99c",
+  "reusedAuthorityRecordCount": 23486,
+  "recomputedAuthorityRecordCount": 0,
+  "receiptHash": "5d916c166eafe969e94a7aec81f3fb85723c7acc7e1fdf9881c25b167bb501a6"
+}

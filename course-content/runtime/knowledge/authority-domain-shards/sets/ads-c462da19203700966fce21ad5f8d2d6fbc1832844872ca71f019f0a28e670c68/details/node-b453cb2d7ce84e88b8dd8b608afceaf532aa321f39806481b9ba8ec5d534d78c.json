@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-c43cdc29ed0d6e9f578784a0",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 设（x₀,ẋ₀）为非线性系统的某个奇点；2. 将f（x,ẋ）在奇点处展开成泰勒级数；3. 在奇点的小邻域内，略去Δx和Δẋ的高次项，取一次近似；4. 得到奇点附近关于x增量Δx的线性二阶微分方程；5. 基于线性系统特征根的分布，确定奇点的类型。",
+    "aliases": [],
+    "description": "1. 设(x₀,ẋ₀)为非线性系统的某个奇点；2. 将f(x,ẋ)在奇点处展开成泰勒级数；3. 在奇点的小邻域内，略去Δx和Δẋ的高次项，取一次近似；4. 得到奇点附近关于x增量Δx的线性二阶微分方程；5. 基于线性系统特征根的分布，确定奇点的类型。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

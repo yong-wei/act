@@ -53,6 +53,7 @@ export function ActiveAuthorityRootCanvas({
       className="relative min-h-[28rem] flex-1"
       data-authority-shard-root="true"
       data-authority-root-canvas="true"
+      data-authority-root-domain-count={catalog.domains.length}
     >
       <svg
         className="h-full w-full"

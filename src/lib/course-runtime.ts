@@ -316,16 +316,18 @@ function createHandoutSummary({
   return `围绕${summaryTopics}展开的配套讲义，适合在课前快速建立概念、图像与计算线索。`;
 }
 
-async function projectRuntimeMediaResources(runtimeLessonPath: string, resources: RuntimeLessonMediaResource[]) {
+export async function projectRuntimeMediaResources(runtimeLessonPath: string, resources: RuntimeLessonMediaResource[]) {
   const activeRelease = await readActiveRuntimeReleaseManifest();
   return resources.map((resource) => {
     const runtimePath = `${runtimeLessonPath}/media/${resource.filename}`;
     const releaseObject = activeRelease && findRuntimeMediaReleaseObject(activeRelease, runtimePath);
-    if (!releaseObject) return resource;
+    // Media-index URLs are source evidence, not a client delivery fallback.
+    // In particular, an external index may contain a time-limited URL that
+    // must never be serialized into a lesson payload.
+    if (!releaseObject) return { ...resource, url: null, status: 'pending' as const };
     return {
       ...resource,
       url: `/api/course-runtime/assets/${runtimePath}`,
-      legacyUrl: resource.url,
       objectKey: releaseObject.objectKey,
       sha256: releaseObject.sha256,
       sizeBytes: releaseObject.sizeBytes,

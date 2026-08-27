@@ -1375,6 +1375,8 @@ export function ActiveAuthorityGraph({
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
+  const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<SVGGElement | null>(null);
@@ -1383,6 +1385,7 @@ export function ActiveAuthorityGraph({
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
+  const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
 
   useEffect(() => {
@@ -1391,6 +1394,11 @@ export function ActiveAuthorityGraph({
     window.addEventListener('resize', updateViewportWidth);
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
+
+  useEffect(() => {
+    setBoundaryDirectoryExpanded(false);
+    setMobileGraphControlsExpanded(false);
+  }, [workspace.activeDomainId]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1461,7 +1469,9 @@ export function ActiveAuthorityGraph({
       pendingCrossDomainSelectionRef.current = null;
     } else {
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(new Set(model.nodes.map((node) => node.key)));
+      setVisibleKeys(isCompactViewport
+        ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+        : new Set(model.nodes.map((node) => node.key)));
       setSelectedNodeKey(null);
     }
     setQuery('');
@@ -1471,12 +1481,19 @@ export function ActiveAuthorityGraph({
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection, pan, or zoom.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainEpoch, modelReady, visibleNodeLimit]);
+  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     if (!model) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        if (workspace.enabledFamilies.length === 0) return current;
+        const disclosedRelation = model.relations[0];
+        return disclosedRelation
+          ? expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)
+          : current;
+      }
       const next = new Set(current);
       for (const relation of model.relations) {
         const source = model.nodeByKey.get(relation.sourceKey);
@@ -1494,11 +1511,14 @@ export function ActiveAuthorityGraph({
       }
       return next;
     });
-  }, [model, workspace.enabledFamilies.length]);
+  }, [isCompactViewport, model, visibleNodeLimit, workspace.enabledFamilies.length]);
 
   useEffect(() => {
     if (!model || !selectedNodeKey) return;
     setVisibleKeys((current) => {
+      if (isCompactViewport) {
+        return materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit);
+      }
       const next = new Set(current);
       if (model.nodeByKey.has(selectedNodeKey)) next.add(selectedNodeKey);
       for (const relation of model.adjacency.get(selectedNodeKey) ?? []) {
@@ -1507,7 +1527,7 @@ export function ActiveAuthorityGraph({
       }
       return next;
     });
-  }, [model, selectedNodeKey]);
+  }, [isCompactViewport, model, selectedNodeKey, visibleNodeLimit]);
 
   useEffect(() => {
     if (!selectedNodeKey) return;
@@ -1680,15 +1700,15 @@ export function ActiveAuthorityGraph({
         className="border-b border-platform-border bg-platform-surface/95 px-4 py-3 max-[639px]:pt-14 max-[639px]:pb-2"
         data-active-authority-header="true"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="flex flex-wrap items-start justify-between gap-3 max-[639px]:flex-nowrap max-[639px]:gap-2">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100">{graphCopy(locale, 'badge.engineering')}</span>
+              <h2 className="text-base font-semibold max-[639px]:whitespace-nowrap" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100 max-[639px]:sr-only">{graphCopy(locale, 'badge.engineering')}</span>
             </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary">{graphCopy(locale, 'subtitle.graph')}</p>
+            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-1">{graphCopy(locale, 'subtitle.graph')}</p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-2 max-[639px]:shrink-0 max-[639px]:gap-0">
             <div
               role="group"
               aria-label={graphCopy(locale, 'language.group')}
@@ -1718,12 +1738,12 @@ export function ActiveAuthorityGraph({
               </button>
             </div>
             {languageState.englishAvailable ? null : (
-              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted">
+              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted max-[639px]:sr-only">
                 {languageState.englishUnavailableReason}
               </p>
             )}
           {workspace.root ? (
-            <div className="text-right text-xs text-platform-fg-secondary">
+            <div className="text-right text-xs text-platform-fg-secondary max-[639px]:sr-only">
               <div>{reviewedDomainHeaderCopy(locale, workspace.root.domains.length)}</div>
               <div className="mt-1 text-emerald-200">
                 {teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnpublished')}
@@ -1763,8 +1783,21 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3" data-active-authority-toolbar="true">
+          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4 max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+            <div className="mb-3 max-[639px]:mb-1" data-active-authority-toolbar="true">
+              <button
+                type="button"
+                data-active-authority-mobile-tools-toggle="true"
+                aria-expanded={mobileGraphControlsExpanded}
+                aria-controls="active-authority-mobile-tools"
+                onClick={() => setMobileGraphControlsExpanded((expanded) => !expanded)}
+                className="hidden w-full items-center justify-between rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2 text-sm text-platform-fg-primary max-[639px]:inline-flex"
+              >
+                <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'search.label')}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${mobileGraphControlsExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              {graphControlsVisible ? (
+              <div id="active-authority-mobile-tools" className="mt-2 flex flex-wrap items-end justify-between gap-3">
               <div className="min-w-[15rem] flex-1">
                 <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
                 <div className="relative max-[639px]:shrink-0">
@@ -1843,33 +1876,52 @@ export function ActiveAuthorityGraph({
                 <button type="button" aria-pressed={dimension === '2d'} data-active-authority-dimension="2d" onClick={() => setDimension('2d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '2d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>2D</button>
                 <button type="button" aria-pressed={dimension === '3d'} data-active-authority-dimension="3d" onClick={() => setDimension('3d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '3d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>3D</button>
               </div>
+              </div>
+              ) : null}
             </div>
 
+            {graphControlsVisible ? (
             <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />{graphCopy(locale, 'legend.teachingOrder')}</span>
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />{graphCopy(locale, 'legend.engineering')}</span>
               <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable')}</span>
             </div>
+            ) : null}
             {boundaryCues.length > 0 ? (
-              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3" aria-labelledby="active-authority-boundaries">
-                <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary">{graphCopy(locale, 'boundary.title')}</h3>
-                <div className="mt-2 flex flex-wrap gap-2">
+              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary max-[639px]:sr-only">{graphCopy(locale, 'boundary.title')}</h3>
+                  <button
+                    type="button"
+                    data-active-authority-boundary-toggle="true"
+                    aria-expanded={boundaryDirectoryExpanded}
+                    aria-controls="active-authority-boundary-directory"
+                    onClick={() => setBoundaryDirectoryExpanded((expanded) => !expanded)}
+                    className="hidden items-center gap-1 text-xs font-semibold text-platform-fg-primary max-[639px]:inline-flex"
+                  >
+                    {graphCopy(locale, 'boundary.title')} ({boundaryCues.length})
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${boundaryDirectoryExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                </div>
+                {(!isCompactViewport || boundaryDirectoryExpanded) ? (
+                <div id="active-authority-boundary-directory" className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                   {boundaryCues.map((cue) => (
                     <button
                       key={cue.key}
                       type="button"
                       data-authority-boundary-node={cue.nodeId}
                       onClick={() => followBoundary(cue.nodeId)}
-                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:max-w-64 max-[639px]:shrink-0 max-[639px]:truncate max-[639px]:whitespace-nowrap"
                     >
                       {boundaryEnterCopy(locale, cue.domainName, cue.objectLabel, cue.relationLabel)}
                     </button>
                   ))}
                 </div>
+                ) : null}
               </section>
             ) : null}
 
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
               <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
             </div>
@@ -1894,6 +1946,7 @@ export function ActiveAuthorityGraph({
                   onHover={setHoveredNodeId}
                   hoverPreview={hoverPreview}
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                  showUnavailableTeachingDirectory={teachingCoverage?.note === '教学关系暂不可用'}
                 />
               </div>
             ) : null}

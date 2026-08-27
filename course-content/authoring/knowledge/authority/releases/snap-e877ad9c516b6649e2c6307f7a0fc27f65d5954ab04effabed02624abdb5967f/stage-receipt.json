@@ -1,0 +1,17 @@
+{
+  "contract": "actkg-engineering-authority-stage-receipt/v1",
+  "receiptId": "stage-control-theory-engineering-v0.37-r4-cc73fa150a94",
+  "snapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+  "snapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+  "releaseId": "ctr:release:control-theory-engineering-v0.37",
+  "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+  "stagedAt": "2026-08-26T00:00:00.000Z",
+  "status": "staged",
+  "selectorsChanged": 0,
+  "teachingSelectorsAdvanced": false,
+  "engineeringAuthorityAdvanced": false,
+  "reasons": [
+    "staged-candidate-only",
+    "selectors-unchanged"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "contract": "r4-c4-authority-domain-shard-stage/v1",
+  "stagedAt": "2026-08-26T08:00:00.000Z",
+  "authority": {
+    "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+    "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "activationId": "activation-ed1e121dd27437e5e6aaaab1",
+    "activationHash": "f6b851cccf9c11f004941aa8d58d9e14f091fede4124692eb2740c64db098477",
+    "projectionId": null,
+    "projectionHash": null
+  },
+  "catalog": {
+    "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+    "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+    "catalogVersion": "v0.37-r4-c4-candidate"
+  },
+  "teaching": {
+    "status": "unavailable",
+    "projectionId": null,
+    "projectionHash": null,
+    "teachingCacheFamily": null
+  },
+  "shardSetId": "ads-08c1febb42ef6857f072b192fa9fcaeb0c0e8f056b5c965b85dd6613327de7a7",
+  "shardSetHash": "08c1febb42ef6857f072b192fa9fcaeb0c0e8f056b5c965b85dd6613327de7a7",
+  "manifestSha256": "1b2994a065e7f8cac264b1dc3cf1fe54ca54804a054598a4398670d3232f5331",
+  "activationHash": "f6b851cccf9c11f004941aa8d58d9e14f091fede4124692eb2740c64db098477",
+  "artifactHash": "832d95b71c2ecdfa29f0915f9bd1ff0b4980819320f85a1d16f7657d5b53e3fc"
+}

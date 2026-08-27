@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-d5cbad5232b46534c415507a",
+    "canonicalType": "Formula",
+    "label": "\\overline{\\boldsymbol{A}}=\\boldsymbol{P} \\boldsymbol{A} \\boldsymbol{P}^{-1}=\\left[\\begin{array}{ccccc}\n0 & 1 & 0 & \\cdots & 0 \\\\\n0 & 0 & 1 & \\cdots & 0 \\\\\n\\vdots & \\vdots & \\vdots & & \\vdots \\\\\n0 & 0 & 0 & \\cdots & 1 \\\\\n-a_{0} & -a_{1} & -a_{2} & \\cdots & -a_{n-1}\n\\end{array}\\right], \\quad \\overline{\\boldsymbol{b}}=\\boldsymbol{P} \\boldsymbol{b}=\\left[\\begin{array}{c}\n0 \\\\\n0 \\\\\n\\vdots \\\\\n0 \\\\\n1\n\\end{array}\\right]",
+    "aliases": [],
+    "description": "可控标准型",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-f1502772c890aaaa50268acc",
+    "canonicalType": "KnowledgeStatement",
+    "label": "小车上倒立摆不稳定平衡的控制问题。状态变量为摆角 θ(t) 与角速度 θ̇(t)。采用状态变量反馈 u(t) = -K x(t) 使闭环系统稳定。对于 ω_n=10 和 ζ=0.8，增益满足 k2/l = -16 以及 (k1+g)/l = 100，所得超调量为 1.5%，调节时间为 0.5 s。",
+    "aliases": [],
+    "description": "Control of an unstable inverted pendulum balanced on a moving cart. State variables are angle θ(t) and angular velocity θ̇(t). Using state variable feedback u(t) = -K x(t), the closed-loop system is stabilized. For ω_n=10 and ζ=0.8, gains satisfy k2/l = -16 and (k1+g)/l = 100, yielding percent overshoot 1.5% and settling time 0.5 s.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

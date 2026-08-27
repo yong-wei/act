@@ -51,6 +51,16 @@ curl -k https://act.adapt-learn.online/api/auth/session
 curl -k https://act.adapt-learn.online/api/readyz
 ```
 
+## 大型运行时清单的只读复核
+
+Runtime Release v2 的 manifest 可能包含数千个对象。不要把完整 `files` 数组直接输出到终端，也不要为方便查看而在远端筛选或改写它。应在本地运行：
+
+```bash
+rtk npx tsx scripts/knowledge-cutover/capture-active-runtime-observation.ts
+```
+
+该脚本只在 `act-obe-app` 容器内读取已挂载的 v2/v1 manifest 与 active receipt，验证 receipt 与首选 manifest 身份一致，再将全量清单写入不可变的本地候选证据文件，并只输出 release、receipt、generation 与文件数摘要。复跑同一生产身份会校验既有捕获；身份漂移会拒绝覆盖。
+
 常见模式：
 
 - `P1001`：应用到 PostgreSQL 不可达

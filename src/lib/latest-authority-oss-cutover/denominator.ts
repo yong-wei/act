@@ -102,6 +102,15 @@ export function buildActiveBaseline(input: BuildActiveBaselineInput): ActiveBase
       resourceId: entry.resourceId,
       classification: entry.classification,
       subtype: entry.subtype,
+      sourceKind: entry.sourceKind ?? null,
+      runtimePath: entry.runtimePath ?? null,
+      dbResourceId: entry.dbResourceId ?? null,
+      registryId: entry.registryId ?? null,
+      carrierEntryId: entry.carrierEntryId ?? null,
+      courseScope: entry.courseScope ?? null,
+      sourceIdentity: entry.sourceIdentity ?? null,
+      sourceContentSha256: entry.sourceContentSha256 ?? null,
+      dispositionReason: entry.dispositionReason ?? null,
     })),
   );
   const logicalResourceCount = sorted.filter((entry) => entry.classification === 'resource').length;

@@ -1,0 +1,427 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-0590710b6e2ddffeb32a3675",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用阿克曼公式计算振荡器的增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由式 (7.32a) 描述的观测器规范型特定热系统，在 s=z0 处具有一个零点，用于说明极点配置中状态反馈增益的计算。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-21fc2982be0b78ea38b730cc",
+      "canonicalType": "Formula",
+      "label": "\\mathcal{C}=\\left[\\begin{array}{llll}\n\\mathbf{B} & \\mathbf{A B} & \\cdots & \\mathbf{A}^{n-1} \\mathbf{B} \\tag{7.27}\n\\end{array}\\right]",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-454fed6af22525079a96e6b7",
+      "canonicalType": "Formula",
+      "label": "\\mathbf{K}=\\left[\\begin{array}{llll} 0 & \\cdots & 0 & 1 \\end{array}\\right] \\mathcal{C}^{-1} \\alpha_{c}(\\mathbf{A})",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "canonicalType": "DomainConcept",
+      "label": "控制规范型中通过系数匹配的极点配置",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "canonicalType": "DomainConcept",
+      "label": "阿克曼公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a954aa3f043e3119b108a942",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 选择定义跟踪误差的矩阵 C1。2. 选择权衡跟踪误差重要性与控制作用的 ρ。3. 求解 SRL 方程 1+ρ G0(-s) G0(s)=0。4. 从解中选取一组稳定极点。5. 在极点配置计算（如阿克曼公式）中使用期望闭环极点以获得 K。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bb92c96774b6992a8765fa66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "可控性矩阵的计算数值精度较差，这种问题也会延续到阿克曼公式中。函数 acker 可用于状态变量数目较少（≤10）的单输入单输出（SISO）系统。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ec3b27bf85927afbb055989f",
+      "canonicalType": "Formula",
+      "label": "\\alpha_{c}(\\mathbf{A})=\\mathbf{A}^{n}+\\alpha_{1} \\mathbf{A}^{n-1}+\\alpha_{2} \\mathbf{A}^{n-2}+\\cdots+\\alpha_{n} \\mathbf{I}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-2cf25b808cc6aeb2b6aeb9a8",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-bb92c96774b6992a8765fa66",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-477b594d24de4898f6ce11e6",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-4c1ead8908ceb0a0b3456f80",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "targetId": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-704932a842346afe0d88eb79",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "targetId": "ctkg:v3e-object-ec3b27bf85927afbb055989f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-704e1259f8bb059e924f71ab",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "targetId": "ctkg:v3e-object-21fc2982be0b78ea38b730cc",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-7a42b8934d34e6cc312e26a6",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-a954aa3f043e3119b108a942",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-7f49f0717117b5eac75620fa",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-8da252f496512316e13b80df",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-0590710b6e2ddffeb32a3675",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-c542f1c653072df119953af7",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "targetId": "ctkg:v3e-object-454fed6af22525079a96e6b7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

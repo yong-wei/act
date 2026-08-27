@@ -451,6 +451,54 @@ function unavailable(): AuthorityResolvedLabel {
   return Object.freeze({ status: 'unavailable', label: null, aliases: Object.freeze([]) });
 }
 
+const R4_SEALED_PRESENTATION_LABEL_CONTRACT = 'actkg-r4-sealed-presentation-label/v1' as const;
+
+function isSourceBoundR4PresentationLabel(
+  row: AuthoritativeV2MultilingualLabelRecord,
+  object: Pick<AuthorityEngineeringObject, 'canonicalId' | 'canonicalType'>,
+  label: string,
+): boolean {
+  const payload = record(row.payload);
+  if (
+    payload.contract !== R4_SEALED_PRESENTATION_LABEL_CONTRACT
+    || payload.entityId !== object.canonicalId
+    || payload.labelSha256 !== sha256Text(label)
+    || typeof payload.sourceArtifact !== 'string'
+    || typeof payload.sourceArtifactSha256 !== 'string'
+    || !SHA256.test(payload.sourceArtifactSha256)
+    || typeof payload.sourceRecordId !== 'string'
+    || typeof payload.sourceRecordHash !== 'string'
+    || !SHA256.test(payload.sourceRecordHash)
+    || typeof payload.bundleDigest !== 'string'
+    || !SHA256.test(payload.bundleDigest)
+    || typeof payload.manifestSha256 !== 'string'
+    || !SHA256.test(payload.manifestSha256)
+  ) return false;
+
+  // The r4 builder admits only sealed public presentation fields.  They may
+  // contain mathematical separators or natural-language phrases such as
+  // "and/or" that the generic anti-path policy intentionally rejects.  Keep
+  // every actual locator, URI, opaque identity, or non-Formula line break
+  // rejected; this is a narrow snapshot-bound exception, not a general label
+  // sanitizer bypass.
+  if (DISALLOWED_CONTROL.test(label)
+    || (object.canonicalType !== 'Formula' && /[\r\n]/u.test(label))
+    || /^(?:[A-Za-z]:[\\/]|\/)/u.test(label.trim())
+    || /(?:^|[^A-Za-z0-9])(?:[A-Za-z][A-Za-z0-9+.-]*:)(?:\/\/|\/)/u.test(label)
+    || /(?:^|[/\\])(?:course-content|src|runtime|releases?|snapshots?|bundles?|artifacts?)(?:[/\\]|$)/iu.test(label)
+    || (object.canonicalType !== 'Formula' && /(?:^|[^A-Za-z0-9])(?:\.{1,2}|~)[\\/]/u.test(label))
+    || (object.canonicalType === 'Formula' && /(?:^|[^A-Za-z0-9])(?:\.\.[\\/]|\.\/|~[\\/])/u.test(label))
+    || /^(?:[a-f0-9]{32,}|(?:[A-Za-z][A-Za-z0-9+.-]*:){1,2}[A-Za-z0-9:/._-]+)$/iu.test(label.trim())
+    || /^[a-z0-9]+(?:[_-][a-z0-9]+)+$/iu.test(label.trim())) return false;
+
+  if (object.canonicalType === 'Formula') {
+    return !/^\\{1,2}(?:server|users|windows|program(?:\s+files)?)(?:\\|$)/iu.test(label.trim());
+  }
+  // A bare ASCII slash token is still an opaque locator.  Mixed natural
+  // language and mathematical text remains eligible after the checks above.
+  return !/^[A-Za-z0-9._ -]+[\\/][A-Za-z0-9._ -]+$/u.test(label.trim());
+}
+
 /** Build a detached context; subsequent input mutations cannot change it. */
 export function createAuthorityLabelResolverContext(
   input: AuthorityLabelResolverInput,
@@ -560,8 +608,12 @@ export function resolveAuthorityLabel(
   const trustedRuntimeProfile = context.runtimeProfile !== null;
   const preserveFormulaWhitespace = object.canonicalType === 'Formula' && trustedRuntimeProfile;
   if (preferred.length === 1) {
-    const label = text(preferred[0]!.label, preserveFormulaWhitespace);
-    if (!isSafeAuthorityLabel(label, object.canonicalType, trustedRuntimeProfile)) return unavailable();
+    const preferredRow = preferred[0]!;
+    const label = text(preferredRow.label, preserveFormulaWhitespace);
+    if (!label || (
+      !isSafeAuthorityLabel(label, object.canonicalType, trustedRuntimeProfile)
+      && !isSourceBoundR4PresentationLabel(preferredRow, object, label)
+    )) return unavailable();
     const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
     if (!aliases) return unavailable();
     return Object.freeze({ status: 'available', label, aliases });
