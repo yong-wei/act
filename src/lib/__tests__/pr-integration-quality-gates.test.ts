@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_QUALITY_GATE_REGISTRY,
+  IMPACT_DENOMINATOR_KEYS,
   QUALITY_LAYER_IDS,
   createBlockedIntegrationProtectionReceipt,
   createLayerReceipt,
@@ -123,10 +124,16 @@ describe('PR and integration quality gate contracts', () => {
   });
 
   it('expands or blocks when the PR impact denominator is not closed', () => {
-    const affected = selectPrImpact({ changedPaths: ['src/features/teacher/page.tsx'] });
+    const closedDenominator = Object.fromEntries(IMPACT_DENOMINATOR_KEYS.map((key) => [key, true]));
+    const affected = selectPrImpact({
+      changedPaths: ['src/features/teacher/page.tsx'],
+      denominator: closedDenominator,
+    });
     expect(affected.scope).toBe('affected');
     expect(affected.affectedDomains).toEqual(['web']);
     expect(affected.requiredCheckIds).toContain('pr/typecheck-tools');
+    expect(selectPrImpact({ changedPaths: ['src/features/teacher/page.tsx'] }).denominatorClosed).toBe(false);
+    expect(selectPrImpact({ changedPaths: ['course-content/runtime/lessons/example.json'] }).scope).not.toBe('affected');
 
     const expanded = selectPrImpact({
       changedPaths: ['src/features/teacher/page.tsx'],

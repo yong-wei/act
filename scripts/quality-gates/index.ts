@@ -24,7 +24,9 @@ export type {
   RequiredQualityCheck,
 } from './registry';
 export {
+  IMPACT_DENOMINATOR_KEYS,
   classifyImpactPath,
+  observeImpactDenominators,
   selectPrImpact,
 } from './impact';
 export type {

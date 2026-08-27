@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   DEFAULT_QUALITY_GATE_REGISTRY,
   type QualityGateRegistry,
@@ -94,8 +97,22 @@ function selectedPrChecks(domains: readonly ImpactDomain[], registry: QualityGat
   return [...checks].sort();
 }
 
+export function observeImpactDenominators(repoRoot: string): Record<ImpactDenominatorKey, boolean> {
+  const has = (path: string): boolean => existsSync(join(repoRoot, path));
+  return {
+    'dependency-graph': has('docs/architecture/modular-monolith/baseline/census-core.json'),
+    'typescript-graph': has('tsconfig.web.json') && has('tsconfig.tools.json') && has('tsconfig.test.json'),
+    'test-discovery': has('src/lib/architecture-test-commands/conventions.ts'),
+    'owner-map': has('docs/architecture/modular-monolith-charter.sha256'),
+    'migration-scope': has('prisma/schema.prisma'),
+    'package-scope': has('package.json'),
+    'workflow-scope': has('.github/workflows'),
+    'release-scope': has('docs/architecture/fitness-budget-ledger.json'),
+  };
+}
+
 function unresolvedDenominators(input: ImpactSelectionInput): ImpactDenominatorKey[] {
-  return IMPACT_DENOMINATOR_KEYS.filter((key) => input.denominator?.[key] === false);
+  return IMPACT_DENOMINATOR_KEYS.filter((key) => input.denominator?.[key] !== true);
 }
 
 export function selectPrImpact(input: ImpactSelectionInput): ImpactSelection {

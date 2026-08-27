@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { readGitIdentity } from '../typescript-graphs/contracts';
@@ -15,7 +15,7 @@ import {
   type QualityLayerId,
   type RequiredQualityCheck,
 } from './registry';
-import { selectPrImpact, type ImpactSelection } from './impact';
+import { observeImpactDenominators, selectPrImpact, type ImpactSelection } from './impact';
 import {
   createLayerReceipt,
   validateTypecheckReceipts,
@@ -75,7 +75,35 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
     };
   }
   const command = qualityCommand(commandId);
-  const result = spawnSync('npm', ['run', command.npmScript], {
+  const extraArgs: string[] = [];
+  if (commandId === 'test:release') {
+    const manifest = process.env.QUALITY_GATE_RELEASE_MANIFEST ?? join(repoRoot, 'docs/testing/release-qualification-manifest.json');
+    if (!existsSync(manifest)) {
+      return {
+        checkId: '',
+        status: 'failed',
+        commandIds: [commandId],
+        exitStatus: 1,
+        receiptIds: [],
+        failureCodes: ['missing-required-input:release-qualification-manifest'],
+        unhandledErrors: 0,
+      };
+    }
+    extraArgs.push('--', '--manifest', manifest);
+  }
+  const readyzObservation = process.env.QUALITY_GATE_READYZ_OBSERVATION ?? join(repoRoot, 'docs/architecture/quality-gates/post-deploy-readyz-observation.json');
+  if (commandId === 'test:runtime-production-readyz' && !existsSync(readyzObservation)) {
+    return {
+      checkId: '',
+      status: 'failed',
+      commandIds: [commandId],
+      exitStatus: 1,
+      receiptIds: [],
+      failureCodes: ['missing-required-input:post-deploy-readyz-observation'],
+      unhandledErrors: 0,
+    };
+  }
+  const result = spawnSync('npm', ['run', command.npmScript, ...extraArgs], {
     cwd: repoRoot,
     env: { ...process.env, QUALITY_GATE_LAYER: layer },
     stdio: 'inherit',
@@ -86,7 +114,7 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
     status: exitStatus === 0 ? 'passed' : 'failed',
     commandIds: [commandId],
     exitStatus,
-    receiptIds: [],
+    receiptIds: extraArgs.filter((value) => value.endsWith('.json')),
     failureCodes: exitStatus === 0 ? [] : [`command-exit-${exitStatus}`],
     unhandledErrors: 0,
   };
@@ -156,7 +184,11 @@ export function runQualityLayer(options: RunLayerOptions): GateRunResult {
   }
   const identity = readGitIdentity(options.repoRoot);
   const impact = options.layer === 'pr'
-    ? selectPrImpact({ changedPaths: options.changedPaths ?? changedPathsFromGit(options.repoRoot), registry })
+    ? selectPrImpact({
+      changedPaths: options.changedPaths ?? changedPathsFromGit(options.repoRoot),
+      denominator: observeImpactDenominators(options.repoRoot),
+      registry,
+    })
     : null;
   const checks = selectedChecks(options.layer, registry, impact);
   const execute = options.execute !== false;
