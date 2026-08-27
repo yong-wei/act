@@ -257,6 +257,16 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(args.join(' ')).not.toMatch(/access[-_]?key|secret|ssh/i);
   });
 
+  it('routes local blob readback through the pinned ECS read bridge', () => {
+    const args = buildRuntimeReleaseLocalPublisherArgv({ ...localConfig, readBridge: config }, 'runtime/blob-releases/runtime-test/');
+    expect(args).toContain('--read-bridge-ssh-target');
+    expect(args).toContain(config.target);
+    expect(args).toContain('--read-bridge-path');
+    expect(args).toContain(config.remoteBridgePath);
+    expect(args).toContain('--read-bridge-known-hosts-file');
+    expect(args).toContain(config.knownHostsFile);
+  });
+
   it('streams bytes through the child and verifies local and remote size/hash receipts', async () => {
     const fake = fakeSpawnFactory('success');
     const store = createSshRuntimeReleaseObjectStore(config, { spawn: fake.spawnFake });
@@ -282,6 +292,7 @@ describe('source-authoritative SSH runtime release transport', () => {
     })).resolves.toMatchObject({ releaseId: 'runtime-test', fileCount: 1, totalBytes: 42 });
     expect(fake.calls).toHaveLength(1);
     expect(fake.calls[0].args).toContain('verify');
+    expect(fake.calls[0].args).toContain('ecs-read');
   });
 
   it('uses the read-role bridge only for a v2 blob verification receipt', async () => {
@@ -296,6 +307,7 @@ describe('source-authoritative SSH runtime release transport', () => {
       manifestObjectKey: 'runtime/blob-releases/runtime-test/manifest.json',
     });
     expect(fake.calls).toHaveLength(1);
+    expect(fake.calls[0].args).toContain('ecs-read');
   });
 
   it('imports only a pinned immutable v1 release into the separate v2 namespace', async () => {
@@ -311,6 +323,8 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(result.manifest.releaseId).toBe(sourceManifest.releaseId);
     expect(result.manifest.files[0]?.objectKey).toMatch(/^runtime\/blobs\/sha256\//);
     expect(calls.map((call) => call.args[call.args.indexOf('--operation') + 1])).toEqual(['get', 'import-v1']);
+    expect(calls[0]?.args).toContain('ecs');
+    expect(calls[0]?.args).not.toContain('ecs-read');
     const importCall = calls[1];
     expect(Buffer.from(importCall?.args[importCall.args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8')).toBe(`runtime/blob-releases/${sourceManifest.releaseId}/`);
   });

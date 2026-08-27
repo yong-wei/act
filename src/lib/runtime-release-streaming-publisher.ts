@@ -58,6 +58,7 @@ export interface RuntimeReleaseSshPublisherConfig {
   identityFile?: string;
   port?: number;
   connectTimeoutSeconds?: number;
+  readCredentialMode?: 'ecs' | 'ecs-read';
 }
 
 export interface RuntimeReleaseSshPublisherDependencies {
@@ -77,6 +78,7 @@ export interface RuntimeReleaseLocalPublisherConfig {
   lockDir: string;
   spoolDir: string;
   credentialProfile?: string;
+  readBridge?: RuntimeReleaseSshPublisherConfig;
 }
 
 export interface RuntimeReleaseRemoteObjectReceipt {
@@ -176,6 +178,9 @@ function assertConfig(config: RuntimeReleaseSshPublisherConfig) {
   }
   if (config.port !== undefined && (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535)) invalid('SSH port must be between 1 and 65535.');
   if (config.connectTimeoutSeconds !== undefined && (!Number.isInteger(config.connectTimeoutSeconds) || config.connectTimeoutSeconds < 1 || config.connectTimeoutSeconds > 300)) invalid('SSH connect timeout must be between 1 and 300 seconds.');
+  if (config.readCredentialMode !== undefined && config.readCredentialMode !== 'ecs' && config.readCredentialMode !== 'ecs-read') {
+    invalid('SSH read credential mode is invalid.');
+  }
 }
 
 function assertAbsoluteLocalPath(value: string, context: string) {
@@ -203,6 +208,12 @@ function assertLocalPublisherConfig(config: RuntimeReleaseLocalPublisherConfig) 
   if (config.credentialProfile !== undefined && !TARGET_PATTERN.test(config.credentialProfile)) {
     invalid('Local credential profile is invalid.');
   }
+  if (config.readBridge !== undefined) {
+    assertConfig(config.readBridge);
+    if (config.readBridge.bucket !== config.bucket) {
+      invalid('Read bridge bucket must match the local publisher bucket.');
+    }
+  }
 }
 
 type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'import-v1' | 'verify';
@@ -223,6 +234,9 @@ export function buildRuntimeReleaseSshArgv(
   if (config.connectTimeoutSeconds !== undefined) args.push('-o', `ConnectTimeout=${config.connectTimeoutSeconds}`);
   if (config.identityFile !== undefined) args.push('-i', config.identityFile);
   args.push('--', config.target, config.remoteBridgePath, '--bucket', config.bucket, '--operation', operation);
+  if (operation === 'list' || operation === 'get' || operation === 'verify') {
+    args.push('--credential-mode', config.readCredentialMode ?? 'ecs-read');
+  }
   if (operation === 'list' || operation === 'verify') {
     if (!input.prefix) invalid(`${operation === 'verify' ? 'Verify' : 'List'} operation requires a release prefix.`);
     assertPrefix(input.prefix);
@@ -256,7 +270,7 @@ export function buildRuntimeReleaseLocalPublisherArgv(
 ) {
   assertLocalPublisherConfig(config);
   assertPrefix(prefix);
-  return [
+  const args = [
     config.bridgePath,
     '--bucket', config.bucket,
     '--operation', 'publish',
@@ -272,6 +286,16 @@ export function buildRuntimeReleaseLocalPublisherArgv(
     '--spool-dir', config.spoolDir,
     ...(config.credentialProfile ? ['--credential-profile', config.credentialProfile] : []),
   ];
+  if (config.readBridge) {
+    args.push(
+      '--read-bridge-ssh-target', config.readBridge.target,
+      '--read-bridge-path', config.readBridge.remoteBridgePath,
+      '--read-bridge-known-hosts-file', config.readBridge.knownHostsFile,
+    );
+    if (config.readBridge.identityFile) args.push('--read-bridge-identity-file', config.readBridge.identityFile);
+    if (config.readBridge.port !== undefined) args.push('--read-bridge-port', String(config.readBridge.port));
+  }
+  return args;
 }
 
 class CountingTransform extends Transform {
@@ -1222,7 +1246,7 @@ export async function importV1RuntimeBlobReleaseViaSsh(input: {
   if (!SHA256_PATTERN.test(input.expectedSourceManifestSha256)) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-import-source-invalid', 'V1 import requires an expected source manifest SHA-256.');
   }
-  const store = createSshRuntimeReleaseObjectStore(input.ssh, input.dependencies);
+  const store = createSshRuntimeReleaseObjectStore({ ...input.ssh, readCredentialMode: 'ecs' }, input.dependencies);
   const sourceManifest = await inspectPublishedRuntimeRelease(store, input.sourceReleaseId);
   if (sourceManifest.manifestSha256 !== input.expectedSourceManifestSha256) {
     throw new RuntimeReleaseStreamingPublisherError('runtime-release-import-source-mismatch', 'Pinned v1 source manifest SHA-256 does not match the immutable source release.');
