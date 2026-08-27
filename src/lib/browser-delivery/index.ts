@@ -22,6 +22,6 @@ export type {
 export { esaObjectUrl, objectKeyFor, rejectPublicationTarget } from './keys';
 export { deliveryPrivacyViolation } from './privacy';
 export { buildManifest, optimizerConfigDigest } from './manifest';
-export { planPublication, publicationVerified, rejectForbiddenAsset } from './publish';
+export { createMemoryObjectStore, planPublication, publicationVerified, publishCohort, rejectForbiddenAsset } from './publish';
 export { qualifyRouting, resolveSimulationModel } from './resolve';
 export { SIMULATION_MODEL_REGISTRY, resolveRegisteredSimulationModel } from './client';

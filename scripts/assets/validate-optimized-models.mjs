@@ -98,11 +98,14 @@ for (const name of expected) {
     fail(`${name} is missing or empty`);
   }
   const outputSha256 = sha256(outputPath);
-  if (typeof record.outputSha256 === 'string' && record.outputSha256 !== outputSha256) {
+  if (typeof record.outputSha256 !== 'string' || record.outputSha256 !== outputSha256) {
     fail(`${name} output digest does not match`);
   }
-  if (record.optimizerName && record.optimizerName !== '@act/glb-model-optimizer') {
+  if (record.optimizerName !== '@act/glb-model-optimizer') {
     fail(`${name} optimizer identity does not match`);
+  }
+  if (record.optimizerVersion !== '1.0.0' || record.optimizerLevel !== 'medium') {
+    fail(`${name} optimizer configuration does not match`);
   }
 }
 

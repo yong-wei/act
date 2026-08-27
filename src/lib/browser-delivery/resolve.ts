@@ -3,9 +3,12 @@ import { publicationVerified } from './publish';
 import { assertPortable } from './privacy';
 import {
   COHORT_ID,
+  DELIVERY_BUCKET,
   GIT_SHA,
   ROUTING_SCHEMA,
   ROUTING_STATUSES,
+  SHA256,
+  STATIC_HOSTNAME,
   TOOL_VERSION,
   type BrowserDeliveryManifest,
   type PublicationReceipt,
@@ -15,6 +18,9 @@ import {
   type SimulationModelId,
 } from './types';
 
+const ESA_QUALIFICATION_SCHEMA = 'act-esa-delivery-qualification/v1';
+const TRAFFIC_OBSERVATION_SCHEMA = 'act-runtime-traffic-observation/v1';
+
 export interface RoutingInput {
   readonly sourceCommit: string;
   readonly sourceTree: string;
@@ -23,8 +29,29 @@ export interface RoutingInput {
   readonly mixedWorktree: boolean;
   readonly manifest: BrowserDeliveryManifest;
   readonly publication: PublicationReceipt;
-  readonly esaQualified: boolean;
-  readonly trafficQualified: boolean;
+  readonly esaReceipt?: unknown;
+  readonly trafficReceipt?: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function esaReceiptQualified(raw: unknown): 'missing' | 'invalid' | 'qualified' {
+  if (raw === undefined) return 'missing';
+  if (!isRecord(raw)) return 'invalid';
+  if (raw.schemaVersion !== ESA_QUALIFICATION_SCHEMA) return 'invalid';
+  if (raw.hostname !== STATIC_HOSTNAME || raw.deliveryBucket !== DELIVERY_BUCKET) return 'invalid';
+  if (typeof raw.evidenceFingerprint !== 'string' || !SHA256.test(raw.evidenceFingerprint)) return 'invalid';
+  if (raw.dnsApplied !== true) return 'missing';
+  return raw.status === 'qualified' ? 'qualified' : 'missing';
+}
+
+function trafficReceiptQualified(raw: unknown): 'missing' | 'invalid' | 'qualified' {
+  if (raw === undefined) return 'missing';
+  if (!isRecord(raw)) return 'invalid';
+  if (raw.schemaVersion !== TRAFFIC_OBSERVATION_SCHEMA) return 'invalid';
+  return raw.status === 'qualified' ? 'qualified' : 'missing';
 }
 
 export function qualifyRouting(input: RoutingInput): RoutingReceipt {
@@ -39,8 +66,12 @@ export function qualifyRouting(input: RoutingInput): RoutingReceipt {
   if (input.publication.manifestDigest !== input.manifest.manifestDigest) {
     blockingReasons.push('publication-manifest-mismatch');
   }
-  if (!input.esaQualified) missingEvidence.push('esa-poc');
-  if (!input.trafficQualified) missingEvidence.push('traffic-baseline');
+  const esa = esaReceiptQualified(input.esaReceipt);
+  if (esa === 'invalid') blockingReasons.push('esa-receipt-invalid');
+  else if (esa !== 'qualified') missingEvidence.push('esa-poc');
+  const traffic = trafficReceiptQualified(input.trafficReceipt);
+  if (traffic === 'invalid') blockingReasons.push('traffic-receipt-invalid');
+  else if (traffic !== 'qualified') missingEvidence.push('traffic-baseline');
   if (!publicationVerified(input.publication)) missingEvidence.push('publication');
   if (input.manifest.includedCount !== 7) missingEvidence.push('incomplete-cohort');
   let status: RoutingStatus = 'qualified';

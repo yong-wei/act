@@ -91,8 +91,8 @@ function build(repoRoot: string) {
     mixedWorktree: gitIdentity.mixedWorktree,
     manifest,
     publication,
-    esaQualified: esa?.status === 'qualified',
-    trafficQualified: traffic?.status === 'qualified',
+    esaReceipt: esa ?? undefined,
+    trafficReceipt: traffic ?? undefined,
   });
   return { manifest, publication, routing };
 }
@@ -140,6 +140,9 @@ function main(): void {
     const selected = action === 'plan' ? payload.publication : action === 'qualify-routing' ? payload.routing : payload.manifest;
     process.stdout.write(`${JSON.stringify(action === 'write-baseline' ? payload.routing : selected, null, 2)}\n`);
     return;
+  }
+  if (action === 'apply') {
+    throw new Error('delivery-apply-store-unconfigured');
   }
   if (action === 'resolve') {
     const payload = build(repoRoot);
