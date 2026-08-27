@@ -1819,8 +1819,10 @@ def publish_blob_release_via_read_bridge(
             fail("read bridge blob verification cannot reconcile local writes")
         metadata_reuse_count = non_parent_count - successful_blob_puts - legacy_count
         normalized_entries, verified_blob_set_sha256 = verified_blob_audit(verified_entries)
-        if not receipt_present:
-            put_payload_without_readback(bucket, f"{prefix}{BLOB_RECEIPT_NAME}", receipt_wire, receipt_wire_sha, spool_directory)
+        if not receipt_present and not put_payload_without_readback(
+            bucket, f"{prefix}{BLOB_RECEIPT_NAME}", receipt_wire, receipt_wire_sha, spool_directory,
+        ):
+            fail("local receipt conditional write was not accepted; refusing the terminal manifest")
         put_payload_without_readback(bucket, f"{prefix}{BLOB_MANIFEST_NAME}", manifest_wire, manifest_wire_sha, spool_directory)
         completion = read_bridge_phase(bucket, prefix, "verify-release", header)
         if (

@@ -133,6 +133,7 @@ if (operation === 'api') {
     const body = args[args.indexOf('--body') + 1];
     const target = objectPath(key);
     if (process.env.FAKE_PUT_DELAY_MS) await new Promise((resolve) => setTimeout(resolve, Number(process.env.FAKE_PUT_DELAY_MS)));
+    if (process.env.FAKE_FAIL_PUT_KEY === key) process.exit(9);
     try { await stat(target); process.exit(9); } catch {}
     await mkdir(path.dirname(target), { recursive: true });
     let conflictAlready = false;
@@ -915,6 +916,40 @@ try {
     const routedEndpoints = (await readFile(routedHeadEndpoints, 'utf8')).trim().split('\n').filter(Boolean);
     assert.ok(routedEndpoints.length >= 1, 'the read bridge must perform metadata verification through the ECS path');
     assert.ok(routedEndpoints.every((endpoint) => endpoint === 'oss-cn-hangzhou-internal.aliyuncs.com'), 'the local publisher must not perform public OSS metadata reads');
+
+    const receiptFailureBlobState = buildBlobState('a'.repeat(40), [Buffer.from('receipt failure blob a'), Buffer.from('receipt failure blob b')]);
+    await assert.rejects(
+      () => publishBlob({
+        data: receiptFailureBlobState,
+        local: true,
+        readBridge: {
+          target: 'reader@example.invalid',
+          path: fakeRemoteBridge,
+          knownHostsFile: fakeKnownHosts,
+        },
+        env: {
+          PATH: `${temporary}:${process.env.PATH}`,
+          FAKE_FAIL_PUT_KEY: receiptFailureBlobState.receiptKey,
+        },
+      }),
+      /local receipt conditional write was not accepted/,
+    );
+    await assert.rejects(
+      () => readFile(path.join(ossRoot, receiptFailureBlobState.manifestKey)),
+      /ENOENT/,
+      'a failed receipt write must not leave a terminal manifest',
+    );
+    const receiptRetry = await publishBlob({
+      data: receiptFailureBlobState,
+      local: true,
+      readBridge: {
+        target: 'reader@example.invalid',
+        path: fakeRemoteBridge,
+        knownHostsFile: fakeKnownHosts,
+      },
+      env: { PATH: `${temporary}:${process.env.PATH}` },
+    });
+    assert.equal(receiptRetry.status, 'complete', 'a receipt-write failure must remain safely retryable');
   } finally {
     imdsRoleName = originalImdsRoleName;
   }

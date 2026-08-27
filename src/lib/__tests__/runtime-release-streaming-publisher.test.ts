@@ -323,6 +323,8 @@ describe('source-authoritative SSH runtime release transport', () => {
     expect(result.manifest.releaseId).toBe(sourceManifest.releaseId);
     expect(result.manifest.files[0]?.objectKey).toMatch(/^runtime\/blobs\/sha256\//);
     expect(calls.map((call) => call.args[call.args.indexOf('--operation') + 1])).toEqual(['get', 'import-v1']);
+    expect(calls[0]?.args).toContain('ecs');
+    expect(calls[0]?.args).not.toContain('ecs-read');
     const importCall = calls[1];
     expect(Buffer.from(importCall?.args[importCall.args.indexOf('--prefix-b64') + 1] ?? '', 'base64url').toString('utf8')).toBe(`runtime/blob-releases/${sourceManifest.releaseId}/`);
   });
