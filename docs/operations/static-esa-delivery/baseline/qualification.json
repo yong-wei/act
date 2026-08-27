@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "act-esa-delivery-qualification/v1",
+  "sourceCommit": "dbddcb11d816c77555f6e1785663700eed216be5",
+  "sourceTree": "995d204b4832b9dd7ef58fc646f43565dacce9f2",
+  "dirty": false,
+  "mixedWorktree": false,
+  "toolVersion": "static-esa-delivery/1",
+  "capturedAt": "2026-08-27T12:00:00.000Z",
+  "status": "incomplete",
+  "hostname": "static.adapt-learn.online",
+  "deliveryBucket": "act-course-delivery",
+  "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
+  "blockingReasons": [],
+  "missingEvidence": [
+    "cost",
+    "dns-trusted-observation",
+    "isolation",
+    "service-role",
+    "transport"
+  ],
+  "serviceRoleAccepted": false,
+  "dnsApplied": false,
+  "originBucket": "act-course-delivery",
+  "qualificationId": "d11f592394e286df7723a0e52873f699ff600d8a4dffcd6526ab1f9b18b645c3"
+}
