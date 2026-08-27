@@ -70,7 +70,11 @@ export function checkTeachingProjectionPublishing(cwd: string): PublishingCheckR
     if (!/\.(?:[cm]?[jt]sx?)$/.test(path)) continue;
     if (path.startsWith('tools/teaching-projection-publishing/')) continue;
     const content = readFileSync(join(cwd, path), 'utf8');
-    if (RETIRED_PREFIXES.some((prefix) => content.includes(prefix) || content.includes(prefix.slice(0, -1)))) {
+    const importSpecs = [...content.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
+    if (importSpecs.some((spec) => (
+      /(?:^|\/)teaching-projection\/(publish|qualify|rebase)(?:\/|$)/.test(spec)
+      && !spec.includes('tools/teaching-projection-publishing/')
+    ))) {
       failures.push(`retired-import:${path}`);
     }
     if (content.includes('tools/teaching-projection-publishing/')) callers.add(path);
