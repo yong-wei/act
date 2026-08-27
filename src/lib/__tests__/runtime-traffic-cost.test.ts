@@ -173,6 +173,19 @@ describe('runtime traffic cost observation', () => {
     ]));
     expect(JSON.stringify(hashed)).not.toContain('alice@example.com');
     expect(hashed.rows[0]?.evidenceId).toMatch(/^[a-f0-9]{64}$/u);
+    const conflictedIdentity = normalizeSourceExport(sourceExport('nginx', [
+      { bytes: 1, evidenceId: 'alice@example.com', routeClass: 'public-assets' },
+      { bytes: 1, evidenceId: 'alice@example.com', routeClass: 'course-runtime' },
+    ]));
+    expect(JSON.stringify(conflictedIdentity.conflicts)).not.toContain('alice@example.com');
+    const zeroDelayed = normalizeSourceExport(sourceExport('oss', [
+      { metering: 'NetworkOut', prefix: 'runtime/blobs/sha256/', bytes: 0, count: 0, qualification: 'delayed' },
+    ], { denominatorBytes: 0, denominatorCount: 0 }));
+    expect(zeroDelayed.status).toBe('incomplete');
+    const delayedUnbalanced = normalizeSourceExport(sourceExport('oss', [
+      { metering: 'NetworkOut', prefix: 'runtime/blobs/sha256/', bytes: 9, qualification: 'delayed' },
+    ], { denominatorBytes: 20, denominatorCount: 1 }));
+    expect(delayedUnbalanced.status).toBe('blocked');
     const unbalanced = normalizeSourceExport(sourceExport('oss', [
       { metering: 'NetworkOut', prefix: 'runtime/blobs/sha256/', bytes: 10, count: 1 },
     ], { denominatorBytes: 20, denominatorCount: 1 }));

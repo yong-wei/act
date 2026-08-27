@@ -55,7 +55,7 @@ function parseExport(raw: unknown): SourceExport {
 }
 
 function requireNonNegativeInteger(value: unknown, code: string): number {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) throw new Error(code);
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new Error(code);
   return value;
 }
 
@@ -152,7 +152,7 @@ export function normalizeSourceExport(raw: unknown): SourceLedger {
   const names = new Map<string, string>();
   for (const [index, raw] of source.rows.entries()) {
     const attributedRow = attributed[index];
-    const name = raw.path ?? raw.prefix ?? raw.evidenceId ?? attributedRow.evidenceId;
+    const name = raw.path ?? raw.prefix ?? attributedRow.evidenceId;
     const key = `${source.sourceType}:${name}`;
     const signature = `${attributedRow.routeClass}:${attributedRow.endpointClass}:${attributedRow.objectPrefixClass}`;
     const prior = names.get(key);

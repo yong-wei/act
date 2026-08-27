@@ -45,9 +45,10 @@ export function balanceLedger(input: {
   const denominatorCount = input.declaredDenominatorCount;
   const balanced = classifiedBytes === denominatorBytes && classifiedCount === denominatorCount;
   const conflicts = [...(input.conflicts ?? [])].sort();
+  const hasDelayedRow = input.rows.some((row) => row.qualification === 'delayed');
   let status: ObservationStatus = 'qualified';
-  if (input.missingReason || totals.delayed.bytes > 0 || totals.delayed.count > 0) status = 'incomplete';
-  else if (!balanced || conflicts.length > 0) status = 'blocked';
+  if (!balanced || conflicts.length > 0) status = 'blocked';
+  else if (input.missingReason || hasDelayedRow) status = 'incomplete';
   const body = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
     sourceType: input.sourceType,
