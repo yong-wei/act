@@ -5,6 +5,7 @@
     "scripts/**/*.tsx",
     "scripts/**/*.mts",
     "scripts/**/*.cts",
+    "tools/boundary/**/*.ts",
     "typescript-graph-fixtures/tools.ts"
   ],
   "exclude": [
