@@ -2,8 +2,8 @@
 
 This change isolates content, knowledge, and runtime publication behind
 `tools/content-knowledge-runtime-release`. Inventory and sample receipts bind
-the captured Git revision/tree. Apply-gated package scripts route through the
-CLI and never execute writers.
+the captured Git revision/tree. Apply-gated package scripts, including `run`
+and `export`, route through the CLI approval gate and never execute writers.
 
 `coordinate-latest-authority-and-active-oss-cutover` remains the owner of
 coordinated candidate transactions and selectors. Commercial UI capture remains

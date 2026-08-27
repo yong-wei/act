@@ -17,6 +17,6 @@ transactions remain explicit operator adapters. This CLI never executes a write,
 selector change, deploy, or database mutation.
 
 `npm run content-knowledge-runtime:check` freezes the captured-tree inventory.
-`dry-run` emits a content-bound plan. `apply` only evaluates the approval gate
-and never writes. `run`/`export` spawn a classified non-operator command.
-Independent verification maps to existing `typecheck:tools` / focused Vitest.
+`dry-run` emits a content-bound plan. `apply` / `run` / `export` only evaluate
+the approval gate and never write. Independent verification maps to existing
+`typecheck:tools` / focused Vitest.

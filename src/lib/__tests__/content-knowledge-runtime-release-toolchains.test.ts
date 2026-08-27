@@ -100,10 +100,13 @@ describe('content knowledge runtime release toolchains', () => {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8')) as {
       scripts: Record<string, string>;
     };
-    expect(pkg.scripts['actkg:prepare-v022-candidate']).toContain('tools/content-knowledge-runtime-release/cli.ts');
-    expect(pkg.scripts['db:export-textbook-resources']).toContain('tools/content-knowledge-runtime-release/cli.ts');
+    expect(pkg.scripts['actkg:prepare-v022-candidate']).toContain('tools/content-knowledge-runtime-release/cli.ts apply');
+    expect(pkg.scripts['db:export-textbook-resources']).toContain('tools/content-knowledge-runtime-release/cli.ts apply');
     expect(pkg.scripts['db:export-textbook-resources']).toContain('scripts/release/export-textbook-runtime-v2.mjs');
-    expect(readFileSync(join(process.cwd(), 'tools/content-knowledge-runtime-release/cli.ts'), 'utf8')).toContain('spawnSync');
+    expect(readFileSync(join(process.cwd(), 'tools/content-knowledge-runtime-release/cli.ts'), 'utf8')).not.toContain('spawnSync');
+    expect(result.characterization.content.outputDigest).not.toEqual(result.characterization.knowledge.outputDigest);
+    expect(result.characterization.knowledge.outputDigest).not.toEqual(result.characterization.runtime.outputDigest);
+    expect(result.sampleReceipt.sourceRevision).toBe(result.characterization.content.sourceRevision);
     expect(pkg.scripts['deploy:runtime']).toContain('scripts/deploy-runtime-blob-release.sh');
     expect(pkg.scripts['startup:oss-runtime']).toContain('scripts/runtime-release/developer-oss/cli.py');
     const exportCommand = result.commands.find((item) => item.path === 'scripts/release/export-textbook-runtime-v2.mjs');

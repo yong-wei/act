@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { worktreeIsClean } from '../boundary/git-source';
 import { findProductToolEdges } from '../boundary/product-imports';
-import { buildCommandReceipt, commandInputHash, evaluateApplyGate } from './apply-gate';
+import { buildCommandReceipt, commandInputHash, evaluateApplyGate, hashValue } from './apply-gate';
 import {
   classifyReleasePath,
   collectReleaseBlobs,
@@ -75,13 +75,15 @@ function characterizationReceipt(
   sourceTree: string,
 ): CommandReceipt {
   const command = commands.find((item) => item.path === path) ?? classifyReleasePath(path);
-  const inputHash = commandInputHash(command, blobs.get(path) ?? '');
+  const blob = blobs.get(path) ?? '';
+  const inputHash = commandInputHash(command, blob);
   return buildCommandReceipt({
     command,
     sourceRevision,
     sourceTree,
     planHash: inputHash,
     inputHash,
+    outputDigest: hashValue(`not-executed:${path}:${command.role}:${blob}`),
     targetIdentity: 'fixture:unspecified',
     gate: evaluateApplyGate({
       mode: 'dry-run',
@@ -96,8 +98,10 @@ function characterizationReceipt(
 export function checkContentKnowledgeRuntimeRelease(cwd: string): ReleaseCheckResult {
   const failures: string[] = [];
   if (!worktreeIsClean(cwd)) failures.push('dirty-worktree');
-  const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
-  const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
+  const headRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
+  const headTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
+  let sourceRevision = headRevision;
+  let sourceTree = headTree;
   const commands = inventoryReleaseCommands(cwd);
   const blobs = collectReleaseBlobs(cwd);
   const counts = countByRoot(commands);
@@ -160,24 +164,23 @@ export function checkContentKnowledgeRuntimeRelease(cwd: string): ReleaseCheckRe
     if (inventory.generatedInputs && inventory.generatedInputs.length > 0) {
       failures.push('generated-input-mixed-into-denominator');
     }
-    if (!inventory.sourceRevision) {
+    if (!inventory.sourceRevision || !inventory.sourceTree) {
       failures.push('inventory-missing-source-revision');
     } else {
       try {
         execFileSync('git', ['cat-file', '-e', `${inventory.sourceRevision}^{commit}`], { cwd });
-      } catch {
-        failures.push('inventory-revision-unreadable');
-      }
-      try {
         const capturedTree = execFileSync('git', ['rev-parse', `${inventory.sourceRevision}^{tree}`], {
           cwd,
           encoding: 'utf8',
         }).trim();
-        if (!inventory.sourceTree || inventory.sourceTree !== capturedTree) {
+        if (inventory.sourceTree !== capturedTree) {
           failures.push('inventory-source-tree-mismatch');
+        } else {
+          sourceRevision = inventory.sourceRevision;
+          sourceTree = inventory.sourceTree;
         }
       } catch {
-        failures.push('inventory-source-tree-unreadable');
+        failures.push('inventory-revision-unreadable');
       }
     }
     const records = commandRecords(commands, blobs);
