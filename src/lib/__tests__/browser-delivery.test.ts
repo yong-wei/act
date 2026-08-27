@@ -129,10 +129,20 @@ describe('content-addressed browser delivery', () => {
         deliveryBucket: DELIVERY_BUCKET,
         dnsApplied: true,
         evidenceFingerprint: DIGEST,
+        qualificationId: DIGEST,
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        dirty: false,
+        mixedWorktree: false,
       },
       trafficReceipt: {
         schemaVersion: 'act-runtime-traffic-observation/v1',
         status: 'qualified',
+        observationId: DIGEST,
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        dirty: false,
+        mixedWorktree: false,
       },
     });
     expect(qualified.status).toBe('qualified');

@@ -106,6 +106,9 @@ async function main() {
         optimizerName: '@act/glb-model-optimizer',
         optimizerVersion: '1.0.0',
         optimizerLevel: 'medium',
+        optimizerConfigDigest: createHash('sha256')
+          .update(`${createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex')}\nmedium\n`)
+          .digest('hex'),
       };
       console.log(`[models:produce] ${name}: ${(sourceSize / 1e6).toFixed(1)}MB → ${(outputSize / 1e6).toFixed(1)}MB`);
     } catch (error) {

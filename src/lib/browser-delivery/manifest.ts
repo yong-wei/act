@@ -43,10 +43,7 @@ export function hashFile(path: string): string {
 }
 
 export function optimizerConfigDigest(optimizerScript: string): string {
-  return sha256Text(serializeDeterministic({
-    script: sha256Text(optimizerScript),
-    level: OPTIMIZER_LEVEL,
-  }));
+  return sha256Text(`${sha256Text(optimizerScript)}\n${OPTIMIZER_LEVEL}\n`);
 }
 
 export function buildManifest(input: ManifestInput): BrowserDeliveryManifest {

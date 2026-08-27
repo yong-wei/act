@@ -29,6 +29,10 @@ function sha256(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
+function sha256Buffer(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
 const sourceRoot = readPathArgument('--source-root');
 const optimizedRoot = readPathArgument('--optimized-root');
 const targetSourceRoot = readPathArgument('--target-source-root', false);
@@ -106,6 +110,13 @@ for (const name of expected) {
   }
   if (record.optimizerVersion !== '1.0.0' || record.optimizerLevel !== 'medium') {
     fail(`${name} optimizer configuration does not match`);
+  }
+  const optimizerScript = readFileSync(path.join(process.cwd(), 'tools/glb-model-optimizer/optimize-models.mjs'));
+  const optimizerConfigDigest = createHash('sha256')
+    .update(`${sha256Buffer(optimizerScript)}\nmedium\n`)
+    .digest('hex');
+  if (record.optimizerConfigDigest !== optimizerConfigDigest) {
+    fail(`${name} optimizer configuration digest does not match`);
   }
 }
 

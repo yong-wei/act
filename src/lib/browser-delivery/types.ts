@@ -9,6 +9,7 @@ export const AUTHORITY_BUCKET = 'act-course-assets';
 export const STATIC_HOSTNAME = 'static.adapt-learn.online';
 export const MEDIA_TYPE = 'model/gltf-binary' as const;
 export const CACHE_CLASS = 'assets-immutable' as const;
+export const IMMUTABLE_CACHE_CONTROL = 'public, max-age=31536000, immutable' as const;
 export const OPTIMIZER_NAME = '@act/glb-model-optimizer';
 export const OPTIMIZER_LEVEL = 'medium' as const;
 

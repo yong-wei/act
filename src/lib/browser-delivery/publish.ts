@@ -5,6 +5,7 @@ import { assertPortable } from './privacy';
 import {
   COHORT_ID,
   DELIVERY_BUCKET,
+  IMMUTABLE_CACHE_CONTROL,
   MEDIA_TYPE,
   PUBLICATION_SCHEMA,
   type BrowserDeliveryManifest,
@@ -17,6 +18,7 @@ export interface StoredObjectMeta {
   readonly sizeBytes: number;
   readonly sha256: string;
   readonly mediaType: string;
+  readonly cacheControl: typeof IMMUTABLE_CACHE_CONTROL;
 }
 
 export interface DeliveryObjectStore {
@@ -129,6 +131,7 @@ export function publishCohort(
       sizeBytes: object.sizeBytes,
       sha256: object.sha256,
       mediaType: object.mediaType,
+      cacheControl: IMMUTABLE_CACHE_CONTROL,
     };
     const existing = store.head(object.objectKey);
     if (existing) {
@@ -136,6 +139,7 @@ export function publishCohort(
         existing.sizeBytes !== meta.sizeBytes
         || existing.sha256 !== meta.sha256
         || existing.mediaType !== meta.mediaType
+        || existing.cacheControl !== meta.cacheControl
       ) {
         blockingReasons.push(`overwrite-refused:${object.logicalId}`);
         continue;
