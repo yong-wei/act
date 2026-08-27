@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "act-esa-delivery-qualification/v1",
+  "sourceCommit": "67a0507a152004fc3056b539dd5746770732bd76",
+  "sourceTree": "a24db547e84928b130f382b616cc2904ff587d96",
+  "dirty": false,
+  "mixedWorktree": false,
+  "toolVersion": "static-esa-delivery/1",
+  "capturedAt": "2026-08-27T12:00:00.000Z",
+  "status": "incomplete",
+  "hostname": "static.adapt-learn.online",
+  "deliveryBucket": "act-course-delivery",
+  "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
+  "blockingReasons": [],
+  "missingEvidence": [
+    "cost",
+    "dns-trusted-observation",
+    "isolation",
+    "logs",
+    "object-etag",
+    "service-role",
+    "transport"
+  ],
+  "serviceRoleAccepted": false,
+  "dnsApplied": false,
+  "originBucket": "act-course-delivery",
+  "evidence": {
+    "serviceRole": null,
+    "object": {
+      "schemaVersion": "act-esa-delivery-object/v1",
+      "sourcePath": "public/assets/models-opt/destroyer.glb",
+      "sourceSha256": "0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae",
+      "objectSha256": "0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae",
+      "sizeBytes": 3394880,
+      "mediaType": "model/gltf-binary",
+      "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
+      "bucket": "act-course-delivery",
+      "publicAcl": false,
+      "overwriteAttempted": false,
+      "etagFingerprint": null
+    },
+    "dns": {
+      "schemaVersion": "act-esa-delivery-dns/v1",
+      "hostname": "static.adapt-learn.online",
+      "recordType": "intercepted",
+      "priorValue": null,
+      "priorTtlSeconds": null,
+      "desiredValue": null,
+      "assignedValue": null,
+      "observedValue": null,
+      "applied": false,
+      "namesChanged": []
+    },
+    "transport": null,
+    "isolation": null,
+    "cost": null,
+    "logs": null
+  },
+  "evidenceFingerprint": "200dfbf3601a6da84b89dcc893e0f76c5ef23285a04db14b7362f45fee943fbb",
+  "qualificationId": "bd4c5f4837e9af7d57205d3b293c9f64db580140cac9e7f9a49bc899576cb069"
+}

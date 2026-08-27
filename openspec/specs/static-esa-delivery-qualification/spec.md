@@ -1,5 +1,8 @@
-## ADDED Requirements
+# static-esa-delivery-qualification Specification
 
+## Purpose
+Qualify an isolated, unreferenced static ESA/OSS browser-delivery PoC on `static.adapt-learn.online` using private `act-course-delivery` and one content-addressed `destroyer.glb`. The contract gates ESA service-role scope, forbids the Runtime Authority Bucket as origin, and allows only the exact static CNAME to change.
+## Requirements
 ### Requirement: PoC uses an isolated private Delivery origin
 The PoC SHALL use a separate private `act-course-delivery` Bucket configured as
 an ESA OSS-type origin for only `static.adapt-learn.online`. It MUST NOT use
@@ -39,6 +42,10 @@ objects. It SHALL NOT move or delete the source.
 - **WHEN** its source identity, public eligibility, SHA-256, size and path all validate
 - **THEN** the copy SHALL use the derived immutable key and the receipt SHALL prove the stored bytes
 
+#### Scenario: Only a local object plan exists
+- **WHEN** the object receipt has a null ETag fingerprint or no upload/stored-byte proof
+- **THEN** qualification SHALL remain incomplete and SHALL NOT treat the local plan as a remote object receipt
+
 #### Scenario: Existing key differs
 - **WHEN** a pre-existing object at the derived key has different bytes, size, media type or required metadata
 - **THEN** qualification SHALL fail without overwrite, delete or alternate mutable key
@@ -55,6 +62,10 @@ remain unchanged.
 - **WHEN** every hostname, origin, certificate, cache, Range, CORS and permission check passes
 - **THEN** the operator MAY point only the `static` record to the ESA-assigned CNAME
 
+#### Scenario: Desired CNAME is not the ESA-assigned target
+- **WHEN** the applied record is a CNAME whose assigned, desired, or observed value is not the ESA-assigned hostname
+- **THEN** qualification SHALL fail and SHALL NOT treat an arbitrary hostname as the static origin
+
 #### Scenario: Test URL does not match the cache rule
 - **WHEN** the object is outside `/assets/*` or a required rule is missing
 - **THEN** DNS cutover and qualification SHALL remain blocked
@@ -68,8 +79,16 @@ vendor reporting delay. It SHALL report shifted cost classes rather than claim
 that ESA traffic is free.
 
 #### Scenario: All PoC checks pass after DNS cutover
-- **WHEN** HTTPS, hash, Range, cache, CORS, isolation and both billing planes are proven
+- **WHEN** HTTPS, hash, Range, cache, CORS, isolation, access/origin logs and both billing planes are proven
 - **THEN** the receipt SHALL qualify only the unreferenced static delivery PoC and its one immutable object
+
+#### Scenario: Content-Range does not match the request Range
+- **WHEN** a `206` response is recorded whose `Content-Range` start/end do not equal the requested `Range`
+- **THEN** qualification SHALL fail
+
+#### Scenario: Access or origin logs are missing
+- **WHEN** ESA access logs, origin logs, their fingerprints, or observation times are absent
+- **THEN** qualification SHALL remain incomplete
 
 #### Scenario: Static hostname can retrieve an Authority object
 - **WHEN** a known Authority namespace or non-projected key succeeds through the static hostname
@@ -88,3 +107,4 @@ test object, prior DNS evidence, and logs through the audit retention window.
 #### Scenario: Operator rolls back the PoC
 - **WHEN** a blocking check fails after DNS cutover
 - **THEN** the operator SHALL restore the prior static DNS state without deleting immutable evidence or unrelated cloud resources
+

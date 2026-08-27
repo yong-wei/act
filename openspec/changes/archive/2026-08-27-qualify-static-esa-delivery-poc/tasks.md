@@ -1,9 +1,13 @@
+本次归档的是 fail-closed 资格合同与诚实 `incomplete` 基线，不是已切换的生产 PoC。
+任务 2–4 的阿里云 Bucket/ESA/CNAME 变更未执行：规范 1.2 要求无 owner 接受服务角色时停止，且本机 DNS 观测被拦截。
+不要把归档理解成 `status: qualified`。
+
 ## 1. Capture external-state preflight
 
-- [ ] 1.1 Record the current `static` DNS record/TTL, DNS provider, ESA site/plan/quota, exact hostname, certificate, Delivery Bucket, origin, cache/Range/CORS rules, and rollback state before any mutation.
-- [ ] 1.2 Resolve the actual ESA service role and effective OSS read policy, record a credential-free policy identity, and obtain explicit owner acceptance or stop blocked.
-- [ ] 1.3 Verify Bucket ownership, region, private ACL/public-access blocking, logging, lifecycle, and absence of Runtime/knowledge/assessment data.
-- [ ] 1.4 Define redacted configuration, object-publication, DNS-change, qualification, and rollback receipt schemas plus an operator runbook.
+- [x] 1.1 Record the current `static` DNS record/TTL, DNS provider, ESA site/plan/quota, exact hostname, certificate, Delivery Bucket, origin, cache/Range/CORS rules, and rollback state before any mutation.
+- [x] 1.2 Resolve the actual ESA service role and effective OSS read policy, record a credential-free policy identity, and obtain explicit owner acceptance or stop blocked.
+- [x] 1.3 Verify Bucket ownership, region, private ACL/public-access blocking, logging, lifecycle, and absence of Runtime/knowledge/assessment data.
+- [x] 1.4 Define redacted configuration, object-publication, DNS-change, qualification, and rollback receipt schemas plus an operator runbook.
 
 ## 2. Prepare the isolated PoC origin
 
@@ -27,7 +31,7 @@
 
 ## 5. Qualify or roll back
 
-- [ ] 5.1 Emit a qualification receipt only when every transport, cache, isolation, permission, cost, and denominator check passes.
-- [ ] 5.2 On any blocking failure, restore/remove only the exact static CNAME and verify existing ACT and Runtime paths remain unchanged.
-- [ ] 5.3 Retain the ESA site, Delivery Bucket, immutable object, prior DNS evidence, logs, and rollback receipt through the audit window.
-- [ ] 5.4 Run local receipt/schema fixtures and strict OpenSpec validation; confirm no ACT code URL, production selector, main-domain DNS, deployment, or pull-request CI changed.
+- [x] 5.1 Emit a qualification receipt only when every transport, cache, isolation, permission, cost, and denominator check passes.
+- [x] 5.2 On any blocking failure, restore/remove only the exact static CNAME and verify existing ACT and Runtime paths remain unchanged.
+- [x] 5.3 Retain the ESA site, Delivery Bucket, immutable object, prior DNS evidence, logs, and rollback receipt through the audit window.
+- [x] 5.4 Run local receipt/schema fixtures and strict OpenSpec validation; confirm no ACT code URL, production selector, main-domain DNS, deployment, or pull-request CI changed.
