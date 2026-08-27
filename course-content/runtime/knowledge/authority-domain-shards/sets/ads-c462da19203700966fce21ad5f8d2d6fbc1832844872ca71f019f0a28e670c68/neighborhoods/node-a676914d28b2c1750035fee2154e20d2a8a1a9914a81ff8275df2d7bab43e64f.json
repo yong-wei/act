@@ -1,0 +1,489 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "canonicalType": "Formula",
+      "label": "\\begin{equation*}\nD_{d}(z)=K_{d} \\frac{z^{-1}\\left(1-e^{-a T} z^{-1}\\right)}{1-z^{-1}\\left(1+e^{-b T}\\right)+z^{-2} e^{-b T}} \\tag{8.37}\n\\end{equation*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-24b1a97f32dc1d06382d0503",
+      "canonicalType": "KnowledgeStatement",
+      "label": "MMPZ 法的差分方程为：u(k) = (1 + e^{-bT}) u(k-1) - e^{-bT} u(k-2) + K_d [e(k-1) - e^{-aT} e(k-2)]。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4f2f057e29d8c29c43dd4c7c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在存在随机扰动的情况下，就期望系统输出的偏差而言，MMPZ 控制器的性能通常不如 MPZ 控制器。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6097c1a1d85c8ebea0bd8069",
+      "canonicalType": "Formula",
+      "label": "D_{d}(z) = K_{d} \\frac{z-e^{-a T}}{(z-1)\\left(z-e^{-b T}\\right)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6337b123eb1d4f2d2c61a6c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在 MMPZ 方法中，有一整个采样周期可用于执行计算并输出 u(k)，因为它仅取决于 e(k-1)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8fc1c3a112026b4f156b596e",
+      "canonicalType": "Formula",
+      "label": "D_{c}(s)=K_{c} \\frac{s+a}{s(s+b)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c37da3fe6742e86d69ad02ac",
+      "canonicalType": "KnowledgeStatement",
+      "label": "修正零极点匹配法修改了零极点匹配法的第 2 步，使 D_d(z) 分子阶数比分母阶数低 1 阶，从而使 u(k) 仅取决于 e(k-1)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e51687a10eefac5851fee671",
+      "canonicalType": "Formula",
+      "label": "D_{d}(z)=K_{d} \\frac{z^{-1}\\left(1-e^{-a T} z^{-1}\\right)}{1-z^{-1}\\left(1+e^{-b T}\\right)+z^{-2} e^{-b T}}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "canonicalType": "Formula",
+      "label": "\\begin{align*}\nD_{d}(z) & =K_{d} \\frac{z-e^{-a T}}{(z-1)\\left(z-e^{-b T}\\right)}  \\tag{8.36}\\\\\nK_{d} & =K_{c} \\frac{a}{b}\\left(\\frac{1-e^{-b T}}{1-e^{-a T}}\\right)\n\\end{align*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "canonicalType": "DomainConcept",
+      "label": "修正匹配极点-零点法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1k:relation-0a3ef7230b7fc7989e134c69",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-4f2f057e29d8c29c43dd4c7c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-13b2b2ce67cc1d693cac93de",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-41840f0dfb1881ea7ef35a2d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-6097c1a1d85c8ebea0bd8069",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-4b9ccfff507d38965e183287",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-6337b123eb1d4f2d2c61a6c1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-5ac5c9124874da9a0c91331f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-e7d8d3790d1fe17d05da700a",
+      "targetId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-5ed8221a7de752735590addc",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-710241a6cf85ac3401355824",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-14e4de5044cb2f1a881ad170",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-9d6745bc463f61ee00fe67c3",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-c37da3fe6742e86d69ad02ac",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1k:relation-ad39365d360aab046a241a80",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-8fc1c3a112026b4f156b596e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-cf1ad514bbd83b43ff09298c",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-e51687a10eefac5851fee671",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-de3e9b5cc8cab9af6fe75fca",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-f8d3e5fdd92e5393820683bb",
+      "targetId": "ctkg:v3e-object-24b1a97f32dc1d06382d0503",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

@@ -241,7 +241,11 @@ function graphConfigFromPath(parentDir: string, extendsPath: string): GraphConfi
 }
 
 export function readGitIdentity(repoRoot: string): { sourceCommit: string; sourceTree: string; dirty: boolean } {
-  const git = (args: string[]) => execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8' }).trim();
+  const git = (args: string[]) => execFileSync('git', args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  }).trim();
   return {
     sourceCommit: git(['rev-parse', 'HEAD']),
     sourceTree: git(['rev-parse', 'HEAD^{tree}']),

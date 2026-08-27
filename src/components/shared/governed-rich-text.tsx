@@ -102,7 +102,7 @@ export function GovernedRichText({
               <span key={`${projection.renderKey}:${blockIndex}:${spanIndex}`}>{span.text}</span>
             ) : (
               <MathSpanView
-                key={span.renderKey}
+                key={`${projection.renderKey}:${blockIndex}:${spanIndex}:${span.renderKey}`}
                 span={span}
                 theme={theme}
                 showCopy={showCopy}

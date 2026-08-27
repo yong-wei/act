@@ -1436,6 +1436,7 @@ export function KnowledgeGraphCanvas({
         bodyRadius: node.__knowledgeRootPacking?.collisionRadius
           ?? getKnowledgeNodeMaximumPresentationRadius(node),
         isRootBubble: Boolean(node.__knowledgeRootPacking),
+        isKeyNode: node.labelPriority,
         importance: node.importance,
         labelBounds: node.__knowledgeRootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name, bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
@@ -2161,6 +2162,7 @@ export function KnowledgeGraphCanvas({
         z: node.z ?? 0,
         bodyRadius,
         isRootBubble: Boolean(rootPacking),
+        isKeyNode: node.labelPriority,
         importance: node.importance,
         labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name,

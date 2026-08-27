@@ -1,10 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * Build the v0.37 Authority Snapshot for the coordinated cutover (#1509
- * gap C). The v0.18/v0.22 chain produced snapshots from a CTKG 0.2
- * aggregate DB admission; ActKG never published a v0.37 aggregate, so this
- * producer materializes the authority-store snapshot directly from the
- * checked-in v0.37-r3 public bundle (canonical bytes identical to v0.37).
+ * Build a v0.37 Authority Snapshot for the coordinated cutover (#1509
+ * gap C). Bundle identity comes from a sealed latest-complete capture
+ * receipt; this producer never hardcodes a bundle revision.
  *
  * The snapshot is staged candidate-only: no current.json selector is
  * written, and the output reopens cleanly through
@@ -17,6 +15,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
+  authorityDigest,
   materializeAuthoritySnapshot,
   verifyMaterializedSnapshot,
 } from '@/lib/authoritative-knowledge/authority-snapshot';
@@ -31,6 +30,9 @@ import type {
   AuthoritativeReleaseEntryRecord,
   AuthoritativeReleaseRecord,
   AuthoritativeReleaseSetRecord,
+  AuthoritativeV2Evidence,
+  AuthoritativeV2MultilingualLabelRecord,
+  AuthoritativeV2ProjectionProfileRecord,
 } from '@/lib/authoritative-knowledge/contracts';
 import {
   resolveAuthorityStorePaths,
@@ -38,19 +40,54 @@ import {
 } from '@/lib/authoritative-knowledge/authority-store';
 
 const ROOT = process.cwd();
-const BUNDLE_DIR = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r3';
 const AUTHORITY_ROOT = 'course-content/authoring/knowledge/authority';
-const RELEASE_ID = 'ctr:release:control-theory-engineering-v0.37';
-const RELEASE_VERSION = 'control-theory-engineering-v0.37';
-const RELEASE_SET_ID = 'actkg-authoritative-candidate-v037-r3';
-const PREDECESSOR_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22';
-const ACTKG_SOURCE_COMMIT = '3e98864deaa18a0635a79188d0f8459e87389351';
-// The snapshot capture revision is the ACT-side build revision: the same Git
-// HEAD the teaching projection and consumer activation bind as their shared
-// authoring/capture identity (never the upstream ActKG source commit).
+const PREDECESSOR_RELEASE_ID_DEFAULT = 'ctr:release:control-theory-engineering-v0.22';
 const CAPTURE_REVISION = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
-const SOURCE_TAG = 'control-theory-engineering-v0.37-source-r4';
-const STAGED_AT = '2026-08-25T12:00:00.000Z';
+const STAGED_AT_DEFAULT = '2026-08-25T12:00:00.000Z';
+
+type CaptureReceiptLite = {
+  readonly bundleId: string;
+  readonly sourceCommit: string;
+  readonly sourceTag: string;
+  readonly stableTag: string;
+  readonly releaseId: string;
+  readonly releaseVersion: string;
+  readonly bundleDigest: string;
+  readonly compatibility: { readonly classification: string };
+};
+
+function parseBuilderArgs(argv: string[]): {
+  capturePath: string;
+  bundleDir?: string;
+  predecessorReleaseId: string;
+  stagedAt: string;
+  authorityRoot: string;
+} {
+  const values = new Map<string, string>();
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = argv[index];
+    const value = argv[index + 1];
+    if (!key?.startsWith('--') || !value) {
+      throw new Error('build-v037-authority-snapshot requires --capture <authority-capture.json>');
+    }
+    values.set(key, value);
+  }
+  const capturePath = values.get('--capture');
+  if (!capturePath) {
+    throw new Error('build-v037-authority-snapshot requires --capture <authority-capture.json> from the latest-complete capture; it does not hardcode a bundle revision.');
+  }
+  return {
+    capturePath,
+    bundleDir: values.get('--bundle-dir'),
+    predecessorReleaseId: values.get('--predecessor-release-id') ?? PREDECESSOR_RELEASE_ID_DEFAULT,
+    stagedAt: values.get('--staged-at') ?? STAGED_AT_DEFAULT,
+    authorityRoot: values.get('--authority-root') ?? AUTHORITY_ROOT,
+  };
+}
+
+function bundleDirFromId(bundleId: string): string {
+  return `course-content/authoring/knowledge/releases/${bundleId.replace(/^ctb:/u, '').replaceAll(':', '-')}`;
+}
 
 type ProjectionNodeRow = {
   readonly id: string;
@@ -88,6 +125,33 @@ type ProfileRow = {
   readonly projection_kind: string;
   readonly profile_version: string;
   readonly mapping_contract_version: string;
+  readonly aggregation_policy: string;
+};
+
+type MultilingualLabelRow = {
+  readonly entity_id: string;
+  readonly label: string;
+  readonly label_type: string;
+  readonly language: string;
+  readonly terminology_assertion_id: string;
+};
+
+type LocalizedNameRow = {
+  readonly id: string;
+  readonly target_id: string;
+  readonly locale: string;
+  readonly field_path: string;
+  readonly review_status: string;
+  readonly content_hash: string;
+  readonly value: string;
+};
+
+type BundleArtifact = {
+  readonly path: string;
+  readonly role: string;
+  readonly contract_version: string;
+  readonly sha256: string;
+  readonly required: boolean;
 };
 
 type LinkMetadataRow = {
@@ -123,8 +187,315 @@ function sha256File(filePath: string): string {
   return createHash('sha256').update(readFileSync(absolute(filePath))).digest('hex');
 }
 
+function sha256Text(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function isSha256(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value);
+}
+
+function requireText(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+  return value;
+}
+
+function readJsonl<T>(filePath: string): T[] {
+  return readFileSync(absolute(filePath), 'utf8')
+    .split(/\r?\n/u)
+    .filter((line) => line.trim().length > 0)
+    .map((line, index) => {
+      try {
+        return JSON.parse(line) as T;
+      } catch (error) {
+        throw new Error(`${filePath} line ${index + 1} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+}
+
+function manifestArtifacts(manifest: { readonly artifacts?: readonly BundleArtifact[] }): Map<string, BundleArtifact> {
+  if (!Array.isArray(manifest.artifacts)) throw new Error('bundle manifest artifacts must be an array');
+  const rows = new Map<string, BundleArtifact>();
+  for (const artifact of manifest.artifacts) {
+    if (!artifact || typeof artifact !== 'object') throw new Error('bundle manifest contains an invalid artifact');
+    const artifactPath = requireText(artifact.path, 'bundle artifact path');
+    if (rows.has(artifactPath)) throw new Error(`bundle manifest duplicates artifact ${artifactPath}`);
+    if (!isSha256(artifact.sha256)) throw new Error(`bundle manifest artifact ${artifactPath} lacks a SHA-256 digest`);
+    rows.set(artifactPath, artifact);
+  }
+  return rows;
+}
+
+function requireBundleArtifact(
+  artifacts: ReadonlyMap<string, BundleArtifact>,
+  filePath: string,
+  role: string,
+  contract: string,
+  bundleDir: string,
+): BundleArtifact {
+  const artifact = artifacts.get(filePath);
+  if (!artifact
+    || artifact.required !== true
+    || artifact.role !== role
+    || artifact.contract_version !== contract
+    || artifact.sha256 !== sha256File(`${bundleDir}/${filePath}`)) {
+    throw new Error(`required ${role} artifact ${filePath} is missing, incompatible, or drifted`);
+  }
+  return artifact;
+}
+
+function profileKeyFor(row: ProfileRow): { profileKey: string; manifestProfile: string } {
+  if (row.projection_kind === 'act_runtime_graph') return { profileKey: 'act', manifestProfile: 'runtime' };
+  if (row.projection_kind === 'domain_graph') return { profileKey: 'domain', manifestProfile: 'domain' };
+  if (row.projection_kind === 'review_graph') return { profileKey: 'review', manifestProfile: 'review' };
+  throw new Error(`unsupported r4 projection kind ${row.projection_kind}`);
+}
+
+function buildR4LabelEvidence(input: {
+  readonly releaseId: string;
+  readonly bundleReceiptId: string;
+  readonly bundleId: string;
+  readonly bundleDigest: string;
+  readonly manifestSha256: string;
+  readonly sourceCommit: string;
+  readonly sourceTag: string;
+  readonly stableTag: string;
+  readonly bundleRevision: number;
+  readonly bundleDir: string;
+  readonly manifestArtifacts: ReadonlyMap<string, BundleArtifact>;
+  readonly profiles: readonly ProfileRow[];
+  readonly nodes: readonly ProjectionNodeRow[];
+}): AuthoritativeV2Evidence {
+  const labelArtifact = requireBundleArtifact(
+    input.manifestArtifacts,
+    'multilingual-label-index.jsonl',
+    'multilingual_label_index',
+    'actkg-multilingual-label-index/1',
+    input.bundleDir,
+  );
+  const localizedArtifact = requireBundleArtifact(
+    input.manifestArtifacts,
+    'localized-content-index.jsonl',
+    'localized_content',
+    'ctkg-localized-content/1',
+    input.bundleDir,
+  );
+  const projectionArtifact = requireBundleArtifact(
+    input.manifestArtifacts,
+    'domain-projection.json',
+    'projection',
+    'ctkg-graph-projection/0.3',
+    input.bundleDir,
+  );
+  const profilesArtifact = requireBundleArtifact(
+    input.manifestArtifacts,
+    'projection-profiles.json',
+    'projection_profiles',
+    'ctkg-projection-profiles/1',
+    input.bundleDir,
+  );
+  const localeArtifact = requireBundleArtifact(
+    input.manifestArtifacts,
+    'locale-manifest.json',
+    'locale_manifest',
+    'ctkg-locale-manifest/1',
+    input.bundleDir,
+  );
+  const localeManifest = readJson<{
+    readonly contract: string;
+    readonly capabilities: {
+      readonly default_locale: string;
+      readonly fallback_policy: string;
+      readonly production_ready: boolean;
+      readonly supported_locales: readonly string[];
+    };
+  }>(`${input.bundleDir}/locale-manifest.json`);
+  if (localeManifest.contract !== 'ctkg-locale-manifest/1'
+    || localeManifest.capabilities.default_locale !== 'zh-CN'
+    || localeManifest.capabilities.fallback_policy !== 'forbidden'
+    || localeManifest.capabilities.production_ready !== true
+    || !localeManifest.capabilities.supported_locales.includes('zh-CN')) {
+    throw new Error('r4 locale manifest does not declare a production zh-CN presentation contract');
+  }
+
+  const profileHashes = readJson<{ readonly contract_version: string; readonly profile_sha256: Record<string, string> }>(
+    `${input.bundleDir}/projection-profiles.json`,
+  );
+  if (profileHashes.contract_version !== 'ctkg-projection-profiles/1') {
+    throw new Error('r4 projection profile contract mismatch');
+  }
+  const profiles: AuthoritativeV2ProjectionProfileRecord[] = input.profiles.map((row) => {
+    const { profileKey, manifestProfile } = profileKeyFor(row);
+    const profileSha256 = profileHashes.profile_sha256[profileKey];
+    if (!isSha256(profileSha256)
+      || !row.id
+      || !row.profile_version
+      || !row.mapping_contract_version
+      || !row.aggregation_policy) {
+      throw new Error(`r4 projection profile ${profileKey} is incomplete`);
+    }
+    return {
+      releaseId: input.releaseId,
+      profileKey,
+      manifestProfile,
+      profileId: row.id,
+      profileSha256,
+      projectionKind: row.projection_kind,
+      profileVersion: row.profile_version,
+      mappingContractVersion: row.mapping_contract_version,
+      aggregationPolicy: row.aggregation_policy,
+      payload: {
+        contract: 'actkg-r4-sealed-profile-evidence/v1',
+        sourceArtifact: 'projection-profiles.json',
+        sourceArtifactSha256: profilesArtifact.sha256,
+        profile: row,
+      },
+    };
+  }).sort((left, right) => left.profileKey.localeCompare(right.profileKey));
+  if (profiles.length !== 3 || new Set(profiles.map((row) => row.profileKey)).size !== 3) {
+    throw new Error('r4 must admit exactly one runtime, domain, and review projection profile');
+  }
+
+  const nodeIds = new Set(input.nodes.map((node) => node.entity_id));
+  if (nodeIds.size !== input.nodes.length) throw new Error('r4 domain projection repeats an entity id');
+  const indexedLabels = new Map<string, MultilingualLabelRow>();
+  for (const row of readJsonl<MultilingualLabelRow>(`${input.bundleDir}/multilingual-label-index.jsonl`)) {
+    if (!nodeIds.has(row.entity_id)) throw new Error(`r4 terminology label references unknown object ${row.entity_id}`);
+    if (row.language !== 'zh-CN' || row.label_type !== 'canonical_preferred') continue;
+    if (!row.label.trim() || !row.terminology_assertion_id || indexedLabels.has(row.entity_id)) {
+      throw new Error(`r4 terminology index has an invalid or duplicate canonical label for ${row.entity_id}`);
+    }
+    indexedLabels.set(row.entity_id, row);
+  }
+  const localizedNames = new Map<string, LocalizedNameRow>();
+  for (const row of readJsonl<LocalizedNameRow>(`${input.bundleDir}/localized-content-index.jsonl`)) {
+    if (row.locale !== 'zh-CN' || row.field_path !== 'name' || row.review_status !== 'approved') continue;
+    if (!nodeIds.has(row.target_id)) continue;
+    if (!row.id || !row.value.trim() || !isSha256(row.content_hash) || localizedNames.has(row.target_id)) {
+      throw new Error(`r4 localized name index has an invalid or duplicate approved label for ${row.target_id}`);
+    }
+    localizedNames.set(row.target_id, row);
+  }
+
+  const sourceCounts = { terminology: 0, localizedName: 0, projectionDisplayName: 0 };
+  const multilingualLabels: AuthoritativeV2MultilingualLabelRecord[] = input.nodes
+    .slice()
+    .sort((left, right) => left.entity_id.localeCompare(right.entity_id))
+    .map((node, ordinal) => {
+      const indexed = indexedLabels.get(node.entity_id);
+      const localized = localizedNames.get(node.entity_id);
+      const source = indexed
+        ? {
+          kind: 'multilingual-label-index',
+          artifact: labelArtifact,
+          recordId: indexed.terminology_assertion_id,
+          recordHash: authorityDigest(indexed),
+          label: indexed.label,
+        }
+        : localized
+          ? {
+            kind: 'localized-content-name',
+            artifact: localizedArtifact,
+            recordId: localized.id,
+            recordHash: localized.content_hash,
+            label: localized.value,
+          }
+          : {
+            kind: 'domain-projection-display-name',
+            artifact: projectionArtifact,
+            recordId: node.entity_id,
+            recordHash: authorityDigest(node),
+            label: node.display_name,
+          };
+      if (!source.label || source.label.trim().length === 0) {
+        throw new Error(`r4 has no usable zh-CN label source for ${node.entity_id}`);
+      }
+      if (source.kind === 'multilingual-label-index') sourceCounts.terminology += 1;
+      else if (source.kind === 'localized-content-name') sourceCounts.localizedName += 1;
+      else sourceCounts.projectionDisplayName += 1;
+      return {
+        releaseId: input.releaseId,
+        ordinal,
+        entityId: node.entity_id,
+        language: 'zh-CN',
+        label: source.label,
+        labelType: 'canonical_preferred',
+        terminologyAssertionId: indexed?.terminology_assertion_id
+          ?? `ctt:r4-projection-label-${sha256Text(`${source.kind}\u0000${node.entity_id}\u0000${source.label}`).slice(0, 40)}`,
+        payload: {
+          contract: 'actkg-r4-sealed-presentation-label/v1',
+          source: source.kind,
+          entityId: node.entity_id,
+          labelSha256: sha256Text(source.label),
+          sourceArtifact: source.artifact.path,
+          sourceArtifactSha256: source.artifact.sha256,
+          sourceRecordId: source.recordId,
+          sourceRecordHash: source.recordHash,
+          bundleDigest: input.bundleDigest,
+          manifestSha256: input.manifestSha256,
+        },
+      } satisfies AuthoritativeV2MultilingualLabelRecord;
+    });
+  if (multilingualLabels.length !== input.nodes.length) throw new Error('r4 label evidence does not cover every projection object');
+  const bindingPayload = {
+    provenance: 'registry',
+    verificationScope: 'admission-time',
+    verifiedDuringLoad: false,
+    registryIdentity: {
+      adapter: 'actkg-r4-sealed-presentation-evidence/v1',
+      bundleContractVersion: 'actkg-public-bundle/3',
+      manifestSha256: input.manifestSha256,
+      requiredArtifacts: {
+        multilingualLabelIndex: labelArtifact.sha256,
+        localizedContent: localizedArtifact.sha256,
+        domainProjection: projectionArtifact.sha256,
+        projectionProfiles: profilesArtifact.sha256,
+        localeManifest: localeArtifact.sha256,
+      },
+      sourceCounts,
+      objectCount: input.nodes.length,
+    },
+    upstreamRepository: { sourceCommit: input.sourceCommit, sourceTag: input.sourceTag },
+    publicationRevision: { stableTag: input.stableTag, bundleRevision: input.bundleRevision },
+    sourceRevision: { sourceCommit: input.sourceCommit, sourceTag: input.sourceTag },
+    bundleIdentity: {
+      bundleId: input.bundleId,
+      bundleDigest: input.bundleDigest,
+      manifestSha256: input.manifestSha256,
+    },
+  } as const;
+  return {
+    protocol: 'actkg-public-bundle/2',
+    profiles,
+    multilingualLabels,
+    admissionBinding: {
+      releaseId: input.releaseId,
+      bundleReceiptId: input.bundleReceiptId,
+      protocol: 'actkg-public-bundle/2',
+      ...bindingPayload,
+      bindingDigest: authorityDigest(bindingPayload),
+    },
+  };
+}
+
 function main(): void {
+  const args = parseBuilderArgs(process.argv.slice(2));
+  const capture = readJson<CaptureReceiptLite>(args.capturePath);
+  if (capture.compatibility.classification !== 'COMPATIBLE') {
+    throw new Error('refusing to materialize a snapshot from an ADAPTATION_REQUIRED capture');
+  }
+  const BUNDLE_DIR = args.bundleDir ?? bundleDirFromId(capture.bundleId);
+  const RELEASE_ID = capture.releaseId;
+  const RELEASE_VERSION = capture.releaseVersion;
+  const RELEASE_SET_ID = `actkg-authoritative-candidate-${capture.stableTag}`;
+  const PREDECESSOR_RELEASE_ID = args.predecessorReleaseId;
+  const ACTKG_SOURCE_COMMIT = capture.sourceCommit;
+  const SOURCE_TAG = capture.sourceTag;
+  const STAGED_AT = args.stagedAt;
   const bundleRoot = absolute(BUNDLE_DIR);
+  const authorityRoot = args.authorityRoot;
 
   // 1. Re-verify the bundle integrity before consuming it.
   const sums = readFileSync(path.join(bundleRoot, 'SHA256SUMS'), 'utf8');
@@ -172,18 +543,20 @@ function main(): void {
     .filter((line): line is string => line.trim().length > 0)
     .map((line) => JSON.parse(line) as LinkMetadataRow);
 
-  if (release.release_hash !== 'cc73fa150a94fb0a3891c4b5d26eba9ca190f28334782a974333016f734fea39') {
-    throw new Error('r3 bundle release_hash drifted off the sealed v0.37 capture');
+  const bundleManifestIdentity = readJson<{ readonly bundle_id: string; readonly bundle_digest: string; readonly bundle_revision: number }>(`${BUNDLE_DIR}/bundle-manifest.json`);
+  if (bundleManifestIdentity.bundle_id !== capture.bundleId) {
+    throw new Error(`bundle_id ${bundleManifestIdentity.bundle_id} does not match capture ${capture.bundleId}`);
   }
-  if (domainProjection.nodes.length !== 7476) {
-    throw new Error(`expected 7476 projection nodes, got ${domainProjection.nodes.length}`);
+  if (bundleManifestIdentity.bundle_digest !== capture.bundleDigest) {
+    throw new Error('bundle_digest does not match the sealed latest-complete capture');
   }
 
   const schemaSha = sha256File(`${BUNDLE_DIR}/ctkg.schema.json`);
   const releaseRawSha = sha256File(`${BUNDLE_DIR}/release.json`);
   const sumsSha = sha256File(`${BUNDLE_DIR}/SHA256SUMS`);
   const manifestSha = sha256File(`${BUNDLE_DIR}/bundle-manifest.json`);
-  const bundleManifest = readJson<{ readonly artifacts?: readonly unknown[] }>(`${BUNDLE_DIR}/bundle-manifest.json`);
+  const bundleManifest = readJson<{ readonly artifacts?: readonly BundleArtifact[] }>(`${BUNDLE_DIR}/bundle-manifest.json`);
+  const bundleArtifacts = manifestArtifacts(bundleManifest);
   const runtimeProfile = profilesFile.profiles.find((row) => row.projection_kind === 'runtime')
     ?? profilesFile.profiles[0];
   if (!runtimeProfile) throw new Error('bundle declares no projection profile');
@@ -192,7 +565,7 @@ function main(): void {
   const releaseSet: AuthoritativeReleaseSetRecord = {
     id: RELEASE_SET_ID,
     controlledPath: BUNDLE_DIR,
-    lockVersion: 'control-theory-engineering-v0.37-r3',
+    lockVersion: capture.stableTag,
     candidateState: 'ACCEPTED_CANDIDATE',
   };
   const releaseRecord: AuthoritativeReleaseRecord = {
@@ -216,17 +589,21 @@ function main(): void {
     sourceDatasetHash: release.source_dataset_hash,
   };
   const bundleReceipt: AuthoritativeBundleReceiptRecord = {
-    id: `bundle-receipt:${release.release_hash}`,
-    bundleId: 'ctb:control-theory-engineering-v0.37:r3',
-    bundleRevision: 3,
-    bundleDigest: release.release_hash,
+    id: `bundle-receipt:${capture.bundleDigest}`,
+    bundleId: capture.bundleId,
+    bundleRevision: bundleManifestIdentity.bundle_revision,
+    // The Bundle receipt identifies the sealed packaging artifact, not the
+    // canonical release payload nested inside it. Keeping these identities
+    // distinct makes the staged Authority snapshot close over the same
+    // bundleDigest that the execution-time capture verified.
+    bundleDigest: capture.bundleDigest,
     bundleKind: 'composite',
     releaseStage: 'published',
     bundleContractVersion: 'ctkg-release/0.3',
     controlledPath: BUNDLE_DIR,
     manifestRawSha256: manifestSha,
     normalization: 'canonical-json/rfc8785-subset-v1',
-    publicationTag: 'control-theory-engineering-v0.37-r3',
+    publicationTag: capture.stableTag,
     sourceCommit: ACTKG_SOURCE_COMMIT,
     sourceTag: SOURCE_TAG,
     releaseSetId: RELEASE_SET_ID,
@@ -235,7 +612,7 @@ function main(): void {
     sourceDatasetHash: release.source_dataset_hash,
     schemaVersion: release.schema_version,
     schemaRawSha256: schemaSha,
-    lockVersion: 'control-theory-engineering-v0.37-r3',
+    lockVersion: capture.stableTag,
     lockPath: `${BUNDLE_DIR}/SHA256SUMS`,
     lockRawSha256: sumsSha,
     captureRevision: CAPTURE_REVISION,
@@ -335,6 +712,21 @@ function main(): void {
     payload: row,
     bundleReceiptId: bundleReceipt.id,
   }));
+  const v2Evidence = buildR4LabelEvidence({
+    releaseId: RELEASE_ID,
+    bundleReceiptId: bundleReceipt.id,
+    bundleId: capture.bundleId,
+    bundleDigest: capture.bundleDigest,
+    manifestSha256: manifestSha,
+    sourceCommit: ACTKG_SOURCE_COMMIT,
+    sourceTag: SOURCE_TAG,
+    stableTag: capture.stableTag,
+    bundleRevision: bundleManifestIdentity.bundle_revision,
+    bundleDir: BUNDLE_DIR,
+    manifestArtifacts: bundleArtifacts,
+    profiles: profilesFile.profiles,
+    nodes: domainProjection.nodes,
+  });
 
   const snapshot: AuthoritativeKnowledgeSnapshot = {
     authorityState: 'candidate',
@@ -356,10 +748,11 @@ function main(): void {
     projectionIdentities,
     linkMetadata: linkMetadataRecords,
     bundleReceipt,
+    v2Evidence,
   };
 
   // 3. Materialize and stage (writes snap-<hash>/ but never current.json).
-  const paths = resolveAuthorityStorePaths(absolute(AUTHORITY_ROOT));
+  const paths = resolveAuthorityStorePaths(absolute(authorityRoot));
   const staged = stageAuthoritySnapshot(paths, {
     snapshot,
     predecessorReleaseId: PREDECESSOR_RELEASE_ID,
@@ -367,17 +760,23 @@ function main(): void {
     captureRevision: CAPTURE_REVISION,
   }, {
     stagedAt: STAGED_AT,
-    receiptId: `stage-v037r3-${release.release_hash.slice(0, 12)}`,
+    receiptId: `stage-${capture.stableTag}-${release.release_hash.slice(0, 12)}`,
   });
 
   // 4. Reopen the staged files and verify them end-to-end.
   const reopenedManifest = readJson<Parameters<typeof verifyMaterializedSnapshot>[0]['manifest']>(
-    `${AUTHORITY_ROOT}/releases/${staged.snapshotId}/manifest.json`,
+    `${authorityRoot}/releases/${staged.snapshotId}/manifest.json`,
   );
   const reopenedEngineering = readJson<Parameters<typeof verifyMaterializedSnapshot>[0]['engineering']>(
-    `${AUTHORITY_ROOT}/releases/${staged.snapshotId}/engineering.json`,
+    `${authorityRoot}/releases/${staged.snapshotId}/engineering.json`,
   );
   verifyMaterializedSnapshot({ manifest: reopenedManifest, engineering: reopenedEngineering });
+  if (
+    reopenedManifest.bundleDigest !== capture.bundleDigest
+    || reopenedManifest.bundleReceiptId !== `bundle-receipt:${capture.bundleDigest}`
+  ) {
+    throw new Error('staged snapshot does not preserve the sealed Bundle identity');
+  }
 
   console.log(JSON.stringify({
     snapshotId: staged.snapshotId,
@@ -389,6 +788,10 @@ function main(): void {
     releaseComponents: reopenedEngineering.releaseComponents.length,
     projectionIdentities: reopenedEngineering.projectionIdentities.length,
     linkMetadata: reopenedEngineering.linkMetadata.length,
+    labelEvidence: {
+      labels: reopenedEngineering.v2Evidence?.multilingualLabels.length ?? 0,
+      profiles: reopenedEngineering.v2Evidence?.profiles.length ?? 0,
+    },
     verified: true,
     selectorWritten: false,
   }, null, 2));

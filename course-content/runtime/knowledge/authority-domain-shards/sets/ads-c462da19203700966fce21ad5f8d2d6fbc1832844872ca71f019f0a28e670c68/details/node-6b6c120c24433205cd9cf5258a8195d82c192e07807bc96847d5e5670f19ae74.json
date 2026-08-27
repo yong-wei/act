@@ -1,0 +1,56 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-canonical-1a2d4a0c24432e7ebd8475c5",
+    "canonicalType": "KnowledgeStatement",
+    "label": "属性断言：Consider the third-order system G_H(s)=6/(s^3+6s^2+11s+6)=1/(1+(11/6)s+s^2+(1/6)s^3). Using the second-order model G_L(s)=1/(1+d1 s+d2 s^2), we determine that ... Solving Equations (5.61) and (5.62) yields d1=1.615 and d2=0.624. The lower-order system transfer function is G_L(s)=1/(1+1.615s+0.624s^2)=1.60/(s^2+2.590s+1.60).",
+    "aliases": [],
+    "description": "Consider the third-order system G_H(s)=6/(s^3+6s^2+11s+6)=1/(1+(11/6)s+s^2+(1/6)s^3). Using the second-order model G_L(s)=1/(1+d1 s+d2 s^2), we determine that ... Solving Equations (5.61) and (5.62) yields d1=1.615 and d2=0.624. The lower-order system transfer function is G_L(s)=1/(1+1.615s+0.624s^2)=1.60/(s^2+2.590s+1.60).",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

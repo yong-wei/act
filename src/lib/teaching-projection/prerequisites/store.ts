@@ -211,12 +211,12 @@ function stageArtifacts(
  */
 export function stagePrerequisitePublication(
   paths: PrerequisiteStorePaths,
-  input: PrerequisitePublicationBuildInput,
+  input: PrerequisitePublicationBuildInput & { useCurrentAsPrior?: boolean },
 ): StagedPrerequisitePublication {
   ensurePrerequisiteStore(paths);
 
   let prior: PrerequisitePublicationArtifacts | null = input.priorArtifacts ?? null;
-  if (!prior) {
+  if (!prior && input.useCurrentAsPrior !== false) {
     const current = readCurrentPrerequisitePointer(paths);
     if (current) {
       try {

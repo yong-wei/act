@@ -24,6 +24,8 @@ export const RESOURCE_CONTINUITY_RECEIPT_CONTRACT =
   'resource-continuity-receipt/v1' as const;
 export const RESOURCE_RETIREMENT_DECISION_CONTRACT =
   'resource-owner-retirement-decision/v1' as const;
+export const BASELINE_CONTINUITY_OBLIGATION_CONTRACT =
+  'baseline-continuity-obligation-ledger/v1' as const;
 export const TEACHING_CLOSURE_RECEIPT_CONTRACT =
   'coordinated-teaching-closure-receipt/v1' as const;
 export const COORDINATION_ALLOCATION_CONTRACT =
@@ -36,10 +38,14 @@ export const CUTOVER_MUTATION_RECEIPT_CONTRACT =
   'cutover-selector-mutation-receipt/v1' as const;
 export const COORDINATED_ACTIVE_RECEIPT_CONTRACT =
   'coordinated-active-receipt/v1' as const;
+export const COORDINATED_RUNTIME_AUTHORIZATION_CONTRACT =
+  'coordinated-runtime-authorization/v1' as const;
 export const COORDINATED_RUNTIME_MANIFEST_EXTENSION_CONTRACT =
   'coordinated-runtime-manifest-extension/v1' as const;
 export const LATEST_AUTHORITY_CUTOVER_BUILDER_VERSION =
   'latest-authority-oss-cutover-builder/v1' as const;
+/** Opaque predecessor identity for a graph selector that is not yet written. */
+export const SELECTOR_ABSENT = 'ABSENT' as const;
 
 export const AUTHORITY_COMPONENT_KINDS = [
   'module',
@@ -165,12 +171,37 @@ export interface AuthorityCaptureReceipt {
   readonly captureHash: string;
 }
 
+export const BASELINE_SOURCE_KINDS = [
+  'runtime-manifest',
+  'db-teaching-resource',
+] as const;
+export type BaselineSourceKind = (typeof BASELINE_SOURCE_KINDS)[number];
+
+export const BASELINE_COURSE_SCOPES = [
+  'in-course',
+  'out-of-course',
+  'non-resource',
+] as const;
+export type BaselineCourseScope = (typeof BASELINE_COURSE_SCOPES)[number];
+
 /** Logical-resource entry classification reopened from the active release. */
 export interface ActiveBaselineEntry {
   readonly entryId: string;
   readonly resourceId: string | null;
   readonly classification: 'resource' | 'non-resource';
   readonly subtype: string | null;
+  readonly sourceKind?: BaselineSourceKind;
+  readonly runtimePath?: string | null;
+  readonly dbResourceId?: string | null;
+  readonly registryId?: string | null;
+  readonly carrierEntryId?: string | null;
+  readonly courseScope?: BaselineCourseScope;
+  /** Immutable content identity of the classification input. */
+  readonly sourceIdentity?: string | null;
+  /** Exact source bytes when this entry has a delivered Runtime carrier. */
+  readonly sourceContentSha256?: string | null;
+  /** Machine-readable reason for the resource or non-resource disposition. */
+  readonly dispositionReason?: string | null;
 }
 
 export interface ActiveRuntimeReleaseIdentity {
@@ -271,8 +302,30 @@ export interface RetirementDecision {
   readonly invalidationRules: readonly string[];
 }
 
+/**
+ * The successor obligation is determined from the sealed active Runtime, not
+ * from a blanket assumption that every delivered file is a teaching binding.
+ * A resource that can enter a current learner path remains fail-closed; an
+ * explicitly non-teaching or supporting resource remains accounted for but
+ * must never become path-selectable through this disposition.
+ */
+export const RESOURCE_CONTINUITY_OBLIGATION_KINDS = [
+  'FORMAL_TEACHING',
+  'FORMAL_EXPLICIT_NONE',
+  'RUNTIME_SUPPORT',
+  'CATALOG_ONLY',
+] as const;
+export type ResourceContinuityObligationKind =
+  (typeof RESOURCE_CONTINUITY_OBLIGATION_KINDS)[number];
+
 export interface ResourceSuccessorDisposition {
   readonly resourceId: string;
+  /** Omitted only by legacy callers; the gate treats that as FORMAL_TEACHING. */
+  readonly obligation?: ResourceContinuityObligationKind;
+  /** Immutable evidence identity for an explicit-none/supporting disposition. */
+  readonly obligationEvidenceHash?: string | null;
+  /** Supporting and catalog entries must remain ineligible for a current path. */
+  readonly currentPathEligible?: boolean;
   readonly atomicDispositionsComplete: boolean;
   readonly canonicalBindingCount: number;
   readonly launchContractQualified: boolean;
@@ -439,7 +492,31 @@ export interface CoordinatedActiveReceipt {
   readonly committedSelectors: readonly { selectorId: string; identity: string }[];
   readonly mutationReceiptHashes: readonly string[];
   readonly runtimeActiveReceiptHash: string | null;
+  /** Exact v2 Runtime identity observed immediately before sealing. */
+  readonly runtimeActiveIdentity: {
+    readonly releaseId: string;
+    readonly manifestSha256: string;
+    readonly treeSha256: string;
+  } | null;
   readonly receiptHash: string;
+}
+
+/**
+ * Pre-activation authorization for the Runtime lifecycle. It is deliberately
+ * distinct from the final active receipt: the Runtime must become active
+ * before the latter can truthfully be sealed.
+ */
+export interface CoordinatedRuntimeAuthorization {
+  readonly contract: typeof COORDINATED_RUNTIME_AUTHORIZATION_CONTRACT;
+  readonly authorizationId: string;
+  readonly authorizedAt: string;
+  readonly transactionId: string;
+  readonly journalHash: string;
+  readonly candidateReceiptHash: string;
+  readonly committedSelectors: readonly { selectorId: string; identity: string }[];
+  readonly mutationReceiptHashes: readonly string[];
+  readonly runtimeBindingHash: string;
+  readonly authorizationHash: string;
 }
 
 export interface CoordinatedRuntimeManifestExtension {

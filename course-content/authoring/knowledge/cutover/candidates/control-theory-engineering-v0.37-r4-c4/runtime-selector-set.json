@@ -1,0 +1,56 @@
+{
+  "contract": "r4-c4-runtime-selector-set/v1",
+  "activatedAt": "2026-08-26T08:06:00.000Z",
+  "selectors": {
+    "projection": {
+      "contract": "act-teaching-projection-current/v1",
+      "projectionId": "proj-f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556",
+      "projectionHash": "f090374308ccb75e719afd0b1fb4e439e532db60e7a0096596b6c0684247b556",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-08-26T08:06:00.000Z"
+    },
+    "prerequisite": {
+      "contract": "act-teaching-prerequisite-current/v1",
+      "publicationId": "proj-ff5a3cd77ae7316acc7f7dde88b0ba1143da8ab9e4eb262ebf66e91c767c2f10",
+      "publicationHash": "ff5a3cd77ae7316acc7f7dde88b0ba1143da8ab9e4eb262ebf66e91c767c2f10",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-08-26T08:06:00.000Z"
+    },
+    "catalog": {
+      "contract": "act-authority-domain-display-catalog-current/v1",
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-08-26T03:31:00.000Z"
+    },
+    "shards": {
+      "contract": "act-authority-domain-shard-current/v1",
+      "shardSetId": "ads-5b45f297a35958916fe02a414c417d628ea7adf5b6cc0fa25a9a23760b2c331e",
+      "shardSetHash": "5b45f297a35958916fe02a414c417d628ea7adf5b6cc0fa25a9a23760b2c331e",
+      "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "snapshotHash": "0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "catalogId": "adc-e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "catalogHash": "e369e53af05a5951174434fd8206c3ea84d781d4a37468a2475d56c8aca625e5",
+      "teachingProjectionId": null,
+      "teachingProjectionHash": null,
+      "activatedAt": "2026-08-26T08:06:00.000Z"
+    },
+    "consumerActivation": {
+      "activationId": "activation-cebf24e4de846c1e49c8564c",
+      "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+      "activationReceiptId": "coordinated-r4-c4-consumers-v022"
+    }
+  },
+  "selectorHash": "10839022db5d28aff35905f96eaf2cd13005dc5c2ec55a3b8c48445669182e03",
+  "appliedToSourceTree": true,
+  "sourceSelectorHashes": {
+    "projection": "80cb93e846860e4c0d41f3f1c0a151f1deb13a180a6b7d9080be8e3d458aa7c8",
+    "prerequisite": "03e3b9e7d15e261dc200643b227f31b9cc83a67b79074b0d63a1230efd304a84",
+    "catalog": "95e9a76ecd4bc49da0d0e309dd0bebbd8786e3a3021aaa8fa65be0c04c849524",
+    "shards": "9a24e488aca8b0f9b9faf6120e714882f0cc82a6b2b0312bb162b1f2fb39648f",
+    "consumerActivation": "3fecf1642c649de7f478342d156aaaf66e19691880fd0569f81a679ef46df808"
+  }
+}

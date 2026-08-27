@@ -1,0 +1,56 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctk:c1a1b07b18731a97ae408246",
+    "canonicalType": "KnowledgeStatement",
+    "label": "属性断言：齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+    "aliases": [],
+    "description": "齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

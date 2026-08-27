@@ -5,8 +5,8 @@
  * consume the resulting small artifacts exclusively.
  */
 
-import { renameSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 import {
   REGISTERED_PEER_DOMAIN_IDS,
@@ -561,6 +561,33 @@ export function writeAuthorityDomainShards(
   const temporaryPointerPath = `${paths.currentPath}.tmp-${process.pid}`;
   writeJsonFile(temporaryPointerPath, materialized.pointer);
   renameSync(temporaryPointerPath, paths.currentPath);
+}
+
+/**
+ * Persist one immutable shard-set closure without selecting it. Candidate
+ * construction must use this path: only the separately journaled cutover may
+ * replace current.json after every selector has passed its predecessor guard.
+ */
+export function stageAuthorityDomainShards(
+  paths: AuthorityDomainShardPaths,
+  materialized: MaterializedAuthorityDomainShards,
+): void {
+  const target = shardSetDir(paths, materialized.manifest.shardSetId);
+  for (const [relative, value] of Object.entries(materialized.files)) {
+    const filePath = join(target, relative);
+    const content = `${JSON.stringify(value, null, 2)}\n`;
+    mkdirSync(dirname(filePath), { recursive: true });
+    if (existsSync(filePath)) {
+      if (readFileSync(filePath, 'utf8') !== content) {
+        throw new AuthorityShardMaterializeError(
+          'immutable-stage-conflict',
+          `refusing to overwrite staged Authority shard ${filePath}`,
+        );
+      }
+      continue;
+    }
+    writeFileSync(filePath, content, 'utf8');
+  }
 }
 
 export function canonicalIdToken(canonicalId: string): string {

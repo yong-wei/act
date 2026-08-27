@@ -21,13 +21,23 @@ import { projectionDigest } from '@/lib/teaching-projection/hash';
 import {
   LatestAuthorityCutoverError,
   type CoordinatedActiveReceipt,
+  type CoordinatedRuntimeAuthorization,
   type CoordinatedRuntimeManifestExtension,
 } from './contracts';
+import { assertCoordinatedRuntimeAuthorizationWellFormed } from './transaction';
 
 export interface RuntimeReleaseIdentity {
   readonly releaseId: string;
   readonly manifestSha256: string;
   readonly treeSha256: string;
+}
+
+/** Exact Runtime v2 lifecycle identity, including the manifest wire binding. */
+export interface RuntimeLifecycleIdentity extends RuntimeReleaseIdentity {
+  readonly schemaVersion: 'runtime-blob-release-identity.v1';
+  readonly manifestVersion: 'act-runtime-release.v2';
+  readonly manifestWireSha256: string;
+  readonly manifestWireSizeBytes: number;
 }
 
 function assertRuntimeIdentity(identity: RuntimeReleaseIdentity): void {
@@ -44,6 +54,20 @@ function assertRuntimeIdentity(identity: RuntimeReleaseIdentity): void {
         `Runtime binding field ${field} must be a lowercase SHA-256 hex digest.`,
       );
     }
+  }
+}
+
+function assertRuntimeLifecycleIdentity(identity: RuntimeLifecycleIdentity): void {
+  assertRuntimeIdentity(identity);
+  if (identity.schemaVersion !== 'runtime-blob-release-identity.v1'
+    || identity.manifestVersion !== 'act-runtime-release.v2'
+    || !/^[a-f0-9]{64}$/u.test(identity.manifestWireSha256)
+    || !Number.isInteger(identity.manifestWireSizeBytes)
+    || identity.manifestWireSizeBytes < 1) {
+    throw new LatestAuthorityCutoverError(
+      'runtime-active-binding-invalid',
+      'The Runtime active binding must carry the complete v2 lifecycle identity.',
+    );
   }
 }
 
@@ -138,7 +162,7 @@ export interface CoordinatedRuntimeActiveReceiptBinding {
   readonly contract: 'coordinated-runtime-active-receipt-binding/v1';
   readonly transactionId: string;
   readonly candidateReceiptHash: string;
-  readonly runtimeRelease: RuntimeReleaseIdentity;
+  readonly runtimeRelease: RuntimeLifecycleIdentity;
   readonly materializationReceiptHash: string;
   readonly bindingHash: string;
 }
@@ -151,7 +175,7 @@ export interface CoordinatedRuntimeActiveReceiptBinding {
 export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
   transactionId: string;
   candidateReceiptHash: string;
-  runtimeRelease: RuntimeReleaseIdentity;
+  runtimeRelease: RuntimeLifecycleIdentity;
   materializationReceiptHash: string;
 }): CoordinatedRuntimeActiveReceiptBinding {
   if (!input.transactionId?.startsWith('tx-')) {
@@ -166,7 +190,7 @@ export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
       'The Runtime active binding must carry the coordinated candidate receipt hash.',
     );
   }
-  assertRuntimeIdentity(input.runtimeRelease);
+  assertRuntimeLifecycleIdentity(input.runtimeRelease);
   if (!/^[a-f0-9]{64}$/u.test(input.materializationReceiptHash)) {
     throw new LatestAuthorityCutoverError(
       'runtime-active-binding-invalid',
@@ -191,34 +215,35 @@ export function buildCoordinatedRuntimeActiveReceiptBinding(input: {
 
 /**
  * Ordinary Runtime lifecycle activation must reject a successor that lacks
- * the matching committed coordinated graph receipt.
+ * the matching pre-activation coordinated Runtime authorization.
  */
-export function assertRuntimeSuccessorAuthorizedByGraphReceipt(
+export function assertRuntimeSuccessorAuthorizedByAuthorization(
   runtimeBinding: CoordinatedRuntimeActiveReceiptBinding,
-  committedGraphActiveReceipt: CoordinatedActiveReceipt | null,
+  authorization: CoordinatedRuntimeAuthorization | null,
 ): void {
-  if (!committedGraphActiveReceipt) {
+  if (!authorization) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The successor Runtime Release has no committed coordinated graph receipt.',
+      'The successor Runtime Release has no coordinated Runtime authorization.',
     );
   }
-  if (committedGraphActiveReceipt.candidateReceiptHash !== runtimeBinding.candidateReceiptHash) {
+  assertCoordinatedRuntimeAuthorizationWellFormed(authorization);
+  if (authorization.candidateReceiptHash !== runtimeBinding.candidateReceiptHash) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt binds a different candidate than the Runtime successor.',
+      'The Runtime authorization binds a different candidate than the Runtime successor.',
     );
   }
-  if (committedGraphActiveReceipt.transactionId !== runtimeBinding.transactionId) {
+  if (authorization.transactionId !== runtimeBinding.transactionId) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt belongs to a different transaction than the Runtime successor.',
+      'The Runtime authorization belongs to a different transaction than the Runtime successor.',
     );
   }
-  if (committedGraphActiveReceipt.runtimeActiveReceiptHash !== runtimeBinding.bindingHash) {
+  if (authorization.runtimeBindingHash !== runtimeBinding.bindingHash) {
     throw new LatestAuthorityCutoverError(
       'runtime-activation-unauthorized',
-      'The committed coordinated graph receipt does not close over this Runtime active receipt binding.',
+      'The Runtime authorization does not close over this Runtime active receipt binding.',
     );
   }
 }

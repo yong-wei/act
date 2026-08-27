@@ -21,9 +21,9 @@ APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
 READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 # Coordinated cutover (#1509): when set, the desired identity is declared as
 # a coordinated successor and the activation must carry the matching
-# committed coordinated graph receipt.
+# pre-activation Runtime authorization.
 COORDINATED_CUTOVER_DECLARATION="${ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION:-}"
-COORDINATED_GRAPH_RECEIPT="${ACT_RUNTIME_COORDINATED_GRAPH_RECEIPT:-}"
+COORDINATED_RUNTIME_AUTHORIZATION="${ACT_RUNTIME_COORDINATED_RUNTIME_AUTHORIZATION:-}"
 COORDINATED_RUNTIME_BINDING="${ACT_RUNTIME_COORDINATED_RUNTIME_BINDING:-}"
 
 release_id=""
@@ -34,6 +34,8 @@ verification_receipt=""
 ram_role=""
 replace_existing=0
 stage_only=0
+coordinated_activate_before_consumers=0
+verify_active_consumers_only=0
 old_active="none"
 parent_view=""
 overlay_stash=""
@@ -63,6 +65,8 @@ while [[ $# -gt 0 ]]; do
     --ram-role) ram_role="$2"; shift 2 ;;
     --replace-existing) replace_existing=1; shift ;;
     --stage-only) stage_only=1; shift ;;
+    --coordinated-activate-before-consumers) coordinated_activate_before_consumers=1; shift ;;
+    --verify-active-consumers) verify_active_consumers_only=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -74,6 +78,19 @@ done
 [[ -f "$verification_receipt" && ! -L "$verification_receipt" ]] || { echo "ERROR: v2 verification receipt is required" >&2; exit 1; }
 [[ "$ram_role" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role name" >&2; exit 1; }
 [[ "$READYZ_TIMEOUT_SECONDS" =~ ^[1-9][0-9]{0,2}$ && "$READYZ_TIMEOUT_SECONDS" -le 600 ]] || { echo "ERROR: runtime readiness timeout is invalid" >&2; exit 1; }
+if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
+  [[ "$stage_only" != "1" ]] || { echo "ERROR: coordinated activation cannot be stage-only" >&2; exit 1; }
+  for value in "$COORDINATED_CUTOVER_DECLARATION" "$COORDINATED_RUNTIME_AUTHORIZATION" "$COORDINATED_RUNTIME_BINDING"; do
+    [[ -n "$value" && -f "$value" && ! -L "$value" ]] || {
+      echo "ERROR: coordinated activation requires regular declaration, authorization, and binding files" >&2
+      exit 1
+    }
+  done
+fi
+[[ "$verify_active_consumers_only" == "1" && "$stage_only" == "1" ]] && {
+  echo "ERROR: active-consumer verification cannot be stage-only" >&2
+  exit 1
+}
 
 for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
@@ -496,7 +513,7 @@ restore_runtime_consumers() {
   local lifecycle_state lifecycle_active_release
   lifecycle_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR" 2>/dev/null || true)"
   lifecycle_active_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$lifecycle_state" 2>/dev/null || true)"
-  if [[ "$candidate_deploy_attempted" == "1" && "$activation_attempted" == "1" && "$post_activation_media_smoke_passed" != "1" && "$lifecycle_active_release" == "$release_id" ]]; then
+  if [[ "$activation_attempted" == "1" && "$post_activation_media_smoke_passed" != "1" && "$lifecycle_active_release" == "$release_id" ]]; then
     local rollback_generation
     rollback_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$lifecycle_state" 2>/dev/null || true)"
     if [[ "$rollback_generation" =~ ^[0-9]+$ ]]; then
@@ -513,6 +530,14 @@ restore_runtime_consumers() {
   if [[ "$candidate_current_selected" == "1" && "$lifecycle_active_release" != "$release_id" && -n "$parent_view" && "$old_active" != "none" ]]; then
     python3 "$MATERIALIZER" select --release-id "$old_active" --view-root "$VIEW_ROOT" >/dev/null || \
       echo "ERROR: candidate current view could not be restored to the previous release" >&2
+  fi
+  # The outer graph transaction owns compensation for a coordinated run.  It
+  # must restore Authority before any Runtime consumer becomes visible again;
+  # this inner lifecycle trap therefore leaves consumers stopped for its
+  # caller to recover in the same journaled window.
+  if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
+    cleanup_lifecycle_identity
+    exit "$status"
   fi
   if [[ "$candidate_deploy_attempted" == "1" ]]; then
     if [[ "$lifecycle_active_release" != "$release_id" && -n "$parent_view" ]]; then
@@ -549,9 +574,50 @@ restore_runtime_consumers() {
   exit "$status"
 }
 
+assert_coordinated_consumers_stopped() {
+  [[ "$coordinated_activate_before_consumers" == "1" ]] || return 0
+  local container
+  for container in "$APP_CONTAINER" act-obe-worker act-obe-submission-scanner act-obe-submission-gc; do
+    if podman container exists "$container" \
+      && [[ "$(podman inspect --format '{{.State.Running}}' "$container")" == "true" ]]; then
+      echo "ERROR: coordinated Runtime activation requires every consumer stopped: $container" >&2
+      exit 1
+    fi
+  done
+}
+
+verify_active_consumers() {
+  [[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || {
+    echo "ERROR: runtime environment is unavailable for active-consumer verification" >&2
+    return 1
+  }
+  # The deployer writes this controlled environment file before restarting the
+  # application. Its APP_PORT is the only loopback endpoint that proves the
+  # just-restarted consumers are serving the active Runtime and Authority.
+  source "$ENV_FILE"
+  [[ "${APP_PORT:-}" =~ ^[0-9]{1,5}$ ]] || {
+    echo "ERROR: runtime environment has no valid app port" >&2
+    return 1
+  }
+  candidate_view="$VIEW_ROOT/current"
+  [[ -d "$candidate_view" ]] || {
+    echo "ERROR: active Runtime view is unavailable for consumer verification" >&2
+    return 1
+  }
+  wait_for_readyz
+  run_candidate_consumer_smoke
+  run_active_media_resolver_smoke
+}
+
 mkdir -p "$STATE_DIR"
 exec 9>"$STATE_DIR/.act-runtime-selection.lock"
 flock -x 9
+
+if [[ "$verify_active_consumers_only" == "1" ]]; then
+  verify_active_consumers
+  printf '{"status":"ACTIVE_CONSUMERS_VERIFIED","releaseId":"%s"}\n' "$release_id"
+  exit 0
+fi
 
 python3 "$ACTIVATION_TRANSACTION" recover \
   --state-dir "$STATE_DIR" \
@@ -577,6 +643,7 @@ fi
 if [[ "$stage_only" != "1" ]]; then
   capture_rollback_image
 fi
+assert_coordinated_consumers_stopped
 
 if [[ -n "$parent_view" && "$parent_view" == "$VIEW_ROOT/views/$release_id" ]]; then
   replace_existing=1
@@ -671,6 +738,34 @@ python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
+if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
+  trap restore_runtime_consumers ERR
+  python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+  candidate_current_selected=1
+  activation_attempted=1
+  python3 "$ACTIVATION_TRANSACTION" activate \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" \
+    --coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION" \
+    --coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING" >/dev/null
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: lifecycle activation did not commit the coordinated candidate release" >&2
+    exit 1
+  }
+  # The outer coordinator must seal the final active receipt before any
+  # graph/runtime consumer restarts. This branch intentionally returns while
+  # every consumer remains stopped.
+  trap - ERR
+  cleanup_lifecycle_identity
+  printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view","coordinated":true,"consumersStopped":true}\n' "$release_id" "$old_active"
+  exit 0
+fi
 write_candidate_readyz_receipt
 trap restore_runtime_consumers ERR
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
@@ -696,8 +791,8 @@ if [[ "$release_id" == "$old_active" ]]; then
 else
   activation_attempted=1
   coordinated_activation_args=()
-  if [[ -n "$COORDINATED_GRAPH_RECEIPT" ]]; then
-    coordinated_activation_args+=(--coordinated-graph-receipt "$COORDINATED_GRAPH_RECEIPT")
+  if [[ -n "$COORDINATED_RUNTIME_AUTHORIZATION" ]]; then
+    coordinated_activation_args+=(--coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION")
   fi
   if [[ -n "$COORDINATED_RUNTIME_BINDING" ]]; then
     coordinated_activation_args+=(--coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING")

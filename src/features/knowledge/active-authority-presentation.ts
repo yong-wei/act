@@ -171,6 +171,8 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
   },
 };
 
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/iu;
+
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
   approved: '已审核',
   published: '已发布',
@@ -189,7 +191,22 @@ function nonEmpty(value: string | null | undefined): string | null {
 
 function isUnsafeIdentity(value: string): boolean {
   return /^(?:node|relation|source|target|release|snapshot|activation|projection|edition|section)[-_:/]/iu.test(value)
-    || /^[a-f0-9]{32,}$/iu.test(value);
+    || /^[a-f0-9]{32,}$/iu.test(value)
+    || Object.hasOwn(NODE_TYPES, value)
+    || Object.hasOwn(RELATION_TYPES, value)
+    || ['directed', 'undirected', 'unordered', 'source_to_target', 'source-to-target'].includes(value)
+    || RAW_SEMANTIC_MACHINE_TOKEN.test(value);
+}
+
+function presentProjectedRelationText(
+  value: string | null | undefined,
+  rawValue: string | null,
+  fallback: string,
+): string {
+  const normalized = nonEmpty(value);
+  return normalized && normalized !== rawValue && !isUnsafeIdentity(normalized)
+    ? normalized
+    : fallback;
 }
 
 export function presentActiveHumanText(value: string | null | undefined, fallback: string): string {
@@ -255,10 +272,13 @@ export function presentActiveRelation(
   }
   return {
     predicate,
-    label: nonEmpty(projected?.label) ?? known.label,
+    label: presentProjectedRelationText(projected?.label, predicate, known.label),
     kind: isUndirected ? 'undirected' : 'directed',
-    directionLabel: nonEmpty(projected?.directionLabel)
-      ?? (isUndirected ? '关联关系' : known.directionLabel),
+    directionLabel: presentProjectedRelationText(
+      projected?.directionLabel,
+      direction,
+      isUndirected ? '关联关系' : known.directionLabel,
+    ),
     supported: true,
   };
 }

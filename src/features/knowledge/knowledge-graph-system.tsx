@@ -146,6 +146,8 @@ export interface KnowledgeNodeData {
   graphDegree?: number;
   graphImportanceScore?: number;
   importance?: number;
+  /** Renderer-only label visibility priority; it is not learning-domain rank. */
+  labelPriority?: boolean;
   /**
    * Projection-shaped governance attributes (ActKG adapter). Absent means
    * "unknown"; `candidate: true` marks a governance candidate that
