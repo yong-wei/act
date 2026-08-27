@@ -1,9 +1,9 @@
 export const FITNESS_SCHEMA_VERSION = 'act-architecture-fitness/v1' as const;
-export const FITNESS_BUDGET_SCHEMA_VERSION = 'act-architecture-fitness-budget/v1' as const;
+export const FITNESS_BUDGET_SCHEMA_VERSION = 'act-architecture-fitness-budget/v2' as const;
 export const FITNESS_REPORT_SCHEMA_VERSION = 'act-architecture-fitness-report/v1' as const;
 
 export const REQUIRED_FITNESS_BUDGET = {
-  ledgerSha256: 'bd2da413d2c5f75e8a387e7efb4f334a4c76f637e98192b04775fcdac49a09ed',
+  ledgerSha256: 'd2ff999e91e965429c66369c75f6f35cfd3abc200ae8ecb04dd8d275d66b0255',
   allowlistSha256: '0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608',
 } as const;
 
@@ -66,6 +66,20 @@ export interface FitnessBudgetRecord {
   readonly totals: BudgetTotals;
 }
 
+/**
+ * Immutable identity of a frozen TypeScript graph receipt. The ledger pins
+ * these identities before a later fitness run is allowed to compare against
+ * the receipt, so a different historical receipt cannot become a baseline by
+ * merely being placed in the frozen-artifact directory.
+ */
+export interface FrozenGraphReceiptIdentity {
+  readonly graph: string;
+  readonly receiptId: string;
+  readonly sourceCommit: string;
+  readonly sourceTree: string;
+  readonly manifestHash: string;
+}
+
 export interface FitnessBudgetLedger {
   readonly schemaVersion: typeof FITNESS_BUDGET_SCHEMA_VERSION;
   readonly baselineIdentity: string;
@@ -73,6 +87,7 @@ export interface FitnessBudgetLedger {
   readonly sourceTree: string;
   readonly dependencyAllowlistIdentity: string;
   readonly charterIdentity: string;
+  readonly baselineGraphReceipts: readonly FrozenGraphReceiptIdentity[];
   readonly budgets: readonly FitnessBudgetRecord[];
 }
 

@@ -101,9 +101,16 @@ function main(): void {
     const frozen = readJson<CensusCore>(repoRoot, BASELINE_CORE_PATH);
     const allowlist = readJson<FitnessAllowlist>(repoRoot, FROZEN_ALLOWLIST_PATH);
     if (frozen.captureIdentity.sourceCommit !== REQUIRED_BASELINE.sourceCommit) throw new Error('baseline-commit-drift');
+    const frozenGraphArtifacts = readGraphArtifacts(repoRoot, join(repoRoot, FROZEN_GRAPH_ARTIFACT_ROOT));
+    if (frozenGraphArtifacts.failures.length > 0) throw new Error('frozen-graph-artifact-invalid');
+    if (frozenGraphArtifacts.receipts.some((receipt) => (
+      receipt.sourceCommit !== frozen.captureIdentity.sourceCommit
+      || receipt.sourceTree !== frozen.captureIdentity.sourceTree
+    ))) throw new Error('frozen-graph-receipt-baseline-drift');
     const ledger = createFitnessBudgetLedger({
       baselineCore: frozen,
       allowlist,
+      baselineGraphReceipts: frozenGraphArtifacts.receipts,
       dependencyAllowlistIdentity: sha256Text(serializeDeterministic(allowlist)),
       charterIdentity: charterSha256,
     });

@@ -29,6 +29,7 @@ import type {
   FitnessBudgetRecord,
   FitnessBudgetReport,
   FitnessBudgetSummary,
+  FrozenGraphReceiptIdentity,
 } from './types';
 import {
   BUDGET_METRIC_KINDS,
@@ -65,6 +66,7 @@ export interface SourceState {
 export interface FitnessBudgetLedgerInput {
   readonly baselineCore: CensusCore;
   readonly allowlist: FitnessAllowlist;
+  readonly baselineGraphReceipts?: readonly GraphMeasurementReceipt[];
   readonly baselineIdentity?: string;
   readonly dependencyAllowlistIdentity?: string;
   readonly charterIdentity?: string;
@@ -73,10 +75,13 @@ export interface FitnessBudgetLedgerInput {
 export interface CompileBudgetProjectionInput {
   readonly sourceCommit: string;
   readonly sourceTree: string;
+  readonly baselineSourceCommit: string;
+  readonly baselineSourceTree: string;
   readonly baselineIdentity: string;
   readonly receipts: readonly GraphMeasurementReceipt[];
   readonly manifests: readonly GraphManifest[];
   readonly baselineReceipts?: readonly GraphMeasurementReceipt[];
+  readonly baselineReceiptPins?: readonly FrozenGraphReceiptIdentity[];
   readonly requireFrozenReceipts?: boolean;
   readonly requiredFrozenGraphs?: readonly GraphId[];
 }
@@ -181,10 +186,67 @@ function manifestFor(core: CensusCore, kind: string) {
   return core.manifests.find((item) => item.kind === kind);
 }
 
-function centerRows(core: CensusCore): CensusObservation[] {
+function fileSizeRows(core: CensusCore): CensusObservation[] {
   return core.observations
     .filter((item) => item.kind === 'change-center')
     .sort((left, right) => left.identity.localeCompare(right.identity));
+}
+
+function graphCenterRows(core: CensusCore): CensusObservation[] {
+  const nodes = new Map<string, { inbound: Set<string>; outbound: Set<string> }>();
+  const node = (path: string) => {
+    const existing = nodes.get(path);
+    if (existing) return existing;
+    const created = { inbound: new Set<string>(), outbound: new Set<string>() };
+    nodes.set(path, created);
+    return created;
+  };
+  for (const edge of core.observations) {
+    if (edge.kind !== 'dependency-edge') continue;
+    const from = edge.attributes.from;
+    const to = edge.attributes.to;
+    if (typeof from !== 'string' || typeof to !== 'string' || !from || !to) continue;
+    node(from).outbound.add(edge.identity);
+    node(to).inbound.add(edge.identity);
+  }
+  return [...nodes.entries()]
+    .map(([identity, edges]) => observationForGraphCenter(identity, edges.inbound, edges.outbound))
+    .sort((left, right) => left.identity.localeCompare(right.identity));
+}
+
+function observationForGraphCenter(
+  identity: string,
+  inbound: ReadonlySet<string>,
+  outbound: ReadonlySet<string>,
+): CensusObservation {
+  const inboundEdges = inbound.size;
+  const outboundEdges = outbound.size;
+  return {
+    id: `graph-center:${identity}`,
+    kind: 'change-center',
+    identity,
+    surfaceClass: 'production',
+    ownership: {
+      currentOwnerEvidence: [],
+      candidateTargetOwner: null,
+      state: 'resolved-current',
+      conflictingEvidence: [],
+    },
+    evidence: [identity, ...[...inbound], ...[...outbound]].sort(),
+    trustClass: null,
+    compatibility: false,
+    notes: ['derived-from-qualified-dependency-edges'],
+    attributes: {
+      inboundEdges,
+      outboundEdges,
+      centrality: inboundEdges + outboundEdges,
+      reason: 'dependency-graph-degree',
+    },
+  };
+}
+
+function centerRows(core: CensusCore, metricKind: 'file-size' | 'center-node'): CensusObservation[] {
+  return metricKind === 'file-size' ? fileSizeRows(core) : graphCenterRows(core);
 }
 
 function centerBytes(observation: CensusObservation): number | null {
@@ -197,6 +259,22 @@ function centerReason(observation: CensusObservation): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+function graphCenterMetrics(observation: CensusObservation): {
+  inboundEdges: number;
+  outboundEdges: number;
+  centrality: number;
+} | null {
+  const inboundEdges = observation.attributes.inboundEdges;
+  const outboundEdges = observation.attributes.outboundEdges;
+  const centrality = observation.attributes.centrality;
+  if (
+    typeof inboundEdges !== 'number' || !Number.isInteger(inboundEdges) || inboundEdges < 0
+    || typeof outboundEdges !== 'number' || !Number.isInteger(outboundEdges) || outboundEdges < 0
+    || typeof centrality !== 'number' || !Number.isInteger(centrality) || centrality !== inboundEdges + outboundEdges
+  ) return null;
+  return { inboundEdges, outboundEdges, centrality };
+}
+
 function centerBudget(
   observation: CensusObservation,
   baselineIdentity: string,
@@ -206,6 +284,10 @@ function centerBudget(
 ): FitnessBudgetRecord {
   const bytes = centerBytes(observation);
   const reason = centerReason(observation);
+  const graphMetrics = graphCenterMetrics(observation);
+  const qualified = metricKind === 'file-size'
+    ? bytes !== null && reason !== null
+    : graphMetrics !== null && reason === 'dependency-graph-degree';
   return createBudgetRecord({
     budgetId: `${metricKind}:${observation.identity}`,
     metricKind,
@@ -215,16 +297,33 @@ function centerBudget(
     sourceTree,
     observedValue: metricKind === 'file-size'
       ? bytes ?? 0
-      : { byteLength: bytes ?? 0, reason: reason ?? 'unresolved' },
+      : {
+          inboundEdges: graphMetrics?.inboundEdges ?? 0,
+          outboundEdges: graphMetrics?.outboundEdges ?? 0,
+          centrality: graphMetrics?.centrality ?? 0,
+          reason: reason ?? 'unresolved',
+        },
     direction: 'frozen',
     owner: assignOwner(observation),
     evidenceRefs: [observation.identity, ...observation.evidence],
     exceptionState: 'none',
     deletionCondition: 'split-or-replace-before-frozen-metric-growth',
     followUpChange: 'enforce-modular-domain-dependency-contracts',
-    status: bytes === null || reason === null ? 'unresolved' : 'qualified',
-    totals: bytes === null || reason === null ? { included: 0, excluded: 0, unresolved: 1 } : { included: 1, excluded: 0, unresolved: 0 },
+    status: qualified ? 'qualified' : 'unresolved',
+    totals: qualified ? { included: 1, excluded: 0, unresolved: 0 } : { included: 0, excluded: 0, unresolved: 1 },
   });
+}
+
+function frozenReceiptPins(receipts: readonly GraphMeasurementReceipt[]): FrozenGraphReceiptIdentity[] {
+  return receipts
+    .map((receipt) => ({
+      graph: receipt.graph,
+      receiptId: receipt.receiptId,
+      sourceCommit: receipt.sourceCommit,
+      sourceTree: receipt.sourceTree,
+      manifestHash: receipt.manifestHash,
+    }))
+    .sort((left, right) => left.graph.localeCompare(right.graph));
 }
 
 export function createFitnessBudgetLedger(input: FitnessBudgetLedgerInput): FitnessBudgetLedger {
@@ -277,15 +376,21 @@ export function createFitnessBudgetLedger(input: FitnessBudgetLedgerInput): Fitn
       },
     })];
   });
-  const centers = centerRows(baseline).flatMap((observation) => [
-    centerBudget(observation, baselineIdentity, sourceCommit, sourceTree, 'file-size'),
-    centerBudget(observation, baselineIdentity, sourceCommit, sourceTree, 'center-node'),
-  ]);
+  const centers = [
+    ...centerRows(baseline, 'file-size').map((observation) => (
+      centerBudget(observation, baselineIdentity, sourceCommit, sourceTree, 'file-size')
+    )),
+    ...centerRows(baseline, 'center-node').map((observation) => (
+      centerBudget(observation, baselineIdentity, sourceCommit, sourceTree, 'center-node')
+    )),
+  ];
   const compileBudgets = GRAPH_IDS.map((graph) => graphBudgetRecord(
     graph,
     {
       sourceCommit,
       sourceTree,
+      baselineSourceCommit: sourceCommit,
+      baselineSourceTree: sourceTree,
       baselineIdentity,
       receipts: [],
       manifests: [],
@@ -302,6 +407,7 @@ export function createFitnessBudgetLedger(input: FitnessBudgetLedgerInput): Fitn
     sourceTree,
     dependencyAllowlistIdentity,
     charterIdentity,
+    baselineGraphReceipts: frozenReceiptPins(input.baselineGraphReceipts ?? []),
     budgets: [...exceptionBudgets, ...denominatorBudgets, ...centers, ...compileBudgets]
       .sort((left, right) => left.budgetId.localeCompare(right.budgetId)),
   };
@@ -337,6 +443,32 @@ export function validateFitnessBudgetLedger(ledger: FitnessBudgetLedger): Fitnes
   if (!ledger.baselineIdentity) failures.push(failure('budget-baseline-identity-missing', 'ledger'));
   if (!ledger.sourceCommit) failures.push(failure('budget-source-commit-missing', 'ledger'));
   if (!ledger.sourceTree) failures.push(failure('budget-source-tree-missing', 'ledger'));
+  if (!Array.isArray(ledger.baselineGraphReceipts)) {
+    failures.push(failure('frozen-receipt-pins-missing', 'ledger'));
+  } else {
+    const pinnedGraphs = new Set<string>();
+    for (const candidate of ledger.baselineGraphReceipts as readonly unknown[]) {
+      if (!isRecord(candidate)) {
+        failures.push(failure('frozen-receipt-pin-invalid', 'ledger'));
+        continue;
+      }
+      const pin = candidate as unknown as FrozenGraphReceiptIdentity;
+      if (!isGraphId(pin.graph)) failures.push(failure('frozen-receipt-pin-graph-invalid', pin.graph));
+      if (pinnedGraphs.has(pin.graph)) failures.push(failure('frozen-receipt-pin-duplicate', pin.graph));
+      pinnedGraphs.add(pin.graph);
+      if (
+        typeof pin.receiptId !== 'string'
+        || typeof pin.manifestHash !== 'string'
+        || typeof pin.sourceCommit !== 'string'
+        || typeof pin.sourceTree !== 'string'
+        || !pin.receiptId
+        || !pin.manifestHash
+      ) failures.push(failure('frozen-receipt-pin-identity-missing', pin.graph));
+      if (pin.sourceCommit !== ledger.sourceCommit || pin.sourceTree !== ledger.sourceTree) {
+        failures.push(failure('frozen-receipt-pin-baseline-drift', pin.graph));
+      }
+    }
+  }
   if (!Array.isArray(ledger.budgets)) return [...failures, failure('budget-records-missing', 'ledger')];
   const ids = new Set<string>();
   for (const record of ledger.budgets) {
@@ -495,22 +627,33 @@ export function compareFrozenCenters(
   ledger: FitnessBudgetLedger,
   currentCore: CensusCore,
 ): { records: FitnessBudgetRecord[]; failures: FitnessBudgetFailure[] } {
-  const current = new Map(centerRows(currentCore).map((item) => [item.identity, item]));
-  const baselinePaths = new Set(
-    ledger.budgets.filter((item) => item.metricKind === 'file-size').map((item) => item.budgetId.slice('file-size:'.length)),
-  );
+  const currentByMetric = {
+    'file-size': new Map(centerRows(currentCore, 'file-size').map((item) => [item.identity, item])),
+    'center-node': new Map(centerRows(currentCore, 'center-node').map((item) => [item.identity, item])),
+  };
+  const baselinePathsByMetric = {
+    'file-size': new Set(ledger.budgets
+      .filter((item) => item.metricKind === 'file-size')
+      .map((item) => item.budgetId.slice('file-size:'.length))),
+    'center-node': new Set(ledger.budgets
+      .filter((item) => item.metricKind === 'center-node')
+      .map((item) => item.budgetId.slice('center-node:'.length))),
+  };
   const records: FitnessBudgetRecord[] = [];
   const failures: FitnessBudgetFailure[] = [];
   for (const record of ledger.budgets) {
     if (!(BASELINE_CENTER_KINDS as readonly string[]).includes(record.metricKind)) continue;
-    const path = record.budgetId.slice(`${record.metricKind}:`.length);
-    const observation = current.get(path);
+    const metricKind = record.metricKind as 'file-size' | 'center-node';
+    const path = record.budgetId.slice(`${metricKind}:`.length);
+    const observation = currentByMetric[metricKind].get(path);
     if (!observation) {
       records.push(createBudgetRecord({
         ...record,
         sourceCommit: currentCore.captureIdentity.sourceCommit,
         sourceTree: currentCore.captureIdentity.sourceTree,
-        observedValue: 0,
+        observedValue: metricKind === 'file-size'
+          ? 0
+          : { inboundEdges: 0, outboundEdges: 0, centrality: 0, reason: 'removed' },
         exceptionState: 'removed',
         status: 'qualified',
         totals: { included: 0, excluded: 1, unresolved: 0 },
@@ -519,23 +662,55 @@ export function compareFrozenCenters(
     }
     const bytes = centerBytes(observation);
     const reason = centerReason(observation);
-    const baselineBytes = record.metricKind === 'file-size'
+    const currentMetrics = graphCenterMetrics(observation);
+    const baselineBytes = metricKind === 'file-size'
       ? typeof record.observedValue === 'number' ? record.observedValue : null
-      : isRecord(record.observedValue) && typeof record.observedValue.byteLength === 'number' ? record.observedValue.byteLength : null;
-    if (bytes === null || reason === null || baselineBytes === null) {
+      : null;
+    const baselineMetrics = metricKind === 'center-node' && isRecord(record.observedValue)
+      && typeof record.observedValue.inboundEdges === 'number'
+      && typeof record.observedValue.outboundEdges === 'number'
+      && typeof record.observedValue.centrality === 'number'
+      && typeof record.observedValue.reason === 'string'
+      ? {
+          inboundEdges: record.observedValue.inboundEdges,
+          outboundEdges: record.observedValue.outboundEdges,
+          centrality: record.observedValue.centrality,
+          reason: record.observedValue.reason,
+        }
+      : null;
+    const unresolved = metricKind === 'file-size'
+      ? bytes === null || reason === null || baselineBytes === null
+      : currentMetrics === null || reason !== 'dependency-graph-degree' || baselineMetrics === null;
+    if (unresolved) {
       failures.push(failure('frozen-center-evidence-unresolved', path, record.budgetId));
       records.push(createBudgetRecord({
         ...record,
         sourceCommit: currentCore.captureIdentity.sourceCommit,
         sourceTree: currentCore.captureIdentity.sourceTree,
-        observedValue: record.metricKind === 'file-size' ? bytes ?? 0 : { byteLength: bytes ?? 0, reason: reason ?? 'unresolved' },
+        observedValue: metricKind === 'file-size'
+          ? bytes ?? 0
+          : {
+              inboundEdges: currentMetrics?.inboundEdges ?? 0,
+              outboundEdges: currentMetrics?.outboundEdges ?? 0,
+              centrality: currentMetrics?.centrality ?? 0,
+              reason: reason ?? 'unresolved',
+            },
         status: 'unresolved',
         totals: { included: 0, excluded: 0, unresolved: 1 },
       }));
       continue;
     }
-    if (bytes > baselineBytes) failures.push(failure('frozen-metric-growth', path, record.budgetId, 'source-change-centers', `${baselineBytes}->${bytes}`));
-    if (record.metricKind === 'center-node' && isRecord(record.observedValue) && record.observedValue.reason !== reason) {
+    const grew = metricKind === 'file-size'
+      ? bytes! > baselineBytes!
+      : currentMetrics!.inboundEdges > baselineMetrics!.inboundEdges
+        || currentMetrics!.outboundEdges > baselineMetrics!.outboundEdges;
+    if (grew) {
+      const detail = metricKind === 'file-size'
+        ? `${baselineBytes}->${bytes}`
+        : `inbound:${baselineMetrics!.inboundEdges}->${currentMetrics!.inboundEdges};outbound:${baselineMetrics!.outboundEdges}->${currentMetrics!.outboundEdges}`;
+      failures.push(failure('frozen-metric-growth', path, record.budgetId, 'source-change-centers', detail));
+    }
+    if (metricKind === 'center-node' && baselineMetrics!.reason !== reason) {
       failures.push(failure('center-reason-drift', path, record.budgetId));
     }
     const owner = assignOwner(observation);
@@ -544,14 +719,21 @@ export function compareFrozenCenters(
       ...record,
       sourceCommit: currentCore.captureIdentity.sourceCommit,
       sourceTree: currentCore.captureIdentity.sourceTree,
-      observedValue: record.metricKind === 'file-size' ? bytes : { byteLength: bytes, reason },
-      status: bytes > baselineBytes ? 'failed' : 'qualified',
+      observedValue: metricKind === 'file-size'
+        ? bytes!
+        : {
+            inboundEdges: currentMetrics!.inboundEdges,
+            outboundEdges: currentMetrics!.outboundEdges,
+            centrality: currentMetrics!.centrality,
+            reason,
+          },
+      status: grew ? 'failed' : 'qualified',
       totals: { included: 1, excluded: 0, unresolved: 0 },
     }));
   }
-  for (const observation of centerRows(currentCore)) {
-    if (!baselinePaths.has(observation.identity)) {
-      for (const metricKind of BASELINE_CENTER_KINDS) {
+  for (const metricKind of BASELINE_CENTER_KINDS) {
+    for (const observation of currentByMetric[metricKind].values()) {
+      if (!baselinePathsByMetric[metricKind].has(observation.identity)) {
         const record = centerBudget(
           observation,
           ledger.baselineIdentity,
@@ -564,8 +746,8 @@ export function compareFrozenCenters(
           status: 'failed',
           totals: { included: 1, excluded: 0, unresolved: 0 },
         }));
+        failures.push(failure('new-change-center', observation.identity, `${metricKind}:${observation.identity}`));
       }
-      failures.push(failure('new-change-center', observation.identity, `center-node:${observation.identity}`));
     }
   }
   return { records: records.sort((left, right) => left.budgetId.localeCompare(right.budgetId)), failures: uniqueFailures(failures) };
@@ -645,17 +827,34 @@ export function projectCompileBudgets(input: CompileBudgetProjectionInput): Comp
     const receipts = input.receipts.filter((item) => item.graph === graph || item.command === `typecheck:${graph}`);
     const manifests = input.manifests.filter((item) => item.graph === graph);
     const baselineReceipts = (input.baselineReceipts ?? []).filter((item) => item.graph === graph || item.command === `typecheck:${graph}`);
+    const baselinePins = (input.baselineReceiptPins ?? []).filter((item) => (
+      isRecord(item)
+      && item.graph === graph
+      && typeof item.receiptId === 'string'
+      && typeof item.sourceCommit === 'string'
+      && typeof item.sourceTree === 'string'
+      && typeof item.manifestHash === 'string'
+    ));
     const receipt = receipts.length === 1 ? receipts[0] : undefined;
     const manifest = manifests.length === 1 ? manifests[0] : undefined;
     const baseline = baselineReceipts.length === 1 ? baselineReceipts[0] : undefined;
+    const baselinePin = baselinePins.length === 1 ? baselinePins[0] : undefined;
     const budgetId = `compile-resource:${graph}`;
     const requireFrozen = requiredFrozenGraphs.has(graph);
     if (receipts.length > 1) failures.push(failure('graph-receipt-duplicate', graph, budgetId));
     if (manifests.length > 1) failures.push(failure('graph-manifest-duplicate', graph, budgetId));
     if (!receipt) failures.push(failure('graph-receipt-missing', graph, budgetId));
     if (!manifest) failures.push(failure('graph-manifest-missing', graph, budgetId));
-    if (requireFrozen && !baseline) failures.push(failure('graph-frozen-receipt-missing', graph, budgetId));
-    let blocked = receipts.length !== 1 || manifests.length !== 1 || (requireFrozen && !baseline);
+    if ((requireFrozen || baselinePin) && !baseline) failures.push(failure('graph-frozen-receipt-missing', graph, budgetId));
+    if (baselinePins.length > 1) failures.push(failure('graph-frozen-receipt-pin-duplicate', graph, budgetId));
+    if ((requireFrozen || baselineReceipts.length > 0) && !baselinePin) {
+      failures.push(failure('graph-frozen-receipt-pin-missing', graph, budgetId));
+    }
+    let blocked = receipts.length !== 1
+      || manifests.length !== 1
+      || ((requireFrozen || baselinePin) && !baseline)
+      || baselinePins.length > 1
+      || ((requireFrozen || baselineReceipts.length > 0) && !baselinePin);
     for (const candidate of receipts) {
       if (graphReceiptContentHash(candidate) !== candidate.receiptId) {
         failures.push(failure('graph-receipt-identity-drift', graph, budgetId));
@@ -732,6 +931,20 @@ export function projectCompileBudgets(input: CompileBudgetProjectionInput): Comp
       if (baseline.dirty || baseline.status !== 'passed' || baseline.exitStatus !== 0 || baseline.tscErrorCount > 0 || baseline.boundaryFailureCount > 0) {
         failures.push(failure('graph-frozen-receipt-unqualified', graph, budgetId));
         blocked = true;
+      }
+      if (baseline.sourceCommit !== input.baselineSourceCommit || baseline.sourceTree !== input.baselineSourceTree) {
+        failures.push(failure('graph-frozen-receipt-baseline-drift', graph, budgetId));
+        blocked = true;
+      }
+      if (baselinePin) {
+        if (baselinePin.sourceCommit !== input.baselineSourceCommit || baselinePin.sourceTree !== input.baselineSourceTree) {
+          failures.push(failure('graph-frozen-receipt-pin-baseline-drift', graph, budgetId));
+          blocked = true;
+        }
+        if (baseline.receiptId !== baselinePin.receiptId || baseline.manifestHash !== baselinePin.manifestHash) {
+          failures.push(failure('graph-frozen-receipt-pin-drift', graph, budgetId));
+          blocked = true;
+        }
       }
       if (baseline.cacheMode !== receipt.cacheMode) {
         failures.push(failure('graph-cache-mode-drift', graph, budgetId));
@@ -1094,10 +1307,13 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
     const compileProjection = projectCompileBudgets({
       sourceCommit,
       sourceTree,
+      baselineSourceCommit: input.baselineCore.captureIdentity.sourceCommit,
+      baselineSourceTree: input.baselineCore.captureIdentity.sourceTree,
       baselineIdentity,
       receipts: input.graphReceipts ?? [],
       manifests: input.graphManifests ?? [],
       baselineReceipts: input.baselineGraphReceipts,
+      baselineReceiptPins: input.ledger.baselineGraphReceipts,
       requireFrozenReceipts: input.requireFrozenReceipts,
       requiredFrozenGraphs,
     });

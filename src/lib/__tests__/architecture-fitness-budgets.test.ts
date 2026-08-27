@@ -140,6 +140,16 @@ function receiptWithOverrides(
   return createGraphMeasurementReceipt({ ...draft, ...overrides });
 }
 
+function frozenReceiptPins(receipts: readonly GraphMeasurementReceipt[]) {
+  return receipts.map((receipt) => ({
+    graph: receipt.graph,
+    receiptId: receipt.receiptId,
+    sourceCommit: receipt.sourceCommit,
+    sourceTree: receipt.sourceTree,
+    manifestHash: receipt.manifestHash,
+  }));
+}
+
 describe('architecture fitness budgets', () => {
   it('creates a complete deterministic ledger and qualifies unchanged synthetic input', () => {
     const baseline = core([observation({
@@ -177,6 +187,35 @@ describe('architecture fitness budgets', () => {
     });
     expect(ledgerConsistent.failures).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-hash-drift' })]));
     expect(ledgerConsistent.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-rebuild-drift' })]));
+  });
+
+  it('freezes dependency-graph centrality independently from file size', () => {
+    const baseline = core([
+      edge('src/features/teacher/entry.ts', 'src/lib/shared-contract.ts'),
+      reverse('src/features/teacher/entry.ts', 'src/lib/shared-contract.ts'),
+    ]);
+    const current = core([
+      edge('src/features/teacher/entry.ts', 'src/lib/shared-contract.ts'),
+      edge('src/features/student/entry.ts', 'src/lib/shared-contract.ts'),
+      reverse('src/features/teacher/entry.ts', 'src/lib/shared-contract.ts'),
+      reverse('src/features/student/entry.ts', 'src/lib/shared-contract.ts'),
+    ], 'current-commit', 'current-tree');
+    const allowlist = createAllowlist(baseline, 'charterhash');
+    const ledger = createFitnessBudgetLedger({ baselineCore: baseline, allowlist });
+    const report = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: current,
+      allowlist,
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+    });
+    expect(report.failures).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'frozen-metric-growth',
+        budgetId: 'center-node:src/lib/shared-contract.ts',
+      }),
+    ]));
   });
 
   it('fails new feature-to-app, deep-import, and SCC debt while preserving the old contract', () => {
@@ -333,19 +372,33 @@ describe('architecture fitness budgets', () => {
     const manifests = GRAPH_IDS.map((graph) => graphManifest(graph, currentCommit, currentTree));
     const receipts = manifests.map((manifest) => graphReceipt(manifest, currentCommit, currentTree));
     const baselineReceipts = manifests.map((manifest) => graphReceipt(manifest, 'baseline-commit', 'baseline-tree'));
-    const trend = projectCompileBudgets({ sourceCommit: currentCommit, sourceTree: currentTree, baselineIdentity, receipts, manifests, baselineReceipts });
+    const frozenBaseline = {
+      baselineSourceCommit: 'baseline-commit',
+      baselineSourceTree: 'baseline-tree',
+      baselineReceiptPins: frozenReceiptPins(baselineReceipts),
+    };
+    const trend = projectCompileBudgets({ sourceCommit: currentCommit, sourceTree: currentTree, baselineIdentity, receipts, manifests, baselineReceipts, ...frozenBaseline });
     expect(trend.failures).toEqual([]);
     expect(trend.records.every((record) => record.status === 'trend')).toBe(true);
     const observed = projectCompileBudgets({
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
+      ...frozenBaseline,
       receipts: receipts.map((receipt) => receiptWithOverrides(receipt, { peakRssBytes: null })),
       manifests,
       baselineReceipts,
     });
     expect(observed.records.every((record) => record.status === 'observed')).toBe(true);
-    const blocked = projectCompileBudgets({ sourceCommit: currentCommit, sourceTree: currentTree, baselineIdentity, receipts, manifests });
+    const blocked = projectCompileBudgets({
+      sourceCommit: currentCommit,
+      sourceTree: currentTree,
+      baselineSourceCommit: 'baseline-commit',
+      baselineSourceTree: 'baseline-tree',
+      baselineIdentity,
+      receipts,
+      manifests,
+    });
     expect(blocked.records.every((record) => record.status === 'blocked')).toBe(true);
     expect(blocked.failures.some((item) => item.code === 'graph-frozen-receipt-missing')).toBe(true);
     const web = receipts[0];
@@ -353,6 +406,7 @@ describe('architecture fitness budgets', () => {
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
+      ...frozenBaseline,
       receipts: receipts.map((receipt) => receipt.graph === 'web'
         ? receiptWithOverrides(receipt, { status: 'blocked', failureCodes: ['web-includes-tooling'] })
         : receipt),
@@ -364,23 +418,47 @@ describe('architecture fitness budgets', () => {
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
+      ...frozenBaseline,
       receipts: receipts.map((receipt) => receipt.graph === web.graph ? receiptWithOverrides(receipt, { tscErrorCount: 1 }) : receipt),
       manifests,
       baselineReceipts,
     });
     expect(heapOnly.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-tsc-errors', identity: 'web' })]));
-    const duplicate = projectCompileBudgets({ sourceCommit: currentCommit, sourceTree: currentTree, baselineIdentity, receipts: [...receipts, receipts[0]], manifests, baselineReceipts });
+    const duplicate = projectCompileBudgets({
+      sourceCommit: currentCommit,
+      sourceTree: currentTree,
+      baselineIdentity,
+      ...frozenBaseline,
+      receipts: [...receipts, receipts[0]],
+      manifests,
+      baselineReceipts,
+    });
     expect(duplicate.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-receipt-duplicate', identity: 'web' })]));
 
     const receiptDrift = projectCompileBudgets({
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
+      ...frozenBaseline,
       receipts: receipts.map((receipt) => receipt.graph === 'web' ? { ...receipt, durationMs: receipt.durationMs + 1 } : receipt),
       manifests,
       baselineReceipts,
     });
     expect(receiptDrift.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-receipt-identity-drift', identity: 'web' })]));
+    const substitutedFrozenReceipt = projectCompileBudgets({
+      sourceCommit: currentCommit,
+      sourceTree: currentTree,
+      baselineIdentity,
+      ...frozenBaseline,
+      receipts,
+      manifests,
+      baselineReceipts: baselineReceipts.map((receipt) => receipt.graph === 'web'
+        ? receiptWithOverrides(receipt, { manifestHash: `${receipt.manifestHash}-substituted` })
+        : receipt),
+    });
+    expect(substitutedFrozenReceipt.failures).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'graph-frozen-receipt-pin-drift', identity: 'web' }),
+    ]));
 
     const baseline = core([]);
     const current = core([], currentCommit, currentTree);
