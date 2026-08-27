@@ -19,7 +19,7 @@ function loadExistingEntries(path: string): { path: string; blobHash: string; re
   });
 }
 
-if (command === 'write') {
+if (command === 'write' && result.ok) {
   mkdirSync(outDir, { recursive: true });
   const counts = result.classified.reduce<Record<string, number>>((acc, item) => {
     acc[item.evidenceClass] = (acc[item.evidenceClass] ?? 0) + 1;
