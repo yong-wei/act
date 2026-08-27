@@ -69,6 +69,8 @@ export interface SourceExport {
   readonly window: ObservationWindow;
   readonly exporterVersion: string;
   readonly reportingDelayHours: number | null;
+  readonly denominatorBytes: number;
+  readonly denominatorCount: number;
   readonly rows: readonly SourceExportRow[];
 }
 

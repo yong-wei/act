@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { isMixedWorktree } from '../src/lib/architecture-census/identity';
@@ -34,20 +34,30 @@ function loadExports(inputDir: string | null): unknown[] {
 
 function writeBaseline(repoRoot: string): void {
   const identity = readGitIdentity(repoRoot);
+  const mixedWorktree = isMixedWorktree(repoRoot);
+  const requestedCommit = argument('--source-commit');
+  const requestedTree = argument('--source-tree');
+  const identityDrift = (requestedCommit !== null && requestedCommit !== identity.sourceCommit)
+    || (requestedTree !== null && requestedTree !== identity.sourceTree);
   const observation = observeTraffic({
-    sourceCommit: argument('--source-commit') ?? identity.sourceCommit,
-    sourceTree: argument('--source-tree') ?? identity.sourceTree,
-    dirty: argument('--dirty') === 'true' ? true : argument('--dirty') === 'false' ? false : identity.dirty,
-    mixedWorktree: isMixedWorktree(repoRoot),
+    sourceCommit: identity.sourceCommit,
+    sourceTree: identity.sourceTree,
+    dirty: identity.dirty || identityDrift,
+    mixedWorktree,
     environment: argument('--environment') ?? 'production-and-workstation',
     window: defaultWindow(),
     capturedAt: argument('--captured-at') ?? new Date().toISOString(),
     exports: loadExports(argument('--input-dir')),
   });
-  const outputDir = argument('--output-dir') ?? join(repoRoot, 'docs/operations/runtime-traffic-cost/baseline');
+  const outputDir = argument('--output-dir') ?? join(repoRoot, 'docs/operations/runtime-traffic-cost/observations', observation.observationId);
+  const observationPath = join(outputDir, 'observation.json');
+  const summaryPath = join(outputDir, 'summary.md');
+  if (existsSync(observationPath) || existsSync(summaryPath)) {
+    throw new Error(`observation-artifact-exists:${outputDir}`);
+  }
   mkdirSync(outputDir, { recursive: true });
-  writeFileSync(join(outputDir, 'observation.json'), `${JSON.stringify(observation, null, 2)}\n`);
-  writeFileSync(join(outputDir, 'summary.md'), summarizeObservation(observation));
+  writeFileSync(observationPath, `${JSON.stringify(observation, null, 2)}\n`);
+  writeFileSync(summaryPath, summarizeObservation(observation));
   console.log(JSON.stringify({
     observationId: observation.observationId,
     status: observation.status,

@@ -29,23 +29,24 @@ export function balanceLedger(input: {
   readonly inputHash: string;
   readonly reportingDelayHours: number | null;
   readonly rows: readonly AttributedRow[];
+  readonly declaredDenominatorBytes: number;
+  readonly declaredDenominatorCount: number;
   readonly missingReason?: string | null;
   readonly conflicts?: readonly string[];
 }): SourceLedger {
   const totals = emptyTotals();
-  let denominatorBytes = 0;
-  let denominatorCount = 0;
   for (const row of [...input.rows].sort((left, right) => left.evidenceId.localeCompare(right.evidenceId))) {
     totals[row.qualification].bytes += row.bytes;
     totals[row.qualification].count += row.count;
-    denominatorBytes += row.bytes;
-    denominatorCount += row.count;
   }
-  const balanced = QUALIFICATIONS.reduce((sum, key) => sum + totals[key].bytes, 0) === denominatorBytes
-    && QUALIFICATIONS.reduce((sum, key) => sum + totals[key].count, 0) === denominatorCount;
+  const classifiedBytes = QUALIFICATIONS.reduce((sum, key) => sum + totals[key].bytes, 0);
+  const classifiedCount = QUALIFICATIONS.reduce((sum, key) => sum + totals[key].count, 0);
+  const denominatorBytes = input.declaredDenominatorBytes;
+  const denominatorCount = input.declaredDenominatorCount;
+  const balanced = classifiedBytes === denominatorBytes && classifiedCount === denominatorCount;
   const conflicts = [...(input.conflicts ?? [])].sort();
   let status: ObservationStatus = 'qualified';
-  if (input.missingReason) status = 'incomplete';
+  if (input.missingReason || totals.delayed.bytes > 0 || totals.delayed.count > 0) status = 'incomplete';
   else if (!balanced || conflicts.length > 0) status = 'blocked';
   const body = {
     schemaVersion: LEDGER_SCHEMA_VERSION,
@@ -75,6 +76,8 @@ export function missingLedger(sourceType: SourceType, window: ObservationWindow,
     inputHash: sha256Text(`${sourceType}:${reason}`),
     reportingDelayHours: null,
     rows: [],
+    declaredDenominatorBytes: 0,
+    declaredDenominatorCount: 0,
     missingReason: reason,
   });
 }

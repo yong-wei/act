@@ -18,12 +18,16 @@ const TREE = 'b'.repeat(40);
 const WINDOW = { start: '2026-08-01T00:00:00.000Z', end: '2026-08-02T00:00:00.000Z', timezone: 'UTC' };
 
 function sourceExport(sourceType: SourceExport['sourceType'], rows: SourceExport['rows'], extra: Partial<SourceExport> = {}): SourceExport {
+  const denominatorBytes = extra.denominatorBytes ?? rows.reduce((sum, row) => sum + row.bytes, 0);
+  const denominatorCount = extra.denominatorCount ?? rows.reduce((sum, row) => sum + (row.count ?? 1), 0);
   return {
     schemaVersion: SOURCE_EXPORT_SCHEMA_VERSION,
     sourceType,
     window: WINDOW,
     exporterVersion: `${sourceType}-fixture/1`,
     reportingDelayHours: sourceType === 'oss' ? 24 : 0,
+    denominatorBytes,
+    denominatorCount,
     rows,
     ...extra,
   };
@@ -33,7 +37,7 @@ function completeExports(): SourceExport[] {
   return [
     sourceExport('oss', [
       { metering: 'NetworkOut', prefix: 'runtime/blobs/sha256/', bytes: 100, count: 2, operation: 'get-object' },
-      { metering: 'CdnOut', prefix: 'runtime/blobs/sha256/', bytes: 40, count: 1, operation: 'origin-fetch' },
+      { metering: 'CdnOut', prefix: 'runtime/blob-releases/', bytes: 40, count: 1, operation: 'origin-fetch' },
     ]),
     sourceExport('esa', [
       { metering: 'edge-bytes', path: '/assets/models-opt/destroyer.glb', bytes: 80, count: 1 },
@@ -160,6 +164,19 @@ describe('runtime traffic cost observation', () => {
     ]));
     expect(delayed.totals.delayed.bytes).toBe(9);
     expect(delayed.totals.observed.bytes).toBe(0);
+    expect(delayed.status).toBe('incomplete');
+  });
+
+  it('hashes external evidence ids and requires an independent denominator', () => {
+    const hashed = normalizeSourceExport(sourceExport('nginx', [
+      { path: '/assets/x.glb', bytes: 4, evidenceId: 'alice@example.com' },
+    ]));
+    expect(JSON.stringify(hashed)).not.toContain('alice@example.com');
+    expect(hashed.rows[0]?.evidenceId).toMatch(/^[a-f0-9]{64}$/u);
+    const unbalanced = normalizeSourceExport(sourceExport('oss', [
+      { metering: 'NetworkOut', prefix: 'runtime/blobs/sha256/', bytes: 10, count: 1 },
+    ], { denominatorBytes: 20, denominatorCount: 1 }));
+    expect(unbalanced.status).toBe('blocked');
   });
 
   it('rejects protected fields before a portable artifact is written', () => {

@@ -25,8 +25,10 @@
 
 ```bash
 npm run traffic-cost:inventory
-npm run traffic-cost:observe -- --input-dir <export-dir> --output-dir docs/operations/runtime-traffic-cost/baseline
+npm run traffic-cost:observe -- --input-dir <export-dir>
 ```
+
+默认写入 `docs/operations/runtime-traffic-cost/observations/<observationId>/`。目标文件已存在时 fail closed，不得覆盖历史 receipt。Git dirty 与 commit/tree 漂移以探测结果为准，不能用参数改写。
 
 `--input-dir` 下每个 `*.json` 必须是 `act-runtime-traffic-source-export/v1`。缺源、混窗口、未知时区或无法证明的 schema 会让观测为 `incomplete` 或 `blocked`，不会静默消失。
 
@@ -36,8 +38,8 @@ receipt 不得包含凭据、Authorization、签名查询、用户标识、客�
 
 ## 资格
 
-- `qualified`：五个源都覆盖同一 window/timezone，ledger 平衡且无冲突。
-- `incomplete`：声明源或 window 缺失、或仅有 delayed/missing 证据。
+- `qualified`：五个源都覆盖同一 window/timezone，独立分母闭合且无冲突、无 delayed 行。
+- `incomplete`：声明源或 window 缺失，或仍有 delayed 账单。
 - `blocked`：dirty/mixed worktree、taxonomy 冲突、重复 source 文件或不平衡。
 
 迟到的账单必须写成新的 observation revision，不得改写历史 receipt。

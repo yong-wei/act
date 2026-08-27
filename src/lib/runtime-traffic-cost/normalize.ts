@@ -48,8 +48,15 @@ function parseExport(raw: unknown): SourceExport {
     reportingDelayHours: record.reportingDelayHours === null || typeof record.reportingDelayHours === 'number'
       ? record.reportingDelayHours as number | null
       : null,
+    denominatorBytes: requireNonNegativeInteger(record.denominatorBytes, 'source-export-denominator-bytes'),
+    denominatorCount: requireNonNegativeInteger(record.denominatorCount, 'source-export-denominator-count'),
     rows: record.rows as SourceExportRow[],
   };
+}
+
+function requireNonNegativeInteger(value: unknown, code: string): number {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) throw new Error(code);
+  return value;
 }
 
 function asQualification(value: string | undefined, fallback: Qualification): Qualification {
@@ -65,12 +72,13 @@ function asEndpoint(value: string | undefined, fallback: EndpointClass): Endpoin
 }
 
 function rowIdentity(sourceType: SourceType, index: number, row: SourceExportRow): string {
-  return row.evidenceId ?? sha256Text(serializeDeterministic({ sourceType, index, row }));
+  const seed = row.evidenceId ?? serializeDeterministic({ sourceType, index, row });
+  return sha256Text(seed);
 }
 
 function attributeRow(sourceType: SourceType, index: number, row: SourceExportRow, seen: Map<string, string>): AttributedRow {
   if (!Number.isFinite(row.bytes) || row.bytes < 0) throw new Error('source-export-bytes');
-  const count = row.count ?? 1;
+  const count = requireNonNegativeInteger(row.count ?? 1, 'source-export-count');
   const evidenceId = rowIdentity(sourceType, index, row);
   const prior = seen.get(evidenceId);
   let qualification = asQualification(row.qualification, 'observed');
@@ -146,9 +154,10 @@ export function normalizeSourceExport(raw: unknown): SourceLedger {
     const attributedRow = attributed[index];
     const name = raw.path ?? raw.prefix ?? raw.evidenceId ?? attributedRow.evidenceId;
     const key = `${source.sourceType}:${name}`;
+    const signature = `${attributedRow.routeClass}:${attributedRow.endpointClass}:${attributedRow.objectPrefixClass}`;
     const prior = names.get(key);
-    if (prior && prior !== attributedRow.routeClass) conflicts.push(`${key}:${prior}!=${attributedRow.routeClass}`);
-    else names.set(key, String(attributedRow.routeClass));
+    if (prior && prior !== signature) conflicts.push(`${key}:${prior}!=${signature}`);
+    else names.set(key, signature);
   }
   return balanceLedger({
     sourceType: source.sourceType,
@@ -157,6 +166,8 @@ export function normalizeSourceExport(raw: unknown): SourceLedger {
     inputHash: sha256Text(serialized),
     reportingDelayHours: source.reportingDelayHours,
     rows: attributed,
+    declaredDenominatorBytes: source.denominatorBytes,
+    declaredDenominatorCount: source.denominatorCount,
     conflicts,
   });
 }
