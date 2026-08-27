@@ -15,6 +15,9 @@ export function classifyPath(path: string, familyId: SourceFamilyId): Classified
   if (startsWithPath(path, 'tools/evidence-lifecycle')) {
     return entry(path, familyId, 'evidence-visual-qa', 'assessment', 'private-run-evidence', 'read-only', 'keep-as-evidence-lifecycle-contract', null);
   }
+  if (startsWithPath(path, 'tools/migration-backfill')) {
+    return entry(path, familyId, 'migration-backfill', 'learning-record', 'none', 'apply-gated', 'keep-as-isolated-command-boundary', null);
+  }
   if (startsWithPath(path, 'tools/glb-model-optimizer')) {
     return entry(path, familyId, 'existing-unrelated-tool', 'platform', 'public-bundle', 'read-only', 'owned-outside-this-series', null);
   }
