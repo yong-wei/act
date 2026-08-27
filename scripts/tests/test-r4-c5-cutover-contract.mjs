@@ -71,6 +71,16 @@ assert.ok(
 );
 assert.match(
   remote,
+  /if \[\[ "\$prior_status" == "COMMITTED" \]\]; then[\s\S]*?completed=1[\s\S]*?trap - ERR INT TERM[\s\S]*?exit 1/u,
+  'a replay after COMMITTED must terminate without entering recovery or rewriting the terminal journal',
+);
+assert.match(
+  remote,
+  /if \[\[ "\$prior_status" == "ROLLED_BACK" \]\]; then[\s\S]*?transaction_id=""[\s\S]*?journal_path=""[\s\S]*?return 0/u,
+  'a replacement transaction after ROLLED_BACK must not inherit terminal journal context into its ERR trap',
+);
+assert.match(
+  remote,
   /status_record\.get\('status'\) not in \{'PREPARED', 'AUTHORITY_APPLIED', 'RUNTIME_ACTIVATED', 'FINAL_RECEIPT_WRITTEN', 'SUCCESSOR_READY'\}/u,
   'only explicitly recoverable durable transaction states may enter automatic compensation',
 );

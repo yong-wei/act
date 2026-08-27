@@ -529,7 +529,21 @@ recover_incomplete_transaction() {
   [[ -n "$prior_context" ]] || return 0
   IFS=$'\t' read -r transaction_id transaction_journal opened_at prior_status <<<"$prior_context"
   journal_path="$journal_dir/$transaction_journal"
-  if [[ "$prior_status" == "COMMITTED" || "$prior_status" == "ROLLED_BACK" ]]; then
+  if [[ "$prior_status" == "COMMITTED" ]]; then
+    # A terminal committed transaction remains the current durable production
+    # record.  A replay must not enter the ERR trap and overwrite it as a
+    # rollback merely because the successor is no longer the predecessor.
+    echo "ERROR: coordinated transaction $transaction_id is already COMMITTED; refusing a second activation" >&2
+    completed=1
+    trap - ERR INT TERM
+    exit 1
+  fi
+  if [[ "$prior_status" == "ROLLED_BACK" ]]; then
+    # A fresh transaction may be attempted after a verified rollback, but it
+    # must not inherit terminal journal context into a later ERR recovery.
+    transaction_id=""
+    journal_path=""
+    opened_at=""
     return 0
   fi
   if ! stale="$(inspect_incomplete_transaction)"; then
