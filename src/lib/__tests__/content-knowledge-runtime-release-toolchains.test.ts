@@ -106,6 +106,8 @@ describe('content knowledge runtime release toolchains', () => {
     expect(readFileSync(join(process.cwd(), 'tools/content-knowledge-runtime-release/cli.ts'), 'utf8')).not.toContain('spawnSync');
     expect(result.characterization.content.outputDigest).not.toEqual(result.characterization.knowledge.outputDigest);
     expect(result.characterization.knowledge.outputDigest).not.toEqual(result.characterization.runtime.outputDigest);
+    expect(result.sampleReceipt.artifactDigest).toBeNull();
+    expect(result.characterization.runtime.artifactDigest).toBeNull();
     expect(result.sampleReceipt.sourceRevision).toBe(result.characterization.content.sourceRevision);
     expect(pkg.scripts['deploy:runtime']).toContain('scripts/deploy-runtime-blob-release.sh');
     expect(pkg.scripts['startup:oss-runtime']).toContain('scripts/runtime-release/developer-oss/cli.py');

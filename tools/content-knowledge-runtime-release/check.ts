@@ -83,7 +83,7 @@ function characterizationReceipt(
     sourceTree,
     planHash: inputHash,
     inputHash,
-    outputDigest: hashValue(`not-executed:${path}:${command.role}:${blob}`),
+    outputDigest: hashValue(`verification:${sourceRevision}:${inputHash}:executed=false`),
     targetIdentity: 'fixture:unspecified',
     gate: evaluateApplyGate({
       mode: 'dry-run',
@@ -98,10 +98,8 @@ function characterizationReceipt(
 export function checkContentKnowledgeRuntimeRelease(cwd: string): ReleaseCheckResult {
   const failures: string[] = [];
   if (!worktreeIsClean(cwd)) failures.push('dirty-worktree');
-  const headRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
-  const headTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
-  let sourceRevision = headRevision;
-  let sourceTree = headTree;
+  const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
+  const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
   const commands = inventoryReleaseCommands(cwd);
   const blobs = collectReleaseBlobs(cwd);
   const counts = countByRoot(commands);
@@ -175,9 +173,6 @@ export function checkContentKnowledgeRuntimeRelease(cwd: string): ReleaseCheckRe
         }).trim();
         if (inventory.sourceTree !== capturedTree) {
           failures.push('inventory-source-tree-mismatch');
-        } else {
-          sourceRevision = inventory.sourceRevision;
-          sourceTree = inventory.sourceTree;
         }
       } catch {
         failures.push('inventory-revision-unreadable');

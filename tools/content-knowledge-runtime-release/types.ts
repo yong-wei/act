@@ -75,6 +75,7 @@ export interface ReleaseIdentity {
   readonly commandId: string;
   readonly inputDigest: string;
   readonly outputDigest: string;
+  readonly artifactDigest: null;
   readonly executed: false;
   readonly productionActivation: false;
   readonly selectorMutation: false;
