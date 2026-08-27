@@ -67,8 +67,8 @@ receipt 生成使用不可变文件创建；同一 receipt ID 只能重读相同
 
 | 事实 | 状态 | owner | 下一步 |
 | --- | --- | --- | --- |
-| GitHub-hosted PR/integration CI | 已删除；`quality-gates.yml` 必须缺席 | platform | 保持 `validateGitHubHostedCiBoundary` fail-closed，禁止再引入 |
-| integration GitHub required CI checks | 不得把 registry check 配成 GitHub required status check | platform | 合入证据继续用本地命令和 exact-current-HEAD 审查 |
+| GitHub-hosted PR/integration CI | 已删除；枚举 `.github/workflows/*`，禁止 `pull_request`、`integration` push 与 nightly `schedule` | platform | 保持 `validateGitHubHostedCiBoundary` fail-closed，禁止改名后重新引入 |
+| integration GitHub required CI checks | 未读取平台 ruleset 时只能是 `blocked-unverified`；dirty 不得写成 `verified` | platform | 合入证据继续用本地命令和 exact-current-HEAD 审查；不得用仓库文件声称远端 required checks 为空 |
 | `fitness:architecture` | 当前冻结指标增长、feature→app 未登记、缺 frozen graph receipts | architecture/platform | 单独修复或重新 qualified fitness 输入；本 change 不改预算 |
 | `typecheck:tools` | 既有 tsc debt，仍为 PR/integration mandatory | tooling | 修复 graph 自身错误并生成当前 clean receipt |
 | `typecheck:test` | 既有 tsc debt/OOM，仍为 PR/integration mandatory | tooling/test | 修复或拆解 graph 资源问题并生成当前 clean receipt |

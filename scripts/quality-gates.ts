@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import { readGitIdentity } from './typescript-graphs/contracts';
 import {
   createBlockedIntegrationProtectionReceipt,
-  createVerifiedLocalHostedCiBoundaryReceipt,
   INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION,
   PROTECTION_RESPONSE_CLASSES,
   type ProtectionResponseClass,
@@ -61,25 +60,17 @@ function writeRegistry(repoRoot: string): void {
 }
 
 function writeProtectionReceipt(repoRoot: string): void {
-  const responseClass = (argument('--response-class') ?? 'local-workflow-inspection') as ProtectionResponseClass;
+  const responseClass = (argument('--response-class') ?? 'not-queried-in-patch-worker-scope') as ProtectionResponseClass;
   if (!(PROTECTION_RESPONSE_CLASSES as readonly string[]).includes(responseClass)) throw new Error(`unknown-protection-response-class:${responseClass}`);
   const identity = readGitIdentity(repoRoot);
-  const capturedAt = argument('--captured-at') ?? new Date().toISOString();
   const hostedFailures = validateGitHubHostedCiBoundary(repoRoot);
-  const receipt = hostedFailures.length === 0 && responseClass === 'local-workflow-inspection'
-    ? createVerifiedLocalHostedCiBoundaryReceipt({
-      sourceCommit: identity.sourceCommit,
-      sourceTree: identity.sourceTree,
-      dirty: identity.dirty,
-      capturedAt,
-    })
-    : createBlockedIntegrationProtectionReceipt({
-      sourceCommit: identity.sourceCommit,
-      sourceTree: identity.sourceTree,
-      dirty: identity.dirty,
-      responseClass: hostedFailures.length > 0 ? 'configuration-unreadable' : responseClass,
-      capturedAt,
-    });
+  const receipt = createBlockedIntegrationProtectionReceipt({
+    sourceCommit: identity.sourceCommit,
+    sourceTree: identity.sourceTree,
+    dirty: identity.dirty,
+    responseClass: hostedFailures.length > 0 ? 'configuration-unreadable' : responseClass,
+    capturedAt: argument('--captured-at') ?? new Date().toISOString(),
+  });
   mkdirSync(join(repoRoot, 'docs/architecture/quality-gates'), { recursive: true });
   writeFileSync(join(repoRoot, 'docs/architecture/quality-gates/integration-protection-verification.json'), `${JSON.stringify(receipt, null, 2)}\n`);
   console.log(JSON.stringify({ schemaVersion: INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION, status: receipt.status, receiptId: receipt.receiptId }));

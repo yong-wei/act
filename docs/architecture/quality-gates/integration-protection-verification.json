@@ -1,20 +1,20 @@
 {
   "schemaVersion": "act-integration-protection-verification/v1",
   "branch": "integration",
-  "status": "verified",
-  "sourceCommit": "94144d2dd060600725f39b1c36d51e9c14f7b0d0",
-  "sourceTree": "7185de61debbc81f754991e1723b6b9f06816063",
+  "status": "blocked-unverified",
+  "sourceCommit": "1325ad932d21502039c397b8b2bd0dd85933950b",
+  "sourceTree": "6e84a7f1e70c675d7a78ae2fa727600f40e6f7da",
   "dirty": true,
   "provider": "github",
-  "responseClass": "local-workflow-inspection",
-  "enforcement": "disabled",
+  "responseClass": "not-queried-in-patch-worker-scope",
+  "enforcement": "unknown",
   "requiredChecks": [],
   "strictStatus": null,
   "requiredReviews": null,
   "conversationResolution": null,
   "bypassActors": [],
   "affectedGate": "integration-hosted-ci-boundary",
-  "resolutionCondition": "Keep GitHub required status checks free of quality-gate registry IDs; do not add pull_request or integration-push generic quality CI.",
-  "capturedAt": "2026-08-27T05:56:08.968Z",
-  "receiptId": "3c10a70c0ef6089daa36ce456b7f05d2fd3e30e972b7da0d31f9eedf327f3108"
+  "resolutionCondition": "Do not treat unread GitHub protection as a required CI gate; keep integration merge evidence local and prove hosted quality workflows remain absent.",
+  "capturedAt": "2026-08-27T06:20:09.104Z",
+  "receiptId": "816539053f911aef91ac11fef2d23d83b046c32992cb689a88c9d3c43a63c7f4"
 }

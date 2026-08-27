@@ -59,10 +59,10 @@ export type {
 export {
   createBlockedIntegrationProtectionReceipt,
   createIntegrationProtectionReceipt,
-  createVerifiedLocalHostedCiBoundaryReceipt,
   validateIntegrationProtectionReceipt,
   INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION,
   PROTECTION_RESPONSE_CLASSES,
+  UNREAD_PROTECTION_RESPONSE_CLASSES,
 } from './branch-protection';
 export type {
   IntegrationProtectionReceipt,

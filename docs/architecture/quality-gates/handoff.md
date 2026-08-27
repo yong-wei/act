@@ -19,7 +19,8 @@
 3. PR denominator 未闭合时扩大或 fail closed。
 4. 四张 graph 在 PR/integration 为 mandatory；main/release 要求当前 clean、passed、zero-tsc-error receipts。
 5. GitHub Actions 只保留 `ci.yml` 的 `main` push / `workflow_dispatch`，以及 Wolfram 专项 `workflow_dispatch`。
-6. `quality-gates.yml`、`ci.yml` 的 `release/**` 与 `main-release-quality-gates` 已删除；再引入会 fail closed。
+6. `quality-gates.yml`、`ci.yml` 的 `release/**` 与 `main-release-quality-gates` 已删除；`validateGitHubHostedCiBoundary` 会枚举 `.github/workflows/*`，改名后的 `pull_request` / `integration` push / nightly `schedule` 也会 fail closed。
+7. GitHub protection receipt 在 dirty、未查询平台、或仅检查仓库 workflow 文件时保持 `blocked-unverified`，不得从本地文件声称远端 required checks 已验证。
 
 ## 尚未解除的 blocker
 

@@ -9,8 +9,8 @@ import {
   QUALITY_EVENTS,
   QUALITY_LAYER_IDS,
   createBlockedIntegrationProtectionReceipt,
+  createIntegrationProtectionReceipt,
   createLayerReceipt,
-  createVerifiedLocalHostedCiBoundaryReceipt,
   qualityGateRegistryHash,
   qualityCommand,
   selectPrImpact,
@@ -118,6 +118,18 @@ describe('PR and integration quality gate contracts', () => {
     expect(validateGitHubHostedCiBoundary(process.cwd())).toEqual([]);
     expect(validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, readFileSync(HOSTED_CI_WORKFLOW_PATHS.main, 'utf8'))).toEqual([]);
     expect(validateWorkflowText('.github/workflows/quality-gates.yml', 'run: npm run quality-gates:run').map((failure) => failure.code)).toContain('github-pr-quality-workflow-forbidden');
+    expect(validateWorkflowText('.github/workflows/pr-checks.yml', [
+      'on:',
+      '  pull_request:',
+      '    branches:',
+      '      - integration',
+      '  schedule:',
+      '    - cron: "17 2 * * *"',
+    ].join('\n')).map((failure) => failure.code)).toEqual(expect.arrayContaining([
+      'github-pull-request-trigger-forbidden',
+      'github-integration-push-trigger-forbidden',
+      'github-nightly-schedule-forbidden',
+    ]));
     const hosted = validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, [
       'on:',
       '  pull_request:',
@@ -198,26 +210,79 @@ describe('PR and integration quality gate contracts', () => {
   });
 
   it('forbids mapping quality-gate registry checks to GitHub required CI status checks', () => {
-    const local = createVerifiedLocalHostedCiBoundaryReceipt({
+    const platform = createIntegrationProtectionReceipt({
       sourceCommit: COMMIT,
       sourceTree: TREE,
       dirty: false,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
       capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
     });
-    expect(local.status).toBe('verified');
-    expect(local.requiredChecks).toEqual([]);
-    expect(validateIntegrationProtectionReceipt(local)).toEqual([]);
+    expect(platform.status).toBe('verified');
+    expect(platform.requiredChecks).toEqual([]);
+    expect(validateIntegrationProtectionReceipt(platform)).toEqual([]);
 
-    const hostedRequired = createVerifiedLocalHostedCiBoundaryReceipt({
+    const hostedRequired = createIntegrationProtectionReceipt({
       sourceCommit: COMMIT,
       sourceTree: TREE,
       dirty: false,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: ['pr/contract'],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
       capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
     });
+    expect(hostedRequired.status).toBe('blocked-unverified');
     expect(validateIntegrationProtectionReceipt({
-      ...hostedRequired,
+      ...platform,
       requiredChecks: ['pr/contract'],
     }).map((failure) => failure.code)).toContain('github-required-ci-checks-forbidden');
+  });
+
+  it('does not mark GitHub protection verified from dirty trees or local workflow files', () => {
+    const dirty = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: true,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(dirty.status).toBe('blocked-unverified');
+    expect(validateIntegrationProtectionReceipt(dirty)).toEqual([]);
+
+    const localFiles = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      responseClass: 'local-workflow-inspection',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(localFiles.status).toBe('blocked-unverified');
+    expect(validateIntegrationProtectionReceipt(localFiles)).toEqual([]);
   });
 
   it('does not permit a release check to be removed or downgraded', () => {

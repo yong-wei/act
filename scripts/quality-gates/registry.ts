@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { privacyViolation } from '../../src/lib/architecture-census/privacy';
@@ -471,39 +471,56 @@ export function validatePackageCommandAuthority(repoRoot: string, registry: Qual
     .map((command) => ({ code: 'local-command-script-missing', identity: command.id, detail: command.npmScript }));
 }
 
+function hasYamlTrigger(text: string, trigger: string): boolean {
+  return new RegExp(`^\\s*${trigger}\\s*:`, 'mu').test(text)
+    || new RegExp(`(?:^|\\n)on:\\s*\\[[^\\]]*\\b${trigger}\\b`, 'u').test(text);
+}
+
 export function validateWorkflowText(workflowPath: string, text: string): RegistryFailure[] {
   const failures: RegistryFailure[] = [];
-  if (workflowPath.endsWith('quality-gates.yml')) failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: workflowPath });
+  const normalizedPath = workflowPath.replace(/\\/g, '/');
+  const isCi = normalizedPath.endsWith(HOSTED_CI_WORKFLOW_PATHS.main) || normalizedPath === 'ci.yml';
+  const isWolfram = normalizedPath.endsWith(HOSTED_CI_WORKFLOW_PATHS.specializedWolfram);
+  if (normalizedPath.endsWith('quality-gates.yml')) failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: workflowPath });
   if (text.includes('node --import tsx/esm')) failures.push({ code: 'forbidden-node-tsx-esm-loader', identity: workflowPath });
-  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text) && !workflowPath.endsWith('docker-wolfram-verify.yml')) {
+  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text) && !isWolfram) {
     failures.push({ code: 'workflow-manual-test-list', identity: workflowPath });
   }
   if (/continue-on-error\s*:\s*true/u.test(text)) failures.push({ code: 'workflow-accepted-failure', identity: workflowPath });
   if (/\|\|\s*true/u.test(text)) failures.push({ code: 'workflow-silent-skip', identity: workflowPath });
-  if (workflowPath.endsWith('ci.yml')) {
-    if (/^\s*pull_request\s*:/mu.test(text)) failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
+  if (hasYamlTrigger(text, 'pull_request')) failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
+  if (hasYamlTrigger(text, 'schedule')) failures.push({ code: 'github-nightly-schedule-forbidden', identity: workflowPath });
+  if (/^\s+-\s+integration\s*$/mu.test(text) || /branches:\s*\[[^\]]*integration/u.test(text)) {
+    failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
+  }
+  if (/quality-gates:run/u.test(text)) failures.push({ code: 'github-quality-gate-runner-hosted', identity: workflowPath });
+  if (isCi) {
     if (/release\/\*\*/u.test(text)) failures.push({ code: 'github-release-branch-trigger-forbidden', identity: workflowPath });
     if (/main-release-quality-gates/u.test(text)) failures.push({ code: 'github-main-release-quality-job-forbidden', identity: workflowPath });
-    if (/quality-gates:run/u.test(text)) failures.push({ code: 'github-quality-gate-runner-hosted', identity: workflowPath });
     if (!/workflow_dispatch/u.test(text)) failures.push({ code: 'github-workflow-dispatch-missing', identity: workflowPath });
     if (!/^\s+-\s+main\s*$/mu.test(text)) failures.push({ code: 'github-main-push-trigger-missing', identity: workflowPath });
-    if (/^\s+-\s+integration\s*$/mu.test(text)) failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
+  }
+  if (isWolfram && hasYamlTrigger(text, 'push')) {
+    failures.push({ code: 'github-specialized-workflow-push-forbidden', identity: workflowPath });
   }
   return failures;
 }
 
 export function validateGitHubHostedCiBoundary(repoRoot: string): RegistryFailure[] {
   const failures: RegistryFailure[] = [];
-  const forbiddenPath = join(repoRoot, HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates);
-  if (existsSync(forbiddenPath)) {
-    failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates });
-  }
-  const ciPath = join(repoRoot, HOSTED_CI_WORKFLOW_PATHS.main);
-  if (!existsSync(ciPath)) {
-    failures.push({ code: 'github-main-ci-missing', identity: HOSTED_CI_WORKFLOW_PATHS.main });
+  const workflowDir = join(repoRoot, '.github/workflows');
+  if (!existsSync(workflowDir)) {
+    failures.push({ code: 'github-workflows-directory-missing', identity: '.github/workflows' });
     return uniqueFailures(failures);
   }
-  failures.push(...validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, readFileSync(ciPath, 'utf8')));
+  const workflowFiles = readdirSync(workflowDir)
+    .filter((name) => /\.ya?ml$/iu.test(name))
+    .sort((left, right) => left.localeCompare(right));
+  if (!workflowFiles.includes('ci.yml')) failures.push({ code: 'github-main-ci-missing', identity: HOSTED_CI_WORKFLOW_PATHS.main });
+  for (const name of workflowFiles) {
+    const relativePath = `.github/workflows/${name}`;
+    failures.push(...validateWorkflowText(relativePath, readFileSync(join(workflowDir, name), 'utf8')));
+  }
   return uniqueFailures(failures);
 }
 

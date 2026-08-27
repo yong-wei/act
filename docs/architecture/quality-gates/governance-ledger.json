@@ -16,10 +16,10 @@
     },
     {
       "id": "integration-protection",
-      "status": "verified-no-github-ci-gate",
+      "status": "blocked-unverified",
       "owner": "platform",
-      "condition": "Quality-gate registry checks must not be GitHub required status checks. Merge evidence remains local verify:commit, verify:push, typecheck, related tests, and exact-current-HEAD review.",
-      "next": "Do not add pull_request or integration-push generic quality CI."
+      "condition": "Unread GitHub ruleset or dirty capture cannot prove required status checks are absent. Local workflow enumeration is a separate hosted-CI file boundary, not a platform required-check proof.",
+      "next": "Keep merge evidence local. Read platform required checks only with an authorized observation; never mark verified from local files or a dirty tree."
     },
     {
       "id": "specialized-wolfram-workflow",

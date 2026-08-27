@@ -17,6 +17,14 @@ export const PROTECTION_RESPONSE_CLASSES = [
   'local-workflow-inspection',
 ] as const;
 export type ProtectionResponseClass = (typeof PROTECTION_RESPONSE_CLASSES)[number];
+export const UNREAD_PROTECTION_RESPONSE_CLASSES = [
+  'rest-403',
+  'plan-limitation',
+  'permission-denied',
+  'configuration-unreadable',
+  'not-queried-in-patch-worker-scope',
+  'local-workflow-inspection',
+] as const;
 export type ProtectionStatus = 'verified' | 'blocked-unverified';
 
 export interface IntegrationProtectionReceipt {
@@ -69,7 +77,13 @@ export function createIntegrationProtectionReceipt(
   registry: QualityGateRegistry = DEFAULT_QUALITY_GATE_REGISTRY,
 ): IntegrationProtectionReceipt {
   const requiredChecks = [...new Set(observation.requiredChecks)].sort();
-  const blocked = observation.status === 'blocked-unverified' || observation.responseClass !== 'not-configured' && observation.enforcement === 'unknown';
+  const unread = (UNREAD_PROTECTION_RESPONSE_CLASSES as readonly string[]).includes(observation.responseClass);
+  const mapsRegistryCheck = requiredChecks.some((checkId) => qualityGateCheckIds(registry).has(checkId));
+  const blocked = observation.dirty
+    || unread
+    || mapsRegistryCheck
+    || observation.status === 'blocked-unverified'
+    || observation.enforcement === 'unknown';
   const body = {
     schemaVersion: INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION,
     branch: 'integration' as const,
@@ -116,25 +130,6 @@ export function createBlockedIntegrationProtectionReceipt(input: {
   });
 }
 
-export function createVerifiedLocalHostedCiBoundaryReceipt(input: {
-  readonly sourceCommit: string;
-  readonly sourceTree: string;
-  readonly dirty: boolean;
-  readonly capturedAt: string;
-}): IntegrationProtectionReceipt {
-  return createIntegrationProtectionReceipt({
-    ...input,
-    responseClass: 'local-workflow-inspection',
-    enforcement: 'disabled',
-    requiredChecks: [],
-    strictStatus: null,
-    requiredReviews: null,
-    conversationResolution: null,
-    bypassActors: [],
-    status: 'verified',
-  });
-}
-
 export function validateIntegrationProtectionReceipt(
   receipt: IntegrationProtectionReceipt,
   registry: QualityGateRegistry = DEFAULT_QUALITY_GATE_REGISTRY,
@@ -147,7 +142,11 @@ export function validateIntegrationProtectionReceipt(
     if (receipt.strictStatus !== null || receipt.requiredReviews !== null || receipt.conversationResolution !== null) failures.push({ code: 'blocked-receipt-claims-configuration', identity: receipt.branch });
   }
   if (receipt.status === 'verified') {
+    if (receipt.dirty) failures.push({ code: 'protection-dirty-verified', identity: receipt.branch });
     if (receipt.enforcement === 'unknown') failures.push({ code: 'verified-receipt-claims-unknown-enforcement', identity: receipt.branch });
+    if ((UNREAD_PROTECTION_RESPONSE_CLASSES as readonly string[]).includes(receipt.responseClass)) {
+      failures.push({ code: 'protection-local-or-unread-verified', identity: receipt.responseClass });
+    }
   }
   const forbiddenChecks = qualityGateCheckIds(registry);
   for (const checkId of receipt.requiredChecks) {
