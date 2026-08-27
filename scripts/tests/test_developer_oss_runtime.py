@@ -831,6 +831,38 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(reused["releaseId"], prepared["releaseId"])
             self.assertTrue((checkout_state(checkout) / "selection.json").exists())
 
+    def test_truncated_receipt_enters_crash_recovery(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            identity = self._shared_env(raw, checkout)
+            manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
+            prepared = self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
+            from common import checkout_state
+            broken = checkout_state(checkout) / "selection.json"
+            broken.write_text("{", encoding="utf-8")
+            os.chmod(broken, 0o600)
+            runtime = checkout / "course-content" / "runtime"
+            (runtime / ".act-runtime-release.v2.json").write_text(json.dumps({
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+            }), encoding="utf-8")
+            payload = readyz_payload(manifest)
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
+                    mock.patch("bootstrap.caller_identity", return_value=identity), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
+                    mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
+                    mock.patch("bootstrap.is_readonly_mount", return_value=True), \
+                    mock.patch("bootstrap.fetch_release_documents") as fetch, \
+                    mock.patch("bootstrap.bind_runtime") as bind:
+                reused = prepare(checkout)
+            fetch.assert_not_called()
+            bind.assert_not_called()
+            self.assertEqual(reused["releaseId"], prepared["releaseId"])
+            restored = json.loads(broken.read_text(encoding="utf-8"))
+            self.assertEqual(restored["releaseId"], prepared["releaseId"])
+
     def test_reuse_rebuilds_missing_lease(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"

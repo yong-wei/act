@@ -108,12 +108,15 @@ def ensure_private_dir(path: Path, mode: int = 0o700) -> None:
 def write_private_bytes(path: Path, payload: bytes, mode: int = 0o600) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(path.parent, 0o700)
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
+    temporary = path.with_name(".%s.%s.tmp" % (path.name, os.getpid()))
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
     try:
         os.write(descriptor, payload)
         os.fchmod(descriptor, mode)
     finally:
         os.close(descriptor)
+    os.replace(temporary, path)
+    os.chmod(path, mode)
 
 
 def write_private_json(path: Path, payload: dict[str, Any]) -> None:

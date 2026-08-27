@@ -53,6 +53,7 @@ from shared_mount import (
     is_mounted,
     is_readonly_mount,
     mount_blobs,
+    write_private_bytes,
     mount_fields,
     mount_helper_path,
     portable_start_payload,
@@ -292,21 +293,20 @@ def write_selection_receipt(path: Path, payload: dict[str, Any]) -> None:
     serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     if any(secret in serialized for secret in ("accessKey", "LTAI", "Secret")):
         fail("selection receipt must not contain credentials")
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(path.parent, 0o700)
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    try:
-        os.write(descriptor, serialized.encode("utf-8"))
-        os.fchmod(descriptor, 0o600)
-    finally:
-        os.close(descriptor)
+    write_private_bytes(path, serialized.encode("utf-8"))
 
 
 def read_selection_receipt(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
     require_mode(path, 0o600, "selection receipt")
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return payload
 
 
 def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
