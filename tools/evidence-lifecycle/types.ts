@@ -48,5 +48,6 @@ export interface DeletionReceipt {
     readonly blobHash: string;
     readonly reason: string;
     readonly recovery: 'git-history-blob';
+    readonly outputReference: string;
   }[];
 }

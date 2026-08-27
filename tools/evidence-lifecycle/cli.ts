@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { checkEvidenceLifecycle } from './check';
@@ -8,6 +8,16 @@ const cwd = process.cwd();
 const command = process.argv[2] ?? 'check';
 const result = checkEvidenceLifecycle(cwd);
 const outDir = join(cwd, 'docs/architecture/qa-evidence-lifecycle');
+
+function loadExistingEntries(path: string): { path: string; blobHash: string; reason: string; outputReference?: string }[] {
+  if (!existsSync(path)) return [];
+  return readFileSync(path, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line) as {
+    path: string;
+    blobHash: string;
+    reason: string;
+    outputReference?: string;
+  });
+}
 
 if (command === 'write') {
   mkdirSync(outDir, { recursive: true });
@@ -22,20 +32,37 @@ if (command === 'write') {
     counts,
     digest: digestJson(result.classified.map((item) => `${item.path}:${item.evidenceClass}:${item.blobHash}`)),
   }, null, 2)}\n`);
+  const entriesPath = join(outDir, 'deletion-entries.jsonl');
+  const merged = new Map<string, { path: string; blobHash: string; reason: string; outputReference: string }>();
+  for (const item of loadExistingEntries(entriesPath)) {
+    merged.set(item.path, {
+      path: item.path,
+      blobHash: item.blobHash,
+      reason: item.reason,
+      outputReference: item.outputReference ?? `git-blob:${item.blobHash}`,
+    });
+  }
+  for (const item of result.deletionReceipt.entries) {
+    merged.set(item.path, {
+      path: item.path,
+      blobHash: item.blobHash,
+      reason: item.reason,
+      outputReference: item.outputReference,
+    });
+  }
+  const entries = [...merged.values()].sort((left, right) => left.path.localeCompare(right.path));
   writeFileSync(join(outDir, 'deletion-receipt.json'), `${JSON.stringify({
     schemaVersion: result.deletionReceipt.schemaVersion,
     sourceRevision: result.deletionReceipt.sourceRevision,
     sourceTree: result.deletionReceipt.sourceTree,
-    deletedCount: result.deletionReceipt.deletedCount,
+    deletedCount: entries.length,
     retainedCount: result.deletionReceipt.retainedCount,
-    digest: result.deletionReceipt.digest,
-    recovery: 'git-history-blob',
+    digest: digestJson(entries.map((item) => `${item.path}:${item.blobHash}`)),
+    recovery: 'git-blob',
+    fetch: 'git cat-file -p <blobHash>',
     entriesFile: 'deletion-entries.jsonl',
   }, null, 2)}\n`);
-  writeFileSync(
-    join(outDir, 'deletion-entries.jsonl'),
-    `${result.deletionReceipt.entries.map((item) => JSON.stringify({ path: item.path, blobHash: item.blobHash, reason: item.reason })).join('\n')}\n`,
-  );
+  writeFileSync(entriesPath, `${entries.map((item) => JSON.stringify(item)).join('\n')}\n`);
 }
 
 if (!result.ok) {

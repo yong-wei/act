@@ -20,6 +20,7 @@ export function buildDeletionReceipt(
       blobHash: item.blobHash,
       reason: 'run-specific-output-externalized',
       recovery: 'git-history-blob' as const,
+      outputReference: `git-blob:${item.blobHash}`,
     }));
   const receipt: DeletionReceipt = {
     schemaVersion: QA_EVIDENCE_SCHEMA_VERSION,

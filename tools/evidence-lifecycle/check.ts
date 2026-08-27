@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { worktreeIsClean } from '../boundary/git-source';
+
 import { classifyArtifact, listArtifactBlobs, loadProductionArtifactRetainPaths } from './classify';
 import { privacyFailures } from './privacy';
 import { buildDeletionReceipt } from './receipt';
@@ -39,6 +41,9 @@ export function findProductArtifactImports(cwd: string): string[] {
 
 export function checkEvidenceLifecycle(cwd: string): EvidenceCheckResult {
   const failures: string[] = [];
+  if (!worktreeIsClean(cwd)) {
+    failures.push('dirty-worktree');
+  }
   const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
   const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
   const retain = loadProductionArtifactRetainPaths(cwd);

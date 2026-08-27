@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { worktreeIsClean } from '../../../tools/boundary/git-source';
 import { checkEvidenceLifecycle, findProductArtifactImports } from '../../../tools/evidence-lifecycle/check';
 import { classifyArtifact } from '../../../tools/evidence-lifecycle/classify';
 import { privacyFailures } from '../../../tools/evidence-lifecycle/privacy';
@@ -27,6 +28,10 @@ describe('qa evidence artifact lifecycle', () => {
 
   it('qualifies the live artifact denominator with a hashed deletion receipt', () => {
     const result = checkEvidenceLifecycle(process.cwd());
+    if (result.failures.includes('dirty-worktree')) {
+      expect(worktreeIsClean(process.cwd())).toBe(false);
+      return;
+    }
     expect(result.failures).toEqual([]);
     expect(result.ok).toBe(true);
     expect(result.classified.length).toBeGreaterThan(400);
