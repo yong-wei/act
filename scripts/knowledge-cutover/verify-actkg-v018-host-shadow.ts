@@ -16,7 +16,7 @@ import {
   type HostShadowObservation,
 } from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 import { asRecord, writeCanonical } from '../../tools/teaching-projection-publishing/qualify/v018-shared';
-import { accountByKey } from '../db/verified-test-accounts';
+import { accountByKey } from '../db/verified-test-accounts.mjs';
 
 const DEFAULT_PUBLIC_URL = 'https://act.adapt-learn.online';
 const DEFAULT_SSH = 'root@121.40.124.135';
@@ -28,6 +28,12 @@ function option(argv: readonly string[], name: string): string | undefined {
 
 function ssh(target: string, script: string): string {
   return execFileSync('ssh', [target, script], { encoding: 'utf8' }).trim();
+}
+
+function stageRemotePublishingModules(sshTarget: string): void {
+  const localTools = path.join(process.cwd(), 'tools/teaching-projection-publishing');
+  execFileSync('ssh', [sshTarget, 'mkdir -p /tmp/v018-teaching-projection-publishing && rm -rf /tmp/v018-teaching-projection-publishing/*'], { encoding: 'utf8' });
+  execFileSync('rsync', ['-a', `${localTools}/`, `${sshTarget}:/tmp/v018-teaching-projection-publishing/`], { encoding: 'utf8' });
 }
 
 function runDeployedImageStagedShadow(sshTarget: string): {
@@ -52,7 +58,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     'cat > /tmp/v018-host-shadow-run.mjs <<\'JS\'',
     'import { createHash } from "node:crypto";',
     'import { readFileSync, writeFileSync } from "node:fs";',
-    'import { qualifyActKgV018CutoverCandidate } from "./tools/teaching-projection-publishing/qualify/v018-qualify";',
+    'import { qualifyActKgV018CutoverCandidate } from "./tools/teaching-projection-publishing/qualify/v018-qualify.ts";',
     'const result = await qualifyActKgV018CutoverCandidate({ repoRoot: "/app", outputRoot: "/out" });',
     'const receipt = readFileSync("/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/candidate-receipt.json");',
     'writeFileSync("/out/result.json", JSON.stringify({',
@@ -61,6 +67,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     '}));',
     'JS',
     'podman run --rm --network none --entrypoint ./node_modules/.bin/tsx \\',
+    '  -v /tmp/v018-teaching-projection-publishing:/app/tools/teaching-projection-publishing:ro \\',
     '  -v "$fixture/knowledge:/app/course-content/runtime/knowledge:ro" \\',
     '  -v "$authority/current.json:/app/course-content/authoring/knowledge/authority/current.json:ro" \\',
     '  -v "$authority/releases/$v09snap:/app/course-content/authoring/knowledge/authority/releases/$v09snap:ro" \\',
@@ -231,6 +238,7 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
   let sidecar: ReturnType<typeof runDeployedImageStagedShadow>;
   try {
+    stageRemotePublishingModules(sshTarget);
     sidecar = runDeployedImageStagedShadow(sshTarget);
   } catch {
     sidecar = { source: 'local-qualification', consumers: [] };

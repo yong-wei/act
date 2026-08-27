@@ -67,16 +67,19 @@ export function checkTeachingProjectionPublishing(cwd: string): PublishingCheckR
   ];
   const callers = new Set<string>();
   for (const path of scanRoots) {
-    if (!/\.(?:[cm]?[jt]sx?)$/.test(path)) continue;
     if (path.startsWith('tools/teaching-projection-publishing/')) continue;
+    const isSource = /\.(?:[cm]?[jt]sx?)$/.test(path);
+    const isShell = path.endsWith('.sh');
+    if (!isSource && !isShell) continue;
     const content = readFileSync(join(cwd, path), 'utf8');
     const importSpecs = [...content.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((match) => match[1]);
-    if (importSpecs.some((spec) => (
-      /(?:^|\/)teaching-projection\/(publish|qualify|rebase)(?:\/|$)/.test(spec)
-      && !spec.includes('tools/teaching-projection-publishing/')
-    ))) {
-      failures.push(`retired-import:${path}`);
-    }
+    const retiredHit = isSource
+      ? importSpecs.some((spec) => (
+        /(?:^|\/)teaching-projection\/(publish|qualify|rebase)(?:\/|$)/.test(spec)
+        && !spec.includes('tools/teaching-projection-publishing/')
+      ))
+      : RETIRED_PREFIXES.some((prefix) => content.includes(prefix) || content.includes(prefix.slice(0, -1)));
+    if (retiredHit) failures.push(`retired-import:${path}`);
     if (content.includes('tools/teaching-projection-publishing/')) callers.add(path);
   }
 
