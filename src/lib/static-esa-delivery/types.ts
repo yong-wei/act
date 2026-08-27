@@ -6,6 +6,7 @@ export const DNS_SCHEMA = 'act-esa-delivery-dns/v1' as const;
 export const TRANSPORT_SCHEMA = 'act-esa-delivery-transport/v1' as const;
 export const ISOLATION_SCHEMA = 'act-esa-delivery-isolation/v1' as const;
 export const COST_SCHEMA = 'act-esa-delivery-cost/v1' as const;
+export const LOG_SCHEMA = 'act-esa-delivery-log/v1' as const;
 export const QUALIFICATION_SCHEMA = 'act-esa-delivery-qualification/v1' as const;
 export const ROLLBACK_SCHEMA = 'act-esa-delivery-rollback/v1' as const;
 
@@ -28,6 +29,18 @@ export type ServiceRoleScope = (typeof SERVICE_ROLE_SCOPES)[number];
 
 export const SHA256 = /^[a-f0-9]{64}$/;
 export const GIT_SHA = /^[a-f0-9]{40}$/;
+export const ISO_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
+
+export const ESA_CNAME_SUFFIXES = [
+  '.w.kunlunsl.com',
+  '.w.kunlunar.com',
+  '.w.kunlunpi.com',
+  '.w.kunlunca.com',
+  '.w.kunlunle.com',
+  '.w.kunlungr.com',
+  '.w.kunlunhuf.com',
+  '.w.cdngslb.com',
+] as const;
 
 export interface GitCapture {
   readonly sourceCommit: string;
@@ -65,6 +78,8 @@ export interface DnsReceipt {
   readonly priorValue: string | null;
   readonly priorTtlSeconds: number | null;
   readonly desiredValue: string | null;
+  readonly assignedValue: string | null;
+  readonly observedValue: string | null;
   readonly applied: boolean;
   readonly namesChanged: readonly string[];
 }
@@ -75,6 +90,7 @@ export interface TransportReceipt {
   readonly certificateHost: string;
   readonly fullObjectSha256: string;
   readonly rangeStatus: number;
+  readonly requestRange: string;
   readonly contentRange: string;
   readonly cacheFirst: 'MISS' | 'HIT' | 'unknown';
   readonly cacheSecond: 'MISS' | 'HIT' | 'unknown';
@@ -103,6 +119,17 @@ export interface CostReceipt {
   readonly shiftedNotFree: true;
 }
 
+export interface LogReceipt {
+  readonly schemaVersion: typeof LOG_SCHEMA;
+  readonly accessPresent: boolean;
+  readonly originPresent: boolean;
+  readonly observedAt: string;
+  readonly accessFingerprint: string | null;
+  readonly originFingerprint: string | null;
+  readonly edgeMatched: boolean;
+  readonly originBucketMatched: boolean;
+}
+
 export interface QualificationEnvelope {
   readonly schemaVersion: typeof QUALIFICATION_SCHEMA;
   readonly qualificationId: string;
@@ -129,6 +156,7 @@ export interface QualificationEnvelope {
     readonly transport: TransportReceipt | null;
     readonly isolation: IsolationReceipt | null;
     readonly cost: CostReceipt | null;
+    readonly logs: LogReceipt | null;
   };
 }
 

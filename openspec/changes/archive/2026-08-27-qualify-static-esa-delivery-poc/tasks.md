@@ -1,3 +1,7 @@
+本次归档的是 fail-closed 资格合同与诚实 `incomplete` 基线，不是已切换的生产 PoC。
+任务 2–4 的阿里云 Bucket/ESA/CNAME 变更未执行：规范 1.2 要求无 owner 接受服务角色时停止，且本机 DNS 观测被拦截。
+不要把归档理解成 `status: qualified`。
+
 ## 1. Capture external-state preflight
 
 - [x] 1.1 Record the current `static` DNS record/TTL, DNS provider, ESA site/plan/quota, exact hostname, certificate, Delivery Bucket, origin, cache/Range/CORS rules, and rollback state before any mutation.
@@ -7,23 +11,23 @@
 
 ## 2. Prepare the isolated PoC origin
 
-- [x] 2.1 Create or reconcile the private `act-course-delivery` Bucket without changing or granting ESA access to `act-course-assets`.
-- [x] 2.2 Configure `adapt-learn.online` in ESA CNAME mode and only the exact `static.adapt-learn.online` hostname with OSS-type private origin authorization.
-- [x] 2.3 Configure and verify the exact hostname certificate, `/assets/*` cache rule, Range origin behavior, and CORS for `https://act.adapt-learn.online` GET/HEAD.
-- [x] 2.4 Preserve export/screenshot or API evidence for every setting without storing credentials or authorization values.
+- [ ] 2.1 Create or reconcile the private `act-course-delivery` Bucket without changing or granting ESA access to `act-course-assets`.
+- [ ] 2.2 Configure `adapt-learn.online` in ESA CNAME mode and only the exact `static.adapt-learn.online` hostname with OSS-type private origin authorization.
+- [ ] 2.3 Configure and verify the exact hostname certificate, `/assets/*` cache rule, Range origin behavior, and CORS for `https://act.adapt-learn.online` GET/HEAD.
+- [ ] 2.4 Preserve export/screenshot or API evidence for every setting without storing credentials or authorization values.
 
 ## 3. Publish the single immutable test object
 
-- [x] 3.1 Select a rights-cleared public `destroyer.glb`, compute source SHA-256 and size, and copy it conditionally to `assets/<sha256>/destroyer.glb`.
-- [x] 3.2 Verify object SHA-256, size, media type, ETag, immutable key, private ACL, and upload receipt; fail without overwrite on any mismatch.
-- [x] 3.3 Prove the Delivery Bucket contains only the declared PoC set and that known Authority/non-projected paths cannot be served through the static origin.
+- [ ] 3.1 Select a rights-cleared public `destroyer.glb`, compute source SHA-256 and size, and copy it conditionally to `assets/<sha256>/destroyer.glb`.
+- [ ] 3.2 Verify object SHA-256, size, media type, ETag, immutable key, private ACL, and upload receipt; fail without overwrite on any mismatch.
+- [ ] 3.3 Prove the Delivery Bucket contains only the declared PoC set and that known Authority/non-projected paths cannot be served through the static origin.
 
 ## 4. Cut only the static DNS record
 
-- [x] 4.1 Revalidate service-role acceptance, origin, certificate, matching cache rule, Range, CORS, object identity, prior DNS value, and rollback command immediately before cutover.
-- [x] 4.2 Point only `static.adapt-learn.online` to the ESA-assigned CNAME and verify authoritative/recursive DNS without changing root or ACT application records.
-- [x] 4.3 Verify TLS, full-object hash, `206`/`Content-Range`, cache MISS-to-HIT, CORS, negative keys, and real Three.js/GLTFLoader loading.
-- [x] 4.4 Observe ESA access/origin logs, OSS `CdnOut`/`NetworkOut`, ESA usage, and declared vendor reporting delay; do not describe shifted traffic as free.
+- [ ] 4.1 Revalidate service-role acceptance, origin, certificate, matching cache rule, Range, CORS, object identity, prior DNS value, and rollback command immediately before cutover.
+- [ ] 4.2 Point only `static.adapt-learn.online` to the ESA-assigned CNAME and verify authoritative/recursive DNS without changing root or ACT application records.
+- [ ] 4.3 Verify TLS, full-object hash, `206`/`Content-Range`, cache MISS-to-HIT, CORS, negative keys, and real Three.js/GLTFLoader loading.
+- [ ] 4.4 Observe ESA access/origin logs, OSS `CdnOut`/`NetworkOut`, ESA usage, and declared vendor reporting delay; do not describe shifted traffic as free.
 
 ## 5. Qualify or roll back
 

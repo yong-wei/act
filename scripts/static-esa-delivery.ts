@@ -54,6 +54,8 @@ function observeDns(): DnsReceipt {
       priorValue: interceptedLookup ? null : cname ?? addresses[0] ?? null,
       priorTtlSeconds: null,
       desiredValue: null,
+      assignedValue: null,
+      observedValue: interceptedLookup ? null : cname ?? addresses[0] ?? null,
       applied: false,
       namesChanged: [],
     };
@@ -65,6 +67,8 @@ function observeDns(): DnsReceipt {
       priorValue: null,
       priorTtlSeconds: null,
       desiredValue: null,
+      assignedValue: null,
+      observedValue: null,
       applied: false,
       namesChanged: [],
     };
@@ -108,9 +112,12 @@ function qualifyFromInputs(repoRoot: string): QualificationEnvelope {
   const inputDir = argument('--input-dir');
   const sourcePath = argument('--source') ?? DEFAULT_SOURCE_PATH;
   const sourceAbs = join(repoRoot, sourcePath);
-  const object = existsSync(sourceAbs)
-    ? planObject(sourcePath, readFileSync(sourceAbs))
-    : loadNamed(inputDir, 'object.json');
+  const uploaded = loadNamed(inputDir, 'object.json');
+  const object = uploaded !== undefined
+    ? uploaded
+    : existsSync(sourceAbs)
+      ? planObject(sourcePath, readFileSync(sourceAbs))
+      : undefined;
   return qualifyDelivery({
     ...capture(repoRoot),
     originBucket: argument('--origin-bucket') ?? DELIVERY_BUCKET,
@@ -120,6 +127,7 @@ function qualifyFromInputs(repoRoot: string): QualificationEnvelope {
     transport: loadNamed(inputDir, 'transport.json'),
     isolation: loadNamed(inputDir, 'isolation.json'),
     cost: loadNamed(inputDir, 'cost.json'),
+    logs: loadNamed(inputDir, 'logs.json'),
   });
 }
 

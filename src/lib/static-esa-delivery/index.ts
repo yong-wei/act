@@ -6,6 +6,7 @@ export {
   CORS_METHODS,
   DEFAULT_SOURCE_PATH,
   DELIVERY_BUCKET,
+  ESA_CNAME_SUFFIXES,
   OBJECT_BASENAME,
   QUALIFICATION_SCHEMA,
   QUALIFICATION_STATUSES,
@@ -16,6 +17,7 @@ export type {
   CostReceipt,
   DnsReceipt,
   IsolationReceipt,
+  LogReceipt,
   ObjectReceipt,
   QualificationEnvelope,
   QualificationStatus,
@@ -33,9 +35,12 @@ export {
   staticObjectUrl,
 } from './object';
 export {
+  isEsaAssignedCname,
+  normalizeDnsName,
   parseCost,
   parseDns,
   parseIsolation,
+  parseLogs,
   parseObject,
   parseServiceRole,
   parseTransport,

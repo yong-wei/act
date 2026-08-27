@@ -7,6 +7,7 @@ import {
   DELIVERY_BUCKET,
   STATIC_HOSTNAME,
   esaPrivacyViolation,
+  isEsaAssignedCname,
   objectKeyForDigest,
   planObject,
   qualifyDelivery,
@@ -15,6 +16,7 @@ import {
   type CostReceipt,
   type DnsReceipt,
   type IsolationReceipt,
+  type LogReceipt,
   type ObjectReceipt,
   type ServiceRoleReceipt,
   type TransportReceipt,
@@ -23,6 +25,7 @@ import {
   COST_SCHEMA,
   DNS_SCHEMA,
   ISOLATION_SCHEMA,
+  LOG_SCHEMA,
   SERVICE_ROLE_SCHEMA,
   TRANSPORT_SCHEMA,
 } from '../static-esa-delivery/types';
@@ -30,6 +33,9 @@ import {
 const COMMIT = 'a'.repeat(40);
 const TREE = 'b'.repeat(40);
 const POLICY = 'c'.repeat(64);
+const ETAG = 'd'.repeat(64);
+const LOG_FP = 'e'.repeat(64);
+const ESA_CNAME = 'static.adapt-learn.online.w.kunlunsl.com';
 const BYTES = new Uint8Array([103, 108, 84, 70]);
 
 function role(accepted = true, scope: ServiceRoleReceipt['effectiveBucketReadScope'] = 'delivery-bucket-only'): ServiceRoleReceipt {
@@ -43,7 +49,11 @@ function role(accepted = true, scope: ServiceRoleReceipt['effectiveBucketReadSco
 }
 
 function objectReceipt(overrides: Partial<ObjectReceipt> = {}): ObjectReceipt {
-  return { ...planObject('public/assets/models-opt/destroyer.glb', BYTES), ...overrides };
+  return {
+    ...planObject('public/assets/models-opt/destroyer.glb', BYTES),
+    etagFingerprint: ETAG,
+    ...overrides,
+  };
 }
 
 function dns(overrides: Partial<DnsReceipt> = {}): DnsReceipt {
@@ -53,7 +63,9 @@ function dns(overrides: Partial<DnsReceipt> = {}): DnsReceipt {
     recordType: 'CNAME',
     priorValue: null,
     priorTtlSeconds: 600,
-    desiredValue: 'example.esa.aliyuncs.com',
+    desiredValue: ESA_CNAME,
+    assignedValue: ESA_CNAME,
+    observedValue: ESA_CNAME,
     applied: true,
     namesChanged: [STATIC_HOSTNAME],
     ...overrides,
@@ -67,6 +79,7 @@ function transport(object: ObjectReceipt, overrides: Partial<TransportReceipt> =
     certificateHost: STATIC_HOSTNAME,
     fullObjectSha256: object.objectSha256,
     rangeStatus: 206,
+    requestRange: 'bytes=0-1',
     contentRange: `bytes 0-1/${object.sizeBytes}`,
     cacheFirst: 'MISS',
     cacheSecond: 'HIT',
@@ -103,6 +116,20 @@ function cost(overrides: Partial<CostReceipt> = {}): CostReceipt {
   };
 }
 
+function logs(overrides: Partial<LogReceipt> = {}): LogReceipt {
+  return {
+    schemaVersion: LOG_SCHEMA,
+    accessPresent: true,
+    originPresent: true,
+    observedAt: '2026-08-27T00:00:00.000Z',
+    accessFingerprint: LOG_FP,
+    originFingerprint: LOG_FP,
+    edgeMatched: true,
+    originBucketMatched: true,
+    ...overrides,
+  };
+}
+
 function qualify(extra: Record<string, unknown> = {}) {
   const object = objectReceipt();
   return qualifyDelivery({
@@ -118,6 +145,7 @@ function qualify(extra: Record<string, unknown> = {}) {
     transport: transport(object),
     isolation: isolation(),
     cost: cost(),
+    logs: logs(),
     ...extra,
   });
 }
@@ -128,8 +156,11 @@ describe('static ESA delivery qualification', () => {
     const digest = createHash('sha256').update(BYTES).digest('hex');
     expect(planned.objectKey).toBe(objectKeyForDigest(digest));
     expect(planned.bucket).toBe(DELIVERY_BUCKET);
+    expect(planned.etagFingerprint).toBeNull();
     expect(rejectAuthorityOrigin(AUTHORITY_BUCKET)).toBe('origin-authority-bucket');
     expect(rejectAuthorityOrigin(DELIVERY_BUCKET)).toBeNull();
+    expect(isEsaAssignedCname(ESA_CNAME)).toBe(true);
+    expect(isEsaAssignedCname('unrelated.example.com')).toBe(false);
   });
 
   it('qualifies a complete isolated PoC without claiming ESA traffic is free', () => {
@@ -212,7 +243,7 @@ describe('static ESA delivery qualification', () => {
       object: objectReceipt({ objectKey: 'models/destroyer.glb' }),
     }).blockingReasons).toContain('object-key-mismatch');
     expect(qualify({
-      dns: dns({ applied: false, recordType: 'absent', desiredValue: null }),
+      dns: dns({ applied: false, recordType: 'absent', desiredValue: null, assignedValue: null, observedValue: null }),
     }).status).toBe('incomplete');
     expect(qualify({
       transport: transport(objectReceipt(), { contentRange: 'bytes nonsense' }),
@@ -220,5 +251,30 @@ describe('static ESA delivery qualification', () => {
     expect(qualify({
       isolation: isolation({ probes: [{ keyClass: 'unlisted', served: false, status: 200 }] }),
     }).blockingReasons).toEqual(expect.arrayContaining(['isolation-probes-missing', 'isolation-status-contradiction']));
+  });
+
+  it('keeps local object plans and unmatched DNS or Range evidence from becoming qualified', () => {
+    expect(qualify({ object: objectReceipt({ etagFingerprint: null }) }).status).toBe('incomplete');
+    expect(qualify({ object: objectReceipt({ etagFingerprint: null }) }).missingEvidence).toContain('object-etag');
+    expect(qualify({
+      dns: dns({ desiredValue: 'unrelated.example.com', assignedValue: 'unrelated.example.com', observedValue: 'unrelated.example.com' }),
+    }).blockingReasons).toContain('dns-cname-not-esa');
+    expect(qualify({
+      transport: transport(objectReceipt(), { requestRange: 'bytes=0-1', contentRange: `bytes 100-200/${BYTES.byteLength}` }),
+    }).blockingReasons).toContain('transport-range');
+    expect(qualifyDelivery({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      mixedWorktree: false,
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      originBucket: DELIVERY_BUCKET,
+      serviceRole: role(),
+      object: objectReceipt(),
+      dns: dns(),
+      transport: transport(objectReceipt()),
+      isolation: isolation(),
+      cost: cost(),
+    }).missingEvidence).toContain('logs');
   });
 });
