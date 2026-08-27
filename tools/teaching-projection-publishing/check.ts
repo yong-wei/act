@@ -40,11 +40,15 @@ export function publishingToolingIdentity(cwd: string): {
 } {
   const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
   const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
-  const listing = execFileSync('git', ['ls-files', '-s', '-z', '--', 'tools/teaching-projection-publishing'], {
-    cwd,
-    encoding: 'utf8',
-  });
-  return { sourceRevision, sourceTree, contentHash: digest(listing) };
+  const files = listTracked(cwd, 'tools/teaching-projection-publishing');
+  const tree = createHash('sha256');
+  for (const file of files) {
+    const rel = file.replace(/^tools\/teaching-projection-publishing\//, '');
+    const body = execFileSync('git', ['cat-file', '-p', `HEAD:${file}`], { cwd });
+    tree.update(`${rel}\0`);
+    tree.update(body);
+  }
+  return { sourceRevision, sourceTree, contentHash: tree.digest('hex') };
 }
 
 function trackedPrefix(cwd: string, prefix: string): string[] {

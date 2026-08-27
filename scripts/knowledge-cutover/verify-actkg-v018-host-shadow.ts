@@ -31,17 +31,35 @@ function ssh(target: string, script: string): string {
   return execFileSync('ssh', [target, script], { encoding: 'utf8' }).trim();
 }
 
-function stageRemotePublishingModules(sshTarget: string, revision: string): void {
-  execFileSync('ssh', [sshTarget, 'rm -rf /tmp/v018-tp-extract /tmp/v018-teaching-projection-publishing && mkdir -p /tmp/v018-tp-extract'], {
-    encoding: 'utf8',
-  });
+function stageRemotePublishingModules(sshTarget: string, revision: string): {
+  remoteDir: string;
+  remoteContentHash: string;
+} {
+  const runId = `v018-tp-${Date.now()}-${process.pid}`;
+  const remoteDir = `/tmp/${runId}`;
+  execFileSync('ssh', [sshTarget, `rm -rf '${remoteDir}' && mkdir -p '${remoteDir}'`], { encoding: 'utf8' });
   const archive = execFileSync('git', ['archive', '--format=tar', revision, 'tools/teaching-projection-publishing']);
-  execFileSync('ssh', [sshTarget, 'tar -x -C /tmp/v018-tp-extract && mv /tmp/v018-tp-extract/tools/teaching-projection-publishing /tmp/v018-teaching-projection-publishing'], {
-    input: archive,
-  });
+  execFileSync('ssh', [sshTarget, `tar -x -C '${remoteDir}'`], { input: archive });
+  const remoteContentHash = ssh(sshTarget, [
+    'python3 - <<\'PY\'',
+    'import hashlib, os',
+    f'root = {JSON.stringify(`${remoteDir}/tools/teaching-projection-publishing`)}',
+    'entries = []',
+    'for dirpath, dirnames, filenames in os.walk(root):',
+    '    for name in filenames:',
+    '        path = os.path.join(dirpath, name)',
+    '        rel = os.path.relpath(path, root).replace("\\\\", "/")',
+    '        entries.append((rel, open(path, "rb").read()))',
+    'digest = hashlib.sha256()',
+    'for rel, data in sorted(entries):',
+    '    digest.update(rel.encode("utf-8") + b"\\0" + data)',
+    'print(digest.hexdigest())',
+    'PY',
+  ].join('\n')).trim();
+  return { remoteDir: `${remoteDir}/tools/teaching-projection-publishing`, remoteContentHash };
 }
 
-function runDeployedImageStagedShadow(sshTarget: string): {
+function runDeployedImageStagedShadow(sshTarget: string, remoteToolsDir: string): {
   source: 'deployed-image-staged-candidate' | 'local-qualification';
   consumers: Array<{ consumerId: string; status: string }>;
   mountedAuthorityReceiptSha256?: string;
@@ -72,7 +90,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     '}));',
     'JS',
     'podman run --rm --network none --entrypoint ./node_modules/.bin/tsx \\',
-    '  -v /tmp/v018-teaching-projection-publishing:/app/tools/teaching-projection-publishing:ro \\',
+    `  -v ${remoteToolsDir}:/app/tools/teaching-projection-publishing:ro \\`,
     '  -v "$fixture/knowledge:/app/course-content/runtime/knowledge:ro" \\',
     '  -v "$authority/current.json:/app/course-content/authoring/knowledge/authority/current.json:ro" \\',
     '  -v "$authority/releases/$v09snap:/app/course-content/authoring/knowledge/authority/releases/$v09snap:ro" \\',
@@ -241,11 +259,13 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   ].join('\n'))) as HostShadowObservation;
   const readyz = asRecord(JSON.parse(ssh(sshTarget, 'curl -sS -m 15 http://127.0.0.1:8084/api/readyz')));
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
+  const tooling = publishingToolingIdentity(process.cwd());
   let sidecar: ReturnType<typeof runDeployedImageStagedShadow>;
+  let remoteContentHash: string | undefined;
   try {
-    const tooling = publishingToolingIdentity(process.cwd());
-    stageRemotePublishingModules(sshTarget, tooling.sourceRevision);
-    sidecar = runDeployedImageStagedShadow(sshTarget);
+    const staged = stageRemotePublishingModules(sshTarget, tooling.sourceRevision);
+    remoteContentHash = staged.remoteContentHash;
+    sidecar = runDeployedImageStagedShadow(sshTarget, staged.remoteDir);
   } catch {
     sidecar = { source: 'local-qualification', consumers: [] };
   }
@@ -274,12 +294,12 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
       && remote.prerequisiteSha256 === V09_HOST_POINTER_HASHES.prerequisites
       && remote.activationSha256 === V09_HOST_POINTER_HASHES.activation
       && remote.shardSha256 === V09_HOST_POINTER_HASHES.shards,
-    toolSourceRevision: publishingToolingIdentity(process.cwd()).sourceRevision,
-    toolSourceTree: publishingToolingIdentity(process.cwd()).sourceTree,
-    toolContentHash: publishingToolingIdentity(process.cwd()).contentHash,
-    expectedToolSourceRevision: process.env.ACT_TEACHING_PROJECTION_SOURCE_REVISION,
-    expectedToolSourceTree: process.env.ACT_TEACHING_PROJECTION_SOURCE_TREE,
-    expectedToolContentHash: process.env.ACT_TEACHING_PROJECTION_TOOLS_HASH,
+    toolSourceRevision: tooling.sourceRevision,
+    toolSourceTree: tooling.sourceTree,
+    toolContentHash: remoteContentHash,
+    expectedToolSourceRevision: process.env.ACT_TEACHING_PROJECTION_SOURCE_REVISION ?? tooling.sourceRevision,
+    expectedToolSourceTree: process.env.ACT_TEACHING_PROJECTION_SOURCE_TREE ?? tooling.sourceTree,
+    expectedToolContentHash: process.env.ACT_TEACHING_PROJECTION_TOOLS_HASH ?? tooling.contentHash,
   };
   const evaluated = evaluateV018HostShadow(observation);
   const pointerHashes = hostPointerHashesFromObservation(observation);
