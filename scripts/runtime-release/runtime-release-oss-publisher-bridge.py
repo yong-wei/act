@@ -11,6 +11,7 @@ to guess which bytes are safe to reuse.
 
 import argparse
 import base64
+from concurrent.futures import ThreadPoolExecutor
 import fcntl
 import hashlib
 import json
@@ -40,8 +41,10 @@ ETAG_PATTERN = re.compile(r'^"?[0-9a-fA-F]{32}(?:-[0-9]+)?"?$')
 EXTERNAL_INPUT_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$")
 SOURCE_OBJECT_ID_PATTERN = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 ROLE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+SSH_TARGET_PATTERN = re.compile(r"^[A-Za-z0-9._@\[\]:-]+$")
+REMOTE_PATH_PATTERN = re.compile(r"^/[A-Za-z0-9._/-]+$")
 ECS_ROLE_NAME = "act-runtime-oss-release-operator-ecs"
-EXPECTED_ECS_ROLE_NAME = ECS_ROLE_NAME
+ECS_READ_ROLE_NAME = "act-runtime-oss-read"
 ECS_OSS_ENDPOINT = "oss-cn-hangzhou-internal.aliyuncs.com"
 LOCAL_OSS_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com"
 OSS_REGION = "cn-hangzhou"
@@ -55,6 +58,8 @@ MAX_FRAME_BYTES = 256 * 1024 * 1024
 READINESS_SAMPLE_MAX_BYTES = 4 * 1024 * 1024
 MIN_FREE_BYTES = 1024 * 1024 * 1024
 MAX_SAFE_INTEGER = 9007199254740991
+MAX_READ_BRIDGE_MESSAGE_BYTES = 64 * 1024 * 1024
+READ_BRIDGE_WORKERS = 8
 OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
 TOTAL_SIZE_SUMMARY = re.compile(r"^Total Size is:? [0-9]+$")
 ELAPSED_SUMMARY = re.compile(r"^[0-9]+(?:\.[0-9]+)?\(s\) elapsed$")
@@ -72,6 +77,7 @@ _LOCAL_CREDENTIAL_PROFILE: Optional[str] = None
 _LOCAL_LOCK_DIR: Optional[str] = None
 _LOCAL_SPOOL_DIR: Optional[str] = None
 _LOCAL_PRINCIPAL_VALIDATED = False
+_READ_BRIDGE: Optional[Dict[str, Any]] = None
 
 
 def fail(message: str) -> NoReturn:
@@ -109,15 +115,25 @@ def configure_local_publisher(arguments: argparse.Namespace) -> None:
     global _CREDENTIAL_MODE, _LOCAL_OSSUTIL_PATH, _LOCAL_OSSUTIL_SHA256
     global _LOCAL_IDENTITY_COMMAND_PATH, _LOCAL_IDENTITY_COMMAND_SHA256
     global _LOCAL_EXPECTED_ACCOUNT_ID, _LOCAL_EXPECTED_PRINCIPAL_ARN, _LOCAL_CREDENTIAL_PROFILE
-    global _LOCAL_LOCK_DIR, _LOCAL_SPOOL_DIR
+    global _LOCAL_LOCK_DIR, _LOCAL_SPOOL_DIR, _READ_BRIDGE
     _CREDENTIAL_MODE = arguments.credential_mode
     local_values = [
         arguments.ossutil_path, arguments.ossutil_sha256, arguments.identity_command_path,
         arguments.identity_command_sha256, arguments.operator_account_id,
         arguments.operator_principal_arn, arguments.lock_dir, arguments.spool_dir,
     ]
-    if _CREDENTIAL_MODE == "ecs":
-        if any(value is not None for value in local_values) or arguments.credential_profile is not None:
+    read_bridge_values = [
+        arguments.read_bridge_ssh_target, arguments.read_bridge_path,
+        arguments.read_bridge_known_hosts_file,
+    ]
+    if _CREDENTIAL_MODE in {"ecs", "ecs-read"}:
+        if (
+            any(value is not None for value in local_values)
+            or arguments.credential_profile is not None
+            or any(value is not None for value in read_bridge_values)
+            or arguments.read_bridge_identity_file is not None
+            or arguments.read_bridge_port is not None
+        ):
             fail("local publisher options are invalid in ECS credential mode")
         return
     if any(value is None for value in local_values):
@@ -142,6 +158,30 @@ def configure_local_publisher(arguments: argparse.Namespace) -> None:
         if not ROLE_NAME_PATTERN.fullmatch(arguments.credential_profile):
             fail("local credential profile is invalid")
         _LOCAL_CREDENTIAL_PROFILE = arguments.credential_profile
+    if any(value is not None for value in read_bridge_values):
+        if any(value is None for value in read_bridge_values):
+            fail("read bridge requires target, path, and known-hosts file together")
+        target = arguments.read_bridge_ssh_target
+        path = arguments.read_bridge_path
+        known_hosts = arguments.read_bridge_known_hosts_file
+        if not SSH_TARGET_PATTERN.fullmatch(target) or target.startswith("-"):
+            fail("read bridge SSH target is invalid")
+        if not REMOTE_PATH_PATTERN.fullmatch(path) or any(part in {".", ".."} for part in path.split("/")):
+            fail("read bridge path is invalid")
+        safe_absolute_path(known_hosts, "read bridge known-hosts file")
+        identity_file = arguments.read_bridge_identity_file
+        if identity_file is not None:
+            safe_absolute_path(identity_file, "read bridge identity file")
+        port = arguments.read_bridge_port
+        if port is not None and (not isinstance(port, int) or port < 1 or port > 65535):
+            fail("read bridge SSH port is invalid")
+        _READ_BRIDGE = {
+            "target": target,
+            "path": path,
+            "knownHostsFile": known_hosts,
+            "identityFile": identity_file,
+            "port": port,
+        }
 
 
 def current_local_principal() -> None:
@@ -174,6 +214,10 @@ def decode_value(value: str, label: str) -> str:
     if any(ord(char) < 0x20 or ord(char) == 0x7F for char in decoded):
         fail(f"{label} contains a control character")
     return decoded
+
+
+def encode_value(value: str) -> str:
+    return base64.urlsafe_b64encode(value.encode("utf-8")).decode("ascii").rstrip("=")
 
 
 def validate_bucket(bucket: str) -> str:
@@ -299,8 +343,9 @@ def current_ecs_role_name() -> str:
     except (OSError, UnicodeDecodeError, URLError, ValueError) as error:
         fail(f"unable to read ECS RAM role metadata: {error}")
     role_names = [line.strip() for line in payload.splitlines() if line.strip()]
-    if len(role_names) != 1 or not ROLE_NAME_PATTERN.fullmatch(role_names[0]) or role_names[0] != EXPECTED_ECS_ROLE_NAME:
-        fail("ECS RAM role metadata does not match the restricted release operator role")
+    expected_role = ECS_READ_ROLE_NAME if _CREDENTIAL_MODE == "ecs-read" else ECS_ROLE_NAME
+    if len(role_names) != 1 or not ROLE_NAME_PATTERN.fullmatch(role_names[0]) or role_names[0] != expected_role:
+        fail("ECS RAM role metadata does not match the restricted runtime role")
     _CURRENT_ROLE_NAME = role_names[0]
     return _CURRENT_ROLE_NAME
 
@@ -1338,6 +1383,92 @@ def put_payload(bucket: str, key: str, payload: bytes, expected_sha: str, direct
         remove_temp(path)
 
 
+def put_blob_spooled_file_without_readback(
+    bucket: str,
+    key: str,
+    path: str,
+    expected_size: int,
+    expected_sha: str,
+) -> bool:
+    key = validate_key(key)
+    process = subprocess.run(
+        ossutil_argv("v2", [
+            "api", "put-object", "--bucket", bucket, "--key", key,
+            "--body", f"file://{path}", "--forbid-overwrite", "true",
+            "--metadata", "x-oss-meta-schema=act-runtime-blob.v1",
+            "--metadata", f"x-oss-meta-sha256={expected_sha}",
+            "--metadata", f"x-oss-meta-size={expected_size}",
+            "-q",
+        ]),
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return process.returncode == 0
+
+
+def put_payload_without_readback(bucket: str, key: str, payload: bytes, expected_sha: str, directory: str) -> bool:
+    if len(payload) > MAX_FRAME_BYTES:
+        fail("payload exceeds the maximum runtime frame size")
+    if hashlib.sha256(payload).hexdigest() != expected_sha:
+        fail(f"payload digest does not match the expected value for {key}")
+    fd, path = new_spool_file(directory, len(payload))
+    try:
+        with os.fdopen(fd, "wb") as output:
+            output.write(payload)
+            output.flush()
+            os.fsync(output.fileno())
+        return put_spooled_file_without_readback(bucket, key, path, len(payload), expected_sha)
+    finally:
+        remove_temp(path)
+
+
+def read_bridge_phase(bucket: str, prefix: str, phase: str, header: Dict[str, Any]) -> Dict[str, Any]:
+    if _READ_BRIDGE is None:
+        fail("read bridge is not configured")
+    command = [
+        "ssh",
+        "-o", "BatchMode=yes",
+        "-o", "StrictHostKeyChecking=yes",
+        "-o", "IdentitiesOnly=yes",
+        "-o", "UserKnownHostsFile=%s" % _READ_BRIDGE["knownHostsFile"],
+    ]
+    if _READ_BRIDGE["identityFile"] is not None:
+        command += ["-i", _READ_BRIDGE["identityFile"]]
+    if _READ_BRIDGE["port"] is not None:
+        command += ["-p", str(_READ_BRIDGE["port"])]
+    command += [
+        "--", _READ_BRIDGE["target"], _READ_BRIDGE["path"],
+        "--bucket", bucket,
+        "--operation", "blob-publish-read",
+        "--credential-mode", "ecs-read",
+        "--prefix-b64", encode_value(prefix),
+        "--read-phase", phase,
+    ]
+    payload = canonical_json(header) + b"\n"
+    if len(payload) > MAX_READ_BRIDGE_MESSAGE_BYTES:
+        fail("read bridge request exceeds the maximum accepted size")
+    process = subprocess.run(
+        command,
+        input=payload,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if process.returncode != 0:
+        detail = process.stderr.decode("utf-8", errors="replace").strip()
+        fail("read bridge %s phase failed: %s" % (phase, detail or "no diagnostic"))
+    if len(process.stdout) > MAX_READ_BRIDGE_MESSAGE_BYTES:
+        fail("read bridge response exceeds the maximum accepted size")
+    try:
+        response = json.loads(process.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("read bridge %s response is invalid: %s" % (phase, error))
+    if not isinstance(response, dict):
+        fail("read bridge %s response must be an object" % phase)
+    return response
+
+
 def receive_frame(directory: str, expected_size: int, expected_sha: str) -> str:
     if expected_size > MAX_FRAME_BYTES:
         fail("runtime frame exceeds the 256 MiB limit")
@@ -1411,11 +1542,314 @@ def compatible_existing_blob_receipt(
     return existing_wire, existing_wire_sha
 
 
+def read_blob_publish_header(
+    requested_prefix: str,
+    header: Dict[str, Any],
+) -> Tuple[str, Dict[str, Any], bytes, str, bytes, str, List[Dict[str, Any]], Optional[Dict[str, str]]]:
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(header)
+    parent_reference = validate_blob_parent_reference(header)
+    if prefix != requested_prefix:
+        fail("blob read bridge prefix does not match the requested prefix")
+    return prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files, parent_reference
+
+
+def read_blob_publish_state(
+    bucket: str,
+    prefix: str,
+    manifest: Dict[str, Any],
+    manifest_wire: bytes,
+    manifest_wire_sha: str,
+    receipt_wire: bytes,
+    receipt_wire_sha: str,
+    files: List[Dict[str, Any]],
+) -> Tuple[Optional[Dict[str, Any]], bool]:
+    manifest_key = f"{prefix}{BLOB_MANIFEST_NAME}"
+    receipt_key = f"{prefix}{BLOB_RECEIPT_NAME}"
+    release_objects = list_objects(bucket, prefix)
+    existing_release = {str(entry["key"]): int(entry["sizeBytes"]) for entry in release_objects}
+    effective_receipt_wire = receipt_wire
+    effective_receipt_wire_sha = receipt_wire_sha
+    if receipt_key in existing_release:
+        effective_receipt_wire, effective_receipt_wire_sha = compatible_existing_blob_receipt(
+            bucket,
+            receipt_key,
+            manifest["releaseId"],
+            manifest,
+            manifest_wire,
+            files,
+            receipt_wire,
+            receipt_wire_sha,
+        )
+    expected_release_sizes = {
+        manifest_key: len(manifest_wire),
+        receipt_key: len(effective_receipt_wire),
+    }
+    if manifest_key not in existing_release:
+        assert_object_set(release_objects, {receipt_key: len(effective_receipt_wire)}, allow_manifest=False)
+        if receipt_key in existing_release and remote_digest(bucket, receipt_key) != {
+            "sizeBytes": len(effective_receipt_wire),
+            "sha256": effective_receipt_wire_sha,
+        }:
+            fail("partial blob receipt differs from the submitted immutable identity")
+        return None, receipt_key in existing_release
+    assert_object_set(release_objects, expected_release_sizes, allow_manifest=True)
+    cross_check_v1_keys(bucket, prefix, release_objects)
+    if remote_digest(bucket, manifest_key) != {"sizeBytes": len(manifest_wire), "sha256": manifest_wire_sha}:
+        fail("existing blob completion manifest differs from the submitted immutable identity")
+    if remote_digest(bucket, receipt_key) != {"sizeBytes": len(effective_receipt_wire), "sha256": effective_receipt_wire_sha}:
+        fail("existing blob receipt differs from the submitted immutable identity")
+    verified_blob_entries, verified_blob_set_sha256 = verified_blob_audit([])
+    return {
+        "status": "complete",
+        "releaseId": manifest["releaseId"],
+        "manifestSha256": manifest["manifestSha256"],
+        "wireSha256": manifest_wire_sha,
+        "receiptWireSha256": effective_receipt_wire_sha,
+        "treeSha256": manifest["treeSha256"],
+        "fileCount": manifest["fileCount"],
+        "totalBytes": manifest["totalBytes"],
+        "putCount": 0,
+        "inheritedBlobCount": len(expected_blob_receipt_files(files)),
+        "metadataCheckCount": 0,
+        "metadataReuseCount": 0,
+        "newUploadCount": 0,
+        "legacyReadbackCount": 0,
+        "legacyReadbackBytes": 0,
+        "verifiedBlobSetAlgorithm": "sha256",
+        "verifiedBlobSetSha256": verified_blob_set_sha256,
+        "verifiedBlobEntries": verified_blob_entries,
+    }, receipt_key in existing_release
+
+
+def verify_blob_read_entry(bucket: str, entry: Dict[str, Any], required: bool) -> Optional[Dict[str, Any]]:
+    metadata = remote_blob_metadata(bucket, entry["objectKey"])
+    if metadata is None:
+        if required:
+            fail("read bridge cannot find expected runtime blob: %s" % entry["objectKey"])
+        return None
+    verified, legacy = verify_existing_blob(bucket, entry["objectKey"], metadata, entry["sizeBytes"], entry["sha256"])
+    return {
+        "key": entry["objectKey"],
+        "expectedSize": entry["sizeBytes"],
+        "verifiedSha256": entry["sha256"],
+        "etag": verified.get("etag", ""),
+        "legacy": legacy,
+    }
+
+
+def verify_blob_read_entries(bucket: str, entries: List[Dict[str, Any]], required: bool) -> List[Dict[str, Any]]:
+    if not entries:
+        return []
+    current_ecs_role_name()
+    ossutil_command("v2")
+    with ThreadPoolExecutor(max_workers=min(READ_BRIDGE_WORKERS, len(entries))) as executor:
+        results = list(executor.map(lambda entry: verify_blob_read_entry(bucket, entry, required), entries))
+    return [entry for entry in results if entry is not None]
+
+
+def read_bridge_request_header() -> Dict[str, Any]:
+    raw = sys.stdin.buffer.readline(MAX_READ_BRIDGE_MESSAGE_BYTES + 1)
+    if not raw or len(raw) > MAX_READ_BRIDGE_MESSAGE_BYTES or not raw.endswith(b"\n"):
+        fail("read bridge request must be one bounded JSON line")
+    if sys.stdin.buffer.read(1):
+        fail("read bridge request contains unexpected trailing bytes")
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        fail("read bridge request is invalid JSON: %s" % error)
+    if not isinstance(value, dict):
+        fail("read bridge request must be an object")
+    return value
+
+
+def blob_publish_read_operation(bucket: str, prefix_b64: str, phase: str) -> None:
+    if _CREDENTIAL_MODE != "ecs-read":
+        fail("blob publish read bridge requires the ECS read role")
+    requested_prefix = validate_blob_release_prefix(decode_value(prefix_b64, "prefix"))
+    header = read_bridge_request_header()
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files, parent_reference = read_blob_publish_header(requested_prefix, header)
+    completed, receipt_present = read_blob_publish_state(
+        bucket, prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files,
+    )
+    if phase == "preflight":
+        if completed is not None:
+            write_json(completed)
+            return
+        parent_blobs = parent_blob_bindings(bucket, manifest["releaseId"], parent_reference)
+        expected_blobs = expected_blob_receipt_files(files)
+        listed_blobs = {entry["key"]: entry for entry in list_objects(bucket, BLOB_KEY_PREFIX)}
+        unknown_entries: List[Dict[str, Any]] = []
+        missing: List[str] = []
+        for entry in expected_blobs:
+            parent_entry = parent_blobs.get(entry["objectKey"])
+            if parent_entry is not None:
+                if parent_entry["sizeBytes"] != entry["sizeBytes"] or parent_entry["sha256"] != entry["sha256"]:
+                    fail("parent release blob differs from candidate manifest for %s" % entry["objectKey"])
+                continue
+            listed = listed_blobs.get(entry["objectKey"])
+            if listed is None:
+                missing.append(entry["objectKey"])
+            elif listed.get("sizeBytes") != entry["sizeBytes"]:
+                fail("listed runtime blob size differs from candidate manifest for %s" % entry["objectKey"])
+            else:
+                unknown_entries.append(entry)
+        verify_blob_read_entries(bucket, unknown_entries, required=True)
+        write_json({"status": "stream", "missingKeys": missing, "receiptPresent": receipt_present})
+        return
+    if phase == "verify-blobs":
+        if completed is not None:
+            fail("candidate completed before read bridge blob verification")
+        parent_blobs = parent_blob_bindings(bucket, manifest["releaseId"], parent_reference)
+        expected_blobs = expected_blob_receipt_files(files)
+        non_parent = [entry for entry in expected_blobs if entry["objectKey"] not in parent_blobs]
+        for entry in expected_blobs:
+            parent_entry = parent_blobs.get(entry["objectKey"])
+            if parent_entry is not None and (parent_entry["sizeBytes"] != entry["sizeBytes"] or parent_entry["sha256"] != entry["sha256"]):
+                fail("parent release blob differs from candidate manifest for %s" % entry["objectKey"])
+        verified = verify_blob_read_entries(bucket, non_parent, required=True)
+        write_json({
+            "status": "verified-blobs",
+            "inheritedBlobCount": len(expected_blobs) - len(non_parent),
+            "metadataCheckCount": len(non_parent),
+            "legacyReadbackCount": sum(1 for entry in verified if entry["legacy"]),
+            "legacyReadbackBytes": sum(entry["expectedSize"] for entry in verified if entry["legacy"]),
+            "verifiedBlobEntries": [
+                {key: value for key, value in entry.items() if key != "legacy"}
+                for entry in verified
+            ],
+        })
+        return
+    if phase == "verify-release":
+        if completed is None:
+            fail("candidate completion manifest is missing after local publication")
+        write_json(completed)
+        return
+    fail("read bridge phase is invalid")
+
+
+def publish_blob_release_via_read_bridge(
+    bucket: str,
+    requested_prefix: str,
+    header: Dict[str, Any],
+) -> None:
+    prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(header)
+    parent_reference = validate_blob_parent_reference(header)
+    if prefix != requested_prefix:
+        fail("blob publish stream prefix does not match the read bridge argument")
+    preflight = read_bridge_phase(bucket, prefix, "preflight", header)
+    if preflight.get("status") == "complete":
+        write_json(preflight)
+        return
+    missing_keys = preflight.get("missingKeys")
+    receipt_present = preflight.get("receiptPresent")
+    if not isinstance(missing_keys, list) or not isinstance(receipt_present, bool) or any(not isinstance(key, str) for key in missing_keys):
+        fail("read bridge preflight response is invalid")
+    expected_blobs = expected_blob_receipt_files(files)
+    expected_by_key = {entry["objectKey"]: entry for entry in expected_blobs}
+    if len(missing_keys) != len(set(missing_keys)) or any(key not in expected_by_key for key in missing_keys):
+        fail("read bridge preflight returned an invalid missing blob set")
+    missing = [expected_by_key[key] for key in missing_keys]
+    spool_directory: Optional[str] = None
+    lock_file = open(lock_path(prefix), "a+b")
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        spool_directory = release_spool_directory(prefix)
+        successful_blob_puts = 0
+        for entry in missing:
+            raw_frame_header = sys.stdin.buffer.readline()
+            if not raw_frame_header:
+                fail("publisher stream ended before a missing blob frame")
+            try:
+                frame = json.loads(raw_frame_header.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                fail(f"blob frame header is invalid: {error}")
+            if (
+                not isinstance(frame, dict)
+                or frame.get("key") != entry["objectKey"]
+                or frame.get("sizeBytes") != entry["sizeBytes"]
+                or frame.get("sha256") != entry["sha256"]
+            ):
+                fail(f"blob frame does not match the manifest for {entry['objectKey']}")
+            temp_path = receive_frame(spool_directory, entry["sizeBytes"], entry["sha256"])
+            try:
+                if put_blob_spooled_file_without_readback(
+                    bucket, entry["objectKey"], temp_path, entry["sizeBytes"], entry["sha256"],
+                ):
+                    successful_blob_puts += 1
+            finally:
+                remove_temp(temp_path)
+        if sys.stdin.buffer.readline().strip() != b"DONE":
+            fail("publisher stream did not terminate its blob frames with DONE")
+        verified = read_bridge_phase(bucket, prefix, "verify-blobs", header)
+        required_metrics = ("inheritedBlobCount", "metadataCheckCount", "legacyReadbackCount", "legacyReadbackBytes")
+        if verified.get("status") != "verified-blobs" or any(
+            not isinstance(verified.get(field), int) or isinstance(verified.get(field), bool) or verified[field] < 0
+            for field in required_metrics
+        ) or not isinstance(verified.get("verifiedBlobEntries"), list):
+            fail("read bridge blob verification response is invalid")
+        verified_entries = verified["verifiedBlobEntries"]
+        non_parent_count = verified["metadataCheckCount"]
+        if non_parent_count != len(expected_blobs) - verified["inheritedBlobCount"] or len(verified_entries) != non_parent_count:
+            fail("read bridge blob verification counts do not reconcile")
+        legacy_count = verified["legacyReadbackCount"]
+        if successful_blob_puts + legacy_count > non_parent_count:
+            fail("read bridge blob verification cannot reconcile local writes")
+        metadata_reuse_count = non_parent_count - successful_blob_puts - legacy_count
+        normalized_entries, verified_blob_set_sha256 = verified_blob_audit(verified_entries)
+        if not receipt_present:
+            put_payload_without_readback(bucket, f"{prefix}{BLOB_RECEIPT_NAME}", receipt_wire, receipt_wire_sha, spool_directory)
+        put_payload_without_readback(bucket, f"{prefix}{BLOB_MANIFEST_NAME}", manifest_wire, manifest_wire_sha, spool_directory)
+        completion = read_bridge_phase(bucket, prefix, "verify-release", header)
+        if (
+            completion.get("status") != "complete"
+            or completion.get("releaseId") != manifest["releaseId"]
+            or completion.get("manifestSha256") != manifest["manifestSha256"]
+            or completion.get("wireSha256") != manifest_wire_sha
+            or completion.get("treeSha256") != manifest["treeSha256"]
+            or completion.get("fileCount") != manifest["fileCount"]
+            or completion.get("totalBytes") != manifest["totalBytes"]
+            or not isinstance(completion.get("receiptWireSha256"), str)
+            or not SHA256_PATTERN.fullmatch(completion["receiptWireSha256"])
+        ):
+            fail("read bridge completion response is invalid")
+        write_json({
+            "status": "complete",
+            "releaseId": manifest["releaseId"],
+            "manifestSha256": manifest["manifestSha256"],
+            "wireSha256": manifest_wire_sha,
+            "receiptWireSha256": completion["receiptWireSha256"],
+            "treeSha256": manifest["treeSha256"],
+            "fileCount": manifest["fileCount"],
+            "totalBytes": manifest["totalBytes"],
+            "putCount": len(missing) + (0 if receipt_present else 1) + 1,
+            "inheritedBlobCount": verified["inheritedBlobCount"],
+            "metadataCheckCount": non_parent_count,
+            "metadataReuseCount": metadata_reuse_count,
+            "newUploadCount": successful_blob_puts,
+            "legacyReadbackCount": legacy_count,
+            "legacyReadbackBytes": verified["legacyReadbackBytes"],
+            "verifiedBlobSetAlgorithm": "sha256",
+            "verifiedBlobSetSha256": verified_blob_set_sha256,
+            "verifiedBlobEntries": normalized_entries,
+        })
+    finally:
+        if spool_directory is not None:
+            try:
+                os.rmdir(spool_directory)
+            except OSError:
+                pass
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        lock_file.close()
+
+
 def publish_blob_release(
     bucket: str,
     requested_prefix: str,
     header: Dict[str, Any],
 ) -> None:
+    if _READ_BRIDGE is not None:
+        publish_blob_release_via_read_bridge(bucket, requested_prefix, header)
+        return
     prefix, manifest, manifest_wire, manifest_wire_sha, receipt_wire, receipt_wire_sha, files = validate_blob_publish_header(header)
     parent_reference = validate_blob_parent_reference(header)
     if prefix != requested_prefix:
@@ -1977,10 +2411,11 @@ def list_operation(bucket: str, prefix_b64: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--bucket", required=True)
-    parser.add_argument("--operation", choices=("list", "get", "publish", "import-v1", "verify"), required=True)
+    parser.add_argument("--operation", choices=("list", "get", "publish", "import-v1", "verify", "blob-publish-read"), required=True)
     parser.add_argument("--prefix-b64")
     parser.add_argument("--key-b64")
-    parser.add_argument("--credential-mode", choices=("ecs", "local"), default="ecs")
+    parser.add_argument("--read-phase", choices=("preflight", "verify-blobs", "verify-release"))
+    parser.add_argument("--credential-mode", choices=("ecs", "ecs-read", "local"), default="ecs")
     parser.add_argument("--ossutil-path")
     parser.add_argument("--ossutil-sha256")
     parser.add_argument("--identity-command-path")
@@ -1990,8 +2425,15 @@ def main() -> None:
     parser.add_argument("--credential-profile")
     parser.add_argument("--lock-dir")
     parser.add_argument("--spool-dir")
+    parser.add_argument("--read-bridge-ssh-target")
+    parser.add_argument("--read-bridge-path")
+    parser.add_argument("--read-bridge-known-hosts-file")
+    parser.add_argument("--read-bridge-identity-file")
+    parser.add_argument("--read-bridge-port", type=int)
     arguments = parser.parse_args()
     configure_local_publisher(arguments)
+    if arguments.credential_mode == "ecs-read" and arguments.operation not in {"list", "get", "verify", "blob-publish-read"}:
+        fail("ECS read mode permits only readback operations")
     bucket = validate_bucket(arguments.bucket)
     if arguments.operation == "list":
         if not arguments.prefix_b64:
@@ -2014,6 +2456,11 @@ def main() -> None:
         if not arguments.prefix_b64:
             fail("verify requires --prefix-b64")
         verify_operation(bucket, arguments.prefix_b64)
+        return
+    if arguments.operation == "blob-publish-read":
+        if not arguments.prefix_b64 or not arguments.read_phase:
+            fail("blob-publish-read requires --prefix-b64 and --read-phase")
+        blob_publish_read_operation(bucket, arguments.prefix_b64, arguments.read_phase)
         return
     if not arguments.key_b64:
         fail("get requires --key-b64")

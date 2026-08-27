@@ -93,6 +93,7 @@
 
 - [ ] 10.1 Run focused Authority capture, denominator, incremental cache, resource continuity, Teaching Projection, envelope, transaction, rollback, and Runtime integration tests.
 - [ ] 10.2 Run the affected Runtime Release v2, teaching-governance, selector, shard, data-governance, readiness, and resource-launch domain suites.
+- [x] 10.2.1 Route changed-or-unknown Runtime Blob readback through the bounded ECS read role while retaining local conditional writes; cover inherited-Blob skip, role binding, internal endpoint use, and terminal receipt ordering.
 - [ ] 10.3 Run repository type checking, linting, production build, and the final intended-revision verification gates.
 - [ ] 10.4 Validate this OpenSpec change and the resulting main specs in strict mode after implementation.
 - [ ] 10.5 Publish only the immutable non-selectable coordinated candidate, receipts, review evidence, and rollback evidence under implementation authority.

@@ -17,6 +17,9 @@ const spoolRoot = path.join(temporary, 'spool');
 const lockRoot = path.join(temporary, 'locks');
 const fakeOssutil = path.join(temporary, 'fake-ossutil.mjs');
 const fakeIdentity = path.join(temporary, 'fake-identity.mjs');
+const fakeSsh = path.join(temporary, 'ssh');
+const fakeKnownHosts = path.join(temporary, 'known_hosts');
+const fakeRemoteBridge = path.join(temporary, 'runtime-release-oss-publisher-bridge.py');
 await mkdir(ossRoot, { recursive: true });
 await mkdir(spoolRoot, { recursive: true });
 await mkdir(lockRoot, { recursive: true });
@@ -107,6 +110,7 @@ if (operation === 'api') {
   } else if (api === 'head-object') {
     const key = args[args.indexOf('--key') + 1];
     if (process.env.FAKE_HEAD_LOG) await writeFile(process.env.FAKE_HEAD_LOG, key + '\\n', { flag: 'a' });
+    if (process.env.FAKE_HEAD_ENDPOINT_LOG) await writeFile(process.env.FAKE_HEAD_ENDPOINT_LOG, endpoint + '\\n', { flag: 'a' });
     try {
       const details = await stat(objectPath(key));
       const metadata = await readMetadata();
@@ -187,6 +191,21 @@ if (JSON.stringify(process.argv.slice(2)) !== JSON.stringify(['sts', 'GetCallerI
 process.stdout.write(JSON.stringify({ AccountId: '1444654551628953', Arn: 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator' }));
 `);
 await chmod(fakeIdentity, 0o755);
+await writeFile(fakeRemoteBridge, await readFile(bridge));
+await chmod(fakeRemoteBridge, 0o755);
+await writeFile(fakeSsh, `#!/usr/bin/env node
+import { spawn } from 'node:child_process';
+const args = process.argv.slice(2);
+const separator = args.indexOf('--');
+if (separator === -1 || args.length < separator + 3) process.exit(2);
+const command = args.slice(separator + 2);
+const env = { ...process.env };
+delete env.FAKE_LOCAL;
+const child = spawn(command[0], command.slice(1), { stdio: 'inherit', env });
+child.once('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });
+`);
+await chmod(fakeSsh, 0o755);
+await writeFile(fakeKnownHosts, 'fake-host-key\\n');
 
 const stable = (value) => value === null || typeof value !== 'object'
   ? JSON.stringify(value)
@@ -475,7 +494,7 @@ async function publish({ data = state, crashAfterFrame = false, frameBytes = byt
   return JSON.parse(final.value);
 }
 
-async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) {
+async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = false, crashDelayMs = 100, frameBytes, env = {}, local = false, readBridge, strict = false, omitHeaderProof = false, omitReceiptProof = false } = {}) {
   const localArguments = local ? [
     '--credential-mode', 'local',
     '--ossutil-path', fakeOssutil,
@@ -486,6 +505,11 @@ async function publishBlob({ data = buildBlobState(), parent, crashAfterFrame = 
     '--operator-principal-arn', 'acs:ram::1444654551628953:role/act-runtime-oss-release-operator',
     '--lock-dir', lockRoot,
     '--spool-dir', spoolRoot,
+    ...(readBridge ? [
+      '--read-bridge-ssh-target', readBridge.target,
+      '--read-bridge-path', readBridge.path,
+      '--read-bridge-known-hosts-file', readBridge.knownHostsFile,
+    ] : []),
   ] : [];
   const child = spawn('python3', [bridge, '--bucket', 'test-bucket', '--operation', 'publish', '--prefix-b64', Buffer.from(data.prefix).toString('base64url'), ...localArguments], {
     env: {
@@ -866,6 +890,59 @@ try {
   assert.equal(localBlobReceipt.legacyReadbackCount, 0);
   assert.equal(localBlobReceipt.newUploadCount, 0);
 
+  const routedBlobState = buildBlobState('7'.repeat(40), [Buffer.from('routed unique blob a'), Buffer.from('routed unique blob b')]);
+  const routedHeadEndpoints = path.join(temporary, 'routed-blob-head-endpoints.log');
+  const originalImdsRoleName = imdsRoleName;
+  imdsRoleName = 'act-runtime-oss-read';
+  try {
+    const routedBlobReceipt = await publishBlob({
+      data: routedBlobState,
+      local: true,
+      readBridge: {
+        target: 'reader@example.invalid',
+        path: fakeRemoteBridge,
+        knownHostsFile: fakeKnownHosts,
+      },
+      env: {
+        PATH: `${temporary}:${process.env.PATH}`,
+        FAKE_HEAD_ENDPOINT_LOG: routedHeadEndpoints,
+      },
+    });
+    assert.equal(routedBlobReceipt.status, 'complete');
+    assert.equal(routedBlobReceipt.metadataCheckCount, 2);
+    assert.equal(routedBlobReceipt.newUploadCount, 2);
+    const routedEndpoints = (await readFile(routedHeadEndpoints, 'utf8')).trim().split('\\n').filter(Boolean);
+    assert.ok(routedEndpoints.length >= 2, 'the read bridge must verify each changed blob after local writes');
+    assert.ok(routedEndpoints.every((endpoint) => endpoint === 'oss-cn-hangzhou-internal.aliyuncs.com'), 'the local publisher must not perform public OSS metadata reads');
+  } finally {
+    imdsRoleName = originalImdsRoleName;
+  }
+
+  const readModeWriteAttempt = spawn('python3', [
+    bridge,
+    '--bucket', 'test-bucket',
+    '--operation', 'publish',
+    '--credential-mode', 'ecs-read',
+    '--prefix-b64', Buffer.from(routedBlobState.prefix).toString('base64url'),
+  ], {
+    env: {
+      ...process.env,
+      ACT_RUNTIME_RELEASE_TEST_MODE: '1',
+      ACT_RUNTIME_RELEASE_OSSUTIL: fakeOssutil,
+      ACT_RUNTIME_RELEASE_IMDS_ROLE_URL: imdsRoleUrl,
+      ACT_RUNTIME_RELEASE_LOCK_DIR: lockRoot,
+      ACT_RUNTIME_RELEASE_SPOOL_DIR: spoolRoot,
+      FAKE_OSS_ROOT: ossRoot,
+      FAKE_OSS_METADATA: ossMetadata,
+    },
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  const readModeWriteStderr = [];
+  readModeWriteAttempt.stderr.on('data', (chunk) => readModeWriteStderr.push(chunk));
+  const readModeWriteResult = await close(readModeWriteAttempt);
+  assert.notEqual(readModeWriteResult.code, 0, 'ECS read mode must not expose a publication operation');
+  assert.match(Buffer.concat(readModeWriteStderr).toString(), /ECS read mode permits only readback operations/);
+
   const multipleBlobState = buildBlobState('9'.repeat(40), [Buffer.from('unique blob a'), Buffer.from('unique blob b')]);
   const blobListLog = path.join(temporary, 'blob-list.log');
   const multipleBlobReceipt = await publishBlob({ data: multipleBlobState, env: { FAKE_LIST_LOG: blobListLog } });
@@ -890,7 +967,7 @@ try {
   await rm(path.join(ossRoot, poisonedBlob.files[0].objectKey), { force: true });
 
   imdsRoleName = 'act-runtime-oss-publisher';
-  assert.match(await verify(state, { expectFailure: true }), /restricted release operator role/);
+  assert.match(await verify(state, { expectFailure: true }), /restricted runtime role/);
   imdsRoleName = 'act-runtime-oss-release-operator-ecs';
   const readVerification = await verify();
   assert.deepEqual(readVerification, {

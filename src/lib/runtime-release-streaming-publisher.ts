@@ -77,6 +77,7 @@ export interface RuntimeReleaseLocalPublisherConfig {
   lockDir: string;
   spoolDir: string;
   credentialProfile?: string;
+  readBridge?: RuntimeReleaseSshPublisherConfig;
 }
 
 export interface RuntimeReleaseRemoteObjectReceipt {
@@ -203,6 +204,12 @@ function assertLocalPublisherConfig(config: RuntimeReleaseLocalPublisherConfig) 
   if (config.credentialProfile !== undefined && !TARGET_PATTERN.test(config.credentialProfile)) {
     invalid('Local credential profile is invalid.');
   }
+  if (config.readBridge !== undefined) {
+    assertConfig(config.readBridge);
+    if (config.readBridge.bucket !== config.bucket) {
+      invalid('Read bridge bucket must match the local publisher bucket.');
+    }
+  }
 }
 
 type SshOperation = 'list' | 'get' | 'put' | 'publish' | 'import-v1' | 'verify';
@@ -223,6 +230,9 @@ export function buildRuntimeReleaseSshArgv(
   if (config.connectTimeoutSeconds !== undefined) args.push('-o', `ConnectTimeout=${config.connectTimeoutSeconds}`);
   if (config.identityFile !== undefined) args.push('-i', config.identityFile);
   args.push('--', config.target, config.remoteBridgePath, '--bucket', config.bucket, '--operation', operation);
+  if (operation === 'list' || operation === 'get' || operation === 'verify') {
+    args.push('--credential-mode', 'ecs-read');
+  }
   if (operation === 'list' || operation === 'verify') {
     if (!input.prefix) invalid(`${operation === 'verify' ? 'Verify' : 'List'} operation requires a release prefix.`);
     assertPrefix(input.prefix);
@@ -256,7 +266,7 @@ export function buildRuntimeReleaseLocalPublisherArgv(
 ) {
   assertLocalPublisherConfig(config);
   assertPrefix(prefix);
-  return [
+  const args = [
     config.bridgePath,
     '--bucket', config.bucket,
     '--operation', 'publish',
@@ -272,6 +282,16 @@ export function buildRuntimeReleaseLocalPublisherArgv(
     '--spool-dir', config.spoolDir,
     ...(config.credentialProfile ? ['--credential-profile', config.credentialProfile] : []),
   ];
+  if (config.readBridge) {
+    args.push(
+      '--read-bridge-ssh-target', config.readBridge.target,
+      '--read-bridge-path', config.readBridge.remoteBridgePath,
+      '--read-bridge-known-hosts-file', config.readBridge.knownHostsFile,
+    );
+    if (config.readBridge.identityFile) args.push('--read-bridge-identity-file', config.readBridge.identityFile);
+    if (config.readBridge.port !== undefined) args.push('--read-bridge-port', String(config.readBridge.port));
+  }
+  return args;
 }
 
 class CountingTransform extends Transform {
