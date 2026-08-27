@@ -6,6 +6,7 @@
     "scripts/**/*.mts",
     "scripts/**/*.cts",
     "tools/boundary/**/*.ts",
+    "tools/evidence-lifecycle/**/*.ts",
     "typescript-graph-fixtures/tools.ts"
   ],
   "exclude": [

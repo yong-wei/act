@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import fixtureManifest from '../../../../artifacts/interactive-learning/annotated-media-activity-564/annotated-media-fixture.interactive-manifest.json';
+import fixtureManifest from '@/lib/qa-evidence/fixtures/annotated-media-fixture.interactive-manifest.json';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import {
   buildAnnotatedMediaTeacherDiagnostics,
