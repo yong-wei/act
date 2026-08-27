@@ -8,7 +8,8 @@
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync, realpathSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import {
@@ -49,6 +50,35 @@ export interface SealedBundleIdentity {
   readonly validationReportSha256: string;
   readonly predecessorBundleId: string | null;
   readonly stableTag: string;
+}
+
+/**
+ * Materialize an immutable read-only capture root from a Git tree object.
+ * Callers must remove the returned directory after parsing. The snapshot never
+ * aliases the live ActKG checkout, so a concurrent worktree edit cannot change
+ * any bytes after the formal commit has been selected.
+ */
+export function materializeSealedActkgCommit(
+  actkgRoot: string,
+  commit: string,
+): string {
+  const outputRoot = mkdtempSync(path.join(os.tmpdir(), 'actkg-sealed-capture-'));
+  const archivePath = path.join(outputRoot, '.sealed-commit.tar');
+  try {
+    execFileSync('git', [
+      '-C', actkgRoot,
+      'archive',
+      '--format=tar',
+      `--output=${archivePath}`,
+      commit,
+    ]);
+    execFileSync('tar', ['-xf', archivePath, '-C', outputRoot]);
+    rmSync(archivePath, { force: true });
+    return outputRoot;
+  } catch (error) {
+    rmSync(outputRoot, { recursive: true, force: true });
+    failUnsealedInput(`sealed ActKG commit ${commit} could not be materialized: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 interface GitTreeEntry {

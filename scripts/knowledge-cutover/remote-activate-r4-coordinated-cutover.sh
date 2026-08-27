@@ -323,6 +323,90 @@ restore_final_receipt() {
   fi
 }
 
+load_prior_transaction_context() {
+  python3 - "$status_path" "$journal_dir" <<'PY'
+import hashlib, json, os, re, stat, sys
+
+status_path, journal_dir = sys.argv[1:]
+if not os.path.exists(status_path):
+    raise SystemExit(0)
+if not stat.S_ISREG(os.lstat(status_path).st_mode) or os.path.islink(status_path):
+    raise SystemExit('ERROR: current transaction status must be a regular non-symlink file')
+try:
+    status_record = json.load(open(status_path, encoding='utf-8'))
+except Exception as error:
+    raise SystemExit('ERROR: current transaction status is invalid: %s' % error)
+expected_status_keys = {'contract', 'transactionId', 'journalPath', 'journalHash', 'status', 'updatedAt'}
+if not isinstance(status_record, dict) or set(status_record) != expected_status_keys or status_record.get('contract') != 'r4-coordinated-production-transaction-status/v1':
+    raise SystemExit('ERROR: current transaction status has an unsupported contract')
+transaction_id = status_record.get('transactionId')
+journal_name = status_record.get('journalPath')
+journal_hash = status_record.get('journalHash')
+if not isinstance(transaction_id, str) or not re.fullmatch(r'tx-[0-9a-f-]{36}', transaction_id):
+    raise SystemExit('ERROR: current transaction status has an invalid transaction id')
+if journal_name != transaction_id + '.json' or os.path.basename(journal_name) != journal_name:
+    raise SystemExit('ERROR: current transaction status points outside its immutable journal')
+if not isinstance(journal_hash, str) or not re.fullmatch(r'[a-f0-9]{64}', journal_hash):
+    raise SystemExit('ERROR: current transaction status has an invalid journal hash')
+journal_path = os.path.join(journal_dir, journal_name)
+if not os.path.exists(journal_path) or not stat.S_ISREG(os.lstat(journal_path).st_mode) or os.path.islink(journal_path):
+    raise SystemExit('ERROR: immutable transaction journal must be a regular non-symlink file')
+try:
+    journal = json.load(open(journal_path, encoding='utf-8'))
+except Exception as error:
+    raise SystemExit('ERROR: immutable transaction journal is invalid: %s' % error)
+journal_keys = {'contract', 'transactionId', 'openedAt', 'candidateReceiptHash', 'predecessor', 'orderedMutations', 'compensationPlan', 'journalHash'}
+body_keys = ('transactionId', 'openedAt', 'candidateReceiptHash', 'predecessor', 'orderedMutations', 'compensationPlan')
+canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+if (not isinstance(journal, dict) or set(journal) != journal_keys or journal.get('contract') != 'cutover-transaction-journal/v1'
+        or journal.get('transactionId') != transaction_id or journal.get('journalHash') != journal_hash
+        or hashlib.sha256(canonical({key: journal[key] for key in body_keys})).hexdigest() != journal_hash):
+    raise SystemExit('ERROR: immutable transaction journal does not match the current status')
+print('\t'.join((transaction_id, journal_name, journal['openedAt'], status_record['status'])))
+PY
+}
+
+write_recovery_status() {
+  local status="$1"
+  python3 - "$journal_path" "$status_path" "$status" "$transaction_id" <<'PY'
+import datetime, hashlib, json, os, stat, sys, tempfile
+
+journal_path, status_path, status, transaction_id = sys.argv[1:]
+if not os.path.exists(journal_path) or not stat.S_ISREG(os.lstat(journal_path).st_mode) or os.path.islink(journal_path):
+    raise SystemExit('immutable transaction journal is unavailable for recovery status')
+journal = json.load(open(journal_path, encoding='utf-8'))
+body_keys = ('transactionId', 'openedAt', 'candidateReceiptHash', 'predecessor', 'orderedMutations', 'compensationPlan')
+canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+journal_hash = hashlib.sha256(canonical({key: journal[key] for key in body_keys})).hexdigest()
+if journal.get('transactionId') != transaction_id or journal.get('journalHash') != journal_hash:
+    raise SystemExit('immutable transaction journal does not match recovery context')
+record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(journal_path), 'journalHash': journal_hash, 'status': status, 'updatedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+directory = os.path.dirname(status_path)
+fd, temp = tempfile.mkstemp(prefix='.r4-c5-status-', dir=directory)
+with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+    json.dump(record, handle, sort_keys=True, separators=(',', ':')); handle.write('\n'); handle.flush(); os.fsync(handle.fileno())
+os.replace(temp, status_path); os.chmod(status_path, 0o600)
+PY
+}
+
+record_unidentified_blocked_recovery() {
+  local message="$1"
+  python3 - "$journal_dir/r4-c5-blocked-recovery.json" "$status_path" "$message" <<'PY'
+import datetime, hashlib, json, os, stat, sys, tempfile
+
+output_path, status_path, message = sys.argv[1:]
+status_hash = None
+if os.path.exists(status_path) and stat.S_ISREG(os.lstat(status_path).st_mode) and not os.path.islink(status_path):
+    status_hash = hashlib.sha256(open(status_path, 'rb').read()).hexdigest()
+record = {'contract': 'r4-coordinated-production-recovery-block/v1', 'status': 'BLOCKED_RECOVERY', 'reason': message, 'statusPointerSha256': status_hash, 'recordedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+directory = os.path.dirname(output_path)
+fd, temp = tempfile.mkstemp(prefix='.r4-c5-blocked-', dir=directory)
+with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+    json.dump(record, handle, sort_keys=True, separators=(',', ':')); handle.write('\n'); handle.flush(); os.fsync(handle.fileno())
+os.replace(temp, output_path); os.chmod(output_path, 0o600)
+PY
+}
+
 inspect_incomplete_transaction() {
   python3 - "$status_path" "$journal_dir" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$previous_pointer" "$AUTHORITY_ROOT/current.json" "$final_receipt" "$previous_final_receipt" <<'PY'
 import hashlib, json, os, re, stat, sys
@@ -425,8 +509,12 @@ PY
 block_incomplete_recovery() {
   local message="$1"
   echo "ERROR: $message" >&2
+  consumers_stop_intent=1
+  stop_consumers || true
   if [[ -n "$transaction_id" && -n "$journal_path" ]]; then
-    write_journal BLOCKED_RECOVERY || true
+    write_recovery_status BLOCKED_RECOVERY || record_unidentified_blocked_recovery "$message"
+  else
+    record_unidentified_blocked_recovery "$message"
   fi
   completed=1
   trap - ERR INT TERM
@@ -434,12 +522,19 @@ block_incomplete_recovery() {
 }
 
 recover_incomplete_transaction() {
-  local stale transaction_journal authority_state final_state previous_final_state
-  if ! stale="$(inspect_incomplete_transaction)"; then
-    echo "ERROR: unable to inspect the prior coordinated transaction" >&2
-    return 1
+  local stale prior_context transaction_journal prior_status authority_state final_state previous_final_state
+  if ! prior_context="$(load_prior_transaction_context)"; then
+    block_incomplete_recovery 'prior coordinated transaction status cannot be verified'
   fi
-  [[ -n "$stale" ]] || return 0
+  [[ -n "$prior_context" ]] || return 0
+  IFS=$'\t' read -r transaction_id transaction_journal opened_at prior_status <<<"$prior_context"
+  journal_path="$journal_dir/$transaction_journal"
+  if [[ "$prior_status" == "COMMITTED" || "$prior_status" == "ROLLED_BACK" ]]; then
+    return 0
+  fi
+  if ! stale="$(inspect_incomplete_transaction)"; then
+    block_incomplete_recovery 'prior coordinated transaction cannot be reconciled with this candidate'
+  fi
   IFS=$'\t' read -r transaction_id transaction_journal opened_at authority_state final_state previous_final_state <<<"$stale"
   journal_path="$journal_dir/$transaction_journal"
   rollback_image="$(active_image)" || block_incomplete_recovery 'incomplete transaction has no recoverable predecessor app image'

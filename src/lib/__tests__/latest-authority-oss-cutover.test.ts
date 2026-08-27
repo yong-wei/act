@@ -47,10 +47,11 @@ import {
   assertSealedActkgTreeDirectory,
   assertSealedActkgTreeFile,
   capturedPublicContractFromBundle,
+  materializeSealedActkgCommit,
   resolveSealedActkgMainCommit,
 } from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -192,6 +193,34 @@ describe('execution-time Authority capture', () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
       rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('reads capture inputs from a sealed Git archive after live checkout bytes drift', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-archive-'));
+    const git = (...args: string[]) => execFileSync('git', ['-C', root, ...args], {
+      encoding: 'utf8',
+    }).trim();
+    try {
+      git('init', '--quiet');
+      git('config', 'user.email', 'test@example.invalid');
+      git('config', 'user.name', 'ACT test');
+      git('checkout', '--quiet', '-b', 'main');
+      mkdirSync(path.join(root, 'releases', 'control-theory-engineering-v0.37'), { recursive: true });
+      const manifest = path.join(root, 'releases', 'control-theory-engineering-v0.37', 'bundle-manifest.json');
+      writeFileSync(manifest, '{"bundle":"sealed"}\n');
+      git('add', '.');
+      git('commit', '--quiet', '-m', 'sealed capture archive');
+      const archiveRoot = materializeSealedActkgCommit(root, git('rev-parse', 'main'));
+      try {
+        writeFileSync(manifest, '{"bundle":"mutated"}\n');
+        expect(readFileSync(path.join(archiveRoot, 'releases', 'control-theory-engineering-v0.37', 'bundle-manifest.json'), 'utf8'))
+          .toBe('{"bundle":"sealed"}\n');
+      } finally {
+        rmSync(archiveRoot, { recursive: true, force: true });
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 

@@ -23,7 +23,7 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { readdirSync } from 'node:fs';
+import { readdirSync, realpathSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -75,6 +75,7 @@ import {
   capturedPublicContractFromBundle,
   discoverLatestCompleteAggregate,
   inspectActkgWorktreeDirty,
+  materializeSealedActkgCommit,
   parseSixKindComponentClosure,
   readSealedBundleIdentity,
   resolveSealedActkgMainCommit,
@@ -167,80 +168,90 @@ async function runCapture(values: Map<string, string>): Promise<void> {
   }
   const dirty = inspectActkgWorktreeDirty(actkgRoot);
   const actkgMainCommit = resolveSealedActkgMainCommit(actkgRoot, mainRef);
-  const explicitBundleDir = values.get('--bundle-dir');
-  const sealed = explicitBundleDir
-    ? readSealedBundleIdentity(
-      assertSealedActkgTreeDirectory(actkgRoot, actkgMainCommit, explicitBundleDir, '--bundle-dir'),
-    )
-    : discoverLatestCompleteAggregate(actkgRoot, actkgMainCommit);
-  const bundleDir = sealed.bundleDir;
-  const lineagePath = assertSealedActkgTreeFile(
-    actkgRoot,
-    actkgMainCommit,
+  const checkedRoot = realpathSync(actkgRoot);
+  const toSealedRelative = (input: string, label: string, directory = false): string => {
+    const absolute = directory
+      ? assertSealedActkgTreeDirectory(actkgRoot, actkgMainCommit, input, label)
+      : assertSealedActkgTreeFile(actkgRoot, actkgMainCommit, input, label);
+    return path.relative(checkedRoot, absolute);
+  };
+  const explicitBundleRelative = values.get('--bundle-dir')
+    ? toSealedRelative(values.get('--bundle-dir') as string, '--bundle-dir', true)
+    : undefined;
+  const lineageRelative = toSealedRelative(
     values.get('--lineage')
       ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json'),
     '--lineage',
   );
-  const registrySummaryPath = assertSealedActkgTreeFile(
-    actkgRoot,
-    actkgMainCommit,
+  const registrySummaryRelative = toSealedRelative(
     values.get('--registry-summary')
       ?? path.join(actkgRoot, 'docs/experiments/control-theory-residual-successor-registry-v14.summary.json'),
     '--registry-summary',
   );
-  const componentsOverride = values.get('--components');
-  const componentsFile = componentsOverride
-    ? assertSealedActkgTreeFile(actkgRoot, actkgMainCommit, componentsOverride, '--components')
+  const componentsRelative = values.get('--components')
+    ? toSealedRelative(values.get('--components') as string, '--components')
     : undefined;
-  const components: AuthorityComponentIdentity[] = componentsFile
-    ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
-    : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
-  const baseSupported = values.get('--supported-contract')
-    ? (await readJson(values.get('--supported-contract') as string)) as SupportedPublicContract
-    : defaultSupportedContract();
-  const capturedPublicContract = capturedPublicContractFromBundle(bundleDir, 'COMPLETE');
-  const supported = adapterSupportsPublicBundle3(
-    baseSupported,
-    capturedPublicContract.schemaVersion,
-    capturedPublicContract.schemaSha256,
-  );
-  const input: AuthorityCaptureInput = {
-    capturedAt: new Date().toISOString(),
-    actkgMainCommit,
-    sourceCommit: sealed.sourceCommit,
-    sourceTag: sealed.sourceTag,
-    packagingCommit: actkgMainCommit,
-    stableTag: sealed.stableTag,
-    releaseId: sealed.releaseId,
-    releaseVersion: sealed.releaseVersion,
-    bundleId: sealed.bundleId,
-    bundleDigest: sealed.bundleDigest,
-    manifestSha256: sealed.manifestSha256,
-    sha256sumsSha256: sealed.sha256sumsSha256,
-    validationReportSha256: sealed.validationReportSha256,
-    actkgWorktreeDirty: dirty,
-    componentIdentities: components,
-    predecessorBundleId: sealed.predecessorBundleId,
-    candidateChain: [sealed.bundleId],
-    capturedPublicContract,
-    adapterContractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
-    supportedPublicContract: supported,
-  };
-  const receipt = sealAuthorityCaptureReceipt(input);
-  await writeImmutable(
-    path.join(outDir, 'authority-capture.json'),
-    `${JSON.stringify(receipt, null, 2)}\n`,
-  );
-  if (receipt.compatibility.classification !== 'COMPATIBLE') {
-    process.stdout.write(
-      `ADAPTATION_REQUIRED\n${receipt.compatibility.incompatibleReasons.join('\n')}\n`,
+  const sealedRoot = materializeSealedActkgCommit(actkgRoot, actkgMainCommit);
+  try {
+    const sealed = explicitBundleRelative
+      ? readSealedBundleIdentity(path.join(sealedRoot, explicitBundleRelative))
+      : discoverLatestCompleteAggregate(sealedRoot);
+    const bundleDir = sealed.bundleDir;
+    const lineagePath = path.join(sealedRoot, lineageRelative);
+    const registrySummaryPath = path.join(sealedRoot, registrySummaryRelative);
+    const componentsFile = componentsRelative ? path.join(sealedRoot, componentsRelative) : undefined;
+    const components: AuthorityComponentIdentity[] = componentsFile
+      ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
+      : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
+    const baseSupported = values.get('--supported-contract')
+      ? (await readJson(values.get('--supported-contract') as string)) as SupportedPublicContract
+      : defaultSupportedContract();
+    const capturedPublicContract = capturedPublicContractFromBundle(bundleDir, 'COMPLETE');
+    const supported = adapterSupportsPublicBundle3(
+      baseSupported,
+      capturedPublicContract.schemaVersion,
+      capturedPublicContract.schemaSha256,
     );
-    process.exitCode = 2;
-    return;
+    const input: AuthorityCaptureInput = {
+      capturedAt: new Date().toISOString(),
+      actkgMainCommit,
+      sourceCommit: sealed.sourceCommit,
+      sourceTag: sealed.sourceTag,
+      packagingCommit: actkgMainCommit,
+      stableTag: sealed.stableTag,
+      releaseId: sealed.releaseId,
+      releaseVersion: sealed.releaseVersion,
+      bundleId: sealed.bundleId,
+      bundleDigest: sealed.bundleDigest,
+      manifestSha256: sealed.manifestSha256,
+      sha256sumsSha256: sealed.sha256sumsSha256,
+      validationReportSha256: sealed.validationReportSha256,
+      actkgWorktreeDirty: dirty,
+      componentIdentities: components,
+      predecessorBundleId: sealed.predecessorBundleId,
+      candidateChain: [sealed.bundleId],
+      capturedPublicContract,
+      adapterContractVersion: supported.contractVersions[0] ?? 'actkg-public-bundle/2',
+      supportedPublicContract: supported,
+    };
+    const receipt = sealAuthorityCaptureReceipt(input);
+    await writeImmutable(
+      path.join(outDir, 'authority-capture.json'),
+      `${JSON.stringify(receipt, null, 2)}\n`,
+    );
+    if (receipt.compatibility.classification !== 'COMPATIBLE') {
+      process.stdout.write(
+        `ADAPTATION_REQUIRED\n${receipt.compatibility.incompatibleReasons.join('\n')}\n`,
+      );
+      process.exitCode = 2;
+      return;
+    }
+    process.stdout.write(
+      `capture=${receipt.captureId}\nrelease=${receipt.releaseId} (${receipt.releaseVersion})\ncompatibility=COMPATIBLE\n`,
+    );
+  } finally {
+    rmSync(sealedRoot, { recursive: true, force: true });
   }
-  process.stdout.write(
-    `capture=${receipt.captureId}\nrelease=${receipt.releaseId} (${receipt.releaseVersion})\ncompatibility=COMPATIBLE\n`,
-  );
 }
 
 interface PrepareInputs {

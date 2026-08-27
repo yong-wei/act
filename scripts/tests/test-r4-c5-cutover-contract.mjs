@@ -79,6 +79,25 @@ assert.match(
   /incomplete transaction has an inconsistent Authority and Runtime predecessor state/u,
   'mixed predecessor state must fail closed instead of opening a replacement transaction',
 );
+assert.match(
+  remote,
+  /load_prior_transaction_context\(\)/u,
+  'the durable status pointer must be loaded before candidate-specific reconciliation',
+);
+assert.ok(
+  remote.indexOf('block_incomplete_recovery') < remote.indexOf('recover_incomplete_transaction'),
+  'a reconciliation failure must enter the durable blocked-recovery path',
+);
+assert.match(
+  remote,
+  /stop_consumers \|\| true\n\s+if \[\[ -n "\$transaction_id" && -n "\$journal_path" \]\]; then\n\s+write_recovery_status BLOCKED_RECOVERY/u,
+  'an unreconciled durable transaction must stop consumers and persist BLOCKED_RECOVERY before exiting',
+);
+assert.match(
+  remote,
+  /r4-coordinated-production-recovery-block\/v1/u,
+  'an unreadable status pointer must leave a separate durable blocked-recovery record without overwriting evidence',
+);
 assert.ok(
   remote.includes('status_path="$journal_dir/r4-c5-current.json"')
     && remote.includes("'journalPath': os.path.basename(output_path)"),
