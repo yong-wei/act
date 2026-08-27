@@ -1,16 +1,18 @@
 {
   "schemaVersion": "act-esa-delivery-qualification/v1",
-  "sourceCommit": "dbddcb11d816c77555f6e1785663700eed216be5",
-  "sourceTree": "995d204b4832b9dd7ef58fc646f43565dacce9f2",
-  "dirty": false,
+  "sourceCommit": "2d84af7816fc72eaf293b70e9cf03a7d05da4733",
+  "sourceTree": "122b5a300951e45c9e4e4ae9ce3f4508ed0929c6",
+  "dirty": true,
   "mixedWorktree": false,
   "toolVersion": "static-esa-delivery/1",
   "capturedAt": "2026-08-27T12:00:00.000Z",
-  "status": "incomplete",
+  "status": "blocked",
   "hostname": "static.adapt-learn.online",
   "deliveryBucket": "act-course-delivery",
   "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
-  "blockingReasons": [],
+  "blockingReasons": [
+    "dirty-worktree"
+  ],
   "missingEvidence": [
     "cost",
     "dns-trusted-observation",
@@ -21,5 +23,35 @@
   "serviceRoleAccepted": false,
   "dnsApplied": false,
   "originBucket": "act-course-delivery",
-  "qualificationId": "d11f592394e286df7723a0e52873f699ff600d8a4dffcd6526ab1f9b18b645c3"
+  "evidence": {
+    "serviceRole": null,
+    "object": {
+      "schemaVersion": "act-esa-delivery-object/v1",
+      "sourcePath": "public/assets/models-opt/destroyer.glb",
+      "sourceSha256": "0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae",
+      "objectSha256": "0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae",
+      "sizeBytes": 3394880,
+      "mediaType": "model/gltf-binary",
+      "objectKey": "assets/0a00ac53b832d8ba1a71a40e9614e92302f8383cffd94922ae6d94cbb99b9cae/destroyer.glb",
+      "bucket": "act-course-delivery",
+      "publicAcl": false,
+      "overwriteAttempted": false,
+      "etagFingerprint": null
+    },
+    "dns": {
+      "schemaVersion": "act-esa-delivery-dns/v1",
+      "hostname": "static.adapt-learn.online",
+      "recordType": "intercepted",
+      "priorValue": null,
+      "priorTtlSeconds": null,
+      "desiredValue": null,
+      "applied": false,
+      "namesChanged": []
+    },
+    "transport": null,
+    "isolation": null,
+    "cost": null
+  },
+  "evidenceFingerprint": "2f64f7b1dc1be3197131973e574354d19114def7da7407c2e9f53deed93356a8",
+  "qualificationId": "15d36b168ee061fc6ac58134d72ff46a182ba8526f46f1338262c7f53ae28f79"
 }
