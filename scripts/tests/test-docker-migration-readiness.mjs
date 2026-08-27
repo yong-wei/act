@@ -52,6 +52,32 @@ function runImageWolframSmoke() {
   }
 }
 
+function runImageKnowledgeDeployContract() {
+  const image = process.env.MATH_CALC_TEST_IMAGE;
+  if (!image) return;
+  try {
+    execFileSync(
+      'docker',
+      [
+        'run',
+        '--rm',
+        '--entrypoint',
+        'sh',
+        image,
+        '-lc',
+        'test -s /app/course-content/contracts/knowledge-relation-coverage-audit.json && test -x /app/node_modules/.bin/tsx',
+      ],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+  } catch (error) {
+    throw new Error(`生产镜像知识同步契约不可执行：${error.message}`);
+  }
+}
+
 function assertMissingWolframImageFailsClosed() {
   const image = process.env.MATH_CALC_TEST_NEGATIVE_IMAGE;
   if (!image) return;
@@ -108,6 +134,7 @@ function main() {
     '/app/scripts/course-coverage ./scripts/course-coverage',
     '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
     '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
+    '/app/course-content/contracts/knowledge-relation-coverage-audit.json ./course-content/contracts/knowledge-relation-coverage-audit.json',
     '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
     '/app/.app-revision ./.app-revision',
   ]) {
@@ -673,6 +700,7 @@ function main() {
   );
 
   runImageWolframSmoke();
+  runImageKnowledgeDeployContract();
   assertMissingWolframImageFailsClosed();
 
   assert.match(
@@ -971,6 +999,20 @@ function main() {
     remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
     'remote-deploy 必须在受控发布路径中实际同步 runtime 知识图谱，不能调用仅拒绝执行的 package gate',
   );
+  assert.ok(
+    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" test -s course-content/contracts/knowledge-relation-coverage-audit.json'),
+    'remote-deploy 必须在容器内确认关系审计契约可用后再同步知识图谱',
+  );
+  for (const verifier of [
+    'scripts/db/import-authoritative-actkg-release.ts --verify-only',
+    'scripts/db/import-course-coverage-overlay.ts --verify-only',
+    'scripts/db/import-canonical-resource-binding-shadow.ts --verify-only',
+  ]) {
+    assert.ok(
+      remoteDeployScript.includes(`./node_modules/.bin/tsx ${verifier}`),
+      `remote-deploy 必须执行只读部署核验: ${verifier}`,
+    );
+  }
 
   assert.match(
     localImageBuildScript,

@@ -720,6 +720,7 @@ remote "bash -lc 'set -euo pipefail
   echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
   # seed:knowledge is intentionally apply-gated for ad-hoc use. This is the
   # controlled deployment execution path after the immutable runtime is mounted.
+  podman exec \"${APP_NAME_HINT}\" test -s course-content/contracts/knowledge-relation-coverage-audit.json
   podman exec \"${APP_NAME_HINT}\" node scripts/db/seed-all-knowledge.mjs
   echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
   \"${REMOTE_NGINX_SCRIPT}\"
@@ -812,6 +813,8 @@ podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NA
 
 log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
 remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-authoritative-actkg-release.ts --verify-only"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-course-coverage-overlay.ts --verify-only"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-canonical-resource-binding-shadow.ts --verify-only"
 
 log "- 校验 runtime 知识图谱已同步到数据库"
 remote "bash -lc '
