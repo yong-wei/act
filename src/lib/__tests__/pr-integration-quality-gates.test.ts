@@ -1,17 +1,21 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_QUALITY_GATE_REGISTRY,
+  HOSTED_CI_WORKFLOW_PATHS,
   IMPACT_DENOMINATOR_KEYS,
+  QUALITY_EVENTS,
   QUALITY_LAYER_IDS,
   createBlockedIntegrationProtectionReceipt,
+  createIntegrationProtectionReceipt,
   createLayerReceipt,
   qualityGateRegistryHash,
   qualityCommand,
   selectPrImpact,
   serializeQualityGateRegistry,
+  validateGitHubHostedCiBoundary,
   validateIntegrationProtectionReceipt,
   validateLayerReceipt,
   validateMainReleasePreservation,
@@ -69,6 +73,8 @@ function graphReceipt(
 describe('PR and integration quality gate contracts', () => {
   it('uses one stable registry and all local command scripts resolve', () => {
     expect(QUALITY_LAYER_IDS).toEqual(['pr', 'integration', 'main-release', 'nightly']);
+    expect(QUALITY_EVENTS).toEqual(['local']);
+    expect(DEFAULT_QUALITY_GATE_REGISTRY.layers.every((layer) => layer.events.includes('local') && layer.events.length === 1)).toBe(true);
     expect(validateQualityGateRegistry()).toEqual([]);
     expect(validatePackageCommandAuthority(process.cwd())).toEqual([]);
     expect(qualityGateRegistryHash()).toBe(qualityGateRegistryHash(copyRegistry()));
@@ -108,7 +114,47 @@ describe('PR and integration quality gate contracts', () => {
   });
 
   it('rejects workflow-only test lists, silent skips, accepted failures, and the Node 20 ESM loader', () => {
-    expect(validateWorkflowText('.github/workflows/quality-gates.yml', readFileSync('.github/workflows/quality-gates.yml', 'utf8'))).toEqual([]);
+    expect(existsSync(HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates)).toBe(false);
+    expect(validateGitHubHostedCiBoundary(process.cwd())).toEqual([]);
+    expect(validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, readFileSync(HOSTED_CI_WORKFLOW_PATHS.main, 'utf8'))).toEqual([]);
+    expect(validateWorkflowText('.github/workflows/quality-gates.yml', 'run: npm run quality-gates:run').map((failure) => failure.code)).toContain('github-pr-quality-workflow-forbidden');
+    expect(validateWorkflowText('.github/workflows/pr-checks.yml', [
+      'on:',
+      '  pull_request:',
+      '    branches:',
+      '      - integration',
+      '  schedule:',
+      '    - cron: "17 2 * * *"',
+    ].join('\n')).map((failure) => failure.code)).toEqual(expect.arrayContaining([
+      'github-pull-request-trigger-forbidden',
+      'github-integration-push-trigger-forbidden',
+      'github-nightly-schedule-forbidden',
+    ]));
+    for (const scalar of ['on: pull_request', 'on: "pull_request"', "on: 'pull_request'", 'on: [pull_request]', 'on:\n  - pull_request', 'on: pull_request_target']) {
+      expect(validateWorkflowText('.github/workflows/pr-checks.yml', scalar).map((failure) => failure.code)).toContain('github-pull-request-trigger-forbidden');
+    }
+    expect(validateWorkflowText('.github/workflows/nightly.yml', 'on: schedule').map((failure) => failure.code)).toContain('github-nightly-schedule-forbidden');
+    const hosted = validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, [
+      'on:',
+      '  pull_request:',
+      '    branches:',
+      '      - integration',
+      '  push:',
+      '    branches:',
+      '      - release/**',
+      'jobs:',
+      '  main-release-quality-gates:',
+      '    run: npm run quality-gates:run',
+    ].join('\n'));
+    expect(hosted.map((failure) => failure.code)).toEqual(expect.arrayContaining([
+      'github-pull-request-trigger-forbidden',
+      'github-release-branch-trigger-forbidden',
+      'github-main-release-quality-job-forbidden',
+      'github-quality-gate-runner-hosted',
+      'github-workflow-dispatch-missing',
+      'github-main-push-trigger-missing',
+      'github-integration-push-trigger-forbidden',
+    ]));
     const invalid = validateWorkflowText('fixture.yml', [
       'run: npx vitest run src/a.test.ts',
       'continue-on-error: true',
@@ -165,6 +211,82 @@ describe('PR and integration quality gate contracts', () => {
     expect(receipt.enforcement).toBe('unknown');
     expect(receipt.requiredChecks).toEqual([]);
     expect(validateIntegrationProtectionReceipt(receipt)).toEqual([]);
+  });
+
+  it('forbids mapping quality-gate registry checks to GitHub required CI status checks', () => {
+    const platform = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(platform.status).toBe('verified');
+    expect(platform.requiredChecks).toEqual([]);
+    expect(validateIntegrationProtectionReceipt(platform)).toEqual([]);
+
+    const hostedRequired = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: ['pr/contract'],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(hostedRequired.status).toBe('blocked-unverified');
+    expect(validateIntegrationProtectionReceipt({
+      ...platform,
+      requiredChecks: ['pr/contract'],
+    }).map((failure) => failure.code)).toContain('github-required-ci-checks-forbidden');
+  });
+
+  it('does not mark GitHub protection verified from dirty trees or local workflow files', () => {
+    const dirty = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: true,
+      responseClass: 'not-configured',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(dirty.status).toBe('blocked-unverified');
+    expect(validateIntegrationProtectionReceipt(dirty)).toEqual([]);
+
+    const localFiles = createIntegrationProtectionReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      responseClass: 'local-workflow-inspection',
+      enforcement: 'disabled',
+      requiredChecks: [],
+      strictStatus: null,
+      requiredReviews: null,
+      conversationResolution: null,
+      bypassActors: [],
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      status: 'verified',
+    });
+    expect(localFiles.status).toBe('blocked-unverified');
+    expect(validateIntegrationProtectionReceipt(localFiles)).toEqual([]);
   });
 
   it('does not permit a release check to be removed or downgraded', () => {
