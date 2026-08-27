@@ -10,7 +10,7 @@ SHALL affect only resources proven to belong to the target checkout and SHALL
 preserve the shared Blob mount while another live lease exists, as well as
 unknown paths and other worktrees.
 
-#### Scenario: Normal shutdown releases one checkout
+#### Scenario: Normal shutdown releases the runtime
 - **WHEN** the developer invokes the OSS-aware shutdown command
 - **THEN** it SHALL stop that checkout's frontend, worker and scheduler before unmounting its exact bind and releasing its shared-mount lease
 
