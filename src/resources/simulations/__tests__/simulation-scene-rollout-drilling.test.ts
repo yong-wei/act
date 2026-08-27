@@ -13,7 +13,7 @@ describe('drilling scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 114');
     expect(source).toContain('designSpeedKnots: 8');
-    expect(source).toContain('/assets/models-opt/drilling-rig.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('drilling-rig')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -54,8 +54,8 @@ describe('drilling pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(DRILLING);
-    expect(source).toContain('models-opt/drilling-rig.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('drilling-rig')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

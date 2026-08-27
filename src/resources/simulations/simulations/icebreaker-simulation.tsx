@@ -5,7 +5,7 @@
  * 使用 Azipod 3-DOF 模型和冰阻力 Stick-Slip 模型
  */
 
-import { Component, Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -18,6 +18,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -160,22 +162,7 @@ interface RobustResponse {
 // ============ 着色器材质 ============
 
 /** 破冰船模型 */
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/icebreaker.glb';
-const ORIGINAL_MODEL_URL = '/assets/icebreaker.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('icebreaker');
 
 function IcebreakerModel(props: {
   position: Vector2;
@@ -184,9 +171,10 @@ function IcebreakerModel(props: {
   azimuth2: number;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<IcebreakerModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
-      <IcebreakerModelScene url={OPTIMIZED_MODEL_URL} {...props} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <IcebreakerModelScene url={url} {...props} />}
+    />
   );
 }
 
@@ -280,7 +268,7 @@ function IcebreakerModelScene({
 }
 
 // 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(OPTIMIZED_MODEL_URL);
+useGLTF.preload(MODEL.primary);
 
 /** 航向指示器 */
 function HeadingIndicator({

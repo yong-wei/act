@@ -95,12 +95,17 @@ async function main() {
       await document.transform(meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
       await io.write(outputPath, document);
       const outputSize = (await stat(outputPath)).size;
+      const outputSha256 = createHash('sha256').update(await readFile(outputPath)).digest('hex');
       manifest.models[name] = {
         status: 'meshopt',
         url: `/assets/models-opt/${name}`,
         sourceBytes: sourceSize,
         sourceSha256,
         optimizedBytes: outputSize,
+        outputSha256,
+        optimizerName: '@act/glb-model-optimizer',
+        optimizerVersion: '1.0.0',
+        optimizerLevel: 'medium',
       };
       console.log(`[models:produce] ${name}: ${(sourceSize / 1e6).toFixed(1)}MB → ${(outputSize / 1e6).toFixed(1)}MB`);
     } catch (error) {

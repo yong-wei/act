@@ -5,12 +5,14 @@
  * 模块化重构版本 - 使用统一物理引擎和控制器
  */
 
-import { Suspense, Component, useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import {
   Play,
   Pause,
@@ -435,22 +437,7 @@ function WakeTrailRig({
 }
 
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/destroyer.glb';
-const ORIGINAL_MODEL_URL = '/assets/destroyer.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('destroyer');
 
 /** 驱逐舰3D模型（优先 meshopt 压缩资产，失败回退原始 GLB） */
 function DestroyerModel({
@@ -459,9 +446,10 @@ function DestroyerModel({
   simRef: React.MutableRefObject<SimulationState>;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<DestroyerModelScene url={ORIGINAL_MODEL_URL} simRef={simRef} />}>
-      <DestroyerModelScene url={OPTIMIZED_MODEL_URL} simRef={simRef} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+    />
   );
 }
 
@@ -521,7 +509,7 @@ function DestroyerModelScene({
   );
 }
 
-useGLTF.preload(OPTIMIZED_MODEL_URL);
+useGLTF.preload(MODEL.primary);
 
 
 /** 仿真物理引擎 */

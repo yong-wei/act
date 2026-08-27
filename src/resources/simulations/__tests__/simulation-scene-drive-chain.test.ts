@@ -88,7 +88,7 @@ describe('sample experiment full pipeline integration', () => {
       '<ActualPathTrail',
       'SceneQualityProvider',
       '<ScenePostEffects',
-      'ModelAssetErrorBoundary',
+      'FallbackGltfModel',
     ]) {
       expect(destroyer, `missing pipeline layer ${marker}`).toContain(marker);
     }

@@ -7,6 +7,7 @@
  * 知识点映射：根轨迹参数扫描 (Ch4)，鲁棒性 (Ch6)，增益调度
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   CONTAINER_MSC_PARAMS,
@@ -106,7 +107,7 @@ export const containerMscProfile: ShipProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/container.glb',
+    modelPath: resolveRegisteredSimulationModel('container').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#f97316',  // 橙色
