@@ -34,6 +34,8 @@
     "quality-gates:run": "node --import tsx ./scripts/quality-gates.ts run",
     "quality-gates:write-registry": "node --import tsx ./scripts/quality-gates.ts write-registry",
     "quality-gates:write-protection-receipt": "node --import tsx ./scripts/quality-gates.ts write-protection-receipt",
+    "traffic-cost:inventory": "tsx ./scripts/runtime-traffic-cost.ts inventory",
+    "traffic-cost:observe": "tsx ./scripts/runtime-traffic-cost.ts observe",
     "test:contracts:write": "tsx ./scripts/test-command-contracts.ts --write",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
     "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
