@@ -12,6 +12,7 @@ SSH_TARGET="${SSH_TARGET:-root@121.40.124.135}"
 KNOWN_HOSTS_FILE="${ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE:-}"
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 REMOTE_RUNTIME_RELEASE_DIR="${REMOTE_RUNTIME_RELEASE_DIR:-$REMOTE_PROJECT_DIR/scripts/runtime-release}"
+REMOTE_READ_BRIDGE="${REMOTE_RUNTIME_READ_BRIDGE:-$REMOTE_RUNTIME_RELEASE_DIR/runtime-release-oss-publisher-bridge.py}"
 REMOTE_ARTIFACT_ROOT="${REMOTE_RUNTIME_ARTIFACT_ROOT:-$REMOTE_PROJECT_DIR/data/runtime/releases}"
 REMOTE_RUNTIME_VIEW_ROOT="${REMOTE_RUNTIME_BLOB_VIEW_ROOT:-$REMOTE_PROJECT_DIR/data/runtime/blob-views}"
 REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release-host-state.py}"
@@ -120,6 +121,7 @@ done
 for remote_path in \
   "$REMOTE_PROJECT_DIR" \
   "$REMOTE_RUNTIME_RELEASE_DIR" \
+  "$REMOTE_READ_BRIDGE" \
   "$REMOTE_ARTIFACT_ROOT" \
   "$REMOTE_RUNTIME_VIEW_ROOT" \
   "$REMOTE_HOST_STATE" \
@@ -301,7 +303,9 @@ fi
 # prevents a concurrent GC from collecting unique candidate blobs between the
 # local publish and the later host materialization step.
 remote_lifecycle_identity="$REMOTE_ARTIFACT_ROOT/$release_id/lifecycle-identity.json"
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$(dirname "$REMOTE_READ_BRIDGE")' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")'"
+copy_atomic "$LOCAL_BRIDGE" "$REMOTE_READ_BRIDGE"
+remote "python3 -m py_compile '$REMOTE_READ_BRIDGE'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
@@ -371,6 +375,7 @@ if [[ "$resuming_published_release" != "1" ]]; then
   --identity-command-path "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND" --identity-command-sha256 "$ACT_RUNTIME_LOCAL_IDENTITY_COMMAND_SHA256"
   --operator-account-id "$ACT_RUNTIME_OPERATOR_ACCOUNT_ID" --operator-principal-arn "$ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN"
   --lock-dir "$ACT_RUNTIME_PUBLISH_LOCK_DIR" --spool-dir "$ACT_RUNTIME_PUBLISH_SPOOL_DIR" --daily-report-output "$daily_report" --output "$verification_receipt"
+  --read-bridge-ssh-target "$SSH_TARGET" --read-bridge-path "$REMOTE_READ_BRIDGE" --read-bridge-known-hosts-file "$KNOWN_HOSTS_FILE"
   )
   if [[ -n "$parent_manifest" ]]; then
     publish_args+=(--parent-manifest "$parent_manifest")

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "act-integration-protection-verification/v1",
+  "branch": "integration",
+  "status": "blocked-unverified",
+  "sourceCommit": "1325ad932d21502039c397b8b2bd0dd85933950b",
+  "sourceTree": "6e84a7f1e70c675d7a78ae2fa727600f40e6f7da",
+  "dirty": true,
+  "provider": "github",
+  "responseClass": "not-queried-in-patch-worker-scope",
+  "enforcement": "unknown",
+  "requiredChecks": [],
+  "strictStatus": null,
+  "requiredReviews": null,
+  "conversationResolution": null,
+  "bypassActors": [],
+  "affectedGate": "integration-hosted-ci-boundary",
+  "resolutionCondition": "Do not treat unread GitHub protection as a required CI gate; keep integration merge evidence local and prove hosted quality workflows remain absent.",
+  "capturedAt": "2026-08-27T06:20:09.104Z",
+  "receiptId": "816539053f911aef91ac11fef2d23d83b046c32992cb689a88c9d3c43a63c7f4"
+}

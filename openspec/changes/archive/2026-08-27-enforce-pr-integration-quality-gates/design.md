@@ -1,3 +1,7 @@
+## Correction (2026-08-27)
+
+下文把分层门禁实现成 GitHub PR/integration CI 是错误边界。合入证据改为本地命令与 exact-current-HEAD 审查；GitHub Actions 只保留 `main` push 与授权 `workflow_dispatch`。见 `correct-pr-quality-gates-to-local-evidence`。
+
 ## Context
 
 仓库当前 CI workflow 的主质量 job 在 `main` push/手动触发，另有面向 `integration` PR 的 Wolfram 专项 workflow，但没有把测试命令、production typecheck、架构 fitness、发布资格和分支保护组合成完整门禁。前置 changes 将 command/discovery、red baseline、TS graphs 和 architecture budgets 定义为独立可审计输入；本 change 只做 CI 控制面和 GitHub protection 的可验证映射。

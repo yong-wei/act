@@ -7,6 +7,7 @@
     "scripts/**/*.cts",
     "tools/boundary/**/*.ts",
     "tools/evidence-lifecycle/**/*.ts",
+    "tools/migration-backfill/**/*.ts",
     "typescript-graph-fixtures/tools.ts"
   ],
   "exclude": [
