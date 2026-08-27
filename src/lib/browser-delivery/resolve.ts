@@ -37,31 +37,39 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function hasCleanGitIdentity(raw: Record<string, unknown>): boolean {
-  return GIT_SHA.test(String(raw.sourceCommit ?? ''))
-    && GIT_SHA.test(String(raw.sourceTree ?? ''))
+function hasCompatibleGitIdentity(raw: Record<string, unknown>, sourceCommit: string, sourceTree: string): boolean {
+  return raw.sourceCommit === sourceCommit
+    && raw.sourceTree === sourceTree
     && raw.dirty === false
     && raw.mixedWorktree === false;
 }
 
-function esaReceiptQualified(raw: unknown): 'missing' | 'invalid' | 'qualified' {
+function esaReceiptQualified(
+  raw: unknown,
+  sourceCommit: string,
+  sourceTree: string,
+): 'missing' | 'invalid' | 'qualified' {
   if (raw === undefined) return 'missing';
   if (!isRecord(raw)) return 'invalid';
   if (raw.schemaVersion !== ESA_QUALIFICATION_SCHEMA) return 'invalid';
   if (raw.hostname !== STATIC_HOSTNAME || raw.deliveryBucket !== DELIVERY_BUCKET) return 'invalid';
   if (typeof raw.evidenceFingerprint !== 'string' || !SHA256.test(raw.evidenceFingerprint)) return 'invalid';
   if (typeof raw.qualificationId !== 'string' || !SHA256.test(raw.qualificationId)) return 'invalid';
-  if (!hasCleanGitIdentity(raw)) return 'invalid';
+  if (!hasCompatibleGitIdentity(raw, sourceCommit, sourceTree)) return 'invalid';
   if (raw.dnsApplied !== true) return 'missing';
   return raw.status === 'qualified' ? 'qualified' : 'missing';
 }
 
-function trafficReceiptQualified(raw: unknown): 'missing' | 'invalid' | 'qualified' {
+function trafficReceiptQualified(
+  raw: unknown,
+  sourceCommit: string,
+  sourceTree: string,
+): 'missing' | 'invalid' | 'qualified' {
   if (raw === undefined) return 'missing';
   if (!isRecord(raw)) return 'invalid';
   if (raw.schemaVersion !== TRAFFIC_OBSERVATION_SCHEMA) return 'invalid';
   if (typeof raw.observationId !== 'string' || !SHA256.test(raw.observationId)) return 'invalid';
-  if (!hasCleanGitIdentity(raw)) return 'invalid';
+  if (!hasCompatibleGitIdentity(raw, sourceCommit, sourceTree)) return 'invalid';
   return raw.status === 'qualified' ? 'qualified' : 'missing';
 }
 
@@ -77,10 +85,10 @@ export function qualifyRouting(input: RoutingInput): RoutingReceipt {
   if (input.publication.manifestDigest !== input.manifest.manifestDigest) {
     blockingReasons.push('publication-manifest-mismatch');
   }
-  const esa = esaReceiptQualified(input.esaReceipt);
+  const esa = esaReceiptQualified(input.esaReceipt, input.sourceCommit, input.sourceTree);
   if (esa === 'invalid') blockingReasons.push('esa-receipt-invalid');
   else if (esa !== 'qualified') missingEvidence.push('esa-poc');
-  const traffic = trafficReceiptQualified(input.trafficReceipt);
+  const traffic = trafficReceiptQualified(input.trafficReceipt, input.sourceCommit, input.sourceTree);
   if (traffic === 'invalid') blockingReasons.push('traffic-receipt-invalid');
   else if (traffic !== 'qualified') missingEvidence.push('traffic-baseline');
   if (!publicationVerified(input.publication)) missingEvidence.push('publication');

@@ -114,6 +114,37 @@ describe('content-addressed browser delivery', () => {
       esaReceipt: { status: 'qualified' },
       trafficReceipt: { status: 'qualified' },
     }).blockingReasons).toEqual(expect.arrayContaining(['esa-receipt-invalid', 'traffic-receipt-invalid']));
+    expect(qualifyRouting({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      dirty: false,
+      mixedWorktree: false,
+      manifest: built,
+      publication: published,
+      esaReceipt: {
+        schemaVersion: 'act-esa-delivery-qualification/v1',
+        status: 'qualified',
+        hostname: 'static.adapt-learn.online',
+        deliveryBucket: DELIVERY_BUCKET,
+        dnsApplied: true,
+        evidenceFingerprint: DIGEST,
+        qualificationId: DIGEST,
+        sourceCommit: 'e'.repeat(40),
+        sourceTree: TREE,
+        dirty: false,
+        mixedWorktree: false,
+      },
+      trafficReceipt: {
+        schemaVersion: 'act-runtime-traffic-observation/v1',
+        status: 'qualified',
+        observationId: DIGEST,
+        sourceCommit: COMMIT,
+        sourceTree: TREE,
+        dirty: false,
+        mixedWorktree: false,
+      },
+    }).blockingReasons).toContain('esa-receipt-invalid');
     const qualified = qualifyRouting({
       sourceCommit: COMMIT,
       sourceTree: TREE,
