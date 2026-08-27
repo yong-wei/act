@@ -7,7 +7,6 @@ import hmac
 import importlib.util
 import json
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -19,7 +18,6 @@ from pathlib import Path
 from typing import Any
 
 from common import (
-    BLOB_PREFIX,
     DEFAULT_READYZ_URL,
     DeveloperRuntimeError,
     IDENTITY_KEYS,
@@ -29,15 +27,46 @@ from common import (
     RELEASE_ID,
     RELEASE_PREFIX,
     SELECTION_SCHEMA,
+    SELECTION_SCHEMA_V2,
+    SELECTION_V1_KEYS,
+    SELECTION_V2_KEYS,
     SHA256,
+    TOPOLOGY_CHECKOUT,
+    TOPOLOGY_SHARED,
+    checkout_id,
     checkout_state,
     fail,
     redact,
     require_exact_keys,
     require_mode,
+    topology_mode,
 )
 from credential import assert_developer_principal, load_credential
 from policy import load_and_validate
+from shared_mount import (
+    acquire_lease,
+    adapter_locks,
+    ensure_shared_mount,
+    heartbeat_lease,
+    is_fuse_readonly,
+    is_readonly_mount,
+    mount_blobs,
+    mount_fields,
+    mount_helper_path,
+    portable_start_payload,
+    privileged_mount,
+    live_lease_ids,
+    refuse_legacy_checkout_mount,
+    refuse_live_shared_for_checkout_topology,
+    release_lease,
+    remove_ossfs_config as remove_config_file,
+    require_ossfs2_version,
+    shared_mount_dir,
+    unmount,
+    unmount_best_effort,
+    which,
+    write_ossfs_config,
+)
 
 REQUIRED_ARCH = {"x86_64", "amd64", "aarch64", "arm64"}
 MATERIALIZER_NAME = "materialize-runtime-blob-release.py"
@@ -51,34 +80,6 @@ def load_materializer():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def which(name: str) -> str:
-    path = shutil.which(name)
-    if not path:
-        fail("required tool is missing: %s" % name)
-    return path
-
-
-MOUNT_HELPER = Path(__file__).with_name("privileged-mount.py")
-
-
-def mount_helper_path() -> str:
-    configured = os.environ.get("ACT_RUNTIME_DEV_MOUNT_HELPER")
-    if configured:
-        return configured
-    installed = Path("/usr/local/sbin/act-runtime-dev-mount")
-    if installed.exists():
-        return str(installed)
-    fail("install /usr/local/sbin/act-runtime-dev-mount; do not grant unrestricted mount sudo")
-    return ""
-
-
-def privileged_mount(args: list[str]) -> list[str]:
-    helper = mount_helper_path() if os.geteuid() != 0 else sys.executable
-    if os.geteuid() == 0:
-        return [sys.executable, str(MOUNT_HELPER), *args]
-    return [which("sudo"), "-n", helper, *args]
 
 
 def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> str:
@@ -202,29 +203,6 @@ def oss_object_key(release_id: str, name: str) -> str:
     return "%s%s/%s" % (RELEASE_PREFIX, release_id, name)
 
 
-def write_ossfs_config(path: Path, credential: dict[str, str]) -> None:
-    lines = [
-        "--oss_endpoint=%s" % PUBLIC_OSS_ENDPOINT,
-        "--oss_bucket=%s" % OSS_BUCKET,
-        "--oss_region=cn-hangzhou",
-        "--oss_access_key_id=%s" % credential["accessKeyId"],
-        "--oss_access_key_secret=%s" % credential["accessKeySecret"],
-        "--oss_bucket_prefix=%s" % BLOB_PREFIX,
-        "--ro=true",
-        "--allow_other=true",
-        "--file_mode=0644",
-        "--dir_mode=0755",
-    ]
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(path.parent, 0o700)
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    try:
-        os.write(descriptor, ("\n".join(lines) + "\n").encode("utf-8"))
-        os.fchmod(descriptor, 0o600)
-    finally:
-        os.close(descriptor)
-
-
 def fetch_release_documents(release_id: str, destination: Path, credential: dict[str, str]) -> tuple[Path, Path]:
     ossutil = which("ossutil")
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -272,7 +250,7 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
     if sys.platform != "linux" and os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") != "1":
         fail("developer OSS runtime requires the Linux execution layer")
     if sys.platform != "linux":
-        return {"architecture": machine or "fixture", "fuse": "fixture"}
+        return {"architecture": machine or "fixture", "fuse": "fixture", "ossfs2": require_ossfs2_version()}
     fuse = Path("/dev/fuse")
     if not fuse.exists():
         fail("/dev/fuse is missing")
@@ -291,38 +269,7 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
             fail("passwordless sudo is required for /usr/local/sbin/act-runtime-dev-mount")
     if not os.access(checkout, os.W_OK):
         fail("checkout is not writable")
-    return {"architecture": machine, "fuse": str(fuse)}
-
-
-def mount_fields(path: Path) -> tuple[str, str]:
-    helper = os.environ.get("ACT_RUNTIME_DEV_FINDMNT")
-    command = [helper or which("findmnt"), "-n", "-o", "FSTYPE,OPTIONS", str(path)]
-    completed = subprocess.run(command, capture_output=True, text=True)
-    output = (completed.stdout or "").strip()
-    if completed.returncode != 0 or not output:
-        return "", ""
-    fields = output.split(None, 1)
-    fstype = fields[0] if fields else ""
-    options = fields[1] if len(fields) > 1 else ""
-    return fstype, options
-
-
-def is_fuse_readonly(path: Path) -> bool:
-    fstype, options = mount_fields(path)
-    return "fuse" in fstype.lower() and "ro" in options.split(",")
-
-
-def is_readonly_mount(path: Path) -> bool:
-    _, options = mount_fields(path)
-    return "ro" in options.split(",")
-
-
-def mount_blobs(blob_root: Path, config_path: Path) -> None:
-    blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
-    ossfs = which("ossfs2")
-    run([ossfs, "-c", str(config_path), str(blob_root)])
-    if not is_fuse_readonly(blob_root):
-        fail("blob mount must be a read-only FUSE filesystem")
+    return {"architecture": machine, "fuse": str(fuse), "ossfs2": require_ossfs2_version()}
 
 
 def bind_runtime(view: Path, runtime_root: Path) -> None:
@@ -335,31 +282,10 @@ def bind_runtime(view: Path, runtime_root: Path) -> None:
         fail("checkout runtime bind must be read-only")
 
 
-def unmount(path: Path) -> None:
-    fstype, _ = mount_fields(path)
-    if not fstype:
-        return
-    if "fuse" in fstype.lower():
-        fusermount = shutil.which("fusermount")
-        if fusermount:
-            subprocess.run([fusermount, "-u", str(path)], check=False, capture_output=True)
-    subprocess.run(privileged_mount(["umount", str(path)]), check=False, capture_output=True)
-    remaining, _ = mount_fields(path)
-    if remaining:
-        fail("failed to unmount a checkout-owned mount")
-
-
-def unmount_best_effort(path: Path) -> None:
-    try:
-        unmount(path)
-    except DeveloperRuntimeError:
-        return
-
-
 def write_selection_receipt(path: Path, payload: dict[str, Any]) -> None:
-    require_exact_keys(payload, (
-        "schemaVersion", "releaseId", "manifestSha256", "treeSha256", "blobMount", "helperMount", "viewRoot", "runtimeRoot", "startedAt",
-    ), "selection receipt")
+    schema = payload.get("schemaVersion")
+    keys = SELECTION_V2_KEYS if schema == SELECTION_SCHEMA_V2 else SELECTION_V1_KEYS
+    require_exact_keys(payload, keys, "selection receipt")
     serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     if any(secret in serialized for secret in ("accessKey", "LTAI", "Secret")):
         fail("selection receipt must not contain credentials")
@@ -378,17 +304,6 @@ def read_selection_receipt(path: Path) -> dict[str, Any] | None:
         return None
     require_mode(path, 0o600, "selection receipt")
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def acquire_lock(checkout: Path) -> int:
-    import fcntl
-    state = checkout_state(checkout)
-    state.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(state, 0o700)
-    lock_path = state / "prepare.lock"
-    descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
-    fcntl.flock(descriptor, fcntl.LOCK_EX)
-    return descriptor
 
 
 def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
@@ -418,6 +333,38 @@ def stop_services(checkout: Path) -> None:
     run([npm, "run", "shutdown"], cwd=checkout)
 
 
+def remove_ossfs_config(state: Path) -> None:
+    remove_config_file(state / "ossfs.conf")
+
+
+def _selection_payload(
+    checkout: Path,
+    readiness: dict[str, str],
+    blob_root: Path,
+    helper_mount: Path,
+    selected: Path,
+    runtime_root: Path,
+    topology: str,
+    mount_id: str | None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "schemaVersion": SELECTION_SCHEMA_V2 if topology == TOPOLOGY_SHARED else SELECTION_SCHEMA,
+        "releaseId": readiness["releaseId"],
+        "manifestSha256": readiness["manifestSha256"],
+        "treeSha256": readiness["treeSha256"],
+        "blobMount": str(blob_root),
+        "helperMount": str(helper_mount),
+        "viewRoot": str(selected),
+        "runtimeRoot": str(runtime_root),
+        "startedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    if topology == TOPOLOGY_SHARED:
+        payload["checkoutId"] = checkout_id(checkout)
+        payload["sharedMountId"] = mount_id
+        payload["topology"] = TOPOLOGY_SHARED
+    return payload
+
+
 def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
     load_and_validate()
     linux_preflight(checkout)
@@ -425,77 +372,84 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
     identity = caller_identity(credential)
     assert_developer_principal(identity, credential)
     readiness = fetch_readyz_identity(readyz_url)
-    lock = acquire_lock(checkout)
-    try:
+    with adapter_locks(checkout):
+        topology = topology_mode()
+        account_id = credential["accountId"]
         state = checkout_state(checkout)
         receipt_path = state / "selection.json"
         existing = read_selection_receipt(receipt_path)
         runtime_root = checkout / "course-content" / "runtime"
-        if existing and existing.get("releaseId") == readiness["releaseId"] and existing.get("manifestSha256") == readiness["manifestSha256"]:
+        mount_id: str | None = None
+        shared: dict[str, Any] | None = None
+        if topology == TOPOLOGY_SHARED:
+            refuse_legacy_checkout_mount(checkout)
+            shared = ensure_shared_mount(credential, account_id)
+            blob_root = Path(shared["mountpoint"])
+            mount_id = str(shared["identityId"])
+        else:
+            refuse_live_shared_for_checkout_topology(account_id)
+            blob_root = state / "blobs"
+        existing_topology = (existing or {}).get("topology") or TOPOLOGY_CHECKOUT
+        if (
+            existing
+            and existing.get("releaseId") == readiness["releaseId"]
+            and existing.get("manifestSha256") == readiness["manifestSha256"]
+            and existing_topology == topology
+        ):
             blob_mount = Path(existing["blobMount"])
+            if topology == TOPOLOGY_SHARED and existing.get("sharedMountId") not in (None, mount_id):
+                fail("checkout selection does not match the shared mount identity")
             if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
+                if topology == TOPOLOGY_SHARED and mount_id:
+                    heartbeat_lease(checkout, mount_id)
                 return existing
         documents = state / "documents" / readiness["releaseId"]
         manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
         verify_release_documents(readiness, manifest_path, oss_receipt)
-        blob_root = state / "blobs"
-        config_path = state / "ossfs.conf"
-        write_ossfs_config(config_path, credential)
-        require_mode(config_path, 0o600, "ossfs config")
         view_root = state / "materialized"
+        helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
         try:
-            mount_blobs(blob_root, config_path)
+            if topology == TOPOLOGY_CHECKOUT:
+                config_path = state / "ossfs.conf"
+                write_ossfs_config(config_path, credential)
+                require_mode(config_path, 0o600, "ossfs config")
+                mount_blobs(blob_root, config_path)
             view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
             os.chmod(view_root, 0o700)
             helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
             selected = view_root / "current"
             bind_runtime(selected, runtime_root)
-            payload = {
-                "schemaVersion": SELECTION_SCHEMA,
-                "releaseId": readiness["releaseId"],
-                "manifestSha256": readiness["manifestSha256"],
-                "treeSha256": readiness["treeSha256"],
-                "blobMount": str(blob_root),
-                "helperMount": str(helper_mount),
-                "viewRoot": str(selected),
-                "runtimeRoot": str(runtime_root),
-                "startedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            }
+            payload = _selection_payload(
+                checkout, readiness, blob_root, helper_mount, selected, runtime_root, topology, mount_id,
+            )
             write_selection_receipt(receipt_path, payload)
+            if topology == TOPOLOGY_SHARED and mount_id:
+                acquire_lease(checkout, mount_id, payload)
             return payload
         except Exception:
-            helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
             unmount_best_effort(runtime_root)
             unmount_best_effort(helper)
-            unmount_best_effort(blob_root)
-            remove_ossfs_config(state)
+            if topology == TOPOLOGY_CHECKOUT:
+                unmount_best_effort(blob_root)
+                remove_ossfs_config(state)
+            elif mount_id and not live_lease_ids(mount_id):
+                unmount_best_effort(blob_root)
+                remove_config_file(shared_mount_dir(mount_id) / "ossfs.conf")
             raise
-    finally:
-        os.close(lock)
 
 
 def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
     payload = prepare(checkout, readyz_url)
     start_services(checkout)
-    sys.stdout.write(json.dumps({
-        "schemaVersion": payload["schemaVersion"],
-        "releaseId": payload["releaseId"],
-        "manifestSha256": payload["manifestSha256"],
-        "treeSha256": payload["treeSha256"],
-        "ready": True,
-    }, sort_keys=True) + "\n")
+    mount_id = payload.get("sharedMountId")
+    if payload.get("topology") == TOPOLOGY_SHARED and isinstance(mount_id, str):
+        heartbeat_lease(checkout, mount_id)
+    sys.stdout.write(json.dumps(portable_start_payload(payload), sort_keys=True) + "\n")
     return payload
 
 
-def remove_ossfs_config(state: Path) -> None:
-    config_path = state / "ossfs.conf"
-    if config_path.exists() and config_path.is_file() and not config_path.is_symlink():
-        os.remove(config_path)
-
-
 def stop(checkout: Path) -> None:
-    lock = acquire_lock(checkout)
-    try:
+    with adapter_locks(checkout):
         state = checkout_state(checkout)
         try:
             stop_services(checkout)
@@ -507,10 +461,11 @@ def stop(checkout: Path) -> None:
                 unmount(Path(receipt["runtimeRoot"]))
                 helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
                 unmount(Path(helper_mount))
-                unmount(Path(receipt["blobMount"]))
+                if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
+                    release_lease(checkout, str(receipt["sharedMountId"]), unmount)
+                else:
+                    unmount(Path(receipt["blobMount"]))
             else:
                 sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
         finally:
             remove_ossfs_config(state)
-    finally:
-        os.close(lock)
