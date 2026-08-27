@@ -93,7 +93,7 @@ function main(): void {
     return;
   }
   if (action === 'run') {
-    const result = runQualityLayer({ repoRoot, layer: layerArgument() });
+    const result = runQualityLayer({ repoRoot, layer: layerArgument(), checkId: argument('--check') ?? undefined });
     writeLayerReceipt(repoRoot, result.receipt);
     console.log(JSON.stringify({ layer: result.receipt.layer, status: result.receipt.status, receiptId: result.receipt.receiptId, failures: result.failures }));
     if (result.receipt.status !== 'passed') process.exitCode = 1;

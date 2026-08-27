@@ -31,6 +31,7 @@ export interface RunLayerOptions {
   readonly execute?: boolean;
   readonly workflowRunId?: string | null;
   readonly capturedAt?: string;
+  readonly checkId?: string;
 }
 
 export interface GateRunResult {
@@ -62,7 +63,7 @@ function changedPathsFromGit(repoRoot: string): string[] {
   }
 }
 
-function runCommand(repoRoot: string, commandId: QualityCommandId, execute: boolean, layer: QualityLayerId): CheckExecutionResult {
+function runCommand(repoRoot: string, commandId: QualityCommandId, execute: boolean, layer: QualityLayerId, timeoutMinutes = 30): CheckExecutionResult {
   if (!execute) {
     return {
       checkId: '',
@@ -73,6 +74,16 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
       failureCodes: ['execution-not-requested'],
       unhandledErrors: 0,
     };
+  }
+  if (commandId === 'fitness:architecture') {
+    for (const graph of ['web', 'worker', 'tools', 'test'] as const) {
+      spawnSync('npm', ['run', `typecheck:${graph}`], {
+        cwd: repoRoot,
+        env: { ...process.env, QUALITY_GATE_LAYER: layer },
+        stdio: 'inherit',
+        timeout: 30 * 60 * 1000,
+      });
+    }
   }
   const command = qualityCommand(commandId);
   const extraArgs: string[] = [];
@@ -163,6 +174,7 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
     cwd: repoRoot,
     env: { ...process.env, QUALITY_GATE_LAYER: layer },
     stdio: 'inherit',
+    timeout: Math.max(1, timeoutMinutes) * 60 * 1000,
   });
   const exitStatus = result.status ?? 1;
   return {
@@ -177,7 +189,7 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
 }
 
 function checkResult(repoRoot: string, check: RequiredQualityCheck, execute: boolean, layer: QualityLayerId): CheckExecutionResult {
-  const results = check.commandIds.map((commandId) => runCommand(repoRoot, commandId, execute, layer));
+  const results = check.commandIds.map((commandId) => runCommand(repoRoot, commandId, execute, layer, check.timeoutMinutes));
   const failures = results.flatMap((result) => result.failureCodes);
   const status = results.some((result) => result.status === 'skipped')
     ? 'skipped'
@@ -246,7 +258,16 @@ export function runQualityLayer(options: RunLayerOptions): GateRunResult {
       registry,
     })
     : null;
-  const checks = selectedChecks(options.layer, registry, impact);
+  const checks = selectedChecks(options.layer, registry, impact)
+    .filter((check) => !options.checkId || check.checkId === options.checkId)
+    .sort((left, right) => {
+      const rank = (check: RequiredQualityCheck): number => (
+        check.commandIds.some((id) => id.startsWith('typecheck:')) ? 0
+          : check.commandIds.includes('fitness:architecture') ? 1
+            : 2
+      );
+      return rank(left) - rank(right) || left.checkId.localeCompare(right.checkId);
+    });
   const execute = options.execute !== false;
   let results = checks.map((check) => checkResult(options.repoRoot, check, execute, options.layer));
   results = withTypecheckReceiptEvidence(options.repoRoot, results, identity.sourceCommit, identity.sourceTree);
