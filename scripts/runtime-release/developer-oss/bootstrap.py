@@ -401,13 +401,14 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
                 fail("checkout selection does not match the shared mount identity")
             if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
                 if topology == TOPOLOGY_SHARED and mount_id:
-                    heartbeat_lease(checkout, mount_id)
+                    heartbeat_lease(checkout, mount_id, existing)
                 return existing
         documents = state / "documents" / readiness["releaseId"]
         manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
         verify_release_documents(readiness, manifest_path, oss_receipt)
         view_root = state / "materialized"
         helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
+        acquired = False
         try:
             if topology == TOPOLOGY_CHECKOUT:
                 config_path = state / "ossfs.conf"
@@ -418,18 +419,21 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             os.chmod(view_root, 0o700)
             helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
             selected = view_root / "current"
-            bind_runtime(selected, runtime_root)
             payload = _selection_payload(
                 checkout, readiness, blob_root, helper_mount, selected, runtime_root, topology, mount_id,
             )
-            write_selection_receipt(receipt_path, payload)
             if topology == TOPOLOGY_SHARED and mount_id:
                 acquire_lease(checkout, mount_id, payload)
+                acquired = True
+            bind_runtime(selected, runtime_root)
+            write_selection_receipt(receipt_path, payload)
             return payload
         except Exception:
             unmount_best_effort(runtime_root)
             unmount_best_effort(helper)
-            if topology == TOPOLOGY_CHECKOUT:
+            if acquired and mount_id:
+                release_lease(checkout, mount_id, unmount_best_effort)
+            elif topology == TOPOLOGY_CHECKOUT:
                 unmount_best_effort(blob_root)
                 remove_ossfs_config(state)
             elif mount_id and not live_lease_ids(mount_id):
@@ -443,7 +447,7 @@ def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any
     start_services(checkout)
     mount_id = payload.get("sharedMountId")
     if payload.get("topology") == TOPOLOGY_SHARED and isinstance(mount_id, str):
-        heartbeat_lease(checkout, mount_id)
+        heartbeat_lease(checkout, mount_id, payload)
     sys.stdout.write(json.dumps(portable_start_payload(payload), sort_keys=True) + "\n")
     return payload
 

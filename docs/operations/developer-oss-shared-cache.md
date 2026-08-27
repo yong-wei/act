@@ -25,7 +25,8 @@
 
 - 夹具/验证：`python3 scripts/runtime-release/developer-oss/cli.py prove-read --digest <sha256> --source <blob>`
 - 证据文件：`operations.jsonl`，schema `act-runtime-dev-transfer.v1`，字段只有 `opClass` / `sha256` / `sizeBytes` / `at`
-- `opClass=oss-body-transfer` 表示一次 OSS 体传输；`cache-hit` 表示本地缓存读
-- Linux 上可另读 ossfs2 `--log_dir` 中的 GetObject 行作辅助；含 AccessKey、Signature 的日志行丢弃，不写入证据
+- 返回字节必须匹配声明的 SHA-256；不匹配则失败并不得记为 cache-hit
+- Linux 真 FUSE：从共享挂载点读取，并用 ossfs2 `--log_dir` 的 GetObject 增量区分体传输与命中；日志缺失则失败关闭，不伪造命中
+- 非 Linux 夹具只证明适配器记账协议，不是 live GetObject；真实三平台仍走 smoke 矩阵
 
 真实三平台 FUSE 二次读取仍记在 [smoke 矩阵](developer-oss-runtime-smoke-matrix.md)，与既有受控密钥冒烟同一门槛。

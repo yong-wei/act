@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import os
 import re
@@ -378,7 +379,7 @@ def reclaim_stale_leases(mount_id: str) -> list[str]:
     return reclaimed
 
 
-def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
+def verify_shared_identity(record: dict[str, Any], account_id: str) -> None:
     expected = authority_identity(account_id)
     identity = record.get("identity")
     if not isinstance(identity, dict):
@@ -390,15 +391,23 @@ def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
         fail("shared mount options drifted")
     if record.get("principal") not in (None, EXPECTED_RAM_USER) and record.get("principal") != EXPECTED_RAM_USER:
         fail("shared mount principal drifted")
+
+
+def verify_live_mount(mountpoint: Path) -> None:
+    if not is_fuse_readonly(mountpoint):
+        fail("shared Blob mount must stay a read-only FUSE filesystem")
+    fstype, options = mount_fields(mountpoint)
+    if "rw" in options.split(","):
+        fail("shared Blob mount is writable")
+    if fstype and "fuse" not in fstype.lower():
+        fail("shared Blob mount source drifted")
+
+
+def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
+    verify_shared_identity(record, account_id)
     mountpoint = Path(str(record.get("mountpoint") or ""))
-    if use_real_fuse():
-        if not is_fuse_readonly(mountpoint):
-            fail("shared Blob mount must stay a read-only FUSE filesystem")
-        fstype, options = mount_fields(mountpoint)
-        if "rw" in options.split(","):
-            fail("shared Blob mount is writable")
-        if fstype and "fuse" not in fstype.lower():
-            fail("shared Blob mount source drifted")
+    if use_real_fuse() and is_mounted(mountpoint):
+        verify_live_mount(mountpoint)
 
 
 def fixture_mount(blob_root: Path) -> None:
@@ -421,11 +430,15 @@ def ensure_shared_mount(credential: dict[str, str], account_id: str) -> dict[str
     expected_identity = authority_identity(account_id)
     config_path = root / "ossfs.conf"
     if record:
-        verify_shared_record(record, account_id)
-        if use_real_fuse() and not is_mounted(blob_root):
-            write_ossfs_config(config_path, credential, cache, logs)
-            mount_blobs(blob_root, config_path)
-        elif not use_real_fuse():
+        verify_shared_identity(record, account_id)
+        if use_real_fuse():
+            if is_mounted(blob_root):
+                verify_live_mount(blob_root)
+            else:
+                write_ossfs_config(config_path, credential, cache, logs)
+                mount_blobs(blob_root, config_path)
+                verify_live_mount(blob_root)
+        else:
             fixture_mount(blob_root)
     else:
         write_ossfs_config(config_path, credential, cache, logs)
@@ -481,14 +494,22 @@ def acquire_lease(checkout: Path, mount_id: str, selection: dict[str, Any]) -> N
     write_leases(mount_id, payload)
 
 
-def heartbeat_lease(checkout: Path, mount_id: str) -> None:
+def heartbeat_lease(checkout: Path, mount_id: str, selection: dict[str, Any] | None = None) -> None:
     payload = read_leases(mount_id)
     key = checkout_id(checkout)
     lease = payload.get("leases", {}).get(key)
     if not isinstance(lease, dict):
+        if selection is None:
+            fail("shared mount lease is missing for a live checkout")
+        acquire_lease(checkout, mount_id, selection)
         return
     lease["heartbeatAt"] = utcnow()
     lease["pids"] = checkout_service_pids(checkout)
+    if selection:
+        lease["helperMount"] = selection.get("helperMount") or lease.get("helperMount")
+        lease["releaseId"] = selection.get("releaseId") or lease.get("releaseId")
+        lease["runtimeRoot"] = selection.get("runtimeRoot") or lease.get("runtimeRoot")
+        lease["viewRoot"] = selection.get("viewRoot") or lease.get("viewRoot")
     payload["leases"][key] = lease
     write_leases(mount_id, payload)
 
@@ -596,12 +617,30 @@ def fixture_cache_object(mount_id: str, digest: str) -> Path:
 def read_blob_with_evidence(mount_id: str, digest: str, source: Path) -> bytes:
     if not SHA256.fullmatch(digest):
         fail("blob digest is invalid")
+    record = read_shared_record(mount_id)
+    if use_real_fuse() and record:
+        mountpoint = Path(str(record.get("mountpoint") or ""))
+        target = mountpoint / digest
+        if not target.is_file() or target.is_symlink():
+            fail("shared Blob path is missing from the verified mount")
+        before = count_log_body_transfers(ossfs_log_text(mount_id))
+        data = target.read_bytes()
+        verify_blob_bytes(data, digest)
+        after = count_log_body_transfers(ossfs_log_text(mount_id))
+        if after < before:
+            fail("ossfs2 transfer evidence moved backwards")
+        if after == before == 0:
+            fail("ossfs2 transfer evidence is unavailable")
+        record_operation(mount_id, BODY_TRANSFER if after > before else CACHE_HIT, digest, len(data))
+        return data
     cached = fixture_cache_object(mount_id, digest)
     if cached.is_file() and not cached.is_symlink():
         data = cached.read_bytes()
+        verify_blob_bytes(data, digest)
         record_operation(mount_id, CACHE_HIT, digest, len(data))
         return data
     data = source.read_bytes()
+    verify_blob_bytes(data, digest)
     record_operation(mount_id, BODY_TRANSFER, digest, len(data))
     cached.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(cached.parent, 0o700)
@@ -609,10 +648,26 @@ def read_blob_with_evidence(mount_id: str, digest: str, source: Path) -> bytes:
     return data
 
 
-def verify_blob_bytes(data: bytes, digest: str, size_bytes: int) -> None:
-    import hashlib
-    if len(data) != size_bytes or hashlib.sha256(data).hexdigest() != digest:
+def verify_blob_bytes(data: bytes, digest: str, size_bytes: int | None = None) -> None:
+    if hashlib.sha256(data).hexdigest() != digest:
+        fail("cached blob failed SHA-256 verification")
+    if size_bytes is not None and len(data) != size_bytes:
         fail("cached blob failed size or SHA-256 verification")
+
+
+def ossfs_log_text(mount_id: str) -> str:
+    log_dir = persistent_cache_dir(mount_id) / "logs"
+    if not log_dir.is_dir():
+        return ""
+    chunks: list[str] = []
+    for path in sorted(log_dir.rglob("*")):
+        if path.is_file() and not path.is_symlink():
+            chunks.append(path.read_text(encoding="utf-8", errors="replace"))
+    return "\n".join(chunks)
+
+
+def count_log_body_transfers(text: str) -> int:
+    return sum(1 for row in parse_ossfs_log(text) if row.get("opClass") == BODY_TRANSFER)
 
 
 def quarantine_cache_entry(mount_id: str, digest: str) -> Path:

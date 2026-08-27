@@ -775,6 +775,61 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(payload["cachePolicy"], "on-demand")
             self.assertTrue(payload["ready"])
 
+    def test_unmounted_shared_record_is_remounted(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            identity = self._shared_env(raw, checkout)
+            manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
+            prepared = self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
+            with mock.patch("bootstrap.stop_services"), mock.patch("bootstrap.unmount"):
+                stop(checkout)
+            mount_id = prepared["sharedMountId"]
+            self.assertEqual(read_shared_record(mount_id)["status"], "unmounted")
+            credential = {
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+            }
+            from shared_mount import ensure_shared_mount
+            with mock.patch("shared_mount.use_real_fuse", return_value=True), \
+                    mock.patch("shared_mount.is_mounted", return_value=False), \
+                    mock.patch("shared_mount.mount_blobs") as mount_blobs, \
+                    mock.patch("shared_mount.is_fuse_readonly", return_value=True), \
+                    mock.patch("shared_mount.mount_fields", return_value=("fuse.ossfs2", "ro")):
+                ensure_shared_mount(credential, "123456789012")
+            mount_blobs.assert_called_once()
+            self.assertEqual(read_shared_record(mount_id)["status"], "mounted")
+
+    def test_reuse_rebuilds_missing_lease(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            identity = self._shared_env(raw, checkout)
+            manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
+            prepared = self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
+            mount_id = prepared["sharedMountId"]
+            from shared_mount import write_leases
+            write_leases(mount_id, {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            self.assertEqual(live_lease_ids(mount_id), [])
+            reused = self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
+            self.assertEqual(reused["releaseId"], prepared["releaseId"])
+            self.assertEqual(live_lease_ids(mount_id), [checkout_id(checkout)])
+
+    def test_prove_read_rejects_digest_mismatch(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            self._shared_env(raw, checkout)
+            from shared_mount import ensure_shared_mount
+            ensure_shared_mount({
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+            }, "123456789012")
+            source = Path(raw) / "blob"
+            source.write_bytes(b"not-the-declared-digest")
+            with self.assertRaises(DeveloperRuntimeError):
+                read_blob_with_evidence(authority_id("123456789012"), "a" * 64, source)
+
     def test_ossfs2_version_and_log_parser_are_credential_safe(self):
         self.assertEqual(parse_ossfs2_version("ossfs2 version 2.0.8"), (2, 0, 8))
         with self.assertRaises(DeveloperRuntimeError):
