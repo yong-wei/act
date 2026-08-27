@@ -7,6 +7,7 @@ import {
   type AssessmentEvidenceCatalogSnapshot,
 } from '@/features/adaptive-assessment/assessment-evidence-authority';
 import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
 import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
@@ -66,6 +67,7 @@ const RESOURCE_TYPES = new Set([
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
+    await ensureGeneratedCatalogHydrated(prisma);
     const requester = await getLearningPathRequester();
     if (requester instanceof NextResponse) return requester;
     const params = await props.params;

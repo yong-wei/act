@@ -23,9 +23,12 @@ export interface CrossDomainQuestion {
   options: QuestionOption[];
   generatedMetadata?: {
     model: string;
+    generationKind?: 'template' | 'ai' | 'human';
     generationTime: number;
     validatedBy: string[];
     learningGoalIds?: string[];
+    graphNodeIds?: string[];
+    intendedStage?: 'low-stakes-practice' | 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
     ownerUserId?: string;
     sessionId?: string;
   };
@@ -131,6 +134,8 @@ export function buildGeneratedQuestion(
   knowledgeTags: string[],
   generatedMetadata?: {
     learningGoalIds?: string[];
+    graphNodeIds?: string[];
+    intendedStage?: 'low-stakes-practice' | 'readiness' | 'checkpoint' | 'remediation' | 'terminal-validation';
     ownerUserId?: string;
     sessionId?: string;
   },
@@ -149,10 +154,17 @@ export function buildGeneratedQuestion(
     ),
     generatedMetadata: {
       model: 'rule-based-generator',
+      generationKind: 'template',
       generationTime: Date.now(),
       validatedBy: ['system-auto-check'],
       ...(generatedMetadata?.learningGoalIds?.length ? {
         learningGoalIds: generatedMetadata.learningGoalIds,
+      } : {}),
+      ...(generatedMetadata?.graphNodeIds?.length ? {
+        graphNodeIds: generatedMetadata.graphNodeIds,
+      } : {}),
+      ...(generatedMetadata?.intendedStage ? {
+        intendedStage: generatedMetadata.intendedStage,
       } : {}),
       ...(generatedMetadata?.ownerUserId ? { ownerUserId: generatedMetadata.ownerUserId } : {}),
       ...(generatedMetadata?.sessionId ? { sessionId: generatedMetadata.sessionId } : {}),

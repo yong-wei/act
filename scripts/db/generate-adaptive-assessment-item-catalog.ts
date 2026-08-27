@@ -6,6 +6,10 @@ import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
 } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+import {
+  generatedQuestionsFromStore,
+  readGeneratedCandidateStore,
+} from '@/features/adaptive-assessment/generated-candidate-catalog';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const MANIFEST_PATH = path.join(OUTPUT_DIR, 'adaptive-assessment-item-catalog-manifest.json');
@@ -14,11 +18,14 @@ const LIMITATIONS_PATH = path.join(OUTPUT_DIR, 'adaptive-assessment-item-catalog
 
 async function main() {
   const sources = await loadAdaptiveAssessmentCatalogSources();
+  const generatedStore = readGeneratedCandidateStore();
   const artifacts = buildAdaptiveAssessmentItemCatalog({
     acqStaticQuestions: sources.acqStaticQuestions,
     icourseObjectiveBankItems: sources.icourseObjectiveBankItems,
     icourseObjectiveBankIndexTotal: sources.icourseObjectiveBankIndexTotal,
     kaqReviewedItems: sources.kaqReviewedItems,
+    generatedCandidateStore: generatedStore ?? undefined,
+    generatedQuestions: generatedStore ? generatedQuestionsFromStore(generatedStore) : [],
   });
   const files = adaptiveAssessmentCatalogArtifactsToFiles(artifacts);
 

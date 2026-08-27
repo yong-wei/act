@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { AdaptiveAssessmentCatalogItem } from './adaptive-assessment-item-catalog';
@@ -12,6 +12,10 @@ import {
   type CatalogBackedAssessmentSelection,
   type RuntimeCatalogArtifacts,
 } from './adaptive-assessment-catalog-selection';
+import {
+  GENERATED_CATALOG_ITEMS_PATH,
+  GENERATED_CATALOG_REVIEWS_PATH,
+} from './generated-candidate-catalog';
 
 export {
   AdaptiveAssessmentCatalogSelectionError,
@@ -47,11 +51,59 @@ const CATALOG_ITEMS_PATH = `${RUNTIME_DIR}/adaptive-assessment-item-catalog-item
 const REVIEW_SNAPSHOTS_PATH = `${RUNTIME_DIR}/assessment-item-semantic-review-snapshots.jsonl`;
 
 let cachedArtifacts: RuntimeCatalogArtifacts | null = null;
+let generatedRuntimeOverlay: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+} = { items: [], decisions: [] };
+let generatedRuntimeOverlayReady = false;
+
+export function invalidateRuntimeCatalogCache() {
+  cachedArtifacts = null;
+}
+
+export function isGeneratedRuntimeOverlayReady() {
+  return generatedRuntimeOverlayReady;
+}
+
+export function resetGeneratedRuntimeOverlay() {
+  generatedRuntimeOverlay = { items: [], decisions: [] };
+  generatedRuntimeOverlayReady = false;
+  cachedArtifacts = null;
+}
+
+export function replaceGeneratedRuntimeOverlay(input: {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+}) {
+  generatedRuntimeOverlay = {
+    items: [...input.items],
+    decisions: [...input.decisions],
+  };
+  generatedRuntimeOverlayReady = true;
+  cachedArtifacts = null;
+}
 
 function readJsonl<T>(filePath: string): T[] {
   const content = readFileSync(filePath, 'utf8').trim();
   if (!content) return [];
   return content.split('\n').filter(Boolean).map((line) => JSON.parse(line) as T);
+}
+
+function loadGeneratedCatalog(rootDir: string): {
+  items: AdaptiveAssessmentCatalogItem[];
+  decisions: AssessmentItemSemanticReviewDecision[];
+} {
+  if (generatedRuntimeOverlayReady) {
+    return generatedRuntimeOverlay;
+  }
+  const itemsPath = path.join(rootDir, GENERATED_CATALOG_ITEMS_PATH);
+  const reviewsPath = path.join(rootDir, GENERATED_CATALOG_REVIEWS_PATH);
+  return {
+    items: existsSync(itemsPath) ? readJsonl<AdaptiveAssessmentCatalogItem>(itemsPath) : [],
+    decisions: existsSync(reviewsPath)
+      ? readJsonl<AssessmentItemSemanticReviewDecision>(reviewsPath)
+      : [],
+  };
 }
 
 function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArtifacts {
@@ -60,9 +112,21 @@ function loadRuntimeCatalogArtifacts(rootDir = process.cwd()): RuntimeCatalogArt
   const decisions = readJsonl<AssessmentItemSemanticReviewDecision>(path.join(rootDir, REVIEW_SNAPSHOTS_PATH));
   const overlay = loadFrozenTerminalValidationOverlay();
   const overlayIds = new Set(overlay.items.map((item) => item.catalogItemId));
+  const generatedCatalog = loadGeneratedCatalog(rootDir);
+  const generatedItems = generatedCatalog.items;
+  const generatedDecisions = generatedCatalog.decisions;
+  const generatedIds = new Set(generatedItems.map((item) => item.catalogItemId));
   cachedArtifacts = buildRuntimeCatalogArtifacts(
-    [...items.filter((item) => !overlayIds.has(item.catalogItemId)), ...overlay.items],
-    [...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId)), ...overlay.decisions],
+    [
+      ...items.filter((item) => !overlayIds.has(item.catalogItemId) && !generatedIds.has(item.catalogItemId)),
+      ...overlay.items,
+      ...generatedItems,
+    ],
+    [
+      ...decisions.filter((decision) => !overlayIds.has(decision.catalogItemId) && !generatedIds.has(decision.catalogItemId)),
+      ...overlay.decisions,
+      ...generatedDecisions,
+    ],
   );
   return cachedArtifacts;
 }

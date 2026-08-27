@@ -22,6 +22,7 @@ data/
 .cache/
 .tmp/
 tmp/
+course-content/runtime/resource-governance/generated-assessment-*
 
 # Node/JS
 **/node_modules/

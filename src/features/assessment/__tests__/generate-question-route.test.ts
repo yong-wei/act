@@ -57,6 +57,10 @@ describe('generate-question API auth boundaries', () => {
       learningGoalIds: ['control-correction'],
       ownerUserId: 'student-1',
       sessionId: 'practice-1',
+      generationKind: 'template',
     });
+    expect(payload.generationKind).toBe('template');
+    expect(payload.source).toBe('template-generated');
+    expect(payload.source).not.toBe('ai_generated');
   });
 });
