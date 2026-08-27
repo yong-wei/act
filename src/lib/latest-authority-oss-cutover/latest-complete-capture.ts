@@ -8,7 +8,7 @@
 
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 
 import {
@@ -49,6 +49,116 @@ export interface SealedBundleIdentity {
   readonly validationReportSha256: string;
   readonly predecessorBundleId: string | null;
   readonly stableTag: string;
+}
+
+interface GitTreeEntry {
+  readonly mode: string;
+  readonly type: string;
+  readonly objectId: string;
+  readonly path: string;
+}
+
+function failUnsealedInput(message: string): never {
+  throw new LatestAuthorityCutoverError('capture-input-unsealed', message);
+}
+
+function resolvePathWithinActkgRoot(actkgRoot: string, requestedPath: string, label: string): {
+  readonly root: string;
+  readonly absolute: string;
+  readonly relative: string;
+} {
+  let root: string;
+  let absolute: string;
+  try {
+    root = realpathSync(actkgRoot);
+    absolute = realpathSync(path.resolve(requestedPath));
+  } catch (error) {
+    failUnsealedInput(`${label} cannot be resolved: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const relative = path.relative(root!, absolute!);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    failUnsealedInput(`${label} must resolve inside the sealed ActKG Git tree.`);
+  }
+  return { root: root!, absolute: absolute!, relative: relative.split(path.sep).join('/') };
+}
+
+function readGitTreeEntries(actkgRoot: string, commit: string, relativePath: string): GitTreeEntry[] {
+  const output = execFileSync(
+    'git',
+    ['-C', actkgRoot, 'ls-tree', '-r', '-z', commit, '--', relativePath],
+  ).toString('utf8');
+  return output.split('\0').filter(Boolean).map((entry) => {
+    const separator = entry.indexOf('\t');
+    const [mode, type, objectId] = entry.slice(0, separator).split(' ');
+    return { mode: mode ?? '', type: type ?? '', objectId: objectId ?? '', path: entry.slice(separator + 1) };
+  });
+}
+
+function assertTreeEntryMatchesWorktree(
+  actkgRoot: string,
+  commit: string,
+  entry: GitTreeEntry,
+  label: string,
+): void {
+  if (entry.type !== 'blob' || (entry.mode !== '100644' && entry.mode !== '100755')) {
+    failUnsealedInput(`${label} contains a non-regular Git object at ${entry.path}.`);
+  }
+  const actualPath = path.join(actkgRoot, ...entry.path.split('/'));
+  const { root, absolute } = resolvePathWithinActkgRoot(actkgRoot, actualPath, `${label} entry ${entry.path}`);
+  if (root !== realpathSync(actkgRoot) || absolute !== realpathSync(actualPath)) {
+    failUnsealedInput(`${label} entry ${entry.path} escaped the sealed ActKG Git tree.`);
+  }
+  const expected = execFileSync('git', ['-C', actkgRoot, 'cat-file', 'blob', entry.objectId]);
+  const actual = readFileSync(actualPath);
+  if (!actual.equals(expected)) {
+    failUnsealedInput(`${label} entry ${entry.path} does not match its sealed Git blob.`);
+  }
+}
+
+/**
+ * Resolve one ActKG input file only when the exact worktree bytes still match
+ * the sealed formal commit. This rejects paths outside the checkout, external
+ * symlink targets, untracked files, and post-commit byte drift.
+ */
+export function assertSealedActkgTreeFile(
+  actkgRoot: string,
+  commit: string,
+  requestedPath: string,
+  label: string,
+): string {
+  const resolved = resolvePathWithinActkgRoot(actkgRoot, requestedPath, label);
+  const entries = readGitTreeEntries(resolved.root, commit, resolved.relative);
+  const entry = entries.find((candidate) => candidate.path === resolved.relative);
+  if (!entry || entries.length !== 1) {
+    failUnsealedInput(`${label} is not a tracked file in sealed ActKG commit ${commit}.`);
+  }
+  assertTreeEntryMatchesWorktree(resolved.root, commit, entry!, label);
+  return resolved.absolute;
+}
+
+/**
+ * Resolve a bundle directory only when every tracked input below it exactly
+ * matches the sealed formal commit. This keeps bundle parsing from accepting
+ * ignored, untracked, or externally linked replacement bytes.
+ */
+export function assertSealedActkgTreeDirectory(
+  actkgRoot: string,
+  commit: string,
+  requestedPath: string,
+  label: string,
+): string {
+  const resolved = resolvePathWithinActkgRoot(actkgRoot, requestedPath, label);
+  const entries = readGitTreeEntries(resolved.root, commit, resolved.relative);
+  if (entries.length === 0) {
+    failUnsealedInput(`${label} is not a tracked directory in sealed ActKG commit ${commit}.`);
+  }
+  for (const entry of entries) {
+    if (entry.path !== resolved.relative && !entry.path.startsWith(`${resolved.relative}/`)) {
+      failUnsealedInput(`${label} resolved outside its sealed Git tree path.`);
+    }
+    assertTreeEntryMatchesWorktree(resolved.root, commit, entry, label);
+  }
+  return resolved.absolute;
 }
 
 export function readSealedBundleIdentity(bundleDir: string): SealedBundleIdentity {
@@ -100,13 +210,29 @@ export function readSealedBundleIdentity(bundleDir: string): SealedBundleIdentit
   };
 }
 
-export function discoverLatestCompleteAggregate(actkgRoot: string): SealedBundleIdentity {
+export function discoverLatestCompleteAggregate(
+  actkgRoot: string,
+  sealedCommit?: string,
+): SealedBundleIdentity {
   const releasesRoot = path.join(actkgRoot, 'releases');
   const identities: SealedBundleIdentity[] = [];
-  for (const entry of readdirSync(releasesRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    if (!/^control-theory-engineering-v0\.\d+(-r\d+)?$/u.test(entry.name)) continue;
-    const bundleDir = path.join(releasesRoot, entry.name);
+  const releaseNames = sealedCommit
+    ? execFileSync('git', ['-C', actkgRoot, 'ls-tree', '-d', '--name-only', `${sealedCommit}:releases`], {
+      encoding: 'utf8',
+    }).split('\n').filter(Boolean)
+    : readdirSync(releasesRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+  for (const releaseName of releaseNames) {
+    if (!/^control-theory-engineering-v0\.\d+(-r\d+)?$/u.test(releaseName)) continue;
+    const bundleDir = sealedCommit
+      ? assertSealedActkgTreeDirectory(
+        actkgRoot,
+        sealedCommit,
+        path.join(releasesRoot, releaseName),
+        `aggregate bundle ${releaseName}`,
+      )
+      : path.join(releasesRoot, releaseName);
     try {
       identities.push(readSealedBundleIdentity(bundleDir));
     } catch {

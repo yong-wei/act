@@ -44,11 +44,13 @@ import { buildActiveResourceReviewPack } from '@/lib/latest-authority-oss-cutove
 import { buildRuntimeMediaSourceBridge } from '@/lib/latest-authority-oss-cutover/runtime-media-source-bridge';
 import {
   adapterSupportsPublicBundle3,
+  assertSealedActkgTreeDirectory,
+  assertSealedActkgTreeFile,
   capturedPublicContractFromBundle,
   resolveSealedActkgMainCommit,
 } from '@/lib/latest-authority-oss-cutover/latest-complete-capture';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -148,6 +150,48 @@ describe('execution-time Authority capture', () => {
         .toThrow(/does not equal sealed formal ref/);
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('admits capture inputs only when their bytes belong to the sealed ActKG Git tree', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-tree-'));
+    const outside = mkdtempSync(path.join(os.tmpdir(), 'actkg-capture-outside-'));
+    const git = (...args: string[]) => execFileSync('git', ['-C', root, ...args], {
+      encoding: 'utf8',
+    }).trim();
+    const bundleDir = path.join(root, 'releases', 'control-theory-engineering-v0.37');
+    const lineagePath = path.join(root, 'docs', 'lineage.json');
+    try {
+      git('init', '--quiet');
+      git('config', 'user.email', 'test@example.invalid');
+      git('config', 'user.name', 'ACT test');
+      git('checkout', '--quiet', '-b', 'main');
+      mkdirSync(path.join(bundleDir, 'components'), { recursive: true });
+      mkdirSync(path.dirname(lineagePath), { recursive: true });
+      writeFileSync(path.join(bundleDir, 'bundle-manifest.json'), '{"bundle":"sealed"}\n');
+      writeFileSync(path.join(bundleDir, 'components', 'module.json'), '{"module":"sealed"}\n');
+      writeFileSync(lineagePath, '{"lineage":"sealed"}\n');
+      git('add', '.');
+      git('commit', '--quiet', '-m', 'sealed capture inputs');
+      const sealedCommit = git('rev-parse', 'main');
+
+      expect(assertSealedActkgTreeDirectory(root, sealedCommit, bundleDir, 'bundle')).toBe(realpathSync(bundleDir));
+      expect(assertSealedActkgTreeFile(root, sealedCommit, lineagePath, 'lineage')).toBe(realpathSync(lineagePath));
+
+      const externalFile = path.join(outside, 'components.json');
+      writeFileSync(externalFile, '[]\n');
+      expect(() => assertSealedActkgTreeFile(root, sealedCommit, externalFile, 'components'))
+        .toThrow(/inside the sealed ActKG Git tree/);
+      symlinkSync(outside, path.join(root, 'external-link'));
+      expect(() => assertSealedActkgTreeDirectory(root, sealedCommit, path.join(root, 'external-link'), 'bundle'))
+        .toThrow(/inside the sealed ActKG Git tree/);
+
+      writeFileSync(path.join(bundleDir, 'components', 'module.json'), '{"module":"tampered"}\n');
+      expect(() => assertSealedActkgTreeDirectory(root, sealedCommit, bundleDir, 'bundle'))
+        .toThrow(/does not match its sealed Git blob/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
     }
   });
 

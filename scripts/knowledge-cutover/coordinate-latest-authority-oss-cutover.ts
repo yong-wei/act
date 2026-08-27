@@ -70,6 +70,8 @@ import { projectionDigest } from '@/lib/teaching-projection/hash';
 import { REVIEWED_V0_18_V2_REGISTRY } from '../actkg-release/bundle-compatibility-registry-v2';
 import {
   adapterSupportsPublicBundle3,
+  assertSealedActkgTreeDirectory,
+  assertSealedActkgTreeFile,
   capturedPublicContractFromBundle,
   discoverLatestCompleteAggregate,
   inspectActkgWorktreeDirty,
@@ -164,16 +166,32 @@ async function runCapture(values: Map<string, string>): Promise<void> {
     });
   }
   const dirty = inspectActkgWorktreeDirty(actkgRoot);
-  const sealed = values.get('--bundle-dir')
-    ? readSealedBundleIdentity(path.resolve(values.get('--bundle-dir') as string))
-    : discoverLatestCompleteAggregate(actkgRoot);
-  const bundleDir = sealed.bundleDir;
   const actkgMainCommit = resolveSealedActkgMainCommit(actkgRoot, mainRef);
-  const lineagePath = values.get('--lineage')
-    ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json');
-  const registrySummaryPath = values.get('--registry-summary')
-    ?? path.join(actkgRoot, 'docs/experiments/control-theory-residual-successor-registry-v14.summary.json');
-  const componentsFile = values.get('--components');
+  const explicitBundleDir = values.get('--bundle-dir');
+  const sealed = explicitBundleDir
+    ? readSealedBundleIdentity(
+      assertSealedActkgTreeDirectory(actkgRoot, actkgMainCommit, explicitBundleDir, '--bundle-dir'),
+    )
+    : discoverLatestCompleteAggregate(actkgRoot, actkgMainCommit);
+  const bundleDir = sealed.bundleDir;
+  const lineagePath = assertSealedActkgTreeFile(
+    actkgRoot,
+    actkgMainCommit,
+    values.get('--lineage')
+      ?? path.join(actkgRoot, 'docs/experiments/control-theory-m3-release-lineage-v1.json'),
+    '--lineage',
+  );
+  const registrySummaryPath = assertSealedActkgTreeFile(
+    actkgRoot,
+    actkgMainCommit,
+    values.get('--registry-summary')
+      ?? path.join(actkgRoot, 'docs/experiments/control-theory-residual-successor-registry-v14.summary.json'),
+    '--registry-summary',
+  );
+  const componentsOverride = values.get('--components');
+  const componentsFile = componentsOverride
+    ? assertSealedActkgTreeFile(actkgRoot, actkgMainCommit, componentsOverride, '--components')
+    : undefined;
   const components: AuthorityComponentIdentity[] = componentsFile
     ? (await readJson(componentsFile)) as AuthorityComponentIdentity[]
     : parseSixKindComponentClosure({ bundleDir, lineagePath, registrySummaryPath });
