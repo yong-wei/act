@@ -76,30 +76,74 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
   }
   const command = qualityCommand(commandId);
   const extraArgs: string[] = [];
+  const evidenceIds: string[] = [];
   if (commandId === 'test:release') {
-    const manifest = process.env.QUALITY_GATE_RELEASE_MANIFEST ?? join(repoRoot, 'docs/testing/release-qualification-manifest.json');
-    if (!existsSync(manifest)) {
+    const relativeManifest = process.env.QUALITY_GATE_RELEASE_MANIFEST ?? 'docs/testing/release-qualification-manifest.json';
+    const manifest = relativeManifest.startsWith('/') ? relativeManifest : join(repoRoot, relativeManifest);
+    if (!existsSync(manifest) || relativeManifest.startsWith('/') || relativeManifest.includes(':\\')) {
       return {
         checkId: '',
         status: 'failed',
         commandIds: [commandId],
         exitStatus: 1,
         receiptIds: [],
-        failureCodes: ['missing-required-input:release-qualification-manifest'],
+        failureCodes: [relativeManifest.startsWith('/') || relativeManifest.includes(':\\')
+          ? 'privacy-unsafe-required-input'
+          : 'missing-required-input:release-qualification-manifest'],
         unhandledErrors: 0,
       };
     }
-    extraArgs.push('--', '--manifest', manifest);
+    extraArgs.push('--', '--manifest', relativeManifest);
+    evidenceIds.push(relativeManifest);
   }
-  const readyzObservation = process.env.QUALITY_GATE_READYZ_OBSERVATION ?? join(repoRoot, 'docs/architecture/quality-gates/post-deploy-readyz-observation.json');
-  if (commandId === 'test:runtime-production-readyz' && !existsSync(readyzObservation)) {
+  if (commandId === 'test:runtime-production-readyz') {
+    const relativeObservation = process.env.QUALITY_GATE_READYZ_OBSERVATION ?? 'docs/architecture/quality-gates/post-deploy-readyz-observation.json';
+    const observation = relativeObservation.startsWith('/') ? relativeObservation : join(repoRoot, relativeObservation);
+    if (!existsSync(observation) || relativeObservation.startsWith('/') || relativeObservation.includes(':\\')) {
+      return {
+        checkId: '',
+        status: 'failed',
+        commandIds: [commandId],
+        exitStatus: 1,
+        receiptIds: [],
+        failureCodes: [relativeObservation.startsWith('/') || relativeObservation.includes(':\\')
+          ? 'privacy-unsafe-required-input'
+          : 'missing-required-input:post-deploy-readyz-observation'],
+        unhandledErrors: 0,
+      };
+    }
+    try {
+      const parsed = JSON.parse(readFileSync(observation, 'utf8')) as { sourceCommit?: string };
+      const identity = readGitIdentity(repoRoot);
+      if (parsed.sourceCommit !== identity.sourceCommit) {
+        return {
+          checkId: '',
+          status: 'failed',
+          commandIds: [commandId],
+          exitStatus: 1,
+          receiptIds: [relativeObservation],
+          failureCodes: ['stale-required-input:post-deploy-readyz-observation'],
+          unhandledErrors: 0,
+        };
+      }
+    } catch {
+      return {
+        checkId: '',
+        status: 'failed',
+        commandIds: [commandId],
+        exitStatus: 1,
+        receiptIds: [relativeObservation],
+        failureCodes: ['invalid-required-input:post-deploy-readyz-observation'],
+        unhandledErrors: 0,
+      };
+    }
     return {
       checkId: '',
-      status: 'failed',
+      status: 'passed',
       commandIds: [commandId],
-      exitStatus: 1,
-      receiptIds: [],
-      failureCodes: ['missing-required-input:post-deploy-readyz-observation'],
+      exitStatus: 0,
+      receiptIds: [relativeObservation],
+      failureCodes: [],
       unhandledErrors: 0,
     };
   }
@@ -114,7 +158,7 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
     status: exitStatus === 0 ? 'passed' : 'failed',
     commandIds: [commandId],
     exitStatus,
-    receiptIds: extraArgs.filter((value) => value.endsWith('.json')),
+    receiptIds: evidenceIds,
     failureCodes: exitStatus === 0 ? [] : [`command-exit-${exitStatus}`],
     unhandledErrors: 0,
   };

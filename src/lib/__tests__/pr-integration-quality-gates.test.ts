@@ -133,7 +133,8 @@ describe('PR and integration quality gate contracts', () => {
     expect(affected.affectedDomains).toEqual(['web']);
     expect(affected.requiredCheckIds).toContain('pr/typecheck-tools');
     expect(selectPrImpact({ changedPaths: ['src/features/teacher/page.tsx'] }).denominatorClosed).toBe(false);
-    expect(selectPrImpact({ changedPaths: ['course-content/runtime/lessons/example.json'] }).scope).not.toBe('affected');
+    expect(selectPrImpact({ changedPaths: ['course-content/runtime/lessons/example.json'] }).scope).toBe('full-related');
+    expect(selectPrImpact({ changedPaths: ['course-content/runtime/lessons/example.json'] }).requiredCheckIds).toContain('pr/critical-e2e');
 
     const expanded = selectPrImpact({
       changedPaths: ['src/features/teacher/page.tsx'],
