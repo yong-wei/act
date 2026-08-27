@@ -173,6 +173,7 @@ COPY --from=builder /app/scripts/workers ./scripts/workers
 COPY --from=builder /app/scripts/math-calc ./scripts/math-calc
 COPY --from=builder /app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases
 COPY --from=builder /app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage
+COPY --from=builder /app/course-content/contracts/knowledge-relation-coverage-audit.json ./course-content/contracts/knowledge-relation-coverage-audit.json
 COPY --from=builder /app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl
 # Authority + Teaching Projection stores selected by activation gate (#1274).
 # Builder materializes these directories (empty scaffold when no activation
