@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import type { CommandReceipt } from './types';
+import type { CommandReceipt, ToolRegistry } from './types';
 import { TOOLCHAIN_RECEIPT_SCHEMA_VERSION } from './types';
 
 const FORBIDDEN = [
@@ -34,4 +34,8 @@ export function validateReceipt(receipt: CommandReceipt): string[] {
 
 export function digestJson(value: unknown): string {
   return createHash('sha256').update(`${JSON.stringify(value)}\n`).digest('hex');
+}
+
+export function digestRegistry(registry: ToolRegistry): string {
+  return digestJson(registry);
 }

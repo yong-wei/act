@@ -2,7 +2,7 @@ export { checkToolchainBoundary } from './check';
 export { classifyPath } from './classify';
 export { buildSourceDenominator, digestPaths } from './denominator';
 export { findProductToolEdges, findProductToolPathReads } from './product-imports';
-export { buildCommandReceipt, validateReceipt } from './receipt';
+export { buildCommandReceipt, digestRegistry, validateReceipt } from './receipt';
 export { buildToolRegistry, validateRegistry } from './registry';
 export {
   DOWNSTREAM_CHANGES,

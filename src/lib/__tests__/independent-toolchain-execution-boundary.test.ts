@@ -8,8 +8,9 @@ import { describe, expect, it } from 'vitest';
 import { checkToolchainBoundary } from '../../../tools/boundary/check';
 import { classifyPath } from '../../../tools/boundary/classify';
 import { digestPaths } from '../../../tools/boundary/denominator';
-import { findProductToolEdges } from '../../../tools/boundary/product-imports';
-import { buildCommandReceipt, validateReceipt } from '../../../tools/boundary/receipt';
+import { findProductToolEdges, findProductToolPathReads } from '../../../tools/boundary/product-imports';
+import { worktreeIsClean } from '../../../tools/boundary/git-source';
+import { buildCommandReceipt, digestRegistry, validateReceipt } from '../../../tools/boundary/receipt';
 import { buildToolRegistry, validateRegistry } from '../../../tools/boundary/registry';
 import { DOWNSTREAM_CHANGES, TOOLCHAIN_BOUNDARY_SCHEMA_VERSION } from '../../../tools/boundary/types';
 import type { ClassifiedEntry, SourceDenominator } from '../../../tools/boundary/types';
@@ -93,8 +94,62 @@ describe('independent toolchain execution boundary', () => {
     })]);
   });
 
+  it('fail-closes a worker module that imports a tool implementation', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-worker-'));
+    mkdirSync(join(root, 'scripts/workers'), { recursive: true });
+    mkdirSync(join(root, 'scripts/db'), { recursive: true });
+    writeFileSync(join(root, 'scripts/db/backfill.ts'), 'export const x = 1;\n');
+    writeFileSync(join(root, 'scripts/workers/job.ts'), 'import { x } from "../db/backfill";\n');
+    const edges = findProductToolEdges(root, ['scripts/workers/job.ts', 'scripts/db/backfill.ts']);
+    expect(edges).toEqual([expect.objectContaining({
+      from: 'scripts/workers/job.ts',
+      to: 'scripts/db/backfill.ts',
+    })]);
+  });
+
+  it('fail-closes a dirty worktree before binding a source receipt', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-dirty-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'init\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'init'], { cwd: root });
+    writeFileSync(join(root, 'dirty.txt'), 'unstaged\n');
+    const result = checkToolchainBoundary(root);
+    expect(result.failures.some((item) => item.code === 'dirty-worktree')).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it('changes the receipt digest when a registry contract field changes', () => {
+    const denominator = stubDenominator();
+    const registry = buildToolRegistry(denominator, [stubEntry({})]);
+    const mutated = {
+      ...registry,
+      records: registry.records.map((record) => ({ ...record, owner: 'other-owner', paths: [...record.paths, 'scripts/knowledge-cutover/extra.ts'] })),
+    };
+    expect(digestRegistry(mutated)).not.toBe(digestRegistry(registry));
+  });
+
+  it('fail-closes a new production path read that is not in the frozen allowlist', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-path-'));
+    mkdirSync(join(root, 'src/lib'), { recursive: true });
+    mkdirSync(join(root, 'scripts/db'), { recursive: true });
+    writeFileSync(join(root, 'scripts/db/backfill.ts'), 'export const x = 1;\n');
+    writeFileSync(join(root, 'src/lib/run.ts'), "readFileSync('scripts/db/backfill.ts');\n");
+    const reads = findProductToolPathReads(root, ['src/lib/run.ts', 'scripts/db/backfill.ts']);
+    expect(reads).toEqual([expect.objectContaining({
+      from: 'src/lib/run.ts',
+      to: 'scripts/db/backfill.ts',
+    })]);
+  });
+
   it('qualifies the live captured Git denominator with independent tools mapping', () => {
     const result = checkToolchainBoundary(process.cwd());
+    if (result.failures.some((item) => item.code === 'dirty-worktree')) {
+      expect(worktreeIsClean(process.cwd())).toBe(false);
+      return;
+    }
     expect(result.failures.filter((item) => item.code === 'unclassified-entry')).toEqual([]);
     expect(result.ok).toBe(true);
     expect(result.denominator.families.map((family) => family.id)).toContain('scripts-tests');

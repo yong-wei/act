@@ -14,7 +14,13 @@ const PRODUCTION_ROOTS = [
   'src/lib/',
   'src/resources/',
   'src/types/',
+  'scripts/workers/',
 ];
+
+const PRODUCTION_FILES = [
+  'scripts/assignments/scan-submission-objects.ts',
+  'scripts/assignments/gc-submission-objects.ts',
+] as const;
 
 function isTestPath(path: string): boolean {
   return path.includes('/__tests__/')
@@ -23,8 +29,16 @@ function isTestPath(path: string): boolean {
 }
 
 function isProductionPath(path: string): boolean {
-  return PRODUCTION_ROOTS.some((root) => path.startsWith(root)) && !isTestPath(path);
+  if (isTestPath(path)) return false;
+  if ((PRODUCTION_FILES as readonly string[]).includes(path)) return true;
+  return PRODUCTION_ROOTS.some((root) => path.startsWith(root));
 }
+
+export const PRODUCT_SCAN_ROOTS = [
+  'src',
+  'scripts/workers',
+  ...PRODUCTION_FILES,
+] as const;
 
 function isToolImplementation(path: string): boolean {
   return SOURCE_FAMILIES.some((family) => (

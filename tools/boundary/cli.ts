@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { checkToolchainBoundary } from './check';
-import { buildCommandReceipt, digestJson } from './receipt';
+import { buildCommandReceipt, digestRegistry } from './receipt';
 import { TOOLCHAIN_BOUNDARY_SCHEMA_VERSION } from './types';
 
 const cwd = process.cwd();
@@ -44,7 +44,7 @@ if (command === 'write') {
       sourceRevision: result.denominator.sourceRevision,
       sourceTree: result.denominator.sourceTree,
       inputDigest: result.denominator.digest,
-      outputDigest: digestJson(result.registry.records.map((record) => record.toolId)),
+      outputDigest: digestRegistry(result.registry),
       validatorVersion: TOOLCHAIN_BOUNDARY_SCHEMA_VERSION,
       exitStatus: result.ok ? 0 : 1,
       graphId: 'tools',
