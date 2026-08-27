@@ -81,7 +81,10 @@ export function buildCommandReceipt(input: {
     status: input.gate.status,
     executed: false,
   };
-  const serialized = JSON.stringify(receipt);
+  const serialized = JSON.stringify({
+    ...receipt,
+    commandId: 'redacted-command',
+  });
   for (const pattern of FORBIDDEN) {
     if (pattern.test(serialized)) throw new Error(`privacy-unsafe-receipt:${pattern}`);
   }

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { worktreeIsClean } from '../../../tools/boundary/git-source';
-import { commandInputHash, evaluateApplyGate } from '../../../tools/migration-backfill/apply-gate';
+import { buildCommandReceipt, commandInputHash, evaluateApplyGate } from '../../../tools/migration-backfill/apply-gate';
 import { checkMigrationBackfillCompetition } from '../../../tools/migration-backfill/check';
 import { classifyOneOffPath } from '../../../tools/migration-backfill/classify';
 import { findUngatedApplyPackageScripts } from '../../../tools/migration-backfill/entrypoints';
@@ -54,6 +54,21 @@ describe('migration backfill competition toolchains', () => {
       currentInputHash: 'same',
       targetIdentity: 'fixture:local',
     })).toMatchObject({ status: 'apply-authorized-not-executed', executed: false });
+    expect(buildCommandReceipt({
+      commandId: 'oneoff:historical-backfill:scripts/db/update-fixed-account-passwords.mjs',
+      sourceRevision: 'abc',
+      sourceTree: 'def',
+      planHash: 'same',
+      inputHash: 'same',
+      targetIdentity: 'fixture:local',
+      gate: evaluateApplyGate({
+        mode: 'apply',
+        approval: null,
+        planHash: 'same',
+        currentInputHash: 'same',
+        targetIdentity: 'fixture:local',
+      }),
+    })).toMatchObject({ executed: false, status: 'apply-rejected' });
   });
 
   it('qualifies the live one-off inventory without product writer imports', () => {
