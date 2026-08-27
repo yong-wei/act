@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { graphManifestHash, GRAPH_DEFINITIONS, GRAPH_IDS, type GraphId, type GraphManifest, type GraphMeasurementReceipt } from '../../../scripts/typescript-graphs/contracts';
+import { createGraphMeasurementReceipt, graphManifestHash, GRAPH_DEFINITIONS, GRAPH_IDS, type GraphId, type GraphManifest, type GraphMeasurementReceipt } from '../../../scripts/typescript-graphs/contracts';
 import type { CensusCore, CensusObservation } from '@/lib/architecture-census/types';
 import { INVENTORY_KINDS } from '@/lib/architecture-census/types';
 import { REQUIRED_BASELINE } from '@/lib/architecture-charter';
@@ -8,6 +8,7 @@ import {
   createFitnessBudgetLedger,
   evaluateFitnessBudgets,
   projectCompileBudgets,
+  fitnessBudgetLedgerHash,
   serializeFitnessBudgetReport,
   validateExceptionSet,
   validateFitnessBudgetLedger,
@@ -102,12 +103,10 @@ function graphReceipt(
   manifest: GraphManifest,
   sourceCommit: string,
   sourceTree: string,
-  overrides: Partial<GraphMeasurementReceipt> = {},
+  overrides: Partial<Omit<GraphMeasurementReceipt, 'schemaVersion' | 'receiptId'>> = {},
 ): GraphMeasurementReceipt {
   const definition = GRAPH_DEFINITIONS.find((item) => item.id === manifest.graph)!;
-  return {
-    schemaVersion: 'act-typescript-graph-measurement-receipt/v1',
-    receiptId: `receipt-${manifest.graph}-${sourceCommit}`,
+  return createGraphMeasurementReceipt({
     graph: manifest.graph,
     command: definition.command,
     scope: definition.scope,
@@ -130,7 +129,15 @@ function graphReceipt(
     boundaryFailureCount: 0,
     failureCodes: [],
     ...overrides,
-  };
+  });
+}
+
+function receiptWithOverrides(
+  receipt: GraphMeasurementReceipt,
+  overrides: Partial<Omit<GraphMeasurementReceipt, 'schemaVersion' | 'receiptId'>>,
+): GraphMeasurementReceipt {
+  const { receiptId: _ignored, schemaVersion: _schemaVersion, ...draft } = receipt;
+  return createGraphMeasurementReceipt({ ...draft, ...overrides });
 }
 
 describe('architecture fitness budgets', () => {
@@ -154,6 +161,21 @@ describe('architecture fitness budgets', () => {
     expect(first.ok).toBe(true);
     expect(first.status).toBe('qualified');
     expect(serializeFitnessBudgetReport(first)).toBe(serializeFitnessBudgetReport(second));
+
+    const alteredLedger = {
+      ...ledger,
+      budgets: ledger.budgets.map((record, index) => index === 0
+        ? { ...record, deletionCondition: `${record.deletionCondition}:updated` }
+        : record),
+    };
+    const ledgerDrift = evaluateFitnessBudgets({ ...input, ledger: alteredLedger, expectedLedgerHash: fitnessBudgetLedgerHash(ledger) });
+    expect(ledgerDrift.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-hash-drift' })]));
+    const ledgerConsistent = evaluateFitnessBudgets({
+      ...input,
+      ledger: alteredLedger,
+      expectedLedgerHash: fitnessBudgetLedgerHash(alteredLedger),
+    });
+    expect(ledgerConsistent.failures).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: 'ledger-hash-drift' })]));
   });
 
   it('fails new feature-to-app, deep-import, and SCC debt while preserving the old contract', () => {
@@ -253,6 +275,39 @@ describe('architecture fitness budgets', () => {
     expect(serialized).toBe(serializeFitnessBudgetReport(unsafe));
   });
 
+  it('keeps an allowlisted exception inherited when the current violation disappears', () => {
+    const baseline = core([edge('src/features/teacher/view.ts', 'src/app/api/teacher/route.ts', { featureToApp: true })]);
+    const allowlist = createAllowlist(baseline, 'charterhash');
+    const ledger = createFitnessBudgetLedger({ baselineCore: baseline, allowlist });
+    const current = core([]);
+
+    const inherited = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: current,
+      allowlist,
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+    });
+    expect(inherited.budgets.find((record) => record.budgetId.startsWith('exception:'))).toMatchObject({
+      exceptionState: 'inherited',
+      observedValue: 0,
+    });
+
+    const removed = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: current,
+      allowlist: { ...allowlist, entries: [] },
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+    });
+    expect(removed.budgets.find((record) => record.budgetId.startsWith('exception:'))).toMatchObject({
+      exceptionState: 'removed',
+      observedValue: 0,
+    });
+  });
+
   it('projects four graph receipts as trend or observed, and blocks stale, duplicate, boundary, and heap-only receipts', () => {
     const baselineIdentity = 'baseline-census';
     const currentCommit = 'current-commit';
@@ -267,7 +322,7 @@ describe('architecture fitness budgets', () => {
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
-      receipts: receipts.map((receipt) => ({ ...receipt, peakRssBytes: null })),
+      receipts: receipts.map((receipt) => receiptWithOverrides(receipt, { peakRssBytes: null })),
       manifests,
       baselineReceipts,
     });
@@ -280,7 +335,9 @@ describe('architecture fitness budgets', () => {
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
-      receipts: receipts.map((receipt) => receipt.graph === 'web' ? { ...receipt, status: 'blocked', failureCodes: ['web-includes-tooling'] } : receipt),
+      receipts: receipts.map((receipt) => receipt.graph === 'web'
+        ? receiptWithOverrides(receipt, { status: 'blocked', failureCodes: ['web-includes-tooling'] })
+        : receipt),
       manifests,
       baselineReceipts,
     });
@@ -289,12 +346,40 @@ describe('architecture fitness budgets', () => {
       sourceCommit: currentCommit,
       sourceTree: currentTree,
       baselineIdentity,
-      receipts: receipts.map((receipt) => receipt.graph === web.graph ? { ...receipt, tscErrorCount: 1 } : receipt),
+      receipts: receipts.map((receipt) => receipt.graph === web.graph ? receiptWithOverrides(receipt, { tscErrorCount: 1 }) : receipt),
       manifests,
       baselineReceipts,
     });
     expect(heapOnly.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-tsc-errors', identity: 'web' })]));
     const duplicate = projectCompileBudgets({ sourceCommit: currentCommit, sourceTree: currentTree, baselineIdentity, receipts: [...receipts, receipts[0]], manifests, baselineReceipts });
     expect(duplicate.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-receipt-duplicate', identity: 'web' })]));
+
+    const receiptDrift = projectCompileBudgets({
+      sourceCommit: currentCommit,
+      sourceTree: currentTree,
+      baselineIdentity,
+      receipts: receipts.map((receipt) => receipt.graph === 'web' ? { ...receipt, durationMs: receipt.durationMs + 1 } : receipt),
+      manifests,
+      baselineReceipts,
+    });
+    expect(receiptDrift.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'graph-receipt-identity-drift', identity: 'web' })]));
+
+    const baseline = core([]);
+    const current = core([], currentCommit, currentTree);
+    const allowlist = createAllowlist(baseline, 'charterhash');
+    const ledger = createFitnessBudgetLedger({ baselineCore: baseline, allowlist });
+    const noFrozenBaseline = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: current,
+      allowlist,
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+      graphReceipts: receipts,
+      graphManifests: manifests,
+      requireGraphInputs: true,
+    });
+    expect(noFrozenBaseline.failures.some((item) => item.code === 'graph-frozen-receipt-missing')).toBe(false);
+    expect(noFrozenBaseline.status).toBe('trend');
   });
 });

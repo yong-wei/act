@@ -21,6 +21,8 @@ Ledger record 使用固定 schema `act-architecture-fitness-budget/v1`，字段�
 - exception 集合只能删除或由合规替换删除。新条目、重复条目、pattern 扩大、字段漂移、删除条件移除和 owner transfer 都是未达资格的变更。
 - `compile-resource` 只消费 `scripts/typescript-graphs/` 产生的 revision-、command-、manifest-bound receipt。`peakRssBytes`、duration、platform、toolchain 和 cache 是 receipt 观察值，不是跨环境永久阈值；`trend` 与 `observed` 不伪装成 deterministic success，缺失、脏、过期、失败或 boundary blocker 为 `blocked`。
 
+标准 CLI 将 `.logs/typescript-graphs/` 视为当前 revision receipt，并从可选的 `docs/architecture/typescript-graphs/frozen-receipts/` 读取 frozen compile baseline；该目录不存在或为空是合法状态，只有实际读到 frozen receipt 的 graph 才启用对应 baseline 校验。不得生成占位 receipt。
+
 报告 schema 为 `act-architecture-fitness-report/v1`。报告按 `budgetId` 和 failure identity 稳定排序，并在序列化前检查本机绝对路径、凭据和 learner payload。历史 debt 仍显示 owner、consumer evidence、reason、deletion condition 和 follow-up change；allowlist 不代表全仓已完成迁移。
 
 Fitness report 只负责这些输入的结构性投影，不替代 domain dependency contract、`src/lib/architecture-test-commands`、release qualification 或既有 frontend/source-boundary gates。

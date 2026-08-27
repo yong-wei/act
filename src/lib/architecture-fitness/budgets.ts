@@ -7,6 +7,7 @@ import {
   GRAPH_IDS,
   GRAPH_MANIFEST_SCHEMA_VERSION,
   GRAPH_MEASUREMENT_RECEIPT_SCHEMA_VERSION,
+  createGraphMeasurementReceipt,
   graphManifestHash,
   type GraphId,
   type GraphManifest,
@@ -77,6 +78,7 @@ export interface CompileBudgetProjectionInput {
   readonly manifests: readonly GraphManifest[];
   readonly baselineReceipts?: readonly GraphMeasurementReceipt[];
   readonly requireFrozenReceipts?: boolean;
+  readonly requiredFrozenGraphs?: readonly GraphId[];
 }
 
 export interface CompileBudgetProjection {
@@ -99,6 +101,8 @@ export interface FitnessBudgetEvaluationInput {
   readonly graphArtifactFailures?: readonly FitnessBudgetFailure[];
   readonly baselineGraphReceipts?: readonly GraphMeasurementReceipt[];
   readonly requireGraphInputs?: boolean;
+  readonly expectedLedgerHash?: string;
+  readonly requireFrozenReceipts?: boolean;
 }
 
 function safeText(value: string): string {
@@ -582,6 +586,11 @@ function graphReceiptValue(receipt: GraphMeasurementReceipt | undefined): Budget
   };
 }
 
+function graphReceiptContentHash(receipt: GraphMeasurementReceipt): string {
+  const { receiptId: _ignored, schemaVersion: _schemaVersion, ...draft } = receipt;
+  return createGraphMeasurementReceipt(draft).receiptId;
+}
+
 function graphBudgetRecord(
   graph: GraphId,
   input: CompileBudgetProjectionInput,
@@ -627,7 +636,10 @@ function graphBudgetRecord(
 export function projectCompileBudgets(input: CompileBudgetProjectionInput): CompileBudgetProjection {
   const failures: FitnessBudgetFailure[] = [];
   const records: FitnessBudgetRecord[] = [];
-  const requireFrozen = input.requireFrozenReceipts ?? true;
+  const requiredFrozenGraphs = new Set(
+    input.requiredFrozenGraphs
+      ?? ((input.requireFrozenReceipts ?? true) ? GRAPH_IDS : []),
+  );
   for (const graph of GRAPH_IDS) {
     const definition = GRAPH_DEFINITIONS.find((item) => item.id === graph);
     const receipts = input.receipts.filter((item) => item.graph === graph || item.command === `typecheck:${graph}`);
@@ -637,12 +649,19 @@ export function projectCompileBudgets(input: CompileBudgetProjectionInput): Comp
     const manifest = manifests.length === 1 ? manifests[0] : undefined;
     const baseline = baselineReceipts.length === 1 ? baselineReceipts[0] : undefined;
     const budgetId = `compile-resource:${graph}`;
+    const requireFrozen = requiredFrozenGraphs.has(graph);
     if (receipts.length > 1) failures.push(failure('graph-receipt-duplicate', graph, budgetId));
     if (manifests.length > 1) failures.push(failure('graph-manifest-duplicate', graph, budgetId));
     if (!receipt) failures.push(failure('graph-receipt-missing', graph, budgetId));
     if (!manifest) failures.push(failure('graph-manifest-missing', graph, budgetId));
     if (requireFrozen && !baseline) failures.push(failure('graph-frozen-receipt-missing', graph, budgetId));
     let blocked = receipts.length !== 1 || manifests.length !== 1 || (requireFrozen && !baseline);
+    for (const candidate of receipts) {
+      if (graphReceiptContentHash(candidate) !== candidate.receiptId) {
+        failures.push(failure('graph-receipt-identity-drift', graph, budgetId));
+        blocked = true;
+      }
+    }
     if (receipt) {
       if (receipt.schemaVersion !== GRAPH_MEASUREMENT_RECEIPT_SCHEMA_VERSION) {
         failures.push(failure('graph-receipt-schema-drift', graph, budgetId));
@@ -696,6 +715,12 @@ export function projectCompileBudgets(input: CompileBudgetProjectionInput): Comp
       }
       if (receipt && graphManifestHash(manifest) !== receipt.manifestHash) {
         failures.push(failure('graph-manifest-hash-mismatch', graph, budgetId));
+        blocked = true;
+      }
+    }
+    for (const candidate of baselineReceipts) {
+      if (graphReceiptContentHash(candidate) !== candidate.receiptId) {
+        failures.push(failure('graph-receipt-identity-drift', `baseline:${graph}`, budgetId));
         blocked = true;
       }
     }
@@ -857,7 +882,7 @@ function currentExceptionRecord(
   sourceCommit: string,
   sourceTree: string,
 ): FitnessBudgetRecord {
-  if (!entry || !active) {
+  if (!entry) {
     return createBudgetRecord({
       ...baseline,
       sourceCommit,
@@ -872,7 +897,7 @@ function currentExceptionRecord(
     ...baseline,
     sourceCommit,
     sourceTree,
-    observedValue: 1,
+    observedValue: active ? 1 : 0,
     exceptionState: 'inherited',
     status: 'qualified',
     totals: { included: 1, excluded: 0, unresolved: 0 },
@@ -959,6 +984,9 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
   if (input.ledger.sourceTree !== input.baselineCore.captureIdentity.sourceTree) {
     failures.push(failure('budget-source-tree-drift', 'baseline'));
   }
+  if (input.expectedLedgerHash !== undefined && input.expectedLedgerHash !== fitnessBudgetLedgerHash(input.ledger)) {
+    failures.push(failure('ledger-hash-drift', 'ledger'));
+  }
   if (input.allowlist.schemaVersion !== 'act-architecture-fitness/v1') {
     failures.push(failure('allowlist-schema-drift', 'allowlist'));
   }
@@ -1043,6 +1071,10 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
 
   const shouldProjectGraphs = input.requireGraphInputs || input.graphReceipts || input.graphManifests || input.baselineGraphReceipts;
   if (shouldProjectGraphs) {
+    const frozenReceipts = input.baselineGraphReceipts ?? [];
+    const requiredFrozenGraphs = input.requireFrozenReceipts === undefined
+      ? GRAPH_IDS.filter((graph) => frozenReceipts.some((receipt) => receipt.graph === graph))
+      : input.requireFrozenReceipts ? [...GRAPH_IDS] : [];
     const compileProjection = projectCompileBudgets({
       sourceCommit,
       sourceTree,
@@ -1050,7 +1082,8 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
       receipts: input.graphReceipts ?? [],
       manifests: input.graphManifests ?? [],
       baselineReceipts: input.baselineGraphReceipts,
-      requireFrozenReceipts: input.requireGraphInputs ?? true,
+      requireFrozenReceipts: input.requireFrozenReceipts,
+      requiredFrozenGraphs,
     });
     const existingGraphRecords = graphRecordMap(records);
     for (const record of compileProjection.records) {

@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { generateCensusCore, loadGitSourceSnapshot } from '../src/lib/architecture-census';
@@ -13,11 +13,13 @@ import {
   readGraphArtifacts,
   serializeFitnessBudgetReport,
 } from '../src/lib/architecture-fitness';
-import type { FitnessAllowlist, FitnessBudgetLedger } from '../src/lib/architecture-fitness';
+import type { FitnessAllowlist, FitnessBudgetFailure, FitnessBudgetLedger } from '../src/lib/architecture-fitness';
 
 const BASELINE_CORE_PATH = 'docs/architecture/modular-monolith/baseline/census-core.json';
 const ALLOWLIST_PATH = 'docs/architecture/dependency-allowlist.json';
 const LEDGER_PATH = 'docs/architecture/fitness-budget-ledger.json';
+const LEDGER_HASH_PATH = 'docs/architecture/fitness-budget-ledger.sha256';
+const FROZEN_GRAPH_ARTIFACT_ROOT = 'docs/architecture/typescript-graphs/frozen-receipts';
 
 function writeAllowlist(repoRoot: string, allowlist: FitnessAllowlist): string {
   const serialized = serializeDeterministic(allowlist);
@@ -110,7 +112,12 @@ function main(): void {
   const baselineCore = readJson<CensusCore>(repoRoot, BASELINE_CORE_PATH);
   const allowlist = readJson<FitnessAllowlist>(repoRoot, ALLOWLIST_PATH);
   const ledger = readJson<FitnessBudgetLedger>(repoRoot, LEDGER_PATH);
+  const ledgerHashFailures: FitnessBudgetFailure[] = [];
+  const ledgerHashPath = join(repoRoot, LEDGER_HASH_PATH);
+  const expectedLedgerHash = existsSync(ledgerHashPath) ? readFileSync(ledgerHashPath, 'utf8').trim() : '';
+  if (!expectedLedgerHash) ledgerHashFailures.push({ code: 'ledger-hash-missing', identity: LEDGER_HASH_PATH });
   const graphArtifacts = readGraphArtifacts(repoRoot);
+  const frozenGraphArtifacts = readGraphArtifacts(repoRoot, join(repoRoot, FROZEN_GRAPH_ARTIFACT_ROOT));
   const receipts = graphArtifacts.receipts.filter((receipt) => (
     receipt.sourceCommit === snapshot.identity.sourceCommit
     && receipt.sourceTree === snapshot.identity.sourceTree
@@ -133,8 +140,12 @@ function main(): void {
     ledger,
     graphReceipts: receipts,
     graphManifests: manifests,
+    baselineGraphReceipts: frozenGraphArtifacts.receipts,
+    expectedLedgerHash: expectedLedgerHash || undefined,
     graphArtifactFailures: [
       ...graphArtifacts.failures,
+      ...frozenGraphArtifacts.failures,
+      ...ledgerHashFailures,
       ...censusFailures.map((item) => ({ code: item.code, identity: item.identity })),
     ],
     requireGraphInputs: true,
