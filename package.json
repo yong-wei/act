@@ -19,6 +19,8 @@
     "typecheck:tools": "tsx ./scripts/typescript-graphs/run.ts --graph tools",
     "toolchain:boundary:check": "tsx ./tools/boundary/cli.ts check",
     "toolchain:boundary:write": "tsx ./tools/boundary/cli.ts write",
+    "qa-evidence:check": "tsx ./tools/evidence-lifecycle/cli.ts check",
+    "qa-evidence:write": "tsx ./tools/evidence-lifecycle/cli.ts write",
     "typecheck:test": "tsx ./scripts/typescript-graphs/run.ts --graph test",
     "census:architecture": "tsx ./scripts/architecture-census.ts",
     "charter:architecture": "tsx ./scripts/architecture-charter.ts",

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "act-qa-evidence-artifact-lifecycle/v1",
+  "sourceRevision": "611e35e7a47b3b136fade70e5bace34909433315",
+  "sourceTree": "089e976601b0ecfa8229726d294a7962b90c3083",
+  "deletedCount": 3183,
+  "retainedCount": 2347,
+  "digest": "359cd76e41d06dfe034d3d639b39624dcb1d434f9880f2e393e83fd67ab1101b",
+  "recovery": "git-blob",
+  "fetch": "git cat-file -p <blobHash>",
+  "entriesFile": "deletion-entries.jsonl"
+}

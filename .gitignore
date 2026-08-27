@@ -78,6 +78,16 @@ course-content/slides-ref
 *.mp4
 *.m4a
 *.pdf
+
+# Run-specific QA screenshots and traces. Representative fixtures stay force-added.
+artifacts/**/*.png
+artifacts/**/*.jpg
+artifacts/**/*.jpeg
+artifacts/**/*.webp
+artifacts/**/*.gif
+artifacts/**/*.html
+artifacts/**/*.har
+artifacts/**/*.log
 course-content/runtime/resources/
 
 # Local debugging and Rust build artifacts

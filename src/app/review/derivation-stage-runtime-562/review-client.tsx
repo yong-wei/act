@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 
-import fixtureManifest from '../../../../artifacts/interactive-learning/derivation-stage-runtime-562/derivation-stage-fixture.interactive-manifest.json';
+import fixtureManifest from '@/lib/qa-evidence/fixtures/derivation-stage-fixture.interactive-manifest.json';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';

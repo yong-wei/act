@@ -1,16 +1,16 @@
 {
   "schemaVersion": "act-independent-toolchain-execution-boundary/v1",
   "denominator": {
-    "sourceRevision": "6882537f4306aa08ce9053879a95a308753ab360",
-    "sourceTree": "a1a2e0c7647125b248182245b02f7d3d03bb7159",
-    "totalCount": 6002,
-    "digest": "84882bea5c68509b1b49f9307aaf9b11f2a8ea313888291680359d43504b1e4e",
+    "sourceRevision": "188261f936ac660c29e78828aece6bf3a01b09d8",
+    "sourceTree": "330de7c54f5467e8c5552b7969729de70d7812da",
+    "totalCount": 2827,
+    "digest": "991bf1c5c9d3854da296dca95248a4bd5ffcff6f3342d505501f195287136819",
     "families": [
       {
         "id": "tools",
         "path": "tools",
-        "count": 20,
-        "digest": "ff54bc088f237dfd3cedde374092feeeb0160a8a4ca76041dcf6c510ef8c4e9f"
+        "count": 28,
+        "digest": "c9905483d165fbdf17ddf997541d5e25c962917f74d305f0421ef24e26c7da70"
       },
       {
         "id": "scripts-knowledge-cutover",
@@ -69,8 +69,8 @@
       {
         "id": "artifacts",
         "path": "artifacts",
-        "count": 5530,
-        "digest": "8b2b1dd63ea3b181a2e62c36cdaa583255b442a27abd2ac4b1e6160f34132709"
+        "count": 2347,
+        "digest": "934decab2711ff8efee676b21ecfc882b9114c90aeb8c59438701369a1444799"
       }
     ],
     "generatedInputs": []
@@ -123,13 +123,13 @@
         "toolClass": "evidence-visual-qa",
         "owner": "assessment",
         "commandId": "toolchain:evidence-visual-qa",
-        "pathCount": 229,
+        "pathCount": 237,
         "graphId": "test",
         "testCommand": "typecheck:test",
         "privacyClass": "private-run-evidence",
         "safetyMode": "read-only",
-        "retirementCondition": "externalize-run-specific-outputs",
-        "followUpChange": "externalize-run-specific-qa-evidence-artifacts"
+        "retirementCondition": "keep-as-evidence-lifecycle-contract",
+        "followUpChange": null
       },
       {
         "toolId": "existing-unrelated-tool:platform",
@@ -149,7 +149,7 @@
         "toolClass": "historical-evidence",
         "owner": "assessment",
         "commandId": "toolchain:historical-evidence",
-        "pathCount": 5530,
+        "pathCount": 2347,
         "graphId": "test",
         "testCommand": "typecheck:test",
         "privacyClass": "private-run-evidence",
@@ -201,10 +201,10 @@
   "receipt": {
     "schemaVersion": "act-toolchain-command-receipt/v1",
     "commandId": "toolchain:boundary-check",
-    "sourceRevision": "6882537f4306aa08ce9053879a95a308753ab360",
-    "sourceTree": "a1a2e0c7647125b248182245b02f7d3d03bb7159",
-    "inputDigest": "84882bea5c68509b1b49f9307aaf9b11f2a8ea313888291680359d43504b1e4e",
-    "outputDigest": "e6151c6425265051eb2fd3189bde33a7c903781587911adc6302dd0a79a3b54f",
+    "sourceRevision": "188261f936ac660c29e78828aece6bf3a01b09d8",
+    "sourceTree": "330de7c54f5467e8c5552b7969729de70d7812da",
+    "inputDigest": "991bf1c5c9d3854da296dca95248a4bd5ffcff6f3342d505501f195287136819",
+    "outputDigest": "84a937630dd2e5f603b070debe8a6fc274af1fde706e7a3f95ad88ec12b68383",
     "validatorVersion": "act-independent-toolchain-execution-boundary/v1",
     "exitStatus": 0,
     "graphId": "tools",
