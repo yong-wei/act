@@ -144,6 +144,22 @@ describe('independent toolchain execution boundary', () => {
     })]);
   });
 
+  it('fail-closes a statically joined process.cwd tool path read', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-join-'));
+    mkdirSync(join(root, 'src/lib'), { recursive: true });
+    mkdirSync(join(root, 'scripts/db'), { recursive: true });
+    writeFileSync(join(root, 'scripts/db/backfill.ts'), 'export const x = 1;\n');
+    writeFileSync(
+      join(root, 'src/lib/run.ts'),
+      "import { join } from 'node:path';\nreadFileSync(join(process.cwd(), 'scripts', 'db', 'backfill.ts'));\n",
+    );
+    const reads = findProductToolPathReads(root, ['src/lib/run.ts', 'scripts/db/backfill.ts']);
+    expect(reads).toEqual([expect.objectContaining({
+      from: 'src/lib/run.ts',
+      to: 'scripts/db/backfill.ts',
+    })]);
+  });
+
   it('qualifies the live captured Git denominator with independent tools mapping', () => {
     const result = checkToolchainBoundary(process.cwd());
     if (result.failures.some((item) => item.code === 'dirty-worktree')) {

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { extractSpecifiers, extractStringLiterals } from './specifiers';
+import { extractJoinedPaths, extractSpecifiers, extractStringLiterals } from './specifiers';
 
 import type { ProductToolEdge, ProductToolPathRead } from './types';
 import { SOURCE_FAMILIES } from './types';
@@ -110,7 +110,11 @@ export function findProductToolPathReads(cwd: string, trackedFiles: readonly str
   for (const path of trackedFiles) {
     if (!isProductionPath(path) || !/\.(?:[cm]?[jt]sx?)$/.test(path)) continue;
     const content = readFileSync(join(cwd, path), 'utf8');
-    for (const value of extractStringLiterals(path, content)) {
+    const values = new Set([
+      ...extractStringLiterals(path, content),
+      ...extractJoinedPaths(path, content),
+    ]);
+    for (const value of values) {
       if (!isRecordedToolPath(value, files)) continue;
       reads.push({ from: path, to: value, kind: 'path-string' });
     }
