@@ -276,7 +276,10 @@ export function qualifyDelivery(input: QualifyInput): QualificationEnvelope {
     if (dns.namesChanged.some((name) => name !== STATIC_HOSTNAME && name !== `${STATIC_HOSTNAME}.`)) {
       blockingReasons.push('dns-scope-violation');
     }
-    if (dns.recordType === 'intercepted') blockingReasons.push('dns-observation-intercepted');
+    if (dns.recordType === 'intercepted') {
+      if (dns.applied) blockingReasons.push('dns-observation-intercepted');
+      else missingEvidence.push('dns-trusted-observation');
+    }
   }
 
   let transport: TransportReceipt | null = null;

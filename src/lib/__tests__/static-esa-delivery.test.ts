@@ -182,6 +182,18 @@ describe('static ESA delivery qualification', () => {
     expect(incomplete.missingEvidence).toEqual(expect.arrayContaining(['service-role', 'transport', 'isolation', 'cost']));
     expect(qualify({ dirty: true }).status).toBe('blocked');
     expect(qualify({ cost: cost({ reportingDelayHours: 24, ossCdnOutBytes: null }) }).status).toBe('incomplete');
+    const intercepted = qualifyDelivery({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      mixedWorktree: false,
+      capturedAt: '2026-08-27T00:00:00.000Z',
+      originBucket: DELIVERY_BUCKET,
+      object: objectReceipt(),
+      dns: dns({ recordType: 'intercepted', applied: false, priorValue: null, desiredValue: null }),
+    });
+    expect(intercepted.status).toBe('incomplete');
+    expect(intercepted.missingEvidence).toContain('dns-trusted-observation');
   });
 
   it('rejects privacy-unsafe receipts and cache-rule mismatches', () => {
