@@ -40,6 +40,7 @@ from common import (
     require_exact_keys,
     require_mode,
     topology_mode,
+    use_real_fuse,
 )
 from credential import assert_developer_principal, load_credential
 from policy import load_and_validate
@@ -49,6 +50,7 @@ from shared_mount import (
     ensure_shared_mount,
     heartbeat_lease,
     is_fuse_readonly,
+    is_mounted,
     is_readonly_mount,
     mount_blobs,
     mount_fields,
@@ -56,6 +58,7 @@ from shared_mount import (
     portable_start_payload,
     privileged_mount,
     live_lease_ids,
+    read_leases,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
     release_lease,
@@ -313,6 +316,9 @@ def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, v
     helper = view_root / "views" / release_id / ".act-runtime-blobs"
     if os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") == "1":
         run([python, str(materializer), "attach-helper", "--release-id", release_id, "--view-root", str(view_root), "--blob-root", str(blob_root), "--test-fixture"])
+    elif is_mounted(helper):
+        if not is_readonly_mount(helper):
+            fail("helper blob bind must be read-only")
     else:
         run(privileged_mount(["bind", str(blob_root), str(helper)]))
         run(privileged_mount(["remount-ro", str(helper)]))
@@ -335,6 +341,65 @@ def stop_services(checkout: Path) -> None:
 
 def remove_ossfs_config(state: Path) -> None:
     remove_config_file(state / "ossfs.conf")
+
+
+def read_bound_identity(runtime_root: Path) -> dict[str, str] | None:
+    path = runtime_root / ".act-runtime-release.v2.json"
+    if not path.is_file() or path.is_symlink():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(raw, dict):
+        return None
+    release_id = raw.get("releaseId")
+    manifest_sha = raw.get("manifestSha256")
+    tree_sha = raw.get("treeSha256")
+    if not isinstance(release_id, str) or not isinstance(manifest_sha, str) or not isinstance(tree_sha, str):
+        return None
+    return {"releaseId": release_id, "manifestSha256": manifest_sha, "treeSha256": tree_sha}
+
+
+def refuse_stacked_bind(path: Path, label: str) -> None:
+    if use_real_fuse() and is_mounted(path):
+        fail("refusing to stack a %s bind; unmount only %s" % (label, path))
+
+
+def recover_live_checkout(
+    checkout: Path,
+    readiness: dict[str, str],
+    runtime_root: Path,
+    blob_root: Path,
+    view_root: Path,
+    topology: str,
+    mount_id: str | None,
+    receipt_path: Path,
+) -> dict[str, Any] | None:
+    bound = read_bound_identity(runtime_root)
+    lease = None
+    if topology == TOPOLOGY_SHARED and mount_id:
+        lease = read_leases(mount_id).get("leases", {}).get(checkout_id(checkout))
+    matches = (
+        bound is not None
+        and bound["releaseId"] == readiness["releaseId"]
+        and bound["manifestSha256"] == readiness["manifestSha256"]
+        and bound["treeSha256"] == readiness["treeSha256"]
+    )
+    if lease and matches:
+        if use_real_fuse() and not is_readonly_mount(runtime_root):
+            fail("shared lease exists but the runtime bind is not read-only; unmount only %s" % runtime_root)
+        helper = Path(str(lease.get("helperMount") or view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"))
+        selected = Path(str(lease.get("viewRoot") or view_root / "current"))
+        payload = _selection_payload(
+            checkout, readiness, blob_root, helper, selected, runtime_root, topology, mount_id,
+        )
+        write_selection_receipt(receipt_path, payload)
+        heartbeat_lease(checkout, mount_id, payload)
+        return payload
+    if use_real_fuse() and is_mounted(runtime_root):
+        fail("checkout runtime bind exists without a matching receipt; unmount only %s" % runtime_root)
+    return None
 
 
 def _selection_payload(
@@ -403,6 +468,11 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
                 if topology == TOPOLOGY_SHARED and mount_id:
                     heartbeat_lease(checkout, mount_id, existing)
                 return existing
+        recovered = recover_live_checkout(
+            checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
+        )
+        if recovered:
+            return recovered
         documents = state / "documents" / readiness["releaseId"]
         manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
         verify_release_documents(readiness, manifest_path, oss_receipt)
@@ -425,6 +495,7 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             if topology == TOPOLOGY_SHARED and mount_id:
                 acquire_lease(checkout, mount_id, payload)
                 acquired = True
+            refuse_stacked_bind(runtime_root, "runtime")
             bind_runtime(selected, runtime_root)
             write_selection_receipt(receipt_path, payload)
             return payload
