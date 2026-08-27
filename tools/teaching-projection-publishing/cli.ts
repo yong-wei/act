@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { checkTeachingProjectionPublishing } from './check';
+import { checkTeachingProjectionPublishing, publishingToolingIdentity } from './check';
 import { PUBLISHING_COMMAND_IDS } from './types';
 
 const cwd = process.cwd();
@@ -21,11 +21,12 @@ function usage(message: string): never {
   process.exit(2);
 }
 
-function runCutoverScript(script: string, args: readonly string[]): void {
+function runCutoverScript(script: string, args: readonly string[], env: NodeJS.ProcessEnv = process.env): void {
   const tsxCli = join(cwd, 'node_modules/tsx/dist/cli.mjs');
   const spawned = spawnSync(process.execPath, [tsxCli, script, ...args], {
     cwd,
     stdio: 'inherit',
+    env,
   });
   process.exitCode = spawned.status === null ? 1 : spawned.status;
 }
@@ -74,7 +75,13 @@ if (command === 'write') {
   if (!result.ok) {
     fail();
   } else {
-    runCutoverScript('scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts', positional);
+    const tooling = publishingToolingIdentity(cwd);
+    runCutoverScript('scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts', positional, {
+      ...process.env,
+      ACT_TEACHING_PROJECTION_SOURCE_REVISION: tooling.sourceRevision,
+      ACT_TEACHING_PROJECTION_SOURCE_TREE: tooling.sourceTree,
+      ACT_TEACHING_PROJECTION_TOOLS_HASH: tooling.contentHash,
+    });
   }
 } else if (!result.ok) {
   fail();

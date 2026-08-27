@@ -15,6 +15,7 @@ import {
   V09_HOST_POINTER_HASHES,
   type HostShadowObservation,
 } from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
+import { publishingToolingIdentity } from '../../tools/teaching-projection-publishing/check';
 import { asRecord, writeCanonical } from '../../tools/teaching-projection-publishing/qualify/v018-shared';
 import { accountByKey } from '../db/verified-test-accounts.mjs';
 
@@ -30,10 +31,14 @@ function ssh(target: string, script: string): string {
   return execFileSync('ssh', [target, script], { encoding: 'utf8' }).trim();
 }
 
-function stageRemotePublishingModules(sshTarget: string): void {
-  const localTools = path.join(process.cwd(), 'tools/teaching-projection-publishing');
-  execFileSync('ssh', [sshTarget, 'mkdir -p /tmp/v018-teaching-projection-publishing && rm -rf /tmp/v018-teaching-projection-publishing/*'], { encoding: 'utf8' });
-  execFileSync('rsync', ['-a', `${localTools}/`, `${sshTarget}:/tmp/v018-teaching-projection-publishing/`], { encoding: 'utf8' });
+function stageRemotePublishingModules(sshTarget: string, revision: string): void {
+  execFileSync('ssh', [sshTarget, 'rm -rf /tmp/v018-tp-extract /tmp/v018-teaching-projection-publishing && mkdir -p /tmp/v018-tp-extract'], {
+    encoding: 'utf8',
+  });
+  const archive = execFileSync('git', ['archive', '--format=tar', revision, 'tools/teaching-projection-publishing']);
+  execFileSync('ssh', [sshTarget, 'tar -x -C /tmp/v018-tp-extract && mv /tmp/v018-tp-extract/tools/teaching-projection-publishing /tmp/v018-teaching-projection-publishing'], {
+    input: archive,
+  });
 }
 
 function runDeployedImageStagedShadow(sshTarget: string): {
@@ -238,7 +243,8 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
   const publicReadyz = await fetch(`${publicUrl}/api/readyz`);
   let sidecar: ReturnType<typeof runDeployedImageStagedShadow>;
   try {
-    stageRemotePublishingModules(sshTarget);
+    const tooling = publishingToolingIdentity(process.cwd());
+    stageRemotePublishingModules(sshTarget, tooling.sourceRevision);
     sidecar = runDeployedImageStagedShadow(sshTarget);
   } catch {
     sidecar = { source: 'local-qualification', consumers: [] };
@@ -268,6 +274,12 @@ export async function verifyActKgV018HostShadow(argv: readonly string[] = proces
       && remote.prerequisiteSha256 === V09_HOST_POINTER_HASHES.prerequisites
       && remote.activationSha256 === V09_HOST_POINTER_HASHES.activation
       && remote.shardSha256 === V09_HOST_POINTER_HASHES.shards,
+    toolSourceRevision: publishingToolingIdentity(process.cwd()).sourceRevision,
+    toolSourceTree: publishingToolingIdentity(process.cwd()).sourceTree,
+    toolContentHash: publishingToolingIdentity(process.cwd()).contentHash,
+    expectedToolSourceRevision: process.env.ACT_TEACHING_PROJECTION_SOURCE_REVISION,
+    expectedToolSourceTree: process.env.ACT_TEACHING_PROJECTION_SOURCE_TREE,
+    expectedToolContentHash: process.env.ACT_TEACHING_PROJECTION_TOOLS_HASH,
   };
   const evaluated = evaluateV018HostShadow(observation);
   const pointerHashes = hostPointerHashesFromObservation(observation);

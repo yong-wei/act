@@ -33,6 +33,20 @@ function digest(value: string): string {
   return createHash('sha256').update(`${value}\n`).digest('hex');
 }
 
+export function publishingToolingIdentity(cwd: string): {
+  readonly sourceRevision: string;
+  readonly sourceTree: string;
+  readonly contentHash: string;
+} {
+  const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
+  const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
+  const listing = execFileSync('git', ['ls-files', '-s', '-z', '--', 'tools/teaching-projection-publishing'], {
+    cwd,
+    encoding: 'utf8',
+  });
+  return { sourceRevision, sourceTree, contentHash: digest(listing) };
+}
+
 function trackedPrefix(cwd: string, prefix: string): string[] {
   return listTracked(cwd, prefix);
 }

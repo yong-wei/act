@@ -74,6 +74,12 @@ export interface HostShadowObservation {
   publicV09Labels?: readonly string[];
   publicV09TeachingHttpStatus?: number;
   publicV09TeachingDomainId?: string;
+  toolSourceRevision?: string;
+  toolSourceTree?: string;
+  toolContentHash?: string;
+  expectedToolSourceRevision?: string;
+  expectedToolSourceTree?: string;
+  expectedToolContentHash?: string;
 }
 
 const HOST_POINTER_PATHS = {
@@ -237,6 +243,20 @@ export function evaluateV018HostShadow(observation: HostShadowObservation): {
   }
   if (observation.stagedQualificationSha256 !== V018_STAGED_QUALIFICATION_SHA256) {
     blockers.push('host-v018-qualification-stage-drift');
+  }
+  if (observation.expectedToolSourceRevision) {
+    if (!observation.toolSourceRevision || !observation.toolSourceTree || !observation.toolContentHash) {
+      blockers.push('tooling-identity-missing');
+    }
+    if (observation.toolSourceRevision !== observation.expectedToolSourceRevision) {
+      blockers.push('tooling-revision-drift');
+    }
+    if (observation.expectedToolSourceTree && observation.toolSourceTree !== observation.expectedToolSourceTree) {
+      blockers.push('tooling-tree-drift');
+    }
+    if (observation.expectedToolContentHash && observation.toolContentHash !== observation.expectedToolContentHash) {
+      blockers.push('tooling-content-hash-drift');
+    }
   }
   const pointersMatch = observation.authoritySha256 === V09_HOST_POINTER_HASHES.authority
     && observation.projectionSha256 === V09_HOST_POINTER_HASHES.projection
