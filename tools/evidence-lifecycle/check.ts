@@ -6,7 +6,7 @@ import { worktreeIsClean } from '../boundary/git-source';
 
 import { classifyArtifact, listArtifactBlobs, loadProductionArtifactRetainPaths } from './classify';
 import { privacyFailures } from './privacy';
-import { buildDeletionReceipt } from './receipt';
+import { buildDeletionReceipt, digestJson } from './receipt';
 import type { ClassifiedArtifact, DeletionReceipt } from './types';
 import { QA_EVIDENCE_SCHEMA_VERSION } from './types';
 
@@ -81,6 +81,8 @@ function verifyCommittedDeletionReceipt(cwd: string): string[] {
   });
   if (entries.length === 0) failures.push('empty-committed-deletion-entries');
   if (receipt.deletedCount !== entries.length) failures.push('deletion-count-mismatch');
+  const expectedDigest = digestJson(entries.map((item) => `${item.path}:${item.blobHash}`));
+  if (receipt.digest !== expectedDigest) failures.push('deletion-digest-mismatch');
   const hashes = entries.map((item) => item.blobHash).filter(Boolean);
   if (hashes.length !== entries.length) failures.push('missing-blob-hash');
   if (hashes.length > 0) {
