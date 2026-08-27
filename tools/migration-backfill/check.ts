@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { worktreeIsClean } from '../boundary/git-source';
 import { findProductToolEdges } from '../boundary/product-imports';
@@ -28,6 +30,27 @@ export function checkMigrationBackfillCompetition(cwd: string): OneOffCheckResul
     failures.push('missing-competition-material');
   }
   if (commands.some((item) => !item.owner || !item.commandId)) failures.push('unclassified-oneoff');
+  const writers = [
+    'scripts/db/set-ai-provider-qwen-default.ts',
+    'scripts/db/update-fixed-account-passwords.mjs',
+  ];
+  for (const path of writers) {
+    const found = commands.find((item) => item.path === path);
+    if (!found || found.safetyMode !== 'apply-gated') failures.push(`writer-not-apply-gated:${path}`);
+  }
+  const inventoryPath = join(cwd, 'docs/architecture/migration-backfill-competition/inventory.json');
+  if (existsSync(inventoryPath)) {
+    const inventory = JSON.parse(readFileSync(inventoryPath, 'utf8')) as { sourceRevision?: string };
+    if (!inventory.sourceRevision) {
+      failures.push('inventory-missing-source-revision');
+    } else {
+      try {
+        execFileSync('git', ['merge-base', '--is-ancestor', inventory.sourceRevision, 'HEAD'], { cwd });
+      } catch {
+        failures.push('inventory-revision-not-ancestor');
+      }
+    }
+  }
 
   const tracked = [
     ...listTracked(cwd, 'scripts/migrations'),

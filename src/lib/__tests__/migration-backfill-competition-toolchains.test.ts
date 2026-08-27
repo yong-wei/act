@@ -16,6 +16,8 @@ describe('migration backfill competition toolchains', () => {
       safetyMode: 'apply-gated',
     });
     expect(classifyOneOffPath('scripts/db/dry-run-simulation-task-evidence.ts').safetyMode).toBe('dry-run-default');
+    expect(classifyOneOffPath('scripts/db/set-ai-provider-qwen-default.ts').safetyMode).toBe('apply-gated');
+    expect(classifyOneOffPath('scripts/db/update-fixed-account-passwords.mjs').safetyMode).toBe('apply-gated');
     expect(classifyOneOffPath('evaluate/reports/summary.md').oneOffClass).toBe('competition-material');
   });
 
@@ -27,6 +29,13 @@ describe('migration backfill competition toolchains', () => {
       currentInputHash: 'a',
       targetIdentity: 'fixture:local',
     })).toMatchObject({ status: 'apply-rejected', reason: 'approval-absent', executed: false });
+    expect(evaluateApplyGate({
+      mode: 'apply',
+      approval: 'fixture-approval',
+      planHash: '',
+      currentInputHash: 'new',
+      targetIdentity: 'fixture:local',
+    })).toMatchObject({ status: 'apply-rejected', reason: 'plan-hash-absent', executed: false });
     expect(evaluateApplyGate({
       mode: 'apply',
       approval: 'fixture-approval',

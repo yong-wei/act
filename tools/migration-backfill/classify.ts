@@ -15,6 +15,17 @@ export function listTracked(cwd: string, path: string): string[] {
   return output.split('\0').filter(Boolean).sort((left, right) => left.localeCompare(right));
 }
 
+const READ_ONLY_DB_FILES = new Set([
+  'backfill-unit-4-1-growth-options.ts',
+  'course-evidence-backfill-options.ts',
+  'recompute-interactive-evidence-scoring-options.ts',
+  'session-data-quality-report-options.ts',
+  'runtime-lesson-catalog.ts',
+  'runtime-lesson-semantic-evidence.ts',
+  'runtime-semantic-freshness.ts',
+  'verified-test-accounts.mjs',
+]);
+
 export function classifyOneOffPath(path: string): OneOffCommand {
   if (startsWithPath(path, 'scripts/migrations')) {
     return command(path, 'migration-repair', 'learning-record', 'apply-gated');
@@ -23,15 +34,13 @@ export function classifyOneOffPath(path: string): OneOffCommand {
     return command(path, 'competition-material', 'arena', 'dry-run-default');
   }
   const name = path.split('/').pop() ?? path;
-  const applyLike = /^(?:backfill|materialize|repair|migrate|apply|import|seed|rebuild|recompute|refresh)-/.test(name)
-    || name.startsWith('migrate-')
-    || name.includes('apply-');
-  const readLike = /^(?:dry-run|report|generate|compute|verify)-/.test(name) || name.includes('dry-run');
+  const readOnly = READ_ONLY_DB_FILES.has(name)
+    || /^(?:dry-run|report|verify|compute)-/.test(name);
   return command(
     path,
     'historical-backfill',
     'learning-record',
-    applyLike && !readLike ? 'apply-gated' : 'dry-run-default',
+    readOnly ? 'dry-run-default' : 'apply-gated',
   );
 }
 

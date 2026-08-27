@@ -29,6 +29,9 @@ export function evaluateApplyGate(input: ApplyGateInput): ApplyGateResult {
   if (!input.approval) {
     return { allowed: false, executed: false, status: 'apply-rejected', reason: 'approval-absent' };
   }
+  if (!input.planHash) {
+    return { allowed: false, executed: false, status: 'apply-rejected', reason: 'plan-hash-absent' };
+  }
   if (input.planHash !== input.currentInputHash) {
     return { allowed: false, executed: false, status: 'apply-rejected', reason: 'plan-hash-stale' };
   }

@@ -1,9 +1,12 @@
 # Migration, backfill, and competition toolchains
 
 Isolated command boundary for `scripts/migrations`, `scripts/db`, `evaluate`,
-and competition baseline helpers. Dry-run is the default. Apply requires a
-fixture approval token, matching plan/input hash, and a `fixture:` target; this
-change never executes a write.
+and competition baseline helpers. `migration-backfill:dry-run` emits a command
+plan with input/plan hash. Apply requires a clean worktree, `ACT_APPLY_APPROVAL`,
+`ACT_APPLY_PLAN_HASH` matching the recomputed input hash, and a `fixture:`
+target; this change never executes a write. Database scripts default to
+apply-gated except explicit parsers, dry-run, report, verify, and compute
+helpers.
 
 Product TypeScript modules must not import these writers. Existing `db:*` and
 `migrate:*` package scripts remain compatibility entries until callers use

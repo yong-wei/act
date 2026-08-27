@@ -22,7 +22,7 @@
     "qa-evidence:check": "tsx ./tools/evidence-lifecycle/cli.ts check",
     "qa-evidence:write": "tsx ./tools/evidence-lifecycle/cli.ts write",
     "migration-backfill:check": "tsx ./tools/migration-backfill/cli.ts check",
-    "migration-backfill:dry-run": "tsx ./tools/migration-backfill/cli.ts check",
+    "migration-backfill:dry-run": "tsx ./tools/migration-backfill/cli.ts dry-run",
     "migration-backfill:apply": "tsx ./tools/migration-backfill/cli.ts apply",
     "typecheck:test": "tsx ./scripts/typescript-graphs/run.ts --graph test",
     "census:architecture": "tsx ./scripts/architecture-census.ts",
