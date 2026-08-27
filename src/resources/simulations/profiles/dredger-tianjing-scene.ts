@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -8,7 +9,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const dredgerTianjingSceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 127.5,
   designSpeedKnots: 12,
-  modelUrl: '/assets/models-opt/dredger.glb',
+  modelUrl: resolveRegisteredSimulationModel('dredger').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -63.75],

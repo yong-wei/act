@@ -7,6 +7,7 @@
  * 知识点映射：稳态误差 (Ch3)，前馈控制 (Ch6)
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import { TIANJING_DREDGER_PARAMS, HIGH_GAIN_PID } from '../core/constants';
 import { DEFAULT_MMG_PARAMS } from '../physics/simulation-engine-facade';
@@ -118,7 +119,7 @@ export const dredgerTianjingProfile: ShipProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/dredger.glb',
+    modelPath: resolveRegisteredSimulationModel('dredger').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#f59e0b',  // 琥珀色

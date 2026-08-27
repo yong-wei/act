@@ -10,6 +10,7 @@
  * 2023年下水，总吨位 135,500 GT，可载客 5,246 人
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   CRUISE_ADORA_PARAMS,
@@ -94,7 +95,7 @@ export const cruiseAdoraProfile: ShipProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/luxury-liner.glb',
+    modelPath: resolveRegisteredSimulationModel('luxury-liner').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#8b5cf6',  // 紫色 (豪华感)
