@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { worktreeIsClean } from '../boundary/git-source';
@@ -62,5 +62,36 @@ export function checkEvidenceLifecycle(cwd: string): EvidenceCheckResult {
     digest: deletionReceipt.digest,
   })).map((item) => `receipt-${item}`));
   if (deletionReceipt.schemaVersion !== QA_EVIDENCE_SCHEMA_VERSION) failures.push('schema-mismatch');
+  failures.push(...verifyCommittedDeletionReceipt(cwd));
   return { ok: failures.length === 0, failures, classified, deletionReceipt, sourceRevision, sourceTree };
+}
+
+function verifyCommittedDeletionReceipt(cwd: string): string[] {
+  const failures: string[] = [];
+  const entriesPath = join(cwd, 'docs/architecture/qa-evidence-lifecycle/deletion-entries.jsonl');
+  const receiptPath = join(cwd, 'docs/architecture/qa-evidence-lifecycle/deletion-receipt.json');
+  if (!existsSync(entriesPath) || !existsSync(receiptPath)) {
+    return ['missing-committed-deletion-receipt'];
+  }
+  const receipt = JSON.parse(readFileSync(receiptPath, 'utf8')) as { deletedCount?: number; digest?: string };
+  const entries = readFileSync(entriesPath, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line) as {
+    path: string;
+    blobHash: string;
+    outputReference?: string;
+  });
+  if (entries.length === 0) failures.push('empty-committed-deletion-entries');
+  if (receipt.deletedCount !== entries.length) failures.push('deletion-count-mismatch');
+  const hashes = entries.map((item) => item.blobHash).filter(Boolean);
+  if (hashes.length !== entries.length) failures.push('missing-blob-hash');
+  if (hashes.length > 0) {
+    const checked = execFileSync('git', ['cat-file', '--batch-check=%(objecttype)', '--buffer'], {
+      cwd,
+      encoding: 'utf8',
+      input: `${hashes.join('\n')}\n`,
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    const missing = checked.split('\n').filter((line) => line && line !== 'blob');
+    if (missing.length > 0) failures.push(`missing-git-blob:${missing.length}`);
+  }
+  return failures;
 }
