@@ -33,6 +33,12 @@ function digest(value: string): string {
   return createHash('sha256').update(`${value}\n`).digest('hex');
 }
 
+function compareCodepoints(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 export function publishingToolingIdentity(cwd: string): {
   readonly sourceRevision: string;
   readonly sourceTree: string;
@@ -40,10 +46,14 @@ export function publishingToolingIdentity(cwd: string): {
 } {
   const sourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
   const sourceTree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd, encoding: 'utf8' }).trim();
-  const files = listTracked(cwd, 'tools/teaching-projection-publishing');
+  const files = listTracked(cwd, 'tools/teaching-projection-publishing')
+    .map((file) => ({
+      file,
+      rel: file.replace(/^tools\/teaching-projection-publishing\//, ''),
+    }))
+    .sort((left, right) => compareCodepoints(left.rel, right.rel));
   const tree = createHash('sha256');
-  for (const file of files) {
-    const rel = file.replace(/^tools\/teaching-projection-publishing\//, '');
+  for (const { file, rel } of files) {
     const body = execFileSync('git', ['cat-file', '-p', `HEAD:${file}`], { cwd });
     tree.update(`${rel}\0`);
     tree.update(body);

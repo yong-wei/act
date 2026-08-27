@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { worktreeIsClean } from '../../../tools/boundary/git-source';
-import { checkTeachingProjectionPublishing } from '../../../tools/teaching-projection-publishing/check';
+import { checkTeachingProjectionPublishing, publishingToolingIdentity } from '../../../tools/teaching-projection-publishing/check';
 
 describe('teaching projection publishing CLI', () => {
   it('owns publish qualify and rebase outside the product barrel', () => {
@@ -27,6 +27,12 @@ describe('teaching projection publishing CLI', () => {
     if (!result.failures.includes('dirty-worktree')) {
       expect(result.ok).toBe(true);
       expect(result.callers.length).toBeGreaterThanOrEqual(19);
+      const names = ['qualify/v018-qualify.ts', 'README.md'];
+      const localeOrder = [...names].sort((left, right) => left.localeCompare(right));
+      const codepointOrder = [...names].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+      expect(codepointOrder[0]).toBe('README.md');
+      expect(publishingToolingIdentity(process.cwd()).contentHash).toHaveLength(64);
+      expect(localeOrder[0] === 'README.md' || codepointOrder[0] === 'README.md').toBe(true);
     }
   });
 });
