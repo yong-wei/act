@@ -42,4 +42,4 @@ npm run typecheck:web -- --cache cold
 npm run typecheck:web -- --fixture-probe
 ```
 
-夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。本 change 只建立图和 receipt 合同，不设定编译内存预算；预算由 #1553 根据 qualified receipt 决定，PR/integration 强制消费由 #1554 接入。
+夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。#1553 通过 `docs/architecture/fitness-budget-ledger.json` 消费 revision-bound graph manifest 与 measurement receipt；它不把编译内存写成跨环境永久阈值。PR/integration 的强制消费由 #1554 接入。
