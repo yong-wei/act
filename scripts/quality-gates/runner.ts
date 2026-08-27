@@ -113,9 +113,21 @@ function runCommand(repoRoot: string, commandId: QualityCommandId, execute: bool
       };
     }
     try {
-      const parsed = JSON.parse(readFileSync(observation, 'utf8')) as { sourceCommit?: string };
+      const parsed = JSON.parse(readFileSync(observation, 'utf8')) as {
+        sourceCommit?: string;
+        sourceTree?: string;
+        status?: string;
+        endpoint?: string;
+        capturedAt?: string;
+      };
       const identity = readGitIdentity(repoRoot);
-      if (parsed.sourceCommit !== identity.sourceCommit) {
+      const valid = parsed.sourceCommit === identity.sourceCommit
+        && parsed.sourceTree === identity.sourceTree
+        && parsed.status === 'passed'
+        && parsed.endpoint === '/api/readyz'
+        && typeof parsed.capturedAt === 'string'
+        && parsed.capturedAt.length > 0;
+      if (!valid) {
         return {
           checkId: '',
           status: 'failed',
