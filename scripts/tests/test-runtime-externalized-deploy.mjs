@@ -837,10 +837,10 @@ assert.equal(
 );
 
 assert.equal(
-  packageJson.scripts['db:export-textbook-resources'] ===
-    'node ./scripts/release/export-textbook-runtime-v2.mjs',
+  packageJson.scripts['db:export-textbook-resources'].includes('tools/content-knowledge-runtime-release/cli.ts')
+    && packageJson.scripts['db:export-textbook-resources'].includes('scripts/release/export-textbook-runtime-v2.mjs'),
   true,
-  'package.json 的生产教材导出入口必须只调用 v2 runtime/index/assets 原子导出器',
+  'package.json 的生产教材导出入口必须经独立 CLI 调用 v2 runtime/index/assets 原子导出器',
 );
 
 assert.equal(
