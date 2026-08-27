@@ -323,15 +323,167 @@ restore_final_receipt() {
   fi
 }
 
+inspect_incomplete_transaction() {
+  python3 - "$status_path" "$journal_dir" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$previous_pointer" "$AUTHORITY_ROOT/current.json" "$final_receipt" "$previous_final_receipt" <<'PY'
+import hashlib, json, os, re, stat, sys
+
+status_path, journal_dir, candidate_path, successor_path, predecessor_path, authority_path, final_path, previous_final_path = sys.argv[1:]
+sha = lambda value: hashlib.sha256(value).hexdigest()
+canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+
+def regular(path, label, required=True):
+    if not os.path.exists(path):
+        if required: raise SystemExit('ERROR: %s is missing' % label)
+        return None
+    mode = os.lstat(path).st_mode
+    if not stat.S_ISREG(mode) or os.path.islink(path):
+        raise SystemExit('ERROR: %s must be a regular non-symlink file' % label)
+    return open(path, 'rb').read()
+
+status_wire = regular(status_path, 'current transaction status', required=False)
+if status_wire is None:
+    raise SystemExit(0)
+try:
+    status_record = json.loads(status_wire.decode('utf-8'))
+except Exception as error:
+    raise SystemExit('ERROR: current transaction status is invalid: %s' % error)
+expected_status_keys = {'contract', 'transactionId', 'journalPath', 'journalHash', 'status', 'updatedAt'}
+if not isinstance(status_record, dict) or set(status_record) != expected_status_keys or status_record.get('contract') != 'r4-coordinated-production-transaction-status/v1':
+    raise SystemExit('ERROR: current transaction status has an unsupported contract')
+transaction_id = status_record.get('transactionId')
+journal_name = status_record.get('journalPath')
+journal_hash = status_record.get('journalHash')
+if not isinstance(transaction_id, str) or not re.fullmatch(r'tx-[0-9a-f-]{36}', transaction_id):
+    raise SystemExit('ERROR: current transaction status has an invalid transaction id')
+if journal_name != transaction_id + '.json' or os.path.basename(journal_name) != journal_name:
+    raise SystemExit('ERROR: current transaction status points outside its immutable journal')
+if not isinstance(journal_hash, str) or not re.fullmatch(r'[a-f0-9]{64}', journal_hash):
+    raise SystemExit('ERROR: current transaction status has an invalid journal hash')
+journal_path = os.path.join(journal_dir, journal_name)
+journal_wire = regular(journal_path, 'immutable transaction journal')
+try:
+    journal = json.loads(journal_wire.decode('utf-8'))
+except Exception as error:
+    raise SystemExit('ERROR: immutable transaction journal is invalid: %s' % error)
+journal_keys = {'contract', 'transactionId', 'openedAt', 'candidateReceiptHash', 'predecessor', 'orderedMutations', 'compensationPlan', 'journalHash'}
+if not isinstance(journal, dict) or set(journal) != journal_keys or journal.get('contract') != 'cutover-transaction-journal/v1':
+    raise SystemExit('ERROR: immutable transaction journal has an unsupported contract')
+journal_body = {key: journal[key] for key in ('transactionId', 'openedAt', 'candidateReceiptHash', 'predecessor', 'orderedMutations', 'compensationPlan')}
+if journal.get('transactionId') != transaction_id or journal.get('journalHash') != journal_hash or sha(canonical(journal_body)) != journal_hash:
+    raise SystemExit('ERROR: immutable transaction journal does not match the current status')
+if status_record.get('status') in {'COMMITTED', 'ROLLED_BACK'}:
+    raise SystemExit(0)
+if status_record.get('status') == 'BLOCKED_RECOVERY':
+    raise SystemExit('ERROR: prior coordinated transaction is BLOCKED_RECOVERY and requires operator investigation')
+if status_record.get('status') not in {'PREPARED', 'AUTHORITY_APPLIED', 'RUNTIME_ACTIVATED', 'FINAL_RECEIPT_WRITTEN', 'SUCCESSOR_READY'}:
+    raise SystemExit('ERROR: current transaction status is not recoverable')
+candidate = json.loads(regular(candidate_path, 'candidate receipt').decode('utf-8'))
+if not isinstance(candidate, dict) or journal.get('candidateReceiptHash') != candidate.get('receiptHash'):
+    raise SystemExit('ERROR: incomplete transaction binds a different candidate receipt')
+successor = regular(successor_path, 'successor Authority pointer')
+predecessor = regular(predecessor_path, 'captured predecessor Authority pointer')
+mutation = journal.get('orderedMutations')
+if (not isinstance(mutation, list) or len(mutation) != 1 or not isinstance(mutation[0], dict)
+        or mutation[0].get('selectorId') != 'authority:current'
+        or mutation[0].get('expectedPredecessorIdentity') != sha(predecessor)
+        or mutation[0].get('successorIdentity') != sha(successor)):
+    raise SystemExit('ERROR: incomplete transaction Authority identities do not match its candidate')
+authority = regular(authority_path, 'live Authority pointer')
+if authority == predecessor:
+    authority_state = 'predecessor'
+elif authority == successor:
+    authority_state = 'successor'
+else:
+    raise SystemExit('ERROR: live Authority pointer does not belong to the incomplete transaction')
+previous_final = regular(previous_final_path, 'captured predecessor final receipt', required=False)
+final = regular(final_path, 'live final receipt', required=False)
+final_state = 'none'
+if final is not None:
+    try:
+        receipt = json.loads(final.decode('utf-8'))
+    except Exception as error:
+        raise SystemExit('ERROR: live final receipt is invalid: %s' % error)
+    if isinstance(receipt, dict) and receipt.get('transactionId') == transaction_id:
+        expected_receipt_keys = {'contract', 'receiptId', 'sealedAt', 'transactionId', 'journalHash', 'candidateReceiptHash', 'committedSelectors', 'mutationReceiptHashes', 'runtimeActiveReceiptHash', 'runtimeActiveIdentity', 'receiptHash'}
+        receipt_body = {key: receipt.get(key) for key in ('transactionId', 'journalHash', 'candidateReceiptHash', 'committedSelectors', 'mutationReceiptHashes', 'runtimeActiveReceiptHash', 'runtimeActiveIdentity')}
+        receipt_hash = sha(canonical(receipt_body))
+        if (set(receipt) != expected_receipt_keys or receipt.get('contract') != 'coordinated-active-receipt/v1'
+                or receipt.get('journalHash') != journal_hash or receipt.get('candidateReceiptHash') != candidate.get('receiptHash')
+                or receipt.get('receiptHash') != receipt_hash or receipt.get('receiptId') != 'act-' + receipt_hash[:24]):
+            raise SystemExit('ERROR: live final receipt does not match the incomplete transaction')
+        final_state = 'successor'
+    elif previous_final is not None and final == previous_final:
+        final_state = 'predecessor'
+    else:
+        raise SystemExit('ERROR: live final receipt does not belong to the incomplete transaction or its predecessor')
+if previous_final is not None and final_state == 'none':
+    raise SystemExit('ERROR: captured predecessor final receipt disappeared during the incomplete transaction')
+print('\t'.join((transaction_id, journal_name, journal['openedAt'], authority_state, final_state, '1' if previous_final is not None else '0')))
+PY
+}
+
+block_incomplete_recovery() {
+  local message="$1"
+  echo "ERROR: $message" >&2
+  if [[ -n "$transaction_id" && -n "$journal_path" ]]; then
+    write_journal BLOCKED_RECOVERY || true
+  fi
+  completed=1
+  trap - ERR INT TERM
+  exit 1
+}
+
+recover_incomplete_transaction() {
+  local stale transaction_journal authority_state final_state previous_final_state
+  if ! stale="$(inspect_incomplete_transaction)"; then
+    echo "ERROR: unable to inspect the prior coordinated transaction" >&2
+    return 1
+  fi
+  [[ -n "$stale" ]] || return 0
+  IFS=$'\t' read -r transaction_id transaction_journal opened_at authority_state final_state previous_final_state <<<"$stale"
+  journal_path="$journal_dir/$transaction_journal"
+  rollback_image="$(active_image)" || block_incomplete_recovery 'incomplete transaction has no recoverable predecessor app image'
+  previous_final_receipt_present="$previous_final_state"
+  consumers_stop_intent=1
+  if [[ "$authority_state" == "successor" ]]; then
+    authority_mutated=1
+  else
+    if ! python3 - "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/lifecycle-predecessor.json" <<'PY'
+import json, subprocess, sys
+lifecycle, state_dir, predecessor_path = sys.argv[1:]
+live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
+predecessor = json.load(open(predecessor_path, encoding='utf-8'))
+if live != predecessor:
+    raise SystemExit('Runtime lifecycle is not the captured predecessor while Authority is unchanged')
+PY
+    then
+      block_incomplete_recovery 'incomplete transaction has an inconsistent Authority and Runtime predecessor state'
+    fi
+  fi
+  if [[ "$final_state" == "successor" ]]; then
+    final_receipt_hash="$(sha256sum "$final_receipt" | awk '{print $1}')"
+    final_receipt_written=1
+  fi
+  echo "WARN: recovering incomplete coordinated transaction $transaction_id before opening a new transaction" >&2
+  false
+}
+
 recover() {
   local status=$?
   set +e
   local recovery_safe=1
   if [[ "$completed" == "1" ]]; then exit "$status"; fi
   if [[ "$authority_mutated" == "1" ]]; then
-    restore_runtime_predecessor || recovery_safe=0
+    # A failed post-deploy smoke can leave the successor app running. Stop it
+    # before changing either selector so no consumer observes a mixed pair.
+    if [[ "$consumers_stop_intent" == "1" ]]; then
+      stop_consumers || recovery_safe=0
+    fi
+    if [[ "$recovery_safe" == "1" ]]; then
+      restore_runtime_predecessor || recovery_safe=0
+    fi
   fi
-  if [[ "$authority_mutated" == "1" && -f "$previous_pointer" ]]; then
+  if [[ "$recovery_safe" == "1" && "$authority_mutated" == "1" && -f "$previous_pointer" ]]; then
     expected_after="$(sha256sum "$candidate_dir/authority-current.json" | awk '{print $1}')"
     current_after="$(sha256sum "$AUTHORITY_ROOT/current.json" | awk '{print $1}')"
     if [[ "$current_after" == "$expected_after" ]]; then
@@ -340,7 +492,9 @@ recover() {
       recovery_safe=0
     fi
   fi
-  restore_final_receipt || recovery_safe=0
+  if [[ "$recovery_safe" == "1" ]]; then
+    restore_final_receipt || recovery_safe=0
+  fi
   if [[ "$recovery_safe" == "1" && "$consumers_stop_intent" == "1" && -n "$rollback_image" ]]; then
     RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED="$([[ "$previous_final_receipt_present" == "1" ]] && printf true || printf false)" \
       ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
@@ -369,6 +523,7 @@ recover() {
 }
 trap recover ERR INT TERM
 
+recover_incomplete_transaction
 rollback_image="$(active_image)"
 preflight_and_prepare
 if [[ -e "$final_receipt" ]]; then
@@ -398,12 +553,19 @@ ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT="$LIFECYCLE" \
   --manifest "$candidate_dir/manifest.json" --release-receipt "$candidate_dir/release-receipt.json" --verification-receipt "$candidate_dir/publisher-verification.json" \
   --ram-role "$RAM_ROLE" --coordinated-activate-before-consumers >/dev/null
 runtime_activated=1
+write_journal RUNTIME_ACTIVATED
 seal_final_receipt
 final_receipt_hash="$(sha256sum "$final_receipt" | awk '{print $1}')"
 final_receipt_written=1
+write_journal FINAL_RECEIPT_WRITTEN
 RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED=true \
   ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
   RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" "$DEPLOY" --runtime-cutover-app-only
+"$ACTIVATOR" --release-id "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtimeRelease"]["releaseId"])' "$candidate_dir/runtime-stage.json")" \
+  --expected-active-release "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtime"]["releaseId"])' "$candidate_dir/predecessor-observation.json")" \
+  --manifest "$candidate_dir/manifest.json" --release-receipt "$candidate_dir/release-receipt.json" --verification-receipt "$candidate_dir/publisher-verification.json" \
+  --ram-role "$RAM_ROLE" --verify-active-consumers >/dev/null
+write_journal SUCCESSOR_READY
 write_journal COMMITTED
 completed=1
 trap - ERR INT TERM

@@ -35,6 +35,7 @@ ram_role=""
 replace_existing=0
 stage_only=0
 coordinated_activate_before_consumers=0
+verify_active_consumers_only=0
 old_active="none"
 parent_view=""
 overlay_stash=""
@@ -65,6 +66,7 @@ while [[ $# -gt 0 ]]; do
     --replace-existing) replace_existing=1; shift ;;
     --stage-only) stage_only=1; shift ;;
     --coordinated-activate-before-consumers) coordinated_activate_before_consumers=1; shift ;;
+    --verify-active-consumers) verify_active_consumers_only=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -85,6 +87,10 @@ if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
     }
   done
 fi
+[[ "$verify_active_consumers_only" == "1" && "$stage_only" == "1" ]] && {
+  echo "ERROR: active-consumer verification cannot be stage-only" >&2
+  exit 1
+}
 
 for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
@@ -580,9 +586,38 @@ assert_coordinated_consumers_stopped() {
   done
 }
 
+verify_active_consumers() {
+  [[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || {
+    echo "ERROR: runtime environment is unavailable for active-consumer verification" >&2
+    return 1
+  }
+  # The deployer writes this controlled environment file before restarting the
+  # application. Its APP_PORT is the only loopback endpoint that proves the
+  # just-restarted consumers are serving the active Runtime and Authority.
+  source "$ENV_FILE"
+  [[ "${APP_PORT:-}" =~ ^[0-9]{1,5}$ ]] || {
+    echo "ERROR: runtime environment has no valid app port" >&2
+    return 1
+  }
+  candidate_view="$VIEW_ROOT/current"
+  [[ -d "$candidate_view" ]] || {
+    echo "ERROR: active Runtime view is unavailable for consumer verification" >&2
+    return 1
+  }
+  wait_for_readyz
+  run_candidate_consumer_smoke
+  run_active_media_resolver_smoke
+}
+
 mkdir -p "$STATE_DIR"
 exec 9>"$STATE_DIR/.act-runtime-selection.lock"
 flock -x 9
+
+if [[ "$verify_active_consumers_only" == "1" ]]; then
+  verify_active_consumers
+  printf '{"status":"ACTIVE_CONSUMERS_VERIFIED","releaseId":"%s"}\n' "$release_id"
+  exit 0
+fi
 
 python3 "$ACTIVATION_TRANSACTION" recover \
   --state-dir "$STATE_DIR" \

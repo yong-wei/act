@@ -19,6 +19,7 @@ for (const invariant of [
   'cutover-transaction-journal/v1',
   'coordinated-runtime-authorization/v1',
   '--coordinated-activate-before-consumers',
+  '--verify-active-consumers',
   'coordinated-active-receipt/v1',
   'ACT_COORDINATED_CUTOVER_REQUIRED=true',
   'BLOCKED_RECOVERY',
@@ -46,6 +47,13 @@ assert.ok(
   'consumer visibility must wait until the final coordinated receipt is durable',
 );
 assert.ok(
+  remote.lastIndexOf('"$DEPLOY" --runtime-cutover-app-only')
+    < remote.lastIndexOf('--verify-active-consumers')
+    && remote.lastIndexOf('--verify-active-consumers') < remote.lastIndexOf('write_journal SUCCESSOR_READY')
+    && remote.lastIndexOf('write_journal SUCCESSOR_READY') < remote.lastIndexOf('write_journal COMMITTED'),
+  'a restarted successor must pass readiness, consumer, and signed-media verification before COMMITTED',
+);
+assert.ok(
   remote.indexOf("'status': status") > remote.indexOf("'journalHash'"),
   'mutable transaction status must not participate in the immutable journal hash',
 );
@@ -56,6 +64,20 @@ assert.ok(
 assert.ok(
   remote.indexOf('transaction_id="tx-') < remote.indexOf('journal_path="$journal_dir/${transaction_id}.json"'),
   'the immutable journal path must be allocated only after the transaction id exists',
+);
+assert.ok(
+  remote.lastIndexOf('recover_incomplete_transaction') < remote.indexOf('transaction_id="tx-'),
+  'a durable incomplete transaction must be recovered before a new transaction id is allocated',
+);
+assert.match(
+  remote,
+  /status_record\.get\('status'\) not in \{'PREPARED', 'AUTHORITY_APPLIED', 'RUNTIME_ACTIVATED', 'FINAL_RECEIPT_WRITTEN', 'SUCCESSOR_READY'\}/u,
+  'only explicitly recoverable durable transaction states may enter automatic compensation',
+);
+assert.match(
+  remote,
+  /incomplete transaction has an inconsistent Authority and Runtime predecessor state/u,
+  'mixed predecessor state must fail closed instead of opening a replacement transaction',
 );
 assert.ok(
   remote.includes('status_path="$journal_dir/r4-c5-current.json"')
@@ -71,6 +93,10 @@ assert.match(
   remote,
   /if \[\[ "\$recovery_safe" == "1" && "\$consumers_stop_intent" == "1" && -n "\$rollback_image" \]\]; then/u,
   'partial consumer stop recovery must redeploy the predecessor even when not every stop completed',
+);
+assert.ok(
+  remote.indexOf('stop_consumers || recovery_safe=0') < remote.indexOf('restore_runtime_predecessor || recovery_safe=0'),
+  'a successor that has already restarted consumers must be stopped before lifecycle and Authority compensation',
 );
 assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapshot"/, 'local wrapper must transfer the immutable Authority snapshot');
 assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and validate the Authority snapshot from the sealed successor');
