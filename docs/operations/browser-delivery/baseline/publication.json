@@ -2,7 +2,7 @@
   "schemaVersion": "browser-delivery-publication/v1",
   "cohortId": "simulation-glb-v1",
   "bucket": "act-course-delivery",
-  "manifestDigest": "83216d928f627f08c948de12cb3dfd5f03f73f02a460f13b0d1305c5901f041d",
+  "manifestDigest": "8616685059f1bf21159c551a084bfe1bc1b61b937336acd91012f3965841d957",
   "applied": false,
   "objects": [
     {
