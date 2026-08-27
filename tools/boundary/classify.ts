@@ -18,6 +18,18 @@ export function classifyPath(path: string, familyId: SourceFamilyId): Classified
   if (startsWithPath(path, 'tools/migration-backfill')) {
     return entry(path, familyId, 'migration-backfill', 'learning-record', 'none', 'apply-gated', 'keep-as-isolated-command-boundary', null);
   }
+  if (startsWithPath(path, 'tools/teaching-projection-publishing')) {
+    return entry(
+      path,
+      familyId,
+      'knowledge-release',
+      'knowledge',
+      'public-bundle',
+      'read-only',
+      'keep-as-isolated-cli',
+      null,
+    );
+  }
   if (startsWithPath(path, 'tools/glb-model-optimizer')) {
     return entry(path, familyId, 'existing-unrelated-tool', 'platform', 'public-bundle', 'read-only', 'owned-outside-this-series', null);
   }

@@ -14,9 +14,9 @@ import {
   hostPointerHashesFromObservation,
   V09_HOST_POINTER_HASHES,
   type HostShadowObservation,
-} from '../../src/lib/teaching-projection/publish/v018-host-shadow';
-import { asRecord, writeCanonical } from '../../src/lib/teaching-projection/qualify/v018-shared';
-import { accountByKey } from '../db/verified-test-accounts.mjs';
+} from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
+import { asRecord, writeCanonical } from '../../tools/teaching-projection-publishing/qualify/v018-shared';
+import { accountByKey } from '../db/verified-test-accounts';
 
 const DEFAULT_PUBLIC_URL = 'https://act.adapt-learn.online';
 const DEFAULT_SSH = 'root@121.40.124.135';
@@ -52,7 +52,7 @@ function runDeployedImageStagedShadow(sshTarget: string): {
     'cat > /tmp/v018-host-shadow-run.mjs <<\'JS\'',
     'import { createHash } from "node:crypto";',
     'import { readFileSync, writeFileSync } from "node:fs";',
-    'import { qualifyActKgV018CutoverCandidate } from "./src/lib/teaching-projection/qualify/v018-qualify.ts";',
+    'import { qualifyActKgV018CutoverCandidate } from "./tools/teaching-projection-publishing/qualify/v018-qualify";',
     'const result = await qualifyActKgV018CutoverCandidate({ repoRoot: "/app", outputRoot: "/out" });',
     'const receipt = readFileSync("/app/course-content/authoring/knowledge/authority/candidates/control-theory-engineering-v0.18/candidate-receipt.json");',
     'writeFileSync("/out/result.json", JSON.stringify({',

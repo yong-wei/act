@@ -15,30 +15,32 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
-  actDeltaChange,
   activateTeachingProjection,
+  buildTeachingProjection,
+  loadStagedTeachingProjection,
+  projectionDigest,
+  readCurrentTeachingProjectionPointer,
+  resolveTeachingProjectionStorePaths,
+  stageTeachingProjection,
+  type TeachingProjectionAuthoringInput,
+} from '../teaching-projection';
+import {
+  actDeltaChange,
   applyCanonicalRewrites,
   buildRebaseDecision,
-  buildTeachingProjection,
   calculateImpactOnly,
   classifySupersessionTopology,
   computeActTeachingProjectionImpactSet,
   digestActDeltaChangeEvents,
   inventoryDeltaDetailsForAct,
   inventoryReleaseSetDeltaForAct,
-  loadStagedTeachingProjection,
-  projectionDigest,
-  readCurrentTeachingProjectionPointer,
   rebaseTeachingProjection,
   resolveRebaseDecisions,
-  resolveTeachingProjectionStorePaths,
   stageRebasedTeachingProjection,
-  stageTeachingProjection,
   TeachingProjectionRebaseError,
   type ActDeltaChangeEvent,
   type ActReleaseSetDeltaDetailsView,
-  type TeachingProjectionAuthoringInput,
-} from '../teaching-projection';
+} from '../../../tools/teaching-projection-publishing/rebase';
 
 const commitA = 'a'.repeat(40);
 const commitB = 'b'.repeat(40);

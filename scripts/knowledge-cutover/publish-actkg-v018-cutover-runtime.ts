@@ -12,11 +12,11 @@ import { pathToFileURL } from 'node:url';
 import {
   V018_FROZEN_APPLICATION_REVISION,
   V018_FROZEN_IMAGE_TAG,
-} from '../../src/lib/teaching-projection/publish/v018-host-shadow';
+} from '../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 import {
   publishActKgV018CutoverRuntime,
   resolveSealedFrozenImage,
-} from '../../src/lib/teaching-projection/publish/v018-runtime-release';
+} from '../../tools/teaching-projection-publishing/publish/v018-runtime-release';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);

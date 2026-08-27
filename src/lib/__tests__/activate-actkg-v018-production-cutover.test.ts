@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { createMapPointerBackend } from '../teaching-projection/publish/v018-production-cutover-backend';
+import { createMapPointerBackend } from '../../../tools/teaching-projection-publishing/publish/v018-production-cutover-backend';
 import {
   assertNoLearnerVisibleSystemIdentifiers,
   compensateV018ProductionCutover,
@@ -23,15 +23,15 @@ import {
   type CutoverJournal,
   type PointerIdentity,
   type V018CutoverComponent,
-} from '../teaching-projection/publish/v018-production-cutover';
+} from '../../../tools/teaching-projection-publishing/publish/v018-production-cutover';
 import {
   V018_FROZEN_IMAGE_TAG,
   V018_SEALED_IMAGE_CONFIG_SHA256,
-} from '../teaching-projection/publish/v018-host-shadow';
+} from '../../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 import {
   V018_SEALED_QUALIFICATION_SHA256,
   V018_SEALED_RUNTIME_RECEIPT_DIGEST,
-} from '../teaching-projection/publish/v018-runtime-release';
+} from '../../../tools/teaching-projection-publishing/publish/v018-runtime-release';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 

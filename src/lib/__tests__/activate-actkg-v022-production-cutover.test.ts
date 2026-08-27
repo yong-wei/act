@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { envelopeByName } from '@/lib/actkg-envelope/composite-envelope-registry';
-import { createV022MapPointerBackend } from '../teaching-projection/publish/v022-production-cutover-backend';
+import { createV022MapPointerBackend } from '../../../tools/teaching-projection-publishing/publish/v022-production-cutover-backend';
 import {
   assertNoLearnerVisibleSystemIdentifiers,
   createPreparedJournal,
@@ -19,11 +19,11 @@ import {
   V022_TARGET_IDENTITIES,
   V09_PREDECESSOR_IDENTITIES,
   type V022CutoverComponent,
-} from '../teaching-projection/publish/v022-production-cutover';
+} from '../../../tools/teaching-projection-publishing/publish/v022-production-cutover';
 import {
   executeV022ReleaseGates,
   publishActKgV022CutoverRuntime,
-} from '../teaching-projection/publish/v022-runtime-release';
+} from '../../../tools/teaching-projection-publishing/publish/v022-runtime-release';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const roots: string[] = [];

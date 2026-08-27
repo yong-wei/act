@@ -8,9 +8,9 @@ import { prepareActKgV018TeachingProjection } from '../../../scripts/knowledge-c
 import {
   assertV018PointerBytesUnchanged,
   readV018PointerSnapshots,
-} from '../teaching-projection/rebase/v018-receipt';
-import type { V018RebaseReceipt } from '../teaching-projection/rebase/v018-contracts';
-import { V018_CURRENT_POINTER_PATHS } from '../teaching-projection/rebase/v018-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-receipt';
+import type { V018RebaseReceipt } from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
+import { V018_CURRENT_POINTER_PATHS } from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const outputRoots: string[] = [];
