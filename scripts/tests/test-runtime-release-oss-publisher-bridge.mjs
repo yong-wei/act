@@ -911,8 +911,9 @@ try {
     assert.equal(routedBlobReceipt.status, 'complete');
     assert.equal(routedBlobReceipt.metadataCheckCount, 2);
     assert.equal(routedBlobReceipt.newUploadCount, 2);
-    const routedEndpoints = (await readFile(routedHeadEndpoints, 'utf8')).trim().split('\\n').filter(Boolean);
-    assert.ok(routedEndpoints.length >= 2, 'the read bridge must verify each changed blob after local writes');
+    assert.equal(routedBlobReceipt.verifiedBlobEntries.length, 2);
+    const routedEndpoints = (await readFile(routedHeadEndpoints, 'utf8')).trim().split('\n').filter(Boolean);
+    assert.ok(routedEndpoints.length >= 1, 'the read bridge must perform metadata verification through the ECS path');
     assert.ok(routedEndpoints.every((endpoint) => endpoint === 'oss-cn-hangzhou-internal.aliyuncs.com'), 'the local publisher must not perform public OSS metadata reads');
   } finally {
     imdsRoleName = originalImdsRoleName;

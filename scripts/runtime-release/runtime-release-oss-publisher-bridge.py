@@ -1407,6 +1407,28 @@ def put_blob_spooled_file_without_readback(
     return process.returncode == 0
 
 
+def put_spooled_file_without_readback(
+    bucket: str,
+    key: str,
+    path: str,
+    expected_size: int,
+    expected_sha: str,
+) -> bool:
+    key = validate_key(key)
+    if expected_size < 0 or not SHA256_PATTERN.fullmatch(expected_sha):
+        fail("local payload write has an invalid expected identity")
+    process = subprocess.run(
+        ossutil_argv("v2", [
+            "api", "put-object", "--bucket", bucket, "--key", key,
+            "--body", f"file://{path}", "--forbid-overwrite", "-q",
+        ]),
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return process.returncode == 0
+
+
 def put_payload_without_readback(bucket: str, key: str, payload: bytes, expected_sha: str, directory: str) -> bool:
     if len(payload) > MAX_FRAME_BYTES:
         fail("payload exceeds the maximum runtime frame size")
@@ -1755,6 +1777,7 @@ def publish_blob_release_via_read_bridge(
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         spool_directory = release_spool_directory(prefix)
         successful_blob_puts = 0
+        write_json({"status": "stream", "missingKeys": missing_keys, "receiptPresent": receipt_present})
         for entry in missing:
             raw_frame_header = sys.stdin.buffer.readline()
             if not raw_frame_header:
