@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "963a9307815e78f8740a0318ad53c7b9c699db29",
-  "sourceTree": "f9c326c073a434f90a9101b599f9af886e7c8afd",
+  "sourceRevision": "8b08731156181a72d2d1608670f89b0480c49816",
+  "sourceTree": "355f3fa0360d8300d6f09326dfc7aaa57726db44",
   "counts": {
     "migration-repair": 3,
     "historical-backfill": 76,
@@ -97,7 +97,7 @@
       "commandId": "oneoff:historical-backfill:scripts/db/backfill-unit-4-1-growth-options.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "apply-gated"
+      "safetyMode": "dry-run-default"
     },
     {
       "path": "scripts/db/backfill-unit-4-4-governance.ts",
@@ -139,126 +139,126 @@
       "commandId": "oneoff:historical-backfill:scripts/db/ensure-production-test-accounts.sh",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/ensure-verified-test-accounts.mjs",
       "commandId": "oneoff:historical-backfill:scripts/db/ensure-verified-test-accounts.mjs",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-adaptive-assessment-item-catalog.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-adaptive-assessment-item-catalog.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-adaptive-assessment-lifecycle-coverage.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-adaptive-assessment-lifecycle-coverage.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-assessment-item-semantic-review.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-assessment-item-semantic-review.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-core-textbook-section-path-role-review.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-core-textbook-section-path-role-review.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-graph-resource-coverage-overlay.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-graph-resource-coverage-overlay.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-kaq-quiz-foundation.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-kaq-quiz-foundation.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-learning-goal-assessment-coverage.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-learning-goal-assessment-coverage.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-longform-textbook-reference-resource-semantics.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-longform-textbook-reference-resource-semantics.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-rag-citation-anchor-coverage.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-rag-citation-anchor-coverage.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-reference-section-path-role-review.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-reference-section-path-role-review.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-resource-field-completion-audit.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-resource-field-completion-audit.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-runtime-lesson-media-resource-semantics.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-runtime-lesson-media-resource-semantics.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-runtime-lesson-planning-unit-review.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-runtime-lesson-planning-unit-review.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-runtime-media-handout-disposition-review.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-runtime-media-handout-disposition-review.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-textbook-media-grounding.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-textbook-media-grounding.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/generate-textbook-search-document-citation-shard.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/generate-textbook-search-document-citation-shard.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/import-authoritative-actkg-release.ts",
@@ -321,7 +321,7 @@
       "commandId": "oneoff:historical-backfill:scripts/db/migrate.sh",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/rebuild-student-evidence-feature-cache.ts",
@@ -342,14 +342,14 @@
       "commandId": "oneoff:historical-backfill:scripts/db/recompute-interactive-evidence-scoring-options.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "apply-gated"
+      "safetyMode": "dry-run-default"
     },
     {
       "path": "scripts/db/reconcile-teacher-default-classes.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/reconcile-teacher-default-classes.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/refresh-simulation-task-catalog-portraits.ts",
@@ -412,7 +412,7 @@
       "commandId": "oneoff:historical-backfill:scripts/db/run-aggregate-course-resource-governance.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/runtime-lesson-catalog.ts",
@@ -440,7 +440,7 @@
       "commandId": "oneoff:historical-backfill:scripts/db/schedule_calendar_sync.py",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/seed-admin.mjs",
@@ -531,21 +531,21 @@
       "commandId": "oneoff:historical-backfill:scripts/db/set-ai-provider-qwen-default.ts",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/sync-remote-db-to-local.sh",
       "commandId": "oneoff:historical-backfill:scripts/db/sync-remote-db-to-local.sh",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/update-fixed-account-passwords.mjs",
       "commandId": "oneoff:historical-backfill:scripts/db/update-fixed-account-passwords.mjs",
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
-      "safetyMode": "dry-run-default"
+      "safetyMode": "apply-gated"
     },
     {
       "path": "scripts/db/verified-test-accounts.mjs",
