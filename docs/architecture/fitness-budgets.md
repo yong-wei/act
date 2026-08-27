@@ -11,6 +11,7 @@
 | dependency allowlist | `0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608` |
 | charter | `76850de671d65e821dd2acebe070ab23d6a3f26a3a7d9f9527e32af75c957396` |
 | budget ledger | `bd2da413d2c5f75e8a387e7efb4f334a4c76f637e98192b04775fcdac49a09ed`，见 [`fitness-budget-ledger.json`](./fitness-budget-ledger.json) 与 [`fitness-budget-ledger.sha256`](./fitness-budget-ledger.sha256) |
+| frozen allowlist | `0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608`，见 [`fitness-budget-allowlist.json`](./fitness-budget-allowlist.json)；当前 [`dependency-allowlist.json`](./dependency-allowlist.json) 只作为候选集合，只能收缩 |
 
 Ledger record 使用固定 schema `act-architecture-fitness-budget/v1`，字段为 `budgetId`、`metricKind`、`scope`、`baselineIdentity`、`sourceCommit`、`sourceTree`、`observedValue`、`direction`、`owner`、`evidenceRefs`、`exceptionState`、`deletionCondition`、`followUpChange`、`status` 和 `totals`。`totals` 始终包含 `included`、`excluded`、`unresolved`。
 

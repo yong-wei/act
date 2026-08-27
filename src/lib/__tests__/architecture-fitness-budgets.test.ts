@@ -220,7 +220,7 @@ describe('architecture fitness budgets', () => {
       }),
     ]);
     const ledger = createFitnessBudgetLedger({ baselineCore: baseline, allowlist });
-    const report = evaluateFitnessBudgets({ baselineCore: baseline, currentCore: current, allowlist, ledger, sourceState: {} });
+    const report = evaluateFitnessBudgets({ baselineCore: baseline, currentCore: current, allowlist, baselineAllowlist: allowlist, ledger, sourceState: {} });
     expect(report.ok).toBe(false);
     expect(report.failures.map((item) => item.code)).toEqual(expect.arrayContaining(['new-forbidden-dependency', 'new-scc-member']));
   });
@@ -251,6 +251,23 @@ describe('architecture fitness budgets', () => {
       budgets: ledger.budgets.map((record, index) => index === 0 ? { ...record, pattern: 'src/**' } : record),
     } as unknown as typeof ledger;
     expect(validateFitnessBudgetLedger(malformed).some((item) => item.code === 'budget-record-extra-field')).toBe(true);
+    const widened = evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: baseline,
+      allowlist: { ...allowlist, entries: [...allowlist.entries, { ...entry, id: 'new-exception' }] },
+      baselineAllowlist: allowlist,
+      ledger,
+      sourceState: {},
+    });
+    expect(widened.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'new-exception' })]));
+    expect(widened.failures.some((item) => item.code === 'ledger-rebuild-drift')).toBe(false);
+    expect(evaluateFitnessBudgets({
+      baselineCore: baseline,
+      currentCore: baseline,
+      allowlist,
+      ledger,
+      sourceState: {},
+    }).failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'frozen-allowlist-missing' })]));
   });
 
   it('freezes center metrics and redacts local paths in reports', () => {
@@ -268,7 +285,7 @@ describe('architecture fitness budgets', () => {
       identity: 'src/features/teacher/entry.ts',
       attributes: { byteLength: 101, reason: 'framework-entrypoint' },
     })], 'current', 'current-tree');
-    const report = evaluateFitnessBudgets({ baselineCore: baseline, currentCore: current, allowlist, ledger, sourceState: {} });
+    const report = evaluateFitnessBudgets({ baselineCore: baseline, currentCore: current, allowlist, baselineAllowlist: allowlist, ledger, sourceState: {} });
     expect(report.failures).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'frozen-metric-growth' })]));
     const unsafe = { ...report, budgets: report.budgets.map((record) => ({ ...record, evidenceRefs: ['/Users/private/project/file.ts'] })) };
     const serialized = serializeFitnessBudgetReport(unsafe);

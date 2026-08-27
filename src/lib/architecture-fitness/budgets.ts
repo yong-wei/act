@@ -987,15 +987,19 @@ export function evaluateFitnessBudgets(input: FitnessBudgetEvaluationInput): Fit
   if (input.expectedLedgerHash !== undefined && input.expectedLedgerHash !== fitnessBudgetLedgerHash(input.ledger)) {
     failures.push(failure('ledger-hash-drift', 'ledger'));
   }
-  const rebuiltLedger = createFitnessBudgetLedger({
-    baselineCore: input.baselineCore,
-    allowlist: input.baselineAllowlist ?? input.allowlist,
-    baselineIdentity: baselineHash(input.baselineCore),
-    dependencyAllowlistIdentity: allowlistHash(input.baselineAllowlist ?? input.allowlist),
-    charterIdentity: (input.baselineAllowlist ?? input.allowlist).charterSha256,
-  });
-  if (fitnessBudgetLedgerHash(rebuiltLedger) !== fitnessBudgetLedgerHash(input.ledger)) {
-    failures.push(failure('ledger-rebuild-drift', 'ledger'));
+  if (!input.baselineAllowlist) {
+    failures.push(failure('frozen-allowlist-missing', 'allowlist'));
+  } else {
+    const rebuiltLedger = createFitnessBudgetLedger({
+      baselineCore: input.baselineCore,
+      allowlist: input.baselineAllowlist,
+      baselineIdentity: baselineHash(input.baselineCore),
+      dependencyAllowlistIdentity: allowlistHash(input.baselineAllowlist),
+      charterIdentity: input.baselineAllowlist.charterSha256,
+    });
+    if (fitnessBudgetLedgerHash(rebuiltLedger) !== fitnessBudgetLedgerHash(input.ledger)) {
+      failures.push(failure('ledger-rebuild-drift', 'ledger'));
+    }
   }
   if (input.allowlist.schemaVersion !== 'act-architecture-fitness/v1') {
     failures.push(failure('allowlist-schema-drift', 'allowlist'));

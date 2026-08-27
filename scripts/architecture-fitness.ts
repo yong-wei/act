@@ -10,7 +10,9 @@ import {
   createAllowlist,
   createFitnessBudgetLedger,
   evaluateFitnessBudgets,
+  fitnessBudgetLedgerHash,
   readGraphArtifacts,
+  REQUIRED_FITNESS_BUDGET,
   serializeFitnessBudgetReport,
 } from '../src/lib/architecture-fitness';
 import type { FitnessAllowlist, FitnessBudgetFailure, FitnessBudgetLedger } from '../src/lib/architecture-fitness';
@@ -19,6 +21,8 @@ const BASELINE_CORE_PATH = 'docs/architecture/modular-monolith/baseline/census-c
 const ALLOWLIST_PATH = 'docs/architecture/dependency-allowlist.json';
 const LEDGER_PATH = 'docs/architecture/fitness-budget-ledger.json';
 const LEDGER_HASH_PATH = 'docs/architecture/fitness-budget-ledger.sha256';
+const FROZEN_ALLOWLIST_PATH = 'docs/architecture/fitness-budget-allowlist.json';
+const FROZEN_ALLOWLIST_HASH_PATH = 'docs/architecture/fitness-budget-allowlist.sha256';
 const FROZEN_GRAPH_ARTIFACT_ROOT = 'docs/architecture/typescript-graphs/frozen-receipts';
 
 function writeAllowlist(repoRoot: string, allowlist: FitnessAllowlist): string {
@@ -111,11 +115,29 @@ function main(): void {
   const { core, failures: censusFailures } = generateCensusCore(snapshot);
   const baselineCore = readJson<CensusCore>(repoRoot, BASELINE_CORE_PATH);
   const allowlist = readJson<FitnessAllowlist>(repoRoot, ALLOWLIST_PATH);
+  const frozenAllowlistPath = join(repoRoot, FROZEN_ALLOWLIST_PATH);
+  const frozenAllowlistHashPath = join(repoRoot, FROZEN_ALLOWLIST_HASH_PATH);
   const ledger = readJson<FitnessBudgetLedger>(repoRoot, LEDGER_PATH);
   const ledgerHashFailures: FitnessBudgetFailure[] = [];
   const ledgerHashPath = join(repoRoot, LEDGER_HASH_PATH);
   const expectedLedgerHash = existsSync(ledgerHashPath) ? readFileSync(ledgerHashPath, 'utf8').trim() : '';
   if (!expectedLedgerHash) ledgerHashFailures.push({ code: 'ledger-hash-missing', identity: LEDGER_HASH_PATH });
+  const frozenAllowlist = existsSync(frozenAllowlistPath) ? readJson<FitnessAllowlist>(repoRoot, FROZEN_ALLOWLIST_PATH) : undefined;
+  const frozenAllowlistHash = existsSync(frozenAllowlistHashPath) ? readFileSync(frozenAllowlistHashPath, 'utf8').trim() : '';
+  if (!frozenAllowlist) ledgerHashFailures.push({ code: 'frozen-allowlist-missing', identity: FROZEN_ALLOWLIST_PATH });
+  else {
+    const actualFrozenHash = sha256Text(serializeDeterministic(frozenAllowlist));
+    if (!frozenAllowlistHash) ledgerHashFailures.push({ code: 'frozen-allowlist-hash-missing', identity: FROZEN_ALLOWLIST_HASH_PATH });
+    if (actualFrozenHash !== REQUIRED_FITNESS_BUDGET.allowlistSha256 || frozenAllowlistHash && frozenAllowlistHash !== REQUIRED_FITNESS_BUDGET.allowlistSha256) {
+      ledgerHashFailures.push({ code: 'frozen-allowlist-hash-drift', identity: FROZEN_ALLOWLIST_PATH });
+    }
+  }
+  if (expectedLedgerHash && expectedLedgerHash !== REQUIRED_FITNESS_BUDGET.ledgerSha256) {
+    ledgerHashFailures.push({ code: 'ledger-pin-drift', identity: LEDGER_PATH });
+  }
+  if (fitnessBudgetLedgerHash(ledger) !== REQUIRED_FITNESS_BUDGET.ledgerSha256) {
+    ledgerHashFailures.push({ code: 'ledger-pin-drift', identity: LEDGER_PATH });
+  }
   const graphArtifacts = readGraphArtifacts(repoRoot);
   const frozenGraphArtifacts = readGraphArtifacts(repoRoot, join(repoRoot, FROZEN_GRAPH_ARTIFACT_ROOT));
   const receipts = graphArtifacts.receipts.filter((receipt) => (
@@ -137,6 +159,7 @@ function main(): void {
       detachedUnresolved: snapshot.detachedUnresolved,
     },
     allowlist,
+    baselineAllowlist: frozenAllowlist,
     ledger,
     graphReceipts: receipts,
     graphManifests: manifests,

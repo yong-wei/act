@@ -26,7 +26,7 @@ export type {
   GraphArtifactSet,
   SourceState,
 } from './budgets';
-export { BUDGET_METRIC_KINDS, FITNESS_BUDGET_SCHEMA_VERSION, FITNESS_REPORT_SCHEMA_VERSION, FITNESS_SCHEMA_VERSION } from './types';
+export { BUDGET_METRIC_KINDS, FITNESS_BUDGET_SCHEMA_VERSION, FITNESS_REPORT_SCHEMA_VERSION, FITNESS_SCHEMA_VERSION, REQUIRED_FITNESS_BUDGET } from './types';
 export type {
   BudgetDirection,
   BudgetMetricKind,

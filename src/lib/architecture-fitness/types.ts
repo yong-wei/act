@@ -2,6 +2,11 @@ export const FITNESS_SCHEMA_VERSION = 'act-architecture-fitness/v1' as const;
 export const FITNESS_BUDGET_SCHEMA_VERSION = 'act-architecture-fitness-budget/v1' as const;
 export const FITNESS_REPORT_SCHEMA_VERSION = 'act-architecture-fitness-report/v1' as const;
 
+export const REQUIRED_FITNESS_BUDGET = {
+  ledgerSha256: 'bd2da413d2c5f75e8a387e7efb4f334a4c76f637e98192b04775fcdac49a09ed',
+  allowlistSha256: '0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608',
+} as const;
+
 export const VIOLATION_KINDS = [
   'feature-to-app',
   'deep-import',
