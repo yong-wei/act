@@ -33,7 +33,7 @@ export function checkFitness(
     .map((item) => item.identity.replace(/^scc:/u, '').split('|'));
   const isExistingScc = (identity: string): boolean => {
     const members = identity.replace(/^scc:/u, '').split('|');
-    return allowlistedSccs.some((allowedMembers) => allowedMembers.every((member) => members.includes(member)));
+    return allowlistedSccs.some((allowedMembers) => members.every((member) => allowedMembers.includes(member)));
   };
   const newViolations = current.filter((item) => (
     !allowed.has(item.id)

@@ -30,6 +30,8 @@ graph runner 为每次命令生成两类工件：
 
 当前工作区存在未提交修改时，receipt 会记录 `dirty: true`；这不是 qualified release evidence。后续门禁消费 receipt 时必须同时校验 source commit/tree、`dirty`、status 和 exit status。tools/test receipt 是 PR 或 integration 的 mandatory inputs；main/release 不得以 nightly 或缺失 receipt 替代。
 
+架构 fitness CLI 将 `.logs/typescript-graphs/` 作为当前 revision receipts，并把 `docs/architecture/typescript-graphs/frozen-receipts/` 作为可选 frozen baseline 输入。目录不存在或为空时 compile-resource 保持 blocked；不能用伪造 receipt 填充。
+
 ## 失败夹具与验证
 
 `typescript-graph-fixtures/{web,worker,tools,test}.ts` 各自被一张 graph 包含。runner 的 `--fixture-probe` 临时把对应 graph literal 改成非法值，必须由对应 `tsc` 诊断发现，结束后恢复文件；运行时测试和 lint 不构成夹具验收。
@@ -42,4 +44,4 @@ npm run typecheck:web -- --cache cold
 npm run typecheck:web -- --fixture-probe
 ```
 
-夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。本 change 只建立图和 receipt 合同，不设定编译内存预算；预算由 #1553 根据 qualified receipt 决定，PR/integration 强制消费由 #1554 接入。
+夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。#1553 通过 `docs/architecture/fitness-budget-ledger.json` 消费 revision-bound graph manifest 与 measurement receipt；它不把编译内存写成跨环境永久阈值。PR/integration 的强制消费由 #1554 接入。
