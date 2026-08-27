@@ -1,1 +1,66 @@
-{"schemaVersion":"act-quality-gate-governance-ledger/v1","sourceCommit":"8f66b75e01ba1fa0365e5997895cc8e647914e16","sourceTree":"2236329ce0078bc6c3e46689f24fd85f3c091281","dirty":true,"registryId":"act-pr-integration-quality-gates","registryHash":"edaede8bcaa56bde3c7fc2da7a8c5d473ec2207d700e49c74b56b22a87da18ac","entries":[{"id":"integration-protection","status":"blocked-unverified","owner":"platform/release","condition":"A platform-authorized read or exported ruleset must prove integration enforcement and the exact required-check set.","next":"Read GitHub ruleset or branch-protection through an authorized platform path."},{"id":"specialized-wolfram-workflow","status":"retained-specialized","owner":"platform","path":".github/workflows/docker-wolfram-verify.yml","condition":"Keep Wolfram verification as a specialized workflow; it is not the generic quality-gate authority.","next":"No change in this capability."},{"id":"test-nightly","status":"inventory-only-blocker","owner":"platform/test","path":"src/lib/architecture-test-commands","condition":"The existing nightly command reports nightly-execution-not-run and cannot substitute tools/test graph receipts.","next":"Qualify a real nightly execution contract in a later change."},{"id":"fitness-architecture","status":"blocked-current-inputs","owner":"architecture/platform","path":"src/lib/architecture-fitness","condition":"Current frozen fitness inputs report growth, missing feature-to-app registration, and missing frozen graph receipts.","next":"Repair or re-qualify the existing fitness inputs without weakening this registry."},{"id":"release-qualification","status":"blocked-missing-manifest","owner":"release","path":"src/lib/architecture-test-commands/release.ts","condition":"test:release must fail closed until the current qualification manifest exists and matches the source revision.","next":"Produce and verify a current release qualification manifest."},{"id":"tools-test-typecheck","status":"mandatory-existing-debt","owner":"tooling/test","path":"scripts/typescript-graphs/contracts.ts","condition":"typecheck:tools and typecheck:test remain mandatory in PR and integration despite existing tsc errors or OOM.","next":"Fix the graph debt and produce clean current receipts."}],"capturedAt":"2026-08-27T03:53:36.401Z"}
+{
+  "schemaVersion": "act-quality-gate-governance-ledger/v1",
+  "sourceCommit": "94144d2dd060600725f39b1c36d51e9c14f7b0d0",
+  "sourceTree": "7185de61debbc81f754991e1723b6b9f06816063",
+  "dirty": true,
+  "registryId": "act-pr-integration-quality-gates",
+  "registryHash": "1a2806138162cbb7b6169503cb9734b5d927f8c8200c7d470da659410ea8227c",
+  "entries": [
+    {
+      "id": "hosted-pr-integration-ci",
+      "status": "removed",
+      "owner": "platform",
+      "path": ".github/workflows/quality-gates.yml",
+      "condition": "Generic GitHub PR/integration/nightly quality workflows are forbidden so integration PRs do not consume Actions quota.",
+      "next": "Keep validateGitHubHostedCiBoundary fail-closed; do not restore quality-gates.yml."
+    },
+    {
+      "id": "integration-protection",
+      "status": "verified-no-github-ci-gate",
+      "owner": "platform",
+      "condition": "Quality-gate registry checks must not be GitHub required status checks. Merge evidence remains local verify:commit, verify:push, typecheck, related tests, and exact-current-HEAD review.",
+      "next": "Do not add pull_request or integration-push generic quality CI."
+    },
+    {
+      "id": "specialized-wolfram-workflow",
+      "status": "retained-specialized",
+      "owner": "platform",
+      "path": ".github/workflows/docker-wolfram-verify.yml",
+      "condition": "Keep Wolfram verification as a specialized workflow_dispatch; it is not the generic quality-gate authority.",
+      "next": "No change in this capability."
+    },
+    {
+      "id": "test-nightly",
+      "status": "inventory-only-blocker",
+      "owner": "platform/test",
+      "path": "src/lib/architecture-test-commands",
+      "condition": "The existing nightly command reports nightly-execution-not-run and cannot substitute tools/test graph receipts or GitHub CI.",
+      "next": "Qualify a real local nightly execution contract in a later change."
+    },
+    {
+      "id": "fitness-architecture",
+      "status": "blocked-current-inputs",
+      "owner": "architecture/platform",
+      "path": "src/lib/architecture-fitness",
+      "condition": "Current frozen fitness inputs report growth, missing feature-to-app registration, and missing frozen graph receipts.",
+      "next": "Repair or re-qualify the existing fitness inputs without weakening this registry."
+    },
+    {
+      "id": "release-qualification",
+      "status": "blocked-missing-manifest",
+      "owner": "release",
+      "path": "src/lib/architecture-test-commands/release.ts",
+      "condition": "test:release must fail closed until the current qualification manifest exists and matches the source revision.",
+      "next": "Produce and verify a current release qualification manifest."
+    },
+    {
+      "id": "tools-test-typecheck",
+      "status": "mandatory-existing-debt",
+      "owner": "tooling/test",
+      "path": "scripts/typescript-graphs/contracts.ts",
+      "condition": "typecheck:tools and typecheck:test remain mandatory in PR and integration evidence despite existing tsc errors or OOM.",
+      "next": "Fix the graph debt and produce clean current receipts."
+    }
+  ],
+  "capturedAt": "2026-08-27T05:56:08.968Z"
+}

@@ -1,3 +1,14 @@
+## Correction (2026-08-27)
+
+本提案把“PR 质量门禁”错误等同成了“GitHub Actions PR CI”，忽略了面向 `integration` 的 PR 不自动运行 GitHub Actions 以节省额度的约定。正确边界见 `correct-pr-quality-gates-to-local-evidence`：
+
+- `integration` PR 不增加 `pull_request` 触发器，也不要求 GitHub CI status check。
+- 提交和推送门禁继续由本地 `verify:commit`、`verify:push`、typecheck、相关测试及 exact-current-HEAD 审查证据承担。
+- GitHub Actions 只保留现有的 `main` push、明确授权的 `workflow_dispatch`，以及后续单独授权的发布验证。
+- 本提案可以治理“PR 合入需要哪些可审计证据”，但不能要求这些证据必须由 GitHub 托管 CI 生成。
+
+因此，下文关于新增 PR CI workflow 或 required GitHub check 的内容已经撤回，不得再执行。
+
 ## Why
 
 当前 `.github/workflows/ci.yml` 主要在 `main` push 和手动触发，PR 与 `integration` 没有一套覆盖命令、required check、分支保护和 release qualification 的分层合同。即使本地命令恢复可信，仍可能出现 workflow 通过但没有运行完整范围、integration 可绕过、main/release 门禁被降低的情况。阶段 1 最后需要把测试、TypeScript graph、fitness budget 和发布资格组合成可验证的质量控制面。

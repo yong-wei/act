@@ -5,14 +5,17 @@ import { join } from 'node:path';
 import { readGitIdentity } from './typescript-graphs/contracts';
 import {
   createBlockedIntegrationProtectionReceipt,
+  createVerifiedLocalHostedCiBoundaryReceipt,
   INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION,
   PROTECTION_RESPONSE_CLASSES,
   type ProtectionResponseClass,
 } from './quality-gates/branch-protection';
 import {
   DEFAULT_QUALITY_GATE_REGISTRY,
+  HOSTED_CI_WORKFLOW_PATHS,
   qualityGateRegistryHash,
   serializeQualityGateRegistry,
+  validateGitHubHostedCiBoundary,
   validatePackageCommandAuthority,
   validateQualityGateRegistry,
   validateWorkflowText,
@@ -33,16 +36,14 @@ function layerArgument(): QualityLayerId {
 }
 
 function workflowTexts(repoRoot: string): Record<string, string> {
-  const paths = ['.github/workflows/ci.yml', '.github/workflows/quality-gates.yml'];
-  return Object.fromEntries(paths
-    .map((path) => [path, join(repoRoot, path)] as const)
-    .filter(([, path]) => existsSync(path))
-    .map(([path, fullPath]) => [path, readFileSync(fullPath, 'utf8')]));
+  const ciPath = join(repoRoot, HOSTED_CI_WORKFLOW_PATHS.main);
+  return existsSync(ciPath) ? { [HOSTED_CI_WORKFLOW_PATHS.main]: readFileSync(ciPath, 'utf8') } : {};
 }
 
 function validate(repoRoot: string): string[] {
   const failures = [
     ...validateQualityGateRegistry(DEFAULT_QUALITY_GATE_REGISTRY, { workflowTexts: workflowTexts(repoRoot) }),
+    ...validateGitHubHostedCiBoundary(repoRoot),
     ...validatePackageCommandAuthority(repoRoot),
   ];
   return failures.map((failure) => `${failure.code}:${failure.identity}`);
@@ -60,16 +61,25 @@ function writeRegistry(repoRoot: string): void {
 }
 
 function writeProtectionReceipt(repoRoot: string): void {
-  const responseClass = (argument('--response-class') ?? 'not-queried-in-patch-worker-scope') as ProtectionResponseClass;
+  const responseClass = (argument('--response-class') ?? 'local-workflow-inspection') as ProtectionResponseClass;
   if (!(PROTECTION_RESPONSE_CLASSES as readonly string[]).includes(responseClass)) throw new Error(`unknown-protection-response-class:${responseClass}`);
   const identity = readGitIdentity(repoRoot);
-  const receipt = createBlockedIntegrationProtectionReceipt({
-    sourceCommit: identity.sourceCommit,
-    sourceTree: identity.sourceTree,
-    dirty: identity.dirty,
-    responseClass,
-    capturedAt: argument('--captured-at') ?? new Date().toISOString(),
-  });
+  const capturedAt = argument('--captured-at') ?? new Date().toISOString();
+  const hostedFailures = validateGitHubHostedCiBoundary(repoRoot);
+  const receipt = hostedFailures.length === 0 && responseClass === 'local-workflow-inspection'
+    ? createVerifiedLocalHostedCiBoundaryReceipt({
+      sourceCommit: identity.sourceCommit,
+      sourceTree: identity.sourceTree,
+      dirty: identity.dirty,
+      capturedAt,
+    })
+    : createBlockedIntegrationProtectionReceipt({
+      sourceCommit: identity.sourceCommit,
+      sourceTree: identity.sourceTree,
+      dirty: identity.dirty,
+      responseClass: hostedFailures.length > 0 ? 'configuration-unreadable' : responseClass,
+      capturedAt,
+    });
   mkdirSync(join(repoRoot, 'docs/architecture/quality-gates'), { recursive: true });
   writeFileSync(join(repoRoot, 'docs/architecture/quality-gates/integration-protection-verification.json'), `${JSON.stringify(receipt, null, 2)}\n`);
   console.log(JSON.stringify({ schemaVersion: INTEGRATION_PROTECTION_RECEIPT_SCHEMA_VERSION, status: receipt.status, receiptId: receipt.receiptId }));

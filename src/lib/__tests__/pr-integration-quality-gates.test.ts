@@ -1,17 +1,21 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_QUALITY_GATE_REGISTRY,
+  HOSTED_CI_WORKFLOW_PATHS,
   IMPACT_DENOMINATOR_KEYS,
+  QUALITY_EVENTS,
   QUALITY_LAYER_IDS,
   createBlockedIntegrationProtectionReceipt,
   createLayerReceipt,
+  createVerifiedLocalHostedCiBoundaryReceipt,
   qualityGateRegistryHash,
   qualityCommand,
   selectPrImpact,
   serializeQualityGateRegistry,
+  validateGitHubHostedCiBoundary,
   validateIntegrationProtectionReceipt,
   validateLayerReceipt,
   validateMainReleasePreservation,
@@ -69,6 +73,8 @@ function graphReceipt(
 describe('PR and integration quality gate contracts', () => {
   it('uses one stable registry and all local command scripts resolve', () => {
     expect(QUALITY_LAYER_IDS).toEqual(['pr', 'integration', 'main-release', 'nightly']);
+    expect(QUALITY_EVENTS).toEqual(['local']);
+    expect(DEFAULT_QUALITY_GATE_REGISTRY.layers.every((layer) => layer.events.includes('local') && layer.events.length === 1)).toBe(true);
     expect(validateQualityGateRegistry()).toEqual([]);
     expect(validatePackageCommandAuthority(process.cwd())).toEqual([]);
     expect(qualityGateRegistryHash()).toBe(qualityGateRegistryHash(copyRegistry()));
@@ -108,7 +114,31 @@ describe('PR and integration quality gate contracts', () => {
   });
 
   it('rejects workflow-only test lists, silent skips, accepted failures, and the Node 20 ESM loader', () => {
-    expect(validateWorkflowText('.github/workflows/quality-gates.yml', readFileSync('.github/workflows/quality-gates.yml', 'utf8'))).toEqual([]);
+    expect(existsSync(HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates)).toBe(false);
+    expect(validateGitHubHostedCiBoundary(process.cwd())).toEqual([]);
+    expect(validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, readFileSync(HOSTED_CI_WORKFLOW_PATHS.main, 'utf8'))).toEqual([]);
+    expect(validateWorkflowText('.github/workflows/quality-gates.yml', 'run: npm run quality-gates:run').map((failure) => failure.code)).toContain('github-pr-quality-workflow-forbidden');
+    const hosted = validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, [
+      'on:',
+      '  pull_request:',
+      '    branches:',
+      '      - integration',
+      '  push:',
+      '    branches:',
+      '      - release/**',
+      'jobs:',
+      '  main-release-quality-gates:',
+      '    run: npm run quality-gates:run',
+    ].join('\n'));
+    expect(hosted.map((failure) => failure.code)).toEqual(expect.arrayContaining([
+      'github-pull-request-trigger-forbidden',
+      'github-release-branch-trigger-forbidden',
+      'github-main-release-quality-job-forbidden',
+      'github-quality-gate-runner-hosted',
+      'github-workflow-dispatch-missing',
+      'github-main-push-trigger-missing',
+      'github-integration-push-trigger-forbidden',
+    ]));
     const invalid = validateWorkflowText('fixture.yml', [
       'run: npx vitest run src/a.test.ts',
       'continue-on-error: true',
@@ -165,6 +195,29 @@ describe('PR and integration quality gate contracts', () => {
     expect(receipt.enforcement).toBe('unknown');
     expect(receipt.requiredChecks).toEqual([]);
     expect(validateIntegrationProtectionReceipt(receipt)).toEqual([]);
+  });
+
+  it('forbids mapping quality-gate registry checks to GitHub required CI status checks', () => {
+    const local = createVerifiedLocalHostedCiBoundaryReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      capturedAt: '2026-08-27T00:00:00.000Z',
+    });
+    expect(local.status).toBe('verified');
+    expect(local.requiredChecks).toEqual([]);
+    expect(validateIntegrationProtectionReceipt(local)).toEqual([]);
+
+    const hostedRequired = createVerifiedLocalHostedCiBoundaryReceipt({
+      sourceCommit: COMMIT,
+      sourceTree: TREE,
+      dirty: false,
+      capturedAt: '2026-08-27T00:00:00.000Z',
+    });
+    expect(validateIntegrationProtectionReceipt({
+      ...hostedRequired,
+      requiredChecks: ['pr/contract'],
+    }).map((failure) => failure.code)).toContain('github-required-ci-checks-forbidden');
   });
 
   it('does not permit a release check to be removed or downgraded', () => {

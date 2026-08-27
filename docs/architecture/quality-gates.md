@@ -1,25 +1,34 @@
 # 分层质量门禁
 
-本变更建立四层质量控制面：PR、`integration` push、`main/release` qualification 和 nightly breadth。门禁组合既有测试命令合同、四张 TypeScript graph、architecture fitness 预算和发布合同；这些输入仍由各自的既有权威维护。
+本能力建立四层**本地**质量证据面：PR 合入证据、`integration` revision 证据、`main/release` qualification 和 nightly breadth。它组合既有测试命令合同、四张 TypeScript graph、architecture fitness 预算和发布合同；这些输入仍由各自的既有权威维护。
+
+质量门禁规定“合入或发布需要哪些可审计证据”，不要求这些证据由 GitHub 托管 CI 生成。
 
 ## 权威与执行边界
 
 `scripts/quality-gates/registry.ts` 是门禁映射的唯一实现权威，`docs/architecture/quality-gates/registry.json` 是可审阅的生成投影。测试发现继续来自 `src/lib/architecture-test-commands`，TypeScript graph 继续来自 `scripts/typescript-graphs/contracts.ts`，fitness 继续来自 `src/lib/architecture-fitness` 与冻结预算 ledger，发布资格继续来自 `src/lib/architecture-test-commands/release.ts`。
 
-`.github/workflows/quality-gates.yml` 只调用 `quality-gates:validate` 和 `quality-gates:run`。它不维护 Vitest include、第二份 graph 清单、fitness 规则、静默跳过或 accepted failure。`.github/workflows/docker-wolfram-verify.yml` 仍是 Wolfram 专项 workflow，不被当作通用质量门禁。
+四层的 layer event 都是 `local`。提交和推送门禁继续由 `verify:commit`、`verify:push`、typecheck、相关测试和 exact-current-HEAD 审查承担。本地 `quality-gates:validate` / `quality-gates:run` 可以按层生成 receipt，但不是 GitHub required status check。
 
-当前 registry：`act-pr-integration-quality-gates`，schema `act-pr-integration-quality-gates/v1`，hash `edaede8bcaa56bde3c7fc2da7a8c5d473ec2207d700e49c74b56b22a87da18ac`。每个 required check 只有一个 local command ID，或明确标注为多个既有 command 的 `all-must-pass` composition。
+GitHub Actions 只保留：
+
+- `.github/workflows/ci.yml`：`push` 到 `main` 与明确授权的 `workflow_dispatch`；jobs 仅既有 model-assets 与 lint/test/build。
+- `.github/workflows/docker-wolfram-verify.yml`：专项 `workflow_dispatch`，不是通用质量门禁。
+
+禁止：`.github/workflows/quality-gates.yml`、面向 `integration` 的通用 `pull_request` / `push` 质量 workflow、nightly schedule 通用质量 workflow、`ci.yml` 的 `release/**` 触发器，以及把 registry `checkId` 配成 GitHub required check。
+
+当前 registry：`act-pr-integration-quality-gates`，schema `act-pr-integration-quality-gates/v1`，hash `1a2806138162cbb7b6169503cb9734b5d927f8c8200c7d470da659410ea8227c`。每个 required check 只有一个 local command ID，或明确标注为多个既有 command 的 `all-must-pass` composition。
 
 ## 分层映射
 
-| 层 | 触发与范围 | 阻断内容 | owner |
+| 层 | 生产者与范围 | 阻断内容 | owner |
 | --- | --- | --- | --- |
-| PR | `pull_request` → `integration`；受影响域，分母不闭合时扩大或阻断 | fitness、lint、Web/worker/tools/test 四 graph、affected unit、contract、migration rehearsal、critical E2E | platform |
-| integration | `push` → `integration`；当前 revision 全量 | full unit、contract、integration、四 graph、Next build、WASM build、migration rehearsal、critical E2E、fitness | platform |
-| main/release | `push` → `main` 或 `release/**`；发布资格与生产兼容 | 四 graph 当前 receipts、release qualification、runtime、knowledge、OSS、rollback、readyz、DB compatibility | release |
-| nightly | schedule 或手动 nightly；声明的扩展覆盖 | 隔离、视觉/性能、真实 provider、课程矩阵、数据回放、Arena、simulation | platform |
+| PR | 本地证据；受影响域，分母不闭合时扩大或阻断 | fitness、lint、Web/worker/tools/test 四 graph、affected unit、contract、migration rehearsal、critical E2E | platform |
+| integration | 本地证据；当前 revision 全量 | full unit、contract、integration、四 graph、Next build、WASM build、migration rehearsal、critical E2E、fitness | platform |
+| main/release | 单独授权的本地或后续授权的发布验证 | 四 graph 当前 receipts、release qualification、runtime、knowledge、OSS、rollback、readyz、DB compatibility | release |
+| nightly | 本地或单独授权的广度验证 | 隔离、视觉/性能、真实 provider、课程矩阵、数据回放、Arena、simulation | platform |
 
-PR 和 integration 的 `typecheck:tools`、`typecheck:test` 都是 mandatory。nightly 不运行它们，也不能修复或替代其缺失、失败、过期 receipt。main/release 保留现有 `ci.yml` 的 model asset、lint、smoke test、build 和 WASM 强路径，并在其成功后执行发布层门禁；PR 通过不削弱发布层。
+PR 和 integration 的 `typecheck:tools`、`typecheck:test` 都是 mandatory。nightly 不运行它们，也不能修复或替代其缺失、失败、过期 receipt。main/release 保留现有 `ci.yml` 的 model asset、lint、smoke test、build 和 WASM 强路径，但不把 registry 发布层挂到 GitHub job；PR 通过不削弱发布层。
 
 ## PR 影响面分母
 
@@ -36,7 +45,7 @@ PR 和 integration 的 `typecheck:tools`、`typecheck:test` 都是 mandatory。n
 
 每层 receipt 使用 `act-quality-gate-receipt/v1`，至少包含：
 
-- `sourceCommit`、`sourceTree`、`dirty`、`mixedWorktree` 和 workflow run identity；
+- `sourceCommit`、`sourceTree`、`dirty`、`mixedWorktree` 和可选的本地/workflow 运行 identity；
 - stable-sorted `checkIds`、local `commandIds`、scope、required inputs 和结果计数；
 - 每个结果的 status、exit status、receipt IDs、failure codes 和 unhandled error count；
 - failure dispositions、external blockers 和 artifact identities；
@@ -48,7 +57,7 @@ receipt 生成使用不可变文件创建；同一 receipt ID 只能重读相同
 
 ## main/release 强门禁
 
-`validateMainReleasePreservation` 对 protected release check 做前后比较，删除、移动、改为 advisory、改为非阻断、命令漂移或 scope 漂移都会失败。`main-release` 还会重新读取全部四张当前 graph receipts，因此缺少或不合格的 `typecheck:tools` / `typecheck:test` 会阻断发布；`test:release` 缺 qualification manifest 仍 fail closed。
+`validateMainReleasePreservation` 对 protected release check 做前后比较，删除、移动、改为 advisory、改为非阻断、命令漂移或 scope 漂移都会失败。`main-release` 还会重新读取全部四张当前 graph receipts，因此缺少或不合格的 `typecheck:tools` / `typecheck:test` 会阻断发布；`test:release` 缺 qualification manifest 仍 fail closed。恢复 GitHub `main` 基线不得把这些本地发布合同降级。
 
 这套门禁不执行 production selector、部署、activation 或 rollback 操作；rollback 和 readyz 项目是合同检查，真实发布仍需既有发布授权和运行态证据。
 
@@ -58,11 +67,12 @@ receipt 生成使用不可变文件创建；同一 receipt ID 只能重读相同
 
 | 事实 | 状态 | owner | 下一步 |
 | --- | --- | --- | --- |
-| integration ruleset / branch protection | `blocked-unverified`；本 patch-worker 范围未读取平台真源 | platform/release | 使用有权限的平台 API 或导出 ruleset，核对 required checks、strict status、review、conversation 和 bypass actors |
+| GitHub-hosted PR/integration CI | 已删除；`quality-gates.yml` 必须缺席 | platform | 保持 `validateGitHubHostedCiBoundary` fail-closed，禁止再引入 |
+| integration GitHub required CI checks | 不得把 registry check 配成 GitHub required status check | platform | 合入证据继续用本地命令和 exact-current-HEAD 审查 |
 | `fitness:architecture` | 当前冻结指标增长、feature→app 未登记、缺 frozen graph receipts | architecture/platform | 单独修复或重新 qualified fitness 输入；本 change 不改预算 |
 | `typecheck:tools` | 既有 tsc debt，仍为 PR/integration mandatory | tooling | 修复 graph 自身错误并生成当前 clean receipt |
 | `typecheck:test` | 既有 tsc debt/OOM，仍为 PR/integration mandatory | tooling/test | 修复或拆解 graph 资源问题并生成当前 clean receipt |
 | `test:release` | qualification manifest 缺失，继续 fail closed | release | 由发布流程生成并核验当前 manifest |
-| full integration / nightly breadth | 本 patch-worker 未运行仓库级矩阵 | integration/platform | 在稳定 integration revision 上运行对应层；不得以本地 contract 结果代替 |
+| full integration / nightly breadth | 不由 GitHub Actions 自动执行 | integration/platform | 在稳定 revision 上按需本地运行对应层；未运行不写为 passed |
 
 平台保护核验见 [`quality-gates/integration-protection-verification.json`](quality-gates/integration-protection-verification.json)，治理遗留与例外见 [`quality-gates/governance-ledger.json`](quality-gates/governance-ledger.json)。

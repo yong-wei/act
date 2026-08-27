@@ -14,6 +14,7 @@ export const PROTECTION_RESPONSE_CLASSES = [
   'configuration-unreadable',
   'not-configured',
   'not-queried-in-patch-worker-scope',
+  'local-workflow-inspection',
 ] as const;
 export type ProtectionResponseClass = (typeof PROTECTION_RESPONSE_CLASSES)[number];
 export type ProtectionStatus = 'verified' | 'blocked-unverified';
@@ -59,8 +60,8 @@ export interface ProtectionFailure {
   readonly identity: string;
 }
 
-function expectedIntegrationChecks(registry: QualityGateRegistry): string[] {
-  return registry.checks.filter((item) => item.layer === 'integration' && item.required).map((item) => item.checkId).sort();
+function qualityGateCheckIds(registry: QualityGateRegistry): Set<string> {
+  return new Set(registry.checks.map((item) => item.checkId));
 }
 
 export function createIntegrationProtectionReceipt(
@@ -84,10 +85,10 @@ export function createIntegrationProtectionReceipt(
     requiredReviews: blocked ? null : observation.requiredReviews,
     conversationResolution: blocked ? null : observation.conversationResolution,
     bypassActors: [...new Set(observation.bypassActors)].sort(),
-    affectedGate: 'integration-branch-protection',
+    affectedGate: 'integration-hosted-ci-boundary',
     resolutionCondition: blocked
-      ? 'A platform-authorized read or exported ruleset must prove enforcement and the exact integration required-check set before claiming protection.'
-      : 'Re-read the platform configuration on every protected branch-policy change.',
+      ? 'Do not treat unread GitHub protection as a required CI gate; keep integration merge evidence local and prove hosted quality workflows remain absent.'
+      : 'Keep GitHub required status checks free of quality-gate registry IDs; do not add pull_request or integration-push generic quality CI.',
     capturedAt: observation.capturedAt,
   } satisfies Omit<IntegrationProtectionReceipt, 'receiptId'>;
   const serialized = serializeDeterministic(body);
@@ -115,6 +116,25 @@ export function createBlockedIntegrationProtectionReceipt(input: {
   });
 }
 
+export function createVerifiedLocalHostedCiBoundaryReceipt(input: {
+  readonly sourceCommit: string;
+  readonly sourceTree: string;
+  readonly dirty: boolean;
+  readonly capturedAt: string;
+}): IntegrationProtectionReceipt {
+  return createIntegrationProtectionReceipt({
+    ...input,
+    responseClass: 'local-workflow-inspection',
+    enforcement: 'disabled',
+    requiredChecks: [],
+    strictStatus: null,
+    requiredReviews: null,
+    conversationResolution: null,
+    bypassActors: [],
+    status: 'verified',
+  });
+}
+
 export function validateIntegrationProtectionReceipt(
   receipt: IntegrationProtectionReceipt,
   registry: QualityGateRegistry = DEFAULT_QUALITY_GATE_REGISTRY,
@@ -127,11 +147,11 @@ export function validateIntegrationProtectionReceipt(
     if (receipt.strictStatus !== null || receipt.requiredReviews !== null || receipt.conversationResolution !== null) failures.push({ code: 'blocked-receipt-claims-configuration', identity: receipt.branch });
   }
   if (receipt.status === 'verified') {
-    if (receipt.enforcement !== 'active') failures.push({ code: 'verified-receipt-not-enforced', identity: receipt.branch });
-    if (serializeDeterministic(receipt.requiredChecks) !== serializeDeterministic(expectedIntegrationChecks(registry))) failures.push({ code: 'protection-check-set-drift', identity: receipt.branch });
-    if (receipt.strictStatus !== true) failures.push({ code: 'protection-strict-status-missing', identity: receipt.branch });
-    if (receipt.requiredReviews !== true) failures.push({ code: 'protection-review-gate-missing', identity: receipt.branch });
-    if (receipt.conversationResolution !== true) failures.push({ code: 'protection-conversation-gate-missing', identity: receipt.branch });
+    if (receipt.enforcement === 'unknown') failures.push({ code: 'verified-receipt-claims-unknown-enforcement', identity: receipt.branch });
+  }
+  const forbiddenChecks = qualityGateCheckIds(registry);
+  for (const checkId of receipt.requiredChecks) {
+    if (forbiddenChecks.has(checkId)) failures.push({ code: 'github-required-ci-checks-forbidden', identity: checkId });
   }
   if (!receipt.sourceCommit || !receipt.sourceTree) failures.push({ code: 'protection-source-identity-missing', identity: receipt.branch });
   const expected = createIntegrationProtectionReceipt({

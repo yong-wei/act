@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { privacyViolation } from '../../src/lib/architecture-census/privacy';
@@ -23,8 +23,13 @@ export const GENERIC_COMMAND_RECEIPT_SCHEMA_VERSION = 'act-governed-command-rece
 export const QUALITY_LAYER_IDS = ['pr', 'integration', 'main-release', 'nightly'] as const;
 export type QualityLayerId = (typeof QUALITY_LAYER_IDS)[number];
 
-export const QUALITY_EVENTS = ['pull_request', 'push', 'schedule', 'workflow_dispatch'] as const;
+export const QUALITY_EVENTS = ['local'] as const;
 export type QualityEvent = (typeof QUALITY_EVENTS)[number];
+export const HOSTED_CI_WORKFLOW_PATHS = {
+  main: '.github/workflows/ci.yml',
+  forbiddenQualityGates: '.github/workflows/quality-gates.yml',
+  specializedWolfram: '.github/workflows/docker-wolfram-verify.yml',
+} as const;
 
 export type FailurePolicy = 'block' | 'observe';
 export type CommandKind = 'test-contract' | 'typescript-graph' | 'architecture-fitness' | 'npm-script';
@@ -270,7 +275,7 @@ const CHECKS: readonly RequiredQualityCheck[] = [
 const LAYERS: readonly QualityLayerDefinition[] = [
   {
     id: 'pr',
-    events: ['pull_request'],
+    events: ['local'],
     branches: ['integration'],
     scope: 'affected-pr-with-denominator-closed-fallback',
     checkIds: PR_CHECKS.map((item) => item.checkId).sort(),
@@ -280,7 +285,7 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'integration',
-    events: ['push'],
+    events: ['local'],
     branches: ['integration'],
     scope: 'full-integration-source-revision',
     checkIds: INTEGRATION_CHECKS.map((item) => item.checkId).sort(),
@@ -290,8 +295,8 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'main-release',
-    events: ['push', 'workflow_dispatch'],
-    branches: ['main', 'release/**'],
+    events: ['local'],
+    branches: ['main'],
     scope: 'release-qualification-and-production-compatibility',
     checkIds: MAIN_RELEASE_CHECKS.map((item) => item.checkId).sort(),
     fallback: 'not-applicable',
@@ -300,7 +305,7 @@ const LAYERS: readonly QualityLayerDefinition[] = [
   },
   {
     id: 'nightly',
-    events: ['schedule', 'workflow_dispatch'],
+    events: ['local'],
     branches: [],
     scope: 'declared-breadth-without-pr-repair-semantics',
     checkIds: NIGHTLY_CHECKS.map((item) => item.checkId).sort(),
@@ -410,6 +415,9 @@ export function validateQualityGateRegistry(
   for (const layer of registry.layers) {
     layerMap.set(layer.id, layer);
     if (!layer.owner) failures.push({ code: 'layer-owner-missing', identity: layer.id });
+    for (const event of layer.events) {
+      if (event !== 'local') failures.push({ code: 'layer-non-local-event', identity: `${layer.id}:${event}` });
+    }
     const layerCheckIds = new Set<string>();
     for (const checkId of layer.checkIds) {
       if (layerCheckIds.has(checkId)) failures.push({ code: 'layer-check-duplicate', identity: `${layer.id}:${checkId}` });
@@ -465,12 +473,38 @@ export function validatePackageCommandAuthority(repoRoot: string, registry: Qual
 
 export function validateWorkflowText(workflowPath: string, text: string): RegistryFailure[] {
   const failures: RegistryFailure[] = [];
+  if (workflowPath.endsWith('quality-gates.yml')) failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: workflowPath });
   if (text.includes('node --import tsx/esm')) failures.push({ code: 'forbidden-node-tsx-esm-loader', identity: workflowPath });
-  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text)) failures.push({ code: 'workflow-manual-test-list', identity: workflowPath });
+  if (/(?:^|\s)(?:npx\s+)?vitest\s+run\b/u.test(text) && !workflowPath.endsWith('docker-wolfram-verify.yml')) {
+    failures.push({ code: 'workflow-manual-test-list', identity: workflowPath });
+  }
   if (/continue-on-error\s*:\s*true/u.test(text)) failures.push({ code: 'workflow-accepted-failure', identity: workflowPath });
   if (/\|\|\s*true/u.test(text)) failures.push({ code: 'workflow-silent-skip', identity: workflowPath });
-  if (workflowPath.endsWith('quality-gates.yml') && !text.includes('quality-gates:run')) failures.push({ code: 'workflow-registry-runner-missing', identity: workflowPath });
+  if (workflowPath.endsWith('ci.yml')) {
+    if (/^\s*pull_request\s*:/mu.test(text)) failures.push({ code: 'github-pull-request-trigger-forbidden', identity: workflowPath });
+    if (/release\/\*\*/u.test(text)) failures.push({ code: 'github-release-branch-trigger-forbidden', identity: workflowPath });
+    if (/main-release-quality-gates/u.test(text)) failures.push({ code: 'github-main-release-quality-job-forbidden', identity: workflowPath });
+    if (/quality-gates:run/u.test(text)) failures.push({ code: 'github-quality-gate-runner-hosted', identity: workflowPath });
+    if (!/workflow_dispatch/u.test(text)) failures.push({ code: 'github-workflow-dispatch-missing', identity: workflowPath });
+    if (!/^\s+-\s+main\s*$/mu.test(text)) failures.push({ code: 'github-main-push-trigger-missing', identity: workflowPath });
+    if (/^\s+-\s+integration\s*$/mu.test(text)) failures.push({ code: 'github-integration-push-trigger-forbidden', identity: workflowPath });
+  }
   return failures;
+}
+
+export function validateGitHubHostedCiBoundary(repoRoot: string): RegistryFailure[] {
+  const failures: RegistryFailure[] = [];
+  const forbiddenPath = join(repoRoot, HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates);
+  if (existsSync(forbiddenPath)) {
+    failures.push({ code: 'github-pr-quality-workflow-forbidden', identity: HOSTED_CI_WORKFLOW_PATHS.forbiddenQualityGates });
+  }
+  const ciPath = join(repoRoot, HOSTED_CI_WORKFLOW_PATHS.main);
+  if (!existsSync(ciPath)) {
+    failures.push({ code: 'github-main-ci-missing', identity: HOSTED_CI_WORKFLOW_PATHS.main });
+    return uniqueFailures(failures);
+  }
+  failures.push(...validateWorkflowText(HOSTED_CI_WORKFLOW_PATHS.main, readFileSync(ciPath, 'utf8')));
+  return uniqueFailures(failures);
 }
 
 export function validateMainReleasePreservation(
