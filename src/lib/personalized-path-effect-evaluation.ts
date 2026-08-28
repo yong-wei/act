@@ -74,8 +74,8 @@ function snapshotOf(record: PersonalizedPathEffectRecord): PersonalizedPathDecis
 }
 
 function impactsOf(record: PersonalizedPathEffectRecord): PersonalizedPathDecisionImpact[] {
-  if (record.pathImpacts?.length) return record.pathImpacts;
-  return record.decisionEvidence?.paths.flatMap((path) => path.impacts) ?? [];
+  if (record.pathImpacts !== undefined) return record.pathImpacts;
+  return [];
 }
 
 export function classifyPersonalizedPathEffectCohort(
@@ -142,13 +142,32 @@ function uniqueLearners(records: PersonalizedPathEffectRecord[]): number {
   return new Set(records.map((record) => record.userId)).size;
 }
 
-function competencyLiftFromSnapshots(snapshots: Array<{ snapshotAt?: Date | string; competencyVector?: unknown }>): number | null {
+function competencyLiftFromSnapshots(
   // portrait-v2-legacy-compatibility-adapter: competencyVector remains non-authoritative lift input.
-  if (snapshots.length < 2) return null;
-  const latest = averageCompetency(snapshots[0]?.competencyVector);
-  const previous = averageCompetency(snapshots[1]?.competencyVector);
-  if (latest === null || previous === null) return null;
-  return latest - previous;
+  snapshots: Array<{ snapshotAt?: Date | string; competencyVector?: unknown }>,
+  pathCreatedAt: string,
+  executions: Array<{ completedAt?: string | null }>,
+): number | null {
+  const createdAt = Date.parse(pathCreatedAt);
+  const windowEnd = executions
+    .map((execution) => execution.completedAt ? Date.parse(execution.completedAt) : Number.NaN)
+    .filter((value) => Number.isFinite(value))
+    .sort((left, right) => right - left)[0];
+  if (!Number.isFinite(createdAt) || windowEnd === undefined) return null;
+  const previous = snapshots
+    .filter((snapshot) => Date.parse(String(snapshot.snapshotAt)) <= createdAt)
+    .sort((left, right) => Date.parse(String(right.snapshotAt)) - Date.parse(String(left.snapshotAt)))[0];
+  const latest = snapshots
+    .filter((snapshot) => {
+      const at = Date.parse(String(snapshot.snapshotAt));
+      return at > createdAt && at <= windowEnd;
+    })
+    .sort((left, right) => Date.parse(String(right.snapshotAt)) - Date.parse(String(left.snapshotAt)))[0];
+  // portrait-v2-legacy-compatibility-adapter: competencyVector remains non-authoritative lift input.
+  const latestScore = averageCompetency(latest?.competencyVector);
+  const previousScore = averageCompetency(previous?.competencyVector);
+  if (latestScore === null || previousScore === null) return null;
+  return latestScore - previousScore;
 }
 
 function averageCompetency(vector: unknown): number | null {
@@ -284,18 +303,31 @@ export function recordsFromPathAndBatchSources(input: {
       .sort((left, right) => Date.parse(String(right.createdAt)) - Date.parse(String(left.createdAt)))[0];
     const decisionEvidence = decisionEvidenceFromUnknown(payload.decisionEvidence)
       ?? decisionEvidenceFromUnknown(recordFromUnknown(batch?.metadata).decisionEvidence);
-    const candidateSnapshot = batch?.candidates
-      ?.map((candidate) => recordFromUnknown(candidate.snapshot))
-      .find((snapshot) => snapshot.optionId === payload.optionId);
+    const selectedOptionId = typeof payload.selectedOptionId === 'string' ? payload.selectedOptionId : null;
+    const candidateSnapshot = selectedOptionId
+      ? batch?.candidates
+        ?.map((candidate) => recordFromUnknown(candidate.snapshot))
+        .find((snapshot) => snapshot.optionId === selectedOptionId)
+      : undefined;
+    const selectedPathEvidence = selectedOptionId
+      ? decisionEvidence?.paths.find((item) => item.optionId === selectedOptionId)
+      : undefined;
     const pathImpacts = Array.isArray(payload.decisionImpacts)
       ? payload.decisionImpacts as PersonalizedPathDecisionImpact[]
       : Array.isArray(recordFromUnknown(candidateSnapshot?.decisionEvidence).impacts)
         ? recordFromUnknown(candidateSnapshot?.decisionEvidence).impacts as PersonalizedPathDecisionImpact[]
-        : decisionEvidence?.paths.find((item) => item.optionId === payload.optionId)?.impacts
-          ?? decisionEvidence?.paths.flatMap((item) => item.impacts);
+        : selectedPathEvidence?.impacts;
+    const createdAt = typeof path.createdAt === 'string' ? path.createdAt : path.createdAt.toISOString();
+    const executions = (path.executions ?? []).map((execution) => ({
+      nodeId: execution.nodeId,
+      status: execution.status,
+      resourceType: execution.resourceType,
+      completedAt: execution.completedAt
+        ? (typeof execution.completedAt === 'string' ? execution.completedAt : execution.completedAt.toISOString())
+        : null,
+    }));
     const snapshots = (input.competencySnapshots ?? [])
-      .filter((snapshot) => snapshot.userId === path.userId)
-      .sort((left, right) => Date.parse(String(right.snapshotAt)) - Date.parse(String(left.snapshotAt)));
+      .filter((snapshot) => snapshot.userId === path.userId);
     return [{
       pathId: path.id,
       userId: path.userId,
@@ -303,20 +335,15 @@ export function recordsFromPathAndBatchSources(input: {
       pathStatus: path.pathStatus,
       plannerVersion: path.plannerVersion,
       candidateBatchId: batch?.id ?? null,
-      policyFamily: typeof payload.policyFamily === 'string' ? payload.policyFamily : null,
+      policyFamily: typeof payload.selectedPolicyFamily === 'string'
+        ? payload.selectedPolicyFamily
+        : (typeof payload.policyFamily === 'string' ? payload.policyFamily : null),
       nodeCount: nodeCountFromPath(path),
-      createdAt: typeof path.createdAt === 'string' ? path.createdAt : path.createdAt.toISOString(),
+      createdAt,
       decisionEvidence,
       pathImpacts,
-      executions: (path.executions ?? []).map((execution) => ({
-        nodeId: execution.nodeId,
-        status: execution.status,
-        resourceType: execution.resourceType,
-        completedAt: execution.completedAt
-          ? (typeof execution.completedAt === 'string' ? execution.completedAt : execution.completedAt.toISOString())
-          : null,
-      })),
-      competencyLift: competencyLiftFromSnapshots(snapshots),
+      executions,
+      competencyLift: competencyLiftFromSnapshots(snapshots, createdAt, executions),
     }];
   });
 }

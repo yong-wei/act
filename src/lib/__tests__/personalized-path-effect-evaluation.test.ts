@@ -47,6 +47,7 @@ function record(overrides: Partial<PersonalizedPathEffectRecord> = {}): Personal
     nodeCount: 4,
     createdAt: '2026-08-26T00:00:00.000Z',
     decisionEvidence: snapshot(),
+    pathImpacts: snapshot().paths[0]?.impacts,
     executions: [
       { nodeId: 'n1', status: 'completed', resourceType: 'video' },
       { nodeId: 'n2', status: 'completed', resourceType: 'quiz' },
@@ -208,9 +209,14 @@ describe('personalized path effect evaluation', () => {
         pathStatus: 'active',
         plannerVersion: 'adaptive-learning-path-planner.v1',
         nodeIds: ['n1', 'n2'],
-        pathPayload: { policyFamily: 'preference-matched' },
+        pathPayload: { policyFamily: 'preference-matched', selectedOptionId: 'path-option-1' },
         createdAt: new Date('2026-08-26T00:00:00.000Z'),
-        executions: [],
+        executions: [{
+          nodeId: 'n1',
+          status: 'completed',
+          resourceType: 'video',
+          completedAt: new Date('2026-08-27T12:00:00.000Z'),
+        }],
       }],
       batches: [{
         id: 'batch-1',
@@ -221,6 +227,7 @@ describe('personalized path effect evaluation', () => {
         metadata: { decisionEvidence: snapshot() },
       }],
       competencySnapshots: [
+        { userId: 'student-1', snapshotAt: '2026-08-28T00:00:00.000Z', competencyVector: { a: { score: 0.95 } } },
         { userId: 'student-1', snapshotAt: '2026-08-27T00:00:00.000Z', competencyVector: { a: { score: 0.8 } } },
         { userId: 'student-1', snapshotAt: '2026-08-20T00:00:00.000Z', competencyVector: { a: { score: 0.5 } } },
       ],
@@ -256,5 +263,46 @@ describe('personalized path effect evaluation', () => {
 
     expect(records[0]?.decisionEvidence).toBeNull();
     expect(classifyPersonalizedPathEffectCohort(records[0]!)).toBe('insufficient');
+  });
+
+  it('classifies only the selected option impacts and ignores later competency snapshots', () => {
+    const records = recordsFromPathAndBatchSources({
+      paths: [{
+        id: 'path-1',
+        userId: 'student-1',
+        goalId: 'control-correction',
+        pathStatus: 'completed',
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        nodeIds: ['n1'],
+        pathPayload: { selectedOptionId: 'path-option-baseline' },
+        createdAt: new Date('2026-08-26T00:00:00.000Z'),
+        executions: [{
+          nodeId: 'n1',
+          status: 'completed',
+          resourceType: 'quiz',
+          completedAt: new Date('2026-08-27T00:00:00.000Z'),
+        }],
+      }],
+      batches: [{
+        id: 'batch-1',
+        userId: 'student-1',
+        goalId: 'control-correction',
+        sourcePathId: 'path-1',
+        createdAt: new Date('2026-08-26T00:00:00.000Z'),
+        metadata: { decisionEvidence: snapshot() },
+        candidates: [
+          { snapshot: { optionId: 'path-option-1', decisionEvidence: { impacts: [{ source: 'profile', kind: 'resource-type', reasonCode: 'preferred-modality' }] } } },
+          { snapshot: { optionId: 'path-option-baseline', decisionEvidence: { impacts: [] } } },
+        ],
+      }],
+      competencySnapshots: [
+        { userId: 'student-1', snapshotAt: '2026-08-29T00:00:00.000Z', competencyVector: { a: { score: 0.99 } } },
+        { userId: 'student-1', snapshotAt: '2026-08-26T12:00:00.000Z', competencyVector: { a: { score: 0.7 } } },
+        { userId: 'student-1', snapshotAt: '2026-08-20T00:00:00.000Z', competencyVector: { a: { score: 0.4 } } },
+      ],
+    });
+
+    expect(classifyPersonalizedPathEffectCohort(records[0]!)).toBe('baseline');
+    expect(records[0]?.competencyLift).toBeCloseTo(0.3);
   });
 });
