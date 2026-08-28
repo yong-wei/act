@@ -12,7 +12,7 @@ import type {
   AdaptiveLearningPathDeficit,
   AdaptiveLearningPathPlan,
 } from '@/lib/adaptive-learning-path-planner';
-import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-batches';
+import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 
 export type AdaptiveLearningCenterRegion =

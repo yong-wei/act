@@ -670,6 +670,14 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(display.riskNote).toBe('只保留实质不同的学习路径，相近文案方案已合并');
     expect(display.riskNote).not.toContain('title-or-score-only-duplicates-removed');
+
+    const displaySource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-option-display.ts'), 'utf8');
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const contractSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-learning-center-contracts.ts'), 'utf8');
+    expect(displaySource).toContain("from '@/lib/adaptive-path-candidate-limitation-copy'");
+    expect(displaySource).not.toContain('adaptive-path-candidate-batches');
+    expect(pageSource).not.toContain('adaptive-path-candidate-batches');
+    expect(contractSource).not.toContain('adaptive-path-candidate-batches');
   });
 
   it('translates low-confidence path evidence into user-facing copy', () => {

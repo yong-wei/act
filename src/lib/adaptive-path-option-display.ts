@@ -4,7 +4,7 @@ import {
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearningPathRecommendationProvenance } from './adaptive-learning-path-planner';
-import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-batches';
+import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
 import type { PersonalizedPathDecisionPathEvidence } from './adaptive-path-decision-evidence';
 
 export type AdaptivePathResourceKind =
