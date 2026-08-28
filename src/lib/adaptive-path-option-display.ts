@@ -4,6 +4,7 @@ import {
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
 import type { AdaptiveLearningPathRecommendationProvenance } from './adaptive-learning-path-planner';
+import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-batches';
 import type { PersonalizedPathDecisionPathEvidence } from './adaptive-path-decision-evidence';
 
 export type AdaptivePathResourceKind =
@@ -187,7 +188,9 @@ export function buildAdaptivePathOptionDisplays(
       ? '完成后进入检查节点并更新路径推荐。'
       : '完成后更新后续路径推荐。',
     expectedAbilityImprovement: formatExpectedAbilityImprovement(option.expectedTargetLift),
-    riskNote: option.limitations[0] ?? '当前没有明显风险提示。',
+    riskNote: option.limitations[0]
+      ? studentVisibleCandidateLimitation(option.limitations[0])
+      : '当前没有明显风险提示。',
     recommendationProvenance: option.recommendationProvenance,
     decisionEvidence: option.decisionEvidence,
     diversityLimited: context.diversityLimited,
