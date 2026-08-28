@@ -1,5 +1,6 @@
-import { BopppsStage, SessionStatus } from '@prisma/client';
+import { BopppsStage, Prisma, SessionStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { ClassroomSessionError } from '../errors';
 import {
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionFinalizationEventIngestion,
@@ -171,6 +172,17 @@ export function createPrismaClassroomLifecycleRuntime(): ClassroomLifecycleRunti
       if (input.status !== undefined) {
         updateData.status = input.status as SessionStatus;
         if (input.endTime) updateData.endTime = input.endTime;
+      }
+      if (input.status !== undefined) {
+        // 状态转移 CAS：禁止任何路径把已闭课会话改回课前状态，
+        // 防止闭课后新提交分配高于已固化水位的 ACCEPTED 序列
+        const cas = await prisma.classSession.updateMany({
+          where: { id: input.sessionId, status: { not: SessionStatus.FINISHED } },
+          data: updateData,
+        });
+        if (cas.count === 0) {
+          throw new ClassroomSessionError('session-finished', 'Session is finished; status transitions are closed');
+        }
       }
       const updatedSession = await prisma.classSession.update({
         where: { id: input.sessionId },

@@ -67,3 +67,11 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - P1 学生报告闭包谓词：闭包谓词下沉到日志读取点（`afterSessionEndLogs`/`closureLogs` 结构性拆分），学生报告循环改用 `closureLogs`，与班级报告共用同一谓词，消除"新增统计口径绕过晚到过滤"的整类漏点。
 - P1 补投投递身份：coordinator 补投改为每次扫描使用唯一 jobId（`session-closure-redispatch-<sessionId>-<ts>`），绕开 BullMQ 对 failed 集合中既有 jobId 的 no-op add；处理侧报告生成与 outbox 结算幂等，重复投递不双计。
 - P2 resourceId 保真：分类提交源事件透传已验证的 `item.resourceId`，不再无条件置空。
+
+## 10. Codex Review 第三轮整改（2026-08-28，PR #1668）
+
+同主题（闭包完备性）连续第三轮出现后停止局部补丁，按设计不变量"任何证据路径与状态写入都不得绕过闭课边界"做类别闭合：
+
+- P1 状态转移绕过：`persistAdvance` 携带 status 时改为 CAS（`status != FINISHED` 才可转移），count=0 抛 `session-finished`（410）。FINISHED 回退在应用层被禁止，杜绝闭课后把会话改回 ACTIVE/PAUSED 再产生高于水位的序列。
+- P1 补投只恢复报告：coordinator 重放全部收尾阶段——事件摄取 coordinator（幂等 jobId `event-ingestion-session-finalize-<sessionId>`）、按会话学生逐个的证据特征缓存刷新（沿用既有 jobId 约定）、再以唯一身份补投报告；报告作业成功后结算闭包。结算语义=闭包 handoff 已完整重放；各阶段失败仍经 qualityStatus/phases 可观察。
+- P1 无身份提交绕过水位：删除遗留提交路径（dedupeClassroomSubmissionEvents/buildStudentStepResponseRows/createMany 兜底全部移除）。无法建立规范身份的 lesson_submit/lesson_resubmit 按 `submission_without_canonical_identity` 降级拒绝、不入库；所有分类提交必须经写入器事务边界。

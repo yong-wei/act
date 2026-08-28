@@ -956,16 +956,50 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
-  // coordinator：扫描仍处于 PENDING/FAILED 的闭包 outbox 并补投报告刷新，
-  // 兜底闭课时 Redis 不可用造成的漏投（Redis 恢复后由周期调度闭合）
+  // coordinator：扫描仍处于 PENDING/FAILED 的闭包 outbox，并重放全部收尾阶段
+  // （事件摄取、证据特征缓存、水位限定报告），兜底闭课时 Redis 不可用造成的漏投
   if (job.data.coordinator) {
     const db = getPrismaClient();
-    if (!reportQueue) {
-      throw new Error('session-report queue is not initialised');
+    if (!reportQueue || !redis) {
+      throw new Error('worker queues are not initialised');
     }
     const queue = reportQueue;
+    const eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection: redis });
+    const cacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
     const sessionIds = await redispatchPendingSessionClosures(db, async (sessionId) => {
-      // 每次补投使用全新投递身份：BullMQ 对已存在（含 failed 集合）的 jobId
+      // 重放除报告外的收尾阶段（与闭课内联入队使用同一幂等 jobId 约定）
+      await eventQueue.add(
+        'event-ingestion-coordinator',
+        { coordinator: true },
+        {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          delay: 5_000,
+          jobId: `event-ingestion-session-finalize-${sessionId}`,
+          removeOnComplete: { count: 20 },
+          removeOnFail: { count: 50 },
+        },
+      );
+      const studentStates = await db.studentState.findMany({
+        where: { sessionId, stateKey: 'course' },
+        distinct: ['userId'],
+        select: { userId: true },
+      });
+      for (const { userId } of studentStates) {
+        await cacheQueue.add(
+          `evidence-feature-cache-refresh-${userId}`,
+          { userId },
+          {
+            attempts: 2,
+            backoff: { type: 'exponential', delay: 10000 },
+            delay: 120_000,
+            jobId: `evidence-feature-cache-${userId}-session-finalize-${sessionId}`,
+            removeOnComplete: { count: 20 },
+            removeOnFail: { count: 50 },
+          },
+        );
+      }
+      // 报告刷新使用全新投递身份：BullMQ 对已存在（含 failed 集合）的 jobId
       // 重复 add 是 no-op，唯一 jobId 保证 FAILED 任务可恢复；
       // 处理侧报告生成与 outbox 结算天然幂等，重复投递不会双计。
       await queue.add('session-closure-redispatch', { sessionId }, {
@@ -976,8 +1010,10 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
         removeOnFail: { count: 50 },
       });
     });
+    await eventQueue.close();
+    await cacheQueue.close();
     if (sessionIds.length > 0) {
-      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched ${sessionIds.length} pending closure session(s)`);
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched closure finalization for ${sessionIds.length} session(s)`);
     }
     return { redispatchedSessions: sessionIds };
   }

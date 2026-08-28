@@ -261,6 +261,21 @@ function readFirstQuestionCardId(payload: Record<string, unknown>): string | nul
   return null;
 }
 
+function withSubmissionEvidenceQuality(
+  payload: Record<string, unknown>,
+  canonicalEventType: string,
+): Record<string, unknown> {
+  const evidenceQuality = resolveSubmissionPayloadEvidenceQuality(payload, canonicalEventType);
+  if (!evidenceQuality) return payload;
+  const summary = summarizeSubmissionEvidencePayload(payload);
+  return {
+    ...payload,
+    evidenceQuality,
+    evidenceQualityReason: summary.reason,
+    evidenceSourceState: summary.sourceState,
+  };
+}
+
 function resolveCanonicalSubmissionCardId(payload: Record<string, unknown>): string {
   return readPayloadString(payload, 'cardId')
     ?? readPayloadString(payload, 'questionId')
@@ -294,24 +309,32 @@ function isClassifiedSubmissionEvent(item: NormalizedInteractionEvent, userId: s
 }
 
 /**
- * 分类提交（lesson_submit/lesson_resubmit）与被动/遗留事件的分区：
+ * 分类提交（lesson_submit/lesson_resubmit）与被动事件的分区：
  * 分类提交走共享写入器（会话锁 + 幂等 + 单调序列 + 晚到复盘分类）；
- * 无法建立规范身份的遗留提交保留原路径（响应行 submissionIdentity 为 null，不做分类承诺）。
+ * 无法建立规范身份的提交视为契约违约事件降级（不入库），确保不存在
+ * 绕过水位边界的证据写入路径。
  */
 function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[], userId: string): {
   submissions: NormalizedInteractionEvent[];
+  identityLessSubmissions: NormalizedInteractionEvent[];
   legacy: NormalizedInteractionEvent[];
 } {
   const submissions: NormalizedInteractionEvent[] = [];
+  const identityLessSubmissions: NormalizedInteractionEvent[] = [];
   const legacy: NormalizedInteractionEvent[] = [];
   for (const item of events) {
-    if (isClassifiedSubmissionEvent(item, userId)) {
+    const payload = readRecord(item.event.data);
+    const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
+    const isSubmission = canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit';
+    if (!isSubmission) {
+      legacy.push(item);
+    } else if (isClassifiedSubmissionEvent(item, userId)) {
       submissions.push(item);
     } else {
-      legacy.push(item);
+      identityLessSubmissions.push(item);
     }
   }
-  return { submissions, legacy };
+  return { submissions, identityLessSubmissions, legacy };
 }
 
 function buildClassifiedSubmissionInput(
@@ -446,218 +469,6 @@ async function acceptClassifiedSubmissions(
   }
 
   return { receipts, acceptedInputs, acceptedCount, postSessionReviewCount, duplicateCount };
-}
-
-function resolveSubmissionIdentity(payload: Record<string, unknown>, attemptKey: string | null | undefined): string | null {
-  return attemptKey
-    ?? readPayloadString(payload, 'submissionIdentity')
-    ?? readPayloadString(payload, 'submissionId')
-    ?? readPayloadString(payload, 'attemptId');
-}
-
-function buildClassroomSubmissionDedupeKey(input: {
-  userId: string;
-  sessionId: string | null | undefined;
-  lessonKey: string | null | undefined;
-  stepId: string | null | undefined;
-  attemptKey: string | null | undefined;
-  payload: Record<string, unknown>;
-}): string | null {
-  if (!input.sessionId || !input.stepId) return null;
-  const submissionIdentity = resolveSubmissionIdentity(input.payload, input.attemptKey);
-  if (!submissionIdentity) return null;
-  const cardId = readPayloadString(input.payload, 'cardId')
-    ?? readPayloadString(input.payload, 'questionId')
-    ?? readFirstQuestionCardId(input.payload)
-    ?? 'step';
-  return [
-    input.userId,
-    input.sessionId,
-    input.lessonKey ?? '',
-    input.stepId,
-    cardId,
-    submissionIdentity,
-  ].join('|');
-}
-
-function buildClassroomSubmissionDedupeKeyForEvent(eventData: NormalizedInteractionEvent, userId: string): string | null {
-  const payload =
-    eventData.event.data && typeof eventData.event.data === 'object'
-      ? eventData.event.data
-      : {};
-  const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
-    return null;
-  }
-  return buildClassroomSubmissionDedupeKey({
-    userId,
-    sessionId: eventData.sessionId,
-    lessonKey: eventData.event.lessonKey ?? null,
-    stepId: eventData.event.stepId ?? readPayloadString(payload, 'stepId'),
-    attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-    payload,
-  });
-}
-
-function buildClassroomSubmissionDedupeKeyForResponse(response: {
-  userId: string;
-  sessionId: string;
-  lessonKey: string | null;
-  stepId: string;
-  attemptKey: string | null;
-  responseData: Prisma.JsonValue;
-}): string | null {
-  return buildClassroomSubmissionDedupeKey({
-    userId: response.userId,
-    sessionId: response.sessionId,
-    lessonKey: response.lessonKey,
-    stepId: response.stepId,
-    attemptKey: response.attemptKey,
-    payload: readRecord(response.responseData),
-  });
-}
-
-function withSubmissionEvidenceQuality(
-  payload: Record<string, unknown>,
-  canonicalEventType: string,
-): Record<string, unknown> {
-  const evidenceQuality = resolveSubmissionPayloadEvidenceQuality(payload, canonicalEventType);
-  if (!evidenceQuality) return payload;
-  const summary = summarizeSubmissionEvidencePayload(payload);
-  return {
-    ...payload,
-    evidenceQuality,
-    evidenceQualityReason: summary.reason,
-    evidenceSourceState: summary.sourceState,
-  };
-}
-
-async function dedupeClassroomSubmissionEvents(
-  events: NormalizedInteractionEvent[],
-  userId: string,
-): Promise<{ events: NormalizedInteractionEvent[]; duplicateSubmissionEvents: number }> {
-  const candidateKeys = events
-    .map((event) => buildClassroomSubmissionDedupeKeyForEvent(event, userId))
-    .filter((key): key is string => Boolean(key));
-  if (candidateKeys.length === 0) {
-    return { events, duplicateSubmissionEvents: 0 };
-  }
-
-  const sessionIds = Array.from(new Set(events.map((event) => event.sessionId).filter((value): value is string => Boolean(value))));
-  const stepIds = Array.from(new Set(events.map((event) => (
-    event.event.stepId ?? readPayloadString(readRecord(event.event.data), 'stepId')
-  )).filter((value): value is string => Boolean(value))));
-  const existingResponses = sessionIds.length > 0 && stepIds.length > 0
-    ? await prisma.studentStepResponse.findMany({
-      where: {
-        userId,
-        sessionId: { in: sessionIds },
-        stepId: { in: stepIds },
-      },
-      select: {
-        userId: true,
-        sessionId: true,
-        lessonKey: true,
-        stepId: true,
-        attemptKey: true,
-        responseData: true,
-      },
-    })
-    : [];
-  const seenKeys = new Set(
-    existingResponses
-      .map(buildClassroomSubmissionDedupeKeyForResponse)
-      .filter((key): key is string => Boolean(key)),
-  );
-  const dedupedEvents: NormalizedInteractionEvent[] = [];
-  let duplicateSubmissionEvents = 0;
-
-  for (const event of events) {
-    const key = buildClassroomSubmissionDedupeKeyForEvent(event, userId);
-    if (key && seenKeys.has(key)) {
-      duplicateSubmissionEvents += 1;
-      continue;
-    }
-    if (key) seenKeys.add(key);
-    dedupedEvents.push(event);
-  }
-
-  return { events: dedupedEvents, duplicateSubmissionEvents };
-}
-
-function buildStudentStepResponseRows(
-  events: NormalizedInteractionEvent[],
-  userId: string,
-  serverRecordedAt: Date,
-): Prisma.StudentStepResponseCreateManyInput[] {
-  const rows: Prisma.StudentStepResponseCreateManyInput[] = [];
-
-  for (const eventData of events) {
-    const payload =
-      eventData.event.data && typeof eventData.event.data === 'object'
-        ? eventData.event.data
-        : {};
-    const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-    const trustedActorRole = eventData.event.actorRole ?? 'student';
-    const normalizedPayload = trustNestedEvidenceActorRoles(
-      withSubmissionEvidenceQuality(payload, canonicalEventType),
-      trustedActorRole,
-    );
-
-    if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
-      continue;
-    }
-
-    const sessionId = eventData.sessionId;
-    const stepId = eventData.event.stepId ?? readPayloadString(payload, 'stepId');
-    const sourceLogId = readPayloadString(payload, 'sourceLogId');
-    const submittedAt = toDateTime(eventData.event.clientEventAt ?? eventData.event.timestamp);
-
-    if (!sessionId || !stepId || !sourceLogId || !submittedAt) {
-      continue;
-    }
-
-    const clientEventId = resolveClientEventId(eventData.event);
-    const controlWorkbenchEvidence = materializeControlWorkbenchEvidenceFromSubmissionPayload(
-      normalizedPayload,
-      {
-        trustedSourceLogId: sourceLogId,
-        serverRecordedAt: serverRecordedAt.toISOString(),
-      },
-    );
-    const annotatedMediaEvidence = materializeAnnotatedMediaEvidenceFromSubmissionPayload(
-      normalizedPayload,
-      {
-        trustedSourceLogId: sourceLogId,
-        serverRecordedAt: serverRecordedAt.toISOString(),
-      },
-    );
-
-    rows.push({
-      userId,
-      sessionId,
-      lessonKey: eventData.event.lessonKey ?? null,
-      stepId,
-      attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-      sourceLogId,
-      clientEventId,
-      submittedAt,
-      responseData: {
-        ...normalizedPayload,
-        ...(controlWorkbenchEvidence ? { controlWorkbenchEvidence } : {}),
-        ...(annotatedMediaEvidence ? { annotatedMediaEvidence } : {}),
-        eventType: canonicalEventType,
-        resourceKey: eventData.event.resourceKey,
-        lessonKey: eventData.event.lessonKey ?? null,
-        stepId,
-        attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-        clientEventId,
-        learningContext: eventData.learningContext,
-      } as Prisma.InputJsonValue,
-    });
-  }
-
-  return rows;
 }
 
 async function persistControlWorkbenchTaskEvidenceRows(
@@ -1068,11 +879,7 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
-    const {
-      events: evidenceDedupedEvents,
-      duplicateSubmissionEvents,
-    } = await dedupeClassroomSubmissionEvents(dedupedEvents, session.user.id);
-    const trustedEvidenceEvents = evidenceDedupedEvents.map((item) => {
+    const trustedEvidenceEvents = dedupedEvents.map((item) => {
       const payload = item.event.data && typeof item.event.data === 'object' ? item.event.data : {};
       const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
       const trustedPayload = trustNestedEvidenceActorRoles(
@@ -1088,9 +895,15 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // 分类提交走共享写入器（会话事务边界）；被动与遗留事件保持批量持久化路径。
-    const { submissions: classifiedSubmissions, legacy: legacyEvidenceEvents } =
+    // 分类提交走共享写入器（会话事务边界）；无法建立规范身份的提交降级拒绝
+    // （不存在绕过水位边界的证据写入路径）；被动事件保持批量持久化路径。
+    const { submissions: classifiedSubmissions, identityLessSubmissions, legacy: legacyEvidenceEvents } =
       partitionClassifiedSubmissionEvents(trustedEvidenceEvents, session.user.id);
+    let degradedSubmissionEvents = 0;
+    for (const item of identityLessSubmissions) {
+      logDegradedEvent(session.user.id, item.event, 'submission_without_canonical_identity');
+      degradedSubmissionEvents += 1;
+    }
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
@@ -1199,30 +1012,6 @@ export async function POST(request: NextRequest) {
       serverActorRole,
       serverRecordedAt,
     );
-    const studentStepResponseRows = buildStudentStepResponseRows(
-      taskMaterializationEvents,
-      session.user.id,
-      serverRecordedAt,
-    );
-    if (studentStepResponseRows.length > 0) {
-      let stepResponsesPersisted = false;
-      try {
-        await prisma.studentStepResponse.createMany({
-          data: studentStepResponseRows,
-          skipDuplicates: true,
-        });
-        stepResponsesPersisted = true;
-      } catch (error) {
-        console.error('[Interactive Events API] Failed to persist immutable student step responses:', error);
-      }
-      if (stepResponsesPersisted) {
-        await persistControlWorkbenchTaskEvidenceRows(
-          studentStepResponseRows,
-          session.user.id,
-          serverActorRole,
-        );
-      }
-    }
     if (acceptedSubmissionEvidenceRows.length > 0) {
       await persistControlWorkbenchTaskEvidenceRows(
         acceptedSubmissionEvidenceRows as Prisma.StudentStepResponseCreateManyInput[],
@@ -1336,10 +1125,10 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: evidenceDedupedEvents.length,
-      degraded: degradedEvents.length,
-      duplicates: duplicateEvents + duplicateSubmissionEvents + submissionOutcome.duplicateCount,
-      submissionDuplicates: duplicateSubmissionEvents + submissionOutcome.duplicateCount,
+      count: dedupedEvents.length - degradedSubmissionEvents,
+      degraded: degradedEvents.length + degradedSubmissionEvents,
+      duplicates: duplicateEvents + submissionOutcome.duplicateCount,
+      submissionDuplicates: submissionOutcome.duplicateCount,
       postSessionReviewSubmissions: submissionOutcome.postSessionReviewCount,
       acceptedSubmissions: submissionOutcome.acceptedCount,
       routing: routingResults.reduce((acc, r) => {
