@@ -231,6 +231,7 @@ export function buildResourceRegistryIndex(adapters: readonly SourceAdapter[]): 
     })),
     entryKeys: entries.map((entry) => entry.descriptor.identity.key),
     launchers: entries.map((entry) => entry.descriptor.launcher),
+    digest,
   });
 
   return {

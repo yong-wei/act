@@ -1,3 +1,8 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
@@ -23,6 +28,46 @@ import {
 } from '../types';
 
 const SHARED = 'rev-test-1';
+const EMPTY_ENV = { APP_REVISION: '', GIT_SHA: '' };
+
+function git(cwd: string, args: string[]): string {
+  return execFileSync('git', args, {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
+}
+
+function createTempGitRepo(): string {
+  const cwd = mkdtempSync(path.join(tmpdir(), 'resource-index-rev-'));
+  git(cwd, ['-c', 'init.defaultBranch=main', 'init']);
+  git(cwd, ['config', 'user.email', 'index-test@example.com']);
+  git(cwd, ['config', 'user.name', 'index-test']);
+  git(cwd, ['config', 'commit.gpgsign', 'false']);
+  writeFileSync(path.join(cwd, 'tracked.txt'), 'base\n');
+  git(cwd, ['add', 'tracked.txt']);
+  git(cwd, ['commit', '-m', 'init']);
+  return cwd;
+}
+
+function publishedArtifact(overrides: Partial<{
+  title: string;
+  type: string;
+  runtimeResourceRef: string;
+  canonicalIds: readonly string[];
+}> = {}) {
+  return {
+    artifactRef: 'runtime-media:1-1/intro',
+    title: overrides.title ?? '导入片',
+    type: overrides.type ?? 'video',
+    contentHash: 'abc123',
+    sourceVersion: 'runtime-media.v1',
+    scope: 'lesson-1-1',
+    runtimeResourceRef: overrides.runtimeResourceRef ?? 'lessons/1-1/media/1-1-intro-video.mp4',
+    canonicalIds: overrides.canonicalIds,
+    launcherRef: 'runtime-media:1-1/intro',
+  };
+}
 
 function metadata(overrides: {
   id: string;
@@ -121,16 +166,7 @@ describe('resource registry index', () => {
       createPublishedArtifactAdapter({
         owner: 'runtime-release',
         sharedRevision: SHARED,
-        records: [{
-          artifactRef: 'runtime-media:1-1/intro',
-          title: '导入片',
-          type: 'video',
-          contentHash: 'abc123',
-          sourceVersion: 'runtime-media.v1',
-          scope: 'lesson-1-1',
-          runtimeResourceRef: 'lessons/1-1/media/1-1-intro-video.mp4',
-          launcherRef: 'runtime-media:1-1/intro',
-        }],
+        records: [publishedArtifact()],
       }),
     ];
     const first = buildResourceRegistryIndex(adapters);
@@ -365,10 +401,67 @@ describe('resource registry index', () => {
     ))).toBe(true);
   });
 
+  it('issues a new index identity when published-artifact descriptors drift without a content-hash change', () => {
+    const first = buildResourceRegistryIndex([
+      createPublishedArtifactAdapter({
+        owner: 'runtime-release',
+        sharedRevision: SHARED,
+        records: [publishedArtifact()],
+      }),
+    ]);
+    const second = buildResourceRegistryIndex([
+      createPublishedArtifactAdapter({
+        owner: 'runtime-release',
+        sharedRevision: SHARED,
+        records: [publishedArtifact({
+          title: '导入片（改标题）',
+          runtimeResourceRef: 'lessons/1-1/media/1-1-intro-video-v2.mp4',
+          canonicalIds: ['canonical.intro'],
+        })],
+      }),
+    ]);
+    expect(second.digest).not.toBe(first.digest);
+    expect(second.captures[0].inputDigest).not.toBe(first.captures[0].inputDigest);
+    expect(second.identity).not.toBe(first.identity);
+  });
+
   it('fails closed when live capture has no Git or environment revision', () => {
-    expect(() => resolveLiveResourceIndexRevision({ APP_REVISION: '', GIT_SHA: '' }, '/tmp')).toThrow(
-      ResourceRegistryIndexError,
-    );
+    const cwd = mkdtempSync(path.join(tmpdir(), 'resource-index-missing-'));
+    try {
+      expect(() => resolveLiveResourceIndexRevision(EMPTY_ENV, cwd)).toThrow(ResourceRegistryIndexError);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('cross-checks revision signals and marks a dirty worktree even when APP_REVISION is set', () => {
+    const cwd = createTempGitRepo();
+    try {
+      const head = git(cwd, ['rev-parse', 'HEAD']).toLowerCase();
+      expect(resolveLiveResourceIndexRevision(EMPTY_ENV, cwd)).toBe(head);
+      expect(resolveLiveResourceIndexRevision({ APP_REVISION: head }, cwd)).toBe(head);
+
+      writeFileSync(path.join(cwd, 'tracked.txt'), 'dirty\n');
+      expect(resolveLiveResourceIndexRevision({ APP_REVISION: head }, cwd)).toBe(`${head}-dirty`);
+      expect(resolveLiveResourceIndexRevision(EMPTY_ENV, cwd)).toBe(`${head}-dirty`);
+
+      writeFileSync(path.join(cwd, '.app-revision'), `${'b'.repeat(40)}\n`);
+      expect(() => resolveLiveResourceIndexRevision({ APP_REVISION: head }, cwd)).toThrow(/disagree/);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('fails closed when APP_REVISION disagrees with the immutable revision file outside Git', () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), 'resource-index-image-'));
+    try {
+      const imageSha = 'c'.repeat(40);
+      writeFileSync(path.join(cwd, '.app-revision'), `${imageSha}\n`);
+      expect(resolveLiveResourceIndexRevision({ APP_REVISION: imageSha }, cwd)).toBe(imageSha);
+      expect(() => resolveLiveResourceIndexRevision({ APP_REVISION: 'd'.repeat(40) }, cwd)).toThrow(/disagree/);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
   });
 
   it('omits undefined fields so canonical output is JSON-parseable', () => {

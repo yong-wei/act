@@ -6,16 +6,15 @@ import { ResourceRegistryIndexError } from './errors';
 
 const GIT_SHA = /^[a-f0-9]{40}$/i;
 
-function readEnvRevision(env: NodeJS.ProcessEnv): string | null {
-  const revision = (env.APP_REVISION || env.GIT_SHA || '').trim();
+function readSha(value: string | undefined): string | null {
+  const revision = (value || '').trim();
   return GIT_SHA.test(revision) ? revision.toLowerCase() : null;
 }
 
 function readRevisionFile(cwd: string, env: NodeJS.ProcessEnv): string | null {
   const revisionPath = path.resolve(cwd, env.APP_REVISION_FILE || '.app-revision');
   if (!existsSync(revisionPath)) return null;
-  const revision = readFileSync(revisionPath, 'utf8').trim();
-  return GIT_SHA.test(revision) ? revision.toLowerCase() : null;
+  return readSha(readFileSync(revisionPath, 'utf8'));
 }
 
 function git(cwd: string, args: string[]): string {
@@ -43,14 +42,38 @@ export function resolveLiveResourceIndexRevision(
   env: NodeJS.ProcessEnv = process.env,
   cwd: string = process.cwd(),
 ): string {
-  const fromEnv = readEnvRevision(env);
-  if (fromEnv) return fromEnv;
+  const fromAppRevision = readSha(env.APP_REVISION);
+  const fromGitSha = readSha(env.GIT_SHA);
   const fromFile = readRevisionFile(cwd, env);
-  if (fromFile) return fromFile;
   const fromGit = readGitRevision(cwd);
-  if (fromGit) return fromGit.dirty ? `${fromGit.sha}-dirty` : fromGit.sha;
-  throw new ResourceRegistryIndexError(
-    'MISSING_CAPTURE',
-    'Live RegistryIndex requires APP_REVISION, GIT_SHA, or a Git HEAD capture.',
-  );
+
+  const signals: string[] = [];
+  if (fromAppRevision) signals.push(fromAppRevision);
+  if (fromGitSha) signals.push(fromGitSha);
+  if (fromFile) signals.push(fromFile);
+  if (fromGit) signals.push(fromGit.sha);
+
+  if (signals.length === 0) {
+    throw new ResourceRegistryIndexError(
+      'MISSING_CAPTURE',
+      'Live RegistryIndex requires APP_REVISION, GIT_SHA, or a Git HEAD capture.',
+    );
+  }
+
+  const unique = new Set(signals);
+  if (unique.size > 1) {
+    throw new ResourceRegistryIndexError(
+      'MIXED_CAPTURE',
+      'Live RegistryIndex revision signals disagree.',
+      {
+        APP_REVISION: fromAppRevision,
+        GIT_SHA: fromGitSha,
+        APP_REVISION_FILE: fromFile,
+        gitHead: fromGit?.sha ?? null,
+      },
+    );
+  }
+
+  const sha = signals[0];
+  return fromGit?.dirty ? `${sha}-dirty` : sha;
 }
