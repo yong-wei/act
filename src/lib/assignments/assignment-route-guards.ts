@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rateLimiter } from '@/lib/rate-limiter';
 import { AssignmentDomainError, assertMutationRequest } from './assignment-domain';
+import { TeacherAssignmentReviewError } from './assignment-review';
 import { SubmissionError } from './submission-domain';
 
 export async function requireAssignmentActor() {
@@ -43,6 +44,9 @@ export async function readBoundedAssignmentJson(request: Request, maxBytes = 256
 }
 
 export function assignmentErrorResponse(error: unknown): NextResponse {
+  if (error instanceof TeacherAssignmentReviewError) {
+    return NextResponse.json({ error: error.code, details: error.details }, { status: error.status });
+  }
   if (error instanceof SubmissionError) {
     return NextResponse.json({ error: error.code }, { status: error.status });
   }

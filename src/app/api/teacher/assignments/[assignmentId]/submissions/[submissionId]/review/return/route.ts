@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { returnTeacherAssignmentReview } from '@/lib/data-governance/teacher-assignment-review';
-import { teacherAssignmentReviewErrorResponse } from '@/lib/data-governance/teacher-assignment-review-api';
-import { prisma } from '@/lib/prisma';
+import {
+  assignmentErrorResponse,
+  readBoundedAssignmentJson,
+  requireAssignmentActor,
+  requireAssignmentMutation,
+} from '@/lib/assignments/assignment-route-guards';
+import { teacherReturnReview } from '@/lib/assignments/public-api';
 
 const returnSchema = z.object({
   reviewId: z.string().trim().min(1).max(160),
@@ -23,9 +26,12 @@ export async function POST(request: Request, context: { params: Promise<{ assign
   try {
     const { assignmentId, submissionId } = await context.params;
     const body = returnSchema.parse(await readBoundedAssignmentJson(request, 32_000));
-    const result = await returnTeacherAssignmentReview(prisma, { actor: auth.actor, assignmentId, submissionId, ...body, newDeadlineAt: new Date(body.newDeadlineAt) });
+    const result = await teacherReturnReview(auth.actor, assignmentId, submissionId, {
+      ...body,
+      newDeadlineAt: new Date(body.newDeadlineAt),
+    });
     return NextResponse.json(result, { status: result.replay ? 200 : 201 });
   } catch (error) {
-    return teacherAssignmentReviewErrorResponse(error);
+    return assignmentErrorResponse(error);
   }
 }

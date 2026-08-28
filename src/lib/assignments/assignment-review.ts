@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 
-import { stableStringify, sha256 } from './math-document-grading-contracts';
 import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
-import { writeGradingAudit } from './math-document-grading-persistence';
+import { stableStringify, sha256 } from '@/lib/data-governance/math-document-grading-contracts';
+import { writeGradingAudit } from '@/lib/data-governance/math-document-grading-persistence';
 
 export type TeacherReviewActor = { id: string; role: 'TEACHER' | 'ADMIN' };
 
@@ -1091,6 +1091,8 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
 }
 
 function approvalOutboxRows(snapshot: any, review: any, now: Date) {
+  // PROCESS_GOVERNED_EVIDENCE is the approved-snapshot port into Data Governance.
+  // Assignment never writes LearningFact here; the outbox worker remains the writer.
   const commands = [
     ['GENERATE_DERIVATIVE', 'generate-derivative'],
     ['RELEASE_STUDENT_FEEDBACK', 'release-student-feedback'],

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { requestTeacherAssignmentFeedbackRelease } from '@/lib/data-governance/teacher-assignment-review';
-import { teacherAssignmentReviewErrorResponse } from '@/lib/data-governance/teacher-assignment-review-api';
-import { prisma } from '@/lib/prisma';
+import {
+  assignmentErrorResponse,
+  readBoundedAssignmentJson,
+  requireAssignmentActor,
+  requireAssignmentMutation,
+} from '@/lib/assignments/assignment-route-guards';
+import { teacherRequestFeedbackRelease } from '@/lib/assignments/public-api';
 
 const releaseSchema = z.object({
   reviewId: z.string().trim().min(1).max(160),
@@ -20,9 +23,9 @@ export async function POST(request: Request, context: { params: Promise<{ assign
   try {
     const { assignmentId, submissionId } = await context.params;
     const body = releaseSchema.parse(await readBoundedAssignmentJson(request, 8_000));
-    const result = await requestTeacherAssignmentFeedbackRelease(prisma, { actor: auth.actor, assignmentId, submissionId, ...body });
+    const result = await teacherRequestFeedbackRelease(auth.actor, assignmentId, submissionId, body);
     return NextResponse.json(result);
   } catch (error) {
-    return teacherAssignmentReviewErrorResponse(error);
+    return assignmentErrorResponse(error);
   }
 }
