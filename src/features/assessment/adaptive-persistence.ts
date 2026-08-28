@@ -30,6 +30,7 @@ import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 import {
   buildSubmitAnswerResult,
   createSubmitAnswerDetails,
+  createSubmitAnswerDetailsForQuestion,
   getAbilityReportFromAnswers,
   getDiagnosticFromAnswers,
   getAdaptiveQuestionById,
@@ -51,7 +52,7 @@ import {
   rebuildMasteryUpdatesFromAnswers,
   type AdaptiveAssessmentBktParameters,
 } from './adaptive-mastery';
-import type { QuestionDomain, QuestionType } from './adaptive-question-bank';
+import type { CrossDomainQuestion, QuestionDomain, QuestionType } from './adaptive-question-bank';
 
 type CreateManyResult = { count: number };
 
@@ -77,6 +78,17 @@ type PersistedAssessmentAnswerRow = {
   };
 };
 
+type PersistedAssessmentItemRefRow = {
+  id: string;
+  questionId?: string;
+  contentHash?: string;
+  questionType?: string;
+  domains?: string[];
+  knowledgeTags?: string[];
+  difficulty?: number;
+  metadata?: unknown;
+};
+
 type PersistedAssessmentSessionRow = {
   id: string;
   selectedQuestionIds?: string[];
@@ -93,7 +105,7 @@ type AdaptiveAssessmentPersistenceTx = {
     updateMany(args: Record<string, unknown>): Promise<CreateManyResult>;
   };
   adaptiveAssessmentItemRef: {
-    upsert(args: Record<string, unknown>): Promise<{ id: string }>;
+    upsert(args: Record<string, unknown>): Promise<PersistedAssessmentItemRefRow>;
   };
   adaptiveAssessmentAnswer: {
     findUnique(args: Record<string, unknown>): Promise<{
@@ -307,7 +319,7 @@ async function persistAdaptiveAssessmentItemRef(
   tx: Pick<AdaptiveAssessmentPersistenceTx, 'adaptiveAssessmentItemRef'>,
   details: SubmittedAnswerDetails,
   contentHash: string,
-): Promise<{ id: string }> {
+): Promise<PersistedAssessmentItemRefRow> {
   const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(details.question.id);
   const kaqMetadata = buildKaqQuizQuestionMetadata(details.question);
   const itemRefMetadata = {
@@ -363,6 +375,72 @@ async function persistPathOwnedSelectionBindings(params: {
   const contentHash = questionMetadataContentHash(details, catalogSnapshot);
   await persistAdaptiveAssessmentItemRef(params.db, details, contentHash);
   return mergeSelectedItemRef(params.metadata, params.questionId, contentHash);
+}
+
+function questionFromPersistedItemRef(
+  questionId: string,
+  itemRef: PersistedAssessmentItemRefRow,
+): CrossDomainQuestion | null {
+  const snapshot = recordMetadata(itemRef.metadata).questionSnapshot;
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+    return null;
+  }
+  const record = recordMetadata(snapshot);
+  if (typeof record.prompt !== 'string' || typeof record.correctOptionKey !== 'string' || !Array.isArray(record.options)) {
+    return null;
+  }
+  const options = record.options.flatMap((option) => {
+    if (!option || typeof option !== 'object' || Array.isArray(option)) return [];
+    const row = recordMetadata(option);
+    if (typeof row.label !== 'string' || typeof row.text !== 'string') return [];
+    return [{
+      label: row.label,
+      text: row.text,
+      explanation: typeof row.explanation === 'string' ? row.explanation : '',
+      isCorrect: row.key === record.correctOptionKey,
+    }];
+  });
+  if (options.length === 0) return null;
+  const generatedMetadata = recordMetadata(itemRef.metadata).generatedMetadata;
+  return {
+    id: questionId,
+    stem: record.prompt,
+    domains: Array.isArray(itemRef.domains) ? itemRef.domains as QuestionDomain[] : [],
+    type: (itemRef.questionType ?? 'multi-criteria') as QuestionType,
+    difficulty: typeof itemRef.difficulty === 'number' ? itemRef.difficulty : 0,
+    knowledgeTags: Array.isArray(record.knowledgeTags)
+      ? record.knowledgeTags.filter((tag): tag is string => typeof tag === 'string')
+      : Array.isArray(itemRef.knowledgeTags) ? itemRef.knowledgeTags : [],
+    options,
+    ...(generatedMetadata && typeof generatedMetadata === 'object' && !Array.isArray(generatedMetadata)
+      ? { generatedMetadata: generatedMetadata as CrossDomainQuestion['generatedMetadata'] }
+      : {}),
+  };
+}
+
+function applyPersistedSelectionSnapshot(
+  details: SubmittedAnswerDetails,
+  itemRef: PersistedAssessmentItemRefRow,
+): SubmittedAnswerDetails {
+  if (!details.pathContext) return details;
+  const question = questionFromPersistedItemRef(details.question.id, itemRef);
+  if (!question) return details;
+  const rebuilt = createSubmitAnswerDetailsForQuestion(question, {
+    userId: details.record.userId,
+    sessionId: details.record.sessionId,
+    questionId: details.question.id,
+    selectedOption: details.record.selectedOption,
+    timeSpent: details.record.timeSpent,
+    pathContext: details.pathContext,
+    continuity: details.continuity,
+  });
+  return {
+    ...rebuilt,
+    record: {
+      ...rebuilt.record,
+      createdAt: details.record.createdAt,
+    },
+  };
 }
 
 function selectedOptionValueFromKey(
@@ -863,7 +941,6 @@ async function persistAdaptiveAssessmentSubmission(
   await ensureGeneratedCatalogHydrated(db);
   const execute = async (tx: AdaptiveAssessmentPersistenceTx): Promise<PersistedSubmission & { result: SubmitAnswerResult }> => {
   const answeredAt = new Date(details.record.createdAt);
-  const score = details.record.isCorrect ? 100 : 0;
 
   const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
   await lockAdaptiveAssessmentUserWrites(tx, details.record.userId);
@@ -946,6 +1023,8 @@ async function persistAdaptiveAssessmentSubmission(
   const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
   const contentHash = selectionContentHash ?? questionMetadataContentHash(effectiveDetails, catalogSnapshot);
   const questionRef = await persistAdaptiveAssessmentItemRef(tx, effectiveDetails, contentHash);
+  effectiveDetails = applyPersistedSelectionSnapshot(effectiveDetails, questionRef);
+  const score = effectiveDetails.record.isCorrect ? 100 : 0;
 
   const persistedAnswersBefore = await tx.adaptiveAssessmentAnswer.findMany({
     where: {

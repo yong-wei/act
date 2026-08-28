@@ -119,6 +119,7 @@ function createMockDb(selectedQuestionIds: string[] = []) {
     selectedQuestionIds: [...selectedQuestionIds],
     metadata: {} as Record<string, unknown>,
   };
+  const itemRefStore = new Map<string, Record<string, unknown>>();
   const db = {
     $executeRawUnsafe: vi.fn().mockResolvedValue(1),
     adaptiveAssessmentAlgorithmVersion: {
@@ -154,9 +155,19 @@ function createMockDb(selectedQuestionIds: string[] = []) {
       }),
     },
     adaptiveAssessmentItemRef: {
-      upsert: vi.fn().mockResolvedValue({
-        id: 'item-ref-1',
-        questionId: 'preset-q-01',
+      upsert: vi.fn().mockImplementation(async (args: {
+        where?: { questionId_algorithmVersion_contentHash?: { questionId?: string; contentHash?: string } };
+        create?: Record<string, unknown>;
+      }) => {
+        const key = JSON.stringify(args.where?.questionId_algorithmVersion_contentHash ?? args.where);
+        const existing = itemRefStore.get(key);
+        if (existing) return existing;
+        const created = {
+          id: `item-ref-${itemRefStore.size + 1}`,
+          ...(args.create ?? {}),
+        };
+        itemRefStore.set(key, created);
+        return created;
       }),
     },
     adaptiveAssessmentAnswer: {
@@ -1094,7 +1105,7 @@ describe('submitAnswerDurably', () => {
     }, db)).rejects.toThrow('路径自适应答案不属于当前会话已选择的题目');
   });
 
-  it('reuses the selection-time item ref when catalog metadata later changes', async () => {
+  it('reuses the selection-time snapshot when the live question later changes', async () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
     const selected = await selectNextQuestionDurably({
@@ -1116,28 +1127,48 @@ describe('submitAnswerDurably', () => {
     });
     const question = getAdaptiveQuestionById(selected.question.id);
     expect(question).toBeTruthy();
-    const selectedOption = question!.options.find((option) => option.isCorrect)?.text ?? question!.options[0].text;
+    const originalOptions = question!.options.map((option) => ({ ...option }));
+    const originalCorrectText = originalOptions.find((option) => option.isCorrect)?.text ?? originalOptions[0].text;
+    question!.options.forEach((option) => {
+      option.isCorrect = !option.isCorrect;
+    });
 
-    await submitAnswerDurably({
-      userId: 'student-owned',
-      sessionId: 'session-owned',
-      questionId: selected.question.id,
-      selectedOption,
-      timeSpent: 20,
-      pathContext: {
-        pathId: 'path-1',
-        nodeId: 'adaptive-quiz:control-target-check',
-        goalId: APPROVED_READINESS_GOAL_ID,
-        routeIntent: 'path-execution',
-        questionScope: 'readiness',
-      },
-    }, db);
-    catalogSnapshotSpy.mockRestore();
+    let result: Awaited<ReturnType<typeof submitAnswerDurably>>;
+    try {
+      result = await submitAnswerDurably({
+        userId: 'student-owned',
+        sessionId: 'session-owned',
+        questionId: selected.question.id,
+        selectedOption: originalCorrectText,
+        timeSpent: 20,
+        pathContext: {
+          pathId: 'path-1',
+          nodeId: 'adaptive-quiz:control-target-check',
+          goalId: APPROVED_READINESS_GOAL_ID,
+          routeIntent: 'path-execution',
+          questionScope: 'readiness',
+        },
+      }, db);
+    } finally {
+      question!.options.forEach((option, index) => {
+        option.isCorrect = originalOptions[index].isCorrect;
+        option.label = originalOptions[index].label;
+        option.text = originalOptions[index].text;
+        option.explanation = originalOptions[index].explanation;
+      });
+      catalogSnapshotSpy.mockRestore();
+    }
 
+    expect(result.isCorrect).toBe(true);
+    expect(result.correctOption).toBe(originalOptions.find((option) => option.isCorrect)?.label);
     const submitWhere = db.adaptiveAssessmentItemRef.upsert.mock.calls.at(-1)?.[0]
       .where.questionId_algorithmVersion_contentHash;
     expect(submitWhere.questionId).toBe(selected.question.id);
     expect(submitWhere.contentHash).toBe(selectionHash);
+    expect(db.adaptiveAssessmentAnswer.upsert.mock.calls.at(-1)?.[0].create).toMatchObject({
+      isCorrect: true,
+      correctOptionKey: String.fromCharCode(65 + originalOptions.findIndex((option) => option.isCorrect)),
+    });
   });
 
   it('allows generated low-stakes questions during goal practice selection', async () => {

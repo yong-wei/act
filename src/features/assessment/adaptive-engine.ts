@@ -554,12 +554,10 @@ export function buildSubmitAnswerResult(
   };
 }
 
-export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getQuestionForSession(params.questionId, params);
-  if (!question) {
-    throw new Error('题目不存在');
-  }
-
+export function createSubmitAnswerDetailsForQuestion(
+  question: CrossDomainQuestion,
+  params: SubmitAnswerParams,
+): SubmittedAnswerDetails {
   const selected = findSelectedOption(question, params.selectedOption);
   const correct = findCorrectOption(question);
   const answer = selected.option;
@@ -597,6 +595,15 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
     ...details,
     result: buildSubmitAnswerResult(details, [record]),
   };
+}
+
+export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
+  const question = getQuestionForSession(params.questionId, params);
+  if (!question) {
+    throw new Error('题目不存在');
+  }
+
+  return createSubmitAnswerDetailsForQuestion(question, params);
 }
 
 export function getAbilityReportFromAnswers(userId: string, answers: AdaptiveAnswerRecord[]): AbilityReport {
