@@ -4,9 +4,11 @@ import {
 } from '@/lib/adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
 
+import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
 import {
   assembleAdaptiveLearningPathPlan,
   evaluateHardEligibility,
+  getRegisteredAdaptiveLearningPathGoal,
 } from '../internal/assemble-plan';
 import type {
   EligibilityDecision,
@@ -36,7 +38,15 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
     goalContext: { load: loadGoalContext },
     candidates: {
       discover(context) {
-        return { nodes: context.input.registry.nodes };
+        const nodes = context.input.registry.nodes;
+        const plugin = personalizationPluginRegistry.get(context.input.goal.id);
+        if (plugin?.status !== 'active' || !plugin.pathPlanningPolicy) {
+          return { nodes };
+        }
+        const allowedTypes = new Set(plugin.pathPlanningPolicy.allowedResourceMix);
+        return {
+          nodes: nodes.filter((node) => allowedTypes.has(node.type)),
+        };
       },
     },
     eligibility: {
@@ -79,17 +89,34 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
     },
     repair: {
       repair(context, ranked) {
+        const registeredGoal = getRegisteredAdaptiveLearningPathGoal(context.input.goal.id);
+        const checkpointResourceTypes = new Set(registeredGoal?.checkpointPolicy.checkpointResourceTypes ?? []);
+        const completedNodeIds = new Set(context.input.constraints.completedNodeIds ?? []);
         const repair = deterministicPathConstraintRepairAdapter.repair({
           draftNodeIds: ranked.ordered.map((node) => node.id),
-          candidates: ranked.ordered.map((node) => ({
-            nodeId: node.id,
-            estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes ?? 15,
-            prerequisiteNodeIds: node.planningMetadata.prerequisites,
-          })),
+          candidates: ranked.ordered.map((node) => {
+            const isCheckpoint = Boolean(node.checkpoint) ||
+              node.type === 'checkpoint' ||
+              checkpointResourceTypes.has(node.type);
+            const isOfficialTerminal = (node.type === 'simulation' || node.type === 'arena_task') &&
+              node.planningMetadata.terminalConstraints.includes('terminal-validation');
+            return {
+              nodeId: node.id,
+              estimatedTimeMinutes: completedNodeIds.has(node.id)
+                ? 0
+                : node.planningMetadata.estimatedTimeMinutes ?? 15,
+              prerequisiteNodeIds: node.planningMetadata.prerequisites,
+              checkpointRole: isCheckpoint
+                ? node.checkpoint?.assessmentPurpose ?? 'formative'
+                : undefined,
+              terminalValidation: isOfficialTerminal ? 'official' as const : undefined,
+              removable: false,
+            };
+          }),
           constraints: {
             timeBudgetMinutes: context.input.constraints.timeBudgetMinutes,
-            requiredCheckpointCount: 1,
-            terminalValidationRequired: false,
+            requiredCheckpointCount: registeredGoal?.checkpointPolicy.minCheckpoints ?? 0,
+            terminalValidationRequired: registeredGoal?.checkpointPolicy.requiresTerminalValidation ?? false,
           },
           versionRefs: {
             plannerVersion: 'adaptive-learning-path-planner.v1',
@@ -97,15 +124,10 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
           },
         });
         const nodesById = new Map(ranked.ordered.map((node) => [node.id, node]));
-        const repaired = repair.repairedNodeIds
-          .map((nodeId) => nodesById.get(nodeId))
-          .filter((node): node is NonNullable<typeof node> => Boolean(node));
-        const repairedIds = new Set(repaired.map((node) => node.id));
         return {
-          ordered: [
-            ...repaired,
-            ...ranked.ordered.filter((node) => !repairedIds.has(node.id)),
-          ],
+          ordered: repair.repairedNodeIds
+            .map((nodeId) => nodesById.get(nodeId))
+            .filter((node): node is NonNullable<typeof node> => Boolean(node)),
         };
       },
     },

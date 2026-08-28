@@ -10,6 +10,7 @@ import {
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION,
 } from './mappings';
+import { CONTROL_CORRECTION_PATH_PLANNING_POLICY } from './path-planning-policy';
 import { controlCorrectionGoalSliceDefinition } from './slice-contract';
 
 export function createControlCorrectionPersonalizationPlugin(
@@ -25,6 +26,7 @@ export function createControlCorrectionPersonalizationPlugin(
     lessonIds: CONTROL_CORRECTION_LESSON_ID_VALUES,
     arenaTaskIds: CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
     sliceDefinition,
+    pathPlanningPolicy: structuredClone(CONTROL_CORRECTION_PATH_PLANNING_POLICY),
     createEvidencePort: createControlCorrectionEvidencePort,
     createWritePort: createIdempotentPluginWritePort,
   };

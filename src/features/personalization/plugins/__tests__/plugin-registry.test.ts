@@ -57,6 +57,7 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/db-evidence.ts',
   'src/features/personalization/plugins/control-correction/slice-contract.ts',
   'src/features/personalization/plugins/control-correction/capability-targets.ts',
+  'src/features/personalization/plugins/control-correction/path-planning-policy.ts',
 ];
 
 function emptyFeatureRead(): LearnerStateReducerInput['featureRead'] {

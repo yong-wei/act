@@ -192,6 +192,24 @@ describe('PlanLearningPath pipeline', () => {
     expect(bundleNodeIds.some((nodeId) => nodeId.includes('extra-card'))).toBe(false);
   });
 
+  it('uses the active plugin path-planning policy instead of the static catalog', () => {
+    const registry = createPersonalizationPluginRegistry();
+    const plugin = createControlCorrectionPersonalizationPlugin();
+    plugin.pathPlanningPolicy = {
+      ...plugin.pathPlanningPolicy!,
+      checkpointPolicy: {
+        ...plugin.pathPlanningPolicy!.checkpointPolicy,
+        minCheckpoints: 3,
+        requiresTerminalValidation: false,
+      },
+    };
+    registry.register(plugin);
+    const registered = getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry);
+    expect(registered?.checkpointPolicy.minCheckpoints).toBe(3);
+    expect(registered?.checkpointPolicy.requiresTerminalValidation).toBe(false);
+    expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)?.checkpointPolicy.minCheckpoints).toBe(1);
+  });
+
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
     for (const file of GENERIC_PIPELINE_FILES) {
       const source = readFileSync(file, 'utf8');
@@ -204,6 +222,8 @@ describe('PlanLearningPath pipeline', () => {
     expect(application).toContain('ports.repair.repair');
     expect(application).toContain('ports.assembler.assemble');
     expect(application).toContain('rankResourceLearnerCandidates');
+    expect(application).toContain('checkpointRole');
+    expect(application).toContain('allowedResourceMix');
     expect(readFileSync('src/features/personalization/path-planning/public-api.ts', 'utf8'))
       .not.toContain('assembleAdaptiveLearningPathPlan');
     expect(readFileSync('src/features/personalization/path-planning/public-api.ts', 'utf8'))

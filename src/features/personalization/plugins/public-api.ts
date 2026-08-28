@@ -7,6 +7,7 @@ export type {
   PersonalizationGoalHint,
   PersonalizationGoalPlugin,
   PersonalizationGoalResolution,
+  PersonalizationPluginPathPlanningPolicy,
   PersonalizationPluginRationaleCitation,
   PersonalizationPluginStatus,
   PersonalizationPluginWritePort,

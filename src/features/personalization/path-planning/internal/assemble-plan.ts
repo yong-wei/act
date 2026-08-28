@@ -79,7 +79,7 @@ import {
 } from '@/lib/adaptive-planning/item-type-terminal-validation';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
 import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
-import type { PersonalizationPluginStatus } from '@/features/personalization/plugins/types';
+import type { PersonalizationPluginPathPlanningPolicy, PersonalizationPluginStatus } from '@/features/personalization/plugins/types';
 import type {
   AdaptiveLearningCapabilityTarget,
   AdaptiveLearningPathEvidenceType,
@@ -1800,16 +1800,42 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
 export function getRegisteredAdaptiveLearningPathGoal(
   goalId: string,
   registry: {
-    get(goalId: string): { status: PersonalizationPluginStatus } | null | undefined;
+    get(goalId: string): {
+      status: PersonalizationPluginStatus;
+      pathPlanningPolicy?: PersonalizationPluginPathPlanningPolicy;
+      sliceDefinition?: { capabilityTargets?: AdaptiveLearningCapabilityTarget[] };
+    } | null | undefined;
   } = personalizationPluginRegistry,
 ): AdaptiveLearningPathRegisteredGoalDefinition | null {
   const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
   if (!definition) return null;
+  const plugin = registry.get(goalId);
   if (definition.requiresRegisteredPlugin) {
-    const plugin = registry.get(goalId);
     if (!plugin || plugin.status !== 'active') return null;
   }
-  return definition;
+  const policy = plugin?.status === 'active' ? plugin.pathPlanningPolicy : undefined;
+  if (!policy) return definition;
+  return {
+    ...definition,
+    displayName: policy.displayName,
+    knowledgeTargetAliases: policy.knowledgeTargetAliases,
+    allowedResourceMix: policy.allowedResourceMix as AdaptiveLearningPathRegisteredGoalDefinition['allowedResourceMix'],
+    starterPathPolicy: {
+      ...policy.starterPathPolicy,
+      policyFamilies: policy.starterPathPolicy.policyFamilies as AdaptiveLearningPathRegisteredGoalDefinition['starterPathPolicy']['policyFamilies'],
+      preferredResourceTypes: policy.starterPathPolicy.preferredResourceTypes as AdaptiveLearningPathRegisteredGoalDefinition['starterPathPolicy']['preferredResourceTypes'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: policy.checkpointPolicy.minCheckpoints,
+      checkpointResourceTypes: policy.checkpointPolicy.checkpointResourceTypes as AdaptiveLearningPathRegisteredGoalDefinition['checkpointPolicy']['checkpointResourceTypes'],
+      requiresTerminalValidation: policy.checkpointPolicy.requiresTerminalValidation,
+    },
+    explanationTemplates: policy.explanationTemplates,
+    goal: {
+      ...definition.goal,
+      capabilityTargets: plugin?.sliceDefinition?.capabilityTargets ?? definition.goal.capabilityTargets,
+    },
+  };
 }
 
 export function isRegisteredAdaptiveLearningPathGoal(goalId: string): boolean {
