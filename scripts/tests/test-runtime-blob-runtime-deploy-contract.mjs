@@ -99,6 +99,14 @@ assert.ok(
   '兼容性证明只能在候选消费者 smoke 成功后捕获',
 );
 assert.ok(
+  activation.lastIndexOf('inspect-application') < activation.lastIndexOf('run_candidate_consumer_smoke'),
+  'candidate consumers must start from a captured deployed application identity',
+);
+assert.ok(
+  activation.lastIndexOf('verify_qualification_environment') > activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture'),
+  'the captured proof must be compared with the application identity observed before candidate smoke',
+);
+assert.ok(
   activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture') < activation.lastIndexOf('stage_lifecycle_desired'),
   '兼容性证明必须在 desired 生命周期状态写入前完成',
 );
@@ -615,6 +623,8 @@ assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility
 assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
 assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');
 assert.match(compatibilityProof, /_prisma_migrations/, 'compatibility proof must bind the applied Prisma migration set');
+assert.match(compatibilityProof, /def inspect_application/, 'compatibility proof helper must expose deployed consumer identity capture');
+assert.match(activation, /application identity or migration set changed while candidate consumers were qualified/, 'application replacement during qualification must fail before selection');
 assert.match(compatibilityProof, /proof body, rather than\n    just the Runtime identity, therefore owns the filename/, 'each proof filename must bind the qualified application identity');
 assert.match(activation, /ACT_RUNTIME_LEGACY_MIGRATION/, 'the coordinated activation exception must require explicit migration intent');
 assert.match(coordinatedCutover, /ACT_RUNTIME_LEGACY_MIGRATION=1/, 'the historical outer transaction must declare its migration intent');

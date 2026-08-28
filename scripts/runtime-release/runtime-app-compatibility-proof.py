@@ -289,6 +289,16 @@ def capture(args: argparse.Namespace) -> Dict[str, Any]:
     return {"proofSha256": sha256(canonical(proof) + b"\n"), **proof}
 
 
+def inspect_application(args: argparse.Namespace) -> Dict[str, Any]:
+    """Capture the deployed consumer identity without qualifying a Runtime."""
+    app = checked_container(args.app_container, "application container")
+    worker = checked_container(args.worker_container, "worker container")
+    return {
+        "application": application_identity(app, worker),
+        "migrationSet": migration_set(app),
+    }
+
+
 def verify(args: argparse.Namespace) -> Dict[str, Any]:
     app = checked_container(args.app_container, "application container")
     worker = checked_container(args.worker_container, "worker container")
@@ -320,6 +330,9 @@ def main() -> None:
         if name != "inspect":
             command.add_argument("--app-container", required=True)
             command.add_argument("--worker-container", required=True)
+    application = commands.add_parser("inspect-application")
+    application.add_argument("--app-container", required=True)
+    application.add_argument("--worker-container", required=True)
     commands.choices["capture"].add_argument("--candidate-view", required=True)
     commands.choices["capture"].add_argument("--output-dir", required=True)
     for name in ("verify", "inspect"):
@@ -329,7 +342,15 @@ def main() -> None:
     if args.command is None:
         parser.error("a command is required")
     try:
-        result = capture(args) if args.command == "capture" else verify(args) if args.command == "verify" else inspect(args)
+        result = (
+            capture(args)
+            if args.command == "capture"
+            else verify(args)
+            if args.command == "verify"
+            else inspect(args)
+            if args.command == "inspect"
+            else inspect_application(args)
+        )
     except ValueError as error:
         print(f"ERROR: {error}", file=sys.stderr)
         raise SystemExit(1)

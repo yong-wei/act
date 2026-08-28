@@ -297,6 +297,22 @@ run_active_media_resolver_smoke() {
     }
 }
 
+verify_qualification_environment() {
+  local before="$1"
+  local captured="$2"
+  python3 - "$before" "$captured" <<'PY'
+import json
+import sys
+
+before = json.loads(sys.argv[1])
+captured = json.loads(sys.argv[2])
+expected = {"application": before.get("application"), "migrationSet": before.get("migrationSet")}
+actual = {"application": captured.get("application"), "migrationSet": captured.get("migrationSet")}
+if expected != actual:
+    raise SystemExit("ERROR: application identity or migration set changed while candidate consumers were qualified")
+PY
+}
+
 capture_rollback_image() {
   local image
   if podman container exists "$APP_CONTAINER"; then
@@ -789,6 +805,9 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
 source "$ENV_FILE"
 wait_for_readyz
+qualification_environment="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" inspect-application \
+  --app-container "$APP_CONTAINER" \
+  --worker-container "$WORKER_CONTAINER")"
 run_candidate_consumer_smoke
 compatibility_capture="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
   --release-id "$release_id" \
@@ -797,6 +816,7 @@ compatibility_capture="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
   --app-container "$APP_CONTAINER" \
   --worker-container "$WORKER_CONTAINER" \
   --output-dir "$STATE_DIR/runtime-app-compatibility")"
+verify_qualification_environment "$qualification_environment" "$compatibility_capture"
 compatibility_proof_sha256="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["proofSha256"])' <<<"$compatibility_capture")"
 [[ "$compatibility_proof_sha256" =~ ^[a-f0-9]{64}$ ]] || {
   echo "ERROR: compatibility proof capture returned an invalid digest" >&2
