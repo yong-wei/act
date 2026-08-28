@@ -24,6 +24,7 @@ import {
   type ClassroomLifecycleRuntime,
   type ClassroomReadableSession,
 } from '../application/lifecycle';
+import { persistSessionEndTransactionCommand } from './submission-evidence-commands';
 import type { AdvanceClassroomSessionInput, EndClassroomSessionInput, ReadClassroomSessionInput, StreamClassroomSessionInput } from '../types';
 
 async function generateSessionSummaryReportsSafely(sessionId: string) {
@@ -180,6 +181,42 @@ export function createPrismaClassroomLifecycleRuntime(): ClassroomLifecycleRunti
         },
       });
       return updatedSession;
+    },
+    persistSessionEnd: async (input) => {
+      const outcome = await persistSessionEndTransactionCommand(prisma, {
+        sessionId: input.sessionId,
+        endTime: input.endTime,
+      });
+      const session = await prisma.classSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          id: true,
+          joinCode: true,
+          status: true,
+          classId: true,
+          currentItemId: true,
+          currentStage: true,
+          updatedAt: true,
+          planId: true,
+          manifestHash: true,
+          coursewarePublicationRevisionId: true,
+          coursewareDisplayName: true,
+          coursewareRevisionNumber: true,
+          coursewarePlanRevisionNumber: true,
+          plan: { select: { title: true } },
+          class: { select: { name: true } },
+        },
+      });
+      if (!session) {
+        // 结束事务刚校验过会话存在；此分支仅为类型完备兜底
+        throw new Error(`Session ${input.sessionId} disappeared during end transaction`);
+      }
+      return {
+        outcome: outcome.outcome,
+        closureRevision: outcome.closureRevision,
+        acceptedSubmissionWatermark: outcome.acceptedSubmissionWatermark,
+        session: { ...asReadableSession(session) } as ClassroomReadableSession & Record<string, unknown>,
+      };
     },
     publishSessionState: async (sessionId, session, identity) => {
       if (!redisClient.isReady()) return;

@@ -1,8 +1,4 @@
-import { buildManifestSubmissionTelemetry } from '@/features/interactive/shared/manifest-runtime/submission-telemetry';
-import {
-  getInteractiveRuntimeStep,
-  type InteractiveRuntimeManifest,
-} from '@/lib/interactive-lesson-manifest';
+import type { InteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import type { CourseEvidenceSpec } from './course-evidence-specs';
 import {
   summarizeSubmissionEvidencePayload,
@@ -10,7 +6,7 @@ import {
 } from './submission-evidence-quality';
 
 export type CourseReviewPrepostRecoverability = 'complete' | 'partial' | 'limited';
-export type CourseReviewPrepostSource = 'compatibility-state' | 'durable-submission' | 'student-state' | 'missing';
+export type CourseReviewPrepostSource = 'compatibility-state' | 'durable-submission' | 'missing';
 export type CourseReviewCompatibilityKind = 'course_review' | 'showcase_review';
 
 export interface CourseReviewAbilityVector {
@@ -164,14 +160,6 @@ function inferWeakTagFromPost(vector: CourseReviewAbilityVector) {
   return pairs[0]?.[0] ?? 'cross-domain-mapping';
 }
 
-function normalizeAnswers(value: unknown): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(readRecord(value))
-      .map(([key, answer]) => [key, answer === null || answer === undefined ? '' : String(answer)] as const)
-      .filter(([, answer]) => answer.trim().length > 0),
-  );
-}
-
 function readQuestionSummaries(value: unknown): Array<Record<string, unknown>> {
   return Array.isArray(value)
     ? value.map(readRecord).filter((item) => Object.keys(item).length > 0)
@@ -214,43 +202,6 @@ function buildAssessmentFromSubmission(row: CourseReviewPrepostSubmissionRow): C
   };
 }
 
-function buildAssessmentFromState(input: {
-  stateData: Record<string, unknown>;
-  stepId: string;
-  manifest?: InteractiveRuntimeManifest | null;
-}): CourseReviewPrepostAssessment | null {
-  const responses = readRecord(input.stateData.responses);
-  const response = readRecord(responses[input.stepId]);
-  if (Object.keys(response).length === 0) {
-    return null;
-  }
-
-  const answers = normalizeAnswers(response.answers);
-  if (Object.keys(answers).length === 0) {
-    return {
-      stepId: input.stepId,
-      score: null,
-      evidenceQuality: 'legacy',
-      source: 'student-state',
-    };
-  }
-
-  const stepManifest = input.manifest ? getInteractiveRuntimeStep(input.manifest, input.stepId) : null;
-  const telemetry = buildManifestSubmissionTelemetry({
-    stepId: input.stepId,
-    submittedAt: readNumber(response.submittedAt) ?? Date.now(),
-    answers,
-  }, stepManifest);
-  const summary = summarizeSubmissionEvidencePayload(telemetry);
-
-  return {
-    stepId: input.stepId,
-    score: summary.score,
-    evidenceQuality: summary.quality,
-    source: 'student-state',
-  };
-}
-
 function buildAssessment(input: {
   stateData: Record<string, unknown>;
   stepId?: string;
@@ -260,15 +211,9 @@ function buildAssessment(input: {
 }): CourseReviewPrepostAssessment | null {
   if (!input.stepId) return null;
 
+  // 只从持久化提交证据恢复作答；可覆盖的 live 投影不得用于重建提交。
   const durable = latestSubmissionForStep(input.submissions, input.stepId, input.lessonKey);
   if (durable) return buildAssessmentFromSubmission(durable);
-
-  const stateAssessment = buildAssessmentFromState({
-    stateData: input.stateData,
-    stepId: input.stepId,
-    manifest: input.manifest,
-  });
-  if (stateAssessment) return stateAssessment;
 
   return {
     stepId: input.stepId,

@@ -3516,11 +3516,18 @@ model ClassSession {
   endTime   DateTime?
   updatedAt DateTime? @updatedAt
 
+  // 课堂提交证据边界：单调序列分配器在 ACTIVE/PAUSED 提交事务内递增；
+  // end 事务在同一会话锁上把最终值固化为 acceptedSubmissionWatermark 并递增 closureRevision。
+  submissionSequence          BigInt  @default(0)
+  acceptedSubmissionWatermark BigInt?
+  closureRevision             Int     @default(0)
+
   studentStates         StudentState[]
   studentStepResponses  StudentStepResponse[]
   classSessionReports   ClassSessionReport[]
   studentSessionReports StudentSessionReport[]
   integrityIncidents    ClassSessionIntegrityIncident[]
+  closureOutbox         SessionClosureOutbox[]
 
   @@index([classId])
   @@index([coursewarePublicationRevisionId])
@@ -3643,6 +3650,9 @@ model InteractionLog {
   attemptKey           String?
   eventType            String // view, interact, param_change, submit, ai_query, complete, error
   clientEventId        String?
+  // 分类提交的规范化提交身份（classroom-submission-identity-v1）；被动事件保持 null，
+  // 与 (userId, sessionId) 组成数据库级幂等锚点（PostgreSQL null 语义允许多行 null）。
+  submissionIdentity   String?
   learningContext      String?
   invalidContextReason String?
   eventData            Json      @default("{}")
@@ -3653,6 +3663,7 @@ model InteractionLog {
   resource            TeachingResource?    @relation(fields: [resourceId], references: [id], onDelete: SetNull)
   studentStepResponse StudentStepResponse?
 
+  @@unique([userId, sessionId, submissionIdentity])
   @@index([userId, resourceId])
   @@index([userId, resourceKey])
   @@index([sessionId])
@@ -3665,27 +3676,53 @@ model InteractionLog {
 }
 
 model StudentStepResponse {
-  id            String   @id @default(cuid())
-  userId        String
-  sessionId     String
-  lessonKey     String?
-  stepId        String
-  attemptKey    String?
-  sourceLogId   String?  @unique
-  clientEventId String?
-  submittedAt   DateTime
-  responseData  Json
-  createdAt     DateTime @default(now())
+  id                 String   @id @default(cuid())
+  userId             String
+  sessionId          String
+  lessonKey          String?
+  stepId             String
+  attemptKey         String?
+  sourceLogId        String?  @unique
+  clientEventId      String?
+  // 分类提交身份与版本（classroom-submission-identity-v1）；历史行保持 null
+  submissionIdentity String?
+  identityVersion    String?
+  // ACTIVE 会话内接受时分配的单调提交/证据序列；POST_SESSION_REVIEW 行保持 null
+  submissionSequence BigInt?
+  // ACCEPTED（进入闭课水位内）| POST_SESSION_REVIEW（晚到复盘，默认不入原闭包）
+  evidenceStatus     String   @default("ACCEPTED")
+  submittedAt        DateTime
+  responseData       Json
+  createdAt          DateTime @default(now())
 
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   session   ClassSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   sourceLog InteractionLog? @relation(fields: [sourceLogId], references: [id], onDelete: SetNull)
 
+  @@unique([sessionId, userId, submissionIdentity])
   @@index([sessionId, stepId])
   @@index([userId, submittedAt])
   @@index([lessonKey, stepId])
   @@index([attemptKey])
   @@index([clientEventId])
+  @@index([sessionId, evidenceStatus])
+}
+
+// 闭课 outbox：end 事务内与水位一起 stage，worker 按 (sessionId, closureRevision) 幂等消费
+model SessionClosureOutbox {
+  id                          String       @id @default(cuid())
+  sessionId                   String
+  session                     ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  closureRevision             Int
+  acceptedSubmissionWatermark BigInt
+  status                      String       @default("PENDING") // PENDING | PROCESSING | SUCCEEDED | FAILED
+  attemptCount                Int          @default(0)
+  lastErrorCode               String?
+  availableAt                 DateTime     @default(now())
+  processedAt                 DateTime?
+
+  @@unique([sessionId, closureRevision])
+  @@index([status, availableAt])
 }
 
 model ClassSessionReport {
@@ -3698,6 +3735,12 @@ model ClassSessionReport {
   summary    String?
   reportData Json         @default("{}")
   aiSummary  String?
+  // 闭包身份：报告生成绑定的闭课修订与提交水位；重算不得更改它们
+  closureRevision             Int     @default(0)
+  acceptedSubmissionWatermark BigInt?
+  // 显式重算修订：仅授权操作命名新 revision 与输入水位后才能纳入 POST_SESSION_REVIEW 证据
+  recomputeRevision           Int?
+  recomputeInputWatermark     BigInt?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 

@@ -29,6 +29,7 @@ import {
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { processPendingMicroInterventionEvidenceProjections } from '@/features/assessment/micro-intervention-learning-evidence';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
+import { failSessionClosureOutbox, settleSessionClosureOutbox } from '@/lib/data-governance/session-closure-outbox';
 import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
@@ -956,7 +957,15 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
   }
 
   const db = getPrismaClient();
-  return generateSessionSummaryReports(db, job.data.sessionId);
+  try {
+    const result = await generateSessionSummaryReports(db, job.data.sessionId);
+    // 水位限定报告成功后幂等结算闭包 outbox；失败记录可观察错误码
+    await settleSessionClosureOutbox(db, job.data.sessionId);
+    return result;
+  } catch (error) {
+    await failSessionClosureOutbox(db, job.data.sessionId, 'session-report-failed');
+    throw error;
+  }
 }
 
 async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>) {

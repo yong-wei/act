@@ -25,7 +25,7 @@ export function createPrismaClassroomStateRuntime(): ClassroomStateRuntime {
     }),
     loadSessionAccess: async (sessionId) => prisma.classSession.findUnique({
       where: { id: sessionId },
-      select: { teacherId: true, classId: true },
+      select: { teacherId: true, classId: true, status: true },
     }),
     loadTeacherViewSession: async (sessionId) => prisma.classSession.findUnique({
       where: { id: sessionId },

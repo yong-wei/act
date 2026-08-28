@@ -8,7 +8,7 @@ describe('generateSessionSummaryReports', () => {
     studentState: { findMany: vi.fn() },
     interactionLog: { findMany: vi.fn() },
     learningFact: { findMany: vi.fn() },
-    studentStepResponse: { findMany: vi.fn() },
+    studentStepResponse: { findMany: vi.fn(), count: vi.fn().mockResolvedValue(0) },
     studentCompetencySnapshot: { findMany: vi.fn() },
     classSessionReport: { upsert: vi.fn() },
     studentSessionReport: { upsert: vi.fn() },

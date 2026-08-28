@@ -10,6 +10,7 @@ import {
   type ClassroomSessionAccessRecord,
 } from '../access-policy';
 import { ClassroomSessionError } from '../errors';
+import { ReadOnlyClassroomContextError } from '../submission-evidence';
 import type { ClassroomSessionActor } from '../types';
 
 export interface ClassroomStateRow {
@@ -43,7 +44,7 @@ export interface ClassroomStateRuntime {
     role: string;
     profile: { classId: string | null } | null;
   } | null>;
-  loadSessionAccess(sessionId: string): Promise<ClassroomSessionAccessRecord | null>;
+  loadSessionAccess(sessionId: string): Promise<ClassroomSessionAccessRecord & { status?: string } | null>;
   loadTeacherViewSession(sessionId: string): Promise<ClassroomTeacherViewSession | null>;
   listCourseStates(sessionId: string): Promise<ClassroomStateRow[]>;
   listTeacherStates(sessionId: string): Promise<ClassroomStateRow[]>;
@@ -60,6 +61,19 @@ export interface ClassroomStateRuntime {
   }): Promise<unknown>;
   buildIdentity(session: ClassroomTeacherViewSession): unknown;
   logState(payload: Record<string, unknown>): void;
+}
+
+/**
+ * 只读 live-state 上下文：preview / 只读渲染路径用它包装底层 runtime，
+ * LiveStateWriter 写入被以可观察原因拒绝，且不会产生任何学生状态副作用。
+ */
+export function createReadOnlyClassroomStateRuntime(base: ClassroomStateRuntime): ClassroomStateRuntime {
+  return {
+    ...base,
+    upsertStudentState: async () => {
+      throw new ReadOnlyClassroomContextError('LiveStateWriter.upsertStudentState');
+    },
+  };
 }
 
 export interface WriteClassroomSessionStateInput {
@@ -153,7 +167,8 @@ export function buildClassroomEvidenceWriteback() {
       'clientEventAt',
       'dedupeIdentity',
     ],
-    dedupeRule: '具备 attemptKey、submissionIdentity、submissionId 或 attemptId 的课堂提交，会在互动事件入口按 userId、sessionId、lessonKey、stepId、cardId 和提交身份做应用层串行归并；cardId 是去重键的一部分，不能单独作为提交身份。重复提交不保留 raw InteractionLog，数据库级并发幂等仍未关闭。',
+    dedupeRule: '具备规范提交身份（classroom-submission-identity-v1）的课堂提交由共享写入器在会话事务边界内写入：同身份重试返回原持久化回执，并发冲突由数据库唯一约束兜底，ACTIVE/PAUSED 接受时分配单调序列，闭课后到达标记 POST_SESSION_REVIEW 且不进入原闭包；cardId 是身份的一部分，不能单独作为提交身份。',
+    liveStateNote: '本接口写的是可覆盖的课堂实时投影，不是提交证据；课后报告与复盘读 StudentStepResponse/InteractionLog 证据，不再从 StudentState.data 恢复作答。',
   };
 }
 
@@ -185,6 +200,12 @@ export async function writeClassroomSessionState(
     actor: accessUser,
     operation: 'read',
   }));
+
+  // live state 是课堂实时投影：闭课即只读。提交/证据从不经此端口写入，
+  // preview / 课后复盘上下文一律不得产生学生状态副作用。
+  if (sessionRecord.status === 'FINISHED') {
+    throw new ClassroomSessionError('session-finished', 'Session is finished; live state is read-only');
+  }
 
   const lifecycleClientEventId = readLifecycleClientEventId(body.clientEventId);
   const lifecycleClientEventAt = readLifecycleClientEventAt(body.clientEventAt);

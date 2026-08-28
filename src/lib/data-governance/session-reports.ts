@@ -455,10 +455,21 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
   };
 }
 
+/**
+ * 显式重算选项：只有授权操作命名新 revision 与输入水位后，
+ * POST_SESSION_REVIEW 证据才可进入重算报告；原闭包修订与水位不可变更。
+ */
+export interface SessionReportRecomputeOptions {
+  recomputeRevision: number;
+  recomputeInputWatermark: bigint;
+}
+
 export async function generateSessionSummaryReports(
   db: ReportPrisma,
   sessionId: string,
+  options?: { recompute?: SessionReportRecomputeOptions },
 ): Promise<{ classReports: number; studentReports: number; skipped: boolean }> {
+  const recompute = options?.recompute ?? null;
   const session = await db.classSession.findUnique({
     where: { id: sessionId },
     select: {
@@ -467,6 +478,8 @@ export async function generateSessionSummaryReports(
       status: true,
       startTime: true,
       endTime: true,
+      closureRevision: true,
+      acceptedSubmissionWatermark: true,
       plan: {
         select: { title: true },
       },
@@ -476,6 +489,24 @@ export async function generateSessionSummaryReports(
   if (!session) {
     return { classReports: 0, studentReports: 0, skipped: true };
   }
+
+  // 默认闭包读法：仅接受水位以内的 ACCEPTED 证据；POST_SESSION_REVIEW 一律排除。
+  // 历史 ACCEPTED 行（submissionSequence 为 null，水位前写入）保持纳入。
+  const acceptedSubmissionWatermark = session.acceptedSubmissionWatermark;
+  const submissionEvidenceWhere: Prisma.StudentStepResponseWhereInput = recompute
+    ? { sessionId }
+    : {
+      sessionId,
+      evidenceStatus: 'ACCEPTED',
+      ...(acceptedSubmissionWatermark != null
+        ? {
+          OR: [
+            { submissionSequence: { lte: acceptedSubmissionWatermark } },
+            { submissionSequence: null },
+          ],
+        }
+        : {}),
+    };
 
   const [studentStates, logs, facts, submissions] = await Promise.all([
     db.studentState.findMany({
@@ -510,7 +541,7 @@ export async function generateSessionSummaryReports(
       },
     }) as Promise<LearningFactSummaryItem[]>,
     db.studentStepResponse.findMany({
-      where: { sessionId },
+      where: submissionEvidenceWhere,
       select: {
         userId: true,
         stepId: true,
@@ -519,6 +550,11 @@ export async function generateSessionSummaryReports(
       },
     }) as Promise<StudentStepResponseSummaryItem[]>,
   ]);
+  const postSessionReviewTotal = await db.studentStepResponse.count({
+    where: { sessionId, evidenceStatus: 'POST_SESSION_REVIEW' },
+  });
+  // 默认闭包读法排除全部 POST_SESSION_REVIEW；显式重算修订才纳入
+  const excludedPostSessionReviewSubmissions = recompute ? 0 : postSessionReviewTotal;
 
   const roleUserIds = Array.from(new Set([
     ...logs.map((log) => log.userId),
@@ -684,6 +720,50 @@ export async function generateSessionSummaryReports(
     syncErrorIncidents,
     syncHealth,
     qualityStatus: qualityStatusData,
+    closure: {
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark: acceptedSubmissionWatermark != null ? acceptedSubmissionWatermark.toString() : null,
+      sessionStatus: session.status,
+      evidenceSelection: recompute
+        ? 'explicit-recompute-revision'
+        : acceptedSubmissionWatermark != null
+          ? 'accepted-submission-watermark'
+          : 'accepted-only',
+      excludedPostSessionReviewSubmissions,
+      postSessionReviewSubmissionsTotal: postSessionReviewTotal,
+    },
+    ...(recompute
+      ? {
+        recompute: {
+          revision: recompute.recomputeRevision,
+          inputWatermark: recompute.recomputeInputWatermark.toString(),
+          includedPostSessionReviewSubmissions: postSessionReviewTotal,
+          generatedAt: new Date().toISOString(),
+        },
+      }
+      : {}),
+    phases: {
+      captured: {
+        status: 'SUCCEEDED',
+        interactionLogs: logs.length,
+        acceptedSubmissions: studentSubmissions.length,
+        postSessionReviewIncluded: recompute ? postSessionReviewTotal : 0,
+      },
+      materialized: {
+        status: 'SUCCEEDED',
+        learningFacts: studentFacts.length,
+        note: 'LearningFact rows linked to this session at report time',
+      },
+      summarized: {
+        status: 'SUCCEEDED',
+        generatedAt: new Date().toISOString(),
+        reportTypes: ['class-summary', 'student-summary'],
+      },
+      cached: {
+        status: 'DEFERRED',
+        note: 'evidence feature cache refresh runs as a separate per-user worker phase; failures surface in qualityStatus snapshot freshness',
+      },
+    },
     afterSessionEndEvents,
     sessionGovernanceSummary: {
       qualityStatus: qualityStatusData,
@@ -771,12 +851,20 @@ export async function generateSessionSummaryReports(
       status: 'READY',
       summary,
       reportData: classReportJson,
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark,
+      recomputeRevision: recompute?.recomputeRevision ?? null,
+      recomputeInputWatermark: recompute?.recomputeInputWatermark ?? null,
     },
     update: {
       lessonKey,
       status: 'READY',
       summary,
       reportData: classReportJson,
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark,
+      recomputeRevision: recompute?.recomputeRevision ?? null,
+      recomputeInputWatermark: recompute?.recomputeInputWatermark ?? null,
     },
   });
 
