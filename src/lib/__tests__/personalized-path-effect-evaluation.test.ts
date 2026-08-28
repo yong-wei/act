@@ -94,6 +94,39 @@ describe('personalized path effect evaluation', () => {
       pathImpacts: [],
     })).toBe('baseline');
     expect(classifyPersonalizedPathEffectCohort(insufficient)).toBe('insufficient');
+    expect(classifyPersonalizedPathEffectCohort(record({
+      policyFamily: 'preference-matched',
+      pathImpacts: [],
+      decisionEvidence: {
+        snapshot: snapshot().snapshot,
+        paths: [{ optionId: 'path-option-1', styleId: 'preference-matched', impacts: [], explanations: [] }],
+      },
+    }))).toBe('baseline');
+  });
+
+  it('counts unique learners rather than repeated paths for the sample threshold', () => {
+    const evaluation = evaluatePersonalizedPathEffects({
+      classId: 'class-1',
+      goalId: 'control-correction',
+      evaluatedAt: '2026-08-28T00:00:00.000Z',
+      records: [
+        ...Array.from({ length: 5 }, (_value, index) => record({
+          pathId: `same-learner-${index + 1}`,
+          userId: 'student-1',
+          createdAt: `2026-08-2${index + 1}T00:00:00.000Z`,
+        })),
+        ...many('b', 5, {
+          policyFamily: 'rules-plus-graph-search',
+          pathImpacts: [],
+          decisionEvidence: {
+            snapshot: snapshot().snapshot,
+            paths: [{ optionId: 'path-option-1', styleId: 'rules-plus-graph-search', impacts: [], explanations: [] }],
+          },
+        }),
+      ],
+    });
+    expect(evaluation.conclusion).toBe('insufficient-data');
+    expect(evaluation.cohorts.find((cohort) => cohort.id === 'personalized')?.sampleSize).toBe(1);
   });
 
   it('does not claim a lift when either comparison cohort is below five samples', () => {
@@ -183,12 +216,45 @@ describe('personalized path effect evaluation', () => {
         id: 'batch-1',
         userId: 'student-1',
         goalId: 'control-correction',
+        sourcePathId: 'path-1',
+        createdAt: new Date('2026-08-26T00:00:00.000Z'),
+        metadata: { decisionEvidence: snapshot() },
+      }],
+      competencySnapshots: [
+        { userId: 'student-1', snapshotAt: '2026-08-27T00:00:00.000Z', competencyVector: { a: { score: 0.8 } } },
+        { userId: 'student-1', snapshotAt: '2026-08-20T00:00:00.000Z', competencyVector: { a: { score: 0.5 } } },
+      ],
+    });
+
+    expect(records[0]?.decisionEvidence?.snapshot.version).toBe('personalized-path-decision-evidence.v1');
+    expect(classifyPersonalizedPathEffectCohort(records[0]!)).toBe('personalized');
+    expect(records[0]?.competencyLift).toBeCloseTo(0.3);
+  });
+
+  it('does not attach a newer batch snapshot to an unmatched historical path', () => {
+    const records = recordsFromPathAndBatchSources({
+      paths: [{
+        id: 'path-old',
+        userId: 'student-1',
+        goalId: 'control-correction',
+        pathStatus: 'completed',
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+        nodeIds: ['n1'],
+        pathPayload: { policyFamily: 'rules-plus-graph-search' },
+        createdAt: new Date('2026-08-01T00:00:00.000Z'),
+        executions: [],
+      }],
+      batches: [{
+        id: 'batch-new',
+        userId: 'student-1',
+        goalId: 'control-correction',
+        sourcePathId: 'path-new',
         createdAt: new Date('2026-08-26T00:00:00.000Z'),
         metadata: { decisionEvidence: snapshot() },
       }],
     });
 
-    expect(records[0]?.decisionEvidence?.snapshot.version).toBe('personalized-path-decision-evidence.v1');
-    expect(classifyPersonalizedPathEffectCohort(records[0]!)).toBe('personalized');
+    expect(records[0]?.decisionEvidence).toBeNull();
+    expect(classifyPersonalizedPathEffectCohort(records[0]!)).toBe('insufficient');
   });
 });

@@ -89,8 +89,7 @@ export function classifyPersonalizedPathEffectCohort(
   if (snapshot.degradationReasons.some((reason) => INSUFFICIENT_REASONS.has(reason))) {
     return 'insufficient';
   }
-  const personalized = record.policyFamily === 'preference-matched'
-    || impactsOf(record).some((impact) => impact.source === 'profile');
+  const personalized = impactsOf(record).some((impact) => impact.source === 'profile');
   return personalized ? 'personalized' : 'baseline';
 }
 
@@ -128,6 +127,44 @@ function cohortMetrics(records: PersonalizedPathEffectRecord[]): PersonalizedPat
   ];
 }
 
+function latestRecordByLearner(records: PersonalizedPathEffectRecord[]): PersonalizedPathEffectRecord[] {
+  const latest = new Map<string, PersonalizedPathEffectRecord>();
+  for (const record of records) {
+    const current = latest.get(record.userId);
+    if (!current || Date.parse(record.createdAt) >= Date.parse(current.createdAt)) {
+      latest.set(record.userId, record);
+    }
+  }
+  return [...latest.values()];
+}
+
+function uniqueLearners(records: PersonalizedPathEffectRecord[]): number {
+  return new Set(records.map((record) => record.userId)).size;
+}
+
+function competencyLiftFromSnapshots(snapshots: Array<{ snapshotAt?: Date | string; competencyVector?: unknown }>): number | null {
+  // portrait-v2-legacy-compatibility-adapter: competencyVector remains non-authoritative lift input.
+  if (snapshots.length < 2) return null;
+  const latest = averageCompetency(snapshots[0]?.competencyVector);
+  const previous = averageCompetency(snapshots[1]?.competencyVector);
+  if (latest === null || previous === null) return null;
+  return latest - previous;
+}
+
+function averageCompetency(vector: unknown): number | null {
+  if (!vector || typeof vector !== 'object' || Array.isArray(vector)) return null;
+  const scores = Object.values(vector as Record<string, unknown>)
+    .map((item) => {
+      if (typeof item === 'number') return item;
+      if (item && typeof item === 'object' && !Array.isArray(item) && typeof (item as { score?: unknown }).score === 'number') {
+        return (item as { score: number }).score;
+      }
+      return null;
+    })
+    .filter((value): value is number => value !== null);
+  return scores.length > 0 ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
+}
+
 function cohortLimitations(id: PersonalizedPathEffectCohort, records: PersonalizedPathEffectRecord[]): string[] {
   if (id !== 'insufficient') return [];
   return [...new Set(records.flatMap((record) => snapshotOf(record)?.limitations ?? ['当前没有足够的有效学习证据支持个性化判断。']))];
@@ -146,16 +183,19 @@ export function evaluatePersonalizedPathEffects(input: {
     baseline: [],
     insufficient: [],
   };
-  for (const record of input.records.filter((item) => item.goalId === input.goalId)) {
+  const latestByLearner = latestRecordByLearner(
+    input.records.filter((item) => item.goalId === input.goalId),
+  );
+  for (const record of latestByLearner) {
     grouped[classifyPersonalizedPathEffectCohort(record)].push(record);
   }
 
-  const capturedTimes = input.records
+  const capturedTimes = latestByLearner
     .map((record) => snapshotOf(record)?.capturedAt)
     .filter((value): value is string => Boolean(value))
     .sort();
-  const comparisonReady = grouped.personalized.length >= minSampleSize
-    && grouped.baseline.length >= minSampleSize;
+  const comparisonReady = uniqueLearners(grouped.personalized) >= minSampleSize
+    && uniqueLearners(grouped.baseline) >= minSampleSize;
   const limitations = [
     ...(comparisonReady ? [] : ['可信个性化或基准样本不足，不能给出个性化提升结论。']),
     ...cohortLimitations('insufficient', grouped.insufficient),
@@ -218,35 +258,44 @@ export function recordsFromPathAndBatchSources(input: {
       status: string;
       resourceType: string;
       completedAt?: Date | string | null;
-      liftMetadata?: unknown;
     }>;
   }>;
   batches: Array<{
     id: string;
     userId: string;
     goalId: string;
+    sourcePathId?: string | null;
     createdAt: Date | string;
     metadata?: unknown;
     candidates?: Array<{ snapshot?: unknown }>;
+  }>;
+  competencySnapshots?: Array<{
+    userId: string;
+    snapshotAt: Date | string;
+    // portrait-v2-legacy-compatibility-adapter: competencyVector is non-authoritative.
+    competencyVector?: unknown;
   }>;
 }): PersonalizedPathEffectRecord[] {
   return input.paths.flatMap((path) => {
     if (!path.goalId) return [];
     const payload = recordFromUnknown(path.pathPayload);
     const batch = input.batches
-      .filter((item) => item.userId === path.userId && item.goalId === path.goalId)
+      .filter((item) => item.sourcePathId === path.id)
       .sort((left, right) => Date.parse(String(right.createdAt)) - Date.parse(String(left.createdAt)))[0];
     const decisionEvidence = decisionEvidenceFromUnknown(payload.decisionEvidence)
       ?? decisionEvidenceFromUnknown(recordFromUnknown(batch?.metadata).decisionEvidence);
+    const candidateSnapshot = batch?.candidates
+      ?.map((candidate) => recordFromUnknown(candidate.snapshot))
+      .find((snapshot) => snapshot.optionId === payload.optionId);
     const pathImpacts = Array.isArray(payload.decisionImpacts)
       ? payload.decisionImpacts as PersonalizedPathDecisionImpact[]
-      : decisionEvidence?.paths.find((item) => item.optionId === payload.optionId)?.impacts;
-    const liftValues = (path.executions ?? [])
-      .map((execution) => {
-        const lift = recordFromUnknown(execution.liftMetadata).competencyLift;
-        return typeof lift === 'number' && Number.isFinite(lift) ? lift : null;
-      })
-      .filter((value): value is number => value !== null);
+      : Array.isArray(recordFromUnknown(candidateSnapshot?.decisionEvidence).impacts)
+        ? recordFromUnknown(candidateSnapshot?.decisionEvidence).impacts as PersonalizedPathDecisionImpact[]
+        : decisionEvidence?.paths.find((item) => item.optionId === payload.optionId)?.impacts
+          ?? decisionEvidence?.paths.flatMap((item) => item.impacts);
+    const snapshots = (input.competencySnapshots ?? [])
+      .filter((snapshot) => snapshot.userId === path.userId)
+      .sort((left, right) => Date.parse(String(right.snapshotAt)) - Date.parse(String(left.snapshotAt)));
     return [{
       pathId: path.id,
       userId: path.userId,
@@ -267,7 +316,7 @@ export function recordsFromPathAndBatchSources(input: {
           ? (typeof execution.completedAt === 'string' ? execution.completedAt : execution.completedAt.toISOString())
           : null,
       })),
-      competencyLift: liftValues.length > 0 ? liftValues.reduce((sum, value) => sum + value, 0) / liftValues.length : null,
+      competencyLift: competencyLiftFromSnapshots(snapshots),
     }];
   });
 }

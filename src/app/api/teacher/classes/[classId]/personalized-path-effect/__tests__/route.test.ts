@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     class: { findUnique: vi.fn() },
     learningPath: { findMany: vi.fn() },
     adaptivePathCandidateBatch: { findMany: vi.fn() },
+    studentCompetencySnapshot: { findMany: vi.fn() },
   },
 }));
 
@@ -32,6 +33,7 @@ describe('GET /api/teacher/classes/[classId]/personalized-path-effect', () => {
     vi.clearAllMocks();
     mocks.prisma.learningPath.findMany.mockResolvedValue([]);
     mocks.prisma.adaptivePathCandidateBatch.findMany.mockResolvedValue([]);
+    mocks.prisma.studentCompetencySnapshot.findMany.mockResolvedValue([]);
   });
 
   it('rejects unauthenticated and unauthorized readers', async () => {

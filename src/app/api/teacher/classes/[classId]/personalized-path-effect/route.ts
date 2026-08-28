@@ -42,7 +42,7 @@ export async function GET(
     }
 
     const studentIds = classData.students.map((student) => student.userId);
-    const [paths, batches] = studentIds.length
+    const [paths, batches, competencySnapshots] = studentIds.length
       ? await Promise.all([
         prisma.learningPath.findMany({
           where: { classId, userId: { in: studentIds } },
@@ -54,10 +54,16 @@ export async function GET(
           orderBy: { createdAt: 'desc' },
           include: { candidates: { orderBy: { ordinal: 'asc' } } },
         }),
+        prisma.studentCompetencySnapshot.findMany({
+          where: { userId: { in: studentIds } },
+          orderBy: { snapshotAt: 'desc' },
+          // portrait-v2-legacy-compatibility-adapter: competencyVector is non-authoritative lift input.
+          select: { userId: true, snapshotAt: true, competencyVector: true },
+        }),
       ])
-      : [[], []];
+      : [[], [], []];
 
-    const records = recordsFromPathAndBatchSources({ paths, batches });
+    const records = recordsFromPathAndBatchSources({ paths, batches, competencySnapshots });
     const goalCounts = new Map<string, number>();
     for (const record of records) {
       goalCounts.set(record.goalId, (goalCounts.get(record.goalId) ?? 0) + 1);
