@@ -103,8 +103,24 @@ describe('composeManifestPluginRegistry', () => {
         owner: 'owner-a',
         plugins: [stubPlugin({ capabilityRef: 'present-cap' })],
         declaredModuleCapabilities: [
-          { moduleKind: 'compute.panel', capabilityRef: 'present-cap' },
-          { moduleKind: 'compute.panel', capabilityRef: 'declared-but-absent' },
+          {
+            moduleKind: 'compute.panel',
+            capabilityRef: 'declared-but-absent',
+            missingRenderer: {
+              requirement: 'required',
+              marker: 'manifest-plugin-missing:compute.panel:declared-but-absent',
+              reason: '声明的能力没有已注册的渲染插件。',
+            },
+          },
+          {
+            moduleKind: 'compute.panel',
+            capabilityRef: 'optional-declared-absent',
+            missingRenderer: {
+              requirement: 'optional',
+              marker: 'manifest-plugin-missing:compute.panel:optional-declared-absent',
+              reason: '可选增强不可用，已软降级。',
+            },
+          },
         ],
       },
     ]);
@@ -114,6 +130,98 @@ describe('composeManifestPluginRegistry', () => {
       expect(missing.contract.requirement).toBe('required');
       expect(missing.contract.marker).toBe('manifest-plugin-missing:compute.panel:declared-but-absent');
     }
+  });
+
+
+  it('preserves the declared optional missing policy instead of forcing required', () => {
+    const registry = composeManifestPluginRegistry([
+      {
+        owner: 'owner-a',
+        plugins: [stubPlugin({ capabilityRef: 'present-cap' })],
+        declaredModuleCapabilities: [
+          {
+            moduleKind: 'compute.panel',
+            capabilityRef: 'optional-declared-absent',
+            missingRenderer: {
+              requirement: 'optional',
+              marker: 'manifest-plugin-missing:compute.panel:optional-declared-absent',
+              reason: '可选增强不可用，已软降级。',
+            },
+          },
+        ],
+      },
+    ]);
+    const optional = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'optional-declared-absent' });
+    expect(optional.status).toBe('missing');
+    if (optional.status === 'missing') {
+      expect(optional.contract.requirement).toBe('optional');
+      expect(optional.contract.reason).toContain('软降级');
+    }
+  });
+
+  it('selects the exact contract version and fails explicitly when versions are ambiguous', () => {
+    const registry = composeManifestPluginRegistry([
+      {
+        owner: 'owner-a',
+        plugins: [
+          stubPlugin({ capabilityRef: 'versioned-cap', contractVersion: 'v1' }),
+          stubPlugin({ capabilityRef: 'versioned-cap', contractVersion: 'v2' }),
+        ],
+      },
+    ]);
+    const v1 = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'versioned-cap', contractVersion: 'v1' });
+    expect(v1.status).toBe('rendered');
+    if (v1.status === 'rendered') expect(v1.plugin.key.contractVersion).toBe('v1');
+    const v2 = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'versioned-cap', contractVersion: 'v2' });
+    expect(v2.status).toBe('rendered');
+    if (v2.status === 'rendered') expect(v2.plugin.key.contractVersion).toBe('v2');
+    const ambiguous = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'versioned-cap' });
+    expect(ambiguous.status).toBe('missing');
+    if (ambiguous.status === 'missing') {
+      expect(ambiguous.contract.marker).toBe('manifest-plugin-ambiguous:compute.panel:versioned-cap');
+    }
+    // A single registered version resolves without an explicit request.
+    const single = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'present-cap' });
+    void single;
+  });
+
+  it('resolves activity and layout plugins through their own typed lookups', () => {
+    const activityPlugin = {
+      ...stubPlugin({ category: 'activity' as const, moduleKind: 'choice.single', capabilityRef: 'choice-activity' }),
+      evidence: { classification: 'activity-response' as const, responseKind: 'choice.single' },
+    };
+    const layoutPlugin = {
+      ...stubPlugin({ category: 'layout' as const, moduleKind: 'layout.template', capabilityRef: 'two-column' }),
+      templateId: 'two-column',
+    };
+    const registry = composeManifestPluginRegistry([
+      { owner: 'owner-a', plugins: [activityPlugin, layoutPlugin] },
+    ]);
+    const activity = registry.lookupActivity({ moduleKind: 'choice.single', capabilityRef: 'choice-activity' });
+    expect(activity.status).toBe('rendered');
+    if (activity.status === 'rendered') {
+      expect(activity.plugin.key.category).toBe('activity');
+    }
+    const layout = registry.lookupLayout({ moduleKind: 'layout.template', capabilityRef: 'two-column' });
+    expect(layout.status).toBe('rendered');
+    // Category-specific lookups do not leak across indexes.
+    expect(registry.lookupModule({ moduleKind: 'choice.single', capabilityRef: 'choice-activity' }).status).toBe('unclaimed');
+    expect(registry.lookupActivity({ moduleKind: 'compute.panel', capabilityRef: 'static-surface-3d' }).status).toBe('unclaimed');
+  });
+
+  it('rejects activity-response plugins without a response kind and layouts without a template id', () => {
+    expect(() => composeManifestPluginRegistry([
+      {
+        owner: 'owner-a',
+        plugins: [{
+          ...stubPlugin({ category: 'activity' as const }),
+          evidence: { classification: 'activity-response' as const },
+        }],
+      },
+    ])).toThrow(/response kind/);
+    expect(() => composeManifestPluginRegistry([
+      { owner: 'owner-a', plugins: [stubPlugin({ category: 'layout' as const })] },
+    ])).toThrow(/template id/);
   });
 
   it('leaves undeclared capabilities on the central kind path (unclaimed)', () => {

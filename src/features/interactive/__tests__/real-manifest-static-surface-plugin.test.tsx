@@ -77,4 +77,27 @@ describe('real 1-2 manifest static-surface-3d plugin pipeline', () => {
     expect(registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'static-surface-3d' }).status)
       .toBe('rendered');
   });
+
+  it('threads the viewer role through the pipeline; the pilot projects identical teacher/student output', () => {
+    expect(step).toBeDefined();
+    expect(manifest).toBeDefined();
+    const render = (viewerRole: 'student' | 'teacher') => {
+      const extra = { revealProgress: 0, allowInlineReveal: false, viewerRole };
+      return renderToStaticMarkup(
+        renderInteractiveManifestStep({
+          manifest: manifest!,
+          step: step!,
+          moduleRegistry: createManifestContentModuleRegistry(extra),
+          extra,
+        }),
+      );
+    };
+    const studentHtml = render('student');
+    const teacherHtml = render('teacher');
+    expect(studentHtml).toContain('data-static-surface-3d-panel="magnitude-surface"');
+    expect(teacherHtml).toContain('data-static-surface-3d-panel="magnitude-surface"');
+    // The pilot declares an identity projection: the same module id, markers,
+    // and content render for both roles, with no teacher-only payload.
+    expect(teacherHtml).toBe(studentHtml);
+  });
 });

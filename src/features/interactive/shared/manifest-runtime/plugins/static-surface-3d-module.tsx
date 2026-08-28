@@ -164,6 +164,10 @@ export const staticSurface3DPluginSet: ManifestPluginSet = {
   owner: STATIC_SURFACE_3D_PLUGIN_OWNER,
   plugins: [staticSurface3DModulePlugin],
   declaredModuleCapabilities: [
-    { moduleKind: 'compute.panel', capabilityRef: 'static-surface-3d' },
+    {
+      moduleKind: 'compute.panel',
+      capabilityRef: 'static-surface-3d',
+      missingRenderer: staticSurface3DModulePlugin.missingRenderer,
+    },
   ],
 };

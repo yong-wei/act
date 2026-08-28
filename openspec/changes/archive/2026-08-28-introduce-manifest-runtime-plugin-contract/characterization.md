@@ -71,3 +71,12 @@ unmigrated capabilities (F1..Fn) and shrink only with their migrations.
 - Center shrink proof: import inventory assertion — `content-renderers.tsx` contains no
   `static-surface-3d` string and no `StaticSurface3DPanel` import after the migration.
 - Browser: see `artifacts/interactive-learning/manifest-runtime-plugin-contract-1575/`.
+
+## 6. Review remediation (PR #1655, head `283cb1da2` findings, all P2 accepted)
+
+| Finding | Disposition | Change |
+| --- | --- | --- |
+| Contract version not part of the lookup key | accepted | `lookupModule` accepts `contractVersion`; the capability index is version-aware — an explicit version selects exactly, a single registered version resolves implicitly, and multiple versions without a request fail with `manifest-plugin-ambiguous` instead of set-order rendering |
+| Plugin role hardcoded to `student` in the pipeline | accepted | `createManifestContentModuleRegistry` accepts `viewerRole` (student-safe default) and threads it through schema → projectRole → render; the pilot's identity projection is proven for both roles through the real-manifest pipeline test. Teacher-side callers pass the role when the first role-sensitive plugin migrates (staged follow-up in ledger 4.3) |
+| Declared missing-renderer policy discarded (always `required`) | accepted | `declaredModuleCapabilities` entries carry the full `missingRenderer` contract; declared-absent capabilities surface their own marker/reason/requirement (optional degrades observably, required blocks) |
+| Activity/layout categories accepted but unresolvable | accepted | `ManifestActivityPlugin` (response-kind enforcement on activity-response evidence) and `ManifestLayoutPlugin` (template id) contracts with dedicated indexes and `lookupActivity`/`lookupLayout`; runtime consumption by activity-renderers/layout-renderer is a staged follow-up per ledger 4.3 — the registry layer resolves all three categories now |

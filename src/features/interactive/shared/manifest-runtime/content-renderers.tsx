@@ -4951,6 +4951,11 @@ export function createManifestContentModuleRegistry(extra: {
   showFrequencyReadings?: boolean;
   analyticsSummary?: string[];
   interactionMode?: 'active' | 'readonly';
+  /**
+   * Viewer role used for plugin role projection; student is the safe default
+   * so an omitted role can never leak teacher-only projections.
+   */
+  viewerRole?: 'student' | 'teacher';
 }): InteractiveModuleRegistry<typeof extra> {
   const annotatedMediaSharedState: AnnotatedMediaSharedStateStore = new Map();
   return {
@@ -5042,19 +5047,25 @@ export function createManifestContentModuleRegistry(extra: {
     'visual.signalFlowGraph': ({ manifest, step, module }) => <SignalFlowGraphPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
     'visual.annotatedMedia': ({ manifest, step, module }) => <AnnotatedMediaPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
     'visual.embedded-activity': ({ manifest, step, module }) => <EmbeddedActivityPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
-    'compute.panel': ({ manifest, step, module }) => {
+    'compute.panel': ({ manifest, step, module, extra: renderExtra }) => {
       const pluginLookup = defaultManifestPluginRegistry().lookupModule({
         moduleKind: module.kind,
         capabilityRef: computeCapabilityRef(module.payload),
+        contractVersion: typeof module.payload.contractVersion === 'string'
+          ? module.payload.contractVersion
+          : typeof module.payload.contract_version === 'string'
+            ? module.payload.contract_version
+            : null,
       });
       if (pluginLookup.status === 'rendered') {
         const plugin = pluginLookup.plugin;
+        const role = renderExtra.viewerRole ?? 'student';
         return plugin.render({
           manifest,
           step,
           module,
-          role: 'student',
-          payload: plugin.projectRole(plugin.schema({ manifest, step, module, role: 'student' }), 'student'),
+          role,
+          payload: plugin.projectRole(plugin.schema({ manifest, step, module, role }), role),
         });
       }
       if (pluginLookup.status === 'missing') {
