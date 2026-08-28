@@ -80,3 +80,11 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 
 - P1 CAS 后残留无条件写：`persistAdvance` 状态转移改为单次条件 `updateMany`（count=0 即 `session-finished`），返回行改由只读 `findUnique` 取得，消除"CAS 成功后再被并发闭课覆盖"的二次写窗口。
 - P1 结算早于阶段完成：报告作业不再直接结算闭包；缓存刷新作业携带 `sessionId` 并经 `recordSessionReportPhase` 记录 cached 阶段成功/失败；coordinator 补投后按阶段判定（summarized 晚于闭包入队 + cached SUCCEEDED）调用 `settleSessionClosureIfPhasesComplete` 结算，失败闭包保持 PENDING/FAILED 由后续周期恢复；materialized 阶段如实降为 OBSERVED 观测计数（其完成由事件摄取流水线负责，不声称完成）。
+
+## 12. 第五轮审查发现（2026-08-28，PR #1668）— 已停止自动循环，待用户裁决
+
+按 AGENTS.md fix-and-re-review 一轮上限规则，同主题（闭包完备性）问题连续多轮出现后停止自动整改。以下 3 个 P1 已在线程上确认成立并保持 unresolved，等待显式授权后作为设计增量批次处理：
+
+1. 可恢复物化交接：DUPLICATE 回执不重放事实物化，提交事务内缺持久化 handoff——进程中断会使已接受作答永久缺少 LearningFact（违反 spec 的可重放物化要求）。
+2. 摄取阶段会话级回执：结算谓词未纳入事件摄取完成状态，摄取失败后闭包仍可能被表示为完成。
+3. 缓存扇出按证据参与者聚合：当前从 StudentState 推导缓存目标并共享单一 cached 阶段位，"live state 决定证据消费者"耦合未完全消除，且多学生课堂单个成功可掩盖另一失败。
