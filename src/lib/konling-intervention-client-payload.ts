@@ -1,4 +1,4 @@
-import type { InterventionPayload, InterventionType } from '@/features/ai/companion/intervention-engine';
+import type { InterventionPayload, InterventionType } from '@/features/personalization/interventions/policy';
 import type { KonlingInterventionRecord } from '@/lib/konling-agent-runtime';
 
 export interface KonlingInterventionClientFields {

@@ -1,4 +1,4 @@
-import type { ArenaCompanionContext } from './arena-companion-context';
+import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 
 export type InterventionType = 'failure-analysis' | 'constraint-hint' | 'guidance' | 'encouragement';
 

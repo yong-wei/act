@@ -15,7 +15,7 @@ import {
   type AttemptOutcome,
   type FeedbackSubmissionState,
 } from './attempt-feedback-state';
-import type { StudentState } from './intervention-engine';
+import type { StudentState } from '@/features/personalization/interventions/policy';
 
 interface InputField {
   id: string;

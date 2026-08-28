@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveArenaCompanionContext } from '../companion/arena-companion-context';
+import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
   generateIntervention,
   shouldIntervene,
   type StudentState,
-} from '../companion/intervention-engine';
+} from '../policy';
 
 function stateWithAttempts(attemptHistory: StudentState['attemptHistory']): StudentState {
   return {
