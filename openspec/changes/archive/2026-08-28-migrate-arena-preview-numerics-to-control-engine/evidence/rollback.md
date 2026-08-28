@@ -1,5 +1,7 @@
 # Capability-level rollback
 
+捕获修订：`2aaff1a686de4bb6ac2c0f84f613cbea21520683`。
+
 回滚单位是 capability，不是恢复 TypeScript 数值回退。
 
 | capability | 不安全时的行为 | 完整回退 |
