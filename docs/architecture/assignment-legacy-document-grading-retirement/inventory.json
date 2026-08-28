@@ -1,0 +1,18 @@
+{
+  "sourceRevision": "d065d31b886ddff3a5a5643903f72b1a6477d22d",
+  "sourceTree": "dc86741898bfbaf29a9282257b11c90b26291b34",
+  "retiredWritePaths": [
+    "src/app/api/teacher/document-grading/submissions/route.ts",
+    "src/app/api/teacher/document-grading/approve/route.ts#legacy-draft",
+    "src/app/api/teacher/document-grading/writeback-preview/route.ts#legacy-draft"
+  ],
+  "retainedNativePipeline": [
+    "src/app/api/teacher/document-grading/pipeline"
+  ],
+  "retiredShellFallbacks": [
+    "src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx#draft-demo",
+    "src/app/assessment/document-feedback/page.tsx#draft-demo"
+  ],
+  "historicalAdapter": "src/lib/assignments/legacy-document-grading-historical-adapter.ts",
+  "productionWrites": "never-execute"
+}

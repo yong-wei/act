@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -8,7 +9,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const drillingHysy981SceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 114,
   designSpeedKnots: 8,
-  modelUrl: '/assets/models-opt/drilling-rig.glb',
+  modelUrl: resolveRegisteredSimulationModel('drilling-rig').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -57],

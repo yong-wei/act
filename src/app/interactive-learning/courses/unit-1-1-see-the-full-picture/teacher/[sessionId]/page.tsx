@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_1_1TeacherPage } from '@/features/interactive/unit-1-1-see-the-full-picture/teacher-page';
 import {
   buildCoursePackageLayeredScope,
@@ -22,7 +23,18 @@ export default async function UNIT_1_1SeeTheFullPictureTeacherRoute(
     redirect('/login');
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('1-1');
+  const runtimeResult = await loadSessionBoundLessonRuntime({
+    sessionId: params.sessionId,
+    expectedCanonicalId: '1-1',
+    role: 'teacher',
+  });
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
   const layeredGraphContext = resolveCoursePageLayeredGraphContext({
     scope: buildCoursePackageLayeredScope({
       packageCanonicalId: '1-1',

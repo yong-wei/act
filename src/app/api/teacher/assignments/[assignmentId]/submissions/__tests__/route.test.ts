@@ -11,23 +11,22 @@ const mocks = vi.hoisted(() => ({
   returnReview: vi.fn(),
 }));
 
-vi.mock('@/lib/prisma', () => ({ prisma: { id: 'db' } }));
-vi.mock('@/lib/assignments/assignment-route-guards', () => ({
-  requireAssignmentActor: mocks.requireActor,
-  requireAssignmentMutation: mocks.requireMutation,
-  readBoundedAssignmentJson: async (request: Request) => request.json(),
-}));
-vi.mock('@/lib/data-governance/teacher-assignment-review', () => ({
-  TeacherAssignmentReviewError: class TeacherAssignmentReviewError extends Error {
-    constructor(public code: string, public status: number, public details?: unknown) { super(code); }
-  },
-  listTeacherAssignmentSubmissions: mocks.list,
-  getTeacherAssignmentReview: mocks.get,
-  createTeacherAssignmentReview: mocks.create,
-  saveTeacherAssignmentReview: mocks.save,
-  approveTeacherAssignmentReview: mocks.approve,
-  returnTeacherAssignmentReview: mocks.returnReview,
-  buildTeacherAssignmentReviewApiProjection: (review: unknown) => review,
+vi.mock('@/lib/assignments/assignment-route-guards', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assignments/assignment-route-guards')>();
+  return {
+    ...actual,
+    requireAssignmentActor: mocks.requireActor,
+    requireAssignmentMutation: mocks.requireMutation,
+    readBoundedAssignmentJson: async (request: Request) => request.json(),
+  };
+});
+vi.mock('@/lib/assignments/public-api', () => ({
+  teacherListAssignmentSubmissions: mocks.list,
+  teacherGetReview: mocks.get,
+  teacherOpenReview: mocks.create,
+  teacherSaveReview: mocks.save,
+  teacherApproveReview: mocks.approve,
+  teacherReturnReview: mocks.returnReview,
 }));
 
 import { GET as GET_SUBMISSIONS } from '../route';
@@ -59,19 +58,19 @@ describe('teacher assignment submission review API', () => {
     const response = await GET_SUBMISSIONS(new Request('https://act.example/api/teacher/assignments/assignment-1/submissions'), assignmentContext) as Response;
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ items: [{ submissionId: 'submission-1', pendingReviewCount: 1 }] });
-    expect(mocks.list).toHaveBeenCalledWith({ id: 'db' }, { actor, assignmentId: 'assignment-1' });
+    expect(mocks.list).toHaveBeenCalledWith(actor, 'assignment-1');
   });
 
   it('opens and reads a review only within assignment and submission path identity', async () => {
     mocks.create.mockResolvedValue({ review: { id: 'review-1', version: 1 }, replay: false });
     const opened = await POST_REVIEW(request('/api/teacher/assignments/assignment-1/submissions/submission-1/review', 'POST', { gradingRunId: 'run-1' }), reviewContext) as Response;
     expect(opened.status).toBe(201);
-    expect(mocks.create).toHaveBeenCalledWith({ id: 'db' }, { actor, assignmentId: 'assignment-1', submissionId: 'submission-1', gradingRunId: 'run-1' });
+    expect(mocks.create).toHaveBeenCalledWith(actor, 'assignment-1', 'submission-1', 'run-1');
 
     mocks.get.mockResolvedValue({ id: 'review-1', version: 1 });
     const loaded = await GET_REVIEW(new Request('https://act.example/api/teacher/assignments/assignment-1/submissions/submission-1/review?reviewId=review-1'), reviewContext) as Response;
     expect(loaded.status).toBe(200);
-    expect(mocks.get).toHaveBeenCalledWith({ id: 'db' }, { actor, assignmentId: 'assignment-1', submissionId: 'submission-1', reviewId: 'review-1', gradingRunId: undefined });
+    expect(mocks.get).toHaveBeenCalledWith(actor, 'assignment-1', 'submission-1', { reviewId: 'review-1', gradingRunId: undefined });
   });
 
   it('rejects a direct total override before saving working criteria', async () => {
@@ -79,6 +78,7 @@ describe('teacher assignment submission review API', () => {
       reviewId: 'review-1', expectedVersion: 1, criteria: [], annotations: [], overallComment: '', total: 99,
     }), reviewContext) as Response;
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: 'invalid-teacher-review-payload' });
     expect(mocks.save).not.toHaveBeenCalled();
   });
 
@@ -97,7 +97,7 @@ describe('teacher assignment submission review API', () => {
       overallComment: '',
     }), reviewContext) as Response;
     expect(response.status).toBe(200);
-    expect(mocks.save).toHaveBeenCalledWith({ id: 'db' }, expect.objectContaining({
+    expect(mocks.save).toHaveBeenCalledWith(actor, 'assignment-1', 'submission-1', expect.objectContaining({
       criteria: [expect.objectContaining({ criterionId: 'criterion-1', levelId: null, score: 8.5 })],
     }));
   });
@@ -108,7 +108,9 @@ describe('teacher assignment submission review API', () => {
       reviewId: 'review-1', expectedVersion: 3, idempotencyKey: 'approve-review-1',
     }), reviewContext) as Response;
     expect(response.status).toBe(201);
-    expect(mocks.approve).toHaveBeenCalledWith({ id: 'db' }, expect.objectContaining({ actor, assignmentId: 'assignment-1', submissionId: 'submission-1', reviewId: 'review-1', expectedVersion: 3, idempotencyKey: 'approve-review-1' }));
+    expect(mocks.approve).toHaveBeenCalledWith(actor, 'assignment-1', 'submission-1', expect.objectContaining({
+      reviewId: 'review-1', expectedVersion: 3, idempotencyKey: 'approve-review-1',
+    }));
   });
 
   it('creates a bounded question-scoped return grant', async () => {
@@ -118,8 +120,8 @@ describe('teacher assignment submission review API', () => {
       allowedResponseType: 'SUBJECTIVE_TEXT', newDeadlineAt: '2026-07-20T00:00:00.000Z',
     }), reviewContext) as Response;
     expect(response.status).toBe(201);
-    expect(mocks.returnReview).toHaveBeenCalledWith({ id: 'db' }, expect.objectContaining({
-      actor, assignmentId: 'assignment-1', submissionId: 'submission-1', reviewId: 'review-1', expectedVersion: 3,
+    expect(mocks.returnReview).toHaveBeenCalledWith(actor, 'assignment-1', 'submission-1', expect.objectContaining({
+      reviewId: 'review-1', expectedVersion: 3,
       newDeadlineAt: new Date('2026-07-20T00:00:00.000Z'),
     }));
   });

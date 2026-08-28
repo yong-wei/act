@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -7,7 +8,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const lngChanghengSceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 295,
   designSpeedKnots: 19,
-  modelUrl: '/assets/models-opt/Lng-carrier.glb',
+  modelUrl: resolveRegisteredSimulationModel('lng-carrier').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -147.5],

@@ -33,12 +33,15 @@ export function ControlFigureWorkspace({
   showFrequencyReadings?: boolean;
   onResult?: (result: ControlAnalysisResult | null, requestKey: string) => void;
 }) {
-  const { result, error, isLoading, isFallback } = useControlEngine(request, fallbackResult);
+  const { result, error, isLoading, isFallback, isAuthoritative } = useControlEngine(request, fallbackResult);
   const requestKey = useMemo(() => JSON.stringify(request), [request]);
 
   useEffect(() => {
+    if (isFallback || isAuthoritative === false) {
+      return;
+    }
     onResult?.(result, requestKey);
-  }, [onResult, requestKey, result]);
+  }, [isAuthoritative, isFallback, onResult, requestKey, result]);
 
   if (isLoading && (!result || !isFallback)) {
     return (

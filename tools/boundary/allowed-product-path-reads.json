@@ -88,5 +88,10 @@
     "from": "src/lib/runtime-external-input-bundle.ts",
     "to": "scripts/release/textbook-runtime-v2-provenance.mjs",
     "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-traffic-cost/taxonomy.ts",
+    "to": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
+    "kind": "path-string"
   }
 ]

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rateLimiter } from '@/lib/rate-limiter';
 import { AssignmentDomainError, assertMutationRequest } from './assignment-domain';
+import { TeacherAssignmentReviewError } from './assignment-review';
 import { SubmissionError } from './submission-domain';
 
 export async function requireAssignmentActor() {
@@ -43,12 +44,15 @@ export async function readBoundedAssignmentJson(request: Request, maxBytes = 256
 }
 
 export function assignmentErrorResponse(error: unknown): NextResponse {
+  if (error instanceof TeacherAssignmentReviewError) {
+    return NextResponse.json({ error: error.code, details: error.details }, { status: error.status });
+  }
   if (error instanceof SubmissionError) {
     return NextResponse.json({ error: error.code }, { status: error.status });
   }
   if (error instanceof AssignmentDomainError) {
     const status = error.code.includes('forbidden') || error.code.includes('unauthorized') ? 403
-      : error.code === 'assignment-not-found' || error.code === 'draft-not-found' ? 404
+      : error.code === 'assignment-not-found' || error.code === 'draft-not-found' || error.code === 'catalog-source-not-found' ? 404
         : [
           'version-conflict',
           'publication-content-digest-mismatch',
@@ -68,6 +72,20 @@ export function assignmentErrorResponse(error: unknown): NextResponse {
     return NextResponse.json({ error: 'invalid-payload', details: issues.map((issue) => issue.message).filter(Boolean) }, { status: 400 });
   }
   return NextResponse.json({ error: 'assignment-operation-failed' }, { status: 500 });
+}
+
+export function teacherAssignmentReviewErrorResponse(error: unknown): NextResponse {
+  if (error instanceof TeacherAssignmentReviewError) {
+    return NextResponse.json({ error: error.code, details: error.details }, { status: error.status });
+  }
+  if (error instanceof SubmissionError) {
+    return NextResponse.json({ error: error.code }, { status: error.status });
+  }
+  if (error && typeof error === 'object' && 'issues' in error) {
+    const issues = (error as { issues?: Array<{ message?: string }> }).issues ?? [];
+    return NextResponse.json({ error: 'invalid-teacher-review-payload', details: issues.map((issue) => issue.message).filter(Boolean) }, { status: 400 });
+  }
+  return NextResponse.json({ error: 'teacher-review-operation-failed' }, { status: 500 });
 }
 
 function parseContentLength(value: string | null): number | null {

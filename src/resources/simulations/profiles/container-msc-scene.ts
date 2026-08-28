@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -7,7 +8,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const containerMscSceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 399.9,
   designSpeedKnots: 20,
-  modelUrl: '/assets/models-opt/container.glb',
+  modelUrl: resolveRegisteredSimulationModel('container').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -199.95],

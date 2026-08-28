@@ -187,7 +187,11 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
           previewBoundary: expect.objectContaining({
             evaluationVisibility: 'preview',
             officialEligible: false,
-            modelRelation: 'identified-model-controller',
+            modelRelation: 'surrogate',
+            teachingSemantics: 'cruise-roll-virtual-preview-surrogate',
+            prohibitsMixedClaims: true,
+            executor: 'server',
+            authoritySource: 'control-engine-server-facade',
             datasetHash: preview.datasetHash,
             controllerHash: preview.controllerHash,
             identificationModelId: 'arena-identification-store12345',
@@ -205,7 +209,20 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
     }));
     expect(mocks.tx.arenaVirtualSimulationRun.update).toHaveBeenCalledWith({
       where: { id: 'preview-row-1' },
-      data: { simulationRunId: 'canonical-run-1' },
+      data: expect.objectContaining({
+        simulationRunId: 'canonical-run-1',
+        payload: expect.objectContaining({
+          metadata: expect.objectContaining({
+            runContract: expect.objectContaining({
+              identity: expect.objectContaining({
+                sourceKind: 'arena-preview',
+                officialEligible: false,
+                executor: 'server',
+              }),
+            }),
+          }),
+        }),
+      }),
     });
     expect(mocks.tx.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,

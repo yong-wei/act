@@ -11,10 +11,15 @@ describe('simulation API Rust runtime adoption', () => {
       path.join(process.cwd(), 'src/resources/simulations/rust/control-engine-server-runtime.ts'),
       'utf8',
     );
+    const facadeSource = readFileSync(
+      path.join(process.cwd(), 'src/lib/control-engine/wasm-server.ts'),
+      'utf8',
+    );
 
-    expect(runtimeSource).toContain('initSync');
-    expect(runtimeSource).toContain('compute_virtual_simulation_step');
-    expect(runtimeSource).toContain('index_bg.wasm');
+    expect(runtimeSource).toContain('computeVirtualSimulationServerStep');
+    expect(facadeSource).toContain('initSync');
+    expect(facadeSource).toContain('compute_virtual_simulation_step');
+    expect(facadeSource).toContain('index_bg.wasm');
   });
 
   it('routes numeric simulation APIs through Rust model ids', () => {

@@ -13,7 +13,7 @@ describe('dredger scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 127.5');
     expect(source).toContain('designSpeedKnots: 12');
-    expect(source).toContain('/assets/models-opt/dredger.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('dredger')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -54,8 +54,8 @@ describe('dredger pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(DREDGER);
-    expect(source).toContain('models-opt/dredger.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('dredger')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

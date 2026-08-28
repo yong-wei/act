@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { UNIT_5_1StudentPage } from '@/features/interactive/unit-5-1-linear-backbone-boundaries/student-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
 export default async function UNIT_5_1StudentRoute(
@@ -29,6 +30,17 @@ export default async function UNIT_5_1StudentRoute(
     }
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('5-1');
+  const runtimeResult = await loadSessionBoundLessonRuntime({
+    sessionId: params.sessionId,
+    expectedCanonicalId: '5-1',
+    role: 'student',
+  });
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
   return <UNIT_5_1StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }

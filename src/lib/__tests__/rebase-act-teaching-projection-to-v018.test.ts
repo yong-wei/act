@@ -23,33 +23,33 @@ import {
   expectedV018AdmissionSchemaIdentity,
   validateV018DatabaseObservation,
   V018_DATABASE_QUERY_CONTRACT_HASH,
-} from '../teaching-projection/rebase/v018-capture';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-capture';
 import {
   assertV018IdentityOnlyEvidence,
   buildV018ImpactEvidence,
   classifyV018IdentityMappings,
   resolveV018CanonicalId,
-} from '../teaching-projection/rebase/v018-mapping';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-mapping';
 import {
   buildV018IdentityRebase,
-} from '../teaching-projection/rebase/v018-rebuild';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-rebuild';
 import {
   assertV018CandidateSelectorSafety,
   assertV018PointerBytesUnchanged,
   buildV018DualBuildIdentity,
   buildV018RebaseReceipt,
   readV018PointerSnapshots,
-} from '../teaching-projection/rebase/v018-receipt';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-receipt';
 import type {
   V018AuthorityBinding,
   V018AuthorityNodeRecord,
   V018CaptureManifest,
   V018RebaseReceipt,
-} from '../teaching-projection/rebase/v018-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
 import {
   ACT_V018_AUTHORITY_RELEASE_ID,
   V018_CURRENT_POINTER_PATHS,
-} from '../teaching-projection/rebase/v018-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
 
 const roots: string[] = [];
 

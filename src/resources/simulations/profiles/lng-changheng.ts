@@ -7,6 +7,7 @@
  * 知识点映射：滞后系统 (Ch5)，Smith预估器 (Ch6)，稳定裕度
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   LNG_CHANGHENG_PARAMS,
@@ -88,7 +89,7 @@ export const lngChanghengProfile: ShipProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/Lng-carrier.glb',
+    modelPath: resolveRegisteredSimulationModel('lng-carrier').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#3b82f6',  // 蓝色

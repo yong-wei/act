@@ -1,0 +1,1472 @@
+{
+  "sourceRevision": "8a5a9b99e2ef2ca3d2ccd35b774c2269ae28dde5",
+  "sourceTree": "54082e8127c14dfd20a41c7dc2691045af09e90c",
+  "generatedInputs": [],
+  "counts": {
+    "course-content/scripts": 41,
+    "scripts/knowledge": 7,
+    "scripts/knowledge-cutover": 75,
+    "scripts/runtime-release": 33,
+    "scripts/release": 5
+  },
+  "roleCounts": {
+    "reader": 22,
+    "compiler": 67,
+    "validator": 13,
+    "operator-adapter": 40,
+    "candidate-adapter": 13,
+    "publication-writer": 6
+  },
+  "commandCount": 161,
+  "commands": [
+    {
+      "path": "course-content/scripts/authority-cards/README.md",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/README.md",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "b754327b51383404f01f0cc8cceaf9b980b58ba7a2b21b662c7b8e1315c2cca0"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/batch_generate_runner.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/batch_generate_runner.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "a1054b6e74e08211302ebd6e7de05219ee79e97d7374ebe651b81fe52211a9b9"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/build_image_prompt.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/build_image_prompt.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "854ea26e5ca0dc5a3a9690b670562989714bf090825fd5ffdc015c21e56483ea"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/common.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/common.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "25d8891362bcc227d131cf31b89d52dc54f9de7fc7782c4a80ccb68ee811128c"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/export_authority_cards_and_infographs.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/export_authority_cards_and_infographs.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "1f956a58a4302c472092c19384ed9a07838352fdd21f2a094605f2547f52e676"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/export_domainconcept_inventory.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/export_domainconcept_inventory.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "67805ace411b234bd109ab2593add3db2e2a26260e4024bd47d0096eba46c1fc"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/materialize_authority_knowledge_cards.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/materialize_authority_knowledge_cards.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "11f838c782f941b1f61b9d45038c88478a08d30903d2f5905128dad1b91566a3"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/normalize_authority_infograph_metadata.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/normalize_authority_infograph_metadata.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "73aeb607e0a83a7f22782818a1aca6c974172262a86487247fd6bc60cb64cddd"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/prepare_authority_infograph.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/prepare_authority_infograph.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ccf937d12b26b73b27745d6dbbf3c48707092725fe398fb86a49b8277935f893"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/register_authority_infograph.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/register_authority_infograph.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "6d2b42f525ea95cc12c76cb158a78b49266608db180d852214a9411fdb8b8bff"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/register_pack_images.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/register_pack_images.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "c830b394faada553331faf7a5480eefa1c9fdf56634febbb63c395908d7704d7"
+    },
+    {
+      "path": "course-content/scripts/authority-cards/status_report.py",
+      "commandId": "release:content-compiler:course-content/scripts/authority-cards/status_report.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "eec9452d32070b9becfee0b98c9868c05787f0ce1cf6e07cbdd353eae8a6a37d"
+    },
+    {
+      "path": "course-content/scripts/benchmark_textbook_hybrid_runtime.mjs",
+      "commandId": "release:content-compiler:course-content/scripts/benchmark_textbook_hybrid_runtime.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "b83fa37154f9004d45e2d19f880cfec71ef616c473f5c0e4a31eb80a3d2d9534"
+    },
+    {
+      "path": "course-content/scripts/canonical_nodes.py",
+      "commandId": "release:content-compiler:course-content/scripts/canonical_nodes.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "9735b6ee17755889179af145467e6ee2af95206e8e2bbb836f91c77c1716fdfe"
+    },
+    {
+      "path": "course-content/scripts/export-runtime.sh",
+      "commandId": "release:content-compiler:course-content/scripts/export-runtime.sh",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "722a40500f1a8b97a596ef519c592e2c96ad05d15440e66a71c08167e909741b"
+    },
+    {
+      "path": "course-content/scripts/export_runtime.py",
+      "commandId": "release:content-compiler:course-content/scripts/export_runtime.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "cb058cf2f182366b1f15e160cdfa757c90c333f0403a1a46b2ce3f9ad5eb251d"
+    },
+    {
+      "path": "course-content/scripts/export_structured_textbook_runtime_v2.py",
+      "commandId": "release:content-compiler:course-content/scripts/export_structured_textbook_runtime_v2.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "4979259e5318f0fb738cbdc0ca11302659d3156eb1c0a92818c7460114e8127c"
+    },
+    {
+      "path": "course-content/scripts/export_textbook_runtime_assets.py",
+      "commandId": "release:content-compiler:course-content/scripts/export_textbook_runtime_assets.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "8d7c162821a324b12b0144f13231a8c5b6b6009096efbabf6378c7b9f57915e9"
+    },
+    {
+      "path": "course-content/scripts/extract_slides_ref_resources.py",
+      "commandId": "release:content-compiler:course-content/scripts/extract_slides_ref_resources.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "d3ed06c2d2c0dbfeda3da6c75b00fa43f51682a01046ab8d53dfb57be42f860a"
+    },
+    {
+      "path": "course-content/scripts/import_course_basis_demo.ts",
+      "commandId": "release:content-compiler:course-content/scripts/import_course_basis_demo.ts",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "4c008850c83baf4180df4b01359d918fa2d844dfda687a46111875b700bacfc7"
+    },
+    {
+      "path": "course-content/scripts/kg_add.py",
+      "commandId": "release:content-compiler:course-content/scripts/kg_add.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "50ede73bf47be8dd74cdb8fd35c9a2d766b227a340bbb7352c99e530698423b4"
+    },
+    {
+      "path": "course-content/scripts/kg_query.py",
+      "commandId": "release:content-compiler:course-content/scripts/kg_query.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "e1006981a3a463b33f37fc47729fde162461a242c58aa1aee74886df1ec1a97d"
+    },
+    {
+      "path": "course-content/scripts/knowledge_card_coverage.py",
+      "commandId": "release:content-compiler:course-content/scripts/knowledge_card_coverage.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "18a284c33331162fb3fa091fbc8f0d515f787440c667eadda35eae7d159ef4fe"
+    },
+    {
+      "path": "course-content/scripts/lesson_artifacts.py",
+      "commandId": "release:content-compiler:course-content/scripts/lesson_artifacts.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "b4d98450999d209d81a245f0f7952189739d4f170580a1eb492c1398a84b1240"
+    },
+    {
+      "path": "course-content/scripts/lesson_graph_order.py",
+      "commandId": "release:content-compiler:course-content/scripts/lesson_graph_order.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "8c6211a4105b5d7e3b84db24a47c75ab2d0fb6dd53f9043cc2e68f8ea1c6d83e"
+    },
+    {
+      "path": "course-content/scripts/lesson_id_map.py",
+      "commandId": "release:content-compiler:course-content/scripts/lesson_id_map.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "9d2498cd3fe06b1593227e03d8e56975850d6bb1f7e2eda26f36edece2671a2b"
+    },
+    {
+      "path": "course-content/scripts/materialize_base_knowledge_cards.py",
+      "commandId": "release:content-compiler:course-content/scripts/materialize_base_knowledge_cards.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "00a6197dff9bd49efc0b653b7c3a624c6acfcea24dd249aa6e2f67a8b89ad58e"
+    },
+    {
+      "path": "course-content/scripts/migrate_lesson_path_references.py",
+      "commandId": "release:content-compiler:course-content/scripts/migrate_lesson_path_references.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "122269e58a4e7f5090b6000e922f7579c3d13be5d50bbc741b3d53a50380568f"
+    },
+    {
+      "path": "course-content/scripts/pillow_font_fallback.py",
+      "commandId": "release:content-compiler:course-content/scripts/pillow_font_fallback.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "d2e0dbf8a20489b8a5a2f791f79b3566dcb991f9f06ead33d1d7bcb9f509e6ce"
+    },
+    {
+      "path": "course-content/scripts/python_media_formula.py",
+      "commandId": "release:content-compiler:course-content/scripts/python_media_formula.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "91f81722fc47db12d623d028a4524ed9997bba89c627fa00409973c6710068fc"
+    },
+    {
+      "path": "course-content/scripts/review_lesson_content.py",
+      "commandId": "release:content-compiler:course-content/scripts/review_lesson_content.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "8f7e56d33dbba124414c29fe1785f9da6cb7c4b37a3a9f637a7522214a28d4b5"
+    },
+    {
+      "path": "course-content/scripts/runtime_media_index.py",
+      "commandId": "release:content-compiler:course-content/scripts/runtime_media_index.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "0f1405aa490154f70de171598768b3d834a959f707f12960364ff22e89f632be"
+    },
+    {
+      "path": "course-content/scripts/structured_textbook_runtime.py",
+      "commandId": "release:content-compiler:course-content/scripts/structured_textbook_runtime.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "3af84985dded2f6fb7b8109fbf42f73856b398f660e9e739b5db5baf0b24b72b"
+    },
+    {
+      "path": "course-content/scripts/tests/test_authority_infograph_status.py",
+      "commandId": "release:content-compiler:course-content/scripts/tests/test_authority_infograph_status.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "31c6c0166b9f087cc13d899b8cf92279d52376b61d4176568884b773047081d7"
+    },
+    {
+      "path": "course-content/scripts/textbook_hybrid_retrieval.py",
+      "commandId": "release:content-compiler:course-content/scripts/textbook_hybrid_retrieval.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "90ac34a688ee9a880a7b89c562fea251e72ba5acaede1c46a247673feb23f0b8"
+    },
+    {
+      "path": "course-content/scripts/textbook_resource_set.py",
+      "commandId": "release:content-compiler:course-content/scripts/textbook_resource_set.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "8d4cd9ed4341d9b22f4f0134c0bf30fdb302615aa6a348abfa0eab172e90af1a"
+    },
+    {
+      "path": "course-content/scripts/textbook_runtime_input_provenance.py",
+      "commandId": "release:content-compiler:course-content/scripts/textbook_runtime_input_provenance.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "d0107e12f4bf686e86b7039efc03558ca07eb0f7ba6b8f5a6e7d822c23739c25"
+    },
+    {
+      "path": "course-content/scripts/textbook_visual_retrieval.py",
+      "commandId": "release:content-compiler:course-content/scripts/textbook_visual_retrieval.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "bd34130463f4969c990de4fa4c901ed21df4a05262ff0e67d6b502dcb1068b0d"
+    },
+    {
+      "path": "course-content/scripts/validate_structured_textbook_runtime_v2.mjs",
+      "commandId": "release:content-compiler:course-content/scripts/validate_structured_textbook_runtime_v2.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "9664b63f1e4c4018cd34fed15ec08fbaf7e9300498e767bd9566d07af69200e7"
+    },
+    {
+      "path": "course-content/scripts/validate_textbook_hybrid_retrieval.mjs",
+      "commandId": "release:content-compiler:course-content/scripts/validate_textbook_hybrid_retrieval.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "aa33f8bdd9a360e3479f8ecda5f1ebbebd4e83f2875029ae541be042cfa400e1"
+    },
+    {
+      "path": "course-content/scripts/validate_written_textbook_runtime_v2.py",
+      "commandId": "release:content-compiler:course-content/scripts/validate_written_textbook_runtime_v2.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "95930e352119c39e06f1658845a2069bce5dbedbfce974bda2a3779a0776b503"
+    },
+    {
+      "path": "scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "62c7d43f09fabfb2e3ff983892e7e805b46bfc303222c4989c22324022b103e0"
+    },
+    {
+      "path": "scripts/knowledge-cutover/activate-actkg-v022-production-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/activate-actkg-v022-production-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "3bcc5dae3deba96af9904ab01bfbec390eaff58b1625fd45e213c74027892f6e"
+    },
+    {
+      "path": "scripts/knowledge-cutover/admit-latest-actkg-aggregate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/admit-latest-actkg-aggregate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "153d3937232da4312512dec9e5a7ba3c8155c0e96433a534d74fe27a21da6bdc"
+    },
+    {
+      "path": "scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "760dc1577a50440ecea7be29243ac78be13dcd51a75ec1cd7ed44d3f8b632466"
+    },
+    {
+      "path": "scripts/knowledge-cutover/bind-intro-video-cues.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/bind-intro-video-cues.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "a60bb4bf0506cfa45c9205563cf82c9d93a72c8114592c788418956e2ab2ea00"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-baseline-classification.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-baseline-classification.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "6759705cd9817dc90608e491c6f78d761f644bff42e26c7b1e4597fa7aa7b73a"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-baseline-continuity-obligations.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-baseline-continuity-obligations.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "07b10e4153702b8675223f611b5e05939c13e9053de02f44a0eb2303d289d817"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-course-binding-rebindings.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-course-binding-rebindings.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "2dda801ee9968197c0898920067759ec7269486a79f43e7773918589ab173e7c"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-resource-review-pack.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-resource-review-pack.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "c477c55bad8b4a2143b395dc8344724aa1bc3ca1cdd655790cae53a826bca414"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-runtime-inventory-review.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-runtime-inventory-review.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "32c35f29d09f4aab91c37b0632106373be8cf4bf0229b7f3156cb97d24a9b8c9"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-active-runtime-media-source-bridge.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-active-runtime-media-source-bridge.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5a886b4e19fa3fb353ce7ec2c04e314dbf814d2e2465a2a5463578dbbf18c7f6"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-authority-semantic-cache.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-authority-semantic-cache.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "95878b7d2ebfc765cd6b6f5f2371fc91072a1e1adc5760d96fb256b152508130"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-domain-teaching-generation-v2.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-domain-teaching-generation-v2.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "49f2c0556fcef847b6e6640d59b7b2450a24330089ca6892c2a8c638a35c6bfd"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-domain-teaching-generation-v3.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-domain-teaching-generation-v3.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "126a8320d9f26301c118a84e374d488e36f20a32a97b0cbce0cca37b2dce04c2"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-r4-c4-reused-governance-artifacts.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-r4-c4-reused-governance-artifacts.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "c033b0f66fb85c47dcef3855c69ff6d52c925ea0b313074f845e5f7e075b249f"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-r4-c5-cutover-input.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-r4-c5-cutover-input.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "f458672568a2ba57e9a5037b541b842b31341c25f623bbfe758942b77a39e21c"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "a0121c6bb162e07d9103ee6b7a7cf330c63901049f3e6ac65bd31f138dcef971"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-remediation-bound-cutover-evidence.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-remediation-bound-cutover-evidence.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "1a0f3ac946379083a8e3fccbbd466342b05b46549a5523b1beab1751973797aa"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-resource-envelope-and-projection.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-resource-envelope-and-projection.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "d7cacf2d6b94e2025ec9550664634d407498c548fbe3903f8f133aaef630d4d2"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-successor-resource-delta.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-successor-resource-delta.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5ba4359d56f42e67e6d2032a6e204f85f6194b0bc301536857c2cf60441757eb"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-v037-authority-snapshot.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-v037-authority-snapshot.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "bd4815ea627c6f7b392a5fe6ccefaa31d4faf5ac78c79b0b0708e7d82eb0a4e8"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "6204b2e16829d9fdb2cbc662f57562200f8674f1b640c47190c5a3f3571b1c15"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-v037-r4-domain-catalog.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-v037-r4-domain-catalog.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "bca84fdf3d5a7bccbee5f7896d8ed81d0b85d9d9b27acc5314b1942cc99427c0"
+    },
+    {
+      "path": "scripts/knowledge-cutover/capture-active-course-runtime-sources.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/capture-active-course-runtime-sources.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "094c0b49c4452de4b12f4580561257382a2f09950658ada9c29515539717486e"
+    },
+    {
+      "path": "scripts/knowledge-cutover/capture-active-runtime-observation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/capture-active-runtime-observation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "30e62ae43a19859d03d9062ba0a38ace2b2256f02343d82c43b0ccd365246a0e"
+    },
+    {
+      "path": "scripts/knowledge-cutover/capture-r4-c5-production-predecessor.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/capture-r4-c5-production-predecessor.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "360628688919126d4e9e36fa43b7e701864da237fa4b08f23c9487aa975c6aca"
+    },
+    {
+      "path": "scripts/knowledge-cutover/cleanup-failed-authority-identity.cjs",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/cleanup-failed-authority-identity.cjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "3efee0eba8debf73a9ea82c869e9ccc504dbff771220706b4ddb85058ec2e016"
+    },
+    {
+      "path": "scripts/knowledge-cutover/close-domain.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/close-domain.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "8fe5899655a6cb435b821713e74abf07c271d458daaf1ce6298315724ceb2844"
+    },
+    {
+      "path": "scripts/knowledge-cutover/coordinate-latest-authority-oss-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/coordinate-latest-authority-oss-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "5b635aa46fb47832d289b7d16e76172807c60e2b82845c6a337426b7ba859789"
+    },
+    {
+      "path": "scripts/knowledge-cutover/create-operator-bundle.mjs",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/create-operator-bundle.mjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "6a1cd5c660fcab48a7e2fa88e0e5b60591d49fe80f007bb730b6664117bb3817"
+    },
+    {
+      "path": "scripts/knowledge-cutover/deploy-r4-c5-coordinated-cutover.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/deploy-r4-c5-coordinated-cutover.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "ce9f1af5e368fa970ff4213efc0fffa88ce7fb7c01fac4750c516d9de17719b9"
+    },
+    {
+      "path": "scripts/knowledge-cutover/derive-actkg-cutover-blueprint-decisions.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/derive-actkg-cutover-blueprint-decisions.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "7a088bd154aaa17837419f56d4fd98f0a4e7cd5dc13acd5443cbe8dfce0a72fa"
+    },
+    {
+      "path": "scripts/knowledge-cutover/derive-actkg-cutover-prerequisite-decisions.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/derive-actkg-cutover-prerequisite-decisions.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "44d24da766c3603220d6db3bd021f8ae77674bdf14bd5d59524f09cb036c9dba"
+    },
+    {
+      "path": "scripts/knowledge-cutover/domain-cycle.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/domain-cycle.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "f014091ef2aa2682bb8cb8d6d66af8e5c8174d33144f64a1c44dd4ed93de99c0"
+    },
+    {
+      "path": "scripts/knowledge-cutover/execute-actkg-to-act-first-activation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/execute-actkg-to-act-first-activation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "0bc69aabe57f6023f7ed1a4abbc7b6ee7b8e27f5d55e34dc9dffdc8b858112f9"
+    },
+    {
+      "path": "scripts/knowledge-cutover/finalize-total-closure.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/finalize-total-closure.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "102127b8c1d81f40128fcbf0d87f329c11f313091ea6df7d22f4a198552f098b"
+    },
+    {
+      "path": "scripts/knowledge-cutover/negative-acceptance-remediation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/negative-acceptance-remediation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ff7e6dc46deeeaed961f63b5650cd7b9da850b8ad12f1bd2f8784185b13acb32"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-cutover-authority-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-cutover-authority-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "03c4cfe236da4b2eb889f70b007894878a96cfad4eef79e73b07e6fb4b638a68"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-cutover-consumer-staging.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-cutover-consumer-staging.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "70f49d269dbf9a9010ff61dc0173b5a5b70c452e1c2b6547fb33baed04d34b7d"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-cutover-teaching-projection.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-cutover-teaching-projection.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "f523bafba2c626700aa5bfbb5de7d7181b77bb1d4770fcb34bb5e135ded5fb00"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "de817b76612dc80ce0f51b912f1c57838752835d89bd764af8bb3967e9952c4c"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "c31e0ed6ad7163b07900962737047172f9847b3e543605c902b5c2f67010ff74"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-v022-authority-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-v022-authority-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "8ca5a89c363b6a8258341db4b48d68810ab242c592bbf46fbebdb08f0d36e088"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-v022-display-catalog.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-v022-display-catalog.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "700ce1f35face250e705f7e23a67849083d68eb5c28b2704697214d6083d81e0"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-actkg-v022-teaching-projection.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-actkg-v022-teaching-projection.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "d64baae1161bb7c00087fc6d1ff250f60f18e6becc5e69b887f63c46c69adc04"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-latest-actkg-chain-intake.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-latest-actkg-chain-intake.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "ffbe6d5a021d6d581e9eba6c91b128cac59c76e6a2435e3d84d3d28c9e215282"
+    },
+    {
+      "path": "scripts/knowledge-cutover/prepare-latest-actkg-intake.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/prepare-latest-actkg-intake.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "1a261b2f59db8dac8d127161a36fe3f4e2f7c339e58e1b337ddfccf683e31b13"
+    },
+    {
+      "path": "scripts/knowledge-cutover/process-exercises.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/process-exercises.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5fc18e45e492c051931e5c2486c3e23599cf6c220f98c9eb0b8885fe3e2788ef"
+    },
+    {
+      "path": "scripts/knowledge-cutover/process-handout-exercises.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/process-handout-exercises.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5d96fd2e0b324dc0239310559c1b6a5fe66c9b6db9322c7b50b8703de47ce277"
+    },
+    {
+      "path": "scripts/knowledge-cutover/process-intro-videos.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/process-intro-videos.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "df6bf672d71200156fd730a673407759e873df5a3092da706befecb386bf3335"
+    },
+    {
+      "path": "scripts/knowledge-cutover/process-simulations.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/process-simulations.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "db275a91c6d1fcd55e562407bcb6affdd03f8cc247be426845f2aad5c8ab0826"
+    },
+    {
+      "path": "scripts/knowledge-cutover/production-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/production-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "a4f142aa6163d6165fcfc83a7628442e1e68eb0fc74786486f6d4db13a4f4e7d"
+    },
+    {
+      "path": "scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "f2bae00c50e1723434de513a2f25ee699332ce09654d6c970e6f7f63238be016"
+    },
+    {
+      "path": "scripts/knowledge-cutover/publish-actkg-v022-cutover-runtime.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/publish-actkg-v022-cutover-runtime.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "0c7f6cd4075a75210a0b07e66b1076f437d330bc16a9513cf1c4e53fbbd5b19d"
+    },
+    {
+      "path": "scripts/knowledge-cutover/qualify-actkg-v018-cutover-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/qualify-actkg-v018-cutover-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "a33f62733e840f8c04790bb29892d3ba27e23fdfc558eb392dea2e1f3d9e54ef"
+    },
+    {
+      "path": "scripts/knowledge-cutover/qualify-actkg-v022-cutover-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/qualify-actkg-v022-cutover-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "64230c29d28935fff26374c79fd270d007a07fc21cf0b2789ab3bca8974c81d0"
+    },
+    {
+      "path": "scripts/knowledge-cutover/rebuild-scope-v037.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/rebuild-scope-v037.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ec0037bbfa92f081b52b45285e04689148d5fb7acbd547742457422667f572f6"
+    },
+    {
+      "path": "scripts/knowledge-cutover/reclose-r4-c6-teaching-governance.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/reclose-r4-c6-teaching-governance.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "81183616c265bdc41138c59b22b2faf721ee3a4db7deae7d3fbfb5c1b68e4a53"
+    },
+    {
+      "path": "scripts/knowledge-cutover/recover-actkg-to-act-first-activation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/recover-actkg-to-act-first-activation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "f49b4bfcd36d981d84518f43ba5a46f2e7dedfdb3a3950726b76242dea112d71"
+    },
+    {
+      "path": "scripts/knowledge-cutover/refresh-state.mjs",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/refresh-state.mjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "157d7758658e6e22b37a023466cd505dfa15d5575476dfd4d02a6db0baeaa192"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remediate-formal-resources.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remediate-formal-resources.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "3e5a79802b545c57d675e688fd27cdaebef1ac62c7b49b350f7b53cd45c614db"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remote-activate-actkg-v018-production-cutover.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-activate-actkg-v018-production-cutover.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "7a851e9b26db8a9e0e4db1d371756240afe3e402381b5724519b9b749f74224c"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remote-activate-actkg-v022-production-cutover.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-activate-actkg-v022-production-cutover.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "9a164fae65b585a2a9e97f3fb8a98be94d608612ff6a2c5fc18f13a6e3962c11"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "b507c936d4b8399fb762b209798d4a7306d5aec5b1b5fb4b0ba92c4133d469de"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remote-application-refresh.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-application-refresh.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "cc24f7144314ca762fbac4575e83886883e41f0664b814f3388dd71109313829"
+    },
+    {
+      "path": "scripts/knowledge-cutover/remote-production-cutover.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-production-cutover.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "edf111014c462973ee67ba9535d9fc2ac6a6a84b43cc0e686ef539ed28dd1783"
+    },
+    {
+      "path": "scripts/knowledge-cutover/replay-domain-closure.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/replay-domain-closure.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "a5ccb084fa83d26352da3c38621c3d580eafd10805a5ae82da2d50385331f8dd"
+    },
+    {
+      "path": "scripts/knowledge-cutover/replay-evidence-remediation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/replay-evidence-remediation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "6a6dbbd8570db1a3ecc7dd3bcc313582248fcbfb77631fcf5c4ca39a8091cc3b"
+    },
+    {
+      "path": "scripts/knowledge-cutover/resolve-latest-actkg-aggregate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/resolve-latest-actkg-aggregate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ec5d419981ab12fa7f9cdeb69e6e1df15e403da912f6b66f00a0627bd85d192a"
+    },
+    {
+      "path": "scripts/knowledge-cutover/restage-authority-domain-catalog.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/restage-authority-domain-catalog.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "888e37b2b98a44ad9e8918976c6e1049837b2904d8ff7463d023229374593687"
+    },
+    {
+      "path": "scripts/knowledge-cutover/restage-r4-c4-consumer-activation.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/restage-r4-c4-consumer-activation.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "62a6ad9b4c3169d8498e47bc23605f41c9bfc0ec3f68b2ec0a6aee1cce6e2cf9"
+    },
+    {
+      "path": "scripts/knowledge-cutover/seal-remediation-handoff.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/seal-remediation-handoff.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "c9c86e7576606fd30a5b8d5959a1412b10acb6e6e662da281448da943c7c3958"
+    },
+    {
+      "path": "scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5c333bad63d1e92845fe61c9bee6e355641c7df80de40b1f88053d06a84bc621"
+    },
+    {
+      "path": "scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "8e7e471ce7732dd6ad938b9c1782e2036e42d57d2ec3cc873690447acacf0b8a"
+    },
+    {
+      "path": "scripts/knowledge-cutover/verify-r4-authority-presentation-labels.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/verify-r4-authority-presentation-labels.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "08074145a30f01b502a8af8e4f6dfd0a0f3ca31c7c9cfe8fb45175306ef228cb"
+    },
+    {
+      "path": "scripts/knowledge/check-runtime-relation-coverage.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/check-runtime-relation-coverage.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "ad06c3acfb2f886e2051e2f09e651d78ee90d92767d3f3a180b0faa73eb82f64"
+    },
+    {
+      "path": "scripts/knowledge/generate-cross-domain-teaching.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/generate-cross-domain-teaching.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "b6492fc3a3384758b9d77823e0521ae62d5a4a4c437bfb8245307fe419d5f8f5"
+    },
+    {
+      "path": "scripts/knowledge/generate-foundation-three-domain-teaching.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/generate-foundation-three-domain-teaching.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "abda186440f56aff92421ed8cc7fe02a4c21e95cd85fd0ec4f06545842bc9ffc"
+    },
+    {
+      "path": "scripts/knowledge/generate-knowledge-graph-task-7-4-fixtures.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/generate-knowledge-graph-task-7-4-fixtures.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "7fa72eb3696d4acefd6b7cfe68e2f200aa77b698904ee60e3b960bad949c54bd"
+    },
+    {
+      "path": "scripts/knowledge/generate-modern-control-domain-teaching.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/generate-modern-control-domain-teaching.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "5059a9bb69f0b877786b506deb272db9555f29347eba6a1a948a57e61b5ae1ad"
+    },
+    {
+      "path": "scripts/knowledge/generate-unavailable-label-audit.mjs",
+      "commandId": "release:knowledge-release:scripts/knowledge/generate-unavailable-label-audit.mjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "c03ebf9f41c9fc95f19eac147279df0ffd2c574dae906d82e1b9ba4c07a089b0"
+    },
+    {
+      "path": "scripts/knowledge/materialize-authority-domain-shards.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/materialize-authority-domain-shards.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "22729bab26db5974641f5d96426e756fdaa8951e18537bcda9203272ec4571e4"
+    },
+    {
+      "path": "scripts/release/export-textbook-runtime-v2.mjs",
+      "commandId": "release:content-compiler:scripts/release/export-textbook-runtime-v2.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "57d2d4a7e86d028da61ac42812ed170c2fed4895fef1f17e5ed89c9b56953ab7"
+    },
+    {
+      "path": "scripts/release/textbook-resource-set.mjs",
+      "commandId": "release:content-compiler:scripts/release/textbook-resource-set.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "02f293f5cc26c28111e98588942652d61c9a5b1c58637b0825185e747459bce9"
+    },
+    {
+      "path": "scripts/release/textbook-runtime-input-provenance.mjs",
+      "commandId": "release:content-compiler:scripts/release/textbook-runtime-input-provenance.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "c95007f6f209a017603129bf49e2188028f7824c135f120a0647b7623f6091f4"
+    },
+    {
+      "path": "scripts/release/textbook-runtime-v2-provenance.mjs",
+      "commandId": "release:content-compiler:scripts/release/textbook-runtime-v2-provenance.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "ecc9a9cc46f1cddb151ee4b627dd2778ca40322e632e8dbea4d7b25ca34e26a0"
+    },
+    {
+      "path": "scripts/release/validate-textbook-runtime-v2.mjs",
+      "commandId": "release:content-compiler:scripts/release/validate-textbook-runtime-v2.mjs",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "2e1d9b83d6fb828c6a3a95f5dd1b484f8a323454c079e6663d4a959c7fe1243e"
+    },
+    {
+      "path": "scripts/runtime-release/act-runtime-blob-ossfs.service",
+      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-blob-ossfs.service",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "fc4f37c6a063651f8a8ba7ddc4d668a0a8f6b8b8e4d9a7721a8e8fabd7ce6687"
+    },
+    {
+      "path": "scripts/runtime-release/act-runtime-blob-view-helper.service",
+      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-blob-view-helper.service",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "475ee0829fe885d202f3d0a9e2de966746d2dbc86cd8795db125fa491609ab86"
+    },
+    {
+      "path": "scripts/runtime-release/act-runtime-ossfs@.service",
+      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-ossfs@.service",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "3968231419d7aef9b8bc1931145c267d836a5305343f3384a6aa2d6273b84f59"
+    },
+    {
+      "path": "scripts/runtime-release/act-runtime-release.ts",
+      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-release.ts",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "608dce29010958029858c07e7c9f8cda1bc95327ac9b7738de35871b918a7e30"
+    },
+    {
+      "path": "scripts/runtime-release/activate-runtime-blob-release.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime-blob-release.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "017abf064fd4b3c62c5d8fd452a7e3af1bdc4dcfd5dac4a8b234e535b08eb985"
+    },
+    {
+      "path": "scripts/runtime-release/activate-runtime-release.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime-release.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "9724c63e070fa0f0e70bac4864770d643c3b31de153afb510d98d4acf1e826fa"
+    },
+    {
+      "path": "scripts/runtime-release/benchmark-textbook-retrieval.ts",
+      "commandId": "release:runtime-release:scripts/runtime-release/benchmark-textbook-retrieval.ts",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "e1502e7110bd8601f951e106561a76799f9b359da570d737830d771e90861b9c"
+    },
+    {
+      "path": "scripts/runtime-release/bind-runtime-blob-view-helper.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/bind-runtime-blob-view-helper.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "c067886d64abb594a759770d4755f69bcccd8dc6cd76280d2c89cac92026c298"
+    },
+    {
+      "path": "scripts/runtime-release/configure-runtime-blob-ossfs.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/configure-runtime-blob-ossfs.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "4eb8f4063a5173b2e46af2ab9b89f436199d61f73e9e2b2f2d084bf54b63c1e6"
+    },
+    {
+      "path": "scripts/runtime-release/configure-runtime-ossfs-release.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/configure-runtime-ossfs-release.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "0e3d2fb4bb9258bbd4b94ee224ef8110905ddf56101d520dd355220a93613320"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/act-runtime-dev-read.policy.json",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/act-runtime-dev-read.policy.json",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "5025493a8215da75ae878f99f127658bcbefbc5babc6896cd42e954dbc271791"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/bootstrap.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/bootstrap.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "8489f018f44afdc7b1c2fcdd89f2ffad227881279504f1e632172c6b8cd08299"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/cli.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/cli.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "80edf6153d0a43e9bcb307d7b7047df070021fbc7a56db528352631e1224c19c"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/common.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/common.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "6a89201a6fc49d6d1c55c9d940119899649ae943b486b3c4cf79e63e41770368"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/credential.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/credential.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "9aae041d3d26765f553cf276d24f34b76cabe0c5056d3912380f61d6b0dcb783"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/policy.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/policy.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "abd1585cab9d032dd5b4923abc205eb1e36cc7e55ba6b147eb444230b8f2b15a"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/privileged-mount.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/privileged-mount.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "0946c39c2d7479ced7a7d0d6fb70795e743ec46bf27c0330e5bc4e063e20748d"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/shared_mount.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/shared_mount.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "97d45375d276dc29361778b6f2f32845bdb6b12356bd0e7f9f0c72e6df98a897"
+    },
+    {
+      "path": "scripts/runtime-release/execute-production-runtime-cutover.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/execute-production-runtime-cutover.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "66b01cc2195ab3d501cfd8268ef6d630d97ab0b13966faeeb79de88ef370f70b"
+    },
+    {
+      "path": "scripts/runtime-release/inspect-textbook-corpus.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/inspect-textbook-corpus.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "185950efe20ab3f638c0885b6db9609c0df698beaaa87ba705f1ba08d72a166f"
+    },
+    {
+      "path": "scripts/runtime-release/materialize-runtime-blob-release.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/materialize-runtime-blob-release.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "30e43403786327a34c23307197f08ebeb5476e63aa2323c361a66eb9f6bd3c13"
+    },
+    {
+      "path": "scripts/runtime-release/perform-production-runtime-cutover.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/perform-production-runtime-cutover.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "1ff1b9696c2a34b2577f59ae49114804a54cd5f651ce97eef3df2aa0b7c7320a"
+    },
+    {
+      "path": "scripts/runtime-release/retire-legacy-runtime-after-oss-cutover.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/retire-legacy-runtime-after-oss-cutover.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "db5fdf554f1a30b4ece6f434f21f34e9ee0a337b9e5371588aae16b72e102d38"
+    },
+    {
+      "path": "scripts/runtime-release/retire-unused-oss-runtime.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/retire-unused-oss-runtime.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "8fcd066e2aa6957837c1c4f3431002b5ff7d246f0733f43cf7383bd1ca3cb338"
+    },
+    {
+      "path": "scripts/runtime-release/rollback-runtime-release.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/rollback-runtime-release.sh",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "ea49c6fb67e771a5b48c0930a948758ac5a1d52403a4f60db710399353698278"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-blob-activation-transaction.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-activation-transaction.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "7ea0f134debdbfaf549c97c84663b05910530f85d1bc6d0769990a1c1fe5ff26"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-blob-release-gc.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-release-gc.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "59e179e605ef18726e7beda152c7ff20bb34909e308ef26203566a783fb31a1d"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-blob-release-lifecycle.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-release-lifecycle.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "66e6ea87cfe4ccb7c37fd72c03500a8ed32afaa46ea1b6a3ad549202560b669b"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-media-inventory.ts",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-media-inventory.ts",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "020e7c08e2bd75fd08d19e3a1a6abff19051ef1b0336b2cb5e2b28919e1aabda"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-release-host-state.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-release-host-state.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "reader",
+      "safetyMode": "read-only",
+      "contentHash": "c255a8744cf6f0d77e30556db5c41a6be709a1c9e985a6afe604bb4bc105da4a"
+    },
+    {
+      "path": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "publication-writer",
+      "safetyMode": "apply-gated",
+      "contentHash": "7203523c81ca0bd1977f92acfc6d29502b740ab7711fe782d5182ef5e78864db"
+    },
+    {
+      "path": "scripts/runtime-release/stage-textbook-retrieval-hot-cache.ts",
+      "commandId": "release:runtime-release:scripts/runtime-release/stage-textbook-retrieval-hot-cache.ts",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "481c488fac287cf11ca34d4339584b7fc21e053fe93f1db5ebba084efbe63b81"
+    },
+    {
+      "path": "scripts/runtime-release/verify-runtime-release-media-closure.ts",
+      "commandId": "release:runtime-release:scripts/runtime-release/verify-runtime-release-media-closure.ts",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "d144475ec03cfca4daa711e8744a5c2d8965c3c2b948a84cedd19072db02302d"
+    }
+  ]
+}

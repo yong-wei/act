@@ -1,26 +1,17 @@
-import initControlEngine, { compute_virtual_simulation_step } from '@/resources/control-system/wasm/control_engine/index.js';
+import {
+  computeVirtualSimulationStepBrowserSync,
+  isBrowserControlEngineReady,
+  preloadBrowserControlEngine,
+} from '@/lib/control-engine/client';
 
 import type { DestroyerHifiStepRequest, DestroyerHifiStepResult } from './destroyer-hifi-adapter';
 
-let initPromise: Promise<void> | null = null;
-let ready = false;
+export const preloadVirtualSimulationRuntime = () => preloadBrowserControlEngine();
 
-export const preloadVirtualSimulationRuntime = () => {
-  if (!initPromise) {
-    initPromise = initControlEngine().then(() => {
-      ready = true;
-    });
-  }
-  return initPromise;
-};
-
-export const isVirtualSimulationRuntimeReady = () => ready;
+export const isVirtualSimulationRuntimeReady = () => isBrowserControlEngineReady();
 
 export const computeVirtualSimulationStep = <TResult>(request: unknown): TResult => {
-  if (!ready) {
-    throw new Error('虚拟仿真数值内核尚未加载完成。');
-  }
-  return JSON.parse(compute_virtual_simulation_step(JSON.stringify(request))) as TResult;
+  return computeVirtualSimulationStepBrowserSync<TResult>(request);
 };
 
 export const computeDestroyerHifiStep = (request: DestroyerHifiStepRequest): DestroyerHifiStepResult => {

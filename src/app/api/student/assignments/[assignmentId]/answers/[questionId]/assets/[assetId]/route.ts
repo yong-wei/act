@@ -7,8 +7,7 @@ import {
   requireStudentActor,
   submissionErrorResponse,
 } from '@/lib/assignments/submission-route-guards';
-import { removeQuestionAsset } from '@/lib/assignments/submission-service';
-import { prisma } from '@/lib/prisma';
+import { studentRemoveQuestionAsset } from '@/lib/assignments/public-api';
 
 export async function DELETE(
   request: Request,
@@ -21,8 +20,7 @@ export async function DELETE(
   try {
     const ids = await params;
     const body = removeAssetSchema.parse(await readBoundedSubmissionJson(request));
-    const result = await removeQuestionAsset(prisma, {
-      studentId: auth.actor.id,
+    const result = await studentRemoveQuestionAsset(auth.actor, {
       ...ids,
       ...body,
     });

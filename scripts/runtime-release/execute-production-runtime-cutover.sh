@@ -4,6 +4,14 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
+# This command is retained only for the explicit v1/v2 migration transaction.
+# Daily Runtime publication is `npm run deploy:runtime`, which qualifies the
+# frozen integration Runtime against the deployed main application image.
+[[ "${ACT_RUNTIME_LEGACY_MIGRATION:-}" == "1" ]] || {
+  echo 'ERROR: execute-production-runtime-cutover.sh 是一次性迁移工具；日常 Runtime 发布请使用 npm run deploy:runtime。若执行已批准的历史迁移，必须显式设置 ACT_RUNTIME_LEGACY_MIGRATION=1。' >&2
+  exit 1
+}
+
 release_id=''
 verification_receipt=''
 release_locator=''
