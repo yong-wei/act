@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { assignmentErrorResponse, requireAssignmentActor } from '@/lib/assignments/assignment-route-guards';
+import { requireAssignmentActor, teacherAssignmentReviewErrorResponse } from '@/lib/assignments/assignment-route-guards';
 import { teacherListAssignmentSubmissions } from '@/lib/assignments/public-api';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,6 @@ export async function GET(_request: Request, context: { params: Promise<{ assign
     const items = await teacherListAssignmentSubmissions(auth.actor, assignmentId);
     return NextResponse.json({ items });
   } catch (error) {
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }

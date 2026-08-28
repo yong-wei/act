@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
-  assignmentErrorResponse,
   readBoundedAssignmentJson,
   requireAssignmentActor,
   requireAssignmentMutation,
+  teacherAssignmentReviewErrorResponse,
 } from '@/lib/assignments/assignment-route-guards';
 import { teacherGetReview, teacherOpenReview, teacherSaveReview } from '@/lib/assignments/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -60,7 +60,7 @@ export async function GET(request: Request, context: { params: Promise<{ assignm
     return NextResponse.json({ review });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }
 
@@ -76,7 +76,7 @@ export async function POST(request: Request, context: { params: Promise<{ assign
     return NextResponse.json(result, { status: result.replay ? 200 : 201 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }
 
@@ -92,6 +92,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ assig
     return NextResponse.json({ review });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }

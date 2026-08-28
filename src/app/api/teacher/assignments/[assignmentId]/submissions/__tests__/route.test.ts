@@ -78,6 +78,7 @@ describe('teacher assignment submission review API', () => {
       reviewId: 'review-1', expectedVersion: 1, criteria: [], annotations: [], overallComment: '', total: 99,
     }), reviewContext) as Response;
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: 'invalid-teacher-review-payload' });
     expect(mocks.save).not.toHaveBeenCalled();
   });
 

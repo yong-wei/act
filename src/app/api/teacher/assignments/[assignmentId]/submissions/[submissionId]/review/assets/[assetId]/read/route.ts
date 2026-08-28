@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
-  assignmentErrorResponse,
   requireAssignmentActor,
   requireAssignmentMutation,
+  teacherAssignmentReviewErrorResponse,
 } from '@/lib/assignments/assignment-route-guards';
 import { teacherReadOriginalAsset, teacherSignOriginalAssetRead } from '@/lib/assignments/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -45,7 +45,7 @@ export async function POST(request: Request, context: RouteContext) {
     );
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }
 
@@ -76,6 +76,6 @@ export async function GET(request: Request, context: RouteContext) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }

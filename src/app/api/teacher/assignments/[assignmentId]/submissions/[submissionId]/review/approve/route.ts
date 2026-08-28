@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
-  assignmentErrorResponse,
   readBoundedAssignmentJson,
   requireAssignmentActor,
   requireAssignmentMutation,
+  teacherAssignmentReviewErrorResponse,
 } from '@/lib/assignments/assignment-route-guards';
 import { teacherApproveReview } from '@/lib/assignments/public-api';
 
@@ -30,6 +30,6 @@ export async function POST(request: Request, context: { params: Promise<{ assign
     const result = await teacherApproveReview(auth.actor, assignmentId, submissionId, body);
     return NextResponse.json(result, { status: result.replay ? 200 : 201 });
   } catch (error) {
-    return assignmentErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }
