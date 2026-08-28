@@ -609,7 +609,7 @@ def mark_active_v2(args: argparse.Namespace):
         "healthCheck": "readyz",
     }
     compatibility_path = state_dir / COMPATIBILITY_PROOF_DIR / f"{release}-{manifest_sha}.json"
-    if compatibility_path.exists():
+    if compatibility_path.exists() or compatibility_path.is_symlink():
         if compatibility_path.is_symlink() or not compatibility_path.is_file():
             fail("runtime compatibility proof path is invalid")
         wire = compatibility_path.read_bytes()

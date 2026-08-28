@@ -418,6 +418,54 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(selection["releaseId"], fixture["release_id"])
 
+    def test_v2_active_receipt_projects_the_bound_compatibility_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = self.v2_release(root, {"lessons/1-1/lesson.json": b"ok\n"})
+            manifest = json.loads(fixture["manifest_path"].read_text(encoding="utf-8"))
+            state = root / "state"
+            proof = {
+                "schemaVersion": "runtime-app-compatibility.v1",
+                "runtime": {
+                    "releaseId": fixture["release_id"],
+                    "sourceRevision": manifest["sourceRevision"],
+                    "manifestSha256": manifest["manifestSha256"],
+                    "treeSha256": manifest["treeSha256"],
+                },
+                "application": {
+                    "revision": "b" * 40,
+                    "imageDigest": "sha256:" + "c" * 64,
+                },
+                "consumerContract": "runtime-app-candidate-consumers.v1",
+                "migrationSet": {"count": 3, "sha256": "d" * 64},
+            }
+            proof_dir = state / "runtime-app-compatibility"
+            proof_dir.mkdir(parents=True)
+            proof_path = proof_dir / f"{fixture['release_id']}-{manifest['manifestSha256']}.json"
+            wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+            proof_path.write_bytes(wire)
+            receipt = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+            )
+            self.assertEqual(receipt["compatibility"]["proofSha256"], hashlib.sha256(wire).hexdigest())
+            self.assertEqual(receipt["compatibility"]["runtimeSourceRevision"], manifest["sourceRevision"])
+            self.assertEqual(receipt["compatibility"]["appRevision"], "b" * 40)
+            self.assertNotIn("runtime", receipt["compatibility"])
+
+            proof_path.unlink()
+            proof_path.symlink_to(root / "missing-proof.json")
+            rejected = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+                expect_ok=False,
+            )
+            self.assertIn("proof path is invalid", rejected.stderr)
+
     def test_v2_rejects_blob_escape_and_directory_symlink(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})

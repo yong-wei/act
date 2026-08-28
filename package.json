@@ -251,7 +251,7 @@
     "db:rag-citation-anchor-coverage": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-rag-citation-anchor-coverage.ts",
     "db:export-textbook-resources": "tsx ./tools/content-knowledge-runtime-release/cli.ts apply -- scripts/release/export-textbook-runtime-v2.mjs",
     "db:validate-textbook-runtime-v2": "node ./scripts/release/validate-textbook-runtime-v2.mjs",
-    "db:textbook-media-grounding": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-textbook-media-grounding.ts",
+    "db:textbook-media-grounding": "npm run db:validate-textbook-runtime-v2 && tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-textbook-media-grounding.ts",
     "db:session-data-quality": "tsx ./scripts/db/report-session-data-quality.ts",
     "db:course-bundle-revision-quality": "tsx ./scripts/db/report-course-bundle-revision-quality.ts",
     "db:materialize-historical-learning-facts": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/materialize-historical-learning-facts.ts",

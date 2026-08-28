@@ -852,15 +852,15 @@ assert.equal(
 assert.equal(
   packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:validate-textbook-runtime-v2 &&') &&
     packageJson.scripts['db:rag-citation-anchor-coverage'] ===
-      'tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts',
+      'tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-rag-citation-anchor-coverage.ts',
   true,
   'v2 media grounding 必须验证当前 runtime，历史旧 coverage 不得覆盖 v2 unit 产物',
 );
 
 assert.equal(
-  dockerfile.includes('FROM base AS builder') && dockerfile.includes('RUN apk add --no-cache python3'),
+  dockerfile.includes('FROM base AS builder') && dockerfile.includes('python3 python3-pip make g++'),
   true,
-  'Docker builder 阶段必须安装 python3 以执行教材 runtime 导出脚本',
+  'Docker builder 必须继承包含 python3 的基础镜像以执行教材 runtime 导出脚本',
 );
 
 assert.equal(

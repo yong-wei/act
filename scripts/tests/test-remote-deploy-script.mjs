@@ -576,14 +576,9 @@ function main() {
   );
 
   assert.equal(
-    script.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
-    false,
-    'Git-free 生产 runner 不得在入口完成导入后重复执行知识图谱导入命令',
-  );
-  assert.match(
-    script,
-    /应用入口已完成知识图谱导入与核验/,
-    '部署脚本必须明确以应用入口承担知识图谱导入边界',
+    script.includes('podman exec \\"${APP_NAME_HINT}\\" npm run seed:knowledge'),
+    true,
+    'Git-free 生产 runner 必须在挂载不可变 runtime 后走 apply-gated 知识图谱导入入口',
   );
 
   assert.equal(
