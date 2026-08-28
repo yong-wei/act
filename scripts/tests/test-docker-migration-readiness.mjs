@@ -117,7 +117,7 @@ function main() {
     );
   }
   const runnerStage = dockerfile.slice(
-    dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+    dockerfile.indexOf('FROM runner-os AS runner'),
   );
   assert.match(
     runnerStage,
@@ -238,7 +238,7 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /FROM node:20-bookworm-slim AS base/,
+    /FROM \$\{NODE_IMAGE\} AS base/,
     'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
   );
   assert.doesNotMatch(
