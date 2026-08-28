@@ -1,6 +1,9 @@
 import { createPrismaClient } from '../../src/lib/prisma-client';
 
-import { COURSE_BUNDLE_REVISION_QUALIFICATION } from '@/lib/course-bundle/contract';
+import {
+  COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
+  COURSE_BUNDLE_REVISION_QUALIFICATION,
+} from '@/lib/course-bundle/contract';
 
 const prisma = createPrismaClient();
 
@@ -27,6 +30,7 @@ export interface CourseBundleRevisionQualityReport {
 }
 
 function isCompleteRevisionIdentity(revision: {
+  qualification: string;
   bundleId: string;
   canonicalLessonId: string;
   runtimeReleaseId: string;
@@ -36,16 +40,22 @@ function isCompleteRevisionIdentity(revision: {
   identityProjectionHash: string;
   resourceHashes: unknown;
 }) {
-  const hashes = revision.resourceHashes as { schemaVersion?: string; lesson?: string; graphOverlay?: string } | null;
-  return Boolean(
+  const base = Boolean(
     revision.bundleId
     && revision.canonicalLessonId
     && revision.runtimeReleaseId
     && revision.runtimeTreeSha256
     && revision.runtimeSourceRevision
     && /^[0-9a-f]{64}$/.test(revision.bundleDigest)
-    && /^[0-9a-f]{64}$/.test(revision.identityProjectionHash)
-    && hashes?.schemaVersion === 'course-bundle-resource-hashes.v1'
+    && /^[0-9a-f]{64}$/.test(revision.identityProjectionHash),
+  );
+  if (!base) return false;
+  // Plan projections pin creation-time identity only; runtime revisions must
+  // additionally carry complete per-resource runtime hashes.
+  if (revision.qualification === COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION) return true;
+  const hashes = revision.resourceHashes as { schemaVersion?: string; lesson?: string; graphOverlay?: string } | null;
+  return Boolean(
+    hashes?.schemaVersion === 'course-bundle-resource-hashes.v1'
     && /^[0-9a-f]{64}$/.test(hashes?.lesson ?? '')
     && /^[0-9a-f]{64}$/.test(hashes?.graphOverlay ?? ''),
   );
@@ -104,7 +114,8 @@ export async function collectCourseBundleRevisionQualityReport(): Promise<Course
     },
     integrity: {
       revisionRecordsWithInvalidQualification: revisions.filter(
-        (revision) => revision.qualification !== COURSE_BUNDLE_REVISION_QUALIFICATION,
+        (revision) => revision.qualification !== COURSE_BUNDLE_REVISION_QUALIFICATION
+          && revision.qualification !== COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
       ).length,
       revisionRecordsWithIncompleteIdentity: revisions.filter(
         (revision) => !isCompleteRevisionIdentity(revision),

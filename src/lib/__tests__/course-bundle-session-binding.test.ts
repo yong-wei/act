@@ -82,14 +82,36 @@ describe('persistCourseBundleRevision', () => {
     vi.resetAllMocks();
   });
 
-  it('reuses the existing revision for identical content (content addressing)', async () => {
+  it('reuses the existing revision for identical content and locator (content addressing)', async () => {
     mocks.courseBundleRevision.findUnique.mockResolvedValue(persistedRevision());
     const revision = await persistCourseBundleRevision(tx as never, identity());
     expect(revision.id).toBe('rev-id');
     expect(mocks.courseBundleRevision.create).not.toHaveBeenCalled();
     expect(mocks.courseBundleRevision.findUnique).toHaveBeenCalledWith({
-      where: { bundleId_bundleDigest: { bundleId: '1-1', bundleDigest: 'd'.repeat(64) } },
+      where: {
+        bundleId_bundleDigest_runtimeReleaseId_runtimeTreeSha256: {
+          bundleId: '1-1',
+          bundleDigest: 'd'.repeat(64),
+          runtimeReleaseId: 'rel-1',
+          runtimeTreeSha256: 't'.repeat(64),
+        },
+      },
     });
+  });
+
+  it('does not reuse a revision when only the release locator changed', async () => {
+    mocks.courseBundleRevision.findUnique.mockResolvedValue(null);
+    mocks.courseBundleRevision.aggregate.mockResolvedValue({ _max: { bundleRevision: 1 } });
+    mocks.courseBundleRevision.create.mockResolvedValue(persistedRevision({ bundleRevision: 2 }));
+    await persistCourseBundleRevision(tx as never, identity({
+      runtimeReleaseId: 'rel-2',
+      runtimeTreeSha256: 'n'.repeat(64),
+    }));
+    expect(mocks.courseBundleRevision.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ runtimeReleaseId: 'rel-2', bundleRevision: 2 }),
+      }),
+    );
   });
 
   it('allocates the next monotonic revision for new content', async () => {

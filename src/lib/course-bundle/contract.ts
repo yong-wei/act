@@ -7,6 +7,13 @@ import { createHash } from 'node:crypto';
  */
 
 export const COURSE_BUNDLE_REVISION_QUALIFICATION = 'course-bundle-revision-v1';
+/**
+ * Identity-only projection of a pure DB BOPPPS plan: the digest pins the
+ * creation-time item projection (identity), while item/resource content keeps
+ * following the DB BOPPPS lifecycle by design — it is not a runtime content
+ * bundle and must never be reported as one.
+ */
+export const COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION = 'course-bundle-plan-projection-v1';
 export const COURSE_BUNDLE_IDENTITY_PROJECTION_SCHEMA_VERSION = 'course-bundle-identity-projection.v1';
 export const COURSE_BUNDLE_RESOURCE_HASHES_SCHEMA_VERSION = 'course-bundle-resource-hashes.v1';
 /** Locator used when no runtime release manifest is mounted (local development). */
@@ -78,6 +85,8 @@ export type CourseBundleIdentity = CourseBundleLocator & {
   identityProjectionHash: string;
   manifestHash: string | null;
   resourceHashes: CourseBundleResourceHashes;
+  /** Defaults to the runtime revision qualification when omitted. */
+  qualification?: string;
 };
 
 export type CourseBundleCaptureErrorCode =

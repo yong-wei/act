@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import type { Prisma, PrismaClient, CourseBundleRevision } from '@prisma/client';
 
 import {
+  COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
   COURSE_BUNDLE_REVISION_QUALIFICATION,
   CourseBundleDriftError,
   canonicalJson,
@@ -60,6 +61,7 @@ export function planProjectionBundleIdentity(
       schemaVersion: 'course-bundle-resource-hashes.v1',
       media: bundleDigest,
     },
+    qualification: COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
   };
 }
 
@@ -90,16 +92,24 @@ function isUniqueConstraintViolation(error: unknown): boolean {
 }
 
 /**
- * Idempotent, append-only persistence. Identical content reuses the existing
- * revision; new content allocates the next monotonic revision number inside the
- * caller's transaction. A referenced revision is never mutated.
+ * Idempotent, append-only persistence. A revision is reused only when both the
+ * content digest and the exact release locator identity match; identical bytes
+ * published under a different release get a new revision so a session can never
+ * inherit a stale locator. A referenced revision is never mutated.
  */
 export async function persistCourseBundleRevision(
   tx: BundleTx,
   identity: CourseBundleIdentity,
 ): Promise<CourseBundleRevision> {
   const existing = await tx.courseBundleRevision.findUnique({
-    where: { bundleId_bundleDigest: { bundleId: identity.bundleId, bundleDigest: identity.bundleDigest } },
+    where: {
+      bundleId_bundleDigest_runtimeReleaseId_runtimeTreeSha256: {
+        bundleId: identity.bundleId,
+        bundleDigest: identity.bundleDigest,
+        runtimeReleaseId: identity.runtimeReleaseId,
+        runtimeTreeSha256: identity.runtimeTreeSha256,
+      },
+    },
   });
   if (existing) return existing;
 
@@ -123,13 +133,20 @@ export async function persistCourseBundleRevision(
         identityProjectionHash: identity.identityProjectionHash,
         manifestHash: identity.manifestHash,
         resourceHashes: identity.resourceHashes as unknown as Prisma.InputJsonValue,
-        qualification: COURSE_BUNDLE_REVISION_QUALIFICATION,
+        qualification: identity.qualification ?? COURSE_BUNDLE_REVISION_QUALIFICATION,
       },
     });
   } catch (error) {
     if (isUniqueConstraintViolation(error)) {
       const raced = await tx.courseBundleRevision.findUnique({
-        where: { bundleId_bundleDigest: { bundleId: identity.bundleId, bundleDigest: identity.bundleDigest } },
+        where: {
+          bundleId_bundleDigest_runtimeReleaseId_runtimeTreeSha256: {
+            bundleId: identity.bundleId,
+            bundleDigest: identity.bundleDigest,
+            runtimeReleaseId: identity.runtimeReleaseId,
+            runtimeTreeSha256: identity.runtimeTreeSha256,
+          },
+        },
       });
       if (raced) return raced;
     }

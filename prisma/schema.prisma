@@ -3552,7 +3552,7 @@ model CourseBundleRevision {
   sessions ClassSession[]
 
   @@unique([bundleId, bundleRevision])
-  @@unique([bundleId, bundleDigest])
+  @@unique([bundleId, bundleDigest, runtimeReleaseId, runtimeTreeSha256])
   @@index([canonicalLessonId])
   @@index([runtimeReleaseId])
 }

@@ -23,7 +23,10 @@ CREATE TABLE "CourseBundleRevision" (
 );
 
 CREATE UNIQUE INDEX "CourseBundleRevision_bundleId_bundleRevision_key" ON "CourseBundleRevision"("bundleId", "bundleRevision");
-CREATE UNIQUE INDEX "CourseBundleRevision_bundleId_bundleDigest_key" ON "CourseBundleRevision"("bundleId", "bundleDigest");
+-- Content addressing alone is not the reuse key: the exact release locator is
+-- part of the revision identity, so identical bytes published under a new
+-- release get a new revision instead of silently keeping the old locator.
+CREATE UNIQUE INDEX "CourseBundleRevision_bundleId_bundleDigest_release_key" ON "CourseBundleRevision"("bundleId", "bundleDigest", "runtimeReleaseId", "runtimeTreeSha256");
 CREATE INDEX "CourseBundleRevision_canonicalLessonId_idx" ON "CourseBundleRevision"("canonicalLessonId");
 CREATE INDEX "CourseBundleRevision_runtimeReleaseId_idx" ON "CourseBundleRevision"("runtimeReleaseId");
 

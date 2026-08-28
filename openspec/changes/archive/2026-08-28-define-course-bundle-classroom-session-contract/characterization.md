@@ -121,3 +121,12 @@ and the deletion condition.
 | Media/asset release pinning | this change | `projectRuntimeMediaResources(binding)`, assets `?releaseId=` |
 | Title/authoring fallback retirement for bound sessions | this change (bound sessions only) | C1–C6 ledger |
 | Historical session rebinding | prohibited | none performed |
+
+## 7. Review remediation (PR #1647, head `7813ac651` findings)
+
+| Finding | Disposition | Change |
+| --- | --- | --- |
+| Release locator not part of the revision reuse key | accepted | `@@unique([bundleId, bundleDigest, runtimeReleaseId, runtimeTreeSha256])`; identical bytes under a new release allocate a new revision instead of inheriting a stale locator |
+| Bound sessions could still fall back to a title route | accepted | `resolveSessionRouteSegment` only uses the plan-title compatibility branch when `bundleBound` is false; bound plan:/generated: sessions stay on the generic classroom shell (redirect-loop guard) |
+| Bound reads compared mounted bytes instead of serving the captured release | accepted | release-pinned reader: mounted bytes matching the capture are preferred, otherwise the content-addressed blob (`runtime/blobs/sha256/<sha>`, shared across releases) serves the captured bytes; handout PDF URLs pin `?releaseId=` when served from the blob; unverifiable bytes still fail closed |
+| DB plan projection claims runtime immutability while item/resource content follows the BOPPPS lifecycle | accepted (classification) / deferred (content snapshot) | new `course-bundle-plan-projection-v1` qualification marks identity-only projections; the data-quality report validates per qualification; full content snapshotting stays out of contract (BOPPPS lifecycle is an explicit Non-Goal) and is handed to the classroom application-service follow-up |

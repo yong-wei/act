@@ -99,10 +99,12 @@ async function main() {
   const hrefBefore = buildSessionParticipantHref({
     role: 'teacher', sessionId: session.id, planTitle: plan.title,
     bundleCanonicalLessonId: revision.canonicalLessonId,
+    bundleBound: true,
   });
   const hrefAfter = buildSessionParticipantHref({
     role: 'teacher', sessionId: session.id, planTitle: '3-3：根轨迹机制与完整法则',
     bundleCanonicalLessonId: revision.canonicalLessonId,
+    bundleBound: true,
   });
   record('plan title change does not move a bound session route', hrefBefore === hrefAfter
     && hrefBefore === '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/accept-1577-session', hrefBefore);

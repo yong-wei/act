@@ -54,6 +54,7 @@ export default async function StudentSessionPage(props: PageProps) {
     sessionId: session.id,
     planTitle: session.plan.title,
     bundleCanonicalLessonId: session.courseBundleRevision?.canonicalLessonId ?? null,
+    bundleBound: session.courseBundleRevisionId !== null,
   });
   if (studentHref !== `/classroom/student/${session.id}`) {
     redirect(studentHref);

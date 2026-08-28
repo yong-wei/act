@@ -77,6 +77,7 @@ export async function GET(request: Request) {
             name: true,
           },
         },
+        courseBundleRevisionId: true,
         courseBundleRevision: {
           select: {
             canonicalLessonId: true,
@@ -136,6 +137,7 @@ export async function GET(request: Request) {
 
     const routeInfo = resolveSessionRouteSegment({
       bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+      bundleBound: classSession.courseBundleRevisionId !== null,
       planTitle: classSession.plan.title,
     });
 
@@ -148,12 +150,14 @@ export async function GET(request: Request) {
         sessionId: classSession.id,
         planTitle: classSession.plan.title,
         bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+        bundleBound: classSession.courseBundleRevisionId !== null,
       }),
       teacherHref: buildSessionParticipantHref({
         role: 'teacher',
         sessionId: classSession.id,
         planTitle: classSession.plan.title,
         bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+        bundleBound: classSession.courseBundleRevisionId !== null,
       }),
     };
 
