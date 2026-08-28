@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 
 import { AppShell } from '@/components/platform/app-shell';
 import { StudentDocumentGradingFeedback } from '@/features/assessment/document-rubric-grading-ui';
-import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
@@ -11,12 +10,7 @@ import {
   resolveVerifiedTeacherInterventionId,
   type FeedbackTaskQuery,
 } from '@/lib/student-feedback-task-contract';
-import {
-  buildStudentGradingFeedbackView,
-  createHiddenStudentGradingFeedbackView,
-  parsePersistedDocumentRubricGradingDraft,
-  validateDocumentRubricGradingDraftInvariants,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+import { createHiddenStudentGradingFeedbackView } from '@/lib/data-governance/document-rubric-grading-workbench';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,13 +54,6 @@ export default async function DocumentFeedbackPage({
     assignment: params?.assignment,
   });
   const feedbackContext = buildFeedbackTaskContext(params ?? {}, { verifiedTeacherInterventionId });
-  if (params?.demo === '1') {
-    const { studentView } = await buildDocumentRubricDemoViews({
-      studentId: session.user.id,
-      viewerStudentId: session.user.id,
-    });
-    return renderDocumentFeedbackShell(studentView, feedbackContext);
-  }
   if (params?.gradingRunId) {
     const approved = await prisma.teacherAssignmentApprovalSnapshot.findUnique({
       where: { gradingRunId: params.gradingRunId },
@@ -80,30 +67,5 @@ export default async function DocumentFeedbackPage({
       redirect(`/missions/assignments/${encodeURIComponent(approved.assignmentId)}?${query.toString()}#feedback-question-${encodeURIComponent(approved.questionId)}`);
     }
   }
-  if (!params?.gradingRunId) {
-    return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }), feedbackContext);
-  }
-
-  const draft = await prisma.learningEvidenceDraft.findFirst({
-    where: {
-      id: params.gradingRunId,
-      ownerUserId: session.user.id,
-      sourceType: 'document_rubric_grading',
-    },
-  });
-  const parsed = draft ? parsePersistedDocumentRubricGradingDraft(draft) : null;
-  const valid = draft && parsed
-    ? validateDocumentRubricGradingDraftInvariants({ draft, parsed }).valid
-    : false;
-  const studentView = parsed
-    && valid
-    ? buildStudentGradingFeedbackView({
-        asset: parsed.asset,
-        convertedDocument: parsed.convertedDocument,
-        rubric: parsed.rubric,
-        run: parsed.run,
-        viewerStudentId: session.user.id,
-      })
-    : createHiddenStudentGradingFeedbackView({ studentId: session.user.id });
-  return renderDocumentFeedbackShell(studentView, feedbackContext);
+  return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }), feedbackContext);
 }

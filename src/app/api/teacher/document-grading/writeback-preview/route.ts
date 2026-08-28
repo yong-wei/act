@@ -2,14 +2,9 @@ import { UserRole } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
-import {
-  approveGradingRun,
-  editCriterionGrade,
-  parsePersistedDocumentRubricGradingDraft,
-  previewApprovedGradingEvidence,
-  validateDocumentRubricGradingDraftInvariants,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { legacyDocumentRubricDraftRetiredResponse } from '@/lib/data-governance/math-document-grading-api';
 import { GradingMutationError } from '@/lib/data-governance/math-document-grading-contracts';
 import { prisma } from '@/lib/prisma';
 import {
@@ -80,98 +75,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const draft = await prisma.learningEvidenceDraft.findFirst({
-      where: {
-        id: body.gradingRunId,
-        sourceType: 'document_rubric_grading',
-      },
-    });
-    if (!draft) {
-      return NextResponse.json({ error: '评分草稿不存在' }, { status: 404 });
-    }
-
-    const parsed = parsePersistedDocumentRubricGradingDraft(draft);
-    if (!parsed) {
-      return NextResponse.json({ error: '评分草稿结构不可用' }, { status: 422 });
-    }
-    const invariants = validateDocumentRubricGradingDraftInvariants({ draft, parsed });
-    if (!invariants.valid) {
-      return NextResponse.json({
-        error: '评分草稿归属不一致',
-        reasons: invariants.reasons,
-      }, { status: 422 });
-    }
-
-    const classData = await prisma.class.findUnique({
-      where: { id: parsed.goalContext.classId },
-      select: { id: true, teacherId: true },
-    });
-    if (!classData) {
-      return NextResponse.json({ error: '班级不存在' }, { status: 404 });
-    }
-    if (session.user.role !== UserRole.ADMIN && classData.teacherId !== session.user.id) {
-      return NextResponse.json({ error: '权限不足' }, { status: 403 });
-    }
-
-    const studentProfile = await prisma.studentProfile.findFirst({
-      where: {
-        classId: parsed.goalContext.classId,
-        userId: draft.ownerUserId,
-      },
-      select: { id: true },
-    });
-    if (!studentProfile) {
-      return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
-    }
-    if (parsed.run.status === 'approved' && (body.edits ?? []).length > 0) {
-      return NextResponse.json({ error: '已批准评分不能直接编辑' }, { status: 409 });
-    }
-    if (parsed.run.status === 'blocked' || parsed.run.evaluator.status === 'blocked') {
-      return NextResponse.json({
-        error: '评分草稿存在阻塞的评估器输出，需要重新转换或重新评估后再预览写回',
-        reasons: parsed.run.evaluator.blockedReasons,
-      }, { status: 409 });
-    }
-    const editValidationError = validateDocumentGradingEditsAgainstRubric(
-      body.edits ?? [],
-      parsed.rubric,
-    );
-    if (editValidationError) {
-      return NextResponse.json({ error: editValidationError }, { status: 400 });
-    }
-
-    const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
-      criterionId: edit.criterionId,
-      levelId: edit.levelId,
-      score: edit.score,
-      comment: edit.comment,
-      reviewerId: session.user.id,
-      rubric: parsed.rubric,
-    }), parsed.run);
-    const previewRun = editedRun.status === 'approved'
-      ? editedRun
-      : approveGradingRun(editedRun, {
-          reviewerId: session.user.id,
-          decision: 'approved',
-          notes: body.notes,
-        });
-    const preview = previewApprovedGradingEvidence({
-      run: previewRun,
-      rubric: parsed.rubric,
-      studentId: draft.ownerUserId,
-      goalContext: parsed.goalContext,
-      sourceLogId: draft.id,
-    });
-
-    return NextResponse.json({
-      status: preview.status,
-      gradingRunId: previewRun.id,
-      wouldCreateFacts: preview.facts.length,
-      blockedFacts: preview.blocked,
-      affectedDimensions: preview.affectedDimensions,
-      evidenceSourceEventIds: preview.facts.map((fact) => fact.sourceEventId),
-      dedupeKeys: preview.dedupeKeys,
-    });
+    return legacyDocumentRubricDraftRetiredResponse();
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof GradingMutationError) return NextResponse.json({ error: error.code }, { status: error.status });
@@ -194,46 +98,4 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     typeof item.score === 'number' &&
     Number.isFinite(item.score) &&
     typeof item.comment === 'string');
-}
-
-function validateDocumentGradingEditsAgainstRubric(
-  edits: Array<{
-    criterionId: string;
-    levelId: string | null;
-    score: number;
-    comment: string;
-  }>,
-  rubric: {
-    schemaVersion?: string;
-    maxScore: number;
-    criteria: Array<{
-      id: string;
-      maxPoints?: number;
-      detailedRubricEnabled?: boolean;
-      levels: Array<{ id: string; score: number }>;
-    }>;
-  },
-): string | null {
-  for (const edit of edits) {
-    const criterion = rubric.criteria.find((item) => item.id === edit.criterionId);
-    if (!criterion) {
-      return '评分编辑指标不存在';
-    }
-    const detailedRubricEnabled = criterion.detailedRubricEnabled !== false;
-    const level = edit.levelId === null
-      ? null
-      : criterion.levels.find((item) => item.id === edit.levelId);
-    if ((detailedRubricEnabled && !level) || (!detailedRubricEnabled && edit.levelId !== null)) {
-      return '评分编辑等级不存在';
-    }
-    const criterionMax = criterion.maxPoints ?? rubric.maxScore;
-    if (edit.score < 0 || edit.score > criterionMax) {
-      return '评分编辑分数超出量规范围';
-    }
-    if (rubric.schemaVersion === 'assignment-scoring-rubric.v2'
-      && Math.abs(edit.score * 10 - Math.round(edit.score * 10)) >= 1e-8) {
-      return '评分编辑分数必须保留一位小数';
-    }
-  }
-  return null;
 }
