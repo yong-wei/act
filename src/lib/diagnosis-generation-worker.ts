@@ -8,6 +8,7 @@ import {
   classifyDiagnosisGenerationOutputValidationError,
   completeDiagnosisGenerationJob,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
+  DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
@@ -60,7 +61,7 @@ export async function ensureDiagnosisGenerationWorker(connection: Redis) {
     {
       connection: connection.duplicate({ maxRetriesPerRequest: null }),
       concurrency: 2,
-      lockDuration: DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS + 30_000,
+      lockDuration: DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
       ...(queuePrefix() ? { prefix: queuePrefix() } : {}),
     },
   );

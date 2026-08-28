@@ -25,6 +25,8 @@ import {
   claimDiagnosisGenerationAttempt,
   DiagnosisGenerationOutputValidationError,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
+  DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
+  DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
   retryDiagnosisGenerationJob,
@@ -877,6 +879,11 @@ describe('teacher diagnosis generation contracts', () => {
       where: { jobId: 'job-1', state: 'RUNNING' },
       data: expect.objectContaining({ state: 'TIMED_OUT', completedAt: now }),
     }));
+  });
+
+  it('keeps the provider generation window strictly inside the task window', () => {
+    expect(DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS).toBeLessThan(DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS);
+    expect(DIAGNOSIS_GENERATION_LOCK_DURATION_MS).toBeGreaterThanOrEqual(DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS);
   });
 
   it('reuses a newer active scope instead of reviving an older failed job into a uniqueness conflict', async () => {

@@ -173,6 +173,11 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
   }
 }
 
+function remainingProviderTimeoutMs(startedAt: number, timeoutMs: number | undefined): number | undefined {
+  if (timeoutMs === undefined) return undefined;
+  return Math.max(0, timeoutMs - (Date.now() - startedAt));
+}
+
 async function generateUnvalidatedJson(input: {
   model: Parameters<typeof generateText>[0]['model'];
   schema: z.ZodTypeAny;
@@ -188,6 +193,7 @@ async function generateUnvalidatedJson(input: {
 }): Promise<GenerateObjectResult<unknown>> {
   const schemaJson = JSON.stringify(zodSchema(input.schema).jsonSchema);
   const runText = input.generateText ?? generateText;
+  const startedAt = Date.now();
   try {
     const result = await runText({
       model: input.model,
@@ -197,7 +203,7 @@ async function generateUnvalidatedJson(input: {
       temperature: 0.1,
       maxRetries: 0,
       maxOutputTokens: input.maxOutputTokens,
-      timeout: input.timeoutMs,
+      timeout: remainingProviderTimeoutMs(startedAt, input.timeoutMs) ?? input.timeoutMs,
       abortSignal: input.abortSignal,
       headers: { 'Idempotency-Key': input.idempotencyKey },
     });
@@ -211,13 +217,16 @@ async function generateUnvalidatedJson(input: {
     };
   } catch (error) {
     if (!input.fallbackToTextJson || !NoOutputGeneratedError.isInstance(error)) throw error;
-    return generateTextJsonFallback(input, schemaJson);
+    const remainingMs = remainingProviderTimeoutMs(startedAt, input.timeoutMs);
+    if (remainingMs === 0) throw error;
+    return generateTextJsonFallback(input, schemaJson, remainingMs);
   }
 }
 
 async function generateTextJsonFallback(
   input: Parameters<typeof generateUnvalidatedJson>[0],
   schemaJson: string,
+  remainingMs?: number,
 ): Promise<GenerateObjectResult<unknown>> {
   const result = await (input.generateText ?? generateText)({
     model: input.model,
@@ -226,7 +235,7 @@ async function generateTextJsonFallback(
     temperature: 0.1,
     maxRetries: 0,
     maxOutputTokens: input.maxOutputTokens,
-    timeout: input.timeoutMs,
+    timeout: remainingMs ?? input.timeoutMs,
     abortSignal: input.abortSignal,
     headers: { 'Idempotency-Key': contentHash({ idempotencyKey: input.idempotencyKey, strategy: 'text-json-fallback.v1' }) },
   });
