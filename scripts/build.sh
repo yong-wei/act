@@ -9,9 +9,16 @@ OUTPUT_TAR="${OUTPUT_TAR:-deploy/images/act-obe.tar}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
 PRISMA_ENGINES_MIRROR="${PRISMA_ENGINES_MIRROR:-https://registry.npmmirror.com/-/binary/prisma}"
+APT_MIRROR="${APT_MIRROR:-}"
+BUILD_OS_REV="${BUILD_OS_REV:-2026-08-01.1}"
+RUNNER_OS_REV="${RUNNER_OS_REV:-2026-08-01.1}"
 export NODE_MAX_OLD_SPACE_SIZE="${NODE_MAX_OLD_SPACE_SIZE:-12288}"
-CACHE_MODE="${CACHE_MODE:-min}"
 BUILD_SCOPE="${BUILD_SCOPE:-runtime-bound}"
+
+# This name is deliberately fixed: dependency cache mounts are shared by all
+# ACT worktrees through the same local docker-container BuildKit instance.
+BUILDER_NAME="act-local-build-cache"
+CACHE_MODE="max"
 
 if [[ ! "${NODE_MAX_OLD_SPACE_SIZE}" =~ ^[1-9][0-9]*$ ]]; then
   echo "ERROR: NODE_MAX_OLD_SPACE_SIZE 必须是正整数。" >&2
@@ -25,6 +32,85 @@ case "${BUILD_SCOPE}" in
     exit 1
     ;;
 esac
+for revision in "${BUILD_OS_REV}" "${RUNNER_OS_REV}"; do
+  if [[ ! "${revision}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: BUILD_OS_REV/RUNNER_OS_REV 必须是非空版本标识。" >&2
+    exit 1
+  fi
+done
+
+normalize_platform() {
+  local value="$1"
+  value="$(printf '%s' "${value}" | LC_ALL=C sed -E \
+    -e 's#[/:]+#-#g' \
+    -e 's#[^A-Za-z0-9._-]+#-#g' \
+    -e 's#^-+##' \
+    -e 's#-+$##')"
+  if [[ -z "${value}" || "${value}" == "." || "${value}" == ".." ]]; then
+    echo "ERROR: PLATFORM 无法规范化为安全缓存命名空间：${PLATFORM}" >&2
+    exit 1
+  fi
+  printf '%s\n' "${value}"
+}
+
+PLATFORM_KEY="$(normalize_platform "${PLATFORM}")"
+
+default_cache_root() {
+  case "$(uname -s)" in
+    Darwin)
+      printf '%s\n' "${HOME}/Library/Caches/act-build-cache"
+      ;;
+    *)
+      printf '%s\n' "${XDG_CACHE_HOME:-${HOME}/.cache}/act-build-cache"
+      ;;
+  esac
+}
+
+if [[ -n "${ACT_BUILD_CACHE_ROOT:-}" ]]; then
+  CACHE_ROOT_CONFIGURED="${ACT_BUILD_CACHE_ROOT}"
+elif [[ -n "${CACHE_ROOT:-}" ]]; then
+  # CACHE_ROOT remains a compatibility input for existing local operators.
+  CACHE_ROOT_CONFIGURED="${CACHE_ROOT}"
+else
+  CACHE_ROOT_CONFIGURED="$(default_cache_root)"
+fi
+
+canonical_path() {
+  python3 -c 'import os, sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))' "$1"
+}
+
+CACHE_ROOT="$(canonical_path "${CACHE_ROOT_CONFIGURED}")"
+if [[ -z "${CACHE_ROOT}" || "${CACHE_ROOT}" == "/" ]]; then
+  echo "ERROR: ACT 构建缓存根无效。" >&2
+  exit 1
+fi
+
+assert_cache_root_outside_worktrees() {
+  local worktree_list worktree_path worktree_root
+  if ! worktree_list="$(git -C "${ROOT_DIR}" worktree list --porcelain)"; then
+    echo "ERROR: 无法枚举 ACT worktree，拒绝使用共享构建缓存。" >&2
+    return 1
+  fi
+  while IFS= read -r worktree_path; do
+    [[ -z "${worktree_path}" ]] && continue
+    worktree_root="$(canonical_path "${worktree_path}")"
+    case "${CACHE_ROOT}" in
+      "${worktree_root}"|"${worktree_root}"/*)
+        echo "ERROR: 构建缓存根不得位于已登记 ACT worktree 内：${CACHE_ROOT}" >&2
+        echo "       命中 worktree：${worktree_root}" >&2
+        return 1
+        ;;
+    esac
+  done < <(printf '%s\n' "${worktree_list}" | sed -n 's/^worktree //p')
+}
+
+assert_cache_root_outside_worktrees
+
+PLATFORM_CACHE_ROOT="${CACHE_ROOT}/${PLATFORM_KEY}"
+BUILD_CACHE_ROOT="${PLATFORM_CACHE_ROOT}/buildkit"
+GENERATIONS_DIR="${BUILD_CACHE_ROOT}/generations"
+CURRENT_CACHE_DIR="${BUILD_CACHE_ROOT}/current"
+CACHE_LOCK_DIR="${PLATFORM_CACHE_ROOT}/lock"
 
 DOCKER_MIN_MEMORY_BYTES=$((20 * 1024 * 1024 * 1024))
 if ! DOCKER_MEMORY_BYTES="$(docker info --format '{{.MemTotal}}' 2>/dev/null)"; then
@@ -40,9 +126,6 @@ if (( DOCKER_MEMORY_BYTES < DOCKER_MIN_MEMORY_BYTES )); then
   exit 1
 fi
 
-CACHE_ROOT="${CACHE_ROOT:-.cache/buildx}"
-CACHE_FROM_DIR="${CACHE_FROM_DIR:-${CACHE_ROOT}/cache}"
-CACHE_TO_DIR="${CACHE_TO_DIR:-${CACHE_ROOT}/cache-new}"
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
 TEXTBOOK_V2_RUNTIME_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
 TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
@@ -91,50 +174,154 @@ else
   echo "[preflight] app-only 镜像不声明或校验外置 runtime provenance"
 fi
 
-echo "[1/2] 本地构建校验（含 Prisma generate + Next 类型检查）"
+echo "[1/3] 本地构建校验（含 Prisma generate + Next 类型检查）"
 rm -rf "${ROOT_DIR}/.next"
 SKIP_WASM_BUILD=1 npm run build
 assert_clean_release_worktree
 
 mkdir -p "$(dirname "${OUTPUT_TAR}")"
-mkdir -p "${CACHE_ROOT}"
-rm -rf "${CACHE_TO_DIR}"
-mkdir -p "${CACHE_TO_DIR}"
+mkdir -p "${GENERATIONS_DIR}"
 
-CACHE_ARGS=("--cache-to=type=local,dest=${CACHE_TO_DIR},mode=${CACHE_MODE}")
-if [[ -f "${CACHE_FROM_DIR}/index.json" ]]; then
-  CACHE_ARGS+=("--cache-from=type=local,src=${CACHE_FROM_DIR}")
-  echo "[cache] 使用缓存: ${CACHE_FROM_DIR}"
-else
-  echo "[cache] 未找到 ${CACHE_FROM_DIR}/index.json，首次构建不使用 --cache-from"
-fi
+LOCK_HOST="$(hostname 2>/dev/null || printf 'unknown')"
+LOCK_HELD=0
+GENERATION_DIR=""
+CURRENT_LINK_TMP=""
+GENERATION_PUBLISHED=0
+
+cleanup() {
+  local status=$?
+  if [[ -n "${CURRENT_LINK_TMP}" ]]; then
+    rm -f "${CURRENT_LINK_TMP}" || true
+  fi
+  if [[ "${GENERATION_PUBLISHED}" != 1 && -n "${GENERATION_DIR}" && -d "${GENERATION_DIR}" ]]; then
+    rm -rf "${GENERATION_DIR}" || true
+  fi
+  if [[ "${LOCK_HELD}" == 1 ]]; then
+    rm -f "${CACHE_LOCK_DIR}/pid" "${CACHE_LOCK_DIR}/host" || true
+    rmdir "${CACHE_LOCK_DIR}" 2>/dev/null || true
+  fi
+  exit "${status}"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+acquire_platform_lock() {
+  mkdir -p "${PLATFORM_CACHE_ROOT}"
+  if mkdir "${CACHE_LOCK_DIR}" 2>/dev/null; then
+    LOCK_HELD=1
+    printf '%s\n' "$$" > "${CACHE_LOCK_DIR}/pid"
+    printf '%s\n' "${LOCK_HOST}" > "${CACHE_LOCK_DIR}/host"
+    return 0
+  fi
+
+  local owner_pid="" owner_host=""
+  if [[ -f "${CACHE_LOCK_DIR}/pid" ]]; then
+    owner_pid="$(<"${CACHE_LOCK_DIR}/pid")"
+  fi
+  if [[ -f "${CACHE_LOCK_DIR}/host" ]]; then
+    owner_host="$(<"${CACHE_LOCK_DIR}/host")"
+  fi
+
+  # Only recover a lock proven stale on this host. Unknown or remote owners
+  # fail closed so an operator can inspect them without losing current.
+  if [[ "${owner_host}" == "${LOCK_HOST}" \
+    && "${owner_pid}" =~ ^[1-9][0-9]*$ ]] \
+    && ! kill -0 "${owner_pid}" 2>/dev/null; then
+    rm -f "${CACHE_LOCK_DIR}/pid" "${CACHE_LOCK_DIR}/host"
+    if ! rmdir "${CACHE_LOCK_DIR}" 2>/dev/null; then
+      echo "ERROR: 无法回收同主机陈旧构建锁：${CACHE_LOCK_DIR}" >&2
+      return 1
+    fi
+    if mkdir "${CACHE_LOCK_DIR}" 2>/dev/null; then
+      LOCK_HELD=1
+      printf '%s\n' "$$" > "${CACHE_LOCK_DIR}/pid"
+      printf '%s\n' "${LOCK_HOST}" > "${CACHE_LOCK_DIR}/host"
+      return 0
+    fi
+  fi
+
+  echo "ERROR: ${PLATFORM} 构建缓存被占用（host=${owner_host:-unknown}, pid=${owner_pid:-unknown}）。" >&2
+  return 1
+}
+
+ensure_buildx_builder() {
+  if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
+    if ! docker buildx create \
+      --name "${BUILDER_NAME}" \
+      --driver docker-container >/dev/null; then
+      docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1 || return 1
+    fi
+  fi
+  docker buildx inspect --bootstrap "${BUILDER_NAME}" >/dev/null
+}
+
+atomic_replace_current() {
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    # BSD mv follows a symlink to a directory unless -h is supplied.
+    mv -hf "$1" "$2"
+  else
+    # GNU mv needs -T to replace the symlink itself rather than its target.
+    mv -Tf "$1" "$2"
+  fi
+}
+
+acquire_platform_lock
+ensure_buildx_builder
 
 BUILD_ARGS=(
   --build-arg "APP_REVISION=${APP_REVISION}"
   --build-arg "NODE_MAX_OLD_SPACE_SIZE=${NODE_MAX_OLD_SPACE_SIZE}"
   --build-arg "NPM_REGISTRY=${NPM_REGISTRY}"
   --build-arg "PRISMA_ENGINES_MIRROR=${PRISMA_ENGINES_MIRROR}"
+  --build-arg "APT_MIRROR=${APT_MIRROR}"
+  --build-arg "BUILD_OS_REV=${BUILD_OS_REV}"
+  --build-arg "RUNNER_OS_REV=${RUNNER_OS_REV}"
+  --build-arg "CACHE_PLATFORM=${PLATFORM_KEY}"
 )
 if [[ -n "${DATABASE_URL_FOR_BUILD}" ]]; then
   BUILD_ARGS+=(--secret "id=database_url,env=DATABASE_URL")
 fi
 
-echo "[2/2] 构建并导出镜像（容器内 next build 同样执行类型检查）"
+CACHE_FROM_ARGS=()
+if [[ -L "${CURRENT_CACHE_DIR}" && -f "${CURRENT_CACHE_DIR}/index.json" ]]; then
+  CACHE_FROM_ARGS+=("--cache-from=type=local,src=${CURRENT_CACHE_DIR}")
+  echo "[cache] 使用缓存: ${CURRENT_CACHE_DIR}"
+else
+  echo "[cache] 未找到可用 current cache，首次构建不使用 --cache-from"
+fi
+
+GENERATION_DIR="$(mktemp -d "${GENERATIONS_DIR}/${APP_REVISION}-${BASHPID:-$$}.XXXXXX")"
+CACHE_TO_ARG="--cache-to=type=local,dest=${GENERATION_DIR},mode=max"
+
+echo "[2/3] 预热 runner-os（不发布 external cache）"
+docker buildx build \
+  --builder "${BUILDER_NAME}" \
+  --platform "${PLATFORM}" \
+  --progress=plain \
+  --target runner-os \
+  "${BUILD_ARGS[@]}" \
+  "${CACHE_FROM_ARGS[@]}" \
+  --output=type=cacheonly \
+  .
+
+echo "[3/3] 构建并导出镜像（容器内 next build 同样执行类型检查）"
 echo "[build] 外部运行时资源目录由宿主机提供，不进入镜像构建上下文: ${EXTERNAL_RUNTIME_DIR}"
 DATABASE_URL="${DATABASE_URL_FOR_BUILD}" docker buildx build \
+  --builder "${BUILDER_NAME}" \
   --platform "${PLATFORM}" \
   --progress=plain \
   "${BUILD_ARGS[@]}" \
-  "${CACHE_ARGS[@]}" \
+  "${CACHE_FROM_ARGS[@]}" \
+  "${CACHE_TO_ARG}" \
   -t "${IMAGE_TAG}" \
   --label "org.opencontainers.image.revision=${APP_REVISION}" \
   --output="type=docker,dest=${OUTPUT_TAR}" \
   .
 
-if [[ "${CACHE_TO_DIR}" != "${CACHE_FROM_DIR}" && -d "${CACHE_TO_DIR}" ]]; then
-  rm -rf "${CACHE_FROM_DIR}"
-  mv "${CACHE_TO_DIR}" "${CACHE_FROM_DIR}"
-  echo "[cache] 已更新缓存到: ${CACHE_FROM_DIR}"
+if [[ ! -f "${GENERATION_DIR}/index.json" ]]; then
+  echo "ERROR: Docker build 成功但未生成可导入的 local cache index。" >&2
+  exit 1
 fi
 
 if [[ "${BUILD_SCOPE}" == "runtime-bound" ]]; then
@@ -151,6 +338,14 @@ else
     --output "${PROVENANCE_FILE}"
 fi
 
+CURRENT_LINK_TMP="${CURRENT_CACHE_DIR}.next-${BASHPID:-$$}"
+rm -f "${CURRENT_LINK_TMP}"
+ln -s "${GENERATION_DIR}" "${CURRENT_LINK_TMP}"
+atomic_replace_current "${CURRENT_LINK_TMP}" "${CURRENT_CACHE_DIR}"
+CURRENT_LINK_TMP=""
+GENERATION_PUBLISHED=1
+
+echo "[cache] 已原子发布 generation: ${GENERATION_DIR}"
 echo "构建完成"
 echo "  镜像标签: ${IMAGE_TAG}"
 echo "  导出文件: ${OUTPUT_TAR}"
