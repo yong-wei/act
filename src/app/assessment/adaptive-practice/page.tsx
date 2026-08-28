@@ -5104,11 +5104,14 @@ export default function AdaptivePracticePage() {
       // demo 模式是显式零证据夹具，不能与 learner-state API 缺失/失败混为一谈。
       evidenceCount: isDemoMode ? 0 : extractColdStartEvidenceCount(activeLearnerState),
     });
-    const coldStartCollection = projectColdStartCollection({
-      learnerState: isDemoMode ? {} : learnerEvidenceInputFromAdaptiveState(activeLearnerState),
-      goalId: activeGoal ?? pathGenerationPanel.goalId,
-      mode: 'new',
-    });
+    const learnerStateReadyForCollection = isDemoMode || learnerStateLoadState === 'ready';
+    const coldStartCollection = learnerStateReadyForCollection
+      ? projectColdStartCollection({
+        learnerState: isDemoMode ? {} : learnerEvidenceInputFromAdaptiveState(activeLearnerState),
+        goalId: activeGoal ?? pathGenerationPanel.goalId,
+        mode: 'new',
+      })
+      : null;
     const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
     const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);
     const nextPathAction = adaptivePathCenter?.nextAction ?? null;
@@ -5399,7 +5402,7 @@ export default function AdaptivePracticePage() {
                   <p className="mt-1 font-medium text-foreground">{percentLabel(weeklyProgress)}</p>
                 </div>
             </div>
-            {isColdStart || coldStartCollection.insufficientDimensions.length > 0 ? (
+            {coldStartCollection && (isColdStart || coldStartCollection.insufficientDimensions.length > 0) ? (
               <ColdStartCollectionPanel projection={coldStartCollection} />
             ) : null}
             </aside>

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   classifyCollectionEvent,
   classifyColdStartDimensions,
+  collectionEventsFromGovernedFacts,
   collectionMayMutatePath,
   projectColdStartCollection,
   projectCollectionImpactsOnNewPath,
@@ -71,6 +72,49 @@ describe('cold-start evidence collection', () => {
 
     expect(weak.every((decision) => decision.accepted === false && decision.affectsMastery === false)).toBe(true);
     expect(weak.every((decision) => decision.confidence !== 'medium' && decision.confidence !== 'high')).toBe(true);
+  });
+
+  it('rejects collection activity events that omit completion, governance, or identity', () => {
+    const incomplete = classifyCollectionEvent({
+      kind: 'short-diagnosis',
+      at: '2026-08-28T01:00:00.000Z',
+    });
+    expect(incomplete).toMatchObject({ accepted: false, quality: 'rejected', affectsMastery: false });
+  });
+
+  it('maps governed completed facts into collection events and ignores page views', () => {
+    const events = collectionEventsFromGovernedFacts({
+      goalId: 'control-correction',
+      facts: [
+        {
+          factType: 'page_view',
+          moduleId: 'bode-card',
+          finishedAt: '2026-08-28T01:00:00.000Z',
+          contextJson: { evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false } },
+        },
+        {
+          factType: 'simulation',
+          moduleId: 'bode-sim',
+          finishedAt: '2026-08-28T01:10:00.000Z',
+          outcome: 'success',
+          contextJson: { evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false } },
+        },
+        {
+          factType: 'media',
+          moduleId: 'bode-video',
+          finishedAt: '2026-08-28T01:20:00.000Z',
+          contextJson: { evidenceGovernance: { evidenceQuality: 'context-only', profileWeight: 0, skipProfileContribution: true } },
+        },
+      ],
+    });
+    expect(events).toEqual([expect.objectContaining({
+      kind: 'short-simulation',
+      resourceId: 'bode-sim',
+      goalId: 'control-correction',
+      completed: true,
+      qualityMarker: 'governed',
+      authority: 'simulation',
+    })]);
   });
 
   it('records a governed resource trial without writing mastery or high confidence', () => {
@@ -169,9 +213,12 @@ describe('cold-start evidence collection', () => {
     const collection = readFileSync(join(repoRoot, 'src/lib/cold-start-evidence-collection.ts'), 'utf8');
     const copy = readFileSync(join(repoRoot, 'src/lib/cold-start-evidence-collection-copy.ts'), 'utf8');
     const page = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const runtime = readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8');
     expect(collection).not.toContain('node:');
     expect(copy).not.toContain('node:');
     expect(collection).not.toContain('adaptive-path-candidate-batches');
     expect(page).not.toContain('adaptive-path-candidate-batches');
+    expect(runtime).toContain('collectionEventsFromGovernedFacts');
+    expect(runtime).toContain('previousPathFactsFromPlanOptions');
   });
 });

@@ -249,6 +249,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
     expect(source).toContain("from '@/features/adaptive/cold-start-collection-panel'");
     expect(source).toContain("from '@/lib/cold-start-evidence-collection'");
+    expect(source).toContain('const learnerStateReadyForCollection = isDemoMode || learnerStateLoadState === \'ready\'');
     expect(source).not.toContain('adaptive-path-candidate-batches');
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
     expect(source).toContain('正在加载学习路径');

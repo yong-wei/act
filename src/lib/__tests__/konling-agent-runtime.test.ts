@@ -9320,6 +9320,21 @@ describe('konling agent runtime', () => {
       konlingMemory: {
         create: vi.fn(),
       },
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([{
+          factType: 'simulation',
+          moduleId: 'bode-sim',
+          finishedAt: new Date('2026-08-28T01:10:00.000Z'),
+          outcome: 'success',
+          contextJson: {
+            evidenceGovernance: {
+              evidenceQuality: 'governed',
+              profileWeight: 1,
+              skipProfileContribution: false,
+            },
+          },
+        }]),
+      },
     };
     const scope = createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' });
     const planContext: KonlingRuntimeContext['planContext'] = {
@@ -9417,6 +9432,9 @@ describe('konling agent runtime', () => {
         now: expect.any(Date),
       }),
     );
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1' },
+    }));
     expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ sourcePathId: result.pathId }),
     }));

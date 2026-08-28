@@ -276,6 +276,15 @@ export function classifyCollectionEvent(event: ColdStartCollectionEvent): ColdSt
       affectsMastery: false,
     };
   }
+  if (event.completed !== true || event.qualityMarker !== 'governed' || !event.goalId || !event.resourceId) {
+    return {
+      accepted: false,
+      kind: event.kind,
+      quality: 'rejected',
+      confidence: 'none',
+      affectsMastery: false,
+    };
+  }
 
   const activityType = event.kind;
   const dimension = ACTIVITY_DIMENSION[activityType];
@@ -466,6 +475,85 @@ export function learnerEvidenceInputFromAdaptiveState(state: unknown): ColdStart
     missingEvidence: Array.isArray(record.missingEvidence)
       ? record.missingEvidence.filter((item): item is string => typeof item === 'string')
       : undefined,
+  };
+}
+
+export interface ColdStartGovernedFactInput {
+  id?: string;
+  factType?: string | null;
+  moduleId?: string | null;
+  startedAt?: string | Date | null;
+  finishedAt?: string | Date | null;
+  outcome?: string | null;
+  contextJson?: unknown;
+}
+
+function factActivityType(factType: string | null | undefined): ColdStartCollectionActivityType | null {
+  if (!factType) return null;
+  if (factType === 'page_view' || factType === 'view' || factType === 'click' || factType === 'chat') return null;
+  if (factType === 'question' || factType === 'assessment') return 'short-diagnosis';
+  if (factType === 'simulation' || factType === 'design' || factType === 'arena') return 'short-simulation';
+  if (factType === 'media' || factType === 'video' || factType === 'audio' || factType === 'resource') {
+    return 'resource-trial';
+  }
+  return null;
+}
+
+function factAuthority(activityType: ColdStartCollectionActivityType, factType: string): ColdStartCollectionEvent['authority'] {
+  if (activityType === 'short-diagnosis') return 'assessment';
+  if (factType === 'arena') return 'arena';
+  if (activityType === 'short-simulation') return 'simulation';
+  return 'none';
+}
+
+function factIsGoverned(contextJson: unknown): boolean {
+  const governance = readRecord(readRecord(contextJson).evidenceGovernance);
+  if (governance.skipProfileContribution === true) return false;
+  if (governance.evidenceQuality === 'context-only') return false;
+  const profileWeight = typeof governance.profileWeight === 'number' ? governance.profileWeight : 0;
+  return profileWeight > 0 && typeof governance.evidenceQuality === 'string';
+}
+
+function isoTimestamp(value: string | Date | null | undefined): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value.toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+export function collectionEventsFromGovernedFacts(input: {
+  facts: ColdStartGovernedFactInput[];
+  goalId: string;
+}): ColdStartCollectionEvent[] {
+  return input.facts.flatMap((fact) => {
+    const activityType = factActivityType(fact.factType);
+    const finishedAt = isoTimestamp(fact.finishedAt);
+    const resourceId = typeof fact.moduleId === 'string' && fact.moduleId.trim() ? fact.moduleId : null;
+    if (!activityType || !finishedAt || !resourceId || fact.outcome === 'abandoned') return [];
+    if (!factIsGoverned(fact.contextJson)) return [];
+    return [{
+      kind: activityType,
+      at: finishedAt,
+      goalId: input.goalId,
+      resourceId,
+      completed: true,
+      authority: factAuthority(activityType, fact.factType ?? ''),
+      qualityMarker: 'governed' as const,
+    }];
+  });
+}
+
+export function previousPathFactsFromPlanOptions(options: Array<{
+  resourceMix?: Record<string, number>;
+  effort?: { estimatedMinutes?: number };
+  terminalValidationNodeIds?: string[];
+}> | null | undefined): ColdStartPathFacts | undefined {
+  const option = options?.[0];
+  if (!option) return undefined;
+  return {
+    resourceMix: option.resourceMix ?? {},
+    estimatedMinutes: option.effort?.estimatedMinutes ?? 0,
+    checkpointCount: option.terminalValidationNodeIds?.length ?? 0,
   };
 }
 
