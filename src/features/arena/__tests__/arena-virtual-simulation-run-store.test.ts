@@ -209,7 +209,20 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
     }));
     expect(mocks.tx.arenaVirtualSimulationRun.update).toHaveBeenCalledWith({
       where: { id: 'preview-row-1' },
-      data: { simulationRunId: 'canonical-run-1' },
+      data: expect.objectContaining({
+        simulationRunId: 'canonical-run-1',
+        payload: expect.objectContaining({
+          metadata: expect.objectContaining({
+            runContract: expect.objectContaining({
+              identity: expect.objectContaining({
+                sourceKind: 'arena-preview',
+                officialEligible: false,
+                executor: 'server',
+              }),
+            }),
+          }),
+        }),
+      }),
     });
     expect(mocks.tx.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,

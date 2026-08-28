@@ -12,7 +12,8 @@ import {
   ArenaPlantAdapterSelectionError,
   getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '@/features/arena/adapters/registry';
-import { ControlEngineFailure, rejectClientResultFields } from '@/lib/control-engine';
+import { ControlEngineFailure } from '@/lib/control-engine';
+import { rejectVirtualPreviewRequestBody } from '@/lib/practice-lab-run-contract';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       checksum?: unknown;
     };
 
-    const clientResultError = rejectClientResultFields(body);
+    const clientResultError = rejectVirtualPreviewRequestBody(body);
     if (clientResultError) {
       return NextResponse.json({ error: clientResultError }, { status: 400 });
     }
