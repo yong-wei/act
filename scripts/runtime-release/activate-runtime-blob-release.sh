@@ -836,6 +836,20 @@ python3 "$HOST_STATE_SCRIPT" select \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
 if [[ "$release_id" == "$old_active" ]]; then
+  python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
+    --release-id "$release_id" \
+    --manifest "$manifest" \
+    --candidate-view "$candidate_view" \
+    --app-container "$APP_CONTAINER" \
+    --worker-container "$WORKER_CONTAINER" \
+    --proof "$compatibility_proof" >/dev/null
+  python3 "$ACTIVATION_TRANSACTION" requalify \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" \
+    --compatibility-proof-sha256 "$compatibility_proof_sha256" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
   activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"

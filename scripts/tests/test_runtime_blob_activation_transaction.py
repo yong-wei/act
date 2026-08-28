@@ -55,6 +55,27 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding="utf-8")
         return path
 
+    def write_compatibility_proof(self, state, candidate, app_revision="b" * 40):
+        proof = {
+            "schemaVersion": "runtime-app-compatibility.v1",
+            "runtime": {
+                "releaseId": candidate["releaseId"],
+                "sourceRevision": "a" * 40,
+                "manifestSha256": candidate["manifestSha256"],
+                "treeSha256": candidate["treeSha256"],
+            },
+            "application": {"revision": app_revision, "imageDigest": "sha256:" + "c" * 64},
+            "consumerContract": "runtime-app-candidate-consumers.v1",
+            "migrationSet": {"count": 1, "sha256": "d" * 64},
+        }
+        wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+        proof_sha = hashlib.sha256(wire).hexdigest()
+        proof_dir = state / "runtime-app-compatibility"
+        proof_dir.mkdir(exist_ok=True)
+        (proof_dir / (proof_sha + ".json")).write_bytes(wire)
+        self.compatibility_proofs[str(state)] = proof_sha
+        return proof_sha
+
     def setup_transaction(self, root):
         state = root / "state"
         active = identity("runtime-a")
@@ -73,24 +94,7 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
         self.call(HOST_STATE, "mark-active", "--state-dir", str(state), "--release-id", active["releaseId"])
         self.call(LIFECYCLE, "begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_path))
         self.call(LIFECYCLE, "set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate_path))
-        proof = {
-            "schemaVersion": "runtime-app-compatibility.v1",
-            "runtime": {
-                "releaseId": candidate["releaseId"],
-                "sourceRevision": "a" * 40,
-                "manifestSha256": candidate["manifestSha256"],
-                "treeSha256": candidate["treeSha256"],
-            },
-            "application": {"revision": "b" * 40, "imageDigest": "sha256:" + "c" * 64},
-            "consumerContract": "runtime-app-candidate-consumers.v1",
-            "migrationSet": {"count": 1, "sha256": "d" * 64},
-        }
-        wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
-        proof_sha = hashlib.sha256(wire).hexdigest()
-        proof_dir = state / "runtime-app-compatibility"
-        proof_dir.mkdir()
-        (proof_dir / (proof_sha + ".json")).write_bytes(wire)
-        self.compatibility_proofs[str(state)] = proof_sha
+        self.write_compatibility_proof(state, candidate)
         return state, active, candidate, active_path, candidate_path
 
     def transaction_args(self, state, command, *extra):
@@ -141,6 +145,48 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
                 expect_ok=False,
             )
             self.assertIn("daily Runtime activation requires a compatibility proof", rejected.stderr)
+
+    def test_same_identity_requalification_reprojects_the_new_proof_without_lifecycle_mutation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state, _, candidate, _, candidate_path = self.setup_transaction(root)
+            self.call(*self.activate_args(state, candidate_path))
+            active_before = self.call(LIFECYCLE, "inspect", "--state-dir", str(state))
+            first_proof = self.compatibility_proofs[str(state)]
+            second_proof = self.write_compatibility_proof(state, candidate, app_revision="e" * 40)
+            self.assertNotEqual(first_proof, second_proof)
+
+            result = self.call(
+                *self.transaction_args(
+                    state,
+                    "requalify",
+                    "--expected-generation", str(active_before["generation"]),
+                    "--identity", str(candidate_path),
+                    "--compatibility-proof-sha256", second_proof,
+                ),
+            )
+            self.assertTrue(result["completed"])
+            active_after = self.call(LIFECYCLE, "inspect", "--state-dir", str(state))
+            self.assertEqual(active_after["generation"], active_before["generation"])
+            self.assertEqual(active_after["active"], candidate)
+            receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["compatibility"]["proofSha256"], second_proof)
+
+            recovered_proof = self.write_compatibility_proof(state, candidate, app_revision="f" * 40)
+            self.call(
+                *self.transaction_args(
+                    state,
+                    "requalify",
+                    "--expected-generation", str(active_before["generation"]),
+                    "--identity", str(candidate_path),
+                    "--compatibility-proof-sha256", recovered_proof,
+                ),
+                env={"ACT_RUNTIME_BLOB_ACTIVATION_CRASH_AT": "after-lifecycle"},
+                expect_ok=False,
+            )
+            self.call(*self.transaction_args(state, "recover"))
+            recovered_receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(recovered_receipt["compatibility"]["proofSha256"], recovered_proof)
 
     def test_candidate_readyz_receipt_is_scoped_to_the_selected_candidate(self):
         with tempfile.TemporaryDirectory() as directory:
