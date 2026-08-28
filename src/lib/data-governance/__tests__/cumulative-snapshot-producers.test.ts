@@ -11,7 +11,7 @@ function readSource(path: string): string {
 describe('cumulative snapshot producer contract', () => {
   it('does not enqueue unfenced snapshots during session finalization', () => {
     const helper = readSource('src/lib/data-governance/session-finalization-snapshots.ts');
-    const route = readSource('src/app/api/session/[sessionId]/route.ts');
+    const route = readSource('src/features/classroom/session/adapters/lifecycle-commands.ts');
 
     expect(helper).not.toContain('snapshot-student');
     expect(helper).not.toContain('snapshot-class');

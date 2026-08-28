@@ -48,3 +48,21 @@ export function canAccessClassroomSession(
   return user.profile?.classId === sessionRecord.classId;
 }
 
+export type ClassroomSessionAccessOperation = 'read' | 'join' | 'advance' | 'end' | 'manage' | 'stream';
+
+export function authorizeClassroomSessionAccess(input: {
+  session: ClassroomSessionAccessRecord | null | undefined;
+  actor: ClassroomSessionAccessUser;
+  operation: ClassroomSessionAccessOperation;
+}): { allowed: true } | { allowed: false; code: 'unauthorized' | 'forbidden' } {
+  if (!input.actor.id) return { allowed: false, code: 'unauthorized' };
+  if (!input.session) return { allowed: false, code: 'forbidden' };
+  if (input.operation === 'manage' || input.operation === 'end') {
+    return canManageClassroomSession(input.session, input.actor)
+      ? { allowed: true }
+      : { allowed: false, code: 'forbidden' };
+  }
+  return canAccessClassroomSession(input.session, input.actor)
+    ? { allowed: true }
+    : { allowed: false, code: 'forbidden' };
+}

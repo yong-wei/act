@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
-import { canManageClassroomSession, isClassroomTeacherOrAdmin } from '@/lib/classroom-session-access';
+import { authorizeClassroomSessionAccess, isClassroomTeacherOrAdmin } from '@/features/classroom/session';
 import { resolveGeneratedCoursewareSessionBinding } from '@/lib/smart-courseware/classroom-runtime';
 import { GeneratedCoursewareRecoveryState } from '@/features/lesson-engine/generated-courseware-recovery';
 
@@ -45,7 +45,11 @@ export default async function TeacherSessionPage(props: PageProps) {
   });
 
   if (!session) notFound();
-  if (!canManageClassroomSession(session, userSession.user)) {
+  if (!authorizeClassroomSessionAccess({
+    session,
+    actor: userSession.user,
+    operation: 'manage',
+  }).allowed) {
     notFound();
   }
   const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, session);

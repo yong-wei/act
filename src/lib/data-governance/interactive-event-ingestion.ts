@@ -1,5 +1,5 @@
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
-import { canAccessClassroomSession, type ClassroomSessionAccessUser } from '@/lib/classroom-session-access';
+import { canAccessClassroomSession, type ClassroomSessionAccessUser } from '@/features/classroom/session';
 
 export interface SessionEndMetadata {
   status: string | null;

@@ -43,7 +43,7 @@ describe('classroom join entry', () => {
 
   it('makes classroom join errors recoverable and announces the evidence writeback path', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/classroom/join/page.tsx'), 'utf8');
-    const routeSource = readFileSync(join(repoRoot, 'src/app/api/session/join/route.ts'), 'utf8');
+    const routeSource = readFileSync(join(repoRoot, 'src/features/classroom/session/application/join.ts'), 'utf8');
     const actionStatusPanelSource = readFileSync(join(repoRoot, 'src/components/platform/action-status.tsx'), 'utf8');
 
     expect(pageSource).toContain('<ActionStatusPanel');
@@ -84,9 +84,9 @@ describe('classroom join entry', () => {
     const studentPageSource = readFileSync(join(repoRoot, 'src/app/classroom/student/[sessionId]/page.tsx'), 'utf8');
 
     expect(teacherPageSource).toContain('getServerSession(authOptions)');
-    expect(teacherPageSource).toContain('canManageClassroomSession(session, userSession.user)');
+    expect(teacherPageSource).toContain("operation: 'manage'");
     expect(studentPageSource).toContain('getServerSession(authOptions)');
-    expect(studentPageSource).toContain('canAccessClassroomSession(session, userSession.user)');
+    expect(studentPageSource).toContain("operation: 'read'");
   });
 
   it('marks class-bound and temporary launch contexts explicitly', () => {

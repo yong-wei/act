@@ -99,11 +99,12 @@ describe('PATCH /api/session/[sessionId]', () => {
   });
 
   it('uses event ingestion instead of direct snapshot jobs when a classroom session is finished', () => {
-    const routeSource = readFileSync(join(process.cwd(), 'src/app/api/session/[sessionId]/route.ts'), 'utf8');
+    const commandSource = readFileSync(join(process.cwd(), 'src/features/classroom/session/adapters/lifecycle-commands.ts'), 'utf8');
+    const applicationSource = readFileSync(join(process.cwd(), 'src/features/classroom/session/application/lifecycle.ts'), 'utf8');
 
-    expect(routeSource).not.toContain('enqueueSessionFinalizationSnapshots');
-    expect(routeSource).toContain('enqueueSessionFinalizationEventIngestion');
-    expect(routeSource).toContain('enqueueSessionSummaryReportRefresh');
-    expect(routeSource).toContain("status === 'FINISHED'");
+    expect(commandSource).not.toContain('enqueueSessionFinalizationSnapshots');
+    expect(commandSource).toContain('enqueueSessionFinalizationEventIngestion');
+    expect(commandSource).toContain('enqueueSessionSummaryReportRefresh');
+    expect(applicationSource).toContain("input.status === 'FINISHED'");
   });
 });

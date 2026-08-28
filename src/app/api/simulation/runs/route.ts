@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { canAccessClassroomSession } from '@/lib/classroom-session-access';
+import { canAccessClassroomSession } from '@/features/classroom/session';
 import { resolveTrustedControlWorkbenchContext } from '@/lib/data-governance/control-workbench-run-context';
 import {
   persistControlWorkbenchSimulationRun,
