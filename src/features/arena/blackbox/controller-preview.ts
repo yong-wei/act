@@ -15,6 +15,8 @@ import {
 
 import {
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+  ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  ARENA_CRUISE_ROLL_PREVIEW_STEPS,
   ARENA_PREVIEW_TEACHING_SEMANTICS,
 } from '@/lib/control-engine';
 import { computeArenaVirtualPreviewResult } from '@/lib/control-engine/server';
@@ -242,8 +244,8 @@ export function buildArenaVirtualSimulationPreview({
     dampingCompensation,
     energyBudget,
     initialRoll: experiment.dataset.summary.finalOutput || 0.2,
-    sampleTime: 0.2,
-    steps: 61,
+    sampleTime: ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+    steps: ARENA_CRUISE_ROLL_PREVIEW_STEPS,
     modelRelation: 'surrogate',
   });
   const trace = rustResult.trace;

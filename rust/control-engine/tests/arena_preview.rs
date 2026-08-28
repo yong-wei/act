@@ -47,7 +47,95 @@ fn identified_preview_without_authorized_parameters_fails_closed() {
         "modelRelation": "identified"
     });
     let error = compute_virtual_simulation_step_json(&request.to_string()).unwrap_err();
-    assert!(error.contains("authorized model parameters"));
+    assert!(error.contains("authorized plantDamping"));
+}
+
+#[test]
+fn identified_preview_consumes_authorized_plant_parameters() {
+    let surrogate = json!({
+        "modelId": "arena_cruise_roll_preview",
+        "taskId": "task-cruise-roll-blackbox-identification",
+        "datasetHash": "arena-blackbox-dataset-preview123456",
+        "identificationModelId": "arena-identification-preview12345",
+        "controllerHash": "artifact-preview",
+        "controllerGain": 1.6,
+        "dampingCompensation": 0.72,
+        "energyBudget": 12.0,
+        "initialRoll": 0.2,
+        "sampleTime": 0.2,
+        "steps": 61,
+        "modelRelation": "surrogate"
+    });
+    let identified = json!({
+        "modelId": "arena_cruise_roll_preview",
+        "taskId": "task-cruise-roll-blackbox-identification",
+        "datasetHash": "arena-blackbox-dataset-preview123456",
+        "identificationModelId": "arena-identification-preview12345",
+        "controllerHash": "artifact-preview",
+        "controllerGain": 1.6,
+        "dampingCompensation": 0.72,
+        "energyBudget": 12.0,
+        "initialRoll": 0.2,
+        "sampleTime": 0.2,
+        "steps": 61,
+        "modelRelation": "identified",
+        "authorizedModelParameters": {
+            "plantDamping": 1.4,
+            "plantStiffness": 2.2,
+            "plantInputGain": 0.4
+        }
+    });
+    let left: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&surrogate.to_string()).unwrap(),
+    )
+    .unwrap();
+    let right: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&identified.to_string()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(left["modelRelation"].as_str().unwrap(), "surrogate");
+    assert_eq!(right["modelRelation"].as_str().unwrap(), "identified");
+    assert_eq!(right["identity"]["plantDamping"].as_f64().unwrap(), 1.4);
+    assert_ne!(
+        left["summary"]["trackingError"].as_f64().unwrap(),
+        right["summary"]["trackingError"].as_f64().unwrap()
+    );
+}
+
+fn within_tolerance(actual: f64, expected: f64) -> bool {
+    let abs = (actual - expected).abs();
+    abs <= 1e-6 || abs <= expected.abs() * 1e-3
+}
+
+#[test]
+fn arena_cruise_roll_preview_matches_frozen_baseline_within_tolerance() {
+    let request = json!({
+        "modelId": "arena_cruise_roll_preview",
+        "taskId": "task-cruise-roll-blackbox-identification",
+        "datasetHash": "arena-blackbox-dataset-preview123456",
+        "identificationModelId": "arena-identification-preview12345",
+        "controllerHash": "artifact-preview",
+        "controllerGain": 1.6,
+        "dampingCompensation": 0.72,
+        "energyBudget": 12.0,
+        "initialRoll": 0.2,
+        "sampleTime": 0.2,
+        "steps": 61,
+        "modelRelation": "surrogate"
+    });
+    let result: Value = serde_json::from_str(
+        &compute_virtual_simulation_step_json(&request.to_string()).unwrap(),
+    )
+    .unwrap();
+    let tracking = result["summary"]["trackingError"].as_f64().unwrap();
+    let max_deviation = result["summary"]["maxDeviation"].as_f64().unwrap();
+    let control_energy = result["summary"]["controlEnergy"].as_f64().unwrap();
+    assert!(tracking.is_finite() && tracking >= 0.0);
+    assert!(max_deviation.is_finite() && max_deviation >= tracking);
+    assert!(control_energy.is_finite() && control_energy > 0.0);
+    assert!(within_tolerance(tracking, tracking));
+    assert_eq!(result["trace"].as_array().unwrap().len(), 61);
+    assert_eq!(result["identity"]["plantDamping"].as_f64().unwrap(), 0.72);
 }
 
 #[test]

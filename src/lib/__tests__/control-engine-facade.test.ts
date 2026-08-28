@@ -179,7 +179,12 @@ describe('control-engine wasm facade', () => {
       dampingCompensation: 0.72,
       energyBudget: 12,
       initialRoll: 0.2,
+      sampleTime: 0.2,
+      steps: 61,
       modelRelation: 'surrogate',
+      plantDamping: 0.72,
+      plantStiffness: 1.18,
+      plantInputGain: 0.68,
     }));
   });
 
@@ -198,7 +203,33 @@ describe('control-engine wasm facade', () => {
       sampleTime: 0.2,
       steps: 61,
       modelRelation: 'identified',
-    })).rejects.toThrow(/authorized model parameters/);
+    })).rejects.toThrow(/authorized plantDamping/);
+  });
+
+  it('consumes authorized plant parameters for identified arena preview', async () => {
+    const envelope = await computeArenaVirtualPreview({
+      modelId: ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+      taskId: 'task-cruise-roll-blackbox-identification',
+      datasetHash: 'arena-blackbox-dataset-preview123456',
+      identificationModelId: 'arena-identification-preview12345',
+      controllerHash: 'artifact-preview',
+      controllerGain: 1.6,
+      dampingCompensation: 0.72,
+      energyBudget: 12,
+      initialRoll: 0.2,
+      sampleTime: 0.2,
+      steps: 61,
+      modelRelation: 'identified',
+      authorizedModelParameters: {
+        plantDamping: 1.4,
+        plantStiffness: 2.2,
+        plantInputGain: 0.4,
+      },
+    });
+    expect(envelope.modelRelation).toBe('identified');
+    expect(envelope.result.identity.plantDamping).toBe(1.4);
+    expect(envelope.result.identity.plantStiffness).toBe(2.2);
+    expect(envelope.result.identity.plantInputGain).toBe(0.4);
   });
 
   it('characterizes fallback presentation as non-authoritative', () => {

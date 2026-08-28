@@ -51,6 +51,7 @@ describe('black-box identification control workbench preset', () => {
     expect(shellSource).toContain("session.defaultPreset !== 'blackbox-identification'");
     expect(presetSource).toContain('/api/arena/blackbox-experiments');
     expect(presetSource).toContain('/api/arena/virtual-simulation-runs');
+    expect(presetSource).toContain('computeArenaVirtualPreviewBrowser');
     expect(presetSource).toContain('/api/arena/evaluate');
     expect(presetSource).toContain('buildBlackBoxControlArtifactFromParams');
     expect(legacyPanelSource).toContain('BlackBoxIdentificationPanel');

@@ -1,4 +1,24 @@
 export {
+  ARENA_PREVIEW_CAPABILITY_MATRIX,
+  ARENA_CRUISE_ROLL_IDENTIFIED_PARAMETER_KEYS,
+  ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+  ARENA_CRUISE_ROLL_SURROGATE_PLANT,
+  ARENA_PREVIEW_PROTOCOL_VERSION,
+  ARENA_PREVIEW_TOLERANCE,
+  arenaPreviewCanonicalRequest,
+  assertArenaPreviewIdentityConsumed,
+  assertSupportedArenaPreviewMethod,
+  getArenaPreviewCapability,
+  isSupportedArenaPreviewMethod,
+  resolveArenaCruiseRollPlantParameters,
+} from './arena-preview-support';
+export type {
+  ArenaPreviewCapability,
+  ArenaPreviewMethod,
+  ArenaPreviewPlantParameters,
+} from './arena-preview-support';
+export {
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
   ARENA_PREVIEW_TEACHING_SEMANTICS,
   AUTHORITY_SOURCES,

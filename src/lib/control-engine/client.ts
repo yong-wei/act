@@ -11,10 +11,18 @@ import {
 } from './envelope';
 import {
   DEFAULT_ANALYSIS_TIMEOUT_MS,
+  ARENA_PREVIEW_TEACHING_SEMANTICS,
+  type ArenaCruiseRollPreviewRequest,
+  type ArenaCruiseRollPreviewResult,
   type ControlEngineCapability,
   type ControlEngineEnvelope,
   type ControlEngineExecutor,
 } from './types';
+import {
+  arenaPreviewCanonicalRequest,
+  assertArenaPreviewIdentityConsumed,
+  resolveArenaCruiseRollPlantParameters,
+} from './arena-preview-support';
 import { ensureBrowserControlEngine, invokeBrowserWasm, isBrowserControlEngineReady, preloadBrowserControlEngine } from './wasm-browser';
 
 export { isBrowserControlEngineReady, preloadBrowserControlEngine };
@@ -137,4 +145,50 @@ export async function computeRlTrainingBrowser<TResult>(
     request,
     executor: 'browser',
   });
+}
+
+export function computeArenaVirtualPreviewBrowserSync(
+  request: ArenaCruiseRollPreviewRequest,
+): ArenaCruiseRollPreviewResult {
+  if (!isBrowserControlEngineReady()) {
+    throw new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'wasm-not-ready',
+      message: 'Arena 预览数值内核尚未加载完成。',
+      retryable: true,
+    });
+  }
+  resolveArenaCruiseRollPlantParameters(request);
+  const result = JSON.parse(
+    invokeBrowserWasm('compute_virtual_simulation_step', JSON.stringify(request)),
+  ) as ArenaCruiseRollPreviewResult;
+  assertFiniteTree(result, 'computeArenaVirtualPreview');
+  assertArenaPreviewIdentityConsumed(request, result);
+  return result;
+}
+
+export async function computeArenaVirtualPreviewBrowser(
+  request: ArenaCruiseRollPreviewRequest,
+  options?: { timeoutMs?: number; requestId?: string },
+): Promise<ControlEngineEnvelope<ArenaCruiseRollPreviewResult>> {
+  const requestId = options?.requestId ?? newRequestId();
+  try {
+    const result = await withTimeout((async () => {
+      await ensureBrowserControlEngine();
+      return computeArenaVirtualPreviewBrowserSync(request);
+    })(), options?.timeoutMs ?? DEFAULT_ANALYSIS_TIMEOUT_MS);
+
+    return okEnvelope({
+      capability: 'computeArenaVirtualPreview',
+      executor: 'browser',
+      requestId,
+      canonicalRequestHash: await canonicalRequestHash(arenaPreviewCanonicalRequest(request)),
+      result,
+      persisted: false,
+      modelRelation: result.modelRelation,
+      teachingSemantics: ARENA_PREVIEW_TEACHING_SEMANTICS,
+    });
+  } catch (error) {
+    throw mapFailure(error);
+  }
 }
