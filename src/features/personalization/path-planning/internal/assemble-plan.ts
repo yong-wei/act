@@ -1831,6 +1831,24 @@ export function getRegisteredAdaptiveLearningPathGoal(
       requiresTerminalValidation: policy.checkpointPolicy.requiresTerminalValidation,
     },
     explanationTemplates: policy.explanationTemplates,
+    learningGoal: definition.learningGoal
+      ? {
+          ...definition.learningGoal,
+          evidencePolicy: {
+            ...definition.learningGoal.evidencePolicy,
+            requiredEvidenceTypes: policy.evidenceRequirements.filter(
+              (value): value is AdaptiveLearningPathEvidenceType => (
+                value === 'question' ||
+                value === 'path-execution' ||
+                value === 'simulation-run' ||
+                value === 'arena-official-evaluation' ||
+                value === 'reflection' ||
+                value === 'agent-interaction'
+              ),
+            ),
+          },
+        }
+      : definition.learningGoal,
     goal: {
       ...definition.goal,
       capabilityTargets: plugin?.sliceDefinition?.capabilityTargets ?? definition.goal.capabilityTargets,

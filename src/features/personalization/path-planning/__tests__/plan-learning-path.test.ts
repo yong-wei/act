@@ -210,6 +210,30 @@ describe('PlanLearningPath pipeline', () => {
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)?.checkpointPolicy.minCheckpoints).toBe(1);
   });
 
+  it('applies plugin evidence requirements to the registered learning goal', () => {
+    const registry = createPersonalizationPluginRegistry();
+    const plugin = createControlCorrectionPersonalizationPlugin();
+    plugin.pathPlanningPolicy = {
+      ...plugin.pathPlanningPolicy!,
+      evidenceRequirements: ['reflection'],
+    };
+    registry.register(plugin);
+    expect(
+      getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry)
+        ?.learningGoal?.evidencePolicy.requiredEvidenceTypes,
+    ).toEqual(['reflection']);
+    expect(
+      getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)
+        ?.learningGoal?.evidencePolicy.requiredEvidenceTypes,
+    ).toEqual([
+      'question',
+      'path-execution',
+      'simulation-run',
+      'arena-official-evaluation',
+      'reflection',
+    ]);
+  });
+
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
     for (const file of GENERIC_PIPELINE_FILES) {
       const source = readFileSync(file, 'utf8');

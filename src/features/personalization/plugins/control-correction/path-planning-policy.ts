@@ -77,9 +77,10 @@ export const CONTROL_CORRECTION_PATH_PLANNING_POLICY: PersonalizationPluginPathP
     fallback: '当前只能给出保守路径建议，请先完成可用资源并补充学习证据。',
   },
   evidenceRequirements: [
-    'arena-official-evaluation',
+    'question',
+    'path-execution',
     'simulation-run',
+    'arena-official-evaluation',
     'reflection',
-    'agent-interaction',
   ],
 };
