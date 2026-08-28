@@ -16,7 +16,7 @@ import {
   saveTeacherAssignmentReview,
   signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
-} from '../teacher-assignment-review';
+} from '@/lib/assignments/assignment-review';
 
 const now = new Date('2026-07-17T01:00:00.000Z');
 

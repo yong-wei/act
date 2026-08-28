@@ -20,6 +20,19 @@ import { SubmissionError } from './submission-domain';
 import { assertSubmissionObjectIntegrity } from './submission-integrity';
 import { createSubmissionObjectStore } from './submission-object-store';
 import {
+  approveTeacherAssignmentReview,
+  buildTeacherAssignmentReviewApiProjection,
+  consumeTeacherAssignmentOriginalAssetRead,
+  createTeacherAssignmentReview,
+  getTeacherAssignmentReview,
+  listTeacherAssignmentSubmissions,
+  requestTeacherAssignmentFeedbackRelease,
+  returnTeacherAssignmentReview,
+  saveTeacherAssignmentReview,
+  signTeacherAssignmentOriginalAssetRead,
+  TeacherAssignmentReviewError,
+} from './assignment-review';
+import {
   consumeSubmissionAssetRead,
   finalizeQuestionAsset,
   getQuestionUploadStatus,
@@ -40,6 +53,7 @@ export type { StudentAssignmentDto, StudentQuestionDto, StudentAssignmentFeedbac
 export type { AssignmentDraftInput, AssignmentDraftPersistenceInput, AssignmentAudienceInput } from './assignment-domain';
 export { AssignmentDomainError } from './assignment-domain';
 export { SubmissionError } from './submission-domain';
+export { TeacherAssignmentReviewError } from './assignment-review';
 export { assignmentContentAssetUploadSchema } from './assignment-content-assets';
 
 function db() {
@@ -208,6 +222,135 @@ export async function studentReadFeedbackAsset(actor: StudentActor, assignmentId
     bytes,
     mimeType: derivative.outputMimeType,
     filename: `reviewed-assignment-${snapshot.questionId}.${extension}`,
+  };
+}
+
+export async function teacherListAssignmentSubmissions(actor: AssignmentActor, assignmentId: string) {
+  return listTeacherAssignmentSubmissions(db(), { actor, assignmentId });
+}
+
+export async function teacherGetReview(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  query?: { reviewId?: string; gradingRunId?: string },
+) {
+  const review = await getTeacherAssignmentReview(db(), {
+    actor,
+    assignmentId,
+    submissionId,
+    reviewId: query?.reviewId,
+    gradingRunId: query?.gradingRunId,
+  });
+  return buildTeacherAssignmentReviewApiProjection(review);
+}
+
+export async function teacherOpenReview(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  gradingRunId: string,
+) {
+  const result = await createTeacherAssignmentReview(db(), { actor, assignmentId, submissionId, gradingRunId });
+  return {
+    ...result,
+    review: buildTeacherAssignmentReviewApiProjection(result.review),
+  };
+}
+
+export async function teacherSaveReview(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  input: {
+    reviewId: string;
+    expectedVersion: number;
+    criteria: Array<{ criterionId: string; levelId: string | null; score: number; comment: string }>;
+    annotations: Array<{
+      id?: string;
+      criterionId: string;
+      status: 'ACTIVE' | 'SUPPRESSED';
+      comment: string;
+      anchor: Record<string, unknown>;
+      origin?: 'AI_DRAFT' | 'TEACHER';
+    }>;
+    overallComment: string;
+  },
+) {
+  const review = await saveTeacherAssignmentReview(db(), { actor, assignmentId, submissionId, ...input });
+  return buildTeacherAssignmentReviewApiProjection(review);
+}
+
+export async function teacherApproveReview(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  input: {
+    reviewId: string;
+    expectedVersion: number;
+    idempotencyKey: string;
+    confirmIncompleteEvidence?: boolean;
+    omittedAssetIds?: string[];
+  },
+) {
+  return approveTeacherAssignmentReview(db(), { actor, assignmentId, submissionId, ...input });
+}
+
+export async function teacherReturnReview(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  input: {
+    reviewId: string;
+    expectedVersion: number;
+    idempotencyKey: string;
+    reason: string;
+    allowedResponseType: 'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE';
+    newDeadlineAt: Date;
+  },
+) {
+  return returnTeacherAssignmentReview(db(), { actor, assignmentId, submissionId, ...input });
+}
+
+export async function teacherRequestFeedbackRelease(
+  actor: AssignmentActor,
+  assignmentId: string,
+  submissionId: string,
+  input: { reviewId: string; mode: 'RETRY_DERIVATIVE' | 'STRUCTURED_ONLY'; limitationAcknowledgement?: string },
+) {
+  return requestTeacherAssignmentFeedbackRelease(db(), { actor, assignmentId, submissionId, ...input });
+}
+
+export async function teacherSignOriginalAssetRead(
+  actor: AssignmentActor,
+  input: { assignmentId: string; submissionId: string; reviewId: string; assetId: string },
+) {
+  return signTeacherAssignmentOriginalAssetRead(db(), { actor, ...input });
+}
+
+export async function teacherReadOriginalAsset(
+  actor: AssignmentActor,
+  input: { assignmentId: string; submissionId: string; reviewId: string; assetId: string; token?: string },
+) {
+  if (!input.token) {
+    throw new TeacherAssignmentReviewError('teacher-review-original-asset-token-invalid', 403);
+  }
+  const asset = await consumeTeacherAssignmentOriginalAssetRead(db(), {
+    actor,
+    assignmentId: input.assignmentId,
+    submissionId: input.submissionId,
+    reviewId: input.reviewId,
+    assetId: input.assetId,
+    token: input.token,
+  });
+  const bytes = await store().readObject(asset.objectKey);
+  if (!asset.checksum) throw new SubmissionError('submission-content-unavailable', 410);
+  assertSubmissionObjectIntegrity(bytes, asset.sizeBytes, asset.checksum);
+  return {
+    bytes,
+    mimeType: asset.mimeType,
+    displayName: asset.displayName,
+    sizeBytes: bytes.byteLength,
   };
 }
 

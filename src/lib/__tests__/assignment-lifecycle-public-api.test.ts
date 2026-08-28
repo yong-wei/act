@@ -15,8 +15,6 @@ const LIFECYCLE_ROUTE_ROOTS = [
 ] as const;
 
 const HANDOFF = [
-  '/submissions/',
-  '/review/',
   '/rubric-guidelines/',
   '/__tests__/',
 ] as const;
@@ -27,6 +25,8 @@ const FORBIDDEN = [
   "@/lib/assignments/submission-service",
   "@/lib/assignments/assignment-content-assets",
   "@/lib/assignments/assignment-question-catalog",
+  "@/lib/assignments/assignment-review",
+  "@/lib/data-governance/teacher-assignment-review",
 ];
 
 function walk(dir: string, acc: string[] = []): string[] {
@@ -65,6 +65,8 @@ describe('assignment lifecycle public API', () => {
     expect(source).toContain('export async function teacherGetAssignment');
     expect(source).toContain('export async function teacherListManagedClasses');
     expect(source).toContain('export async function studentReadFeedbackAsset');
+    expect(source).toContain('export async function teacherApproveReview');
+    expect(source).toContain('export async function teacherListAssignmentSubmissions');
     expect(source).not.toContain("from '@/app/api/");
   });
 

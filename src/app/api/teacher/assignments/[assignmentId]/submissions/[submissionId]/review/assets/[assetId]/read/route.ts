@@ -4,21 +4,10 @@ import { z } from 'zod';
 import {
   requireAssignmentActor,
   requireAssignmentMutation,
+  teacherAssignmentReviewErrorResponse,
 } from '@/lib/assignments/assignment-route-guards';
-import {
-  SubmissionError,
-} from '@/lib/assignments/submission-domain';
-import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
-import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
-import { submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
-import {
-  consumeTeacherAssignmentOriginalAssetRead,
-  signTeacherAssignmentOriginalAssetRead,
-  TeacherAssignmentReviewError,
-} from '@/lib/data-governance/teacher-assignment-review';
-import { teacherAssignmentReviewErrorResponse } from '@/lib/data-governance/teacher-assignment-review-api';
+import { teacherReadOriginalAsset, teacherSignOriginalAssetRead } from '@/lib/assignments/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,8 +35,7 @@ export async function POST(request: Request, context: RouteContext) {
     const query = querySchema.omit({ token: true, download: true }).parse(
       Object.fromEntries(new URL(request.url).searchParams),
     );
-    const access = await signTeacherAssignmentOriginalAssetRead(prisma, {
-      actor: auth.actor,
+    const access = await teacherSignOriginalAssetRead(auth.actor, {
       ...ids,
       reviewId: query.reviewId,
     });
@@ -57,7 +45,7 @@ export async function POST(request: Request, context: RouteContext) {
     );
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return originalAssetErrorResponse(error);
+    return teacherAssignmentReviewErrorResponse(error);
   }
 }
 
@@ -69,29 +57,18 @@ export async function GET(request: Request, context: RouteContext) {
     const query = querySchema.parse(
       Object.fromEntries(new URL(request.url).searchParams),
     );
-    if (!query.token) {
-      throw new TeacherAssignmentReviewError(
-        'teacher-review-original-asset-token-invalid',
-        403,
-      );
-    }
-    const asset = await consumeTeacherAssignmentOriginalAssetRead(prisma, {
-      actor: auth.actor,
+    const asset = await teacherReadOriginalAsset(auth.actor, {
       ...ids,
       reviewId: query.reviewId,
       token: query.token,
     });
-    const bytes = await createSubmissionObjectStore().readObject(
-      asset.objectKey,
-    );
-    assertSubmissionObjectIntegrity(bytes, asset.sizeBytes, asset.checksum);
     const dispositionType = query.download === '1' ? 'attachment' : 'inline';
     const disposition = `${dispositionType}; filename*=UTF-8''${encodeURIComponent(asset.displayName)}`;
-    return new NextResponse(Buffer.from(bytes), {
+    return new NextResponse(Buffer.from(asset.bytes), {
       status: 200,
       headers: {
         'Content-Type': asset.mimeType,
-        'Content-Length': String(bytes.byteLength),
+        'Content-Length': String(asset.bytes.byteLength),
         'Content-Disposition': disposition,
         'X-Content-Type-Options': 'nosniff',
         'Cache-Control': 'private, no-store',
@@ -99,16 +76,6 @@ export async function GET(request: Request, context: RouteContext) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    return originalAssetErrorResponse(error);
-  }
-}
-
-function originalAssetErrorResponse(error: unknown) {
-  if (error instanceof TeacherAssignmentReviewError) {
     return teacherAssignmentReviewErrorResponse(error);
   }
-  if (error instanceof SubmissionError) {
-    return submissionErrorResponse(error);
-  }
-  return teacherAssignmentReviewErrorResponse(error);
 }

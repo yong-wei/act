@@ -1,0 +1,36 @@
+{
+  "sourceRevision": "27042ef8a53e4a21a7466ebfe9b1b6ed545531c4",
+  "owner": "src/lib/assignments",
+  "publicApi": "src/lib/assignments/public-api.ts",
+  "application": [
+    "src/lib/assignments/assignment-review.ts"
+  ],
+  "governedPorts": [
+    "src/lib/data-governance/teacher-assignment-review-outbox.ts",
+    "src/lib/data-governance/teacher-assignment-review-derivative.ts",
+    "src/lib/data-governance/teacher-assignment-review-derivative-storage.ts",
+    "src/lib/data-governance/math-document-grading-persistence.ts"
+  ],
+  "migratedReviewRoutes": [
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review/approve/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review/return/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review/release/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review/assets/[assetId]/read/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/feedback/[snapshotId]/asset/route.ts"
+  ],
+  "retirementHandoff": [
+    "src/app/api/teacher/document-grading"
+  ],
+  "removedCompetingEntrypoints": [
+    "src/lib/data-governance/teacher-assignment-review.ts",
+    "src/lib/data-governance/teacher-assignment-review-api.ts"
+  ],
+  "models": [
+    "TeacherAssignmentReview",
+    "GradingRun",
+    "TeacherAssignmentApprovalSnapshot",
+    "TeacherAssignmentReviewOutbox"
+  ]
+}

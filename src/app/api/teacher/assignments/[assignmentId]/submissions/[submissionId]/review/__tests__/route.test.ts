@@ -5,22 +5,22 @@ const mocks = vi.hoisted(() => ({
   getReview: vi.fn(),
 }));
 
-vi.mock('@/lib/assignments/assignment-route-guards', () => ({
-  requireAssignmentActor: mocks.requireAssignmentActor,
-  requireAssignmentMutation: vi.fn(),
-  readBoundedAssignmentJson: vi.fn(),
-}));
-vi.mock('@/lib/data-governance/teacher-assignment-review', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/data-governance/teacher-assignment-review')>();
+vi.mock('@/lib/assignments/assignment-route-guards', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assignments/assignment-route-guards')>();
   return {
     ...actual,
-    getTeacherAssignmentReview: mocks.getReview,
+    requireAssignmentActor: mocks.requireAssignmentActor,
+    requireAssignmentMutation: vi.fn(),
+    readBoundedAssignmentJson: vi.fn(),
   };
 });
-vi.mock('@/lib/prisma', () => ({ prisma: {} }));
+vi.mock('@/lib/assignments/public-api', () => ({
+  teacherGetReview: mocks.getReview,
+}));
 
 import { GET } from '../route';
 import { normalizeTeacherReviewDetail } from '@/features/assignments/teacher-review-contracts';
+import { buildTeacherAssignmentReviewApiProjection } from '@/lib/assignments/assignment-review';
 
 describe('teacher assignment review detail route', () => {
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe('teacher assignment review detail route', () => {
   });
 
   it('returns the safe sealed original-response projection without conversion or storage metadata', async () => {
-    mocks.getReview.mockResolvedValue({
+    mocks.getReview.mockResolvedValue(buildTeacherAssignmentReviewApiProjection({
       id: 'review-1',
       assignmentId: 'assignment-1',
       assignmentRevisionId: 'revision-1',
@@ -134,7 +134,7 @@ describe('teacher assignment review detail route', () => {
           },
         },
       },
-    });
+    }));
 
     const response = (await GET(
       new Request('https://act.example/api/review?reviewId=review-1'),
