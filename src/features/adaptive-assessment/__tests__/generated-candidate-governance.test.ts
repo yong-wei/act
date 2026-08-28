@@ -420,4 +420,100 @@ describe('generated candidate governance', () => {
       ]),
     });
   });
+
+  it('blocks duplicate publication of the same candidate revision', () => {
+    const store = createGeneratedCandidateStore();
+    const created = createGeneratedCandidate(store, envelope(validContent(), 'ai'));
+    reviewGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      reviewerUserId: 'reviewer-1',
+      reviewerRole: 'assessment-content-reviewer',
+      outcome: 'approved',
+      rationale: '答案、干扰项、目标和难度均核对通过。',
+      itemDecisions: {
+        answer: 'accept',
+        distractors: 'accept',
+        semantics: 'accept',
+        stage: 'accept',
+        source: 'accept',
+      },
+    });
+    const receipt = publishGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      publisherUserId: 'publisher-1',
+      catalogReleaseId: 'generated-catalog.r1',
+    });
+    expect(() => publishGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      publisherUserId: 'publisher-2',
+      catalogReleaseId: 'generated-catalog.r2',
+    })).toThrow(/只有当前人工批准/);
+    expect(store.receipts).toHaveLength(1);
+    expect(store.receipts[0]?.receiptHash).toBe(receipt.receiptHash);
+    expect(store.events.filter((event) => event.status === 'published')).toHaveLength(1);
+  });
+
+  it('reads back publication receipts after a persistence round-trip', async () => {
+    const store = createGeneratedCandidateStore();
+    const created = createGeneratedCandidate(store, envelope(validContent(), 'ai'));
+    reviewGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      reviewerUserId: 'reviewer-1',
+      reviewerRole: 'assessment-content-reviewer',
+      outcome: 'approved',
+      rationale: '答案、干扰项、目标和难度均核对通过。',
+      itemDecisions: {
+        answer: 'accept',
+        distractors: 'accept',
+        semantics: 'accept',
+        stage: 'accept',
+        source: 'accept',
+      },
+    });
+    const receipt = publishGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      publisherUserId: 'publisher-1',
+      catalogReleaseId: 'generated-catalog.r1',
+    });
+    const { loadGeneratedCandidateStore } = await import('../generated-candidate-persistence');
+    const loaded = await loadGeneratedCandidateStore(persistenceDbFromStore(store));
+    const readBack = loaded.receipts.find((item) => item.receiptHash === receipt.receiptHash);
+    expect(readBack).toMatchObject({
+      candidateId: receipt.candidateId,
+      revisionId: receipt.revisionId,
+      reviewId: receipt.reviewId,
+      catalogItemId: receipt.catalogItemId,
+      contentHash: receipt.contentHash,
+      catalogReleaseId: receipt.catalogReleaseId,
+      generationKind: 'ai',
+      status: 'published',
+    });
+    const question = buildGeneratedQuestion(
+      created.revision.revisionId,
+      created.revision.content.stem,
+      created.revision.content.difficulty,
+      ['time'],
+      created.revision.content.knowledgeTags,
+      {
+        learningGoalIds: created.revision.content.learningGoalIds,
+        graphNodeIds: created.revision.content.graphNodeIds,
+        intendedStage: created.revision.content.intendedStage,
+      },
+    );
+    question.options = created.revision.content.options;
+    const catalog = buildAdaptiveAssessmentItemCatalog({
+      presetQuestions: [],
+      checkpointQuestions: [],
+      generatedCandidateStore: loaded,
+      generatedQuestions: [{ question, generationKind: 'ai' }],
+    });
+    expect(catalog.items.find((item) => item.catalogItemId === receipt.catalogItemId)).toMatchObject({
+      eligibilityState: 'path-eligible',
+      versionRefs: expect.objectContaining({
+        generatedPublicationReceiptHash: receipt.receiptHash,
+        generatedCandidateRevisionId: receipt.revisionId,
+        generatedCatalogReleaseId: 'generated-catalog.r1',
+      }),
+    });
+  });
 });

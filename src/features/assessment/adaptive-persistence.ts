@@ -245,6 +245,7 @@ function selectedOptionValueFromKey(
 
 function questionSource(questionId: string): string {
   if (questionId.startsWith('checkpoint-authored-question:')) return 'checkpoint-authored-question';
+  if (questionId.startsWith('generated-revision:')) return 'generated-reviewed';
   return questionId.startsWith('generated-q-') ? 'generated' : 'preset';
 }
 

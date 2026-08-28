@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import type { AdaptiveAssessmentCatalogItem } from './adaptive-assessment-item-catalog';
 import type { AssessmentItemSemanticReviewDecision } from './adaptive-assessment-semantic-review';
 import { loadFrozenTerminalValidationOverlay } from './adaptive-assessment-lifecycle-coverage';
@@ -179,5 +180,45 @@ export function findAdaptiveAssessmentCatalogSnapshot(
     reviewDecision,
     versionRefs: selection.catalogItem.versionRefs,
     relationship: selection.catalogItem.adaptiveAssessmentItemRef,
+  };
+}
+
+/**
+ * Serves a published generated catalog item as a runtime question. Only items
+ * that are path-eligible through a verified publication receipt resolve here;
+ * provisional template practice stays in the session-scoped in-memory store and
+ * never reaches this path. The returned question carries no generatedMetadata
+ * owner/session scope because published items are reviewed shared content.
+ */
+export function findGeneratedRuntimeQuestionById(questionId: string): CrossDomainQuestion | null {
+  const snapshot = findAdaptiveAssessmentCatalogSnapshot(questionId);
+  if (
+    !snapshot
+    || snapshot.sourceFamily !== 'generated-adaptive-question'
+    || snapshot.eligibilityState !== 'path-eligible'
+    || !snapshot.questionRefs.stem
+    || !snapshot.questionRefs.options?.length
+  ) {
+    return null;
+  }
+  const options = snapshot.questionRefs.options.flatMap((option) => (
+    option.key && typeof option.isCorrect === 'boolean'
+      ? [{
+          label: option.key,
+          text: option.text,
+          isCorrect: option.isCorrect,
+          explanation: option.explanation ?? '',
+        }]
+      : []
+  ));
+  if (options.length === 0) return null;
+  return {
+    id: snapshot.sourceId,
+    stem: snapshot.questionRefs.stem,
+    domains: ['time'],
+    type: 'multi-criteria',
+    difficulty: snapshot.semanticRefs.difficulty ?? 0.5,
+    knowledgeTags: snapshot.semanticRefs.knowledgeTags,
+    options,
   };
 }
