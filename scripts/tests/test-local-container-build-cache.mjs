@@ -101,6 +101,7 @@ function createFixture() {
     ].join('\n') + '\n',
   );
   writeExecutable(path.join(fixture, 'node_modules/.bin/tsx'), '#!/usr/bin/env bash\nexit 0\n');
+  writeExecutable(path.join(fixture, 'node_modules/.bin/prisma'), '#!/usr/bin/env bash\nexit 0\n');
   fs.writeFileSync(
     path.join(fixture, 'scripts/release/textbook-runtime-v2-provenance.mjs'),
     'process.exit(0);\n',

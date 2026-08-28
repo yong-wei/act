@@ -174,9 +174,11 @@ else
   echo "[preflight] app-only 镜像不声明或校验外置 runtime provenance"
 fi
 
-echo "[1/3] 本地构建校验（含 Prisma generate + Next 类型检查）"
-rm -rf "${ROOT_DIR}/.next"
-SKIP_WASM_BUILD=1 npm run build
+echo "[1/3] 本地发布输入校验（Prisma + 优化模型 + production TypeScript）"
+PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate
+PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma generate
+npm run models:validate
+npm run typecheck
 assert_clean_release_worktree
 
 mkdir -p "$(dirname "${OUTPUT_TAR}")"
