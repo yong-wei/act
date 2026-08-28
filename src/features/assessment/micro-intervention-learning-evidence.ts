@@ -131,6 +131,21 @@ function nonEmpty(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function persistedProjectionIdentity(payload: Record<string, unknown>): MicroInterventionEvidenceIdentity | null {
+  const raw = payload.identity;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const identity: MicroInterventionEvidenceIdentity = {
+    canonicalObjectId: nonEmpty(record.canonicalObjectId) ?? '',
+    aggregateReleaseSetId: nonEmpty(record.aggregateReleaseSetId) ?? '',
+    aggregateReleaseId: nonEmpty(record.aggregateReleaseId) ?? '',
+    knowledgeProjectionId: nonEmpty(record.knowledgeProjectionId) ?? '',
+    captureRevision: nonEmpty(record.captureRevision) ?? '',
+    courseId: nonEmpty(record.courseId) ?? undefined,
+  };
+  return identityComplete(identity) ? identity : null;
+}
+
 function identityComplete(identity: MicroInterventionEvidenceIdentity | null): identity is MicroInterventionEvidenceIdentity {
   return Boolean(
     identity
@@ -405,7 +420,8 @@ export async function processPendingMicroInterventionEvidenceProjections(
         processed += 1;
         continue;
       }
-      const identity = await resolveMicroInterventionEvidenceIdentity(outcome);
+      const identity = persistedProjectionIdentity(payload)
+        ?? await resolveMicroInterventionEvidenceIdentity(outcome);
       const expectedWatermark = nonEmpty(payload.sourceWatermark);
       const currentWatermark = sealedMicroInterventionProjectionWatermark(outcome, identity);
       if (expectedWatermark && expectedWatermark !== currentWatermark) {

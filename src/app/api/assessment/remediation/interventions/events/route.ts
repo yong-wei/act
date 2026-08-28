@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     if (!interventionId || !eventKey || !type) {
       return NextResponse.json({ error: 'EVENT_IDENTIFIERS_REQUIRED' }, { status: 400 });
     }
-    const result = await runDecisionTransaction(prisma, async (tx) => {
+    const committed = await runDecisionTransaction(prisma, async (tx) => {
       const recorded = await recordMicroInterventionEvent({
         db: tx as unknown as MicroInterventionDb,
         authenticatedUserId: authenticated.userId,
@@ -54,21 +54,25 @@ export async function POST(request: Request) {
         resourceId,
         durationSeconds,
       });
-      if (recorded && recorded.status !== 'UNAVAILABLE') {
-        await stageInterventionEvidenceProjection({
-          db: tx as never,
-          interventionId,
-          actorUserId: authenticated.userId,
-          subjectUserId: authenticated.userId,
-          role: 'STUDENT',
-        });
+      if (!recorded || recorded.status === 'UNAVAILABLE') {
+        return { result: recorded };
       }
-      return recorded;
+      const evidenceProjection = await stageInterventionEvidenceProjection({
+        db: tx as never,
+        interventionId,
+        actorUserId: authenticated.userId,
+        subjectUserId: authenticated.userId,
+        role: 'STUDENT',
+      });
+      return { result: recorded, evidenceProjection };
     });
-    if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
-    return result.status === 'UNAVAILABLE'
-      ? NextResponse.json(result, { status: 409 })
-      : NextResponse.json(result);
+    if (!committed.result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
+    return committed.result.status === 'UNAVAILABLE'
+      ? NextResponse.json(committed.result, { status: 409 })
+      : NextResponse.json({
+        ...committed.result,
+        evidenceProjection: committed.evidenceProjection,
+      });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof MicroInterventionRequestError) {

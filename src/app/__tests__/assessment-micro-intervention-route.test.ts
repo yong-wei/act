@@ -188,6 +188,11 @@ describe('micro intervention routes', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(await response.json()).toEqual({
+      id: 'intervention-1',
+      status: 'IN_PROGRESS',
+      evidenceProjection: { status: 'staged', profileRefreshed: false },
+    });
     expect(mocks.recordMicroInterventionEvent).toHaveBeenCalledWith(expect.objectContaining({
       db: mocks.prisma,
       authenticatedUserId: 'learner-1',
@@ -237,10 +242,11 @@ describe('micro intervention routes', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
-    expect(mocks.submitMicroInterventionValidation).toHaveBeenCalledWith(expect.objectContaining({
-      db: mocks.prisma,
-      interventionId: 'intervention-1',
-    }));
+    expect(await response.json()).toEqual({
+      id: 'intervention-1',
+      status: 'COMPLETED',
+      evidenceProjection: { status: 'staged', profileRefreshed: false },
+    });
     expect(mocks.stageInterventionEvidenceProjection).toHaveBeenCalledWith(expect.objectContaining({
       db: mocks.prisma,
       interventionId: 'intervention-1',

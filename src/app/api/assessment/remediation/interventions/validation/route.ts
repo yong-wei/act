@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     if (!interventionId || !eventKey || !questionId || !selectedOption || typeof durationSeconds !== 'number') {
       return NextResponse.json({ error: 'VALIDATION_FIELDS_REQUIRED' }, { status: 400 });
     }
-    const result = await runDecisionTransaction(prisma, async (tx) => {
+    const committed = await runDecisionTransaction(prisma, async (tx) => {
       const submitted = await submitMicroInterventionValidation({
         db: tx as unknown as MicroInterventionDb,
         authenticatedUserId: authenticated.userId,
@@ -76,21 +76,25 @@ export async function POST(request: Request) {
         selectedOption,
         durationSeconds,
       });
-      if (submitted && submitted.status !== 'UNAVAILABLE') {
-        await stageInterventionEvidenceProjection({
-          db: tx as never,
-          interventionId,
-          actorUserId: authenticated.userId,
-          subjectUserId: authenticated.userId,
-          role: 'STUDENT',
-        });
+      if (!submitted || submitted.status === 'UNAVAILABLE') {
+        return { result: submitted };
       }
-      return submitted;
+      const evidenceProjection = await stageInterventionEvidenceProjection({
+        db: tx as never,
+        interventionId,
+        actorUserId: authenticated.userId,
+        subjectUserId: authenticated.userId,
+        role: 'STUDENT',
+      });
+      return { result: submitted, evidenceProjection };
     });
-    if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
-    return result.status === 'UNAVAILABLE'
-      ? NextResponse.json(result, { status: 409 })
-      : NextResponse.json(result);
+    if (!committed.result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
+    return committed.result.status === 'UNAVAILABLE'
+      ? NextResponse.json(committed.result, { status: 409 })
+      : NextResponse.json({
+        ...committed.result,
+        evidenceProjection: committed.evidenceProjection,
+      });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof MicroInterventionRequestError) {
