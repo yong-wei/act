@@ -789,9 +789,10 @@ export async function generateSessionSummaryReports(
         postSessionReviewIncluded: recompute ? postSessionReviewTotal : 0,
       },
       materialized: {
-        status: 'SUCCEEDED',
+        // 报告时点的观测计数：事实物化由事件摄取流水线异步推进，此处不声称完成
+        status: 'OBSERVED',
         learningFacts: studentFacts.length,
-        note: 'LearningFact rows linked to this session at report time',
+        note: 'LearningFact rows linked to this session at report time; completion is owned by the event-ingestion pipeline',
       },
       summarized: {
         status: 'SUCCEEDED',

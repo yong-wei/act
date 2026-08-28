@@ -31,8 +31,9 @@ import { processPendingMicroInterventionEvidenceProjections } from '@/features/a
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   failSessionClosureOutbox,
+  recordSessionReportPhase,
   redispatchPendingSessionClosures,
-  settleSessionClosureOutbox,
+  settleSessionClosureIfPhasesComplete,
 } from '@/lib/data-governance/session-closure-outbox';
 import {
   rebuildStudentEvidenceFeatureCache,
@@ -986,14 +987,15 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
         select: { userId: true },
       });
       for (const { userId } of studentStates) {
+        // 唯一 jobId：避开 failed 集合中既有 jobId 的 no-op add
         await cacheQueue.add(
           `evidence-feature-cache-refresh-${userId}`,
-          { userId },
+          { userId, sessionId },
           {
             attempts: 2,
             backoff: { type: 'exponential', delay: 10000 },
             delay: 120_000,
-            jobId: `evidence-feature-cache-${userId}-session-finalize-${sessionId}`,
+            jobId: `session-closure-cache-${userId}-${sessionId}-${Date.now()}`,
             removeOnComplete: { count: 20 },
             removeOnFail: { count: 50 },
           },
@@ -1012,10 +1014,17 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
     });
     await eventQueue.close();
     await cacheQueue.close();
-    if (sessionIds.length > 0) {
-      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched closure finalization for ${sessionIds.length} session(s)`);
+    // 阶段判定结算：summarized 晚于闭包入队且 cached 已成功的闭包才置 SUCCEEDED
+    let settled = 0;
+    for (const sessionId of sessionIds) {
+      if (await settleSessionClosureIfPhasesComplete(db, sessionId)) {
+        settled += 1;
+      }
     }
-    return { redispatchedSessions: sessionIds };
+    if (sessionIds.length > 0 || settled > 0) {
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched closure finalization for ${sessionIds.length} session(s), settled ${settled}`);
+    }
+    return { redispatchedSessions: sessionIds, settledClosures: settled };
   }
 
   if (!job.data.sessionId) {
@@ -1024,10 +1033,9 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
 
   const db = getPrismaClient();
   try {
-    const result = await generateSessionSummaryReports(db, job.data.sessionId);
-    // 水位限定报告成功后幂等结算闭包 outbox；失败记录可观察错误码
-    await settleSessionClosureOutbox(db, job.data.sessionId);
-    return result;
+    // 水位限定报告写入 summarized 阶段；结算由 coordinator 在全部必需阶段
+    // （summarized + cached）完成后按阶段判定执行
+    return await generateSessionSummaryReports(db, job.data.sessionId);
   } catch (error) {
     await failSessionClosureOutbox(db, job.data.sessionId, 'session-report-failed');
     throw error;
@@ -1051,8 +1059,28 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
     throw new Error('evidence-feature-cache job requires userId unless it is a coordinator rebuild job');
   }
 
-  await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
-  return { userId: job.data.userId, refreshed: true };
+  try {
+    await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
+    if (job.data.sessionId) {
+      // 闭包恢复路径按会话记录 cached 阶段完成回执，供 outbox 阶段判定结算
+      await recordSessionReportPhase(db, job.data.sessionId, 'cached', {
+        status: 'SUCCEEDED',
+        userId: job.data.userId,
+        at: new Date().toISOString(),
+      });
+    }
+    return { userId: job.data.userId, refreshed: true };
+  } catch (error) {
+    if (job.data.sessionId) {
+      await recordSessionReportPhase(db, job.data.sessionId, 'cached', {
+        status: 'FAILED',
+        userId: job.data.userId,
+        reason: String((error as Error)?.message ?? error).slice(0, 200),
+        at: new Date().toISOString(),
+      }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 export async function processRiskFlagScanJob(job: Job<RiskFlagScanJob>) {

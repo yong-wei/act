@@ -75,3 +75,8 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - P1 状态转移绕过：`persistAdvance` 携带 status 时改为 CAS（`status != FINISHED` 才可转移），count=0 抛 `session-finished`（410）。FINISHED 回退在应用层被禁止，杜绝闭课后把会话改回 ACTIVE/PAUSED 再产生高于水位的序列。
 - P1 补投只恢复报告：coordinator 重放全部收尾阶段——事件摄取 coordinator（幂等 jobId `event-ingestion-session-finalize-<sessionId>`）、按会话学生逐个的证据特征缓存刷新（沿用既有 jobId 约定）、再以唯一身份补投报告；报告作业成功后结算闭包。结算语义=闭包 handoff 已完整重放；各阶段失败仍经 qualityStatus/phases 可观察。
 - P1 无身份提交绕过水位：删除遗留提交路径（dedupeClassroomSubmissionEvents/buildStudentStepResponseRows/createMany 兜底全部移除）。无法建立规范身份的 lesson_submit/lesson_resubmit 按 `submission_without_canonical_identity` 降级拒绝、不入库；所有分类提交必须经写入器事务边界。
+
+## 11. Codex Review 第四轮整改（2026-08-28，PR #1668）
+
+- P1 CAS 后残留无条件写：`persistAdvance` 状态转移改为单次条件 `updateMany`（count=0 即 `session-finished`），返回行改由只读 `findUnique` 取得，消除"CAS 成功后再被并发闭课覆盖"的二次写窗口。
+- P1 结算早于阶段完成：报告作业不再直接结算闭包；缓存刷新作业携带 `sessionId` 并经 `recordSessionReportPhase` 记录 cached 阶段成功/失败；coordinator 补投后按阶段判定（summarized 晚于闭包入队 + cached SUCCEEDED）调用 `settleSessionClosureIfPhasesComplete` 结算，失败闭包保持 PENDING/FAILED 由后续周期恢复；materialized 阶段如实降为 OBSERVED 观测计数（其完成由事件摄取流水线负责，不声称完成）。

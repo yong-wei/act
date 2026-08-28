@@ -58,6 +58,40 @@ export async function failSessionClosureOutbox(
   return failed.count;
 }
 
+/**
+ * 阶段完成判定结算：仅当水位限定报告的 summarized 阶段晚于闭包入队时间、
+ * 且缓存阶段已记录 SUCCEEDED 时才置为 SUCCEEDED。事件摄取阶段由全局
+ * coordinator 消费，无法按会话记录完成回执，报告中以 materialized 观测计数
+ * 如实呈现（OBSERVED，不声称完成）。
+ */
+export async function settleSessionClosureIfPhasesComplete(
+  db: SessionClosurePrisma,
+  sessionId: string,
+): Promise<boolean> {
+  const pending = await db.sessionClosureOutbox.findFirst({
+    where: { sessionId, status: { in: ['PENDING', 'FAILED'] } },
+    orderBy: { availableAt: 'desc' },
+  });
+  if (!pending) return false;
+  const report = await db.classSessionReport.findUnique({
+    where: { sessionId_reportType: { sessionId, reportType: 'class-summary' } },
+    select: { reportData: true, closureRevision: true },
+  });
+  if (!report || report.closureRevision !== pending.closureRevision) return false;
+  const data = (report.reportData && typeof report.reportData === 'object' && !Array.isArray(report.reportData)
+    ? report.reportData
+    : {}) as Record<string, unknown>;
+  const phases = (data.phases && typeof data.phases === 'object' && !Array.isArray(data.phases)
+    ? data.phases
+    : {}) as Record<string, Record<string, unknown>>;
+  const summarizedAt = phases.summarized?.generatedAt;
+  if (typeof summarizedAt !== 'string') return false;
+  if (!(new Date(summarizedAt) > pending.availableAt)) return false;
+  if (phases.cached?.status !== 'SUCCEEDED') return false;
+  await settleSessionClosureOutbox(db, sessionId);
+  return true;
+}
+
 /** 把 worker 阶段的真实状态（含部分失败）合并进 class-summary 报告的 phases。 */
 export async function recordSessionReportPhase(
   db: SessionClosurePrisma,
