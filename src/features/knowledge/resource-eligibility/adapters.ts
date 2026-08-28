@@ -1,5 +1,6 @@
+import { canonicalStringify } from '../resource-index/canonical';
 import { canRevealIndexedResource } from '../resource-index/resolve';
-import type { IndexedResourceEntry, RegistryIndex, ResourceIdentity } from '../resource-index/types';
+import type { IndexedResourceEntry, RegistryIndex } from '../resource-index/types';
 
 import type {
   FormalDisposition,
@@ -36,17 +37,17 @@ export interface IndexedEligibilityObservation {
   releaseEvidenceIds?: readonly string[];
 }
 
-function identityEquals(left: ResourceIdentity, right: ResourceIdentity): boolean {
-  return left.key === right.key
-    && left.sourceKind === right.sourceKind
-    && left.sourceRef === right.sourceRef
-    && left.sourceVersion === right.sourceVersion
-    && left.contentHash === right.contentHash
-    && left.scope === right.scope;
+function indexedEntryFingerprint(entry: IndexedResourceEntry): string {
+  return canonicalStringify({
+    descriptor: entry.descriptor,
+    access: entry.access,
+    required: entry.required,
+  });
 }
 
 function indexedEntryBelongsToIndex(index: RegistryIndex, entry: IndexedResourceEntry): boolean {
-  return index.entries.some((candidate) => identityEquals(candidate.descriptor.identity, entry.descriptor.identity));
+  const fingerprint = indexedEntryFingerprint(entry);
+  return index.entries.some((candidate) => indexedEntryFingerprint(candidate) === fingerprint);
 }
 
 function ownerEngineeringOnly(
@@ -63,7 +64,9 @@ function namedConsumerPinsPresent(
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
 ): boolean {
-  if (!context.consumerId || !context.authorityId || !context.requestedRevision) return false;
+  if (!context.consumerId || !context.authorityId || !context.requestedRevision || !context.captureRevision) {
+    return false;
+  }
   if (ownerEngineeringOnly(context, observation)) return true;
   return Boolean(context.projectionId && context.projectionHash);
 }
@@ -82,8 +85,13 @@ function consumerActivationMatchesContext(
   const combination = observation?.consumerCombination;
   if (!combination) return false;
   if (context.authorityId && combination.authorityReleaseId !== context.authorityId) return false;
-  if (context.requestedRevision && combination.captureRevision !== context.requestedRevision) return false;
-  if (context.courseId && combination.scopeId !== context.courseId) return false;
+  if (context.captureRevision && combination.captureRevision !== context.captureRevision) return false;
+  if (context.purpose === 'named-consumer') {
+    const requestedScope = context.courseId ?? context.scope;
+    if (combination.scopeId !== requestedScope) return false;
+  } else if (context.courseId && combination.scopeId !== context.courseId) {
+    return false;
+  }
   if (context.projectionId && combination.projectionId !== context.projectionId) return false;
   if (context.projectionHash && combination.projectionHash !== context.projectionHash) return false;
   return true;
@@ -99,6 +107,7 @@ function teachingProjectionMatchesContext(
   if (status !== 'READY' && status !== 'PINNED_PREVIOUS') return true;
   const identity = observation?.teachingProjectionIdentity;
   if (!identity) return false;
+  if (context.consumerId && identity.consumerId !== context.consumerId) return false;
   if (context.authorityId && identity.authorityReleaseId !== context.authorityId) return false;
   if (context.projectionId && identity.projectionId !== context.projectionId) return false;
   if (context.projectionHash && identity.projectionHash !== context.projectionHash) return false;
@@ -112,9 +121,9 @@ function releaseQualifiedForContext(
   if (observation?.releaseQualified !== true) return false;
   if (context.courseId && observation.releasePackageId !== context.courseId) return false;
   if (
-    context.requestedRevision
+    context.captureRevision
     && observation.releaseCaptureRevision
-    && observation.releaseCaptureRevision !== context.requestedRevision
+    && observation.releaseCaptureRevision !== context.captureRevision
   ) {
     return false;
   }

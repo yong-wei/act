@@ -116,13 +116,7 @@ describe('resource eligibility evaluator', () => {
         }],
       }),
     ]);
-    const entry = {
-      ...index.entries[0],
-      descriptor: {
-        ...index.entries[0].descriptor,
-        foreignRefs: { ...index.entries[0].descriptor.foreignRefs, resourceNodeId: undefined },
-      },
-    };
+    const entry = index.entries[0];
     const context: ResourceEligibilityContext = {
       role: 'student',
       scope: 'lesson-1-1',
@@ -260,36 +254,27 @@ describe('resource eligibility evaluator', () => {
         }],
       }),
     ]);
-    const entry = {
-      ...index.entries[0],
-      required: false,
-      descriptor: {
-        ...index.entries[0].descriptor,
-        availability: 'degraded' as const,
-        availabilityCode: 'optional-media-missing',
-      },
+    const entry = index.entries[0];
+    const browseContextInput: ResourceEligibilityContext = {
+      role: 'student',
+      scope: 'lesson-1-1',
+      purpose: 'browse',
+      resourceIndexIdentity: index.identity,
+      requestedRevision: 'runtime-media.v1',
     };
     const browse = evaluateResourceEligibility({
-      context: {
-        role: 'student',
-        scope: 'lesson-1-1',
-        purpose: 'browse',
-        resourceIndexIdentity: index.identity,
-        requestedRevision: 'runtime-media.v1',
-      },
+      context: browseContextInput,
       entry,
       index,
-      evidence: evidenceFromIndexedEntry({
-        index,
-        entry,
-        context: {
-          role: 'student',
-          scope: 'lesson-1-1',
-          purpose: 'browse',
-          resourceIndexIdentity: index.identity,
-          requestedRevision: 'runtime-media.v1',
-        },
-      }),
+      evidence: {
+        ...evidenceFromIndexedEntry({
+          index,
+          entry,
+          context: browseContextInput,
+        }),
+        retrievalAvailable: false,
+        retrievalDegraded: true,
+      },
     });
     const formal = evaluateResourceEligibility({
       context: {
@@ -299,12 +284,12 @@ describe('resource eligibility evaluator', () => {
         resourceIndexIdentity: index.identity,
         requestedRevision: 'runtime-media.v1',
       },
-      entry: { ...entry, required: true },
+      entry,
       index,
       evidence: {
         ...evidenceFromIndexedEntry({
           index,
-          entry: { ...entry, required: true },
+          entry,
           context: {
             role: 'student',
             scope: 'lesson-1-1',
@@ -343,6 +328,7 @@ describe('resource eligibility evaluator', () => {
       purpose: 'named-consumer',
       resourceIndexIdentity: index.identity,
       requestedRevision: entry.descriptor.identity.sourceVersion,
+      captureRevision: SHARED,
       engineeringOnly: true,
       consumerId: 'engineering-graph',
       authorityId: 'authority-eng',
@@ -364,8 +350,9 @@ describe('resource eligibility evaluator', () => {
       observationFromConsumerActivation({
         consumerId: 'engineering-graph',
         status: 'READY',
-        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+        combination: consumerCombination(SHARED, {
           authorityReleaseId: 'authority-eng',
+          scopeId: 'planning',
         }),
       }),
     );
@@ -551,7 +538,12 @@ describe('resource eligibility evaluator', () => {
     const consumer = observationFromConsumerActivation({
       consumerId: 'learning-path',
       status: 'PINNED_PREVIOUS',
-      combination: consumerCombination(entry.descriptor.identity.sourceVersion),
+      combination: consumerCombination(SHARED, {
+        authorityReleaseId: 'authority-current',
+        scopeId: entry.descriptor.identity.scope,
+        projectionId: 'proj-current',
+        projectionHash: 'hash-current',
+      }),
     });
     const snapshot = observeIndexedResourceEligibility({
       index,
@@ -562,6 +554,7 @@ describe('resource eligibility evaluator', () => {
         purpose: 'named-consumer',
         resourceIndexIdentity: index.identity,
         requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
         consumerId: 'learning-path',
         authorityId: 'authority-current',
         projectionId: 'proj-current',
@@ -578,6 +571,7 @@ describe('resource eligibility evaluator', () => {
         purpose: 'named-consumer',
         resourceIndexIdentity: index.identity,
         requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
         consumerId: 'engineering-graph',
         engineeringOnly: true,
         authorityId: 'authority-eng',
@@ -585,8 +579,9 @@ describe('resource eligibility evaluator', () => {
       observation: mergeEligibilityObservations(engineering, observationFromConsumerActivation({
         consumerId: 'engineering-graph',
         status: 'READY',
-        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+        combination: consumerCombination(SHARED, {
           authorityReleaseId: 'authority-eng',
+          scopeId: entry.descriptor.identity.scope,
         }),
       })),
     });
@@ -646,6 +641,7 @@ describe('resource eligibility evaluator', () => {
       scope: entry.descriptor.identity.scope,
       resourceIndexIdentity: index.identity,
       requestedRevision: entry.descriptor.identity.sourceVersion,
+      captureRevision: SHARED,
       consumerId: 'learning-path',
       authorityId: 'authority-current',
       projectionId: 'proj-a',
@@ -658,8 +654,9 @@ describe('resource eligibility evaluator', () => {
       observation: observationFromConsumerActivation({
         consumerId: 'engineering-graph',
         status: 'READY',
-        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+        combination: consumerCombination(SHARED, {
           authorityReleaseId: 'authority-previous',
+          scopeId: entry.descriptor.identity.scope,
         }),
       }),
     });
@@ -672,6 +669,9 @@ describe('resource eligibility evaluator', () => {
         status: 'READY',
         combination: consumerCombination('old-capture', {
           authorityReleaseId: 'authority-current',
+          scopeId: entry.descriptor.identity.scope,
+          projectionId: 'proj-a',
+          projectionHash: 'hash-a',
         }),
       }),
     });
@@ -692,7 +692,7 @@ describe('resource eligibility evaluator', () => {
       observation: observationFromConsumerActivation({
         consumerId: 'learning-path',
         status: 'READY',
-        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+        combination: consumerCombination(SHARED, {
           authorityReleaseId: 'authority-current',
         }),
       }),
@@ -797,6 +797,7 @@ describe('resource eligibility evaluator', () => {
         purpose: 'named-consumer',
         resourceIndexIdentity: index.identity,
         requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
         consumerId: 'learning-path',
         authorityId: 'authority-current',
         engineeringOnly: true,
@@ -813,8 +814,9 @@ describe('resource eligibility evaluator', () => {
         observationFromConsumerActivation({
           consumerId: 'learning-path',
           status: 'READY',
-          combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+          combination: consumerCombination(SHARED, {
             authorityReleaseId: 'authority-current',
+            scopeId: entry.descriptor.identity.scope,
           }),
         }),
       ),
@@ -824,5 +826,144 @@ describe('resource eligibility evaluator', () => {
       'engineering-only-no-projection-required',
     );
     expect(snapshot.eligibleForContext).toBe(false);
+  });
+
+  it('separates resource source version from activation capture revision', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'revision-node',
+          title: '修订节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'revision-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'named-consumer',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
+        consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        projectionId: 'proj-a',
+        projectionHash: 'hash-a',
+      },
+      observation: mergeEligibilityObservations(
+        observationFromTeachingProjectionConsumer({
+          consumerId: 'learning-path',
+          requiresProjection: true,
+          readiness: 'READY',
+          authorityReleaseId: 'authority-current',
+          projectionId: 'proj-a',
+          projectionHash: 'hash-a',
+        }),
+        observationFromConsumerActivation({
+          consumerId: 'learning-path',
+          status: 'READY',
+          combination: consumerCombination(SHARED, {
+            authorityReleaseId: 'authority-current',
+            scopeId: entry.descriptor.identity.scope,
+            projectionId: 'proj-a',
+            projectionHash: 'hash-a',
+          }),
+        }),
+      ),
+    });
+    expect(entry.descriptor.identity.sourceVersion).not.toBe(SHARED);
+    expect(snapshot.eligibleForContext).toBe(true);
+    expect(snapshot.dimensions.consumerActivation.status).toBe('available');
+  });
+
+  it('fails closed when a cached entry identity matches but launcher or access drifted', () => {
+    const index = buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        sharedRevision: SHARED,
+        records: [metadata('lesson-eligibility-member')],
+      }),
+    ]);
+    const entry = {
+      ...index.entries[0],
+      descriptor: {
+        ...index.entries[0].descriptor,
+        launcher: {
+          contractClass: 'stale-launcher',
+          contractVersion: 'stale.v1',
+        },
+      },
+    };
+    const context = browseContext(index.identity, index.entries[0].descriptor.identity.scope);
+    const snapshot = evaluateResourceEligibility({
+      context,
+      entry,
+      index,
+      evidence: evidenceFromIndexedEntry({ index, entry, context }),
+    });
+    expect(snapshot.eligibleForContext).toBe(false);
+    expect(snapshot.dimensions.launchAvailability.status).toBe('blocked');
+  });
+
+  it('fails closed when Teaching Projection belongs to another consumer', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'projection-consumer-node',
+          title: '投影消费方节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'projection-consumer-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'named-consumer',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
+        consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        projectionId: 'proj-a',
+        projectionHash: 'hash-a',
+      },
+      observation: mergeEligibilityObservations(
+        observationFromTeachingProjectionConsumer({
+          consumerId: 'course-runtime',
+          requiresProjection: true,
+          readiness: 'READY',
+          authorityReleaseId: 'authority-current',
+          projectionId: 'proj-a',
+          projectionHash: 'hash-a',
+        }),
+        observationFromConsumerActivation({
+          consumerId: 'learning-path',
+          status: 'READY',
+          combination: consumerCombination(SHARED, {
+            authorityReleaseId: 'authority-current',
+            scopeId: entry.descriptor.identity.scope,
+            projectionId: 'proj-a',
+            projectionHash: 'hash-a',
+          }),
+        }),
+      ),
+    });
+    expect(snapshot.dimensions.teachingProjectionActivation.status).not.toBe('available');
+    expect(snapshot.eligibleForContext).toBe(true);
   });
 });
