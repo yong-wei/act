@@ -87,9 +87,17 @@ export async function acceptLearningRecordEvent(
   const required = Array.isArray(entry.payloadSchema?.required)
     ? entry.payloadSchema.required.filter((key): key is string => typeof key === 'string')
     : [];
+  const properties = entry.payloadSchema?.properties && typeof entry.payloadSchema.properties === 'object'
+    ? entry.payloadSchema.properties as Record<string, { type?: string }>
+    : {};
   for (const key of required) {
-    if (!hint.payload || hint.payload[key] === undefined) {
+    const value = hint.payload?.[key];
+    if (value === undefined) {
       throw new LearningRecordContractError('schema-invalid', `Missing required payload field ${key}`);
+    }
+    const expectedType = properties[key]?.type;
+    if (expectedType && typeof value !== expectedType) {
+      throw new LearningRecordContractError('schema-invalid', `Payload field ${key} must be ${expectedType}`);
     }
   }
 
@@ -162,7 +170,11 @@ export async function acceptLearningRecordEvent(
 
   const existing = await store.getByDedupeKey(dedupeKey);
   if (existing) {
-    if (existing.envelope.inputDigest !== inputDigest || existing.envelope.anchors.sourceEventId !== sourceEventId) {
+    if (
+      existing.envelope.subjectRef !== opaqueSubjectRef(context.subjectId)
+      || existing.envelope.inputDigest !== inputDigest
+      || existing.envelope.anchors.sourceEventId !== sourceEventId
+    ) {
       throw new LearningRecordContractError('dedupe-collision', 'Dedupe key reused with a different event digest');
     }
     return { envelope: existing.envelope, duplicate: true };
@@ -181,7 +193,8 @@ export function createMemoryAcceptanceStore(): LearningRecordAcceptanceStore {
       const existing = records.get(record.envelope.dedupeKey);
       if (existing) {
         if (
-          existing.envelope.inputDigest !== record.envelope.inputDigest
+          existing.envelope.subjectRef !== record.envelope.subjectRef
+          || existing.envelope.inputDigest !== record.envelope.inputDigest
           || existing.envelope.anchors.sourceEventId !== record.envelope.anchors.sourceEventId
         ) {
           throw new LearningRecordContractError('dedupe-collision', 'Dedupe key reused with a different event digest');

@@ -64,6 +64,22 @@ describe('learning record event contract', () => {
     expect([first.duplicate, second.duplicate].filter(Boolean).length).toBe(1);
   });
 
+  it('fails closed when the same dedupe key is reused by another subject', async () => {
+    const store = createMemoryAcceptanceStore();
+    await acceptLearningRecordEvent(store, context({ subjectId: 'student-a' }), {
+      action: 'lesson_submit',
+      eventId: 'evt-shared',
+      dedupeKey: 'shared-key',
+      payload: { stepId: 'step-1' },
+    });
+    await expect(acceptLearningRecordEvent(store, context({ subjectId: 'student-b' }), {
+      action: 'lesson_submit',
+      eventId: 'evt-shared',
+      dedupeKey: 'shared-key',
+      payload: { stepId: 'step-1' },
+    })).rejects.toMatchObject({ code: 'dedupe-collision' });
+  });
+
   it('fails closed on concurrent put collisions with different identities', async () => {
     const store = createMemoryAcceptanceStore();
     const first = {
