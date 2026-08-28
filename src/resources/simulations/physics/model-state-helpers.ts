@@ -231,38 +231,6 @@ export function createPIDStateForLNG(): PIDState {
   return { integral: 0, prevError: 0 };
 }
 
-export function pidControl2ndOrder(
-  targetHeadingDeg: number,
-  currentHeadingDeg: number,
-  currentYawRateDeg: number,
-  pidState: PIDState,
-  gains: PIDGains,
-  mode: 'manual' | 'p' | 'pd' | 'pid',
-  dt: number,
-  maxRudderDeg = 35,
-  integralLimit = 30,
-): { rudderDeg: number; newState: PIDState } {
-  if (mode === 'manual') {
-    return { rudderDeg: 0, newState: pidState };
-  }
-  let error = targetHeadingDeg - currentHeadingDeg;
-  while (error > 180) error -= 360;
-  while (error < -180) error += 360;
-  let rudder = gains.kp * error;
-  if (mode === 'pd' || mode === 'pid') {
-    rudder -= gains.kd * currentYawRateDeg;
-  }
-  let newIntegral = pidState.integral;
-  if (mode === 'pid') {
-    newIntegral = clamp(newIntegral + error * dt, -integralLimit, integralLimit);
-    rudder += gains.ki * newIntegral;
-  }
-  return {
-    rudderDeg: clamp(rudder, -maxRudderDeg, maxRudderDeg),
-    newState: { integral: newIntegral, prevError: error },
-  };
-}
-
 const getVariableParams = (loadRatio: number) => {
   const ratio = clamp(loadRatio, 0, 1);
   return {

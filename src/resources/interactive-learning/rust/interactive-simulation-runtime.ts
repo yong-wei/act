@@ -2,7 +2,7 @@ import {
   computeVirtualSimulationStep,
   isVirtualSimulationRuntimeReady,
   preloadVirtualSimulationRuntime,
-} from '@/resources/simulations/rust/control-engine-runtime';
+} from '@/resources/simulations/physics/simulation-engine-facade';
 import type { TransferFunctionModel } from '@/lib/simulation';
 
 export {

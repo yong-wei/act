@@ -13,19 +13,15 @@
  * - 飞机: 不同高度、速度下的气动特性变化
  */
 
-import type { PIDGains, ControlMode, GainScheduleConfig } from '../../core/types';
+import type { PIDGains, GainScheduleConfig } from '../../core/types';
 import {
   clamp,
   lerp,
   CONTAINER_GAIN_SCHEDULE,
-  CONTAINER_DEFAULT_PID,
 } from '../../core/constants';
 import {
-  PIDController,
   interpolateGains,
-  type PIDControllerConfig,
   type PIDControllerState,
-  type PIDControlOutput,
 } from './pid-controller';
 
 // ============ 类型定义 ============
@@ -168,194 +164,6 @@ export function computeGainChangeRate(
 }
 
 // ============ 增益调度器类 ============
-
-/**
- * 增益调度控制器
- *
- * 扩展 PID 控制器，添加基于调度变量的增益自动调整
- */
-export class GainScheduler {
-  private pidController: PIDController;
-  private config: GainSchedulerConfig;
-  private currentGains: PIDGains;
-  private targetGains: PIDGains;
-  private schedulingVariable: number;
-  private mode: ControlMode;
-  private schedulingEnabled: boolean;
-
-  constructor(
-    config?: Partial<GainSchedulerConfig>,
-    initialMode: ControlMode = 'pid_scheduled',
-    initialVariable: number = 0.5
-  ) {
-    // 合并配置
-    this.config = {
-      ...DEFAULT_SCHEDULER_CONFIG,
-      ...config,
-    };
-
-    // 初始化增益
-    this.schedulingVariable = clamp(initialVariable, 0, 1);
-    this.targetGains = linearSchedule(this.schedulingVariable, this.config.schedule);
-    this.currentGains = { ...this.targetGains };
-
-    // 创建内部 PID 控制器
-    this.pidController = new PIDController(
-      {
-        gains: this.currentGains,
-        maxRudderDeg: this.config.maxRudderDeg,
-        rateLimit: this.config.rateLimit,
-        derivativeFilter: this.config.derivativeFilter,
-      },
-      'pid'
-    );
-
-    this.mode = initialMode;
-    this.schedulingEnabled = initialMode === 'pid_scheduled';
-  }
-
-  /**
-   * 更新调度变量 (如装载率)
-   */
-  updateSchedulingVariable(variable: number): void {
-    this.schedulingVariable = clamp(variable, 0, 1);
-
-    if (this.schedulingEnabled) {
-      // 计算新的目标增益
-      switch (this.config.mode) {
-        case 'linear':
-          this.targetGains = linearSchedule(this.schedulingVariable, this.config.schedule);
-          break;
-        case 'fixed':
-          // 固定模式不更新目标增益
-          break;
-        case 'lookup':
-        case 'adaptive':
-          // 暂时使用线性调度
-          this.targetGains = linearSchedule(this.schedulingVariable, this.config.schedule);
-          break;
-      }
-    }
-  }
-
-  /**
-   * 设置控制模式
-   */
-  setMode(mode: ControlMode): void {
-    this.mode = mode;
-
-    // 根据模式启用/禁用调度
-    if (mode === 'pid_scheduled') {
-      this.schedulingEnabled = true;
-      // 立即更新目标增益
-      this.updateSchedulingVariable(this.schedulingVariable);
-    } else if (mode === 'pid') {
-      // 固定 PID 模式，使用当前增益但停止调度
-      this.schedulingEnabled = false;
-    } else {
-      this.schedulingEnabled = false;
-    }
-
-    // 更新内部控制器模式
-    if (mode === 'manual' || mode === 'dp' || mode === 'autopilot') {
-      this.pidController.setMode(mode);
-    } else {
-      this.pidController.setMode('pid');
-    }
-  }
-
-  /**
-   * 设置固定增益 (禁用调度)
-   */
-  setFixedGains(gains: PIDGains): void {
-    this.schedulingEnabled = false;
-    this.targetGains = { ...gains };
-    this.currentGains = { ...gains };
-    this.pidController.setGains(gains);
-  }
-
-  /**
-   * 重置控制器状态
-   */
-  reset(): void {
-    this.pidController.reset();
-    // 重新计算增益
-    this.updateSchedulingVariable(this.schedulingVariable);
-    this.currentGains = { ...this.targetGains };
-    this.pidController.setGains(this.currentGains);
-  }
-
-  /**
-   * 计算控制输出
-   */
-  compute(
-    targetHeading: number,
-    currentHeading: number,
-    dt: number
-  ): PIDControlOutput {
-    // 平滑增益过渡
-    if (this.schedulingEnabled) {
-      this.currentGains = smoothGainsTransition(
-        this.currentGains,
-        this.targetGains,
-        this.config.smoothingFactor
-      );
-
-      // 更新 PID 控制器增益
-      this.pidController.setGains(this.currentGains);
-    }
-
-    // 计算控制输出
-    return this.pidController.compute(targetHeading, currentHeading, dt);
-  }
-
-  /**
-   * 获取诊断信息
-   */
-  getDiagnostics(): SchedulerDiagnostics {
-    // 判断增益是否收敛
-    const gainsConverged =
-      Math.abs(this.currentGains.kp - this.targetGains.kp) < 0.01 &&
-      Math.abs(this.currentGains.ki - this.targetGains.ki) < 0.001 &&
-      Math.abs(this.currentGains.kd - this.targetGains.kd) < 0.01;
-
-    return {
-      schedulingVariable: this.schedulingVariable,
-      currentGains: { ...this.currentGains },
-      targetGains: { ...this.targetGains },
-      gainsConverged,
-      isSchedulingActive: this.schedulingEnabled,
-    };
-  }
-
-  /**
-   * 获取当前增益
-   */
-  getCurrentGains(): PIDGains {
-    return { ...this.currentGains };
-  }
-
-  /**
-   * 获取当前控制模式
-   */
-  getMode(): ControlMode {
-    return this.mode;
-  }
-
-  /**
-   * 获取调度变量
-   */
-  getSchedulingVariable(): number {
-    return this.schedulingVariable;
-  }
-
-  /**
-   * 获取调度配置
-   */
-  getConfig(): GainSchedulerConfig {
-    return { ...this.config };
-  }
-}
 
 // ============ 工具函数 ============
 

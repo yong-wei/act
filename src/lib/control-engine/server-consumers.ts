@@ -10,7 +10,7 @@ export const SERVER_CONSUMER_CLASSES = [
     callers: [
       'src/app/api/simulation/runs/route.ts',
     ],
-    compatibilityLoader: 'src/resources/control-system/analysis/control-engine-server-runtime.ts',
+    compatibilityLoader: null,
   },
   {
     id: 'simulation-virtual-runtime',
@@ -25,7 +25,7 @@ export const SERVER_CONSUMER_CLASSES = [
       'src/app/api/simulation/icebreaker-robust-analysis/route.ts',
       'src/resources/simulations/lib/monte-carlo-optimizer.ts',
     ],
-    compatibilityLoader: 'src/resources/simulations/rust/control-engine-server-runtime.ts',
+    compatibilityLoader: null,
   },
   {
     id: 'control-odyssey',
@@ -35,7 +35,7 @@ export const SERVER_CONSUMER_CLASSES = [
     callers: [
       'src/resources/interactive-learning/control-odyssey/engine/official-simulation.ts',
     ],
-    compatibilityLoader: 'src/resources/interactive-learning/control-odyssey/engine/control-engine-server-runtime.ts',
+    compatibilityLoader: null,
   },
   {
     id: 'arena-analysis',
@@ -62,11 +62,13 @@ export const SERVER_CONSUMER_CLASSES = [
   },
 ] as const;
 
-export const R6_SERVER_LOADER_DELETION_CANDIDATES = [
+export const RETIRED_SERVER_COMPATIBILITY_LOADERS = [
   'src/resources/control-system/analysis/control-engine-server-runtime.ts',
   'src/resources/simulations/rust/control-engine-server-runtime.ts',
   'src/resources/interactive-learning/control-odyssey/engine/control-engine-server-runtime.ts',
 ] as const;
+
+export const R6_SERVER_LOADER_DELETION_CANDIDATES = [] as const;
 
 export const ARENA_OFFICIAL_PROTOCOLS = [
   'analysis-whitebox-v1',

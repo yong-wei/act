@@ -5,7 +5,15 @@
  * future Rust/WASM replacement can be staged behind one boundary.
  */
 
-import { computeVirtualSimulationStep } from '../rust/control-engine-runtime';
+import {
+  computeVirtualSimulationStepBrowserSync,
+  isBrowserControlEngineReady,
+  preloadBrowserControlEngine,
+} from '@/lib/control-engine/client';
+import type {
+  DestroyerHifiStepRequest,
+  DestroyerHifiStepResult,
+} from '../rust/destroyer-hifi-adapter';
 import {
   createAzipod3DOFState,
   type Azipod3DOFInternalState,
@@ -91,9 +99,22 @@ import {
 } from './disturbances/dredging-impact';
 
 export {
-  preloadVirtualSimulationRuntime,
-  isVirtualSimulationRuntimeReady,
-} from '../rust/control-engine-runtime';
+  createDredgingImpactState,
+  DEFAULT_DREDGING_CONFIG,
+  type DredgingImpactConfig,
+  type DredgingImpactState,
+};
+
+export const preloadVirtualSimulationRuntime = () => preloadBrowserControlEngine();
+export const isVirtualSimulationRuntimeReady = () => isBrowserControlEngineReady();
+
+export function computeVirtualSimulationStep<TResult>(request: unknown): TResult {
+  return computeVirtualSimulationStepBrowserSync<TResult>(request);
+}
+
+export function computeDestroyerHifiStep(request: DestroyerHifiStepRequest): DestroyerHifiStepResult {
+  return computeVirtualSimulationStep<DestroyerHifiStepResult>(request);
+}
 
 export {
   createNomotoState,
@@ -424,7 +445,7 @@ function mixedDredgingForce(elapsed: number, config: DredgingImpactConfig): numb
 export function computePracticeDredgingDisturbance(
   time: number,
   state: DredgingImpactState,
-  config: DredgingImpactConfig,
+  config: DredgingImpactConfig = DEFAULT_DREDGING_CONFIG,
   rng: RandomNumberGenerator = Math.random,
 ): { disturbance: DisturbanceVector; newState: DredgingImpactState } {
   const rngSamples: number[] = [];
