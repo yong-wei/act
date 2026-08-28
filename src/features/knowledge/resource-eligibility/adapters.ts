@@ -52,16 +52,35 @@ function indexedEntryBelongsToIndex(index: RegistryIndex, entry: IndexedResource
   return index.entries.some((candidate) => indexedEntryFingerprint(candidate) === fingerprint);
 }
 
+function indexCaptureRevisions(index: RegistryIndex): string[] {
+  return [...new Set(
+    index.captures
+      .map((capture) => capture.sharedRevision)
+      .filter((revision): revision is string => Boolean(revision)),
+  )];
+}
+
 function indexCaptureMatchesContext(
   index: RegistryIndex,
   context: ResourceEligibilityContext,
 ): boolean {
   if (!context.captureRevision) return true;
-  const revisions = index.captures
-    .map((capture) => capture.sharedRevision)
-    .filter((revision): revision is string => Boolean(revision));
+  const revisions = indexCaptureRevisions(index);
   if (revisions.length === 0) return false;
   return revisions.every((revision) => revision === context.captureRevision);
+}
+
+function requestedReleasePackage(context: ResourceEligibilityContext): string {
+  return context.courseId ?? context.scope;
+}
+
+function requestedReleaseCapture(
+  index: RegistryIndex,
+  context: ResourceEligibilityContext,
+): string | null {
+  if (context.captureRevision) return context.captureRevision;
+  const revisions = indexCaptureRevisions(index);
+  return revisions.length === 1 ? revisions[0] : null;
 }
 
 function ownerEngineeringOnly(
@@ -131,14 +150,14 @@ function teachingProjectionMatchesContext(
 }
 
 function releaseQualifiedForContext(
+  index: RegistryIndex,
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
 ): boolean {
   if (observation?.releaseQualified !== true) return false;
-  if (context.courseId && observation.releasePackageId !== context.courseId) return false;
-  if (context.captureRevision && observation.releaseCaptureRevision !== context.captureRevision) {
-    return false;
-  }
+  if (observation.releasePackageId !== requestedReleasePackage(context)) return false;
+  const requestedCapture = requestedReleaseCapture(index, context);
+  if (!requestedCapture || observation.releaseCaptureRevision !== requestedCapture) return false;
   return true;
 }
 
@@ -195,7 +214,7 @@ export function evidenceFromIndexedEntry(input: {
     launchAuthorized: authorizedForRole && !retired && Boolean(launcher),
     launcherMatches,
     launchEvidenceIds: launcher ? [`launcher:${launcher.contractClass}:${launcher.contractVersion}`] : [],
-    releaseQualified: releaseQualifiedForContext(context, observation),
+    releaseQualified: releaseQualifiedForContext(index, context, observation),
     releaseEvidenceIds: observation?.releaseEvidenceIds ?? [],
     teachingProjectionStatus: engineeringConflict
       ? 'BLOCKED'

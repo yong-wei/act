@@ -1116,4 +1116,44 @@ describe('resource eligibility evaluator', () => {
     expect(snapshot.dimensions.formalReleaseQualification.status).not.toBe('available');
     expect(snapshot.eligibleForContext).toBe(true);
   });
+
+  it('fails closed when formal release observation belongs to another package or capture', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'release-package-node',
+          title: '发布包节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'release-package-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeFormalBindEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+      },
+      observation: {
+        formalBindingValid: true,
+        ...observationFromFormalReleaseQualification({
+          ready: true,
+          scope: {
+            packageId: 'other-package',
+            blocksEngineeringAuthority: false,
+            blocksUnrelatedConsumers: false,
+            consumerState: 'READY',
+          },
+        }, 'capture-B'),
+      },
+    });
+    expect(snapshot.dimensions.formalReleaseQualification.status).not.toBe('available');
+  });
 });
