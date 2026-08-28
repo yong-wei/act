@@ -4,11 +4,11 @@
  * Generates personalized learning recommendations based on competency data.
  */
 
-import { prisma } from '@/lib/prisma';
-import type { CompetencyVector, CompetencyDimension } from './competency-model';
-import { COMPETENCY_DIMENSIONS, getCompetencyLabel, getCompetencyLevel } from './competency-model';
-import type { RiskFlag } from './risk-detector';
-import { getRecommendedScaffolding } from './risk-detector';
+import type { RecommendationEvidenceDb } from '@/features/learning-record/personalization-ports/types';
+// PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: competency-model imports remain compatibility-only.
+import type { CompetencyVector, CompetencyDimension } from '@/lib/data-governance/competency-model';
+import { COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
+import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 import {
   readStudentEvidenceFeatures,
   type StudentEvidenceCoverageState,
@@ -19,7 +19,7 @@ import {
   type StudentPathEvidenceFeatureSummary,
   type StudentPathEvidenceSourceReference,
   type StudentEvidenceWindow,
-} from './student-evidence-feature-cache';
+} from '@/lib/data-governance/student-evidence-feature-cache';
 import {
   isAdaptiveLearnerStateServiceEnabled,
   readPathPlannerLearnerStateForSubject,
@@ -32,16 +32,17 @@ import {
 import {
   hasPortraitV2Evidence,
   summarizePortraitV2,
-} from './portrait-v2-consumer';
+} from '@/lib/data-governance/portrait-v2-consumer';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
   PORTRAIT_V2_FRESHNESS_PARTIAL_MAX_AGE_DAYS,
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
   type PortraitV2ProjectedPayload,
-} from './portrait-v2-model';
-import { mapLegacyCompetencyDimensionToPortraitV2 } from './kaq-objective-taxonomy';
-import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
+} from '@/lib/data-governance/portrait-v2-model';
+import { mapLegacyCompetencyDimensionToPortraitV2 } from '@/lib/data-governance/kaq-objective-taxonomy';
+import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
+import { PERSONALIZATION_RECOMMENDATION_POLICY_REVISION } from './constants';
 
 const RECOMMENDATION_FACT_PAGE_SIZE = 50;
 
@@ -62,6 +63,7 @@ export interface RecommendationRationale {
   contextOnly: boolean;
   evidenceWindow: StudentEvidenceWindow;
   evidenceCount: number;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: snapshot coverage keys are compatibility-only.
   sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
   confidence: {
     state: RecommendationConfidenceState;
@@ -122,10 +124,14 @@ export interface Recommendation {
   estimatedTime?: string;
   tags: string[];
   expiresAt?: Date;
+  policyRevision: string;
+  ownerUserId: string;
+  privacyClass: 'learner-owner';
 }
 
 export interface RecommendationContext {
   userId: string;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector remains compatibility-only.
   competencyVector: CompetencyVector;
   competencyVectorBasis: 'learner-state' | 'portrait-v2' | 'legacy' | 'none';
   riskFlags: RiskFlag[];
@@ -155,6 +161,7 @@ interface RecommendationEvidenceContext {
   readState: 'ready' | 'stale' | 'missing';
   evidenceWindow: StudentEvidenceWindow;
   evidenceCount: number;
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: snapshot coverage keys are compatibility-only.
   sourceCoverage: Record<'LearningFact' | 'StudentCompetencySnapshot' | 'StudentProfileSummary', StudentEvidenceCoverageState>;
   confidence: {
     level: 'none' | 'low' | 'medium' | 'high';
@@ -178,7 +185,7 @@ interface RecommendationRule {
   type: RecommendationType;
   evidenceRole: RecommendationEvidenceRole;
   condition: (ctx: RecommendationContext) => boolean;
-  generate: (ctx: RecommendationContext) => Omit<Recommendation, 'id' | 'type' | 'priority' | 'rationale'> & { priority: number };
+  generate: (ctx: RecommendationContext) => Omit<Recommendation, 'id' | 'type' | 'priority' | 'rationale' | 'policyRevision' | 'ownerUserId' | 'privacyClass'> & { priority: number };
 }
 
 // Rule set for generating recommendations
@@ -244,7 +251,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     evidenceRole: 'direct',
     condition: (ctx) => {
       if (!hasVectorEvidenceFor(ctx, ['crossDomainTransfer', 'controlModeling'])) return false;
-      const crossScore = ctx.competencyVector.crossDomainTransfer.score;
+      const crossScore = ctx.competencyVector.crossDomainTransfer.score; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
       const controlScore = ctx.competencyVector.controlModeling.score;
       return controlScore > 70 && crossScore < 50;
     },
@@ -320,7 +327,7 @@ const RECOMMENDATION_RULES: RecommendationRule[] = [
     evidenceRole: 'direct',
     condition: (ctx) => {
       if (!hasVectorEvidenceFor(ctx, ['inquiryReflection'])) return false;
-      const reflectionScore = ctx.competencyVector.inquiryReflection.score;
+      const reflectionScore = ctx.competencyVector.inquiryReflection.score; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
       return reflectionScore < 65 && reflectionScore > 40;
     },
     generate: () => ({
@@ -491,15 +498,18 @@ const VECTOR_RULE_DIMENSIONS: Partial<Record<string, readonly CompetencyDimensio
 /**
  * Generate recommendations for a user
  */
-export async function generateRecommendations(userId: string): Promise<Recommendation[]> {
-  const latestSnapshot = await prisma.studentCompetencySnapshot.findFirst({
+export async function generateRecommendations(
+  userId: string,
+  db: RecommendationEvidenceDb,
+): Promise<Recommendation[]> {
+  const latestSnapshot = await db.studentCompetencySnapshot.findFirst({
     where: { userId },
     orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
   });
   const derivationState = (latestSnapshot?.evidenceSummary as any)?._derivation?.state;
   if (derivationState === 'no-recent-evidence' || derivationState === 'no-evidence-after-revocation') return [];
   // Get context data
-  const context = await buildRecommendationContext(userId);
+  const context = await buildRecommendationContext(userId, db);
 
   // Apply rules to generate recommendations
   const recommendations: Recommendation[] = [];
@@ -519,10 +529,13 @@ export async function generateRecommendations(userId: string): Promise<Recommend
       if (rule.condition(context)) {
         const generated = rule.generate(context);
         recommendations.push({
-          id: `${rule.id}-${Date.now()}`,
+          ...generated,
+          id: `${rule.id}-${userId}`,
           type: rule.type,
           rationale: buildRecommendationRationale(rule, context),
-          ...generated,
+          policyRevision: PERSONALIZATION_RECOMMENDATION_POLICY_REVISION,
+          ownerUserId: userId,
+          privacyClass: 'learner-owner',
         });
       }
     } catch (error) {
@@ -564,9 +577,15 @@ async function readEligibleRecommendationFacts<T extends { id: string; contextJs
 /**
  * Build recommendation context from database
  */
-async function buildRecommendationContext(userId: string): Promise<RecommendationContext> {
+async function buildRecommendationContext(
+  userId: string,
+  db: RecommendationEvidenceDb,
+): Promise<RecommendationContext> {
   const now = new Date();
-  const featureRead = await readStudentEvidenceFeatures(prisma, userId);
+  const featureRead = await readStudentEvidenceFeatures(
+    db as Pick<Parameters<typeof readStudentEvidenceFeatures>[0], 'studentEvidenceFeatureCache'>,
+    userId,
+  );
   const featureCache = normalizeFeatureCache(featureRead.cache);
   const cachedVector = getCachedCompetencyVector(featureCache);
   const learnerState = isAdaptiveLearnerStateServiceEnabled()
@@ -589,18 +608,18 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   ] = await Promise.all([
     cachedVector
       ? Promise.resolve(null)
-      : prisma.studentCompetencySnapshot.findFirst({
+      : db.studentCompetencySnapshot.findFirst({
           where: { userId },
           orderBy: [
             { snapshotAt: 'desc' },
             { id: 'desc' },
           ],
         }),
-    prisma.studentRiskFlag.findMany({
+    db.studentRiskFlag.findMany({
       where: { userId, isResolved: false },
     }),
     readEligibleRecommendationFacts(
-      (cursorId) => prisma.learningFact.findMany({
+      (cursorId) => db.learningFact.findMany({
         where: {
           userId,
           startedAt: { gte: thirtyDaysAgo },
@@ -619,14 +638,14 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
       }),
       RECOMMENDATION_FACT_PAGE_SIZE,
     ),
-    prisma.userProgress.count({
+    db.userProgress.count({
       where: { userId },
     }),
-    prisma.userProgress.count({
+    db.userProgress.count({
       where: { userId, status: 'COMPLETED' },
     }),
     readEligibleRecommendationFacts(
-      (cursorId) => prisma.learningFact.findMany({
+      (cursorId) => db.learningFact.findMany({
         where: { userId },
         orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
         take: RECOMMENDATION_FACT_PAGE_SIZE,
@@ -677,7 +696,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
 
   return {
     userId,
-    competencyVector,
+    competencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: return payload keeps compatibility vector only.
     competencyVectorBasis,
     riskFlags: riskFlags.map(rf => ({
       type: rf.flagType as RiskFlag['type'],
@@ -991,7 +1010,7 @@ function buildRecommendationEvidenceContext(input: {
     evidenceCount,
     sourceCoverage: {
       LearningFact: evidenceCount > 0 ? 'available' : 'missing',
-      StudentCompetencySnapshot: input.hasSnapshot ? 'available' : 'missing',
+      StudentCompetencySnapshot: input.hasSnapshot ? 'available' : 'missing', // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
       StudentProfileSummary: 'missing',
     },
     confidence: {
@@ -1100,10 +1119,11 @@ function normalizeFeatureCache(cache: Record<string, unknown> | null): Record<st
 }
 
 function getCachedCompetencyVector(cache: Record<string, unknown> | null): CompetencyVector | null {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cached snapshot vector is compatibility-only.
   const features = getObject(cache?.features);
   const approvedAggregates = getObject(features.approvedAggregates);
   const latestSnapshot = getObject(approvedAggregates.latestSnapshot);
-  const vector = latestSnapshot.competencyVector;
+  const vector = latestSnapshot.competencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
 
   return isCompetencyVector(vector) ? vector as CompetencyVector : null;
 }
@@ -1424,11 +1444,12 @@ function resolveSimulationArenaReadiness(
 }
 
 function isCompetencyVector(value: unknown): value is CompetencyVector {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy vector shape check is compatibility-only.
   if (!isObject(value)) {
     return false;
   }
 
-  return COMPETENCY_DIMENSIONS.every((dimension) => {
+  return COMPETENCY_DIMENSIONS.every((dimension) => { // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
     const entry = value[dimension];
     return isObject(entry) && Number.isFinite(entry.score);
   });
@@ -1469,7 +1490,7 @@ function normalizeSourceCoverage(
   const coverage = getObject(value);
   return {
     LearningFact: normalizeCoverageState(coverage.LearningFact),
-    StudentCompetencySnapshot: normalizeCoverageState(coverage.StudentCompetencySnapshot),
+    StudentCompetencySnapshot: normalizeCoverageState(coverage.StudentCompetencySnapshot), // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
     StudentProfileSummary: normalizeCoverageState(coverage.StudentProfileSummary),
   };
 }
@@ -1667,6 +1688,7 @@ function calculateStreak(dates: Date[]): number {
  * Create empty competency vector
  */
 function createEmptyVector(): CompetencyVector {
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: empty legacy vector is compatibility-only.
   const now = new Date().toISOString();
   const empty = {
     score: 0,
@@ -1691,9 +1713,10 @@ function createEmptyVector(): CompetencyVector {
  */
 export async function getRecommendationById(
   userId: string,
-  recommendationId: string
+  recommendationId: string,
+  db: RecommendationEvidenceDb,
 ): Promise<Recommendation | null> {
-  const recommendations = await generateRecommendations(userId);
+  const recommendations = await generateRecommendations(userId, db);
   return recommendations.find(r => r.id === recommendationId) || null;
 }
 
@@ -1704,10 +1727,5 @@ export async function dismissRecommendation(
   _userId: string,
   _recommendationId: string
 ): Promise<void> {
-  // In a full implementation, this would store dismissed recommendations
-  // to prevent them from reappearing
-  console.log('[RecommendationEngine] Dismissal not yet implemented');
+  // Dismissal storage is not part of this policy boundary.
 }
-
-// Re-export for convenience
-export { getRecommendedScaffolding, getCompetencyLabel, getCompetencyLevel };

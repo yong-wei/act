@@ -448,19 +448,12 @@ export async function processPendingMicroInterventionEvidenceProjections(
 export async function scheduleMicroInterventionEvidenceProjection(input: {
   db: MicroInterventionProjectionDb;
   interventionId: string;
-  identity?: MicroInterventionEvidenceIdentity | null;
+  ownerUserId: string;
 }): Promise<void> {
-  const outcome = await input.db.microInterventionOutcome.findFirst({
-    where: { id: input.interventionId },
-    include: { events: true, validation: true },
-  });
-  if (!outcome) return;
-  await projectMicroInterventionOutcome({
+  await enqueueMicroInterventionEvidenceProjection({
     db: input.db,
-    outcome,
-    identity: input.identity === undefined
-      ? await resolveMicroInterventionEvidenceIdentity(outcome)
-      : input.identity,
+    interventionId: input.interventionId,
+    ownerUserId: input.ownerUserId,
   });
 }
 

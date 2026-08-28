@@ -139,7 +139,7 @@ vi.mock('@/lib/competency', () => ({
   }),
 }));
 
-vi.mock('@/lib/data-governance/recommendation-engine', () => ({
+vi.mock('@/features/personalization/recommendations/public-api', () => ({
   generateRecommendations: mocks.generateRecommendations,
 }));
 

@@ -8,10 +8,7 @@ import {
   type MicroInterventionDb,
   type MicroInterventionEventType,
 } from '@/features/assessment/micro-intervention-outcomes';
-import {
-  enqueueMicroInterventionEvidenceProjection,
-  processPendingMicroInterventionEvidenceProjections,
-} from '@/features/assessment/micro-intervention-learning-evidence';
+import { stageInterventionEvidenceProjection } from '@/features/personalization/interventions/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,16 +54,13 @@ export async function POST(request: Request) {
     });
     if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
     if (result.status !== 'UNAVAILABLE') {
-      await enqueueMicroInterventionEvidenceProjection({
+      await stageInterventionEvidenceProjection({
         db: prisma as never,
         interventionId,
-        ownerUserId: authenticated.userId,
+        actorUserId: authenticated.userId,
+        subjectUserId: authenticated.userId,
+        role: 'STUDENT',
       });
-      try {
-        await processPendingMicroInterventionEvidenceProjections(prisma as never, { interventionId });
-      } catch (error) {
-        console.error('[MicroIntervention] evidence projection failed:', error);
-      }
     }
     return result.status === 'UNAVAILABLE'
       ? NextResponse.json(result, { status: 409 })

@@ -10,7 +10,7 @@ import type {
   RecommendationConfidenceState,
   RecommendationEvidenceBasis,
   RecommendationRationale,
-} from '@/lib/data-governance/recommendation-engine';
+} from '@/features/personalization/recommendations/types';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 import type {
   StudentEvidenceCoverageState,

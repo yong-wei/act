@@ -32,7 +32,7 @@ const GENERIC_PERSONALIZATION_FILES = [
   'src/features/personalization/learner-state/adapters/db-runtime.ts',
   'src/features/personalization/learner-state/application/read-learner-state.ts',
   'src/lib/adaptive-learning-path-planner.ts',
-  'src/lib/data-governance/recommendation-engine.ts',
+  'src/features/personalization/recommendations/engine.ts',
 ];
 
 const RETIRED_CONCRETE_IDS = [
