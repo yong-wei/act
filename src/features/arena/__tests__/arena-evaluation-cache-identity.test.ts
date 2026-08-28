@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { isCompleteArenaEvaluationCacheIdentity } from '../submissions/evaluation-cache-identity';
+import { runtimeIdentity } from '@/lib/control-engine';
+import {
+  arenaEvaluationCacheBindingConflicts,
+  isCompleteArenaEvaluationCacheIdentity,
+  resolveArenaEvaluationCacheBinding,
+  withArenaEvaluationCacheBinding,
+} from '../submissions/evaluation-cache-identity';
 
 describe('arena evaluation cache identity', () => {
   it('requires task, artifact, and protocol identity together', () => {
@@ -24,5 +30,42 @@ describe('arena evaluation cache identity', () => {
       artifactHash: 'hash-1',
       protocolVersion: 'analysis-whitebox-v1',
     })).toBe(false);
+  });
+
+  it('does not treat historical rows without runtime/model/spec metadata as a conflict', () => {
+    const current = resolveArenaEvaluationCacheBinding('task-second-order-lead-pid');
+    expect(arenaEvaluationCacheBindingConflicts({}, current)).toBe(false);
+    expect(arenaEvaluationCacheBindingConflicts({ protocolVersion: 'analysis-whitebox-v1' }, current)).toBe(false);
+  });
+
+  it('treats a stored runtime, model, or spec binding mismatch as a cache miss', () => {
+    const current = resolveArenaEvaluationCacheBinding('task-second-order-lead-pid');
+    const identity = runtimeIdentity();
+    expect(current.runtimeBuildHash).toBe(identity.buildHash);
+    expect(arenaEvaluationCacheBindingConflicts(
+      withArenaEvaluationCacheBinding(undefined, current),
+      current,
+    )).toBe(false);
+    expect(arenaEvaluationCacheBindingConflicts(
+      withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        runtimeBuildHash: 'stale-control-engine-build',
+      }),
+      current,
+    )).toBe(true);
+    expect(arenaEvaluationCacheBindingConflicts(
+      withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        modelIdentity: 'different-plant-model',
+      }),
+      current,
+    )).toBe(true);
+    expect(arenaEvaluationCacheBindingConflicts(
+      withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        specIdentity: 'different-task-spec',
+      }),
+      current,
+    )).toBe(true);
   });
 });

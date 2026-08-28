@@ -75,6 +75,10 @@ describe('arena analysis-backed white-box evaluation', () => {
     expect(result.metrics.overshootPct).toBeGreaterThanOrEqual(0);
     expect(result.metrics.settlingTimeSec).toBeGreaterThan(0);
     expect(result.rootLocus.currentPoles.length).toBeGreaterThan(0);
+    expect(result.runtimeIdentity).toEqual(expect.objectContaining({
+      buildHash: expect.any(String),
+      protocolVersion: 'control-engine-facade/v1',
+    }));
   });
 
   it('uses analysis-whitebox-v1 for supported PID and serial-compensator methods', () => {

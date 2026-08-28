@@ -47,6 +47,6 @@
 | Arena analysis | `ControlAnalysisService` | `computeAnalysisServer` |
 | Arena preview persist | `controller-preview.ts` | `computeArenaVirtualPreviewResult` |
 
-清单真源：`src/lib/control-engine/server-consumers.ts`。官方 Arena 评分仍由 evaluator 拥有；缓存最小键仍是 `taskId + artifactHash + protocolVersion`。三个 server compatibility loader 留给 R6 删除，本阶段不得删除。
+清单真源：`src/lib/control-engine/server-consumers.ts`。官方 Arena 评分仍由 evaluator 拥有；缓存最小键仍是 `taskId + artifactHash + protocolVersion`。命中后还须核对写入 metadata 的 runtime/model/spec 绑定，冲突视为 miss，不得把旧分数当成新 runtime 的官方结果。三个 server compatibility loader 留给 R6 删除，本阶段不得删除。
 
 隐藏输入与 client `trace`/`summary`/`checksum` 仍在 façade 外被拒绝。facade `unavailable`/`timeout` 不得写成 SimulationRun 或官方分数。

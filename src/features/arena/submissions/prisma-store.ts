@@ -8,7 +8,14 @@ import type {
   StoredArenaEvaluation,
   StoredArenaSubmission,
 } from './persistence';
-import { isCompleteArenaEvaluationCacheIdentity } from './evaluation-cache-identity';
+import { ControlEngineFailure } from '@/lib/control-engine';
+
+import {
+  arenaEvaluationCacheBindingConflicts,
+  isCompleteArenaEvaluationCacheIdentity,
+  resolveArenaEvaluationCacheBinding,
+  withArenaEvaluationCacheBinding,
+} from './evaluation-cache-identity';
 import { readArenaSubmissionEvidenceWritebacks } from '../evidence-writeback-persistence';
 
 type PrismaJson = Record<string, unknown> | unknown[];
@@ -169,13 +176,35 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
         },
       },
     });
-
-    return row ? toStoredEvaluation(row) : null;
+    if (!row) return null;
+    const currentBinding = resolveArenaEvaluationCacheBinding(taskId);
+    if (arenaEvaluationCacheBindingConflicts(row.metadata, currentBinding)) {
+      return null;
+    }
+    return toStoredEvaluation(row);
   },
 
   async createEvaluation(input) {
     const prisma = await getPrismaClient();
     const result = input.result;
+    const currentBinding = resolveArenaEvaluationCacheBinding(input.taskId);
+    const existing = await (prisma as any).arenaEvaluationRun.findUnique({
+      where: {
+        taskId_artifactHash_protocolVersion: {
+          taskId: input.taskId,
+          artifactHash: input.artifactHash,
+          protocolVersion: input.protocolVersion,
+        },
+      },
+    });
+    if (existing && arenaEvaluationCacheBindingConflicts(existing.metadata, currentBinding)) {
+      throw new ControlEngineFailure({
+        state: 'unavailable',
+        category: 'evaluation-cache-identity-conflict',
+        message: 'Cached Arena evaluation conflicts with current runtime, model, or spec identity.',
+        retryable: false,
+      });
+    }
     const data = {
       taskId: input.taskId,
       artifactHash: input.artifactHash,
@@ -188,7 +217,10 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       hardConstraintResults: result.hardConstraintResults as unknown as PrismaJson,
       penalties: result.penalties as unknown as PrismaJson,
       explanation: result.explanation as unknown as PrismaJson,
-      metadata: (result.metadata ?? {}) as unknown as PrismaJson,
+      metadata: withArenaEvaluationCacheBinding(
+        (result.metadata ?? {}) as Record<string, unknown>,
+        currentBinding,
+      ) as unknown as PrismaJson,
       completedAt: new Date(input.completedAt),
     };
     const row = await (prisma as any).arenaEvaluationRun.upsert({

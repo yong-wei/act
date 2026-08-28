@@ -13,6 +13,9 @@ export interface ControlAnalysisService {
 export const defaultControlAnalysisService: ControlAnalysisService = {
   async compute(request) {
     const envelope = await computeAnalysisServer(request);
-    return envelope.result;
+    return {
+      ...envelope.result,
+      runtimeIdentity: envelope.runtimeIdentity,
+    };
   },
 };

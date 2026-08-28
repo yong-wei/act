@@ -1,5 +1,10 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
-import { isCompleteArenaEvaluationCacheIdentity } from './evaluation-cache-identity';
+import {
+  arenaEvaluationCacheBindingConflicts,
+  isCompleteArenaEvaluationCacheIdentity,
+  resolveArenaEvaluationCacheBinding,
+  withArenaEvaluationCacheBinding,
+} from './evaluation-cache-identity';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import {
@@ -226,12 +231,17 @@ export async function createPersistedArenaSubmission(
   const artifactHash = hashControllerArtifact(artifact);
   const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
-  const existingEvaluation = isCompleteArenaEvaluationCacheIdentity({
+  const cacheBinding = resolveArenaEvaluationCacheBinding(input.taskId);
+  const cachedEvaluation = isCompleteArenaEvaluationCacheIdentity({
     taskId: input.taskId,
     artifactHash,
     protocolVersion,
   })
     ? await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion)
+    : null;
+  const existingEvaluation = cachedEvaluation
+    && !arenaEvaluationCacheBindingConflicts(cachedEvaluation.result.metadata, cacheBinding)
+    ? cachedEvaluation
     : null;
   const duplicateSubmission = await input.store.findDuplicateSubmissionByArtifact?.({
     taskId: input.taskId,
@@ -251,7 +261,10 @@ export async function createPersistedArenaSubmission(
     taskId: input.taskId,
     artifactHash,
     protocolVersion,
-    result: evaluation,
+    result: {
+      ...evaluation,
+      metadata: withArenaEvaluationCacheBinding(evaluation.metadata, cacheBinding),
+    },
     completedAt: input.submittedAt,
   });
   const storedArtifact = await input.store.upsertArtifact({
