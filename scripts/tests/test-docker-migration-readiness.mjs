@@ -97,6 +97,11 @@ function main() {
     .map((entry) => read(path.join('prisma', 'migrations', entry.name, 'migration.sql')))
     .join('\n');
 
+  assert.ok(
+    dockerignore.includes('!tools/glb-model-optimizer/optimize-models.mjs'),
+    '.dockerignore 必须放行优化模型校验所需的优化器真源脚本',
+  );
+
   assert.match(
     dockerfile,
     /COPY --from=builder \/app\/prisma \.\/prisma/,
