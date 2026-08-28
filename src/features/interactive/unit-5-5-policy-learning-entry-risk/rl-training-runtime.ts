@@ -1,6 +1,6 @@
 'use client';
 
-import initControlEngine, { compute_rl_training } from '@/resources/control-system/wasm/control_engine/index.js';
+import { computeRlTrainingBrowser } from '@/lib/control-engine/client';
 
 export type Unit55RlTrainingType = 'toy_rl' | 'direct_rl' | 'safe_shell_rl' | 'rl_pid_schedule';
 
@@ -63,16 +63,7 @@ export interface Unit55RlTrainingResult {
   trainingState: Unit55RlTrainingState | null;
 }
 
-let initPromise: Promise<void> | null = null;
-
-async function ensureRlTrainingEngine() {
-  if (!initPromise) {
-    initPromise = initControlEngine().then(() => undefined);
-  }
-  return initPromise;
-}
-
 export async function computeUnit55RlTraining(request: Unit55RlTrainingRequest) {
-  await ensureRlTrainingEngine();
-  return JSON.parse(compute_rl_training(JSON.stringify(request))) as Unit55RlTrainingResult;
+  const envelope = await computeRlTrainingBrowser<Unit55RlTrainingResult>(request);
+  return envelope.result;
 }

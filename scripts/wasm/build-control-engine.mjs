@@ -19,13 +19,80 @@ const repoRoot = process.cwd();
 const controlEngineRoot = path.join(repoRoot, 'rust/control-engine');
 const wasmOutDir = path.join(repoRoot, 'src/resources/control-system/wasm/control_engine');
 const wasmPackageFiles = ['index.js', 'index_bg.wasm', 'index.d.ts'];
+const wasmIdentityFiles = ['index.js', 'index.d.ts', 'index_bg.wasm', 'index_bg.wasm.d.ts'];
 const wasmBuildHashFile = path.join(wasmOutDir, '.build-hash');
+const wasmIdentityFile = path.join(wasmOutDir, 'identity.json');
+const identityGeneratedFile = path.join(repoRoot, 'src/lib/control-engine/identity.generated.ts');
+const wasmExports = [
+  'compute_analysis',
+  'compute_nonlinear_analysis',
+  'compute_rl_training',
+  'compute_simulation_step',
+  'compute_virtual_simulation_step',
+];
+
+function sha256File(filePath) {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
+}
+
+function readToolchainVersion(command) {
+  try {
+    return execFileSync(command, {
+      cwd: repoRoot,
+      env: process.env,
+      encoding: 'utf8',
+      shell: true,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+function writeIdentityArtifacts(buildHash) {
+  const files = Object.fromEntries(
+    wasmIdentityFiles
+      .filter((file) => existsSync(path.join(wasmOutDir, file)))
+      .map((file) => [file, sha256File(path.join(wasmOutDir, file))]),
+  );
+  const identity = {
+    schemaVersion: 'act-control-engine-identity/v1',
+    buildHash,
+    wasmPack: readToolchainVersion('wasm-pack --version'),
+    rustc: readToolchainVersion('rustc --version'),
+    exports: wasmExports,
+    files,
+  };
+  writeFileSync(wasmIdentityFile, `${JSON.stringify(identity, null, 2)}\n`);
+  const fileHashLines = Object.entries(files)
+    .map(([file, hash]) => `  '${file}': '${hash}',`)
+    .join('\n');
+  const exportLines = wasmExports.map((name) => `  '${name}',`).join('\n');
+  writeFileSync(
+    identityGeneratedFile,
+    `import { IDENTITY_SCHEMA, type ControlEngineWasmExport } from './types';
+
+export const CONTROL_ENGINE_IDENTITY_SCHEMA = IDENTITY_SCHEMA;
+export const CONTROL_ENGINE_BUILD_HASH = '${buildHash}';
+export const CONTROL_ENGINE_EXPORTS: readonly ControlEngineWasmExport[] = [
+${exportLines}
+] as const;
+export const CONTROL_ENGINE_FILE_HASHES = {
+${fileHashLines}
+} as const;
+`,
+  );
+}
 
 if (process.env.SKIP_WASM_BUILD === '1') {
   const missing = wasmPackageFiles.filter((file) => !existsSync(path.join(wasmOutDir, file)));
   if (missing.length) {
     throw new Error(`SKIP_WASM_BUILD=1 但缺少已生成的控制分析 Wasm 文件：${missing.join(', ')}`);
   }
+  const skippedHash = existsSync(wasmBuildHashFile)
+    ? readFileSync(wasmBuildHashFile, 'utf8').trim()
+    : sha256File(path.join(wasmOutDir, 'index_bg.wasm'));
+  writeIdentityArtifacts(skippedHash);
   console.log(`[wasm] SKIP_WASM_BUILD=1，复用已生成的控制分析 Wasm 包：${wasmOutDir}`);
   process.exit(0);
 }
@@ -126,6 +193,7 @@ const previousBuildHash = existsSync(wasmBuildHashFile)
   : null;
 
 if (process.env.FORCE_WASM_BUILD !== '1' && hasCompleteWasmPackage() && previousBuildHash === buildHash) {
+  writeIdentityArtifacts(buildHash);
   console.log(`[wasm] 控制分析 Wasm 输入未变化，复用已生成包：${wasmOutDir}`);
   process.exit(0);
 }
@@ -175,3 +243,5 @@ const missing = wasmPackageFiles.filter((file) => !existsSync(path.join(wasmOutD
 if (missing.length) {
   throw new Error(`控制分析 Wasm 构建完成后缺少输出文件：${missing.join(', ')}`);
 }
+
+writeIdentityArtifacts(buildHash);
