@@ -1021,8 +1021,8 @@ export async function POST(request: NextRequest) {
             producerAuthority: 'assessment-producer',
             receivedAt: new Date(),
             sessionId: eventData.sessionId ?? undefined,
-            captureRevision: process.env.GIT_SHA || 'working-tree',
-            revision: process.env.GIT_SHA || 'working-tree',
+            captureRevision: process.env.APP_REVISION || process.env.GIT_SHA || 'working-tree',
+            revision: process.env.APP_REVISION || process.env.GIT_SHA || 'working-tree',
           }, {
             action: canonicalEventType,
             eventId: clientEventId,

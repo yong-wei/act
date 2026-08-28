@@ -64,6 +64,27 @@ describe('learning record event contract', () => {
     expect([first.duplicate, second.duplicate].filter(Boolean).length).toBe(1);
   });
 
+  it('fails closed on concurrent put collisions with different identities', async () => {
+    const store = createMemoryAcceptanceStore();
+    const first = {
+      action: 'lesson_submit',
+      eventId: 'evt-a',
+      dedupeKey: 'same-key',
+      payload: { stepId: 'step-a' },
+    };
+    const second = {
+      action: 'lesson_submit',
+      eventId: 'evt-b',
+      dedupeKey: 'same-key',
+      payload: { stepId: 'step-b' },
+    };
+    const results = await Promise.allSettled([
+      acceptLearningRecordEvent(store, context(), first),
+      acceptLearningRecordEvent(store, context(), second),
+    ]);
+    expect(results.some((result) => result.status === 'rejected')).toBe(true);
+  });
+
   it('fails closed on dedupe collision', async () => {
     const store = createMemoryAcceptanceStore();
     await acceptLearningRecordEvent(store, context(), {

@@ -84,6 +84,14 @@ export async function acceptLearningRecordEvent(
   if (forbidden.length > 0) {
     throw new LearningRecordContractError('forbidden-field', 'Payload contains forbidden fields', { forbidden });
   }
+  const required = Array.isArray(entry.payloadSchema?.required)
+    ? entry.payloadSchema.required.filter((key): key is string => typeof key === 'string')
+    : [];
+  for (const key of required) {
+    if (!hint.payload || hint.payload[key] === undefined) {
+      throw new LearningRecordContractError('schema-invalid', `Missing required payload field ${key}`);
+    }
+  }
 
   const receivedAt = context.receivedAt;
   const reportedClientAt = parseClientTime(hint.reportedClientAt);
@@ -171,7 +179,15 @@ export function createMemoryAcceptanceStore(): LearningRecordAcceptanceStore {
     },
     async put(record) {
       const existing = records.get(record.envelope.dedupeKey);
-      if (existing) return { envelope: existing.envelope, duplicate: true };
+      if (existing) {
+        if (
+          existing.envelope.inputDigest !== record.envelope.inputDigest
+          || existing.envelope.anchors.sourceEventId !== record.envelope.anchors.sourceEventId
+        ) {
+          throw new LearningRecordContractError('dedupe-collision', 'Dedupe key reused with a different event digest');
+        }
+        return { envelope: existing.envelope, duplicate: true };
+      }
       records.set(record.envelope.dedupeKey, { envelope: record.envelope, duplicate: false });
       return { envelope: record.envelope, duplicate: false };
     },

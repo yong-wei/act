@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 const FORBIDDEN_KEY_PATTERN = /(answer|prompt|password|secret|token|email|stack|exception|modelOutput|rawArtifact|userId|userName|absolutePath|ipAddress)/i;
 
 const ALLOWED_PAYLOAD_KEYS = new Set([
@@ -53,5 +55,5 @@ export function projectAllowlistedPayload(payload: Record<string, unknown> | und
 }
 
 export function opaqueSubjectRef(subjectId: string): string {
-  return `subject:${Buffer.from(subjectId).toString('base64url')}`;
+  return createHash('sha256').update(`learning-record-subject:${subjectId}`).digest('hex');
 }
