@@ -26,7 +26,7 @@ import {
   type SimulationTaskSpecInputV1,
   type SimulationTaskSpecV1,
 } from '@/resources/simulations/core/run-contract';
-import { resolvePersonalizationGoalId } from '@/features/personalization/plugins/public-api';
+import { resolvePersonalizationGoalContext } from '@/features/personalization/plugins/public-api';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   isAdaptiveLearnerStateServiceEnabled,
@@ -2949,9 +2949,9 @@ function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | un
     if (getRegisteredAdaptiveLearningPathGoal(candidate)) {
       return candidate;
     }
-    const mappedGoalId = resolvePersonalizationGoalId(candidate);
-    if (mappedGoalId) {
-      return mappedGoalId;
+    const mapped = resolvePersonalizationGoalContext({ courseId: candidate });
+    if (mapped.status === 'resolved') {
+      return mapped.context.goalId;
     }
   }
   return null;

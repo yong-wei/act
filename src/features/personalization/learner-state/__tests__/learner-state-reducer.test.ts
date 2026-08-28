@@ -148,6 +148,31 @@ describe('learner-state reducer', () => {
     expect(state.knowledgeMastery.tags['tag-1']?.source).toBe('adaptive-assessment');
     expect(state.assessmentState.latestAbilityEstimate?.theta).toBe(0.4);
   });
+
+  it('keeps learner-state available when a plugin evidence source is unreadable', async () => {
+    const now = new Date('2026-06-19T06:00:00.000Z');
+    const state = await readLearnerState(createDbLearnerStateRuntime({}, {
+      isFeatureFlagEnabled: () => true,
+      controlCorrectionPlugin: {
+        readFacts: async () => [],
+        readArenaSubmissions: async () => {
+          throw new Error('arena-unavailable');
+        },
+        readAgentToolRuns: async () => [],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      goal: CONTROL_CORRECTION_GOAL_ID,
+      now,
+    });
+
+    expect(state.goalSlices?.controlCorrection).toBeDefined();
+    expect(state.goalSlices?.unsupported).toBeUndefined();
+    expect(state.goalSlices?.controlCorrection?.dimensions.every((dimension) => (
+      dimension.confidence.level !== 'high'
+    ))).toBe(true);
+  });
 });
 
 describe('personalization learner-state boundary', () => {

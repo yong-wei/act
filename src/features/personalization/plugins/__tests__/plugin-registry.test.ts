@@ -160,6 +160,15 @@ describe('personalization plugin registry', () => {
     expect(resolvePersonalizationGoalId('3-6', 'task-second-order-lead-pid')).toBe(
       CONTROL_CORRECTION_GOAL_ID,
     );
+    expect(resolvePersonalizationGoalContext({
+      courseId: CONTROL_CORRECTION_ARENA_TASK_ID_VALUES[0],
+    })).toMatchObject({
+      status: 'unsupported',
+      reason: 'unknown-mapping',
+    });
+    expect(resolvePersonalizationGoalContext({
+      taskId: CONTROL_CORRECTION_ARENA_TASK_ID_VALUES[0],
+    }).status).toBe('resolved');
   });
 
   it('returns unsupported for unknown, conflicting, retired and version-drifted plugins', () => {

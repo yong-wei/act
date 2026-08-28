@@ -2,6 +2,7 @@ import {
   listRegisteredPersonalizationGoalIds,
   resolveAdaptiveGoalSliceDefinition,
 } from '@/features/personalization/plugins/public-api';
+import type { GoalPluginEvidencePort } from '@/features/personalization/plugins/types';
 import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   asRecord,
@@ -14,6 +15,31 @@ import {
   type AdaptiveLearnerStateInput,
 } from '../internal';
 import type { LearnerStateRuntime } from '../ports';
+
+async function readPluginEvidence(
+  plugin: GoalPluginEvidencePort | null,
+  userId: string,
+): Promise<{
+  facts: Array<Record<string, unknown>>;
+  arenaSubmissions: Array<Record<string, unknown>>;
+  agentToolRuns: Array<Record<string, unknown>>;
+}> {
+  if (!plugin) {
+    return { facts: [], arenaSubmissions: [], agentToolRuns: [] };
+  }
+
+  const settled = await Promise.allSettled([
+    plugin.readFacts(userId),
+    plugin.readArenaSubmissions(userId),
+    plugin.readAgentToolRuns(userId),
+  ]);
+
+  return {
+    facts: settled[0].status === 'fulfilled' ? settled[0].value : [],
+    arenaSubmissions: settled[1].status === 'fulfilled' ? settled[1].value : [],
+    agentToolRuns: settled[2].status === 'fulfilled' ? settled[2].value : [],
+  };
+}
 
 export async function readLearnerState(
   runtime: LearnerStateRuntime,
@@ -35,9 +61,7 @@ export async function readLearnerState(
     riskFlags,
     paths,
     activeControlCorrectionPaths,
-    controlCorrectionFacts,
-    controlCorrectionArenaSubmissions,
-    controlCorrectionAgentToolRuns,
+    pluginEvidence,
   ] = await Promise.all([
     runtime.learningRecord.readLatestCompetencySnapshot(input.userId),
     runtime.learningRecord.readProfileSummary(input.userId),
@@ -47,9 +71,7 @@ export async function readLearnerState(
     runtime.learningRecord.readRiskFlags(input.userId),
     runtime.paths.readRecentPaths(input.userId),
     runtime.paths.readActiveControlCorrectionPaths(input.userId),
-    plugin ? plugin.readFacts(input.userId) : Promise.resolve([]),
-    plugin ? plugin.readArenaSubmissions(input.userId) : Promise.resolve([]),
-    plugin ? plugin.readAgentToolRuns(input.userId) : Promise.resolve([]),
+    readPluginEvidence(plugin, input.userId),
   ]);
 
   const masteryFacts = uniqueFactsById([
@@ -88,9 +110,9 @@ export async function readLearnerState(
     riskFlags,
     paths,
     activeControlCorrectionPaths,
-    controlCorrectionFacts,
-    controlCorrectionArenaSubmissions,
-    controlCorrectionAgentToolRuns,
+    controlCorrectionFacts: pluginEvidence.facts,
+    controlCorrectionArenaSubmissions: pluginEvidence.arenaSubmissions,
+    controlCorrectionAgentToolRuns: pluginEvidence.agentToolRuns,
     portraitResolution,
   });
 }

@@ -1,5 +1,5 @@
 import { getLearningGoal, type LearningGoalDefinition } from './adaptive-learning-path-planner';
-import { resolvePersonalizationGoalId } from '@/features/personalization/plugins/public-api';
+import { resolvePersonalizationGoalContext } from '@/features/personalization/plugins/public-api';
 import {
   buildGraphCenterPayload,
   type GraphCenterOverlayStatus,
@@ -137,8 +137,8 @@ export function resolveKonlingGraphContextLearningGoalId(
   for (const candidate of candidates) {
     if (!candidate) continue;
     if (getLearningGoal(candidate)) return candidate;
-    const mappedGoalId = resolvePersonalizationGoalId(candidate);
-    if (mappedGoalId) return mappedGoalId;
+    const mapped = resolvePersonalizationGoalContext({ courseId: candidate });
+    if (mapped.status === 'resolved') return mapped.context.goalId;
   }
   return null;
 }
