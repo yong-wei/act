@@ -52,6 +52,7 @@ requireRule('course-content/authoring/lessons/*');
 for (const compiledLessonInput of [
   'course-content/authoring/lessons/3-6/media/raw/generated-data/3-6-design-data.json',
   'course-content/authoring/lessons/4-1/media/raw/generated-data/4-1-case-data.json',
+  'course-content/authoring/lessons/4-3/media/raw/generated-data/4-3-compound-design-data.json',
 ]) {
   requireRule(`!${compiledLessonInput}`);
   requirePath(compiledLessonInput);

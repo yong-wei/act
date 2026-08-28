@@ -56,6 +56,11 @@ The release build SHALL hold a platform-scoped single-writer lock from prewarm t
 - **THEN** the new generation becomes current through an atomic same-filesystem pointer replacement
 - **AND** later worktrees may import that generation
 
+#### Scenario: Successful builds retain bounded cache history
+- **WHEN** three or more successful builds publish cache generations for one platform
+- **THEN** the current generation and its immediate predecessor remain available
+- **AND** older generations are removed while the platform writer lock is held
+
 ### Requirement: Dependency download caches use stable platform-scoped identities
 The release build SHALL select one stable named local buildx builder. Docker dependency stages SHALL use stable, platform-scoped BuildKit cache-mount IDs for npm, Prisma, and apt downloads with locked sharing. Apt mounts SHALL retain downloaded packages when an apt layer is invalidated. The release contract MUST NOT claim that cache-mount contents are portable through the local exporter when BuildKit does not provide that guarantee.
 

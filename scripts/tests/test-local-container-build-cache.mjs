@@ -60,6 +60,7 @@ assert.match(buildScript, /CACHE_LOCK_DIR="\$\{PLATFORM_CACHE_ROOT\}\/lock"/u);
 assert.match(buildScript, /mkdir "\$\{CACHE_LOCK_DIR\}"/u);
 assert.match(buildScript, /ln -s "\$\{GENERATION_DIR\}" "\$\{CURRENT_LINK_TMP\}"/u);
 assert.match(buildScript, /atomic_replace_current "\$\{CURRENT_LINK_TMP\}" "\$\{CURRENT_CACHE_DIR\}"/u);
+assert.match(buildScript, /prune_old_cache_generations/u);
 assert.match(buildScript, /--output=type=cacheonly/u);
 assert.match(buildScript, /mode=max/u);
 for (const cacheId of [
@@ -289,6 +290,18 @@ try {
   const secondResult = runFixture(defaultFixture, { ACT_BUILD_CACHE_ROOT: failureRoot });
   assert.equal(secondResult.status, 0, secondResult.stderr);
   assert.notEqual(fs.readlinkSync(failureCurrent), firstTarget);
+  const secondTarget = fs.readlinkSync(failureCurrent);
+  const thirdResult = runFixture(defaultFixture, { ACT_BUILD_CACHE_ROOT: failureRoot });
+  assert.equal(thirdResult.status, 0, thirdResult.stderr);
+  const thirdTarget = fs.readlinkSync(failureCurrent);
+  assert.notEqual(thirdTarget, secondTarget);
+  const retainedGenerations = fs.readdirSync(
+    path.join(failureRoot, 'linux-amd64', 'buildkit', 'generations'),
+  );
+  assert.equal(retainedGenerations.length, 2, 'current plus one rollback generation must remain');
+  assert.equal(retainedGenerations.includes(path.basename(firstTarget)), false);
+  assert.equal(retainedGenerations.includes(path.basename(secondTarget)), true);
+  assert.equal(retainedGenerations.includes(path.basename(thirdTarget)), true);
   const order = fs.readFileSync(path.join(defaultFixture.fixture, 'order.log'), 'utf8')
     .trim()
     .split('\n');
