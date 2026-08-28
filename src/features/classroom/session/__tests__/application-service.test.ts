@@ -233,6 +233,14 @@ describe('classroom session application service', () => {
       sessionId: 'session-1',
     });
     expect(runtime.finalizeEndedSession).toHaveBeenCalledTimes(2);
+    expect(runtime.persistAdvance).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      status: 'FINISHED',
+      endTime: new Date('2026-01-01T00:00:00.000Z'),
+    }));
+    expect(runtime.persistAdvance).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      status: 'FINISHED',
+    }));
+    expect((runtime.persistAdvance as ReturnType<typeof vi.fn>).mock.calls[1][0].endTime).toBeUndefined();
   });
 
   it('maps generated-courseware recovery to a conflict', async () => {

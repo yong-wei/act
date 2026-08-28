@@ -217,7 +217,9 @@ export async function advanceClassroomSession(
       throw new ClassroomSessionError('invalid-input', 'Invalid status value');
     }
     persistInput.status = input.status;
-    if (input.status === 'FINISHED') persistInput.endTime = updatedAt;
+    if (input.status === 'FINISHED' && existingSession.status !== 'FINISHED') {
+      persistInput.endTime = updatedAt;
+    }
   }
 
   const updatedSession = await runtime.persistAdvance(persistInput);
