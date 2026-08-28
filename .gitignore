@@ -98,6 +98,9 @@ unit41-step*.png
 # Added by code-review-graph
 .code-review-graph/
 
+# Local CodeGraph index
+.codegraph/
+
 # SkillOpt-Sleep local runtime
 /.skillopt-sleep/
 

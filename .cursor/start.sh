@@ -18,6 +18,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Agent CLIs installed to a user npm prefix / pipx bin during install.sh.
+export PATH="${HOME}/.npm-global/bin:${HOME}/.local/bin:${PATH}"
+export OPENSPEC_TELEMETRY=0
+
+if [ ! -f .env.openspec-buddy ]; then
+  printf 'OPENSPEC_BUDDY_BASE_BRANCH=integration\n' > .env.openspec-buddy
+fi
+
 # Canonical local Cloud Agent database identity.
 LOCAL_DATABASE_URL='postgresql://act_user:act_pass@localhost:5432/act_obe?schema=public'
 LOCAL_SHADOW_DATABASE_URL='postgresql://act_user:act_pass@localhost:5432/act_obe?schema=shadow'
