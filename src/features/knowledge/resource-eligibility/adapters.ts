@@ -24,6 +24,8 @@ export interface IndexedEligibilityObservation {
   consumerId?: string;
   consumerCombination?: {
     authorityReleaseId?: string | null;
+    authoritySnapshotId?: string | null;
+    authoritySnapshotHash?: string | null;
     projectionId?: string | null;
     projectionHash?: string | null;
     scopeId?: string | null;
@@ -97,6 +99,8 @@ function consumerActivationMatchesContext(
   const combination = observation?.consumerCombination;
   if (!combination) return false;
   if (context.authorityId && combination.authorityReleaseId !== context.authorityId) return false;
+  if ((combination.authoritySnapshotId ?? null) !== (context.authoritySnapshotId ?? null)) return false;
+  if ((combination.authoritySnapshotHash ?? null) !== (context.authoritySnapshotHash ?? null)) return false;
   if (context.captureRevision && combination.captureRevision !== context.captureRevision) return false;
   if (context.purpose === 'named-consumer') {
     const requestedScope = context.courseId ?? context.scope;
@@ -132,11 +136,7 @@ function releaseQualifiedForContext(
 ): boolean {
   if (observation?.releaseQualified !== true) return false;
   if (context.courseId && observation.releasePackageId !== context.courseId) return false;
-  if (
-    context.captureRevision
-    && observation.releaseCaptureRevision
-    && observation.releaseCaptureRevision !== context.captureRevision
-  ) {
+  if (context.captureRevision && observation.releaseCaptureRevision !== context.captureRevision) {
     return false;
   }
   return true;

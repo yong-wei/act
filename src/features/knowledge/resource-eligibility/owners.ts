@@ -88,6 +88,8 @@ export function observationFromConsumerActivation(
     consumerId: record.consumerId,
     consumerCombination: {
       authorityReleaseId: record.combination.authorityReleaseId,
+      authoritySnapshotId: record.combination.authoritySnapshotId,
+      authoritySnapshotHash: record.combination.authoritySnapshotHash,
       projectionId: record.combination.projectionId,
       projectionHash: record.combination.projectionHash,
       scopeId: record.combination.scopeId,

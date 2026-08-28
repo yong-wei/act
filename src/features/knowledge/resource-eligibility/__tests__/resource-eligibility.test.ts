@@ -40,6 +40,8 @@ function metadata(id: string) {
 
 function consumerCombination(captureRevision: string, overrides: {
   authorityReleaseId?: string | null;
+  authoritySnapshotId?: string | null;
+  authoritySnapshotHash?: string | null;
   consumerId?: string;
   scopeId?: string | null;
   projectionId?: string | null;
@@ -47,8 +49,8 @@ function consumerCombination(captureRevision: string, overrides: {
 } = {}) {
   return {
     authorityReleaseId: overrides.authorityReleaseId ?? null,
-    authoritySnapshotId: null,
-    authoritySnapshotHash: null,
+    authoritySnapshotId: overrides.authoritySnapshotId ?? null,
+    authoritySnapshotHash: overrides.authoritySnapshotHash ?? null,
     projectionId: overrides.projectionId ?? null,
     projectionHash: overrides.projectionHash ?? null,
     scopeId: overrides.scopeId ?? null,
@@ -1020,5 +1022,98 @@ describe('resource eligibility evaluator', () => {
     });
     expect(snapshot.eligibleForContext).toBe(false);
     expect(snapshot.dimensions.consumerActivation.status).toBe('blocked');
+  });
+
+  it('fails closed when Authority snapshots under the same release are mixed', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'snapshot-node',
+          title: '快照节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'snapshot-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'named-consumer',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
+        consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        authoritySnapshotId: 'snap-a',
+        authoritySnapshotHash: 'hash-snap-a',
+        projectionId: 'proj-a',
+        projectionHash: 'hash-a',
+      },
+      observation: observationFromConsumerActivation({
+        consumerId: 'learning-path',
+        status: 'READY',
+        combination: consumerCombination(SHARED, {
+          authorityReleaseId: 'authority-current',
+          authoritySnapshotId: 'snap-b',
+          authoritySnapshotHash: 'hash-snap-b',
+          scopeId: entry.descriptor.identity.scope,
+          projectionId: 'proj-a',
+          projectionHash: 'hash-a',
+        }),
+      }),
+    });
+    expect(snapshot.eligibleForContext).toBe(false);
+    expect(snapshot.dimensions.consumerActivation.status).toBe('blocked');
+  });
+
+  it('fails closed when formal release qualification omits the requested capture revision', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'release-revision-node',
+          title: '发布修订节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'release-revision-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'formal-bind',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: SHARED,
+        courseId: 'pkg-1',
+      },
+      observation: {
+        formalBindingValid: true,
+        ...observationFromFormalReleaseQualification({
+          ready: true,
+          scope: {
+            packageId: 'pkg-1',
+            blocksEngineeringAuthority: false,
+            blocksUnrelatedConsumers: false,
+            consumerState: 'READY',
+          },
+        }),
+      },
+    });
+    expect(snapshot.dimensions.formalReleaseQualification.status).not.toBe('available');
+    expect(snapshot.eligibleForContext).toBe(true);
   });
 });
