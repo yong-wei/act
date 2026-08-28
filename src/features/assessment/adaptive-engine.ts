@@ -8,6 +8,7 @@ import {
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
+  findGeneratedRuntimeQuestionById,
   selectCatalogBackedAssessmentItem,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
@@ -167,7 +168,7 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
   if (authored) {
     return checkpointAuthoredQuestionToRuntimeQuestion(authored);
   }
-  return store.generatedQuestions.get(questionId) ?? null;
+  return store.generatedQuestions.get(questionId) ?? findGeneratedRuntimeQuestionById(questionId);
 }
 
 function getQuestionForSession(questionId: string, params: { userId: string; sessionId: string }): CrossDomainQuestion | null {
