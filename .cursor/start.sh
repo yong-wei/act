@@ -7,9 +7,11 @@
 # and tolerate restarts. The Next.js dev server itself runs as a terminal
 # (see .cursor/environment.json) so its logs stay visible.
 #
-# Database writes are fail-closed: migrate/seed run only against the local
-# act_obe identity below. An existing .env that points at a shared, staging,
-# or production database must not be loaded into this write path.
+# Database writes are fail-closed: migrate/seed run only after
+# .cursor/require-local-database.mjs confirms the local act_obe identity,
+# including rejecting query parameters that pg-connection-string would use to
+# override host/port. An existing .env that points at a shared, staging, or
+# production database must not be loaded into this write path.
 ###############################################################################
 set -euo pipefail
 
@@ -19,29 +21,6 @@ cd "$REPO_ROOT"
 # Canonical local Cloud Agent database identity.
 LOCAL_DATABASE_URL='postgresql://act_user:act_pass@localhost:5432/act_obe?schema=public'
 LOCAL_SHADOW_DATABASE_URL='postgresql://act_user:act_pass@localhost:5432/act_obe?schema=shadow'
-
-is_allowed_local_act_obe_url() {
-  local raw="${1:-}"
-  raw="${raw%\"}"
-  raw="${raw#\"}"
-  raw="${raw%\'}"
-  raw="${raw#\'}"
-  [[ "$raw" =~ ^postgres(ql)?://act_user:act_pass@(localhost|127\.0\.0\.1)(:5432)?/act_obe(\?.*)?$ ]]
-}
-
-require_local_database_urls() {
-  if ! is_allowed_local_act_obe_url "${DATABASE_URL:-}"; then
-    echo "[start] Refusing database writes: DATABASE_URL is not the local act_obe instance." >&2
-    echo "[start] Expected ${LOCAL_DATABASE_URL} (host may be 127.0.0.1)." >&2
-    echo "[start] Remove or replace .env so Cloud Agent startup cannot migrate or seed a shared/staging/production database." >&2
-    exit 1
-  fi
-  if [ -n "${SHADOW_DATABASE_URL:-}" ] && ! is_allowed_local_act_obe_url "${SHADOW_DATABASE_URL}"; then
-    echo "[start] Refusing database writes: SHADOW_DATABASE_URL is not the local act_obe instance." >&2
-    echo "[start] Expected ${LOCAL_SHADOW_DATABASE_URL} (host may be 127.0.0.1)." >&2
-    exit 1
-  fi
-}
 
 # 1. Ensure a local .env exists. Secrets are generated once and then reused so
 #    NextAuth sessions survive restarts. .env is gitignored.
@@ -89,8 +68,10 @@ sudo -u postgres psql -d act_obe \
 sudo service redis-server start 2>/dev/null || redis-server --daemonize yes || true
 
 # 5. Load env, then fail closed unless the target is the local act_obe instance.
+#    Parse with the same pg-connection-string rules PrismaPg uses; reject query
+#    parameters such as host=/port= that would override the URL authority.
 set -a; . ./.env; set +a
-require_local_database_urls
+node .cursor/require-local-database.mjs
 
 # 6. Apply database migrations only after the local target identity is confirmed.
 npx prisma migrate deploy
