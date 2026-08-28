@@ -31,10 +31,15 @@ import { processPendingMicroInterventionEvidenceProjections } from '@/features/a
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   failSessionClosureOutbox,
-  recordSessionReportPhase,
   redispatchPendingSessionClosures,
-  settleSessionClosureIfPhasesComplete,
 } from '@/lib/data-governance/session-closure-outbox';
+import {
+  ensureSessionClosurePhases,
+  incompletePhases,
+  runSessionClosurePhase,
+  settleSessionClosuresIfComplete,
+} from '@/lib/data-governance/session-closure-phases';
+import { materializeEvidenceRow } from '@/lib/data-governance/session-fact-replay';
 import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
@@ -957,74 +962,45 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
-  // coordinator：扫描仍处于 PENDING/FAILED 的闭包 outbox，并重放全部收尾阶段
-  // （事件摄取、证据特征缓存、水位限定报告），兜底闭课时 Redis 不可用造成的漏投
+  // 收敛协调器：对每个未完成闭包确保阶段台账行存在，按台账重放未完成阶段，
+  // 并在全部阶段回执 SUCCEEDED 后才结算。台账是闭包完备性的唯一真源。
   if (job.data.coordinator) {
     const db = getPrismaClient();
     if (!reportQueue || !redis) {
       throw new Error('worker queues are not initialised');
     }
     const queue = reportQueue;
-    const eventQueue = new Queue<EventIngestionJob>('event-ingestion', { connection: redis });
-    const cacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
     const sessionIds = await redispatchPendingSessionClosures(db, async (sessionId) => {
-      // 重放除报告外的收尾阶段（与闭课内联入队使用同一幂等 jobId 约定）
-      await eventQueue.add(
-        'event-ingestion-coordinator',
-        { coordinator: true },
-        {
+      const rows = await ensureSessionClosurePhases(db, sessionId);
+      for (const phase of incompletePhases(rows)) {
+        // 唯一 jobId：BullMQ 对已存在（含 failed 集合）的 jobId 重复 add 是 no-op
+        await queue.add(`session-closure-phase-${phase}`, { sessionId, phase }, {
           attempts: 2,
           backoff: { type: 'exponential', delay: 5000 },
-          delay: 5_000,
-          jobId: `event-ingestion-session-finalize-${sessionId}`,
+          jobId: `session-closure-phase-${sessionId}-${phase}-${Date.now()}`,
           removeOnComplete: { count: 20 },
           removeOnFail: { count: 50 },
-        },
-      );
-      const studentStates = await db.studentState.findMany({
-        where: { sessionId, stateKey: 'course' },
-        distinct: ['userId'],
-        select: { userId: true },
-      });
-      for (const { userId } of studentStates) {
-        // 唯一 jobId：避开 failed 集合中既有 jobId 的 no-op add
-        await cacheQueue.add(
-          `evidence-feature-cache-refresh-${userId}`,
-          { userId, sessionId },
-          {
-            attempts: 2,
-            backoff: { type: 'exponential', delay: 10000 },
-            delay: 120_000,
-            jobId: `session-closure-cache-${userId}-${sessionId}-${Date.now()}`,
-            removeOnComplete: { count: 20 },
-            removeOnFail: { count: 50 },
-          },
-        );
+        });
       }
-      // 报告刷新使用全新投递身份：BullMQ 对已存在（含 failed 集合）的 jobId
-      // 重复 add 是 no-op，唯一 jobId 保证 FAILED 任务可恢复；
-      // 处理侧报告生成与 outbox 结算天然幂等，重复投递不会双计。
-      await queue.add('session-closure-redispatch', { sessionId }, {
-        attempts: 2,
-        backoff: { type: 'exponential', delay: 5000 },
-        jobId: `session-closure-redispatch-${sessionId}-${Date.now()}`,
-        removeOnComplete: { count: 20 },
-        removeOnFail: { count: 50 },
-      });
     });
-    await eventQueue.close();
-    await cacheQueue.close();
-    // 阶段判定结算：summarized 晚于闭包入队且 cached 已成功的闭包才置 SUCCEEDED
-    let settled = 0;
-    for (const sessionId of sessionIds) {
-      if (await settleSessionClosureIfPhasesComplete(db, sessionId)) {
-        settled += 1;
-      }
-    }
+    const settled = await settleSessionClosuresIfComplete(db, sessionIds);
     if (sessionIds.length > 0 || settled > 0) {
-      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched closure finalization for ${sessionIds.length} session(s), settled ${settled}`);
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Converged closure finalization for ${sessionIds.length} session(s), settled ${settled}`);
     }
     return { redispatchedSessions: sessionIds, settledClosures: settled };
+  }
+
+  // 阶段作业：执行单个闭包阶段并写入台账回执
+  if (job.data.phase && job.data.sessionId) {
+    const db = getPrismaClient();
+    const result = await runSessionClosurePhase(db, job.data.sessionId, job.data.phase, {
+      refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(db as any, userId),
+      materializeEvidence: (evidence) => materializeEvidenceRow(db, evidence),
+    });
+    if (result.status === 'FAILED') {
+      throw new Error(`session closure phase ${job.data.phase} failed: ${JSON.stringify(result.detail)}`);
+    }
+    return { sessionId: job.data.sessionId, phase: job.data.phase, ...result };
   }
 
   if (!job.data.sessionId) {
@@ -1059,28 +1035,8 @@ async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>)
     throw new Error('evidence-feature-cache job requires userId unless it is a coordinator rebuild job');
   }
 
-  try {
-    await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
-    if (job.data.sessionId) {
-      // 闭包恢复路径按会话记录 cached 阶段完成回执，供 outbox 阶段判定结算
-      await recordSessionReportPhase(db, job.data.sessionId, 'cached', {
-        status: 'SUCCEEDED',
-        userId: job.data.userId,
-        at: new Date().toISOString(),
-      });
-    }
-    return { userId: job.data.userId, refreshed: true };
-  } catch (error) {
-    if (job.data.sessionId) {
-      await recordSessionReportPhase(db, job.data.sessionId, 'cached', {
-        status: 'FAILED',
-        userId: job.data.userId,
-        reason: String((error as Error)?.message ?? error).slice(0, 200),
-        at: new Date().toISOString(),
-      }).catch(() => undefined);
-    }
-    throw error;
-  }
+  await refreshStudentEvidenceFeatureCache(db as any, job.data.userId);
+  return { userId: job.data.userId, refreshed: true };
 }
 
 export async function processRiskFlagScanJob(job: Job<RiskFlagScanJob>) {

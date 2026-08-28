@@ -801,7 +801,7 @@ export async function generateSessionSummaryReports(
       },
       cached: {
         status: 'DEFERRED',
-        note: 'evidence feature cache refresh runs as a separate per-user worker phase; failures surface in qualityStatus snapshot freshness',
+        note: 'per-user cache refresh is a closure phase tracked in SessionClosurePhase; settlement requires its SUCCEEDED receipt',
       },
     },
     afterSessionEndEvents,

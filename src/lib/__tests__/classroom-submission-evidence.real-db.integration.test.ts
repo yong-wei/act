@@ -4,8 +4,15 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Pool } from 'pg';
 
 import { prisma } from '@/lib/prisma';
-import { settleSessionClosureOutbox } from '@/lib/data-governance/session-closure-outbox';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
+import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  ensureSessionClosurePhases,
+  replayMissingClosureFacts,
+  runSessionClosurePhase,
+  settleSessionClosuresIfComplete,
+} from '@/lib/data-governance/session-closure-phases';
+import { materializeEvidenceRow } from '@/lib/data-governance/session-fact-replay';
 import { acceptClassifiedSubmissionCommand } from '@/features/classroom/session/adapters/submission-evidence-commands';
 import { persistSessionEndTransactionCommand } from '@/features/classroom/session/adapters/submission-evidence-commands';
 import { CLASSROOM_SUBMISSION_IDENTITY_VERSION } from '@/features/classroom/session/submission-evidence';
@@ -244,15 +251,61 @@ describe.runIf(enabled)('classroom live-state / submission evidence PostgreSQL i
     expect(session2?.closureRevision).toBe(1);
   });
 
-  it('settles the closure outbox idempotently across worker redelivery', async () => {
-    expect(await settleSessionClosureOutbox(prisma, 'session-2')).toBe(1);
+  it('converges the closure through the phase ledger and settles only when every phase succeeds', async () => {
+    // 模拟协调器：确保台账 → 逐阶段执行 → 收敛结算
+    async function converge(sessionId: string) {
+      const rows = await ensureSessionClosurePhases(prisma, sessionId);
+      for (const row of rows) {
+        if (row.status === 'SUCCEEDED') continue;
+        await runSessionClosurePhase(prisma, sessionId, row.phase as 'materialize' | 'summarize' | 'cache', {
+          refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(prisma as never, userId),
+          materializeEvidence: (evidence) => materializeEvidenceRow(prisma, evidence),
+        });
+      }
+      return settleSessionClosuresIfComplete(prisma, [sessionId]);
+    }
+
+    const settledCount = await converge('session-2');
+    if (settledCount !== 1) {
+      const outbox = await prisma.sessionClosureOutbox.findFirst({ where: { sessionId: 'session-2' } });
+      const phaseRows = await prisma.sessionClosurePhase.findMany({ where: { closureOutboxId: outbox!.id } });
+      throw new Error(`closure did not settle: ${JSON.stringify(phaseRows)}`);
+    }
+    expect(settledCount).toBe(1);
     const settled = await prisma.sessionClosureOutbox.findMany({ where: { sessionId: 'session-2' } });
     expect(settled).toHaveLength(1);
     expect(settled[0].status).toBe('SUCCEEDED');
     expect(settled[0].processedAt).not.toBeNull();
+    const phases = await prisma.sessionClosurePhase.findMany({ where: { closureOutboxId: settled[0].id } });
+    expect(phases).toHaveLength(3);
+    expect(phases.every((phase) => phase.status === 'SUCCEEDED')).toBe(true);
+    // 缓存参与者从水位内证据推导（fixture 无任何 StudentState 行）且晚到证据者被排除
+    const cachePhase = phases.find((phase) => phase.phase === 'cache');
+    expect(cachePhase?.total).toBe(1);
+    expect(cachePhase?.done).toBe(1);
 
-    // 重复投递：不再重复处理，也不扩大闭包
-    expect(await settleSessionClosureOutbox(prisma, 'session-2')).toBe(0);
+    // 重复投递：台账全绿后不再重复结算，也不产生新闭包
+    expect(await converge('session-2')).toBe(0);
     expect(await prisma.sessionClosureOutbox.count({ where: { sessionId: 'session-2' } })).toBe(1);
+    expect(await prisma.sessionClosurePhase.count({ where: { sessionId: 'session-2' } })).toBe(3);
+  });
+
+  it('replays missing LearningFacts from durable evidence without double counting', async () => {
+    const accepted = await prisma.studentStepResponse.findFirst({
+      where: { sessionId: 'session-2', evidenceStatus: 'ACCEPTED' },
+    });
+    expect(accepted?.clientEventId).toBeTruthy();
+    // 模拟"提交已持久化但事实从未写入/被丢失"（内联中断或前一 converge 已建亦可）：
+    // 先清空该证据的事实，再重放必须从持久化证据补齐
+    await prisma.learningFact.deleteMany({ where: { sourceEventId: accepted!.clientEventId! } });
+    const initial = await replayMissingClosureFacts(prisma, 'session-2', (evidence) => materializeEvidenceRow(prisma, evidence));
+    expect(initial.missing).toBeGreaterThanOrEqual(1);
+    expect(initial.created).toBeGreaterThanOrEqual(1);
+    expect(await prisma.learningFact.count({ where: { sourceEventId: accepted!.clientEventId! } })).toBe(1);
+
+    // 重放幂等：再次执行不产生新事实
+    const second = await replayMissingClosureFacts(prisma, 'session-2', (evidence) => materializeEvidenceRow(prisma, evidence));
+    expect(second.created).toBe(0);
+    expect(await prisma.learningFact.count({ where: { sourceEventId: accepted!.clientEventId! } })).toBe(1);
   });
 });

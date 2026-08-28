@@ -471,7 +471,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(2);
     expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    // 首件内联物化 1 次 + 重件 DUPLICATE 回执重放 1 次（均幂等）
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(2);
   });
 
   it('returns the durable receipt when the same submission identity already exists', async () => {
@@ -518,7 +519,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+    // DUPLICATE 回执幂等重放事实物化（崩溃恢复边界），路由级事件路由不重跑
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
   });
 
   it('degrades identity-less submissions instead of persisting evidence that bypasses the closure boundary', async () => {
@@ -602,7 +604,7 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
   });
 
   it('rejects the batch atomically when the shared evidence writer fails, without partial evidence', async () => {

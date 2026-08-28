@@ -88,3 +88,14 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 1. 可恢复物化交接：DUPLICATE 回执不重放事实物化，提交事务内缺持久化 handoff——进程中断会使已接受作答永久缺少 LearningFact（违反 spec 的可重放物化要求）。
 2. 摄取阶段会话级回执：结算谓词未纳入事件摄取完成状态，摄取失败后闭包仍可能被表示为完成。
 3. 缓存扇出按证据参与者聚合：当前从 StudentState 推导缓存目标并共享单一 cached 阶段位，"live state 决定证据消费者"耦合未完全消除，且多学生课堂单个成功可掩盖另一失败。
+
+## 13. 根治重构：闭包完备性状态机（2026-08-29，PR #1668，经负责人授权）
+
+不再逐条修补第五轮 finding，而是落实设计不变量"闭包完备性 = 从持久化证据可重放的收敛状态机"：
+
+- **阶段台账**（新增 `SessionClosurePhase`，`@@unique(closureOutboxId, phase)`）：materialize / summarize / cache 三阶段各有持久化回执（status/total/done/detail）。台账是闭包完备性的唯一真源——结算不看任何旁路作业（Redis 队列、内联调用、event-ingestion coordinator）的成功与否。
+- **收敛协调器**：10 分钟周期对每个未完成闭包确保台账行存在、按台账重放未完成阶段（唯一 jobId）、全部阶段 SUCCEEDED 才结算（`settleSessionClosuresIfComplete`）。失败阶段停在 FAILED，下个周期自动重试；每阶段幂等可重放。
+- **materialize 阶段**：从水位以内 ACCEPTED 证据重放缺失的 LearningFact（`replayMissingClosureFacts` + `materializeEvidenceRow`，与提交内联快路径共用 `persistCoreLearningFact`，sourceEventId 唯一约束兜底）。这是提交后到闭课间一切物化丢失的恢复边界；route 的 DUPLICATE 回执现在也幂等重放物化（客户端重试即自愈）。
+- **cache 阶段**：参与者从水位内证据 distinct userId 推导（与 StudentState 彻底解耦），逐人刷新并在台账行聚合 done/total/detail，任一失败保持 FAILED 待重放。
+- **summarize 阶段**：水位限定报告重算（幂等 upsert）。
+- 真 PG 集成测试覆盖：台账收敛结算、重复投递不双计、事实丢失→重放补齐→幂等、缓存参与者从证据推导（fixture 无 StudentState 行）。

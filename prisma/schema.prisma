@@ -3721,8 +3721,28 @@ model SessionClosureOutbox {
   availableAt                 DateTime     @default(now())
   processedAt                 DateTime?
 
+  phases SessionClosurePhase[]
+
   @@unique([sessionId, closureRevision])
   @@index([status, availableAt])
+}
+
+// 闭包阶段台账：每个闭包阶段的持久化完成回执。结算 = 全部阶段 SUCCEEDED；
+// 任何阶段可安全重放（幂等），失败保持 FAILED 由周期协调器收敛。
+model SessionClosurePhase {
+  id              String               @id @default(cuid())
+  closure         SessionClosureOutbox @relation(fields: [closureOutboxId], references: [id], onDelete: Cascade)
+  closureOutboxId String
+  sessionId       String
+  phase           String // materialize | summarize | cache
+  status          String               @default("PENDING") // PENDING | SUCCEEDED | FAILED
+  total           Int?
+  done            Int                  @default(0)
+  detail          Json                 @default("{}")
+  updatedAt       DateTime             @updatedAt
+
+  @@unique([closureOutboxId, phase])
+  @@index([sessionId, status])
 }
 
 model ClassSessionReport {
