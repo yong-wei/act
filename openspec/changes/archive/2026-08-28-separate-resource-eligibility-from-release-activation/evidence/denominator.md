@@ -7,8 +7,8 @@
 | 维度 | 现有 owner / 证据 | 本 change 读法 |
 | --- | --- | --- |
 | retrieval readiness | RegistryIndex `descriptor.availability` | `observeBrowseEligibility` / `observeRecommendEligibility` |
-| path eligibility | ResourceNode 登记 / `full-resource-path-readiness-gate.ts` | 仅 `sourceKind=resource-node` 视为已审计；合成 `registry:` 引用不算 path |
-| formal binding | `canonical-resource-binding`、`formal-runtime-atomic-resource-binding` | 读 `formalBindingIds`/`canonicalIds`；Teaching mode / inventory disposition 经 `owners.ts` 映射；`OPTIONAL`/`NONE` 不能闭合 |
+| path eligibility | ResourceNode 登记 / `full-resource-path-readiness-gate.ts` | 仅当 owner 观察 `pathAudited=true`；来源类型或合成 `registry:` 引用不算审计 |
+| formal binding | `canonical-resource-binding`、`formal-runtime-atomic-resource-binding` | 仅当 owner 观察 `formalBindingValid=true`；索引中的 ID 只作证据引用。`OPTIONAL`/`NONE` 不能闭合 |
 | launch availability | 源属 launcher + `resolveIndexedResource` 授权 | `observeLaunchEligibility` |
 | formal release qualification | Teaching Projection / Runtime Release 包门 | `observationFromFormalReleaseQualification`；不写指针 |
 | Teaching Projection activation | `src/lib/teaching-projection/activation.ts` | `observationFromTeachingProjectionConsumer` |

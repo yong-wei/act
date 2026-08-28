@@ -44,6 +44,8 @@ export interface ResourceEligibilityContext {
   authorityId?: string;
   resourceIndexIdentity: string;
   requestedRevision?: string;
+  projectionId?: string;
+  projectionHash?: string;
   launcherContract?: ResourceEligibilityLauncherContract;
   consumerId?: string;
   engineeringOnly?: boolean;

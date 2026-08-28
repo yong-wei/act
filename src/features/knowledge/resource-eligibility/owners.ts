@@ -104,6 +104,8 @@ export function mergeEligibilityObservations(
   const merged: IndexedEligibilityObservation = {};
   for (const part of parts) {
     if (!part) continue;
+    if (part.pathAudited !== undefined) merged.pathAudited = part.pathAudited;
+    if (part.formalBindingValid !== undefined) merged.formalBindingValid = part.formalBindingValid;
     if (part.formalDisposition) merged.formalDisposition = part.formalDisposition;
     if (part.teachingProjectionStatus) {
       merged.teachingProjectionStatus = part.teachingProjectionStatus;

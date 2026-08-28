@@ -42,13 +42,15 @@ function consumerCombination(captureRevision: string, overrides: {
   authorityReleaseId?: string | null;
   consumerId?: string;
   scopeId?: string | null;
+  projectionId?: string | null;
+  projectionHash?: string | null;
 } = {}) {
   return {
     authorityReleaseId: overrides.authorityReleaseId ?? null,
     authoritySnapshotId: null,
     authoritySnapshotHash: null,
-    projectionId: null,
-    projectionHash: null,
+    projectionId: overrides.projectionId ?? null,
+    projectionHash: overrides.projectionHash ?? null,
     scopeId: overrides.scopeId ?? null,
     captureRevision,
   };
@@ -212,7 +214,7 @@ describe('resource eligibility evaluator', () => {
         index,
         entry,
         context,
-        observation: { formalDisposition: 'OPTIONAL', releaseQualified: true },
+        observation: { formalDisposition: 'OPTIONAL', formalBindingValid: true, releaseQualified: true },
       }),
     });
     expect(snapshot.dimensions.formalBinding.status).toBe('unavailable');
@@ -466,6 +468,7 @@ describe('resource eligibility evaluator', () => {
         resourceIndexIdentity: index.identity,
         requestedRevision: node.descriptor.identity.sourceVersion,
       },
+      observation: { pathAudited: true },
     });
     const formal = observeFormalBindEligibility({
       index,
@@ -477,6 +480,8 @@ describe('resource eligibility evaluator', () => {
         requestedRevision: node.descriptor.identity.sourceVersion,
       },
       observation: {
+        pathAudited: true,
+        formalBindingValid: true,
         formalDisposition: formalDispositionFromTeachingMode('OPTIONAL'),
         ...observationFromFormalReleaseQualification({
           ready: true,
@@ -646,5 +651,68 @@ describe('resource eligibility evaluator', () => {
     expect(mismatched.dimensions.consumerActivation.status).toBe('blocked');
     expect(stale.eligibleForContext).toBe(false);
     expect(stale.dimensions.consumerActivation.status).toBe('blocked');
+    const unscoped = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        ...context,
+        purpose: 'named-consumer',
+        courseId: 'course-a',
+        projectionId: 'proj-a',
+        projectionHash: 'hash-a',
+      },
+      observation: observationFromConsumerActivation({
+        consumerId: 'learning-path',
+        status: 'READY',
+        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+          authorityReleaseId: 'authority-current',
+        }),
+      }),
+    });
+    expect(unscoped.eligibleForContext).toBe(false);
+    expect(unscoped.dimensions.consumerActivation.status).toBe('blocked');
+  });
+
+  it('requires owner audit and published formal-binding observations instead of index fields', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'unaudited-node',
+          title: '未审计节点',
+          type: 'knowledge_card',
+          sourceKind: 'resource-node',
+          sourceRef: 'unaudited-node',
+          canonicalIds: ['KAQ-unaudited'],
+          formalBindingIds: ['bind-stale'],
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const context = {
+      role: 'teacher' as const,
+      scope: entry.descriptor.identity.scope,
+      resourceIndexIdentity: index.identity,
+      requestedRevision: entry.descriptor.identity.sourceVersion,
+    };
+    const path = observePathEligibility({ index, entry, context });
+    const formal = observeFormalBindEligibility({ index, entry, context });
+    const audited = observePathEligibility({
+      index,
+      entry,
+      context,
+      observation: { pathAudited: true },
+    });
+    const bound = observeFormalBindEligibility({
+      index,
+      entry,
+      context,
+      observation: { formalBindingValid: true },
+    });
+    expect(path.eligibleForContext).toBe(false);
+    expect(formal.eligibleForContext).toBe(false);
+    expect(audited.eligibleForContext).toBe(true);
+    expect(bound.eligibleForContext).toBe(true);
   });
 });

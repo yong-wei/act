@@ -1,5 +1,4 @@
 import { canRevealIndexedResource } from '../resource-index/resolve';
-import { RESOURCE_NODE_SOURCE_KIND } from '../resource-index/types';
 import type { IndexedResourceEntry, RegistryIndex } from '../resource-index/types';
 
 import type {
@@ -9,6 +8,8 @@ import type {
 } from './types';
 
 export interface IndexedEligibilityObservation {
+  pathAudited?: boolean;
+  formalBindingValid?: boolean;
   formalDisposition?: FormalDisposition;
   teachingProjectionStatus?: ResourceEligibilityEvidence['teachingProjectionStatus'];
   teachingProjectionEvidenceIds?: readonly string[];
@@ -38,8 +39,9 @@ function consumerActivationMatchesContext(
   if (!combination) return false;
   if (context.authorityId && combination.authorityReleaseId !== context.authorityId) return false;
   if (context.requestedRevision && combination.captureRevision !== context.requestedRevision) return false;
-  const requestedScope = context.courseId ?? context.scope;
-  if (combination.scopeId && combination.scopeId !== requestedScope) return false;
+  if (context.courseId && combination.scopeId !== context.courseId) return false;
+  if (context.projectionId && combination.projectionId !== context.projectionId) return false;
+  if (context.projectionHash && combination.projectionHash !== context.projectionHash) return false;
   return true;
 }
 
@@ -64,8 +66,8 @@ export function evidenceFromIndexedEntry(input: {
       )
     ),
   );
-  const pathAudited = identity.sourceKind === RESOURCE_NODE_SOURCE_KIND;
-  const formalBindingValid = (entry.descriptor.foreignRefs.formalBindingIds?.length ?? 0) > 0;
+  const pathAudited = observation?.pathAudited === true;
+  const formalBindingValid = observation?.formalBindingValid === true;
   const engineeringOnly = context.engineeringOnly === true;
   const consumerMatches = consumerActivationMatchesContext(context, observation);
 

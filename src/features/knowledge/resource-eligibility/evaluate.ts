@@ -62,6 +62,8 @@ export function hashResourceEligibilityContext(context: ResourceEligibilityConte
     authorityId: context.authorityId ?? null,
     resourceIndexIdentity: context.resourceIndexIdentity,
     requestedRevision: context.requestedRevision ?? null,
+    projectionId: context.projectionId ?? null,
+    projectionHash: context.projectionHash ?? null,
     launcherContract: context.launcherContract ?? null,
     consumerId: context.consumerId ?? null,
     engineeringOnly: context.engineeringOnly === true,
