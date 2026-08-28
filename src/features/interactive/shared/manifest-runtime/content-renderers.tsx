@@ -15,10 +15,21 @@ import { buildAnnotatedMediaClientEvidenceDraft } from './annotated-media-eviden
 import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
 import { buildStructureDiagramClientEvidenceDraft } from './structure-diagram-evidence';
 import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
+import {
+  asRecord,
+  blockByKey,
+  blockByModuleId,
+  blockFor,
+  numericArray,
+  runtimeMediaPath,
+  stringField,
+  titleFromModule,
+} from './manifest-payload-fields';
+import { composeManifestPluginRegistry, type ManifestPluginRegistry } from './plugins/plugin-contract';
+import { staticSurface3DPluginSet } from './plugins/static-surface-3d-module';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import { persistControlWorkbenchRun } from '@/resources/simulations/persisted-run-client';
-import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
 import { ControlWorkbenchComparisonPanel } from './control-workbench-comparison-panel';
 import {
   buildControlWorkbenchComparisonRequests,
@@ -318,10 +329,6 @@ const MATLAB_CONTROL_FUNCTIONS = new Set([
   'title',
 ]);
 
-function asRecord(value: unknown): ContentRecord {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
-}
-
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -402,63 +409,6 @@ function renderFormulaContent(formula: string) {
   }
 
   return <p className="interactive-courseware-body">{renderInlineContent(value)}</p>;
-}
-
-const MODULE_KIND_TITLE: Record<string, string> = {
-  'bullet-list-card': '要点',
-  'comparison-graphic': '图示',
-  'content.code': '代码',
-  'formula-card': '公式',
-  'formula-card-row': '公式',
-  'goal-card-row': '本次课程目标',
-  'image-panel': '图示',
-  'interactive-figure-panel': '互动图形',
-  'learning-stat-panel': '课堂表现统计',
-  'performance-summary': '课堂表现统计',
-  'native-formula-table': '公式表',
-  'native-table': '表格',
-  'problem-statement': '题面',
-  'reveal-chain': '推导步骤',
-  'stat-panel': '课堂表现统计',
-  'step-reveal': '推导步骤',
-  'step-reveal-chain': '推导步骤',
-  'summary-card': '要点',
-  'summary-card-grid': '要点',
-};
-
-function isInternalTitleCandidate(value: string, module: InteractiveRuntimeModuleManifest) {
-  const title = value.trim();
-  if (!title) return true;
-  if (/[\u4e00-\u9fff]/.test(title)) return false;
-  if (title === module.id || title === module.id.replace(/-/g, '_')) return true;
-  const payloadKeys = [
-    module.payload.block_key,
-    module.payload.blockKey,
-    module.payload.image_key,
-    module.payload.imageKey,
-    module.payload.panel_id,
-    module.payload.panelId,
-    module.payload.spec_key,
-    module.payload.specKey,
-  ].filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
-  if (payloadKeys.includes(title)) return true;
-  return false;
-}
-
-function titleFromBlock(value: unknown) {
-  const record = asRecord(value);
-  return [record.title, record.caption, record.alt, record.name, record.label]
-    .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
-}
-
-function titleFromModule(module: InteractiveRuntimeModuleManifest, step?: InteractiveRuntimeStepManifest) {
-  const title = module.title ?? module.payload.title ?? module.payload.caption;
-  if (typeof title === 'string' && title.trim() && !isInternalTitleCandidate(title, module)) return title;
-  if (step) {
-    const blockTitle = titleFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module));
-    if (blockTitle && !isInternalTitleCandidate(blockTitle, module)) return blockTitle;
-  }
-  return MODULE_KIND_TITLE[module.kind] ?? '学习内容';
 }
 
 function uniqueStrings(items: string[]) {
@@ -1956,57 +1906,6 @@ function ManifestSubsectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-function blockFor(step: InteractiveRuntimeStepManifest, payload: ContentRecord) {
-  const key = payload.block_key ?? payload.blockKey ?? payload.formula_key ?? payload.formulaKey ?? payload.image_key ?? payload.imageKey;
-  return typeof key === 'string' && key ? step.contentBlocks[key] : undefined;
-}
-
-function stringField(source: ContentRecord, keys: string[]) {
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'string' && value.trim()) return value;
-  }
-  return '';
-}
-
-function blockByKey(step: InteractiveRuntimeStepManifest, key: string) {
-  return step.contentBlocks[key];
-}
-
-function blockByModuleId(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const normalizedId = module.id.replace(/-/g, '_');
-  const candidates = [
-    normalizedId,
-    normalizedId.replace(/_card$/, ''),
-    normalizedId.replace(/_cards$/, ''),
-    normalizedId.replace(/_list$/, '_list'),
-    normalizedId.replace(/_figure$/, '_figure'),
-    normalizedId.replace(/_reading$/, '_reading'),
-  ];
-  const parts = normalizedId.split('_').filter(Boolean);
-  if (parts.length > 1) {
-    candidates.push(parts.slice(-2).join('_'));
-    candidates.push(parts[parts.length - 1]);
-  }
-  if (normalizedId.includes('conclusion')) {
-    candidates.push('conclusion', 'structure_conclusion', 'delivery_judgment');
-  }
-  if (normalizedId.includes('reading') && normalizedId.includes('prompt')) candidates.push('reading_prompt');
-  if (normalizedId.includes('prompt')) candidates.push('prompt');
-  if (normalizedId.includes('criteria')) candidates.push('criteria');
-  if (normalizedId.includes('setting')) candidates.push('search_settings');
-  if (normalizedId.includes('family') || normalizedId.includes('structure')) candidates.push('structures', 'structure_code_fields');
-  if (normalizedId.includes('frontier') || normalizedId.includes('method')) candidates.push('frontier_methods');
-  if (normalizedId.includes('limitation')) candidates.push('limitations');
-  if (normalizedId.includes('header')) candidates.push('header');
-  if (normalizedId.includes('explanation')) candidates.push('figure_explanation', 'formula_explanation');
-  for (const key of candidates) {
-    const block = blockByKey(step, key);
-    if (block !== undefined) return block;
-  }
-  return undefined;
-}
-
 function codePayload(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
   const block = asRecord(blockFor(step, payload));
@@ -2213,11 +2112,6 @@ function formulaSymbols(step: InteractiveRuntimeStepManifest, module: Interactiv
   return [];
 }
 
-function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
-  if (path.startsWith('/')) return path;
-  return `/course-runtime/lessons/${manifest.lessonId}/media/${path}`;
-}
-
 function mediaPathFromBlock(value: unknown, imageIndex: number, imageCount: number) {
   const record = asRecord(value);
   const direct = record.runtime_media ?? record.runtimeMedia ?? record.path ?? record.src ?? record.asset;
@@ -2304,115 +2198,6 @@ function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: Co
       return { src: runtimeMediaPath(manifest, path), caption };
     })
     .filter((item): item is { src: string; caption: string } => Boolean(item));
-}
-
-function staticSurfacePanelProps(
-  manifest: InteractiveRuntimeManifest,
-  step: InteractiveRuntimeStepManifest,
-  module: InteractiveRuntimeModuleManifest,
-): StaticSurface3DPanelProps {
-  const payload = module.payload;
-  const block = asRecord(blockFor(step, payload));
-  const data = asRecord(payload.data ?? payload.dataSource ?? payload.surfaceData);
-  const axes = asRecord(payload.axes);
-  const colorScale = asRecord(payload.colorScale ?? payload.color_scale);
-  const defaultCamera = asRecord(payload.defaultCamera ?? payload.default_camera);
-  const fallback = asRecord(payload.fallback);
-  const fallbackImage = stringField(fallback, ['image', 'src', 'path'])
-    || stringField(payload, ['fallback_image', 'fallbackImage']);
-  const dataUrl = stringField(data, ['url', 'src', 'path']);
-
-  return {
-    moduleId: module.id,
-    title: titleFromModule(module, step),
-    caption: stringField(payload, ['caption', 'description', 'text'])
-      || stringField(block, ['description', 'body', 'text']),
-    dataUrl: dataUrl ? runtimeMediaPath(manifest, dataUrl) : undefined,
-    dataset: staticSurfaceDataset(data),
-    axes: {
-      x: { label: axisLabel(axes.x, '实部 σ') },
-      y: { label: axisLabel(axes.y, '虚部 jω') },
-      z: { label: axisLabel(axes.z, '幅值') },
-    },
-    colorScale: {
-      label: stringField(colorScale, ['label', 'title']) || '幅值',
-      min: numberField(colorScale, ['min']),
-      max: numberField(colorScale, ['max']),
-    },
-    defaultCamera: {
-      position: numberTuple3(defaultCamera.position, [3, 3, 2]),
-      target: numberTuple3(defaultCamera.target, [0, 0, 0]),
-      zoom: numberField(defaultCamera, ['zoom']) ?? 1,
-    },
-    fallback: {
-      image: runtimeMediaPath(manifest, fallbackImage),
-      alt: stringField(fallback, ['alt', 'description'])
-        || stringField(block, ['description', 'body', 'text'])
-        || `${titleFromModule(module, step)}静态图`,
-      note: stringField(fallback, ['note']),
-    },
-    markers: markerConfigs(payload.markers ?? block.markers),
-  };
-}
-
-function axisLabel(value: unknown, fallback: string) {
-  const axis = asRecord(value);
-  return stringField(axis, ['label', 'title', 'name']) || fallback;
-}
-
-function numberField(source: ContentRecord, keys: string[]) {
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
-  }
-  return undefined;
-}
-
-function numberTuple3(value: unknown, fallback: [number, number, number]): [number, number, number] {
-  if (!Array.isArray(value) || value.length < 3) return fallback;
-  const tuple = value.slice(0, 3).map((item) => Number(item));
-  return tuple.every((item) => Number.isFinite(item))
-    ? tuple as [number, number, number]
-    : fallback;
-}
-
-function markerConfigs(value: unknown): StaticSurface3DPanelProps['markers'] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      const marker = asRecord(item);
-      const label = stringField(marker, ['label', 'title']);
-      if (!label) return null;
-      return {
-        label,
-        position: numberTuple3(marker.position, [0, 0, 0]),
-      };
-    })
-    .filter((item): item is NonNullable<StaticSurface3DPanelProps['markers']>[number] => Boolean(item));
-}
-
-function staticSurfaceDataset(data: ContentRecord): StaticSurfaceDataset | undefined {
-  const regularGrid = asRecord(data.regularGrid);
-  if (regularGrid.x || regularGrid.y || regularGrid.values) {
-    return {
-      regularGrid: {
-        x: numericArray(regularGrid.x),
-        y: numericArray(regularGrid.y),
-        values: numericRows(regularGrid.values),
-      },
-      markers: markerConfigs(data.markers),
-    };
-  }
-
-  if (Array.isArray(data.vertices)) {
-    return {
-      vertices: pointRows(data.vertices),
-      indices: triangleRows(data.indices) ?? numericArray(data.indices),
-      markers: markerConfigs(data.markers),
-    };
-  }
-
-  return undefined;
 }
 
 function interactiveFigureSpecKey(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
@@ -2984,30 +2769,6 @@ function SharedControlWorkbenchComputePanel({
       ) : null}
     </section>
   );
-}
-
-function numericArray(value: unknown): number[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => Number(item)).filter((item) => Number.isFinite(item));
-}
-
-function numericRows(value: unknown): number[][] {
-  if (!Array.isArray(value)) return [];
-  return value.map(numericArray);
-}
-
-function pointRows(value: unknown): Array<[number, number, number]> {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => numericArray(item).slice(0, 3))
-    .filter((item): item is [number, number, number] => item.length === 3);
-}
-
-function triangleRows(value: unknown): Array<[number, number, number]> | undefined {
-  if (!Array.isArray(value) || !Array.isArray(value[0])) return undefined;
-  return value
-    .map((item) => numericArray(item).slice(0, 3))
-    .filter((item): item is [number, number, number] => item.length === 3);
 }
 
 function textFromRecord(value: unknown) {
@@ -5172,6 +4933,15 @@ function stepRevealIdentityKey(
   return `${step.id}:${module.id}:${revealProgress}`;
 }
 
+const defaultManifestPluginRegistrySingleton: { registry?: ManifestPluginRegistry } = {};
+
+function defaultManifestPluginRegistry(): ManifestPluginRegistry {
+  if (!defaultManifestPluginRegistrySingleton.registry) {
+    defaultManifestPluginRegistrySingleton.registry = composeManifestPluginRegistry([staticSurface3DPluginSet]);
+  }
+  return defaultManifestPluginRegistrySingleton.registry;
+}
+
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
@@ -5273,8 +5043,30 @@ export function createManifestContentModuleRegistry(extra: {
     'visual.annotatedMedia': ({ manifest, step, module }) => <AnnotatedMediaPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
     'visual.embedded-activity': ({ manifest, step, module }) => <EmbeddedActivityPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
     'compute.panel': ({ manifest, step, module }) => {
-      if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
-        return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
+      const pluginLookup = defaultManifestPluginRegistry().lookupModule({
+        moduleKind: module.kind,
+        capabilityRef: computeCapabilityRef(module.payload),
+      });
+      if (pluginLookup.status === 'rendered') {
+        const plugin = pluginLookup.plugin;
+        return plugin.render({
+          manifest,
+          step,
+          module,
+          role: 'student',
+          payload: plugin.projectRole(plugin.schema({ manifest, step, module, role: 'student' }), 'student'),
+        });
+      }
+      if (pluginLookup.status === 'missing') {
+        return (
+          <div
+            data-manifest-plugin-missing={pluginLookup.contract.marker}
+            className="rounded-lg border border-platform-danger bg-platform-danger/5 p-4 text-sm text-platform-fg-primary"
+            role="alert"
+          >
+            {pluginLookup.contract.reason}
+          </div>
+        );
       }
       if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
         return (
