@@ -7,6 +7,9 @@ use wasm_bindgen::prelude::*;
 
 pub mod analysis;
 pub mod arena_preview;
+pub mod practice_cruise_live;
+pub mod practice_live;
+pub mod practice_live_platform;
 pub mod constraints;
 pub mod controllers;
 pub mod control_odyssey_runtime;
