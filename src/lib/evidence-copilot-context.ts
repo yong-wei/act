@@ -1,9 +1,9 @@
 import {
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
+  readLearnerState,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 
 export const EVIDENCE_COPILOT_CONTEXT_VERSION = 'evidence-copilot-context.v1';
 
@@ -208,7 +208,6 @@ export async function resolveEvidenceCopilotContext(input: {
   userId: string;
   role: AdaptiveLearnerStateRole;
   hints?: EvidenceCopilotNavigationHint;
-  db: Parameters<typeof readAdaptiveLearnerState>[0];
   now?: Date;
 }): Promise<EvidenceCopilotProjection> {
   const hints = input.hints ?? { source: null, assignment: null, intent: null };
@@ -216,7 +215,7 @@ export async function resolveEvidenceCopilotContext(input: {
     return projectEvidenceCopilotState(null, hints, { unavailable: true });
   }
   try {
-    const state = await readAdaptiveLearnerState(input.db, {
+    const state = await readLearnerState({
       userId: input.userId,
       role: input.role,
       now: input.now,

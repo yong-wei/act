@@ -24,7 +24,7 @@ import {
   getAdaptiveLearningCenterCompatibilityRoutes,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
 import {
   derivePortraitV2Compatibility,

@@ -14,7 +14,7 @@ import type {
 } from '@/lib/adaptive-learning-path-planner';
 import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 
 export type AdaptiveLearningCenterRegion =
   | 'overview'

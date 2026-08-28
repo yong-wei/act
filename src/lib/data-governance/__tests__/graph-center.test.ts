@@ -8,7 +8,7 @@ import {
 } from '../graph-center';
 import { filterGraphCenterPayload } from '../../../features/graph-center/graph-center-client';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '../../platform-role-navigation';
-import type { AdaptiveLearnerState, MasteryEvidenceReference } from '../adaptive-learner-state-service';
+import type { AdaptiveLearnerState, MasteryEvidenceReference } from '@/features/personalization/learner-state/public-api';
 import {
   createLearningEvidenceCorpusChunk,
   verifyLearningEvidenceCitations,

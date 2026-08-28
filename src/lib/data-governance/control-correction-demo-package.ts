@@ -12,7 +12,7 @@ import {
 } from '../resource-node-registry';
 import {
   isAdaptiveLearnerStateServiceEnabled,
-} from './adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { resolveAIProviderConfig } from '../ai/provider-config';
 
 export type DemoConfidence = 'high' | 'medium' | 'low' | 'none';

@@ -7,7 +7,6 @@ import {
   resolveEvidenceCopilotContext,
 } from '@/lib/evidence-copilot-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +22,6 @@ export async function GET(request: NextRequest) {
       userId: session.user.id,
       role: mapEvidenceCopilotRole(session.user.role),
       hints,
-      db: prisma,
     });
 
     return NextResponse.json(projection, {

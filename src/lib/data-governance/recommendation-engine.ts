@@ -22,9 +22,9 @@ import {
 } from './student-evidence-feature-cache';
 import {
   isAdaptiveLearnerStateServiceEnabled,
-  readPathPlannerLearnerState,
+  readPathPlannerLearnerStateForSubject,
   type AdaptiveLearnerState,
-} from './adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import {
   hasPortraitV2Evidence,
   summarizePortraitV2,
@@ -565,7 +565,7 @@ async function buildRecommendationContext(userId: string): Promise<Recommendatio
   const featureCache = normalizeFeatureCache(featureRead.cache);
   const cachedVector = getCachedCompetencyVector(featureCache);
   const learnerState = isAdaptiveLearnerStateServiceEnabled()
-    ? await readPathPlannerLearnerState(prisma, userId).catch((error) => {
+    ? await readPathPlannerLearnerStateForSubject(userId).catch((error) => {
         console.error('[RecommendationEngine] Learner state read failed:', error);
         return null;
       })

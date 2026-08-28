@@ -62,10 +62,16 @@ export interface CompanionPracticePort {
   }): Promise<CompanionPracticeMetadata | undefined>;
 }
 
+export interface AssessmentMasteryReadPort {
+  listMasteryUpdates(userId: string): Promise<Array<Record<string, unknown>>>;
+  readLatestAbilityEstimate(userId: string): Promise<Record<string, unknown> | null>;
+}
+
 export interface AssessmentRuntime {
   pathIdentity: PathIdentityPort;
   catalog: AssessmentCatalogReadPort;
   attempts: AssessmentAttemptRepository;
   attemptContext: AssessmentAttemptContextPort;
   companion: CompanionPracticePort;
+  mastery: AssessmentMasteryReadPort;
 }

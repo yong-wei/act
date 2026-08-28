@@ -176,3 +176,17 @@ export async function readDiagnostic(
 ): Promise<DiagnosticResult> {
   return runtime.attempts.readDiagnostic(userId);
 }
+
+export async function readMasteryUpdates(
+  runtime: AssessmentRuntime,
+  userId: string,
+): Promise<Array<Record<string, unknown>>> {
+  return runtime.mastery.listMasteryUpdates(userId);
+}
+
+export async function readLatestAbilityEstimate(
+  runtime: AssessmentRuntime,
+  userId: string,
+): Promise<Record<string, unknown> | null> {
+  return runtime.mastery.readLatestAbilityEstimate(userId);
+}

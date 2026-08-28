@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  readAdaptiveLearnerState: vi.fn(),
+  readLearnerState: vi.fn(),
   isAdaptiveLearnerStateServiceEnabled: vi.fn(),
   prisma: {
     class: {
@@ -22,9 +22,9 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('../adaptive-learner-state-service', () => ({
+vi.mock('@/features/personalization/learner-state/public-api', () => ({
   isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+  readLearnerState: mocks.readLearnerState,
 }));
 
 import { GET } from '@/app/api/adaptive/learner-state/route';
@@ -37,7 +37,7 @@ describe('adaptive learner-state API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.isAdaptiveLearnerStateServiceEnabled.mockReturnValue(true);
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
+    mocks.readLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
     });
@@ -52,14 +52,14 @@ describe('adaptive learner-state API', () => {
     const response = await request('http://localhost/api/adaptive/learner-state');
 
     expect(response.status).toBe(503);
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 
   it('returns learner-state payloads with sparse no-data states when the service is enabled', async () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
+    mocks.readLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
       evidence: {
@@ -94,7 +94,7 @@ describe('adaptive learner-state API', () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
-    mocks.readAdaptiveLearnerState.mockRejectedValue(new Error('feature cache read failed'));
+    mocks.readLearnerState.mockRejectedValue(new Error('feature cache read failed'));
 
     const response = await request('http://localhost/api/adaptive/learner-state?goal=control-correction');
     const body = await response.json();
@@ -113,8 +113,7 @@ describe('adaptive learner-state API', () => {
 
     expect(ownResponse.status).toBe(200);
     expect(otherResponse.status).toBe(403);
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',
@@ -142,8 +141,7 @@ describe('adaptive learner-state API', () => {
       where: { id: 'class-1' },
       select: { id: true, teacherId: true },
     });
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'teacher',
@@ -156,7 +154,7 @@ describe('adaptive learner-state API', () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
+    mocks.readLearnerState.mockResolvedValue({
       userId: 'teacher-1',
       authority: 'server-owned',
     });
@@ -166,8 +164,7 @@ describe('adaptive learner-state API', () => {
     expect(response.status).toBe(200);
     expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.studentProfile.findFirst).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'teacher-1',
         role: 'teacher',
@@ -185,8 +182,7 @@ describe('adaptive learner-state API', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'admin',
@@ -202,8 +198,7 @@ describe('adaptive learner-state API', () => {
     const response = await request('http://localhost/api/adaptive/learner-state?goal=control-correction');
 
     expect(response.status).toBe(200);
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',
@@ -220,8 +215,7 @@ describe('adaptive learner-state API', () => {
     const response = await request('http://localhost/api/adaptive/learner-state?goal=unknown-goal');
 
     expect(response.status).toBe(200);
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',

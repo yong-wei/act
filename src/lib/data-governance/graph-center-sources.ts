@@ -22,9 +22,9 @@ import type { RegisteredResourceNodeInput, ResourceNodeRegistry } from '@/lib/re
 import {
   CONTROL_CORRECTION_GOAL_ID,
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
+  readLearnerState,
   type AdaptiveLearnerStateRole,
-} from './adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { textbookStructureUnitsToLearningEvidenceCorpus } from './graph-center-evidence';
 import {
   canReadGraphCenterClassOverlay,
@@ -190,7 +190,7 @@ async function buildLearnerOverlayInput(input: {
     };
   }
 
-  const state = await readAdaptiveLearnerState(prisma, {
+  const state = await readLearnerState({
     userId: requestedLearnerId,
     role: input.viewerRole,
     classId: scope.classId,
@@ -295,7 +295,7 @@ async function buildClassOverlayInput(input: {
     select: { userId: true },
   });
   const learnerStates = await Promise.all(
-    studentProfiles.map((student) => readAdaptiveLearnerState(prisma, {
+    studentProfiles.map((student) => readLearnerState({
       userId: student.userId,
       role: input.viewerRole,
       classId: requestedClassId,
