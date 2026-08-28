@@ -1171,6 +1171,55 @@ describe('submitAnswerDurably', () => {
     });
   });
 
+  it('keeps selection-time catalog authority after the live catalog item is withdrawn', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const selectionCatalog = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(selected.question.id);
+    expect(selectionCatalog).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(
+      adaptiveAssessmentCatalogSelector,
+      'findAdaptiveAssessmentCatalogSnapshot',
+    ).mockReturnValue(null);
+    const question = getAdaptiveQuestionById(selected.question.id);
+    expect(question).toBeTruthy();
+    const selectedOption = question!.options.find((option) => option.isCorrect)?.text ?? question!.options[0].text;
+
+    let result: Awaited<ReturnType<typeof submitAnswerDurably>>;
+    try {
+      result = await submitAnswerDurably({
+        userId: 'student-owned',
+        sessionId: 'session-owned',
+        questionId: selected.question.id,
+        selectedOption,
+        timeSpent: 20,
+        pathContext: {
+          pathId: 'path-1',
+          nodeId: 'adaptive-quiz:control-target-check',
+          goalId: APPROVED_READINESS_GOAL_ID,
+          routeIntent: 'path-execution',
+          questionScope: 'readiness',
+        },
+      }, db);
+    } finally {
+      catalogSnapshotSpy.mockRestore();
+    }
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      catalogItemId: selectionCatalog!.catalogItemId,
+      contentHash: selectionCatalog!.contentHash,
+      evidenceAuthority: 'path-assessment',
+      reviewState: 'reviewed',
+    });
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).toHaveBeenCalled();
+  });
+
   it('allows generated low-stakes questions during goal practice selection', async () => {
     globalThis.__adaptiveAssessmentStore = undefined;
     const db = createMockDb();

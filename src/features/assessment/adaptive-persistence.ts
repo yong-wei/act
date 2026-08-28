@@ -443,6 +443,55 @@ function applyPersistedSelectionSnapshot(
   };
 }
 
+function catalogSnapshotFromPersistedItemRef(
+  itemRef: PersistedAssessmentItemRefRow,
+): AdaptiveAssessmentCatalogSnapshot | null {
+  const stored = recordMetadata(itemRef.metadata).adaptiveAssessmentItemRef;
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return null;
+  const record = recordMetadata(stored);
+  if (record.catalogBacked !== true) return null;
+  const semanticRefs = record.semanticRefs && typeof record.semanticRefs === 'object' && !Array.isArray(record.semanticRefs)
+    ? record.semanticRefs as AdaptiveAssessmentCatalogSnapshot['semanticRefs']
+    : null;
+  if (
+    typeof record.catalogItemId !== 'string'
+    || typeof record.sourceId !== 'string'
+    || typeof record.contentHash !== 'string'
+    || !Array.isArray(record.allowedStages)
+    || !semanticRefs
+    || !Array.isArray(semanticRefs.learningGoalIds)
+    || !record.reviewDecision
+    || typeof record.reviewDecision !== 'object'
+    || Array.isArray(record.reviewDecision)
+    || !record.versionRefs
+    || typeof record.versionRefs !== 'object'
+    || Array.isArray(record.versionRefs)
+    || !record.relationship
+    || typeof record.relationship !== 'object'
+    || Array.isArray(record.relationship)
+  ) {
+    return null;
+  }
+  return {
+    catalogItemId: record.catalogItemId,
+    sourceFamily: record.sourceFamily as AdaptiveAssessmentCatalogSnapshot['sourceFamily'],
+    sourceId: record.sourceId,
+    sourceAnchor: typeof record.sourceAnchor === 'string' ? record.sourceAnchor : '',
+    sourceLineage: record.sourceLineage as AdaptiveAssessmentCatalogSnapshot['sourceLineage'],
+    contentHash: record.contentHash,
+    contentHashAlgorithm: record.contentHashAlgorithm as AdaptiveAssessmentCatalogSnapshot['contentHashAlgorithm'],
+    reviewState: record.reviewState as AdaptiveAssessmentCatalogSnapshot['reviewState'],
+    eligibilityState: record.eligibilityState as AdaptiveAssessmentCatalogSnapshot['eligibilityState'],
+    allowedStages: record.allowedStages as AdaptiveAssessmentCatalogSnapshot['allowedStages'],
+    questionRefs: record.questionRefs as AdaptiveAssessmentCatalogSnapshot['questionRefs'],
+    semanticRefs,
+    limitations: record.limitations as AdaptiveAssessmentCatalogSnapshot['limitations'],
+    reviewDecision: record.reviewDecision as AdaptiveAssessmentCatalogSnapshot['reviewDecision'],
+    versionRefs: record.versionRefs as AdaptiveAssessmentCatalogSnapshot['versionRefs'],
+    relationship: record.relationship as AdaptiveAssessmentCatalogSnapshot['relationship'],
+  };
+}
+
 function selectedOptionValueFromKey(
   details: SubmittedAnswerDetails,
   selectedOptionKey: string | undefined,
@@ -1020,10 +1069,11 @@ async function persistAdaptiveAssessmentSubmission(
     }
   }
 
-  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
+  let catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
   const contentHash = selectionContentHash ?? questionMetadataContentHash(effectiveDetails, catalogSnapshot);
   const questionRef = await persistAdaptiveAssessmentItemRef(tx, effectiveDetails, contentHash);
   effectiveDetails = applyPersistedSelectionSnapshot(effectiveDetails, questionRef);
+  catalogSnapshot = catalogSnapshotFromPersistedItemRef(questionRef) ?? catalogSnapshot;
   const score = effectiveDetails.record.isCorrect ? 100 : 0;
 
   const persistedAnswersBefore = await tx.adaptiveAssessmentAnswer.findMany({
