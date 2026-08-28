@@ -675,9 +675,29 @@ describe('adaptive learning center UI contracts', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const contractSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-learning-center-contracts.ts'), 'utf8');
     expect(displaySource).toContain("from '@/lib/adaptive-path-candidate-limitation-copy'");
+    expect(displaySource).toContain("from '@/lib/cold-start-evidence-collection-copy'");
     expect(displaySource).not.toContain('adaptive-path-candidate-batches');
     expect(pageSource).not.toContain('adaptive-path-candidate-batches');
     expect(contractSource).not.toContain('adaptive-path-candidate-batches');
+  });
+
+  it('translates cold-start dimension limitation codes into student-facing risk notes', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '入门路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: ['cold-start-preference-insufficient'],
+    }]);
+
+    expect(display.riskNote).toBe('目前还不能判断你更适合视频、讲义还是仿真。');
+    expect(display.riskNote).not.toContain('cold-start-preference-insufficient');
   });
 
   it('translates low-confidence path evidence into user-facing copy', () => {

@@ -80,6 +80,11 @@ import {
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
 import {
+  collectionEventsFromGovernedFacts,
+  previousPathFactsFromPlanOptions,
+  type ColdStartGovernedFactInput,
+} from '@/lib/cold-start-evidence-collection';
+import {
   buildKonlingGraphGroundingDegradedReasons,
   buildKonlingKaqGraphContext,
   projectKonlingGraphContextForRole,
@@ -4237,6 +4242,16 @@ async function buildAdaptivePathToolOutput(
       : input.context.learnerState
     : input.context.learnerState;
   const learnerStateForPlanning = plannerLearnerState;
+  const governedFacts = await input.db.learningFact?.findMany?.({
+    where: { userId: input.scope.targetUserId },
+    orderBy: [{ finishedAt: 'desc' }, { id: 'desc' }],
+    take: 50,
+  }) ?? [];
+  const collectionEvents = collectionEventsFromGovernedFacts({
+    facts: Array.isArray(governedFacts) ? governedFacts as ColdStartGovernedFactInput[] : [],
+    goalId,
+  });
+  const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -4267,6 +4282,8 @@ async function buildAdaptivePathToolOutput(
     excludedNodeIds: args.excludedNodeIds,
     preferredStyleId: args.preferredStyleId,
     requestedAt: args.requestedAt,
+    collectionEvents,
+    previousPathFacts,
     now: new Date(),
   });
   const timeBudget = resolveAdaptivePathTimeBudget(

@@ -7127,6 +7127,63 @@ describe('adaptive learning path planner', () => {
     expect(JSON.stringify(plan.mainPath)).not.toContain('learner-evidence-low-confidence');
   });
 
+  it('attaches cold-start collection limitations and new-path collection impacts', () => {
+    const baseInput = plannerInput();
+    const shared = {
+      ...baseInput,
+      registry: withLegalReflectionDestinations(baseInput.registry),
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: {
+        resourcePreference: { preferredModalities: ['simulation'], confidence: 'medium' },
+        evidence: {
+          confidence: { level: 'medium', score: 0.6, evidenceCount: 3, sourceCompleteness: 0.5 },
+        },
+      },
+      previousPathFacts: {
+        resourceMix: { video: 9 },
+        estimatedMinutes: 12,
+        checkpointCount: 9,
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+      now: new Date('2026-06-14T08:00:00.000Z'),
+    };
+    const baseline = buildAdaptiveLearningPathPlan(shared);
+    const plan = buildAdaptiveLearningPathPlan({
+      ...shared,
+      collectionEvents: [{
+        kind: 'resource-trial',
+        at: '2026-08-28T02:00:00.000Z',
+        completed: true,
+        goalId: 'frequency-response-foundations',
+        resourceId: 'bode-sim',
+        qualityMarker: 'governed',
+      }, {
+        kind: 'short-diagnosis',
+        at: '2026-08-28T02:05:00.000Z',
+        completed: true,
+        goalId: 'frequency-response-foundations',
+        resourceId: 'bode-quiz',
+        qualityMarker: 'governed',
+        authority: 'assessment',
+      }],
+    });
+    expect(plan.policyBundle?.decisionEvidence?.snapshot.preferredModalities).toContain('video');
+    expect(baseline.policyBundle?.decisionEvidence?.snapshot.preferredModalities ?? []).not.toContain('video');
+
+    const optionLimitations = plan.policyBundle?.paths.flatMap((path) => path.limitations) ?? [];
+    expect(optionLimitations).toEqual(expect.arrayContaining([
+      'cold-start-mastery-insufficient',
+      'cold-start-ability-insufficient',
+    ]));
+    expect(plan.policyBundle?.decisionEvidence?.paths.some((path) => (
+      path.impacts.some((impact) => impact.reasonCode === 'collection-resource-trial')
+    ))).toBe(true);
+  });
+
   it('keeps external resources out of paths unless external resources are explicitly allowed', () => {
     const registry = buildResourceNodeRegistry({
       externalResources: [{
