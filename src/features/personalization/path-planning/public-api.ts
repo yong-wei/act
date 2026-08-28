@@ -24,7 +24,6 @@ export {
   CONTROL_CORRECTION_CAPABILITY_TARGETS,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   buildAdaptivePathRecommendationProvenance,
-  buildControlCorrectionThreeStylePathBundle,
   buildSerializablePathOptions,
   evaluateHardEligibility,
   getLearningGoal,

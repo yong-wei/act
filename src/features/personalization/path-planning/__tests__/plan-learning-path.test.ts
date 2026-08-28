@@ -166,6 +166,11 @@ describe('PlanLearningPath pipeline', () => {
         privacyScopes: ['student-visible', 'teacher-scoped', 'class-shared', 'public'],
         device: 'desktop',
       },
+      policyFamily: 'foundation-remediation',
+      policyBundle: {
+        families: ['simulation-driven', 'preference-matched'],
+        overlapThreshold: 0.6,
+      },
     };
     const ports = createDefaultPlanLearningPathPorts();
     const originalRepair = ports.repair.repair.bind(ports.repair);
@@ -183,6 +188,8 @@ describe('PlanLearningPath pipeline', () => {
       .filter((nodeId) => input.registry.nodes.some((node) => node.id === nodeId));
     expect(resourceNodeIds.every((nodeId) => nodeId.includes('visible-card'))).toBe(true);
     expect(resourceNodeIds.some((nodeId) => nodeId.includes('extra-card'))).toBe(false);
+    const bundleNodeIds = plan.policyBundle?.paths.flatMap((path) => path.nodeIds ?? []) ?? [];
+    expect(bundleNodeIds.some((nodeId) => nodeId.includes('extra-card'))).toBe(false);
   });
 
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
@@ -199,6 +206,8 @@ describe('PlanLearningPath pipeline', () => {
     expect(application).toContain('rankResourceLearnerCandidates');
     expect(readFileSync('src/features/personalization/path-planning/public-api.ts', 'utf8'))
       .not.toContain('assembleAdaptiveLearningPathPlan');
+    expect(readFileSync('src/features/personalization/path-planning/public-api.ts', 'utf8'))
+      .not.toContain('buildControlCorrectionThreeStylePathBundle');
     const assembler = readFileSync(
       'src/features/personalization/path-planning/internal/assemble-plan.ts',
       'utf8',

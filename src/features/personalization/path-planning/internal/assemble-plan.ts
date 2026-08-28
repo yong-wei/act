@@ -2354,7 +2354,7 @@ function assembleAdaptiveLearningPathPlanInternal(
     policyBundle: includePolicyBundle ? buildPolicyBundle({
       ...input,
       policyBundle: policyBundleRequest,
-    }, policyFamily, now) : undefined,
+    }, policyFamily, now, stageRepairedNodeIds) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -4910,6 +4910,7 @@ function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
   primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
   capturedAt: string,
+  stageRepairedNodeIds?: readonly string[],
 ): AdaptiveLearningPathPolicyBundle | undefined {
   const requestedFamilies = input.policyBundle?.families;
   if (!requestedFamilies || requestedFamilies.length === 0) {
@@ -4985,6 +4986,7 @@ function buildPolicyBundle(
         },
         false,
         { excludedCanonicalCoreRefs: retryState.excludedCanonicalCoreRefs },
+        stageRepairedNodeIds,
       );
       const mainPath = shapePolicyBundlePath(plan.mainPath, policyFamily, input);
       const coreRefs = differentiablePolicyCoreRefs(mainPath, input.registry);

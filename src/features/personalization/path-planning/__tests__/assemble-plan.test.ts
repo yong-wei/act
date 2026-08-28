@@ -5,7 +5,6 @@ import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   buildAdaptivePathRecommendationProvenance,
-  buildControlCorrectionThreeStylePathBundle,
   getLearningGoal,
   isRegisteredAdaptiveLearningPathGoal,
   listLearningGoals,
@@ -17,6 +16,7 @@ import {
   validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '@/features/personalization/path-planning/public-api';
+import { buildControlCorrectionThreeStylePathBundle } from '@/features/personalization/path-planning/internal/assemble-plan';
 import { deterministicPathConstraintRepairAdapter } from '@/lib/adaptive-planning/path-constraint-repair';
 import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
