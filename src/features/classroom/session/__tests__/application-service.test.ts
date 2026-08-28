@@ -218,7 +218,7 @@ describe('classroom session application service', () => {
     })).rejects.toMatchObject({ code: 'invalid-input' });
   });
 
-  it('finalizes once and treats a second end as idempotent', async () => {
+  it('re-runs finalization on a second end so a failed first finalize can recover', async () => {
     const runtime = createLifecycleRuntime({
       loadAccessSession: vi.fn()
         .mockResolvedValueOnce(accessSession({ status: 'ACTIVE' }))
@@ -232,8 +232,7 @@ describe('classroom session application service', () => {
       actor: { id: 'teacher-1', role: 'TEACHER' },
       sessionId: 'session-1',
     });
-    expect(runtime.finalizeEndedSession).toHaveBeenCalledTimes(1);
-    expect(runtime.persistAdvance).toHaveBeenCalledTimes(1);
+    expect(runtime.finalizeEndedSession).toHaveBeenCalledTimes(2);
   });
 
   it('maps generated-courseware recovery to a conflict', async () => {

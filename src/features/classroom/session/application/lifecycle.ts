@@ -181,16 +181,6 @@ export async function advanceClassroomSession(
   });
   if (!auth.allowed) throw new ClassroomSessionError('forbidden', '无权限修改此课堂');
 
-  if (existingSession.status === 'FINISHED' && input.status === 'FINISHED') {
-    const alreadyEnded = await runtime.loadReadableSession(input.sessionId);
-    if (!alreadyEnded) throw new ClassroomSessionError('not-found', '课堂不存在');
-    return {
-      ...alreadyEnded,
-      planTitle: alreadyEnded.plan.title,
-      classroomIdentity: runtime.buildIdentity(alreadyEnded),
-    };
-  }
-
   const generatedResolution = await runtime.resolveGeneratedBinding(existingSession);
   if (!generatedResolution.ok) {
     throw new ClassroomSessionError(
