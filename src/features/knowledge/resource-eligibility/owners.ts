@@ -37,7 +37,10 @@ export function observationFromTeachingProjectionConsumer(
   >,
 ): Pick<
   IndexedEligibilityObservation,
-  'teachingProjectionStatus' | 'teachingProjectionEvidenceIds' | 'teachingProjectionIdentity'
+  | 'requiresProjection'
+  | 'teachingProjectionStatus'
+  | 'teachingProjectionEvidenceIds'
+  | 'teachingProjectionIdentity'
 > {
   const teachingProjectionStatus: ResourceEligibilityEvidence['teachingProjectionStatus'] =
     consumer.requiresProjection === false
@@ -50,6 +53,7 @@ export function observationFromTeachingProjectionConsumer(
             ? 'BLOCKED'
             : 'NOT_PROJECTED';
   return {
+    requiresProjection: consumer.requiresProjection,
     teachingProjectionStatus,
     teachingProjectionEvidenceIds: [
       `teaching-projection:${consumer.consumerId}:${consumer.readiness}`,
@@ -122,6 +126,7 @@ export function mergeEligibilityObservations(
     if (part.pathAudited !== undefined) merged.pathAudited = part.pathAudited;
     if (part.formalBindingValid !== undefined) merged.formalBindingValid = part.formalBindingValid;
     if (part.formalDisposition) merged.formalDisposition = part.formalDisposition;
+    if (part.requiresProjection !== undefined) merged.requiresProjection = part.requiresProjection;
     if (part.teachingProjectionStatus) {
       merged.teachingProjectionStatus = part.teachingProjectionStatus;
     }

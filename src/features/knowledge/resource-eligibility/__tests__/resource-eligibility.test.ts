@@ -352,6 +352,23 @@ describe('resource eligibility evaluator', () => {
       engineeringOnly: false,
       consumerId: 'teaching-path',
     };
+    const engineeringObservation = mergeEligibilityObservations(
+      observationFromTeachingProjectionConsumer({
+        consumerId: 'engineering-graph',
+        requiresProjection: false,
+        readiness: 'READY',
+        authorityReleaseId: 'authority-eng',
+        projectionId: null,
+        projectionHash: null,
+      }),
+      observationFromConsumerActivation({
+        consumerId: 'engineering-graph',
+        status: 'READY',
+        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+          authorityReleaseId: 'authority-eng',
+        }),
+      }),
+    );
     const engSnap = evaluateResourceEligibility({
       context: engineering,
       entry,
@@ -360,13 +377,7 @@ describe('resource eligibility evaluator', () => {
         index,
         entry,
         context: engineering,
-        observation: observationFromConsumerActivation({
-          consumerId: 'engineering-graph',
-          status: 'READY',
-          combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
-            authorityReleaseId: 'authority-eng',
-          }),
-        }),
+        observation: engineeringObservation,
       }),
     });
     const teachSnap = evaluateResourceEligibility({
@@ -731,5 +742,87 @@ describe('resource eligibility evaluator', () => {
     expect(formal.eligibleForContext).toBe(false);
     expect(audited.eligibleForContext).toBe(true);
     expect(bound.eligibleForContext).toBe(true);
+  });
+
+  it('fails closed when the supplied entry is not a member of the provided index', () => {
+    const live = buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        sharedRevision: SHARED,
+        records: [metadata('lesson-eligibility-live')],
+      }),
+    ]);
+    const stale = buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        sharedRevision: SHARED,
+        records: [metadata('lesson-eligibility-stale')],
+      }),
+    ]);
+    const context = browseContext(live.identity, live.entries[0].descriptor.identity.scope);
+    const snapshot = evaluateResourceEligibility({
+      context,
+      entry: stale.entries[0],
+      index: live,
+      evidence: evidenceFromIndexedEntry({
+        index: live,
+        entry: stale.entries[0],
+        context,
+      }),
+    });
+    expect(snapshot.eligibleForContext).toBe(false);
+    expect(snapshot.dimensions.retrievalReadiness.status).toBe('unavailable');
+    expect(snapshot.dimensions.launchAvailability.status).toBe('blocked');
+  });
+
+  it('does not let a caller declare engineering-only for a teaching consumer', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'teaching-node',
+          title: '教学节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'teaching-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'named-consumer',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        engineeringOnly: true,
+      },
+      observation: mergeEligibilityObservations(
+        observationFromTeachingProjectionConsumer({
+          consumerId: 'learning-path',
+          requiresProjection: true,
+          readiness: 'READY',
+          authorityReleaseId: 'authority-current',
+          projectionId: null,
+          projectionHash: null,
+        }),
+        observationFromConsumerActivation({
+          consumerId: 'learning-path',
+          status: 'READY',
+          combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+            authorityReleaseId: 'authority-current',
+          }),
+        }),
+      ),
+    });
+    expect(snapshot.dimensions.teachingProjectionActivation.status).not.toBe('not-applicable');
+    expect(snapshot.dimensions.teachingProjectionActivation.reason).not.toBe(
+      'engineering-only-no-projection-required',
+    );
+    expect(snapshot.eligibleForContext).toBe(false);
   });
 });

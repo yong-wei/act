@@ -123,8 +123,7 @@ export function evaluateResourceEligibility(input: {
       ? 'available'
       : 'unavailable';
 
-  const projectionNotApplicable = context.engineeringOnly === true
-    || evidence.teachingProjectionStatus === 'NOT_APPLICABLE';
+  const projectionNotApplicable = evidence.teachingProjectionStatus === 'NOT_APPLICABLE';
   const projectionStatus: ResourceEligibilityDimensionStatus = projectionNotApplicable
     ? 'not-applicable'
     : closed || evidence.teachingProjectionStatus !== 'READY'

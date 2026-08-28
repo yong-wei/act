@@ -1,5 +1,5 @@
 import { canRevealIndexedResource } from '../resource-index/resolve';
-import type { IndexedResourceEntry, RegistryIndex } from '../resource-index/types';
+import type { IndexedResourceEntry, RegistryIndex, ResourceIdentity } from '../resource-index/types';
 
 import type {
   FormalDisposition,
@@ -11,6 +11,7 @@ export interface IndexedEligibilityObservation {
   pathAudited?: boolean;
   formalBindingValid?: boolean;
   formalDisposition?: FormalDisposition;
+  requiresProjection?: boolean;
   teachingProjectionStatus?: ResourceEligibilityEvidence['teachingProjectionStatus'];
   teachingProjectionEvidenceIds?: readonly string[];
   teachingProjectionIdentity?: {
@@ -35,9 +36,35 @@ export interface IndexedEligibilityObservation {
   releaseEvidenceIds?: readonly string[];
 }
 
-function namedConsumerPinsPresent(context: ResourceEligibilityContext): boolean {
+function identityEquals(left: ResourceIdentity, right: ResourceIdentity): boolean {
+  return left.key === right.key
+    && left.sourceKind === right.sourceKind
+    && left.sourceRef === right.sourceRef
+    && left.sourceVersion === right.sourceVersion
+    && left.contentHash === right.contentHash
+    && left.scope === right.scope;
+}
+
+function indexedEntryBelongsToIndex(index: RegistryIndex, entry: IndexedResourceEntry): boolean {
+  return index.entries.some((candidate) => identityEquals(candidate.descriptor.identity, entry.descriptor.identity));
+}
+
+function ownerEngineeringOnly(
+  context: ResourceEligibilityContext,
+  observation: IndexedEligibilityObservation | undefined,
+): boolean {
+  if (observation?.requiresProjection !== false) return false;
+  const ownerConsumerId = observation.teachingProjectionIdentity?.consumerId ?? observation.consumerId;
+  if (context.consumerId && ownerConsumerId && ownerConsumerId !== context.consumerId) return false;
+  return true;
+}
+
+function namedConsumerPinsPresent(
+  context: ResourceEligibilityContext,
+  observation: IndexedEligibilityObservation | undefined,
+): boolean {
   if (!context.consumerId || !context.authorityId || !context.requestedRevision) return false;
-  if (context.engineeringOnly === true) return true;
+  if (ownerEngineeringOnly(context, observation)) return true;
   return Boolean(context.projectionId && context.projectionHash);
 }
 
@@ -45,7 +72,7 @@ function consumerActivationMatchesContext(
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
 ): boolean {
-  if (context.purpose === 'named-consumer' && !namedConsumerPinsPresent(context)) return false;
+  if (context.purpose === 'named-consumer' && !namedConsumerPinsPresent(context, observation)) return false;
   const status = observation?.consumerActivationStatus ?? 'NOT_APPLICABLE';
   if (status === 'NOT_APPLICABLE' && !observation?.consumerId) return true;
   if (observation?.consumerId && context.consumerId && observation.consumerId !== context.consumerId) {
@@ -66,7 +93,8 @@ function teachingProjectionMatchesContext(
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
 ): boolean {
-  if (context.engineeringOnly === true) return true;
+  if (ownerEngineeringOnly(context, observation)) return true;
+  if (context.engineeringOnly === true) return false;
   const status = observation?.teachingProjectionStatus;
   if (status !== 'READY' && status !== 'PINNED_PREVIOUS') return true;
   const identity = observation?.teachingProjectionIdentity;
@@ -116,12 +144,15 @@ export function evidenceFromIndexedEntry(input: {
   );
   const pathAudited = observation?.pathAudited === true;
   const formalBindingValid = observation?.formalBindingValid === true;
-  const engineeringOnly = context.engineeringOnly === true;
+  const engineeringOnly = ownerEngineeringOnly(context, observation);
+  const engineeringConflict = context.engineeringOnly === true && !engineeringOnly;
   const consumerMatches = consumerActivationMatchesContext(context, observation);
   const projectionMatches = teachingProjectionMatchesContext(context, observation);
 
   return {
-    indexIdentityMatches: context.resourceIndexIdentity === index.identity,
+    indexIdentityMatches:
+      context.resourceIndexIdentity === index.identity
+      && indexedEntryBelongsToIndex(index, entry),
     revisionMatches: !context.requestedRevision || context.requestedRevision === identity.sourceVersion,
     scopeMatches: identity.scope === context.scope || (!!context.courseId && identity.scope === context.courseId),
     authorizedForRole,
@@ -144,11 +175,13 @@ export function evidenceFromIndexedEntry(input: {
     launchEvidenceIds: launcher ? [`launcher:${launcher.contractClass}:${launcher.contractVersion}`] : [],
     releaseQualified: releaseQualifiedForContext(context, observation),
     releaseEvidenceIds: observation?.releaseEvidenceIds ?? [],
-    teachingProjectionStatus: engineeringOnly
-      ? 'NOT_APPLICABLE'
-      : projectionMatches
-        ? observation?.teachingProjectionStatus ?? 'NOT_PROJECTED'
-        : 'BLOCKED',
+    teachingProjectionStatus: engineeringConflict
+      ? 'BLOCKED'
+      : engineeringOnly
+        ? 'NOT_APPLICABLE'
+        : projectionMatches
+          ? observation?.teachingProjectionStatus ?? 'NOT_PROJECTED'
+          : 'BLOCKED',
     teachingProjectionEvidenceIds: observation?.teachingProjectionEvidenceIds ?? [],
     consumerActivationStatus: consumerMatches
       ? observation?.consumerActivationStatus ?? 'NOT_APPLICABLE'
