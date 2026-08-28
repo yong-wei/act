@@ -71,9 +71,9 @@ function availabilityFor(record: RenderMetadataRecord): {
 } {
   const planning = record.planningOverride ?? {};
   const access: IndexedResourceAccess = {
-    teacherPolicy: planning.teacherPolicy,
-    privacyLevel: planning.privacyLevel,
-    sourceAvailability: planning.availability,
+    ...(planning.teacherPolicy ? { teacherPolicy: planning.teacherPolicy } : {}),
+    ...(planning.privacyLevel ? { privacyLevel: planning.privacyLevel } : {}),
+    ...(planning.availability ? { sourceAvailability: planning.availability } : {}),
   };
   if (planning.availability === 'archived' || planning.teacherPolicy === 'blocked') {
     return {

@@ -20,6 +20,7 @@ export { createRenderMetadataAdapter } from './adapters/render-metadata';
 export { createResourceNodeAdapter } from './adapters/resource-node';
 export { createPublishedArtifactAdapter } from './adapters/published-artifact';
 export { resolveIndexedResource, canRevealIndexedResource } from './resolve';
+export { resolveLiveResourceIndexRevision } from './revision';
 export {
   captureLiveResourceRegistryIndex,
   getLiveResourceRegistryIndex,

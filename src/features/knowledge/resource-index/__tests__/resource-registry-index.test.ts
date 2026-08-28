@@ -6,9 +6,15 @@ import { createPublishedArtifactAdapter } from '../adapters/published-artifact';
 import { createRenderMetadataAdapter } from '../adapters/render-metadata';
 import { createResourceNodeAdapter } from '../adapters/resource-node';
 import { buildResourceRegistryIndex, serializeResourceRegistryIndex } from '../builder';
+import { canonicalStringify } from '../canonical';
 import { ResourceRegistryIndexError } from '../errors';
 import { resolveIndexedResource } from '../resolve';
-import { captureLiveResourceRegistryIndex } from '../sources';
+import { resolveLiveResourceIndexRevision } from '../revision';
+import {
+  captureLiveResourceRegistryIndex,
+  getLiveResourceRegistryIndex,
+  resetLiveResourceRegistryIndexCache,
+} from '../sources';
 import { projectStudentReadFromIndex } from '../student-read';
 import {
   PUBLISHED_ARTIFACT_SOURCE_KIND,
@@ -351,5 +357,33 @@ describe('resource registry index', () => {
       capture.owner === 'published-artifact-none-declared' && capture.recordCount === 0
     ))).toBe(true);
     expect(new Set(index.entries.map((entry) => entry.descriptor.identity.key)).size).toBe(index.entries.length);
+    const serialized = serializeResourceRegistryIndex(index);
+    expect(() => JSON.parse(serialized)).not.toThrow();
+    expect(JSON.parse(serialized).identity).toBe(index.identity);
+    expect(index.captures.every((capture) => (
+      capture.sharedRevision === resolveLiveResourceIndexRevision()
+    ))).toBe(true);
+  });
+
+  it('fails closed when live capture has no Git or environment revision', () => {
+    expect(() => resolveLiveResourceIndexRevision({ APP_REVISION: '', GIT_SHA: '' }, '/tmp')).toThrow(
+      ResourceRegistryIndexError,
+    );
+  });
+
+  it('omits undefined fields so canonical output is JSON-parseable', () => {
+    expect(canonicalStringify({ teacherPolicy: undefined, privacyLevel: 'student-visible' })).toBe(
+      '{"privacyLevel":"student-visible"}',
+    );
+    expect(JSON.parse(canonicalStringify({ teacherPolicy: undefined, privacyLevel: 'student-visible' }))).toEqual({
+      privacyLevel: 'student-visible',
+    });
+  });
+
+  it('returns the memoized live index without rebuilding', () => {
+    resetLiveResourceRegistryIndexCache();
+    const first = getLiveResourceRegistryIndex();
+    const second = getLiveResourceRegistryIndex();
+    expect(second).toBe(first);
   });
 });

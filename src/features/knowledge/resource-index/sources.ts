@@ -3,39 +3,35 @@ import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metada
 import { createPublishedArtifactAdapter } from './adapters/published-artifact';
 import { createRenderMetadataAdapter } from './adapters/render-metadata';
 import { buildResourceRegistryIndex } from './builder';
+import { resolveLiveResourceIndexRevision } from './revision';
 import type { RegistryIndex } from './types';
 
-const LIVE_SHARED_REVISION = 'live-render-metadata';
+let memoized: RegistryIndex | null = null;
 
-let memoized: { digest: string; index: RegistryIndex } | null = null;
-
-function publishedArtifactsNoneDeclared() {
+function publishedArtifactsNoneDeclared(sharedRevision: string) {
   return createPublishedArtifactAdapter({
     owner: 'published-artifact-none-declared',
-    sharedRevision: LIVE_SHARED_REVISION,
+    sharedRevision,
     records: [],
   });
 }
 
 export function captureLiveResourceRegistryIndex(): RegistryIndex {
+  const sharedRevision = resolveLiveResourceIndexRevision();
   const records = getAllRegisteredResourceMetadata();
-  const index = buildResourceRegistryIndex([
+  return buildResourceRegistryIndex([
     createRenderMetadataAdapter({
       records,
-      sharedRevision: LIVE_SHARED_REVISION,
+      sharedRevision,
     }),
-    publishedArtifactsNoneDeclared(),
+    publishedArtifactsNoneDeclared(sharedRevision),
   ]);
-  return index;
 }
 
 export function getLiveResourceRegistryIndex(): RegistryIndex {
-  const index = captureLiveResourceRegistryIndex();
-  if (memoized && memoized.digest === index.digest) {
-    return memoized.index;
-  }
-  memoized = { digest: index.digest, index };
-  return index;
+  if (memoized) return memoized;
+  memoized = captureLiveResourceRegistryIndex();
+  return memoized;
 }
 
 export function resetLiveResourceRegistryIndexCache(): void {
