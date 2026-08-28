@@ -103,6 +103,26 @@ describe('cold-start evidence collection', () => {
           },
         },
         {
+          factType: 'design',
+          moduleId: 'arena-task-1',
+          courseId: 'control-correction',
+          finishedAt: '2026-08-28T01:11:00.000Z',
+          outcome: 'success',
+          contextJson: {
+            evidenceGovernance: { evidenceQuality: 'rich', profileWeight: 1, skipProfileContribution: false },
+          },
+        },
+        {
+          factType: 'assessment',
+          moduleId: 'kaq-quiz-1',
+          finishedAt: '2026-08-28T01:11:30.000Z',
+          outcome: 'success',
+          contextJson: {
+            adaptiveAssessment: { kaqQuizEvidence: { learningGoalIds: ['control-correction'] } },
+            evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false },
+          },
+        },
+        {
           factType: 'simulation',
           moduleId: 'failed-sim',
           finishedAt: '2026-08-28T01:12:00.000Z',
@@ -130,14 +150,28 @@ describe('cold-start evidence collection', () => {
         },
       ],
     });
-    expect(events).toEqual([expect.objectContaining({
-      kind: 'short-simulation',
-      resourceId: 'bode-sim',
-      goalId: 'control-correction',
-      completed: true,
-      qualityMarker: 'governed',
-      authority: 'simulation',
-    })]);
+    expect(events).toEqual([
+      expect.objectContaining({
+        kind: 'short-simulation',
+        resourceId: 'bode-sim',
+        goalId: 'control-correction',
+        completed: true,
+        qualityMarker: 'governed',
+        authority: 'simulation',
+      }),
+      expect.objectContaining({
+        kind: 'short-simulation',
+        resourceId: 'arena-task-1',
+        goalId: 'control-correction',
+        authority: 'simulation',
+      }),
+      expect.objectContaining({
+        kind: 'short-diagnosis',
+        resourceId: 'kaq-quiz-1',
+        goalId: 'control-correction',
+        authority: 'assessment',
+      }),
+    ]);
   });
 
   it('records a governed resource trial without writing mastery or high confidence', () => {

@@ -503,6 +503,8 @@ export interface ColdStartGovernedFactInput {
   id?: string;
   factType?: string | null;
   moduleId?: string | null;
+  courseId?: string | null;
+  lessonId?: string | null;
   startedAt?: string | Date | null;
   finishedAt?: string | Date | null;
   outcome?: string | null;
@@ -527,11 +529,25 @@ function factAuthority(activityType: ColdStartCollectionActivityType, factType: 
   return 'none';
 }
 
-function readFactGoalId(contextJson: unknown): string | null {
-  const context = readRecord(contextJson);
-  const nested = readRecord(context.preferenceEvidence);
-  const goalId = context.goalId ?? context.learningGoalId ?? nested.goalId;
-  return typeof goalId === 'string' && goalId.trim() ? goalId : null;
+function pushGoalId(ids: string[], value: unknown) {
+  if (typeof value === 'string' && value.trim()) ids.push(value.trim());
+}
+
+function collectFactGoalIds(fact: ColdStartGovernedFactInput): string[] {
+  const ids: string[] = [];
+  pushGoalId(ids, fact.courseId);
+  const context = readRecord(fact.contextJson);
+  pushGoalId(ids, context.goalId);
+  pushGoalId(ids, context.learningGoalId);
+  const preferenceEvidence = readRecord(context.preferenceEvidence);
+  pushGoalId(ids, preferenceEvidence.goalId);
+  const adaptiveAssessment = readRecord(context.adaptiveAssessment);
+  const kaqQuizEvidence = readRecord(adaptiveAssessment.kaqQuizEvidence);
+  const learningGoalIds = kaqQuizEvidence.learningGoalIds;
+  if (Array.isArray(learningGoalIds)) {
+    for (const value of learningGoalIds) pushGoalId(ids, value);
+  }
+  return [...new Set(ids)];
 }
 
 function factIsGoverned(contextJson: unknown): boolean {
@@ -557,11 +573,12 @@ export function collectionEventsFromGovernedFacts(input: {
     const activityType = factActivityType(fact.factType);
     const finishedAt = isoTimestamp(fact.finishedAt);
     const resourceId = typeof fact.moduleId === 'string' && fact.moduleId.trim() ? fact.moduleId : null;
-    const factGoalId = readFactGoalId(fact.contextJson);
+    const factGoalIds = collectFactGoalIds(fact);
     const successful = fact.outcome === 'success' || fact.outcome === 'completed' || fact.outcome === 'pass' || fact.outcome === 'passed';
     if (!activityType || !finishedAt || !resourceId || !successful) return [];
     if (!factIsGoverned(fact.contextJson)) return [];
-    if (!factGoalId || factGoalId !== input.goalId) return [];
+    if (!factGoalIds.includes(input.goalId)) return [];
+    const factGoalId = input.goalId;
     return [{
       kind: activityType,
       at: finishedAt,
