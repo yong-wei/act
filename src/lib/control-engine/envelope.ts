@@ -18,6 +18,10 @@ import {
   type ControlEngineRuntimeIdentity,
 } from './types';
 
+export function controlEngineHttpStatus(error: ControlEngineFailure): number {
+  return error.state === 'timeout' || error.state === 'unavailable' ? 503 : 400;
+}
+
 export class ControlEngineFailure extends Error {
   readonly state: ControlEngineErrorState['state'];
   readonly category: string;

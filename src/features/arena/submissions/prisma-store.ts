@@ -8,6 +8,7 @@ import type {
   StoredArenaEvaluation,
   StoredArenaSubmission,
 } from './persistence';
+import { isCompleteArenaEvaluationCacheIdentity } from './evaluation-cache-identity';
 import { readArenaSubmissionEvidenceWritebacks } from '../evidence-writeback-persistence';
 
 type PrismaJson = Record<string, unknown> | unknown[];
@@ -155,6 +156,9 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
   listSubmissions(options?: ArenaSubmissionListOptions): Promise<ArenaSubmissionRecord[]>;
 } = {
   async findEvaluationByHash(taskId, artifactHash, protocolVersion) {
+    if (!isCompleteArenaEvaluationCacheIdentity({ taskId, artifactHash, protocolVersion })) {
+      return null;
+    }
     const prisma = await getPrismaClient();
     const row = await (prisma as any).arenaEvaluationRun.findUnique({
       where: {

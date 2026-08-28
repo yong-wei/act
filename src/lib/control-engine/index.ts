@@ -41,6 +41,7 @@ export {
   assertFiniteTree,
   authoritySourceFor,
   canonicalRequestHash,
+  controlEngineHttpStatus,
   identifiedClaimWithoutParameters,
   mapFailure,
   newRequestId,
@@ -51,6 +52,13 @@ export {
   stableStringify,
   surrogateSemantics,
 } from './envelope';
+export {
+  ARENA_OFFICIAL_PROTOCOLS,
+  R6_SERVER_LOADER_DELETION_CANDIDATES,
+  SERVER_CONSUMER_CLASSES,
+  SERVER_FACADE_IMPORT,
+  SERVER_FACADE_MODULE,
+} from './server-consumers';
 export {
   CONTROL_ENGINE_BUILD_HASH,
   CONTROL_ENGINE_EXPORTS,

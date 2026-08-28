@@ -1,4 +1,5 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
+import { isCompleteArenaEvaluationCacheIdentity } from './evaluation-cache-identity';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
 import {
@@ -225,7 +226,13 @@ export async function createPersistedArenaSubmission(
   const artifactHash = hashControllerArtifact(artifact);
   const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
-  const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
+  const existingEvaluation = isCompleteArenaEvaluationCacheIdentity({
+    taskId: input.taskId,
+    artifactHash,
+    protocolVersion,
+  })
+    ? await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion)
+    : null;
   const duplicateSubmission = await input.store.findDuplicateSubmissionByArtifact?.({
     taskId: input.taskId,
     userId: input.userId,
