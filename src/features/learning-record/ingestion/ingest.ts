@@ -243,15 +243,10 @@ async function ingestInCurrentHandle(
 export async function ingestLearningFact(
   input: IngestLearningFactInput,
 ): Promise<IngestLearningFactResult> {
-  if (
-    input.transport === 'direct'
-    && !input.alreadyInTransaction
-    && typeof input.db.$transaction === 'function'
-  ) {
-    return input.db.$transaction((tx) => ingestLearningFact({
+  if (typeof input.db.$transaction === 'function') {
+    return input.db.$transaction((tx) => ingestInCurrentHandle({
       ...input,
       db: tx,
-      alreadyInTransaction: true,
     }));
   }
   return ingestInCurrentHandle(input);

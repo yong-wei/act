@@ -1321,7 +1321,6 @@ async function persistAdaptiveAssessmentSubmission(
     actorUserId: learningEvent.userId,
     captureRevision: currentCaptureRevision(),
     classId: learningEvent.classId,
-    alreadyInTransaction: true,
   });
 
   return {

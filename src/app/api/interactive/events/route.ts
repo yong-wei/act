@@ -1083,7 +1083,6 @@ export async function POST(request: NextRequest) {
           actorUserId: session.user.id,
           captureRevision: currentCaptureRevision(),
           classId: learningEvent.classId,
-          alreadyInTransaction: true,
         });
         routingResults.push({
           eventType: learningEvent.actionType,

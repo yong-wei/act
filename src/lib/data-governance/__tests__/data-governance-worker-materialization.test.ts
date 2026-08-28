@@ -61,6 +61,7 @@ vi.mock('@/features/learning-record/ingestion/public-api', () => ({
     },
   })),
   applyStagedLearningFactIngestions: vi.fn(async () => ({ processed: 0, failed: 0, results: [] })),
+  applyStagedProjectionTriggers: vi.fn(async () => ({ processed: 0, failed: 0 })),
   currentCaptureRevision: () => 'working-tree',
 }));
 vi.mock('../student-evidence-feature-cache', () => ({
@@ -71,6 +72,9 @@ vi.mock('../simulation-task-reconciliation', () => ({
   scheduleSimulationTaskCatalogRefresh: mocks.catalogRefresh,
 }));
 
+import {
+  applyStagedProjectionTriggers,
+} from '@/features/learning-record/ingestion/public-api';
 import {
   configureDataGovernanceWorkerForTest,
   processClassSnapshotJob,
@@ -140,6 +144,10 @@ describe('data governance cumulative materialization worker', () => {
     } as any);
 
     expect(add).toHaveBeenCalledTimes(2);
+    expect(applyStagedProjectionTriggers).toHaveBeenCalledWith(
+      db,
+      expect.any(Function),
+    );
     expect(add.mock.calls.map((call) => call[1])).toEqual([
       {
         userId: 'student-1',
@@ -158,6 +166,43 @@ describe('data governance cumulative materialization worker', () => {
         migrationRunId: publication.migrationRunId,
       },
     ]);
+  });
+
+  it('schedules a fenced student snapshot when draining a projection trigger', async () => {
+    mocks.events = [];
+    const add = vi.fn(async (_name: string, _data: unknown, _options: unknown) => undefined);
+    const db = dbWithFence({
+      learningEventBatch: { create: vi.fn(async () => undefined) },
+      learningFact: { createMany: vi.fn(async () => ({ count: 0 })) },
+    });
+    vi.mocked(applyStagedProjectionTriggers).mockImplementationOnce(async (_database, apply) => {
+      await apply({
+        ownerUserId: 'student-1',
+        triggerKey: 'learning-fact-trigger:student-1:digest:working-tree',
+      });
+      return { processed: 1, failed: 0 };
+    });
+    configureDataGovernanceWorkerForTest({ db, studentJobQueue: { add } as any });
+
+    await processEventIngestionJob({
+      id: 'trigger-drain-1',
+      data: { batchDate: '2026-07-23' },
+    } as any);
+
+    expect(add).toHaveBeenCalledWith(
+      'student-snapshot-student-1',
+      {
+        userId: 'student-1',
+        calculationVersion: publication.calculationVersion,
+        learnerGeneration: publication.learnerGeneration,
+        queueGeneration: publication.queueGeneration,
+        cutoverFence: publication.cutoverFence,
+        migrationRunId: publication.migrationRunId,
+      },
+      expect.objectContaining({
+        jobId: 'student-snapshot-student-1-learning-fact-trigger:student-1:digest:working-tree',
+      }),
+    );
   });
 
   it('drops a legacy student job before reading or writing portrait state', async () => {

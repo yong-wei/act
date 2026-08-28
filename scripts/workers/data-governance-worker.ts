@@ -21,6 +21,7 @@ import { claimSecondaryEvents, ackSecondaryEvents, markEventsProcessed } from '@
 import { applyAllStagedMicroInterventionEvidence } from '@/features/learning-record/personalization-ports/public-api';
 import {
   applyStagedLearningFactIngestions,
+  applyStagedProjectionTriggers,
   currentCaptureRevision,
   ingestLearningFact,
 } from '@/features/learning-record/ingestion/public-api';
@@ -550,8 +551,13 @@ async function getActiveStudentIds(): Promise<string[]> {
 export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   try {
     if (prisma) {
-      await applyAllStagedMicroInterventionEvidence(prisma as never);
-      await applyStagedLearningFactIngestions(prisma as never);
+      const db = prisma;
+      await applyAllStagedMicroInterventionEvidence(db as never);
+      await applyStagedLearningFactIngestions(db as never);
+      await applyStagedProjectionTriggers(db as never, async ({ ownerUserId, triggerKey }) => {
+        const fence = await readActiveCumulativePublicationFence(db);
+        await enqueueStudentSnapshot(ownerUserId, triggerKey, fence);
+      });
     }
   } catch (error) {
     console.error('[EventIngestion] staged ingestion failed:', error);
@@ -620,7 +626,6 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
       actorUserId: claim.event.userId,
       captureRevision,
       classId: claim.event.classId,
-      alreadyInTransaction: true,
     });
     outcomes.push({
       status: result.status,

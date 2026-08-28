@@ -108,7 +108,6 @@ export interface IngestLearningFactInput {
   classId?: string;
   now?: Date;
   rebaseReceipt?: RebaseReceipt;
-  alreadyInTransaction?: boolean;
 }
 
 export function rejectDirectAndOutboxDoubleWrite(input: {

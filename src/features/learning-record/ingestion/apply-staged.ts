@@ -78,7 +78,6 @@ export async function applyStagedLearningFactIngestions(
         event: eventFromStagedPayload(row),
         actorUserId: row.ownerUserId,
         captureRevision,
-        alreadyInTransaction: true,
         now,
       });
       results.push(result);
@@ -112,8 +111,10 @@ export async function applyStagedProjectionTriggers(
   db: IngestionWriteDb,
   apply: (input: { ownerUserId: string; triggerKey: string }) => Promise<void>,
   options: { limit?: number; now?: Date } = {},
-): Promise<{ processed: number }> {
-  if (typeof db.evidenceOutbox?.findMany !== 'function') return { processed: 0 };
+): Promise<{ processed: number; failed: number }> {
+  if (typeof db.evidenceOutbox?.findMany !== 'function' || typeof db.evidenceOutbox.updateMany !== 'function') {
+    return { processed: 0, failed: 0 };
+  }
   const now = options.now ?? new Date();
   const rows = await db.evidenceOutbox.findMany({
     where: {
@@ -121,16 +122,27 @@ export async function applyStagedProjectionTriggers(
       status: 'pending',
       availableAt: { lte: now },
     },
+    orderBy: { createdAt: 'asc' },
     take: options.limit ?? 50,
   });
   let processed = 0;
+  let failed = 0;
   for (const row of rows) {
-    await apply({ ownerUserId: row.ownerUserId, triggerKey: row.dedupeKey });
-    await db.evidenceOutbox.update?.({
-      where: { id: row.id },
-      data: { status: 'projected', processedAt: now },
+    const claimed = await db.evidenceOutbox.updateMany!({
+      where: { id: row.id, status: 'pending' },
+      data: { availableAt: new Date(now.getTime() + LEASE_MS) },
     });
-    processed += 1;
+    if (claimed.count !== 1) continue;
+    try {
+      await apply({ ownerUserId: row.ownerUserId, triggerKey: row.dedupeKey });
+      await db.evidenceOutbox.update?.({
+        where: { id: row.id },
+        data: { status: 'projected', processedAt: now },
+      });
+      processed += 1;
+    } catch {
+      failed += 1;
+    }
   }
-  return { processed };
+  return { processed, failed };
 }

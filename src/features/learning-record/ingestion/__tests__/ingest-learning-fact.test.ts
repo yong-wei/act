@@ -17,6 +17,7 @@ import {
 } from '@/features/learning-record/event-contract/types';
 import {
   applyStagedLearningFactIngestions,
+  applyStagedProjectionTriggers,
   assertTerminalBeforeDelete,
   authorizeRawArtifact,
   authorizeReplay,
@@ -117,7 +118,12 @@ function memoryOutbox() {
         return next;
       },
       findFirst: async (args: { where: { dedupeKey: string } }) => rows.get(args.where.dedupeKey) ?? null,
-      findMany: async () => [...rows.values()].filter((row) => row.status === 'pending'),
+      findMany: async (args?: { where?: { eventType?: string; status?: string } }) => (
+        [...rows.values()].filter((row) => (
+          (!args?.where?.status || row.status === args.where.status)
+          && (!args?.where?.eventType || row.eventType === args.where.eventType)
+        ))
+      ),
       updateMany: async (args: { where: { id: string; status: string }; data: { availableAt: Date } }) => {
         const match = [...rows.values()].find((row) => row.id === args.where.id && row.status === args.where.status);
         if (!match) return { count: 0 };
@@ -313,6 +319,87 @@ describe('canonical LearningFact ingestion', () => {
     });
     expect(result.times?.trustedOccurredAt).toBe('2026-08-29T00:00:00.000Z');
     expect(result.times?.materializedAt).toBe('2026-08-29T01:00:00.000Z');
+  });
+
+  it('wraps outbox-apply in $transaction even when a caller claims it is already in one', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const inner = memoryOutbox();
+    const wrap = vi.fn(async (fn: (tx: ReturnType<typeof memoryOutbox>) => Promise<unknown>) => fn(inner));
+    await ingestLearningFact({
+      db: { ...inner, $transaction: wrap },
+      transport: 'outbox-apply',
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(wrap).toHaveBeenCalledTimes(1);
+    expect([...inner.rows.values()][0]?.eventType).toBe(LEARNING_FACT_TRIGGER_OUTBOX_EVENT_TYPE);
+  });
+
+  it('rolls back a fact write when the projection trigger cannot be recorded', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const inner = memoryOutbox();
+    inner.evidenceOutbox.upsert = async () => {
+      throw new Error('trigger-failed');
+    };
+    const db = {
+      ...inner,
+      $transaction: async (fn: (tx: typeof inner) => Promise<unknown>) => {
+        try {
+          return await fn(inner);
+        } catch (error) {
+          inner.rows.clear();
+          throw error;
+        }
+      },
+    };
+    await expect(ingestLearningFact({
+      db,
+      transport: 'direct',
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    })).rejects.toThrow('trigger-failed');
+    expect(inner.rows.size).toBe(0);
+  });
+
+  it('drains a durable projection trigger through the shared consumer', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const db = memoryOutbox();
+    await ingestLearningFact({
+      db,
+      transport: 'direct',
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    const scheduled: Array<{ ownerUserId: string; triggerKey: string }> = [];
+    const drained = await applyStagedProjectionTriggers(db, async (input) => {
+      scheduled.push(input);
+    });
+    expect(drained).toEqual({ processed: 1, failed: 0 });
+    expect(scheduled).toEqual([{
+      ownerUserId: 'student-1',
+      triggerKey: [...db.rows.values()][0]?.dedupeKey,
+    }]);
+    expect([...db.rows.values()][0]?.status).toBe('projected');
+  });
+
+  it('leaves a projection trigger pending when the coordinator apply fails', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const db = memoryOutbox();
+    await ingestLearningFact({
+      db,
+      transport: 'direct',
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    const drained = await applyStagedProjectionTriggers(db, async () => {
+      throw new Error('snapshot-enqueue-failed');
+    });
+    expect(drained).toEqual({ processed: 0, failed: 1 });
+    expect([...db.rows.values()][0]?.status).toBe('pending');
   });
 });
 
