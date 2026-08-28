@@ -12,6 +12,12 @@ import {
   CANDIDATE_RELEASE_SELECTOR,
 } from '@/features/knowledge/candidate-graph-contracts';
 import {
+  forbiddenIdentitySelectorFromRequest,
+  knowledgeSurfaceFromCandidateProjection,
+  withKnowledgeSurface,
+} from '@/lib/knowledge-surface';
+import type { KnowledgeSurfaceKind } from '@/lib/knowledge-surface';
+import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
 } from '@/features/knowledge/candidate-graph-policy';
@@ -50,26 +56,42 @@ export async function authorizeCandidateGraph(): Promise<
 }
 
 export function rejectCandidateSelectorParameters(request: Request): NextResponse | null {
-  const parameters = new URL(request.url).searchParams;
-  if (parameters.has('authorityState')
-    || parameters.has('releaseSetId')
-    || parameters.has('releaseId')) {
-    return NextResponse.json(
-      {
-        error: 'Candidate selector is fixed by the server.',
-        code: 'CANDIDATE_GRAPH_SELECTOR_FIXED',
-      },
-      { status: 400 },
-    );
-  }
-  return null;
+  const parameter = forbiddenIdentitySelectorFromRequest(request);
+  if (!parameter) return null;
+  return NextResponse.json(
+    {
+      error: 'Candidate selector is fixed by the server.',
+      code: 'CANDIDATE_GRAPH_SELECTOR_FIXED',
+      parameter,
+    },
+    { status: 400 },
+  );
 }
 
-export function candidateProjectionResponse<T>(
+export function candidateProjectionResponse<T extends object>(
   result: ProjectionResult<T>,
+  context: { role: KnowledgeRole; surfaceKey: string; kind?: KnowledgeSurfaceKind },
 ): NextResponse {
   if (result.status === 'available') {
-    return NextResponse.json(result.projection);
+    const projection = result.projection as T & {
+      source?: Parameters<typeof knowledgeSurfaceFromCandidateProjection>[0]['source'];
+    };
+    const source = projection.source ?? {
+      ...CANDIDATE_RELEASE_SELECTOR,
+      productionAuthoritative: false as const,
+      historical: false,
+    };
+    const surface = knowledgeSurfaceFromCandidateProjection({
+      source,
+      role: context.role,
+      kind: context.kind,
+      surfaceKey: context.surfaceKey,
+    });
+    return NextResponse.json(
+      surface.status === 'ok'
+        ? withKnowledgeSurface(projection, surface.knowledgeSurface)
+        : projection,
+    );
   }
   if (result.status === 'drift') {
     return NextResponse.json(

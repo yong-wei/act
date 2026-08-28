@@ -8,15 +8,41 @@ import {
   loadKnowledgeGraphData,
   loadKnowledgeGraphRootData,
   toPublicKnowledgeGraphPayload,
+  type UnifiedKnowledgeGraphPayload,
 } from '@/lib/knowledge-graph-source';
 import { RuntimeKnowledgeRelationCoverageError, toPublicRuntimeKnowledgeDiagnostics } from '@/lib/knowledge-graph-relation-runtime';
 import { resolveExactRuntimeLessonContext } from '@/lib/knowledge-lesson-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  knowledgeSurfaceFromLegacyGraph,
+  knowledgeSurfaceSelectorRejection,
+  withKnowledgeSurface,
+} from '@/lib/knowledge-surface';
+import type { KnowledgeSurfaceKind } from '@/lib/knowledge-surface';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+function legacyGraphResponse(
+  payload: object,
+  graph: Pick<UnifiedKnowledgeGraphPayload, 'source' | 'versionDigest'>,
+  kind: KnowledgeSurfaceKind,
+  surfaceKey: string,
+) {
+  const surface = knowledgeSurfaceFromLegacyGraph({
+    source: graph.source,
+    versionDigest: graph.versionDigest,
+    kind,
+    surfaceKey,
+  });
+  return NextResponse.json(
+    surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,
+  );
+}
+
 export async function GET(request: Request) {
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
   try {
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('mode');
@@ -31,10 +57,12 @@ export async function GET(request: Request) {
         requestedLessonIds.length === 1 ? requestedLessonIds[0] : null,
         graph
       );
-      return NextResponse.json({
-        ...buildKnowledgeGraphRootPayload(graph),
-        lessonContext,
-      });
+      return legacyGraphResponse(
+        { ...buildKnowledgeGraphRootPayload(graph), lessonContext },
+        graph,
+        'root',
+        'legacy-root',
+      );
     }
 
     const domainId = searchParams.get('domainId');
@@ -53,23 +81,48 @@ export async function GET(request: Request) {
 
     const graph = await loadKnowledgeGraphData();
     if (mode === 'manifest') {
-      return NextResponse.json(buildKnowledgeGraphManifestPayload(graph));
+      return legacyGraphResponse(
+        buildKnowledgeGraphManifestPayload(graph),
+        graph,
+        'search',
+        'legacy-manifest',
+      );
     }
     if (mode === 'expansion') {
       const rootCatalog = buildKnowledgeGraphRootPayload(graph).rootSummaries ?? [];
       if (!rootCatalog.some((entry) => entry.rootId === domainId)) {
         return NextResponse.json({ error: 'Knowledge graph domain not found.' }, { status: 404 });
       }
-      return NextResponse.json(buildKnowledgeGraphExpansionPayload(graph, domainId!));
+      return legacyGraphResponse(
+        buildKnowledgeGraphExpansionPayload(graph, domainId!),
+        graph,
+        'domain',
+        domainId!,
+      );
     }
     if (mode === 'active-filter') {
-      return NextResponse.json(buildKnowledgeGraphActiveFilterPayload(graph));
+      return legacyGraphResponse(
+        buildKnowledgeGraphActiveFilterPayload(graph),
+        graph,
+        'search',
+        'legacy-active-filter',
+      );
     }
     if (mode === 'remaining') {
-      return NextResponse.json(buildKnowledgeGraphRemainingPayload(graph));
+      return legacyGraphResponse(
+        buildKnowledgeGraphRemainingPayload(graph),
+        graph,
+        'search',
+        'legacy-remaining',
+      );
     }
 
-    return NextResponse.json(toPublicKnowledgeGraphPayload(graph));
+    return legacyGraphResponse(
+      toPublicKnowledgeGraphPayload(graph),
+      graph,
+      'root',
+      'legacy-graph',
+    );
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof RuntimeKnowledgeRelationCoverageError) {

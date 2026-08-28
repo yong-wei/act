@@ -1,0 +1,59 @@
+export { KNOWLEDGE_SURFACE_CONTRACT } from './types';
+export type {
+  KnowledgeSurfaceAuthorityIdentity,
+  KnowledgeSurfaceBlock,
+  KnowledgeSurfaceBlockStatus,
+  KnowledgeSurfaceBlocks,
+  KnowledgeSurfaceKind,
+  KnowledgeSurfaceMathIdentity,
+  KnowledgeSurfaceMode,
+  KnowledgeSurfaceReadRequest,
+  KnowledgeSurfaceReadResult,
+  KnowledgeSurfaceRegistryIndexIdentity,
+  KnowledgeSurfaceResponse,
+  KnowledgeSurfaceRole,
+  KnowledgeSurfaceTeachingIdentity,
+} from './types';
+
+export {
+  KNOWLEDGE_SURFACE_IDENTITY_SELECTOR_KEYS,
+  KNOWLEDGE_SURFACE_SELECTOR_FIXED_CODE,
+  KNOWLEDGE_SURFACE_SELECTOR_FIXED_MESSAGE,
+  forbiddenIdentitySelectorFromRequest,
+  forbiddenIdentitySelectorKey,
+} from './selectors';
+
+export {
+  KnowledgeSurfaceCache,
+  buildKnowledgeSurfaceCacheKey,
+  buildKnowledgeSurfaceCacheKeyFromRequest,
+} from './cache';
+
+export {
+  classifyLearningContentManifest,
+  readLearningContentManifestClassification,
+  LEARNING_CONTENT_MANIFEST_V2_CONTRACT,
+} from './learning-content';
+
+export {
+  projectSourceOwnedLaunchDescriptor,
+  sanitizePublicLaunchHref,
+} from './launch';
+
+export {
+  authorityFromShardIdentity,
+  readKnowledgeSurface,
+  withKnowledgeSurface,
+} from './read';
+
+export {
+  knowledgeSurfaceFromActiveProvenance,
+  knowledgeSurfaceFromCandidateProjection,
+  knowledgeSurfaceFromLearnerShard,
+  knowledgeSurfaceFromLegacyGraph,
+  requireKnowledgeSurface,
+  surfaceKeyForShard,
+  tryLiveRegistryIndexIdentity,
+} from './envelope';
+
+export { knowledgeSurfaceSelectorRejection } from './http';

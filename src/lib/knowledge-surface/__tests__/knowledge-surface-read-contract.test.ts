@@ -1,0 +1,313 @@
+import { describe, expect, it } from 'vitest';
+
+import { GOVERNED_MATH_PRESENTATION_BUNDLE } from '@/lib/governed-math/sidecar';
+import {
+  KnowledgeSurfaceCache,
+  buildKnowledgeSurfaceCacheKey,
+  classifyLearningContentManifest,
+  knowledgeSurfaceFromLearnerShard,
+  projectSourceOwnedLaunchDescriptor,
+  readKnowledgeSurface,
+} from '@/lib/knowledge-surface';
+import type { AuthorityNodeDetailShard, AuthorityRootShard } from '@/lib/authority-domain-shards/contracts';
+
+const authority = {
+  snapshotId: 'snap-1',
+  snapshotHash: 'a'.repeat(64),
+  releaseId: 'rel-1',
+  releaseSetId: 'set-1',
+  activationId: 'act-1',
+  activationHash: 'b'.repeat(64),
+} as const;
+
+const teaching = {
+  projectionId: 'teach-1',
+  projectionHash: 'c'.repeat(64),
+  scopeId: 'scope-1',
+  cacheFamily: 'family-1',
+} as const;
+
+const registryIndex = {
+  contract: 'resource-registry-index/v1',
+  identity: 'd'.repeat(64),
+  digest: 'e'.repeat(64),
+} as const;
+
+function envelope(matchTeaching: boolean | null = null): AuthorityRootShard['envelope'] {
+  return {
+    contract: 'act-authority-shard-envelope/v1',
+    authority: {
+      ...authority,
+      projectionId: null,
+      projectionHash: null,
+    },
+    catalog: { catalogId: 'cat-1', catalogHash: 'f'.repeat(64), catalogVersion: 'v1' },
+    teaching: matchTeaching === true
+      ? { status: 'available', projectionId: teaching.projectionId, projectionHash: teaching.projectionHash, teachingCacheFamily: teaching.cacheFamily }
+      : { status: 'unavailable', projectionId: null, projectionHash: null, teachingCacheFamily: null },
+    match: { authority: true, catalog: true, teaching: matchTeaching },
+  };
+}
+
+describe('readKnowledgeSurface contract', () => {
+  it('binds Authority only for engineering detail without inventing teaching identity', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'detail',
+      role: 'STUDENT',
+      surfaceKey: 'ctc:engineering',
+      authority,
+      includeTeachingContent: false,
+      includeResourceContent: false,
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.authority).toMatchObject(authority);
+    expect(result.knowledgeSurface.teaching).toBeNull();
+    expect(result.knowledgeSurface.registryIndex).toBeNull();
+    expect(result.knowledgeSurface.blocks.engineering.status).toBe('available');
+    expect(result.knowledgeSurface.blocks.teaching.status).toBe('not-applicable');
+    expect(result.knowledgeSurface.mode).toBe('active');
+  });
+
+  it('requires matching Teaching Projection, scope, and RegistryIndex when teaching content is included', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'detail',
+      role: 'TEACHER',
+      surfaceKey: 'ctc:card',
+      authority,
+      teaching,
+      teachingMatch: true,
+      registryIndex,
+      includeTeachingContent: true,
+      includeResourceContent: true,
+      learningContentStatus: 'available',
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.teaching).toEqual(teaching);
+    expect(result.knowledgeSurface.registryIndex).toEqual(registryIndex);
+    expect(result.knowledgeSurface.blocks.teaching.status).toBe('available');
+    expect(result.knowledgeSurface.blocks.resources.status).toBe('available');
+  });
+
+  it('omits mismatched teaching/resource blocks while keeping engineering readable', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'detail',
+      role: 'STUDENT',
+      surfaceKey: 'ctc:mismatch',
+      authority,
+      teaching: { ...teaching, projectionHash: '0'.repeat(64) },
+      teachingMatch: false,
+      registryIndex,
+      includeTeachingContent: true,
+      includeResourceContent: true,
+      learningContentStatus: 'available',
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.blocks.engineering.status).toBe('available');
+    expect(result.knowledgeSurface.blocks.teaching.status).toBe('identity-mismatch');
+    expect(result.knowledgeSurface.teaching).toBeNull();
+    expect(result.knowledgeSurface.registryIndex).toBeNull();
+    expect(result.knowledgeSurface.blocks.resources.status).toBe('omitted');
+    expect(result.knowledgeSurface.blocks.learningContent.status).toBe('omitted');
+  });
+
+  it('rejects client identity selectors instead of resolving a supplied release', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'root',
+      role: 'STUDENT',
+      surfaceKey: 'root',
+      authority,
+      searchParams: { releaseId: 'attacker', snapshotId: 'other' },
+    });
+    expect(result).toEqual({ status: 'selector-rejected', parameter: 'releaseId' });
+  });
+
+  it('isolates cache keys across mode, role, Authority, and projection identities', () => {
+    const cache = new KnowledgeSurfaceCache();
+    const activeKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'active', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority,
+    });
+    const legacyKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'legacy', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority,
+    });
+    const candidateKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'candidate', role: 'ADMIN', locale: 'zh-CN', kind: 'candidate-diagnostic', surfaceKey: 'n1', authority,
+    });
+    const teachingKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'active', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority, teaching,
+    });
+    const registryKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'active', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority, teaching, registryIndex,
+    });
+    expect(new Set([activeKey, legacyKey, candidateKey, teachingKey, registryKey]).size).toBe(5);
+    cache.set(activeKey, { mode: 'active' });
+    cache.set(legacyKey, { mode: 'legacy' });
+    expect(cache.get(activeKey)).toEqual({ mode: 'active' });
+    expect(cache.get(legacyKey)).toEqual({ mode: 'legacy' });
+    expect(cache.get(candidateKey)).toBeUndefined();
+  });
+
+  it('classifies v1 learning-content manifests as version-drift without synthesizing teaching', () => {
+    const drifted = classifyLearningContentManifest({
+      contract: 'act-authority-learning-content-manifest/v1',
+      authorityReleaseId: authority.releaseId,
+      authorityReleaseSetId: authority.releaseSetId,
+      authoritySnapshotId: authority.snapshotId,
+      authoritySnapshotHash: authority.snapshotHash,
+      nodes: [],
+    }, authority);
+    expect(drifted.status).toBe('version-drift');
+    const alias = classifyLearningContentManifest({
+      contract: 'authority-learning-content-manifest/v1',
+      nodes: [{ canonicalId: 'n1', summary: '# raw markdown $x$' }],
+    }, authority);
+    expect(alias.status).toBe('version-drift');
+    const matched = classifyLearningContentManifest({
+      contract: 'act-authority-learning-content-manifest/v2',
+      authorityReleaseId: authority.releaseId,
+      authorityReleaseSetId: authority.releaseSetId,
+      authoritySnapshotId: authority.snapshotId,
+      authoritySnapshotHash: authority.snapshotHash,
+      nodes: [{ canonicalId: 'n1' }],
+    }, authority);
+    expect(matched.status).toBe('available');
+  });
+
+  it('delegates math identity to the existing #1543 presentation bundle', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'detail',
+      role: 'STUDENT',
+      locale: 'en',
+      surfaceKey: 'ctc:math',
+      authority,
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.math).toEqual({
+      owner: 'governed-rich-text-math-presentation',
+      releaseId: GOVERNED_MATH_PRESENTATION_BUNDLE.releaseId,
+      releaseHash: GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash,
+      locale: 'en',
+    });
+    expect(JSON.stringify(result.knowledgeSurface)).not.toMatch(/\$\$|\\frac|parseMarkdown|raw latex/i);
+  });
+
+  it('keeps domain shards bounded and shares one composite envelope', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'domain',
+      role: 'STUDENT',
+      surfaceKey: 'modeling',
+      authority,
+      teaching,
+      teachingMatch: true,
+      includeTeachingContent: true,
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.surface).toEqual({ kind: 'domain', id: 'modeling' });
+    expect(result.knowledgeSurface).not.toHaveProperty('remaining');
+    expect(result.knowledgeSurface).not.toHaveProperty('fullGraph');
+    expect(result.knowledgeSurface.authority.releaseId).toBe(authority.releaseId);
+    expect(result.knowledgeSurface.teaching?.projectionId).toBe(teaching.projectionId);
+  });
+
+  it('omits constructed and hidden launch targets', () => {
+    expect(projectSourceOwnedLaunchDescriptor({
+      title: '秘密评审',
+      type: 'lesson',
+      href: 'file:///tmp/secret.md',
+      canonicalId: 'ctc:node',
+    }).status).toBe('omitted');
+    expect(projectSourceOwnedLaunchDescriptor({
+      title: '猜测路径',
+      type: 'lesson',
+      href: '/knowledge/ctc:node',
+      canonicalId: 'ctc:node',
+    }).status).toBe('omitted');
+    expect(projectSourceOwnedLaunchDescriptor({
+      title: '签名地址',
+      type: 'media',
+      href: 'https://cdn.example/a?X-Amz-Signature=abc',
+    }).status).toBe('omitted');
+    const owned = projectSourceOwnedLaunchDescriptor({
+      title: '看见全貌',
+      type: 'lesson',
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+      launcher: { contractClass: 'resource-registry-launch/v1', contractVersion: 'v1' },
+    });
+    expect(owned.status).toBe('available');
+    if (owned.status !== 'available') return;
+    expect(owned.descriptor.launch.kind).toBe('source-owned');
+    expect(owned.descriptor.launch.href).toBe('/interactive-learning/courses/unit-1-1-see-the-full-picture');
+  });
+
+  it('projects an engineering-only root shard without a teaching identity', () => {
+    const shard: AuthorityRootShard = {
+      shardClass: 'root',
+      envelope: envelope(null),
+      root: {
+        kind: 'presentation-root-catalog',
+        domains: [],
+        aggregate: {
+          kind: 'presentation-aggregate',
+          order: 0,
+          displayName: '聚合',
+          summary: '',
+          presentationRole: 'aggregate',
+          visualRole: 'aggregate',
+          domainCount: 0,
+        },
+      },
+    };
+    const result = knowledgeSurfaceFromLearnerShard({
+      shard,
+      role: 'STUDENT',
+      locale: 'zh-CN',
+      classifyLearningContent: false,
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.mode).toBe('active');
+    expect(result.knowledgeSurface.teaching).toBeNull();
+    expect(result.knowledgeSurface.blocks.teaching.status).toBe('not-applicable');
+    expect(result.knowledgeSurface.math).toBeNull();
+  });
+
+  it('does not join a mismatched teaching overlay onto a detail shard', () => {
+    const shard: AuthorityNodeDetailShard = {
+      shardClass: 'node-detail',
+      envelope: envelope(false),
+      node: {
+        id: 'ctc:node',
+        canonicalType: 'DomainConcept',
+        label: '对象',
+        description: '基础语义仍可读',
+        teachingFields: {},
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        sources: [],
+        media: { cardAvailable: false, infographAvailable: false },
+        semanticSupport: { supported: true, readOnly: true },
+      },
+    };
+    const result = knowledgeSurfaceFromLearnerShard({
+      shard,
+      role: 'STUDENT',
+      locale: 'zh-CN',
+      classifyLearningContent: false,
+      resourceBindings: { state: 'unavailable', message: '当前系统资源与所选对象身份不一致。' },
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.blocks.engineering.status).toBe('available');
+    expect(result.knowledgeSurface.blocks.teaching.status).toBe('identity-mismatch');
+    expect(result.knowledgeSurface.teaching).toBeNull();
+  });
+});

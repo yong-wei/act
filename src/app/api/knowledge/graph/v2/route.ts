@@ -18,7 +18,11 @@ export async function GET(request: Request) {
   try {
     const authorization = await authorizeCandidateGraph();
     if (!authorization.ok) return authorization.response;
-    return candidateProjectionResponse(await readCandidateCanvas());
+    return candidateProjectionResponse(await readCandidateCanvas(), {
+      role: authorization.role,
+      surfaceKey: 'candidate-canvas',
+      kind: 'candidate-diagnostic',
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Candidate authoritative graph request failed:', error);

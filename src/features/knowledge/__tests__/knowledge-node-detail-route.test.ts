@@ -39,7 +39,7 @@ describe('GET /api/knowledge/nodes/[id]', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(detail);
+    expect(await response.json()).toMatchObject(detail);
     expect(mocks.buildKnowledgeNodeDetailFromGraph).toHaveBeenCalledWith(graph, 'node-a');
   });
 });
