@@ -88,7 +88,7 @@ fi
 # 9. Graph indexes for CLI/MCP queries. Non-fatal: the CLIs remain usable if
 #    indexing is skipped or the repo is too large for this snapshot window.
 codegraph init -y "$REPO_ROOT" >/dev/null 2>&1 || true
-codegraph index -y "$REPO_ROOT" || echo "[install] codegraph index skipped/failed (non-fatal)."
+codegraph index "$REPO_ROOT" || echo "[install] codegraph index skipped/failed (non-fatal)."
 code-review-graph register "$REPO_ROOT" --alias act >/dev/null 2>&1 || true
 code-review-graph build --repo "$REPO_ROOT" || echo "[install] code-review-graph build skipped/failed (non-fatal)."
 
