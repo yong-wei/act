@@ -304,6 +304,7 @@ export interface AdaptiveLearningPathGoal {
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
   goal: AdaptiveLearningPathGoal;
   displayName: string;
+  requiresRegisteredPlugin?: boolean;
   learningGoal?: LearningGoalDefinition;
   knowledgeTargetAliases?: Record<string, string[]>;
   allowedResourceMix: ResourceNode['type'][];
@@ -1426,6 +1427,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
     },
     displayName: '控制系统校正设计',
+    requiresRegisteredPlugin: true,
     learningGoal: CONTROL_CORRECTION_LEARNING_GOAL,
     knowledgeTargetAliases: {
       'control-correction:time-domain-targets': [
@@ -1801,9 +1803,13 @@ export function getRegisteredAdaptiveLearningPathGoal(
     get(goalId: string): { status: PersonalizationPluginStatus } | null | undefined;
   } = personalizationPluginRegistry,
 ): AdaptiveLearningPathRegisteredGoalDefinition | null {
-  const plugin = registry.get(goalId);
-  if (plugin && plugin.status !== 'active') return null;
-  return ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
+  const definition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
+  if (!definition) return null;
+  if (definition.requiresRegisteredPlugin) {
+    const plugin = registry.get(goalId);
+    if (!plugin || plugin.status !== 'active') return null;
+  }
+  return definition;
 }
 
 export function isRegisteredAdaptiveLearningPathGoal(goalId: string): boolean {
@@ -2054,8 +2060,9 @@ function assembleAdaptiveLearningPathPlanInternal(
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
-  const registeredPlugin = personalizationPluginRegistry.get(input.goal.id);
-  const coursePluginUnavailable = registeredPlugin != null && registeredPlugin.status !== 'active';
+  const coursePluginUnavailable = Boolean(
+    ADAPTIVE_LEARNING_GOAL_DEFINITIONS[input.goal.id]?.requiresRegisteredPlugin && !registeredGoal,
+  );
   const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
@@ -2228,12 +2235,9 @@ function assembleAdaptiveLearningPathPlanInternal(
     .map((nodeId) => scoredByNodeId.get(nodeId))
     .filter((entry): entry is ScoredNode => Boolean(entry));
   const internallyRepairedMainPathNodes = repairedEntries.length > 0 ? repairedEntries : mainPathNodes;
-  const stageRepairedEntries = stageRepairedNodeIds
-    ?.map((nodeId) => scoredByNodeId.get(nodeId)
-      ?? internallyRepairedMainPathNodes.find((entry) => entry.node.id === nodeId))
-    .filter((entry): entry is ScoredNode => Boolean(entry));
-  const repairedMainPathNodes = stageRepairedEntries && stageRepairedEntries.length > 0
-    ? stageRepairedEntries
+  const allowedStageNodeIds = stageRepairedNodeIds ? new Set(stageRepairedNodeIds) : null;
+  const repairedMainPathNodes = allowedStageNodeIds
+    ? internallyRepairedMainPathNodes.filter((entry) => allowedStageNodeIds.has(entry.node.id))
     : internallyRepairedMainPathNodes;
   const originalFallbackReasons = constraintRepair.status === 'infeasible'
     ? buildFallbackReasons({

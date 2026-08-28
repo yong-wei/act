@@ -67,8 +67,13 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
           teacherAssignedNodeIds: context.input.constraints.teacherAssignedNodeIds ?? [],
           registry: context.input.registry,
         });
+        const ranked = rankerResult.ranked.map((entry) => entry.node);
+        const rankedIds = new Set(ranked.map((node) => node.id));
         return {
-          ordered: rankerResult.ranked.map((entry) => entry.node),
+          ordered: [
+            ...ranked,
+            ...eligible.eligible.filter((node) => !rankedIds.has(node.id)),
+          ],
         };
       },
     },
@@ -92,16 +97,24 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
           },
         });
         const nodesById = new Map(ranked.ordered.map((node) => [node.id, node]));
-        const ordered = repair.repairedNodeIds
+        const repaired = repair.repairedNodeIds
           .map((nodeId) => nodesById.get(nodeId))
           .filter((node): node is NonNullable<typeof node> => Boolean(node));
-        return { ordered: ordered.length > 0 ? ordered : ranked.ordered };
+        const repairedIds = new Set(repaired.map((node) => node.id));
+        return {
+          ordered: [
+            ...repaired,
+            ...ranked.ordered.filter((node) => !repairedIds.has(node.id)),
+          ],
+        };
       },
     },
     assembler: {
       assemble(context, repaired) {
-        void repaired;
-        return assembleAdaptiveLearningPathPlan(context.input);
+        return assembleAdaptiveLearningPathPlan(
+          context.input,
+          repaired.ordered.map((node) => node.id),
+        );
       },
     },
     explanation: {
@@ -112,8 +125,10 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
   };
 }
 
-export function planLearningPath(input: PlanLearningPathInput): PlanLearningPathResult {
-  const ports = createDefaultPlanLearningPathPorts();
+export function planLearningPath(
+  input: PlanLearningPathInput,
+  ports: PlanLearningPathPorts = createDefaultPlanLearningPathPorts(),
+): PlanLearningPathResult {
   const context = ports.goalContext.load(input);
   const candidates = ports.candidates.discover(context);
   const eligibility = ports.eligibility.decide(context, candidates);

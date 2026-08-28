@@ -8,6 +8,7 @@ import {
   getRegisteredAdaptiveLearningPathGoal,
   isRegisteredAdaptiveLearningPathGoal,
   planLearningPath,
+  createDefaultPlanLearningPathPorts,
 } from '../public-api';
 import { isRegisteredAdaptiveLearningPathGoal as isRegisteredGoalIdCatalogEntry } from '../registered-goal-ids';
 import {
@@ -85,6 +86,10 @@ describe('PlanLearningPath pipeline', () => {
     registry.register(createControlCorrectionPersonalizationPlugin('retired'));
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry)).toBeNull();
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).not.toBeNull();
+    expect(getRegisteredAdaptiveLearningPathGoal(
+      CONTROL_CORRECTION_GOAL_ID,
+      createPersonalizationPluginRegistry(),
+    )).toBeNull();
 
     const plugin = personalizationPluginRegistry.get(CONTROL_CORRECTION_GOAL_ID);
     expect(plugin).toBeTruthy();
@@ -126,6 +131,58 @@ describe('PlanLearningPath pipeline', () => {
     } finally {
       plugin!.status = previousStatus;
     }
+  });
+
+  it('keeps the assembled path within repaired node ids', () => {
+    const input = {
+      studentId: 'student-1',
+      goal: {
+        id: 'goal-bode',
+        title: '补齐伯德图',
+        knowledgeTargets: ['kn-bode'],
+      },
+      learnerState: null,
+      registry: buildResourceNodeRegistry({
+        registeredResources: [
+          {
+            id: 'visible-card',
+            label: '可见知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/visible-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+          {
+            id: 'extra-card',
+            label: '额外知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/extra-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+        ],
+        aiInterventions: [],
+      }),
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible', 'teacher-scoped', 'class-shared', 'public'],
+        device: 'desktop',
+      },
+    };
+    const ports = createDefaultPlanLearningPathPorts();
+    const originalRepair = ports.repair.repair.bind(ports.repair);
+    ports.repair = {
+      repair(context, ranked) {
+        const repaired = originalRepair(context, ranked);
+        return {
+          ordered: repaired.ordered.filter((node) => node.id.includes('visible-card')),
+        };
+      },
+    };
+    const plan = planLearningPath(input, ports);
+    const resourceNodeIds = plan.mainPath
+      .map((node) => node.nodeId)
+      .filter((nodeId) => input.registry.nodes.some((node) => node.id === nodeId));
+    expect(resourceNodeIds.every((nodeId) => nodeId.includes('visible-card'))).toBe(true);
+    expect(resourceNodeIds.some((nodeId) => nodeId.includes('extra-card'))).toBe(false);
   });
 
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
