@@ -161,12 +161,13 @@ describe('generateSessionSummaryReports', () => {
         sessionId: 'session-4-3',
         lessonKey: '4-3',
         status: 'READY',
-        summary: '3 名学生产生 5 条互动日志，沉淀 2 条学习事实。',
+        summary: '3 名学生产生 4 条互动日志，沉淀 2 条学习事实。',
       }),
     }));
     expect(prisma.classSessionReport.upsert.mock.calls[0][0].create.reportData).toMatchObject({
       participants: 3,
-      interactionLogs: 5,
+      // 闭包统计排除晚到（afterSessionEnd）事件：5 条日志中 1 条晚到不计入
+      interactionLogs: 4,
       learningFacts: 2,
       syncErrors: 3,
       durableSubmissions: 3,
@@ -187,17 +188,14 @@ describe('generateSessionSummaryReports', () => {
       legacyEventTypes: {
         lesson_submit: 1,
         error: 3,
-        view: 1,
       },
       canonicalEventTypes: {
         lesson_submit: 1,
         sync_error: 3,
-        page_view: 1,
       },
       afterSessionEndEvents: 1,
       learningContexts: {
         classroom_live: 4,
-        classroom_review: 1,
       },
       sessionGovernanceSummary: {
         qualityStatus: {
@@ -243,7 +241,7 @@ describe('generateSessionSummaryReports', () => {
         },
       },
       evidenceSources: {
-        interactionLogs: 'InteractionLog rows for this session',
+        interactionLogs: 'InteractionLog rows within the original closure; post-session (afterSessionEnd) events are excluded from statistics and only disclosed via afterSessionEndEvents',
         durableSubmissions: 'StudentStepResponse rows for this session',
         learningFacts: 'LearningFact rows for this session',
         stateParticipants: 'StudentState rows for this session, excluding teacher state',

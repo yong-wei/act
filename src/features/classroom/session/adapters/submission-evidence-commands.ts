@@ -120,6 +120,14 @@ export async function acceptClassifiedSubmissionCommand(
       if (existing) return existing;
 
       const preClosure = (PRE_CLOSURE_SESSION_STATUSES as readonly string[]).includes(session.status);
+      // 晚到源日志必须自带显式分类，闭包消费者据此排除（与证据行同语义）
+      const sourceLogEventData = preClosure
+        ? input.sourceEvent.eventData
+        : {
+          ...(input.sourceEvent.eventData as Prisma.InputJsonObject),
+          afterSessionEnd: true,
+          evidenceStatus: POST_SESSION_REVIEW_EVIDENCE_STATUS,
+        };
       const sourceLog = await tx.interactionLog.create({
         data: {
           userId: input.userId,
@@ -135,7 +143,7 @@ export async function acceptClassifiedSubmissionCommand(
           submissionIdentity: input.submissionIdentity,
           learningContext: input.sourceEvent.learningContext,
           invalidContextReason: input.sourceEvent.invalidContextReason,
-          eventData: input.sourceEvent.eventData,
+          eventData: sourceLogEventData,
           clientEventAt: input.sourceEvent.clientEventAt,
         },
         select: { id: true },

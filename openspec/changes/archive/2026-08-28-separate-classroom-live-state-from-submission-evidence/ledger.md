@@ -55,3 +55,9 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - 真 PostgreSQL 并发（`CLASSROOM_SUBMISSION_EVIDENCE_REAL_DB_TEST=1`，per-run schema + `prisma db push`）：`src/lib/__tests__/classroom-submission-evidence.real-db.integration.test.ts`（4 通过：同身份并发幂等、新尝试单调、submit-vs-end 双锁序、水位绑定、重复 end 幂等、报告水位限定与显式重算、outbox 重投幂等）。
 - 报告/attribution/lifecycle/state 既有测试适配后通过；受影响领域套件（classroom/data-governance/interactive）与 API 契约套件、`tsc` 全量类型检查通过。
 - 浏览器验收（任务 5.5：submit/resubmit/refresh/overwrite 旅程 + preview 零写断言）：本轮未执行，作为残余风险在 PR 中披露；其服务端等价断言由 route 零写测试与真 PG 预览/晚到负例覆盖。
+
+## 8. Codex Review feedback 修复（2026-08-28，PR #1668）
+
+- P1 源日志晚到分类：`acceptClassifiedSubmissionCommand` 晚到分支在源 `InteractionLog.eventData` 注入 `afterSessionEnd: true` 与 `evidenceStatus: 'POST_SESSION_REVIEW'`；`generateSessionSummaryReports` 全部闭包统计（interactionLogs/eventTypes/canonicalEventTypes/learningContexts/invalidContextReasons/syncHealth/participants/lessonKey/submittedUserIds）改用排除晚到的 `closureLogs`，晚到仅以 `afterSessionEndEvents` 显式披露。
+- P1 闭包 outbox 补投：新增 `redispatchPendingSessionClosures` 扫描 PENDING/FAILED 行并按既有幂等 jobId 补投报告刷新；worker `processSessionReportJob` 增加 coordinator 分支，scheduler 以 10 分钟周期调度，Redis 恢复后自动闭合漏投。
+- P2 重算独立化：重算结果写入独立 `class-summary-recompute` 报告行（原 `class-summary` 不再被覆盖、可独立查询）；重算输入由调用方命名的 `includeReviewSubmittedBefore` 时点界定（记录于 reportData.recompute.includedReviewCutoffAt），结合 `recomputeInputWatermark` 共同构成命名输入集。

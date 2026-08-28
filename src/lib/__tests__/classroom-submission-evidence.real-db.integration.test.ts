@@ -152,6 +152,14 @@ describe.runIf(enabled)('classroom live-state / submission evidence PostgreSQL i
     expect(late.status).toBe('POST_SESSION_REVIEW');
     expect(late.submissionSequence).toBeNull();
     expect((await prisma.classSession.findUnique({ where: { id: 'session-2' } }))?.acceptedSubmissionWatermark).toBe(1n);
+    // 晚到源日志同样携带显式晚到分类，供闭包消费者排除
+    const lateSourceLog = await prisma.interactionLog.findFirst({
+      where: { sessionId: 'session-2', submissionIdentity: 'student-2|session-2|lesson-v1|step-08|card|late-1' },
+    });
+    expect(lateSourceLog?.eventData).toMatchObject({
+      afterSessionEnd: true,
+      evidenceStatus: 'POST_SESSION_REVIEW',
+    });
     const outboxCount = await prisma.sessionClosureOutbox.count({ where: { sessionId: 'session-2' } });
     expect(outboxCount).toBe(1);
 
@@ -201,14 +209,26 @@ describe.runIf(enabled)('classroom live-state / submission evidence PostgreSQL i
     expect(reportData.closure.evidenceSelection).toBe('accepted-submission-watermark');
     expect(reportData.recompute).toBeUndefined();
 
-    // 显式重算修订才纳入 POST_SESSION_REVIEW；原闭包身份不可变更
+    // 显式重算修订才纳入 POST_SESSION_REVIEW，且写入独立报告行；
+    // 原闭包报告与其身份不可变更、可独立查询
+    const recomputeCutoff = new Date();
     const recompute = await generateSessionSummaryReports(prisma, 'session-2', {
-      recompute: { recomputeRevision: 1, recomputeInputWatermark: 1n },
+      recompute: { recomputeRevision: 1, recomputeInputWatermark: 1n, includeReviewSubmittedBefore: recomputeCutoff },
     });
     expect(recompute.skipped).toBe(false);
-    const recomputedReport = await prisma.classSessionReport.findUnique({
+    const originalReport = await prisma.classSessionReport.findUnique({
       where: { sessionId_reportType: { sessionId: 'session-2', reportType: 'class-summary' } },
     });
+    const originalData = originalReport?.reportData as Record<string, any>;
+    // 原闭包报告未被重算覆盖
+    expect(originalData.durableSubmissions).toBe(1);
+    expect(originalData.recompute).toBeUndefined();
+    expect(originalReport?.recomputeRevision).toBeNull();
+
+    const recomputedReport = await prisma.classSessionReport.findUnique({
+      where: { sessionId_reportType: { sessionId: 'session-2', reportType: 'class-summary-recompute' } },
+    });
+    expect(recomputedReport).not.toBeNull();
     const recomputedData = recomputedReport?.reportData as Record<string, any>;
     expect(recomputedData.durableSubmissions).toBe(2);
     expect(recomputedData.recompute).toMatchObject({

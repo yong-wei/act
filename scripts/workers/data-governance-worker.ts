@@ -29,7 +29,12 @@ import {
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { processPendingMicroInterventionEvidenceProjections } from '@/features/assessment/micro-intervention-learning-evidence';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
-import { failSessionClosureOutbox, settleSessionClosureOutbox } from '@/lib/data-governance/session-closure-outbox';
+import {
+  failSessionClosureOutbox,
+  redispatchPendingSessionClosures,
+  settleSessionClosureOutbox,
+} from '@/lib/data-governance/session-closure-outbox';
+import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
@@ -952,6 +957,20 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
+  // coordinator：扫描仍处于 PENDING/FAILED 的闭包 outbox 并补投报告刷新，
+  // 兜底闭课时 Redis 不可用造成的漏投（Redis 恢复后由周期调度闭合）
+  if (job.data.coordinator) {
+    const db = getPrismaClient();
+    const sessionIds = await redispatchPendingSessionClosures(
+      db,
+      (sessionId) => enqueueSessionSummaryReportRefresh(sessionId),
+    );
+    if (sessionIds.length > 0) {
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched ${sessionIds.length} pending closure session(s)`);
+    }
+    return { redispatchedSessions: sessionIds };
+  }
+
   if (!job.data.sessionId) {
     throw new Error('session-report job requires sessionId');
   }

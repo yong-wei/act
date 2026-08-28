@@ -39,6 +39,7 @@ export interface ClassSnapshotJob {
 
 export interface SessionReportJob {
   sessionId?: string;
+  coordinator?: boolean;
 }
 
 export interface EvidenceFeatureCacheJob {
