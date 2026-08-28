@@ -63,12 +63,23 @@ function consumerStatusFromActivation(
 }
 
 export function observationFromConsumerActivation(
-  record: Pick<ConsumerActivationRecord, 'consumerId' | 'status'>,
+  record: Pick<ConsumerActivationRecord, 'consumerId' | 'status' | 'combination'>,
 ): Pick<
   IndexedEligibilityObservation,
-  'consumerActivationStatus' | 'consumerActivationEvidenceIds'
+  | 'consumerId'
+  | 'consumerCombination'
+  | 'consumerActivationStatus'
+  | 'consumerActivationEvidenceIds'
 > {
   return {
+    consumerId: record.consumerId,
+    consumerCombination: {
+      authorityReleaseId: record.combination.authorityReleaseId,
+      projectionId: record.combination.projectionId,
+      projectionHash: record.combination.projectionHash,
+      scopeId: record.combination.scopeId,
+      captureRevision: record.combination.captureRevision,
+    },
     consumerActivationStatus: consumerStatusFromActivation(record.status),
     consumerActivationEvidenceIds: [
       `consumer-activation:${record.consumerId}:${record.status}`,
@@ -100,6 +111,8 @@ export function mergeEligibilityObservations(
     if (part.teachingProjectionEvidenceIds) {
       merged.teachingProjectionEvidenceIds = part.teachingProjectionEvidenceIds;
     }
+    if (part.consumerId) merged.consumerId = part.consumerId;
+    if (part.consumerCombination) merged.consumerCombination = part.consumerCombination;
     if (part.consumerActivationStatus) {
       merged.consumerActivationStatus = part.consumerActivationStatus;
     }

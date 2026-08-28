@@ -12,10 +12,35 @@ export interface IndexedEligibilityObservation {
   formalDisposition?: FormalDisposition;
   teachingProjectionStatus?: ResourceEligibilityEvidence['teachingProjectionStatus'];
   teachingProjectionEvidenceIds?: readonly string[];
+  consumerId?: string;
+  consumerCombination?: {
+    authorityReleaseId?: string | null;
+    projectionId?: string | null;
+    projectionHash?: string | null;
+    scopeId?: string | null;
+    captureRevision?: string | null;
+  };
   consumerActivationStatus?: ResourceEligibilityEvidence['consumerActivationStatus'];
   consumerActivationEvidenceIds?: readonly string[];
   releaseQualified?: boolean;
   releaseEvidenceIds?: readonly string[];
+}
+
+function consumerActivationMatchesContext(
+  context: ResourceEligibilityContext,
+  observation: IndexedEligibilityObservation | undefined,
+): boolean {
+  const status = observation?.consumerActivationStatus ?? 'NOT_APPLICABLE';
+  if (status === 'NOT_APPLICABLE' && !observation?.consumerId) return true;
+  if (context.consumerId && observation?.consumerId !== context.consumerId) return false;
+  if (status !== 'READY' && status !== 'PINNED_PREVIOUS') return true;
+  const combination = observation?.consumerCombination;
+  if (!combination) return false;
+  if (context.authorityId && combination.authorityReleaseId !== context.authorityId) return false;
+  if (context.requestedRevision && combination.captureRevision !== context.requestedRevision) return false;
+  const requestedScope = context.courseId ?? context.scope;
+  if (combination.scopeId && combination.scopeId !== requestedScope) return false;
+  return true;
 }
 
 export function evidenceFromIndexedEntry(input: {
@@ -40,9 +65,9 @@ export function evidenceFromIndexedEntry(input: {
     ),
   );
   const pathAudited = identity.sourceKind === RESOURCE_NODE_SOURCE_KIND;
-  const formalBindingValid = (entry.descriptor.foreignRefs.formalBindingIds?.length ?? 0) > 0
-    || (entry.descriptor.foreignRefs.canonicalIds?.length ?? 0) > 0;
+  const formalBindingValid = (entry.descriptor.foreignRefs.formalBindingIds?.length ?? 0) > 0;
   const engineeringOnly = context.engineeringOnly === true;
+  const consumerMatches = consumerActivationMatchesContext(context, observation);
 
   return {
     indexIdentityMatches: context.resourceIndexIdentity === index.identity,
@@ -72,7 +97,9 @@ export function evidenceFromIndexedEntry(input: {
       ? 'NOT_APPLICABLE'
       : observation?.teachingProjectionStatus ?? 'NOT_PROJECTED',
     teachingProjectionEvidenceIds: observation?.teachingProjectionEvidenceIds ?? [],
-    consumerActivationStatus: observation?.consumerActivationStatus ?? 'NOT_APPLICABLE',
+    consumerActivationStatus: consumerMatches
+      ? observation?.consumerActivationStatus ?? 'NOT_APPLICABLE'
+      : 'BLOCKED',
     consumerActivationEvidenceIds: observation?.consumerActivationEvidenceIds ?? [],
   };
 }

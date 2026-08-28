@@ -38,6 +38,22 @@ function metadata(id: string) {
   };
 }
 
+function consumerCombination(captureRevision: string, overrides: {
+  authorityReleaseId?: string | null;
+  consumerId?: string;
+  scopeId?: string | null;
+} = {}) {
+  return {
+    authorityReleaseId: overrides.authorityReleaseId ?? null,
+    authoritySnapshotId: null,
+    authoritySnapshotHash: null,
+    projectionId: null,
+    projectionHash: null,
+    scopeId: overrides.scopeId ?? null,
+    captureRevision,
+  };
+}
+
 function browseContext(indexIdentity: string, scope: string): ResourceEligibilityContext {
   return {
     role: 'student',
@@ -341,7 +357,11 @@ describe('resource eligibility evaluator', () => {
         index,
         entry,
         context: engineering,
-        observation: { consumerActivationStatus: 'READY' },
+        observation: observationFromConsumerActivation({
+          consumerId: 'engineering-graph',
+          status: 'READY',
+          combination: consumerCombination(entry.descriptor.identity.sourceVersion),
+        }),
       }),
     });
     const teachSnap = evaluateResourceEligibility({
@@ -506,6 +526,7 @@ describe('resource eligibility evaluator', () => {
     const consumer = observationFromConsumerActivation({
       consumerId: 'learning-path',
       status: 'PINNED_PREVIOUS',
+      combination: consumerCombination(entry.descriptor.identity.sourceVersion),
     });
     const snapshot = observeIndexedResourceEligibility({
       index,
@@ -535,11 +556,95 @@ describe('resource eligibility evaluator', () => {
       observation: mergeEligibilityObservations(engineering, observationFromConsumerActivation({
         consumerId: 'engineering-graph',
         status: 'READY',
+        combination: consumerCombination(entry.descriptor.identity.sourceVersion),
       })),
     });
     expect(snapshot.dimensions.teachingProjectionActivation.status).toBe('unavailable');
     expect(snapshot.dimensions.consumerActivation.status).toBe('blocked');
     expect(engineeringSnap.dimensions.teachingProjectionActivation.status).toBe('not-applicable');
     expect(engineeringSnap.eligibleForContext).toBe(true);
+  });
+
+  it('does not treat a Canonical identity as an atomic formal binding', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'canonical-only',
+          title: '仅有 Canonical',
+          type: 'knowledge_card',
+          sourceKind: 'resource-node',
+          sourceRef: 'canonical-only',
+          canonicalIds: ['KAQ-only'],
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeFormalBindEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+      },
+    });
+    expect(snapshot.dimensions.formalBinding.status).toBe('unavailable');
+    expect(snapshot.eligibleForContext).toBe(false);
+  });
+
+  it('fails closed when a named consumer observation does not match the requested combination', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'combo-node',
+          title: '组合节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'combo-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const context = {
+      role: 'teacher' as const,
+      scope: entry.descriptor.identity.scope,
+      resourceIndexIdentity: index.identity,
+      requestedRevision: entry.descriptor.identity.sourceVersion,
+      consumerId: 'learning-path',
+      authorityId: 'authority-current',
+    };
+    const mismatched = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: { ...context, purpose: 'named-consumer' },
+      observation: observationFromConsumerActivation({
+        consumerId: 'engineering-graph',
+        status: 'READY',
+        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+          authorityReleaseId: 'authority-previous',
+        }),
+      }),
+    });
+    const stale = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: { ...context, purpose: 'named-consumer' },
+      observation: observationFromConsumerActivation({
+        consumerId: 'learning-path',
+        status: 'READY',
+        combination: consumerCombination('old-capture', {
+          authorityReleaseId: 'authority-current',
+        }),
+      }),
+    });
+    expect(mismatched.eligibleForContext).toBe(false);
+    expect(mismatched.dimensions.consumerActivation.status).toBe('blocked');
+    expect(stale.eligibleForContext).toBe(false);
+    expect(stale.dimensions.consumerActivation.status).toBe('blocked');
   });
 });
