@@ -97,7 +97,30 @@ describe('cold-start evidence collection', () => {
           moduleId: 'bode-sim',
           finishedAt: '2026-08-28T01:10:00.000Z',
           outcome: 'success',
-          contextJson: { evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false } },
+          contextJson: {
+            goalId: 'control-correction',
+            evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false },
+          },
+        },
+        {
+          factType: 'simulation',
+          moduleId: 'failed-sim',
+          finishedAt: '2026-08-28T01:12:00.000Z',
+          outcome: 'failure',
+          contextJson: {
+            goalId: 'control-correction',
+            evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false },
+          },
+        },
+        {
+          factType: 'simulation',
+          moduleId: 'other-goal-sim',
+          finishedAt: '2026-08-28T01:13:00.000Z',
+          outcome: 'success',
+          contextJson: {
+            goalId: 'frequency-response-foundations',
+            evidenceGovernance: { evidenceQuality: 'governed', profileWeight: 1, skipProfileContribution: false },
+          },
         },
         {
           factType: 'media',

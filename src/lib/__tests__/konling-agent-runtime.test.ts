@@ -9327,6 +9327,7 @@ describe('konling agent runtime', () => {
           finishedAt: new Date('2026-08-28T01:10:00.000Z'),
           outcome: 'success',
           contextJson: {
+            goalId: 'control-correction',
             evidenceGovernance: {
               evidenceQuality: 'governed',
               profileWeight: 1,

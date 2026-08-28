@@ -36,6 +36,9 @@ import {
   type PersonalizedPathDecisionPathEvidence,
 } from './adaptive-path-decision-evidence';
 import {
+  collectionCheckpointPreference,
+  collectionDifficultyRhythm,
+  collectionPreferredModalities,
   projectColdStartCollection,
   projectCollectionImpactsOnNewPath,
   type ColdStartCollectionEvent,
@@ -2061,11 +2064,59 @@ export function buildControlCorrectionThreeStylePathBundle(
   return plan.policyBundle as AdaptiveLearningPathPolicyBundle;
 }
 
-function buildAdaptiveLearningPathPlanInternal(
+function withCollectionBackedPlanningInput(
   input: AdaptiveLearningPathPlannerInput,
+): AdaptiveLearningPathPlannerInput {
+  const projection = projectColdStartCollection({
+    learnerState: {
+      knowledgeMasteryTags: input.learnerState?.knowledgeMastery?.tags,
+      resourcePreference: input.learnerState?.resourcePreference,
+      evidence: {
+        confidence: input.learnerState?.evidence?.confidence,
+        freshness: buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState)?.freshness,
+      },
+      missingEvidence: input.learnerState?.missingEvidence,
+    },
+    events: input.collectionEvents,
+    goalId: input.goal.id,
+    mode: 'new',
+  });
+  if (projection.records.length === 0) return input;
+  const extraModalities = collectionPreferredModalities(projection.records)
+    .filter((type): type is ResourceNode['type'] => input.registry.supportedTypes.includes(type as ResourceNode['type']));
+  const checkpointPreference = input.checkpointPreferenceSource === 'request'
+    ? input.checkpointPreference
+    : collectionCheckpointPreference(projection.records) ?? input.checkpointPreference;
+  const difficultyRhythm = input.difficultyRhythmSource === 'request'
+    ? input.difficultyRhythm
+    : collectionDifficultyRhythm(projection.records) ?? input.difficultyRhythm;
+  const applyPreference = extraModalities.length > 0 && input.resourcePreferenceSource !== 'request';
+  const learnerState = applyPreference
+    ? {
+      ...input.learnerState,
+      resourcePreference: {
+        preferredModalities: unique([
+          ...extraModalities,
+          ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+        ]),
+        confidence: 'medium' as const,
+      },
+    }
+    : input.learnerState;
+  return {
+    ...input,
+    learnerState,
+    checkpointPreference,
+    difficultyRhythm,
+  };
+}
+
+function buildAdaptiveLearningPathPlanInternal(
+  rawInput: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
   retryContext?: PolicyFamilyRetryContext,
 ): AdaptiveLearningPathPlan {
+  const input = withCollectionBackedPlanningInput(rawInput);
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];

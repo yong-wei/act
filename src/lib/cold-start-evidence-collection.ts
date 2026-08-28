@@ -313,6 +313,27 @@ export function collectionMayMutatePath(mode: 'continue' | 'new'): boolean {
   return mode === 'new';
 }
 
+export function collectionPreferredModalities(records: ColdStartCollectionRecord[]): string[] {
+  const modalities = records.flatMap((record) => {
+    if (record.dimension === 'resource-preference') return ['video'];
+    if (record.dimension === 'ability') return ['simulation'];
+    return [];
+  });
+  return [...new Set(modalities)];
+}
+
+export function collectionCheckpointPreference(
+  records: ColdStartCollectionRecord[],
+): 'dense' | undefined {
+  return records.some((record) => record.dimension === 'mastery') ? 'dense' : undefined;
+}
+
+export function collectionDifficultyRhythm(
+  records: ColdStartCollectionRecord[],
+): 'steady' | undefined {
+  return records.some((record) => record.dimension === 'ability') ? 'steady' : undefined;
+}
+
 function resourceMixChanged(
   previous: Record<string, number>,
   next: Record<string, number>,
@@ -506,6 +527,13 @@ function factAuthority(activityType: ColdStartCollectionActivityType, factType: 
   return 'none';
 }
 
+function readFactGoalId(contextJson: unknown): string | null {
+  const context = readRecord(contextJson);
+  const nested = readRecord(context.preferenceEvidence);
+  const goalId = context.goalId ?? context.learningGoalId ?? nested.goalId;
+  return typeof goalId === 'string' && goalId.trim() ? goalId : null;
+}
+
 function factIsGoverned(contextJson: unknown): boolean {
   const governance = readRecord(readRecord(contextJson).evidenceGovernance);
   if (governance.skipProfileContribution === true) return false;
@@ -529,12 +557,15 @@ export function collectionEventsFromGovernedFacts(input: {
     const activityType = factActivityType(fact.factType);
     const finishedAt = isoTimestamp(fact.finishedAt);
     const resourceId = typeof fact.moduleId === 'string' && fact.moduleId.trim() ? fact.moduleId : null;
-    if (!activityType || !finishedAt || !resourceId || fact.outcome === 'abandoned') return [];
+    const factGoalId = readFactGoalId(fact.contextJson);
+    const successful = fact.outcome === 'success' || fact.outcome === 'completed' || fact.outcome === 'pass' || fact.outcome === 'passed';
+    if (!activityType || !finishedAt || !resourceId || !successful) return [];
     if (!factIsGoverned(fact.contextJson)) return [];
+    if (!factGoalId || factGoalId !== input.goalId) return [];
     return [{
       kind: activityType,
       at: finishedAt,
-      goalId: input.goalId,
+      goalId: factGoalId,
       resourceId,
       completed: true,
       authority: factAuthority(activityType, fact.factType ?? ''),

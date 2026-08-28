@@ -7129,7 +7129,7 @@ describe('adaptive learning path planner', () => {
 
   it('attaches cold-start collection limitations and new-path collection impacts', () => {
     const baseInput = plannerInput();
-    const plan = buildAdaptiveLearningPathPlan({
+    const shared = {
       ...baseInput,
       registry: withLegalReflectionDestinations(baseInput.registry),
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
@@ -7139,14 +7139,6 @@ describe('adaptive learning path planner', () => {
           confidence: { level: 'medium', score: 0.6, evidenceCount: 3, sourceCompleteness: 0.5 },
         },
       },
-      collectionEvents: [{
-        kind: 'resource-trial',
-        at: '2026-08-28T02:00:00.000Z',
-        completed: true,
-        goalId: 'frequency-response-foundations',
-        resourceId: 'bode-sim',
-        qualityMarker: 'governed',
-      }],
       previousPathFacts: {
         resourceMix: { video: 9 },
         estimatedMinutes: 12,
@@ -7158,7 +7150,29 @@ describe('adaptive learning path planner', () => {
         device: 'desktop',
       },
       now: new Date('2026-06-14T08:00:00.000Z'),
+    };
+    const baseline = buildAdaptiveLearningPathPlan(shared);
+    const plan = buildAdaptiveLearningPathPlan({
+      ...shared,
+      collectionEvents: [{
+        kind: 'resource-trial',
+        at: '2026-08-28T02:00:00.000Z',
+        completed: true,
+        goalId: 'frequency-response-foundations',
+        resourceId: 'bode-sim',
+        qualityMarker: 'governed',
+      }, {
+        kind: 'short-diagnosis',
+        at: '2026-08-28T02:05:00.000Z',
+        completed: true,
+        goalId: 'frequency-response-foundations',
+        resourceId: 'bode-quiz',
+        qualityMarker: 'governed',
+        authority: 'assessment',
+      }],
     });
+    expect(plan.policyBundle?.decisionEvidence?.snapshot.preferredModalities).toContain('video');
+    expect(baseline.policyBundle?.decisionEvidence?.snapshot.preferredModalities ?? []).not.toContain('video');
 
     const optionLimitations = plan.policyBundle?.paths.flatMap((path) => path.limitations) ?? [];
     expect(optionLimitations).toEqual(expect.arrayContaining([
