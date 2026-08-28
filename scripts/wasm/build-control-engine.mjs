@@ -89,10 +89,6 @@ if (process.env.SKIP_WASM_BUILD === '1') {
   if (missing.length) {
     throw new Error(`SKIP_WASM_BUILD=1 但缺少已生成的控制分析 Wasm 文件：${missing.join(', ')}`);
   }
-  const skippedHash = existsSync(wasmBuildHashFile)
-    ? readFileSync(wasmBuildHashFile, 'utf8').trim()
-    : sha256File(path.join(wasmOutDir, 'index_bg.wasm'));
-  writeIdentityArtifacts(skippedHash);
   console.log(`[wasm] SKIP_WASM_BUILD=1，复用已生成的控制分析 Wasm 包：${wasmOutDir}`);
   process.exit(0);
 }

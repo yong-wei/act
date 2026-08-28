@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -89,6 +90,17 @@ describe('control-engine wasm facade', () => {
       expect(source).not.toMatch(/setInterval\(/);
       expect(source).not.toMatch(/createLinearPlant|discretizeTransferFunctionTustin|useShipSimulation/);
     }
+  });
+
+  it('does not rewrite sealed identity when SKIP_WASM_BUILD=1', () => {
+    const identityPath = path.join(repoRoot, 'src/lib/control-engine/identity.generated.ts');
+    const before = readFileSync(identityPath, 'utf8');
+    execFileSync('node', ['./scripts/wasm/build-control-engine.mjs'], {
+      cwd: repoRoot,
+      env: { ...process.env, SKIP_WASM_BUILD: '1' },
+      stdio: 'pipe',
+    });
+    expect(readFileSync(identityPath, 'utf8')).toBe(before);
   });
 
   it('seals the generated package identity', () => {
