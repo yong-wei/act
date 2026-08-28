@@ -1777,6 +1777,7 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         "mmg3dof" => compute_mmg3dof(&request),
         "semisub3dof" => compute_semisub3dof(&request),
         "azipod3dof" => compute_azipod3dof(&request),
+        "arena_cruise_roll_preview" => crate::arena_preview::compute_arena_cruise_roll_preview(&request),
         model_id => Err(format!("不支持的虚拟仿真模型: {model_id}")),
     }
 }

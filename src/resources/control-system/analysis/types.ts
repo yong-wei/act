@@ -376,6 +376,9 @@ export interface ControlAnalysisResult {
   rootLocus: RootLocusData;
   isFallback?: boolean;
   fallbackMessage?: string;
+  source?: 'fallback' | 'runtime';
+  isAuthoritative?: boolean;
+  runtimeIdentity?: unknown;
 }
 
 export interface ControlEngineState {
@@ -383,4 +386,10 @@ export interface ControlEngineState {
   isLoading: boolean;
   error: string | null;
   isFallback: boolean;
+  lifecycle?: 'idle' | 'loading' | 'ready' | 'error' | 'timeout' | 'unavailable';
+  isAuthoritative?: boolean;
+  source?: 'fallback' | 'runtime';
+  runtimeIdentity?: unknown;
+  executor?: 'browser' | 'worker' | 'server';
+  authoritySource?: string;
 }

@@ -132,7 +132,11 @@ describe('arena virtual simulation controller preview', () => {
     expect(preview.metadata).toEqual(expect.objectContaining({
       evaluationVisibility: 'preview',
       officialEligible: false,
-      modelRelation: 'identified-model-controller',
+      modelRelation: 'surrogate',
+      teachingSemantics: 'cruise-roll-virtual-preview-surrogate',
+      prohibitsMixedClaims: true,
+      executor: 'server',
+      authoritySource: 'control-engine-server-facade',
       datasetHash,
       controllerHash: preview.controllerHash,
       identificationModelId: 'registered-identification-model-preview',

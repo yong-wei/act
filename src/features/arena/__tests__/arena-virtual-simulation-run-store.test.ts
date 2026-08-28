@@ -187,7 +187,11 @@ describe('prismaArenaVirtualSimulationRunStore', () => {
           previewBoundary: expect.objectContaining({
             evaluationVisibility: 'preview',
             officialEligible: false,
-            modelRelation: 'identified-model-controller',
+            modelRelation: 'surrogate',
+            teachingSemantics: 'cruise-roll-virtual-preview-surrogate',
+            prohibitsMixedClaims: true,
+            executor: 'server',
+            authoritySource: 'control-engine-server-facade',
             datasetHash: preview.datasetHash,
             controllerHash: preview.controllerHash,
             identificationModelId: 'arena-identification-store12345',

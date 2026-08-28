@@ -12,6 +12,7 @@ import {
   ArenaPlantAdapterSelectionError,
   getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '@/features/arena/adapters/registry';
+import { ControlEngineFailure, rejectClientResultFields } from '@/lib/control-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,7 +52,15 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       taskId?: string;
       artifact?: ControllerArtifact;
+      trace?: unknown;
+      summary?: unknown;
+      checksum?: unknown;
     };
+
+    const clientResultError = rejectClientResultFields(body);
+    if (clientResultError) {
+      return NextResponse.json({ error: clientResultError }, { status: 400 });
+    }
 
     if (!body.taskId || !body.artifact) {
       return NextResponse.json({ error: 'taskId and artifact are required' }, { status: 400 });
@@ -72,7 +81,8 @@ export async function POST(request: Request) {
     rethrowIfNextDynamicError(error);
     if (
       error instanceof ArenaVirtualSimulationRunInputError ||
-      error instanceof ArenaPlantAdapterSelectionError
+      error instanceof ArenaPlantAdapterSelectionError ||
+      error instanceof ControlEngineFailure
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

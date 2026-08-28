@@ -2,18 +2,24 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { computeAnalysisBrowser } from '@/lib/control-engine/client';
+import { ControlEngineFailure, WORKER_RETRY_MS } from '@/lib/control-engine';
+import type { ControlEngineEnvelope } from '@/lib/control-engine';
+
 import type { ControlAnalysisRequest, ControlAnalysisResult, ControlEngineState } from './types';
 
 interface WorkerSuccessMessage {
   id: string;
   ok: true;
   resultJson: string;
+  envelope?: ControlEngineEnvelope<ControlAnalysisResult>;
 }
 
 interface WorkerFailureMessage {
   id: string;
   ok: false;
   error: string;
+  state?: 'error' | 'timeout' | 'unavailable';
 }
 
 type WorkerMessage = WorkerSuccessMessage | WorkerFailureMessage;
@@ -22,16 +28,28 @@ type KeyedControlEngineState = ControlEngineState & {
   requestKey: string;
 };
 
-async function computeAnalysisOnMainThread(requestJson: string): Promise<string> {
-  const controlEngine = await import('../wasm/control_engine/index.js');
-  await controlEngine.default();
-  const request = JSON.parse(requestJson) as { runtimeMode?: string };
-  const nonlinearCompute = (controlEngine as typeof controlEngine & {
-    compute_nonlinear_analysis?: (request: string) => string;
-  }).compute_nonlinear_analysis;
-  return request.runtimeMode === 'nonlinear_analysis' && typeof nonlinearCompute === 'function'
-    ? nonlinearCompute(requestJson)
-    : controlEngine.compute_analysis(requestJson);
+function asFallbackPresentation(result?: ControlAnalysisResult): ControlAnalysisResult | null {
+  if (!result) return null;
+  return {
+    ...result,
+    isFallback: true,
+    source: 'fallback',
+    isAuthoritative: false,
+    runtimeIdentity: null,
+  };
+}
+
+function asRuntimePresentation(
+  result: ControlAnalysisResult,
+  envelope?: ControlEngineEnvelope<ControlAnalysisResult>,
+): ControlAnalysisResult {
+  return {
+    ...result,
+    isFallback: false,
+    source: 'runtime',
+    isAuthoritative: true,
+    runtimeIdentity: envelope?.runtimeIdentity ?? null,
+  };
 }
 
 export function useControlEngine(
@@ -45,10 +63,14 @@ export function useControlEngine(
   const latestRequestIdRef = useRef<string | null>(null);
   const [state, setState] = useState<KeyedControlEngineState>(() => ({
     requestKey,
-    result: enabled ? (fallbackResult ?? null) : null,
+    result: enabled ? asFallbackPresentation(fallbackResult) : null,
     isLoading: enabled,
     error: null,
     isFallback: !enabled || Boolean(fallbackResult),
+    lifecycle: enabled ? 'loading' : 'idle',
+    isAuthoritative: false,
+    source: fallbackResult ? 'fallback' : undefined,
+    runtimeIdentity: null,
   }));
 
   useEffect(() => {
@@ -59,6 +81,10 @@ export function useControlEngine(
         isLoading: false,
         error: null,
         isFallback: true,
+        lifecycle: 'idle',
+        isAuthoritative: false,
+        source: 'fallback',
+        runtimeIdentity: null,
       });
       return undefined;
     }
@@ -66,10 +92,14 @@ export function useControlEngine(
     if (typeof window === 'undefined') {
       setState({
         requestKey,
-        result: fallbackResult ?? null,
+        result: asFallbackPresentation(fallbackResult),
         isLoading: false,
         error: fallbackResult ? null : '控制分析引擎只在浏览器环境可用。',
-        isFallback: Boolean(fallbackResult),
+        isFallback: true,
+        lifecycle: fallbackResult ? 'unavailable' : 'unavailable',
+        isAuthoritative: false,
+        source: fallbackResult ? 'fallback' : undefined,
+        runtimeIdentity: null,
       });
       return undefined;
     }
@@ -81,14 +111,18 @@ export function useControlEngine(
         result: cached,
         isLoading: false,
         error: null,
-        isFallback: Boolean(cached.isFallback),
+        isFallback: false,
+        lifecycle: 'ready',
+        isAuthoritative: cached.isAuthoritative !== false,
+        source: 'runtime',
+        runtimeIdentity: cached.runtimeIdentity ?? null,
       });
       return undefined;
     }
 
     if (!workerRef.current) {
       workerRef.current = new Worker(
-        new URL('./control-analysis.worker.ts', import.meta.url),
+        new URL('../../../lib/control-engine/analysis.worker.ts', import.meta.url),
         { type: 'module' },
       );
     }
@@ -99,82 +133,93 @@ export function useControlEngine(
     let settled = false;
     setState({
       requestKey,
-      result: fallbackResult ?? null,
+      result: asFallbackPresentation(fallbackResult),
       isLoading: true,
       error: null,
       isFallback: Boolean(fallbackResult),
+      lifecycle: 'loading',
+      isAuthoritative: false,
+      source: fallbackResult ? 'fallback' : undefined,
+      runtimeIdentity: null,
     });
 
-    const finishWithResult = (resultJson: string) => {
-      const result = JSON.parse(resultJson) as ControlAnalysisResult;
-      cacheRef.current.set(requestKey, result);
+    const finishWithEnvelope = (result: ControlAnalysisResult, envelope?: ControlEngineEnvelope<ControlAnalysisResult>) => {
+      const presented = asRuntimePresentation(result, envelope);
+      cacheRef.current.set(requestKey, presented);
       setState({
         requestKey,
-        result,
+        result: presented,
         isLoading: false,
         error: null,
-        isFallback: Boolean(result.isFallback),
+        isFallback: false,
+        lifecycle: 'ready',
+        isAuthoritative: true,
+        source: 'runtime',
+        runtimeIdentity: envelope?.runtimeIdentity ?? presented.runtimeIdentity,
+        executor: envelope?.executor,
+        authoritySource: envelope?.authoritySource,
       });
     };
 
-    const finishWithError = (error: string) => {
+    const finishWithFailure = (error: unknown) => {
+      const failure = error instanceof ControlEngineFailure
+        ? error
+        : new ControlEngineFailure({
+          state: 'error',
+          category: 'execution-error',
+          message: error instanceof Error ? error.message : '控制分析引擎执行失败。',
+          retryable: false,
+        });
       setState({
         requestKey,
-        result: fallbackResult ?? null,
+        result: asFallbackPresentation(fallbackResult),
         isLoading: false,
-        error,
+        error: failure.message,
         isFallback: Boolean(fallbackResult),
+        lifecycle: failure.state,
+        isAuthoritative: false,
+        source: fallbackResult ? 'fallback' : undefined,
+        runtimeIdentity: null,
       });
     };
 
-    const runMainThreadFallback = () => {
-      if (settled) {
-        return;
-      }
-      void computeAnalysisOnMainThread(requestKey)
-        .then((resultJson) => {
-          if (settled || latestRequestIdRef.current !== requestId) {
-            return;
-          }
-          settled = true;
-          finishWithResult(resultJson);
-        })
-        .catch((error) => {
-          if (settled || latestRequestIdRef.current !== requestId) {
-            return;
-          }
-          settled = true;
-          finishWithError(error instanceof Error ? error.message : '控制分析引擎执行失败。');
-        });
+    const runBrowserFacade = () => {
+      if (settled) return;
+      void computeAnalysisBrowser(JSON.parse(requestKey) as ControlAnalysisRequest, {
+        executor: 'browser',
+        requestId,
+      }).then((envelope) => {
+        if (settled || latestRequestIdRef.current !== requestId) return;
+        settled = true;
+        finishWithEnvelope(envelope.result, envelope);
+      }).catch((error) => {
+        if (settled || latestRequestIdRef.current !== requestId) return;
+        settled = true;
+        finishWithFailure(error);
+      });
     };
 
-    const mainThreadFallbackTimer = window.setTimeout(runMainThreadFallback, 4000);
+    const workerRetryTimer = window.setTimeout(runBrowserFacade, WORKER_RETRY_MS);
 
     const handleMessage = (event: MessageEvent<WorkerMessage>) => {
       const message = event.data;
-      if (message.id !== latestRequestIdRef.current) {
-        return;
-      }
-      if (settled) {
-        return;
-      }
-
+      if (message.id !== latestRequestIdRef.current || settled) return;
       if (message.ok) {
         settled = true;
-        window.clearTimeout(mainThreadFallbackTimer);
-        finishWithResult(message.resultJson);
+        window.clearTimeout(workerRetryTimer);
+        const result = JSON.parse(message.resultJson) as ControlAnalysisResult;
+        finishWithEnvelope(result, message.envelope);
         return;
       }
-
-      window.clearTimeout(mainThreadFallbackTimer);
-      runMainThreadFallback();
+      window.clearTimeout(workerRetryTimer);
+      runBrowserFacade();
     };
 
     const handleError = () => {
       workerRef.current?.terminate();
       workerRef.current = null;
-      window.clearTimeout(mainThreadFallbackTimer);
-      runMainThreadFallback();
+      window.clearTimeout(workerRetryTimer);
+      runBrowserFacade();
     };
 
     worker.addEventListener('message', handleMessage);
@@ -183,7 +228,7 @@ export function useControlEngine(
 
     return () => {
       settled = true;
-      window.clearTimeout(mainThreadFallbackTimer);
+      window.clearTimeout(workerRetryTimer);
       worker.removeEventListener('message', handleMessage);
       worker.removeEventListener('error', handleError);
     };
@@ -198,10 +243,14 @@ export function useControlEngine(
 
   if (state.requestKey !== requestKey) {
     return {
-      result: enabled ? (fallbackResult ?? null) : null,
+      result: enabled ? asFallbackPresentation(fallbackResult) : null,
       isLoading: enabled,
       error: null,
       isFallback: !enabled || Boolean(fallbackResult),
+      lifecycle: enabled ? 'loading' : 'idle',
+      isAuthoritative: false,
+      source: fallbackResult ? 'fallback' : undefined,
+      runtimeIdentity: null,
     };
   }
 
