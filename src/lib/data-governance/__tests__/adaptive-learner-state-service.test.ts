@@ -8,7 +8,7 @@ import {
   readAdaptiveLearnerState,
   resolveAdaptiveGoalSliceDefinition,
   validateControlCorrectionGoalSliceContract,
-} from '../adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { buildSimulationAgentEvidenceMaterialization } from '../simulation-agent-evidence-materialization';
 import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
 import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';

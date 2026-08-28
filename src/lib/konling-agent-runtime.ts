@@ -35,7 +35,7 @@ import {
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import {
   hasAuthoritativePortraitV2Evidence,
   summarizePortraitV2,

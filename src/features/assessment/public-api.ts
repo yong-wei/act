@@ -3,6 +3,8 @@ import {
   readAbilityReport as readAbilityReportUseCase,
   readAttemptContext as readAttemptContextUseCase,
   readDiagnostic as readDiagnosticUseCase,
+  readLatestAbilityEstimate as readLatestAbilityEstimateUseCase,
+  readMasteryUpdates as readMasteryUpdatesUseCase,
   selectNextPathQuestion as selectNextPathQuestionUseCase,
   submitPathAnswer as submitPathAnswerUseCase,
 } from './application/attempts';
@@ -51,4 +53,12 @@ export async function readAbilityReport(userId: string): Promise<AbilityReport> 
 
 export async function readDiagnostic(userId: string): Promise<DiagnosticResult> {
   return readDiagnosticUseCase(runtime(), userId);
+}
+
+export async function readMasteryUpdates(userId: string): Promise<Array<Record<string, unknown>>> {
+  return readMasteryUpdatesUseCase(runtime(), userId);
+}
+
+export async function readLatestAbilityEstimate(userId: string): Promise<Record<string, unknown> | null> {
+  return readLatestAbilityEstimateUseCase(runtime(), userId);
 }

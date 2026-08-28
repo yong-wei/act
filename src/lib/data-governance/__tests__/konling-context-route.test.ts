@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
+  readLearnerState: vi.fn(),
   readAdaptiveLearnerState: vi.fn(),
+  readPathPlannerLearnerState: vi.fn(),
   isAdaptiveLearnerStateServiceEnabled: vi.fn(),
   prisma: {
     class: {
@@ -37,14 +39,16 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
-    '@/lib/data-governance/adaptive-learner-state-service',
+vi.mock('@/features/personalization/learner-state/public-api', async () => {
+  const actual = await vi.importActual<typeof import('@/features/personalization/learner-state/public-api')>(
+    '@/features/personalization/learner-state/public-api',
   );
   return {
     ...actual,
     isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
+    readLearnerState: mocks.readLearnerState,
     readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readPathPlannerLearnerState: mocks.readPathPlannerLearnerState,
   };
 });
 
@@ -61,6 +65,15 @@ describe('Konling context route learner-state integration', () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
+    mocks.readLearnerState.mockResolvedValue({
+      userId: 'student-1',
+      authority: 'server-owned',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
+      primaryCompetencies: {
+        source: 'latest-snapshot',
+      },
+    });
     mocks.readAdaptiveLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
@@ -69,6 +82,12 @@ describe('Konling context route learner-state integration', () => {
       primaryCompetencies: {
         source: 'latest-snapshot',
       },
+    });
+    mocks.readPathPlannerLearnerState.mockResolvedValue({
+      userId: 'student-1',
+      authority: 'server-owned',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
     });
     mocks.prisma.studentProfileSummary.findUnique.mockResolvedValue({
       overallLevel: '良好',
@@ -100,15 +119,14 @@ describe('Konling context route learner-state integration', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'student',
         portraitConsumer: 'konling',
       }),
     );
-    expect(mocks.readAdaptiveLearnerState.mock.calls.every(([, input]) =>
+    expect(mocks.readLearnerState.mock.calls.every(([input]) =>
       input.portraitConsumer === 'konling')).toBe(true);
     expect(body.learner_state_context).toMatchObject({
       authority: 'server-owned',
@@ -130,7 +148,7 @@ describe('Konling context route learner-state integration', () => {
   });
 
   it('blocks legacy competency vector fallback when learner state is NO_EVIDENCE', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
+    mocks.readLearnerState.mockResolvedValue({
       userId: 'student-1',
       authority: 'server-owned',
       primaryPortraitState: 'NO_EVIDENCE',
@@ -163,14 +181,14 @@ describe('Konling context route learner-state integration', () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toContain('classId');
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 
   it('allows a teacher to read their own context without class scope', async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
-    mocks.readAdaptiveLearnerState.mockResolvedValue({
+    mocks.readLearnerState.mockResolvedValue({
       userId: 'teacher-1',
       authority: 'server-owned',
       primaryCompetencies: {
@@ -183,15 +201,14 @@ describe('Konling context route learner-state integration', () => {
     expect(response.status).toBe(200);
     expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.studentProfile.findFirst).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'teacher-1',
         role: 'teacher',
         classId: null,
       }),
     );
-    expect(mocks.readAdaptiveLearnerState.mock.calls.every(([, input]) =>
+    expect(mocks.readLearnerState.mock.calls.every(([input]) =>
       input.portraitConsumer === 'konling')).toBe(true);
   });
 
@@ -216,8 +233,7 @@ describe('Konling context route learner-state integration', () => {
         },
       }),
     );
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'student-1',
         role: 'teacher',
@@ -239,7 +255,7 @@ describe('Konling context route learner-state integration', () => {
     const response = await request('http://localhost/api/ai/konling-context?userId=student-1&classId=class-2');
 
     expect(response.status).toBe(403);
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 
   it('returns server-owned knowledge workspace context for a selected resource node', async () => {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AdaptiveLearnerState } from '../adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 
 const mocks = vi.hoisted(() => ({
   classFindUnique: vi.fn(),
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   studentProfileFindUnique: vi.fn(),
   teachingResourceFindMany: vi.fn(),
   isAdaptiveLearnerStateServiceEnabled: vi.fn(),
-  readAdaptiveLearnerState: vi.fn(),
+  readLearnerState: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
   loadAllTextbookStructureUnitProjections: vi.fn(),
@@ -53,12 +53,12 @@ vi.mock('@/lib/teacher-resource-node-data', () => ({
   loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
 }));
 
-vi.mock('../adaptive-learner-state-service', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../adaptive-learner-state-service')>();
+vi.mock('@/features/personalization/learner-state/public-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/personalization/learner-state/public-api')>();
   return {
     ...actual,
     isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
-    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readLearnerState: mocks.readLearnerState,
   };
 });
 
@@ -85,7 +85,7 @@ describe('graph center production sources', () => {
       sourceRef: '1-1:step-01',
     };
     mocks.studentProfileFindUnique.mockResolvedValue({ classId: 'class-1' });
-    mocks.readAdaptiveLearnerState.mockResolvedValue(state);
+    mocks.readLearnerState.mockResolvedValue(state);
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([runtimeProjection]);
 
     const sources = await buildGraphCenterCoverageSources({
@@ -99,7 +99,7 @@ describe('graph center production sources', () => {
       viewerRole: 'student',
       authorized: true,
     });
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), {
+    expect(mocks.readLearnerState).toHaveBeenCalledWith({
       userId: 'student-1',
       role: 'student',
       classId: 'class-1',
@@ -140,7 +140,7 @@ describe('graph center production sources', () => {
       authorized: false,
     });
     expect(mocks.studentProfileFindUnique).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 
   it('wires an owned class into teacher class graph overlay sources', async () => {
@@ -154,7 +154,7 @@ describe('graph center production sources', () => {
       { userId: 'student-1' },
       { userId: 'student-2' },
     ]);
-    mocks.readAdaptiveLearnerState
+    mocks.readLearnerState
       .mockResolvedValueOnce(firstState)
       .mockResolvedValueOnce(secondState);
 
@@ -178,8 +178,8 @@ describe('graph center production sources', () => {
       where: { classId: 'class-1' },
       select: { userId: true },
     });
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledTimes(2);
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenNthCalledWith(1, expect.anything(), {
+    expect(mocks.readLearnerState).toHaveBeenCalledTimes(2);
+    expect(mocks.readLearnerState).toHaveBeenNthCalledWith(1, {
       userId: 'student-1',
       role: 'teacher',
       classId: 'class-1',
@@ -194,7 +194,7 @@ describe('graph center production sources', () => {
       teacherId: 'teacher-1',
     });
     mocks.studentProfileFindFirst.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
-    mocks.readAdaptiveLearnerState.mockResolvedValue(state);
+    mocks.readLearnerState.mockResolvedValue(state);
 
     const sources = await buildGraphCenterCoverageSources({
       viewerRole: 'TEACHER',
@@ -216,7 +216,7 @@ describe('graph center production sources', () => {
       },
       select: { userId: true, classId: true },
     });
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), {
+    expect(mocks.readLearnerState).toHaveBeenCalledWith({
       userId: 'student-1',
       role: 'teacher',
       classId: 'class-1',
@@ -246,7 +246,7 @@ describe('graph center production sources', () => {
       state: null,
     });
     expect(mocks.studentProfileFindFirst).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 
   it('does not read learner states for a teacher outside the requested class scope', async () => {
@@ -272,7 +272,7 @@ describe('graph center production sources', () => {
       select: { id: true, teacherId: true },
     });
     expect(mocks.studentProfileFindMany).not.toHaveBeenCalled();
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
   });
 });
 

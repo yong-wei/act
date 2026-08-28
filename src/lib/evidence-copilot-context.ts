@@ -3,7 +3,7 @@ import {
   readAdaptiveLearnerState,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 
 export const EVIDENCE_COPILOT_CONTEXT_VERSION = 'evidence-copilot-context.v1';
 

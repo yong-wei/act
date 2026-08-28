@@ -35,9 +35,9 @@ vi.mock('@/lib/math-calc', async () => {
   };
 });
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
-    '@/lib/data-governance/adaptive-learner-state-service',
+vi.mock('@/features/personalization/learner-state/public-api', async () => {
+  const actual = await vi.importActual<typeof import('@/features/personalization/learner-state/public-api')>(
+    '@/features/personalization/learner-state/public-api',
   );
   return {
     ...actual,
@@ -102,7 +102,7 @@ import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';

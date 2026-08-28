@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { CompetencyVector } from '../competency-model';
 import { getProfileEligibleEvidenceSourceIds } from '../evidence-source-catalog';
-import { readAdaptiveLearnerState } from '../adaptive-learner-state-service';
+import { readAdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { buildStudentEvidenceFeaturePayload } from '../student-evidence-feature-cache';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,

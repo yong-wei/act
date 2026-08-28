@@ -59,5 +59,16 @@ export function createPrismaAssessmentRuntime(): AssessmentRuntime {
         input,
       ),
     },
+    mastery: {
+      listMasteryUpdates: async (userId) => prisma.adaptiveMasteryUpdate.findMany({
+        where: { userId },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 200,
+      }),
+      readLatestAbilityEstimate: async (userId) => prisma.adaptiveAssessmentAbilityEstimate.findFirst({
+        where: { userId },
+        orderBy: [{ estimatedAt: 'desc' }, { id: 'desc' }],
+      }),
+    },
   };
 }

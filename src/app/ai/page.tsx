@@ -5,11 +5,10 @@ import {
   projectAiWorkshopEvidence,
 } from '@/features/ai/ai-workshop-evidence';
 import { getServerAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import {
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+  readLearnerState,
+} from '@/features/personalization/learner-state/public-api';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 
@@ -64,7 +63,7 @@ async function readAiWorkshopEvidence(userId?: string | null, role?: string | nu
   }
 
   try {
-    const learnerState = await readAdaptiveLearnerState(prisma, {
+    const learnerState = await readLearnerState({
       userId,
       role: role === 'ADMIN' ? 'admin' : role === 'TEACHER' ? 'teacher' : 'student',
     });

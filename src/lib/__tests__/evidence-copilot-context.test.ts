@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import {
   buildEvidenceCopilotPrompt,
   parseEvidenceCopilotRequest,
@@ -13,9 +13,9 @@ const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
 }));
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
-    '@/lib/data-governance/adaptive-learner-state-service',
+vi.mock('@/features/personalization/learner-state/public-api', async () => {
+  const actual = await vi.importActual<typeof import('@/features/personalization/learner-state/public-api')>(
+    '@/features/personalization/learner-state/public-api',
   );
   return {
     ...actual,

@@ -2,7 +2,7 @@ import {
   getLearningGoal,
   type LearningGoalDefinition,
 } from './adaptive-learning-path-planner';
-import { CONTROL_CORRECTION_COURSE_ID_VALUES } from './data-governance/adaptive-learner-state-service';
+import { CONTROL_CORRECTION_COURSE_ID_VALUES } from '@/features/personalization/learner-state/public-api';
 import {
   buildGraphCenterPayload,
   type GraphCenterOverlayStatus,

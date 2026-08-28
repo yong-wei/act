@@ -4,7 +4,7 @@ import {
   createEmptyCompetencyVector,
   type CompetencyDimension,
   type CompetencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility type.
-} from './competency-model';
+} from '@/lib/data-governance/competency-model';
 import {
   projectCoexistingLearningFactIdentities,
   projectLearningFactServingIdentity,
@@ -17,34 +17,34 @@ import {
   type StudentEvidenceFeatureReadResult,
   type StudentEvidenceStatusMarker,
   type StudentEvidenceWindow,
-} from './student-evidence-feature-cache';
+} from '@/lib/data-governance/student-evidence-feature-cache';
 import {
   CONTROL_CORRECTION_CAPABILITY_TARGETS,
   isRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningCapabilityTarget,
-} from '../adaptive-learning-path-planner';
+} from '@/lib/adaptive-learning-path-planner';
 import { readArenaSubmissionEvidenceWritebacks } from '@/features/arena/evidence-writeback-persistence';
 import {
   resolvePrimaryPortraitV2,
   type PortraitV2ConsumerDb,
   type PortraitV2Consumer,
   type PortraitV2LegacyCompatibility,
-} from './portrait-v2-consumer';
-import { readCurrentCumulativePortrait } from './cumulative-portrait-read-model';
+} from '@/lib/data-governance/portrait-v2-consumer';
+import { readCurrentCumulativePortrait } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,
-} from './kaq-objective-taxonomy';
+} from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   PORTRAIT_V2_FRESHNESS_CURRENT_MAX_AGE_DAYS,
   type PortraitV2ProjectedPayload,
-} from './portrait-v2-model';
+} from '@/lib/data-governance/portrait-v2-model';
 import {
   inferStudentSafeEvidenceSource,
   projectStudentSafeEvidenceSource,
   type StudentSafeEvidenceEventReference,
-} from './evidence-timeline';
-import { isLearningFactEligibleForPersonalization } from './learning-fact-quality-weight';
+} from '@/lib/data-governance/evidence-timeline';
+import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -61,7 +61,7 @@ export type AdaptiveLearnerStatePrimaryPortraitState = 'SNAPSHOT' | 'NO_EVIDENCE
 
 export type AdaptiveLearnerStateFieldFamily =
   | 'primaryPortrait'
-  | 'primaryCompetencies'
+  | 'primaryCompetencies' // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: family name only; not a primary portrait.
   | 'secondaryDimensions'
   | 'knowledgeMastery'
   | 'resourcePreference'
@@ -92,7 +92,7 @@ export const CONTROL_CORRECTION_COURSE_ID_VALUES = [
   'unit-3-6-zero-design-workshop',
   'unit-3-6-zero-design-workshop-v1',
 ] as const;
-const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
+export const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
   'task-second-order-lead-pid',
 ] as const;
 const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
@@ -181,7 +181,7 @@ export interface AdaptiveGoalSliceDefinition {
 export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerStateFieldFamily, AdaptiveLearnerStateFieldContract> = {
   primaryPortrait: {
     valueRange: 'exactly seven canonical portrait v2 dimensions with 0-100 scores',
-    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot'],
+    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot'], // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: snapshot is a non-authoritative fallback family.
     algorithmVersion: 'portrait-v2-primary.v1',
     evidenceThreshold: 'native or migrated portrait v2 snapshot; explicit compatibility projection otherwise',
     confidencePolicy: 'dimension confidence and freshness are explicit and versioned',
@@ -219,7 +219,7 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
   },
   resourcePreference: {
     valueRange: 'ranked modality list derived from governed evidence counts',
-    sourceFamilies: ['LearningFact', 'StudentEvidenceFeatureCache'],
+    sourceFamilies: ['LearningFact', 'StudentEvidenceFeatureCache'], // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache is a compatibility evidence family.
     algorithmVersion: ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
     evidenceThreshold: 'at least one governed resource or activity fact',
     confidencePolicy: 'count-and-recency-weighted-context',
@@ -228,7 +228,7 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
   },
   mediaAbsorption: {
     valueRange: '0-1 average media completion proxy',
-    sourceFamilies: ['LearningFact', 'StudentEvidenceFeatureCache'],
+    sourceFamilies: ['LearningFact', 'StudentEvidenceFeatureCache'], // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache is a compatibility evidence family.
     algorithmVersion: ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
     evidenceThreshold: 'at least one governed media fact',
     confidencePolicy: 'media-progress-context-never-high-alone',
@@ -255,7 +255,7 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
   },
   prerequisiteFeatureGroups: {
     valueRange: 'compact simulation/Arena feature groups with confidence markers',
-    sourceFamilies: ['StudentEvidenceFeatureCache'],
+    sourceFamilies: ['StudentEvidenceFeatureCache'], // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache is a compatibility evidence family.
     algorithmVersion: 'student-evidence-features.v3',
     evidenceThreshold: 'materialized simulation/Arena feature group from prerequisite change',
     confidencePolicy: 'consume-prerequisite-confidence-without-redefinition',
@@ -313,7 +313,7 @@ export type MasteryEvidenceSourceType =
   | 'LearningFact'
   | 'ArenaSubmission'
   | 'AgentToolRun'
-  | 'StudentEvidenceFeatureCache';
+  | 'StudentEvidenceFeatureCache'; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache refs remain non-primary.
 
 export interface MasteryEvidenceReference {
   sourceType: MasteryEvidenceSourceType;
@@ -376,7 +376,7 @@ export interface ControlCorrectionGoalSlicePathContext {
 export interface UnsupportedAdaptiveGoalSlice {
   goalId: string;
   state: 'unsupported-goal';
-  fallbackReason: 'unregistered-adaptive-goal';
+  fallbackReason: 'unregistered-adaptive-goal' | 'goal-plugin-unavailable';
   supportedGoalIds: AdaptiveLearnerStateGoalId[];
 }
 
@@ -403,10 +403,10 @@ export interface AdaptiveLearnerState {
   primaryPortrait: PortraitV2ProjectedPayload | null;
   primaryPortraitState: AdaptiveLearnerStatePrimaryPortraitState;
   primaryPortraitAvailability: string;
-  primaryCompetencies: {
+  primaryCompetencies: { // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: compatibility-only six-dimensional output.
     authority: 'legacy-compatibility-only';
     source: 'latest-snapshot' | 'feature-cache' | 'portrait-v2-derived' | 'portrait-v2-mixed' | 'fallback-empty';
-    vector: CompetencyVector;
+    vector: CompetencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility vector.
   };
   secondaryDimensions: Record<AdaptiveLearnerSecondaryDimension, {
     primaryDimension: CompetencyDimension;
@@ -501,7 +501,7 @@ export interface AdaptiveLearnerState {
   missingEvidence: string[];
 }
 
-type PortraitResolution = {
+export type PortraitResolution = {
   primaryPortrait: PortraitV2ProjectedPayload | null;
   primaryPortraitState: AdaptiveLearnerStatePrimaryPortraitState;
   primaryPortraitAvailability: string;
@@ -509,7 +509,35 @@ type PortraitResolution = {
   limitations: string[];
 };
 
-interface AdaptiveLearnerStateDb extends PortraitV2ConsumerDb {
+export interface LearnerStateReducerInput {
+  userId: string;
+  role: AdaptiveLearnerStateRole;
+  classId?: string | null;
+  now: Date;
+  clientHints?: Record<string, unknown>;
+  algorithmVersion: string;
+  featureFlagEnabled: boolean;
+  requestedGoal: string | null;
+  requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
+  goalPluginAvailable: boolean;
+  featureRead: StudentEvidenceFeatureReadResult;
+  featureCache: Record<string, unknown>;
+  latestSnapshot: Record<string, unknown> | null;
+  profileSummary: Record<string, unknown> | null;
+  personalizationFacts: Array<Record<string, unknown>>;
+  masteryFacts: Array<Record<string, unknown>>;
+  masteryUpdates: Array<Record<string, unknown>>;
+  latestAbility: Record<string, unknown> | null;
+  riskFlags: Array<Record<string, unknown>>;
+  paths: Array<Record<string, unknown>>;
+  activeControlCorrectionPaths: Array<Record<string, unknown>>;
+  controlCorrectionFacts: Array<Record<string, unknown>>;
+  controlCorrectionArenaSubmissions: Array<Record<string, unknown>>;
+  controlCorrectionAgentToolRuns: Array<Record<string, unknown>>;
+  portraitResolution: PortraitResolution;
+}
+
+export interface AdaptiveLearnerStateDb extends PortraitV2ConsumerDb {
   cumulativePortraitCutoverFence?: { findUnique?: (args: any) => Promise<any | null> };
   cumulativePortraitMigrationRun?: { findUnique?: (args: any) => Promise<any | null> };
   learningMaterializationRebuildRequest?: { findFirst?: (args: any) => Promise<any | null> };
@@ -737,7 +765,7 @@ export function isAdaptiveLearnerStateServiceEnabled(
   return env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED === 'true';
 }
 
-async function readEligibleLearnerStateFacts(
+export async function readEligibleLearnerStateFacts(
   db: AdaptiveLearnerStateDb,
   userId: string,
 ): Promise<Array<Record<string, unknown>>> {
@@ -767,23 +795,15 @@ async function readEligibleLearnerStateFacts(
   return facts;
 }
 
-export async function readAdaptiveLearnerState(
-  db: AdaptiveLearnerStateDb,
-  input: AdaptiveLearnerStateInput,
-): Promise<AdaptiveLearnerState> {
-  const now = input.now ?? new Date();
-  const requestedGoal = normalizeRequestedGoal(input.goal);
-  const requestedGoalDefinition = resolveAdaptiveGoalSliceDefinition(requestedGoal);
-  const shouldBuildControlCorrectionGoalSlice = requestedGoalDefinition?.goalId === CONTROL_CORRECTION_GOAL_ID;
-  const featureRead = await readFeatureCache(db, input.userId, now);
-  const featureCache = asRecord(featureRead.cache);
-  const featureSimulationArena = getObject(getObject(featureCache.features).simulationArena);
-  const featurePathExecution = getObject(getObject(featureCache.features).pathExecution);
-
-  const [
+export function reduceLearnerState(input: LearnerStateReducerInput): AdaptiveLearnerState {
+  const {
+    now,
+    featureRead,
+    featureCache,
     latestSnapshot,
     profileSummary,
     personalizationFacts,
+    masteryFacts,
     masteryUpdates,
     latestAbility,
     riskFlags,
@@ -792,134 +812,13 @@ export async function readAdaptiveLearnerState(
     controlCorrectionFacts,
     controlCorrectionArenaSubmissions,
     controlCorrectionAgentToolRuns,
-  ] = await Promise.all([
-    db.studentCompetencySnapshot?.findFirst?.({
-      where: { userId: input.userId },
-      orderBy: [{ snapshotAt: 'desc' }, { id: 'desc' }],
-    }) ?? Promise.resolve(null),
-    db.studentProfileSummary?.findUnique?.({
-      where: { userId: input.userId },
-    }) ?? Promise.resolve(null),
-    readEligibleLearnerStateFacts(db, input.userId),
-    db.adaptiveMasteryUpdate?.findMany?.({
-      where: { userId: input.userId },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: 200,
-    }) ?? Promise.resolve([]),
-    db.adaptiveAssessmentAbilityEstimate?.findFirst?.({
-      where: { userId: input.userId },
-      orderBy: [{ estimatedAt: 'desc' }, { id: 'desc' }],
-    }) ?? Promise.resolve(null),
-    db.studentRiskFlag?.findMany?.({
-      where: { userId: input.userId, isResolved: false },
-      orderBy: { triggeredAt: 'desc' },
-      take: 20,
-    }) ?? Promise.resolve([]),
-    db.learningPath?.findMany?.({
-      where: { userId: input.userId },
-      select: {
-        id: true,
-        goalId: true,
-        pathStatus: true,
-        currentNodeId: true,
-        terminalValidation: true,
-        lastExecutionMetadata: true,
-        isBookmarked: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-      take: 10,
-    }) ?? Promise.resolve([]),
-    db.learningPath?.findMany?.({
-      where: {
-        userId: input.userId,
-        goalId: CONTROL_CORRECTION_GOAL_ID,
-        pathStatus: { in: ['active', 'fallback'] },
-      },
-      select: {
-        id: true,
-        goalId: true,
-        pathStatus: true,
-        currentNodeId: true,
-        terminalValidation: true,
-        lastExecutionMetadata: true,
-        isBookmarked: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-      take: 1,
-    }) ?? Promise.resolve([]),
-    shouldBuildControlCorrectionGoalSlice
-      ? readControlCorrectionLearningFacts(db, input.userId)
-      : Promise.resolve([]),
-    shouldBuildControlCorrectionGoalSlice
-      ? db.arenaSubmission?.findMany?.({
-          where: {
-            userId: input.userId,
-            valid: true,
-            taskId: { in: [...CONTROL_CORRECTION_ARENA_TASK_ID_VALUES] },
-          },
-          include: {
-            controllerArtifact: true,
-            evaluationRun: true,
-          },
-          orderBy: { submittedAt: 'desc' },
-          take: 200,
-        }) ?? Promise.resolve([])
-      : Promise.resolve([]),
-    shouldBuildControlCorrectionGoalSlice
-      ? db.agentToolRun?.findMany?.({
-          where: {
-            targetUserId: input.userId,
-            courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] },
-            status: { in: ['completed', 'succeeded', 'success'] },
-          },
-          orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-          take: 100,
-        }) ?? Promise.resolve([])
-      : Promise.resolve([]),
-  ]);
-
-  const masteryFacts = uniqueFactsById([
-    ...personalizationFacts,
-    ...await readAdaptiveMasteryLearningFacts(db, input.userId, masteryUpdates),
-  ]);
-
-  const controlCorrectionArenaSubmissionsWithWriteback = shouldBuildControlCorrectionGoalSlice
-    ? await attachPersistedArenaWritebacks(db, controlCorrectionArenaSubmissions)
-    : controlCorrectionArenaSubmissions;
-  const portraitConsumer = portraitConsumerForInput(input);
-  const supportsFencedCumulativePortrait = Boolean(
-    db.cumulativePortraitCutoverFence?.findUnique &&
-    db.cumulativePortraitMigrationRun?.findUnique &&
-    db.learnerPortraitCurrentState?.findUnique,
-  );
-  const resolvedPortrait = supportsFencedCumulativePortrait
-    ? await resolveFencedAdaptivePortrait(db, {
-        userId: input.userId,
-        consumer: portraitConsumer,
-        now,
-        legacySnapshot: latestSnapshot,
-      })
-    : await resolvePrimaryPortraitV2(
-        db,
-        input.userId,
-        portraitConsumer,
-        { now, legacySnapshot: latestSnapshot, featureCache },
-      );
-  // PORTRAIT_V2_TRUSTED_BOUNDARY: without an active cumulative-portrait fence,
-  // the legacy consumer resolver must never become a primary personalization source.
-  const portraitResolution = (supportsFencedCumulativePortrait
-    ? resolvedPortrait
-    : {
-        ...resolvedPortrait,
-        primaryPortrait: null,
-        primaryPortraitState: 'UNAVAILABLE' as const,
-        primaryPortraitAvailability: 'cumulative-portrait-fence-unavailable',
-      }) as PortraitResolution;
+    portraitResolution,
+  } = input;
+  const featureSimulationArena = getObject(getObject(featureCache.features).simulationArena);
+  const featurePathExecution = getObject(getObject(featureCache.features).pathExecution);
   const {
     vector: legacyCompatibilityVector,
     source: compatibilitySource,
-    snapshotId: compatibilitySnapshotId,
-    snapshotAt: compatibilitySnapshotAt,
   } = portraitResolution.legacyCompatibility;
   const portraitCompatibility = deriveLearnerStateCompatibilityVector(
     portraitResolution.primaryPortrait,
@@ -952,7 +851,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     vector: portraitDrivenVector,
     facts: controlCorrectionFacts,
-    arenaSubmissions: controlCorrectionArenaSubmissionsWithWriteback,
+    arenaSubmissions: controlCorrectionArenaSubmissions,
     agentToolRuns: controlCorrectionAgentToolRuns,
     featureRead,
     evidence,
@@ -976,9 +875,9 @@ export async function readAdaptiveLearnerState(
     hasPortraitCompatibility: portraitCompatibility?.derivedDimensionCount === COMPETENCY_DIMENSIONS.length,
   });
   const goalSlices = buildAdaptiveGoalSlices({
-    requestedGoal,
-    requestedGoalDefinition,
-    shouldBuildControlCorrectionGoalSlice,
+    requestedGoal: input.requestedGoal,
+    requestedGoalDefinition: input.requestedGoalDefinition,
+    goalPluginAvailable: input.goalPluginAvailable,
     now,
     vector: portraitDrivenVector,
     primaryPortrait,
@@ -987,7 +886,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     masteryTraceability,
     facts: controlCorrectionFacts,
-    arenaSubmissions: controlCorrectionArenaSubmissionsWithWriteback,
+    arenaSubmissions: controlCorrectionArenaSubmissions,
     prerequisiteFeatureGroups,
     paths,
     activeControlCorrectionPath: activeControlCorrectionPaths.find(isControlCorrectionPathRound) ?? null,
@@ -1005,7 +904,7 @@ export async function readAdaptiveLearnerState(
     },
     featureFlag: {
       name: ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
-      enabled: isAdaptiveLearnerStateServiceEnabled(),
+      enabled: input.featureFlagEnabled,
       fallback: 'legacy-profile-summary-and-recommendation-consumers',
     },
     clientHints: {
@@ -1016,7 +915,7 @@ export async function readAdaptiveLearnerState(
     primaryPortrait,
     primaryPortraitState: portraitResolution.primaryPortraitState,
     primaryPortraitAvailability: portraitResolution.primaryPortraitAvailability,
-    primaryCompetencies: {
+    primaryCompetencies: { // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: emit the compatibility slice only.
       authority: 'legacy-compatibility-only',
       source,
       vector,
@@ -1039,7 +938,7 @@ export async function readAdaptiveLearnerState(
   };
 }
 
-async function resolveFencedAdaptivePortrait(
+export async function resolveFencedAdaptivePortrait(
   db: AdaptiveLearnerStateDb,
   input: {
     userId: string;
@@ -1090,26 +989,11 @@ function portraitConsumerForRole(role: AdaptiveLearnerStateRole): PortraitV2Cons
   return 'student';
 }
 
-function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2Consumer {
+export function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2Consumer {
   return input.portraitConsumer ?? portraitConsumerForRole(input.role);
 }
 
-export async function readPathPlannerLearnerState(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-  input: Pick<AdaptiveLearnerStateInput, 'goal' | 'classId' | 'now'> = {},
-): Promise<AdaptiveLearnerState> {
-  return readAdaptiveLearnerState(db, {
-    userId,
-    role: 'system',
-    goal: input.goal,
-    classId: input.classId,
-    now: input.now,
-    portraitConsumer: 'planner',
-  });
-}
-
-async function readFeatureCache(
+export async function readFeatureCache(
   db: AdaptiveLearnerStateDb,
   userId: string,
   now: Date,
@@ -1124,7 +1008,7 @@ async function readFeatureCache(
   return readStudentEvidenceFeatures(db as Parameters<typeof readStudentEvidenceFeatures>[0], userId, { now });
 }
 
-async function attachPersistedArenaWritebacks(
+export async function attachPersistedArenaWritebacks(
   db: AdaptiveLearnerStateDb,
   submissions: Array<Record<string, unknown>>,
 ): Promise<Array<Record<string, unknown>>> {
@@ -1144,7 +1028,7 @@ async function attachPersistedArenaWritebacks(
   });
 }
 
-function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerState['secondaryDimensions'] {
+function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerState['secondaryDimensions'] { // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: derive secondary scores from the compatibility vector.
   return Object.fromEntries(
     Object.entries(SECONDARY_DIMENSION_PRIMARY).map(([dimension, primaryDimension]) => {
       const primary = vector[primaryDimension];
@@ -1250,9 +1134,9 @@ function isCurrentPortraitDimension(
 function buildAdaptiveGoalSlices(input: {
   requestedGoal: string | null;
   requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
-  shouldBuildControlCorrectionGoalSlice: boolean;
+  goalPluginAvailable: boolean;
   now: Date;
-  vector: CompetencyVector;
+  vector: CompetencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: goal slice may read the compatibility vector.
   primaryPortrait: PortraitV2ProjectedPayload | null;
   usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
@@ -1279,7 +1163,18 @@ function buildAdaptiveGoalSlices(input: {
     };
   }
 
-  if (input.shouldBuildControlCorrectionGoalSlice) {
+  if (!input.goalPluginAvailable) {
+    return {
+      unsupported: {
+        goalId: input.requestedGoal,
+        state: 'unsupported-goal',
+        fallbackReason: 'goal-plugin-unavailable',
+        supportedGoalIds: Object.keys(ADAPTIVE_GOAL_SLICE_REGISTRY) as AdaptiveLearnerStateGoalId[],
+      },
+    };
+  }
+
+  if (input.requestedGoalDefinition.goalId === CONTROL_CORRECTION_GOAL_ID) {
     return {
       controlCorrection: buildControlCorrectionGoalSlice({
         now: input.now,
@@ -1303,7 +1198,7 @@ function buildAdaptiveGoalSlices(input: {
 
 function buildControlCorrectionGoalSlice(input: {
   now: Date;
-  vector: CompetencyVector;
+  vector: CompetencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: goal slice may read the compatibility vector.
   primaryPortrait: PortraitV2ProjectedPayload | null;
   usePrimaryPortrait: boolean;
   evidence: AdaptiveLearnerState['evidence'];
@@ -1385,7 +1280,7 @@ function buildControlCorrectionGoalSlice(input: {
 function buildControlCorrectionCapabilityTargets(
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'],
   masteryTraceability: AdaptiveLearnerState['masteryTraceability'],
-  vector: CompetencyVector,
+  vector: CompetencyVector, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: capability targets may read the compatibility vector.
   sourceEvidence: ControlCorrectionSourceEvidence,
   facts: Array<Record<string, unknown>>,
   arenaSubmissions: Array<Record<string, unknown>>,
@@ -1721,7 +1616,7 @@ function buildKnowledgeMastery(
   };
 }
 
-async function readAdaptiveMasteryLearningFacts(
+export async function readAdaptiveMasteryLearningFacts(
   db: AdaptiveLearnerStateDb,
   userId: string,
   masteryUpdates: Array<Record<string, unknown>>,
@@ -1773,7 +1668,7 @@ function adaptiveAssessmentAnswerIdFromFact(fact: Record<string, unknown>): stri
 
 function buildMasteryTraceability(input: {
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
-  vector: CompetencyVector;
+  vector: CompetencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: traceability may read the compatibility vector.
   facts: Array<Record<string, unknown>>;
   arenaSubmissions: Array<Record<string, unknown>>;
   agentToolRuns: Array<Record<string, unknown>>;
@@ -1953,7 +1848,7 @@ function refsFromFeatureCache(
       const reference = getObject(entry);
       const sourceId = readString(reference.sourceId);
       return masteryEvidenceRef(
-        'StudentEvidenceFeatureCache',
+        'StudentEvidenceFeatureCache', // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache refs remain non-primary.
         cacheId && sourceId ? `${cacheId}:${sourceId}` : cacheId ?? sourceId,
         reference.occurredAt,
         readString(reference.privacyLevel) === 'teacher-scoped' ? 'teacher-scoped' : 'student-visible',
@@ -2060,7 +1955,7 @@ function emptyMasterySourceCoverage(): MasteryTraceabilityEntry['sourceCoverage'
     LearningFact: 'missing',
     ArenaSubmission: 'missing',
     AgentToolRun: 'missing',
-    StudentEvidenceFeatureCache: 'missing',
+    StudentEvidenceFeatureCache: 'missing', // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: cache coverage is non-primary.
   };
 }
 
@@ -2539,7 +2434,7 @@ function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>):
   return { counts };
 }
 
-async function readControlCorrectionLearningFacts(
+export async function readControlCorrectionLearningFacts(
   db: AdaptiveLearnerStateDb,
   userId: string,
 ): Promise<Array<Record<string, unknown>>> {
@@ -2719,7 +2614,7 @@ function controlCorrectionJsonPathWhere(
   })));
 }
 
-function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+export function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   const seen = new Set<string>();
   const result: Array<Record<string, unknown>> = [];
   for (const fact of facts) {
@@ -3059,7 +2954,7 @@ function scoreToProgress(value: unknown): number | null {
   return score > 1 ? round(score / 100, 2) : round(score, 2);
 }
 
-function asRecord(value: unknown): Record<string, unknown> {
+export function asRecord(value: unknown): Record<string, unknown> {
   return isObject(value) ? value : {};
 }
 
@@ -3075,7 +2970,7 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function normalizeRequestedGoal(value: string | null | undefined): string | null {
+export function normalizeRequestedGoal(value: string | null | undefined): string | null {
   return readString(value);
 }
 
