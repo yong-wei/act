@@ -261,11 +261,14 @@ def journal(value: Any) -> Dict[str, Any]:
 
 
 def activation_journal(value: Any) -> Dict[str, Any]:
-    value = exact(value, [
+    required = [
         "schemaVersion", "status", "transactionId", "expectedGeneration",
         "targetGeneration", "previousIdentity", "targetIdentity",
         "targetLifecycleSha256",
-    ], "activation journal")
+    ]
+    optional = "compatibilityProofSha256"
+    if not isinstance(value, dict) or sorted(value) not in (sorted(required), sorted(required + [optional])):
+        fail("activation journal has unsupported or missing fields")
     if value["schemaVersion"] != ACTIVATION_SCHEMA or value["status"] not in {"prepared", "lifecycle-committed", "receipt-committed", "complete"}:
         fail("activation journal is invalid")
     transaction_id = string(value["transactionId"], "activation journal.transactionId")
@@ -286,6 +289,9 @@ def activation_journal(value: Any) -> Dict[str, Any]:
         fail("prepared activation journal must not claim a committed lifecycle")
     if value["status"] != "prepared" and lifecycle_sha == "":
         fail("committed activation journal must bind a lifecycle digest")
+    compatibility_proof_sha256 = value.get(optional, "")
+    if compatibility_proof_sha256 != "" and not SHA256.fullmatch(string(compatibility_proof_sha256, "activation journal.compatibilityProofSha256")):
+        fail("activation journal.compatibilityProofSha256 is invalid")
     return {
         "schemaVersion": ACTIVATION_SCHEMA,
         "status": value["status"],
@@ -295,6 +301,7 @@ def activation_journal(value: Any) -> Dict[str, Any]:
         "previousIdentity": previous,
         "targetIdentity": target,
         "targetLifecycleSha256": lifecycle_sha,
+        "compatibilityProofSha256": compatibility_proof_sha256,
     }
 
 
@@ -608,15 +615,18 @@ def host_active(state_dir: Path, host_script: Path) -> Optional[Dict[str, Any]]:
     return value if isinstance(value, dict) else None
 
 
-def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, Any]) -> Dict[str, Any]:
-    result = subprocess.run(
-        [
+def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, Any], compatibility_proof_sha256: Optional[str] = None) -> Dict[str, Any]:
+    command = [
             sys.executable, str(host_script), "mark-active-v2",
             "--state-dir", str(state_dir),
             "--release-id", target["releaseId"],
             "--manifest-sha256", target["manifestSha256"],
             "--tree-sha256", target["treeSha256"],
-        ],
+    ]
+    if compatibility_proof_sha256:
+        command.extend(["--compatibility-proof-sha256", compatibility_proof_sha256])
+    result = subprocess.run(
+        command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
@@ -990,7 +1000,14 @@ def recover_and_project_unlocked(state_dir: Path, host_script: Path) -> Dict[str
     # injected a crash into the interrupted activation's receipt write.
     host_crash = os.environ.pop("ACT_RUNTIME_HOST_STATE_CRASH_AT", None)
     try:
-        project_host_active(state_dir, host_script, current["active"])
+        compatibility_proof_sha256 = None
+        if (
+            journal_value is not None
+            and current["active"] == journal_value["targetIdentity"]
+            and current["generation"] == journal_value["targetGeneration"]
+        ):
+            compatibility_proof_sha256 = journal_value["compatibilityProofSha256"] or None
+        project_host_active(state_dir, host_script, current["active"], compatibility_proof_sha256)
     finally:
         if host_crash is not None:
             os.environ["ACT_RUNTIME_HOST_STATE_CRASH_AT"] = host_crash
@@ -1039,6 +1056,9 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
             fail("there is no verified rollback release")
         if operation == "activate" and current["desired"] != candidate:
             fail("only the exact desired candidate may be activated")
+        compatibility_proof_sha256 = getattr(args, "compatibility_proof_sha256", "") if operation == "activate" else ""
+        if compatibility_proof_sha256 and not SHA256.fullmatch(compatibility_proof_sha256):
+            fail("compatibility proof digest is invalid")
         require_coordinated_activation_gate(state_dir, candidate, args)
         journal_value = {
             "schemaVersion": ACTIVATION_SCHEMA,
@@ -1049,6 +1069,7 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
             "previousIdentity": current["active"],
             "targetIdentity": candidate,
             "targetLifecycleSha256": "",
+            "compatibilityProofSha256": compatibility_proof_sha256,
         }
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
         activation_crash("after-intent")
@@ -1063,7 +1084,12 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
         journal_value["targetLifecycleSha256"] = digest(committed)
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
         activation_crash("after-lifecycle-journal")
-        project_host_active(state_dir, host_script, committed["active"])
+        project_host_active(
+            state_dir,
+            host_script,
+            committed["active"],
+            journal_value["compatibilityProofSha256"] or None,
+        )
         activation_crash("after-receipt-readback")
         journal_value["status"] = "receipt-committed"
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
@@ -1328,6 +1354,7 @@ def main() -> None:
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
+    commands.choices["activate-and-project"].add_argument("--compatibility-proof-sha256")
     commands.choices["activate-and-project"].add_argument("--coordinated-runtime-authorization")
     commands.choices["activate-and-project"].add_argument("--coordinated-runtime-binding")
     args = parser.parse_args()

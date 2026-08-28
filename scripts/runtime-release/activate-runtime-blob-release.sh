@@ -57,6 +57,7 @@ candidate_receipt_dir=""
 candidate_receipt_path=""
 candidate_receipt_rebound=0
 compatibility_proof=""
+compatibility_proof_sha256=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -740,8 +741,40 @@ if [[ -n "$rebuild_staging" ]]; then
 fi
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
 if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
-  echo "ERROR: coordinated Runtime activation must supply a separately qualified runtime-app compatibility proof; the daily Runtime activator cannot qualify consumers while the outer transaction has stopped them" >&2
-  exit 1
+  [[ "${ACT_RUNTIME_LEGACY_MIGRATION:-}" == "1" ]] || {
+    echo "ERROR: coordinated Runtime activation is migration-only; set ACT_RUNTIME_LEGACY_MIGRATION=1 for the existing outer transaction" >&2
+    exit 1
+  }
+  stage_lifecycle_desired
+  python3 "$HOST_STATE_SCRIPT" select \
+    --state-dir "$STATE_DIR" \
+    --expected-active-release "$expected_active_release" \
+    --verification-receipt "$verification_receipt" >/dev/null
+  trap restore_runtime_consumers ERR
+  python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
+  candidate_current_selected=1
+  activation_attempted=1
+  python3 "$ACTIVATION_TRANSACTION" activate \
+    --state-dir "$STATE_DIR" \
+    --lifecycle-script "$LIFECYCLE_SCRIPT" \
+    --host-state-script "$HOST_STATE_SCRIPT" \
+    --expected-generation "$lifecycle_generation" \
+    --identity "$lifecycle_identity" \
+    --coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION" \
+    --coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING" >/dev/null
+  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
+  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
+  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
+  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
+    echo "ERROR: lifecycle activation did not commit the coordinated candidate release" >&2
+    exit 1
+  }
+  # The outer coordinator seals the final active receipt before any graph or
+  # Runtime consumer restart. This branch returns with every consumer stopped.
+  trap - ERR
+  cleanup_lifecycle_identity
+  printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view","coordinated":true,"consumersStopped":true}\n' "$release_id" "$old_active"
+  exit 0
 fi
 write_candidate_readyz_receipt
 trap restore_runtime_consumers ERR
@@ -757,15 +790,19 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
 source "$ENV_FILE"
 wait_for_readyz
 run_candidate_consumer_smoke
-manifest_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["manifestSha256"])' "$lifecycle_identity")"
-compatibility_proof="$STATE_DIR/runtime-app-compatibility/${release_id}-${manifest_sha}.json"
-python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
+compatibility_capture="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
   --release-id "$release_id" \
   --manifest "$manifest" \
   --candidate-view "$candidate_view" \
   --app-container "$APP_CONTAINER" \
   --worker-container "$WORKER_CONTAINER" \
-  --output "$compatibility_proof" >/dev/null
+  --output-dir "$STATE_DIR/runtime-app-compatibility")"
+compatibility_proof_sha256="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["proofSha256"])' <<<"$compatibility_capture")"
+[[ "$compatibility_proof_sha256" =~ ^[a-f0-9]{64}$ ]] || {
+  echo "ERROR: compatibility proof capture returned an invalid digest" >&2
+  exit 1
+}
+compatibility_proof="$STATE_DIR/runtime-app-compatibility/${compatibility_proof_sha256}.json"
 python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
   --release-id "$release_id" \
   --manifest "$manifest" \
@@ -808,6 +845,7 @@ else
     --host-state-script "$HOST_STATE_SCRIPT" \
     --expected-generation "$lifecycle_generation" \
     --identity "$lifecycle_identity" \
+    --compatibility-proof-sha256 "$compatibility_proof_sha256" \
     "${coordinated_activation_args[@]}" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"

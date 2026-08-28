@@ -608,11 +608,15 @@ def mark_active_v2(args: argparse.Namespace):
         "selection": selection,
         "healthCheck": "readyz",
     }
-    compatibility_path = state_dir / COMPATIBILITY_PROOF_DIR / f"{release}-{manifest_sha}.json"
-    if compatibility_path.exists() or compatibility_path.is_symlink():
+    compatibility_proof_sha256 = getattr(args, "compatibility_proof_sha256", None)
+    if compatibility_proof_sha256:
+        compatibility_proof_sha256 = require_digest(compatibility_proof_sha256, "compatibilityProofSha256")
+        compatibility_path = state_dir / COMPATIBILITY_PROOF_DIR / f"{compatibility_proof_sha256}.json"
         if compatibility_path.is_symlink() or not compatibility_path.is_file():
             fail("runtime compatibility proof path is invalid")
         wire = compatibility_path.read_bytes()
+        if hashlib.sha256(wire).hexdigest() != compatibility_proof_sha256:
+            fail("runtime compatibility proof filename does not match its content")
         try:
             proof = json.loads(wire.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -633,13 +637,19 @@ def mark_active_v2(args: argparse.Namespace):
             fail("runtime compatibility proof does not bind the active identity")
         receipt["compatibility"] = require_compatibility({
             "schemaVersion": proof.get("schemaVersion"),
-            "proofSha256": hashlib.sha256(wire).hexdigest(),
+            "proofSha256": compatibility_proof_sha256,
             "runtimeSourceRevision": runtime.get("sourceRevision"),
             "appRevision": application.get("revision"),
             "imageDigest": application.get("imageDigest"),
             "migrationSetSha256": migration.get("sha256"),
             "consumerContract": proof.get("consumerContract"),
         }, selection)
+    elif previous_receipt and previous_receipt.get("selection") == selection and "compatibility" in previous_receipt:
+        # Recovery may need to re-project an already-active identity after a
+        # process crash. Retain its validated historical proof rather than
+        # silently erasing the evidence solely because this repair did not
+        # execute a new candidate qualification.
+        receipt["compatibility"] = previous_receipt["compatibility"]
     write_atomic(state_dir / ACTIVE_RECEIPT_FILE, receipt)
     return receipt
 
@@ -828,6 +838,7 @@ def main() -> None:
     marker_v2.add_argument("--release-id", required=True)
     marker_v2.add_argument("--manifest-sha256", required=True)
     marker_v2.add_argument("--tree-sha256", required=True)
+    marker_v2.add_argument("--compatibility-proof-sha256")
     candidate_receipt = subcommands.add_parser("candidate-readyz-receipt")
     candidate_receipt.add_argument("--state-dir", required=True)
     candidate_receipt.add_argument("--release-id", required=True)

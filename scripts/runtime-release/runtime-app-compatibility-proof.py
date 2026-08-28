@@ -234,8 +234,12 @@ def ensure_matches(proof: Dict[str, Any], runtime: Dict[str, str], application: 
 
 def write_immutable(path: Path, proof: Dict[str, Any]) -> None:
     payload = canonical(proof) + b"\n"
+    if path.parent.is_symlink():
+        fail("compatibility proof directory must not be a symlink")
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if path.exists():
+    if path.parent.is_symlink() or not path.parent.is_dir():
+        fail("compatibility proof directory is invalid")
+    if path.exists() or path.is_symlink():
         if path.is_symlink() or path.read_bytes() != payload:
             fail("compatibility proof path already contains different content")
         return
@@ -250,6 +254,18 @@ def write_immutable(path: Path, proof: Dict[str, Any]) -> None:
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def proof_path(output_dir: Path, proof: Dict[str, Any]) -> Path:
+    """Return the immutable content-addressed location for one proof.
+
+    A Runtime manifest may be qualified repeatedly after an independent
+    application image or migration transition.  The proof body, rather than
+    just the Runtime identity, therefore owns the filename.
+    """
+    if output_dir.is_symlink():
+        fail("compatibility proof directory must not be a symlink")
+    return output_dir / (sha256(canonical(proof) + b"\n") + ".json")
 
 
 def capture(args: argparse.Namespace) -> Dict[str, Any]:
@@ -268,7 +284,8 @@ def capture(args: argparse.Namespace) -> Dict[str, Any]:
         "consumerContract": CONSUMER_CONTRACT,
         "migrationSet": migrations,
     }
-    write_immutable(Path(args.output), proof)
+    output = proof_path(Path(args.output_dir), proof)
+    write_immutable(output, proof)
     return {"proofSha256": sha256(canonical(proof) + b"\n"), **proof}
 
 
@@ -304,7 +321,7 @@ def main() -> None:
             command.add_argument("--app-container", required=True)
             command.add_argument("--worker-container", required=True)
     commands.choices["capture"].add_argument("--candidate-view", required=True)
-    commands.choices["capture"].add_argument("--output", required=True)
+    commands.choices["capture"].add_argument("--output-dir", required=True)
     for name in ("verify", "inspect"):
         commands.choices[name].add_argument("--proof", required=True)
     commands.choices["verify"].add_argument("--candidate-view")

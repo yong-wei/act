@@ -656,6 +656,7 @@ python3 "$LIFECYCLE" attach-coordinated-desired --state-dir "$STATE_DIR" --expec
 ACT_RUNTIME_COORDINATED_CUTOVER_DECLARATION="$candidate_dir/coordinated-cutover.json" \
 ACT_RUNTIME_COORDINATED_RUNTIME_AUTHORIZATION="$candidate_dir/runtime-authorization.json" \
 ACT_RUNTIME_COORDINATED_RUNTIME_BINDING="$candidate_dir/runtime-binding.json" \
+ACT_RUNTIME_LEGACY_MIGRATION=1 \
 ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT="$LIFECYCLE" \
   "$ACTIVATOR" --release-id "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtimeRelease"]["releaseId"])' "$candidate_dir/runtime-stage.json")" \
   --expected-active-release "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtime"]["releaseId"])' "$candidate_dir/predecessor-observation.json")" \

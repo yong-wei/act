@@ -8,6 +8,10 @@ const root = process.cwd();
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-blob-release.sh'), 'utf8');
 const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
 const lifecycle = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-release-lifecycle.py'), 'utf8');
+const coordinatedCutover = fs.readFileSync(
+  path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'),
+  'utf8',
+);
 const compatibilityProof = fs.readFileSync(
   path.join(root, 'scripts/runtime-release/runtime-app-compatibility-proof.py'),
   'utf8',
@@ -157,8 +161,8 @@ assert.ok(
 );
 assert.match(
   activation,
-  /coordinated Runtime activation must supply a separately qualified runtime-app compatibility proof/,
-  'the daily Runtime activator must fail closed when the stopped-service coordinated path lacks a separately qualified proof',
+  /coordinated Runtime activation is migration-only/,
+  'the stopped-service coordinated path must be fenced behind explicit migration intent',
 );
 assert.ok(
   activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),
@@ -611,6 +615,10 @@ assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility
 assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
 assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');
 assert.match(compatibilityProof, /_prisma_migrations/, 'compatibility proof must bind the applied Prisma migration set');
+assert.match(compatibilityProof, /proof body, rather than\n    just the Runtime identity, therefore owns the filename/, 'each proof filename must bind the qualified application identity');
+assert.match(activation, /ACT_RUNTIME_LEGACY_MIGRATION/, 'the coordinated activation exception must require explicit migration intent');
+assert.match(coordinatedCutover, /ACT_RUNTIME_LEGACY_MIGRATION=1/, 'the historical outer transaction must declare its migration intent');
+assert.match(activation, /--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'daily Runtime selection must pass its exact compatibility proof into the lifecycle projection');
 assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');

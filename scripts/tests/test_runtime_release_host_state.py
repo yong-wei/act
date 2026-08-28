@@ -441,19 +441,36 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             }
             proof_dir = state / "runtime-app-compatibility"
             proof_dir.mkdir(parents=True)
-            proof_path = proof_dir / f"{fixture['release_id']}-{manifest['manifestSha256']}.json"
             wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+            proof_sha = hashlib.sha256(wire).hexdigest()
+            proof_path = proof_dir / f"{proof_sha}.json"
             proof_path.write_bytes(wire)
             receipt = self.call(
                 "mark-active-v2", "--state-dir", str(state),
                 "--release-id", fixture["release_id"],
                 "--manifest-sha256", manifest["manifestSha256"],
                 "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", proof_sha,
             )
-            self.assertEqual(receipt["compatibility"]["proofSha256"], hashlib.sha256(wire).hexdigest())
+            self.assertEqual(receipt["compatibility"]["proofSha256"], proof_sha)
             self.assertEqual(receipt["compatibility"]["runtimeSourceRevision"], manifest["sourceRevision"])
             self.assertEqual(receipt["compatibility"]["appRevision"], "b" * 40)
             self.assertNotIn("runtime", receipt["compatibility"])
+
+            second = dict(proof)
+            second["application"] = {"revision": "e" * 40, "imageDigest": "sha256:" + "f" * 64}
+            second_wire = json.dumps(second, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+            second_sha = hashlib.sha256(second_wire).hexdigest()
+            (proof_dir / f"{second_sha}.json").write_bytes(second_wire)
+            updated = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", second_sha,
+            )
+            self.assertEqual(updated["compatibility"]["proofSha256"], second_sha)
+            self.assertEqual(updated["compatibility"]["appRevision"], "e" * 40)
 
             proof_path.unlink()
             proof_path.symlink_to(root / "missing-proof.json")
@@ -462,6 +479,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 "--release-id", fixture["release_id"],
                 "--manifest-sha256", manifest["manifestSha256"],
                 "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", proof_sha,
                 expect_ok=False,
             )
             self.assertIn("proof path is invalid", rejected.stderr)
