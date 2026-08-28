@@ -11,10 +11,11 @@
 ## 收口证据
 
 - 代码：`generated-candidate-governance.ts`、`generated-candidate-persistence.ts`、`generated-candidate-catalog.ts`、`generated-catalog-runtime.ts`、`adaptive-assessment-item-catalog.ts`、`adaptive-assessment-catalog-selector.ts`（本 change 新增 `findGeneratedRuntimeQuestionById`）、`adaptive-engine.ts`、`adaptive-persistence.ts`、`adaptive-question-bank.ts`、generated-candidates 路由。
-- 测试：`generated-candidate-governance.test.ts`（11 例，含新增重复发布与回执回读）、`generated-runtime-question-resolution.test.ts`（新增 3 例，含选择→解析→作答端到端）、既有 catalog/route/persistence 测试；Assessment 域 32 文件 385 例通过。
+- 测试：`generated-candidate-governance.test.ts`（11 例，含新增重复发布与回执回读）、`generated-runtime-question-resolution.test.ts`（新增 4 例，含选择→解析→作答端到端与 torn fail-closed）、既有 catalog/route/persistence 测试；Assessment 域 33 文件 390 例通过。
 - tasks：14/14 勾选。
 - 校验：`openspec validate reconcile-reviewed-assessment-generation-governance --type change --strict` 通过；`git diff --check` 通过；`npm run typecheck` 零错误（exit 0）。
-- PR #1664 复审整改：接受 Codex P1（已发布生成题被阶段策略家族级硬阻断），按本 change delta 的证据集对齐 `assessment-evidence-authority.ts`、`adaptive-assessment-semantic-review.ts` 与 `generated-candidate-catalog.ts`；terminal-validation 对 generated 家族的排除保持不变。
+- PR #1664 复审整改（第一轮）：接受 Codex P1（已发布生成题被阶段策略家族级硬阻断），按本 change delta 的证据集对齐 `assessment-evidence-authority.ts`、`adaptive-assessment-semantic-review.ts` 与 `generated-candidate-catalog.ts`；terminal-validation 对 generated 家族的排除保持不变。
+- PR #1664 复审整改（第二轮）：接受 Codex P1（torn hydration 回退静态 sidecar 导致旧发布物越权），`generated-catalog-runtime.ts` 在断裂 lineage 时安装空就绪 overlay 并禁止静态回退，lineage 恢复后自动重读。
 - 无第二套 candidate schema、状态机、catalog 或平行 publication receipt；历史题面、答案快照与 LearningFact 隐私边界未改写。
 
 ## 显式残余项（不阻断）

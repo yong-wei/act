@@ -26,6 +26,75 @@ import {
   type GeneratedCandidateStore,
 } from '@/features/adaptive-assessment/generated-candidate-governance';
 
+function persistenceDbFromStore(store: GeneratedCandidateStore) {
+  return {
+    adaptiveAssessmentGeneratedCandidate: {
+      findMany: async () => store.candidates.map((record) => ({
+        id: record.candidateId,
+        generationKind: record.generationKind,
+        status: record.status,
+        currentRevisionId: record.currentRevisionId,
+        createdByUserId: record.createdByUserId,
+        createdAt: new Date(record.createdAt),
+        updatedAt: new Date(record.updatedAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateRevision: {
+      findMany: async () => store.revisions.map((revision) => ({
+        id: revision.revisionId,
+        candidateId: revision.candidateId,
+        envelopePublicJson: revision.envelope,
+        envelopePrivateJson: revision.privatePayload ?? {},
+        contentJson: revision.content,
+        createdAt: new Date(revision.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateEvent: {
+      findMany: async () => store.events.map((event) => ({
+        id: event.eventId,
+        candidateId: event.candidateId,
+        revisionId: event.revisionId,
+        status: event.status,
+        actorUserId: event.actorUserId,
+        reason: event.reason,
+        createdAt: new Date(event.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedCandidateReview: {
+      findMany: async () => store.reviews.map((review) => ({
+        id: review.reviewId,
+        candidateId: review.candidateId,
+        revisionId: review.revisionId,
+        reviewerUserId: review.reviewerUserId,
+        reviewerRole: review.reviewerRole,
+        outcome: review.outcome,
+        rationale: review.rationale,
+        itemDecisions: review.itemDecisions,
+        contentHash: review.contentHash,
+        reviewSourceHash: review.reviewSourceHash,
+        stale: review.stale,
+        createdAt: new Date(review.createdAt),
+      })),
+    },
+    adaptiveAssessmentGeneratedPublicationReceipt: {
+      findMany: async () => store.receipts.map((receipt) => ({
+        id: receipt.receiptId,
+        candidateId: receipt.candidateId,
+        revisionId: receipt.revisionId,
+        reviewId: receipt.reviewId,
+        catalogItemId: receipt.catalogItemId,
+        contentHash: receipt.contentHash,
+        catalogReleaseId: receipt.catalogReleaseId,
+        receiptHash: receipt.receiptHash,
+        generationKind: receipt.generationKind,
+        status: receipt.status,
+        createdAt: new Date(receipt.createdAt),
+        retiredAt: receipt.retiredAt ? new Date(receipt.retiredAt) : null,
+      })),
+    },
+  };
+}
+
 function validContent(overrides: Partial<GeneratedCandidateContent> = {}): GeneratedCandidateContent {
   return {
     stem: '校正方案必须同时核对哪组独立证据？',
@@ -177,5 +246,29 @@ describe('generated runtime question resolution', () => {
     expect(selected.catalogItem.sourceFamily).toBe('generated-adaptive-question');
     const question = getAdaptiveQuestionById(selected.catalogItem.sourceId);
     expect(question?.stem).toBe(validContent().stem);
+  });
+
+  it('fails closed on torn hydration instead of serving stale published items', async () => {
+    const { store, created } = approvedPublishedStore();
+    hydrateOverlay(store);
+    expect(getAdaptiveQuestionById(created.revision.revisionId)).not.toBeNull();
+
+    const { ensureGeneratedCatalogHydrated } = await import(
+      '@/features/adaptive-assessment/generated-catalog-runtime'
+    );
+    const { isGeneratedRuntimeOverlayReady } = await import(
+      '@/features/adaptive-assessment/adaptive-assessment-catalog-selector'
+    );
+    resetGeneratedRuntimeOverlay();
+    await ensureGeneratedCatalogHydrated(persistenceDbFromStore({
+      ...store,
+      revisions: [],
+      reviews: [],
+    }));
+    expect(isGeneratedRuntimeOverlayReady()).toBe(true);
+    expect(getAdaptiveQuestionById(created.revision.revisionId)).toBeNull();
+
+    await ensureGeneratedCatalogHydrated(persistenceDbFromStore(store));
+    expect(getAdaptiveQuestionById(created.revision.revisionId)).not.toBeNull();
   });
 });

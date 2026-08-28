@@ -325,7 +325,8 @@ describe('generated candidate governance', () => {
       revisions: [],
       reviews: [],
     }));
-    expect(isGeneratedRuntimeOverlayReady()).toBe(false);
+    expect(isGeneratedRuntimeOverlayReady()).toBe(true);
+    expect(findAdaptiveAssessmentCatalogSnapshot(created.revision.revisionId)).toBeNull();
 
     await ensureGeneratedCatalogHydrated({
       ...completeDb,
