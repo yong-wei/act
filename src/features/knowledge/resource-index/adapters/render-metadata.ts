@@ -26,12 +26,13 @@ export interface RenderMetadataRecord {
   defaultConfig?: Record<string, unknown>;
 }
 
-const UNSAFE_CONFIG_KEYS = /path|url|hash|secret|token|component/i;
+const UNSAFE_CONFIG_KEYS = /path|url|href|hash|secret|token|component|answer|payload|eval|hint|signature/i;
 const FILE_OR_MODULE_PATH = /(?:^|\/)src\/|\.(?:tsx?|jsx?|cjs|mjs)$/;
+const UNSAFE_CONFIG_VALUE = /(?:^|\/)src\/|\.(?:tsx?|jsx?|cjs|mjs)$|file:|s3:|oss:|signed|x-amz|token=|secret/i;
 
 function projectSafeConfigValue(value: unknown): SafeConfigValue | undefined {
   if (typeof value === 'string') {
-    return FILE_OR_MODULE_PATH.test(value) ? undefined : value;
+    return FILE_OR_MODULE_PATH.test(value) || UNSAFE_CONFIG_VALUE.test(value) ? undefined : value;
   }
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;

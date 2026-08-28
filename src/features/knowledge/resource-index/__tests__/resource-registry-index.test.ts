@@ -144,6 +144,30 @@ describe('resource registry index', () => {
     });
   });
 
+  it('strips signed URLs and hidden evaluation payloads from student config', () => {
+    const index = buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        sharedRevision: SHARED,
+        records: [metadata({
+          id: 'widget-physics-mech',
+          defaultConfig: {
+            mode: 'mechanical',
+            items: ['mass'],
+            href: 'https://example.s3.amazonaws.com/object?X-Amz-Signature=abc',
+            answerKey: 'B',
+            nested: { payload: { hiddenScore: 1 }, label: 'ok' },
+          },
+        })],
+      }),
+    ]);
+    expect(index.entries[0].descriptor.safeConfig).toEqual({
+      mode: 'mechanical',
+      items: ['mass'],
+      nested: { label: 'ok' },
+    });
+    expect(JSON.stringify(index.entries[0].descriptor.safeConfig)).not.toMatch(/X-Amz-Signature|answerKey|hiddenScore/);
+  });
+
   it('keeps lookalike labels in distinct source kinds instead of merging', () => {
     const index = buildResourceRegistryIndex([
       createRenderMetadataAdapter({
