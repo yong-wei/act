@@ -146,6 +146,8 @@
     "test:skillopt-sleep": "node ./scripts/tests/test-skillopt-sleep.mjs",
     "test:navigation": "node ./scripts/tests/test-no-hardcoded-localhost-navigation.mjs",
     "test:docker-migration-readiness": "node ./scripts/tests/test-docker-migration-readiness.mjs",
+    "test:container-build-context": "node ./scripts/tests/test-container-build-context.mjs",
+    "test:local-container-build-cache": "node ./scripts/tests/test-local-container-build-cache.mjs",
     "test:math-document-grading-migration": "node ./scripts/tests/test-math-document-grading-migration.mjs && npm run test:math-document-grading-readyz",
     "test:math-document-grading-readyz": "python3 ./scripts/tests/test-readyz-json.py",
     "test:konling-math-real-smoke": "npx --yes tsx ./scripts/tests/test-konling-math-real-smoke.ts",

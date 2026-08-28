@@ -123,6 +123,11 @@ function main() {
     .map((entry) => read(path.join('prisma', 'migrations', entry.name, 'migration.sql')))
     .join('\n');
 
+  assert.ok(
+    dockerignore.includes('!tools/glb-model-optimizer/optimize-models.mjs'),
+    '.dockerignore 必须放行优化模型校验所需的优化器真源脚本',
+  );
+
   assert.match(
     dockerfile,
     /COPY --from=builder \/app\/prisma \.\/prisma/,
@@ -144,7 +149,7 @@ function main() {
     );
   }
   const runnerStage = dockerfile.slice(
-    dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+    dockerfile.indexOf('FROM runner-os AS runner'),
   );
   assert.match(
     runnerStage,
@@ -265,7 +270,7 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /FROM node:20-bookworm-slim AS base/,
+    /FROM \$\{NODE_IMAGE\} AS base/,
     'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
   );
   assert.doesNotMatch(
@@ -799,32 +804,42 @@ function main() {
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
-  assert.match(
+  assert.doesNotMatch(
     localImageBuildScript,
-    /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
-    '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
+    /\n(?:SKIP_WASM_BUILD=1 )?npm run build\n|\nnext build\n|rm -rf "\$\{ROOT_DIR\}\/\.next"/,
+    'release build 宿主预检不得执行完整 Next 构建或生成 .next',
   );
   assert.match(
     localImageBuildScript,
     /import-course-coverage-overlay\.ts --validate-only/,
     'release build 必须在干净 Git HEAD 上预校验 CourseCoverage Overlay',
   );
-  assert.match(
-    localImageBuildScript,
-    /SKIP_WASM_BUILD=1 npm run build/,
-    'release build 宿主 Next 校验必须复用已提交的控制分析 Wasm 包，不得重写 tracked Wasm 输出',
+  for (const requiredHostGate of [
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate',
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma generate',
+    'npm run models:validate',
+    'npm run typecheck',
+  ]) {
+    assert.ok(
+      localImageBuildScript.includes(requiredHostGate),
+      `release build 宿主预检必须执行 ${requiredHostGate}`,
+    );
+  }
+  const hostValidationIndex = localImageBuildScript.indexOf(
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate',
   );
-  const localNpmBuildIndex = localImageBuildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n');
-  const postLocalNpmBuildCleanCheckIndex = localImageBuildScript.indexOf(
+  const hostTypecheckIndex = localImageBuildScript.indexOf('\nnpm run typecheck\n');
+  const postHostValidationCleanCheckIndex = localImageBuildScript.indexOf(
     'assert_clean_release_worktree',
-    localNpmBuildIndex,
+    hostTypecheckIndex,
   );
   const dockerBuildIndex = localImageBuildScript.indexOf('docker buildx build');
   assert.ok(
-    localNpmBuildIndex >= 0
-      && postLocalNpmBuildCleanCheckIndex > localNpmBuildIndex
-      && dockerBuildIndex > postLocalNpmBuildCleanCheckIndex,
-    'release build 必须在宿主 npm build 后再次 fail-closed 检查可见工作树',
+    hostValidationIndex >= 0
+      && hostTypecheckIndex > hostValidationIndex
+      && postHostValidationCleanCheckIndex > hostTypecheckIndex
+      && dockerBuildIndex > postHostValidationCleanCheckIndex,
+    'release build 必须在宿主输入预检后再次 fail-closed 检查可见工作树',
   );
   assert.match(
     localImageBuildScript,
@@ -873,10 +888,10 @@ function main() {
   );
   assert.ok(
     dockerMemoryCheckIndex >= 0
-      && localNpmBuildIndex >= 0
-      && dockerMemoryCheckIndex < localNpmBuildIndex
+      && hostValidationIndex >= 0
+      && dockerMemoryCheckIndex < hostValidationIndex
       && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
-    'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
+    'Docker VM 内存门禁必须早于宿主输入预检与 Docker build',
   );
 
   assert.match(
