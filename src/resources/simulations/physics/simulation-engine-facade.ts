@@ -82,6 +82,7 @@ import type { AzipodCourseKeeperConfig, AzipodCourseKeeperState } from './contro
 import type { SmithPredictorConfig, SmithPredictorFullState } from './controllers/smith-predictor';
 import type { PIDControllerState } from './controllers/pid-controller';
 import type { WindEnvironment as ContainerWindEnvironment, WindLoadParams } from './disturbances/wind-load';
+import { DEFAULT_WIND_PARAMS } from './disturbances/wind-load';
 import {
   createDredgingImpactState,
   DEFAULT_DREDGING_CONFIG,
@@ -402,7 +403,7 @@ export function windLoadStep(
     loadRatio,
     environment: env,
     time,
-    params: params ?? {},
+    params: params ?? DEFAULT_WIND_PARAMS,
   });
 }
 

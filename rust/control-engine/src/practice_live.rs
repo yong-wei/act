@@ -509,7 +509,7 @@ fn compute_wind_load_step(request: &Value) -> Result<String, String> {
     let area = num(params, "hullArea", 2000.0) + num(params, "cargoArea", 6000.0) * cargo_multiplier;
     let dynamic_pressure = 0.5 * num(params, "airDensity", 1.225) * speed * speed;
     let force = dynamic_pressure * area * num(params, "windCoeff", 0.8) * relative.sin();
-    let arm = num(params, "shipLength", 366.0) * num(params, "armRatio", 0.3);
+    let arm = num(params, "shipLength", 399.9) * num(params, "armRatio", 0.3);
     serde_json::to_string(&json!({
         "force": force,
         "moment": force * arm,

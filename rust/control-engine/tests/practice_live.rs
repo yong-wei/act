@@ -155,3 +155,30 @@ fn practice_drilling_environment_seeded_replay_is_deterministic() {
     assert!(first["current"]["speed"].as_f64().unwrap().is_finite());
     assert!(first["wind"]["speed"].as_f64().unwrap().is_finite());
 }
+
+#[test]
+fn practice_wind_load_default_length_matches_container_msc() {
+    let request = json!({
+        "modelId": "practice_wind_load_step",
+        "shipHeading": 0.0,
+        "loadRatio": 0.5,
+        "environment": { "speed": 10.0, "direction": 1.5707963267948966 },
+        "time": 0.0,
+        "params": {}
+    });
+    let defaulted = parse(request.clone());
+    let mut explicit = request.clone();
+    explicit["params"] = json!({ "shipLength": 399.9 });
+    let matched = parse(explicit);
+    assert_close(
+        defaulted["moment"].as_f64().unwrap(),
+        matched["moment"].as_f64().unwrap(),
+        "moment",
+    );
+    let mut legacy = request;
+    legacy["params"] = json!({ "shipLength": 366.0 });
+    let drifted = parse(legacy);
+    let rel = (drifted["moment"].as_f64().unwrap() - matched["moment"].as_f64().unwrap()).abs()
+        / matched["moment"].as_f64().unwrap().abs().max(1.0);
+    assert!(rel > 1e-3, "legacy 366 m default should exceed rel 1e-3");
+}

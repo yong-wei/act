@@ -68,6 +68,7 @@ describe('simulation engine facade adoption', () => {
     expect(source).toContain("modelId: 'practice_sloshing_step'");
     expect(source).toContain("modelId: 'practice_gain_schedule_step'");
     expect(source).toContain("modelId: 'practice_wind_load_step'");
+    expect(source).toContain('DEFAULT_WIND_PARAMS');
     expect(source).toContain("modelId: 'practice_dredging_disturbance'");
     expect(source).toContain("modelId: 'practice_dp_decoupled_control'");
     expect(source).toContain("modelId: 'practice_allocate_thrust'");
