@@ -4,7 +4,7 @@
  * ä½¿ç”¨éšæœºæœç´¢ç®—æ³•å¯»æ‰¾æœ€ä¼?PID å‚æ•°
  */
 
-import { computeVirtualSimulationServerStep } from '../rust/control-engine-server-runtime';
+import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server';
 import {
   createSimulationRng,
   createSimulationRunContext,

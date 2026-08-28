@@ -35,7 +35,7 @@ vi.mock('@/lib/data-governance/control-workbench-run-context', () => ({
   resolveTrustedControlWorkbenchContext: mocks.resolveTrustedControlWorkbenchContext,
 }));
 
-vi.mock('@/resources/control-system/analysis/control-engine-server-runtime', () => ({
+vi.mock('@/lib/control-engine/server', () => ({
   computeControlAnalysisServer: mocks.computeControlAnalysisServer,
 }));
 
@@ -53,6 +53,7 @@ vi.mock('@/lib/nextjs-dynamic-error', () => ({
 }));
 
 import { POST } from '@/app/api/simulation/runs/route';
+import { ControlEngineFailure } from '@/lib/control-engine';
 
 function request(body: unknown) {
   return new NextRequest('http://localhost/api/simulation/runs', {
@@ -234,5 +235,54 @@ describe('POST /api/simulation/runs', () => {
     }));
     expect(response.status).toBe(400);
     expect(mocks.persistSceneTraceSimulationRun).not.toHaveBeenCalled();
+  });
+
+  it('does not persist a control workbench run when the server facade is unavailable', async () => {
+    mocks.persistControlWorkbenchSimulationRun.mockImplementation(async (_db, _user, _input, compute) => {
+      compute({
+        runtimeMode: 'analysis',
+        plant: { numerator: [1], denominator: [1, 1] },
+        structures: [],
+        outputs: ['step_response'],
+        timeRange: { start: 0, end: 10, samples: 10 },
+        frequencyRange: { min: 0.1, max: 10, samples: 10 },
+        rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
+      });
+      return { simulationRunId: 'should-not-exist' };
+    });
+    mocks.computeControlAnalysisServer.mockImplementation(() => {
+      throw new ControlEngineFailure({
+        state: 'unavailable',
+        category: 'wasm-unavailable',
+        message: 'control-engine runtime unavailable',
+        retryable: true,
+      });
+    });
+
+    const response = await POST(request({
+      kind: 'control-workbench',
+      clientRunId: 'step-1:module-1:1',
+      capabilityId: 'control-linked-comparison',
+      request: {
+        runtimeMode: 'analysis',
+        plant: { numerator: [1], denominator: [1, 1] },
+        structures: [],
+        outputs: ['step_response'],
+        timeRange: { start: 0, end: 10, samples: 10 },
+        frequencyRange: { min: 0.1, max: 10, samples: 10 },
+        rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
+      },
+      launchContext: {
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        stepId: 'step-1',
+        moduleId: 'module-1',
+        lessonId: '1-4',
+      },
+    }));
+    const payload = await response.json() as { simulationRunId?: string; state?: string };
+
+    expect(response.status).toBe(503);
+    expect(payload.simulationRunId).toBeUndefined();
+    expect(payload.state).toBe('unavailable');
   });
 });

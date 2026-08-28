@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { computeVirtualSimulationServerStep } from '@/resources/simulations/rust/control-engine-server-runtime';
+import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server';
 
 describe('simulation API Rust runtime adoption', () => {
   it('loads the virtual simulation engine from the server-side WASM runtime', () => {
@@ -32,6 +32,8 @@ describe('simulation API Rust runtime adoption', () => {
       'utf8',
     );
 
+    expect(cruiseRoute).toContain('@/lib/control-engine/server');
+    expect(icebreakerRoute).toContain('@/lib/control-engine/server');
     expect(cruiseRoute).toContain("modelId: 'cruise_comfort_analysis'");
     expect(icebreakerRoute).toContain("modelId: 'icebreaker_robust_analysis'");
   });

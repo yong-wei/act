@@ -34,3 +34,19 @@
 `scripts/wasm/build-control-engine.mjs` 写出 `.build-hash`、`identity.json` 和 `src/lib/control-engine/identity.generated.ts`。部分文件、手改 JS/WASM 或 hash 不匹配会使 runtime 不可用，不能切换到 TypeScript 实现。
 
 回滚：恢复本 change 之前的 generated 包与 identity 文件。不得删除历史 SimulationRun / Arena 证据。
+
+## 服务端消费者（R3）
+
+四类服务端 consumer 与 virtual-preview 写路径只通过 `@/lib/control-engine/server` 取数值：
+
+| 类别 | 入口 | façade 符号 |
+| --- | --- | --- |
+| generic analysis | `/api/simulation/runs` | `computeControlAnalysisServer` |
+| simulation virtual | cruise/icebreaker routes、optimizer | `computeVirtualSimulationServerStep` |
+| Control Odyssey | `official-simulation.ts` | `computeControlOdysseyServerStep` |
+| Arena analysis | `ControlAnalysisService` | `computeAnalysisServer` |
+| Arena preview persist | `controller-preview.ts` | `computeArenaVirtualPreviewResult` |
+
+清单真源：`src/lib/control-engine/server-consumers.ts`。官方 Arena 评分仍由 evaluator 拥有；缓存最小键仍是 `taskId + artifactHash + protocolVersion`。命中后还须核对写入 metadata 的 runtime/model/spec 绑定，冲突视为 miss，不得把旧分数当成新 runtime 的官方结果。三个 server compatibility loader 留给 R6 删除，本阶段不得删除。
+
+隐藏输入与 client `trace`/`summary`/`checksum` 仍在 façade 外被拒绝。facade `unavailable`/`timeout` 不得写成 SimulationRun 或官方分数。

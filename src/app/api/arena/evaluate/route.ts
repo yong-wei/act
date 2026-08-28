@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { ControlEngineFailure, controlEngineHttpStatus } from '@/lib/control-engine';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { prismaArenaBlackBoxExperimentStore } from '@/features/arena/blackbox/experiment-service';
@@ -182,6 +183,12 @@ export async function POST(request: Request) {
     }
     if (error instanceof ArenaSubmissionInputError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof ControlEngineFailure) {
+      return NextResponse.json(
+        { error: error.message, state: error.state },
+        { status: controlEngineHttpStatus(error) },
+      );
     }
     if (error instanceof ArenaPlantAdapterSelectionError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
