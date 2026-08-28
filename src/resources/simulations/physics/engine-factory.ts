@@ -33,40 +33,35 @@ import {
   type MMG3DOFState,
   DEFAULT_MMG_PARAMS,
 } from './simulation-engine-facade';
+import type { PIDControllerState } from './controllers/pid-controller';
+import { createPIDControllerState } from './controllers/pid-controller';
 import {
-  PIDController,
-  type PIDControllerState,
-} from './controllers/pid-controller';
-import {
-  dpControl,
   dpControlWithFeedforward,
   createDPState,
   type DPTarget,
   type DPCurrentState,
   type DPState,
-} from './controllers/dp-controller';
+} from './simulation-engine-facade';
 import {
   DredgingImpactModel,
-} from './disturbances/dredging-impact';
+} from './simulation-engine-facade';
 import {
   nomoto2ndOrderDelayStep,
   createNomoto2ndOrderDelayState,
-  createPIDStateForLNG,
   pidControl2ndOrder,
   DEFAULT_NOMOTO_2ND_ORDER_PARAMS,
   type Nomoto2ndOrderDelayState,
 } from './simulation-engine-facade';
 import {
   sloshingStep,
-  createSloshingState,
   computeSloshingMoment,
-  getSloshingMetrics,
-  shouldTriggerSloshingAlarm,
-  DEFAULT_SLOSHING_PARAMS,
   type SloshingState,
-} from './disturbances/sloshing-model';
+} from './simulation-engine-facade';
+import { createSloshingState, getSloshingMetrics, shouldTriggerSloshingAlarm, DEFAULT_SLOSHING_PARAMS } from './disturbances/sloshing-model';
 import {
   smithPredictorControl,
+} from './simulation-engine-facade';
+import {
   createSmithPredictorFullState,
   type SmithPredictorFullState,
   type SmithPredictorConfig,
@@ -82,15 +77,12 @@ import {
 } from './simulation-engine-facade';
 import {
   windLoadStep,
-  createWindEnvironment,
-  shouldTriggerWindAlarm,
-  getWindLoadMetrics,
-  type WindEnvironment,
-} from './disturbances/wind-load';
+} from './simulation-engine-facade';
+import { createWindEnvironment, shouldTriggerWindAlarm, getWindLoadMetrics, type WindEnvironment } from './disturbances/wind-load';
 import {
-  GainScheduler,
-  type SchedulerDiagnostics,
-} from './controllers/gain-scheduler';
+  computePracticeGainScheduleStep,
+} from './simulation-engine-facade';
+import type { SchedulerDiagnostics } from './controllers/gain-scheduler';
 import {
   DEFAULT_NOMOTO_PARAMS,
   ETHICAL_THRESHOLDS,
@@ -114,24 +106,20 @@ import {
   toRadians,
 } from '../core/constants';
 import {
-  rollCoupledNomotoStep,
+  computePracticeCruiseLiveStep,
+  computePracticeCruiseComfortRealtime,
+  computePracticePidControl,
   createRollCoupledState,
-  computeWaveExcitation,
   DEFAULT_ROLL_COUPLED_PARAMS,
   type RollCoupledState,
 } from './simulation-engine-facade';
 import {
-  finStabilizerStep,
   createFinStabilizerState,
-  pdRollControl,
-  normalizeFinMoment,
   getFinStabilizerMetrics,
   isFinPowerExceeded,
-  DEFAULT_FIN_PARAMS,
   type FinStabilizerState,
 } from './disturbances/fin-stabilizer';
 import {
-  notchFilterStep,
   createNotchFilterState,
   generateBodePlot,
   getNotchFilterMetrics,
@@ -139,9 +127,7 @@ import {
   type NotchFilterState,
 } from './controllers/notch-filter';
 import {
-  updateComfortMetricsRealtime,
   createComfortMetrics,
-  getComfortRating,
   getComfortRatingDescription,
   isComfortExceeded,
   type ComfortMetrics,
@@ -150,7 +136,6 @@ import {
   createSemiSub3DOFState,
   semiSub3DOFStep,
   semiSubToSimulationState,
-  getDecouplingMatrix,
   type SemiSubmersible3DOFState as SemiSub3DOFInternalState,
 } from './simulation-engine-facade';
 import {
@@ -162,20 +147,21 @@ import {
   getTypicalEnvironment,
   type CurrentEnvironment,
   type WindEnvironment as CurrentWindEnvironment,
-} from './disturbances/current-model';
+} from './simulation-engine-facade';
 import {
   allocateThrust,
   createThrusterConfigs,
-  createThrusterStates,
   simulateThrusterFailure,
-  getThrusterSummary,
   computeTotalPower,
-} from './controllers/thruster-allocation';
+  getThrusterSummary,
+} from './simulation-engine-facade';
 import {
   dpDecoupledControl,
   dpStandardControl,
   createDPControllerConfig,
-  createDPState as createDPDecouplingState,
+  createDPDecouplingState,
+} from './simulation-engine-facade';
+import {
   createPerformanceTracker,
   updatePerformanceTracker,
   computePerformanceMetrics,
@@ -208,23 +194,20 @@ import {
 import {
   createIceBreakingState,
   iceBreakingStep,
-  computeIceResistance,
   getIceBreakingSummary,
-  isIceThicknessExceeded,
   shouldTriggerIceAlarm,
   computePropellerStress,
   type IceBreakingState,
   DEFAULT_ICE_BREAKING_PARAMS,
-} from './disturbances/ice-breaking-model';
+} from './simulation-engine-facade';
 import {
   createAzipodCourseKeeperState,
   azipodCourseKeeperControl,
   azipodCourseKeeperControlIceMode,
   getAzipodControllerDiagnostics,
-  checkSlewRateWarning,
   type AzipodCourseKeeperState,
   DEFAULT_AZIPOD_COURSE_KEEPER_CONFIG,
-} from './controllers/azipod-course-keeper';
+} from './simulation-engine-facade';
 import type { IcebreakerProfile } from '../profiles/icebreaker-xuelong';
 
 // ============ 引擎接口 ============
@@ -277,7 +260,9 @@ export interface SimulationEngineOptions {
 export class Nomoto1stOrderEngine implements SimulationEngine {
   private profile: ShipProfile;
   private state: NomotoState;
-  private pidController: PIDController;
+  private pidState: PIDControllerState;
+  private pidMode: ControlMode = 'pid';
+  private pidGains: PIDGains;
   private prevRudder: number = 0;
   private totalError: number = 0;
   private errorCount: number = 0;
@@ -287,17 +272,15 @@ export class Nomoto1stOrderEngine implements SimulationEngine {
   constructor(profile: ShipProfile) {
     this.profile = profile;
     this.state = createNomotoState();
-    this.pidController = new PIDController({
-      gains: profile.control.defaultPID ?? DEFAULT_PID_GAINS,
-      maxRudderDeg: profile.dynamics.rudder.maxAngle,
-    });
+    this.pidState = createPIDControllerState();
+    this.pidGains = profile.control.defaultPID ?? DEFAULT_PID_GAINS;
   }
 
   initialize(startX: number, startZ: number, startHeading: number): void {
     const speed = this.profile.dynamics.nomoto?.speedMps ??
       DEFAULT_NOMOTO_PARAMS.speedMps;
     this.state = createNomotoState(startX, startZ, startHeading, speed);
-    this.pidController.reset();
+    this.pidState = createPIDControllerState();
     this.prevRudder = 0;
     this.totalError = 0;
     this.errorCount = 0;
@@ -320,10 +303,19 @@ export class Nomoto1stOrderEngine implements SimulationEngine {
       rudderDeg = manualRudder;
       this.state.speedMps = manualSpeed;
     } else {
-      this.pidController.setMode(controlMode);
+      this.pidMode = controlMode;
       const currentHeading = toDegrees(this.state.headingRad);
-      const output = this.pidController.compute(targetHeading, currentHeading, dt);
-      rudderDeg = output.rudderDeg;
+      const result = computePracticePidControl({
+        dt,
+        targetHeading,
+        currentHeading,
+        controlMode: this.pidMode,
+        gains: this.pidGains,
+        maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
+        state: this.pidState,
+      });
+      this.pidState = result.newState;
+      rudderDeg = result.output.rudderDeg;
     }
 
     // 计算舵角速率
@@ -401,7 +393,7 @@ export class Nomoto1stOrderEngine implements SimulationEngine {
   }
 
   setPIDGains(gains: PIDGains): void {
-    this.pidController.setGains(gains);
+    this.pidGains = { ...this.pidGains, ...gains };
   }
 }
 
@@ -411,7 +403,9 @@ export class Nomoto1stOrderEngine implements SimulationEngine {
 export class MMG3DOFEngine implements SimulationEngine {
   private profile: ShipProfile;
   private state: MMG3DOFState;
-  private pidController: PIDController;
+  private pidState: PIDControllerState;
+  private pidMode: ControlMode = 'pid';
+  private pidGains: PIDGains;
   private dpState: DPState;
   private dpGains: DPGains;
   private dredgingModel: DredgingImpactModel | null = null;
@@ -427,10 +421,8 @@ export class MMG3DOFEngine implements SimulationEngine {
     this.profile = profile;
     this.runContext = options.runContext;
     this.state = createMMG3DOFState();
-    this.pidController = new PIDController({
-      gains: profile.control.defaultPID ?? DEFAULT_PID_GAINS,
-      maxRudderDeg: profile.dynamics.rudder.maxAngle,
-    });
+    this.pidState = createPIDControllerState();
+    this.pidGains = profile.control.defaultPID ?? DEFAULT_PID_GAINS;
     this.dpState = createDPState();
     this.dpGains = profile.control.defaultDP ?? {
       surge: { kp: 50000, ki: 2000, kd: 30000 },
@@ -458,7 +450,7 @@ export class MMG3DOFEngine implements SimulationEngine {
       toRadians(startHeading),
       speed
     );
-    this.pidController.reset();
+    this.pidState = createPIDControllerState();
     this.dpState = createDPState();
     this.prevRudder = 0;
     this.totalError = 0;
@@ -538,10 +530,19 @@ export class MMG3DOFEngine implements SimulationEngine {
       }
     } else {
       // 航向控制
-      this.pidController.setMode(controlMode);
+      this.pidMode = controlMode;
       const currentHeading = toDegrees(this.state.psi);
-      const output = this.pidController.compute(targetHeading, currentHeading, dt);
-      rudderCommand = toRadians(output.rudderDeg);
+      const result = computePracticePidControl({
+        dt,
+        targetHeading,
+        currentHeading,
+        controlMode: this.pidMode,
+        gains: this.pidGains,
+        maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
+        state: this.pidState,
+      });
+      this.pidState = result.newState;
+      rudderCommand = toRadians(result.output.rudderDeg);
     }
 
     // 计算舵角速率
@@ -620,7 +621,7 @@ export class MMG3DOFEngine implements SimulationEngine {
   }
 
   setPIDGains(gains: PIDGains): void {
-    this.pidController.setGains(gains);
+    this.pidGains = { ...this.pidGains, ...gains };
   }
 
   setDPGains(gains: DPGains): void {
@@ -942,7 +943,11 @@ export class LNGCarrierEngine implements SimulationEngine {
 export class ContainerShipEngine implements SimulationEngine {
   private profile: ShipProfile;
   private state: ContainerShipState;
-  private gainScheduler: GainScheduler;
+  private pidState: PIDControllerState;
+  private currentGains: PIDGains;
+  private targetGains: PIDGains;
+  private schedulingEnabled: boolean;
+  private controlMode: ControlMode;
   private windEnvironment: WindEnvironment;
   private prevRudder: number = 0;
   private totalError: number = 0;
@@ -956,17 +961,16 @@ export class ContainerShipEngine implements SimulationEngine {
 
     // 初始化状态
     this.state = createContainerShipState(0.5, 0, 0, 0);
-
-    // 初始化增益调度器
-    this.gainScheduler = new GainScheduler(
-      {
-        schedule: profile.control.gainSchedule ?? CONTAINER_GAIN_SCHEDULE,
-        maxRudderDeg: profile.dynamics.rudder.maxAngle,
-        rateLimit: profile.dynamics.rudder.maxRate,
-      },
-      profile.control.defaultMode === 'pid_scheduled' ? 'pid_scheduled' : 'pid',
-      0.5
-    );
+    const schedule = profile.control.gainSchedule ?? CONTAINER_GAIN_SCHEDULE;
+    this.currentGains = {
+      kp: schedule.empty.kp + (schedule.full.kp - schedule.empty.kp) * 0.5,
+      ki: schedule.empty.ki + (schedule.full.ki - schedule.empty.ki) * 0.5,
+      kd: schedule.empty.kd + (schedule.full.kd - schedule.empty.kd) * 0.5,
+    };
+    this.targetGains = { ...this.currentGains };
+    this.pidState = createPIDControllerState();
+    this.schedulingEnabled = profile.control.defaultMode === 'pid_scheduled';
+    this.controlMode = this.schedulingEnabled ? 'pid_scheduled' : 'pid';
 
     // 初始化风环境
     this.windEnvironment = createWindEnvironment(10, 45, false);
@@ -982,8 +986,16 @@ export class ContainerShipEngine implements SimulationEngine {
     );
     this.state.speedMps = this.profile.dynamics.speed.cruise;
 
-    this.gainScheduler.reset();
-    this.gainScheduler.updateSchedulingVariable(initialLoadRatio);
+    this.pidState = createPIDControllerState();
+    this.schedulingEnabled = this.profile.control.defaultMode === 'pid_scheduled';
+    this.controlMode = this.schedulingEnabled ? 'pid_scheduled' : 'pid';
+    const schedule = this.profile.control.gainSchedule ?? CONTAINER_GAIN_SCHEDULE;
+    this.currentGains = {
+      kp: schedule.empty.kp + (schedule.full.kp - schedule.empty.kp) * initialLoadRatio,
+      ki: schedule.empty.ki + (schedule.full.ki - schedule.empty.ki) * initialLoadRatio,
+      kd: schedule.empty.kd + (schedule.full.kd - schedule.empty.kd) * initialLoadRatio,
+    };
+    this.targetGains = { ...this.currentGains };
 
     this.windEnvironment = createWindEnvironment(10, 45, false);
 
@@ -1004,10 +1016,9 @@ export class ContainerShipEngine implements SimulationEngine {
     dt: number,
     time: number
   ): void {
-    // 更新增益调度器的调度变量 (装载率)
-    this.gainScheduler.updateSchedulingVariable(this.state.loadRatio);
+    this.schedulingEnabled = controlMode === 'pid_scheduled';
+    this.controlMode = controlMode;
 
-    // 控制计算
     let rudderDeg: number;
     const currentHeading = toDegrees(this.state.headingRad);
 
@@ -1015,9 +1026,26 @@ export class ContainerShipEngine implements SimulationEngine {
       rudderDeg = manualRudder;
       this.state.speedMps = manualSpeed;
     } else {
-      this.gainScheduler.setMode(controlMode);
-      const output = this.gainScheduler.compute(targetHeading, currentHeading, dt);
-      rudderDeg = output.rudderDeg;
+      const scheduled = computePracticeGainScheduleStep({
+        dt,
+        targetHeading,
+        currentHeading,
+        controlMode,
+        schedulingVariable: this.state.loadRatio,
+        schedulingEnabled: this.schedulingEnabled,
+        currentGains: this.currentGains,
+        targetGains: this.targetGains,
+        schedule: this.profile.control.gainSchedule ?? CONTAINER_GAIN_SCHEDULE,
+        smoothingFactor: 0.1,
+        pidState: this.pidState,
+        maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
+        derivativeFilter: 0.1,
+        rateLimit: this.profile.dynamics.rudder.maxRate,
+      });
+      this.pidState = scheduled.pidState;
+      this.currentGains = scheduled.currentGains;
+      this.targetGains = scheduled.targetGains;
+      rudderDeg = scheduled.output.rudderDeg;
     }
 
     // 计算舵角速率
@@ -1165,7 +1193,9 @@ export class ContainerShipEngine implements SimulationEngine {
   }
 
   setPIDGains(gains: PIDGains): void {
-    this.gainScheduler.setFixedGains(gains);
+    this.schedulingEnabled = false;
+    this.currentGains = { ...gains };
+    this.targetGains = { ...gains };
   }
 
   // ========== 集装箱船特有方法 ==========
@@ -1173,7 +1203,6 @@ export class ContainerShipEngine implements SimulationEngine {
   /** 更新装载率 */
   setLoadRatio(loadRatio: number): void {
     this.state = updateLoadRatio(this.state, loadRatio);
-    this.gainScheduler.updateSchedulingVariable(loadRatio);
   }
 
   /** 获取装载率 */
@@ -1193,12 +1222,22 @@ export class ContainerShipEngine implements SimulationEngine {
 
   /** 启用/禁用增益调度 */
   setGainSchedulingEnabled(enabled: boolean): void {
-    this.gainScheduler.setMode(enabled ? 'pid_scheduled' : 'pid');
+    this.schedulingEnabled = enabled;
+    this.controlMode = enabled ? 'pid_scheduled' : 'pid';
   }
 
   /** 获取调度诊断信息 */
   getSchedulerDiagnostics(): SchedulerDiagnostics {
-    return this.gainScheduler.getDiagnostics();
+    return {
+      schedulingVariable: this.state.loadRatio,
+      currentGains: { ...this.currentGains },
+      targetGains: { ...this.targetGains },
+      gainsConverged:
+        Math.abs(this.currentGains.kp - this.targetGains.kp) < 0.01 &&
+        Math.abs(this.currentGains.ki - this.targetGains.ki) < 0.001 &&
+        Math.abs(this.currentGains.kd - this.targetGains.kd) < 0.01,
+      isSchedulingActive: this.schedulingEnabled,
+    };
   }
 
   /** 获取集装箱船状态摘要 */
@@ -1290,40 +1329,47 @@ export class CruiseShipEngine implements SimulationEngine {
   ): void {
     this.simulationTime = time;
 
-    // ========== 1. 航向控制计算 ==========
-    let rudderDeg: number;
     const currentHeading = toDegrees(this.state.headingRad);
-    const currentYawRate = toDegrees(this.state.yawRateRad);
+    const gains = this.profile.control.defaultPID ?? CRUISE_DEFAULT_PID;
+    const result = computePracticeCruiseLiveStep({
+      dt,
+      time,
+      targetHeading,
+      controlMode,
+      manualRudder,
+      manualSpeed,
+      maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
+      kp: gains.kp,
+      ki: gains.ki,
+      kd: gains.kd,
+      seaState: this.seaStateLevel,
+      waveDirection: this.waveDirection,
+      prevRudder: this.prevRudder,
+      finStabilizerEnabled: this.finStabilizerEnabled,
+      notchFilterEnabled: this.notchFilterEnabled,
+      state: this.state,
+      pidState: this.pidState,
+      finState: this.finState,
+      notchState: this.notchState,
+      rollCoupledParams: {
+        ...DEFAULT_ROLL_COUPLED_PARAMS,
+        K: this.profile.dynamics.nomoto?.K ?? CRUISE_ADORA_PARAMS.K,
+        T1: this.profile.dynamics.nomoto?.T1 ?? CRUISE_ADORA_PARAMS.T1,
+        T2: this.profile.dynamics.nomoto?.T2 ?? CRUISE_ADORA_PARAMS.T2,
+        K_phi: CRUISE_ADORA_PARAMS.K_PHI,
+        T_phi1: CRUISE_ADORA_PARAMS.T_PHI1,
+        T_phi2: CRUISE_ADORA_PARAMS.T_PHI2,
+        maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
+        speedMps: this.state.speedMps,
+      },
+    });
 
-    if (controlMode === 'manual') {
-      rudderDeg = manualRudder;
-      this.state.speedMps = manualSpeed;
-    } else {
-      // PID 控制
-      const gains = this.profile.control.defaultPID ?? CRUISE_DEFAULT_PID;
-      const error = targetHeading - currentHeading;
-      const normalizedError = ((error + 180) % 360) - 180;  // 归一化到 [-180, 180]
-
-      // 根据控制模式选择增益
-      let kp = gains.kp;
-      let ki = controlMode === 'p' ? 0 : gains.ki;
-      let kd = controlMode === 'p' || controlMode === 'pd' ? 0 : gains.kd;
-      if (controlMode === 'pd') kd = gains.kd;
-
-      // PID 计算
-      this.pidState.integral += normalizedError * dt;
-      const maxIntegral = this.profile.dynamics.rudder.maxAngle / (ki || 0.001);
-      this.pidState.integral = clamp(this.pidState.integral, -maxIntegral, maxIntegral);
-
-      const derivative = (normalizedError - this.pidState.prevError) / dt;
-      this.pidState.prevError = normalizedError;
-
-      const rawRudder = kp * normalizedError + ki * this.pidState.integral + kd * derivative;
-      rudderDeg = clamp(rawRudder, -this.profile.dynamics.rudder.maxAngle, this.profile.dynamics.rudder.maxAngle);
-    }
-
-    // 计算舵角速率
-    const rudderRate = Math.abs(rudderDeg - this.prevRudder) / dt;
+    const rudderDeg = result.rudderDeg;
+    const rudderRate = result.rudderRate;
+    this.state = result.state;
+    this.pidState = result.pidState;
+    this.finState = result.finState;
+    this.notchState = result.notchState;
     if (rudderRate > this.maxRudderRate) {
       this.maxRudderRate = rudderRate;
     }
@@ -1342,103 +1388,21 @@ export class CruiseShipEngine implements SimulationEngine {
       });
     }
 
-    // ========== 2. 波浪激励计算 ==========
-    let waveExcitation = computeWaveExcitation(
-      time,
-      this.seaStateLevel,
-      this.waveDirection,
-      currentHeading
-    );
-
-    // 陷波滤波器处理
-    if (this.notchFilterEnabled) {
-      const notchResult = notchFilterStep(
-        waveExcitation,
-        this.notchState,
-        DEFAULT_NOTCH_PARAMS,
-        1 / dt  // 采样率
-      );
-      waveExcitation = notchResult.output;
-      this.notchState = notchResult.newState;
+    if (this.finStabilizerEnabled && isFinPowerExceeded(this.finState.powerConsumption)) {
+      this.violations.push({
+        type: 'FIN_ENERGY_EXCEEDED',
+        thresholdValue: FIN_STABILIZER_PARAMS.MAX_POWER,
+        actualValue: this.finState.powerConsumption,
+        timestamp: time,
+        description: `减摇鳍功率超限: ${this.finState.powerConsumption.toFixed(0)} kW`,
+        severity: 'warning',
+      });
     }
 
-    // ========== 3. 减摇鳍控制 ==========
-    const rollDeg = toDegrees(this.state.rollRad);
-    const rollRateDeg = toDegrees(this.state.rollRateRad);
-
-    let finAngleDeg = 0;
-    if (this.finStabilizerEnabled) {
-      // PD 控制减摇鳍
-      const finControl = pdRollControl(
-        rollDeg,
-        rollRateDeg,
-        1.0,   // kp
-        2.0,   // kd
-        DEFAULT_FIN_PARAMS
-      );
-
-      // 更新减摇鳍状态
-      this.finState = finStabilizerStep(
-        this.finState,
-        finControl.portAngle,
-        finControl.starboardAngle,
-        this.state.speedMps,
-        this.state.rollRad,
-        dt,
-        DEFAULT_FIN_PARAMS
-      );
-
-      finAngleDeg = this.finState.portFinAngleDeg;
-
-      // 减摇鳍功率违规检测
-      if (isFinPowerExceeded(this.finState.powerConsumption)) {
-        this.violations.push({
-          type: 'FIN_ENERGY_EXCEEDED',
-          thresholdValue: FIN_STABILIZER_PARAMS.MAX_POWER,
-          actualValue: this.finState.powerConsumption,
-          timestamp: time,
-          description: `减摇鳍功率超限: ${this.finState.powerConsumption.toFixed(0)} kW`,
-          severity: 'warning',
-        });
-      }
-    }
-
-    // ========== 4. 横摇耦合 Nomoto 模型步进 ==========
-    const rollCoupledParams = {
-      ...DEFAULT_ROLL_COUPLED_PARAMS,
-      K: this.profile.dynamics.nomoto?.K ?? CRUISE_ADORA_PARAMS.K,
-      T1: this.profile.dynamics.nomoto?.T1 ?? CRUISE_ADORA_PARAMS.T1,
-      T2: this.profile.dynamics.nomoto?.T2 ?? CRUISE_ADORA_PARAMS.T2,
-      K_phi: CRUISE_ADORA_PARAMS.K_PHI,
-      T_phi1: CRUISE_ADORA_PARAMS.T_PHI1,
-      T_phi2: CRUISE_ADORA_PARAMS.T_PHI2,
-      maxRudderDeg: this.profile.dynamics.rudder.maxAngle,
-      speedMps: this.state.speedMps,
-    };
-
-    // 减摇鳍力矩归一化
-    const finMomentNormalized = -normalizeFinMoment(this.finState.antiRollMoment);
+    const currentYawRateDeg = toDegrees(this.state.yawRateRad);
     const centripetalAccelG = Math.abs((this.state.speedMps * this.state.yawRateRad) / 9.81);
     const rollInducedAccelG = Math.abs(Math.sin(this.state.rollRad)) * 1.2;
     const lateralAccelGCurrent = centripetalAccelG + rollInducedAccelG;
-    const rudderRatio = Math.abs(rudderDeg) / Math.max(this.profile.dynamics.rudder.maxAngle, 1);
-    // 转向引起的离心横倾激励，保证满舵工况下具备可感知横倾
-    const turningExcitation = Math.sign(rudderDeg || this.state.yawRateRad) * clamp(
-      centripetalAccelG * 2.2 + Math.pow(rudderRatio, 1.1) * 0.02,
-      -2.5,
-      2.5
-    );
-
-    this.state = rollCoupledNomotoStep(
-      this.state,
-      rudderDeg,
-      finMomentNormalized,
-      waveExcitation,
-      dt,
-      rollCoupledParams,
-      turningExcitation
-    );
-    this.state.finAngleDeg = finAngleDeg;
 
     // ========== 5. 舒适度评估 ==========
     const currentRollDeg = toDegrees(Math.abs(this.state.rollRad));
@@ -1450,7 +1414,7 @@ export class CruiseShipEngine implements SimulationEngine {
     }
 
     // 更新舒适度指标
-    this.comfortMetrics = updateComfortMetricsRealtime(
+    this.comfortMetrics = computePracticeCruiseComfortRealtime(
       this.comfortMetrics,
       currentRollDeg,
       CRUISE_ADORA_PARAMS.NATURAL_ROLL_PERIOD,
@@ -1458,7 +1422,7 @@ export class CruiseShipEngine implements SimulationEngine {
       0.02,
       dt,
       lateralAccelGCurrent,
-      Math.abs(currentYawRate)
+      Math.abs(currentYawRateDeg)
     );
 
     // 记录最大横摇角
