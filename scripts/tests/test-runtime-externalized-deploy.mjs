@@ -819,9 +819,9 @@ try {
 
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
-    buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
+    buildScript.indexOf('PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate'),
   true,
-  'release build 必须在应用构建前执行 resourceSet 教材 v2 preflight',
+  'release build 必须在宿主输入预检前执行 resourceSet 教材 v2 preflight',
 );
 
 assert.equal(
