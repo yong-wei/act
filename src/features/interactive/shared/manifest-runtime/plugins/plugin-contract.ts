@@ -160,6 +160,18 @@ function lookupVersioned(
     if (input.contractVersion) {
       const plugin = versions.get(input.contractVersion);
       if (plugin) return { status: 'rendered', plugin };
+      // The capability is registered under other versions only: an explicit
+      // unregistered version must fail closed instead of falling back to the
+      // central kind path (which would render an incompatible implementation).
+      return {
+        status: 'missing',
+        key: { moduleKind: input.moduleKind, capabilityRef, contractVersion: input.contractVersion },
+        contract: {
+          requirement: 'required',
+          marker: `manifest-plugin-version-missing:${input.moduleKind}:${capabilityRef}:${input.contractVersion}`,
+          reason: `能力 ${capabilityRef} 已注册，但清单请求的合同版本 ${input.contractVersion} 未注册。`,
+        },
+      };
     } else if (versions.size === 1) {
       return { status: 'rendered', plugin: Array.from(versions.values())[0] };
     } else {

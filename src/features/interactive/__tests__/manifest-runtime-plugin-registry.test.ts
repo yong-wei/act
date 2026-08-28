@@ -180,9 +180,14 @@ describe('composeManifestPluginRegistry', () => {
     if (ambiguous.status === 'missing') {
       expect(ambiguous.contract.marker).toBe('manifest-plugin-ambiguous:compute.panel:versioned-cap');
     }
-    // A single registered version resolves without an explicit request.
-    const single = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'present-cap' });
-    void single;
+    // An explicit unregistered version fails closed with the requested version
+    // named instead of falling back to the central kind path.
+    const unknownVersion = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'versioned-cap', contractVersion: 'v99' });
+    expect(unknownVersion.status).toBe('missing');
+    if (unknownVersion.status === 'missing') {
+      expect(unknownVersion.contract.marker).toBe('manifest-plugin-version-missing:compute.panel:versioned-cap:v99');
+      expect(unknownVersion.key.contractVersion).toBe('v99');
+    }
   });
 
   it('resolves activity and layout plugins through their own typed lookups', () => {
