@@ -16,6 +16,7 @@
 - [x] 3.2 Implement a platform-scoped atomic mkdir lock with conservative same-host stale-lock recovery and cleanup traps.
 - [x] 3.3 Export mode=max cache into a fresh generation and atomically replace the current symlink only after the final build succeeds; preserve the previous generation on failure.
 - [x] 3.4 Ensure and select one named local buildx builder, then prewarm runner-os with cache-only output before the final image build using identical platform and system-layer arguments without separately publishing external cache.
+- [x] 3.5 Retain only the current cache generation and its immediate predecessor after a successful atomic publication while the platform lock remains held.
 
 ## 4. Verification
 

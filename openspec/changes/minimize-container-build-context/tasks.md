@@ -3,6 +3,7 @@
 - [x] 1.1 Add a container-context contract test for required application, Prisma, model, WASM, script, lesson-map, Authority, projection, and runtime-governance inputs.
 - [x] 1.2 Add forbidden-path assertions for unused lesson authoring while preserving statically imported lesson fixtures, plus questions, references, course tooling/docs/tests, repository docs/OpenSpec/tests, generated images, and Rust sources.
 - [x] 1.3 Assert that authoring resources and runtime Authority media remain admitted non-goals.
+- [x] 1.4 Preserve every production module's statically imported lesson fixture after synchronizing the latest integration baseline.
 
 ## 2. Context policy
 

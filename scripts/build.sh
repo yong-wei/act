@@ -187,6 +187,7 @@ mkdir -p "${GENERATIONS_DIR}"
 LOCK_HOST="$(hostname 2>/dev/null || printf 'unknown')"
 LOCK_HELD=0
 GENERATION_DIR=""
+PREVIOUS_GENERATION_DIR=""
 CURRENT_LINK_TMP=""
 GENERATION_PUBLISHED=0
 
@@ -268,8 +269,34 @@ atomic_replace_current() {
   fi
 }
 
+capture_previous_generation() {
+  local candidate
+  [[ -L "${CURRENT_CACHE_DIR}" ]] || return 0
+  candidate="$(canonical_path "${CURRENT_CACHE_DIR}")"
+  case "${candidate}" in
+    "${GENERATIONS_DIR}"/*)
+      if [[ -d "${candidate}" && ! -L "${candidate}" ]]; then
+        PREVIOUS_GENERATION_DIR="${candidate}"
+      fi
+      ;;
+  esac
+}
+
+prune_old_cache_generations() {
+  local candidate
+  for candidate in "${GENERATIONS_DIR}"/*; do
+    [[ -d "${candidate}" && ! -L "${candidate}" ]] || continue
+    if [[ "${candidate}" == "${GENERATION_DIR}" \
+      || "${candidate}" == "${PREVIOUS_GENERATION_DIR}" ]]; then
+      continue
+    fi
+    rm -rf -- "${candidate}"
+  done
+}
+
 acquire_platform_lock
 ensure_buildx_builder
+capture_previous_generation
 
 BUILD_ARGS=(
   --build-arg "APP_REVISION=${APP_REVISION}"
@@ -346,6 +373,7 @@ ln -s "${GENERATION_DIR}" "${CURRENT_LINK_TMP}"
 atomic_replace_current "${CURRENT_LINK_TMP}" "${CURRENT_CACHE_DIR}"
 CURRENT_LINK_TMP=""
 GENERATION_PUBLISHED=1
+prune_old_cache_generations
 
 echo "[cache] 已原子发布 generation: ${GENERATION_DIR}"
 echo "构建完成"

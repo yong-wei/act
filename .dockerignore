@@ -70,6 +70,15 @@ course-content/authoring/lessons/4-1/media/raw/*
 !course-content/authoring/lessons/4-1/media/raw/generated-data
 course-content/authoring/lessons/4-1/media/raw/generated-data/*
 !course-content/authoring/lessons/4-1/media/raw/generated-data/4-1-case-data.json
+!course-content/authoring/lessons/4-3
+course-content/authoring/lessons/4-3/*
+!course-content/authoring/lessons/4-3/media
+course-content/authoring/lessons/4-3/media/*
+!course-content/authoring/lessons/4-3/media/raw
+course-content/authoring/lessons/4-3/media/raw/*
+!course-content/authoring/lessons/4-3/media/raw/generated-data
+course-content/authoring/lessons/4-3/media/raw/generated-data/*
+!course-content/authoring/lessons/4-3/media/raw/generated-data/4-3-compound-design-data.json
 course-content/authoring/shared/*
 !course-content/authoring/shared/lesson-id-map.json
 course-content/authoring/knowledge/*
