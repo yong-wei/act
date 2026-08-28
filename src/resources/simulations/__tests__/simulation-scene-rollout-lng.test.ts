@@ -15,7 +15,7 @@ describe('lng scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 295');
     expect(source).toContain('designSpeedKnots: 19');
-    expect(source).toContain('/assets/models-opt/Lng-carrier.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('lng-carrier')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -55,8 +55,8 @@ describe('lng pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(LNG);
-    expect(source).toContain('models-opt/Lng-carrier.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('lng-carrier')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

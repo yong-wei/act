@@ -15,7 +15,7 @@ import {
   V018_STAGED_AUTHORITY_RECEIPT_SHA256,
   V018_STAGED_QUALIFICATION_SHA256,
   V09_PUBLIC_DOMAIN_LABELS,
-} from '../teaching-projection/publish/v018-host-shadow';
+} from '../../../tools/teaching-projection-publishing/publish/v018-host-shadow';
 
 const tmpRoots: string[] = [];
 

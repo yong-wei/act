@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -7,7 +8,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const icebreakerXuelongSceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 122.5,
   designSpeedKnots: 15.5,
-  modelUrl: '/assets/models-opt/icebreaker.glb',
+  modelUrl: resolveRegisteredSimulationModel('icebreaker').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -61.25],

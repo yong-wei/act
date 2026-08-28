@@ -8,9 +8,9 @@ import { prepareActKgV022TeachingProjection } from '../../../scripts/knowledge-c
 import {
   assertV022PointerBytesUnchanged,
   readV022PointerSnapshots,
-} from '../teaching-projection/rebase/v022-receipt';
-import type { V022RebaseReceipt } from '../teaching-projection/rebase/v022-contracts';
-import { V022_CURRENT_POINTER_PATHS } from '../teaching-projection/rebase/v022-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v022-receipt';
+import type { V022RebaseReceipt } from '../../../tools/teaching-projection-publishing/rebase/v022-contracts';
+import { V022_CURRENT_POINTER_PATHS } from '../../../tools/teaching-projection-publishing/rebase/v022-contracts';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const V022_CANDIDATE_RECEIPT = path.join(

@@ -1,0 +1,49 @@
+{
+  "sourceRevision": "653b4a7cd0cedf3e70902411404f0c297cd00901",
+  "owner": "src/lib/assignments",
+  "publicApi": "src/lib/assignments/public-api.ts",
+  "application": [
+    "src/lib/assignments/assignment-service.ts",
+    "src/lib/assignments/submission-service.ts",
+    "src/lib/assignments/assignment-content-assets.ts",
+    "src/lib/assignments/assignment-question-catalog.ts"
+  ],
+  "migratedLifecycleRoutes": [
+    "src/app/api/teacher/assignments/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/next-draft/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/publish/route.ts",
+    "src/app/api/teacher/assignments/managed-classes/route.ts",
+    "src/app/api/teacher/assignments/question-catalog/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/content-assets/upload-sign/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/content-assets/[assetId]/complete/route.ts",
+    "src/app/api/assignments/[assignmentId]/content-assets/[assetId]/route.ts",
+    "src/app/api/student/assignments/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/submit/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/upload-sign/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/finalize/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/reorder/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/history/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/assets/[assetId]/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/answers/[questionId]/assets/[assetId]/read/route.ts",
+    "src/app/api/student/assignments/[assignmentId]/feedback/[snapshotId]/asset/route.ts"
+  ],
+  "reviewHandoff": [
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/route.ts",
+    "src/app/api/teacher/assignments/[assignmentId]/submissions/[submissionId]/review"
+  ],
+  "remainingNonLifecycle": [
+    "src/app/api/teacher/assignments/[assignmentId]/rubric-guidelines/generate/route.ts"
+  ],
+  "models": [
+    "Assignment",
+    "AssignmentRevision",
+    "AssignmentAudience",
+    "AssignmentQuestion",
+    "AssignmentSubmission",
+    "SubmissionAnswer",
+    "SubmissionAttempt"
+  ]
+}

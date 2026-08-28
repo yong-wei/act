@@ -104,6 +104,23 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
   });
 
+  it('rejects client trace/summary/checksum before adapter execution', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    const response = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      trace: [{ t: 0, output: 1 }],
+      summary: { trackingError: 0 },
+      checksum: 'sha256:deadbeef',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('trace');
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
+  });
+
   it('creates a preview run through the production registry adapter for the session student', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 

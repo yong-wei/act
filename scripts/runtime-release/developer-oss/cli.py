@@ -11,9 +11,10 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from bootstrap import DEFAULT_READYZ_URL, linux_preflight, start, stop
-from common import DeveloperRuntimeError, redact
-from credential import install_credential
+from common import DeveloperRuntimeError, authority_id, redact
+from credential import install_credential, load_credential
 from policy import POLICY_PATH, load_and_validate
+from shared_mount import read_blob_with_evidence, shared_status, summarize_transfers
 
 
 def checkout_from_args(args: argparse.Namespace) -> Path:
@@ -31,6 +32,10 @@ def main() -> int:
     start_parser = commands.add_parser("start")
     start_parser.add_argument("--readyz-url", default=DEFAULT_READYZ_URL)
     commands.add_parser("stop")
+    commands.add_parser("status")
+    prove = commands.add_parser("prove-read")
+    prove.add_argument("--digest", required=True)
+    prove.add_argument("--source", required=True)
 
     args = parser.parse_args()
     checkout = checkout_from_args(args)
@@ -48,6 +53,21 @@ def main() -> int:
         elif args.command == "stop":
             stop(checkout)
             print(json.dumps({"ok": True, "stopped": True}, sort_keys=True))
+        elif args.command == "status":
+            credential = load_credential(checkout)
+            print(json.dumps(shared_status(credential["accountId"]), sort_keys=True))
+        elif args.command == "prove-read":
+            credential = load_credential(checkout)
+            mount_id = authority_id(credential["accountId"])
+            data = read_blob_with_evidence(mount_id, args.digest, Path(args.source))
+            summary = summarize_transfers(mount_id)
+            print(json.dumps({
+                "ok": True,
+                "sha256": args.digest,
+                "sizeBytes": len(data),
+                "bodyTransfers": summary["bodyTransfers"].get(args.digest, 0),
+                "cacheHits": summary["cacheHits"].get(args.digest, 0),
+            }, sort_keys=True))
         else:
             parser.error("unknown command")
     except DeveloperRuntimeError as error:

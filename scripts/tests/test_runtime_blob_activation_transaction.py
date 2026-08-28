@@ -30,6 +30,9 @@ def identity(release_id):
 
 
 class RuntimeBlobActivationTransactionTests(unittest.TestCase):
+    def setUp(self):
+        self.compatibility_proofs = {}
+
     def call(self, script, *args, env=None, expect_ok=True):
         process_env = os.environ.copy()
         if env:
@@ -70,6 +73,24 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
         self.call(HOST_STATE, "mark-active", "--state-dir", str(state), "--release-id", active["releaseId"])
         self.call(LIFECYCLE, "begin-publish", "--state-dir", str(state), "--expected-generation", "1", "--identity", str(candidate_path))
         self.call(LIFECYCLE, "set-desired", "--state-dir", str(state), "--expected-generation", "2", "--identity", str(candidate_path))
+        proof = {
+            "schemaVersion": "runtime-app-compatibility.v1",
+            "runtime": {
+                "releaseId": candidate["releaseId"],
+                "sourceRevision": "a" * 40,
+                "manifestSha256": candidate["manifestSha256"],
+                "treeSha256": candidate["treeSha256"],
+            },
+            "application": {"revision": "b" * 40, "imageDigest": "sha256:" + "c" * 64},
+            "consumerContract": "runtime-app-candidate-consumers.v1",
+            "migrationSet": {"count": 1, "sha256": "d" * 64},
+        }
+        wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+        proof_sha = hashlib.sha256(wire).hexdigest()
+        proof_dir = state / "runtime-app-compatibility"
+        proof_dir.mkdir()
+        (proof_dir / (proof_sha + ".json")).write_bytes(wire)
+        self.compatibility_proofs[str(state)] = proof_sha
         return state, active, candidate, active_path, candidate_path
 
     def transaction_args(self, state, command, *extra):
@@ -81,6 +102,7 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             "activate",
             "--expected-generation", expected_generation,
             "--identity", str(candidate_path),
+            "--compatibility-proof-sha256", self.compatibility_proofs[str(state)],
         )
 
     def assert_projected(self, state, expected):
@@ -98,9 +120,27 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
             result = self.call(*self.activate_args(state, candidate_path))
             self.assertTrue(result["completed"])
             self.assert_projected(state, candidate)
+            receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["compatibility"]["proofSha256"], self.compatibility_proofs[str(state)])
             recovered = self.call(*self.transaction_args(state, "recover"))
             self.assertEqual(recovered["active"]["releaseId"], candidate["releaseId"])
             self.assert_projected(state, candidate)
+            recovered_receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(recovered_receipt["compatibility"]["proofSha256"], self.compatibility_proofs[str(state)])
+
+    def test_daily_transaction_rejects_an_activation_without_a_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state, _, _, _, candidate_path = self.setup_transaction(Path(directory))
+            rejected = self.call(
+                *self.transaction_args(
+                    state,
+                    "activate",
+                    "--expected-generation", "3",
+                    "--identity", str(candidate_path),
+                ),
+                expect_ok=False,
+            )
+            self.assertIn("daily Runtime activation requires a compatibility proof", rejected.stderr)
 
     def test_candidate_readyz_receipt_is_scoped_to_the_selected_candidate(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -245,6 +285,7 @@ class RuntimeBlobActivationTransactionTests(unittest.TestCase):
                 "--host-state-script", str(HOST_STATE),
                 "--expected-generation", "3",
                 "--identity", str(candidate_path),
+                "--compatibility-proof-sha256", self.compatibility_proofs[str(state)],
             ]
             first = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             second = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)

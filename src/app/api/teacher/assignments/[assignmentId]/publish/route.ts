@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { publishAssignmentRevision } from '@/lib/assignments/assignment-service';
-import { prisma } from '@/lib/prisma';
+import { teacherPublishRevision } from '@/lib/assignments/public-api';
 
 const publishSchema = z.object({
   revisionId: z.string().trim().min(1).max(120),
@@ -25,7 +24,7 @@ export async function POST(request: Request, context: { params: Promise<{ assign
   try {
     const { assignmentId } = await context.params;
     const input = publishSchema.parse(await readBoundedAssignmentJson(request));
-    const result = await publishAssignmentRevision(prisma, { actor: auth.actor, assignmentId, ...input });
+    const result = await teacherPublishRevision(auth.actor, { assignmentId, ...input });
     return NextResponse.json(result);
   } catch (error) {
     return assignmentErrorResponse(error);

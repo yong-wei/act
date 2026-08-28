@@ -13,7 +13,7 @@ describe('icebreaker scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 122.5');
     expect(source).toContain('designSpeedKnots: 15.5');
-    expect(source).toContain('/assets/models-opt/icebreaker.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('icebreaker')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -56,8 +56,8 @@ describe('icebreaker pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(ICEBREAKER);
-    expect(source).toContain('models-opt/icebreaker.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('icebreaker')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

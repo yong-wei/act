@@ -31,9 +31,9 @@ assert.match(
 );
 
 assert.equal(
-  serviceSource.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
+  serviceSource.includes('ExecStart=/bin/sh -lc \'APP_IMAGE=${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=${ACT_KNOWLEDGE_DEPLOYMENT_MODE} "${APP_DEPLOY_SCRIPT}" --app-only\''),
   true,
-  'systemd 配置必须通过 4-deploy.sh --app-only 继续重建并管理 worker 容器',
+  'systemd 配置必须以冻结镜像通过 4-deploy.sh --app-only 继续重建并管理 worker 容器',
 );
 
 assert.equal(

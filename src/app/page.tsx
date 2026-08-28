@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getShipModelPosterPath } from '@/resources/simulations/ship-model-assets'
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client'
 import { PlatformBrandLockup } from '@/components/shared/platform-brand-lockup'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
@@ -49,7 +50,7 @@ const shipScenarios = [
     id: 1,
     title: '海上半潜平台动力定位',
     description: '模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。',
-    modelPath: '/assets/drilling-rig.glb',
+    modelPath: resolveRegisteredSimulationModel('drilling-rig').originalUrl,
     difficulty: '高级',
     participants: '2,847',
     tag: '定位控制',
@@ -61,7 +62,7 @@ const shipScenarios = [
     id: 2,
     title: '雪龙号破冰船航行控制',
     description: '在极地环境中学习 Azipod 推进控制，体验冰阻力 Stick-Slip 效应导致的参数摄动。',
-    modelPath: '/assets/icebreaker.glb',
+    modelPath: resolveRegisteredSimulationModel('icebreaker').originalUrl,
     difficulty: '专家',
     participants: '1,234',
     tag: '极地任务',
@@ -73,7 +74,7 @@ const shipScenarios = [
     id: 3,
     title: '挖泥船精确定位作业',
     description: '学习挖泥船在施工中的精确定位技术，掌握多点锚泊系统的协调控制。',
-    modelPath: '/assets/dredger.glb',
+    modelPath: resolveRegisteredSimulationModel('dredger').originalUrl,
     difficulty: '中级',
     participants: '3,456',
     tag: '作业协同',
@@ -85,7 +86,7 @@ const shipScenarios = [
     id: 4,
     title: 'LNG船舶时滞控制',
     description: '体验大型 LNG 运输船的时滞控制挑战，学习 Smith 预估器与液货晃荡抑制技术。',
-    modelPath: '/assets/Lng-carrier.glb',
+    modelPath: resolveRegisteredSimulationModel('lng-carrier').originalUrl,
     difficulty: '高级',
     participants: '1,876',
     tag: '时滞控制',
@@ -97,7 +98,7 @@ const shipScenarios = [
     id: 5,
     title: 'MSC Tessa 集装箱船变质量控制',
     description: '体验超大型集装箱船的变质量控制挑战，学习增益调度PID策略与风载荷抑制技术。',
-    modelPath: '/assets/container.glb',
+    modelPath: resolveRegisteredSimulationModel('container').originalUrl,
     difficulty: '高级',
     participants: '4,123',
     tag: '增益调度',
@@ -109,7 +110,7 @@ const shipScenarios = [
     id: 6,
     title: '爱达·魔都号邮轮舒适度控制',
     description: '体验中国首艘国产大型豪华邮轮的舒适度控制，学习减摇鳍与陷波滤波器抑制致晕频段。',
-    modelPath: '/assets/luxury-liner.glb',
+    modelPath: resolveRegisteredSimulationModel('luxury-liner').originalUrl,
     difficulty: '专家',
     participants: '987',
     tag: '频域舒适度',
@@ -121,7 +122,7 @@ const shipScenarios = [
     id: 7,
     title: '军用驱逐舰战术机动',
     description: '体验军用舰艇的高机动性控制，学习战术环境下的快速响应控制策略。',
-    modelPath: '/assets/destroyer.glb',
+    modelPath: resolveRegisteredSimulationModel('destroyer').originalUrl,
     difficulty: '专家',
     participants: '654',
     tag: '战术机动',

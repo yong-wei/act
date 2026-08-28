@@ -34,23 +34,23 @@ import {
   validateV022DatabaseObservation,
   V022CaptureError,
   V022_DATABASE_QUERY_CONTRACT_HASH,
-} from '../../src/lib/teaching-projection/rebase/v022-capture';
+} from '../../tools/teaching-projection-publishing/rebase/v022-capture';
 import {
   buildV022IdentityRebase,
-} from '../../src/lib/teaching-projection/rebase/v022-rebuild';
+} from '../../tools/teaching-projection-publishing/rebase/v022-rebuild';
 import {
   assertV022CandidateSelectorSafety,
   buildV022DualBuildIdentity,
   buildV022RebaseReceipt,
   readV022PointerSnapshots,
-} from '../../src/lib/teaching-projection/rebase/v022-receipt';
+} from '../../tools/teaching-projection-publishing/rebase/v022-receipt';
 import type {
   V022AuthorityBinding,
   V022AuthorityNodeRecord,
   V022CaptureManifest,
   V022DatabaseObservation,
-} from '../../src/lib/teaching-projection/rebase/v022-contracts';
-import { V022_CURRENT_POINTER_PATHS, V022_REFERENCE_KINDS } from '../../src/lib/teaching-projection/rebase/v022-contracts';
+} from '../../tools/teaching-projection-publishing/rebase/v022-contracts';
+import { V022_CURRENT_POINTER_PATHS, V022_REFERENCE_KINDS } from '../../tools/teaching-projection-publishing/rebase/v022-contracts';
 import {
   loadStagedTeachingProjection,
   readCurrentTeachingProjectionPointer,

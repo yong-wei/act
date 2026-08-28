@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { UNIT_4_7TeacherPage } from '@/features/interactive/unit-4-7-destroyer-hifi-design-closure/teacher-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 
 export default async function UNIT_4_7TeacherRoute(
   props: {
@@ -24,6 +25,17 @@ export default async function UNIT_4_7TeacherRoute(
     redirect(`/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/${params.sessionId}`);
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('4-7');
+  const runtimeResult = await loadSessionBoundLessonRuntime({
+    sessionId: params.sessionId,
+    expectedCanonicalId: '4-7',
+    role: 'teacher',
+  });
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
   return <UNIT_4_7TeacherPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }

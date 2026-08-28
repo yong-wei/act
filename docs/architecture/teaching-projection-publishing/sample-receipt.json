@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "act-teaching-projection-publishing-cli/v1",
+  "commandId": "teaching-projection:check",
+  "sourceRevision": "2c407290d9faac7fecb0faea4a0145cb1f39eb38",
+  "sourceTree": "ed76f2481c0dfe4aa388f1a0cbde2930b39cffe6",
+  "inputDigest": "0ff714010c7f841df09a127e33349f2c50e702b865ff6933a5811f2a9ccb0093",
+  "outputDigest": "744e90bd22ac1fdd65524fcc3333c2ac37e8f1436aeec11932a07d6c3a59a9fb",
+  "fileCount": 40,
+  "callerCount": 20,
+  "status": "failed",
+  "executed": false,
+  "productionActivation": false
+}

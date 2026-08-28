@@ -21,6 +21,8 @@ import {
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
 import type { ControlCorrectionTeacherReport } from '@/lib/data-governance/control-correction-teacher-report';
+import type { PersonalizedPathEffectEvaluation } from '@/lib/personalized-path-effect-evaluation';
+import { PersonalizedPathEffectPanel } from '@/features/teacher/personalized-path-effect-panel';
 import {
   buildTeacherStudentInsightsHref,
   formatTeacherStudentDisplayId,
@@ -68,6 +70,7 @@ export default function ClassAnalyticsV2Page() {
   const [insights, setInsights] = useState<TeacherClassInsightsPayload | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
   const [correctionReport, setCorrectionReport] = useState<ControlCorrectionTeacherReport | null>(null);
+  const [pathEffect, setPathEffect] = useState<PersonalizedPathEffectEvaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deliveryState, setDeliveryState] = useState<AuditedActionState | null>(null);
@@ -76,10 +79,11 @@ export default function ClassAnalyticsV2Page() {
     try {
       setLoading(true);
       setError(null);
-      const [insightsRes, heatmapRes, correctionReportRes] = await Promise.all([
+      const [insightsRes, heatmapRes, correctionReportRes, pathEffectRes] = await Promise.all([
         fetch(`/api/teacher/classes/${classId}/insights`),
         fetch(`/api/teacher/classes/${classId}/heatmap`),
         fetch(`/api/teacher/classes/${classId}/control-correction-report`),
+        fetch(`/api/teacher/classes/${classId}/personalized-path-effect`),
       ]);
 
       if (!insightsRes.ok) {
@@ -100,6 +104,12 @@ export default function ClassAnalyticsV2Page() {
         setCorrectionReport(correctionReportPayload.report ?? null);
       } else {
         setCorrectionReport(null);
+      }
+      if (pathEffectRes.ok) {
+        const pathEffectPayload = await pathEffectRes.json() as { evaluation?: PersonalizedPathEffectEvaluation };
+        setPathEffect(pathEffectPayload.evaluation ?? null);
+      } else {
+        setPathEffect(null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
@@ -530,6 +540,7 @@ export default function ClassAnalyticsV2Page() {
         </section>
 
         <CorrectionOutcomeSummaryPanel report={correctionReport} />
+        <PersonalizedPathEffectPanel evaluation={pathEffect} />
 
         <section className="mb-8 grid gap-4 lg:grid-cols-[1.1fr,0.9fr]">
           <div className="surface-card p-6">

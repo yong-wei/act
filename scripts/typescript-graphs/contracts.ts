@@ -64,7 +64,7 @@ export const GRAPH_DEFINITIONS: readonly GraphDefinition[] = [
     command: 'typecheck:tools',
     scope: 'tooling-content-knowledge-runtime-evidence',
     fixturePath: 'typescript-graph-fixtures/tools.ts',
-    entrypointRoots: ['scripts', 'tools/boundary', 'tools/evidence-lifecycle', 'tools/migration-backfill'],
+    entrypointRoots: ['scripts', 'tools/boundary', 'tools/evidence-lifecycle', 'tools/migration-backfill', 'tools/teaching-projection-publishing', 'tools/content-knowledge-runtime-release'],
     requiredExcludeRoots: [
       'scripts/tests', 'tests', 'openspec', 'docs', 'artifacts', '.logs', 'evaluate', 'data', 'deploy', 'course-content',
       '.next',

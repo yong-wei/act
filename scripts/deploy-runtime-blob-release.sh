@@ -19,6 +19,7 @@ REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scrip
 REMOTE_MATERIALIZER="${REMOTE_RUNTIME_BLOB_MATERIALIZER:-$REMOTE_PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
 REMOTE_LIFECYCLE="${REMOTE_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 REMOTE_ACTIVATION_TRANSACTION="${REMOTE_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py}"
+REMOTE_COMPATIBILITY_PROOF="${REMOTE_RUNTIME_APP_COMPATIBILITY_PROOF:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-app-compatibility-proof.py}"
 REMOTE_ACTIVATOR="${REMOTE_RUNTIME_BLOB_ACTIVATOR:-$REMOTE_PROJECT_DIR/scripts/activate-runtime-blob-release.sh}"
 REMOTE_APP_DEPLOY="${REMOTE_APP_DEPLOY_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/4-deploy.sh}"
 BUCKET="${ACT_OSS_BUCKET:-act-course-assets}"
@@ -128,6 +129,7 @@ for remote_path in \
   "$REMOTE_MATERIALIZER" \
   "$REMOTE_LIFECYCLE" \
   "$REMOTE_ACTIVATION_TRANSACTION" \
+  "$REMOTE_COMPATIBILITY_PROOF" \
   "$REMOTE_ACTIVATOR" \
   "$REMOTE_APP_DEPLOY"; do
   [[ "$remote_path" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "ERROR: remote path is unsafe: $remote_path" >&2; exit 1; }
@@ -417,11 +419,12 @@ if [[ "$resuming_published_release" != "1" ]]; then
   publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 fi
 
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_COMPATIBILITY_PROOF")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-release-host-state.py" "$REMOTE_HOST_STATE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/materialize-runtime-blob-release.py" "$REMOTE_MATERIALIZER"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
+copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-app-compatibility-proof.py" "$REMOTE_COMPATIBILITY_PROOF"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 copy_atomic "$ROOT_DIR/deploy/podman/deploy.sh" "$REMOTE_APP_DEPLOY"
 for name in manifest.json release-receipt.json source-provenance-proof.json publisher-verification.json; do
@@ -448,7 +451,7 @@ stage_only_arg=""
 if [[ "$stage_only" == "1" ]]; then
   stage_only_arg=" --stage-only"
 fi
-remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'$stage_only_arg"
+remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT='$REMOTE_COMPATIBILITY_PROOF' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'$stage_only_arg"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
 if [[ "$stage_only" == "1" ]]; then
   materialization_receipt="$artifact_dir/materialization-receipt.json"

@@ -130,16 +130,20 @@ describe('model optimization pipeline', () => {
     const modelNames = readdirSync(path.join(process.cwd(), 'public/assets'))
       .filter((name) => name.endsWith('.glb'));
 
+    const registry = readFileSync(
+      path.join(process.cwd(), 'src/lib/browser-delivery/registry.generated.ts'), 'utf8'
+    );
     for (const modelName of modelNames) {
-      expect(runtimeSources).toContain(`/assets/models-opt/${modelName}`);
+      expect(registry).toContain(`/assets/models-opt/${modelName}`);
+      expect(runtimeSources).toContain('resolveRegisteredSimulationModel');
     }
 
     const destroyer = readFileSync(
       path.join(simulationDirectory, 'destroyer-simulation.tsx'), 'utf8'
     );
-    expect(destroyer).toContain('models-opt/destroyer.glb');
+    expect(destroyer).toContain("resolveRegisteredSimulationModel('destroyer')");
     expect(destroyer).toContain('useGLTF(url, true, true)');
-    expect(destroyer).toContain('ModelAssetErrorBoundary');
+    expect(destroyer).toContain('FallbackGltfModel');
   });
 
   it('keeps the original GLB as a documented fallback when optimization fails', () => {

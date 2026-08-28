@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import {
   DiagnosisGenerationOutputValidationError,
+  DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
 } from '@/lib/diagnosis-generation';
 import {
   diagnosisReportBodySchema,
@@ -15,6 +16,7 @@ import {
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
+import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
 import {
   resolveSmartLessonStructuredProvider,
   TextJsonFallbackOutputError,
@@ -259,10 +261,13 @@ export async function generateGovernedDiagnosisReport(
       maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
       deferValidation: true,
       fallbackToTextJson: true,
-      timeoutMs: 120_000,
+      timeoutMs: DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
     });
   } catch (error) {
-    if (error instanceof TextJsonFallbackOutputError) {
+    if (
+      error instanceof TextJsonFallbackOutputError
+      || (error instanceof SmartLessonPlanError && error.code === 'advisory-provider-timeout')
+    ) {
       throw new DiagnosisGenerationProviderEmptyOutputError();
     }
     throw error;

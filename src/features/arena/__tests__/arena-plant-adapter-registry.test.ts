@@ -98,6 +98,7 @@ describe('Arena PlantAdapter registry', () => {
 
     expect(blackboxRoute).toContain("from '@/features/arena/adapters/registry'");
     expect(previewRoute).toContain("from '@/features/arena/adapters/registry'");
+    expect(previewRoute).toContain('rejectVirtualPreviewRequestBody');
     expect(blackboxRoute).not.toContain('createMockCruiseRollBlackBoxAdapterForTests');
     expect(previewRoute).not.toContain('createMockCruiseRollBlackBoxAdapterForTests');
     expect(serverSource).not.toContain("export * from './adapters/plant-adapter'");

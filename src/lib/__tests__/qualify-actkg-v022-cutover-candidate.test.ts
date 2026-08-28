@@ -13,7 +13,7 @@ import {
   V022_NAMED_CONSUMERS,
   verifyAbsoluteFileHash,
   verifyDeclaredCandidateHashes,
-} from '../teaching-projection/qualify/v022-qualify';
+} from '../../../tools/teaching-projection-publishing/qualify/v022-qualify';
 
 const roots: string[] = [];
 const REPO_ROOT = path.resolve(__dirname, '../../..');

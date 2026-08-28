@@ -7,6 +7,7 @@
  * 知识点映射：解耦控制 (Ch6)，现代控制理论
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   HYSY981_PLATFORM_PARAMS,
@@ -122,7 +123,7 @@ export const drillingHYSY981Profile: DrillingPlatformProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/drilling-rig.glb',
+    modelPath: resolveRegisteredSimulationModel('drilling-rig').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#ef4444', // 红色

@@ -68,12 +68,20 @@ const INTERNAL_SOURCE_LABELS: Record<string, string> = {
 
 const SEVERITY_RANK = { low: 1, medium: 2, high: 3 } as const;
 
+export function findingRequiresKnowledgeNodeAttribution(
+  finding: Pick<DiagnosisReportApiItem['reportBody']['findings'][number], 'evidenceRefs'>,
+) {
+  return finding.evidenceRefs.some((reference) => reference.startsWith('knowledge-progress:'));
+}
+
 export function projectReportHistoryCard(
   report: DiagnosisReportApiItem,
   adjacentOlderReport?: DiagnosisReportApiItem,
 ): ReportHistoryCardProjection {
   const evidenceGroups = buildEvidenceGroups(report);
-  const attributionLimited = report.reportBody.findings.some((finding) => !finding.knowledgeNodeId);
+  const attributionLimited = report.reportBody.findings.some(
+    (finding) => findingRequiresKnowledgeNodeAttribution(finding) && !finding.knowledgeNodeId,
+  );
   const declaredLimitations = report.reportBody.limitations.map(formatLimitation);
   const confidenceReasons = buildConfidenceReasons(report, evidenceGroups, attributionLimited);
 

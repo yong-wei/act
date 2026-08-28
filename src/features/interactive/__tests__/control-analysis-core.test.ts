@@ -39,15 +39,15 @@ describe('control analysis core foundation', () => {
     expect(source).toContain('isFallback');
   });
 
-  it('falls back to browser main-thread wasm compute when the control-analysis worker cannot answer', () => {
+  it('retries through the browser facade when the control-analysis worker cannot answer', () => {
     const hookSource = readFileSync(
       join(repoRoot, 'src/resources/control-system/analysis/use-control-engine.ts'),
       'utf8',
     );
 
-    expect(hookSource).toContain('computeAnalysisOnMainThread');
-    expect(hookSource).toContain('mainThreadFallbackTimer');
-    expect(hookSource).toContain("import('../wasm/control_engine/index.js')");
+    expect(hookSource).toContain('computeAnalysisBrowser');
+    expect(hookSource).toContain('runBrowserFacade');
+    expect(hookSource).not.toContain("import('../wasm/control_engine/index.js')");
   });
 
   it('uses metric headers instead of subtitle copy and fixes chart formatting constraints in source', () => {

@@ -47,7 +47,7 @@
 - `deploy:runtime` 只处理 Git-tree 增量规划、本机发布、ECS view 物化、runtime consumer restart 与 smoke；不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
 - `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
 - `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。`deploy:all` 仅在两者都变化时按顺序组合。不要让 runtime-only 修改进入 image/database 发布链路。
-- 目标 revision 必须可从 `origin/integration` 到达。Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
+- 目标 revision 必须是冻结的 `origin/integration` 完整 commit。Runtime Release 以该 revision 的 `course-content/runtime` Git tree 为来源，并独立记录 Release identity；它不要求与生产应用的 `origin/main` revision 相同。生产选择前必须存在对当前 main 应用的兼容性证明，至少闭合应用 revision、Runtime source revision、消费合同/格式版本、迁移状态和 manifest/tree digest。不得要求或等待 Runtime source 冻结后的 `origin/integration` HEAD；Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
 - sample/full audit 是独立只读命令。sample 采用稳定样本，full 读取所有唯一 Blob；失败冻结发布和 GC。日常 selection 不得将这两类 audit 重新纳入部署关键路径。
 
 ## 发布与删除顺序

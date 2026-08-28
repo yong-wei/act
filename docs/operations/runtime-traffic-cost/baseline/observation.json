@@ -1,0 +1,265 @@
+{
+  "schemaVersion": "act-runtime-traffic-observation/v1",
+  "sourceCommit": "2c407290d9faac7fecb0faea4a0145cb1f39eb38",
+  "sourceTree": "ed76f2481c0dfe4aa388f1a0cbde2930b39cffe6",
+  "dirty": false,
+  "mixedWorktree": false,
+  "environment": "production-and-workstation",
+  "window": {
+    "start": "2026-08-01T00:00:00.000Z",
+    "end": "2026-08-28T00:00:00.000Z",
+    "timezone": "UTC"
+  },
+  "timezone": "UTC",
+  "toolVersion": "runtime-traffic-cost/1",
+  "capturedAt": "2026-08-27T08:00:00.000Z",
+  "status": "incomplete",
+  "routeTaxonomy": [
+    "public-assets",
+    "course-runtime",
+    "runtime-media-redirect",
+    "runtime-blob-view",
+    "runtime-blob-public-read",
+    "publisher-public-upload",
+    "publisher-metadata-check",
+    "publisher-legacy-body-readback"
+  ],
+  "expectedSources": [
+    "oss",
+    "esa",
+    "nginx",
+    "publisher",
+    "developer-mount"
+  ],
+  "ledgers": [
+    {
+      "schemaVersion": "act-runtime-traffic-source-ledger/v1",
+      "sourceType": "oss",
+      "window": {
+        "start": "2026-08-01T00:00:00.000Z",
+        "end": "2026-08-28T00:00:00.000Z",
+        "timezone": "UTC"
+      },
+      "exporterVersion": "unavailable",
+      "inputHash": "8e452a426c146b025a069c92e4255de488efcb3881dd7504358ab090767bd81e",
+      "reportingDelayHours": null,
+      "status": "incomplete",
+      "rows": [],
+      "totals": {
+        "observed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "excluded": {
+          "bytes": 0,
+          "count": 0
+        },
+        "duplicate": {
+          "bytes": 0,
+          "count": 0
+        },
+        "delayed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "unattributed": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "denominatorBytes": 0,
+      "denominatorCount": 0,
+      "missingReason": "source-export-unavailable",
+      "conflicts": [],
+      "denominatorHash": "303c583efa35dfdb4a3382b98fb20b5879e3d6bf04cedc89a950817d25df2820"
+    },
+    {
+      "schemaVersion": "act-runtime-traffic-source-ledger/v1",
+      "sourceType": "esa",
+      "window": {
+        "start": "2026-08-01T00:00:00.000Z",
+        "end": "2026-08-28T00:00:00.000Z",
+        "timezone": "UTC"
+      },
+      "exporterVersion": "unavailable",
+      "inputHash": "8af1c2bca8c1b23d0f8498c5a274f6c00624512f3680eb99d8dd35e62543c799",
+      "reportingDelayHours": null,
+      "status": "incomplete",
+      "rows": [],
+      "totals": {
+        "observed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "excluded": {
+          "bytes": 0,
+          "count": 0
+        },
+        "duplicate": {
+          "bytes": 0,
+          "count": 0
+        },
+        "delayed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "unattributed": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "denominatorBytes": 0,
+      "denominatorCount": 0,
+      "missingReason": "source-export-unavailable",
+      "conflicts": [],
+      "denominatorHash": "7fb5463f7148ae53f4312c67ba0a224b1db2c2e52d2f6027047ba80e6552a0fe"
+    },
+    {
+      "schemaVersion": "act-runtime-traffic-source-ledger/v1",
+      "sourceType": "nginx",
+      "window": {
+        "start": "2026-08-01T00:00:00.000Z",
+        "end": "2026-08-28T00:00:00.000Z",
+        "timezone": "UTC"
+      },
+      "exporterVersion": "unavailable",
+      "inputHash": "be25b440d9a239861c8ebfa78221f90f36a067da3523fd7a8a2949353b766a0b",
+      "reportingDelayHours": null,
+      "status": "incomplete",
+      "rows": [],
+      "totals": {
+        "observed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "excluded": {
+          "bytes": 0,
+          "count": 0
+        },
+        "duplicate": {
+          "bytes": 0,
+          "count": 0
+        },
+        "delayed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "unattributed": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "denominatorBytes": 0,
+      "denominatorCount": 0,
+      "missingReason": "source-export-unavailable",
+      "conflicts": [],
+      "denominatorHash": "f44e964379567c0e238ff3032cbc1cf242209c86c125cd058fc6b02fc3add5a8"
+    },
+    {
+      "schemaVersion": "act-runtime-traffic-source-ledger/v1",
+      "sourceType": "publisher",
+      "window": {
+        "start": "2026-08-01T00:00:00.000Z",
+        "end": "2026-08-28T00:00:00.000Z",
+        "timezone": "UTC"
+      },
+      "exporterVersion": "unavailable",
+      "inputHash": "ec98cffd167e1e7a82f0dd115e252beafde50c4a97db021e96a0b8dff38cbe4a",
+      "reportingDelayHours": null,
+      "status": "incomplete",
+      "rows": [],
+      "totals": {
+        "observed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "excluded": {
+          "bytes": 0,
+          "count": 0
+        },
+        "duplicate": {
+          "bytes": 0,
+          "count": 0
+        },
+        "delayed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "unattributed": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "denominatorBytes": 0,
+      "denominatorCount": 0,
+      "missingReason": "source-export-unavailable",
+      "conflicts": [],
+      "denominatorHash": "9148fdfedbfd29b579355c0477e4868e35a93a6bceb86d5bd3f7e9d55ba0025d"
+    },
+    {
+      "schemaVersion": "act-runtime-traffic-source-ledger/v1",
+      "sourceType": "developer-mount",
+      "window": {
+        "start": "2026-08-01T00:00:00.000Z",
+        "end": "2026-08-28T00:00:00.000Z",
+        "timezone": "UTC"
+      },
+      "exporterVersion": "unavailable",
+      "inputHash": "6ba72e8e72b8f3ac8d241a7f9dccfb31a300efc571aa46f9b26b97b568ec18eb",
+      "reportingDelayHours": null,
+      "status": "incomplete",
+      "rows": [],
+      "totals": {
+        "observed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "excluded": {
+          "bytes": 0,
+          "count": 0
+        },
+        "duplicate": {
+          "bytes": 0,
+          "count": 0
+        },
+        "delayed": {
+          "bytes": 0,
+          "count": 0
+        },
+        "unattributed": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "denominatorBytes": 0,
+      "denominatorCount": 0,
+      "missingReason": "source-export-unavailable",
+      "conflicts": [],
+      "denominatorHash": "ea79a5a1833a965f9d0edd390aef8e71ca80fabcf86c9810c212cc292ca48456"
+    }
+  ],
+  "missingSources": [
+    {
+      "sourceType": "oss",
+      "reason": "source-export-unavailable"
+    },
+    {
+      "sourceType": "esa",
+      "reason": "source-export-unavailable"
+    },
+    {
+      "sourceType": "nginx",
+      "reason": "source-export-unavailable"
+    },
+    {
+      "sourceType": "publisher",
+      "reason": "source-export-unavailable"
+    },
+    {
+      "sourceType": "developer-mount",
+      "reason": "source-export-unavailable"
+    }
+  ],
+  "conflicts": [],
+  "observationId": "8e750020025c02ef9cd1806bf7f3c7b9d3494339bf7d2eb8aecc02116986bc9f"
+}

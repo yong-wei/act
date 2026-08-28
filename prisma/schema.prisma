@@ -3505,6 +3505,13 @@ model ClassSession {
   coursewareRevisionNumber        Int?
   coursewarePlanRevisionNumber    Int?
 
+  // 不可变课程包修订绑定：新会话必需（应用边界强制），历史行保持 null（legacy-incomplete）
+  courseBundleRevisionId String?
+  courseBundleRevision   CourseBundleRevision? @relation(fields: [courseBundleRevisionId], references: [id], onDelete: Restrict)
+  // 冗余定位字段仅用于索引读快速比对，必须与所引修订一致，否则按漂移失败关闭
+  bundleRuntimeReleaseId String?
+  bundleDigest           String?
+
   startTime DateTime  @default(now())
   endTime   DateTime?
   updatedAt DateTime? @updatedAt
@@ -3517,6 +3524,37 @@ model ClassSession {
 
   @@index([classId])
   @@index([coursewarePublicationRevisionId])
+  @@index([courseBundleRevisionId])
+}
+
+// 不可变课程包修订：append-only。内容或 runtime release 变化必须产生新修订；
+// 已被 ClassSession 引用的修订不得原地变更（应用边界 + 数据质量脚本共同强制）。
+model CourseBundleRevision {
+  id                     String   @id @default(cuid())
+  bundleId               String
+  canonicalLessonId      String
+  bundleRevision         Int
+  // 捕获时的精确 runtime release 定位；未挂载 release 的本地开发态使用
+  // UNRELEASED_WORKTREE 定位器并将树摘要记录在 runtimeTreeSha256
+  runtimeReleaseId       String
+  runtimeTreeSha256      String
+  runtimeManifestSha256  String?
+  runtimeSourceRevision  String
+  runtimeObjectLocator   Json?
+  // 覆盖 lesson、manifest、讲义、graph overlay、知识卡引用与媒体索引正式字节的完整摘要
+  bundleDigest           String
+  identityProjectionHash String
+  manifestHash           String?
+  resourceHashes         Json
+  qualification          String
+  capturedAt             DateTime @default(now())
+
+  sessions ClassSession[]
+
+  @@unique([bundleId, bundleRevision])
+  @@unique([bundleId, bundleDigest, runtimeReleaseId, runtimeTreeSha256])
+  @@index([canonicalLessonId])
+  @@index([runtimeReleaseId])
 }
 
 model ClassSessionIntegrityIncident {

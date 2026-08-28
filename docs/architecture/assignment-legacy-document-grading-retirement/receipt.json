@@ -1,0 +1,6 @@
+{
+  "sourceRevision": "d065d31b886ddff3a5a5643903f72b1a6477d22d",
+  "sourceTree": "dc86741898bfbaf29a9282257b11c90b26291b34",
+  "outputDigest": "verification:d065d31b886ddff3a5a5643903f72b1a6477d22d:assignment-legacy-document-grading-retirement:executed=false",
+  "conclusion": "Legacy document-rubric draft writes are 410; native GradingRun pipeline retained; historical adapter is read-only and does not write LearningFact."
+}

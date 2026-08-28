@@ -5,7 +5,7 @@
  * 使用 MMG 3-DOF 高保真模型和 DP 控制器
  */
 
-import { Component, Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode, type RefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -18,6 +18,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -195,22 +197,7 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 }
 
 /** 挖泥船模型 */
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/dredger.glb';
-const ORIGINAL_MODEL_URL = '/assets/dredger.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('dredger');
 
 function DredgerModel(props: {
   position: Vector2;
@@ -218,9 +205,10 @@ function DredgerModel(props: {
   rudderAngle: number;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<DredgerModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
-      <DredgerModelScene url={OPTIMIZED_MODEL_URL} {...props} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <DredgerModelScene url={url} {...props} />}
+    />
   );
 }
 
@@ -290,7 +278,7 @@ function DredgerModelScene({
 }
 
 // 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(OPTIMIZED_MODEL_URL);
+useGLTF.preload(MODEL.primary);
 
 /** 目标位置标记 */
 function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {

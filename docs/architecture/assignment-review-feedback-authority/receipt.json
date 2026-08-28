@@ -1,0 +1,6 @@
+{
+  "sourceRevision": "27042ef8a53e4a21a7466ebfe9b1b6ed545531c4",
+  "sourceTree": "e6d36b7edac31791f003a4696e1803871ba8d9bb",
+  "outputDigest": "verification:27042ef8a53e4a21a7466ebfe9b1b6ed545531c4:assignment-review-feedback-authority:executed=false",
+  "conclusion": "Assignment review orchestration moved under public-api; DG retains outbox/derivative LearningFact writeback; document-grading routes remain #1607 handoff."
+}

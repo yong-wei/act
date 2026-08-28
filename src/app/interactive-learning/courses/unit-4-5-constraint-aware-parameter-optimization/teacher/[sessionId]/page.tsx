@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_4_5TeacherPage } from '@/features/interactive/unit-4-5-constraint-aware-parameter-optimization/teacher-page';
 
 export default async function UNIT_4_5TeacherRoute(
@@ -24,6 +25,17 @@ export default async function UNIT_4_5TeacherRoute(
     redirect(`/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/${params.sessionId}`);
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('4-5');
+  const runtimeResult = await loadSessionBoundLessonRuntime({
+    sessionId: params.sessionId,
+    expectedCanonicalId: '4-5',
+    role: 'teacher',
+  });
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
   return <UNIT_4_5TeacherPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }
