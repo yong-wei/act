@@ -14,5 +14,5 @@
 
 - [x] 3.1 Run context, Docker migration, cache, optimized-model, runtime externalization, runtime blob, and remote deploy contract tests.
 - [x] 3.2 Run shell syntax, production typecheck, Dockerfile check, and strict OpenSpec validation.
-- [ ] 3.3 Use a fresh temporary BuildKit builder to record transferred context size and compare it with the 11.62 GB baseline.
-- [ ] 3.4 Run a full app-only release image build and verify revision label, tar digest, provenance, Chromium, LibreOffice, and required authority/runtime files without deployment.
+- [x] 3.3 Use a fresh temporary BuildKit builder to record transferred context size and compare it with the 11.62 GB baseline.
+- [x] 3.4 Run a full app-only release image build and verify revision label, tar digest, provenance, Chromium, LibreOffice, and required authority/runtime files without deployment.
