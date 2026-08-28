@@ -92,7 +92,7 @@ import {
 import {
   computeDestroyerHifiStep,
   preloadVirtualSimulationRuntime,
-} from '../rust/control-engine-runtime';
+} from '../physics/simulation-engine-facade';
 
 Chart.register(...registerables);
 

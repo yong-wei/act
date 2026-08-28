@@ -1,7 +1,13 @@
-export const CAPTURED_SOURCE_COMMIT = '653b4a7cd0cedf3e70902411404f0c297cd00901' as const;
+export const CAPTURED_SOURCE_COMMIT = 'd4531207086d006f60d4ff8ea21e75410fea78c1' as const;
 export const PROPOSAL_SOURCE_COMMIT = 'a3e6ce7435503050146cadeae6359d6b8eb9a2a5' as const;
+export const ROLLBACK_COMMIT = 'd4531207086d006f60d4ff8ea21e75410fea78c1' as const;
 
-export const RAW_BUSINESS_LOADERS = [
+export type RawLoaderRetirementStatus =
+  | 'deleted'
+  | 'retained-product-ui'
+  | 'retained-arena-authority';
+
+export const RAW_BUSINESS_LOADER_DENOMINATOR = [
   {
     id: 'generic-analysis-hook',
     path: 'src/resources/control-system/analysis/use-control-engine.ts',
@@ -10,7 +16,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Keep as compatibility hook until R4 callers consume facade state directly; do not delete in R1.',
+    status: 'retained-product-ui' as const,
+    replacement: 'src/lib/control-engine/client.ts#computeAnalysisBrowser',
+    deleteCondition: 'Workbench UI consumes facade envelopes without this product hook.',
   },
   {
     id: 'generic-analysis-worker',
@@ -20,7 +28,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'compatibility',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Worker script remains a compatibility entry that loads the facade worker adapter; delete only after R6 caller scan is empty.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/analysis.worker.ts',
+    deleteCondition: 'zero active worker URL callers',
   },
   {
     id: 'generic-analysis-server',
@@ -30,7 +40,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Server analysis runtime becomes a thin facade wrapper; retire after R3 consumer cutover.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/server.ts#computeControlAnalysisServer',
+    deleteCondition: 'zero active production callers after R3 cutover',
   },
   {
     id: 'simulation-client',
@@ -40,7 +52,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Client virtual-simulation runtime wraps facade; delete after R4/R5 zero callers.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/client.ts#computeVirtualSimulationStepBrowserSync',
+    deleteCondition: 'zero active production callers after facade rewire',
   },
   {
     id: 'simulation-server',
@@ -50,7 +64,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Server virtual-simulation runtime wraps facade; delete after R3/R5 zero callers.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/server.ts#computeVirtualSimulationServerStep',
+    deleteCondition: 'zero active production callers after R3/R5 cutover',
   },
   {
     id: 'control-odyssey-client',
@@ -60,7 +76,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Odyssey client runtime wraps facade; delete after R5 zero callers.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/client.ts#computeSimulationStepBrowserSync',
+    deleteCondition: 'zero active production callers after facade rewire',
   },
   {
     id: 'control-odyssey-server',
@@ -70,7 +88,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Odyssey server runtime wraps facade; delete after R3/R5 zero callers.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/server.ts#computeControlOdysseyServerStep',
+    deleteCondition: 'zero active production callers after R3 cutover',
   },
   {
     id: 'arena-analysis-service',
@@ -80,7 +100,9 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'hard',
     facadeException: false,
-    r6Handoff: 'Official evaluator continues to own score/validity; this loader only borrows the server facade. Do not delete until R3 ledger proves zero generated imports.',
+    status: 'retained-arena-authority' as const,
+    replacement: 'src/lib/control-engine/server.ts#computeAnalysisServer',
+    deleteCondition: 'Not a raw WASM loader. Retain while Arena owns official score/validity.',
   },
   {
     id: 'unit-5-5-rl-training',
@@ -90,9 +112,19 @@ export const RAW_BUSINESS_LOADERS = [
     kind: 'product',
     classification: 'contract',
     facadeException: false,
-    r6Handoff: 'Unit 5-5 is a business consumer, never a facade/build exception. Retire generated import in R1; delete the compatibility file only in R6.',
+    status: 'deleted' as const,
+    replacement: 'src/lib/control-engine/client.ts#computeRlTrainingBrowser',
+    deleteCondition: 'zero generated imports and zero loader callers',
   },
 ] as const;
+
+export const RAW_BUSINESS_LOADERS = RAW_BUSINESS_LOADER_DENOMINATOR.filter(
+  (item) => item.status !== 'deleted',
+);
+
+export const RETIRED_RAW_BUSINESS_LOADERS = RAW_BUSINESS_LOADER_DENOMINATOR.filter(
+  (item) => item.status === 'deleted',
+);
 
 export const FACADE_GENERATED_IMPORT_ALLOWLIST = [
   'src/lib/control-engine/wasm-browser.ts',
@@ -125,4 +157,51 @@ export const GENERATED_ARTIFACTS = [
     classification: 'hard',
     owner: 'Platform/Delivery',
   },
+] as const;
+
+export const PROTECTED_LEGACY_PATHS = [
+  'src/resources/simulations/destroyer-simulation.tsx',
+  'prisma/schema.prisma',
+] as const;
+
+export const RETIRED_TS_STEPPER_EXPORTS = [
+  'pidControl',
+  'PIDController',
+  'GainScheduler',
+  'smithPredictorControl',
+  'allocateThrust',
+  'sloshingStep',
+  'windLoadStep',
+  'iceBreakingStep',
+  'notchFilterStep',
+  'dpControl',
+  'dpControlWithFeedforward',
+  'pidControl2ndOrder',
+  'updateCurrentEnvironment',
+  'updateWindEnvironment',
+  'computeTotalEnvironmentalForces',
+  'computeDredgingDisturbance',
+  'azipodCourseKeeperControl',
+  'azipodCourseKeeperControlIceMode',
+  'dpDecoupledControl',
+  'dpStandardControl',
+  'finStabilizerStep',
+] as const;
+
+export const RETIRED_TS_STEPPER_MODULES = [
+  'src/resources/simulations/physics/controllers/pid-controller.ts',
+  'src/resources/simulations/physics/controllers/smith-predictor.ts',
+  'src/resources/simulations/physics/controllers/thruster-allocation.ts',
+  'src/resources/simulations/physics/controllers/gain-scheduler.ts',
+  'src/resources/simulations/physics/controllers/notch-filter.ts',
+  'src/resources/simulations/physics/controllers/dp-controller.ts',
+  'src/resources/simulations/physics/controllers/dp-decoupling-controller.ts',
+  'src/resources/simulations/physics/controllers/azipod-course-keeper.ts',
+  'src/resources/simulations/physics/disturbances/sloshing-model.ts',
+  'src/resources/simulations/physics/disturbances/wind-load.ts',
+  'src/resources/simulations/physics/disturbances/current-model.ts',
+  'src/resources/simulations/physics/disturbances/dredging-impact.ts',
+  'src/resources/simulations/physics/disturbances/ice-breaking-model.ts',
+  'src/resources/simulations/physics/disturbances/fin-stabilizer.ts',
+  'src/resources/simulations/physics/model-state-helpers.ts',
 ] as const;

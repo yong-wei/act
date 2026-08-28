@@ -8,7 +8,9 @@ import {
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
   CAPTURED_SOURCE_COMMIT,
   FACADE_GENERATED_IMPORT_ALLOWLIST,
+  RAW_BUSINESS_LOADER_DENOMINATOR,
   RAW_BUSINESS_LOADERS,
+  RETIRED_RAW_BUSINESS_LOADERS,
   canonicalRequestHash,
   identifiedClaimWithoutParameters,
   rejectClientResultFields,
@@ -48,12 +50,19 @@ const analysisRequest: ControlAnalysisRequest = {
 };
 
 describe('control-engine wasm facade', () => {
-  it('freezes the nine raw business loaders including Unit 5-5', () => {
-    expect(RAW_BUSINESS_LOADERS).toHaveLength(9);
-    expect(RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual(expect.arrayContaining([
+  it('freezes the nine raw business-loader identities after R6 retirement', () => {
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR).toHaveLength(9);
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR.map((item) => item.path)).toEqual(expect.arrayContaining([
       'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts',
     ]));
-    expect(RAW_BUSINESS_LOADERS.every((item) => item.facadeException === false)).toBe(true);
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR.every((item) => item.facadeException === false)).toBe(true);
+    expect(RETIRED_RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual(expect.arrayContaining([
+      'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts',
+    ]));
+    expect(RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual([
+      'src/resources/control-system/analysis/use-control-engine.ts',
+      'src/features/arena/evaluation/control-analysis-service.ts',
+    ]);
     expect(CAPTURED_SOURCE_COMMIT).toMatch(/^[a-f0-9]{40}$/);
   });
 

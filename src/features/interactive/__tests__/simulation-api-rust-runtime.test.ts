@@ -7,16 +7,16 @@ import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server'
 
 describe('simulation API Rust runtime adoption', () => {
   it('loads the virtual simulation engine from the server-side WASM runtime', () => {
-    const runtimeSource = readFileSync(
-      path.join(process.cwd(), 'src/resources/simulations/rust/control-engine-server-runtime.ts'),
-      'utf8',
-    );
     const facadeSource = readFileSync(
       path.join(process.cwd(), 'src/lib/control-engine/wasm-server.ts'),
       'utf8',
     );
+    const serverSource = readFileSync(
+      path.join(process.cwd(), 'src/lib/control-engine/server.ts'),
+      'utf8',
+    );
 
-    expect(runtimeSource).toContain('computeVirtualSimulationServerStep');
+    expect(serverSource).toContain('computeVirtualSimulationServerStep');
     expect(facadeSource).toContain('initSync');
     expect(facadeSource).toContain('compute_virtual_simulation_step');
     expect(facadeSource).toContain('index_bg.wasm');

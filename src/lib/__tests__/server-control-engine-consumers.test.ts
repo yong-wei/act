@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ARENA_OFFICIAL_PROTOCOLS,
   FACADE_GENERATED_IMPORT_ALLOWLIST,
-  R6_SERVER_LOADER_DELETION_CANDIDATES,
+  RETIRED_SERVER_COMPATIBILITY_LOADERS,
   SERVER_CONSUMER_CLASSES,
   SERVER_FACADE_IMPORT,
 } from '@/lib/control-engine';
@@ -55,14 +55,14 @@ describe('server control-engine consumers', () => {
     ]);
   });
 
-  it('records R6 deletion candidates without deleting compatibility loaders yet', () => {
-    expect(R6_SERVER_LOADER_DELETION_CANDIDATES).toEqual([
+  it('retires the three server compatibility loaders', () => {
+    expect(RETIRED_SERVER_COMPATIBILITY_LOADERS).toEqual([
       'src/resources/control-system/analysis/control-engine-server-runtime.ts',
       'src/resources/simulations/rust/control-engine-server-runtime.ts',
       'src/resources/interactive-learning/control-odyssey/engine/control-engine-server-runtime.ts',
     ]);
-    for (const relative of R6_SERVER_LOADER_DELETION_CANDIDATES) {
-      expect(readRepo(relative)).toContain(SERVER_FACADE_IMPORT);
+    for (const relative of RETIRED_SERVER_COMPATIBILITY_LOADERS) {
+      expect(existsSync(path.join(repoRoot, relative)), relative).toBe(false);
     }
   });
 });

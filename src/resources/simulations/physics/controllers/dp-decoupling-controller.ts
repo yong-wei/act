@@ -15,20 +15,16 @@ import type {
   PIDGains,
   DPGains,
   DPState,
-  SemiSubmersible3DOFState,
 } from '../../core/types';
 
 // 重新导出类型供外部使用
 export type { DPState } from '../../core/types';
 import {
   DRILLING_DEFAULT_DP,
-  DEG_TO_RAD,
-  RAD_TO_DEG,
   clamp,
 } from '../../core/constants';
 import {
   getDecouplingMatrix,
-  applyDecoupling,
 } from '../model-state-helpers';
 
 // ============ 类型定义 ============
@@ -189,101 +185,6 @@ function computePID(
 }
 
 // ============ 主控制器 ============
-
-/**
- * DP 解耦控制器主函数
- * @param platformState 平台当前状态
- * @param controllerState 控制器状态
- * @param config 控制器配置
- * @param dt 时间步长 (s)
- * @returns [控制输出, 新控制器状态]
- */
-export function dpDecoupledControl(
-  platformState: SemiSubmersible3DOFState,
-  controllerState: DPState,
-  config: DPControllerConfig,
-  dt: number
-): [DPControlOutput, DPState] {
-  const { x, y, psi, targetX, targetY, targetPsi } = platformState;
-  const { gains, integralLimit, decouplingEnabled, deadband } = config;
-
-  // Step 1: 计算地固系位置误差
-  const errorEarth = computePositionError([x, y], [targetX, targetY]);
-
-  // Step 2: 转换到体坐标系
-  const [errorSurge, errorSway] = transformErrorToBody(errorEarth, psi);
-
-  // Step 3: 计算航向误差
-  const errorYawRad = computeHeadingError(psi, targetPsi);
-  const errorYawDeg = errorYawRad * RAD_TO_DEG;
-
-  // Step 4: 各通道 PID 计算
-  const [tauX, newSurgeState] = computePID(
-    errorSurge,
-    controllerState.surge,
-    gains.surge,
-    dt,
-    integralLimit.surge,
-    deadband.position
-  );
-
-  const [tauY, newSwayState] = computePID(
-    errorSway,
-    controllerState.sway,
-    gains.sway,
-    dt,
-    integralLimit.sway,
-    deadband.position
-  );
-
-  const [tauN, newYawState] = computePID(
-    errorYawRad,
-    controllerState.yaw,
-    gains.yaw,
-    dt,
-    integralLimit.yaw,
-    deadband.heading * DEG_TO_RAD
-  );
-
-  // Step 5: 应用解耦 (如果启用)
-  const tauCmd: [number, number, number] = [tauX, tauY, tauN];
-  const decoupledCmd = applyDecoupling(tauCmd, decouplingEnabled);
-
-  // 构建输出
-  const output: DPControlOutput = {
-    tauX,
-    tauY,
-    tauN,
-    errorX: errorSurge,
-    errorY: errorSway,
-    errorPsi: errorYawDeg,
-    decoupledTauX: decoupledCmd[0],
-    decoupledTauY: decoupledCmd[1],
-    decoupledTauN: decoupledCmd[2],
-  };
-
-  const newState: DPState = {
-    surge: newSurgeState,
-    sway: newSwayState,
-    yaw: newYawState,
-  };
-
-  return [output, newState];
-}
-
-/**
- * 标准 DP 控制 (无解耦，用于对比)
- */
-export function dpStandardControl(
-  platformState: SemiSubmersible3DOFState,
-  controllerState: DPState,
-  config: DPControllerConfig,
-  dt: number
-): [DPControlOutput, DPState] {
-  // 强制禁用解耦
-  const noDecouplingConfig = { ...config, decouplingEnabled: false };
-  return dpDecoupledControl(platformState, controllerState, noDecouplingConfig, dt);
-}
 
 // ============ 性能评估 ============
 

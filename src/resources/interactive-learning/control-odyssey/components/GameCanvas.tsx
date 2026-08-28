@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/game-store';
 import { PhysicsEngine } from '../engine/physics';
-import { preloadControlOdysseyRuntime, isControlOdysseyRuntimeReady } from '../engine/control-engine-runtime';
+import { isBrowserControlEngineReady as isControlOdysseyRuntimeReady, preloadBrowserControlEngine as preloadControlOdysseyRuntime } from '@/lib/control-engine/client';
 import { LevelGenerator, LevelSegment, SEGMENT_WIDTH, SHIP_X_OFFSET, VIEWPORT_HEIGHT, VIEWPORT_WIDTH, computeReferenceY } from '../engine/level-generator';
 import { buildRuntimeTierConfig, getLevelConfigById, getTierConfig, getTransferFunctionModel } from '../level-data';
 import { ShipAvatar } from './ShipAvatar';
