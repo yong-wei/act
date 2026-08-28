@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { buildSessionParticipantHref, resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
+import { buildSessionParticipantHref, resolveSessionRouteSegment } from '@/lib/classroom-session-route';
 import { logClassroomEvent } from '@/lib/classroom-observability';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -77,6 +77,12 @@ export async function GET(request: Request) {
             name: true,
           },
         },
+        courseBundleRevisionId: true,
+        courseBundleRevision: {
+          select: {
+            canonicalLessonId: true,
+          },
+        },
       },
     });
 
@@ -129,7 +135,11 @@ export async function GET(request: Request) {
       }
     }
 
-    const routeInfo = resolveSessionRouteFromPlanTitle(classSession.plan.title);
+    const routeInfo = resolveSessionRouteSegment({
+      bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+      bundleBound: classSession.courseBundleRevisionId !== null,
+      planTitle: classSession.plan.title,
+    });
 
     const response = {
       ...classSession,
@@ -139,11 +149,15 @@ export async function GET(request: Request) {
         role: 'student',
         sessionId: classSession.id,
         planTitle: classSession.plan.title,
+        bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+        bundleBound: classSession.courseBundleRevisionId !== null,
       }),
       teacherHref: buildSessionParticipantHref({
         role: 'teacher',
         sessionId: classSession.id,
         planTitle: classSession.plan.title,
+        bundleCanonicalLessonId: classSession.courseBundleRevision?.canonicalLessonId ?? null,
+        bundleBound: classSession.courseBundleRevisionId !== null,
       }),
     };
 

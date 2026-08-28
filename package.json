@@ -253,6 +253,7 @@
     "db:validate-textbook-runtime-v2": "node ./scripts/release/validate-textbook-runtime-v2.mjs",
     "db:textbook-media-grounding": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-textbook-media-grounding.ts",
     "db:session-data-quality": "tsx ./scripts/db/report-session-data-quality.ts",
+    "db:course-bundle-revision-quality": "tsx ./scripts/db/report-course-bundle-revision-quality.ts",
     "db:materialize-historical-learning-facts": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/materialize-historical-learning-facts.ts",
     "db:backfill-course-evidence": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/backfill-course-evidence-and-reporting.ts",
     "db:recompute-interactive-scoring": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/recompute-interactive-evidence-scoring-history.ts",

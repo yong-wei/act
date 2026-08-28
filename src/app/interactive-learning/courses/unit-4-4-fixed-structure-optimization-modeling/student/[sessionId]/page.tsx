@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_4_4StudentPage } from '@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 
@@ -29,6 +30,17 @@ export default async function UNIT_4_4StudentRoute(
     }
   }
 
-  const lessonRuntime = await loadLessonRuntimeEntry('4-4');
+  const runtimeResult = await loadSessionBoundLessonRuntime({
+    sessionId: params.sessionId,
+    expectedCanonicalId: '4-4',
+    role: 'student',
+  });
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
   return <UNIT_4_4StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} />;
 }
