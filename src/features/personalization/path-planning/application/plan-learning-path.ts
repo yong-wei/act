@@ -1,4 +1,8 @@
-import type { ResourceNode } from '@/lib/resource-node-registry';
+import {
+  PATH_CONSTRAINT_REPAIR_VERSION,
+  deterministicPathConstraintRepairAdapter,
+} from '@/lib/adaptive-planning/path-constraint-repair';
+import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
 
 import {
   assembleAdaptiveLearningPathPlan,
@@ -11,8 +15,6 @@ import type {
   PlanLearningPathPorts,
   PlanLearningPathResult,
 } from '../ports';
-
-const assembledPlanByContext = new WeakMap<GoalContext, PlanLearningPathResult>();
 
 export function loadGoalContext(input: PlanLearningPathInput): GoalContext {
   return { input };
@@ -27,21 +29,6 @@ export function evaluateEligibility(context: GoalContext): EligibilityDecision {
     eligible,
     excluded: blocked,
   };
-}
-
-function assembledPlanFor(context: GoalContext): PlanLearningPathResult {
-  const cached = assembledPlanByContext.get(context);
-  if (cached) return cached;
-  const plan = assembleAdaptiveLearningPathPlan(context.input);
-  assembledPlanByContext.set(context, plan);
-  return plan;
-}
-
-function resourceNodesForPlan(context: GoalContext, plan: PlanLearningPathResult): ResourceNode[] {
-  const nodesById = new Map(context.input.registry.nodes.map((node) => [node.id, node]));
-  return plan.mainPath
-    .map((node) => nodesById.get(node.nodeId))
-    .filter((node): node is ResourceNode => Boolean(node));
 }
 
 export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
@@ -63,34 +50,58 @@ export function createDefaultPlanLearningPathPorts(): PlanLearningPathPorts {
     },
     ranking: {
       rank(context, eligible) {
-        const eligibleIds = new Set(eligible.eligible.map((node) => node.id));
-        const ordered = resourceNodesForPlan(context, assembledPlanFor(context))
-          .filter((node) => eligibleIds.has(node.id));
-        return { ordered };
+        const rankerResult = rankResourceLearnerCandidates({
+          candidates: eligible.eligible.map((node) => ({
+            node,
+            planningUnit: null,
+            limitations: [],
+          })),
+          scene: 'path',
+          targetGraphNodeIds: context.input.goal.knowledgeTargets,
+          selectedGraphNodeIds: [],
+          learnerState: context.input.learnerState,
+          preferredResourceTypes: context.input.resourcePreferences,
+          timeBudgetMinutes: context.input.constraints.timeBudgetMinutes,
+          completedNodeIds: context.input.constraints.completedNodeIds ?? [],
+          availableOutcomeRefs: context.input.constraints.availableOutcomeRefs ?? [],
+          teacherAssignedNodeIds: context.input.constraints.teacherAssignedNodeIds ?? [],
+          registry: context.input.registry,
+        });
+        return {
+          ordered: rankerResult.ranked.map((entry) => entry.node),
+        };
       },
     },
     repair: {
       repair(context, ranked) {
-        const repaired = resourceNodesForPlan(context, assembledPlanFor(context));
-        if (repaired.length === 0) return ranked;
-        const rankedIds = new Set(ranked.ordered.map((node) => node.id));
-        return {
-          ordered: repaired.filter((node) => rankedIds.has(node.id)),
-        };
+        const repair = deterministicPathConstraintRepairAdapter.repair({
+          draftNodeIds: ranked.ordered.map((node) => node.id),
+          candidates: ranked.ordered.map((node) => ({
+            nodeId: node.id,
+            estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes ?? 15,
+            prerequisiteNodeIds: node.planningMetadata.prerequisites,
+          })),
+          constraints: {
+            timeBudgetMinutes: context.input.constraints.timeBudgetMinutes,
+            requiredCheckpointCount: 1,
+            terminalValidationRequired: false,
+          },
+          versionRefs: {
+            plannerVersion: 'adaptive-learning-path-planner.v1',
+            repairVersion: PATH_CONSTRAINT_REPAIR_VERSION,
+          },
+        });
+        const nodesById = new Map(ranked.ordered.map((node) => [node.id, node]));
+        const ordered = repair.repairedNodeIds
+          .map((nodeId) => nodesById.get(nodeId))
+          .filter((node): node is NonNullable<typeof node> => Boolean(node));
+        return { ordered: ordered.length > 0 ? ordered : ranked.ordered };
       },
     },
     assembler: {
       assemble(context, repaired) {
-        const cached = assembledPlanFor(context);
-        const cachedIds = resourceNodesForPlan(context, cached).map((node) => node.id);
-        const repairedIds = repaired.ordered.map((node) => node.id);
-        if (
-          cachedIds.length === repairedIds.length
-          && cachedIds.every((nodeId, index) => nodeId === repairedIds[index])
-        ) {
-          return cached;
-        }
-        return assembleAdaptiveLearningPathPlan(context.input, repairedIds);
+        void repaired;
+        return assembleAdaptiveLearningPathPlan(context.input);
       },
     },
     explanation: {

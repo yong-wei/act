@@ -17,5 +17,31 @@ export type {
   PlanLearningPathResult,
   RankingStrategy,
 } from './ports';
-export * from './internal/assemble-plan';
+export type * from './internal/assemble-plan';
+export {
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+  ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  CONTROL_CORRECTION_CAPABILITY_TARGETS,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
+  buildAdaptivePathRecommendationProvenance,
+  buildControlCorrectionThreeStylePathBundle,
+  buildSerializablePathOptions,
+  evaluateHardEligibility,
+  getLearningGoal,
+  getLearningGoalPackage,
+  getRegisteredAdaptiveLearningPathGoal,
+  hasTrustedPortraitForPersonalization,
+  isPathBlockingFallbackReason,
+  isRegisteredAdaptiveLearningPathGoal,
+  listLearningGoalPackages,
+  listLearningGoals,
+  normalizeLearningPathPayloadLearningGoal,
+  recordLearningPathFeedback,
+  requiredCheckpointCountForPreference,
+  serializeLearningPathPlan,
+  validateLearningGoal,
+  validateLearningGoalCatalog,
+  validateLearningGoalPackage,
+  validateLearningGoalPackageCatalog,
+} from './internal/assemble-plan';
 export * from './internal/prerequisite-planner';

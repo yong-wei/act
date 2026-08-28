@@ -139,6 +139,9 @@ describe('PlanLearningPath pipeline', () => {
     expect(application).toContain('ports.ranking.rank');
     expect(application).toContain('ports.repair.repair');
     expect(application).toContain('ports.assembler.assemble');
+    expect(application).toContain('rankResourceLearnerCandidates');
+    expect(readFileSync('src/features/personalization/path-planning/public-api.ts', 'utf8'))
+      .not.toContain('assembleAdaptiveLearningPathPlan');
     const assembler = readFileSync(
       'src/features/personalization/path-planning/internal/assemble-plan.ts',
       'utf8',

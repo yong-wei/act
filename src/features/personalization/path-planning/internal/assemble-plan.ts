@@ -78,7 +78,6 @@ import {
   type ItemTypeTerminalValidationResolution,
 } from '@/lib/adaptive-planning/item-type-terminal-validation';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
-import { CONTROL_CORRECTION_GOAL_ID } from '@/features/personalization/plugins/control-correction/mappings';
 import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
 import type { PersonalizationPluginStatus } from '@/features/personalization/plugins/types';
 import type {
@@ -1101,11 +1100,9 @@ export const ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES: Record<
 
 const LEARNING_GOAL_VERSION = 'learning-goal-package/v1';
 const QUALITY_EVIDENCE_LIMITATION = 'quality-rubric-evidence-not-fully-governed';
-const PATH_READY_LEARNING_GOAL_SLICE_IDS = [CONTROL_CORRECTION_GOAL_ID];
 const LEARNING_GOAL_OBJECTIVE_IDS = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
 const LEARNING_GOAL_OBJECTIVE_DOMAIN_BY_ID = new Map(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => [objective.id, objective.domain]));
 const LEARNING_GOAL_GRAPH_NODE_IDS = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
-const LEARNING_GOAL_SLICE_ID_SET = new Set<string>(PATH_READY_LEARNING_GOAL_SLICE_IDS);
 
 const AUTOCONTROL_RESOURCE_MIX: ResourceNode['type'][] = [
   'lesson_step',
@@ -1804,10 +1801,8 @@ export function getRegisteredAdaptiveLearningPathGoal(
     get(goalId: string): { status: PersonalizationPluginStatus } | null | undefined;
   } = personalizationPluginRegistry,
 ): AdaptiveLearningPathRegisteredGoalDefinition | null {
-  if (goalId === CONTROL_CORRECTION_GOAL_ID) {
-    const plugin = registry.get(goalId);
-    if (!plugin || plugin.status !== 'active') return null;
-  }
+  const plugin = registry.get(goalId);
+  if (plugin && plugin.status !== 'active') return null;
   return ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
 }
 
@@ -1856,7 +1851,7 @@ export function validateLearningGoal(
       issues.push(learningGoalIssue('unknown-graph-node-id', learningGoalId, `Unknown K/A/Q graph node id: ${graphNodeId}.`));
     }
   }
-  if (!LEARNING_GOAL_SLICE_ID_SET.has(learningGoal.goalSliceId)) {
+  if (!personalizationPluginRegistry.listGoalIds().includes(learningGoal.goalSliceId)) {
     issues.push(learningGoalIssue('unknown-goal-slice-id', learningGoalId, `Unknown adaptive goal slice id: ${learningGoal.goalSliceId}.`));
   }
   if (
@@ -2059,7 +2054,8 @@ function assembleAdaptiveLearningPathPlanInternal(
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
-  const coursePluginUnavailable = input.goal.id === CONTROL_CORRECTION_GOAL_ID && !registeredGoal;
+  const registeredPlugin = personalizationPluginRegistry.get(input.goal.id);
+  const coursePluginUnavailable = registeredPlugin != null && registeredPlugin.status !== 'active';
   const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
@@ -5313,7 +5309,7 @@ function shapePolicyBundlePath(
   policyFamily: AdaptiveLearningPathPolicyFamily,
   input: AdaptiveLearningPathPlannerInput,
 ): AdaptiveLearningPathPlanNode[] {
-  if (input.goal.id !== CONTROL_CORRECTION_GOAL_ID) {
+  if (personalizationPluginRegistry.get(input.goal.id)?.status !== 'active') {
     return mainPath;
   }
   if (policyFamily !== 'foundation-remediation' && policyFamily !== 'preference-matched') {
