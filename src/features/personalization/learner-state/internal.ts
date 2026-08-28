@@ -45,6 +45,11 @@ import {
   type StudentSafeEvidenceEventReference,
 } from '@/lib/data-governance/evidence-timeline';
 import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
+import {
+  isControlCorrectionArenaFact,
+  isControlCorrectionArenaTaskId,
+  isControlCorrectionFact,
+} from '@/features/personalization/plugins/control-correction/evidence-match';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -86,18 +91,6 @@ export type ControlCorrectionDimensionId =
 
 export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = 'control-correction';
 export const CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION = 'control-correction-goal-slice.v1';
-export const CONTROL_CORRECTION_COURSE_ID_VALUES = [
-  CONTROL_CORRECTION_GOAL_ID,
-  '3-6',
-  'unit-3-6-zero-design-workshop',
-  'unit-3-6-zero-design-workshop-v1',
-] as const;
-export const CONTROL_CORRECTION_ARENA_TASK_ID_VALUES = [
-  'task-second-order-lead-pid',
-] as const;
-const CONTROL_CORRECTION_COURSE_IDS = new Set<string>(CONTROL_CORRECTION_COURSE_ID_VALUES);
-const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(CONTROL_CORRECTION_ARENA_TASK_ID_VALUES);
-const CONTROL_CORRECTION_FACT_TAKE = 500;
 const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   'foundation',
@@ -519,6 +512,7 @@ export interface LearnerStateReducerInput {
   featureFlagEnabled: boolean;
   requestedGoal: string | null;
   requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
+  supportedGoalIds?: AdaptiveLearnerStateGoalId[];
   goalPluginAvailable: boolean;
   featureRead: StudentEvidenceFeatureReadResult;
   featureCache: Record<string, unknown>;
@@ -626,7 +620,7 @@ const CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES: Record<
   'ai-collaboration': ['aiCollaboration'],
 };
 
-const CONTROL_CORRECTION_PRIVACY: ControlCorrectionGoalSliceDimension['privacy'] = {
+export const CONTROL_CORRECTION_PRIVACY: ControlCorrectionGoalSliceDimension['privacy'] = {
   score: 'student-visible',
   sourceCoverage: 'student-visible',
   confidence: 'student-visible',
@@ -635,7 +629,7 @@ const CONTROL_CORRECTION_PRIVACY: ControlCorrectionGoalSliceDimension['privacy']
   rawPayloads: 'system-internal',
 };
 
-const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyClasses'] = {
+export const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyClasses'] = {
   student: 'student-visible',
   teacher: 'teacher-scoped',
   admin: 'admin-scoped',
@@ -643,86 +637,11 @@ const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyCla
   internal: 'system-internal',
 };
 
-const CONTROL_CORRECTION_TARGET_LEVEL_MAPPING: Record<ControlCorrectionTargetLevel, string> = {
-  foundation: 'recognizes canonical control-correction concepts with guided evidence',
-  developing: 'applies corrective reasoning with partial multi-source evidence',
-  proficient: 'selects and validates corrective methods across governed evidence',
-  advanced: 'transfers corrective strategies across constrained tasks with robust validation',
-};
-
-const CONTROL_CORRECTION_DIMENSION_DEFINITIONS: AdaptiveGoalSliceDimensionDefinition[] =
-  CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => ({
-    id,
-    valueRange: '0-100',
-    targetLevelMapping: CONTROL_CORRECTION_TARGET_LEVEL_MAPPING,
-    sourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
-    evidenceThreshold: 'dimension declares sufficient, partial, stale, or missing governed evidence',
-    freshnessPolicy: 'current within governed learner-state evidence window, stale when sources age out, missing when no declared source is present',
-    confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
-    privacy: CONTROL_CORRECTION_PRIVACY,
-    fallbackReason: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.fallbackReason,
-  }));
-
-export const ADAPTIVE_GOAL_SLICE_REGISTRY: Record<AdaptiveLearnerStateGoalId, AdaptiveGoalSliceDefinition> = {
-  [CONTROL_CORRECTION_GOAL_ID]: {
-    goalId: CONTROL_CORRECTION_GOAL_ID,
-    displayLabel: 'Control Correction',
-    shortLabel: 'Control Correction',
-    payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
-    dimensions: CONTROL_CORRECTION_DIMENSION_DEFINITIONS,
-    targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
-    capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
-    evidenceSourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
-    privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
-    confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
-    fieldFamilies: {
-      pathContext: {
-        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.pathContext,
-        valueRange: 'active path id/status/current node, terminal validation state, recent path references, no-active-path marker',
-      },
-      report: {
-        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
-        valueRange: 'declared report-ready control-correction dimensions and metadata',
-      },
-      konling: {
-        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
-        valueRange: 'declared Konling-readable control-correction dimensions and metadata',
-      },
-      grading: {
-        ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
-        valueRange: 'not declared for grading decisions',
-        fallbackReason: 'grading-eligibility-not-declared',
-      },
-    },
-    eligibility: {
-      path: 'declared',
-      report: 'declared',
-      konling: 'declared',
-      grading: 'not-declared',
-    },
-    validationFixtures: [
-      'registered-control-correction-parity',
-      'unknown-goal-unsupported',
-      'undeclared-dimension-fail-closed',
-      'path-context-preservation',
-    ],
-  },
-};
-
 const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
   firstStartedAt: null,
   lastStartedAt: null,
   daysCovered: 0,
 };
-
-export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefined): AdaptiveGoalSliceDefinition | null {
-  const normalizedGoal = normalizeRequestedGoal(goal);
-  if (!normalizedGoal) return null;
-  if (!Object.hasOwn(ADAPTIVE_GOAL_SLICE_REGISTRY, normalizedGoal)) {
-    return null;
-  }
-  return ADAPTIVE_GOAL_SLICE_REGISTRY[normalizedGoal as AdaptiveLearnerStateGoalId];
-}
 
 /**
  * Project LearningFact knowledge identities for multi-era learner-state /
@@ -877,6 +796,7 @@ export function reduceLearnerState(input: LearnerStateReducerInput): AdaptiveLea
   const goalSlices = buildAdaptiveGoalSlices({
     requestedGoal: input.requestedGoal,
     requestedGoalDefinition: input.requestedGoalDefinition,
+    supportedGoalIds: input.supportedGoalIds ?? [],
     goalPluginAvailable: input.goalPluginAvailable,
     now,
     vector: portraitDrivenVector,
@@ -1134,6 +1054,7 @@ function isCurrentPortraitDimension(
 function buildAdaptiveGoalSlices(input: {
   requestedGoal: string | null;
   requestedGoalDefinition: AdaptiveGoalSliceDefinition | null;
+  supportedGoalIds: AdaptiveLearnerStateGoalId[];
   goalPluginAvailable: boolean;
   now: Date;
   vector: CompetencyVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: goal slice may read the compatibility vector.
@@ -1158,7 +1079,7 @@ function buildAdaptiveGoalSlices(input: {
         goalId: input.requestedGoal,
         state: 'unsupported-goal',
         fallbackReason: 'unregistered-adaptive-goal',
-        supportedGoalIds: Object.keys(ADAPTIVE_GOAL_SLICE_REGISTRY) as AdaptiveLearnerStateGoalId[],
+        supportedGoalIds: input.supportedGoalIds,
       },
     };
   }
@@ -1169,7 +1090,7 @@ function buildAdaptiveGoalSlices(input: {
         goalId: input.requestedGoal,
         state: 'unsupported-goal',
         fallbackReason: 'goal-plugin-unavailable',
-        supportedGoalIds: Object.keys(ADAPTIVE_GOAL_SLICE_REGISTRY) as AdaptiveLearnerStateGoalId[],
+        supportedGoalIds: input.supportedGoalIds,
       },
     };
   }
@@ -2434,186 +2355,6 @@ function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>):
   return { counts };
 }
 
-export async function readControlCorrectionLearningFacts(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-): Promise<Array<Record<string, unknown>>> {
-  if (!db.learningFact?.findMany) {
-    return [];
-  }
-
-  const [explicitFacts, legacyFacts] = await Promise.all([
-    readPagedControlCorrectionLearningFacts({
-      findMany: db.learningFact.findMany,
-      where: buildExplicitControlCorrectionLearningFactWhere(userId),
-      filter: isControlCorrectionFact,
-    }),
-    readLegacyControlCorrectionLearningFacts(db, userId),
-  ]);
-
-  return uniqueFactsById([...explicitFacts, ...legacyFacts]);
-}
-
-async function readLegacyControlCorrectionLearningFacts(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-): Promise<Array<Record<string, unknown>>> {
-  const findMany = db.learningFact?.findMany;
-  if (!findMany) {
-    return [];
-  }
-
-  return readPagedControlCorrectionLearningFacts({
-    findMany,
-    where: buildLegacyControlCorrectionLearningFactWhere(userId),
-    filter: (fact) => !hasExplicitAdaptiveGoal(fact) && isLegacyControlCorrectionFact(fact, getObject(fact.contextJson)),
-  });
-}
-
-async function readPagedControlCorrectionLearningFacts(input: {
-  findMany: (args: any) => Promise<Array<Record<string, unknown>>>;
-  where: Record<string, unknown>;
-  filter: (fact: Record<string, unknown>) => boolean;
-}): Promise<Array<Record<string, unknown>>> {
-  const facts: Array<Record<string, unknown>> = [];
-  let cursorId: string | null = null;
-  while (facts.length < CONTROL_CORRECTION_FACT_TAKE) {
-    const rows = await input.findMany({
-      where: input.where,
-      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-      take: CONTROL_CORRECTION_FACT_TAKE,
-      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-    });
-    facts.push(...rows.filter((fact) =>
-      input.filter(fact) && isLearningFactEligibleForPersonalization(fact.contextJson),
-    ));
-    if (facts.length >= CONTROL_CORRECTION_FACT_TAKE || rows.length < CONTROL_CORRECTION_FACT_TAKE) {
-      break;
-    }
-    const lastId = readString(rows.at(-1)?.id);
-    if (!lastId || lastId === cursorId) {
-      break;
-    }
-    cursorId = lastId;
-  }
-
-  return facts.slice(0, CONTROL_CORRECTION_FACT_TAKE);
-}
-
-function isControlCorrectionArenaFact(fact: Record<string, unknown>): boolean {
-  const context = getObject(fact.contextJson);
-  const taskId = readString(getObject(context.arena).taskId);
-  return taskId !== null && CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId);
-}
-
-function isControlCorrectionFact(fact: Record<string, unknown>): boolean {
-  const context = getObject(fact.contextJson);
-  const explicitGoalValues = explicitAdaptiveGoalValues(fact);
-  if (explicitGoalValues.length > 0) {
-    return explicitGoalValues.every((value) => value === CONTROL_CORRECTION_GOAL_ID);
-  }
-  return isLegacyControlCorrectionFact(fact, context);
-}
-
-function hasExplicitAdaptiveGoal(fact: Record<string, unknown>): boolean {
-  return explicitAdaptiveGoalValues(fact).length > 0;
-}
-
-function explicitAdaptiveGoalValues(fact: Record<string, unknown>): string[] {
-  const context = getObject(fact.contextJson);
-  return [
-    readString(context.goalId),
-    readString(context.goal),
-    readString(context.targetGoal),
-    readString(context.learningGoal),
-  ].filter((value): value is string => value !== null);
-}
-
-function isLegacyControlCorrectionFact(
-  fact: Record<string, unknown>,
-  context: Record<string, unknown>,
-): boolean {
-  return [
-    readString(fact.courseId),
-    readString(fact.lessonId),
-    readString(fact.moduleId),
-    readString(getObject(context.adaptiveAssessment).courseId),
-    readString(getObject(context.adaptiveAssessment).lessonId),
-    readString(getObject(context.adaptiveAssessment).moduleId),
-    readString(getObject(context.simulation).courseId),
-    readString(getObject(context.simulation).lessonId),
-    readString(getObject(context.simulation).taskId),
-    readString(getObject(getObject(context.simulation).summary).sourceId),
-    readString(getObject(getObject(context.simulation).summary).taskId),
-    readString(getObject(context.agentTool).courseId),
-    readString(getObject(context.agentTool).lessonId),
-    readString(getObject(context.agentTool).taskId),
-  ].some((value) => value !== null && CONTROL_CORRECTION_COURSE_IDS.has(value))
-    || [
-      readString(getObject(context.arena).taskId),
-      readString(getObject(context.simulation).taskId),
-      readString(getObject(getObject(context.simulation).summary).taskId),
-      readString(getObject(context.agentTool).taskId),
-    ].some((value) => value !== null && CONTROL_CORRECTION_ARENA_TASK_IDS.has(value));
-}
-
-function buildExplicitControlCorrectionLearningFactWhere(userId: string) {
-  return {
-    userId,
-    OR: [
-      { contextJson: { path: ['goalId'], equals: CONTROL_CORRECTION_GOAL_ID } },
-      { contextJson: { path: ['goal'], equals: CONTROL_CORRECTION_GOAL_ID } },
-      { contextJson: { path: ['targetGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
-      { contextJson: { path: ['learningGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
-    ],
-  };
-}
-
-function buildLegacyControlCorrectionLearningFactWhere(userId: string) {
-  return {
-    userId,
-    OR: [
-      { courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
-      { lessonId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
-      { moduleId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] } },
-      ...controlCorrectionJsonPathWhere(
-        [
-          ['adaptiveAssessment', 'courseId'],
-          ['adaptiveAssessment', 'lessonId'],
-          ['adaptiveAssessment', 'moduleId'],
-          ['simulation', 'courseId'],
-          ['simulation', 'lessonId'],
-          ['simulation', 'taskId'],
-          ['simulation', 'summary', 'sourceId'],
-          ['simulation', 'summary', 'taskId'],
-          ['agentTool', 'courseId'],
-          ['agentTool', 'lessonId'],
-          ['agentTool', 'taskId'],
-        ],
-        CONTROL_CORRECTION_COURSE_ID_VALUES,
-      ),
-      ...controlCorrectionJsonPathWhere(
-        [
-          ['arena', 'taskId'],
-          ['simulation', 'taskId'],
-          ['simulation', 'summary', 'taskId'],
-          ['agentTool', 'taskId'],
-        ],
-        CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
-      ),
-    ],
-  };
-}
-
-function controlCorrectionJsonPathWhere(
-  paths: string[][],
-  values: readonly string[],
-) {
-  return paths.flatMap((path) => values.map((value) => ({
-    contextJson: { path, equals: value },
-  })));
-}
-
 export function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
   const seen = new Set<string>();
   const result: Array<Record<string, unknown>> = [];
@@ -2642,8 +2383,7 @@ function isOfficialControlCorrectionArenaSubmission(submission: Record<string, u
   const controllerArtifact = getObject(submission.controllerArtifact);
   const artifactPayload = getObject(controllerArtifact.payload);
   const taskId = readString(submission.taskId);
-  if (!taskId) return false;
-  if (!CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId)) return false;
+  if (!isControlCorrectionArenaTaskId(taskId)) return false;
   const method = readString(submission.method) ?? readString(artifactPayload.method);
   return readString(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion({
     taskId,

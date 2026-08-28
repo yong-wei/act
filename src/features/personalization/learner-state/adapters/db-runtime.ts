@@ -1,12 +1,10 @@
+import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
+import type { GoalPluginEvidencePort } from '@/features/personalization/plugins/types';
 import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import {
-  CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   CONTROL_CORRECTION_GOAL_ID,
-  attachPersistedArenaWritebacks,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveMasteryLearningFacts,
-  readControlCorrectionLearningFacts,
   readEligibleLearnerStateFacts,
   readFeatureCache,
   resolveFencedAdaptivePortrait,
@@ -15,7 +13,6 @@ import {
 } from '../internal';
 import type {
   AssessmentReadPort,
-  ControlCorrectionGoalPluginPort,
   LearnerStateRuntime,
   LearningRecordReadPort,
   PathReadPort,
@@ -116,52 +113,28 @@ function createPathPort(db: AdaptiveLearnerStateDb): PathReadPort {
   };
 }
 
-function createControlCorrectionPlugin(db: AdaptiveLearnerStateDb): ControlCorrectionGoalPluginPort {
-  return {
-    readFacts: (userId) => readControlCorrectionLearningFacts(db, userId),
-    readArenaSubmissions: async (userId) => {
-      const submissions = await db.arenaSubmission?.findMany?.({
-        where: {
-          userId,
-          valid: true,
-          taskId: { in: [...CONTROL_CORRECTION_ARENA_TASK_ID_VALUES] },
-        },
-        include: {
-          controllerArtifact: true,
-          evaluationRun: true,
-        },
-        orderBy: { submittedAt: 'desc' },
-        take: 200,
-      }) ?? [];
-      return attachPersistedArenaWritebacks(db, submissions);
-    },
-    readAgentToolRuns: async (userId) => db.agentToolRun?.findMany?.({
-      where: {
-        targetUserId: userId,
-        courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] },
-        status: { in: ['completed', 'succeeded', 'success'] },
-      },
-      orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
-      take: 100,
-    }) ?? [],
-  };
-}
-
 export function createDbLearnerStateRuntime(
   db: AdaptiveLearnerStateDb,
   overrides: {
     assessment?: AssessmentReadPort;
-    controlCorrectionPlugin?: ControlCorrectionGoalPluginPort | null;
+    resolveGoalEvidence?: (goalId: string) => GoalPluginEvidencePort | null;
+    controlCorrectionPlugin?: GoalPluginEvidencePort | null;
     isFeatureFlagEnabled?: () => boolean;
   } = {},
 ): LearnerStateRuntime {
+  const resolveGoalEvidence = overrides.resolveGoalEvidence
+    ?? ((goalId: string) => {
+      if (overrides.controlCorrectionPlugin !== undefined) {
+        return goalId === CONTROL_CORRECTION_GOAL_ID ? overrides.controlCorrectionPlugin : null;
+      }
+      return personalizationPluginRegistry.createEvidencePort(goalId, db);
+    });
+
   return {
     learningRecord: createLearningRecordPort(db),
     assessment: overrides.assessment ?? createAssessmentPort(db),
     paths: createPathPort(db),
-    controlCorrectionPlugin: overrides.controlCorrectionPlugin === undefined
-      ? createControlCorrectionPlugin(db)
-      : overrides.controlCorrectionPlugin,
+    resolveGoalEvidence,
     isFeatureFlagEnabled: overrides.isFeatureFlagEnabled
       ?? (() => isAdaptiveLearnerStateServiceEnabled()),
   };

@@ -5,8 +5,8 @@ import { reduceLearnerState, type LearnerStateReducerInput } from '../reducer';
 import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   CONTROL_CORRECTION_GOAL_ID,
-  resolveAdaptiveGoalSliceDefinition,
 } from '../internal';
+import { resolveAdaptiveGoalSliceDefinition } from '@/features/personalization/plugins/public-api';
 import { createDbLearnerStateRuntime } from '../adapters/db-runtime';
 import { readLearnerState } from '../application/read-learner-state';
 
@@ -98,6 +98,7 @@ describe('learner-state reducer', () => {
     const state = reduceLearnerState(reducerInput({
       requestedGoal: CONTROL_CORRECTION_GOAL_ID,
       requestedGoalDefinition: resolveAdaptiveGoalSliceDefinition(CONTROL_CORRECTION_GOAL_ID),
+      supportedGoalIds: [CONTROL_CORRECTION_GOAL_ID],
       goalPluginAvailable: false,
     }));
     expect(state.goalSlices?.unsupported).toEqual({
@@ -147,6 +148,31 @@ describe('learner-state reducer', () => {
     expect(state.knowledgeMastery.tags['tag-1']?.source).toBe('adaptive-assessment');
     expect(state.assessmentState.latestAbilityEstimate?.theta).toBe(0.4);
   });
+
+  it('keeps learner-state available when a plugin evidence source is unreadable', async () => {
+    const now = new Date('2026-06-19T06:00:00.000Z');
+    const state = await readLearnerState(createDbLearnerStateRuntime({}, {
+      isFeatureFlagEnabled: () => true,
+      controlCorrectionPlugin: {
+        readFacts: async () => [],
+        readArenaSubmissions: async () => {
+          throw new Error('arena-unavailable');
+        },
+        readAgentToolRuns: async () => [],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      goal: CONTROL_CORRECTION_GOAL_ID,
+      now,
+    });
+
+    expect(state.goalSlices?.controlCorrection).toBeDefined();
+    expect(state.goalSlices?.unsupported).toBeUndefined();
+    expect(state.goalSlices?.controlCorrection?.dimensions.every((dimension) => (
+      dimension.confidence.level !== 'high'
+    ))).toBe(true);
+  });
 });
 
 describe('personalization learner-state boundary', () => {
@@ -172,6 +198,7 @@ describe('personalization learner-state boundary', () => {
       expect(source, file).toContain("from '@/features/personalization/learner-state/public-api'");
       expect(source, file).not.toContain("from '@/lib/data-governance/adaptive-learner-state-service'");
       expect(source, file).not.toContain("from './adaptive-learner-state-service'");
+      expect(source, file).not.toContain('CONTROL_CORRECTION_COURSE_ID_VALUES');
     }
   });
 

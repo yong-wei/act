@@ -1,6 +1,9 @@
 import type { PortraitV2Consumer } from '@/lib/data-governance/portrait-v2-consumer';
 import type { StudentEvidenceFeatureReadResult } from '@/lib/data-governance/student-evidence-feature-cache';
+import type { GoalPluginEvidencePort } from '@/features/personalization/plugins/types';
 import type { PortraitResolution } from './internal';
+
+export type { GoalPluginEvidencePort as ControlCorrectionGoalPluginPort } from '@/features/personalization/plugins/types';
 
 export interface LearningRecordReadPort {
   readFeatureCache(userId: string, now: Date): Promise<StudentEvidenceFeatureReadResult>;
@@ -31,16 +34,10 @@ export interface PathReadPort {
   readActiveControlCorrectionPaths(userId: string): Promise<Array<Record<string, unknown>>>;
 }
 
-export interface ControlCorrectionGoalPluginPort {
-  readFacts(userId: string): Promise<Array<Record<string, unknown>>>;
-  readArenaSubmissions(userId: string): Promise<Array<Record<string, unknown>>>;
-  readAgentToolRuns(userId: string): Promise<Array<Record<string, unknown>>>;
-}
-
 export interface LearnerStateRuntime {
   learningRecord: LearningRecordReadPort;
   assessment: AssessmentReadPort;
   paths: PathReadPort;
-  controlCorrectionPlugin: ControlCorrectionGoalPluginPort | null;
+  resolveGoalEvidence(goalId: string): GoalPluginEvidencePort | null;
   isFeatureFlagEnabled(): boolean;
 }

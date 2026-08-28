@@ -6,11 +6,13 @@ import {
 } from './application/read-learner-state';
 import {
   ADAPTIVE_GOAL_SLICE_REGISTRY,
+  resolveAdaptiveGoalSliceDefinition,
+} from '@/features/personalization/plugins/public-api';
+import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   CONTROL_CORRECTION_GOAL_DIMENSIONS,
   CONTROL_CORRECTION_GOAL_ID,
   CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
@@ -18,7 +20,6 @@ import {
   isAdaptiveLearnerStateServiceEnabled,
   projectLearnerStateFactIdentities,
   projectLearnerStateFactIdentity,
-  resolveAdaptiveGoalSliceDefinition,
   validateControlCorrectionGoalSliceContract,
   type AdaptiveGoalSliceDefinition,
   type AdaptiveLearnerState,
@@ -49,7 +50,6 @@ export {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   CONTROL_CORRECTION_GOAL_DIMENSIONS,
   CONTROL_CORRECTION_GOAL_ID,
   CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,

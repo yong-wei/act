@@ -3522,6 +3522,39 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('does not treat Arena task ids as Konling course aliases', async () => {
+    await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'task-second-order-lead-pid',
+      pageId: 'adaptive-path-center',
+      pageContextHint: {
+        courseId: 'task-second-order-lead-pid',
+        stepId: 'adaptive-path-center',
+        pageType: 'practice',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'student-1',
+      goal: null,
+    }));
+  });
+
   it('assembles class overlay for teacher graph-aware class contexts', async () => {
     const classLearnerIds = ['student-1', 'student-2', 'student-3', 'student-4', 'student-5'];
     mocks.readLearnerState.mockImplementation((args) => {

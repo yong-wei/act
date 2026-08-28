@@ -20,6 +20,12 @@ const mocks = vi.hoisted(() => ({
       findMany: vi.fn(),
       findFirst: vi.fn(),
     },
+    adaptiveMasteryUpdate: {
+      findMany: vi.fn(),
+    },
+    adaptiveAssessmentAbilityEstimate: {
+      findFirst: vi.fn(),
+    },
     userProgress: {
       count: vi.fn(),
     },
@@ -532,6 +538,8 @@ describe('generateRecommendations', () => {
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
     mocks.prisma.learningFact.findMany.mockResolvedValue([]);
     mocks.prisma.learningFact.findFirst.mockResolvedValue(null);
+    mocks.prisma.adaptiveMasteryUpdate.findMany.mockResolvedValue([]);
+    mocks.prisma.adaptiveAssessmentAbilityEstimate.findFirst.mockResolvedValue(null);
     mocks.prisma.userProgress.count.mockImplementation(async (args?: { where?: { status?: string } }) =>
       args?.where?.status === 'COMPLETED' ? 6 : 8
     );
