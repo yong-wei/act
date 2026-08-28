@@ -14,10 +14,12 @@ HOST_STATE_SCRIPT="${ACT_RUNTIME_HOST_STATE_SCRIPT:-/home/projects/act/scripts/r
 MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-/home/projects/act/scripts/materialize-runtime-blob-release.py}"
 LIFECYCLE_SCRIPT="${ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 ACTIVATION_TRANSACTION="${ACT_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-/home/projects/act/scripts/runtime-release/runtime-blob-activation-transaction.py}"
+COMPATIBILITY_PROOF_SCRIPT="${ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-app-compatibility-proof.py}"
 DEPLOY_SCRIPT="${ACT_RUNTIME_DEPLOY_SCRIPT:-/home/projects/act/scripts/4-deploy.sh}"
 ENV_FILE="${ACT_RUNTIME_ENV_FILE:-/home/projects/act/data/runtime/act-obe.env}"
 LEGACY_RUNTIME_ROOT="${ACT_RUNTIME_LEGACY_ROOT:-/home/projects/act/course-content/runtime}"
 APP_CONTAINER="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
+WORKER_CONTAINER="${ACT_RUNTIME_WORKER_CONTAINER:-act-obe-worker}"
 READYZ_TIMEOUT_SECONDS="${ACT_RUNTIME_READYZ_TIMEOUT_SECONDS:-180}"
 # Coordinated cutover (#1509): when set, the desired identity is declared as
 # a coordinated successor and the activation must carry the matching
@@ -54,6 +56,7 @@ activation_generation=""
 candidate_receipt_dir=""
 candidate_receipt_path=""
 candidate_receipt_rebound=0
+compatibility_proof=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -95,7 +98,7 @@ fi
 for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
-for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$DEPLOY_SCRIPT"; do
+for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$COMPATIBILITY_PROOF_SCRIPT" "$DEPLOY_SCRIPT"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required runtime tool is missing: $file" >&2; exit 1; }
 done
 
@@ -173,7 +176,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 async function main() {
-const runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime');
+const runtimeRoot = process.env.ACT_RUNTIME_CANDIDATE_RUNTIME_ROOT
+  ? path.resolve(process.env.ACT_RUNTIME_CANDIDATE_RUNTIME_ROOT)
+  : path.join(process.cwd(), 'course-content', 'runtime');
 const importFromApp = (relativePath: string) => import(
   pathToFileURL(path.join(process.cwd(), relativePath)).href,
 );
@@ -430,7 +435,8 @@ write_candidate_readyz_receipt() {
     --release-id "$release_id" \
     --manifest-sha256 "$manifest_sha" \
     --tree-sha256 "$tree_sha" \
-    --receipt-dir "$candidate_receipt_dir" >/dev/null
+    --receipt-dir "$candidate_receipt_dir" \
+    --provisional >/dev/null
   candidate_receipt_path="$candidate_receipt_dir/act-runtime-active-receipt.json"
 }
 
@@ -733,38 +739,9 @@ if [[ -n "$rebuild_staging" ]]; then
   ensure_helper_mount "$candidate_view/.act-runtime-blobs"
 fi
 write_lifecycle_identity "$candidate_view/.act-runtime-release.v2.json"
-stage_lifecycle_desired
-python3 "$HOST_STATE_SCRIPT" select \
-  --state-dir "$STATE_DIR" \
-  --expected-active-release "$expected_active_release" \
-  --verification-receipt "$verification_receipt" >/dev/null
 if [[ "$coordinated_activate_before_consumers" == "1" ]]; then
-  trap restore_runtime_consumers ERR
-  python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
-  candidate_current_selected=1
-  activation_attempted=1
-  python3 "$ACTIVATION_TRANSACTION" activate \
-    --state-dir "$STATE_DIR" \
-    --lifecycle-script "$LIFECYCLE_SCRIPT" \
-    --host-state-script "$HOST_STATE_SCRIPT" \
-    --expected-generation "$lifecycle_generation" \
-    --identity "$lifecycle_identity" \
-    --coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION" \
-    --coordinated-runtime-binding "$COORDINATED_RUNTIME_BINDING" >/dev/null
-  activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
-  activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
-  activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
-  [[ "$activation_release" == "$release_id" && "$activation_generation" =~ ^[0-9]+$ ]] || {
-    echo "ERROR: lifecycle activation did not commit the coordinated candidate release" >&2
-    exit 1
-  }
-  # The outer coordinator must seal the final active receipt before any
-  # graph/runtime consumer restarts. This branch intentionally returns while
-  # every consumer remains stopped.
-  trap - ERR
-  cleanup_lifecycle_identity
-  printf '{"releaseId":"%s","previousActiveRelease":"%s","runtimeDeliveryMode":"ossfs-blob-view","coordinated":true,"consumersStopped":true}\n' "$release_id" "$old_active"
-  exit 0
+  echo "ERROR: coordinated Runtime activation must supply a separately qualified runtime-app compatibility proof; the daily Runtime activator cannot qualify consumers while the outer transaction has stopped them" >&2
+  exit 1
 fi
 write_candidate_readyz_receipt
 trap restore_runtime_consumers ERR
@@ -780,6 +757,27 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
 source "$ENV_FILE"
 wait_for_readyz
 run_candidate_consumer_smoke
+manifest_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["manifestSha256"])' "$lifecycle_identity")"
+compatibility_proof="$STATE_DIR/runtime-app-compatibility/${release_id}-${manifest_sha}.json"
+python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
+  --release-id "$release_id" \
+  --manifest "$manifest" \
+  --candidate-view "$candidate_view" \
+  --app-container "$APP_CONTAINER" \
+  --worker-container "$WORKER_CONTAINER" \
+  --output "$compatibility_proof" >/dev/null
+python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
+  --release-id "$release_id" \
+  --manifest "$manifest" \
+  --candidate-view "$candidate_view" \
+  --app-container "$APP_CONTAINER" \
+  --worker-container "$WORKER_CONTAINER" \
+  --proof "$compatibility_proof" >/dev/null
+stage_lifecycle_desired
+python3 "$HOST_STATE_SCRIPT" select \
+  --state-dir "$STATE_DIR" \
+  --expected-active-release "$expected_active_release" \
+  --verification-receipt "$verification_receipt" >/dev/null
 if [[ "$release_id" == "$old_active" ]]; then
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
@@ -790,6 +788,13 @@ if [[ "$release_id" == "$old_active" ]]; then
   }
 else
   activation_attempted=1
+  python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
+    --release-id "$release_id" \
+    --manifest "$manifest" \
+    --candidate-view "$candidate_view" \
+    --app-container "$APP_CONTAINER" \
+    --worker-container "$WORKER_CONTAINER" \
+    --proof "$compatibility_proof" >/dev/null
   coordinated_activation_args=()
   if [[ -n "$COORDINATED_RUNTIME_AUTHORIZATION" ]]; then
     coordinated_activation_args+=(--coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION")

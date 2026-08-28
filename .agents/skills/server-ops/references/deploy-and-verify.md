@@ -32,7 +32,7 @@ rtk ssh root@121.40.124.135 "df -h /; podman system df"
 
 - Docker Desktop 设置值必须为 `MemoryMiB=24576`、`SwapMiB=8192`；Docker VM 可见内存受虚拟化开销影响可以略低于 24 GiB，但不得低于脚本的 20 GiB 门槛
 - 先确认远端有足够空间接收镜像 tar、完成 `podman load` 并保留数据库备份；空间不足时先精确核对未使用镜像、旧 tar 与 external Buildah 容器，保留当前版本的直接前驱回滚镜像
-- 工作树必须与目标提交一致；镜像、runtime、检索索引与 provenance 使用同一完整 Git revision，不以 tag 名或短 SHA 代替内容身份
+- 应用构建工作树必须与冻结的 `origin/main` 目标提交一致；Runtime 发布工作树必须与冻结的 `origin/integration` 目标提交一致。镜像 provenance 与 Runtime manifest 各自记录完整 source revision、独立发布 identity，并共同由兼容性证明绑定；不得以 tag 名或短 SHA 代替内容身份
 
 2. 本地验证
 ```bash
@@ -55,7 +55,7 @@ NODE_OPTIONS='--max-old-space-size=12288' \
 rtk bash scripts/build.sh
 ```
 
-镜像构建只在容器内 Next 编译、TypeScript、镜像导出和 provenance 全部成功时成立。构建完成后记录 tar SHA-256，并核对 provenance 中的 `appRevision`、`runtimeSourceRevision`、`indexSourceRevision`、runtime/index digest；任何 revision 混合或旧 tar 复用都应 fail closed。
+镜像构建只在容器内 Next 编译、TypeScript、镜像导出和 provenance 全部成功时成立。构建完成后记录 tar SHA-256，并核对应用 provenance 的 `appRevision`。Runtime/索引若独立发布，其 `runtimeSourceRevision`、`indexSourceRevision` 与 digest 进入 Runtime manifest 和兼容性证明；只有缺少兼容性证明、合同不匹配或 source identity 漂移才 fail closed，不能仅因应用与 Runtime revision 不同而拒绝发布。
 
 4. 远端部署
 
@@ -160,3 +160,8 @@ rtk proxy osascript -e 'quit app "Docker"'
 - 删除远端旧镜像或 tar 前确认本地仍保留可校验归档；清理动作与回滚能力必须同时报告
 - 容量预检必须发生在停止 runtime 消费者之前：把本地 tar 实际大小、`docker image inspect .Size`、远端可用空间和数据库备份余量同表核对。经验下限为 `tar + image + 1 GiB`；不足时先清理已核验且本地仍有归档的历史 runtime 备份或传输工件。`podman system df` 的 reclaimable 值异常、或残留 `working-container` 时，不得把它视为可用空间；以 `df -B1 /` 为准，并额外核对 `podman ps --external`。
 - 若 `podman load` 因空间耗尽已停止 app/worker，先以仍存在的直接前驱镜像显式执行 `APP_IMAGE=<previous> /home/projects/act/scripts/4-deploy.sh --app-only` 恢复服务，并通过 `readyz` 后再清理和重试；旧服务未恢复前不得重复全量部署。
+0. 冻结生产发布基线
+
+生产**应用代码**发布从 `origin/main` 发起。先 fetch `origin/main`，记录其完整 SHA，并分配一个新的应用发布版本号；镜像标签、tar/provenance、远端回执都必须使用同一个版本。若需将 `integration` 合入 `main`，这是发布前的 Git 操作；一旦 `main` SHA 已冻结，后续 `integration` 的提交不再参与本次应用构建、验证、部署或阻断判断。
+
+Runtime、图谱和索引可独立从冻结的 `origin/integration` commit 发布，并使用独立的 Runtime Release identity；它们不要求与应用 `main` SHA 相同。Runtime 选择前必须核验记录了应用 main revision、Runtime source revision、消费合同/格式版本和迁移状态的兼容性证明。冻结后的 integration 后续提交不参与该 Runtime 发布，Runtime 发布也不得重新构建、替换或回退应用镜像。

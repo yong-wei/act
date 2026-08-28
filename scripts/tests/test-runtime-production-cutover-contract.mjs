@@ -6,6 +6,8 @@ const root = process.cwd();
 const local = fs.readFileSync(path.join(root, 'scripts/runtime-release/execute-production-runtime-cutover.sh'), 'utf8');
 const remote = fs.readFileSync(path.join(root, 'scripts/runtime-release/perform-production-runtime-cutover.sh'), 'utf8');
 
+assert.match(local, /ACT_RUNTIME_LEGACY_MIGRATION/, 'first-cutover executor must require explicit migration intent');
+assert.match(local, /日常 Runtime 发布请使用 npm run deploy:runtime/, 'first-cutover executor must direct daily publication to the blob Runtime path');
 assert.match(local, /git fetch origin integration/, 'cutover must resolve the live integration revision');
 assert.match(local, /local checkout must exactly match origin\/integration/, 'cutover must reject a merely descendant topic branch');
 assert.match(local, /head_revision.*integration_revision/, 'cutover must use the exact integration revision for every staged script');

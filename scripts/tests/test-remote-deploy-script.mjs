@@ -284,9 +284,12 @@ function main() {
   assert.equal(
     script.includes('$(dirname "${REMOTE_RESOURCE_SET_CONFIG}")')
       && script.includes('scp -q "${LOCAL_RESOURCE_SET_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_HELPER}"')
-      && script.includes('scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"'),
+      && script.includes('scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"')
+      && script.includes('LOCAL_PROVENANCE_INPUT_HELPER')
+      && script.includes('REMOTE_PROVENANCE_INPUT_HELPER')
+      && script.includes('scp -q "${LOCAL_PROVENANCE_INPUT_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_INPUT_HELPER}"'),
     true,
-    '远端 provenance 校验必须随同部署 resourceSet helper 与配置',
+    '远端 provenance 校验必须随同部署 resourceSet 与 input-provenance 依赖',
   );
   assert.match(
     script,
@@ -566,10 +569,21 @@ function main() {
     '远端部署脚本必须校验远端部署脚本通过容器启动包装脚本纳入 worker'
   );
 
+  assert.equal(
+    script.includes("grep -q 'APP_IMAGE=\\${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=\\${ACT_KNOWLEDGE_DEPLOYMENT_MODE}' '${REMOTE_SERVICE_SCRIPT}'"),
+    true,
+    '远端部署脚本必须验证 systemd 配置脚本将冻结镜像和知识部署模式传给 4-deploy.sh --app-only',
+  );
+
+  assert.equal(
+    script.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
+    false,
+    'Git-free 生产 runner 不得在入口完成导入后重复执行知识图谱导入命令',
+  );
   assert.match(
     script,
-    /grep -q '.*APP_DEPLOY_SCRIPT.*--app-only'.*REMOTE_SERVICE_SCRIPT/,
-    '远端部署脚本必须验证 systemd 配置脚本在数据库就绪后重新执行 4-deploy.sh --app-only'
+    /应用入口已完成知识图谱导入与核验/,
+    '部署脚本必须明确以应用入口承担知识图谱导入边界',
   );
 
   assert.equal(

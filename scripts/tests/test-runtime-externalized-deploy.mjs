@@ -952,9 +952,9 @@ assert.equal(
     serviceScript.includes('until') &&
     serviceScript.includes('ExecStart=/usr/bin/podman start ${DB_CONTAINER}') &&
     serviceScript.includes("ExecStart=/bin/sh -lc 'until /usr/bin/podman exec") &&
-    serviceScript.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
-  true,
-  'systemd 配置脚本应先启动数据库并等待 pg_isready，再部署应用与 worker，避免 Prisma 首次启动抢跑',
+    serviceScript.includes('ExecStart=/bin/sh -lc \'APP_IMAGE=${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=${ACT_KNOWLEDGE_DEPLOYMENT_MODE} "${APP_DEPLOY_SCRIPT}" --app-only\''),
+    true,
+  'systemd 配置脚本应先启动数据库并等待 pg_isready，再以冻结镜像部署应用与 worker，避免 Prisma 首次启动抢跑或回退默认镜像',
 );
 
 assert.equal(
