@@ -4,6 +4,7 @@ import {
   buildPersonalizedPathDecisionEvidence,
   PERSONALIZED_PATH_DECISION_EVIDENCE_VERSION,
 } from '../adaptive-path-decision-evidence';
+import { projectCollectionImpactsOnNewPath } from '../cold-start-evidence-collection';
 
 describe('personalized path decision evidence', () => {
   it('freezes insufficient preference evidence as a degraded explanation', () => {
@@ -344,5 +345,58 @@ describe('personalized path decision evidence', () => {
     expect(later.snapshot.preferredModalities).toEqual(['simulation']);
     expect(later.snapshot.learnerStateVersion).toBe('adaptive-learner-state.v2');
     expect(later.snapshot.degradationReasons).toContain('insufficient-evidence');
+  });
+
+  it('records collection-backed new-path impacts without rewriting the frozen snapshot contract', () => {
+    const collectionImpacts = projectCollectionImpactsOnNewPath({
+      mode: 'new',
+      previous: { resourceMix: { knowledge_card: 2 }, estimatedMinutes: 40, checkpointCount: 1 },
+      next: { resourceMix: { simulation: 3 }, estimatedMinutes: 40, checkpointCount: 1 },
+      records: [{
+        activityType: 'resource-trial',
+        dimension: 'resource-preference',
+        source: 'resource-trial',
+        capturedAt: '2026-08-28T02:00:00.000Z',
+        goalId: 'control-correction',
+        resourceId: 'bode-sim',
+        completed: true,
+        quality: 'governed',
+        confidence: 'medium',
+        scope: 'resource-preference',
+        affectsMastery: false,
+      }],
+    });
+    const evidence = buildPersonalizedPathDecisionEvidence({
+      capturedAt: '2026-08-28T03:00:00.000Z',
+      plannerVersion: 'adaptive-learning-path-planner.v1',
+      learnerStateSnapshot: {
+        payloadVersion: 'adaptive-learner-state.v1',
+        generatedAt: '2026-08-28T02:00:00.000Z',
+        authority: 'server-owned',
+        sourceCoverage: {},
+        evidenceWindow: null,
+        freshness: 'current',
+        confidence: { level: 'medium', score: 0.6, sourceCompleteness: 0.5, evidenceCount: 3 },
+        missingEvidence: [],
+        preferredModalities: ['simulation'],
+        preferredModalityConfidence: 'medium',
+      },
+      deficits: [],
+      paths: [{
+        optionId: 'path-option-1',
+        styleId: 'simulation-driven',
+        nodeIds: ['sim-lab'],
+        resourceMix: { simulation: 3 },
+      }],
+      collectionImpacts,
+      collectionLimitationCodes: ['cold-start-ability-insufficient'],
+    });
+
+    expect(evidence.snapshot.limitations.join('')).toContain('学习节奏');
+    expect(evidence.paths[0]?.impacts).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reasonCode: 'collection-resource-trial', source: 'profile' }),
+    ]));
+    expect(evidence.paths[0]?.explanations.some((item) => item.studentText.includes('资源组合'))).toBe(true);
+    expect(JSON.stringify(evidence)).not.toContain('最佳路径');
   });
 });

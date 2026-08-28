@@ -3,6 +3,8 @@ import type {
   AdaptiveLearningPathLearnerStateSnapshot,
   AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
+import type { ColdStartCollectionImpact } from '@/lib/cold-start-evidence-collection';
+import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 
 export const PERSONALIZED_PATH_DECISION_EVIDENCE_VERSION = 'personalized-path-decision-evidence.v1';
 
@@ -188,8 +190,16 @@ export function buildPersonalizedPathDecisionEvidence(input: {
   learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
   deficits: AdaptiveLearningPathDeficit[];
   paths: PersonalizedPathDecisionPathInput[];
+  collectionImpacts?: ColdStartCollectionImpact[];
+  collectionLimitationCodes?: string[];
 }): PersonalizedPathDecisionEvidence {
   const snapshot = buildPersonalizedPathDecisionSnapshot(input);
+  if (input.collectionLimitationCodes?.length) {
+    snapshot.limitations = unique([
+      ...snapshot.limitations,
+      ...input.collectionLimitationCodes.map((code) => studentVisibleColdStartLimitation(code) ?? code),
+    ]);
+  }
   const suppressPersonalizedConclusions = snapshot.degradationReasons.length > 0;
   const trustedPreference = isTrustedPreference(input.learnerStateSnapshot) && !suppressPersonalizedConclusions;
   const allNodeIds = input.paths.map((path) => path.nodeIds);
@@ -282,6 +292,21 @@ export function buildPersonalizedPathDecisionEvidence(input: {
         });
       }
     }
+    for (const collectionImpact of input.collectionImpacts ?? []) {
+      impacts.push({
+        kind: collectionImpact.kind === 'resource-type' ? 'resource-type' : 'added',
+        source: 'profile',
+        reasonCode: collectionImpact.reasonCode,
+        resourceType: collectionImpact.kind === 'resource-type'
+          ? Object.keys(path.resourceMix ?? {})[0]
+          : undefined,
+      });
+      explanations.push({
+        code: collectionImpact.reasonCode,
+        studentText: collectionImpact.studentText,
+      });
+    }
+
     const uniqueExplanations = explanations.filter((explanation, index) =>
       explanations.findIndex((candidate) => candidate.studentText === explanation.studentText) === index);
 

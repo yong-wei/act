@@ -36,6 +36,12 @@ import {
   type PersonalizedPathDecisionPathEvidence,
 } from './adaptive-path-decision-evidence';
 import {
+  projectColdStartCollection,
+  projectCollectionImpactsOnNewPath,
+  type ColdStartCollectionEvent,
+  type ColdStartPathFacts,
+} from './cold-start-evidence-collection';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -539,6 +545,8 @@ export interface AdaptiveLearningPathPlannerInput {
   sarCandidateContext?: AdaptiveLearningPathSarCandidateContext;
   requestedAt?: string;
   now?: Date;
+  collectionEvents?: ColdStartCollectionEvent[];
+  previousPathFacts?: ColdStartPathFacts;
 }
 
 export interface AdaptiveLearningPathSarCandidateContext {
@@ -5123,12 +5131,56 @@ function buildPolicyBundle(
       ? 'policy-paths-identical'
       : null,
   ].filter((item): item is string => Boolean(item)));
+  const collectionProjection = projectColdStartCollection({
+    learnerState: {
+      knowledgeMasteryTags: input.learnerState?.knowledgeMastery?.tags,
+      resourcePreference: input.learnerState?.resourcePreference,
+      evidence: {
+        confidence: input.learnerState?.evidence?.confidence,
+        freshness: buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState)?.freshness,
+      },
+      missingEvidence: input.learnerState?.missingEvidence,
+      capabilityTargets: Object.values(input.learnerState?.goalSlices ?? {}).flatMap((slice) => (
+        (slice?.capabilityTargets ?? []).map((target) => ({
+          confidence: target.observedEvidence?.confidence,
+          evidenceCount: target.observedEvidence?.directEvidenceCount,
+          freshness: target.observedEvidence?.freshness,
+        }))
+      )),
+    },
+    events: input.collectionEvents,
+    goalId: input.goal.id,
+    mode: 'new',
+  });
+  const pathsWithCollectionLimitations = paths.map((path) => ({
+    ...path,
+    limitations: unique([
+      ...path.limitations,
+      ...collectionProjection.limitationCodes,
+    ]),
+  }));
+  const collectionImpacts = pathsWithCollectionLimitations.flatMap((path) => projectCollectionImpactsOnNewPath({
+    mode: 'new',
+    previous: input.previousPathFacts ?? {
+      resourceMix: {},
+      estimatedMinutes: 0,
+      checkpointCount: 0,
+    },
+    next: {
+      resourceMix: path.resourceMix,
+      estimatedMinutes: path.estimatedMinutes,
+      checkpointCount: path.checkpointNodeIds.length,
+    },
+    records: collectionProjection.records,
+  })).filter((impact, index, all) => (
+    all.findIndex((candidate) => candidate.reasonCode === impact.reasonCode) === index
+  ));
   const decisionEvidence = buildPersonalizedPathDecisionEvidence({
     capturedAt,
     plannerVersion: 'adaptive-learning-path-planner.v1',
     learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(input.learnerState),
     deficits: inferDeficits(input.goal, input.learnerState),
-    paths: paths.map((path, index) => ({
+    paths: pathsWithCollectionLimitations.map((path, index) => ({
       optionId: `path-option-${index + 1}`,
       styleId: path.styleId,
       policyFamily: path.policyFamily,
@@ -5137,8 +5189,10 @@ function buildPolicyBundle(
       resourceMix: path.resourceMix,
       recommendationProvenance: path.recommendationProvenance,
     })),
+    collectionImpacts,
+    collectionLimitationCodes: collectionProjection.limitationCodes,
   });
-  const pathsWithDecisionEvidence = paths.map((path, index) => ({
+  const pathsWithDecisionEvidence = pathsWithCollectionLimitations.map((path, index) => ({
     ...path,
     decisionEvidence: decisionEvidence.paths[index],
   }));
