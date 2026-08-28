@@ -31,10 +31,13 @@ export function formalDispositionFromInventory(
 }
 
 export function observationFromTeachingProjectionConsumer(
-  consumer: Pick<TeachingProjectionConsumerActivation, 'consumerId' | 'readiness' | 'requiresProjection'>,
+  consumer: Pick<
+    TeachingProjectionConsumerActivation,
+    'consumerId' | 'readiness' | 'requiresProjection' | 'authorityReleaseId' | 'projectionId' | 'projectionHash'
+  >,
 ): Pick<
   IndexedEligibilityObservation,
-  'teachingProjectionStatus' | 'teachingProjectionEvidenceIds'
+  'teachingProjectionStatus' | 'teachingProjectionEvidenceIds' | 'teachingProjectionIdentity'
 > {
   const teachingProjectionStatus: ResourceEligibilityEvidence['teachingProjectionStatus'] =
     consumer.requiresProjection === false
@@ -51,6 +54,12 @@ export function observationFromTeachingProjectionConsumer(
     teachingProjectionEvidenceIds: [
       `teaching-projection:${consumer.consumerId}:${consumer.readiness}`,
     ],
+    teachingProjectionIdentity: {
+      consumerId: consumer.consumerId,
+      authorityReleaseId: consumer.authorityReleaseId,
+      projectionId: consumer.projectionId,
+      projectionHash: consumer.projectionHash,
+    },
   };
 }
 
@@ -89,9 +98,15 @@ export function observationFromConsumerActivation(
 
 export function observationFromFormalReleaseQualification(
   readiness: Pick<CanonicalResourceCutoverReadiness, 'ready' | 'scope'>,
-): Pick<IndexedEligibilityObservation, 'releaseQualified' | 'releaseEvidenceIds'> {
+  captureRevision?: string,
+): Pick<
+  IndexedEligibilityObservation,
+  'releaseQualified' | 'releasePackageId' | 'releaseCaptureRevision' | 'releaseEvidenceIds'
+> {
   return {
     releaseQualified: readiness.ready === true && readiness.scope.consumerState === 'READY',
+    releasePackageId: readiness.scope.packageId,
+    releaseCaptureRevision: captureRevision ?? null,
     releaseEvidenceIds: [
       `formal-release:${readiness.scope.packageId ?? 'unscoped'}:${readiness.scope.consumerState}`,
     ],
@@ -113,6 +128,9 @@ export function mergeEligibilityObservations(
     if (part.teachingProjectionEvidenceIds) {
       merged.teachingProjectionEvidenceIds = part.teachingProjectionEvidenceIds;
     }
+    if (part.teachingProjectionIdentity) {
+      merged.teachingProjectionIdentity = part.teachingProjectionIdentity;
+    }
     if (part.consumerId) merged.consumerId = part.consumerId;
     if (part.consumerCombination) merged.consumerCombination = part.consumerCombination;
     if (part.consumerActivationStatus) {
@@ -122,6 +140,10 @@ export function mergeEligibilityObservations(
       merged.consumerActivationEvidenceIds = part.consumerActivationEvidenceIds;
     }
     if (part.releaseQualified !== undefined) merged.releaseQualified = part.releaseQualified;
+    if (part.releasePackageId !== undefined) merged.releasePackageId = part.releasePackageId;
+    if (part.releaseCaptureRevision !== undefined) {
+      merged.releaseCaptureRevision = part.releaseCaptureRevision;
+    }
     if (part.releaseEvidenceIds) merged.releaseEvidenceIds = part.releaseEvidenceIds;
   }
   return merged;

@@ -13,6 +13,12 @@ export interface IndexedEligibilityObservation {
   formalDisposition?: FormalDisposition;
   teachingProjectionStatus?: ResourceEligibilityEvidence['teachingProjectionStatus'];
   teachingProjectionEvidenceIds?: readonly string[];
+  teachingProjectionIdentity?: {
+    consumerId: string;
+    authorityReleaseId: string;
+    projectionId: string | null;
+    projectionHash: string | null;
+  };
   consumerId?: string;
   consumerCombination?: {
     authorityReleaseId?: string | null;
@@ -24,16 +30,27 @@ export interface IndexedEligibilityObservation {
   consumerActivationStatus?: ResourceEligibilityEvidence['consumerActivationStatus'];
   consumerActivationEvidenceIds?: readonly string[];
   releaseQualified?: boolean;
+  releasePackageId?: string | null;
+  releaseCaptureRevision?: string | null;
   releaseEvidenceIds?: readonly string[];
+}
+
+function namedConsumerPinsPresent(context: ResourceEligibilityContext): boolean {
+  if (!context.consumerId || !context.authorityId || !context.requestedRevision) return false;
+  if (context.engineeringOnly === true) return true;
+  return Boolean(context.projectionId && context.projectionHash);
 }
 
 function consumerActivationMatchesContext(
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
 ): boolean {
+  if (context.purpose === 'named-consumer' && !namedConsumerPinsPresent(context)) return false;
   const status = observation?.consumerActivationStatus ?? 'NOT_APPLICABLE';
   if (status === 'NOT_APPLICABLE' && !observation?.consumerId) return true;
-  if (context.consumerId && observation?.consumerId !== context.consumerId) return false;
+  if (observation?.consumerId && context.consumerId && observation.consumerId !== context.consumerId) {
+    return false;
+  }
   if (status !== 'READY' && status !== 'PINNED_PREVIOUS') return true;
   const combination = observation?.consumerCombination;
   if (!combination) return false;
@@ -42,6 +59,37 @@ function consumerActivationMatchesContext(
   if (context.courseId && combination.scopeId !== context.courseId) return false;
   if (context.projectionId && combination.projectionId !== context.projectionId) return false;
   if (context.projectionHash && combination.projectionHash !== context.projectionHash) return false;
+  return true;
+}
+
+function teachingProjectionMatchesContext(
+  context: ResourceEligibilityContext,
+  observation: IndexedEligibilityObservation | undefined,
+): boolean {
+  if (context.engineeringOnly === true) return true;
+  const status = observation?.teachingProjectionStatus;
+  if (status !== 'READY' && status !== 'PINNED_PREVIOUS') return true;
+  const identity = observation?.teachingProjectionIdentity;
+  if (!identity) return false;
+  if (context.authorityId && identity.authorityReleaseId !== context.authorityId) return false;
+  if (context.projectionId && identity.projectionId !== context.projectionId) return false;
+  if (context.projectionHash && identity.projectionHash !== context.projectionHash) return false;
+  return true;
+}
+
+function releaseQualifiedForContext(
+  context: ResourceEligibilityContext,
+  observation: IndexedEligibilityObservation | undefined,
+): boolean {
+  if (observation?.releaseQualified !== true) return false;
+  if (context.courseId && observation.releasePackageId !== context.courseId) return false;
+  if (
+    context.requestedRevision
+    && observation.releaseCaptureRevision
+    && observation.releaseCaptureRevision !== context.requestedRevision
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -70,6 +118,7 @@ export function evidenceFromIndexedEntry(input: {
   const formalBindingValid = observation?.formalBindingValid === true;
   const engineeringOnly = context.engineeringOnly === true;
   const consumerMatches = consumerActivationMatchesContext(context, observation);
+  const projectionMatches = teachingProjectionMatchesContext(context, observation);
 
   return {
     indexIdentityMatches: context.resourceIndexIdentity === index.identity,
@@ -93,11 +142,13 @@ export function evidenceFromIndexedEntry(input: {
     launchAuthorized: authorizedForRole && !retired && Boolean(launcher),
     launcherMatches,
     launchEvidenceIds: launcher ? [`launcher:${launcher.contractClass}:${launcher.contractVersion}`] : [],
-    releaseQualified: observation?.releaseQualified === true,
+    releaseQualified: releaseQualifiedForContext(context, observation),
     releaseEvidenceIds: observation?.releaseEvidenceIds ?? [],
     teachingProjectionStatus: engineeringOnly
       ? 'NOT_APPLICABLE'
-      : observation?.teachingProjectionStatus ?? 'NOT_PROJECTED',
+      : projectionMatches
+        ? observation?.teachingProjectionStatus ?? 'NOT_PROJECTED'
+        : 'BLOCKED',
     teachingProjectionEvidenceIds: observation?.teachingProjectionEvidenceIds ?? [],
     consumerActivationStatus: consumerMatches
       ? observation?.consumerActivationStatus ?? 'NOT_APPLICABLE'

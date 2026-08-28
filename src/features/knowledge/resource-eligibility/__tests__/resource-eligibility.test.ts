@@ -345,6 +345,7 @@ describe('resource eligibility evaluator', () => {
       requestedRevision: entry.descriptor.identity.sourceVersion,
       engineeringOnly: true,
       consumerId: 'engineering-graph',
+      authorityId: 'authority-eng',
     };
     const teaching: ResourceEligibilityContext = {
       ...engineering,
@@ -362,7 +363,9 @@ describe('resource eligibility evaluator', () => {
         observation: observationFromConsumerActivation({
           consumerId: 'engineering-graph',
           status: 'READY',
-          combination: consumerCombination(entry.descriptor.identity.sourceVersion),
+          combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+            authorityReleaseId: 'authority-eng',
+          }),
         }),
       }),
     });
@@ -522,11 +525,17 @@ describe('resource eligibility evaluator', () => {
       consumerId: 'learning-path',
       requiresProjection: true,
       readiness: 'NOT_PROJECTED',
+      authorityReleaseId: 'authority-current',
+      projectionId: null,
+      projectionHash: null,
     });
     const engineering = observationFromTeachingProjectionConsumer({
       consumerId: 'engineering-graph',
       requiresProjection: false,
       readiness: 'READY',
+      authorityReleaseId: 'authority-eng',
+      projectionId: null,
+      projectionHash: null,
     });
     const consumer = observationFromConsumerActivation({
       consumerId: 'learning-path',
@@ -543,6 +552,9 @@ describe('resource eligibility evaluator', () => {
         resourceIndexIdentity: index.identity,
         requestedRevision: entry.descriptor.identity.sourceVersion,
         consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        projectionId: 'proj-current',
+        projectionHash: 'hash-current',
       },
       observation: mergeEligibilityObservations(teaching, consumer),
     });
@@ -557,11 +569,14 @@ describe('resource eligibility evaluator', () => {
         requestedRevision: entry.descriptor.identity.sourceVersion,
         consumerId: 'engineering-graph',
         engineeringOnly: true,
+        authorityId: 'authority-eng',
       },
       observation: mergeEligibilityObservations(engineering, observationFromConsumerActivation({
         consumerId: 'engineering-graph',
         status: 'READY',
-        combination: consumerCombination(entry.descriptor.identity.sourceVersion),
+        combination: consumerCombination(entry.descriptor.identity.sourceVersion, {
+          authorityReleaseId: 'authority-eng',
+        }),
       })),
     });
     expect(snapshot.dimensions.teachingProjectionActivation.status).toBe('unavailable');
@@ -622,6 +637,8 @@ describe('resource eligibility evaluator', () => {
       requestedRevision: entry.descriptor.identity.sourceVersion,
       consumerId: 'learning-path',
       authorityId: 'authority-current',
+      projectionId: 'proj-a',
+      projectionHash: 'hash-a',
     };
     const mismatched = observeIndexedResourceEligibility({
       index,
