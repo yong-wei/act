@@ -45,11 +45,36 @@ export class PersonalizationPluginRegistry {
     const matches: Array<{ goalId: string; field: PersonalizationGoalHintField }> = [];
 
     if (explicitGoalId) {
+      if (!this.plugins.has(explicitGoalId)) {
+        return {
+          status: 'unsupported',
+          reason: 'unknown-mapping',
+          goalId: explicitGoalId,
+          limitation: 'unsupported-goal',
+        };
+      }
       matches.push({ goalId: explicitGoalId, field: 'goalId' });
     }
-    this.collectMapped(matches, 'courseId', hint.courseId, this.courseToGoal);
-    this.collectMapped(matches, 'lessonId', hint.lessonId, this.lessonToGoal);
-    this.collectMapped(matches, 'taskId', hint.taskId, this.taskToGoal);
+
+    const mappedFields: Array<[PersonalizationGoalHintField, string | null | undefined, Map<string, string>]> = [
+      ['courseId', hint.courseId, this.courseToGoal],
+      ['lessonId', hint.lessonId, this.lessonToGoal],
+      ['taskId', hint.taskId, this.taskToGoal],
+    ];
+    for (const [field, raw, index] of mappedFields) {
+      const value = readString(raw);
+      if (!value) continue;
+      const mappedGoalId = index.get(value);
+      if (!mappedGoalId) {
+        return {
+          status: 'unsupported',
+          reason: 'unknown-mapping',
+          goalId: explicitGoalId,
+          limitation: 'unsupported-goal',
+        };
+      }
+      matches.push({ goalId: mappedGoalId, field });
+    }
 
     if (matches.length === 0) {
       return {
@@ -134,20 +159,6 @@ export class PersonalizationPluginRegistry {
         throw mappingError(`conflicting-${kind}`, id);
       }
       index.set(id, goalId);
-    }
-  }
-
-  private collectMapped(
-    matches: Array<{ goalId: string; field: PersonalizationGoalHintField }>,
-    field: PersonalizationGoalHintField,
-    raw: string | null | undefined,
-    index: Map<string, string>,
-  ): void {
-    const value = readString(raw);
-    if (!value) return;
-    const goalId = index.get(value);
-    if (goalId) {
-      matches.push({ goalId, field });
     }
   }
 }

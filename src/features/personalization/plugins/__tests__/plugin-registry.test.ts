@@ -53,6 +53,7 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/mappings.ts',
   'src/features/personalization/plugins/control-correction/evidence-match.ts',
   'src/features/personalization/plugins/control-correction/db-evidence.ts',
+  'src/features/personalization/plugins/control-correction/slice-contract.ts',
 ];
 
 function emptyFeatureRead(): LearnerStateReducerInput['featureRead'] {
@@ -127,9 +128,7 @@ describe('personalization plugin registry', () => {
 
   it('rejects duplicate goalId and conflicting course mappings', () => {
     const registry = createPersonalizationPluginRegistry();
-    const plugin = createControlCorrectionPersonalizationPlugin(
-      ADAPTIVE_GOAL_SLICE_REGISTRY[CONTROL_CORRECTION_GOAL_ID],
-    );
+    const plugin = createControlCorrectionPersonalizationPlugin();
     registry.register(plugin);
     expect(() => registry.register(plugin)).toThrow(/duplicate-goal/);
     expect(() => registry.register({
@@ -173,16 +172,17 @@ describe('personalization plugin registry', () => {
     expect(resolvePersonalizationGoalContext({
       goalId: CONTROL_CORRECTION_GOAL_ID,
       courseId: 'unknown-course',
-    }).status).toBe('resolved');
+    })).toEqual({
+      status: 'unsupported',
+      reason: 'unknown-mapping',
+      goalId: CONTROL_CORRECTION_GOAL_ID,
+      limitation: 'unsupported-goal',
+    });
 
     const registry = createPersonalizationPluginRegistry();
-    registry.register(createControlCorrectionPersonalizationPlugin(
-      ADAPTIVE_GOAL_SLICE_REGISTRY[CONTROL_CORRECTION_GOAL_ID],
-    ));
+    registry.register(createControlCorrectionPersonalizationPlugin());
     registry.register({
-      ...createControlCorrectionPersonalizationPlugin(
-        ADAPTIVE_GOAL_SLICE_REGISTRY[CONTROL_CORRECTION_GOAL_ID],
-      ),
+      ...createControlCorrectionPersonalizationPlugin(),
       goalId: 'other-goal',
       pluginId: 'other-plugin',
       courseIds: ['other-course'],
@@ -199,10 +199,7 @@ describe('personalization plugin registry', () => {
     });
 
     const retired = createPersonalizationPluginRegistry();
-    retired.register(createControlCorrectionPersonalizationPlugin(
-      ADAPTIVE_GOAL_SLICE_REGISTRY[CONTROL_CORRECTION_GOAL_ID],
-      'retired',
-    ));
+    retired.register(createControlCorrectionPersonalizationPlugin('retired'));
     expect(retired.resolve({ goalId: CONTROL_CORRECTION_GOAL_ID })).toMatchObject({
       status: 'unsupported',
       reason: 'plugin-retired',
@@ -286,6 +283,10 @@ describe('personalization plugin registry', () => {
       }
       expect(source, file).not.toMatch(/['"]3-6['"]/);
     }
+    expect(readFileSync('src/features/personalization/learner-state/internal.ts', 'utf8'))
+      .not.toContain('ADAPTIVE_GOAL_SLICE_REGISTRY');
+    expect(readFileSync('src/features/personalization/plugins/control-correction/slice-contract.ts', 'utf8'))
+      .toContain('controlCorrectionGoalSliceDefinition');
   });
 
   it('moves Konling course alias resolution onto the plugin public contract', () => {

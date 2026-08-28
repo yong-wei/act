@@ -20,10 +20,12 @@ export {
 } from './registry';
 
 export {
+  ADAPTIVE_GOAL_SLICE_REGISTRY,
   getRegisteredPersonalizationGoalPlugin,
   listRegisteredPersonalizationGoalIds,
   listRegisteredPersonalizationGoalPlugins,
   personalizationPluginRegistry,
+  resolveAdaptiveGoalSliceDefinition,
   resolvePersonalizationGoalContext,
   resolvePersonalizationGoalId,
 } from './default-registry';

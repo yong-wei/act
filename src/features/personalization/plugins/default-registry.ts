@@ -1,15 +1,18 @@
-import { ADAPTIVE_GOAL_SLICE_REGISTRY } from '@/features/personalization/learner-state/internal';
+import type {
+  AdaptiveGoalSliceDefinition,
+  AdaptiveLearnerStateGoalId,
+} from '@/features/personalization/learner-state/internal';
 import { createControlCorrectionPersonalizationPlugin } from './control-correction/plugin';
 import { createPersonalizationPluginRegistry } from './registry';
+import { readString } from './json';
 import type { PersonalizationGoalHint, PersonalizationGoalResolution } from './types';
-import { CONTROL_CORRECTION_GOAL_ID } from './control-correction/mappings';
 
 export const personalizationPluginRegistry = createPersonalizationPluginRegistry();
-personalizationPluginRegistry.register(
-  createControlCorrectionPersonalizationPlugin(
-    ADAPTIVE_GOAL_SLICE_REGISTRY[CONTROL_CORRECTION_GOAL_ID],
-  ),
-);
+personalizationPluginRegistry.register(createControlCorrectionPersonalizationPlugin());
+
+export const ADAPTIVE_GOAL_SLICE_REGISTRY = Object.fromEntries(
+  personalizationPluginRegistry.list().map((plugin) => [plugin.goalId, plugin.sliceDefinition]),
+) as Record<AdaptiveLearnerStateGoalId, AdaptiveGoalSliceDefinition>;
 
 export function getRegisteredPersonalizationGoalPlugin(goalId: string | null | undefined) {
   if (!goalId) return null;
@@ -30,18 +33,26 @@ export function resolvePersonalizationGoalContext(
   return personalizationPluginRegistry.resolve(hint);
 }
 
+export function resolveAdaptiveGoalSliceDefinition(goal: string | null | undefined) {
+  const normalized = readString(goal);
+  if (!normalized) return null;
+  return getRegisteredPersonalizationGoalPlugin(normalized)?.sliceDefinition ?? null;
+}
+
 export function resolvePersonalizationGoalId(
   ...candidates: Array<string | null | undefined>
 ): string | null {
   for (const candidate of candidates) {
     if (!candidate) continue;
-    const resolved = resolvePersonalizationGoalContext({
-      courseId: candidate,
-      lessonId: candidate,
-      taskId: candidate,
-    });
-    if (resolved.status === 'resolved') {
-      return resolved.context.goalId;
+    for (const hint of [
+      { courseId: candidate },
+      { lessonId: candidate },
+      { taskId: candidate },
+    ]) {
+      const resolved = resolvePersonalizationGoalContext(hint);
+      if (resolved.status === 'resolved') {
+        return resolved.context.goalId;
+      }
     }
   }
   return null;

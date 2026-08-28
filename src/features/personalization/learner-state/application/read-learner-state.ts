@@ -1,12 +1,16 @@
 import {
+  listRegisteredPersonalizationGoalIds,
+  resolveAdaptiveGoalSliceDefinition,
+} from '@/features/personalization/plugins/public-api';
+import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   asRecord,
   normalizeRequestedGoal,
   portraitConsumerForInput,
   reduceLearnerState,
-  resolveAdaptiveGoalSliceDefinition,
   uniqueFactsById,
   type AdaptiveLearnerState,
+  type AdaptiveLearnerStateGoalId,
   type AdaptiveLearnerStateInput,
 } from '../internal';
 import type { LearnerStateRuntime } from '../ports';
@@ -71,6 +75,7 @@ export async function readLearnerState(
     featureFlagEnabled: runtime.isFeatureFlagEnabled(),
     requestedGoal,
     requestedGoalDefinition,
+    supportedGoalIds: listRegisteredPersonalizationGoalIds() as AdaptiveLearnerStateGoalId[],
     goalPluginAvailable: Boolean(plugin),
     featureRead,
     featureCache,

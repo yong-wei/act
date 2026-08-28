@@ -10,10 +10,11 @@ import {
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION,
 } from './mappings';
+import { controlCorrectionGoalSliceDefinition } from './slice-contract';
 
 export function createControlCorrectionPersonalizationPlugin(
-  sliceDefinition: AdaptiveGoalSliceDefinition,
   status: PersonalizationGoalPlugin['status'] = 'active',
+  sliceDefinition: AdaptiveGoalSliceDefinition = controlCorrectionGoalSliceDefinition,
 ): PersonalizationGoalPlugin {
   return {
     pluginId: CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,

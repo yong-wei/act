@@ -5,8 +5,8 @@ import { reduceLearnerState, type LearnerStateReducerInput } from '../reducer';
 import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   CONTROL_CORRECTION_GOAL_ID,
-  resolveAdaptiveGoalSliceDefinition,
 } from '../internal';
+import { resolveAdaptiveGoalSliceDefinition } from '@/features/personalization/plugins/public-api';
 import { createDbLearnerStateRuntime } from '../adapters/db-runtime';
 import { readLearnerState } from '../application/read-learner-state';
 
@@ -98,6 +98,7 @@ describe('learner-state reducer', () => {
     const state = reduceLearnerState(reducerInput({
       requestedGoal: CONTROL_CORRECTION_GOAL_ID,
       requestedGoalDefinition: resolveAdaptiveGoalSliceDefinition(CONTROL_CORRECTION_GOAL_ID),
+      supportedGoalIds: [CONTROL_CORRECTION_GOAL_ID],
       goalPluginAvailable: false,
     }));
     expect(state.goalSlices?.unsupported).toEqual({
