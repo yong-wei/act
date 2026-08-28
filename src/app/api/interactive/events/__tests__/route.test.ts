@@ -54,9 +54,13 @@ vi.mock('@/lib/data-governance/event-buffer', () => ({
   routeEvent: mocks.routeEvent,
 }));
 
-vi.mock('@/lib/data-governance/learning-fact-materialization', () => ({
-  persistCoreLearningFact: mocks.persistCoreLearningFact,
-}));
+vi.mock('@/lib/data-governance/learning-fact-materialization', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/data-governance/learning-fact-materialization')>();
+  return {
+    ...actual,
+    persistCoreLearningFact: mocks.persistCoreLearningFact,
+  };
+});
 
 vi.mock('@/lib/data-governance/session-reports', () => ({
   generateSessionSummaryReports: mocks.generateSessionSummaryReports,
@@ -252,8 +256,7 @@ describe('POST /api/interactive/events', () => {
       invalidContextReason: 'forbidden_session',
     });
     expect(createArg.data[0].eventData).not.toHaveProperty('sessionId');
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.routeEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         sessionId: null,
         payload: expect.not.objectContaining({
@@ -409,7 +412,7 @@ describe('POST /api/interactive/events', () => {
         }),
       ],
     }));
-    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
     expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
   });
 
@@ -491,7 +494,7 @@ describe('POST /api/interactive/events', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalled();
-    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
     expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
     expect(consoleError).toHaveBeenCalledWith(
       '[Interactive Events API] Failed to persist immutable student step responses:',
@@ -872,7 +875,7 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.persistedControlWorkbenchRunMatchesContext).toHaveBeenCalledTimes(3);
     const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
     const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const routedLearningEvent = mocks.persistCoreLearningFact.mock.calls[0][1];
     const routedDraft = JSON.parse(routedLearningEvent.payload.answerDigest['parameter.set']);
     expect(persistedDraft.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
@@ -1248,7 +1251,7 @@ describe('POST /api/interactive/events', () => {
     });
     const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
     const persistedDraft = JSON.parse(persistedLogData.eventData.answers.annotatedMediaEvidenceDraft);
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const routedLearningEvent = mocks.persistCoreLearningFact.mock.calls[0][1];
     const routedDraft = JSON.parse(routedLearningEvent.payload.answers.annotatedMediaEvidenceDraft);
     expect(persistedDraft.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');

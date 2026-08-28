@@ -31,6 +31,11 @@ import { gradingRequestScope, pseudonymousAuditId, sha256, stableStringify } fro
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import {
+  buildProjectionTrigger,
+  currentCaptureRevision,
+  recordProjectionTriggerIntent,
+} from '@/features/learning-record/ingestion/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -290,6 +295,16 @@ async function approvePipelineRun(input: {
         reason: 'document-rubric-grading-approved',
         now: reviewedAt,
       });
+      await recordProjectionTriggerIntent(tx as never, buildProjectionTrigger({
+        subjectUserId: scope.studentId,
+        inputDigest: sha256(stableStringify({
+          runId: input.run.id,
+          studentId: scope.studentId,
+          reviewedAt: reviewedAt.toISOString(),
+        })),
+        captureRevision: currentCaptureRevision(),
+        classId: scope.classId,
+      }));
     }
     return { facts, written: written.count };
   });

@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
 import {
   authorizeServerVerifiedCompetencyContribution,
-  persistCoreLearningFact,
 } from '@/lib/data-governance/learning-fact-materialization';
+import { currentCaptureRevision, ingestLearningFact } from '@/features/learning-record/ingestion/public-api';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   buildKaqQuizQuestionMetadata,
@@ -156,6 +156,14 @@ type AdaptiveAssessmentPersistenceTx = {
       startedAt: Date;
       contextJson: unknown;
     }>>;
+  };
+  evidenceOutbox?: {
+    upsert(args: unknown): Promise<unknown>;
+    findFirst?(args: unknown): Promise<{
+      status?: string;
+      payload?: unknown;
+      dedupeKey?: string;
+    } | null>;
   };
 };
 
@@ -1306,7 +1314,15 @@ async function persistAdaptiveAssessmentSubmission(
       masteryConfidence,
     }),
   );
-  await persistCoreLearningFact(tx, learningEvent);
+  await ingestLearningFact({
+    db: tx as never,
+    transport: 'direct',
+    event: learningEvent,
+    actorUserId: learningEvent.userId,
+    captureRevision: currentCaptureRevision(),
+    classId: learningEvent.classId,
+    alreadyInTransaction: true,
+  });
 
   return {
     durableSessionId: session.id,

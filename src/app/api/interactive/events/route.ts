@@ -16,7 +16,8 @@ import {
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
-import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { shouldMaterializeLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { currentCaptureRevision, ingestLearningFact } from '@/features/learning-record/ingestion/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
@@ -1070,14 +1071,35 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      const result = await routeEvent(learningEvent);
-      const factResult = await persistCoreLearningFact(prisma, learningEvent);
-      routingResults.push({
-        eventType: learningEvent.actionType,
-        ...result,
-        factsCreated: factResult.created,
-        factActionType: factResult.actionType,
-      });
+      const materializesFact = shouldMaterializeLearningFact(
+        canonicalEventType,
+        payload && typeof payload === 'object' ? payload : {},
+      );
+      if (materializesFact) {
+        const ingestResult = await ingestLearningFact({
+          db: prisma as never,
+          transport: 'direct',
+          event: learningEvent,
+          actorUserId: session.user.id,
+          captureRevision: currentCaptureRevision(),
+          classId: learningEvent.classId,
+          alreadyInTransaction: true,
+        });
+        routingResults.push({
+          eventType: learningEvent.actionType,
+          destination: 'postgresql',
+          factsCreated: ingestResult.factsCreated,
+          factActionType: canonicalEventType,
+        });
+      } else {
+        const result = await routeEvent(learningEvent);
+        routingResults.push({
+          eventType: learningEvent.actionType,
+          ...result,
+          factsCreated: 0,
+          factActionType: canonicalEventType,
+        });
+      }
 
       if (learningEvent.actionType === 'session_finalize' && learningEvent.sessionId) {
         sessionsNeedingReportRefresh.add(learningEvent.sessionId);

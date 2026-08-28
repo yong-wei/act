@@ -34,11 +34,34 @@ vi.mock('../cumulative-class-materialization', () => ({
   materializeCumulativeClassPortrait: mocks.classPortrait,
 }));
 vi.mock('../event-buffer', () => ({
-  fetchSecondaryEvents: vi.fn(async () => mocks.events),
+  claimSecondaryEvents: vi.fn(async () => mocks.events.map((event) => ({
+    raw: JSON.stringify(event),
+    event,
+    invalid: false,
+  }))),
+  ackSecondaryEvents: vi.fn(async () => undefined),
   markEventsProcessed: mocks.markEventsProcessed,
 }));
 vi.mock('../learning-fact-materialization', () => ({
   eventToLearningFactInput: (event: unknown) => event,
+}));
+vi.mock('@/features/learning-record/ingestion/public-api', () => ({
+  ingestLearningFact: vi.fn(async ({ event }: { event: { userId: string } }) => ({
+    status: 'applied',
+    profileRefreshed: false,
+    transport: 'outbox-apply',
+    inputDigest: 'digest',
+    trustedSetDigest: 'trusted',
+    factsCreated: 1,
+    trigger: {
+      triggerKey: `t-${event.userId}`,
+      subjectUserId: event.userId,
+      captureRevision: 'working-tree',
+      inputDigest: 'digest',
+    },
+  })),
+  applyStagedLearningFactIngestions: vi.fn(async () => ({ processed: 0, failed: 0, results: [] })),
+  currentCaptureRevision: () => 'working-tree',
 }));
 vi.mock('../student-evidence-feature-cache', () => ({
   rebuildStudentEvidenceFeatureCache: vi.fn(),
