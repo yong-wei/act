@@ -50,6 +50,18 @@ function indexedEntryBelongsToIndex(index: RegistryIndex, entry: IndexedResource
   return index.entries.some((candidate) => indexedEntryFingerprint(candidate) === fingerprint);
 }
 
+function indexCaptureMatchesContext(
+  index: RegistryIndex,
+  context: ResourceEligibilityContext,
+): boolean {
+  if (!context.captureRevision) return true;
+  const revisions = index.captures
+    .map((capture) => capture.sharedRevision)
+    .filter((revision): revision is string => Boolean(revision));
+  if (revisions.length === 0) return false;
+  return revisions.every((revision) => revision === context.captureRevision);
+}
+
 function ownerEngineeringOnly(
   context: ResourceEligibilityContext,
   observation: IndexedEligibilityObservation | undefined,
@@ -161,7 +173,8 @@ export function evidenceFromIndexedEntry(input: {
   return {
     indexIdentityMatches:
       context.resourceIndexIdentity === index.identity
-      && indexedEntryBelongsToIndex(index, entry),
+      && indexedEntryBelongsToIndex(index, entry)
+      && indexCaptureMatchesContext(index, context),
     revisionMatches: !context.requestedRevision || context.requestedRevision === identity.sourceVersion,
     scopeMatches: identity.scope === context.scope || (!!context.courseId && identity.scope === context.courseId),
     authorizedForRole,

@@ -966,4 +966,59 @@ describe('resource eligibility evaluator', () => {
     expect(snapshot.dimensions.teachingProjectionActivation.status).not.toBe('available');
     expect(snapshot.eligibleForContext).toBe(true);
   });
+
+  it('fails closed when the index capture revision does not match the activation capture', () => {
+    const index = buildResourceRegistryIndex([
+      createResourceNodeAdapter({
+        owner: 'resource-node-registry',
+        sharedRevision: SHARED,
+        records: [{
+          nodeId: 'mixed-capture-node',
+          title: '混合捕获节点',
+          type: 'knowledge_node',
+          sourceKind: 'resource-node',
+          sourceRef: 'mixed-capture-node',
+        }],
+      }),
+    ]);
+    const entry = index.entries[0];
+    const snapshot = observeIndexedResourceEligibility({
+      index,
+      entry,
+      context: {
+        role: 'teacher',
+        scope: entry.descriptor.identity.scope,
+        purpose: 'named-consumer',
+        resourceIndexIdentity: index.identity,
+        requestedRevision: entry.descriptor.identity.sourceVersion,
+        captureRevision: 'other-capture',
+        consumerId: 'learning-path',
+        authorityId: 'authority-current',
+        projectionId: 'proj-a',
+        projectionHash: 'hash-a',
+      },
+      observation: mergeEligibilityObservations(
+        observationFromTeachingProjectionConsumer({
+          consumerId: 'learning-path',
+          requiresProjection: true,
+          readiness: 'READY',
+          authorityReleaseId: 'authority-current',
+          projectionId: 'proj-a',
+          projectionHash: 'hash-a',
+        }),
+        observationFromConsumerActivation({
+          consumerId: 'learning-path',
+          status: 'READY',
+          combination: consumerCombination('other-capture', {
+            authorityReleaseId: 'authority-current',
+            scopeId: entry.descriptor.identity.scope,
+            projectionId: 'proj-a',
+            projectionHash: 'hash-a',
+          }),
+        }),
+      ),
+    });
+    expect(snapshot.eligibleForContext).toBe(false);
+    expect(snapshot.dimensions.consumerActivation.status).toBe('blocked');
+  });
 });
