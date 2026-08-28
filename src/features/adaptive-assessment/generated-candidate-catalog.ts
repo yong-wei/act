@@ -77,8 +77,10 @@ export function generatedReviewDecisionsFromStore(store: GeneratedCandidateStore
       misconceptionRefs: [],
       remediationRefs: [],
       metadataVersionRefs: {
-        generatedPublicationReceiptHash: receipt.receiptHash,
         generatedCandidateRevisionId: receipt.revisionId,
+        generatedPublicationReceiptHash: receipt.receiptHash,
+        generatedCatalogReleaseId: receipt.catalogReleaseId,
+        generatedAssessmentKind: receipt.generationKind,
       },
       notes: review.rationale,
     };

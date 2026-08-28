@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       create: vi.fn(),
     },
+    arenaEvaluationRun: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     evidenceOutbox: {
       findMany: vi.fn(),
     },
@@ -20,6 +24,10 @@ vi.mock('@/lib/prisma', () => ({
 
 import { prismaArenaSubmissionStore } from '../submissions/prisma-store';
 import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
+import {
+  resolveArenaEvaluationCacheBinding,
+  withArenaEvaluationCacheBinding,
+} from '../submissions/evaluation-cache-identity';
 import type { ControllerArtifact } from '../types';
 
 const artifact: ControllerArtifact = {
@@ -578,5 +586,144 @@ describe('prismaArenaSubmissionStore', () => {
         effective: true,
       },
     ]);
+  });
+
+  it('treats a complete triple with conflicting runtime identity as an evaluation cache miss', async () => {
+    const current = resolveArenaEvaluationCacheBinding(artifact.taskId);
+    mocks.prisma.arenaEvaluationRun.findUnique.mockResolvedValueOnce({
+      id: 'eval-stale-runtime',
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-stale',
+      protocolVersion: 'analysis-whitebox-v1',
+      artifactPayload: artifact,
+      valid: true,
+      score: 80,
+      metrics: {},
+      satisfaction: {},
+      hardConstraintResults: [],
+      penalties: [],
+      explanation: [],
+      metadata: withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        runtimeBuildHash: 'stale-control-engine-build',
+      }),
+      completedAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+
+    await expect(prismaArenaSubmissionStore.findEvaluationByHash(
+      artifact.taskId,
+      'artifact-hash-stale',
+      'analysis-whitebox-v1',
+    )).resolves.toBeNull();
+  });
+
+  it('reuses historical evaluations that lack runtime/model/spec metadata', async () => {
+    mocks.prisma.arenaEvaluationRun.findUnique.mockResolvedValueOnce({
+      id: 'eval-historical',
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-historical',
+      protocolVersion: 'analysis-whitebox-v1',
+      artifactPayload: artifact,
+      valid: true,
+      score: 80,
+      metrics: {},
+      satisfaction: {},
+      hardConstraintResults: [],
+      penalties: [],
+      explanation: [],
+      metadata: {},
+      completedAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+
+    const stored = await prismaArenaSubmissionStore.findEvaluationByHash(
+      artifact.taskId,
+      'artifact-hash-historical',
+      'analysis-whitebox-v1',
+    );
+    expect(stored?.id).toBe('eval-historical');
+    expect(stored?.result.score).toBe(80);
+  });
+
+  it('fails closed instead of overwriting a conflicting cached evaluation', async () => {
+    const current = resolveArenaEvaluationCacheBinding(artifact.taskId);
+    mocks.prisma.arenaEvaluationRun.findUnique.mockResolvedValueOnce({
+      id: 'eval-conflict',
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-conflict',
+      protocolVersion: 'analysis-whitebox-v1',
+      metadata: withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        specIdentity: 'stale-spec',
+      }),
+    });
+
+    await expect(prismaArenaSubmissionStore.createEvaluation({
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-conflict',
+      protocolVersion: 'analysis-whitebox-v1',
+      completedAt: '2026-05-15T10:00:00.000Z',
+      result: {
+        taskId: artifact.taskId,
+        artifact,
+        valid: true,
+        score: 91,
+        metrics: {},
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: [],
+      },
+    })).rejects.toMatchObject({
+      name: 'ControlEngineFailure',
+      state: 'unavailable',
+      category: 'evaluation-cache-identity-conflict',
+    });
+    expect(mocks.prisma.arenaEvaluationRun.upsert).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when a concurrent upsert returns a row with a conflicting cache binding', async () => {
+    const current = resolveArenaEvaluationCacheBinding(artifact.taskId);
+    mocks.prisma.arenaEvaluationRun.findUnique.mockResolvedValueOnce(null);
+    mocks.prisma.arenaEvaluationRun.upsert.mockResolvedValueOnce({
+      id: 'eval-raced',
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-raced',
+      protocolVersion: 'analysis-whitebox-v1',
+      artifactPayload: artifact,
+      valid: true,
+      score: 64,
+      metrics: {},
+      satisfaction: {},
+      hardConstraintResults: [],
+      penalties: [],
+      explanation: [],
+      metadata: withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        runtimeBuildHash: 'other-runtime-build',
+      }),
+      completedAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+
+    await expect(prismaArenaSubmissionStore.createEvaluation({
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-raced',
+      protocolVersion: 'analysis-whitebox-v1',
+      completedAt: '2026-05-15T10:00:00.000Z',
+      result: {
+        taskId: artifact.taskId,
+        artifact,
+        valid: true,
+        score: 91,
+        metrics: {},
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: [],
+      },
+    })).rejects.toMatchObject({
+      name: 'ControlEngineFailure',
+      state: 'unavailable',
+      category: 'evaluation-cache-identity-conflict',
+    });
   });
 });
