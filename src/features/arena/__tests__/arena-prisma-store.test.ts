@@ -680,4 +680,50 @@ describe('prismaArenaSubmissionStore', () => {
     });
     expect(mocks.prisma.arenaEvaluationRun.upsert).not.toHaveBeenCalled();
   });
+
+  it('fails closed when a concurrent upsert returns a row with a conflicting cache binding', async () => {
+    const current = resolveArenaEvaluationCacheBinding(artifact.taskId);
+    mocks.prisma.arenaEvaluationRun.findUnique.mockResolvedValueOnce(null);
+    mocks.prisma.arenaEvaluationRun.upsert.mockResolvedValueOnce({
+      id: 'eval-raced',
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-raced',
+      protocolVersion: 'analysis-whitebox-v1',
+      artifactPayload: artifact,
+      valid: true,
+      score: 64,
+      metrics: {},
+      satisfaction: {},
+      hardConstraintResults: [],
+      penalties: [],
+      explanation: [],
+      metadata: withArenaEvaluationCacheBinding(undefined, {
+        ...current,
+        runtimeBuildHash: 'other-runtime-build',
+      }),
+      completedAt: new Date('2026-05-15T10:00:00.000Z'),
+    });
+
+    await expect(prismaArenaSubmissionStore.createEvaluation({
+      taskId: artifact.taskId,
+      artifactHash: 'artifact-hash-raced',
+      protocolVersion: 'analysis-whitebox-v1',
+      completedAt: '2026-05-15T10:00:00.000Z',
+      result: {
+        taskId: artifact.taskId,
+        artifact,
+        valid: true,
+        score: 91,
+        metrics: {},
+        satisfaction: {},
+        hardConstraintResults: [],
+        penalties: [],
+        explanation: [],
+      },
+    })).rejects.toMatchObject({
+      name: 'ControlEngineFailure',
+      state: 'unavailable',
+      category: 'evaluation-cache-identity-conflict',
+    });
+  });
 });

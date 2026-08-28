@@ -234,6 +234,14 @@ export const prismaArenaSubmissionStore: ArenaSubmissionStore & {
       update: {},
       create: data,
     });
+    if (arenaEvaluationCacheBindingConflicts(row.metadata, currentBinding)) {
+      throw new ControlEngineFailure({
+        state: 'unavailable',
+        category: 'evaluation-cache-identity-conflict',
+        message: 'Cached Arena evaluation conflicts with current runtime, model, or spec identity.',
+        retryable: false,
+      });
+    }
 
     return toStoredEvaluation(row);
   },

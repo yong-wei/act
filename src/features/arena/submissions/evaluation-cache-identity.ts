@@ -1,6 +1,10 @@
 import { runtimeIdentity, stableStringify } from '@/lib/control-engine';
 
-import { getArenaChallengeObject, getArenaChallengeTask } from '../data/seed-challenges';
+import {
+  getArenaChallengeObject,
+  getArenaChallengeTask,
+  getArenaMetricProfile,
+} from '../data/seed-challenges';
 
 export const ARENA_EVALUATION_CACHE_BINDING_KEY = 'cacheBinding';
 
@@ -79,6 +83,7 @@ export function resolveArenaEvaluationCacheBinding(taskId: string): ArenaEvaluat
   const identity = runtimeIdentity();
   const task = getArenaChallengeTask(taskId);
   const object = task ? getArenaChallengeObject(task.objectId) : undefined;
+  const metricProfile = task ? getArenaMetricProfile(task.metricProfileId) : undefined;
   const specIdentity = task
     ? stableStringify({
       id: task.id,
@@ -86,6 +91,18 @@ export function resolveArenaEvaluationCacheBinding(taskId: string): ArenaEvaluat
       metricProfileId: task.metricProfileId,
       allowedMethods: [...task.allowedMethods].sort(),
       primaryMetrics: [...task.primaryMetrics].sort(),
+      metricProfile: metricProfile
+        ? {
+          id: metricProfile.id,
+          hardConstraints: [...metricProfile.hardConstraints].sort(),
+          rankingMetrics: metricProfile.rankingMetrics.map((metric) => ({
+            id: metric.id,
+            direction: metric.direction,
+            idealValue: metric.idealValue,
+            unacceptableValue: metric.unacceptableValue,
+          })),
+        }
+        : null,
     })
     : taskId;
   const modelIdentity = object?.modelVersion

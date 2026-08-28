@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { runtimeIdentity } from '@/lib/control-engine';
+import { getArenaChallengeTask, getArenaMetricProfile } from '../data/seed-challenges';
 import {
   arenaEvaluationCacheBindingConflicts,
   isCompleteArenaEvaluationCacheIdentity,
@@ -67,5 +68,16 @@ describe('arena evaluation cache identity', () => {
       }),
       current,
     )).toBe(true);
+  });
+
+  it('binds the actual metric profile constraints and ranking thresholds into spec identity', () => {
+    const task = getArenaChallengeTask('task-second-order-lead-pid');
+    const profile = task ? getArenaMetricProfile(task.metricProfileId) : undefined;
+    expect(task).toBeDefined();
+    expect(profile).toBeDefined();
+    const specIdentity = resolveArenaEvaluationCacheBinding('task-second-order-lead-pid').specIdentity;
+    expect(specIdentity).toContain(profile!.hardConstraints[0]);
+    expect(specIdentity).toContain(String(profile!.rankingMetrics[0].idealValue));
+    expect(specIdentity).toContain(String(profile!.rankingMetrics[0].unacceptableValue));
   });
 });
