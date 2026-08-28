@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   getAdaptiveQuestionById,
-  submitAnswerWithDetails,
+  createSubmitAnswerDetails,
 } from '../adaptive-engine';
 import {
   buildAdaptiveAssessmentItemCatalog,
@@ -187,7 +187,7 @@ describe('generated runtime question resolution', () => {
     expect(question?.difficulty).toBe(0.6);
     expect(question?.generatedMetadata).toBeUndefined();
 
-    const answered = submitAnswerWithDetails({
+    const answered = createSubmitAnswerDetails({
       userId: 'student-1',
       sessionId: 'session-1',
       questionId: created.revision.revisionId,

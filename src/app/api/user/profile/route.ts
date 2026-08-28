@@ -28,9 +28,9 @@ import {
   type CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
-  getAbilityReportWithPersistenceFallback,
-  getDiagnosticWithPersistenceFallback,
-} from '@/features/assessment/adaptive-persistence';
+  readAbilityReport,
+  readDiagnostic,
+} from '@/features/assessment/public-api';
 import {
   ARENA_PORTFOLIO_RECENT_LIMIT,
   buildArenaStudentPortfolio,
@@ -637,8 +637,8 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = await getAbilityReportWithPersistenceFallback(userId);
-    const adaptiveDiagnostic = await getDiagnosticWithPersistenceFallback(userId);
+    const adaptiveReport = await readAbilityReport(userId);
+    const adaptiveDiagnostic = await readDiagnostic(userId);
 
     const response: UserProfileResponse = {
       user: {

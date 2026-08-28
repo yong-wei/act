@@ -30,14 +30,12 @@ import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 import {
   buildSubmitAnswerResult,
   createSubmitAnswerDetails,
-  getAbilityReport,
+  createSubmitAnswerDetailsForQuestion,
   getAbilityReportFromAnswers,
-  getDiagnostic,
   getDiagnosticFromAnswers,
+  getAdaptiveQuestionById,
   getAdaptiveQuestionSelectionById,
-  selectNextQuestion,
   selectNextQuestionFromAnswers,
-  submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
   type AdaptiveQuestionScope,
@@ -54,7 +52,7 @@ import {
   rebuildMasteryUpdatesFromAnswers,
   type AdaptiveAssessmentBktParameters,
 } from './adaptive-mastery';
-import type { QuestionDomain, QuestionType } from './adaptive-question-bank';
+import type { CrossDomainQuestion, QuestionDomain, QuestionType } from './adaptive-question-bank';
 
 type CreateManyResult = { count: number };
 
@@ -80,6 +78,17 @@ type PersistedAssessmentAnswerRow = {
   };
 };
 
+type PersistedAssessmentItemRefRow = {
+  id: string;
+  questionId?: string;
+  contentHash?: string;
+  questionType?: string;
+  domains?: string[];
+  knowledgeTags?: string[];
+  difficulty?: number;
+  metadata?: unknown;
+};
+
 type PersistedAssessmentSessionRow = {
   id: string;
   selectedQuestionIds?: string[];
@@ -96,7 +105,7 @@ type AdaptiveAssessmentPersistenceTx = {
     updateMany(args: Record<string, unknown>): Promise<CreateManyResult>;
   };
   adaptiveAssessmentItemRef: {
-    upsert(args: Record<string, unknown>): Promise<{ id: string }>;
+    upsert(args: Record<string, unknown>): Promise<PersistedAssessmentItemRefRow>;
   };
   adaptiveAssessmentAnswer: {
     findUnique(args: Record<string, unknown>): Promise<{
@@ -150,9 +159,22 @@ type AdaptiveAssessmentPersistenceTx = {
   };
 };
 
-type AdaptiveAssessmentPersistenceDb = AdaptiveAssessmentPersistenceTx & {
+export type AdaptiveAssessmentPersistenceDb = AdaptiveAssessmentPersistenceTx & {
   $transaction?<T>(callback: (tx: AdaptiveAssessmentPersistenceTx) => Promise<T>): Promise<T>;
 };
+
+export type AdaptiveAssessmentPersistenceEnv = Record<string, string | undefined>;
+
+export const RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK =
+  'Adaptive assessment persistence fallback is retired; durable storage is required.';
+
+export function assertDurableAssessmentPersistence(
+  env: AdaptiveAssessmentPersistenceEnv = process.env,
+): void {
+  if (env.ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED === 'false') {
+    throw new Error(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
+  }
+}
 
 export interface DurableSubmitAnswerResult extends SubmitAnswerResult {
   durableSessionId?: string;
@@ -182,8 +204,6 @@ export interface AdaptiveAssessmentOutcomeRef {
   algorithmVersion: string;
   answeredAt: string;
 }
-
-type AdaptiveAssessmentPersistenceEnv = Record<string, string | undefined>;
 
 interface PersistedSubmission {
   durableSessionId: string;
@@ -230,6 +250,246 @@ function assertSelectedCompanionQuestion(
   if (selectedQuestionIds.length !== 1 || selectedQuestionIds[0] !== questionId) {
     throw new Error('Companion-practice answer does not match the selected question.');
   }
+}
+
+function assertSelectedPathQuestion(
+  session: PersistedAssessmentSessionRow,
+  questionId: string,
+  pathContext: SubmittedAnswerDetails['pathContext'],
+) {
+  if (!pathContext) return;
+  const selectedQuestionIds = Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [];
+  if (!selectedQuestionIds.includes(questionId)) {
+    throw new Error('路径自适应答案不属于当前会话已选择的题目');
+  }
+}
+
+function isPathOwnedQuestionScope(scope?: AdaptiveQuestionScope): boolean {
+  return scope === 'readiness'
+    || scope === 'checkpoint'
+    || scope === 'remediation'
+    || scope === 'terminal-validation';
+}
+
+function recordMetadata(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? { ...value as Record<string, unknown> }
+    : {};
+}
+
+function readSelectedItemRefHash(metadata: unknown, questionId: string): string | null {
+  const selectedItemRefs = recordMetadata(metadata).selectedItemRefs;
+  if (!selectedItemRefs || typeof selectedItemRefs !== 'object' || Array.isArray(selectedItemRefs)) {
+    return null;
+  }
+  const binding = recordMetadata((selectedItemRefs as Record<string, unknown>)[questionId]);
+  return typeof binding.contentHash === 'string' && binding.contentHash.length > 0
+    ? binding.contentHash
+    : null;
+}
+
+function mergeSelectedItemRef(metadata: unknown, questionId: string, contentHash: string): Record<string, unknown> {
+  const record = recordMetadata(metadata);
+  const selectedItemRefs = recordMetadata(record.selectedItemRefs);
+  return {
+    ...record,
+    selectedItemRefs: {
+      ...selectedItemRefs,
+      [questionId]: { contentHash },
+    },
+  };
+}
+
+function selectionSnapshotDetails(
+  question: NonNullable<ReturnType<typeof getAdaptiveQuestionById>>,
+  userId: string,
+  sessionId: string,
+): SubmittedAnswerDetails {
+  const correctOption = question.options.find((option) => option.isCorrect) ?? question.options[0];
+  return createSubmitAnswerDetails({
+    userId,
+    sessionId,
+    questionId: question.id,
+    selectedOption: correctOption?.label ?? correctOption?.text ?? 'A',
+    timeSpent: 1,
+  });
+}
+
+async function persistAdaptiveAssessmentItemRef(
+  tx: Pick<AdaptiveAssessmentPersistenceTx, 'adaptiveAssessmentItemRef'>,
+  details: SubmittedAnswerDetails,
+  contentHash: string,
+): Promise<PersistedAssessmentItemRefRow> {
+  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(details.question.id);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(details.question);
+  const itemRefMetadata = {
+    kaq: kaqMetadata,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: details.question.generatedMetadata,
+    }),
+    questionSnapshot: buildAdaptiveQuestionSnapshot(details, kaqMetadata, catalogSnapshot),
+    ...(details.question.generatedMetadata ? { generatedMetadata: details.question.generatedMetadata } : {}),
+  };
+  return tx.adaptiveAssessmentItemRef.upsert({
+    where: {
+      questionId_algorithmVersion_contentHash: {
+        questionId: details.question.id,
+        algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+        contentHash,
+      },
+    },
+    update: {},
+    create: {
+      questionId: details.question.id,
+      contentHash,
+      source: questionSource(details.question.id),
+      questionType: details.question.type,
+      domains: details.question.domains,
+      knowledgeTags: details.question.knowledgeTags,
+      difficulty: details.question.difficulty,
+      optionCount: details.question.options.length,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      metadata: itemRefMetadata,
+    },
+  });
+}
+
+async function persistPathOwnedSelectionBindings(params: {
+  metadata: unknown;
+  questionId: string;
+  userId: string;
+  sessionId: string;
+  db: AdaptiveAssessmentPersistenceDb;
+}): Promise<unknown> {
+  if (readSelectedItemRefHash(params.metadata, params.questionId)) {
+    return params.metadata;
+  }
+  const question = getAdaptiveQuestionById(params.questionId);
+  if (!question) {
+    throw new Error('路径自适应选题无法绑定已审核目录题目');
+  }
+  const details = selectionSnapshotDetails(question, params.userId, params.sessionId);
+  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(params.questionId);
+  const contentHash = questionMetadataContentHash(details, catalogSnapshot);
+  await persistAdaptiveAssessmentItemRef(params.db, details, contentHash);
+  return mergeSelectedItemRef(params.metadata, params.questionId, contentHash);
+}
+
+function questionFromPersistedItemRef(
+  questionId: string,
+  itemRef: PersistedAssessmentItemRefRow,
+): CrossDomainQuestion | null {
+  const snapshot = recordMetadata(itemRef.metadata).questionSnapshot;
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+    return null;
+  }
+  const record = recordMetadata(snapshot);
+  if (typeof record.prompt !== 'string' || typeof record.correctOptionKey !== 'string' || !Array.isArray(record.options)) {
+    return null;
+  }
+  const options = record.options.flatMap((option) => {
+    if (!option || typeof option !== 'object' || Array.isArray(option)) return [];
+    const row = recordMetadata(option);
+    if (typeof row.label !== 'string' || typeof row.text !== 'string') return [];
+    return [{
+      label: row.label,
+      text: row.text,
+      explanation: typeof row.explanation === 'string' ? row.explanation : '',
+      isCorrect: row.key === record.correctOptionKey,
+    }];
+  });
+  if (options.length === 0) return null;
+  const generatedMetadata = recordMetadata(itemRef.metadata).generatedMetadata;
+  return {
+    id: questionId,
+    stem: record.prompt,
+    domains: Array.isArray(itemRef.domains) ? itemRef.domains as QuestionDomain[] : [],
+    type: (itemRef.questionType ?? 'multi-criteria') as QuestionType,
+    difficulty: typeof itemRef.difficulty === 'number' ? itemRef.difficulty : 0,
+    knowledgeTags: Array.isArray(record.knowledgeTags)
+      ? record.knowledgeTags.filter((tag): tag is string => typeof tag === 'string')
+      : Array.isArray(itemRef.knowledgeTags) ? itemRef.knowledgeTags : [],
+    options,
+    ...(generatedMetadata && typeof generatedMetadata === 'object' && !Array.isArray(generatedMetadata)
+      ? { generatedMetadata: generatedMetadata as CrossDomainQuestion['generatedMetadata'] }
+      : {}),
+  };
+}
+
+function applyPersistedSelectionSnapshot(
+  details: SubmittedAnswerDetails,
+  itemRef: PersistedAssessmentItemRefRow,
+): SubmittedAnswerDetails {
+  if (!details.pathContext) return details;
+  const question = questionFromPersistedItemRef(details.question.id, itemRef);
+  if (!question) return details;
+  const rebuilt = createSubmitAnswerDetailsForQuestion(question, {
+    userId: details.record.userId,
+    sessionId: details.record.sessionId,
+    questionId: details.question.id,
+    selectedOption: details.record.selectedOption,
+    timeSpent: details.record.timeSpent,
+    pathContext: details.pathContext,
+    continuity: details.continuity,
+  });
+  return {
+    ...rebuilt,
+    record: {
+      ...rebuilt.record,
+      createdAt: details.record.createdAt,
+    },
+  };
+}
+
+function catalogSnapshotFromPersistedItemRef(
+  itemRef: PersistedAssessmentItemRefRow,
+): AdaptiveAssessmentCatalogSnapshot | null {
+  const stored = recordMetadata(itemRef.metadata).adaptiveAssessmentItemRef;
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return null;
+  const record = recordMetadata(stored);
+  if (record.catalogBacked !== true) return null;
+  const semanticRefs = record.semanticRefs && typeof record.semanticRefs === 'object' && !Array.isArray(record.semanticRefs)
+    ? record.semanticRefs as AdaptiveAssessmentCatalogSnapshot['semanticRefs']
+    : null;
+  if (
+    typeof record.catalogItemId !== 'string'
+    || typeof record.sourceId !== 'string'
+    || typeof record.contentHash !== 'string'
+    || !Array.isArray(record.allowedStages)
+    || !semanticRefs
+    || !Array.isArray(semanticRefs.learningGoalIds)
+    || !record.reviewDecision
+    || typeof record.reviewDecision !== 'object'
+    || Array.isArray(record.reviewDecision)
+    || !record.versionRefs
+    || typeof record.versionRefs !== 'object'
+    || Array.isArray(record.versionRefs)
+    || !record.relationship
+    || typeof record.relationship !== 'object'
+    || Array.isArray(record.relationship)
+  ) {
+    return null;
+  }
+  return {
+    catalogItemId: record.catalogItemId,
+    sourceFamily: record.sourceFamily as AdaptiveAssessmentCatalogSnapshot['sourceFamily'],
+    sourceId: record.sourceId,
+    sourceAnchor: typeof record.sourceAnchor === 'string' ? record.sourceAnchor : '',
+    sourceLineage: record.sourceLineage as AdaptiveAssessmentCatalogSnapshot['sourceLineage'],
+    contentHash: record.contentHash,
+    contentHashAlgorithm: record.contentHashAlgorithm as AdaptiveAssessmentCatalogSnapshot['contentHashAlgorithm'],
+    reviewState: record.reviewState as AdaptiveAssessmentCatalogSnapshot['reviewState'],
+    eligibilityState: record.eligibilityState as AdaptiveAssessmentCatalogSnapshot['eligibilityState'],
+    allowedStages: record.allowedStages as AdaptiveAssessmentCatalogSnapshot['allowedStages'],
+    questionRefs: record.questionRefs as AdaptiveAssessmentCatalogSnapshot['questionRefs'],
+    semanticRefs,
+    limitations: record.limitations as AdaptiveAssessmentCatalogSnapshot['limitations'],
+    reviewDecision: record.reviewDecision as AdaptiveAssessmentCatalogSnapshot['reviewDecision'],
+    versionRefs: record.versionRefs as AdaptiveAssessmentCatalogSnapshot['versionRefs'],
+    relationship: record.relationship as AdaptiveAssessmentCatalogSnapshot['relationship'],
+  };
 }
 
 function selectedOptionValueFromKey(
@@ -730,7 +990,6 @@ async function persistAdaptiveAssessmentSubmission(
   await ensureGeneratedCatalogHydrated(db);
   const execute = async (tx: AdaptiveAssessmentPersistenceTx): Promise<PersistedSubmission & { result: SubmitAnswerResult }> => {
   const answeredAt = new Date(details.record.createdAt);
-  const score = details.record.isCorrect ? 100 : 0;
 
   const algorithm = await upsertAdaptiveAssessmentAlgorithmVersion(tx, answeredAt);
   await lockAdaptiveAssessmentUserWrites(tx, details.record.userId);
@@ -757,6 +1016,8 @@ async function persistAdaptiveAssessmentSubmission(
   });
   assertImmutableCompanionMetadata(session.metadata, details.continuity);
   assertSelectedCompanionQuestion(session, details.question.id, details.continuity);
+  assertSelectedPathQuestion(session, details.question.id, details.pathContext);
+  const selectionContentHash = readSelectedItemRefHash(session.metadata, details.question.id);
 
   let effectiveDetails = details;
   if (details.pathContext) {
@@ -790,10 +1051,11 @@ async function persistAdaptiveAssessmentSubmission(
         create: {
           userId: details.record.userId,
           sessionKey: retrySessionId,
+          selectedQuestionIds: session.selectedQuestionIds ?? [],
           algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
           startedAt: answeredAt,
           lastAnsweredAt: answeredAt,
-          metadata: details.continuity ?? {},
+          metadata: session.metadata ?? details.continuity ?? {},
         },
       });
       assertImmutableCompanionMetadata(session.metadata, details.continuity);
@@ -807,41 +1069,12 @@ async function persistAdaptiveAssessmentSubmission(
     }
   }
 
-  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
-  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
-  const contentHash = questionMetadataContentHash(effectiveDetails, catalogSnapshot);
-  const itemRefMetadata = {
-    kaq: kaqMetadata,
-    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
-      kaqMetadata,
-      catalogSnapshot,
-      generatedMetadata: effectiveDetails.question.generatedMetadata,
-    }),
-    questionSnapshot: buildAdaptiveQuestionSnapshot(effectiveDetails, kaqMetadata, catalogSnapshot),
-    ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
-  };
-  const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
-    where: {
-      questionId_algorithmVersion_contentHash: {
-        questionId: effectiveDetails.question.id,
-        algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-        contentHash,
-      },
-    },
-    update: {},
-    create: {
-      questionId: effectiveDetails.question.id,
-      contentHash,
-      source: questionSource(effectiveDetails.question.id),
-      questionType: effectiveDetails.question.type,
-      domains: effectiveDetails.question.domains,
-      knowledgeTags: effectiveDetails.question.knowledgeTags,
-      difficulty: effectiveDetails.question.difficulty,
-      optionCount: effectiveDetails.question.options.length,
-      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: itemRefMetadata,
-    },
-  });
+  let catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
+  const contentHash = selectionContentHash ?? questionMetadataContentHash(effectiveDetails, catalogSnapshot);
+  const questionRef = await persistAdaptiveAssessmentItemRef(tx, effectiveDetails, contentHash);
+  effectiveDetails = applyPersistedSelectionSnapshot(effectiveDetails, questionRef);
+  catalogSnapshot = catalogSnapshotFromPersistedItemRef(questionRef) ?? catalogSnapshot;
+  const score = effectiveDetails.record.isCorrect ? 100 : 0;
 
   const persistedAnswersBefore = await tx.adaptiveAssessmentAnswer.findMany({
     where: {
@@ -1091,7 +1324,9 @@ async function persistAdaptiveAssessmentSubmission(
 export async function submitAnswerDurably(
   params: SubmitAnswerParams,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
+  env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DurableSubmitAnswerResult> {
+  assertDurableAssessmentPersistence(env);
   const details = createSubmitAnswerDetails(params);
   const persisted = await persistAdaptiveAssessmentSubmission(details, db);
 
@@ -1102,27 +1337,6 @@ export async function submitAnswerDurably(
     algorithmVersion: persisted.algorithmVersion,
     adaptiveAssessmentRef: persisted.adaptiveAssessmentRef,
   };
-}
-
-export function isAdaptiveAssessmentPersistenceEnabled(
-  env: AdaptiveAssessmentPersistenceEnv = process.env,
-): boolean {
-  return env.ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED !== 'false';
-}
-
-export async function submitAnswerWithPersistenceFallback(
-  params: SubmitAnswerParams,
-  db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
-  env: AdaptiveAssessmentPersistenceEnv = process.env,
-): Promise<DurableSubmitAnswerResult> {
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    if (params.continuity) {
-      throw new Error('Companion practice requires adaptive-assessment persistence.');
-    }
-    return submitAnswer(params);
-  }
-
-  return submitAnswerDurably(params, db);
 }
 
 async function loadMicroInterventionMasteryEvidence(
@@ -1226,6 +1440,7 @@ async function loadPersistedSessionSelection(
   return {
     id: session.id,
     selectedQuestionIds: Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [],
+    metadata: session.metadata,
   };
 }
 
@@ -1234,6 +1449,7 @@ async function recordPersistedQuestionSelection(
   previousQuestionIds: string[],
   questionIds: Iterable<string>,
   db: AdaptiveAssessmentPersistenceDb,
+  metadata?: unknown,
 ): Promise<boolean> {
   const result = await db.adaptiveAssessmentSession.updateMany({
     where: {
@@ -1244,39 +1460,34 @@ async function recordPersistedQuestionSelection(
     },
     data: {
       selectedQuestionIds: Array.from(new Set(questionIds)),
+      ...(metadata !== undefined ? { metadata } : {}),
     },
   });
 
   return result.count === 1;
 }
 
-export async function getAbilityReportWithPersistenceFallback(
+export async function getAbilityReportDurably(
   userId: string,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<AbilityReport> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    return getAbilityReport(userId);
-  }
-
   return getAbilityReportFromAnswers(userId, await loadPersistedAnswerRecords(userId, db));
 }
 
-export async function getDiagnosticWithPersistenceFallback(
+export async function getDiagnosticDurably(
   userId: string,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DiagnosticResult> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    return getDiagnostic(userId);
-  }
-
   return getDiagnosticFromAnswers(await loadPersistedAnswerRecords(userId, db));
 }
 
-export async function selectNextQuestionWithPersistenceFallback(
+export async function selectNextQuestionDurably(
   params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
@@ -1285,13 +1496,8 @@ export async function selectNextQuestionWithPersistenceFallback(
   estimatedAbility: number;
   confidenceInterval: [number, number];
 }> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    if (params.continuity) {
-      throw new Error('Companion practice requires adaptive-assessment persistence.');
-    }
-    return selectNextQuestion(params);
-  }
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const answers = await loadPersistedAnswerRecords(params.userId, db);
@@ -1311,11 +1517,22 @@ export async function selectNextQuestionWithPersistenceFallback(
         .map((answer) => answer.questionId),
     ]);
     const result = selectNextQuestionFromAnswers(params, answers, askedQuestionIds);
+    const nextQuestionIds = [...Array.from(askedQuestionIds), result.question.id];
+    const nextMetadata = !params.continuity && isPathOwnedQuestionScope(params.questionScope)
+      ? await persistPathOwnedSelectionBindings({
+          metadata: session.metadata,
+          questionId: result.question.id,
+          userId: params.userId,
+          sessionId: params.sessionId,
+          db,
+        })
+      : undefined;
     const persisted = await recordPersistedQuestionSelection(
       session,
       persistedQuestionIds,
-      [...Array.from(askedQuestionIds), result.question.id],
+      nextQuestionIds,
       db,
+      nextMetadata,
     );
 
     if (persisted) {
