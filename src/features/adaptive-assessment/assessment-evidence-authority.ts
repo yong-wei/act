@@ -104,9 +104,14 @@ function evidenceContractIssues(
       : 'invalid-review-source-hash',
     item.reviewState === 'path-eligible' ? '' : 'review-state-not-path-eligible',
     item.eligibilityState === 'path-eligible' ? '' : 'eligibility-state-not-path-eligible',
-    item.sourceFamily === 'generated-adaptive-question' ? 'generated-item-limited-to-practice' : '',
+    item.sourceFamily === 'generated-adaptive-question' &&
+      typeof item.versionRefs.generatedPublicationReceiptHash !== 'string'
+      ? 'generated-item-limited-to-practice'
+      : '',
     item.questionRefs.answerKey?.length ? '' : 'missing-scoring-answer-key',
-    item.questionRefs.rubricRef?.trim() ? '' : 'missing-scoring-rubric',
+    item.sourceFamily === 'generated-adaptive-question' || item.questionRefs.rubricRef?.trim()
+      ? ''
+      : 'missing-scoring-rubric',
     item.lineage.sourceFamily === item.sourceFamily ? '' : 'lineage-source-family-mismatch',
     item.lineage.sourceId === item.sourceId ? '' : 'lineage-source-id-mismatch',
     item.lineage.sourceHash === item.contentHash ? '' : 'lineage-source-hash-mismatch',

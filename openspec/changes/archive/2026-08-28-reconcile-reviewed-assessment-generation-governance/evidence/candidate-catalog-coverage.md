@@ -12,6 +12,7 @@
 | catalog 集成与阶段资格 | `buildGeneratedItems`、`applyGeneratedCandidateStoreToRuntimeOverlay` | 无回执 provisional；断裂 lineage 不冻结 overlay；stale 后目录不可见 |
 | 退役与回滚 | `retireGeneratedPublication` / `rollbackGeneratedPublication`（域函数） | retire 后历史回执保留；rollback 保留 receiptHash |
 | 运行时题目解析（本 change 补齐） | `findGeneratedRuntimeQuestionById` + `getAdaptiveQuestionById` 回退 | published 项可作答且 identity 不变；未发布/模板内容不可解析 |
+| 阶段政策对齐（复审整改） | `assessment-evidence-authority.ts`（receipt 条件化 + rubric 豁免）、`adaptive-assessment-semantic-review.ts`（generated 家族证据集）、`generated-candidate-catalog.ts`（完整 metadataVersionRefs） | 端到端：catalog 选择 published 生成项 → 运行时解析 → 作答；provisional 仍限 practice |
 | 历史答案不可变 | `adaptive-persistence.ts` answer-time snapshot（`catalogBacked` 分支） | adaptive-persistence 测试；`AdaptiveAssessmentItemRef` 绑定 catalogItemId/contentHash |
 
-测试基线：`src/features/adaptive-assessment`、`src/features/assessment`、`src/lib/adaptive-planning` 共 32 文件 384 例通过（含本 change 新增 4 例）。
+测试基线：`src/features/adaptive-assessment`、`src/features/assessment`、`src/lib/adaptive-planning` 共 32 文件 385 例通过（含本 change 新增 5 例）。全量 `vitest run`：9968 通过 / 21 失败，失败全部位于 actkg/authority/知识图谱/commercial-ui 等无关域，stash 整改前后同样失败，属本工作树既有债务，单列不掩盖。

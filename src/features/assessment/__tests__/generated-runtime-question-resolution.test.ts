@@ -14,6 +14,7 @@ import {
 import {
   replaceGeneratedRuntimeOverlay,
   resetGeneratedRuntimeOverlay,
+  selectCatalogBackedAssessmentItem,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
   createGeneratedCandidate,
@@ -136,5 +137,45 @@ describe('generated runtime question resolution', () => {
 
     expect(getAdaptiveQuestionById(created.revision.revisionId)).toBeNull();
     expect(getAdaptiveQuestionById('generated-q-session-only')).toBeNull();
+  });
+
+  it('selects a published generated item for its governed stage and resolves it end to end', () => {
+    const store = createGeneratedCandidateStore();
+    const created = createGeneratedCandidate(store, envelope(validContent({
+      learningGoalIds: ['generated-e2e-goal'],
+    })));
+    reviewGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      reviewerUserId: 'reviewer-1',
+      reviewerRole: 'assessment-content-reviewer',
+      outcome: 'approved',
+      rationale: '答案、干扰项、目标和难度均核对通过。',
+      itemDecisions: {
+        answer: 'accept',
+        distractors: 'accept',
+        semantics: 'accept',
+        stage: 'accept',
+        source: 'accept',
+      },
+    });
+    const receipt = publishGeneratedCandidate(store, {
+      candidateId: created.record.candidateId,
+      publisherUserId: 'publisher-1',
+      catalogReleaseId: 'generated-catalog.r1',
+    });
+    hydrateOverlay(store);
+
+    const selected = selectCatalogBackedAssessmentItem({
+      learningGoalId: 'generated-e2e-goal',
+      requestedStage: 'checkpoint',
+      askedQuestionIds: new Set(),
+      answeredQuestionIds: new Set(),
+      targetDifficulty: 0.6,
+      weakAreas: new Set(),
+    });
+    expect(selected.catalogItem.catalogItemId).toBe(receipt.catalogItemId);
+    expect(selected.catalogItem.sourceFamily).toBe('generated-adaptive-question');
+    const question = getAdaptiveQuestionById(selected.catalogItem.sourceId);
+    expect(question?.stem).toBe(validContent().stem);
   });
 });
