@@ -16,10 +16,10 @@ import {
 } from '../data-governance/portrait-v2-model';
 import type { PortraitV2DimensionId } from '../data-governance/kaq-objective-taxonomy';
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   recordLearningPathFeedback,
   type AdaptiveLearningPathPlannerInput,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import { buildResourceNodeRegistry, type ResourceNodeRegistry } from '../resource-node-registry';
 
@@ -157,7 +157,7 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
 
 describe('adaptive learning optimization experiments', () => {
   it('does not skip a locked prerequisite to make a later ready node current', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         registeredResources: [
           {
@@ -228,7 +228,7 @@ describe('adaptive learning optimization experiments', () => {
 
   it('keeps Arena locked for a zero-competency learner until preparation evidence is available', () => {
     const now = new Date('2026-05-28T00:00:00Z');
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       now,
       registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       goal: {
@@ -325,7 +325,7 @@ describe('adaptive learning optimization experiments', () => {
 
   it('unlocks dependent readiness nodes after their preparation node is completed', () => {
     const now = new Date('2026-05-28T00:00:00Z');
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       now,
       registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       goal: {
@@ -392,7 +392,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('keeps high-load nodes without readiness metadata as locked future milestones', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         simulations: [
           {
@@ -425,7 +425,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('reranks only feasible local alternatives after deterministic path generation', () => {
-    const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
+    const basePlan = planLearningPath(plannerInput());
     const plan = {
       ...basePlan,
       alternatives: [
@@ -472,7 +472,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('falls back to deterministic alternatives when no feasible path exists', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 1,
         privacyScopes: ['student-visible'],
@@ -492,7 +492,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('does not mutate scores or reason codes when only one local alternative is rerankable', () => {
-    const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
+    const basePlan = planLearningPath(plannerInput());
     const onlyAlternative = {
       nodeId: 'simulation:alt-sim-a',
       nodeIds: ['simulation:alt-sim-a'],
@@ -651,7 +651,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('attributes path feedback to optimization metrics', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const updated = recordLearningPathFeedback(recordLearningPathFeedback(plan, {
       id: 'adopt',
       type: 'adoption',

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   buildAdaptivePathRecommendationProvenance,
   buildControlCorrectionThreeStylePathBundle,
@@ -16,39 +16,39 @@ import {
   validateLearningGoal,
   validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
-} from '../adaptive-learning-path-planner';
-import { deterministicPathConstraintRepairAdapter } from '../adaptive-planning/path-constraint-repair';
-import { rankResourceLearnerCandidates } from '../adaptive-planning/resource-ranker';
-import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
-import { createEmptyCompetencyVector } from '../data-governance/competency-model';
-import type { PortraitV2DimensionId } from '../data-governance/kaq-objective-taxonomy';
+} from '@/features/personalization/path-planning/public-api';
+import { deterministicPathConstraintRepairAdapter } from '@/lib/adaptive-planning/path-constraint-repair';
+import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
+import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
+import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
   AUTOCONTROL_KAQ_OBJECTIVES,
-} from '../data-governance/autocontrol-kaq-graph-catalog';
-import { expandLearningGoalSubgraph } from '../graphs/goal-subgraph-expansion-service';
+} from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
   PORTRAIT_V2_DIMENSION_IDS,
   createPortraitV2Payload,
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
-} from '../data-governance/portrait-v2-model';
-import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '../kaq-artifact-versioning';
+} from '@/lib/data-governance/portrait-v2-model';
+import { buildKaqArtifactVersionRefs, GRAPH_CENTER_OVERLAY_VERSION } from '@/lib/kaq-artifact-versioning';
 import {
   applyCoreResourcePathReadinessDispositions,
   buildResourceNodeRegistry,
   buildResourceSemanticProjection,
   type ResourceNodeRegistry,
-} from '../resource-node-registry';
-import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
-import { buildResourceNodeRegistryFromTeachingResources } from '../teacher-resource-node-data';
-import type { SourcePackItem } from '../source-pack';
+} from '@/lib/resource-node-registry';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
+import type { SourcePackItem } from '@/lib/source-pack';
 
 describe('adaptive path recommendation provenance', () => {
   it('retains the authoritative learner-state snapshot and explains modality personalization', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const snapshot = buildAdaptiveLearningPathLearnerStateSnapshot({
       payloadVersion: 'adaptive-learner-state.v1',
       generatedAt: '2026-08-25T00:00:00.000Z',
@@ -88,7 +88,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('does not claim preferred modalities that were not applied to the path', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [{
@@ -119,7 +119,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('does not present low-confidence preferences as applied personalization', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [],
@@ -144,7 +144,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('does not present stale snapshot evidence as current personalized provenance', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [{
@@ -178,7 +178,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('does not treat overall medium evidence as trusted when preference confidence is low', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [{
@@ -209,7 +209,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('connects generation-time evidence summaries to affected resources without internal reason codes', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [{
@@ -253,7 +253,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('uses course structure language instead of treating missing evidence as a confirmed weakness', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [{
@@ -280,7 +280,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('downgrades the path summary when any included deficit has low-confidence evidence', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [
@@ -311,7 +311,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('uses every deficit for aggregate confidence while limiting displayed entries', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const provenance = buildAdaptivePathRecommendationProvenance({
       path: plan.mainPath,
       deficits: [
@@ -359,7 +359,7 @@ describe('adaptive path recommendation provenance', () => {
   });
 
   it('persists recommendation provenance with serialized candidate options', () => {
-    const record = serializeLearningPathPlan(buildAdaptiveLearningPathPlan(plannerInput()));
+    const record = serializeLearningPathPlan(planLearningPath(plannerInput()));
     const provenance = record.payload.pathOptions?.[0]?.recommendationProvenance;
 
     expect(provenance).toEqual(expect.objectContaining({
@@ -651,7 +651,7 @@ describe('policy bundle core diversity fixture', () => {
         return '2026-05-27T08:00:00.000Z';
       },
     } as Date;
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...buildDiversityFixtureInput(registry),
       now: observedNow,
     });
@@ -704,7 +704,7 @@ describe('policy bundle core diversity fixture', () => {
         return '2026-05-27T08:00:00.000Z';
       },
     } as Date;
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...input,
       now: observedNow,
       policyBundle: {
@@ -745,7 +745,7 @@ describe('policy bundle core diversity fixture', () => {
 
   it('retries instead of keeping a policy option whose pairwise core overlap equals the configured threshold', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...buildDiversityFixtureInput(registry),
       policyBundle: {
         ...buildDiversityFixtureInput(registry).policyBundle!,
@@ -765,7 +765,7 @@ describe('policy bundle core diversity fixture', () => {
   it('keeps request configuration and execution constraints on a retried policy option', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
     const input = buildDiversityFixtureInput(registry);
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...input,
       resourcePreferences: ['knowledge_card'],
       resourcePreferenceSource: 'request',
@@ -825,7 +825,7 @@ describe('policy bundle core diversity fixture', () => {
         return '2026-05-27T08:00:00.000Z';
       },
     } as Date;
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...buildDiversityFixtureInput(registry),
       now: observedNow,
     });
@@ -1376,7 +1376,7 @@ function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput>
 
 describe('adaptive learning path planner', () => {
   it('preserves legacy competency scores already normalized to 0-1', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const parameterDeficit = plan.visualization.evidence.learnerStateDeficits.find(
       (deficit) => deficit.targetId === 'parameterDesign',
     );
@@ -1397,15 +1397,15 @@ describe('adaptive learning path planner', () => {
       },
     });
 
-    const foundation = buildAdaptiveLearningPathPlan(plannerInput({
+    const foundation = planLearningPath(plannerInput({
       ...base,
       policyFamily: 'foundation-remediation',
     }));
-    const simulation = buildAdaptiveLearningPathPlan(plannerInput({
+    const simulation = planLearningPath(plannerInput({
       ...base,
       policyFamily: 'simulation-driven',
     }));
-    const sprint = buildAdaptiveLearningPathPlan(plannerInput({
+    const sprint = planLearningPath(plannerInput({
       ...base,
       policyFamily: 'sprint-correction',
       constraints: {
@@ -1440,7 +1440,7 @@ describe('adaptive learning path planner', () => {
       evidenceInstrumentation: [],
     };
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
 
     expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('registry:bode-card');
     expect(plan.alternatives).toEqual(expect.arrayContaining([
@@ -1461,7 +1461,7 @@ describe('adaptive learning path planner', () => {
     expect(blockedResource).toBeDefined();
     blockedResource!.launchTarget = '/simulations/bode-card';
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
 
     expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('registry:bode-card');
     expect(plan.alternatives).toEqual(expect.arrayContaining([
@@ -1479,7 +1479,7 @@ describe('adaptive learning path planner', () => {
     expect(sourceNode).toBeDefined();
     const projection = buildResourceSemanticProjection(sourceNode!);
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     const serialized = serializeLearningPathPlan(plan);
     const pathNode = plan.mainPath.find((node) => node.nodeId === 'registry:bode-card');
 
@@ -1578,7 +1578,7 @@ describe('adaptive learning path planner', () => {
     };
 
     const input = plannerInput();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...input,
       goal: {
         ...input.goal,
@@ -1624,7 +1624,7 @@ describe('adaptive learning path planner', () => {
     const teacherOnlyNode = input.registry.nodes.find((node) => node.id === 'reflection_prompt:reflection-bode');
     expect(teacherOnlyNode).toBeDefined();
     teacherOnlyNode!.planningMetadata.teacherPolicy = 'teacher-only';
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...input,
       sarCandidateContext: {
         enabled: true,
@@ -1745,7 +1745,7 @@ describe('adaptive learning path planner', () => {
       },
     });
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
 
     expect(plan.explanations.associativeRetrieval?.rejectedCandidates).toEqual(expect.arrayContaining([
       expect.objectContaining({
@@ -1762,8 +1762,8 @@ describe('adaptive learning path planner', () => {
 
   it('keeps planner output stable when SAR candidates are disabled', () => {
     const input = plannerInput();
-    const baseline = buildAdaptiveLearningPathPlan(input);
-    const disabled = buildAdaptiveLearningPathPlan({
+    const baseline = planLearningPath(input);
+    const disabled = planLearningPath({
       ...input,
       sarCandidateContext: {
         enabled: false,
@@ -1819,7 +1819,7 @@ describe('adaptive learning path planner', () => {
       },
     };
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       sourcePackRole: 'student',
       sourcePackCandidates: [teacherOnlyItem],
     }));
@@ -1875,7 +1875,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-ranker-goal',
@@ -2150,7 +2150,7 @@ describe('adaptive learning path planner', () => {
       }],
     }));
     const node = registry.nodes.find((item) => item.id === 'registry:future-direct-node')!;
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: 'future-direct-goal',
         title: 'Future direct resource goal',
@@ -2389,7 +2389,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-planner-readiness-goal',
@@ -2717,7 +2717,7 @@ describe('adaptive learning path planner', () => {
         estimatedTimeMinutes: 9,
       }],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       registry,
       policyFamily: 'foundation-remediation',
@@ -2760,7 +2760,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('uses server time instead of client requestedAt for authoritative path timestamps', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       requestedAt: '2035-01-01T00:00:00.000Z',
       now: new Date('2026-05-27T08:00:00.000Z'),
     }));
@@ -2817,7 +2817,7 @@ describe('adaptive learning path planner', () => {
       ],
       competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
     };
-    const controlCorrectionPlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const controlCorrectionPlan = planLearningPath(plannerInput({
       registry: buildControlCorrectionResourceNodeRegistry(),
       goal: legacyControlCorrectionGoal,
       learnerState: null,
@@ -2827,7 +2827,7 @@ describe('adaptive learning path planner', () => {
         device: 'desktop',
       },
     }));
-    const frequencyResponsePlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const frequencyResponsePlan = planLearningPath(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       learnerState: null,
       constraints: {
@@ -2905,7 +2905,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3022,7 +3022,7 @@ describe('adaptive learning path planner', () => {
         },
       }],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3061,7 +3061,7 @@ describe('adaptive learning path planner', () => {
     for (const learningGoal of pathReadyLearningGoals) {
       const graphTargetId = learningGoal.targetGraphNodeIds[0];
       const resourceNodeId = `runtime-boundary:${learningGoal.id}`;
-      const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      const plan = planLearningPath(plannerInput({
         goal: {
           id: learningGoal.id,
           title: learningGoal.title,
@@ -3108,7 +3108,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3189,7 +3189,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3283,7 +3283,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3442,7 +3442,7 @@ describe('adaptive learning path planner', () => {
         }],
       });
 
-      const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      const plan = planLearningPath(plannerInput({
         goal: {
           id: learningGoal.id,
           title: learningGoal.title,
@@ -3560,7 +3560,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3631,7 +3631,7 @@ describe('adaptive learning path planner', () => {
   it('does not let graph context linked chunks bypass audited ResourceNodes', () => {
     const learningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
     const graphTargetId = learningGoal.targetGraphNodeIds[0];
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3696,7 +3696,7 @@ describe('adaptive learning path planner', () => {
 
   it('ignores graph context when its LearningGoal differs from the planner goal', () => {
     const frequencyGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].learningGoal!;
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       learnerState: null,
       registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
@@ -3744,7 +3744,7 @@ describe('adaptive learning path planner', () => {
         },
       }],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3796,7 +3796,7 @@ describe('adaptive learning path planner', () => {
       ...expandLearningGoalSubgraph(learningGoal.id),
       learningGoalVersion: 'stale-learning-goal-version',
     };
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3848,7 +3848,7 @@ describe('adaptive learning path planner', () => {
       ...expandLearningGoalSubgraph(learningGoal.id),
       learningGoalVersion: 'stale-learning-goal-version',
     };
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: learningGoal.id,
         title: learningGoal.title,
@@ -3882,7 +3882,7 @@ describe('adaptive learning path planner', () => {
 
   it('keeps unknown LearningGoal ids on the existing registered-goal rejection path', () => {
     const canonicalLearningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!;
-    const forgedPlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const forgedPlan = planLearningPath(plannerInput({
       goal: {
         ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
         learningGoal: {
@@ -3922,7 +3922,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('records whether requested resource, difficulty, and checkpoint preferences affect path selection', () => {
-    const preferredSimulation = buildAdaptiveLearningPathPlan({
+    const preferredSimulation = planLearningPath({
       ...plannerInput({
       resourcePreferences: ['simulation', 'arena_task'],
       resourcePreferenceSource: 'request',
@@ -3935,7 +3935,7 @@ describe('adaptive learning path planner', () => {
       }),
       registry: withLegalAdaptiveDestinations(plannerInput().registry),
     });
-    const denseCheckpoint = buildAdaptiveLearningPathPlan({
+    const denseCheckpoint = planLearningPath({
       studentId: 'student-1',
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       learnerState: null,
@@ -4004,7 +4004,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...input,
       excludedNodeIds: input.registry.nodes
         .filter((node) => node.type === 'simulation')
@@ -4018,7 +4018,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('explains conflicting natural-language intent without selecting a typed value', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       configurationRequests: [{
         key: 'natural-language-intent',
         source: 'request',
@@ -4058,7 +4058,7 @@ describe('adaptive learning path planner', () => {
       }
     }
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
 
     expect(plan.status).toBe('ready');
     expect(plan.policyFamily).toBe('teacher-assigned');
@@ -4096,7 +4096,7 @@ describe('adaptive learning path planner', () => {
       policyFamily: 'teacher-assigned',
     });
 
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
 
     expect(plan.status).toBe('fallback');
     expect(plan.explanations.fallbackReasons).toContain('teacher-assignment-resource-missing');
@@ -4110,7 +4110,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('does not pull unassigned prerequisites into teacher-assigned paths', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         registeredResources: [
           {
@@ -4149,7 +4149,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('reports policy bundle diversity metrics for displayed path families', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],
@@ -4188,7 +4188,7 @@ describe('adaptive learning path planner', () => {
 
   it('compares bundle policies against an explicit primary policy family', () => {
     const baseInput = plannerInput();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...baseInput,
       registry: withLegalReflectionDestinations(baseInput.registry),
       policyFamily: 'foundation-remediation',
@@ -4218,7 +4218,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('returns an explicit low-resource fallback when policy paths cannot be distinct', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         registeredResources: [
           {
@@ -4341,7 +4341,7 @@ describe('adaptive learning path planner', () => {
         prerequisiteKnowledgeRefs: ['control-correction:simulation-validation'],
       }),
     ]));
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
       expect.objectContaining({
         target: expect.objectContaining({
@@ -4364,7 +4364,7 @@ describe('adaptive learning path planner', () => {
       target.id === 'control-correction:arena-transfer:create'
     );
     if (!arenaTransferTarget) throw new Error('expected arena transfer capability target');
-    const goalSliceEvidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const goalSliceEvidencePlan = planLearningPath(plannerInput({
       ...input,
       learnerState: {
         ...input.learnerState!,
@@ -4417,7 +4417,7 @@ describe('adaptive learning path planner', () => {
       '部分判断尚无可核验的事件级学习记录。',
     );
 
-    const judgmentLineagePlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const judgmentLineagePlan = planLearningPath(plannerInput({
       ...input,
       learnerState: {
         ...input.learnerState!,
@@ -4444,7 +4444,7 @@ describe('adaptive learning path planner', () => {
     )?.eventReferences).toEqual([
       expect.objectContaining({ sourceScope: 'arena-official-result' }),
     ]);
-    const lowConfidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const lowConfidencePlan = planLearningPath(plannerInput({
       ...input,
       learnerState: {
         ...input.learnerState!,
@@ -4594,7 +4594,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('keeps persisted current node after skipped nodes during revision planning', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 120,
         privacyScopes: ['student-visible'],
@@ -4677,7 +4677,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('generates a feasible 90-minute control-correction path from audited seed nodes', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true })),
       goal: {
         id: 'control-correction',
@@ -4738,7 +4738,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('records bounded constraint repair coverage in path artifacts', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true })),
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       constraints: {
@@ -4798,7 +4798,7 @@ describe('adaptive learning path planner', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: getAllRegisteredResourceMetadata(),
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       constraints: {
@@ -4869,7 +4869,7 @@ describe('adaptive learning path planner', () => {
       knowledgeCoverage: ['control-correction:arena-transfer'],
     });
 
-    const unlockedPlan = buildAdaptiveLearningPathPlan(plannerInput({
+    const unlockedPlan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       constraints: {
@@ -4960,7 +4960,7 @@ describe('adaptive learning path planner', () => {
         },
       },
     });
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
     const candidateTerminals = [
       plan.mainPath.at(-1)?.nodeId,
@@ -5023,7 +5023,7 @@ describe('adaptive learning path planner', () => {
         },
       },
     });
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
     const terminalId = 'arena-task:task-second-order-lead-pid';
     const terminal = plan.mainPath.find((node) => node.nodeId === terminalId);
@@ -5108,7 +5108,7 @@ describe('adaptive learning path planner', () => {
         },
       },
     });
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
     const terminalId = 'arena-task:task-second-order-lead-pid';
     expect(plan.mainPath.find((node) => node.nodeId === terminalId)).toMatchObject({
@@ -5148,7 +5148,7 @@ describe('adaptive learning path planner', () => {
         },
       },
     });
-    const plan = buildAdaptiveLearningPathPlan(input);
+    const plan = planLearningPath(input);
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
     const lockedTerminals = plan.mainPath.filter((node) =>
       node.terminalConstraints.includes('terminal-validation') && node.status === 'locked');
@@ -5178,7 +5178,7 @@ describe('adaptive learning path planner', () => {
         estimatedTimeMinutes: 8,
       }],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
       constraints: {
@@ -5277,7 +5277,7 @@ describe('adaptive learning path planner', () => {
       }],
       textbookSections: textbookRuntimeFixtureSections(),
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       policyFamily: 'foundation-remediation',
@@ -5329,7 +5329,7 @@ describe('adaptive learning path planner', () => {
       registeredResources: getAllRegisteredResourceMetadata(),
     }));
     const goalDefinition = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['feedback-loop-concept-foundations'];
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: goalDefinition.goal,
       policyFamily: 'foundation-remediation',
@@ -5387,7 +5387,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       policyFamily: 'foundation-remediation',
@@ -5445,7 +5445,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: learningGoal.id,
@@ -5567,7 +5567,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'control-correction',
@@ -5666,7 +5666,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'control-correction',
@@ -5770,7 +5770,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: learningGoal.id,
@@ -5903,7 +5903,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: learningGoal.id,
@@ -5996,7 +5996,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: learningGoal.id,
@@ -6056,7 +6056,7 @@ describe('adaptive learning path planner', () => {
       textbookSections: [textbookRuntimeFixtureSections()[0]],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       policyFamily: 'foundation-remediation',
@@ -6144,7 +6144,7 @@ describe('adaptive learning path planner', () => {
       now: portraitNow,
     }), 'reviewer', { now: portraitNow });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-locked-lab-goal',
@@ -6249,7 +6249,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'native-portrait-evidence-gate-goal',
@@ -6305,7 +6305,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'compatibility-readiness-goal',
@@ -6386,7 +6386,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       learnerState: {
@@ -6468,7 +6468,7 @@ describe('adaptive learning path planner', () => {
     };
 
     try {
-      const plan = buildAdaptiveLearningPathPlan(plannerInput());
+      const plan = planLearningPath(plannerInput());
 
       expect(plan.status).toBe('fallback');
       expect(plan.mainPath).toEqual([]);
@@ -6517,7 +6517,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-locked-lab-goal',
@@ -6587,7 +6587,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-locked-lab-goal',
@@ -6661,7 +6661,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'temporary-knowledge-goal',
@@ -6726,7 +6726,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'control-correction',
@@ -6803,7 +6803,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'control-correction',
@@ -6894,7 +6894,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'control-correction',
@@ -6944,7 +6944,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('generates a constrained explainable Stage 1 path without bandit or RL', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
 
     expect(plan.stage).toBe('stage-1-rules-graph');
     expect(plan.policyFamily).toBe('rules-plus-graph-search');
@@ -6992,7 +6992,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(policyFixtureInput({
+    const plan = planLearningPath(policyFixtureInput({
       registry,
       goal: {
         id: 'goal-policy-privacy',
@@ -7016,7 +7016,7 @@ describe('adaptive learning path planner', () => {
 
   it('keeps blocked resources out of graph edges while exposing map, timeline, and evidence payloads', () => {
     const baseInput = plannerInput();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...baseInput,
       registry: withLegalReflectionDestinations(baseInput.registry),
     });
@@ -7046,7 +7046,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('does not persist completed node ids for blocked or unknown resources', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],
@@ -7078,7 +7078,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       learnerState: null,
       constraints: {
@@ -7097,7 +7097,7 @@ describe('adaptive learning path planner', () => {
 
   it('returns executable starter options with checkpoints for cold-start registered goals', () => {
     const baseInput = plannerInput();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       ...baseInput,
       registry: withLegalReflectionDestinations(baseInput.registry),
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
@@ -7151,8 +7151,8 @@ describe('adaptive learning path planner', () => {
       },
       now: new Date('2026-06-14T08:00:00.000Z'),
     };
-    const baseline = buildAdaptiveLearningPathPlan(shared);
-    const plan = buildAdaptiveLearningPathPlan({
+    const baseline = planLearningPath(shared);
+    const plan = planLearningPath({
       ...shared,
       collectionEvents: [{
         kind: 'resource-trial',
@@ -7239,8 +7239,8 @@ describe('adaptive learning path planner', () => {
       },
     });
 
-    const blocked = buildAdaptiveLearningPathPlan(baseInput);
-    const allowed = buildAdaptiveLearningPathPlan({
+    const blocked = planLearningPath(baseInput);
+    const allowed = planLearningPath({
       ...baseInput,
       allowExternalResources: true,
     });
@@ -7253,7 +7253,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('keeps low-confidence usable path nodes while recording confidence internally', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       learnerState: {
         evidence: {
@@ -7283,7 +7283,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('captures deviations and generates correction path records without losing evidence chain', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const updated = recordLearningPathFeedback(plan, {
       id: 'feedback-1',
       type: 'deviation',
@@ -7309,7 +7309,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('advances active node, statuses, and map payload after completion feedback', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const completedNodeId = plan.currentNodeId;
     expect(completedNodeId).not.toBeNull();
 
@@ -7334,7 +7334,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('serializes a persistence payload for plan nodes, alternatives, explanations, status, and feedback', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const withFeedback = recordLearningPathFeedback(plan, {
       id: 'feedback-2',
       type: 'helpfulness',
@@ -7369,7 +7369,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('keeps internal fallback and policy strings out of student-facing serialized text', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
       learnerState: null,
       constraints: {
@@ -7416,7 +7416,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-private-prereq',
@@ -7462,7 +7462,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-teacher-only',
@@ -7521,7 +7521,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-budget',
@@ -7585,7 +7585,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-alternative-completed-prereq',
@@ -7642,7 +7642,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-alternative-chain',
@@ -7706,7 +7706,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-alternative-feedback',
@@ -7778,7 +7778,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-two-alternatives',
@@ -7824,7 +7824,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-two-terminals',
@@ -7873,7 +7873,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-terminal-prereq',
@@ -7923,7 +7923,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-cycle',
@@ -7971,7 +7971,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-cyclic-alternative',
@@ -8034,7 +8034,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-budget-after-completion',
@@ -8070,7 +8070,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-partial-coverage',
@@ -8127,7 +8127,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-budgeted-multi-target',
@@ -8195,7 +8195,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-lookahead-budget',
@@ -8266,7 +8266,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-risk-lookahead',
@@ -8329,7 +8329,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-standalone-risk',
@@ -8367,7 +8367,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('only emits competency deficit reasons for requested competency targets', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       goal: {
         id: 'goal-knowledge-only',
         title: '只补知识点',
@@ -8406,7 +8406,7 @@ describe('adaptive learning path planner', () => {
       }],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-bode-external',
@@ -8484,7 +8484,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('keeps currentNodeId and node status aligned after completed prerequisites', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
 
     expect(plan.currentNodeId).not.toBeNull();
     expect(plan.mainPath.find((node) => node.nodeId === 'registry:bode-card')?.status).toBe('completed');
@@ -8493,9 +8493,9 @@ describe('adaptive learning path planner', () => {
   });
 
   it('clears the active node when all main path nodes are completed', () => {
-    const initial = buildAdaptiveLearningPathPlan(plannerInput());
+    const initial = planLearningPath(plannerInput());
     const completedNodeIds = initial.mainPath.map((node) => node.nodeId);
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],
@@ -8522,7 +8522,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-ungated-sim',
@@ -8556,7 +8556,7 @@ describe('adaptive learning path planner', () => {
   });
 
   it('does not accept support-only preference as a distinct policy option', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: withLegalAdaptiveDestinations(buildControlCorrectionResourceNodeRegistry()),
       goal: {
         id: 'control-correction',
@@ -8628,7 +8628,7 @@ describe('adaptive learning path planner', () => {
       ],
     });
 
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-locked-gate-active-policy',
@@ -8678,7 +8678,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-ungated-prereq-sim',
@@ -8757,7 +8757,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-evidence-gated-sim',
@@ -8837,7 +8837,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-outcome-evidence-gated-sim',
@@ -8900,7 +8900,7 @@ describe('adaptive learning path planner', () => {
         },
       ],
     });
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry,
       goal: {
         id: 'goal-partial-overlap-policy',

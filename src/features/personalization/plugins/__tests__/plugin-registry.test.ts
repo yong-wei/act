@@ -31,7 +31,9 @@ const GENERIC_PERSONALIZATION_FILES = [
   'src/features/personalization/learner-state/public-api.ts',
   'src/features/personalization/learner-state/adapters/db-runtime.ts',
   'src/features/personalization/learner-state/application/read-learner-state.ts',
-  'src/lib/adaptive-learning-path-planner.ts',
+  'src/features/personalization/path-planning/application/plan-learning-path.ts',
+  'src/features/personalization/path-planning/ports.ts',
+  'src/features/personalization/path-planning/contracts.ts',
   'src/lib/data-governance/recommendation-engine.ts',
 ];
 
@@ -54,6 +56,7 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/evidence-match.ts',
   'src/features/personalization/plugins/control-correction/db-evidence.ts',
   'src/features/personalization/plugins/control-correction/slice-contract.ts',
+  'src/features/personalization/plugins/control-correction/capability-targets.ts',
 ];
 
 function emptyFeatureRead(): LearnerStateReducerInput['featureRead'] {

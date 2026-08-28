@@ -73,7 +73,7 @@ import {
   type AdaptivePathUnlockProjectedAction,
   resolveAdaptivePathUnlockChainAction,
 } from '@/features/adaptive/adaptive-path-unlock-chain-view';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,

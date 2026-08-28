@@ -3,7 +3,7 @@ import {
   serializeLearningPathPlan,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
-} from './adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 // Narrow imports only — never the transition barrel (replan pulls server Prisma).
 import {
   LearningPathMutationBlockedError,

@@ -1,4 +1,4 @@
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,

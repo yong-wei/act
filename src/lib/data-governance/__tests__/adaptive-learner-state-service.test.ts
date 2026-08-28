@@ -19,9 +19,9 @@ import {
 } from '../portrait-v2-model';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   type AdaptiveLearningPathPlannerInput,
-} from '../../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionResourceNodeRegistry } from '../../control-correction-resource-seed';
 
 const snapshotVector: CompetencyVector = {
@@ -2539,7 +2539,7 @@ describe('adaptive learner state service', () => {
     });
 
     const registry = buildControlCorrectionResourceNodeRegistry();
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       studentId: 'student-1',
       goal: {
         id: 'control-correction',

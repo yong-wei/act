@@ -30,8 +30,8 @@ import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
 } from '@/lib/data-governance/portrait-v2-model';
-import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/features/personalization/path-planning/public-api';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,

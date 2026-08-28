@@ -1,40 +1,40 @@
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVES,
-} from './data-governance/autocontrol-kaq-graph-catalog';
+} from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
 import type {
   GraphCenterClassOverlay,
   GraphCenterLearnerOverlay,
   GraphCenterOverlayStatus,
   GraphCenterResourceCoverage,
-} from './data-governance/graph-center';
+} from '@/lib/data-governance/graph-center';
 import {
   mapLegacyCompetencyDimensionToPortraitV2,
   type PortraitV2DimensionId,
-} from './data-governance/kaq-objective-taxonomy';
-import type { PortraitV2ProjectedPayload } from './data-governance/portrait-v2-model';
-import { hasAuthoritativePortraitV2Evidence } from './data-governance/portrait-v2-consumer';
+} from '@/lib/data-governance/kaq-objective-taxonomy';
+import type { PortraitV2ProjectedPayload } from '@/lib/data-governance/portrait-v2-model';
+import { hasAuthoritativePortraitV2Evidence } from '@/lib/data-governance/portrait-v2-consumer';
 import type {
   ExpandedGoalSubgraph,
   GoalSubgraphLimitation,
   GoalSubgraphPolicyEntry,
-} from './graphs/goal-subgraph-expansion-service';
+} from '@/lib/graphs/goal-subgraph-expansion-service';
 import {
   rankResourceLearnerCandidates,
   type ResourceLearnerRankerExplanation,
-} from './adaptive-planning/resource-ranker';
+} from '@/lib/adaptive-planning/resource-ranker';
 import {
   PATH_CONSTRAINT_REPAIR_VERSION,
   deterministicPathConstraintRepairAdapter,
   type PathConstraintRepairCandidate,
   type PathConstraintRepairResult,
-} from './adaptive-planning/path-constraint-repair';
+} from '@/lib/adaptive-planning/path-constraint-repair';
 import {
   buildPersonalizedPathDecisionEvidence,
   listPersonalizedPathDegradationReasons,
   type PersonalizedPathDecisionEvidence,
   type PersonalizedPathDecisionPathEvidence,
-} from './adaptive-path-decision-evidence';
+} from '@/lib/adaptive-path-decision-evidence';
 import {
   collectionCheckpointPreference,
   collectionDifficultyRhythm,
@@ -43,7 +43,7 @@ import {
   projectCollectionImpactsOnNewPath,
   type ColdStartCollectionEvent,
   type ColdStartPathFacts,
-} from './cold-start-evidence-collection';
+} from '@/lib/cold-start-evidence-collection';
 import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
@@ -56,27 +56,42 @@ import {
   type ResourceNodePrivacyLevel,
   type ResourceNodeRegistry,
   type ResourceNodeReadinessMetadata,
-} from './resource-node-registry';
+} from '@/lib/resource-node-registry';
 import {
   buildKaqArtifactVersionRefs,
   buildKaqVersionedArtifactMetadata,
   type KaqArtifactVersionRefs,
   type KaqVersionedArtifactMetadata,
-} from './kaq-artifact-versioning';
+} from '@/lib/kaq-artifact-versioning';
 import {
   retrieveSourcePack,
   type SourcePackCallerRole,
   type SourcePackItem,
   type SourcePackLimitation,
-} from './source-pack';
-import type { AdaptivePathNodeDecisionExplanation } from './adaptive-path-node-decisions';
-import type { StudentSafeEvidenceEventReference } from './data-governance/evidence-timeline';
-import type { StudentEvidenceWindow } from './data-governance/student-evidence-feature-cache';
-import { resolveAdaptivePathDestinationContract } from './adaptive-path-destination-contract';
+} from '@/lib/source-pack';
+import type { AdaptivePathNodeDecisionExplanation } from '@/lib/adaptive-path-node-decisions';
+import type { StudentSafeEvidenceEventReference } from '@/lib/data-governance/evidence-timeline';
+import type { StudentEvidenceWindow } from '@/lib/data-governance/student-evidence-feature-cache';
+import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
 import {
   resolveItemTypeTerminalValidation,
   type ItemTypeTerminalValidationResolution,
-} from './adaptive-planning/item-type-terminal-validation';
+} from '@/lib/adaptive-planning/item-type-terminal-validation';
+import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
+import { CONTROL_CORRECTION_GOAL_ID } from '@/features/personalization/plugins/control-correction/mappings';
+import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
+import type { PersonalizationPluginStatus } from '@/features/personalization/plugins/types';
+import type {
+  AdaptiveLearningCapabilityTarget,
+  AdaptiveLearningPathEvidenceType,
+} from '../contracts';
+
+export type {
+  AdaptiveLearningCapabilityLevel,
+  AdaptiveLearningCapabilityTarget,
+  AdaptiveLearningPathEvidenceType,
+} from '../contracts';
+export { CONTROL_CORRECTION_CAPABILITY_TARGETS };
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -104,13 +119,6 @@ export type AdaptiveLearningPathFeedbackType =
   | 'correction-success'
   | 'explanation-click'
   | 'helpfulness';
-export type AdaptiveLearningPathEvidenceType =
-  | 'question'
-  | 'path-execution'
-  | 'simulation-run'
-  | 'arena-official-evaluation'
-  | 'reflection'
-  | 'agent-interaction';
 export type LearningGoalStatus = 'draft' | 'path-ready' | 'fully-governed';
 export type LearningGoalIntentType =
   | 'concept-understanding'
@@ -294,22 +302,6 @@ export interface AdaptiveLearningPathGoal {
   learningGoalPackage?: LearningGoalDefinition;
 }
 
-export type AdaptiveLearningCapabilityLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
-
-export interface AdaptiveLearningCapabilityTarget {
-  id: string;
-  knowledgeNodeRef: string;
-  capabilityLevel: AdaptiveLearningCapabilityLevel;
-  behaviorVerb: string;
-  successCriteria: string[];
-  observableEvidenceType: AdaptiveLearningPathEvidenceType;
-  evaluationMethod: string;
-  goalSliceId: string;
-  competencyDimensions: string[];
-  learnerStateFeatureGroups: string[];
-  prerequisiteKnowledgeRefs?: string[];
-}
-
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
   goal: AdaptiveLearningPathGoal;
   displayName: string;
@@ -349,6 +341,7 @@ export interface AdaptiveLearningPathLearnerState {
       eventReferences?: StudentSafeEvidenceEventReference[];
     }>;
   };
+  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy primaryCompetencies is non-authoritative compatibility input.
   primaryCompetencies?: {
     vector?: Record<string, {
       score?: number;
@@ -1106,75 +1099,9 @@ export const ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES: Record<
   },
 };
 
-export const CONTROL_CORRECTION_CAPABILITY_TARGETS: AdaptiveLearningCapabilityTarget[] = [
-  {
-    id: 'control-correction:time-domain-targets:apply',
-    knowledgeNodeRef: 'control-correction:time-domain-targets',
-    capabilityLevel: 'apply',
-    behaviorVerb: 'translate',
-    successCriteria: [
-      'Translate overshoot, settling-time, and steady-state requirements into a target pole-region constraint.',
-      'Explain which time-domain target drives the dominant pole placement decision.',
-    ],
-    observableEvidenceType: 'simulation-run',
-    evaluationMethod: 'governed step-response simulation with target-region justification',
-    goalSliceId: 'control-correction',
-    competencyDimensions: ['controlModeling', 'parameterDesign'],
-    learnerStateFeatureGroups: ['knowledgeMastery', 'primaryCompetencies', 'simulationArena'],
-  },
-  {
-    id: 'control-correction:root-locus-design:analyze',
-    knowledgeNodeRef: 'control-correction:root-locus-design',
-    capabilityLevel: 'analyze',
-    behaviorVerb: 'compare',
-    successCriteria: [
-      'Compare feasible compensator choices against root-locus movement and design constraints.',
-      'Identify why a candidate correction improves or violates the target dynamic behavior.',
-    ],
-    observableEvidenceType: 'question',
-    evaluationMethod: 'assessment-backed root-locus reasoning item plus governed simulation evidence',
-    goalSliceId: 'control-correction',
-    competencyDimensions: ['parameterDesign', 'engineeringDecision'],
-    learnerStateFeatureGroups: ['knowledgeMastery', 'primaryCompetencies', 'simulationArena'],
-    prerequisiteKnowledgeRefs: ['control-correction:time-domain-targets'],
-  },
-  {
-    id: 'control-correction:simulation-validation:evaluate',
-    knowledgeNodeRef: 'control-correction:simulation-validation',
-    capabilityLevel: 'evaluate',
-    behaviorVerb: 'validate',
-    successCriteria: [
-      'Validate the corrected response against declared constraints using governed replay evidence.',
-      'State whether failures are caused by model, parameter, or constraint assumptions.',
-    ],
-    observableEvidenceType: 'simulation-run',
-    evaluationMethod: 'course-launched simulation replay with confidence and constraint coverage',
-    goalSliceId: 'control-correction',
-    competencyDimensions: ['parameterDesign', 'engineeringDecision'],
-    learnerStateFeatureGroups: ['simulationArena', 'pathExecution', 'primaryCompetencies'],
-    prerequisiteKnowledgeRefs: ['control-correction:root-locus-design'],
-  },
-  {
-    id: 'control-correction:arena-transfer:create',
-    knowledgeNodeRef: 'control-correction:arena-transfer',
-    capabilityLevel: 'create',
-    behaviorVerb: 'transfer',
-    successCriteria: [
-      'Transfer a correction strategy to the official Arena task without relying on preview-only evidence.',
-      'Justify controller changes with traceable design and validation evidence.',
-    ],
-    observableEvidenceType: 'arena-official-evaluation',
-    evaluationMethod: 'official Arena evaluation protocol with governed controller artifact evidence',
-    goalSliceId: 'control-correction',
-    competencyDimensions: ['crossDomainTransfer', 'engineeringDecision'],
-    learnerStateFeatureGroups: ['simulationArena', 'pathExecution', 'primaryCompetencies'],
-    prerequisiteKnowledgeRefs: ['control-correction:simulation-validation'],
-  },
-];
-
 const LEARNING_GOAL_VERSION = 'learning-goal-package/v1';
 const QUALITY_EVIDENCE_LIMITATION = 'quality-rubric-evidence-not-fully-governed';
-const PATH_READY_LEARNING_GOAL_SLICE_IDS = ['control-correction'] as const;
+const PATH_READY_LEARNING_GOAL_SLICE_IDS = [CONTROL_CORRECTION_GOAL_ID];
 const LEARNING_GOAL_OBJECTIVE_IDS = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
 const LEARNING_GOAL_OBJECTIVE_DOMAIN_BY_ID = new Map(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => [objective.id, objective.domain]));
 const LEARNING_GOAL_GRAPH_NODE_IDS = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
@@ -1873,7 +1800,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
 
 export function getRegisteredAdaptiveLearningPathGoal(
   goalId: string,
+  registry: {
+    get(goalId: string): { status: PersonalizationPluginStatus } | null | undefined;
+  } = personalizationPluginRegistry,
 ): AdaptiveLearningPathRegisteredGoalDefinition | null {
+  if (goalId === CONTROL_CORRECTION_GOAL_ID) {
+    const plugin = registry.get(goalId);
+    if (!plugin || plugin.status !== 'active') return null;
+  }
   return ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
 }
 
@@ -2046,14 +1980,14 @@ function validateLearningGoalObjectiveDomain(
   return issues;
 }
 
-export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
-  return buildAdaptiveLearningPathPlanInternal(input, true);
+export function assembleAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
+  return assembleAdaptiveLearningPathPlanInternal(input, true);
 }
 
 export function buildControlCorrectionThreeStylePathBundle(
   input: Omit<AdaptiveLearningPathPlannerInput, 'policyFamily' | 'policyBundle'>,
 ): AdaptiveLearningPathPolicyBundle {
-  const plan = buildAdaptiveLearningPathPlan({
+  const plan = assembleAdaptiveLearningPathPlan({
     ...input,
     policyFamily: 'foundation-remediation',
     policyBundle: {
@@ -2111,7 +2045,7 @@ function withCollectionBackedPlanningInput(
   };
 }
 
-function buildAdaptiveLearningPathPlanInternal(
+function assembleAdaptiveLearningPathPlanInternal(
   rawInput: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
   retryContext?: PolicyFamilyRetryContext,
@@ -2130,7 +2064,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const preferenceContext = buildPlannerPreferenceContext(input);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const diversityAvoidNodeIds = new Set(input.diversityAvoidNodeIds ?? []);
-  const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
+  const { eligible, blocked } = evaluateHardEligibility(input.registry.nodes, input.constraints);
   const pathEligible = eligible
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
@@ -2992,7 +2926,7 @@ function collectGoalSliceCapabilityEvidence(
   return new Map(entries.map((item) => [item.target.id, item]));
 }
 
-function partitionResourceNodes(
+export function evaluateHardEligibility(
   nodes: ResourceNode[],
   constraints: AdaptiveLearningPathConstraints,
 ): { eligible: ResourceNode[]; blocked: AdaptiveLearningPathAlternative[] } {
@@ -5024,7 +4958,7 @@ function buildPolicyBundle(
           .filter((node) => avoidedDifferentiableCoreRefs.has(canonicalSourceRefForNode(node)))
           .map((node) => node.id),
       ]);
-      const plan = buildAdaptiveLearningPathPlanInternal(
+      const plan = assembleAdaptiveLearningPathPlanInternal(
         {
           ...input,
           policyFamily,
@@ -5361,7 +5295,7 @@ function shapePolicyBundlePath(
   policyFamily: AdaptiveLearningPathPolicyFamily,
   input: AdaptiveLearningPathPlannerInput,
 ): AdaptiveLearningPathPlanNode[] {
-  if (input.goal.id !== 'control-correction') {
+  if (input.goal.id !== CONTROL_CORRECTION_GOAL_ID) {
     return mainPath;
   }
   if (policyFamily !== 'foundation-remediation' && policyFamily !== 'preference-matched') {
@@ -5405,7 +5339,7 @@ function selectPolicySupportNodes(
   const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
   const learningGoalBoundary = buildLearningGoalObjectiveBoundary(registeredGoal, graphContext);
   const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
-  const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
+  const eligibleIds = new Set(evaluateHardEligibility(input.registry.nodes, input.constraints).eligible
     .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal))
     .filter((node) => learningGoalBoundary

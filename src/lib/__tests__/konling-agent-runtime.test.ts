@@ -104,7 +104,7 @@ import {
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
 } from '@/features/personalization/learner-state/public-api';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
-import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { getRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';

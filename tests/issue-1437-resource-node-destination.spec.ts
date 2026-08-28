@@ -11,7 +11,7 @@ const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
   'src/lib/adaptive-path-destination-contract.ts',
   'src/lib/resource-node-registry.ts',
-  'src/lib/adaptive-learning-path-planner.ts',
+  'src/features/personalization/path-planning/internal/assemble-plan.ts',
   'src/features/adaptive/adaptive-path-journey-contracts.ts',
   'src/app/assessment/adaptive-practice/page.tsx',
   'tests/issue-1437-resource-node-destination.spec.ts',

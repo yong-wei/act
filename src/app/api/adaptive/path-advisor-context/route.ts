@@ -5,7 +5,7 @@ import {
   createKonlingTeachingAssistantServerContextToken,
 } from '@/lib/konling-teaching-assistant-server-context';
 import { getAdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,

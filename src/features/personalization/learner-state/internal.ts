@@ -18,11 +18,9 @@ import {
   type StudentEvidenceStatusMarker,
   type StudentEvidenceWindow,
 } from '@/lib/data-governance/student-evidence-feature-cache';
-import {
-  CONTROL_CORRECTION_CAPABILITY_TARGETS,
-  isRegisteredAdaptiveLearningPathGoal,
-  type AdaptiveLearningCapabilityTarget,
-} from '@/lib/adaptive-learning-path-planner';
+import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
+import type { AdaptiveLearningCapabilityTarget } from '@/features/personalization/path-planning/contracts';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/registered-goal-ids';
 import { readArenaSubmissionEvidenceWritebacks } from '@/features/arena/evidence-writeback-persistence';
 import {
   resolvePrimaryPortraitV2,

@@ -69,7 +69,7 @@ import {
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/structured-textbook-runtime';
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
@@ -78,7 +78,7 @@ import {
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   collectionEventsFromGovernedFacts,
   previousPathFactsFromPlanOptions,
@@ -4253,7 +4253,7 @@ async function buildAdaptivePathToolOutput(
     goalId,
   });
   const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
-  const plan = buildAdaptiveLearningPathPlan({
+  const plan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
@@ -4653,7 +4653,7 @@ function normalizeAdaptivePathSelectedGraphNodeIds(
 function buildAdaptivePathRevisionPlannerPreference(
   args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyFamily' | 'policyBundle'> {
   if (!('rejectedStyleIds' in args)) return {};
   const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
   const rejectedFamilies = new Set((args.rejectedStyleIds ?? [])
@@ -4678,7 +4678,7 @@ function buildAdaptivePathRevisionPlannerPreference(
 
 function buildAdaptivePathGenerationPlannerPreference(
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyBundle'> {
   return {
     policyBundle: {
       families: registeredGoal.starterPathPolicy.policyFamilies,

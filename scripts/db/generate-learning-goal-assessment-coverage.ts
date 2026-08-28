@@ -12,7 +12,7 @@ import {
   buildLearningGoalAssessmentCoverageArtifacts,
   learningGoalAssessmentCoverageArtifactsToFiles,
 } from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
