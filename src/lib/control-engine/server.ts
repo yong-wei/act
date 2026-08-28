@@ -13,6 +13,7 @@ import { readGeneratedPackageIdentity } from './identity';
 import {
   arenaPreviewCanonicalRequest,
   assertArenaPreviewIdentityConsumed,
+  assertArenaPreviewSummaryWithinBaseline,
   resolveArenaCruiseRollPlantParameters,
 } from './arena-preview-support';
 import {
@@ -85,6 +86,7 @@ export function computeArenaVirtualPreviewResult(
     'computeArenaVirtualPreview',
   );
   assertArenaPreviewIdentityConsumed(request, result);
+  assertArenaPreviewSummaryWithinBaseline(request, result.summary);
   return result;
 }
 

@@ -29,6 +29,24 @@ export const ARENA_PREVIEW_TOLERANCE = {
   relative: 1e-3,
 } as const;
 
+export const ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE = {
+  controllerGain: 1.6,
+  dampingCompensation: 0.72,
+  energyBudget: 12,
+  initialRoll: 0.2,
+  sampleTime: ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  steps: ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+  modelRelation: 'surrogate',
+} as const;
+
+export const ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY = {
+  trackingError: 0.025,
+  maxDeviation: 0.183,
+  controlEnergy: 0.053,
+  smoothness: 0.991,
+  safetyViolations: 0,
+} as const;
+
 export type ArenaPreviewMethod =
   | 'black-box-control'
   | 'pid'
@@ -177,6 +195,52 @@ export function arenaPreviewCanonicalRequest(request: ArenaCruiseRollPreviewRequ
     modelRelation: request.modelRelation,
     ...plant,
   };
+}
+
+export function isWithinArenaPreviewTolerance(actual: number, expected: number): boolean {
+  if (!Number.isFinite(actual) || !Number.isFinite(expected)) {
+    return false;
+  }
+  const delta = Math.abs(actual - expected);
+  return delta <= ARENA_PREVIEW_TOLERANCE.absolute
+    || delta <= Math.abs(expected) * ARENA_PREVIEW_TOLERANCE.relative;
+}
+
+function matchesFrozenSurrogateBaselineFixture(request: ArenaCruiseRollPreviewRequest): boolean {
+  return request.modelRelation !== 'identified'
+    && request.controllerGain === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.controllerGain
+    && request.dampingCompensation === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.dampingCompensation
+    && request.energyBudget === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.energyBudget
+    && request.initialRoll === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.initialRoll
+    && request.sampleTime === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.sampleTime
+    && request.steps === ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE.steps;
+}
+
+export function assertArenaPreviewSummaryWithinBaseline(
+  request: ArenaCruiseRollPreviewRequest,
+  summary: ArenaCruiseRollPreviewResult['summary'],
+): void {
+  if (!matchesFrozenSurrogateBaselineFixture(request)) {
+    return;
+  }
+  const expected = ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY;
+  const comparisons: Array<readonly [keyof typeof expected, number]> = [
+    ['trackingError', summary.trackingError],
+    ['maxDeviation', summary.maxDeviation],
+    ['controlEnergy', summary.controlEnergy],
+    ['smoothness', summary.smoothness],
+    ['safetyViolations', summary.safetyViolations],
+  ];
+  for (const [key, actual] of comparisons) {
+    if (!isWithinArenaPreviewTolerance(actual, expected[key])) {
+      throw new ControlEngineFailure({
+        state: 'unavailable',
+        category: 'preview-outside-baseline-tolerance',
+        message: `Arena preview ${key} exceeded declared baseline tolerance.`,
+        retryable: false,
+      });
+    }
+  }
 }
 
 export function assertArenaPreviewIdentityConsumed(

@@ -453,6 +453,8 @@ describe('arena controller artifact builder', () => {
 
     expect(source).toContain('buildControllerArtifactFromParams');
     expect(source).toContain('buildArenaWorkbenchPreview');
+    expect(source).toContain('setPreview(null)');
+    expect(source).toMatch(/setControllerMethod\(allowedMethod\);\s*setPreview\(null\);/);
     expect(source).toContain('getEvaluableControllerMethods');
     expect(source).toContain('sendArenaCoreEvent');
     expect(source).toContain('运行工作台仿真');

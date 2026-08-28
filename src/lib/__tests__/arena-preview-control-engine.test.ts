@@ -6,9 +6,12 @@ import { describe, expect, it } from 'vitest';
 import {
   ARENA_PREVIEW_CAPABILITY_MATRIX,
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+  ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY,
   ControlEngineFailure,
+  assertArenaPreviewSummaryWithinBaseline,
   canonicalRequestHash,
   isSupportedArenaPreviewMethod,
+  isWithinArenaPreviewTolerance,
   resolveArenaCruiseRollPlantParameters,
   arenaPreviewCanonicalRequest,
 } from '@/lib/control-engine';
@@ -127,6 +130,41 @@ describe('arena preview control-engine migration', () => {
       ...previewRequest,
       modelRelation: 'identified',
     })).rejects.toBeInstanceOf(ControlEngineFailure);
+  });
+
+  it('compares frozen surrogate summary against declared abs/rel tolerance', () => {
+    expect(isWithinArenaPreviewTolerance(
+      ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY.trackingError,
+      ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY.trackingError,
+    )).toBe(true);
+    expect(isWithinArenaPreviewTolerance(1, 0.025)).toBe(false);
+    expect(() => assertArenaPreviewSummaryWithinBaseline(previewRequest, {
+      ...ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY,
+      trackingError: 1,
+    })).toThrow(ControlEngineFailure);
+    expect(() => assertArenaPreviewSummaryWithinBaseline({
+      ...previewRequest,
+      controllerGain: 9,
+    }, {
+      ...ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY,
+      trackingError: 1,
+    })).not.toThrow();
+  });
+
+  it('keeps the frozen surrogate fixture inside declared tolerance on the server facade', async () => {
+    const envelope = await computeArenaVirtualPreview(previewRequest);
+    expect(isWithinArenaPreviewTolerance(
+      envelope.result.summary.trackingError,
+      ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY.trackingError,
+    )).toBe(true);
+    expect(isWithinArenaPreviewTolerance(
+      envelope.result.summary.maxDeviation,
+      ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY.maxDeviation,
+    )).toBe(true);
+    expect(isWithinArenaPreviewTolerance(
+      envelope.result.summary.controlEnergy,
+      ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY.controlEnergy,
+    )).toBe(true);
   });
 
   it('proves preview writers do not create official Arena records', () => {

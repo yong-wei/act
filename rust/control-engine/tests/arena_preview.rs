@@ -130,10 +130,16 @@ fn arena_cruise_roll_preview_matches_frozen_baseline_within_tolerance() {
     let tracking = result["summary"]["trackingError"].as_f64().unwrap();
     let max_deviation = result["summary"]["maxDeviation"].as_f64().unwrap();
     let control_energy = result["summary"]["controlEnergy"].as_f64().unwrap();
+    let smoothness = result["summary"]["smoothness"].as_f64().unwrap();
+    let safety_violations = result["summary"]["safetyViolations"].as_u64().unwrap();
     assert!(tracking.is_finite() && tracking >= 0.0);
     assert!(max_deviation.is_finite() && max_deviation >= tracking);
     assert!(control_energy.is_finite() && control_energy > 0.0);
-    assert!(within_tolerance(tracking, tracking));
+    assert!(within_tolerance(tracking, 0.025));
+    assert!(within_tolerance(max_deviation, 0.183));
+    assert!(within_tolerance(control_energy, 0.053));
+    assert!(within_tolerance(smoothness, 0.991));
+    assert_eq!(safety_violations, 0);
     assert_eq!(result["trace"].as_array().unwrap().len(), 61);
     assert_eq!(result["identity"]["plantDamping"].as_f64().unwrap(), 0.72);
 }

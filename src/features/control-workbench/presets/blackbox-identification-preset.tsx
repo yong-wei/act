@@ -407,6 +407,7 @@ export function BlackBoxIdentificationPanel({
     };
 
     if (!response.ok || !payload.preview) {
+      setPreviewRun(null);
       setStatus(payload.error ?? '虚拟仿真预演失败');
       return;
     }

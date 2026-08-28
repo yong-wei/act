@@ -21,6 +21,7 @@ import {
 import {
   arenaPreviewCanonicalRequest,
   assertArenaPreviewIdentityConsumed,
+  assertArenaPreviewSummaryWithinBaseline,
   resolveArenaCruiseRollPlantParameters,
 } from './arena-preview-support';
 import { ensureBrowserControlEngine, invokeBrowserWasm, isBrowserControlEngineReady, preloadBrowserControlEngine } from './wasm-browser';
@@ -164,6 +165,7 @@ export function computeArenaVirtualPreviewBrowserSync(
   ) as ArenaCruiseRollPreviewResult;
   assertFiniteTree(result, 'computeArenaVirtualPreview');
   assertArenaPreviewIdentityConsumed(request, result);
+  assertArenaPreviewSummaryWithinBaseline(request, result.summary);
   return result;
 }
 
