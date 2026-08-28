@@ -7,6 +7,12 @@ import { eventRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
 import { toLearningEvent } from '@/lib/data-governance/event-protocol';
+import {
+  LearningRecordContractError,
+  MIGRATED_INTERACTIVE_PRODUCER_ACTION,
+  acceptLearningRecordEvent,
+  createMemoryAcceptanceStore,
+} from '@/features/learning-record/event-contract';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
@@ -998,6 +1004,7 @@ export async function POST(request: NextRequest) {
       factActionType: string;
     }> = [];
     const sessionsNeedingReportRefresh = new Set<string>();
+    const learningRecordStore = createMemoryAcceptanceStore();
 
     for (const eventData of sourceLinkedEvents) {
       const payload =
@@ -1005,6 +1012,42 @@ export async function POST(request: NextRequest) {
           ? eventData.event.data
           : {};
       const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+      const clientEventId = resolveClientEventId(eventData.event);
+      if (canonicalEventType === MIGRATED_INTERACTIVE_PRODUCER_ACTION && clientEventId) {
+        try {
+          await acceptLearningRecordEvent(learningRecordStore, {
+            subjectId: session.user.id,
+            role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
+            producerAuthority: 'assessment-producer',
+            receivedAt: new Date(),
+            sessionId: eventData.sessionId ?? undefined,
+            captureRevision: process.env.GIT_SHA || 'working-tree',
+            revision: process.env.GIT_SHA || 'working-tree',
+          }, {
+            action: canonicalEventType,
+            eventId: clientEventId,
+            sourceEventId: clientEventId,
+            sessionId: eventData.sessionId ?? undefined,
+            payload: {
+              eventType: canonicalEventType,
+              learningContext: eventData.learningContext,
+              stepId: typeof payload.stepId === 'string' ? payload.stepId : undefined,
+            },
+          });
+        } catch (error) {
+          if (error instanceof LearningRecordContractError) {
+            routingResults.push({
+              eventType: canonicalEventType,
+              destination: 'dropped',
+              reason: error.code,
+              factsCreated: 0,
+              factActionType: canonicalEventType,
+            });
+            continue;
+          }
+          throw error;
+        }
+      }
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
