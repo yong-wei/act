@@ -26,5 +26,10 @@ export {
   getLiveResourceRegistryIndex,
   resetLiveResourceRegistryIndexCache,
 } from './sources';
-export { resolveStudentVisibleIndexedResource, projectStudentReadFromIndex } from './student-read';
+export {
+  projectStudentLaunchFromIndex,
+  projectStudentReadFromIndex,
+  resolveStudentLaunchableIndexedResource,
+  resolveStudentVisibleIndexedResource,
+} from './student-read';
 export type { StudentIndexedResourceRead } from './student-read';
