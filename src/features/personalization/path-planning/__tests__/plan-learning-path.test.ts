@@ -234,6 +234,15 @@ describe('PlanLearningPath pipeline', () => {
     ]);
   });
 
+  it('fails closed when an active plugin has no path-planning policy', () => {
+    const registry = createPersonalizationPluginRegistry();
+    const plugin = createControlCorrectionPersonalizationPlugin();
+    delete plugin.pathPlanningPolicy;
+    registry.register(plugin);
+    expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry)).toBeNull();
+    expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).not.toBeNull();
+  });
+
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
     for (const file of GENERIC_PIPELINE_FILES) {
       const source = readFileSync(file, 'utf8');

@@ -1811,7 +1811,7 @@ export function getRegisteredAdaptiveLearningPathGoal(
   if (!definition) return null;
   const plugin = registry.get(goalId);
   if (definition.requiresRegisteredPlugin) {
-    if (!plugin || plugin.status !== 'active') return null;
+    if (!plugin || plugin.status !== 'active' || !plugin.pathPlanningPolicy) return null;
   }
   const policy = plugin?.status === 'active' ? plugin.pathPlanningPolicy : undefined;
   if (!policy) return definition;
