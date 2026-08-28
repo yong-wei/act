@@ -12,4 +12,4 @@
 
 - [x] 3.1 Run affected build, runtime externalization, optimized-model, runtime-blob, remote-deploy, and cache contract tests.
 - [x] 3.2 Run shell syntax, production typecheck, and strict OpenSpec validation.
-- [ ] 3.3 Run a full app-only release image build and verify revision label, tar digest, provenance, Chromium, and LibreOffice without deployment.
+- [x] 3.3 Run a full app-only release image build and verify revision label, tar digest, provenance, Chromium, and LibreOffice without deployment.
