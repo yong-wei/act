@@ -7,6 +7,7 @@ import {
   fingerprintAdaptivePathCandidateSnapshot,
   persistAdaptivePathCandidateBatch,
   resolveAdaptivePathCandidateSelection,
+  buildGatedCandidateSnapshots,
 } from '@/lib/adaptive-path-candidate-batches';
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
@@ -224,6 +225,49 @@ describe('adaptive path candidate batches', () => {
     }));
   });
 
+  it('rejects title-or-score-only duplicates and keeps shared required nodes when other facts differ', () => {
+    const duplicate = plan();
+    duplicate.policyBundle!.paths = [
+      candidate('foundation-remediation', 'foundation-remediation', '方案甲', ['node-1', 'terminal-1']),
+      {
+        ...candidate('arena-simulation-sprint', 'simulation-driven', '方案乙', ['node-1', 'terminal-1']),
+        estimatedMinutes: 10,
+        score: 99,
+        expectedTargetLift: 9,
+      },
+    ];
+    const gatedDuplicates = buildGatedCandidateSnapshots(duplicate, 'batch-dup');
+    expect(gatedDuplicates.candidates).toHaveLength(1);
+    expect(gatedDuplicates.candidates[0]?.snapshot.optionId).toBe('path-option-1');
+    expect(gatedDuplicates.candidates[0]?.snapshot.limitations).toEqual(expect.arrayContaining([
+      'title-or-score-only-duplicates-removed',
+      'insufficient-distinct-resources',
+    ]));
+    expect(gatedDuplicates.limitations).toEqual(expect.arrayContaining([
+      'title-or-score-only-duplicates-removed',
+      'insufficient-distinct-resources',
+    ]));
+
+    const sharedTerminal = plan();
+    sharedTerminal.policyBundle!.paths = [
+      {
+        ...candidate('foundation-remediation', 'foundation-remediation', '稳步掌握', ['node-1', 'terminal-1']),
+        terminalValidationNodeIds: ['terminal-1'],
+        resourceMix: { video: 1 },
+        estimatedMinutes: 20,
+      },
+      {
+        ...candidate('arena-simulation-sprint', 'simulation-driven', '仿真冲刺', ['node-2', 'terminal-1']),
+        terminalValidationNodeIds: ['terminal-1'],
+        resourceMix: { simulation: 1 },
+        estimatedMinutes: 40,
+      },
+    ];
+    const gatedShared = buildGatedCandidateSnapshots(sharedTerminal, 'batch-shared');
+    expect(gatedShared.candidates).toHaveLength(2);
+    expect(gatedShared.limitations).not.toContain('title-or-score-only-duplicates-removed');
+  });
+
   it('reuses the same batch and candidate identities for a repeated request', async () => {
     const { db, create } = dbFixture();
     const first = await persistAdaptivePathCandidateBatch(db, { generationRequestId: 'request-1', plan: plan() });
@@ -324,7 +368,10 @@ describe('adaptive path candidate batches', () => {
     const [candidate] = buildCandidateSnapshots(fallbackPlan, 'batch-fallback');
     const [serializedOption] = buildSerializablePathOptions(fallbackPlan);
 
-    expect(candidate.snapshot).toEqual(serializedOption);
+    expect(candidate.snapshot).toEqual({
+      ...serializedOption,
+      limitations: ['insufficient-distinct-resources'],
+    });
     expect(candidate.snapshot).toMatchObject({
       optionId: 'path-option-1',
       nodeSummaries: expect.any(Array),
