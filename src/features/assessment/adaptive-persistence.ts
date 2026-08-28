@@ -30,14 +30,10 @@ import type { MicroInterventionMasteryEvidence } from './adaptive-mastery';
 import {
   buildSubmitAnswerResult,
   createSubmitAnswerDetails,
-  getAbilityReport,
   getAbilityReportFromAnswers,
-  getDiagnostic,
   getDiagnosticFromAnswers,
   getAdaptiveQuestionSelectionById,
-  selectNextQuestion,
   selectNextQuestionFromAnswers,
-  submitAnswer,
   type AbilityReport,
   type AdaptiveAnswerRecord,
   type AdaptiveQuestionScope,
@@ -150,9 +146,22 @@ type AdaptiveAssessmentPersistenceTx = {
   };
 };
 
-type AdaptiveAssessmentPersistenceDb = AdaptiveAssessmentPersistenceTx & {
+export type AdaptiveAssessmentPersistenceDb = AdaptiveAssessmentPersistenceTx & {
   $transaction?<T>(callback: (tx: AdaptiveAssessmentPersistenceTx) => Promise<T>): Promise<T>;
 };
+
+export type AdaptiveAssessmentPersistenceEnv = Record<string, string | undefined>;
+
+export const RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK =
+  'Adaptive assessment persistence fallback is retired; durable storage is required.';
+
+export function assertDurableAssessmentPersistence(
+  env: AdaptiveAssessmentPersistenceEnv = process.env,
+): void {
+  if (env.ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED === 'false') {
+    throw new Error(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
+  }
+}
 
 export interface DurableSubmitAnswerResult extends SubmitAnswerResult {
   durableSessionId?: string;
@@ -182,8 +191,6 @@ export interface AdaptiveAssessmentOutcomeRef {
   algorithmVersion: string;
   answeredAt: string;
 }
-
-type AdaptiveAssessmentPersistenceEnv = Record<string, string | undefined>;
 
 interface PersistedSubmission {
   durableSessionId: string;
@@ -1091,7 +1098,9 @@ async function persistAdaptiveAssessmentSubmission(
 export async function submitAnswerDurably(
   params: SubmitAnswerParams,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
+  env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DurableSubmitAnswerResult> {
+  assertDurableAssessmentPersistence(env);
   const details = createSubmitAnswerDetails(params);
   const persisted = await persistAdaptiveAssessmentSubmission(details, db);
 
@@ -1102,27 +1111,6 @@ export async function submitAnswerDurably(
     algorithmVersion: persisted.algorithmVersion,
     adaptiveAssessmentRef: persisted.adaptiveAssessmentRef,
   };
-}
-
-export function isAdaptiveAssessmentPersistenceEnabled(
-  env: AdaptiveAssessmentPersistenceEnv = process.env,
-): boolean {
-  return env.ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED !== 'false';
-}
-
-export async function submitAnswerWithPersistenceFallback(
-  params: SubmitAnswerParams,
-  db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
-  env: AdaptiveAssessmentPersistenceEnv = process.env,
-): Promise<DurableSubmitAnswerResult> {
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    if (params.continuity) {
-      throw new Error('Companion practice requires adaptive-assessment persistence.');
-    }
-    return submitAnswer(params);
-  }
-
-  return submitAnswerDurably(params, db);
 }
 
 async function loadMicroInterventionMasteryEvidence(
@@ -1250,33 +1238,27 @@ async function recordPersistedQuestionSelection(
   return result.count === 1;
 }
 
-export async function getAbilityReportWithPersistenceFallback(
+export async function getAbilityReportDurably(
   userId: string,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<AbilityReport> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    return getAbilityReport(userId);
-  }
-
   return getAbilityReportFromAnswers(userId, await loadPersistedAnswerRecords(userId, db));
 }
 
-export async function getDiagnosticWithPersistenceFallback(
+export async function getDiagnosticDurably(
   userId: string,
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
 ): Promise<DiagnosticResult> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    return getDiagnostic(userId);
-  }
-
   return getDiagnosticFromAnswers(await loadPersistedAnswerRecords(userId, db));
 }
 
-export async function selectNextQuestionWithPersistenceFallback(
+export async function selectNextQuestionDurably(
   params: { userId: string; sessionId: string; goalId?: string | null; questionScope?: AdaptiveQuestionScope; continuity?: CompanionPracticeMetadata },
   db: AdaptiveAssessmentPersistenceDb = prisma as unknown as AdaptiveAssessmentPersistenceDb,
   env: AdaptiveAssessmentPersistenceEnv = process.env,
@@ -1285,13 +1267,8 @@ export async function selectNextQuestionWithPersistenceFallback(
   estimatedAbility: number;
   confidenceInterval: [number, number];
 }> {
+  assertDurableAssessmentPersistence(env);
   await ensureGeneratedCatalogHydrated(db);
-  if (!isAdaptiveAssessmentPersistenceEnabled(env)) {
-    if (params.continuity) {
-      throw new Error('Companion practice requires adaptive-assessment persistence.');
-    }
-    return selectNextQuestion(params);
-  }
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const answers = await loadPersistedAnswerRecords(params.userId, db);

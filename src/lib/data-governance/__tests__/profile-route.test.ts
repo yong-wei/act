@@ -149,8 +149,8 @@ vi.mock('@/features/assessment/adaptive-engine', () => ({
 }));
 
 vi.mock('@/features/assessment/adaptive-persistence', () => ({
-  getAbilityReportWithPersistenceFallback: mocks.getAbilityReport,
-  getDiagnosticWithPersistenceFallback: mocks.getDiagnostic,
+  getAbilityReportDurably: mocks.getAbilityReport,
+  getDiagnosticDurably: mocks.getDiagnostic,
 }));
 
 vi.mock('@/features/arena/submissions/prisma-store', () => ({

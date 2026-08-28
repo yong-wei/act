@@ -18,11 +18,11 @@ import {
   selectNextQuestionFromAnswers,
 } from '../adaptive-engine';
 import {
-  getAbilityReportWithPersistenceFallback,
-  getDiagnosticWithPersistenceFallback,
-  selectNextQuestionWithPersistenceFallback,
+  getAbilityReportDurably,
+  getDiagnosticDurably,
+  selectNextQuestionDurably,
   submitAnswerDurably,
-  submitAnswerWithPersistenceFallback,
+  RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK,
 } from '../adaptive-persistence';
 
 interface CoverageMatrix {
@@ -951,30 +951,20 @@ describe('submitAnswerDurably', () => {
     }));
   });
 
-  it('falls back to the legacy response shape when persistence is disabled', async () => {
+  it('fails closed when the retired persistence flag is false', async () => {
     const db = createMockDb();
     const question = PRESET_QUESTIONS[1];
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const disabled = { ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false' };
 
-    const result = await submitAnswerWithPersistenceFallback({
+    await expect(submitAnswerDurably({
       userId: 'student-flag-off',
       sessionId: 'session-flag-off',
       questionId: question.id,
       selectedOption: correctOptionText!,
       timeSpent: 30,
-    }, db, {
-      ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false',
-    });
-
-    expect(result).toMatchObject({
-      isCorrect: true,
-      correctOption: correctOptionText,
-      explanation: expect.any(String),
-      estimatedAbility: expect.any(Number),
-      recommendedFocus: expect.any(Array),
-    });
-    expect(result).not.toHaveProperty('durableSessionId');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
     expect(db.adaptiveAssessmentAnswer.upsert).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
@@ -1016,7 +1006,7 @@ describe('submitAnswerDurably', () => {
       },
     ]);
 
-    const report = await getAbilityReportWithPersistenceFallback('student-restart', db);
+    const report = await getAbilityReportDurably('student-restart', db);
 
     expect(report.timeline).toHaveLength(2);
     expect(report.timeline.map((point) => point.timestamp)).toEqual([
@@ -1032,7 +1022,7 @@ describe('submitAnswerDurably', () => {
 
     const selectedQuestionIds: string[] = [];
     for (let index = 0; index < PRESET_QUESTIONS.length; index += 1) {
-      const next = await selectNextQuestionWithPersistenceFallback({
+      const next = await selectNextQuestionDurably({
         userId: 'student-next',
         sessionId: 'session-next',
       }, db);
@@ -1049,7 +1039,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1090,7 +1080,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-1',
       goalId: 'control-correction',
@@ -1125,7 +1115,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-unscoped',
       goalId: generatedFallbackGoal,
@@ -1154,7 +1144,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-2',
       goalId: 'control-correction',
@@ -1241,7 +1231,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const first = await selectNextQuestionWithPersistenceFallback({
+    const first = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'konling-continuity:continuity:retry',
       goalId: continuity.targetKnowledgeId,
@@ -1254,7 +1244,7 @@ describe('submitAnswerDurably', () => {
       metadata: continuity,
     });
 
-    const retried = await selectNextQuestionWithPersistenceFallback({
+    const retried = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'konling-continuity:continuity:retry',
       goalId: continuity.targetKnowledgeId,
@@ -1286,7 +1276,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-owner',
       sessionId: 'practice-other-session',
       goalId: 'control-correction',
@@ -1316,7 +1306,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-other',
       sessionId: 'practice-owner',
       goalId: 'control-correction',
@@ -1330,7 +1320,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    await expect(selectNextQuestionWithPersistenceFallback({
+    await expect(selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'unknown-goal',
@@ -1366,7 +1356,7 @@ describe('submitAnswerDurably', () => {
       });
       db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-      const next = await selectNextQuestionWithPersistenceFallback({
+      const next = await selectNextQuestionDurably({
         userId: 'student-next',
         sessionId: `session-${target.learningGoalId}-${target.scope}`,
         goalId: target.learningGoalId,
@@ -1401,7 +1391,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1446,7 +1436,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1460,7 +1450,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1514,7 +1504,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1552,21 +1542,21 @@ describe('submitAnswerDurably', () => {
     } as const;
     const disabled = { ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false' };
 
-    await expect(selectNextQuestionWithPersistenceFallback({
+    await expect(selectNextQuestionDurably({
       userId: 'student-1',
       sessionId: 'konling-continuity:continuity:persistence-required',
       goalId: continuity.targetKnowledgeId,
       continuity,
-    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
 
-    await expect(submitAnswerWithPersistenceFallback({
+    await expect(submitAnswerDurably({
       userId: 'student-1',
       sessionId: 'konling-continuity:continuity:persistence-required',
       questionId: question.id,
       selectedOption: selectedOption!,
       timeSpent: 0,
       continuity,
-    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
   });
 
   it('does not repeat authored checkpoint runtime ids while unanswered alternatives remain', async () => {
@@ -1586,7 +1576,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1638,7 +1628,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1665,7 +1655,7 @@ describe('submitAnswerDurably', () => {
       .mockResolvedValueOnce({ count: 0 })
       .mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
     }, db);
@@ -1695,7 +1685,7 @@ describe('submitAnswerDurably', () => {
       },
     ]);
 
-    const diagnostic = await getDiagnosticWithPersistenceFallback('student-generated', db);
+    const diagnostic = await getDiagnosticDurably('student-generated', db);
 
     expect(diagnostic.knowledgeDimensions).toMatchObject({
       computational: 55,
