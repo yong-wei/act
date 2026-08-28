@@ -165,6 +165,7 @@ scripts/*
 tools/glb-model-optimizer/
 !tools/glb-model-optimizer/
 !tools/glb-model-optimizer/**
+!tools/glb-model-optimizer/optimize-models.mjs
 *.tsbuildinfo
 deploy/images
 deploy
