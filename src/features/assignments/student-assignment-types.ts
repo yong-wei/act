@@ -103,4 +103,4 @@ export function formatAssignmentDeadline(value: string | Date | null): string {
     hour12: false,
   }).format(date);
 }
-import type { StudentAssignmentDto, StudentQuestionDto } from '@/lib/assignments/submission-dto';
+import type { StudentAssignmentDto, StudentQuestionDto } from '@/lib/assignments/public-api';

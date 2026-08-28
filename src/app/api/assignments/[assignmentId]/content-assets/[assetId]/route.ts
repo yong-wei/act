@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
 import { assignmentErrorResponse } from '@/lib/assignments/assignment-route-guards';
-import { readAssignmentContentAsset } from '@/lib/assignments/assignment-content-assets';
+import { readPublicAssignmentContentAsset } from '@/lib/assignments/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +17,7 @@ export async function GET(
   }
   try {
     const { assignmentId, assetId } = await context.params;
-    const asset = await readAssignmentContentAsset(prisma, {
+    const asset = await readPublicAssignmentContentAsset({
       actorId: session.user.id,
       actorRole: session.user.role,
       assignmentId,
