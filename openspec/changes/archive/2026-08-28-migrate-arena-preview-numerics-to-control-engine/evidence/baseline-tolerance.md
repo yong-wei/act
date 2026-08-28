@@ -1,5 +1,7 @@
 # Preview baseline and tolerance
 
+捕获修订：`2aaff1a686de4bb6ac2c0f84f613cbea21520683`。
+
 黑箱 cruise-roll 预览的数值真源是 `rust/control-engine/src/arena_preview.rs`。
 
 固定夹具：

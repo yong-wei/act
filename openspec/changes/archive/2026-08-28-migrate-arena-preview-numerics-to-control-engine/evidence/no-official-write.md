@@ -1,5 +1,7 @@
 # Preview does not write official Arena records
 
+捕获修订：`2aaff1a686de4bb6ac2c0f84f613cbea21520683`。
+
 预览允许写入：
 
 - `ArenaVirtualSimulationRun`

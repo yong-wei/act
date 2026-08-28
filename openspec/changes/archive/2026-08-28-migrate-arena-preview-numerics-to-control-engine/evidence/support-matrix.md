@@ -1,6 +1,6 @@
 # Arena preview support matrix
 
-捕获修订：实现时工作树 HEAD。协议：`arena-preview-control-engine/v1`。
+捕获修订：`2aaff1a686de4bb6ac2c0f84f613cbea21520683`（含实现提交 `522e70bef18c6d880644a81b2a71b0cb480eb647`）。协议：`arena-preview-control-engine/v1`。WASM `CONTROL_ENGINE_BUILD_HASH=62182913d2c24a3ade83d9155413f05e6647949cece8d19b323ca0a6824ba797`，`index_bg.wasm=eb6e48215b412c8682d597f540a2b3653b32225b5d9838ac78ba19f8557d5109`。
 
 | method | supported | modelId | capability | executor | request | result | identity | tolerance |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
