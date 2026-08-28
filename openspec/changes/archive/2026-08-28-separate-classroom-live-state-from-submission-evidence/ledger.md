@@ -61,3 +61,9 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - P1 源日志晚到分类：`acceptClassifiedSubmissionCommand` 晚到分支在源 `InteractionLog.eventData` 注入 `afterSessionEnd: true` 与 `evidenceStatus: 'POST_SESSION_REVIEW'`；`generateSessionSummaryReports` 全部闭包统计（interactionLogs/eventTypes/canonicalEventTypes/learningContexts/invalidContextReasons/syncHealth/participants/lessonKey/submittedUserIds）改用排除晚到的 `closureLogs`，晚到仅以 `afterSessionEndEvents` 显式披露。
 - P1 闭包 outbox 补投：新增 `redispatchPendingSessionClosures` 扫描 PENDING/FAILED 行并按既有幂等 jobId 补投报告刷新；worker `processSessionReportJob` 增加 coordinator 分支，scheduler 以 10 分钟周期调度，Redis 恢复后自动闭合漏投。
 - P2 重算独立化：重算结果写入独立 `class-summary-recompute` 报告行（原 `class-summary` 不再被覆盖、可独立查询）；重算输入由调用方命名的 `includeReviewSubmittedBefore` 时点界定（记录于 reportData.recompute.includedReviewCutoffAt），结合 `recomputeInputWatermark` 共同构成命名输入集。
+
+## 9. Codex Review 第二轮整改（2026-08-28，PR #1668）
+
+- P1 学生报告闭包谓词：闭包谓词下沉到日志读取点（`afterSessionEndLogs`/`closureLogs` 结构性拆分），学生报告循环改用 `closureLogs`，与班级报告共用同一谓词，消除"新增统计口径绕过晚到过滤"的整类漏点。
+- P1 补投投递身份：coordinator 补投改为每次扫描使用唯一 jobId（`session-closure-redispatch-<sessionId>-<ts>`），绕开 BullMQ 对 failed 集合中既有 jobId 的 no-op add；处理侧报告生成与 outbox 结算幂等，重复投递不双计。
+- P2 resourceId 保真：分类提交源事件透传已验证的 `item.resourceId`，不再无条件置空。

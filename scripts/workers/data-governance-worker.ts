@@ -34,7 +34,6 @@ import {
   redispatchPendingSessionClosures,
   settleSessionClosureOutbox,
 } from '@/lib/data-governance/session-closure-outbox';
-import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
@@ -961,10 +960,22 @@ async function processSessionReportJob(job: Job<SessionReportJob>) {
   // 兜底闭课时 Redis 不可用造成的漏投（Redis 恢复后由周期调度闭合）
   if (job.data.coordinator) {
     const db = getPrismaClient();
-    const sessionIds = await redispatchPendingSessionClosures(
-      db,
-      (sessionId) => enqueueSessionSummaryReportRefresh(sessionId),
-    );
+    if (!reportQueue) {
+      throw new Error('session-report queue is not initialised');
+    }
+    const queue = reportQueue;
+    const sessionIds = await redispatchPendingSessionClosures(db, async (sessionId) => {
+      // 每次补投使用全新投递身份：BullMQ 对已存在（含 failed 集合）的 jobId
+      // 重复 add 是 no-op，唯一 jobId 保证 FAILED 任务可恢复；
+      // 处理侧报告生成与 outbox 结算天然幂等，重复投递不会双计。
+      await queue.add('session-closure-redispatch', { sessionId }, {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 5000 },
+        jobId: `session-closure-redispatch-${sessionId}-${Date.now()}`,
+        removeOnComplete: { count: 20 },
+        removeOnFail: { count: 50 },
+      });
+    });
     if (sessionIds.length > 0) {
       logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Redispatched ${sessionIds.length} pending closure session(s)`);
     }

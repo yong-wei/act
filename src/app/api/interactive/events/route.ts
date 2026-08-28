@@ -370,7 +370,7 @@ function buildClassifiedSubmissionInput(
     submissionIdentity: identity.identity,
     identityVersion: identity.identityVersion,
     sourceEvent: {
-      resourceId: null,
+      resourceId: item.resourceId,
       resourceKey: item.event.resourceKey ?? null,
       sessionId: item.sessionId,
       lessonKey,

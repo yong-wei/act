@@ -577,6 +577,11 @@ export async function generateSessionSummaryReports(
   const postSessionReviewTotal = await db.studentStepResponse.count({
     where: { sessionId, evidenceStatus: 'POST_SESSION_REVIEW' },
   });
+
+  // 结构性闭包谓词：原闭包消费者一律使用 closureLogs；晚到（afterSessionEnd）
+  // 事件单独留存，仅作为披露计数。任何新的统计口径都不得直接读取原始 logs。
+  const afterSessionEndLogs = logs.filter((log) => readObject(log.eventData).afterSessionEnd === true);
+  const closureLogs = logs.filter((log) => readObject(log.eventData).afterSessionEnd !== true);
   const includedReviewCount = recompute
     ? await db.studentStepResponse.count({
       where: {
@@ -590,9 +595,6 @@ export async function generateSessionSummaryReports(
   const excludedPostSessionReviewSubmissions = recompute
     ? postSessionReviewTotal - includedReviewCount
     : postSessionReviewTotal;
-
-  // 闭包统计只使用原闭包以内的日志；晚到（afterSessionEnd）事件仅作显式披露计数
-  const closureLogs = logs.filter((log) => readObject(log.eventData).afterSessionEnd !== true);
 
   const roleUserIds = Array.from(new Set([
     ...closureLogs.map((log) => log.userId),
@@ -647,12 +649,7 @@ export async function generateSessionSummaryReports(
   const submittedUserIds = new Set<string>();
   const syncErrorUserIds = new Set<string>();
   // 晚到事件不计入任何闭包统计，仅作为披露计数保留
-  let afterSessionEndEvents = 0;
-  for (const log of logs) {
-    if (readObject(log.eventData).afterSessionEnd === true) {
-      afterSessionEndEvents += 1;
-    }
-  }
+  const afterSessionEndEvents = afterSessionEndLogs.length;
 
   for (const log of closureLogs) {
     const canonicalEventType = resolveReportEventType(log);
@@ -917,7 +914,8 @@ export async function generateSessionSummaryReports(
   }
 
   for (const userId of sessionParticipantUserIds) {
-    const studentLogs = logs.filter((log) => log.userId === userId);
+    // 学生报告与班级报告使用同一闭包谓词：晚到事件不进入任何学生统计
+    const studentLogs = closureLogs.filter((log) => log.userId === userId);
     const userFacts = studentFacts.filter((fact) => fact.userId === userId);
     const userSubmissions = studentSubmissions.filter((submission) => submission.userId === userId);
     const studentLessonKey = firstNonEmpty([
