@@ -208,6 +208,9 @@ export function planMicroTutoringTeachingResourceSync(input: {
   const entries: MicroTutoringTeachingResourceSyncEntry[] = [];
 
   for (const entry of loaded.projection.entries) {
+    if (!entry.enabled) {
+      continue;
+    }
     if (!getRegisteredResourceMetadata(entry.registryId)) {
       issues.push({ code: 'REGISTRY_UNKNOWN', ref: entry.registryId });
       continue;

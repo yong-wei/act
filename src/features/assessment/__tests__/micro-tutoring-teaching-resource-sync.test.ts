@@ -137,6 +137,25 @@ describe('micro tutoring v2 TeachingResource sync', () => {
     });
   });
 
+  it('skips disabled projection entries instead of materializing them as student-visible', () => {
+    const projection = {
+      ...v2ProjectionSource,
+      entries: v2ProjectionSource.entries.map((entry) => (
+        entry.registryId === WORKSHOP ? { ...entry, enabled: false } : entry
+      )),
+    };
+    const plan = planMicroTutoringTeachingResourceSync({
+      existingRows: [],
+      captureRevision: CAPTURE,
+      projection,
+      optionAttributions: v2OptionAttributionSource,
+    });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) throw new Error('expected plan');
+    expect(plan.entries.some((entry) => entry.registryId === WORKSHOP)).toBe(false);
+    expect(plan.entries).toHaveLength(8);
+  });
+
   it('lets the existing orchestrator query find all 9 projected groups', () => {
     const plan = planMicroTutoringTeachingResourceSync({
       existingRows: [],
