@@ -9,6 +9,7 @@ export type {
   DecideInterventionInput,
   DecideInterventionResult,
 } from './application/decide-intervention';
+export { runDecisionTransaction } from './application/decision-transaction';
 export {
   assertInterventionLifecycleEventType,
   PersonalizationInterventionEventError,

@@ -1,23 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({
-  getServerAuthSession: vi.fn(),
-  startMicroIntervention: vi.fn(),
-  readMicroIntervention: vi.fn(),
-  recordMicroInterventionEvent: vi.fn(),
-  submitMicroInterventionValidation: vi.fn(),
-  readMicroInterventionValidationQuestion: vi.fn(),
-  MicroInterventionRequestError: class MicroInterventionRequestError extends Error {
-    constructor(readonly code: string) {
-      super(code);
-    }
-  },
-}));
+const mocks = vi.hoisted(() => {
+  const prisma = {
+    $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(prisma)),
+  };
+  return {
+    getServerAuthSession: vi.fn(),
+    startMicroIntervention: vi.fn(),
+    readMicroIntervention: vi.fn(),
+    recordMicroInterventionEvent: vi.fn(),
+    submitMicroInterventionValidation: vi.fn(),
+    readMicroInterventionValidationQuestion: vi.fn(),
+    stageInterventionEvidenceProjection: vi.fn(async () => ({ status: 'staged', profileRefreshed: false })),
+    MicroInterventionRequestError: class MicroInterventionRequestError extends Error {
+      constructor(readonly code: string) {
+        super(code);
+      }
+    },
+    prisma,
+  };
+});
 
 vi.mock('@/lib/auth', () => ({ getServerAuthSession: mocks.getServerAuthSession }));
-vi.mock('@/lib/prisma', () => ({ prisma: {} }));
+vi.mock('@/lib/prisma', () => ({ prisma: mocks.prisma }));
 vi.mock('@/features/personalization/interventions/public-api', () => ({
-  stageInterventionEvidenceProjection: vi.fn(async () => ({ status: 'staged', profileRefreshed: false })),
+  stageInterventionEvidenceProjection: mocks.stageInterventionEvidenceProjection,
 }));
 vi.mock('@/features/assessment/micro-intervention-outcomes', () => ({
   MicroInterventionRequestError: mocks.MicroInterventionRequestError,
@@ -166,5 +173,77 @@ describe('micro intervention routes', () => {
     expect(await response.json()).toEqual({
       id: 'intervention-1', status: 'UNAVAILABLE', unavailableReason: 'REFERENCE_DRIFT',
     });
+  });
+
+  it('records progress and stages outbox in one transaction', async () => {
+    mocks.recordMicroInterventionEvent.mockResolvedValue({
+      id: 'intervention-1',
+      status: 'IN_PROGRESS',
+    });
+
+    const response = await event(new Request('http://localhost/api/assessment/remediation/interventions/events', {
+      method: 'POST',
+      body: JSON.stringify({ interventionId: 'intervention-1', eventKey: 'event-1', eventType: 'HINT_REQUESTED' }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mocks.recordMicroInterventionEvent).toHaveBeenCalledWith(expect.objectContaining({
+      db: mocks.prisma,
+      authenticatedUserId: 'learner-1',
+      interventionId: 'intervention-1',
+    }));
+    expect(mocks.stageInterventionEvidenceProjection).toHaveBeenCalledWith(expect.objectContaining({
+      db: mocks.prisma,
+      interventionId: 'intervention-1',
+      actorUserId: 'learner-1',
+      subjectUserId: 'learner-1',
+    }));
+  });
+
+  it('does not stage outbox for unavailable interventions', async () => {
+    mocks.recordMicroInterventionEvent.mockResolvedValue({
+      id: 'intervention-1',
+      status: 'UNAVAILABLE',
+      unavailableReason: 'REFERENCE_DRIFT',
+    });
+
+    const response = await event(new Request('http://localhost/api/assessment/remediation/interventions/events', {
+      method: 'POST',
+      body: JSON.stringify({ interventionId: 'intervention-1', eventKey: 'event-1', eventType: 'HINT_REQUESTED' }),
+    }));
+
+    expect(response.status).toBe(409);
+    expect(mocks.prisma.$transaction).toHaveBeenCalled();
+    expect(mocks.stageInterventionEvidenceProjection).not.toHaveBeenCalled();
+  });
+
+  it('submits validation and stages outbox in one transaction', async () => {
+    mocks.submitMicroInterventionValidation.mockResolvedValue({
+      id: 'intervention-1',
+      status: 'COMPLETED',
+    });
+
+    const response = await validation(new Request('http://localhost/api/assessment/remediation/interventions/validation', {
+      method: 'POST',
+      body: JSON.stringify({
+        interventionId: 'intervention-1',
+        eventKey: 'answer-1',
+        questionId: 'question-1',
+        selectedOption: 'A',
+        durationSeconds: 30,
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mocks.submitMicroInterventionValidation).toHaveBeenCalledWith(expect.objectContaining({
+      db: mocks.prisma,
+      interventionId: 'intervention-1',
+    }));
+    expect(mocks.stageInterventionEvidenceProjection).toHaveBeenCalledWith(expect.objectContaining({
+      db: mocks.prisma,
+      interventionId: 'intervention-1',
+    }));
   });
 });

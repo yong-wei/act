@@ -8,6 +8,7 @@ export {
 } from './types';
 export { createPrismaRecommendationEvidenceDb } from './prisma-reads';
 export {
+  applyAllStagedMicroInterventionEvidence,
   applyStagedMicroInterventionEvidence,
   assertPrivacySafeOutboxProjection,
   learningRecordFactWriteGuard,

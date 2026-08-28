@@ -8,6 +8,7 @@ import {
   submitMicroInterventionValidation,
   type MicroInterventionDb,
 } from '@/features/assessment/micro-intervention-outcomes';
+import { runDecisionTransaction } from '@/features/personalization/interventions/application/decision-transaction';
 import { stageInterventionEvidenceProjection } from '@/features/personalization/interventions/public-api';
 
 export const dynamic = 'force-dynamic';
@@ -65,25 +66,28 @@ export async function POST(request: Request) {
     if (!interventionId || !eventKey || !questionId || !selectedOption || typeof durationSeconds !== 'number') {
       return NextResponse.json({ error: 'VALIDATION_FIELDS_REQUIRED' }, { status: 400 });
     }
-    const result = await submitMicroInterventionValidation({
-      db: prisma as unknown as MicroInterventionDb,
-      authenticatedUserId: authenticated.userId,
-      interventionId,
-      eventKey,
-      questionId,
-      selectedOption,
-      durationSeconds,
+    const result = await runDecisionTransaction(prisma, async (tx) => {
+      const submitted = await submitMicroInterventionValidation({
+        db: tx as unknown as MicroInterventionDb,
+        authenticatedUserId: authenticated.userId,
+        interventionId,
+        eventKey,
+        questionId,
+        selectedOption,
+        durationSeconds,
+      });
+      if (submitted && submitted.status !== 'UNAVAILABLE') {
+        await stageInterventionEvidenceProjection({
+          db: tx as never,
+          interventionId,
+          actorUserId: authenticated.userId,
+          subjectUserId: authenticated.userId,
+          role: 'STUDENT',
+        });
+      }
+      return submitted;
     });
     if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
-    if (result.status !== 'UNAVAILABLE') {
-      await stageInterventionEvidenceProjection({
-        db: prisma as never,
-        interventionId,
-        actorUserId: authenticated.userId,
-        subjectUserId: authenticated.userId,
-        role: 'STUDENT',
-      });
-    }
     return result.status === 'UNAVAILABLE'
       ? NextResponse.json(result, { status: 409 })
       : NextResponse.json(result);

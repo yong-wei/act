@@ -27,7 +27,7 @@ import {
   type LearningFactWriteRow,
 } from '@/lib/canonical-learning-fact-identity';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
-import { applyStagedMicroInterventionEvidence } from '@/features/learning-record/personalization-ports/public-api';
+import { applyAllStagedMicroInterventionEvidence } from '@/features/learning-record/personalization-ports/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   rebuildStudentEvidenceFeatureCache,
@@ -549,7 +549,7 @@ async function getActiveStudentIds(): Promise<string[]> {
 export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   try {
     if (prisma) {
-      await applyStagedMicroInterventionEvidence(prisma as never);
+      await applyAllStagedMicroInterventionEvidence(prisma as never);
     }
   } catch (error) {
     console.error('[EventIngestion] micro-intervention evidence projection failed:', error);

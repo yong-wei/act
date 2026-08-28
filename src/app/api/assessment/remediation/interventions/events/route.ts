@@ -8,6 +8,7 @@ import {
   type MicroInterventionDb,
   type MicroInterventionEventType,
 } from '@/features/assessment/micro-intervention-outcomes';
+import { runDecisionTransaction } from '@/features/personalization/interventions/application/decision-transaction';
 import { stageInterventionEvidenceProjection } from '@/features/personalization/interventions/public-api';
 
 export const dynamic = 'force-dynamic';
@@ -43,25 +44,28 @@ export async function POST(request: Request) {
     if (!interventionId || !eventKey || !type) {
       return NextResponse.json({ error: 'EVENT_IDENTIFIERS_REQUIRED' }, { status: 400 });
     }
-    const result = await recordMicroInterventionEvent({
-      db: prisma as unknown as MicroInterventionDb,
-      authenticatedUserId: authenticated.userId,
-      interventionId,
-      eventKey,
-      eventType: type,
-      resourceId,
-      durationSeconds,
+    const result = await runDecisionTransaction(prisma, async (tx) => {
+      const recorded = await recordMicroInterventionEvent({
+        db: tx as unknown as MicroInterventionDb,
+        authenticatedUserId: authenticated.userId,
+        interventionId,
+        eventKey,
+        eventType: type,
+        resourceId,
+        durationSeconds,
+      });
+      if (recorded && recorded.status !== 'UNAVAILABLE') {
+        await stageInterventionEvidenceProjection({
+          db: tx as never,
+          interventionId,
+          actorUserId: authenticated.userId,
+          subjectUserId: authenticated.userId,
+          role: 'STUDENT',
+        });
+      }
+      return recorded;
     });
     if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
-    if (result.status !== 'UNAVAILABLE') {
-      await stageInterventionEvidenceProjection({
-        db: prisma as never,
-        interventionId,
-        actorUserId: authenticated.userId,
-        subjectUserId: authenticated.userId,
-        role: 'STUDENT',
-      });
-    }
     return result.status === 'UNAVAILABLE'
       ? NextResponse.json(result, { status: 409 })
       : NextResponse.json(result);

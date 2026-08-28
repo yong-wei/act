@@ -36,13 +36,15 @@ describe('personalization recommendation/intervention production boundary', () =
     const events = readFileSync('src/app/api/assessment/remediation/interventions/events/route.ts', 'utf8');
     const validation = readFileSync('src/app/api/assessment/remediation/interventions/validation/route.ts', 'utf8');
     const worker = readFileSync('scripts/workers/data-governance-worker.ts', 'utf8');
+    expect(events).toContain('runDecisionTransaction');
+    expect(validation).toContain('runDecisionTransaction');
     expect(events).toContain('stageInterventionEvidenceProjection');
     expect(validation).toContain('stageInterventionEvidenceProjection');
     expect(events).not.toContain('processPendingMicroInterventionEvidenceProjections');
     expect(validation).not.toContain('processPendingMicroInterventionEvidenceProjections');
     expect(events).not.toContain('applyStagedMicroInterventionEvidence');
     expect(validation).not.toContain('applyStagedMicroInterventionEvidence');
-    expect(worker).toContain('applyStagedMicroInterventionEvidence');
+    expect(worker).toContain('applyAllStagedMicroInterventionEvidence');
     expect(worker).not.toContain("from '@/features/assessment/micro-intervention-learning-evidence'");
   });
 
