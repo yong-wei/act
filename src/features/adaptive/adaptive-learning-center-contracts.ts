@@ -1619,6 +1619,8 @@ function toStudentPathReason(reason: string): string {
     'path-effort-diversity-insufficient': '学习时长差异不足',
     'terminal-validation-diversity-insufficient': '终点检验差异不足',
     'policy-option-diversity-unavailable': '当前资源只能形成单一推荐方案',
+    'title-or-score-only-duplicates-removed': '只保留实质不同的学习路径，相近文案方案已合并',
+    'insufficient-distinct-resources': '当前可用资源只能形成更少的可执行路径',
     'policy-path-resource-missing': '路径资源不足',
     'policy-paths-identical': '路径选项过于接近',
     'terminal-validation-missing': '需要完成终点检验',

@@ -223,16 +223,36 @@ export function gateMateriallyDistinctCandidates(
     kept.push({
       ...candidate,
       ordinal: kept.length,
-      snapshot: jsonSnapshot({
-        ...candidate.snapshot,
-        optionId: `path-option-${kept.length + 1}`,
-      }),
     });
   }
+  const limitations = limitationsForReduction(duplicateCount, candidates.length, kept.length);
+  return {
+    candidates: kept.map((candidate) => ({
+      ...candidate,
+      snapshot: {
+        ...candidate.snapshot,
+        limitations: uniqueStrings([
+          ...stringArray(candidate.snapshot.limitations),
+          ...limitations,
+        ]),
+      },
+    })),
+    limitations,
+  };
+}
+
+function limitationsForReduction(duplicateCount: number, originalCount: number, keptCount: number): string[] {
   const limitations: string[] = [];
   if (duplicateCount > 0) limitations.push('title-or-score-only-duplicates-removed');
-  if (kept.length < 2) limitations.push('insufficient-distinct-resources');
-  return { candidates: kept, limitations };
+  if (keptCount < 2) limitations.push('insufficient-distinct-resources');
+  if (originalCount > 0 && keptCount < originalCount && !limitations.includes('title-or-score-only-duplicates-removed')) {
+    limitations.push('insufficient-distinct-resources');
+  }
+  return limitations;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
 }
 
 export function toBatchView(record: CandidateBatchRecord): AdaptivePathCandidateBatchView {

@@ -238,6 +238,11 @@ describe('adaptive path candidate batches', () => {
     ];
     const gatedDuplicates = buildGatedCandidateSnapshots(duplicate, 'batch-dup');
     expect(gatedDuplicates.candidates).toHaveLength(1);
+    expect(gatedDuplicates.candidates[0]?.snapshot.optionId).toBe('path-option-1');
+    expect(gatedDuplicates.candidates[0]?.snapshot.limitations).toEqual(expect.arrayContaining([
+      'title-or-score-only-duplicates-removed',
+      'insufficient-distinct-resources',
+    ]));
     expect(gatedDuplicates.limitations).toEqual(expect.arrayContaining([
       'title-or-score-only-duplicates-removed',
       'insufficient-distinct-resources',
@@ -363,7 +368,10 @@ describe('adaptive path candidate batches', () => {
     const [candidate] = buildCandidateSnapshots(fallbackPlan, 'batch-fallback');
     const [serializedOption] = buildSerializablePathOptions(fallbackPlan);
 
-    expect(candidate.snapshot).toEqual(serializedOption);
+    expect(candidate.snapshot).toEqual({
+      ...serializedOption,
+      limitations: ['insufficient-distinct-resources'],
+    });
     expect(candidate.snapshot).toMatchObject({
       optionId: 'path-option-1',
       nodeSummaries: expect.any(Array),
