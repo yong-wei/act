@@ -133,6 +133,7 @@ export function getArenaPreviewBoundaryMetadata(
     controllerHash: existing?.controllerHash ?? preview.controllerHash,
     identificationModelId: existing?.identificationModelId ?? stringParam(artifact, 'identificationModelId'),
     sourceExperimentId: existing?.sourceExperimentId ?? preview.replaySource?.experiment.id,
+    runContract: existing?.runContract,
   };
 }
 

@@ -122,6 +122,7 @@ describe('practice lab artifact/run contract', () => {
     const writer = readFileSync(path.join(repoRoot, 'src/features/arena/blackbox/controller-preview.ts'), 'utf8');
     expect(writer).toContain('payload: {');
     expect(writer).toContain('metadata: previewBoundary');
+    expect(writer).toContain('runContract: existing?.runContract');
   });
 
   it('keeps sealed identity field order deterministic', () => {
