@@ -8,6 +8,12 @@ const root = process.cwd();
 const dockerfile = fs.readFileSync(path.join(root, 'Dockerfile'), 'utf8');
 const buildScript = fs.readFileSync(path.join(root, 'scripts/build.sh'), 'utf8');
 
+assert.equal(
+  fs.statSync(path.join(root, 'scripts/build.sh')).mode & 0o111,
+  0o111,
+  'scripts/build.sh must remain executable for production cutover callers',
+);
+
 function stageBetween(source, start, end) {
   const startIndex = source.indexOf(start);
   const endIndex = source.indexOf(end, startIndex + start.length);
