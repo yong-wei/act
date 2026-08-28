@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  authorizeClassroomSessionAccess,
   canAccessClassroomSession,
   canManageClassroomSession,
   normalizeClassroomActorRole,
-} from '@/lib/classroom-session-access';
+} from '@/features/classroom/session';
 
 describe('classroom session access', () => {
   const classBoundSession = { teacherId: 'teacher-1', classId: 'class-1' };
@@ -33,6 +34,19 @@ describe('classroom session access', () => {
       id: 'student-1',
       role: 'STUDENT',
     })).toBe(true);
+  });
+
+  it('centralizes manage and read access decisions', () => {
+    expect(authorizeClassroomSessionAccess({
+      session: classBoundSession,
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      operation: 'manage',
+    }).allowed).toBe(true);
+    expect(authorizeClassroomSessionAccess({
+      session: classBoundSession,
+      actor: { id: 'student-2', role: 'STUDENT', profile: { classId: 'class-2' } },
+      operation: 'read',
+    }).allowed).toBe(false);
   });
 
   it('normalizes trusted server roles for lifecycle evidence', () => {
