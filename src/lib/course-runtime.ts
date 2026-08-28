@@ -522,7 +522,9 @@ export async function loadLessonRuntimeEntry(
         ? (lesson.handout_pdf_path && handoutPdfSourcePath === handoutPdfCandidates[0]
           ? lesson.handout_pdf_path
           : `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutPdfCandidates[0])}`)
-        : `/api/course-runtime/assets/${lessonDir.runtimePath}/${path.basename(handoutPdfCandidates[0])}?releaseId=${encodeURIComponent(binding.runtimeReleaseId)}`)
+        // Blob-served PDFs go through the content-addressed blob route: the
+        // media assets API only accepts lessons/<lesson>/media/ paths.
+        : `/api/course-runtime/blob-assets/${binding.resourceHashes.handoutPdf}`)
       : null;
 
     const mediaIndexBound = binding.resourceHashes.mediaIndex !== undefined
