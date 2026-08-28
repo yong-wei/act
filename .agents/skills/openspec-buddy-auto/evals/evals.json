@@ -1,0 +1,35 @@
+{
+  "skill_name": "openspec-buddy-auto",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "使用 openspec-buddy-auto 处理下一个可以执行的 change。",
+      "expected_output": "调用公开 scripts/buddy-auto.mjs 的默认 lite 入口。无目标时选择编号最小的 Available Issue；候选必须开放、带 status:ready、显式映射到存在的本地 OpenSpec change，并且没有开放的 GitHub 原生 blockedBy。取得并复核 Claim 后，由 GPT-5.6 主模型完成实现、相关测试、完整 diff Local Review、openspec validate <change_id> --strict 和 openspec archive <change_id> --yes，把实现、测试、同步后的主 specs 与 archive 放进同一个 PR。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "使用 openspec-buddy-auto 自动处理所有剩余可用 change。",
+      "expected_output": "使用无参数 lite 入口逐项取得目标。每个 Issue-backed change 只有在 PR 成功合并且 status:archived、完成评论和 Issue 关闭均已完成后，才再次调用公开入口选择编号最小的 Available Issue；没有 Available Issue 或发生阻断时停止。默认 lite 不使用 Project、lane、cache、receipt 或 controller。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Lite 模式的 PR 已打开，请等待 Codex review 并继续。",
+      "expected_output": "为最新 head 发布固定评论 @codex review 中文回复，即使没有重大问题也必须给出显式回复。先等待 300 秒，随后每 60 秒读取最新 head、Codex 回复和 review threads，每轮最多 900 秒；纯超时只允许一次明确标识的同 head Timeout Retry，第二次超时停止。quota exhausted 或 service failure 立即停止且不触发或消耗 Timeout Retry。feedback 必须回复、resolve 并复审；只有最新 head 的明确 Clearance Comment、无 unresolved thread、CI 成功或确认无 CI 时才可合并。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "使用 openspec-buddy-auto --change local-change --no-pr 处理一个没有映射 Issue 的本地 change。",
+      "expected_output": "该 change 必须由 `openspec-buddy propose --no-issue` 创建。调用 lite 入口确认它完全没有映射 Issue，并提醒用户它尚未登记 Issue。不创建 GitHub Issue，也不创建 PR、Project、review 或 achievement state。完成相关测试、完整 diff Local Review、strict validate、标准 archive、提交和实现分支推送；实现、测试、主 specs 与 archive 同一交付单元。只在远端 base 仍是实现分支祖先时 fast-forward，基线前进则同步后重新测试与审核；禁止 force push，并核验远端集成结果。",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "显式使用 openspec-buddy-auto full 继续现有 controller 状态。",
+      "expected_output": "只调用公开 scripts/buddy-auto.mjs full，并把既有 OPENSPEC_BUDDY_AUTO_* 输入或恢复参数置于 full 之后；不得直接调用 scripts/full 内部模块。等待 controller 返回 DONE、HANDOFF 或 BLOCKED，按 interrupt 完成被授权工作后再次运行同一公开 full 命令。",
+      "files": []
+    }
+  ]
+}

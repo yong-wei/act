@@ -22,6 +22,8 @@
 | `openspec-propose` | `openspec-propose/SKILL.md` | 一次性生成 OpenSpec change 的 proposal、design、spec delta 和 tasks。 |
 | `openspec-apply-change` | `openspec-apply-change/SKILL.md` | 根据已有 OpenSpec change 执行实现任务。 |
 | `openspec-archive-change` | `openspec-archive-change/SKILL.md` | 实现完成后归档 change。 |
+| `openspec-sync-specs` | `openspec-sync-specs/SKILL.md` | 把已落地实现同步回主 specs。 |
+| `openspec-update-change` | `openspec-update-change/SKILL.md` | 在实现前更新进行中的 OpenSpec change 工件。 |
 | `openspec-buddy` | `openspec-buddy/SKILL.md` | 显式调用 GitHub Issue 协调的 claim/propose/apply/achieve 流程。 |
 | `openspec-buddy-auto` | `openspec-buddy-auto/SKILL.md` | 自动处理 GitHub Issue-backed 或 local-only OpenSpec changes。 |
 
@@ -29,6 +31,7 @@
 
 | 技能 | 入口 | 适用场景 |
 | --- | --- | --- |
+| `openwolf` | `openwolf/SKILL.md` | OpenWolf 会话协议：STATUS、anatomy、cerebrum、buglog 与 token 纪律。 |
 | `explore-codebase` | `explore-codebase/SKILL.md` | 使用 code-review-graph 进行仓库导览、热点定位、架构发现。 |
 | `debug-issue` | `debug-issue/SKILL.md` | 诊断 bug、回归、失败测试、启动失败、运行时异常。 |
 | `refactor-safely` | `refactor-safely/SKILL.md` | 图谱辅助的安全重构、影响面评估与验证。 |
@@ -107,6 +110,9 @@
 - `openspec-buddy-auto`
 - `openspec-explore`
 - `openspec-propose`
+- `openspec-sync-specs`
+- `openspec-update-change`
+- `openwolf`
 - `redesign-existing-projects`
 - `refactor-safely`
 - `refine`
