@@ -32,6 +32,7 @@ import {
   createSubmitAnswerDetails,
   getAbilityReportFromAnswers,
   getDiagnosticFromAnswers,
+  getAdaptiveQuestionById,
   getAdaptiveQuestionSelectionById,
   selectNextQuestionFromAnswers,
   type AbilityReport,
@@ -237,6 +238,131 @@ function assertSelectedCompanionQuestion(
   if (selectedQuestionIds.length !== 1 || selectedQuestionIds[0] !== questionId) {
     throw new Error('Companion-practice answer does not match the selected question.');
   }
+}
+
+function assertSelectedPathQuestion(
+  session: PersistedAssessmentSessionRow,
+  questionId: string,
+  pathContext: SubmittedAnswerDetails['pathContext'],
+) {
+  if (!pathContext) return;
+  const selectedQuestionIds = Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [];
+  if (!selectedQuestionIds.includes(questionId)) {
+    throw new Error('路径自适应答案不属于当前会话已选择的题目');
+  }
+}
+
+function isPathOwnedQuestionScope(scope?: AdaptiveQuestionScope): boolean {
+  return scope === 'readiness'
+    || scope === 'checkpoint'
+    || scope === 'remediation'
+    || scope === 'terminal-validation';
+}
+
+function recordMetadata(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? { ...value as Record<string, unknown> }
+    : {};
+}
+
+function readSelectedItemRefHash(metadata: unknown, questionId: string): string | null {
+  const selectedItemRefs = recordMetadata(metadata).selectedItemRefs;
+  if (!selectedItemRefs || typeof selectedItemRefs !== 'object' || Array.isArray(selectedItemRefs)) {
+    return null;
+  }
+  const binding = recordMetadata((selectedItemRefs as Record<string, unknown>)[questionId]);
+  return typeof binding.contentHash === 'string' && binding.contentHash.length > 0
+    ? binding.contentHash
+    : null;
+}
+
+function mergeSelectedItemRef(metadata: unknown, questionId: string, contentHash: string): Record<string, unknown> {
+  const record = recordMetadata(metadata);
+  const selectedItemRefs = recordMetadata(record.selectedItemRefs);
+  return {
+    ...record,
+    selectedItemRefs: {
+      ...selectedItemRefs,
+      [questionId]: { contentHash },
+    },
+  };
+}
+
+function selectionSnapshotDetails(
+  question: NonNullable<ReturnType<typeof getAdaptiveQuestionById>>,
+  userId: string,
+  sessionId: string,
+): SubmittedAnswerDetails {
+  const correctOption = question.options.find((option) => option.isCorrect) ?? question.options[0];
+  return createSubmitAnswerDetails({
+    userId,
+    sessionId,
+    questionId: question.id,
+    selectedOption: correctOption?.label ?? correctOption?.text ?? 'A',
+    timeSpent: 1,
+  });
+}
+
+async function persistAdaptiveAssessmentItemRef(
+  tx: Pick<AdaptiveAssessmentPersistenceTx, 'adaptiveAssessmentItemRef'>,
+  details: SubmittedAnswerDetails,
+  contentHash: string,
+): Promise<{ id: string }> {
+  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(details.question.id);
+  const kaqMetadata = buildKaqQuizQuestionMetadata(details.question);
+  const itemRefMetadata = {
+    kaq: kaqMetadata,
+    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
+      kaqMetadata,
+      catalogSnapshot,
+      generatedMetadata: details.question.generatedMetadata,
+    }),
+    questionSnapshot: buildAdaptiveQuestionSnapshot(details, kaqMetadata, catalogSnapshot),
+    ...(details.question.generatedMetadata ? { generatedMetadata: details.question.generatedMetadata } : {}),
+  };
+  return tx.adaptiveAssessmentItemRef.upsert({
+    where: {
+      questionId_algorithmVersion_contentHash: {
+        questionId: details.question.id,
+        algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+        contentHash,
+      },
+    },
+    update: {},
+    create: {
+      questionId: details.question.id,
+      contentHash,
+      source: questionSource(details.question.id),
+      questionType: details.question.type,
+      domains: details.question.domains,
+      knowledgeTags: details.question.knowledgeTags,
+      difficulty: details.question.difficulty,
+      optionCount: details.question.options.length,
+      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      metadata: itemRefMetadata,
+    },
+  });
+}
+
+async function persistPathOwnedSelectionBindings(params: {
+  metadata: unknown;
+  questionId: string;
+  userId: string;
+  sessionId: string;
+  db: AdaptiveAssessmentPersistenceDb;
+}): Promise<unknown> {
+  if (readSelectedItemRefHash(params.metadata, params.questionId)) {
+    return params.metadata;
+  }
+  const question = getAdaptiveQuestionById(params.questionId);
+  if (!question) {
+    throw new Error('路径自适应选题无法绑定已审核目录题目');
+  }
+  const details = selectionSnapshotDetails(question, params.userId, params.sessionId);
+  const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(params.questionId);
+  const contentHash = questionMetadataContentHash(details, catalogSnapshot);
+  await persistAdaptiveAssessmentItemRef(params.db, details, contentHash);
+  return mergeSelectedItemRef(params.metadata, params.questionId, contentHash);
 }
 
 function selectedOptionValueFromKey(
@@ -764,6 +890,8 @@ async function persistAdaptiveAssessmentSubmission(
   });
   assertImmutableCompanionMetadata(session.metadata, details.continuity);
   assertSelectedCompanionQuestion(session, details.question.id, details.continuity);
+  assertSelectedPathQuestion(session, details.question.id, details.pathContext);
+  const selectionContentHash = readSelectedItemRefHash(session.metadata, details.question.id);
 
   let effectiveDetails = details;
   if (details.pathContext) {
@@ -797,10 +925,11 @@ async function persistAdaptiveAssessmentSubmission(
         create: {
           userId: details.record.userId,
           sessionKey: retrySessionId,
+          selectedQuestionIds: session.selectedQuestionIds ?? [],
           algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
           startedAt: answeredAt,
           lastAnsweredAt: answeredAt,
-          metadata: details.continuity ?? {},
+          metadata: session.metadata ?? details.continuity ?? {},
         },
       });
       assertImmutableCompanionMetadata(session.metadata, details.continuity);
@@ -815,40 +944,8 @@ async function persistAdaptiveAssessmentSubmission(
   }
 
   const catalogSnapshot = findAdaptiveAssessmentCatalogSnapshot(effectiveDetails.question.id);
-  const kaqMetadata = buildKaqQuizQuestionMetadata(effectiveDetails.question);
-  const contentHash = questionMetadataContentHash(effectiveDetails, catalogSnapshot);
-  const itemRefMetadata = {
-    kaq: kaqMetadata,
-    adaptiveAssessmentItemRef: buildAdaptiveAssessmentItemRefMetadata({
-      kaqMetadata,
-      catalogSnapshot,
-      generatedMetadata: effectiveDetails.question.generatedMetadata,
-    }),
-    questionSnapshot: buildAdaptiveQuestionSnapshot(effectiveDetails, kaqMetadata, catalogSnapshot),
-    ...(effectiveDetails.question.generatedMetadata ? { generatedMetadata: effectiveDetails.question.generatedMetadata } : {}),
-  };
-  const questionRef = await tx.adaptiveAssessmentItemRef.upsert({
-    where: {
-      questionId_algorithmVersion_contentHash: {
-        questionId: effectiveDetails.question.id,
-        algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-        contentHash,
-      },
-    },
-    update: {},
-    create: {
-      questionId: effectiveDetails.question.id,
-      contentHash,
-      source: questionSource(effectiveDetails.question.id),
-      questionType: effectiveDetails.question.type,
-      domains: effectiveDetails.question.domains,
-      knowledgeTags: effectiveDetails.question.knowledgeTags,
-      difficulty: effectiveDetails.question.difficulty,
-      optionCount: effectiveDetails.question.options.length,
-      algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
-      metadata: itemRefMetadata,
-    },
-  });
+  const contentHash = selectionContentHash ?? questionMetadataContentHash(effectiveDetails, catalogSnapshot);
+  const questionRef = await persistAdaptiveAssessmentItemRef(tx, effectiveDetails, contentHash);
 
   const persistedAnswersBefore = await tx.adaptiveAssessmentAnswer.findMany({
     where: {
@@ -1214,6 +1311,7 @@ async function loadPersistedSessionSelection(
   return {
     id: session.id,
     selectedQuestionIds: Array.isArray(session.selectedQuestionIds) ? session.selectedQuestionIds : [],
+    metadata: session.metadata,
   };
 }
 
@@ -1222,6 +1320,7 @@ async function recordPersistedQuestionSelection(
   previousQuestionIds: string[],
   questionIds: Iterable<string>,
   db: AdaptiveAssessmentPersistenceDb,
+  metadata?: unknown,
 ): Promise<boolean> {
   const result = await db.adaptiveAssessmentSession.updateMany({
     where: {
@@ -1232,6 +1331,7 @@ async function recordPersistedQuestionSelection(
     },
     data: {
       selectedQuestionIds: Array.from(new Set(questionIds)),
+      ...(metadata !== undefined ? { metadata } : {}),
     },
   });
 
@@ -1288,11 +1388,22 @@ export async function selectNextQuestionDurably(
         .map((answer) => answer.questionId),
     ]);
     const result = selectNextQuestionFromAnswers(params, answers, askedQuestionIds);
+    const nextQuestionIds = [...Array.from(askedQuestionIds), result.question.id];
+    const nextMetadata = !params.continuity && isPathOwnedQuestionScope(params.questionScope)
+      ? await persistPathOwnedSelectionBindings({
+          metadata: session.metadata,
+          questionId: result.question.id,
+          userId: params.userId,
+          sessionId: params.sessionId,
+          db,
+        })
+      : undefined;
     const persisted = await recordPersistedQuestionSelection(
       session,
       persistedQuestionIds,
-      [...Array.from(askedQuestionIds), result.question.id],
+      nextQuestionIds,
       db,
+      nextMetadata,
     );
 
     if (persisted) {

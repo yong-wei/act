@@ -103,11 +103,12 @@ function noSnapshotHistoricalCatalogAnswer(params: {
   };
 }
 
-function createMockDb(): any {
+function createMockDb(selectedQuestionIds: string[] = []): any {
   const answeredAt = new Date('2026-06-24T08:00:00.000Z');
   const sessionState = {
     id: 'durable-session-quiz-1',
-    selectedQuestionIds: [] as string[],
+    selectedQuestionIds: [...selectedQuestionIds],
+    metadata: {},
   };
   const db = {
     $executeRawUnsafe: vi.fn().mockResolvedValue(1),
@@ -158,8 +159,8 @@ function createMockDb(): any {
 
 describe('K/A/Q adaptive assessment persistence', () => {
   it('persists immutable K/A/Q question metadata and governed outcome refs without raw answer bodies', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -275,8 +276,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('does not promote catalog-backed answers to path completion without verified path context', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -300,8 +301,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('does not promote catalog-backed answers when the server path scope does not match the item snapshot', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -332,7 +333,6 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('treats catalog-backed checkpoint answers as path-completion eligible', async () => {
-    const db = createMockDb();
     const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
       candidate.learningGoalId === 'control-correction' &&
       candidate.stagePurpose === 'checkpoint'
@@ -340,6 +340,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(authoredCheckpoint).toBeTruthy();
     const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredCheckpoint!.id);
     const question = getAdaptiveQuestionById(runtimeQuestionId);
+    const db = createMockDb([question!.id]);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
@@ -373,13 +374,13 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('treats catalog-backed terminal-validation answers as path-completion eligible without replacing typed evidence', async () => {
-    const db = createMockDb();
     const authoredTerminal = REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((candidate) =>
       candidate.learningGoalId === 'frequency-response-foundations'
     );
     expect(authoredTerminal).toBeTruthy();
     const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredTerminal!.id);
     const question = getAdaptiveQuestionById(runtimeQuestionId);
+    const db = createMockDb([question!.id]);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
@@ -413,7 +414,6 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('rejects checkpoint evidence submitted from a readiness path for the same LearningGoal', async () => {
-    const db = createMockDb();
     const authoredCheckpoint = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
       candidate.learningGoalId === 'control-correction' &&
       candidate.stagePurpose === 'checkpoint'
@@ -421,6 +421,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(authoredCheckpoint).toBeTruthy();
     const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredCheckpoint!.id);
     const question = getAdaptiveQuestionById(runtimeQuestionId);
+    const db = createMockDb([question!.id]);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
@@ -454,7 +455,6 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('treats catalog-backed remediation answers as path-completion eligible', async () => {
-    const db = createMockDb();
     const authoredRemediation = REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((candidate) =>
       candidate.learningGoalId === 'control-correction' &&
       candidate.stagePurpose === 'remediation'
@@ -462,6 +462,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(authoredRemediation).toBeTruthy();
     const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredRemediation!.id);
     const question = getAdaptiveQuestionById(runtimeQuestionId);
+    const db = createMockDb([question!.id]);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
@@ -500,8 +501,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('excludes historical provisional answers from reviewed mastery rebuilds', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
@@ -561,8 +562,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('keeps legacy preset answers without catalog snapshots out of mastery rebuild history', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([{
@@ -608,8 +609,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('includes a truly pre-cutoff answer with no snapshot in historical mastery rebuilds', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
@@ -649,8 +650,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
     ['invalid createdAt', new Date('invalid'), new Date('2026-07-03T23:59:59.999Z')],
     ['invalid answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('invalid')],
   ])('rejects no-snapshot mastery rebuild recovery with %s', async (_label, createdAt, answeredAt) => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
@@ -679,8 +680,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('includes a truly pre-cutoff incomplete snapshot in historical mastery rebuilds', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
@@ -719,8 +720,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
     ['invalid createdAt', new Date('invalid'), new Date('2026-07-03T23:59:59.999Z')],
     ['invalid answeredAt', new Date('2026-07-03T23:59:59.999Z'), new Date('invalid')],
   ])('rejects incomplete snapshot mastery rebuild recovery with %s', async (_label, createdAt, answeredAt) => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([
@@ -749,7 +750,6 @@ describe('K/A/Q adaptive assessment persistence', () => {
   });
 
   it('keeps generated provisional questions out of mastery updates and LearningFact materialization', async () => {
-    const db = createMockDb();
     const generated = generateQuestion({
       targetKnowledgeTags: ['controller-tuning', 'robustness'],
       difficultyTarget: 0.7,
@@ -757,6 +757,7 @@ describe('K/A/Q adaptive assessment persistence', () => {
       ownerUserId: 'student-generated',
       sessionId: 'session-generated',
     });
+    const db = createMockDb([generated.id]);
     const selectedOption = generated.options.find((option) => option.text === '先识别主导约束，再按跨域因果逐步调参')?.text
       ?? generated.options[0]?.text;
     expect(selectedOption).toBeTruthy();

@@ -110,13 +110,14 @@ function metadataForPublicQuestion(question: { id: string }) {
   return buildKaqQuizQuestionMetadata(runtimeQuestion!);
 }
 
-function createMockDb() {
+function createMockDb(selectedQuestionIds: string[] = []) {
   const answeredAt = new Date('2026-05-26T02:30:00.000Z');
   const sessionState = {
     id: 'durable-session-1',
     userId: 'student-1',
     sessionKey: 'session-1',
-    selectedQuestionIds: [] as string[],
+    selectedQuestionIds: [...selectedQuestionIds],
+    metadata: {} as Record<string, unknown>,
   };
   const db = {
     $executeRawUnsafe: vi.fn().mockResolvedValue(1),
@@ -129,10 +130,11 @@ function createMockDb() {
       upsert: vi.fn().mockImplementation(async () => ({
         ...sessionState,
         selectedQuestionIds: [...sessionState.selectedQuestionIds],
+        metadata: sessionState.metadata,
       })),
       updateMany: vi.fn().mockImplementation(async (args: {
         where?: { selectedQuestionIds?: { equals?: string[] } };
-        data?: { selectedQuestionIds?: string[] };
+        data?: { selectedQuestionIds?: string[]; metadata?: Record<string, unknown> };
       }) => {
         const expectedQuestionIds = args.where?.selectedQuestionIds?.equals;
         if (
@@ -144,6 +146,9 @@ function createMockDb() {
 
         if (Array.isArray(args.data?.selectedQuestionIds)) {
           sessionState.selectedQuestionIds = [...args.data.selectedQuestionIds];
+        }
+        if (args.data?.metadata) {
+          sessionState.metadata = args.data.metadata;
         }
         return { count: 1 };
       }),
@@ -211,8 +216,8 @@ function createMockDb() {
 
 describe('submitAnswerDurably', () => {
   it('persists adaptive submissions with safe references while preserving the response contract', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -327,8 +332,8 @@ describe('submitAnswerDurably', () => {
   });
 
   it('writes path assessment retries to a retry session after a prior answer', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     const failedOptionIndex = question.options.findIndex((option) => !option.isCorrect);
@@ -340,11 +345,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -428,7 +435,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('reuses a passed path retry answer when the original failed submission is replayed', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -436,6 +442,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
@@ -447,11 +454,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -562,7 +571,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('reuses a matching failed path retry answer when the same retry selection is replayed', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -570,6 +578,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const failedOptions = question!.options
       .map((option, index) => ({ option, key: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index] }))
       .filter(({ option }) => !option.isCorrect);
@@ -581,11 +590,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-456',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -697,7 +708,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('keeps replayed failed path submissions idempotent when the selected option is unchanged', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -705,6 +715,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
     const failedOption = question!.options[failedOptionIndex];
     const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
@@ -715,6 +726,7 @@ describe('submitAnswerDurably', () => {
       id: 'base-session',
       userId: 'student-1',
       sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      selectedQuestionIds: [question!.id],
     });
     db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
       id: 'answer-old',
@@ -778,7 +790,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('keeps duplicate passed path submissions idempotent without creating a retry session', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -786,6 +797,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -793,6 +805,7 @@ describe('submitAnswerDurably', () => {
       id: 'base-session',
       userId: 'student-1',
       sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      selectedQuestionIds: [question!.id],
     });
     db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
       id: 'answer-existing',
@@ -1050,6 +1063,81 @@ describe('submitAnswerDurably', () => {
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.purpose).toBe('readiness-gate');
     expect(metadata.review.state).toBe('reviewed');
+  });
+
+  it('rejects path answers for questions the session never selected', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const other = PRESET_QUESTIONS.find((candidate) => candidate.id !== selected.question.id);
+    expect(other).toBeTruthy();
+    const selectedOption = other!.options.find((option) => option.isCorrect)?.text ?? other!.options[0].text;
+
+    await expect(submitAnswerDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      questionId: other!.id,
+      selectedOption,
+      timeSpent: 20,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db)).rejects.toThrow('路径自适应答案不属于当前会话已选择的题目');
+  });
+
+  it('reuses the selection-time item ref when catalog metadata later changes', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const selectionHash = db.adaptiveAssessmentItemRef.upsert.mock.calls[0][0]
+      .where.questionId_algorithmVersion_contentHash.contentHash as string;
+    const catalogSnapshot = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(selected.question.id);
+    expect(catalogSnapshot).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(
+      adaptiveAssessmentCatalogSelector,
+      'findAdaptiveAssessmentCatalogSnapshot',
+    ).mockReturnValue({
+      ...catalogSnapshot!,
+      contentHash: `mutated-${catalogSnapshot!.contentHash}`,
+    });
+    const question = getAdaptiveQuestionById(selected.question.id);
+    expect(question).toBeTruthy();
+    const selectedOption = question!.options.find((option) => option.isCorrect)?.text ?? question!.options[0].text;
+
+    await submitAnswerDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      questionId: selected.question.id,
+      selectedOption,
+      timeSpent: 20,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db);
+    catalogSnapshotSpy.mockRestore();
+
+    const submitWhere = db.adaptiveAssessmentItemRef.upsert.mock.calls.at(-1)?.[0]
+      .where.questionId_algorithmVersion_contentHash;
+    expect(submitWhere.questionId).toBe(selected.question.id);
+    expect(submitWhere.contentHash).toBe(selectionHash);
   });
 
   it('allows generated low-stakes questions during goal practice selection', async () => {
