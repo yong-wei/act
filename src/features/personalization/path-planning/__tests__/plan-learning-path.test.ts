@@ -6,12 +6,15 @@ import {
   PLAN_LEARNING_PATH_STAGE_ORDER,
   evaluateHardEligibility,
   getRegisteredAdaptiveLearningPathGoal,
+  isRegisteredAdaptiveLearningPathGoal,
   planLearningPath,
 } from '../public-api';
+import { isRegisteredAdaptiveLearningPathGoal as isRegisteredGoalIdCatalogEntry } from '../registered-goal-ids';
 import {
   CONTROL_CORRECTION_GOAL_ID,
   createControlCorrectionPersonalizationPlugin,
   createPersonalizationPluginRegistry,
+  personalizationPluginRegistry,
 } from '@/features/personalization/plugins/public-api';
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 
@@ -82,6 +85,47 @@ describe('PlanLearningPath pipeline', () => {
     registry.register(createControlCorrectionPersonalizationPlugin('retired'));
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry)).toBeNull();
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).not.toBeNull();
+
+    const plugin = personalizationPluginRegistry.get(CONTROL_CORRECTION_GOAL_ID);
+    expect(plugin).toBeTruthy();
+    const previousStatus = plugin!.status;
+    plugin!.status = 'retired';
+    try {
+      expect(isRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).toBe(false);
+      expect(isRegisteredGoalIdCatalogEntry(CONTROL_CORRECTION_GOAL_ID)).toBe(false);
+      expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).toBeNull();
+      const plan = planLearningPath({
+        studentId: 'student-1',
+        goal: {
+          id: CONTROL_CORRECTION_GOAL_ID,
+          title: '控制系统校正',
+          knowledgeTargets: ['control-correction:time-domain-targets'],
+        },
+        learnerState: null,
+        registry: buildResourceNodeRegistry({
+          registeredResources: [
+            {
+              id: 'visible-card',
+              label: '可见知识卡',
+              type: 'INTERACTIVE_COMP',
+              renderTarget: '/interactive-learning/resources/visible-card',
+              knowledgeNodeIds: ['control-correction:time-domain-targets'],
+            },
+          ],
+          aiInterventions: [],
+        }),
+        constraints: {
+          timeBudgetMinutes: 45,
+          privacyScopes: ['student-visible', 'teacher-scoped', 'class-shared', 'public'],
+          device: 'desktop',
+        },
+      });
+      expect(plan.mainPath).toEqual([]);
+      expect(plan.status).toBe('fallback');
+      expect(plan.explanations.fallbackReasons).toContain('course-plugin-unavailable');
+    } finally {
+      plugin!.status = previousStatus;
+    }
   });
 
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {
@@ -90,8 +134,11 @@ describe('PlanLearningPath pipeline', () => {
       expect(source, file).not.toMatch(/reinforc(?:e|ment)|q-learning|reward-model/i);
       expect(source, file).not.toContain('@/lib/adaptive-learning-path-planner');
     }
-    expect(readFileSync('src/features/personalization/path-planning/application/plan-learning-path.ts', 'utf8'))
-      .toContain('evaluateHardEligibility');
+    const application = readFileSync('src/features/personalization/path-planning/application/plan-learning-path.ts', 'utf8');
+    expect(application).toContain('evaluateHardEligibility');
+    expect(application).toContain('ports.ranking.rank');
+    expect(application).toContain('ports.repair.repair');
+    expect(application).toContain('ports.assembler.assemble');
     const assembler = readFileSync(
       'src/features/personalization/path-planning/internal/assemble-plan.ts',
       'utf8',

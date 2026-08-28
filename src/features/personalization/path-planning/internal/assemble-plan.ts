@@ -1980,8 +1980,11 @@ function validateLearningGoalObjectiveDomain(
   return issues;
 }
 
-export function assembleAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
-  return assembleAdaptiveLearningPathPlanInternal(input, true);
+export function assembleAdaptiveLearningPathPlan(
+  input: AdaptiveLearningPathPlannerInput,
+  stageRepairedNodeIds?: readonly string[],
+): AdaptiveLearningPathPlan {
+  return assembleAdaptiveLearningPathPlanInternal(input, true, undefined, stageRepairedNodeIds);
 }
 
 export function buildControlCorrectionThreeStylePathBundle(
@@ -2049,12 +2052,14 @@ function assembleAdaptiveLearningPathPlanInternal(
   rawInput: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
   retryContext?: PolicyFamilyRetryContext,
+  stageRepairedNodeIds?: readonly string[],
 ): AdaptiveLearningPathPlan {
   const input = withCollectionBackedPlanningInput(rawInput);
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const coursePluginUnavailable = input.goal.id === CONTROL_CORRECTION_GOAL_ID && !registeredGoal;
   const graphContext = buildAdaptiveLearningPathGraphContext(input.graphContext, input.goal, registeredGoal);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
@@ -2076,9 +2081,11 @@ function assembleAdaptiveLearningPathPlanInternal(
         evaluateLearningGoalObjectiveBoundary(node, learningGoalBoundary, graphContext, registeredGoal, input.constraints),
       ]))
     : null;
-  const candidatePathEligible = pathEligible
-    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
-    .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
+  const candidatePathEligible = coursePluginUnavailable
+    ? []
+    : pathEligible
+      .filter((node) => goalAllowsResourceNode(node, registeredGoal))
+      .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
   const eligibleIds = new Set(candidatePathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
@@ -2224,7 +2231,14 @@ function assembleAdaptiveLearningPathPlanInternal(
   const repairedEntries = constraintRepair.repairedNodeIds
     .map((nodeId) => scoredByNodeId.get(nodeId))
     .filter((entry): entry is ScoredNode => Boolean(entry));
-  const repairedMainPathNodes = repairedEntries.length > 0 ? repairedEntries : mainPathNodes;
+  const internallyRepairedMainPathNodes = repairedEntries.length > 0 ? repairedEntries : mainPathNodes;
+  const stageRepairedEntries = stageRepairedNodeIds
+    ?.map((nodeId) => scoredByNodeId.get(nodeId)
+      ?? internallyRepairedMainPathNodes.find((entry) => entry.node.id === nodeId))
+    .filter((entry): entry is ScoredNode => Boolean(entry));
+  const repairedMainPathNodes = stageRepairedEntries && stageRepairedEntries.length > 0
+    ? stageRepairedEntries
+    : internallyRepairedMainPathNodes;
   const originalFallbackReasons = constraintRepair.status === 'infeasible'
     ? buildFallbackReasons({
         learnerState: input.learnerState,
@@ -2253,6 +2267,9 @@ function assembleAdaptiveLearningPathPlanInternal(
   });
   fallbackReasons.push(...originalFallbackReasons.filter((reason) => isPathBlockingFallbackReason(reason)));
   fallbackReasons.push(...constraintRepair.infeasibleReasons.map((reason) => reason.code));
+  if (coursePluginUnavailable) {
+    fallbackReasons.push('course-plugin-unavailable');
+  }
   const uniqueFallbackReasons = unique(fallbackReasons);
   const status: AdaptiveLearningPathStatus = uniqueFallbackReasons.length > 0 ? 'fallback' : 'ready';
   const hasPartialGraphStarter = repairedMainPathNodes.length > 0 && uniqueFallbackReasons.includes('graph-target-coverage-partial');
@@ -4523,6 +4540,7 @@ export function isPathBlockingFallbackReason(reason: string): boolean {
     'locked-node-without-fallback',
     'hard-prerequisite-missing',
     'learning-goal-assessment-coverage-incomplete',
+    'course-plugin-unavailable',
   ].includes(reason);
 }
 
