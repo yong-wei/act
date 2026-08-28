@@ -32,8 +32,15 @@ export function canonicalIdentityHash(identity: Omit<ArtifactRunIdentity, 'canon
     executor: identity.executor,
     authoritySource: identity.authoritySource,
     modelRelation: identity.modelRelation,
+    teachingSemantics: identity.teachingSemantics,
+    prohibitsMixedClaims: identity.prohibitsMixedClaims,
+    parameterVisibility: identity.parameterVisibility,
+    resultVisibility: identity.resultVisibility,
+    evaluationVisibility: identity.evaluationVisibility,
+    officialEligible: identity.officialEligible,
     seed: identity.seed,
     checksum: identity.checksum,
+    toleranceProfile: identity.toleranceProfile,
   });
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
 }

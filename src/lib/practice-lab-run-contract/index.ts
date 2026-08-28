@@ -26,8 +26,14 @@ export {
   assertNoOfficialPromotion,
   assertPreviewOrPracticeNotOfficial,
   assertSurrogateTruth,
-  assertUnboundEvaluationNotStudentEvidence,
+  assertEvaluationBoundToAcceptedSubmission,
   rejectVirtualPreviewRequestBody,
 } from './validate';
-export { projectArenaPreviewIdentity, projectPracticeOutcomeIdentity } from './project';
+export {
+  projectArenaOfficialEvaluationIdentity,
+  projectArenaPreviewIdentity,
+  projectArenaSubmissionIdentity,
+  projectPracticeOutcomeIdentity,
+  projectSimulationRunIdentity,
+} from './project';
 export { LEGACY_PRACTICE_ACCESSES, OWNER_MATRIX, ROUTE_DENOMINATOR } from './inventory';

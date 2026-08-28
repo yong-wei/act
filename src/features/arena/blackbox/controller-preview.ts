@@ -548,7 +548,13 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
 
       return tx.arenaVirtualSimulationRun.update({
         where: { id: previewRow.id },
-        data: { simulationRunId: canonicalRun.id },
+        data: {
+          simulationRunId: canonicalRun.id,
+          payload: {
+            ...input.preview,
+            metadata: previewBoundary,
+          } as unknown as Prisma.InputJsonValue,
+        },
       });
     });
 

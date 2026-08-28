@@ -8,11 +8,14 @@ import {
   CONTRACT_SCHEMA,
   OWNER_MATRIX,
   ROUTE_DENOMINATOR,
+  assertEvaluationBoundToAcceptedSubmission,
   assertNoOfficialPromotion,
-  assertUnboundEvaluationNotStudentEvidence,
   canonicalIdentityHash,
+  projectArenaOfficialEvaluationIdentity,
   projectArenaPreviewIdentity,
+  projectArenaSubmissionIdentity,
   projectPracticeOutcomeIdentity,
+  projectSimulationRunIdentity,
   rejectHiddenPublicPayload,
   rejectVirtualPreviewRequestBody,
 } from '@/lib/practice-lab-run-contract';
@@ -58,10 +61,12 @@ describe('practice lab artifact/run contract', () => {
     expect(publicProjection.officialEligible).toBe(false);
   });
 
-  it('changes canonical hash when task identity changes', () => {
+  it('changes canonical hash when task identity or official eligibility changes', () => {
     const left = projectArenaPreviewIdentity(identityInput()).identity;
     const right = projectArenaPreviewIdentity({ ...identityInput(), taskId: 'task-b' }).identity;
     expect(left.canonicalIdentityHash).not.toBe(right.canonicalIdentityHash);
+    const official = projectArenaOfficialEvaluationIdentity(identityInput());
+    expect(official.canonicalIdentityHash).not.toBe(left.canonicalIdentityHash);
   });
 
   it('rejects official promotion of preview and practice', () => {
@@ -77,10 +82,22 @@ describe('practice lab artifact/run contract', () => {
     expect(() => assertNoOfficialPromotion(practice, 'leaderboard')).toThrow(/practice-outcome/);
   });
 
-  it('marks unbound evaluations as non-student-evidence', () => {
-    expect(() => assertUnboundEvaluationNotStudentEvidence(0)).toThrow(/unbound/);
-    expect(() => assertUnboundEvaluationNotStudentEvidence(2)).toThrow(/unbound/);
-    expect(() => assertUnboundEvaluationNotStudentEvidence(1)).not.toThrow();
+  it('binds shared evaluations through accepted submissions', () => {
+    expect(() => assertEvaluationBoundToAcceptedSubmission({
+      ownerUserId: 'student-1',
+      acceptedSubmissionUserIds: [],
+    })).toThrow(/unbound/);
+    expect(() => assertEvaluationBoundToAcceptedSubmission({
+      ownerUserId: 'student-1',
+      acceptedSubmissionUserIds: ['student-1', 'student-2'],
+    })).not.toThrow();
+    expect(projectArenaOfficialEvaluationIdentity(identityInput()).authority).toBe('arena-evaluator');
+    expect(projectArenaSubmissionIdentity(identityInput()).ownerRef.id).toBe('student-1');
+    expect(projectSimulationRunIdentity({
+      ...identityInput(),
+      executor: 'server',
+      authoritySource: 'control-engine-server-facade',
+    }).sourceKind).toBe('simulation-run');
   });
 
   it('rejects hidden public payloads and client preview result fields', () => {
@@ -102,6 +119,9 @@ describe('practice lab artifact/run contract', () => {
     expect(prisma).not.toMatch(/model PracticeRun\b/);
     const route = readFileSync(path.join(repoRoot, 'src/app/api/arena/virtual-simulation-runs/route.ts'), 'utf8');
     expect(route).toContain('rejectVirtualPreviewRequestBody');
+    const writer = readFileSync(path.join(repoRoot, 'src/features/arena/blackbox/controller-preview.ts'), 'utf8');
+    expect(writer).toContain('payload: {');
+    expect(writer).toContain('metadata: previewBoundary');
   });
 
   it('keeps sealed identity field order deterministic', () => {

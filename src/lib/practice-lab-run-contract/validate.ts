@@ -49,8 +49,11 @@ export function assertNoOfficialPromotion(identity: ArtifactRunIdentity, target:
   }
 }
 
-export function assertUnboundEvaluationNotStudentEvidence(acceptedSubmissionCount: number): void {
-  if (acceptedSubmissionCount !== 1) {
+export function assertEvaluationBoundToAcceptedSubmission(input: {
+  ownerUserId: string;
+  acceptedSubmissionUserIds: readonly string[];
+}): void {
+  if (!input.acceptedSubmissionUserIds.includes(input.ownerUserId)) {
     throw new ArtifactRunContractError('ArenaEvaluationRun without a uniquely accepted submission is unbound student evidence.');
   }
 }
