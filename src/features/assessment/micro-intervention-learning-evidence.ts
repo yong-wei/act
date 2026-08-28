@@ -6,6 +6,10 @@ import {
 } from '@/lib/canonical-learning-fact-identity';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import {
+  buildProjectionTrigger,
+  recordProjectionTriggerIntent,
+} from '@/features/learning-record/ingestion/public-api';
+import {
   projectionPinsFromSelection,
   resolveLearningPathProductionSelection,
 } from '@/lib/versioned-knowledge-activation';
@@ -558,6 +562,13 @@ export async function projectMicroInterventionOutcome(input: {
       { knowledgeRevisionRef: revision.id },
     );
     writtenFacts += written.written;
+    if (written.written > 0) {
+      await recordProjectionTriggerIntent(input.db as never, buildProjectionTrigger({
+        subjectUserId: input.outcome.userId,
+        inputDigest: sourceEventId,
+        captureRevision: envelope.identity.captureRevision,
+      }));
+    }
   }
   return { projected: source.envelopes, limitations: source.limitations, writtenFacts };
 }
