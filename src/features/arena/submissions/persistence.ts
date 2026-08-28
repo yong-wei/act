@@ -7,6 +7,7 @@ import {
 } from './evaluation-cache-identity';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 import {
   startOfUtcDay,
   type ArenaBlackBoxExperimentStore,
@@ -254,6 +255,7 @@ export async function createPersistedArenaSubmission(
   try {
     evaluation = existingEvaluation?.result ?? await evaluateArenaSubmission({ taskId: input.taskId, artifact });
   } catch (error) {
+    if (error instanceof ControlEngineFailure) throw error;
     const message = error instanceof Error ? error.message : 'Invalid Arena submission';
     throw new ArenaSubmissionInputError(message);
   }

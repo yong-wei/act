@@ -64,6 +64,7 @@ vi.mock('@/features/arena/adapters/registry', () => ({
 }));
 
 import { POST } from '../route';
+import { ControlEngineFailure } from '@/lib/control-engine';
 import type { ControllerArtifact } from '@/features/arena/types';
 
 const artifact: ControllerArtifact = {
@@ -193,6 +194,23 @@ describe('POST /api/arena/evaluate', () => {
       reservationId: 'reservation-1',
     });
     expect(mocks.attachOfficialArenaSubmissionReservation).not.toHaveBeenCalled();
+  });
+
+  it('maps control-engine unavailability to 503 instead of a student input error', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.createPersistedArenaSubmission.mockRejectedValueOnce(new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'wasm-init',
+      message: 'control-engine runtime unavailable',
+      retryable: true,
+    }));
+
+    const response = await postJson({ taskId: artifact.taskId, artifact });
+    const payload = await response.json() as { error?: string; state?: string };
+
+    expect(response.status).toBe(503);
+    expect(payload.state).toBe('unavailable');
+    expect(payload.error).toContain('unavailable');
   });
 
   it('requests realtime reconciliation for new and duplicate accepted Arena evidence', async () => {
