@@ -10,7 +10,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   isAdaptiveLearnerStateServiceEnabled: vi.fn(() => true),
-  readAdaptiveLearnerState: vi.fn(),
+  readLearnerState: vi.fn(),
 }));
 
 vi.mock('@/features/personalization/learner-state/public-api', async () => {
@@ -20,7 +20,7 @@ vi.mock('@/features/personalization/learner-state/public-api', async () => {
   return {
     ...actual,
     isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
-    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readLearnerState: mocks.readLearnerState,
   };
 });
 
@@ -79,7 +79,7 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
 describe('evidence copilot context', () => {
   beforeEach(() => {
     mocks.isAdaptiveLearnerStateServiceEnabled.mockReturnValue(true);
-    mocks.readAdaptiveLearnerState.mockReset();
+    mocks.readLearnerState.mockReset();
   });
 
   it('treats URL descriptors as navigation hints rather than evidence', () => {
@@ -197,14 +197,13 @@ describe('evidence copilot context', () => {
   });
 
   it('resolves only the authenticated user and ignores disabled or failed evidence services', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValue(learnerState());
+    mocks.readLearnerState.mockResolvedValue(learnerState());
     const projection = await resolveEvidenceCopilotContext({
       userId: 'student-1',
       role: 'student',
       hints: { source: 'foreign-user', assignment: null, intent: null },
-      db: {} as never,
     });
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
     }));
     expect(projection.navigationHint.source).toBe('foreign-user');
@@ -214,17 +213,15 @@ describe('evidence copilot context', () => {
     const disabled = await resolveEvidenceCopilotContext({
       userId: 'student-1',
       role: 'student',
-      db: {} as never,
     });
     expect(disabled.status).toBe('unavailable');
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledTimes(1);
+    expect(mocks.readLearnerState).toHaveBeenCalledTimes(1);
 
     mocks.isAdaptiveLearnerStateServiceEnabled.mockReturnValue(true);
-    mocks.readAdaptiveLearnerState.mockRejectedValue(new Error('db down'));
+    mocks.readLearnerState.mockRejectedValue(new Error('db down'));
     const failed = await resolveEvidenceCopilotContext({
       userId: 'student-1',
       role: 'student',
-      db: {} as never,
     });
     expect(failed.status).toBe('unavailable');
   });

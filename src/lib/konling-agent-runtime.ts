@@ -30,8 +30,8 @@ import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
-  readPathPlannerLearnerState,
+  readLearnerState,
+  readPathPlannerLearnerStateForSubject,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
@@ -2996,7 +2996,7 @@ async function buildKonlingRuntimeClassOverlayInput(
   const learnerStates = await mapWithConcurrency(sampledProfiles, KONLING_CLASS_OVERLAY_READ_CONCURRENCY, async (student) => {
     const userId = getString(student, 'userId');
     if (!userId) return null;
-    return readAdaptiveLearnerState(db, {
+    return readLearnerState({
       userId,
       role: input.scope.role,
       classId: input.scope.classId,
@@ -3130,7 +3130,7 @@ export async function buildKonlingRuntimeContext(
   const learnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
   const learnerStateGoal = resolveAdaptiveLearnerStateGoal(scope.courseId, input.pageContextHint?.courseId);
   const learnerState = learnerStateEnabled
-    ? await readAdaptiveLearnerState(db, {
+    ? await readLearnerState({
         userId: scope.targetUserId,
         role: scope.role,
         classId: scope.classId,
@@ -4231,7 +4231,7 @@ async function buildAdaptivePathToolOutput(
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
   const plannerLearnerState = operation === 'generated'
     ? isAdaptiveLearnerStateServiceEnabled()
-      ? await readPathPlannerLearnerState(input.db as any, input.scope.targetUserId, {
+      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
           goal: goalId,
           classId: input.scope.classId,
           now: new Date(),

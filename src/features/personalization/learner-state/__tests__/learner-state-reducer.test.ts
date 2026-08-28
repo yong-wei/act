@@ -174,4 +174,12 @@ describe('personalization learner-state boundary', () => {
       expect(source, file).not.toContain("from './adaptive-learner-state-service'");
     }
   });
+
+  it('keeps production callers off the db-injected mastery tables', () => {
+    for (const file of productionCallers) {
+      const source = readFileSync(file, 'utf8');
+      expect(source, file).not.toContain('readAdaptiveLearnerState(');
+      expect(source, file).not.toContain('readPathPlannerLearnerState(');
+    }
+  });
 });

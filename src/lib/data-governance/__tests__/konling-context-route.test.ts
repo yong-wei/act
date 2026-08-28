@@ -49,6 +49,7 @@ vi.mock('@/features/personalization/learner-state/public-api', async () => {
     readLearnerState: mocks.readLearnerState,
     readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
     readPathPlannerLearnerState: mocks.readPathPlannerLearnerState,
+    readPathPlannerLearnerStateForSubject: mocks.readPathPlannerLearnerState,
   };
 });
 

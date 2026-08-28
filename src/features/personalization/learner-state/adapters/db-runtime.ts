@@ -81,6 +81,7 @@ function createLearningRecordPort(db: AdaptiveLearnerStateDb): LearningRecordRea
 }
 
 function createAssessmentPort(db: AdaptiveLearnerStateDb): AssessmentReadPort {
+  // Test/injected duck-db only. Production Prisma runtime overrides this with Assessment public API.
   return {
     listMasteryUpdates: async (userId) => db.adaptiveMasteryUpdate?.findMany?.({
       where: { userId },

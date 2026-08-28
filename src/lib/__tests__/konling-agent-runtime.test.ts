@@ -12,8 +12,8 @@ import type { CompetencyDimension } from '@/lib/data-governance/competency-model
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 
 const mocks = vi.hoisted(() => ({
-  readAdaptiveLearnerState: vi.fn(),
-  readPathPlannerLearnerState: vi.fn(),
+  readLearnerState: vi.fn(),
+  readPathPlannerLearnerStateForSubject: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
@@ -41,8 +41,8 @@ vi.mock('@/features/personalization/learner-state/public-api', async () => {
   );
   return {
     ...actual,
-    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
-    readPathPlannerLearnerState: mocks.readPathPlannerLearnerState,
+    readLearnerState: mocks.readLearnerState,
+    readPathPlannerLearnerStateForSubject: mocks.readPathPlannerLearnerStateForSubject,
   };
 });
 
@@ -771,7 +771,7 @@ describe('konling agent runtime', () => {
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
     clearPendingChanges();
-    mocks.readAdaptiveLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+    mocks.readLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
       controlModeling: 88,
       parameterDesign: 72,
       crossDomainTransfer: 64,
@@ -779,7 +779,7 @@ describe('konling agent runtime', () => {
       inquiryReflection: 40,
       selfDirectedLearning: 66,
     }));
-    mocks.readPathPlannerLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+    mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
       controlModeling: 88,
       parameterDesign: 72,
       crossDomainTransfer: 64,
@@ -1223,7 +1223,7 @@ describe('konling agent runtime', () => {
     expect(noToolCitationGuard.status).toBe('low-confidence');
     expect(noToolCitationGuard.fallbackRequired).toBe(true);
     expect(noToolCitationGuard.citations).toEqual([]);
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
     expect(mocks.loadAllLessonRuntimeResourceCatalogEntries).not.toHaveBeenCalled();
     expect(mocks.loadAllTextbookStructureRuntimeCatalogEntries).not.toHaveBeenCalled();
     expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
@@ -3154,7 +3154,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps path-advisor generation available for cold-start students with signed path-center context', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(null);
+    mocks.readLearnerState.mockResolvedValueOnce(null);
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -3179,7 +3179,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'student',
       classId: 'class-1',
@@ -3256,7 +3256,7 @@ describe('konling agent runtime', () => {
         return index === 1 ? invalidate(highPortraitDimension) : highPortraitDimension;
       }),
     };
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+    mocks.readLearnerState.mockResolvedValueOnce(learnerState);
 
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -3289,7 +3289,7 @@ describe('konling agent runtime', () => {
         evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
       })),
     };
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+    mocks.readLearnerState.mockResolvedValueOnce(learnerState);
 
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -3342,7 +3342,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
     expect(runtime.featureFlags.learnerState).toBe(false);
     expect(runtime.missingContext).toEqual(expect.arrayContaining([
       'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
@@ -3440,7 +3440,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps textbook retrieval independent from learner-state feature-cache failures', async () => {
-    mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
+    mocks.readLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -3514,7 +3514,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'student',
       classId: 'class-1',
@@ -3524,7 +3524,7 @@ describe('konling agent runtime', () => {
 
   it('assembles class overlay for teacher graph-aware class contexts', async () => {
     const classLearnerIds = ['student-1', 'student-2', 'student-3', 'student-4', 'student-5'];
-    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+    mocks.readLearnerState.mockImplementation((args) => {
       if (classLearnerIds.includes(args.userId)) {
         return Promise.resolve(createGraphLearnerState(args.userId, 0.62 + classLearnerIds.indexOf(args.userId) * 0.05));
       }
@@ -3587,7 +3587,7 @@ describe('konling agent runtime', () => {
     });
     expect(contract.graphContext?.classOverlay?.status).toBe('available');
     expect(contract.degradedReasons).not.toContain('missing-graph-grounding:overlay');
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'teacher',
       classId: 'class-1',
@@ -3631,7 +3631,7 @@ describe('konling agent runtime', () => {
 
   it('caps teacher class overlay learner state reads for large classes', async () => {
     const classLearnerIds = Array.from({ length: 35 }, (_, index) => `student-${index + 1}`);
-    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+    mocks.readLearnerState.mockImplementation((args) => {
       if (classLearnerIds.includes(args.userId)) {
         return Promise.resolve(createGraphLearnerState(args.userId, 0.62));
       }
@@ -3666,8 +3666,8 @@ describe('konling agent runtime', () => {
       },
     });
 
-    const studentStateReadCalls = mocks.readAdaptiveLearnerState.mock.calls
-      .map(([, args]) => args.userId)
+    const studentStateReadCalls = mocks.readLearnerState.mock.calls
+      .map(([args]) => args.userId)
       .filter((userId) => classLearnerIds.includes(userId));
     expect(studentStateReadCalls).toHaveLength(30);
     expect(studentStateReadCalls).not.toContain('student-31');
@@ -6646,7 +6646,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps registered content and textbook tool availability when learner personalization is missing', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValue(null);
+    mocks.readLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -9424,8 +9424,7 @@ describe('konling agent runtime', () => {
       where: { id: result.pathId },
       create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
     }));
-    expect(mocks.readPathPlannerLearnerState).toHaveBeenCalledWith(
-      db,
+    expect(mocks.readPathPlannerLearnerStateForSubject).toHaveBeenCalledWith(
       'student-1',
       expect.objectContaining({
         goal: 'control-correction',
