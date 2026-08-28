@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Compatibility proof binds independently frozen application and Runtime identities
-For every newly selected blob-backed Runtime Release, the system SHALL create a canonical, immutable `runtime-app-compatibility.v1` receipt before selector mutation. The receipt SHALL bind the complete `origin/integration` Runtime source revision, Release ID, manifest schema, semantic digest, wire digest and logical tree digest to the current application's complete `origin/main` revision, immutable loaded image digest, consumer-smoke contract version and canonical applied Prisma migration-set digest. The proof SHALL contain no credential, signed URL, user data, host path or OSS object key. Application and Runtime revisions MAY differ; equal revisions SHALL NOT be a condition of qualification.
+For every newly selected blob-backed Runtime Release, the system SHALL create a canonical, immutable `runtime-app-compatibility.v1` receipt before selector mutation. The receipt SHALL bind the complete `origin/integration` Runtime source revision, Release ID, v2 manifest semantic digest and logical tree digest to the current application's complete `origin/main` revision, immutable loaded image digest, consumer-smoke contract version and canonical applied Prisma migration-set digest. The proof SHALL contain no credential, signed URL, user data, host path or OSS object key. Application and Runtime revisions MAY differ; equal revisions SHALL NOT be a condition of qualification.
 
 #### Scenario: Main application consumes an independently frozen Runtime Release
 - **WHEN** a candidate Runtime manifest from a frozen `origin/integration` revision passes all declared consumers in the current main application image

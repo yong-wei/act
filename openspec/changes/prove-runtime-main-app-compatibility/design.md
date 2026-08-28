@@ -34,7 +34,7 @@ This keeps content identity, release identity, and operation evidence distinct. 
 
 The remote activator captures the running application container's immutable image ID/digest and the image's embedded full application revision. It also verifies that app and worker use the same deployed image. Operator-supplied revision flags are not accepted as proof inputs.
 
-The receipt includes the candidate manifest identity, Runtime source revision, application revision/image digest, consumer-smoke contract version, and a canonical hash of the applied Prisma migration identities. It is written atomically under the candidate Runtime release directory before selector mutation, and its hash is copied into the active lifecycle receipt after successful activation.
+The receipt includes the candidate Release ID, v2 Runtime source revision, manifest semantic digest and logical tree digest, application revision/image digest, consumer-smoke contract version, and a canonical hash of the applied Prisma migration identities. It is written atomically under the candidate Runtime release directory before selector mutation, and its hash is copied into the active lifecycle receipt after successful activation.
 
 This rejects an untrusted or stale caller claim while avoiding a new persistent database schema. Using a remote Git checkout as the app identity was rejected because ECS deployment runners intentionally do not carry the application repository.
 
@@ -56,7 +56,7 @@ Rewriting the historical coordinated migration transaction is rejected here beca
 
 ### Harden application deployment restart identity
 
-The application deployment transport carries the `textbook-runtime-input-provenance` dependency used by the remote verifier. Generated systemd units pin the validated `APP_IMAGE` and knowledge deployment mode in `ExecStart`, after validating both values, so reboot cannot silently use the default legacy tag. The application entrypoint remains the sole owner of gated knowledge import and verification; remote deploy does not repeat Git-dependent commands inside the Git-free runner.
+The application deployment transport carries the `textbook-runtime-input-provenance` dependency used by the remote verifier. Generated systemd units pin the validated `APP_IMAGE` and knowledge deployment mode in `ExecStart`, after validating both values, so reboot cannot silently use the default legacy tag. After mounting the immutable Runtime, the Git-free runner invokes the existing apply-gated `npm run seed:knowledge` deployment entrypoint rather than a raw importer command, then keeps the post-start verification checks.
 
 ## Risks / Trade-offs
 
