@@ -101,6 +101,8 @@ scripts/*
 !scripts/workers/
 !scripts/workers/**
 tools/glb-model-optimizer/
+!tools/glb-model-optimizer/
+!tools/glb-model-optimizer/**
 *.tsbuildinfo
 deploy/images
 deploy
