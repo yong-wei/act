@@ -2,9 +2,7 @@
 
 ## Purpose
 Define fixed, role-safe diagnosis report delivery artifacts and auditable teacher actions without changing diagnosis evidence, creating teaching objects, or sending reports automatically.
-
 ## Requirements
-
 ### Requirement: Delivery projections bind to an immutable diagnosis version
 The system SHALL derive every teacher or student-safe delivery projection from one persisted diagnosis report, a projection version, a role version, and an audience identity when applicable. Repeating a projection with the same inputs SHALL preserve the same content identity and SHALL NOT generate another diagnosis.
 
@@ -127,3 +125,28 @@ The teacher report disposition area SHALL link to the existing smart preparation
 - **WHEN** the teacher follows the report-level preparation entry in a local environment without the optional structured-textbook runtime directory
 - **THEN** the smart preparation workspace SHALL remain available with an empty textbook catalog
 - **AND** it SHALL NOT fail the diagnosis-report handoff.
+
+### Requirement: Attribution-limited status requires knowledge-node findings
+
+The teacher diagnosis history projection SHALL mark a report attribution-limited only when a finding that requires knowledge-node attribution is missing `knowledgeNodeId`. A finding requires knowledge-node attribution when it cites at least one `knowledge-progress:` evidence reference. Findings about overall risk, score distribution, or class coverage SHALL NOT by themselves mark the report as coverage-limited.
+
+#### Scenario: Knowledge-progress finding lacks a node
+
+- **WHEN** a persisted finding cites `knowledge-progress:` evidence and has no `knowledgeNodeId`
+- **THEN** the history projection SHALL set attribution-limited
+- **AND** it SHALL keep a recovery action to complete knowledge-node mapping
+
+#### Scenario: Overall risk or score distribution lacks a node
+
+- **WHEN** a finding describes overall risk or score distribution and has no `knowledgeNodeId`
+- **AND** it does not cite `knowledge-progress:` evidence
+- **THEN** the history projection SHALL NOT set attribution-limited solely because of that finding
+
+#### Scenario: Mixed findings with complete coverage
+
+- **WHEN** assignment, assessment, student, and learning-behavior coverage are complete
+- **AND** the report declares no limitations
+- **AND** only non-knowledge-node findings omit `knowledgeNodeId`
+- **THEN** the history projection SHALL display an availability state consistent with the persisted complete coverage
+- **AND** it SHALL NOT show coverage-limited solely because of those findings
+

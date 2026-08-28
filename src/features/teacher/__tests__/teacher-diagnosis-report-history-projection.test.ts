@@ -118,6 +118,120 @@ describe('teacher diagnosis report history projection', () => {
     ]));
   });
 
+  it('marks attribution limited only when a knowledge-progress finding lacks a node', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: '部分发现没有可核验的知识节点映射，不能作为精准知识薄弱点。',
+        recoveryAction: '补全题目、错因与知识节点映射后，重新生成诊断。',
+      }),
+    ]));
+  });
+
+  it('does not mark overall risk or score-distribution findings as attribution limited', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        findings: [
+          {
+            title: '部分学生存在学习进度受限风险',
+            riskType: 'constraint',
+            evidenceRefs: ['student-risk-flag:risk-1'],
+          },
+          {
+            title: '低分段学生比例需关注',
+            evidenceRefs: ['assignment-submission:submission-1'],
+          },
+        ],
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(false);
+    expect(projection.confidenceReasons).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: '部分发现没有可核验的知识节点映射，不能作为精准知识薄弱点。',
+      }),
+    ]));
+  });
+
+  it('keeps complete mixed-finding coverage available when only non-node findings omit knowledgeNodeId', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '班级覆盖完整，总体风险与成绩分布不要求知识节点。',
+        findings: [
+          {
+            title: '多数学生知识节点掌握停滞',
+            knowledgeNodeId: '1',
+            riskType: 'stagnation',
+            evidenceRefs: ['knowledge-progress:progress-1'],
+          },
+          {
+            title: '部分学生存在学习进度受限风险',
+            riskType: 'constraint',
+            evidenceRefs: ['student-risk-flag:risk-1'],
+          },
+          {
+            title: '低分段学生比例需关注',
+            evidenceRefs: ['assignment-submission:submission-1'],
+          },
+        ],
+        evidenceRefs: [
+          'knowledge-progress:progress-1',
+          'student-risk-flag:risk-1',
+          'assignment-submission:submission-1',
+          'adaptive-assessment-session:session-1',
+        ],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 1,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(false);
+    expect(projection.declaredLimitations).toEqual([]);
+    expect(projection.confidenceReasons).toEqual([]);
+    expect(projection.availability.label).toBe('证据较充分');
+    expect(projection.evidenceGroups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'assignment', state: 'available', includedLabel: '100 人', missingLabel: '0 人' }),
+      expect.objectContaining({ id: 'assessment', state: 'available', includedLabel: '100 人', missingLabel: '0 人' }),
+      expect.objectContaining({ id: 'learning-behavior', state: 'available', includedLabel: '100 人', missingLabel: '0 人' }),
+    ]));
+  });
+
   it('does not treat generated prose changes as learning changes when governed structure is unchanged', () => {
     const current: DiagnosisReportApiItem = {
       ...baseline,
