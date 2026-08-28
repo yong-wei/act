@@ -38,6 +38,11 @@ import {
   tryResolveRuntimeContentPath,
 } from '@/lib/runtime-content-path';
 import { findRuntimeMediaReleaseObject, readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
+import {
+  CourseBundleDriftError,
+  sha256Hex,
+  type SessionBundleBinding,
+} from '@/lib/course-bundle/contract';
 
 type RuntimeNode = {
   id: string;
@@ -266,10 +271,18 @@ async function loadRuntimeLessonFragments(): Promise<string[]> {
     .sort((left, right) => left.localeCompare(right));
 }
 
-async function resolveLessonRuntimeFragment(lessonId: string) {
-  const resolved = resolveInteractiveLessonIdentity(lessonId);
+async function resolveLessonRuntimeFragment(lessonId: string, binding?: SessionBundleBinding) {
+  const resolved = resolveInteractiveLessonIdentity(binding?.canonicalLessonId ?? lessonId);
   if (resolved.status === 'resolved') {
     return resolved.record.runtimeLessonDir;
+  }
+  // Session-bound reads never fall back to the authoring id map or a raw
+  // directory name: identity must come from the captured binding.
+  if (binding) {
+    throw new CourseBundleDriftError(
+      'resource-hash-drift',
+      `Captured canonical lesson id "${binding.canonicalLessonId}" no longer resolves to a runtime lesson.`,
+    );
   }
 
   const index = await loadRuntimeLessonDirIndex();
@@ -316,14 +329,41 @@ function createHandoutSummary({
   return `围绕${summaryTopics}展开的配套讲义，适合在课前快速建立概念、图像与计算线索。`;
 }
 
-export async function projectRuntimeMediaResources(runtimeLessonPath: string, resources: RuntimeLessonMediaResource[]) {
+export async function projectRuntimeMediaResources(
+  runtimeLessonPath: string,
+  resources: RuntimeLessonMediaResource[],
+  binding?: SessionBundleBinding,
+) {
   const activeRelease = await readActiveRuntimeReleaseManifest();
+  const boundObjects = new Map(
+    (binding?.resourceHashes.mediaObjects ?? []).map((object) => [object.path, object]),
+  );
+  // A bound session keeps serving its captured release. The active manifest is
+  // only consulted when it still is the captured release.
+  const activeUsable = !binding
+    || (activeRelease !== null && activeRelease.releaseId === binding.runtimeReleaseId);
   return resources.map((resource) => {
     const runtimePath = `${runtimeLessonPath}/media/${resource.filename}`;
-    const releaseObject = activeRelease && findRuntimeMediaReleaseObject(activeRelease, runtimePath);
     // Media-index URLs are source evidence, not a client delivery fallback.
     // In particular, an external index may contain a time-limited URL that
     // must never be serialized into a lesson payload.
+    if (binding) {
+      const boundObject = boundObjects.get(runtimePath);
+      if (!boundObject?.sha256) return { ...resource, url: null, status: 'pending' as const };
+      const activeObject = activeUsable
+        ? activeRelease && findRuntimeMediaReleaseObject(activeRelease, runtimePath)
+        : null;
+      return {
+        ...resource,
+        url: activeObject
+          ? `/api/course-runtime/assets/${runtimePath}`
+          : `/api/course-runtime/assets/${runtimePath}?releaseId=${encodeURIComponent(binding.runtimeReleaseId)}`,
+        sha256: boundObject.sha256,
+        status: 'ready' as const,
+        ...(activeObject ? { objectKey: activeObject.objectKey, sizeBytes: activeObject.sizeBytes } : {}),
+      };
+    }
+    const releaseObject = activeRelease && findRuntimeMediaReleaseObject(activeRelease, runtimePath);
     if (!releaseObject) return { ...resource, url: null, status: 'pending' as const };
     return {
       ...resource,
@@ -336,7 +376,21 @@ export async function projectRuntimeMediaResources(runtimeLessonPath: string, re
   });
 }
 
-async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
+function verifyBoundResourceHash(
+  binding: SessionBundleBinding,
+  kind: 'lesson' | 'graphOverlay' | 'interactiveManifest' | 'handoutMarkdown' | 'mediaIndex' | 'handoutPdf',
+  observedHash: string,
+) {
+  const expected = binding.resourceHashes[kind];
+  if (expected !== undefined && expected !== observedHash) {
+    throw new CourseBundleDriftError(
+      'resource-hash-drift',
+      `Session-bound runtime resource "${kind}" hash ${observedHash} does not match captured ${expected}.`,
+    );
+  }
+}
+
+async function loadFrontContentForNode(node: RuntimeNode, boundCards?: Map<string, string>) {
   const resourcePath = (node.resources ?? []).find((item): item is string =>
     typeof item === 'string' && item.endsWith('.md'),
   );
@@ -346,19 +400,43 @@ async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
 
   try {
     const markdown = await readReadableContentText(resourcePath);
+    if (boundCards) {
+      const expectedCardHash = boundCards.get(resourcePath);
+      const observedCardHash = sha256Hex(markdown);
+      // Knowledge cards are bound optional projections: a card that existed at
+      // capture must still match its captured hash; a card missing from the
+      // captured set is new content and must not enter a bound lesson.
+      if (expectedCardHash === undefined || expectedCardHash !== observedCardHash) {
+        throw new CourseBundleDriftError(
+          'resource-hash-drift',
+          `Session-bound knowledge card "${resourcePath}" does not match the captured bundle.`,
+        );
+      }
+    }
     return extractSection(markdown, '首页') ?? fallbackFrontContent(markdown) ?? node.description;
-  } catch {
+  } catch (error) {
+    if (error instanceof CourseBundleDriftError) throw error;
     return node.description;
   }
 }
 
-export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeLessonEntryBundle> {
-  const runtimeLessonFragment = await resolveLessonRuntimeFragment(lessonId);
+export async function loadLessonRuntimeEntry(
+  lessonId: string,
+  options?: { binding?: SessionBundleBinding },
+): Promise<RuntimeLessonEntryBundle> {
+  const binding = options?.binding;
+  const runtimeLessonFragment = await resolveLessonRuntimeFragment(lessonId, binding);
   const lessonDir = resolveRuntimeContentPath(`lessons/${runtimeLessonFragment}`);
-  const [lesson, graphOverlay] = await Promise.all([
-    readJson<RuntimeLessonJson>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/lesson.json`).absolutePath),
-    readJson<RuntimeGraphOverlay>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/graph-overlay.json`).absolutePath),
+  const [lessonSource, graphOverlaySource] = await Promise.all([
+    readText(resolveRuntimeContentPath(`${lessonDir.runtimePath}/lesson.json`).absolutePath),
+    readText(resolveRuntimeContentPath(`${lessonDir.runtimePath}/graph-overlay.json`).absolutePath),
   ]);
+  if (binding) {
+    verifyBoundResourceHash(binding, 'lesson', sha256Hex(lessonSource));
+    verifyBoundResourceHash(binding, 'graphOverlay', sha256Hex(graphOverlaySource));
+  }
+  const lesson = JSON.parse(lessonSource) as RuntimeLessonJson;
+  const graphOverlay = JSON.parse(graphOverlaySource) as RuntimeGraphOverlay;
 
   const handoutFilename = buildLessonHandoutMarkdownFilename(lessonId);
   const handoutPdfFilename = buildLessonHandoutPdfFilename(lessonId);
@@ -390,26 +468,50 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
     lesson.interactive_manifest_source_path
     ?? `course-content/runtime/lessons/${runtimeLessonFragment}/interactive-manifest.json`;
   const handoutMarkdown = await readReadableContentText(handoutSourcePath);
+  if (binding) {
+    verifyBoundResourceHash(binding, 'handoutMarkdown', sha256Hex(handoutMarkdown));
+  }
   const handoutPreview = createHandoutPreview(handoutMarkdown);
   const [handoutPdfExists, mediaIndexExists, interactiveManifestExists] = await Promise.all([
     fileExists(resolveRuntimeContentPath(handoutPdfSourcePath).absolutePath),
     fileExists(resolveRuntimeContentPath(mediaIndexSourcePath).absolutePath),
     fileExists(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
   ]);
-  const mediaDocument = mediaIndexExists
-    ? parseRuntimeLessonMediaDocumentImpl(await readReadableContentText(mediaIndexSourcePath))
+  if (binding && handoutPdfExists && binding.resourceHashes.handoutPdf !== undefined) {
+    const pdfBytes = await fs.readFile(resolveRuntimeContentPath(handoutPdfSourcePath).absolutePath);
+    verifyBoundResourceHash(binding, 'handoutPdf', sha256Hex(pdfBytes));
+  }
+  let mediaIndexSource: string | null = null;
+  if (mediaIndexExists) {
+    mediaIndexSource = await readReadableContentText(mediaIndexSourcePath);
+    if (binding) {
+      verifyBoundResourceHash(binding, 'mediaIndex', sha256Hex(mediaIndexSource));
+    }
+  }
+  const mediaDocument = mediaIndexSource !== null
+    ? parseRuntimeLessonMediaDocumentImpl(mediaIndexSource)
     : { handoutSummary: null, mediaResources: [] };
-  const mediaResources = await projectRuntimeMediaResources(lessonDir.runtimePath, mediaDocument.mediaResources);
-  const interactiveManifest = interactiveManifestExists
-    ? normalizeInteractiveRuntimeManifest(
-        await readJson(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath),
-      )
-    : null;
+  const mediaResources = await projectRuntimeMediaResources(lessonDir.runtimePath, mediaDocument.mediaResources, binding);
+  let interactiveManifest: InteractiveRuntimeManifest | null = null;
+  if (interactiveManifestExists) {
+    const manifestSource = await readText(resolveRuntimeContentPath(interactiveManifestSourcePath).absolutePath);
+    if (binding) {
+      verifyBoundResourceHash(binding, 'interactiveManifest', sha256Hex(manifestSource));
+    }
+    interactiveManifest = normalizeInteractiveRuntimeManifest(JSON.parse(manifestSource));
+  }
+  const boundCards = binding
+    ? new Map(
+      (binding.resourceHashes.knowledgeCardFiles ?? [])
+        .filter((card): card is { path: string; sha256: string } => card.sha256 !== null)
+        .map((card) => [card.path, card.sha256]),
+    )
+    : undefined;
 
   const nodesWithFront = await Promise.all(
     graphOverlay.nodes.map(async (node) => ({
       ...node,
-      frontContent: await loadFrontContentForNode(node),
+      frontContent: await loadFrontContentForNode(node, boundCards),
     })),
   );
 

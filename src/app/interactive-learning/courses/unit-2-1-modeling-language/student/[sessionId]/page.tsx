@@ -1,7 +1,9 @@
+import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_2_1StudentPage } from '@/features/interactive/unit-2-1-modeling-language/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 import { resolveStudentRouteDemoStepId, type StudentRouteSearchParams } from '@/features/interactive/shared/student-route-query';
@@ -22,10 +24,21 @@ export default async function UNIT_2_1ModelingLanguageStudentRoute(
   const demoStepId = resolveStudentRouteDemoStepId(searchParams);
   await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/unit-2-1-modeling-language');
 
-  const [session, lessonRuntime] = await Promise.all([
+  const [session, runtimeResult] = await Promise.all([
     getServerSession(authOptions),
-    loadLessonRuntimeEntry('2-1'),
+    loadSessionBoundLessonRuntime({
+      sessionId: params.sessionId,
+      expectedCanonicalId: '2-1',
+      role: 'student',
+    }),
   ]);
+  if (runtimeResult.status === 'drift') {
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+  }
+  if (runtimeResult.status === 'route-mismatch') {
+    redirect(runtimeResult.redirectHref);
+  }
+  const lessonRuntime = runtimeResult.lessonRuntime;
 
   if (!session?.user) {
     return <UNIT_2_1StudentPage sessionId={params.sessionId} lessonRuntime={lessonRuntime} demoStepId={demoStepId} />;

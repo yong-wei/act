@@ -38,6 +38,9 @@ export default async function TeacherSessionPage(props: PageProps) {
       class: {
         select: { name: true },
       },
+      courseBundleRevision: {
+        select: { canonicalLessonId: true },
+      },
     }
   });
 
@@ -54,6 +57,7 @@ export default async function TeacherSessionPage(props: PageProps) {
     role: 'teacher',
     sessionId: session.id,
     planTitle: session.plan.title,
+    bundleCanonicalLessonId: session.courseBundleRevision?.canonicalLessonId ?? null,
   });
   if (teacherHref !== `/classroom/teacher/${session.id}`) {
     redirect(teacherHref);

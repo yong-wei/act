@@ -15,6 +15,16 @@ import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 import { resolvePlanRuntimeBindings } from '@/lib/lesson-plan-runtime-binding';
 import {
+  CourseBundleCaptureError,
+  type CourseBundleIdentity,
+} from '@/lib/course-bundle/contract';
+import { captureRuntimeCourseBundleIdentity } from '@/lib/course-bundle/capture';
+import {
+  persistCourseBundleRevision,
+  planProjectionBundleIdentity,
+  generatedCoursewareBundleIdentity,
+} from '@/lib/course-bundle/session-binding';
+import {
   buildClassroomIdentityPayload,
   buildClassroomLifecycleEvidenceFields,
 } from '@/lib/classroom-lifecycle-contract';
@@ -244,12 +254,33 @@ export async function POST(request: Request) {
 
     const joinCode = await generateUniqueJoinCode(prisma);
     let lessonSnapshot;
+    let bundleIdentity: CourseBundleIdentity;
     if (generatedBinding) {
       lessonSnapshot = {
         lessonVersion: generatedBinding.displayName,
         manifestHash: generatedBinding.manifestHash,
         totalSteps: plan._count.items,
       };
+      const publicationRecord = publicationRevisionId
+        ? await prisma.smartCoursewarePublicationRevision.findUnique({
+          where: { id: publicationRevisionId },
+          select: { id: true, manifestHash: true, contentHash: true, sourceRevisionId: true },
+        })
+        : plan.generatedCoursewarePublication
+          ? await prisma.smartCoursewarePublicationRevision.findUnique({
+            where: { id: plan.generatedCoursewarePublication.id },
+            select: { id: true, manifestHash: true, contentHash: true, sourceRevisionId: true },
+          })
+          : null;
+      if (!publicationRecord) {
+        return NextResponse.json({ error: '已发布互动课件投影不可用' }, { status: 409 });
+      }
+      bundleIdentity = generatedCoursewareBundleIdentity({
+        id: publicationRecord.id,
+        manifestHash: publicationRecord.manifestHash,
+        contentHash: publicationRecord.contentHash,
+        sourceRevision: publicationRecord.sourceRevisionId,
+      });
     } else {
       const runtimeBindings = resolvePlanRuntimeBindings(plan.items ?? []);
       if (runtimeBindings.state === 'invalid') {
@@ -278,35 +309,80 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: '教案互动课来源绑定不可用' }, { status: 409 });
         }
         lessonSnapshot = runtimeSnapshot.snapshot;
+        // Capture the immutable bundle identity from the resolved canonical
+        // lesson before the session is written; capture failures block creation.
+        try {
+          bundleIdentity = await captureRuntimeCourseBundleIdentity(presetIdentity.record.canonicalId);
+        } catch (error) {
+          if (error instanceof CourseBundleCaptureError) {
+            return NextResponse.json({ error: '教案互动课运行时内容不可用' }, { status: 409 });
+          }
+          throw error;
+        }
       } else {
         lessonSnapshot = loadSessionLessonSnapshot(plan.title);
+        // Bounded ingress alias: a plan title that resolves to a registered
+        // runtime lesson persists that lesson's canonical bundle, never the
+        // title itself; otherwise the pure DB plan projection is captured.
+        const titleIdentity = resolveInteractiveLessonIdentity({ kind: 'planTitleAlias', value: plan.title });
+        if (titleIdentity.status === 'resolved') {
+          try {
+            bundleIdentity = await captureRuntimeCourseBundleIdentity(titleIdentity.record.canonicalId);
+          } catch (error) {
+            if (error instanceof CourseBundleCaptureError) {
+              return NextResponse.json({ error: '教案互动课运行时内容不可用' }, { status: 409 });
+            }
+            throw error;
+          }
+        } else {
+          const planItems = await prisma.lessonItem.findMany({
+            where: { planId },
+            select: {
+              stage: true,
+              order: true,
+              resourceId: true,
+              knowledgeNodeId: true,
+              overrideConfig: true,
+            },
+            orderBy: [{ stage: 'asc' }, { order: 'asc' }],
+          });
+          bundleIdentity = planProjectionBundleIdentity(planId, planItems);
+        }
       }
     }
 
-    const createSession = (db: Pick<Prisma.TransactionClient, 'classSession'>) => db.classSession.create({
-      data: {
-        joinCode,
-        planId,
-        teacherId: user.id,
-        ...(classId ? { classId } : {}),
-        status: 'ACTIVE',
-        currentStage: 'BRIDGE_IN',
-        currentItemId: undefined,
-        lessonVersion: lessonSnapshot.lessonVersion,
-        manifestHash: lessonSnapshot.manifestHash,
-        totalSteps: lessonSnapshot.totalSteps,
-        ...(generatedBinding ? {
-          coursewarePublicationRevisionId: generatedBinding.id,
-          coursewareDisplayName: generatedBinding.displayName,
-          coursewareRevisionNumber: generatedBinding.revisionNumber,
-          coursewarePlanRevisionNumber: generatedBinding.planRevisionNumber,
-        } : {}),
-      },
-      include: {
-        plan: { select: { title: true } },
-        class: { select: { name: true } },
-      },
-    });
+    const createSession = async (
+      db: Pick<Prisma.TransactionClient, 'classSession' | 'courseBundleRevision'>,
+    ) => {
+      const bundleRevision = await persistCourseBundleRevision(db, bundleIdentity);
+      return db.classSession.create({
+        data: {
+          joinCode,
+          planId,
+          teacherId: user.id,
+          ...(classId ? { classId } : {}),
+          status: 'ACTIVE',
+          currentStage: 'BRIDGE_IN',
+          currentItemId: undefined,
+          lessonVersion: lessonSnapshot.lessonVersion,
+          manifestHash: bundleRevision.manifestHash ?? lessonSnapshot.manifestHash,
+          totalSteps: lessonSnapshot.totalSteps,
+          courseBundleRevisionId: bundleRevision.id,
+          bundleRuntimeReleaseId: bundleRevision.runtimeReleaseId,
+          bundleDigest: bundleRevision.bundleDigest,
+          ...(generatedBinding ? {
+            coursewarePublicationRevisionId: generatedBinding.id,
+            coursewareDisplayName: generatedBinding.displayName,
+            coursewareRevisionNumber: generatedBinding.revisionNumber,
+            coursewarePlanRevisionNumber: generatedBinding.planRevisionNumber,
+          } : {}),
+        },
+        include: {
+          plan: { select: { title: true } },
+          class: { select: { name: true } },
+        },
+      });
+    };
     const newSession = classId
       ? await createClassBoundSession(prisma, {
         actorId: user.id,
