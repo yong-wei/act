@@ -37,7 +37,9 @@
 - 审核 finding 是待裁决主张；修复前由主线程按 ACCEPT / REJECT / DEFER 分类。只有存在违反 spec/不变量、可达失败路径、行为回归或安全、隐私、数据风险的 finding 才能阻断。
 - 相关 finding 先按根因聚类，再一次性修复完整风险面；整改后恢复同一 reviewer，仅核验已接受 finding、整改变更及其直接引入的新 P0/P1；自动 fix-and-re-review 最多一轮，同类问题再次出现时停止局部补丁并复核设计不变量。
 - reviewer 只报告，不编辑代码、不扩大 OpenSpec 范围，也不以获得“clean”回复作为继续审核的理由。
-- 已请求的 GitHub Codex Review 必须在当前 HEAD 上完成后再合并；同一 HEAD 不重复触发。合并后迟到的审查仅对已接受的 P0/P1 建立 follow-up。
+- 已请求的 GitHub Codex Review 必须在当前 HEAD 上完成后再合并。合并后迟到的审查仅对已接受的 P0/P1 建立 follow-up。
+- 请求 GitHub `@codex review` 必须用当前用户（仓库所有者）的 GitHub 身份发 PR 评论。先用 GitHub MCP `get_me` 确认 `login` 为用户本人，再用 `add_issue_comment` 发送。禁止用 `cursor[bot]` / `ManagePullRequest` 代发；Codex 不接受 bot 身份的审核请求。
+- 若已误用 bot 身份发出请求：等待 15 分钟，当前 HEAD 仍无 Codex 回复后，再用用户身份补发一次。同一 HEAD 上用户身份的 `@codex review` 不重复触发。
 
 ## OpenSpec 工作流
 
