@@ -26,6 +26,7 @@ vi.mock('@/features/arena/adapters/registry', () => ({
 
 import { POST } from '../route';
 import type { ControllerArtifact } from '@/features/arena/types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 
 const artifact: ControllerArtifact = {
   id: 'artifact-preview',
@@ -190,6 +191,27 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(503);
     expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
+  it('maps control-engine unavailable to 503 without adapter execution after a client hidden field', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    const hidden = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      hiddenInputs: { plant: [1, 2, 3] },
+    });
+    expect(hidden.status).toBe(400);
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
+
+    mocks.runVirtualPreview.mockRejectedValueOnce(new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'wasm-not-ready',
+      message: 'Arena preview WASM is not ready.',
+      retryable: true,
+    }));
+    const unavailable = await postJson({ taskId: artifact.taskId, artifact });
+    expect(unavailable.status).toBe(503);
   });
 
   it('maps unsupported adapter selection to 400 without storing a preview run', async () => {

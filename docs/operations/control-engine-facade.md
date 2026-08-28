@@ -50,3 +50,15 @@
 清单真源：`src/lib/control-engine/server-consumers.ts`。官方 Arena 评分仍由 evaluator 拥有；缓存最小键仍是 `taskId + artifactHash + protocolVersion`。命中后还须核对写入 metadata 的 runtime/model/spec 绑定，冲突视为 miss，不得把旧分数当成新 runtime 的官方结果。三个 server compatibility loader 留给 R6 删除，本阶段不得删除。
 
 隐藏输入与 client `trace`/`summary`/`checksum` 仍在 façade 外被拒绝。facade `unavailable`/`timeout` 不得写成 SimulationRun 或官方分数。
+
+## Arena 预览数值（R4）
+
+能力矩阵真源：`src/lib/control-engine/arena-preview-support.ts`。
+
+| 方法 | 预览能力 | 执行面 |
+| --- | --- | --- |
+| `black-box-control` | `computeArenaVirtualPreview` / `arena_cruise_roll_preview` | 浏览器展示 `computeArenaVirtualPreviewBrowser`（`persisted=false`）；持久化经 `/api/arena/virtual-simulation-runs` 服务端重算 |
+| `pid` / `serial-compensator` | `computeAnalysis` | 浏览器 `computeAnalysisBrowser`，不写官方记录 |
+| `composite-compensation` / `optimized-pid` / `mpc` / `code-controller` | 无 | `unavailable`，禁止 template/heuristic 替代 |
+
+黑箱预览是固定步长批量轨迹（`dt=0.2`、61 点），由 Rust 拥有积分循环，不在 TypeScript 中步进。浏览器 WASM 未就绪时本地展示失败关闭；服务端写路径独立重算。`unavailable`/`timeout` 映射 HTTP 503。identified 预览必须让 Rust 消费 `plantDamping`/`plantStiffness`/`plantInputGain`，不能只把身份写进 metadata。

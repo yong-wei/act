@@ -31,5 +31,5 @@ export interface WhiteBoxEvaluationInput {
   taskId: string;
   artifact: ControllerArtifact;
   controlAnalysisService?: ControlAnalysisService;
-  metricProviderMode?: 'official' | 'template-preview';
+  metricProviderMode?: 'official' | 'template-preview' | 'control-engine-preview';
 }

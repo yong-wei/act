@@ -20,6 +20,17 @@ import {
   type BlackBoxNominalModelConfidenceEvidence,
 } from '@/features/arena/blackbox/engineering-evidence';
 import { buildBlackBoxControlArtifactFromParams } from '@/features/arena/submissions/blackbox-artifact-builder';
+import { hashControllerArtifact } from '@/features/arena/submissions/artifact-hash';
+import {
+  ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+  ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+} from '@/lib/control-engine';
+import {
+  computeArenaVirtualPreviewBrowser,
+  isBrowserControlEngineReady,
+  preloadBrowserControlEngine,
+} from '@/lib/control-engine/client';
 import type { ArenaSubmissionRecord } from '@/features/arena/submissions/types';
 import type { ChallengeTask } from '@/features/arena/types';
 import { useArenaOfficialSubmissionPathSync } from '@/features/arena/arena-official-submission-sync';
@@ -358,6 +369,31 @@ export function BlackBoxIdentificationPanel({
       previewMode: 'virtual-simulation-controller',
     });
 
+    try {
+      await preloadBrowserControlEngine();
+      if (isBrowserControlEngineReady() && latestDataset) {
+        setStatus('正在用 Control Engine 预览内核计算展示结果...');
+        await computeArenaVirtualPreviewBrowser({
+          modelId: ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+          taskId: task.id,
+          datasetHash: latestDataset.datasetHash,
+          identificationModelId: String(artifact.params.identificationModelId),
+          controllerHash: hashControllerArtifact({ ...artifact, taskId: task.id }),
+          controllerGain: Number(artifact.params.controllerGain),
+          dampingCompensation: Number(artifact.params.dampingCompensation),
+          energyBudget: Number(artifact.params.energyBudget),
+          initialRoll: latestDataset.summary.finalOutput || 0.2,
+          sampleTime: ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+          steps: ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+          modelRelation: 'surrogate',
+        });
+      } else {
+        setStatus('浏览器内核未就绪，改由服务端 Control Engine 重算预演...');
+      }
+    } catch {
+      setStatus('浏览器预览不可用，改由服务端 Control Engine 重算预演...');
+    }
+
     const response = await fetch('/api/arena/virtual-simulation-runs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -371,6 +407,7 @@ export function BlackBoxIdentificationPanel({
     };
 
     if (!response.ok || !payload.preview) {
+      setPreviewRun(null);
       setStatus(payload.error ?? '虚拟仿真预演失败');
       return;
     }
