@@ -1,5 +1,6 @@
 import { runtimeIdentity, stableStringify } from '@/lib/control-engine';
 
+import { CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET } from '../evaluation/blackbox-scenario-set';
 import {
   getArenaChallengeObject,
   getArenaChallengeTask,
@@ -101,6 +102,12 @@ export function resolveArenaEvaluationCacheBinding(taskId: string): ArenaEvaluat
             idealValue: metric.idealValue,
             unacceptableValue: metric.unacceptableValue,
           })),
+        }
+        : null,
+      hiddenOfficialScenarioSet: object?.visibility === 'black-box'
+        ? {
+          id: CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET.id,
+          scenarios: CRUISE_ROLL_HIDDEN_OFFICIAL_SCENARIO_SET.scenarios,
         }
         : null,
     })

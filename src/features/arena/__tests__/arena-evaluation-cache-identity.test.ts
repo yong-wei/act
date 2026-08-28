@@ -79,5 +79,15 @@ describe('arena evaluation cache identity', () => {
     expect(specIdentity).toContain(profile!.hardConstraints[0]);
     expect(specIdentity).toContain(String(profile!.rankingMetrics[0].idealValue));
     expect(specIdentity).toContain(String(profile!.rankingMetrics[0].unacceptableValue));
+    expect(specIdentity).not.toContain('cruise-roll-hidden-official-v1');
+  });
+
+  it('binds the official hidden scenario set into black-box spec identity', () => {
+    const specIdentity = resolveArenaEvaluationCacheBinding(
+      'task-cruise-roll-blackbox-identification',
+    ).specIdentity;
+    expect(specIdentity).toContain('cruise-roll-hidden-official-v1');
+    expect(specIdentity).toContain('official-hidden-2');
+    expect(specIdentity).toContain('0.085');
   });
 });
