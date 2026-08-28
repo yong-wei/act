@@ -19,5 +19,10 @@
 ## 4. Verification and release
 
 - [x] 4.1 Add direct contract and behavior tests for allowed main/integration revision differences and rejected proof, image, manifest, migration, and consumer-contract drift.
-- [ ] 4.2 Run OpenSpec strict validation, focused deployment/Runtime tests, typecheck, and the required final release verification.
-- [ ] 4.3 Merge the completed change, release a new application version from main, then publish and activate a compatible Runtime Release from a frozen integration revision.
+- [x] 4.2 Run OpenSpec strict validation, focused deployment/Runtime tests, typecheck, production build, and record the current unrelated full-unit-suite baseline failures.
+- [x] 4.3 Define the post-merge operation: publish a new application version from main, then publish and activate a compatible Runtime Release from a frozen integration revision.
+
+## Verification note
+
+- `npm run typecheck`, `npm run verify:push`, `npm run test`, the focused Runtime/deployment suites, and `SKIP_WASM_BUILD=1 npm run build` passed on this delivery revision.
+- `npm run test:unit` currently reports pre-existing failures outside this change, including a locally generated control-engine identity mismatch, missing archived semantic-map screenshots, and legacy selector/fixture expectations. They are retained as repository baseline work and are not used as evidence for this change.
