@@ -35,10 +35,18 @@ try {
   fs.mkdirSync(targetRoot);
   fs.mkdirSync(optimizedRoot);
   const sourceContent = 'source model\n';
+  const optimizedContent = 'optimized model\n';
   const sourceSha256 = createHash('sha256').update(sourceContent).digest('hex');
+  const outputSha256 = createHash('sha256').update(optimizedContent).digest('hex');
+  const optimizerScript = fs.readFileSync(
+    path.join(root, 'tools/glb-model-optimizer/optimize-models.mjs'),
+  );
+  const optimizerConfigDigest = createHash('sha256')
+    .update(`${createHash('sha256').update(optimizerScript).digest('hex')}\nmedium\n`)
+    .digest('hex');
   fs.writeFileSync(path.join(sourceRoot, 'demo.glb'), sourceContent);
   fs.writeFileSync(path.join(targetRoot, 'demo.glb'), sourceContent);
-  fs.writeFileSync(path.join(optimizedRoot, 'demo.glb'), 'optimized model\n');
+  fs.writeFileSync(path.join(optimizedRoot, 'demo.glb'), optimizedContent);
   fs.writeFileSync(
     path.join(optimizedRoot, 'manifest.json'),
     JSON.stringify({
@@ -47,6 +55,11 @@ try {
           status: 'meshopt',
           url: '/assets/models-opt/demo.glb',
           sourceSha256,
+          outputSha256,
+          optimizerName: '@act/glb-model-optimizer',
+          optimizerVersion: '1.0.0',
+          optimizerLevel: 'medium',
+          optimizerConfigDigest,
         },
       },
     }),
