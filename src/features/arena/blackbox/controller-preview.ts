@@ -18,6 +18,7 @@ import {
   ARENA_PREVIEW_TEACHING_SEMANTICS,
 } from '@/lib/control-engine';
 import { computeArenaVirtualPreviewResult } from '@/lib/control-engine/server';
+import { projectArenaPreviewIdentity } from '@/lib/practice-lab-run-contract';
 
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from '../submissions/artifact-hash';
@@ -71,6 +72,7 @@ export interface ArenaPreviewBoundaryMetadata {
   controllerHash: string;
   identificationModelId?: string;
   sourceExperimentId?: string;
+  runContract?: ReturnType<typeof projectArenaPreviewIdentity>;
 }
 
 export interface StoredArenaVirtualSimulationRun {
@@ -447,6 +449,30 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
         update: {},
       });
       const previewBoundary = getArenaPreviewBoundaryMetadata(input.preview);
+      const runContract = projectArenaPreviewIdentity({
+        sourceId: previewRow.id,
+        ownerUserId: input.userId,
+        taskId: input.taskId,
+        specHash: taskSpec.specHash,
+        artifactHash: input.controllerHash,
+        controllerSnapshotRef: input.preview.replaySource?.artifact.id
+          ? `ArenaControllerArtifact:${input.preview.replaySource.artifact.id}`
+          : `ArenaControllerArtifact:${input.controllerHash}`,
+        protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',
+        runtimeVersion: input.preview.replay?.runtimeVersion ?? 'unknown',
+        modelVersion: input.preview.replay?.modelVersion ?? 'unknown',
+        seed: input.preview.replay?.seed ?? null,
+        checksum: input.preview.replay?.checksum ?? null,
+        summary: {
+          trackingError: input.preview.summary.trackingError,
+          maxDeviation: input.preview.summary.maxDeviation,
+          controlEnergy: input.preview.summary.controlEnergy,
+          safetyViolations: input.preview.summary.safetyViolations,
+          smoothness: input.preview.summary.smoothness,
+        },
+        traceRef: `ArenaVirtualSimulationRun:${previewRow.id}#trace`,
+      });
+      previewBoundary.runContract = runContract;
       const arenaTraining = {
         taskId: input.taskId,
         scenarioId: input.scenarioId,
