@@ -98,7 +98,8 @@ function writeSuccessfulDemoAcceptanceResponse(url: string, response: ServerResp
     return true;
   }
   if (url === '/api/teacher/document-grading/approve') {
-    response.end(JSON.stringify({ status: 'approved', gradingRunId: 'grading-alpha-draft', createdFacts: 1, evidenceSourceEventIds: ['event-1'] }));
+    response.statusCode = 410;
+    response.end(JSON.stringify({ error: 'legacy-document-rubric-grading-retired', replacement: '/teacher/assignments' }));
     return true;
   }
   if (url === '/api/ai/chat') {
@@ -677,6 +678,8 @@ describe('intelligent teaching assistant demo package', () => {
     expect(isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(302)).toBe(false);
     expect(isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(401)).toBe(false);
     expect(isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(403)).toBe(false);
+    expect(isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(410, '/api/teacher/document-grading/approve')).toBe(true);
+    expect(isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(200, '/api/teacher/document-grading/approve')).toBe(false);
   });
 
   it('rejects credentialed HTTP acceptance targets outside loopback or explicit HTTPS allowlist', () => {
@@ -700,10 +703,15 @@ describe('intelligent teaching assistant demo package', () => {
         evidenceSourceEventIds: [],
       }),
     )).toEqual(expect.arrayContaining([
-      'document grading approval response must confirm approved status',
-      'document grading approval response must create evidence facts',
-      'document grading approval response must include evidenceSourceEventIds',
+      'document grading draft approval must be retired with 410',
     ]));
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/teacher/document-grading/approve',
+      JSON.stringify({
+        error: 'legacy-document-rubric-grading-retired',
+        replacement: '/teacher/assignments',
+      }),
+    )).toEqual([]);
     expect(validateIntelligentTeachingAssistantDemoApiPayload(
       '/api/ai/chat',
       'data: {"type":"text-delta","textDelta":"cited synthetic answer","citations":[{"id":"cit-diagnosis-alpha","sourceFamily":"role-based-learning-diagnosis"}]}\n\n',
@@ -962,7 +970,8 @@ describe('intelligent teaching assistant demo package', () => {
         return;
       }
       if (url === '/api/teacher/document-grading/approve') {
-        response.end(JSON.stringify({ status: 'approved', gradingRunId: 'grading-alpha-draft', createdFacts: 1, evidenceSourceEventIds: ['event-1'] }));
+        response.statusCode = 410;
+    response.end(JSON.stringify({ error: 'legacy-document-rubric-grading-retired', replacement: '/teacher/assignments' }));
         return;
       }
       if (url === '/api/ai/chat') {
@@ -1089,7 +1098,8 @@ describe('intelligent teaching assistant demo package', () => {
         return;
       }
       if (url === '/api/teacher/document-grading/approve') {
-        response.end(JSON.stringify({ status: 'approved', gradingRunId: 'grading-alpha-draft', createdFacts: 1, evidenceSourceEventIds: ['event-1'] }));
+        response.statusCode = 410;
+    response.end(JSON.stringify({ error: 'legacy-document-rubric-grading-retired', replacement: '/teacher/assignments' }));
         return;
       }
       if (url === '/api/ai/chat') {

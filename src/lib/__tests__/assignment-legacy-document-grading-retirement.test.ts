@@ -39,13 +39,10 @@ describe('assignment legacy document-grading retirement', () => {
     expect(submissions).toContain('legacy-document-grading-route-disabled');
   });
 
-  it('removes demo and draft fallbacks from teacher/student shells', () => {
-    const workbench = readFileSync(join(ROOT, 'src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx'), 'utf8');
-    const feedback = readFileSync(join(ROOT, 'src/app/assessment/document-feedback/page.tsx'), 'utf8');
-    expect(workbench).not.toContain('buildDocumentRubricDemoViews');
-    expect(workbench).not.toContain('learningEvidenceDraft');
-    expect(feedback).not.toContain('buildDocumentRubricDemoViews');
-    expect(feedback).not.toContain('learningEvidenceDraft');
+  it('keeps a named read-only historical adapter and does not write LearningFact from it', () => {
+    const adapter = readFileSync(join(ROOT, 'src/lib/assignments/legacy-document-grading-historical-adapter.ts'), 'utf8');
     expect(existsSync(join(ROOT, 'src/lib/assignments/legacy-document-grading-historical-adapter.ts'))).toBe(true);
+    expect(adapter).toContain('historicalAdapterMayWriteLearningFact');
+    expect(adapter).not.toContain('learningFact.create');
   });
 });
