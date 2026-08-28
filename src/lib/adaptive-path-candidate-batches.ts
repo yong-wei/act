@@ -108,7 +108,8 @@ export async function persistAdaptivePathCandidateBatch(
     const raced = await findByGenerationRequest(tx, input.generationRequestId);
     if (raced) return assertMatchingExisting(raced, input);
     const batchId = stableId('path-candidate-batch', input.generationRequestId);
-    const candidates = buildCandidateSnapshots(input.plan, batchId);
+    const gated = buildGatedCandidateSnapshots(input.plan, batchId);
+    const candidates = gated.candidates;
     const record = await tx.adaptivePathCandidateBatch.create({
       data: {
         id: batchId,
@@ -127,6 +128,7 @@ export async function persistAdaptivePathCandidateBatch(
           confidence: input.plan.confidence,
           excludedPolicyFamilies: input.plan.excludedPolicyFamilies,
           decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
+          diversityLimitations: gated.limitations,
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
@@ -164,6 +166,13 @@ export function buildCandidateSnapshots(
   plan: AdaptiveLearningPathPlan,
   batchId: string,
 ): AdaptivePathCandidateSnapshot[] {
+  return buildGatedCandidateSnapshots(plan, batchId).candidates;
+}
+
+export function buildGatedCandidateSnapshots(
+  plan: AdaptiveLearningPathPlan,
+  batchId: string,
+): { candidates: AdaptivePathCandidateSnapshot[]; limitations: string[] } {
   const serializedCandidates = buildSerializablePathOptions(plan)
     .filter((candidate) => candidate.nodeIds.length > 0);
   const executableCandidates = serializedCandidates.length > 0
@@ -179,7 +188,7 @@ export function buildCandidateSnapshots(
   if (candidates.length === 0) {
     throw new AdaptivePathCandidateBatchValidationError('Candidate batch requires at least one executable candidate');
   }
-  return candidates.map((candidate, ordinal) => {
+  const ungated = candidates.map((candidate, ordinal) => {
     const snapshot = candidate.snapshot as Record<string, unknown>;
     return {
       id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
@@ -196,6 +205,34 @@ export function buildCandidateSnapshots(
       }),
     };
   });
+  return gateMateriallyDistinctCandidates(ungated);
+}
+
+export function gateMateriallyDistinctCandidates(
+  candidates: AdaptivePathCandidateSnapshot[],
+): { candidates: AdaptivePathCandidateSnapshot[]; limitations: string[] } {
+  const seen = new Set<string>();
+  const kept: AdaptivePathCandidateSnapshot[] = [];
+  let duplicateCount = 0;
+  for (const candidate of candidates) {
+    if (seen.has(candidate.fingerprint)) {
+      duplicateCount += 1;
+      continue;
+    }
+    seen.add(candidate.fingerprint);
+    kept.push({
+      ...candidate,
+      ordinal: kept.length,
+      snapshot: jsonSnapshot({
+        ...candidate.snapshot,
+        optionId: `path-option-${kept.length + 1}`,
+      }),
+    });
+  }
+  const limitations: string[] = [];
+  if (duplicateCount > 0) limitations.push('title-or-score-only-duplicates-removed');
+  if (kept.length < 2) limitations.push('insufficient-distinct-resources');
+  return { candidates: kept, limitations };
 }
 
 export function toBatchView(record: CandidateBatchRecord): AdaptivePathCandidateBatchView {
