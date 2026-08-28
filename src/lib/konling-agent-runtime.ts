@@ -26,9 +26,9 @@ import {
   type SimulationTaskSpecInputV1,
   type SimulationTaskSpecV1,
 } from '@/resources/simulations/core/run-contract';
+import { resolvePersonalizationGoalId } from '@/features/personalization/plugins/public-api';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
   readLearnerState,
   readPathPlannerLearnerStateForSubject,
@@ -2949,8 +2949,9 @@ function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | un
     if (getRegisteredAdaptiveLearningPathGoal(candidate)) {
       return candidate;
     }
-    if (CONTROL_CORRECTION_COURSE_ID_VALUES.includes(candidate as typeof CONTROL_CORRECTION_COURSE_ID_VALUES[number])) {
-      return 'control-correction';
+    const mappedGoalId = resolvePersonalizationGoalId(candidate);
+    if (mappedGoalId) {
+      return mappedGoalId;
     }
   }
   return null;

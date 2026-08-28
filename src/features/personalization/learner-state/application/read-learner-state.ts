@@ -1,5 +1,4 @@
 import {
-  CONTROL_CORRECTION_GOAL_ID,
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   asRecord,
   normalizeRequestedGoal,
@@ -19,8 +18,7 @@ export async function readLearnerState(
   const now = input.now ?? new Date();
   const requestedGoal = normalizeRequestedGoal(input.goal);
   const requestedGoalDefinition = resolveAdaptiveGoalSliceDefinition(requestedGoal);
-  const wantsControlCorrection = requestedGoalDefinition?.goalId === CONTROL_CORRECTION_GOAL_ID;
-  const plugin = wantsControlCorrection ? runtime.controlCorrectionPlugin : null;
+  const plugin = requestedGoal ? runtime.resolveGoalEvidence(requestedGoal) : null;
   const featureRead = await runtime.learningRecord.readFeatureCache(input.userId, now);
   const featureCache = asRecord(featureRead.cache);
 

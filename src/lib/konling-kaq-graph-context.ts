@@ -1,8 +1,5 @@
-import {
-  getLearningGoal,
-  type LearningGoalDefinition,
-} from './adaptive-learning-path-planner';
-import { CONTROL_CORRECTION_COURSE_ID_VALUES } from '@/features/personalization/learner-state/public-api';
+import { getLearningGoal, type LearningGoalDefinition } from './adaptive-learning-path-planner';
+import { resolvePersonalizationGoalId } from '@/features/personalization/plugins/public-api';
 import {
   buildGraphCenterPayload,
   type GraphCenterOverlayStatus,
@@ -140,9 +137,8 @@ export function resolveKonlingGraphContextLearningGoalId(
   for (const candidate of candidates) {
     if (!candidate) continue;
     if (getLearningGoal(candidate)) return candidate;
-    if (CONTROL_CORRECTION_COURSE_ID_VALUES.includes(candidate as typeof CONTROL_CORRECTION_COURSE_ID_VALUES[number])) {
-      return 'control-correction';
-    }
+    const mappedGoalId = resolvePersonalizationGoalId(candidate);
+    if (mappedGoalId) return mappedGoalId;
   }
   return null;
 }

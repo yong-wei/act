@@ -172,6 +172,7 @@ describe('personalization learner-state boundary', () => {
       expect(source, file).toContain("from '@/features/personalization/learner-state/public-api'");
       expect(source, file).not.toContain("from '@/lib/data-governance/adaptive-learner-state-service'");
       expect(source, file).not.toContain("from './adaptive-learner-state-service'");
+      expect(source, file).not.toContain('CONTROL_CORRECTION_COURSE_ID_VALUES');
     }
   });
 

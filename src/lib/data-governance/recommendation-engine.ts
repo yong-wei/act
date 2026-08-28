@@ -26,6 +26,10 @@ import {
   type AdaptiveLearnerState,
 } from '@/features/personalization/learner-state/public-api';
 import {
+  citePersonalizationPlugin,
+  type PersonalizationPluginRationaleCitation,
+} from '@/features/personalization/plugins/public-api';
+import {
   hasPortraitV2Evidence,
   summarizePortraitV2,
 } from './portrait-v2-consumer';
@@ -65,6 +69,7 @@ export interface RecommendationRationale {
     score: number;
     markers: StudentEvidenceStatusMarker[];
   };
+  plugin?: PersonalizationPluginRationaleCitation;
   portraitV2?: {
     dimensionIds: string[];
     weakDimensionId: string | null;
@@ -813,6 +818,10 @@ function buildRecommendationRationale(
   );
   const portrait = summarizePortraitV2(context.portraitV2);
 
+  const plugin = context.learnerState?.goalSlices?.controlCorrection
+    ? citePersonalizationPlugin(context.learnerState.goalSlices.controlCorrection.goalId)
+    : null;
+
   return {
     reasonCode: rule.id,
     evidenceBasis: evidence.basis,
@@ -827,6 +836,7 @@ function buildRecommendationRationale(
       score: evidence.confidence.score,
       markers: evidence.statusMarkers,
     },
+    ...(plugin ? { plugin } : {}),
     ...(ruleScopedPortrait ? {
       portraitV2: {
         dimensionIds: rationalePortraitDimensionIds,
