@@ -43,3 +43,11 @@ SHALL skip fallback and record `diagnosis-provider-empty-output`.
 - **WHEN** the structured request ends with no remaining provider time
 - **THEN** the system SHALL NOT start a JSON fallback
 - **AND** it SHALL record `diagnosis-provider-empty-output` as retryable
+
+#### Scenario: Provider window abort is not a task timeout
+
+- **WHEN** the structured provider request is aborted at the provider
+  generation window
+- **THEN** the worker SHALL record `diagnosis-provider-empty-output` as a
+  retryable failure
+- **AND** it SHALL NOT record `diagnosis-generation-timeout`

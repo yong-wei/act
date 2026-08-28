@@ -112,35 +112,47 @@ export async function resolveSmartLessonStructuredProvider(dependencies: Runtime
         timeoutMs?: number;
       }) {
         const schemaName = input.schemaVersion.replace(/[^A-Za-z0-9_-]/g, '_');
-        const result = await runWithOptionalTimeout(input.timeoutMs, (abortSignal) => (
-          dependencies.generate
-            ? dependencies.generate({
-                model: adapter.getModel(),
-                schema: input.schema,
-                schemaName,
-                system: input.system,
-                prompt: input.prompt,
-                temperature: 0.1,
-                maxRetries: 0,
-                maxOutputTokens: input.maxOutputTokens ?? 8_000,
-                timeout: input.timeoutMs,
-                abortSignal,
-                headers: { 'Idempotency-Key': input.idempotencyKey },
-              })
-            : generateUnvalidatedJson({
-                model: adapter.getModel(),
-                schema: input.schema,
-                schemaName,
-                system: input.system,
-                prompt: input.prompt,
-                idempotencyKey: input.idempotencyKey,
-                maxOutputTokens: input.maxOutputTokens ?? 8_000,
-                fallbackToTextJson: input.fallbackToTextJson,
-                timeoutMs: input.timeoutMs,
-                abortSignal,
-                generateText: dependencies.generateText,
-              })
-        ));
+        let result;
+        try {
+          result = await runWithOptionalTimeout(input.timeoutMs, (abortSignal) => (
+            dependencies.generate
+              ? dependencies.generate({
+                  model: adapter.getModel(),
+                  schema: input.schema,
+                  schemaName,
+                  system: input.system,
+                  prompt: input.prompt,
+                  temperature: 0.1,
+                  maxRetries: 0,
+                  maxOutputTokens: input.maxOutputTokens ?? 8_000,
+                  timeout: input.timeoutMs,
+                  abortSignal,
+                  headers: { 'Idempotency-Key': input.idempotencyKey },
+                })
+              : generateUnvalidatedJson({
+                  model: adapter.getModel(),
+                  schema: input.schema,
+                  schemaName,
+                  system: input.system,
+                  prompt: input.prompt,
+                  idempotencyKey: input.idempotencyKey,
+                  maxOutputTokens: input.maxOutputTokens ?? 8_000,
+                  fallbackToTextJson: input.fallbackToTextJson,
+                  timeoutMs: input.timeoutMs,
+                  abortSignal,
+                  generateText: dependencies.generateText,
+                })
+          ));
+        } catch (error) {
+          if (
+            input.fallbackToTextJson
+            && error instanceof SmartLessonPlanError
+            && error.code === 'advisory-provider-timeout'
+          ) {
+            throw new NoOutputGeneratedError();
+          }
+          throw error;
+        }
         const normalized = normalizeSmartLessonProviderOutput(result.object);
         const output = input.deferValidation ? normalized : input.schema.parse(normalized);
         return {

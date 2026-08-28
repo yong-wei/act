@@ -257,6 +257,26 @@ describe('smart lesson structured provider runtime', () => {
     vi.restoreAllMocks();
   });
 
+  it('maps a hanging JSON-fallback provider window to empty output instead of advisory timeout', async () => {
+    const generateText = vi.fn(() => new Promise<never>(() => undefined));
+    const runtime = await resolveSmartLessonStructuredProvider({
+      resolveConfig: vi.fn(async () => config) as never,
+      generateText: generateText as never,
+    });
+
+    await expect(runtime.generate({
+      schema: smartLessonAdvisoryReviewSchema,
+      schemaVersion: 'review.v1',
+      promptVersion: 'prompt.v1',
+      system: 'system',
+      prompt: 'prompt',
+      idempotencyKey: 'provider-window-hang-1',
+      fallbackToTextJson: true,
+      timeoutMs: 20,
+    })).rejects.toBeInstanceOf(NoOutputGeneratedError);
+    expect(generateText).toHaveBeenCalledTimes(1);
+  });
+
   it('skips JSON fallback when the structured request consumed the provider window', async () => {
     let now = 1_000_000;
     vi.spyOn(Date, 'now').mockImplementation(() => now);

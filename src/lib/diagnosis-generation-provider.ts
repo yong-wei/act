@@ -16,6 +16,7 @@ import {
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
+import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
 import {
   resolveSmartLessonStructuredProvider,
   TextJsonFallbackOutputError,
@@ -263,7 +264,10 @@ export async function generateGovernedDiagnosisReport(
       timeoutMs: DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
     });
   } catch (error) {
-    if (error instanceof TextJsonFallbackOutputError) {
+    if (
+      error instanceof TextJsonFallbackOutputError
+      || (error instanceof SmartLessonPlanError && error.code === 'advisory-provider-timeout')
+    ) {
       throw new DiagnosisGenerationProviderEmptyOutputError();
     }
     throw error;

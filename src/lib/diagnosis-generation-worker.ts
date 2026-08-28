@@ -21,10 +21,20 @@ import { prisma } from '@/lib/prisma';
 export const DIAGNOSIS_GENERATION_QUEUE = 'teacher-diagnosis-generation';
 let worker: Worker<{ jobId: string }> | null = null;
 
+function isProviderWindowTimeout(error: unknown) {
+  return Boolean(
+    error
+    && typeof error === 'object'
+    && 'code' in error
+    && (error as { code?: unknown }).code === 'advisory-provider-timeout',
+  );
+}
+
 function classifyDiagnosisGenerationFailure(error: unknown) {
   if (
     error instanceof DiagnosisGenerationProviderEmptyOutputError
     || NoOutputGeneratedError.isInstance(error)
+    || isProviderWindowTimeout(error)
   ) {
     return {
       validation: false,
@@ -129,6 +139,7 @@ export async function processDiagnosisGenerationJob(
 }
 
 function isTimeout(error: unknown) {
+  if (isProviderWindowTimeout(error)) return false;
   return error instanceof Error && /timeout|timed out|aborted/i.test(`${error.name} ${error.message}`);
 }
 
