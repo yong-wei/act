@@ -52,6 +52,13 @@ export interface ResourceLauncherDescriptor {
   launcherRef?: string;
 }
 
+export type SafeConfigValue =
+  | string
+  | number
+  | boolean
+  | readonly SafeConfigValue[]
+  | { readonly [key: string]: SafeConfigValue };
+
 export interface ResourceDescriptor {
   identity: ResourceIdentity;
   title: string;
@@ -61,7 +68,7 @@ export interface ResourceDescriptor {
   status: string;
   foreignRefs: ResourceForeignRefs;
   launcher: ResourceLauncherDescriptor | null;
-  safeConfig?: Record<string, string | number | boolean>;
+  safeConfig?: { readonly [key: string]: SafeConfigValue };
 }
 
 export interface IndexedResourceAccess {
@@ -99,7 +106,7 @@ export interface AdapterRecord {
   foreignRefs: ResourceForeignRefs;
   launcher: ResourceLauncherDescriptor | null;
   access?: IndexedResourceAccess;
-  safeConfig?: Record<string, string | number | boolean>;
+  safeConfig?: { readonly [key: string]: SafeConfigValue };
 }
 
 export interface SourceAdapterResult {

@@ -1,4 +1,4 @@
-import { canonicalStringify, sha256Canonical } from './canonical';
+import { canonicalStringify, compareCanonicalStrings, sha256Canonical } from './canonical';
 import { ResourceRegistryIndexError } from './errors';
 import { buildResourceIdentity, compareResourceIdentities } from './identity';
 import {
@@ -121,6 +121,11 @@ function validateAdapter(result: SourceAdapterResult): void {
       sourceKind: result.sourceKind,
     });
   }
+  if (!result.capture.sharedRevision || result.capture.sharedRevision.trim().length === 0) {
+    fail('MISSING_CAPTURE', `Adapter ${result.sourceKind} omitted a capture revision.`, {
+      sourceKind: result.sourceKind,
+    });
+  }
   if (result.capture.sourceKind !== result.sourceKind || result.capture.adapterVersion !== result.adapterVersion) {
     fail('IDENTITY_MISMATCH', `Adapter ${result.sourceKind} capture identity drifted from the adapter contract.`, {
       sourceKind: result.sourceKind,
@@ -198,26 +203,15 @@ export function buildResourceRegistryIndex(adapters: readonly SourceAdapter[]): 
   }
 
   entries.sort((left, right) => compareResourceIdentities(left.descriptor.identity, right.descriptor.identity));
-  captures.sort((left, right) => left.sourceKind.localeCompare(right.sourceKind)
-    || left.owner.localeCompare(right.owner)
-    || left.inputDigest.localeCompare(right.inputDigest));
+  captures.sort((left, right) => compareCanonicalStrings(left.sourceKind, right.sourceKind)
+    || compareCanonicalStrings(left.owner, right.owner)
+    || compareCanonicalStrings(left.inputDigest, right.inputDigest));
 
   const body = {
     contract: RESOURCE_REGISTRY_INDEX_CONTRACT,
     generatorVersion: RESOURCE_REGISTRY_INDEX_GENERATOR_VERSION,
     captures,
-    entries: entries.map((entry) => ({
-      identity: entry.descriptor.identity,
-      launcher: entry.descriptor.launcher,
-      availability: entry.descriptor.availability,
-      availabilityCode: entry.descriptor.availabilityCode,
-      foreignRefs: entry.descriptor.foreignRefs,
-      title: entry.descriptor.title,
-      type: entry.descriptor.type,
-      status: entry.descriptor.status,
-      safeConfig: entry.descriptor.safeConfig ?? null,
-      required: entry.required,
-    })),
+    entries,
   };
   const digest = sha256Canonical(body);
   const identity = sha256Canonical({

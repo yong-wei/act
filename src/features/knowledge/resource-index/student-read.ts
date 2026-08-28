@@ -1,4 +1,4 @@
-import type { RegistryIndex } from './types';
+import type { RegistryIndex, SafeConfigValue } from './types';
 import { RENDER_METADATA_SOURCE_KIND } from './types';
 import { getLiveResourceRegistryIndex } from './sources';
 import { resolveIndexedResource } from './resolve';
@@ -14,7 +14,7 @@ export interface StudentIndexedResourceRead {
   displayName: string;
   displayOrder: 0;
   teacherOnly: false;
-  config: Record<string, string | number | boolean>;
+  config: Record<string, SafeConfigValue>;
   aiHints: null;
   authorId: 'resource-registry';
   createdAt: string;

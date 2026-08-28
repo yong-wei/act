@@ -6,6 +6,7 @@ import {
   type IndexedResourceAccess,
   type ResourceAvailability,
   type ResourceLauncherDescriptor,
+  type SafeConfigValue,
   type SourceAdapterResult,
 } from '../types';
 
@@ -28,17 +29,35 @@ export interface RenderMetadataRecord {
 const UNSAFE_CONFIG_KEYS = /path|url|hash|secret|token|component/i;
 const FILE_OR_MODULE_PATH = /(?:^|\/)src\/|\.(?:tsx?|jsx?|cjs|mjs)$/;
 
-function asSafeConfig(config: Record<string, unknown> | undefined): Record<string, string | number | boolean> | undefined {
-  if (!config) return undefined;
-  const safe: Record<string, string | number | boolean> = {};
-  for (const [key, value] of Object.entries(config)) {
-    if (UNSAFE_CONFIG_KEYS.test(key)) continue;
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-      if (typeof value === 'string' && FILE_OR_MODULE_PATH.test(value)) continue;
-      safe[key] = value;
-    }
+function projectSafeConfigValue(value: unknown): SafeConfigValue | undefined {
+  if (typeof value === 'string') {
+    return FILE_OR_MODULE_PATH.test(value) ? undefined : value;
   }
-  return Object.keys(safe).length > 0 ? safe : undefined;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => projectSafeConfigValue(item))
+      .filter((item): item is SafeConfigValue => item !== undefined);
+  }
+  if (value && typeof value === 'object') {
+    const nested: Record<string, SafeConfigValue> = {};
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (UNSAFE_CONFIG_KEYS.test(key)) continue;
+      const projected = projectSafeConfigValue(child);
+      if (projected !== undefined) nested[key] = projected;
+    }
+    return Object.keys(nested).length > 0 ? nested : undefined;
+  }
+  return undefined;
+}
+
+function asSafeConfig(config: Record<string, unknown> | undefined): { readonly [key: string]: SafeConfigValue } | undefined {
+  if (!config) return undefined;
+  const projected = projectSafeConfigValue(config);
+  if (!projected || typeof projected !== 'object' || Array.isArray(projected)) return undefined;
+  return projected as { readonly [key: string]: SafeConfigValue };
 }
 
 function launcherFor(record: RenderMetadataRecord): ResourceLauncherDescriptor | null {

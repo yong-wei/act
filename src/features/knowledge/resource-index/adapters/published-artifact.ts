@@ -54,6 +54,13 @@ export function createPublishedArtifactAdapter(input: {
         { artifactRef: record.artifactRef },
       );
     }
+    if (record.required === true && record.present !== false && !record.launcherRef) {
+      throw new ResourceRegistryIndexError(
+        'MISSING_REQUIRED_FIELD',
+        `Required published artifact ${record.artifactRef} omitted launcherRef.`,
+        { artifactRef: record.artifactRef },
+      );
+    }
   }
   const records: AdapterRecord[] = input.records.map((record) => {
     const availability = availabilityFor(record);
@@ -79,13 +86,7 @@ export function createPublishedArtifactAdapter(input: {
             contractVersion: 'published-artifact.v1',
             launcherRef: record.launcherRef,
           }
-        : (record.required === true
-          ? {
-              contractClass: 'published-artifact',
-              contractVersion: 'published-artifact.v1',
-              launcherRef: record.artifactRef,
-            }
-          : null),
+        : null,
     };
   });
 

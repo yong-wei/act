@@ -17,6 +17,12 @@ export function canonicalStringify(value: unknown): string {
   return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalStringify(record[key])}`).join(',')}}`;
 }
 
+export function compareCanonicalStrings(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
 export function sha256Canonical(value: unknown): string {
   return createHash('sha256').update(canonicalStringify(value)).digest('hex');
 }

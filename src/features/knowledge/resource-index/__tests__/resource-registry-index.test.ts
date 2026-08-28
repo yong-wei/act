@@ -13,6 +13,7 @@ import { createResourceNodeAdapter } from '../adapters/resource-node';
 import { buildResourceRegistryIndex, serializeResourceRegistryIndex } from '../builder';
 import { canonicalStringify } from '../canonical';
 import { ResourceRegistryIndexError } from '../errors';
+import { buildResourceIdentity, compareResourceIdentities } from '../identity';
 import { resolveIndexedResource } from '../resolve';
 import { resolveLiveResourceIndexRevision } from '../revision';
 import {
@@ -116,6 +117,31 @@ describe('resource registry index', () => {
     });
     expect(entry.descriptor.safeConfig).toEqual({ mode: 'three-band' });
     expect(JSON.stringify(entry.descriptor)).not.toMatch(/src\/lib|secret\.ts/);
+  });
+
+  it('preserves nested safe config arrays for student reads', () => {
+    const index = buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        sharedRevision: SHARED,
+        records: [metadata({
+          id: 'widget-physics-mech',
+          label: 'Physics Builder (Mechanical)',
+          defaultConfig: {
+            mode: 'mechanical',
+            items: ['mass', 'spring', 'damper', 'force'],
+            sourcePathOrUrl: 'src/lib/secret.ts',
+          },
+        })],
+      }),
+    ]);
+    expect(index.entries[0].descriptor.safeConfig).toEqual({
+      mode: 'mechanical',
+      items: ['mass', 'spring', 'damper', 'force'],
+    });
+    expect(projectStudentReadFromIndex(index, 'widget-physics-mech')?.config).toEqual({
+      mode: 'mechanical',
+      items: ['mass', 'spring', 'damper', 'force'],
+    });
   });
 
   it('keeps lookalike labels in distinct source kinds instead of merging', () => {
@@ -224,6 +250,54 @@ describe('resource registry index', () => {
     ])).toThrowError(/omitted its owner/);
   });
 
+  it('fails closed when a mutable adapter omits capture revision', () => {
+    expect(() => buildResourceRegistryIndex([
+      createRenderMetadataAdapter({
+        records: [metadata({ id: 'no-revision' })],
+      }),
+    ])).toThrowError(/omitted a capture revision/);
+  });
+
+  it('issues a new index identity when access projection drifts', () => {
+    const record = {
+      sourceRef: 'n',
+      sourceVersion: 'render-metadata.v1',
+      contentHash: 'hash',
+      scope: 'registry',
+      title: 'n',
+      type: 'INTERACTIVE_COMP',
+      required: true,
+      availability: 'available' as const,
+      availabilityCode: 'available',
+      status: '可用。',
+      foreignRefs: { registryId: 'n' },
+      launcher: {
+        contractClass: 'render-registry',
+        contractVersion: 'resource-registry.v1',
+        launcherRef: 'n',
+      },
+    };
+    const adapter = (teacherPolicy: string) => () => ({
+      owner: 'resource-registry-metadata',
+      sourceKind: RENDER_METADATA_SOURCE_KIND,
+      adapterVersion: 'render-metadata.v1',
+      capture: {
+        owner: 'resource-registry-metadata',
+        sourceKind: RENDER_METADATA_SOURCE_KIND,
+        adapterVersion: 'render-metadata.v1',
+        inputDigest: 'same-input',
+        recordCount: 1,
+        sharedRevision: SHARED,
+      },
+      records: [{ ...record, access: { teacherPolicy } }],
+    });
+    const first = buildResourceRegistryIndex([adapter('allowed')]);
+    const second = buildResourceRegistryIndex([adapter('teacher-only')]);
+    expect(serializeResourceRegistryIndex(first)).not.toBe(serializeResourceRegistryIndex(second));
+    expect(second.digest).not.toBe(first.digest);
+    expect(second.identity).not.toBe(first.identity);
+  });
+
   it('keeps unrelated entries when an optional published artifact is missing', () => {
     const index = buildResourceRegistryIndex([
       createRenderMetadataAdapter({
@@ -265,6 +339,39 @@ describe('resource registry index', () => {
         present: false,
       }],
     })).toThrow(ResourceRegistryIndexError);
+  });
+
+  it('does not synthesize a launcher from artifactRef', () => {
+    expect(() => createPublishedArtifactAdapter({
+      owner: 'runtime-release',
+      sharedRevision: SHARED,
+      records: [{
+        artifactRef: 'required-media',
+        title: '必选媒体',
+        type: 'video',
+        contentHash: 'present',
+        sourceVersion: 'media.v1',
+        scope: 'required',
+        required: true,
+      }],
+    })).toThrow(/omitted launcherRef/);
+
+    const index = buildResourceRegistryIndex([
+      createPublishedArtifactAdapter({
+        owner: 'runtime-release',
+        sharedRevision: SHARED,
+        records: [{
+          artifactRef: 'optional-media',
+          title: '可选媒体',
+          type: 'video',
+          contentHash: 'present',
+          sourceVersion: 'media.v1',
+          scope: 'optional',
+        }],
+      }),
+    ]);
+    expect(index.entries[0].descriptor.launcher).toBeNull();
+    expect(index.entries[0].descriptor.availability).toBe('unavailable');
   });
 
   it('does not treat registryId as a TeachingResource or Canonical alias', () => {
@@ -478,5 +585,23 @@ describe('resource registry index', () => {
     const first = getLiveResourceRegistryIndex();
     const second = getLiveResourceRegistryIndex();
     expect(second).toBe(first);
+  });
+
+  it('orders identities by locale-independent code-unit comparison', () => {
+    const z = buildResourceIdentity({
+      sourceKind: RENDER_METADATA_SOURCE_KIND,
+      sourceRef: 'z',
+      sourceVersion: 'v',
+      contentHash: 'h',
+      scope: 's',
+    });
+    const auml = buildResourceIdentity({
+      sourceKind: RENDER_METADATA_SOURCE_KIND,
+      sourceRef: 'ä',
+      sourceVersion: 'v',
+      contentHash: 'h',
+      scope: 's',
+    });
+    expect(compareResourceIdentities(z, auml)).toBeLessThan(0);
   });
 });

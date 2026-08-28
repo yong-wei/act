@@ -1,4 +1,4 @@
-import { sha256Canonical } from './canonical';
+import { compareCanonicalStrings, sha256Canonical } from './canonical';
 import type { ResourceIdentity, ResourceIndexSourceKind } from './types';
 
 export interface ResourceIdentityInput {
@@ -28,10 +28,10 @@ export function buildResourceIdentity(input: ResourceIdentityInput): ResourceIde
 
 export function compareResourceIdentities(left: ResourceIdentity, right: ResourceIdentity): number {
   return [
-    left.sourceKind.localeCompare(right.sourceKind),
-    left.sourceRef.localeCompare(right.sourceRef),
-    left.sourceVersion.localeCompare(right.sourceVersion),
-    left.contentHash.localeCompare(right.contentHash),
-    left.scope.localeCompare(right.scope),
+    compareCanonicalStrings(left.sourceKind, right.sourceKind),
+    compareCanonicalStrings(left.sourceRef, right.sourceRef),
+    compareCanonicalStrings(left.sourceVersion, right.sourceVersion),
+    compareCanonicalStrings(left.contentHash, right.contentHash),
+    compareCanonicalStrings(left.scope, right.scope),
   ].find((value) => value !== 0) ?? 0;
 }
