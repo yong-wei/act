@@ -1,0 +1,7 @@
+{
+  "sourceRevision": "653b4a7cd0cedf3e70902411404f0c297cd00901",
+  "sourceTree": "89dd898c2a25f3f68a19fd15776cf1f1c9de3b34",
+  "inventoryDigest": "1823484f019f5d68ff14197cf187f75063c96d852bcb3e3eba0f64e483615884",
+  "conclusion": "Teacher and student assignment lifecycle routes call src/lib/assignments/public-api. Review routes remain the #1606 handoff. No assignment identities were deleted.",
+  "executed": false
+}

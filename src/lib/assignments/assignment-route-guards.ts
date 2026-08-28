@@ -48,7 +48,7 @@ export function assignmentErrorResponse(error: unknown): NextResponse {
   }
   if (error instanceof AssignmentDomainError) {
     const status = error.code.includes('forbidden') || error.code.includes('unauthorized') ? 403
-      : error.code === 'assignment-not-found' || error.code === 'draft-not-found' ? 404
+      : error.code === 'assignment-not-found' || error.code === 'draft-not-found' || error.code === 'catalog-source-not-found' ? 404
         : [
           'version-conflict',
           'publication-content-digest-mismatch',

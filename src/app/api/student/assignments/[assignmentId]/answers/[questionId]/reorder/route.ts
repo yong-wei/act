@@ -7,8 +7,7 @@ import {
   requireStudentActor,
   submissionErrorResponse,
 } from '@/lib/assignments/submission-route-guards';
-import { reorderQuestionAssets } from '@/lib/assignments/submission-service';
-import { prisma } from '@/lib/prisma';
+import { studentReorderQuestionAssets } from '@/lib/assignments/public-api';
 
 export async function PUT(
   request: Request,
@@ -21,8 +20,7 @@ export async function PUT(
   try {
     const ids = await params;
     const body = reorderAssetsSchema.parse(await readBoundedSubmissionJson(request));
-    const answer = await reorderQuestionAssets(prisma, {
-      studentId: auth.actor.id,
+    const answer = await studentReorderQuestionAssets(auth.actor, {
       ...ids,
       ...body,
     });

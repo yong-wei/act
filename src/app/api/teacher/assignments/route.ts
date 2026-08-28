@@ -3,8 +3,7 @@ import { z } from 'zod';
 
 import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { createAssignmentDraft, listTeacherAssignments } from '@/lib/assignments/assignment-service';
-import { prisma } from '@/lib/prisma';
+import { teacherCreateDraft, teacherListAssignments } from '@/lib/assignments/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +15,7 @@ const createSchema = z.object({
 export async function GET() {
   const auth = await requireAssignmentActor();
   if ('response' in auth) return auth.response;
-  const assignments = await listTeacherAssignments(prisma, auth.actor);
+  const assignments = await teacherListAssignments(auth.actor);
   return NextResponse.json({ assignments });
 }
 
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
   if (blocked) return blocked;
   try {
     const input = createSchema.parse(await readBoundedAssignmentJson(request));
-    const assignment = await createAssignmentDraft(prisma, { actor: auth.actor, ...input });
+    const assignment = await teacherCreateDraft(auth.actor, input);
     return NextResponse.json({ assignment }, { status: 201 });
   } catch (error) {
     return assignmentErrorResponse(error);

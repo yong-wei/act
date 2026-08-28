@@ -6,12 +6,8 @@ import {
   requireAssignmentActor,
   requireAssignmentMutation,
 } from '@/lib/assignments/assignment-route-guards';
-import {
-  assignmentContentAssetUploadSchema,
-  signAssignmentContentAssetUpload,
-} from '@/lib/assignments/assignment-content-assets';
+import { assignmentContentAssetUploadSchema, teacherSignContentAssetUpload } from '@/lib/assignments/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,13 +24,7 @@ export async function POST(
     const upload = assignmentContentAssetUploadSchema.parse(
       await readBoundedAssignmentJson(request),
     );
-    return NextResponse.json(await signAssignmentContentAssetUpload(prisma, {
-      ...auth,
-      actorId: auth.actor.id,
-      actorRole: auth.actor.role,
-      assignmentId,
-      upload,
-    }));
+    return NextResponse.json(await teacherSignContentAssetUpload(auth.actor, assignmentId, upload));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return assignmentErrorResponse(error);
