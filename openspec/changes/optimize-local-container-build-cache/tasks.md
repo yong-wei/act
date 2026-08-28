@@ -21,5 +21,5 @@
 
 - [x] 4.1 Run the new build-cache tests plus existing Docker migration, runtime externalization, optimized-model, runtime-blob, and remote-deploy contract tests.
 - [x] 4.2 Run `openspec validate optimize-local-container-build-cache --type change --strict`, `npm run typecheck`, and shell syntax checks.
-- [ ] 4.3 Build runner-os once against an isolated test cache and repeat it to record a real CACHED result without publishing or deploying an application image.
+- [x] 4.3 Build runner-os once against an isolated test cache and repeat it to record a real CACHED result without publishing or deploying an application image.
 - [ ] 4.4 On a clean committed revision, run one full local app-only release image build and verify OCI revision, tar SHA-256, provenance sidecar, Chromium, and LibreOffice; do not deploy.
