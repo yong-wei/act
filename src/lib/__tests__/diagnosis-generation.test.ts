@@ -25,6 +25,8 @@ import {
   claimDiagnosisGenerationAttempt,
   DiagnosisGenerationOutputValidationError,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
+  DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
+  DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
   diagnosisGenerationRequestSchema,
   projectDiagnosisGenerationJob,
   retryDiagnosisGenerationJob,
@@ -36,6 +38,7 @@ import {
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
+import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
 import {
   digestDiagnosisGovernedInput,
   preflightDiagnosisGeneration,
@@ -319,6 +322,22 @@ describe('teacher diagnosis generation contracts', () => {
     });
   });
 
+  it('maps a provider-window timeout to the retryable empty-output failure', async () => {
+    providerGenerate.mockRejectedValueOnce(new SmartLessonPlanError('advisory-provider-timeout', 503));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-provider-window-timeout-1',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    })).rejects.toBeInstanceOf(DiagnosisGenerationProviderEmptyOutputError);
+  });
+
   it('maps an unusable text fallback to the retryable empty-output failure', async () => {
     providerGenerate.mockRejectedValueOnce(new TextJsonFallbackOutputError());
 
@@ -540,6 +559,29 @@ describe('teacher diagnosis generation contracts', () => {
         failureCode: 'diagnosis-output-invalid',
         retryable: false,
       }),
+    }));
+  });
+
+  it('records provider-window timeout as empty-output instead of task timeout', async () => {
+    const providerTimeout = new SmartLessonPlanError('advisory-provider-timeout', 503);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw providerTimeout; },
+    )).rejects.toBe(providerTimeout);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-provider-empty-output',
+        errorMessage: '诊断模型未返回可用的结构化结果。',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
     }));
   });
 
@@ -877,6 +919,11 @@ describe('teacher diagnosis generation contracts', () => {
       where: { jobId: 'job-1', state: 'RUNNING' },
       data: expect.objectContaining({ state: 'TIMED_OUT', completedAt: now }),
     }));
+  });
+
+  it('keeps the provider generation window strictly inside the task window', () => {
+    expect(DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS).toBeLessThan(DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS);
+    expect(DIAGNOSIS_GENERATION_LOCK_DURATION_MS).toBeGreaterThanOrEqual(DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS);
   });
 
   it('reuses a newer active scope instead of reviving an older failed job into a uniqueness conflict', async () => {

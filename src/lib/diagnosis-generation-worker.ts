@@ -8,6 +8,7 @@ import {
   classifyDiagnosisGenerationOutputValidationError,
   completeDiagnosisGenerationJob,
   DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS,
+  DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
@@ -20,10 +21,20 @@ import { prisma } from '@/lib/prisma';
 export const DIAGNOSIS_GENERATION_QUEUE = 'teacher-diagnosis-generation';
 let worker: Worker<{ jobId: string }> | null = null;
 
+function isProviderWindowTimeout(error: unknown) {
+  return Boolean(
+    error
+    && typeof error === 'object'
+    && 'code' in error
+    && (error as { code?: unknown }).code === 'advisory-provider-timeout',
+  );
+}
+
 function classifyDiagnosisGenerationFailure(error: unknown) {
   if (
     error instanceof DiagnosisGenerationProviderEmptyOutputError
     || NoOutputGeneratedError.isInstance(error)
+    || isProviderWindowTimeout(error)
   ) {
     return {
       validation: false,
@@ -60,7 +71,7 @@ export async function ensureDiagnosisGenerationWorker(connection: Redis) {
     {
       connection: connection.duplicate({ maxRetriesPerRequest: null }),
       concurrency: 2,
-      lockDuration: DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS + 30_000,
+      lockDuration: DIAGNOSIS_GENERATION_LOCK_DURATION_MS,
       ...(queuePrefix() ? { prefix: queuePrefix() } : {}),
     },
   );
@@ -128,6 +139,7 @@ export async function processDiagnosisGenerationJob(
 }
 
 function isTimeout(error: unknown) {
+  if (isProviderWindowTimeout(error)) return false;
   return error instanceof Error && /timeout|timed out|aborted/i.test(`${error.name} ${error.message}`);
 }
 
