@@ -73,6 +73,7 @@ function memoryPointerDb(seed: CurrentPointerRecord | null = null): PointerWrite
       const next = pointer({
         ...existing,
         versionId: String(data.stateVersionId),
+        calculationVersion: String(data.calculationVersion),
         generation: data.generation as bigint,
         queueGeneration: data.queueGeneration as bigint,
         stateWatermark: data.stateWatermark as bigint,
@@ -151,6 +152,46 @@ describe('learning-record current projection publication', () => {
     expect(compareCurrentPointer(current, pointer({ inputDigest: 'other' }))).toBe(POINTER_MOVE.advance);
     expect(compareCurrentPointer(current, pointer())).toBe(POINTER_MOVE.duplicate);
     expect(compareCurrentPointer(current, pointer({ stateWatermark: 8n }))).toBe(POINTER_MOVE.advance);
+  });
+
+  it('advances current across an authorized calculationVersion cutover', () => {
+    const current = pointer();
+    expect(compareCurrentPointer(current, pointer({
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      generation: 8n,
+      stateWatermark: 0n,
+    }))).toBe(POINTER_MOVE.advance);
+    expect(compareCurrentPointer(current, pointer({
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      cutoverFence: 5n,
+      stateWatermark: 1n,
+    }))).toBe(POINTER_MOVE.advance);
+    expect(compareCurrentPointer(current, pointer({
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      generation: 6n,
+    }))).toBe(POINTER_MOVE.stale);
+    expect(compareCurrentPointer(current, pointer({
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      cutoverFence: 3n,
+    }))).toBe(POINTER_MOVE.stale);
+  });
+
+  it('publishes a fenced calculationVersion switch onto current', async () => {
+    const db = memoryPointerDb(pointer());
+    const published = await publishCurrentPointer(db, pointer({
+      versionId: 'ver-cutover',
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      generation: 8n,
+      cutoverFence: 5n,
+      stateWatermark: 0n,
+    }));
+    expect(published.move).toBe(POINTER_MOVE.advance);
+    expect(db.rows.get('student-1')).toMatchObject({
+      versionId: 'ver-cutover',
+      calculationVersion: 'portrait-v2.cumulative.v3',
+      generation: 8n,
+      cutoverFence: 5n,
+    });
   });
 
   it('publishes create then refuses a concurrent stale write', async () => {

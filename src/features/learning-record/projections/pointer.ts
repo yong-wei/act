@@ -11,6 +11,12 @@ export function compareCurrentPointer(
 ): PointerMove {
   if (!current) return POINTER_MOVE.create;
   if (current.calculationVersion !== candidate.calculationVersion) {
+    // Watermarks are not comparable across calculation versions. Only a strictly
+    // newer generation or cutover fence records an authorized rebase.
+    if (candidate.generation < current.generation) return POINTER_MOVE.stale;
+    if (candidate.generation > current.generation) return POINTER_MOVE.advance;
+    if (candidate.cutoverFence < current.cutoverFence) return POINTER_MOVE.stale;
+    if (candidate.cutoverFence > current.cutoverFence) return POINTER_MOVE.advance;
     return POINTER_MOVE.conflict;
   }
   if (candidate.generation < current.generation) return POINTER_MOVE.stale;

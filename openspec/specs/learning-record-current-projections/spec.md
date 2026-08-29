@@ -41,6 +41,11 @@ The system SHALL publish the immutable version and current pointer with an atomi
 - **WHEN** two qualified candidates publish concurrently for one subject
 - **THEN** exactly one fence-valid current pointer is visible and the losing result is auditable
 
+#### Scenario: Authorized calculation version cutover
+
+- **WHEN** a fence-valid candidate records a new `calculationVersion` together with a strictly newer generation or cutover fence
+- **THEN** current advances to that candidate; a same-fence version split remains a conflict and does not overwrite current
+
 ### Requirement: Failure preserves qualified current
 
 Projection failure, stale input, insufficient evidence, unavailable dependency or conflict SHALL preserve the previous qualified current and expose an explicit status/reason. If no qualified current exists, the read port SHALL return unavailable rather than scanning raw events or fabricating zero values.
