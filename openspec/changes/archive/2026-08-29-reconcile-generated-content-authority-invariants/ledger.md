@@ -36,3 +36,10 @@
 ## 5. 与 #1583 的关系
 
 统一 LearningFact 摄取管线（#1583，已合并 integration）是 LearningFact 权威写路径的域内实现；本矩阵把 `canonical-learning-fact-identity/writer.ts` 与 `learning-fact-materialization.ts` 列为全域生成模块的禁止 sink——两个治理层互不隶属、方向一致。
+
+## Codex feedback 修复（2026-08-29，PR #1693）
+
+1. **P1 证据摘要完备性**：`rowEvidencePaths` 纳入 `denominator.tests` 与 `denominator.scripts`；目录类证据（smart-lesson/smart-courseware `__tests__`）递归散列每个文件内容——测试被删除/弱化/新增必然改变 `evidenceDigest`。
+2. **P1 回执值结构校验**：QA 回执形状对象（outputHash+toolVersion 同时在场）的 reference/outputHash/toolVersion/revision 必须匹配无空白结构化格式（`unstructured-payload-value` 违例）；自由文本载荷（原始回答、用户标识、模型输出）fail-closed。矩阵描述性 reference 字段不受影响。
+3. **P1 允许边收窄**：`DECLARED_CROSS_DOMAIN_IMPORT_PATHS` 从目录前缀收窄到具体公共契约文件（smart-lesson-plan 的 domain.ts/schema.ts）；courseware 生成模块 import `approveSmartLessonDraft` 等权威函数即违例。
+4. **P2 import 解析完备**：superdomain/sink/跨域扫描改用自带规范化解析器（@/ 别名 + posix 归一化相对路径 + TS 扩展名候选），相对路径深 import（`../../lib/generated-content-authority/matrix`）同样可判定。

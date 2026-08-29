@@ -33,6 +33,14 @@ export interface PrivacyViolation {
   readonly reason: string;
 }
 
+/**
+ * 回执结构化字段（reference/outputHash/toolVersion/revision）允许的格式：
+ * 无空白、无自由文本的引用/哈希/版本串。原始模型响应、学生答案、
+ * 用户标识等自由载荷不可能满足该格式，从而在值层面 fail-closed。
+ */
+const STRUCTURED_VALUE_PATTERN = /^[A-Za-z0-9_@\[\].!~/:+~-]{1,200}$/u;
+const STRUCTURED_VALUE_KEYS = new Set(['reference', 'outputHash', 'toolVersion', 'revision']);
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -64,6 +72,22 @@ export function scanReceiptPrivacyViolations(
       if (typeof node === 'string') {
         const reason = checkValue(node);
         if (reason) violations.push({ path, reason });
+      }
+      return;
+    }
+    // QA 回执形状（outputHash+toolVersion 同时在场）：其结构化字段必须满足
+    // 无空白引用/哈希/版本格式——自由文本载荷（原始回答、用户标识等）fail-closed。
+    // 矩阵描述性 reference 字段不在回执形状内，不受此约束。
+    if ('outputHash' in node && 'toolVersion' in node) {
+      for (const [receiptKey, receiptValue] of Object.entries(node)) {
+        if (!STRUCTURED_VALUE_KEYS.has(receiptKey) || typeof receiptValue !== 'string' || receiptValue.length === 0) continue;
+        if (!STRUCTURED_VALUE_PATTERN.test(receiptValue)) {
+          violations.push({ path: `${path}.${receiptKey}`, reason: 'unstructured-payload-value' });
+        }
+      }
+      for (const [receiptKey, receiptValue] of Object.entries(node)) {
+        if (STRUCTURED_VALUE_KEYS.has(receiptKey)) continue;
+        walk(receiptValue, `${path}.${receiptKey}`);
       }
       return;
     }

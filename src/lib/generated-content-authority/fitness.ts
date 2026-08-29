@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, normalize, posix, resolve } from 'node:path';
 
-import { extractSpecifiers, resolveImport } from '@/lib/architecture-census/imports';
+import { extractSpecifiers } from '@/lib/architecture-census/imports';
 
 import { scanReceiptPrivacyViolations } from './privacy';
 import {
@@ -46,6 +46,40 @@ function emptyFindings(): InvariantFindings {
 function failInvariant(findings: InvariantFindings, invariant: GeneratedContentInvariant, reason: string): void {
   findings[invariant].status = 'NOT_QUALIFIED';
   findings[invariant].reasons.push(reason);
+}
+
+
+const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx?)$/iu;
+
+function candidatePaths(target: string): string[] {
+  if (SOURCE_EXTENSION.test(target)) return [target];
+  return [
+    target,
+    `${target}.ts`,
+    `${target}.tsx`,
+    `${target}.js`,
+    `${target}.mjs`,
+    `${target}/index.ts`,
+    `${target}/index.tsx`,
+    `${target}/index.js`,
+  ];
+}
+
+/**
+ * 规范化 import 解析：@/ → src/，相对路径经 posix.normalize 折叠 '..'，
+ * 然后按 TS 扩展名候选匹配 tracked 文件集。census 的 resolveImport 不折叠
+ * '..' 段，这里自行实现以保证相对路径深 import 也可判定。
+ */
+function resolveSpecifier(fromPath: string, specifier: string, tracked: ReadonlySet<string>): string | null {
+  let base: string;
+  if (specifier.startsWith('@/')) {
+    base = `src/${specifier.slice(2)}`;
+  } else if (specifier.startsWith('.')) {
+    base = normalize(posix.join(posix.dirname(fromPath.split('\\').join('/')), specifier));
+  } else {
+    return null;
+  }
+  return candidatePaths(base).find((candidate) => tracked.has(candidate)) ?? null;
 }
 
 function gitLsFiles(repoRoot: string): Set<string> {
@@ -131,6 +165,8 @@ function rowEvidencePaths(row: GeneratedContentAuthorityRow): string[] {
     ...row.denominator.routes,
     ...row.denominator.workers,
     ...row.denominator.callers,
+    ...row.denominator.tests,
+    ...row.denominator.scripts,
     ...row.generationModules,
     ...row.forbiddenSinkModules,
   ];
@@ -146,6 +182,27 @@ function rowEvidencePaths(row: GeneratedContentAuthorityRow): string[] {
  * 证据文件内容摘要：对矩阵全部被引用证据文件按路径排序后做 sha256。
  * 绑定判定用（HEAD 移动不影响；证据文件真实漂移才 STALE）。
  */
+export /** 递归散列目录内容（相对路径 + 每文件 sha256），目录内容变化必然改变摘要。 */
+function hashDirectoryRecursively(
+  hash: ReturnType<typeof createHash>,
+  repoRoot: string,
+  absoluteDir: string,
+  displayRoot: string,
+): void {
+  const entries = readdirSync(absoluteDir, { withFileTypes: true })
+    .filter((entry) => entry.name !== '.gitkeep')
+    .sort((left, right) => left.name.localeCompare(right.name));
+  for (const entry of entries) {
+    const absolute = join(absoluteDir, entry.name);
+    const display = `${displayRoot}/${entry.name}`;
+    if (entry.isDirectory()) {
+      hashDirectoryRecursively(hash, repoRoot, absolute, display);
+    } else if (entry.isFile()) {
+      hash.update(`${display}:${createHash('sha256').update(readFileSync(absolute)).digest('hex')}\n`);
+    }
+  }
+}
+
 export function computeEvidenceDigest(repoRoot: string, rows: readonly GeneratedContentAuthorityRow[]): string {
   const hash = createHash('sha256');
   for (const row of rows) {
@@ -153,7 +210,11 @@ export function computeEvidenceDigest(repoRoot: string, rows: readonly Generated
       const absolute = join(repoRoot, path);
       let marker = 'MISSING';
       if (existsSync(absolute)) {
-        marker = statSync(absolute).isDirectory() ? 'DIR' : createHash('sha256').update(readFileSync(absolute)).digest('hex');
+        if (statSync(absolute).isDirectory()) {
+          hashDirectoryRecursively(hash, repoRoot, absolute, path);
+          continue;
+        }
+        marker = createHash('sha256').update(readFileSync(absolute)).digest('hex');
       }
       hash.update(`${path}:${marker}`);
       hash.update('\n');
@@ -187,9 +248,8 @@ export function scanAuthoritySinkImports(
     if (!existsSync(absolute)) continue;
     const content = readFileSync(absolute, 'utf8');
     for (const specifier of extractSpecifiers(modulePath, content)) {
-      const resolved = resolveImport(modulePath, specifier, names);
-      if (resolved.external || !resolved.to) continue;
-      const target = resolved.to.replace(/^\.\//u, '');
+      const target = resolveSpecifier(modulePath, specifier, names);
+      if (!target) continue;
       if (forbidden.has(target) && !seen.has(`${modulePath}->${target}`)) {
         seen.add(`${modulePath}->${target}`);
         blocked.push({ module: target, importedBy: modulePath });
@@ -223,14 +283,13 @@ export function scanUndeclaredCrossDomainImports(
       if (!existsSync(absolute)) continue;
       const content = readFileSync(absolute, 'utf8');
       for (const specifier of extractSpecifiers(modulePath, content)) {
-        const resolved = resolveImport(modulePath, specifier, names);
-        if (resolved.external || !resolved.to) continue;
-        const target = resolved.to.replace(/^\.\//u, '');
+        const target = resolveSpecifier(modulePath, specifier, names);
+        if (!target) continue;
         if (!domainRoots.some(({ root }) => target.startsWith(root))) continue;
         const targetDomain = domainRoots.find(({ root }) => target.startsWith(root))?.domain;
         if (!targetDomain || targetDomain === domain) continue;
         const declared = DECLARED_CROSS_DOMAIN_IMPORT_PATHS.some((allowed) => (
-          modulePath.startsWith(allowed.from) && target.startsWith(allowed.toPrefix)
+          modulePath.startsWith(allowed.from) && allowed.toModules.includes(target)
         ));
         if (!declared) {
           violations.push(`undeclared cross-domain import: ${modulePath} -> ${target} (${domain} -> ${targetDomain})`);
@@ -241,10 +300,11 @@ export function scanUndeclaredCrossDomainImports(
   return violations;
 }
 
-/** no-superdomain：产品代码不得 import 治理矩阵模块；Prisma 不得声明共享候选/状态模型。 */
+/** no-superdomain：产品代码不得 import 治理矩阵模块（含相对路径写法）；Prisma 不得声明共享候选/状态模型。 */
 export function scanSuperdomainViolations(repoRoot: string): string[] {
   const violations: string[] = [];
-  const names = Array.from(gitLsFiles(repoRoot)).filter((path) => (
+  const tracked = gitLsFiles(repoRoot);
+  const names = Array.from(tracked).filter((path) => (
     /^src\/.*\.[cm]?[jt]sx?$/u.test(path)
     && !path.startsWith('src/lib/generated-content-authority/')
     && !path.includes('__tests__')
@@ -252,8 +312,14 @@ export function scanSuperdomainViolations(repoRoot: string): string[] {
 
   for (const path of names) {
     const content = readFileSync(join(repoRoot, path), 'utf8');
-    if (/['"]@\/lib\/generated-content-authority/u.test(content)) {
-      violations.push(`product module imports the governance matrix (runtime authority attempt): ${path}`);
+    if (!content.includes('generated-content-authority')) continue;
+    for (const specifier of extractSpecifiers(path, content)) {
+      const target = resolveSpecifier(path, specifier, tracked);
+      if (!target) continue;
+      if (target.startsWith('src/lib/generated-content-authority/')) {
+        violations.push(`product module imports the governance matrix (runtime authority attempt): ${path}`);
+        break;
+      }
     }
   }
 

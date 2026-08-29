@@ -128,7 +128,22 @@ function writeFixtureTree(root: string, options: {
           : 'export {}\n');
       }
     }
+    // tests/scripts 分母按原始条目处理：目录条目（/ 结尾或无扩展名）建目录，其余建文件
+    const denominatorEntries = [...row.denominator.tests, ...row.denominator.scripts];
+    for (const entry of denominatorEntries) {
+      const clean = entry.replace(/\/+$/u, '');
+      if (!clean || !clean.includes('/')) continue;
+      const absolute = join(root, clean);
+      if (existsSync(absolute)) continue;
+      const isDirectory = entry.endsWith('/') || !/\.[a-z]+$/iu.test(clean);
+      mkdirSync(isDirectory ? absolute : join(absolute, '..'), { recursive: true });
+      if (!isDirectory) {
+        writeFileSync(absolute, 'export {}\n');
+      }
+    }
   }
+  mkdirSync(join(root, 'src/lib/generated-content-authority'), { recursive: true });
+  writeFileSync(join(root, 'src/lib/generated-content-authority/matrix.ts'), 'export const matrix = true;\n');
 }
 
 describe('generated content authority — receipt privacy scanning', () => {
@@ -163,6 +178,38 @@ describe('generated content authority — receipt privacy scanning', () => {
 
   it('accepts the committed matrix without privacy violations', () => {
     expect(scanReceiptPrivacyViolations(GENERATED_CONTENT_AUTHORITY_MATRIX, '$matrix')).toEqual([]);
+  });
+
+  it('enforces structured formats on QA receipt fields (fail-closed on free-text payloads)', () => {
+    const violations = scanReceiptPrivacyViolations({
+      qaReceipts: [
+        {
+          reference: 'student answer A — the model said the loop is stable',
+          outputHash: 'a'.repeat(64),
+          toolVersion: '1.0.0',
+          revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+          conclusion: 'PASS',
+        },
+        {
+          reference: 'artifacts/qa/run-1.har',
+          outputHash: 'b'.repeat(64),
+          toolVersion: 'playwright/1.2',
+          revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+          conclusion: 'PASS',
+        },
+        {
+          reference: 'user:42 answered incorrectly about gain margin',
+          outputHash: 'c'.repeat(64),
+          toolVersion: 'playwright/1.2',
+          revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+          conclusion: 'FAIL',
+        },
+      ],
+    });
+    const failed = violations.filter((violation) => violation.reason === 'unstructured-payload-value');
+    expect(failed).toHaveLength(2);
+    expect(failed[0].path).toContain('qaReceipts[0].reference');
+    expect(failed[1].path).toContain('qaReceipts[2].reference');
   });
 });
 
@@ -255,18 +302,20 @@ describe('generated content authority — fixture fitness checks', () => {
     }
   });
 
-  it('rejects undeclared cross-domain imports while allowing the declared smart-courseware → smart-lesson-plan edge', () => {
-    writeFileSync(join(root, 'src/lib/smart-lesson-plan/service.ts'),
-      "import { publishSmartCoursewareRevision } from '@/lib/smart-courseware/publication-service';\nexport const service = publishSmartCoursewareRevision;\n");
-    commitAll(root, 'introduce undeclared cross-domain import');
-    const violations = scanUndeclaredCrossDomainImports(root, {
+  it('narrows cross-domain edges to declared public contract modules', () => {
+    // courseware 生成模块 import smart-lesson-plan 的 service（权威函数）：窄边外 → 违例
+    writeFileSync(join(root, 'src/lib/smart-courseware/generation-service.ts'),
+      "import { approveSmartLessonDraft } from '@/lib/smart-lesson-plan/service';\nexport const generation = approveSmartLessonDraft;\n");
+    const authorityViolations = scanUndeclaredCrossDomainImports(root, {
       assessment: ['src/features/assessment/adaptive-engine.ts'],
       'assignment-rubric': ['src/lib/assignments/assignment-rubric-generation.ts'],
-      'smart-lesson': ['src/lib/smart-lesson-plan/service.ts'],
+      'smart-lesson': ['src/lib/smart-lesson-plan/provider-runtime.ts'],
       'smart-courseware': ['src/lib/smart-courseware/generation-service.ts'],
     });
-    expect(violations.some((violation) => violation.includes('smart-lesson-plan/service.ts -> src/lib/smart-courseware/publication-service.ts'))).toBe(true);
-    // 反向边（courseware → lesson-plan）是声明允许边，不产生违例
+    expect(authorityViolations.some((violation) => violation.includes('smart-lesson-plan/service.ts'))).toBe(true);
+    // 恢复为 domain/schema 公共契约 import：声明允许边内 → 无违例
+    writeFileSync(join(root, 'src/lib/smart-courseware/generation-service.ts'),
+      "import { domain } from '@/lib/smart-lesson-plan/domain';\nexport const generation = domain;\n");
     const clean = scanUndeclaredCrossDomainImports(root, {
       assessment: ['src/features/assessment/adaptive-engine.ts'],
       'assignment-rubric': ['src/lib/assignments/assignment-rubric-generation.ts'],
@@ -274,8 +323,19 @@ describe('generated content authority — fixture fitness checks', () => {
       'smart-courseware': ['src/lib/smart-courseware/generation-service.ts'],
     });
     expect(clean).toEqual([]);
+  });
+
+  it('rejects undeclared cross-domain imports from other domains', () => {
+    writeFileSync(join(root, 'src/lib/smart-lesson-plan/service.ts'),
+      "import { publishSmartCoursewareRevision } from '@/lib/smart-courseware/publication-service';\nexport const service = publishSmartCoursewareRevision;\n");
+    const violations = scanUndeclaredCrossDomainImports(root, {
+      assessment: ['src/features/assessment/adaptive-engine.ts'],
+      'assignment-rubric': ['src/lib/assignments/assignment-rubric-generation.ts'],
+      'smart-lesson': ['src/lib/smart-lesson-plan/service.ts'],
+      'smart-courseware': ['src/lib/smart-courseware/generation-service.ts'],
+    });
+    expect(violations.some((violation) => violation.includes('smart-lesson-plan/service.ts -> src/lib/smart-courseware/publication-service.ts'))).toBe(true);
     writeFileSync(join(root, 'src/lib/smart-lesson-plan/service.ts'), 'export const service = true;\n');
-    commitAll(root, 'restore declared-edge fixture');
   });
 
   it('rejects shared candidate models and product imports of the governance matrix', () => {
@@ -288,11 +348,39 @@ describe('generated content authority — fixture fitness checks', () => {
       const violations = scanSuperdomainViolations(root);
       expect(violations.some((violation) => violation.includes('forbidden shared model'))).toBe(true);
       expect(violations.some((violation) => violation.includes('runtime authority attempt'))).toBe(true);
+      // 相对路径 import 同样必须被解析识别
+      writeFileSync(join(root, 'src/features/assessment/product.ts'),
+        "import { GENERATED_CONTENT_AUTHORITY_MATRIX } from '../../lib/generated-content-authority/matrix';\nexport const uses = GENERATED_CONTENT_AUTHORITY_MATRIX;\n");
+      const relativeViolations = scanSuperdomainViolations(root);
+      expect(relativeViolations.some((violation) => violation.includes('runtime authority attempt'))).toBe(true);
     } finally {
       writeFileSync(join(root, 'prisma/schema.prisma'), originalSchema);
       writeFileSync(join(root, 'src/features/assessment/product.ts'), originalProduct);
       commitAll(root, 'restore superdomain fixtures');
     }
+  });
+
+  it('includes denominator test evidence and directory content in the evidence digest', () => {
+    const before = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
+    // 声明的测试证据文件被弱化 → 摘要变化
+    const assessmentTestFile = join(root, 'src/features/adaptive-assessment/__tests__/generated-candidate-governance.test.ts');
+    writeFileSync(assessmentTestFile, 'export const weakened = true;\n');
+    const afterWeaken = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
+    expect(afterWeaken).not.toBe(before);
+    writeFileSync(assessmentTestFile, 'export {};\n');
+    // 声明的测试证据目录（smart-lesson __tests__）内新增文件 → 摘要变化（递归散列）
+    const lessonTestsDir = join(root, 'src/lib/smart-lesson-plan/__tests__');
+    mkdirSync(lessonTestsDir, { recursive: true });
+    writeFileSync(join(lessonTestsDir, 'extra-cover.test.ts'), 'export {};\n');
+    const afterDirAdd = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
+    expect(afterDirAdd).not.toBe(before);
+    rmSync(join(lessonTestsDir, 'extra-cover.test.ts'));
+    // 声明的测试证据文件被删除 → MISSING 标记 → 摘要变化
+    rmSync(assessmentTestFile);
+    const afterDelete = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
+    expect(afterDelete).not.toBe(before);
+    writeFileSync(assessmentTestFile, 'export {};\n');
+    expect(computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows)).toBe(before);
   });
 
   it('exposes idempotency, rollback, and authorization evidence for every domain row', () => {

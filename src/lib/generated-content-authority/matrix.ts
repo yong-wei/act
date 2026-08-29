@@ -54,7 +54,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '521f1793a2ca280ec1921fa65777600fade831d4c9284be6b5ab0537554af991',
+  evidenceDigest: '5d04ccbbfb23feab2081c3586dc0f897dd33550b17aea183c6eff15476f68c75',
   rows: [
     {
       domain: 'assessment',
@@ -290,9 +290,19 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
   ],
 };
 
-/** 允许的生成模块 → 其它生成域内部的 import 边（与 DECLARED_CROSS_DOMAIN_EDGES 对应的路径对）。 */
-export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toPrefix: string }[] = [
-  { from: 'src/lib/smart-courseware/', toPrefix: 'src/lib/smart-lesson-plan/' },
+/**
+ * 允许的生成模块 → 其它生成域内部的 import 边。
+ * 精确到公共契约模块文件（非目录前缀）：跨域只能消费声明的公共契约，
+ * 导入其它域的 service/权威函数（如 approveSmartLessonDraft）一律违例。
+ */
+export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toModules: readonly string[] }[] = [
+  {
+    from: 'src/lib/smart-courseware/',
+    toModules: [
+      'src/lib/smart-lesson-plan/domain.ts',
+      'src/lib/smart-lesson-plan/schema.ts',
+    ],
+  },
 ];
 
 /** Prisma schema 中禁止出现的共享候选/状态模型名（no-superdomain）。 */
