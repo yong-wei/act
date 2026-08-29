@@ -11,6 +11,7 @@ import type { LearningEvent } from './event-protocol';
 import { isCoreEvent, isSecondaryEvent } from './event-types';
 
 export const SECONDARY_CLAIM_LEASE_MS = 5 * 60 * 1000;
+export const SECONDARY_BUFFER_CAPACITY = 10_000;
 
 const REDIS_KEYS = {
   secondaryBuffer: (date: string) => `event:buffer:secondary:${date}`,
@@ -94,13 +95,14 @@ export async function bufferSecondaryEvent(event: LearningEvent): Promise<boolea
   try {
     const date = new Date().toISOString().split('T')[0];
     const key = REDIS_KEYS.secondaryBuffer(date);
+    const buffered = await client.llen(key);
+    if (buffered >= SECONDARY_BUFFER_CAPACITY) {
+      stats.dropped++;
+      return false;
+    }
 
-    // Compress event to JSON string
     const eventJson = JSON.stringify(event);
-
-    // Push to list with max length protection (keep last 10000)
     await client.lpush(key, eventJson);
-    await client.ltrim(key, 0, 9999);
 
     // Set expiration (7 days)
     await client.expire(key, 7 * 24 * 60 * 60);

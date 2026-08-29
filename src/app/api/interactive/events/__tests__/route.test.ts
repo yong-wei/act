@@ -147,7 +147,7 @@ describe('POST /api/interactive/events', () => {
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
-    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'SUCCEEDED' });
+    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'applied' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
       classReports: 1,
       studentReports: 1,
@@ -537,9 +537,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(2);
     // #1583 统一摄取：lesson_submit 属 core 事件走 ingestLearningFact，不经 routeEvent
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
-    // 重件 DUPLICATE 回执重放持久化证据 1 次（persistCoreLearningFact 兼容路径，幂等）
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(2);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('returns the durable receipt when the same submission identity already exists', async () => {
@@ -586,8 +585,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    // DUPLICATE 回执幂等重放事实物化（崩溃恢复边界），路由级事件路由不重跑
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('degrades identity-less submissions instead of persisting evidence that bypasses the closure boundary', async () => {
@@ -671,7 +670,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('rejects the batch atomically when the shared evidence writer fails, without partial evidence', async () => {

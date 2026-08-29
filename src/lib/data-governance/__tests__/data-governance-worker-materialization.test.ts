@@ -19,6 +19,21 @@ const mocks = vi.hoisted(() => ({
   })),
   events: [] as Array<{ id: string; userId: string }>,
   markEventsProcessed: vi.fn(async () => undefined),
+  ackSecondaryEvents: vi.fn(async () => undefined),
+  ingestLearningFact: vi.fn(async ({ event }: { event: { userId: string } }) => ({
+    status: 'applied',
+    profileRefreshed: false,
+    transport: 'outbox-apply',
+    inputDigest: 'digest',
+    trustedSetDigest: 'trusted',
+    factsCreated: 1,
+    trigger: {
+      triggerKey: `t-${event.userId}`,
+      subjectUserId: event.userId,
+      captureRevision: 'working-tree',
+      inputDigest: 'digest',
+    },
+  })),
   catalogRefresh: vi.fn(async () => ({
     catalogDigest: 'a'.repeat(64),
     candidateLearners: 0,
@@ -39,27 +54,14 @@ vi.mock('../event-buffer', () => ({
     event,
     invalid: false,
   }))),
-  ackSecondaryEvents: vi.fn(async () => undefined),
+  ackSecondaryEvents: mocks.ackSecondaryEvents,
   markEventsProcessed: mocks.markEventsProcessed,
 }));
 vi.mock('../learning-fact-materialization', () => ({
   eventToLearningFactInput: (event: unknown) => event,
 }));
 vi.mock('@/features/learning-record/ingestion/public-api', () => ({
-  ingestLearningFact: vi.fn(async ({ event }: { event: { userId: string } }) => ({
-    status: 'applied',
-    profileRefreshed: false,
-    transport: 'outbox-apply',
-    inputDigest: 'digest',
-    trustedSetDigest: 'trusted',
-    factsCreated: 1,
-    trigger: {
-      triggerKey: `t-${event.userId}`,
-      subjectUserId: event.userId,
-      captureRevision: 'working-tree',
-      inputDigest: 'digest',
-    },
-  })),
+  ingestLearningFact: mocks.ingestLearningFact,
   applyStagedLearningFactIngestions: vi.fn(async () => ({ processed: 0, failed: 0, results: [] })),
   applyStagedProjectionTriggers: vi.fn(async () => ({ processed: 0, failed: 0 })),
   currentCaptureRevision: () => 'working-tree',
@@ -166,6 +168,55 @@ describe('data governance cumulative materialization worker', () => {
         migrationRunId: publication.migrationRunId,
       },
     ]);
+  });
+
+  it('does not ack retryable ingest failures so the lease can recover them', async () => {
+    mocks.events = [
+      { id: 'fact-1', userId: 'student-1' },
+      { id: 'fact-2', userId: 'student-2' },
+    ];
+    mocks.ingestLearningFact
+      .mockResolvedValueOnce({
+        status: 'applied',
+        profileRefreshed: false,
+        transport: 'outbox-apply',
+        inputDigest: 'digest',
+        trustedSetDigest: 'trusted',
+        factsCreated: 1,
+        trigger: {
+          triggerKey: 't-student-1',
+          subjectUserId: 'student-1',
+          captureRevision: 'working-tree',
+          inputDigest: 'digest',
+        },
+      })
+      .mockResolvedValueOnce({
+        status: 'retryable_failed',
+        profileRefreshed: false,
+        transport: 'outbox-apply',
+        inputDigest: 'digest',
+        trustedSetDigest: 'trusted',
+        factsCreated: 0,
+        trigger: null,
+        failure: { code: 'retry', fingerprint: 'retry' },
+      });
+    const add = vi.fn(async () => undefined);
+    const db = dbWithFence({
+      learningEventBatch: { create: vi.fn(async () => undefined) },
+    });
+    configureDataGovernanceWorkerForTest({ db, studentJobQueue: { add } as any });
+
+    const result = await processEventIngestionJob({
+      id: 'batch-retry',
+      data: { batchDate: '2026-07-23' },
+    } as any);
+
+    expect(result).toEqual({ processed: 1, factsCreated: 1, deferred: 1 });
+    expect(mocks.ackSecondaryEvents).toHaveBeenCalledWith(
+      '2026-07-23',
+      [expect.objectContaining({ event: expect.objectContaining({ userId: 'student-1' }) })],
+    );
+    expect(mocks.markEventsProcessed).toHaveBeenCalledWith(1, '2026-07-23');
   });
 
   it('schedules a fenced student snapshot when draining a projection trigger', async () => {

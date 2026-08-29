@@ -78,6 +78,7 @@ describe('routeEvent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsReady.mockReturnValue(true);
+    mockLlen.mockResolvedValue(0);
   });
 
   it('should route core events to postgresql', async () => {
@@ -173,7 +174,7 @@ describe('bufferSecondaryEvent', () => {
     vi.clearAllMocks();
     mockIsReady.mockReturnValue(true);
     mockLpush.mockResolvedValue(1);
-    mockLtrim.mockResolvedValue('OK');
+    mockLlen.mockResolvedValue(0);
     mockExpire.mockResolvedValue(1);
     mockHincrby.mockResolvedValue(1);
   });
@@ -185,7 +186,7 @@ describe('bufferSecondaryEvent', () => {
 
     expect(result).toBe(true);
     expect(mockLpush).toHaveBeenCalled();
-    expect(mockLtrim).toHaveBeenCalled();
+    expect(mockLtrim).not.toHaveBeenCalled();
     expect(mockExpire).toHaveBeenCalled();
   });
 
@@ -208,16 +209,15 @@ describe('bufferSecondaryEvent', () => {
     expect(result).toBe(false);
   });
 
-  it('should limit buffer to 10000 events', async () => {
+  it('rejects new writes when the buffer is at capacity without trimming', async () => {
+    mockLlen.mockResolvedValue(10000);
     const event = createMockEvent({ actionType: 'page_view' });
 
-    await bufferSecondaryEvent(event);
+    const result = await bufferSecondaryEvent(event);
 
-    expect(mockLtrim).toHaveBeenCalledWith(
-      expect.any(String),
-      0,
-      9999
-    );
+    expect(result).toBe(false);
+    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockLtrim).not.toHaveBeenCalled();
   });
 
   it('should set expiration to 7 days', async () => {
