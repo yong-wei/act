@@ -200,8 +200,11 @@ describe('v0.22 runtime release', () => {
       requireReleaseGates: false,
       readGitStatus: () => '',
     });
-    expect(result.status).toBe('READY');
-    expect(result.blockers).toEqual([]);
+    // Git authority/current.json remains v0.9 so deploy:runtime cannot replay a
+    // production Engineering selector. Runtime knowledge current.json is already
+    // the v0.37 coordinated candidate, so the live composite is mixed and must stay BLOCKED.
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('envelope-mix');
     const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
       productionCutoverAuthorized: boolean;
       boundEnvelopeName: string;

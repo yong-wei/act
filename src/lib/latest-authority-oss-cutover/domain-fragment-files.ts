@@ -98,6 +98,7 @@ export function loadCandidateDomainFragments(
 export function writeDomainFragmentsToCandidate(
   candidateDir: string,
   fragments: readonly DomainTeachingFragment[],
+  options?: { overwrite?: boolean },
 ): void {
   for (const fragment of fragments) {
     const relative = domainFragmentCandidateRelativePath(fragment.fragmentId);
@@ -105,8 +106,10 @@ export function writeDomainFragmentsToCandidate(
     const bytes = Buffer.from(`${JSON.stringify(fragment, null, 2)}\n`);
     mkdirSync(path.dirname(target), { recursive: true });
     if (existsSync(target) && !readFileSync(target).equals(bytes)) {
-      throw new Error(`refusing to overwrite ${relative}`);
+      if (!options?.overwrite) {
+        throw new Error(`refusing to overwrite ${relative}`);
+      }
     }
-    if (!existsSync(target)) writeFileSync(target, bytes);
+    writeFileSync(target, bytes);
   }
 }

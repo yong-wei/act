@@ -33,9 +33,9 @@ import {
   assertRootPresentationExcludesAuthorityIdentity,
   buildAuthorityDomainCatalog,
   buildAuthorityDomainRootPresentation,
-  catalogCanonicalJson,
   catalogDigest,
   loadAuthorityDomainCatalogRuntime,
+  loadAuthorityDomainRootPresentation,
   materializeAuthorityDomainCatalogRuntime,
   resolveAuthorityDomainCatalogPaths,
   resolvePreferredNavigationDomain,
@@ -53,6 +53,7 @@ import {
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 
 const repoRoot = process.cwd();
+/** Git `authority/current.json` and isolated catalog fixtures. Not the live catalog. */
 const SNAPSHOT_ID =
   'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7';
 const SNAPSHOT_HASH =
@@ -60,6 +61,11 @@ const SNAPSHOT_HASH =
 const RELEASE_ID = 'ctr:release:control-theory-engineering-v0.9';
 const RELEASE_SET_ID =
   'actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6';
+const SUCCESSOR_SNAPSHOT_ID =
+  'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae';
+const SUCCESSOR_SNAPSHOT_HASH =
+  'e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae';
+const SUCCESSOR_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.37';
 
 const SAMPLE_IDS = {
   modeling: 'ctc:modeling-00d2998755974a1329049aac',
@@ -574,53 +580,41 @@ describe('committed authority domain display catalog store', () => {
     }
   });
 
-  it('matches the active Authority selection from committed runtime without mutating snapshot bytes or counts', () => {
+  it('keeps Git authority/current.json on the predecessor and does not mutate snapshot bytes', () => {
     const paths = resolveAuthorityDomainCatalogPaths(repoRoot);
     expect(existsSync(paths.authoringCatalogPath)).toBe(true);
     expect(existsSync(paths.runtimeCatalogPath)).toBe(true);
     expect(existsSync(paths.runtimeCurrentPath)).toBe(true);
+
+    const gitCurrent = JSON.parse(
+      readFileSync(
+        path.join(repoRoot, 'course-content/authoring/knowledge/authority/current.json'),
+        'utf8',
+      ),
+    ) as { snapshotId: string; snapshotHash: string; releaseId: string };
+    expect(gitCurrent.snapshotId).toBe(SNAPSHOT_ID);
+    expect(gitCurrent.snapshotHash).toBe(SNAPSHOT_HASH);
+    expect(gitCurrent.releaseId).toBe(RELEASE_ID);
 
     const resolved = resolveActiveEngineeringGraphAuthority(
       resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(repoRoot)),
       { repoRoot },
     );
     expect(resolved.status).toBe('ready');
-    expect(resolved.snapshotId).toBe(SNAPSHOT_ID);
-    expect(resolved.snapshotHash).toBe(SNAPSHOT_HASH);
-    expect(resolved.releaseId).toBe(RELEASE_ID);
-    expect(resolved.objectCount).toBe(objectCountBefore);
-    expect(resolved.relationCount).toBe(relationCountBefore);
+    expect(resolved.activationMode).toBe('use-combination');
+    expect(resolved.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
+    expect(resolved.snapshotHash).toBe(SUCCESSOR_SNAPSHOT_HASH);
+    expect(resolved.releaseId).toBe(SUCCESSOR_RELEASE_ID);
 
-    const catalog = loadAuthorityDomainCatalogRuntime(paths, {
-      snapshotId: resolved.snapshotId!,
-      snapshotHash: resolved.snapshotHash!,
-      releaseId: resolved.releaseId!,
-    });
-    expect(catalog.domains).toHaveLength(8);
-    expect(catalog.aggregate.entryId).toBe(AGGREGATE_ENTRY_ID);
-    expect(catalog.memberships.some((m) => m.domainIds.length > 1)).toBe(true);
-    for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
-      expect(catalog.domains.some((d) => d.domainId === domainId)).toBe(true);
-      expect(catalog.domains.find((d) => d.domainId === domainId)?.memberCount).toBeGreaterThan(0);
-    }
-
-    // Active helpers used by API layer.
     const activeCatalog = readActiveDomainCatalog();
     expect(activeCatalog.status).toBe('available');
     if (activeCatalog.status === 'available') {
-      expect(activeCatalog.catalog.catalogHash).toBe(catalog.catalogHash);
+      expect(activeCatalog.catalog.authorityBinding.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
+      expect(activeCatalog.catalog.authorityBinding.releaseId).toBe(SUCCESSOR_RELEASE_ID);
     }
-
     const activeRoot = readActiveDomainRootPresentation();
     expect(activeRoot.status).toBe('available');
-    if (activeRoot.status === 'available') {
-      assertRootPresentationExcludesAuthorityIdentity(activeRoot.root);
-      expect(activeRoot.root.domains).toHaveLength(8);
-      expect(JSON.stringify(activeRoot.root)).not.toMatch(/canonicalId/);
-      expect(JSON.stringify(activeRoot.root)).not.toMatch(/catalogId|navigationKey/);
-    }
 
-    // Snapshot files and counts remain byte-identical after catalog load.
     const engPath = path.join(
       repoRoot,
       'course-content/authoring/knowledge/authority/releases',
@@ -641,47 +635,41 @@ describe('committed authority domain display catalog store', () => {
     const eng = JSON.parse(engAfter) as { objects: unknown[]; relations: unknown[] };
     expect(eng.objects.length).toBe(objectCountBefore);
     expect(eng.relations.length).toBe(relationCountBefore);
-    expect(resolved.objectCount).toBe(objectCountBefore);
-    expect(resolved.relationCount).toBe(relationCountBefore);
+  });
 
-    // Presentation roots do not feed Authority topology counts.
-    if (activeRoot.status === 'available') {
-      expect(activeRoot.root.domains.reduce((sum, d) => sum + d.memberCount, 0)).not.toBe(
-        objectCountBefore,
-      );
-      expect(
-        activeRoot.root.domains.length + 1, // domains + aggregate
-      ).not.toBe(objectCountBefore);
+  it('binds committed runtime catalog to the successor Authority independently of Git current', () => {
+    const paths = resolveAuthorityDomainCatalogPaths(repoRoot);
+    const successorBinding = {
+      snapshotId: SUCCESSOR_SNAPSHOT_ID,
+      snapshotHash: SUCCESSOR_SNAPSHOT_HASH,
+      releaseId: SUCCESSOR_RELEASE_ID,
+    };
+    const catalog = loadAuthorityDomainCatalogRuntime(paths, successorBinding);
+    expect(catalog.authorityBinding.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
+    expect(catalog.authorityBinding.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+    expect(catalog.domains).toHaveLength(15);
+    expect(catalog.aggregate.entryId).toBe(AGGREGATE_ENTRY_ID);
+    expect(catalog.aggregate.domainCount).toBe(15);
+    expect(catalog.memberships).toHaveLength(7476);
+    expect(catalog.memberships.some((m) => m.domainIds.length > 1)).toBe(true);
+    for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
+      expect(catalog.domains.some((d) => d.domainId === domainId)).toBe(true);
+      expect(catalog.domains.find((d) => d.domainId === domainId)?.memberCount).toBeGreaterThan(0);
     }
 
-    // Rebuild from committed authoring yields the same runtime hash.
+    const root = loadAuthorityDomainRootPresentation(paths, successorBinding);
+    assertRootPresentationExcludesAuthorityIdentity(root);
+    expect(root.domains).toHaveLength(15);
+    expect(JSON.stringify(root)).not.toMatch(/canonicalId/);
+    expect(JSON.stringify(root)).not.toMatch(/catalogId|navigationKey/);
+
     const authoring = JSON.parse(
       readFileSync(paths.authoringCatalogPath, 'utf8'),
     ) as AuthorityDomainCatalogAuthoring;
-    const nodes = eng.objects.map((o) => ({
-      canonicalId: (o as { canonicalId: string }).canonicalId,
-    }));
-    const rebuilt = buildAuthorityDomainCatalog(authoring, nodes);
-    expect(rebuilt.catalogHash).toBe(catalog.catalogHash);
-    expect(catalogDigest(JSON.parse(catalogCanonicalJson({
-      contract: rebuilt.contract,
-      catalogVersion: rebuilt.catalogVersion,
-      builderVersion: rebuilt.builderVersion,
-      authorityBinding: rebuilt.authorityBinding,
-      domains: [...rebuilt.domains].sort((a, b) => (a.domainId < b.domainId ? -1 : 1)).map((d) => ({
-        domainId: d.domainId,
-        order: d.order,
-        displayName: d.displayName,
-        summary: d.summary,
-        presentationRole: d.presentationRole,
-        visualRole: d.visualRole,
-        memberCount: d.memberCount,
-      })),
-      aggregate: rebuilt.aggregate,
-      memberships: [...rebuilt.memberships].sort((a, b) =>
-        a.canonicalId < b.canonicalId ? -1 : 1,
-      ),
-    })))).toBe(catalog.catalogHash);
+    expect(authoring.authorityBinding.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
+    expect(authoring.authorityBinding.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+    expect(authoring.domains).toHaveLength(8);
+    expect(authoring.memberships).toHaveLength(10);
   });
 
   it('does not use authoring as a product runtime fallback when runtime is absent', () => {

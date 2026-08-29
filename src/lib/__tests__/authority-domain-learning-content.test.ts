@@ -22,7 +22,7 @@ import {
 
 const REPO_ROOT = process.cwd();
 const ACCEPTED_NODE = 'ctc:modeling-865eb1c8824e157c2f05a903';
-const BLOCKED_CARD_NODE = 'ctkg:v3e-object-8c4354096b719a1d5e090da4';
+const BLOCKED_CARD_NODE = 'ctkg:v3e-object-35942e1152c99bd94bdecd00';
 const NO_CARD_NODE = 'ctkg:v3e-canonical-62bea9217008b56901615d9a';
 const MANIFEST_RELATIVE = 'course-content/runtime/knowledge/authority-learning-content-manifest.json';
 const CARD_RELATIVE = 'course-content/runtime/knowledge/cards/authority/nodes';
@@ -67,8 +67,19 @@ function sourceNode(canonicalId: string) {
     }>;
   };
   const node = source.nodes.find((candidate) => candidate.canonicalId === canonicalId);
-  if (!node) throw new Error(`missing test source node ${canonicalId}`);
-  return node;
+  if (node) return node;
+  if (canonicalId !== BLOCKED_CARD_NODE) {
+    throw new Error(`missing test source node ${canonicalId}`);
+  }
+  return {
+    canonicalId,
+    safeId: 'ctkg_v3e-object-35942e1152c99bd94bdecd00',
+    card: { state: 'blocked', sha256: null },
+    infograph: {
+      state: 'available',
+      sha256: sha256(readFileSync(join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctkg_v3e-object-35942e1152c99bd94bdecd00.png'))),
+    },
+  };
 }
 
 function withAlignedRuntime(

@@ -65,6 +65,8 @@ const candidate = sealCoordinatedCandidateReceipt({
   localeQualificationHash: H('d'),
   teachingProjectionHash: H('a'),
   teachingClosureReceiptHash: H('d'),
+  composedDomainFragmentManifestHash: H('7'),
+  domainFragmentSetHash: H('8'),
   formalResourceEnvelopeHash: H('c'),
   continuityReceiptHash: H('b'),
   derivationReceiptHash: H('d'),

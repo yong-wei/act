@@ -14,6 +14,8 @@ import {
   buildDomainTeachingFragment,
   composeDomainTeachingProjection,
   createDomainTeachingAuthorityEnvelope,
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE,
+  LIVE_AUTHORITY_DOMAIN_TEACHING_MANIFEST_RELATIVE,
   type AuthorityNodeIndexEntry,
   type DomainTeachingFragmentAuthoring,
 } from '../../src/lib/teaching-projection';
@@ -30,10 +32,10 @@ export const DOMAIN_TEACHING_GENERATION_V2_RELATIVE =
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2';
 
 export const PINNED_AUTHORITY_ENGINEERING_RELATIVE =
-  'course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json';
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE;
 
 export const PINNED_AUTHORITY_MANIFEST_RELATIVE =
-  'course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/manifest.json';
+  LIVE_AUTHORITY_DOMAIN_TEACHING_MANIFEST_RELATIVE;
 
 interface AuthorityObject {
   canonicalId: string;

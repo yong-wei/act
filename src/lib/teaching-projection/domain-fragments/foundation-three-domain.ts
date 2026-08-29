@@ -27,15 +27,16 @@ import type {
   AuthorityNodeIndexEntry,
   PrerequisiteStrength,
 } from '../contracts';
-import type {
-  DomainFragmentCoreNodeAuthoring,
-  DomainFragmentRelationAuthoring,
-  DomainTeachingFragment,
-  DomainTeachingFragmentAuthoring,
-  DomainTeachingCompositionGateFinding,
-  DomainCoverageReportEntry,
-  DomainFragmentAuthorityBindingComplete,
-  DomainTeachingAuthorityEnvelope,
+import {
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE,
+  type DomainFragmentCoreNodeAuthoring,
+  type DomainFragmentRelationAuthoring,
+  type DomainTeachingFragment,
+  type DomainTeachingFragmentAuthoring,
+  type DomainTeachingCompositionGateFinding,
+  type DomainCoverageReportEntry,
+  type DomainFragmentAuthorityBindingComplete,
+  type DomainTeachingAuthorityEnvelope,
 } from './contracts';
 
 export const FOUNDATION_THREE_DOMAIN_SOURCE_CONTRACT =
@@ -48,7 +49,7 @@ export const FOUNDATION_THREE_DOMAIN_FRAGMENT_KEY =
   'foundation-three-domain-v1' as const;
 export const FOUNDATION_THREE_DOMAIN_FRAGMENT_VERSION = '1' as const;
 export const FOUNDATION_THREE_DOMAIN_AUTHORITY_RELATIVE =
-  'course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json' as const;
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE;
 export const FOUNDATION_THREE_DOMAIN_RETAINED_FIRST_AUTHORING_RELATIVE =
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/first-fragment.authoring.json' as const;
 const FOUNDATION_THREE_DOMAIN_ARTIFACT_ROOT =

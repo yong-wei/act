@@ -2,8 +2,8 @@
   "contract": "act-foundation-three-domain-coverage/v1",
   "fragmentKey": "foundation-three-domain-v1",
   "fragmentVersion": "1",
-  "fragmentId": "dtf-edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
-  "fragmentDigest": "edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
+  "fragmentId": "dtf-9e4d66bc8c533ce2e67d66be4414ad6ae637564a194538d83c27d3f0fd290bf2",
+  "fragmentDigest": "9e4d66bc8c533ce2e67d66be4414ad6ae637564a194538d83c27d3f0fd290bf2",
   "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
   "denominatorNodeIds": [
     "ctc:modeling-00d2998755974a1329049aac",

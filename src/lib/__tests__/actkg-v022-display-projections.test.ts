@@ -78,12 +78,14 @@ describe('actkg v0.22 display projections', () => {
     expect(rebuilt.catalogHash).toBe(built.runtime.catalogHash);
   });
 
-  it('keeps the served v0.9 production catalog bytes untouched as a prior catalog', () => {
+  it('keeps the live authoring catalog on the successor Authority, not the historical v0.9 production pin', () => {
     const production = JSON.parse(readFileSync(
       'course-content/authoring/knowledge/authority-domain-catalog/catalog.json',
       'utf8',
     )) as { authorityBinding: { releaseId: string }; domains: unknown[] };
-    expect(production.authorityBinding.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(production.authorityBinding.releaseId).toBe(
+      'ctr:release:control-theory-engineering-v0.37',
+    );
     expect(production.domains).toHaveLength(8);
   });
 

@@ -1,0 +1,9 @@
+{
+  "contract": "coordinated-formal-resource-envelope-incremental-reuse/v1",
+  "allocationHash": "1d46215ebef09b3706cf1edb4c463fd68f24003ab3f2efc4337819a1f4eaffb0",
+  "authorityCaptureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "scopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "priorEnvelopeHash": "36d1b70ea77467894b7855436b0f55ea2eeb6517091a1e3b4d73f807991afe0f",
+  "envelopeHash": "fb770a47333330abf12216133c48134099e680780e7d6324c66f176920b12cd7"
+}

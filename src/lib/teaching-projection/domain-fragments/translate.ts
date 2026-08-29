@@ -78,6 +78,14 @@ export function liveAuthorityBindingForFirstFragment(): {
   };
 }
 
+export const LIVE_FIRST_FRAGMENT_AUTHORITY_NODES: AuthorityNodeIndexEntry[] = [
+  { canonicalId: 'ctkg:v3e-object-8c4354096b719a1d5e090da4', lifecycleStatus: 'active' },
+  { canonicalId: 'ctc:modeling-865eb1c8824e157c2f05a903', lifecycleStatus: 'active' },
+  { canonicalId: 'ctc:modeling-2088bbde171b2e9ef66070d5', lifecycleStatus: 'active' },
+  { canonicalId: 'ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b', lifecycleStatus: 'active' },
+  { canonicalId: 'ctc:modeling-e442dacbfef4a0d7ea3c4c15', lifecycleStatus: 'active' },
+];
+
 export function liveAuthorityEnvelopeForFirstFragment(
   nodes: readonly AuthorityNodeIndexEntry[],
 ): DomainTeachingAuthorityEnvelope {

@@ -1,267 +1,267 @@
 {
   "contract": "act-generation-3-upstream-pin/v1",
   "snapshotBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
-  "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-  "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-  "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40",
+  "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+  "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+  "nodeIndexDigest": "76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5",
   "artifacts": [
     {
       "role": "foundation-authoring",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-fragment.authoring.json",
-      "originalBytesDigest": "c7fa6b97a0775622c065a6d71e4530b439ba1501f239be466aac8eb927e7e344",
-      "originalPublishedDigest": "28d5093c8da5f484a1d02e039191e8c8a59bb47472ae797bf30df810a25dab60",
+      "originalBytesDigest": "9618b21f21113fa5d04ddd4416d9af21605844c87c047377832599666840f134",
+      "originalPublishedDigest": "c50706a606917f0fc1e39c44cd49fdab50bd1f576756a77847b79b9e22ff75fb",
       "originalSemanticDigest": "fe01ecfbbc8431ee8b35429e6afab49f4157ac42e5990dd58534ef1c596f429b",
-      "resealedDigest": "1b9bc9a92fda45db35ba12d91dc2d6de0f289c6511f17a16c9ef21346e3ac23f",
+      "resealedDigest": "5a1ce4a2d708c5d0fe53384218a2c68d2e7f389a10b5c5aee1238a24d14d2d8f",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "foundation-fragment",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-fragment.json",
-      "originalBytesDigest": "57fe7ce15a8b49fd0c581a8b39e35166fc8023b4304f8216f4ea5a09fe67bb77",
-      "originalPublishedDigest": "ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
+      "originalBytesDigest": "20831faed7ab0a18dd0225930540440383ad5a37f88beaf9a64ecc3791069791",
+      "originalPublishedDigest": "ff1fe0d0d5aaaff96d5177cdf93a870192bf383d26b08ef9d4c1720c0b055240",
       "originalSemanticDigest": "087224bd8a47daed6fe556a45f750bece1ac6645959f97d8325421a23e036f5a",
-      "resealedDigest": "155166bbdd92c6038a9a923ee65756c91325afa26b926fb792399c7ce5f4213c",
+      "resealedDigest": "1feb424907b21a14ed679a8a2a5a3b65286fdad5a75cd39ddc0a3a73be8786b0",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "foundation-three-domain-authoring",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-three-domain-fragment.authoring.json",
-      "originalBytesDigest": "74840d444d202d10d97486e2f57846d13e4390c536c02513f6aaeb5638ac04fb",
-      "originalPublishedDigest": "61b4fc8d7aae21bd2d4838b683e83b81bb5482cc704e8b2b9e54c8ed7513eadd",
+      "originalBytesDigest": "087510458a1f4a737985f25f14473dd7c927ffcc75de9c93731e4cbd814f5df9",
+      "originalPublishedDigest": "189643e2c2108c9b0b34d49fb34f40f49c8275472c7c58a5c3559eab68a19bc3",
       "originalSemanticDigest": "0400aa5961c74ebc21bd11c42a1cdc98d561fbce92172dec7837d8a90ae013b8",
-      "resealedDigest": "7191b09305dd9d2c154ae1c54da31977ba270608084459cf95117ed0f0439d27",
+      "resealedDigest": "0fdacc760a9d23182d834c09d17decdd95e4428424ed5e076e35527a06734616",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "foundation-three-domain-fragment",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-three-domain-fragment.json",
-      "originalBytesDigest": "60c81c5747956b52f3d0d9ee52502b4f4d7554cf6ae6942d6a9fe5e2876ed9ed",
-      "originalPublishedDigest": "eca300d96abb1e4c2bd3a0de9e77b4d8d5aa7fe0a989c818bd790cad1ed039bc",
+      "originalBytesDigest": "74297a098e940a0575a4010e64b047848ec39cc1b02f06d7957705b2403a1908",
+      "originalPublishedDigest": "3209f5e78c20f0c96688581cfb4398239435488b50541ac8cdfbf7689a9aa17f",
       "originalSemanticDigest": "7a2a02839f1dc2e34c783d9c7c41c48f788aab47b62961ee6827258732fe7f1f",
-      "resealedDigest": "4dcc8ba512bdddc218acd2bd0267d73c13754ed31bbe5e0d68dbbd2855113e88",
+      "resealedDigest": "4cd5721777d5e3bf3dbcdbd693fc8e703be71221cb3b27371b1d41583c12705b",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "classical-authoring",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-fragment.authoring.json",
-      "originalBytesDigest": "9b837d224adf0d50210e9c6b3d7d27f16084cc688dcaebea2b4e7f1164900a55",
-      "originalPublishedDigest": "06a0b0a340c0d6f7569b9c689ac05ee2b75bb37866a60705e037c37c145d54ca",
+      "originalBytesDigest": "f8948d8c8ebc9f7bef127da6d3ca5be22bc2cb7e49c32a78d1155f23d23dcd6c",
+      "originalPublishedDigest": "5d5f9ee41c776aee6e0ac4bd54d97054aa951e734a371fcdaca496d78cb4e97c",
       "originalSemanticDigest": "e3febe49ba66b3a4f10a95b1508e62d79df63b25c88f3d03ccaaf352688ecc0a",
-      "resealedDigest": "586ed12fba193f0fe9b01e295e0788eb7d58504f18d93c2de113f848eb7fee66",
+      "resealedDigest": "65325611be17cc2d9e9587d6fb9ec788afeb89e702f8f395645142d226d696b6",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "classical-fragment",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-fragment.json",
-      "originalBytesDigest": "e17f142c8a87455ad9f4c31773a7406bf03e47b7be365c78a800c0252a0b559a",
-      "originalPublishedDigest": "a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
+      "originalBytesDigest": "0316f2377cbe84007e4ffd625ec3cb72974d0eb2f0af0af9fd6df3357a86893e",
+      "originalPublishedDigest": "9c3682541e726d21fb52511fb5d9646256df0c9dd20abd2b3958886bce8bd075",
       "originalSemanticDigest": "3bc5c063e7f37532d312cc535114b570d3e6d668e0321ddab6c6eab7a782311f",
-      "resealedDigest": "b8834add0a20ec980428722683769cd555bf2f4eca32efbe801134e7a1b15ae2",
+      "resealedDigest": "654280df50b3558db0da4af8affb5f73419367dee368dce08fb52909ccb89e85",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-discrete-authoring",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.authoring.json",
-      "originalBytesDigest": "3b97490284c934e6ebe058ca8207e89ecf8a053a0c4c5d1a40dce1c1175a541e",
-      "originalPublishedDigest": "22121606ad457a88cc80e68fc1545aff62f4b6cdda6a3711c7c1241e5e76f9f6",
+      "originalBytesDigest": "352c506dbc610c33ecb08e66512b8bcf2cb3487d3cee903ea1213decfc054517",
+      "originalPublishedDigest": "3ebf454ef837218d61317e6d391497e4548350710ac4c16da6bede8fa1a2c1e9",
       "originalSemanticDigest": "081257f6fb1f02840af31bbc879194e70ec864dd615dc1f730c6e4ee304f0eb6",
-      "resealedDigest": "7914f9e11f7988b3f0de8aea47a3e04ba908624fb7afbfde1feb4dc5034c7c4e",
+      "resealedDigest": "d9b0f3e9f326f69039c289440e1e4f61f767ca547a79594142b8d8a213a9f6af",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-discrete-fragment",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.json",
-      "originalBytesDigest": "a995fd09d08b5a814c95751988094b3d1d2ef48424bbab13c394740422e4972e",
-      "originalPublishedDigest": "0b646729c2752fda2a85a03c4da536ad261ba02c887384c72c958d0d0a73a74b",
+      "originalBytesDigest": "ea1e446905b9e353890216588113045e141b9e4d3645b8525236c3990becee03",
+      "originalPublishedDigest": "f704af708c747807aaba3c03a2492bf7d5b5b87101f49bd8f86563b9c245e952",
       "originalSemanticDigest": "081257f6fb1f02840af31bbc879194e70ec864dd615dc1f730c6e4ee304f0eb6",
-      "resealedDigest": "066a3f399f18119766adf9ab52ae47531c5a2a459863144b04e1bd57a8ca0864",
+      "resealedDigest": "f50da2dd982eae7149aa78365fb66e9b4ce118c10615261ae08783a0352f0d78",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-discrete-source",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.source.json",
-      "originalBytesDigest": "974c7e9184c15f9d4d0c3a6766cdcf85d536029d986a7ecff8c0ee92a715a61d",
-      "originalPublishedDigest": "5ade4eea2ea751e2c72daf3036c2499659ebed95dab2f9dde8ba102f61ef3835",
+      "originalBytesDigest": "c4f9256635385925e6040227a03418a341e201707b068d6a1307dc60ccb824e1",
+      "originalPublishedDigest": "06b47885376e73b042e0db02171622d53d01a5a27d48a20bba52c373c0adde69",
       "originalSemanticDigest": "22f12a63f685f0aabbb7097fa6d83819fc07ab1d3a4e6371f2e50f9bbedfa790",
-      "resealedDigest": "6679029a392ee3fd57bf240e7d5c41f932aa0db96b934e3ca19f0737b0c52570",
+      "resealedDigest": "ee0083f85f07f2d8f8406253eda82d5ed761259531d28109f0e6c6fe7a2d4f50",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-discrete-worklist",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json",
-      "originalBytesDigest": "4372e18470ebb9dd47427d4b38113bde3b7673667744c41249fee6d4dd32e06f",
-      "originalPublishedDigest": "417caac71122917ff40fbcad67c86ff5f75dccd648842cec537307dcf6acf819",
+      "originalBytesDigest": "046e9acee15767a4ac84f7b7a78c21382884db95a8794615e988796ab6cb4372",
+      "originalPublishedDigest": "22c1cdbf7f106166c3c841fdb5f1d9ff370cc7252b2a2a2d8021b73304f6c3b5",
       "originalSemanticDigest": "22f12a63f685f0aabbb7097fa6d83819fc07ab1d3a4e6371f2e50f9bbedfa790",
-      "resealedDigest": "afc160f4feb8f67d7b8dc3a1294b4f69413b54ed2dc549d130e30c606260f66a",
+      "resealedDigest": "886fdc181651e3c0ef53f2a04ab0b07c0116cef5a9e8d7386f4e5b6f405a051b",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-discrete-coverage",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.coverage.json",
-      "originalBytesDigest": "c8edebcb809afe5e0fd4520c731a9e5c58cc4a88ece50f5cc3bdc574cc7d51d6",
-      "originalPublishedDigest": "0b646729c2752fda2a85a03c4da536ad261ba02c887384c72c958d0d0a73a74b",
+      "originalBytesDigest": "0b4c0d04c970ebc80cc79a78c96643ad261449098fb6a2f732a30d3fc00579d5",
+      "originalPublishedDigest": "f704af708c747807aaba3c03a2492bf7d5b5b87101f49bd8f86563b9c245e952",
       "originalSemanticDigest": "54b6405d82a7d165420f49c02fa48aeadd3f9e6e4f2a9cae78ad8acaf1527bc3",
-      "resealedDigest": "066a3f399f18119766adf9ab52ae47531c5a2a459863144b04e1bd57a8ca0864",
+      "resealedDigest": "f50da2dd982eae7149aa78365fb66e9b4ce118c10615261ae08783a0352f0d78",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-state-space-authoring",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.authoring.json",
-      "originalBytesDigest": "a09af7291b9c93056fc8272aecc3e52b320af23ae9b648f23a6336c66946196a",
-      "originalPublishedDigest": "861acac9e5bba01167c7f80eceaff714556c135d590e4b28cbedf83aa73fe6f1",
+      "originalBytesDigest": "3be780f86023ef917eadec26409dddf925bdaf31a2fcaf75b506bf227116db16",
+      "originalPublishedDigest": "ee778f50729435e75c7cfe9b2f4d0677ce151356decf36cf3f51525fe5be07e0",
       "originalSemanticDigest": "b496934a49c041f3be6ba6ab579a796490287f801869d43619660c971170e542",
-      "resealedDigest": "7b389da7af06d1e510f2beff79ec7195d656e5eab249671b2cd6e764b54370ce",
+      "resealedDigest": "04bd5b795e4b52508e0d3e8a485ca3d7733566874e21a67d7d8478c87940f5bf",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-state-space-fragment",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.json",
-      "originalBytesDigest": "8dc92ed1351142533042e835410fcb9685756cb50b02cbf868e7c620776b7e93",
-      "originalPublishedDigest": "ff619de5fd67142da3bcc4452b8a8e1395ca43176aacc3dc88616b41d33cefe4",
+      "originalBytesDigest": "2961ae6a6136f5cf3178571a796bb24c2b77faf8004b00a400a7ded2f5ab0549",
+      "originalPublishedDigest": "0b56e0466f5ee381d862aa7e1ca513f33cc6b907208ea2eb13c5852d7bcd9df2",
       "originalSemanticDigest": "b496934a49c041f3be6ba6ab579a796490287f801869d43619660c971170e542",
-      "resealedDigest": "3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+      "resealedDigest": "262afc56089d7bca04683db7120defa0087e935459b20cbf253bb22bb9b94ecd",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-state-space-source",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.source.json",
-      "originalBytesDigest": "25bfdedd6ba27eedb931cd45c07273d797da716755409c4b5281a897b55f70f4",
-      "originalPublishedDigest": "5c04c2acaab2341e801405da1d8189e7cbbfa8c2b7f585d4c1fd4bed5dfe7d43",
+      "originalBytesDigest": "c09148e5ce2ba27c96c73a93ac8cafee5f65dcc579ed3f6cb07c66944e0cc768",
+      "originalPublishedDigest": "42ad8aef9e36b8481a93f10bad0434efe56faebf2fee270554af4e6ab6d45f8b",
       "originalSemanticDigest": "93c6bcb1b473ae4ccca98be96ce2d6af82d2a97584cc90de012dfe2eab0fe2c0",
-      "resealedDigest": "077198e99800d35318ca92fb7b94a9513280f8886a5f57aca5eea41fab54ea79",
+      "resealedDigest": "bf7c571ec9a0d63bb81504ef25974f7bc519a1c153fc443683ddae621cb24338",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-state-space-worklist",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json",
-      "originalBytesDigest": "376a06b7dbb2f531b99cf65dc6e8a59f9a68288d3b7a6e51e773cb1c74093f8b",
-      "originalPublishedDigest": "5793469ca555e552e0d7d774b081578eb4377d459805940b55267286a0163600",
+      "originalBytesDigest": "21ce5ac8dafb07a93dfe09bd6824db669a6dcb0e4159b221df25c5abe1c8f93d",
+      "originalPublishedDigest": "2ab5532378a2aa3ba9f4912343bb85ce063a62f34c046b782ad10a4591bb1e13",
       "originalSemanticDigest": "93c6bcb1b473ae4ccca98be96ce2d6af82d2a97584cc90de012dfe2eab0fe2c0",
-      "resealedDigest": "1cc50d8c2008a235854b2f0bc78b0887f7ae15981edfe9210f984349386f5ebf",
+      "resealedDigest": "07bfee183c0c11adbb459cfef3d0ff6aeb1237ecc1441b1121e49b77500a8e67",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "modern-state-space-coverage",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.coverage.json",
-      "originalBytesDigest": "50608294d8b1950b77f0cf2941844135b3a3e65d98df2feecf9b0486a04e5030",
-      "originalPublishedDigest": "ff619de5fd67142da3bcc4452b8a8e1395ca43176aacc3dc88616b41d33cefe4",
+      "originalBytesDigest": "96acd0c4bed254fededcaca8a3b1fc306b4256bc89f4977c9921b9f10d1f1569",
+      "originalPublishedDigest": "0b56e0466f5ee381d862aa7e1ca513f33cc6b907208ea2eb13c5852d7bcd9df2",
       "originalSemanticDigest": "54b6405d82a7d165420f49c02fa48aeadd3f9e6e4f2a9cae78ad8acaf1527bc3",
-      "resealedDigest": "3fa18232755453f80562f4a0e98df2dac72d652c4b5351809ab6fcbcd2012a6a",
+      "resealedDigest": "262afc56089d7bca04683db7120defa0087e935459b20cbf253bb22bb9b94ecd",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1"
     },
     {
       "role": "cross-domain-boundary-foundation-three-domain-worklist",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.worklist.json",
-      "originalBytesDigest": "5787d0a21bf491b826775aad4d7bc244b0cdb49bbb7a3ca813ca28255e201e96",
-      "originalPublishedDigest": "bc7178b240e9ad317930d28e75f27047d5fca3f4962cad25adab784c3a2b0c37",
+      "originalBytesDigest": "47b87d1e208a2bc78fca6cb1ffd9fd6d47a9cd664e62809a5c6e34ab99e74970",
+      "originalPublishedDigest": "368b4fa5eb8f95e5fcb1cde2160bcb2c6dd7a130735d118e2b1ae6874371d8ad",
       "originalSemanticDigest": "9b456cb8cff4d281e10966270e184e1f277a7a442321ee7818d4130772c7ec5c",
-      "resealedDigest": "b3943a26eb1338437c60bfb12ed37a44d569c258ae862b21211469868d7182f1",
+      "resealedDigest": "6ceafb6e7a051fcb8ff13f5b1b89c750ccf555ebda0cd6f1f0682f8fc9bc62ec",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1",
       "auditOutput": "multi-source-cross-domain-worklist",
@@ -278,12 +278,12 @@
       "originalBytesDigest": "67debc20a29898795aaa7e5f623debf63818d406a59498a6c266b7cf2dc8aba4",
       "originalPublishedDigest": "0d8535dc30ab7ec4f52796e1f701c4af02d2e3f5de1bee3d0dfa46dfbb17ac3e",
       "originalSemanticDigest": "b7a72ad1376fa667cdccc47ee1c03f2887b8813e8c88c3a66a643aaeb96b60a5",
-      "resealedDigest": "b3943a26eb1338437c60bfb12ed37a44d569c258ae862b21211469868d7182f1",
+      "resealedDigest": "6ceafb6e7a051fcb8ff13f5b1b89c750ccf555ebda0cd6f1f0682f8fc9bc62ec",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1",
       "auditOutput": "multi-source-cross-domain-worklist",
@@ -297,15 +297,15 @@
     {
       "role": "cross-domain-boundary-modern-discrete-worklist",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json",
-      "originalBytesDigest": "4372e18470ebb9dd47427d4b38113bde3b7673667744c41249fee6d4dd32e06f",
-      "originalPublishedDigest": "417caac71122917ff40fbcad67c86ff5f75dccd648842cec537307dcf6acf819",
+      "originalBytesDigest": "046e9acee15767a4ac84f7b7a78c21382884db95a8794615e988796ab6cb4372",
+      "originalPublishedDigest": "22c1cdbf7f106166c3c841fdb5f1d9ff370cc7252b2a2a2d8021b73304f6c3b5",
       "originalSemanticDigest": "0a1d40a844a01af3720fe7fcb44f62309b73ceaaa9f3ecc12fdc9160b81d3b94",
-      "resealedDigest": "b3943a26eb1338437c60bfb12ed37a44d569c258ae862b21211469868d7182f1",
+      "resealedDigest": "6ceafb6e7a051fcb8ff13f5b1b89c750ccf555ebda0cd6f1f0682f8fc9bc62ec",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1",
       "auditOutput": "multi-source-cross-domain-worklist",
@@ -319,15 +319,15 @@
     {
       "role": "cross-domain-boundary-modern-state-space-worklist",
       "path": "course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json",
-      "originalBytesDigest": "376a06b7dbb2f531b99cf65dc6e8a59f9a68288d3b7a6e51e773cb1c74093f8b",
-      "originalPublishedDigest": "5793469ca555e552e0d7d774b081578eb4377d459805940b55267286a0163600",
+      "originalBytesDigest": "21ce5ac8dafb07a93dfe09bd6824db669a6dcb0e4159b221df25c5abe1c8f93d",
+      "originalPublishedDigest": "2ab5532378a2aa3ba9f4912343bb85ce063a62f34c046b782ad10a4591bb1e13",
       "originalSemanticDigest": "27337c4b24fe815e2d650247bb2b6472c4f4f9af3c4ffab17e9d4b88651fb8b7",
-      "resealedDigest": "b3943a26eb1338437c60bfb12ed37a44d569c258ae862b21211469868d7182f1",
+      "resealedDigest": "6ceafb6e7a051fcb8ff13f5b1b89c750ccf555ebda0cd6f1f0682f8fc9bc62ec",
       "snapshotBinding": {
-        "releaseId": "ctr:release:control-theory-engineering-v0.9",
-        "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-        "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-        "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+        "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+        "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+        "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
       },
       "conversionProtocol": "act-generation-3-conversion-protocol/v1",
       "auditOutput": "multi-source-cross-domain-worklist",

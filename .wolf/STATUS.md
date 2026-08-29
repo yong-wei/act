@@ -59,7 +59,7 @@
 
 ## 🚀 Next phase
 
-**Coordinated v0.37-r4 cutover (2026-08-29):** #1509 已把 composed domain-fragment manifest 与 immutable fragment set 写入候选回执、Runtime 扩展、资格重开和生产预检。本地 r4-c5 契约与 63 项 cutover 单测通过。作者态 composed-manifest 仍绑 v0.9；生产预检会拒绝该混身份，因此 10.5–10.7 仍需独立部署/激活授权，以及一份绑定后继 Authority 的 v0.37 composed-manifest。生产仍为 v0.22。不要用 v0.9 指针或文件字节哈希冒充 fragment 身份。#1683 在 #1509 关闭且有真实最终 active receipt 之前不得认领。
+**Coordinated v0.37-r4 cutover (2026-08-30):** #1509 活作者态已重绑 v0.37。10.2/10.3 完成。用户已授权提交全部变动后继续 10.5。Git `authority/current.json` 仍为 v0.9。10.5 OSS `--stage-only` 的 source revision 必须是 `origin/integration` 祖先。不要关 #1509，不要认领 #1683。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 

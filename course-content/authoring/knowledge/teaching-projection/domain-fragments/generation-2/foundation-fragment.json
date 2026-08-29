@@ -1,34 +1,34 @@
 {
   "contract": "act-domain-teaching-fragment/v1",
   "builderVersion": "act-domain-teaching-fragment-builder/v1",
-  "fragmentId": "dtf-ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
+  "fragmentId": "dtf-ff1fe0d0d5aaaff96d5177cdf93a870192bf383d26b08ef9d4c1720c0b055240",
   "fragmentKey": "foundation-published-v2",
   "fragmentVersion": "1",
-  "fragmentDigest": "ee895f0af6c222bcb7558f3866263b6d6f792bebdb7461d4035984c805cabbd1",
+  "fragmentDigest": "ff1fe0d0d5aaaff96d5177cdf93a870192bf383d26b08ef9d4c1720c0b055240",
   "domainKeys": [
     "stability-analysis",
     "system-modeling"
   ],
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "nodeIndexDigest": "76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5"
   },
-  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
   "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
-  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "authorityDigest": "c15b740eb21b036cd36e059b2fda2f57cba3776609f5297f34593cd3179a2530",
   "evidenceRefs": [
     "course-content/authoring/lessons/1-1/design/1-1-boppps.md",
     "course-content/authoring/lessons/1-2/design/1-2-boppps.md",
@@ -38,57 +38,77 @@
   "coreNodes": [
     {
       "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
-      "domainKeys": ["system-modeling"],
+      "domainKeys": [
+        "system-modeling"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-1-modeling",
       "rationale": "当前 2-1 蓝图以方框图化简连接建模语言与闭环分析。",
       "sourceKind": "PRIMARY_COVERS",
-      "sourceEvidence": ["course-content/authoring/lessons/2-1/design/2-1-boppps.md"],
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+      ],
       "nodeDigest": "86c8bc80855f085f620d4c09a6b4930279e69a43746e984ffc7313c4025f1e59"
     },
     {
       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
-      "domainKeys": ["system-modeling"],
+      "domainKeys": [
+        "system-modeling"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-1-modeling",
       "rationale": "当前 1-2 互动课程将传递函数作为由真实对象走向统一分析对象的主绑定。",
       "sourceKind": "PRIMARY_COVERS",
-      "sourceEvidence": ["course-content/authoring/lessons/1-2/design/1-2-boppps.md"],
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+      ],
       "nodeDigest": "fd2970399d25400342f6f8ba237e5947d51b3cea9f16558fdd80dde6b3d44d6c"
     },
     {
       "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
-      "domainKeys": ["stability-analysis"],
+      "domainKeys": [
+        "stability-analysis"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-2-stability",
       "rationale": "当前 1-1 蓝图以反馈连接建立全课程控制视角。",
       "sourceKind": "OBJECTIVE",
-      "sourceEvidence": ["course-content/authoring/lessons/1-1/design/1-1-boppps.md"],
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-1/design/1-1-boppps.md"
+      ],
       "nodeDigest": "c7d25c7ed6200a3f69f275788e1aa38ecf58fb8c60b821807b47e3f5a3caf291"
     },
     {
       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
-      "domainKeys": ["stability-analysis"],
+      "domainKeys": [
+        "stability-analysis"
+      ],
       "pathEligible": true,
       "cardPolicy": "OPTIONAL",
       "moduleId": "module-2-stability",
       "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
       "sourceKind": "PREREQUISITE_ENDPOINT",
-      "sourceEvidence": ["course-content/authoring/lessons/3-1/design/3-1-boppps.md"],
+      "sourceEvidence": [
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+      ],
       "nodeDigest": "5f8d97be628bcdf68b6eaaba4a75402d83ff55470c6c9e9415bcbd772c3f4e9e"
     },
     {
       "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
-      "domainKeys": ["system-modeling"],
+      "domainKeys": [
+        "system-modeling"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-1-modeling",
       "rationale": "当前建模蓝图要求学生以拉普拉斯变换建立可分析的动态模型。",
       "sourceKind": "OBJECTIVE",
-      "sourceEvidence": ["course-content/authoring/lessons/1-2/design/1-2-boppps.md"],
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+      ],
       "nodeDigest": "61697ce6059c815dfb6d88b8c76f2ce0116a9c21322b9abf186bac940f19a07a"
     }
   ],
@@ -100,8 +120,13 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "REQUIRED",
-      "domainKeys": ["stability-analysis", "system-modeling"],
-      "evidenceRefs": ["course-content/authoring/lessons/2-1/design/2-1-boppps.md"],
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+      ],
       "curatorId": "act.cutover.blueprint",
       "curatorRationale": "方框图化简使学生能够建立并分析反馈连接。",
       "authorDecisionId": "prereq-decision-actkg-block-feedback",
@@ -115,8 +140,12 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "REQUIRED",
-      "domainKeys": ["system-modeling"],
-      "evidenceRefs": ["course-content/authoring/lessons/1-2/design/1-2-boppps.md"],
+      "domainKeys": [
+        "system-modeling"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/1-2/design/1-2-boppps.md"
+      ],
       "curatorId": "act.cutover.blueprint",
       "curatorRationale": "当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。",
       "authorDecisionId": "prereq-decision-actkg-laplace-transfer",
@@ -130,8 +159,12 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "REQUIRED",
-      "domainKeys": ["system-modeling"],
-      "evidenceRefs": ["course-content/authoring/lessons/2-1/design/2-1-boppps.md"],
+      "domainKeys": [
+        "system-modeling"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/2-1/design/2-1-boppps.md"
+      ],
       "curatorId": "act.cutover.blueprint",
       "curatorRationale": "当前互动课程以传递函数之间的方框图化简推进闭环分析。",
       "authorDecisionId": "prereq-decision-actkg-transfer-block",
@@ -145,8 +178,13 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "RECOMMENDED",
-      "domainKeys": ["stability-analysis", "system-modeling"],
-      "evidenceRefs": ["course-content/authoring/lessons/3-1/design/3-1-boppps.md"],
+      "domainKeys": [
+        "stability-analysis",
+        "system-modeling"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+      ],
       "curatorId": "act.cutover.blueprint",
       "curatorRationale": "稳定性分析以传递函数和极点语言为先行理解基础。",
       "authorDecisionId": "prereq-decision-actkg-transfer-stability",
