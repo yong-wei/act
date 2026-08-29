@@ -38,7 +38,9 @@ import {
 import {
   deleteRetiredResourceGovernanceEntrypointsFromRepo,
   frozenCallerCoverageGaps,
+  frozenCallerPathsMissingFromRevision,
   loadRetirementScanFiles,
+  scanRetirementCandidatesAtRevision,
 } from '@/lib/resource-governance-retirement/repo-scan';
 import { RESOURCE_REGISTRY_INDEX_CONTRACT } from '@/features/knowledge/resource-index/public-api';
 import { RESOURCE_ELIGIBILITY_CONTRACT } from '@/features/knowledge/resource-eligibility/public-api';
@@ -370,6 +372,12 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(compareLedgers(null, prior)).toEqual([]);
     expect(compareLedgers(null, grown)).toContain('prior-ledger-omitted:allowlist');
 
+    const tamperedPrior = {
+      ...prior,
+      allowlist: [{ id: 'compat:*', pattern: 'src/**', reason: 'avoid deletion' }],
+    };
+    expect(compareLedgers(tamperedPrior, grown)).toContain('prior-ledger-digest-tamper');
+
     const resurrected = buildDeprecationLedger({
       captureRevision: REV,
       allowlist: [],
@@ -614,6 +622,15 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     ]));
     expect(RETIREMENT_SCAN_ROOT_FILES).toContain('package.json');
     expect(RETIREMENT_SCAN_EXTENSIONS).toEqual(expect.arrayContaining(['.yaml', '.yml']));
+    expect(
+      frozenCallerPathsMissingFromRevision(process.cwd(), FROZEN_CAPTURE_REVISION, FROZEN_CALLERS),
+    ).toEqual([]);
+    const freezeScan = scanRetirementCandidatesAtRevision(
+      process.cwd(),
+      FROZEN_CAPTURE_REVISION,
+    );
+    expect(frozenCallerCoverageGaps(FROZEN_CALLERS, freezeScan)).toEqual([]);
+    expect(frozenCallerCoverageGaps(freezeScan, FROZEN_CALLERS)).toEqual([]);
     const live = Object.fromEntries(
       FROZEN_CANDIDATES.map((candidate) => [
         candidate.id,
@@ -638,7 +655,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(listHits.some((hit) => hit.path.includes('capture-batch38.mjs'))).toBe(true);
     expect(listHits.some((hit) => hit.path === 'docs/proposals/course-knowledge-base-governance-source-registry.yaml')).toBe(true);
     expect(listHits.some((hit) => hit.path.includes('nodes/[id]') || hit.path.includes('nodes/v2') || hit.path.includes('nodes/active'))).toBe(false);
-  });
+  }, 120_000);
 
   it('binds the full replacement identity into the candidate hash and rechecks it at verify time', () => {
     const base = candidate();
@@ -1019,11 +1036,42 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(verifyResourceGovernanceRetirement(deletedManifest, deletedLedger).deletionsAuthorized).toEqual([]);
   });
 
+  it('does not authorize deletion when the ledger row identity does not match the candidate', () => {
+    const graph = completeGraph({
+      ledgerEntries: [{
+        id: 'registry-read:obsolete-helper',
+        owner: 'knowledge',
+        sourcePath: 'src/lib/other-path.ts',
+        consumers: [],
+        replacement: RESOURCE_REGISTRY_INDEX_CONTRACT,
+        migrationRevision: REV,
+        state: 'retained',
+        deletionCondition: 'zero callers',
+        rollbackIdentity: REV,
+      }],
+    });
+    const manifest = readyManifest(graph, 'approve-delete');
+    expect(manifest.reasons).toContain('ledger-identity-mismatch:registry-read:obsolete-helper');
+    expect(verifyResourceGovernanceRetirement(manifest, graph).deletionsAuthorized).toEqual([]);
+    try {
+      reduceLedgerAfterDeletion(
+        graph.currentLedger,
+        [{ id: 'registry-read:obsolete-helper', sourcePath: 'src/lib/obsolete-registry-read.ts' }],
+      );
+      throw new Error('expected reduced-ledger-identity-mismatch');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ResourceGovernanceRetirementGateError);
+      expect((error as ResourceGovernanceRetirementGateError).code).toBe(
+        'reduced-ledger-identity-mismatch',
+      );
+    }
+  });
+
   it('records a reduced ledger with deleted state after a successful exact-path delete', () => {
     const graph = completeGraph({});
     const reduced = reduceLedgerAfterDeletion(
       graph.currentLedger,
-      ['src/lib/obsolete-registry-read.ts'],
+      [{ id: 'registry-read:obsolete-helper', sourcePath: 'src/lib/obsolete-registry-read.ts' }],
     );
     expect(reduced.entries[0]?.state).toBe('deleted');
     expect(reduced.entries[0]?.consumers).toEqual([]);

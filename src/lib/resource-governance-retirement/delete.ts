@@ -22,7 +22,7 @@ import {
 } from './contracts';
 import { looksLikeDirectoryOrGlob, scanCandidateCallers, fileDigest } from './scan';
 import { retirementDigest } from './hash';
-import { compareLedgers, reduceLedgerAfterDeletion } from './ledger';
+import { compareLedgers, deletedIdentitiesForPaths, reduceLedgerAfterDeletion } from './ledger';
 import { assertManifestReadyForDeletion } from './manifest';
 import { verifyResourceGovernanceRetirement } from './verify';
 import { restoreRollbackArchive, verifyRollbackArchive } from './archive';
@@ -288,7 +288,14 @@ export function deleteRetiredResourceGovernanceEntrypoints(
 
     let nextLedger: ResourceGovernanceDeprecationLedger;
     try {
-      nextLedger = reduceLedgerAfterDeletion(input.graph.currentLedger, deletedPaths);
+      nextLedger = reduceLedgerAfterDeletion(
+        input.graph.currentLedger,
+        deletedIdentitiesForPaths({
+          candidates: input.graph.candidates,
+          authorizedIds: verdict.deletionsAuthorized,
+          listedPaths: deletedPaths,
+        }),
+      );
     } catch (error) {
       const reasons = error instanceof ResourceGovernanceRetirementGateError
         ? error.reasons
@@ -406,7 +413,11 @@ export function rollbackRetiredEntrypoints(input: {
   }
   const expectedReduced = reduceLedgerAfterDeletion(
     input.graph.currentLedger,
-    input.receipt.deletedPaths,
+    deletedIdentitiesForPaths({
+      candidates: input.graph.candidates,
+      authorizedIds: input.graph.candidates.map((row) => row.id),
+      listedPaths: input.receipt.deletedPaths,
+    }),
   );
   if (
     input.receipt.reducedLedger === null

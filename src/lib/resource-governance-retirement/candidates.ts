@@ -1,9 +1,8 @@
 /**
  * Frozen candidate and protected-surface inventory for #1592.
  *
- * Capture revision is the R3-merged integration HEAD inspected before this
- * retirement implementation. Source owners and historical readers are listed
- * but are not retireable.
+ * Capture revision is the Git tree whose frozen caller paths exist as blobs.
+ * Source owners and historical readers are listed but are not retireable.
  */
 
 import { KNOWLEDGE_SURFACE_CONTRACT } from '@/lib/knowledge-surface';
@@ -18,9 +17,9 @@ import type {
   RetirementCandidate,
 } from './contracts';
 
-/** R3 merge on integration; denominator freeze for this change. */
+/** Denominator freeze for this change; callers were recaptured from this tree. */
 export const FROZEN_CAPTURE_REVISION =
-  'fce5b9fc4a4c7dd408297c3d90d2cf407c953b71' as const;
+  'd1b1458bb87892de2237f6e13a03f61a14c2d2ed' as const;
 
 const PASSING_PARITY: ReplacementParity = {
   identity: true,

@@ -218,6 +218,31 @@ export function mentionsEntrypoint(
   return false;
 }
 
+/**
+ * Literal git-grep needles that cover mentionsEntrypoint besides relative
+ * imports. The caller scan remains the authority; these only prefilter blobs.
+ */
+export function entrypointLiteralNeedles(
+  sourcePath: string,
+  exportName: string | null,
+): string[] {
+  const normalized = sourcePath.replace(/\\/gu, '/');
+  const needles = new Set<string>([normalized]);
+  if (normalized.startsWith('src/')) {
+    const atPath = normalized.replace(/^src\//u, '@/');
+    needles.add(atPath);
+    const atPathNoExt = atPath.replace(/\.tsx?$/u, '');
+    if (atPathNoExt !== atPath) needles.add(atPathNoExt);
+  }
+  if (normalized.startsWith('src/app/api/') && /\/route\.tsx?$/u.test(normalized)) {
+    needles.add(normalized.slice('src/app'.length).replace(/\/route\.tsx?$/u, ''));
+  }
+  const basename = normalized.split('/').pop()?.replace(/\.[^.]+$/u, '') ?? '';
+  if (basename.length >= 8) needles.add(basename);
+  if (exportName && exportName.length >= 16) needles.add(exportName);
+  return [...needles];
+}
+
 export function hashCandidateSet(candidates: readonly RetirementCandidate[]): string {
   return retirementDigest(
     [...candidates]

@@ -8,6 +8,7 @@ import {
   type AllowlistException,
   type DeprecationLedgerEntry,
   type ResourceGovernanceDeprecationLedger,
+  type RetirementCandidate,
 } from './contracts';
 import { isGitRevision, retirementDigest } from './hash';
 
@@ -36,34 +37,82 @@ export function buildDeprecationLedger(input: {
   };
 }
 
+export function ledgerRowIdentityMatches(
+  entry: DeprecationLedgerEntry,
+  candidate: Pick<
+    RetirementCandidate,
+    'id' | 'owner' | 'sourcePath' | 'migrationRevision'
+  > & { replacement: { contract: string } },
+): boolean {
+  return (
+    entry.id === candidate.id
+    && entry.owner === candidate.owner
+    && entry.sourcePath.replace(/\\/gu, '/') === candidate.sourcePath.replace(/\\/gu, '/')
+    && entry.replacement === candidate.replacement.contract
+    && entry.migrationRevision === candidate.migrationRevision
+  );
+}
+
+export function deletedIdentitiesForPaths(input: {
+  candidates: readonly RetirementCandidate[];
+  authorizedIds: readonly string[];
+  listedPaths: readonly string[];
+}): Array<{ id: string; sourcePath: string }> {
+  const authorized = new Set(input.authorizedIds);
+  return input.listedPaths.map((listed) => {
+    const sourcePath = listed.replace(/\\/gu, '/');
+    const matches = input.candidates.filter((row) => (
+      authorized.has(row.id)
+      && row.sourcePath.replace(/\\/gu, '/') === sourcePath
+    ));
+    if (matches.length !== 1) {
+      throw new ResourceGovernanceRetirementGateError(
+        'deleted-identity-unresolved',
+        `listed path does not map to exactly one authorized candidate: ${sourcePath}`,
+        [`deleted-identity-unresolved:${sourcePath}`],
+      );
+    }
+    return { id: matches[0]!.id, sourcePath };
+  });
+}
+
 /**
- * Successful deletion records the same entries with deleted state and empty
- * consumers. Paths that are not in the current ledger fail closed.
+ * Successful deletion records the same identities with deleted state and empty
+ * consumers. Rows must match by candidate id and sourcePath.
  */
 export function reduceLedgerAfterDeletion(
   current: ResourceGovernanceDeprecationLedger,
-  deletedPaths: readonly string[],
+  deleted: readonly { id: string; sourcePath: string }[],
 ): ResourceGovernanceDeprecationLedger {
-  const deleted = new Set(deletedPaths.map((path) => path.replace(/\\/gu, '/')));
+  const byId = new Map(
+    deleted.map((row) => [row.id, row.sourcePath.replace(/\\/gu, '/')]),
+  );
   const matched = new Set<string>();
   const entries: DeprecationLedgerEntry[] = current.entries.map((entry) => {
-    const sourcePath = entry.sourcePath.replace(/\\/gu, '/');
-    if (!deleted.has(sourcePath)) {
+    const expectedPath = byId.get(entry.id);
+    if (expectedPath === undefined) {
       return entry;
     }
-    matched.add(sourcePath);
+    if (entry.sourcePath.replace(/\\/gu, '/') !== expectedPath) {
+      throw new ResourceGovernanceRetirementGateError(
+        'reduced-ledger-identity-mismatch',
+        `deleted id does not match ledger sourcePath: ${entry.id}`,
+        [`reduced-ledger-identity-mismatch:${entry.id}`],
+      );
+    }
+    matched.add(entry.id);
     return {
       ...entry,
       state: 'deleted',
       consumers: [],
     };
   });
-  for (const path of deleted) {
-    if (!matched.has(path)) {
+  for (const row of deleted) {
+    if (!matched.has(row.id)) {
       throw new ResourceGovernanceRetirementGateError(
-        'reduced-ledger-unmatched-path',
-        `deleted path is not a current ledger entry: ${path}`,
-        [`reduced-ledger-unmatched-path:${path}`],
+        'reduced-ledger-unmatched-id',
+        `deleted identity is not a current ledger entry: ${row.id}`,
+        [`reduced-ledger-unmatched-id:${row.id}`],
       );
     }
   }
@@ -103,6 +152,17 @@ export function compareLedgers(
   });
   if (next.ledgerDigest !== expectedDigest) {
     reasons.push('ledger-digest-tamper');
+  }
+  if (prior) {
+    const expectedPriorDigest = retirementDigest({
+      contract: prior.contract,
+      captureRevision: prior.captureRevision,
+      allowlist: prior.allowlist,
+      entries: prior.entries,
+    });
+    if (prior.ledgerDigest !== expectedPriorDigest) {
+      reasons.push('prior-ledger-digest-tamper');
+    }
   }
   if (!prior) {
     if (next.allowlist.length > 0) {

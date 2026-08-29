@@ -38,6 +38,12 @@ The retirement validator SHALL account for production, test, generated, compatib
 - **THEN** the candidate MAY pass the zero-caller gate
 - **AND** the exact denominator hash and scan receipt SHALL be stored in the manifest.
 
+#### Scenario: Frozen callers are bound to the capture revision
+
+- **WHEN** a caller denominator is frozen at `captureRevision`
+- **THEN** every frozen caller path SHALL exist in that Git tree
+- **AND** freeze coverage SHALL be recomputed from that tree rather than an unrelated later worktree.
+
 ### Requirement: Replacement and migration are revision-bound
 
 Every deletion candidate SHALL name an implemented replacement and prove at one captured revision that identity, source ownership, role, authorization, scope, requested revision, optional degradation, formal fail-closed behavior, cache, and public response semantics are preserved by the replacement.
@@ -72,7 +78,7 @@ Retirement SHALL preserve Legacy knowledge display, historical Authority/runtime
 
 ### Requirement: Allowlist and deprecation state only decrease
 
-The retirement validator SHALL compare the current architecture allowlist and deprecation ledger with the prior manifest and SHALL permit only entry removal or narrowing to an explicitly retained historical adapter. It SHALL reject new exceptions, broadened patterns, hidden callers, or unexplained resurrection of a retired entry.
+The retirement validator SHALL compare the current architecture allowlist and deprecation ledger with the prior manifest and SHALL permit only entry removal or narrowing to an explicitly retained historical adapter. It SHALL reject new exceptions, broadened patterns, hidden callers, or unexplained resurrection of a retired entry. Prior ledger evidence SHALL have a matching digest before monotonic comparison.
 
 #### Scenario: One entry is deleted
 
@@ -86,6 +92,12 @@ The retirement validator SHALL compare the current architecture allowlist and de
 - **WHEN** a candidate has no current ledger row or the row is not `retained`
 - **THEN** deletion SHALL not be authorized
 - **AND** the candidate SHALL remain recorded until a later monotonic ledger update.
+
+#### Scenario: Ledger row identity does not match the candidate
+
+- **WHEN** a retained ledger row shares a candidate id but differs in `sourcePath`, owner, replacement contract, or migration revision
+- **THEN** deletion SHALL not be authorized
+- **AND** reduced-ledger recording SHALL require the deleted identity, not path-only matching.
 
 #### Scenario: A new exception is proposed
 

@@ -17,7 +17,7 @@ import {
 import { archiveCoverageReasons, verifyRollbackArchive } from './archive';
 import { hashCandidateSet, hashDenominator, receiptIntegrityReasons } from './scan';
 import { isGitRevision, isSha256Hex, retirementDigest } from './hash';
-import { compareLedgers } from './ledger';
+import { compareLedgers, ledgerRowIdentityMatches } from './ledger';
 import { replacementIsImplemented, replacementParityFails } from './replacement';
 
 const INVARIANTS = {
@@ -97,6 +97,10 @@ export function collectManifestReasons(input: {
     if (!candidate.replacement.implemented) {
       reasons.push(`candidate-not-replaced-by-r1-r2-r3:${candidate.id}`);
     }
+    const ledger = graph.currentLedger.entries.find((row) => row.id === candidate.id);
+    if (ledger && !ledgerRowIdentityMatches(ledger, candidate)) {
+      reasons.push(`ledger-identity-mismatch:${candidate.id}`);
+    }
   }
 
   reasons.push(...changeSurfaceReasons(graph.changeSurface));
@@ -166,6 +170,7 @@ export function deletionsAuthorizedByEvidence(input: {
       if (receipt.hits.length !== 0) return false;
       const ledger = input.graph.currentLedger.entries.find((row) => row.id === candidate.id);
       if (!ledger || ledger.state !== 'retained') return false;
+      if (!ledgerRowIdentityMatches(ledger, candidate)) return false;
       return candidate.replacement.implemented
         && candidate.replacement.parity.facade === false;
     })
