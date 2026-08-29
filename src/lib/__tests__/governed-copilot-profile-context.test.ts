@@ -246,6 +246,23 @@ describe('governed copilot profile context', () => {
     expect(lowConfidence.status).toBe('low-confidence');
     expect(lowConfidence.abilityVector).toBeUndefined();
     expect(lowConfidence.cognitiveLevel).toBeUndefined();
+
+    const lowConfidenceScoreState = trustedPortraitState();
+    lowConfidenceScoreState.primaryPortrait = {
+      ...lowConfidenceScoreState.primaryPortrait!,
+      dimensions: lowConfidenceScoreState.primaryPortrait!.dimensions.map((dimension, index) => (
+        index === 0
+          ? { ...dimension, confidence: 0.2 }
+          : dimension
+      )),
+    };
+    const lowScoreConfidence = projectGovernedCopilotProfile(lowConfidenceScoreState, {
+      authenticatedUserId: 'student-1',
+      displayName: '张三',
+    });
+    expect(lowScoreConfidence.status).toBe('low-confidence');
+    expect(lowScoreConfidence.abilityVector).toBeUndefined();
+    expect(lowScoreConfidence.cognitiveLevel).toBeUndefined();
     expect(JSON.stringify(missing)).not.toContain('0.5');
     expect(JSON.stringify(unavailable)).not.toContain('0.5');
     expect(JSON.stringify(lowConfidence)).not.toContain('0.5');

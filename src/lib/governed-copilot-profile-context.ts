@@ -87,6 +87,8 @@ export function hasTrustedCopilotPortrait(state: AdaptiveLearnerState | null): b
   );
 }
 
+const MIN_USABLE_PORTRAIT_CONFIDENCE = 0.45;
+
 function portraitDimensions(state: AdaptiveLearnerState) {
   return Array.isArray(state.primaryPortrait?.dimensions) ? state.primaryPortrait.dimensions : [];
 }
@@ -98,6 +100,9 @@ function hasUsablePortraitDimensions(state: AdaptiveLearnerState): boolean {
       && (entry.freshness.state === 'current' || entry.freshness.state === 'partial')
       && typeof entry.score === 'number'
       && Number.isFinite(entry.score)
+      && typeof entry.confidence === 'number'
+      && Number.isFinite(entry.confidence)
+      && entry.confidence >= MIN_USABLE_PORTRAIT_CONFIDENCE
   ));
 }
 
