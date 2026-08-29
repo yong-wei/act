@@ -1,4 +1,12 @@
-import { privacyViolation } from '@/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/serialize';
 
-export { privacyViolation, serializeDeterministic, sha256Text };
+import { closureOutputPrivacyViolation } from './privacy';
+
+export { serializeDeterministic, sha256Text };
+export { closureOutputPrivacyViolation as privacyViolation };
+
+export function sha256WithoutKey(value: object, key: string): string {
+  const copy: Record<string, unknown> = { ...(value as Record<string, unknown>) };
+  delete copy[key];
+  return sha256Text(serializeDeterministic(copy));
+}

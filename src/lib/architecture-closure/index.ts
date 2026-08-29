@@ -1,4 +1,4 @@
-export { generateArchitectureClosure, sealClosureInput } from './generate';
+export { generateArchitectureClosure, sealClosureInput, recomputeClosureReceiptId } from './generate';
 export { loadClosureCapture, captureFromFlags } from './identity';
 export { parseArchitectureClosureReceipt, loadArchitectureClosureReceipt, receiptDigest } from './reader';
 export { runArchitectureClosureCommand } from './command';

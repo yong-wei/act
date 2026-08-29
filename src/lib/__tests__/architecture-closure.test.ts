@@ -13,7 +13,9 @@ import {
   characterizeRepository,
   characterizeSources,
   generateArchitectureClosure,
+  loadArchitectureClosureReceipt,
   parseArchitectureClosureReceipt,
+  privacyViolation,
   runArchitectureClosureCommand,
   sealClosureInput,
   serializeDeterministic,
@@ -346,6 +348,50 @@ describe('architecture closure', () => {
     expect(leaked.receipt.status).toBe('unresolved');
     expect(leaked.serialized).not.toContain('/Users/me/secret.log');
     expect(leaked.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
+
+    const emailLeak = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554'
+          ? receipt(stageId, {
+            compatibilityRecords: [{
+              identity: 'qa-email',
+              owner: 'platform',
+              inClosureScope: false,
+              deletionProof: 'kept',
+              reason: 'learner alice@example.com answered 42',
+              resolutionCondition: 'drop-user-identifier',
+            }],
+          })
+          : receipt(stageId)
+      )),
+    });
+    const emailed = generateArchitectureClosure(capture(), emailLeak, []);
+    expect(emailed.receipt.status).toBe('unresolved');
+    expect(emailed.serialized).not.toContain('alice@example.com');
+    expect(emailed.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
+
+    const workspaceLog = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554'
+          ? receipt(stageId, {
+            compatibilityRecords: [{
+              identity: 'qa-workspace-log',
+              owner: 'platform',
+              inClosureScope: false,
+              deletionProof: 'kept',
+              reason: 'copied /workspace/act/.logs/raw.log',
+              resolutionCondition: 'drop-raw-log',
+            }],
+          })
+          : receipt(stageId)
+      )),
+    });
+    const logged = generateArchitectureClosure(capture(), workspaceLog, []);
+    expect(logged.receipt.status).toBe('unresolved');
+    expect(logged.serialized).not.toContain('/workspace/act/.logs/raw.log');
+    expect(logged.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
+    expect(privacyViolation('learner alice@example.com answered 42')).toBe('user-identifier');
+    expect(privacyViolation('copied /workspace/act/.logs/raw.log')).toBe('absolute-path');
   });
 
   it('records competing aggregators and keeps census/charter/fitness as non-substitutes', () => {
@@ -380,11 +426,81 @@ describe('architecture closure', () => {
       expect(result.status).toBe('qualified');
       const written = readFileSync(join(out, 'architecture-closure-receipt.json'), 'utf8');
       expect(sha256Text(written).trim()).toBe(readFileSync(join(out, 'architecture-closure-receipt.sha256'), 'utf8').trim());
+      expect(loadArchitectureClosureReceipt(join(out, 'architecture-closure-receipt.json')).receiptId).toBe(result.receiptId);
+      writeFileSync(join(out, 'architecture-closure-receipt.sha256'), `${'0'.repeat(64)}\n`);
+      expect(() => loadArchitectureClosureReceipt(join(out, 'architecture-closure-receipt.json'))).toThrow(/receipt-file-digest-mismatch/);
       rmSync(out, { recursive: true, force: true });
       expect(readFileSync(upstream, 'utf8')).toBe(before);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('recomputes input content digests and rejects reused stale hashes', () => {
+    const honest = receipt('quality-1554');
+    const mutatedStatus = {
+      ...honest,
+      status: 'observed' as const,
+      contentDigest: honest.contentDigest,
+    };
+    const tampered = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? mutatedStatus : receipt(stageId)
+      )),
+    });
+    const result = generateArchitectureClosure(capture(), tampered, []);
+    expect(result.failures.some((item) => item.code === 'content-digest-mismatch')).toBe(true);
+    expect(result.receipt.status).toBe('unresolved');
+
+    const invalid = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554'
+          ? { ...honest, contentDigest: 'not-a-digest' }
+          : receipt(stageId)
+      )),
+    });
+    expect(generateArchitectureClosure(capture(), invalid, []).failures.some((item) => item.code === 'invalid-content-digest')).toBe(true);
+  });
+
+  it('pairs before/after metrics only when source receipt and field match', () => {
+    const mixedAuthority = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        fitness: receipt('fitness', {
+          metrics: [{
+            metricId: 'scc-count',
+            scope: 'production',
+            unit: 'count',
+            value: 3,
+            sourceField: 'totals.scc',
+            phase: 'before',
+            status: 'qualified',
+          }],
+        }),
+        qa: receipt('qa', {
+          metrics: [{
+            metricId: 'scc-count',
+            scope: 'production',
+            unit: 'count',
+            value: 1,
+            sourceField: 'other.field',
+            phase: 'after',
+            status: 'qualified',
+          }],
+        }),
+      },
+    });
+    const result = generateArchitectureClosure(capture(), mixedAuthority, []);
+    expect(result.failures.some((item) => item.code === 'metric-authority-mismatch')).toBe(true);
+    expect(result.failures.some((item) => item.code === 'missing-metric-pair')).toBe(true);
+    expect(result.receipt.status).toBe('unresolved');
+  });
+
+  it('rejects a mutated closure receipt whose receiptId was left unchanged', () => {
+    const generated = generateArchitectureClosure(capture(), qualifiedManifest(), []);
+    const mutated = JSON.parse(generated.serialized) as ReturnType<typeof generateArchitectureClosure>['receipt'];
+    mutated.status = 'blocked';
+    expect(() => parseArchitectureClosureReceipt(serializeDeterministic(mutated))).toThrow(/receipt-id-mismatch/);
   });
 
   it('keeps the canonical command and reader as the only closure consumer in product trees', () => {

@@ -1,5 +1,5 @@
 import type { CharacterizationFinding } from './characterize';
-import { privacyViolation, serializeDeterministic, sha256Text } from './serialize';
+import { privacyViolation, serializeDeterministic, sha256Text, sha256WithoutKey } from './serialize';
 import { allInputReceipts, isTerminalStageId, sortedUnique } from './stages';
 import {
   AUTHORITY_INPUT_IDS,
@@ -28,6 +28,7 @@ import type {
 } from './types';
 
 const GIT_SHA = /^[a-f0-9]{40}$/u;
+const CONTENT_DIGEST = /^[a-f0-9]{64}$/u;
 
 function emptyTotals(): ClosureTotals {
   return { discovered: 0, included: 0, excluded: 0, duplicate: 0, unresolved: 0 };
@@ -111,11 +112,24 @@ function validateReceiptShape(receipt: ClosureInputReceipt | undefined, stageId:
   if (!(EVIDENCE_CLASSES as readonly string[]).includes(receipt.evidenceClass)) {
     failures.push({ code: 'invalid-evidence-class', stageId, identity: String(receipt.evidenceClass) });
   }
+  if (typeof receipt.contentDigest === 'string' && receipt.contentDigest.length > 0) {
+    validateContentDigest(receipt, failures);
+  }
   if (!Array.isArray(receipt.observations) || !receipt.totals || !Array.isArray(receipt.metrics)) {
     failures.push({ code: 'invalid-receipt-payload', stageId });
     return false;
   }
   return true;
+}
+
+function validateContentDigest(receipt: ClosureInputReceipt, failures: ClosureFailure[]): void {
+  if (!CONTENT_DIGEST.test(receipt.contentDigest)) {
+    failures.push({ code: 'invalid-content-digest', stageId: receipt.stageId, identity: receipt.receiptId });
+    return;
+  }
+  if (sha256WithoutKey(receipt, 'contentDigest') !== receipt.contentDigest) {
+    failures.push({ code: 'content-digest-mismatch', stageId: receipt.stageId, identity: receipt.receiptId });
+  }
 }
 
 function validateDenominator(receipt: ClosureInputReceipt, failures: ClosureFailure[]): void {
@@ -264,10 +278,16 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
   const beforeMetrics: NormalizedMetric[] = [];
   const afterMetrics: NormalizedMetric[] = [];
   const seen = new Map<string, { phase: string; receiptId: string }[]>();
+  const authorities = new Map<string, Set<string>>();
 
   for (const receipt of receipts) {
     for (const metric of receipt.metrics) {
-      const key = `${metric.metricId}|${metric.scope}|${metric.unit}`;
+      const identity = `${metric.metricId}|${metric.scope}|${metric.unit}`;
+      const authority = `${receipt.receiptId}|${metric.sourceField}`;
+      const key = `${identity}|${authority}`;
+      const sources = authorities.get(identity) ?? new Set<string>();
+      sources.add(authority);
+      authorities.set(identity, sources);
       const bucket = seen.get(key) ?? [];
       bucket.push({ phase: metric.phase, receiptId: receipt.receiptId });
       seen.set(key, bucket);
@@ -286,6 +306,12 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
       if (metric.value === undefined || metric.value === null || metric.unit === '' || !metric.sourceField) {
         failures.push({ code: 'missing-metric-value', stageId: receipt.stageId, identity: key });
       }
+    }
+  }
+
+  for (const [identity, sources] of [...authorities.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    if (sources.size > 1) {
+      failures.push({ code: 'metric-authority-mismatch', identity });
     }
   }
 
@@ -377,6 +403,10 @@ export function sealClosureInput(input: Omit<ClosureInputReceipt, 'contentDigest
   };
 }
 
+export function recomputeClosureReceiptId(receipt: NormalizedClosureReceipt): string {
+  return sha256WithoutKey(receipt, 'receiptId');
+}
+
 export function generateArchitectureClosure(
   capture: ClosureCapture,
   manifest: ClosureManifest,
@@ -464,12 +494,10 @@ export function generateArchitectureClosure(
   if (privacyViolation(serializeDeterministic(receipt))) {
     failures.push({ code: 'privacy-violation' });
     const sanitized = sanitizeReceipt({ ...receipt, status: 'unresolved' });
-    const sanitizedDraft = { ...sanitized, receiptId: undefined };
-    delete (sanitizedDraft as { receiptId?: string }).receiptId;
     receipt = {
       ...sanitized,
       status: 'unresolved',
-      receiptId: sha256Text(serializeDeterministic({ ...sanitized, receiptId: undefined })),
+      receiptId: recomputeClosureReceiptId({ ...sanitized, status: 'unresolved' }),
     };
   }
   const serialized = serializeDeterministic(receipt);
