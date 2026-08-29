@@ -97,3 +97,9 @@ scanDomainAuthorityWrites 改为返回结构化违例（domain/kind/file/detail�
 - learningFact 建立独立全域写点白名单（LEARNING_FACT_WRITE_SITES），生成器直写 prisma.learningFact.create 即违例；provider 相对路径 import 经规范化解析器识别；AI 调用模块 import 本域禁止 sink 即违例；域外 AI 使用明确不属本矩阵管辖。
 - interactive-evidence-scoring-recompute.ts 补入 LearningFact 写点白名单。
 - provider 文件中的最终权威模型写（FINAL_AUTHORITY_WRITE_MODEL_PATTERN：修订/回执/评分/发布）一律违例；草稿/任务类写不受限（spec 允许 AI 产出草稿）。
+
+## FINAL 判定与回归测试修复（2026-08-29，PR #1693）
+
+- 修复 FINAL_AUTHORITY_WRITE_MODEL_PATTERN 判定拼接错误（重组文本丢失前导点且重复操作名导致恒 false）：直接对完整匹配文本 match[0] 判定；白名单文件同时调用 provider 并改写最终权威（assignmentSubmission 等）必产生违例。
+- 回归测试锁定：白名单文件引入 provider 调用 + tx.assignmentSubmission.update → UNREGISTERED_AUTHORITY_WRITE（assignment-rubric）。
+- 摘要重绑至最终治理实现（f7ea8b74）。

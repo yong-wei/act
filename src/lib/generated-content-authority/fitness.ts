@@ -386,9 +386,8 @@ export function scanDomainAuthorityWrites(
         : (ownerDomain ? options.authorityWriteSitesByDomain[ownerDomain] ?? [] : []);
       // 最终权威模型（修订/回执/评分/发布）在 provider 调用文件中出现 → 违例：
       // AI 路径只能产出草稿/候选，不得改写已批准权威
-      const isFinalAuthorityWrite = FINAL_AUTHORITY_WRITE_MODEL_PATTERN.test(
-        `${match[0].slice(1)}.${match[2]}(`,
-      );
+      // 直接对完整匹配文本（如 .assignmentSubmission.update(）判定
+      const isFinalAuthorityWrite = FINAL_AUTHORITY_WRITE_MODEL_PATTERN.test(match[0]);
       const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path)
         && !(isProviderCallSite && isFinalAuthorityWrite);
       if (!isWriteSite) {
