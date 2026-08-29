@@ -10,7 +10,7 @@ import { createPrismaClient } from '../src/lib/prisma-client';
 const slug = 'unit-1-2-modeling-from-object-to-system';
 const evidenceDir = pathJoin(
   process.cwd(),
-  'openspec/changes/migrate-one-manifest-course-to-shared-classroom-shell/evidence/browser',
+  'openspec/changes/archive/2026-08-29-migrate-one-manifest-course-to-shared-classroom-shell/evidence/browser',
 );
 const prisma = createPrismaClient();
 const seed = {

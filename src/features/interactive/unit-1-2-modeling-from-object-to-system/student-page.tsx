@@ -242,10 +242,7 @@ export function UNIT_1_2StudentPage({
       activeIndex={activeIndex}
       stageLabel={UNIT_1_2_STAGE_LABEL}
       notice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
-      onIndexChange={(index) => {
-        trackStepLeave(step.id, { nextStepId: UNIT_1_2_LESSON_STEPS[index]?.id });
-        setActiveIndex(index);
-      }}
+      onIndexChange={(index) => setActiveIndex(index)}
       localTools={
         <StepKnowledgeDrawer
           lessonRuntime={lessonRuntime}
@@ -269,14 +266,7 @@ export function UNIT_1_2StudentPage({
             <span>当前页面与教师不同步，点击可跳转到教师所在环节。</span>
             <button
               type="button"
-              onClick={() => {
-                trackStepView(UNIT_1_2_LESSON_STEPS[teacherIndex]?.id, {
-                  pageType: UNIT_1_2_LESSON_STEPS[teacherIndex]?.pageType,
-                  stepIndex: teacherIndex,
-                  source: 'sync-to-teacher',
-                });
-                setActiveIndex(teacherIndex);
-              }}
+              onClick={() => setActiveIndex(teacherIndex)}
               className="premium-lesson-action-tone premium-tone-amber"
             >
               跳到教师当前页

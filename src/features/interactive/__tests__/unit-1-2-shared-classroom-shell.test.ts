@@ -52,6 +52,8 @@ describe('unit-1-2 shared classroom shell characterization', () => {
     expect(entryPage).toContain('CourseEntryShell');
     expect(studentPage).toContain('LessonRuntimeShell');
     expect(teacherPage).toContain('LessonRuntimeShell');
+    expect(studentPage).toMatch(/onIndexChange=\{\(index\) => setActiveIndex\(index\)\}/);
+    expect(studentPage).not.toMatch(/onIndexChange=\{\(index\) => \{[\s\S]*trackStepLeave/);
     expect(studentPage).toContain('useManifestSubmissionController');
     expect(stepPanels).toContain('createManifestContentModuleRegistry');
     expect(stepPanels).toContain('createManifestStudentActivityRegistry');
