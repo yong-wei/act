@@ -378,6 +378,19 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     };
     expect(compareLedgers(tamperedPrior, grown)).toContain('prior-ledger-digest-tamper');
 
+    const priorGlob = buildDeprecationLedger({
+      captureRevision: REV,
+      allowlist: [{ id: 'compat:*', pattern: 'src/lib/*.ts', reason: 'existing exception' }],
+      entries: prior.entries,
+    });
+    const widenedGlob = buildDeprecationLedger({
+      captureRevision: REV,
+      allowlist: [{ id: 'compat:*', pattern: 'src/**/*.ts', reason: 'existing exception' }],
+      entries: prior.entries,
+    });
+    expect(compareLedgers(priorGlob, widenedGlob)).toContain('allowlist-pattern-broadened:compat:*');
+    expect(compareLedgers(widenedGlob, priorGlob)).toEqual([]);
+
     const resurrected = buildDeprecationLedger({
       captureRevision: REV,
       allowlist: [],

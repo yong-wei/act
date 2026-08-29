@@ -123,14 +123,56 @@ export function reduceLedgerAfterDeletion(
   });
 }
 
+function escapeGlobRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function globToRegExp(pattern: string): RegExp {
+  let index = 0;
+  let source = '^';
+  while (index < pattern.length) {
+    if (pattern.startsWith('**/', index)) {
+      source += '(?:.*/)?';
+      index += 3;
+      continue;
+    }
+    if (pattern.startsWith('**', index)) {
+      source += '.*';
+      index += 2;
+      continue;
+    }
+    if (pattern[index] === '*') {
+      source += '[^/]*';
+      index += 1;
+      continue;
+    }
+    source += escapeGlobRegex(pattern[index]!);
+    index += 1;
+  }
+  return new RegExp(`${source}$`, 'u');
+}
+
+function globWitnesses(pattern: string): string[] {
+  const deep = pattern
+    .replaceAll('**/', 'widen-a/widen-b/')
+    .replaceAll('**', 'widen-a/widen-b')
+    .replaceAll('*', 'widen-item');
+  const shallow = pattern
+    .replaceAll('**/', '')
+    .replaceAll('**', '')
+    .replaceAll('*', 'widen-item');
+  return [...new Set([pattern, deep, shallow].filter(Boolean))];
+}
+
 function patternBroadens(prior: string, next: string): boolean {
   if (prior === next) return false;
   if (next === '*' || next === '**') return true;
-  if (prior.endsWith('/**') && !next.startsWith(prior.slice(0, -3))) return true;
-  if (!prior.includes('*') && next.includes('*')) return true;
-  if (next.length < prior.length && prior.startsWith(next.replace(/\*+$/u, ''))) {
+  const priorRe = globToRegExp(prior);
+  const nextRe = globToRegExp(next);
+  if (globWitnesses(next).some((path) => nextRe.test(path) && !priorRe.test(path))) {
     return true;
   }
+  if (!prior.includes('*') && next.includes('*')) return true;
   return false;
 }
 
