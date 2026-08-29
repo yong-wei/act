@@ -106,3 +106,4 @@ unit41-step*.png
 
 # GLB meshopt 压缩产物：由独立 npm run models:produce 流程生成，应用构建仅消费现有产物
 public/assets/models-opt/
+.tmp-review-evidence-gh/
