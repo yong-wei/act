@@ -32,7 +32,7 @@ import {
 import {
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathRegisteredGoalDefinition,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import type { CumulativePortraitReadModel } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   projectPortraitV2ForConsumer,

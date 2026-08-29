@@ -41,7 +41,7 @@ import {
   type FullResourcePathReadinessGateReport,
   type LearningGoalPathGenerationDiagnostic,
 } from '@/lib/full-resource-path-readiness-gate';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
 import {

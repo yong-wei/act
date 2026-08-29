@@ -9,7 +9,7 @@ import {
   listLearningGoals,
   validateLearningGoalCatalog,
   validateLearningGoalPackageCatalog,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { applyResourceFieldCompletionReviewOverlays } from '@/lib/resource-field-completion-audit';
 import {
   assertRuntimeLessonSemanticReviewEvidence,

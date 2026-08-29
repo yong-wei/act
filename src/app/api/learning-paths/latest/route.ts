@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import {
   readControlCorrectionPathRound,
   toControlCorrectionPathRoundView,

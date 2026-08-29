@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   type AdaptiveLearningPathPlan,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
@@ -1027,7 +1027,7 @@ describe('control-correction path rounds', () => {
   it('persists the real readiness-gated control-correction planner output', async () => {
     const db = mockDb();
     const now = new Date('2026-05-28T00:00:00Z');
-    const plan = buildAdaptiveLearningPathPlan({
+    const plan = planLearningPath({
       studentId: 'student-1',
       now,
       goal: {

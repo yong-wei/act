@@ -5,7 +5,7 @@ import {
   buildResourceNodeRegistry,
   buildResourceSemanticProjection,
 } from '../../resource-node-registry';
-import type { LearningGoalDefinition } from '../../adaptive-learning-path-planner';
+import type { LearningGoalDefinition } from '@/features/personalization/path-planning/public-api';
 import type { ExpandedGoalSubgraph } from '../../graphs/goal-subgraph-expansion-service';
 import type { KaqKnowledgeGraphNode } from '../kaq-graph-schema';
 import type { KaqObjective, PortraitV2DimensionDefinition } from '../kaq-objective-taxonomy';

@@ -71,6 +71,31 @@ export interface PersonalizationPluginRationaleCitation {
   privacySafe: true;
 }
 
+export interface PersonalizationPluginPathPlanningPolicy {
+  displayName: string;
+  checkpointPolicy: {
+    minCheckpoints: number;
+    checkpointResourceTypes: string[];
+    requiresTerminalValidation: boolean;
+  };
+  allowedResourceMix: string[];
+  knowledgeTargetAliases?: Record<string, string[]>;
+  starterPathPolicy: {
+    policyFamilies: string[];
+    minOptions: number;
+    difficultyRhythm: 'gentle' | 'steady' | 'challenge';
+    allowExternalResources: boolean;
+    preferredResourceTypes: string[];
+  };
+  explanationTemplates: {
+    ready: string;
+    coldStart: string;
+    lowConfidence: string;
+    fallback: string;
+  };
+  evidenceRequirements: readonly string[];
+}
+
 export interface PersonalizationGoalPlugin<TDb = unknown> {
   pluginId: string;
   goalId: string;
@@ -80,6 +105,7 @@ export interface PersonalizationGoalPlugin<TDb = unknown> {
   lessonIds: readonly string[];
   arenaTaskIds: readonly string[];
   sliceDefinition: AdaptiveGoalSliceDefinition;
+  pathPlanningPolicy?: PersonalizationPluginPathPlanningPolicy;
   createEvidencePort(db: TDb): GoalPluginEvidencePort;
   createWritePort(): PersonalizationPluginWritePort;
 }

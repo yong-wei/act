@@ -22,7 +22,7 @@ import {
 import { listMicroTutoringGovernedResources } from '@/features/assessment/micro-tutoring-resource-registry';
 import { listMicroTutoringGovernedValidationItems } from '@/features/assessment/micro-tutoring-validation-registry';
 import { AUTOCONTROL_KAQ_GRAPH_CATALOG } from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 import { prisma } from '@/lib/prisma';
 
 const GOVERNANCE_DIR = 'course-content/runtime/resource-governance';
@@ -39,7 +39,7 @@ const SHARED_CAPTURE_PATHS = [
   'src/features/assessment/micro-tutoring-validation-registry.ts',
   'src/features/assessment/micro-tutoring-learning-actions.ts',
   'src/features/assessment/remediation-orchestration.ts',
-  'src/lib/adaptive-learning-path-planner.ts',
+  'src/features/personalization/path-planning/internal/assemble-plan.ts',
   'src/lib/data-governance/autocontrol-kaq-graph-catalog.ts',
   'scripts/data-governance/check-micro-tutoring-coverage.ts',
 ] as const;

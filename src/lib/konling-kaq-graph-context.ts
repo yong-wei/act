@@ -1,4 +1,4 @@
-import { getLearningGoal, type LearningGoalDefinition } from './adaptive-learning-path-planner';
+import { getLearningGoal, type LearningGoalDefinition } from '@/features/personalization/path-planning/public-api';
 import { resolvePersonalizationGoalContext } from '@/features/personalization/plugins/public-api';
 import {
   buildGraphCenterPayload,

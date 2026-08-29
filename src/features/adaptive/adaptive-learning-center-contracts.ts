@@ -11,7 +11,7 @@ import type {
 import type {
   AdaptiveLearningPathDeficit,
   AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';

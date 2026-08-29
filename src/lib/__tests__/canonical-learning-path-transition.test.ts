@@ -32,7 +32,7 @@ import { assertPathMutableForWrite } from '@/app/api/learning-paths/route-helper
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
   type AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeType,

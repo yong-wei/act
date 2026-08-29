@@ -4,7 +4,7 @@ import {
   type ResourceNode,
   type ResourceSemanticProjection,
 } from '../resource-node-registry';
-import type { LearningGoalDefinition } from '../adaptive-learning-path-planner';
+import type { LearningGoalDefinition } from '@/features/personalization/path-planning/public-api';
 import type { KaqGraphNode } from './kaq-graph-schema';
 import type {
   KaqObjective,

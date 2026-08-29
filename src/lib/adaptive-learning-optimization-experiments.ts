@@ -2,7 +2,7 @@ import type {
   AdaptiveLearningPathAlternative,
   AdaptiveLearningPathFeedbackEvent,
   AdaptiveLearningPathPlan,
-} from './adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 export const ADAPTIVE_OPTIMIZATION_EXPERIMENTS_FEATURE_FLAG = 'ADAPTIVE_OPTIMIZATION_EXPERIMENTS_ENABLED';
 export const ADAPTIVE_BANDIT_RERANKING_FEATURE_FLAG = 'ADAPTIVE_BANDIT_RERANKING_ENABLED';

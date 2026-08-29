@@ -1,7 +1,7 @@
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
   type AdaptiveLearningPathPlan,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   isControlCorrectionPathRoundPersistenceEnabled,
   validateControlCorrectionPathPlanForPersistence,

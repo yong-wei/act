@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import {
   buildSerializablePathOptions,
   type AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;

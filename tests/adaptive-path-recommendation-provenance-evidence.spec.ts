@@ -10,7 +10,7 @@ const generatorFile = 'tests/adaptive-path-recommendation-provenance-evidence.sp
 const productionSourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/adaptive/adaptive-learning-center-contracts.ts',
-  'src/lib/adaptive-learning-path-planner.ts',
+  'src/features/personalization/path-planning/internal/assemble-plan.ts',
   'src/lib/adaptive-path-round-restore.ts',
   'src/lib/adaptive-path-option-display.ts',
 ];

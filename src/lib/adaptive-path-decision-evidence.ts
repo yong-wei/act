@@ -2,7 +2,7 @@ import type {
   AdaptiveLearningPathDeficit,
   AdaptiveLearningPathLearnerStateSnapshot,
   AdaptiveLearningPathPlanNode,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import type { ColdStartCollectionImpact } from '@/lib/cold-start-evidence-collection';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 

@@ -10,7 +10,7 @@ import {
   type AdaptiveGoalSliceDimensionDefinition,
   type ControlCorrectionTargetLevel,
 } from '@/features/personalization/learner-state/internal';
-import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/lib/adaptive-learning-path-planner';
+import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from './capability-targets';
 
 const CONTROL_CORRECTION_TARGET_LEVEL_MAPPING: Record<ControlCorrectionTargetLevel, string> = {
   foundation: 'recognizes canonical control-correction concepts with guided evidence',

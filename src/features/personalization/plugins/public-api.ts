@@ -7,6 +7,7 @@ export type {
   PersonalizationGoalHint,
   PersonalizationGoalPlugin,
   PersonalizationGoalResolution,
+  PersonalizationPluginPathPlanningPolicy,
   PersonalizationPluginRationaleCitation,
   PersonalizationPluginStatus,
   PersonalizationPluginWritePort,
@@ -38,6 +39,7 @@ export {
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION,
 } from './control-correction/mappings';
+export { CONTROL_CORRECTION_CAPABILITY_TARGETS } from './control-correction/capability-targets';
 
 export { createControlCorrectionPersonalizationPlugin } from './control-correction/plugin';
 export { createIdempotentPluginWritePort } from './adapters/write-port';

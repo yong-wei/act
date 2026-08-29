@@ -4,7 +4,7 @@ import {
   type LearningGoalDefinition,
   type LearningGoalIntentType,
   type LearningGoalRecommendedPhase,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 export type AdaptivePracticeGoalId = string;
 

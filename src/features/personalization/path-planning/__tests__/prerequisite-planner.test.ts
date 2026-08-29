@@ -11,7 +11,7 @@ import {
   selectAccessibleProjectedResources,
   type ActPathPlannerInput,
   type ActPathProjectedResourceCandidate,
-} from '@/lib/act-prerequisite-path-planner';
+} from '@/features/personalization/path-planning/internal/prerequisite-planner';
 
 const AUTHORITY = 'ctr:release:eng-fixture-v1';
 const PROJECTION = 'ctr:projection:teaching-core-v1';
