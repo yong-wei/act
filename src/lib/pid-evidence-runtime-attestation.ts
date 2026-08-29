@@ -14,7 +14,7 @@ export const PID_EVIDENCE_RUNTIME_PATHS = [
   'src/app/api/simulation/optimize/route.ts',
   'src/resources/simulations/ai-recommend-panel.tsx',
   'src/resources/simulations/lib/monte-carlo-optimizer.ts',
-  'src/resources/simulations/rust/control-engine-server-runtime.ts',
+  'src/lib/control-engine/server.ts',
   'src/resources/simulations/core/seeded-rng.ts',
   'src/resources/simulations/lib/replay-checksum.ts',
   'src/lib/pid-evidence-runtime-attestation.ts',

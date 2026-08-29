@@ -15,7 +15,7 @@ import {
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathStyleId,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 function plan(): AdaptiveLearningPathPlan {
   return {

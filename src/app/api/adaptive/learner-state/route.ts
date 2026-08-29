@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
+  readLearnerState,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const learnerState = await readAdaptiveLearnerState(prisma, {
+    const learnerState = await readLearnerState({
       userId: requestedUserId,
       role,
       classId,

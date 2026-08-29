@@ -7,10 +7,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import {
-  generateRecommendations,
+  PersonalizationPolicyScopeError,
+  recommendLearning,
   type RecommendationRationale,
   type RecommendationType,
-} from '@/lib/data-governance/recommendation-engine';
+} from '@/features/personalization/recommendations/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
@@ -32,6 +33,7 @@ export interface RecommendationsResponse {
   total: number;
   byType: Record<RecommendationType, number>;
   generatedAt: string;
+  policyRevision: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -51,7 +53,11 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '10', 10), 20);
 
     // Generate recommendations
-    const allRecommendations = await generateRecommendations(userId);
+    const { recommendations: allRecommendations, policyRevision } = await recommendLearning({
+      actorUserId: userId,
+      subjectUserId: userId,
+      role: session.user.role,
+    });
 
     // Filter by type if specified
     let filteredRecommendations = allRecommendations;
@@ -89,11 +95,15 @@ export async function GET(request: NextRequest) {
       total,
       byType,
       generatedAt: new Date().toISOString(),
+      policyRevision,
     };
 
     return NextResponse.json(response);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof PersonalizationPolicyScopeError) {
+      return NextResponse.json({ error: '未授权' }, { status: 403 });
+    }
     console.error('[RecommendationsAPI] Error:', error);
     return NextResponse.json(
       { error: '服务器错误' },

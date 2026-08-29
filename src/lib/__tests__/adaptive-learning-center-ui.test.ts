@@ -24,14 +24,14 @@ import {
   getAdaptiveLearningCenterCompatibilityRoutes,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
 } from '@/lib/data-governance/portrait-v2-model';
-import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/features/personalization/path-planning/public-api';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,

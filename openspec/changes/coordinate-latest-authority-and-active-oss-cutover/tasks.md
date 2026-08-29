@@ -57,7 +57,7 @@
 
 - [ ] 7.1 Seal an immutable allocation record with an opaque unique coordination run ID, Authority capture, compatibility, course scope, resource denominator, policy versions, and implementation identities before generating dependent artifacts.
 - [ ] 7.2 Make each inner artifact bind only the allocation-record hash and earlier immutable dependencies, never an outer candidate or active receipt hash.
-- [ ] 7.3 Define the outer coordinated candidate receipt over locale qualification, complete Teaching Projection, formal resource envelope, successor Runtime Release, domain shards, prerequisite publication, shared-consumer activation, predecessor state, selector expectations, transaction implementation, rollback plan, and verification policy.
+- [ ] 7.3 Define the outer coordinated candidate receipt over locale qualification, complete Teaching Projection, composed domain-fragment manifest and immutable fragment set, formal resource envelope, successor Runtime Release, domain shards, prerequisite publication, shared-consumer activation, predecessor state, selector expectations, transaction implementation, rollback plan, and verification policy.
 - [ ] 7.4 Reopen and hash-verify every referenced artifact before coordinated qualification and reject any cross-envelope identity mismatch.
 - [ ] 7.5 Bind the complete predecessor graph selectors and Runtime lifecycle generation together with the ordered successor expectations.
 - [ ] 7.6 Emit one immutable non-selectable coordinated candidate and receipt without writing any production selector.
@@ -82,7 +82,7 @@
 
 ## 9. Runtime, readiness, and consumer integration
 
-- [ ] 9.1 Extend the successor Runtime Release v2 manifest and materialization receipt to bind the resource denominator, formal binding envelope, Authority, complete Teaching Projection, shards, prerequisite publication, shared-consumer activation, coordination allocation record, and predecessor combination.
+- [ ] 9.1 Extend the successor Runtime Release v2 manifest and materialization receipt to bind the resource denominator, formal binding envelope, Authority, complete Teaching Projection, composed domain-fragment manifest and immutable fragment set, shards, prerequisite publication, shared-consumer activation, coordination allocation record, and predecessor combination.
 - [ ] 9.2 Make the Runtime active receipt bind the preallocated transaction ID and candidate receipt, and make the later outer active receipt bind that immutable Runtime receipt hash.
 - [x] 9.3 Make ordinary Runtime lifecycle activation reject a successor that lacks the matching pre-activation Runtime authorization.
 - [ ] 9.4 Project readiness, media signing, node resource indicators, and teaching consumers only from the committed coherent combination.

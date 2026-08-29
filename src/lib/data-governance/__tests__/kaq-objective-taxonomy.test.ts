@@ -3,7 +3,7 @@ import type { CompetencyVector } from '../competency-model';
 import {
   CONTROL_CORRECTION_GOAL_DIMENSIONS,
   type AdaptiveLearnerSecondaryDimension,
-} from '../adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,

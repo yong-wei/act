@@ -26,16 +26,16 @@ import {
   type SimulationTaskSpecInputV1,
   type SimulationTaskSpecV1,
 } from '@/resources/simulations/core/run-contract';
+import { resolvePersonalizationGoalContext } from '@/features/personalization/plugins/public-api';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
-  readPathPlannerLearnerState,
+  readLearnerState,
+  readPathPlannerLearnerStateForSubject,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import {
   hasAuthoritativePortraitV2Evidence,
   summarizePortraitV2,
@@ -69,7 +69,7 @@ import {
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/structured-textbook-runtime';
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
@@ -78,7 +78,7 @@ import {
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   collectionEventsFromGovernedFacts,
   previousPathFactsFromPlanOptions,
@@ -151,8 +151,8 @@ import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/freque
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
-import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
-import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
+import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
+import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
   analyzeResultTool,
   analyzeResultInputSchema,
@@ -2949,8 +2949,9 @@ function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | un
     if (getRegisteredAdaptiveLearningPathGoal(candidate)) {
       return candidate;
     }
-    if (CONTROL_CORRECTION_COURSE_ID_VALUES.includes(candidate as typeof CONTROL_CORRECTION_COURSE_ID_VALUES[number])) {
-      return 'control-correction';
+    const mapped = resolvePersonalizationGoalContext({ courseId: candidate });
+    if (mapped.status === 'resolved') {
+      return mapped.context.goalId;
     }
   }
   return null;
@@ -2996,7 +2997,7 @@ async function buildKonlingRuntimeClassOverlayInput(
   const learnerStates = await mapWithConcurrency(sampledProfiles, KONLING_CLASS_OVERLAY_READ_CONCURRENCY, async (student) => {
     const userId = getString(student, 'userId');
     if (!userId) return null;
-    return readAdaptiveLearnerState(db, {
+    return readLearnerState({
       userId,
       role: input.scope.role,
       classId: input.scope.classId,
@@ -3130,7 +3131,7 @@ export async function buildKonlingRuntimeContext(
   const learnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
   const learnerStateGoal = resolveAdaptiveLearnerStateGoal(scope.courseId, input.pageContextHint?.courseId);
   const learnerState = learnerStateEnabled
-    ? await readAdaptiveLearnerState(db, {
+    ? await readLearnerState({
         userId: scope.targetUserId,
         role: scope.role,
         classId: scope.classId,
@@ -4231,7 +4232,7 @@ async function buildAdaptivePathToolOutput(
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
   const plannerLearnerState = operation === 'generated'
     ? isAdaptiveLearnerStateServiceEnabled()
-      ? await readPathPlannerLearnerState(input.db as any, input.scope.targetUserId, {
+      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
           goal: goalId,
           classId: input.scope.classId,
           now: new Date(),
@@ -4252,7 +4253,7 @@ async function buildAdaptivePathToolOutput(
     goalId,
   });
   const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
-  const plan = buildAdaptiveLearningPathPlan({
+  const plan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
@@ -4652,7 +4653,7 @@ function normalizeAdaptivePathSelectedGraphNodeIds(
 function buildAdaptivePathRevisionPlannerPreference(
   args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyFamily' | 'policyBundle'> {
   if (!('rejectedStyleIds' in args)) return {};
   const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
   const rejectedFamilies = new Set((args.rejectedStyleIds ?? [])
@@ -4677,7 +4678,7 @@ function buildAdaptivePathRevisionPlannerPreference(
 
 function buildAdaptivePathGenerationPlannerPreference(
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyBundle'> {
   return {
     policyBundle: {
       families: registeredGoal.starterPathPolicy.policyFamilies,
@@ -8007,8 +8008,15 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
-  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
+  const decided = decideIntervention({
+    actorUserId: input.scope.authenticatedUserId,
+    subjectUserId: input.scope.targetUserId,
+    role: input.scope.role,
+    studentState: input.studentState,
+    arenaContext: input.arenaContext,
+  });
+  const decision = decided.decision;
+  const payload = decided.payload;
   if (!decision.shouldIntervene) {
     return {
       id: '',

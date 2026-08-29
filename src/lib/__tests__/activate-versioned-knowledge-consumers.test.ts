@@ -30,7 +30,7 @@ import {
   applyTeachingResourceRagConsumerActivation,
   runEngineeringRagQuery,
 } from '../canonical-rag/domain-composition';
-import { applyLearningPathConsumerActivation } from '../act-prerequisite-path-planner/planner';
+import { applyLearningPathConsumerActivation } from '@/features/personalization/path-planning/public-api';
 import {
   buildCoursePackageLayeredScope,
   resolveCoursePageLayeredGraphContext,
@@ -1657,7 +1657,7 @@ describe('Consumer wiring and scope guards (#1276)', () => {
     const pathPlanner = readFileSync(
       path.resolve(
         process.cwd(),
-        'src/lib/act-prerequisite-path-planner/planner.ts',
+        'src/features/personalization/path-planning/internal/prerequisite-planner/planner.ts',
       ),
       'utf8',
     );

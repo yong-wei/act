@@ -1,8 +1,14 @@
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
+
+import {
+  RETIRED_RAW_BUSINESS_LOADERS,
+  RETIRED_TS_STEPPER_EXPORTS,
+  RETIRED_TS_STEPPER_MODULES,
+} from '@/lib/control-engine';
 
 const DRIVE_CHAIN_PREFIXES = [
   'src/lib/simulation/',
@@ -11,6 +17,14 @@ const DRIVE_CHAIN_PREFIXES = [
   'src/resources/control-system/wasm/',
   'rust/',
 ];
+
+const R6_DRIVE_CHAIN_ALLOWLIST = new Set([
+  ...RETIRED_TS_STEPPER_MODULES,
+  'src/resources/simulations/physics/simulation-engine-facade.ts',
+  ...RETIRED_RAW_BUSINESS_LOADERS
+    .map((item) => item.path)
+    .filter((relative) => DRIVE_CHAIN_PREFIXES.some((prefix) => relative.startsWith(prefix))),
+]);
 
 const PANEL_FILES = [
   'src/app/simulations/_components/simulation-shell.tsx',
@@ -31,11 +45,20 @@ function diffNameOnly(): string[] {
 }
 
 describe('visual pipeline preserves the simulation drive chain', () => {
-  it('leaves drive-chain files out of the change diff', () => {
+  it('leaves drive-chain files out of the change diff except R6 numeric retirement', () => {
     const changed = diffNameOnly();
     for (const prefix of DRIVE_CHAIN_PREFIXES) {
-      const violations = changed.filter((file) => file.startsWith(prefix));
+      const violations = changed.filter((file) => file.startsWith(prefix) && !R6_DRIVE_CHAIN_ALLOWLIST.has(file));
       expect(violations, `drive chain touched: ${violations.join(', ')}`).toEqual([]);
+    }
+    for (const relative of RETIRED_TS_STEPPER_MODULES) {
+      const source = readFileSync(path.join(process.cwd(), relative), 'utf8');
+      for (const name of RETIRED_TS_STEPPER_EXPORTS) {
+        expect(source, `${relative} ${name}`).not.toMatch(new RegExp(`export (async )?function ${name}\\b`));
+      }
+    }
+    for (const relative of [...R6_DRIVE_CHAIN_ALLOWLIST].filter((item) => item.endsWith('control-engine-runtime.ts') || item.endsWith('control-engine-server-runtime.ts'))) {
+      expect(existsSync(path.join(process.cwd(), relative)), relative).toBe(false);
     }
   });
 

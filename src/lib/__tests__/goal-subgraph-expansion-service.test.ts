@@ -11,7 +11,7 @@ import {
   expandLearningGoalSubgraph,
   GOAL_SUBGRAPH_EXPANSION_VERSION,
 } from '../graphs/goal-subgraph-expansion-service';
-import { getLearningGoal, type LearningGoalDefinition } from '../adaptive-learning-path-planner';
+import { getLearningGoal, type LearningGoalDefinition } from '@/features/personalization/path-planning/public-api';
 
 describe('goal subgraph expansion service', () => {
   it('expands a path-ready LearningGoal into deterministic K/A/Q graph payloads', () => {

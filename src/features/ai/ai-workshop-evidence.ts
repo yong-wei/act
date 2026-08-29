@@ -1,4 +1,4 @@
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import type { StudentEvidenceCoverageState } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type AiWorkshopEvidenceStatus = 'available' | 'empty' | 'unavailable';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildGeneratedQuestion, PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 
 import {
   buildAdaptiveAssessmentItemCatalog,

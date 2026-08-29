@@ -32,6 +32,7 @@ const mocks = vi.hoisted(() => ({
   },
   routeEvent: vi.fn(),
   persistCoreLearningFact: vi.fn(),
+  ingestLearningFact: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
   enqueueSessionSummaryReportRefresh: vi.fn(),
   resolveTrustedControlWorkbenchContext: vi.fn(),
@@ -63,8 +64,17 @@ vi.mock('@/lib/data-governance/event-buffer', () => ({
   routeEvent: mocks.routeEvent,
 }));
 
-vi.mock('@/lib/data-governance/learning-fact-materialization', () => ({
-  persistCoreLearningFact: mocks.persistCoreLearningFact,
+vi.mock('@/lib/data-governance/learning-fact-materialization', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/data-governance/learning-fact-materialization')>();
+  return {
+    ...actual,
+    persistCoreLearningFact: mocks.persistCoreLearningFact,
+  };
+});
+
+vi.mock('@/features/learning-record/ingestion/public-api', () => ({
+  ingestLearningFact: mocks.ingestLearningFact,
+  currentCaptureRevision: () => 'test-capture-revision',
 }));
 
 vi.mock('@/lib/data-governance/session-reports', () => ({
@@ -137,6 +147,7 @@ describe('POST /api/interactive/events', () => {
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
+    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'SUCCEEDED' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
       classReports: 1,
       studentReports: 1,
@@ -289,8 +300,7 @@ describe('POST /api/interactive/events', () => {
       invalidContextReason: 'forbidden_session',
     });
     expect(createArg.data[0].eventData).not.toHaveProperty('sessionId');
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.routeEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         sessionId: null,
         payload: expect.not.objectContaining({
@@ -388,12 +398,13 @@ describe('POST /api/interactive/events', () => {
       eventType: 'lesson_submit',
       answerDigest: { 'weight-preference': 'C' },
     });
-    // 事实物化使用写入器回执的持久化 sourceLogId
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
-      expect.anything(),
+    // 事实物化经 #1583 统一摄取，血缘使用写入器回执的持久化 sourceLogId
+    expect(mocks.ingestLearningFact).toHaveBeenCalledWith(
       expect.objectContaining({
-        payload: expect.objectContaining({
-          sourceLogId: 'source-client-submit',
+        event: expect.objectContaining({
+          payload: expect.objectContaining({
+            sourceLogId: 'source-client-submit',
+          }),
         }),
       }),
     );
@@ -477,13 +488,15 @@ describe('POST /api/interactive/events', () => {
       duplicates: 1,
       submissionDuplicates: 1,
     });
-    // 同身份证据只写一行；重件仅返回原回执，不再物化事实
+    // 同身份证据只写一行；重件仅返回原回执并重放持久化证据
     expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(2);
-    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
-    // 首件内联物化 1 次 + 重件 DUPLICATE 回执重放 1 次（均幂等）
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(2);
+    // #1583 统一摄取：lesson_submit 属 core 事件走 ingestLearningFact，不经 routeEvent
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    // 重件 DUPLICATE 回执重放持久化证据 1 次（persistCoreLearningFact 兼容路径，幂等）
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
   });
 
   it('returns the durable receipt when the same submission identity already exists', async () => {
@@ -648,6 +661,7 @@ describe('POST /api/interactive/events', () => {
     expect(response.status).toBe(500);
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).not.toHaveBeenCalled();
 
     consoleError.mockRestore();
   });
@@ -682,7 +696,7 @@ describe('POST /api/interactive/events', () => {
       evidenceQualityReason: 'unsupported_legacy_envelope',
       evidenceSourceState: 'legacy-envelope',
     });
-    expect(mocks.persistCoreLearningFact.mock.calls[0][1].payload).toMatchObject({
+    expect(mocks.ingestLearningFact.mock.calls[0][0].event.payload).toMatchObject({
       evidenceQuality: 'legacy-envelope',
     });
   });
@@ -802,7 +816,7 @@ describe('POST /api/interactive/events', () => {
         ],
       }));
 
-    const learningEvent = mocks.persistCoreLearningFact.mock.calls[0][1];
+    const learningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
     const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
 
     expect(response.status).toBe(200);
@@ -1009,7 +1023,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.persistedControlWorkbenchRunMatchesContext).toHaveBeenCalledTimes(3);
     const writerSourceEventData = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0]
       .sourceEvent.eventData as Record<string, unknown>;
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    // #1583 统一摄取：事实物化经 ingestLearningFact，事件对象为其输入的 event
+    const routedLearningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
     const routedDraft = JSON.parse(routedLearningEvent.payload.answerDigest['parameter.set']);
     expect(writerSourceEventData.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
@@ -1393,7 +1408,7 @@ describe('POST /api/interactive/events', () => {
       },
     });
     const writerSourceEventData = writerCall.sourceEvent.eventData as Record<string, unknown>;
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const routedLearningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
     const routedDraft = JSON.parse(routedLearningEvent.payload.answers.annotatedMediaEvidenceDraft);
     const persistedDraft = JSON.parse(writerSourceEventData.answers.annotatedMediaEvidenceDraft);
     expect(persistedDraft.actorRole).toBe('student');

@@ -1,4 +1,28 @@
 export {
+  ARENA_PREVIEW_CAPABILITY_MATRIX,
+  ARENA_CRUISE_ROLL_IDENTIFIED_PARAMETER_KEYS,
+  ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+  ARENA_CRUISE_ROLL_SURROGATE_BASELINE_FIXTURE,
+  ARENA_CRUISE_ROLL_SURROGATE_BASELINE_SUMMARY,
+  ARENA_CRUISE_ROLL_SURROGATE_PLANT,
+  ARENA_PREVIEW_PROTOCOL_VERSION,
+  ARENA_PREVIEW_TOLERANCE,
+  arenaPreviewCanonicalRequest,
+  assertArenaPreviewIdentityConsumed,
+  assertArenaPreviewSummaryWithinBaseline,
+  assertSupportedArenaPreviewMethod,
+  isWithinArenaPreviewTolerance,
+  getArenaPreviewCapability,
+  isSupportedArenaPreviewMethod,
+  resolveArenaCruiseRollPlantParameters,
+} from './arena-preview-support';
+export type {
+  ArenaPreviewCapability,
+  ArenaPreviewMethod,
+  ArenaPreviewPlantParameters,
+} from './arena-preview-support';
+export {
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
   ARENA_PREVIEW_TEACHING_SEMANTICS,
   AUTHORITY_SOURCES,
@@ -33,7 +57,13 @@ export {
   FACADE_GENERATED_IMPORT_ALLOWLIST,
   GENERATED_ARTIFACTS,
   PROPOSAL_SOURCE_COMMIT,
+  PROTECTED_LEGACY_PATHS,
+  RAW_BUSINESS_LOADER_DENOMINATOR,
   RAW_BUSINESS_LOADERS,
+  RETIRED_RAW_BUSINESS_LOADERS,
+  RETIRED_TS_STEPPER_EXPORTS,
+  RETIRED_TS_STEPPER_MODULES,
+  ROLLBACK_COMMIT,
 } from './inventory';
 export {
   ControlEngineFailure,
@@ -41,6 +71,7 @@ export {
   assertFiniteTree,
   authoritySourceFor,
   canonicalRequestHash,
+  controlEngineHttpStatus,
   identifiedClaimWithoutParameters,
   mapFailure,
   newRequestId,
@@ -51,6 +82,14 @@ export {
   stableStringify,
   surrogateSemantics,
 } from './envelope';
+export {
+  ARENA_OFFICIAL_PROTOCOLS,
+  R6_SERVER_LOADER_DELETION_CANDIDATES,
+  RETIRED_SERVER_COMPATIBILITY_LOADERS,
+  SERVER_CONSUMER_CLASSES,
+  SERVER_FACADE_IMPORT,
+  SERVER_FACADE_MODULE,
+} from './server-consumers';
 export {
   CONTROL_ENGINE_BUILD_HASH,
   CONTROL_ENGINE_EXPORTS,

@@ -28,7 +28,7 @@ import {
   type Unit55RlTrainingResult,
   type Unit55RlTrainingState,
   type Unit55RlTrainingType,
-} from './rl-training-runtime';
+} from './rl-training';
 
 type TeacherResponseItem = { studentName: string; response: ManifestStepResponse };
 type ContentRegistryExtra = {

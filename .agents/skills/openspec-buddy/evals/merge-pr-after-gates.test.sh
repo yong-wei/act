@@ -1,0 +1,366 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+helper="$script_dir/../scripts/merge-pr-after-gates.sh"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+if [[ ! -f "$helper" ]]; then
+  echo "merge-pr-after-gates.sh is missing" >&2
+  exit 1
+fi
+
+export OPENSPEC_BUDDY_AUTO_CONTROLLER_CHILD=1
+export OPENSPEC_BUDDY_BASE_BRANCH=integration
+export OPENSPEC_BUDDY_REPO_ROOT="$tmp_dir/repo"
+export OPENSPEC_BUDDY_REPO_NWO=owner/repo
+export OPENSPEC_BUDDY_VERIFY_REVIEW_CLEAR_HELPER="$tmp_dir/verify-review-clear.sh"
+export OPENSPEC_BUDDY_VERIFY_PR_COORDINATION_HELPER="$tmp_dir/verify-pr-coordination.sh"
+export OPENSPEC_BUDDY_MERGE_GATE_LOG="$tmp_dir/order.log"
+export GH_LOG_FILE="$tmp_dir/gh.log"
+export PR_FILE="$tmp_dir/pr.json"
+export PR_FETCH_COUNT_FILE="$tmp_dir/pr-fetch-count"
+export CHECK_RUN_FETCH_COUNT_FILE="$tmp_dir/check-run-fetch-count"
+export CHECK_SUITE_FETCH_COUNT_FILE="$tmp_dir/check-suite-fetch-count"
+export STATUS_FETCH_COUNT_FILE="$tmp_dir/status-fetch-count"
+export SLEEP_LOG_FILE="$tmp_dir/sleep.log"
+export MERGE_MARKER="$tmp_dir/merged"
+EXPECTED_CI_SAMPLES=7
+mkdir -p "$OPENSPEC_BUDDY_REPO_ROOT"
+
+cat > "$tmp_dir/git" <<'GIT'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "-C" ]]; then shift 2; fi
+if [[ "${1:-}" == "remote" && "${2:-}" == "get-url" ]]; then
+  printf 'https://github.com/owner/repo.git\n'
+  exit 0
+fi
+if [[ "${1:-}" == "rev-parse" && "${2:-}" == "--show-toplevel" ]]; then
+  printf '%s\n' "${OPENSPEC_BUDDY_REPO_ROOT:?}"
+  exit 0
+fi
+echo "unexpected git invocation: $*" >&2
+exit 99
+GIT
+chmod +x "$tmp_dir/git"
+
+cat > "$tmp_dir/verify-review-clear.sh" <<'VERIFY'
+#!/usr/bin/env bash
+set -euo pipefail
+case "${REVIEW_MODE:-success}" in
+  success)
+    printf '%s\n' 'review_outcome: clear' 'review_request_id: request-1' 'review_response_id: response-1' 'review_response_url: https://example.test/review/response-1'
+    exit 0
+    ;;
+  unavailable)
+    printf '%s\n' 'review_outcome: unavailable' 'Review response is unavailable'
+    exit 4
+    ;;
+  missing)
+    printf '%s\n' 'review_outcome: pending' 'No review response found'
+    exit 1
+    ;;
+  unresolved)
+    printf '%s\n' 'review_outcome: clear' 'unresolved review thread: PRRT_1'
+    exit 1
+    ;;
+esac
+exit 1
+VERIFY
+chmod +x "$tmp_dir/verify-review-clear.sh"
+
+cat > "$tmp_dir/verify-pr-coordination.sh" <<'VERIFY'
+#!/usr/bin/env bash
+set -euo pipefail
+exit 0
+VERIFY
+chmod +x "$tmp_dir/verify-pr-coordination.sh"
+
+cat > "$tmp_dir/sleep" <<'SLEEP'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "${SLEEP_LOG_FILE:?}"
+SLEEP
+chmod +x "$tmp_dir/sleep"
+
+cat > "$tmp_dir/gh" <<'GH'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "${GH_LOG_FILE:?}"
+if [[ "${1:-}" == "api" && "${2:-}" == repos/owner/repo/pulls/123 ]]; then
+  count=0
+  if [[ -f "${PR_FETCH_COUNT_FILE:?}" ]]; then count="$(<"$PR_FETCH_COUNT_FILE")"; fi
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$PR_FETCH_COUNT_FILE"
+  if [[ -f "${MERGE_MARKER:?}" ]]; then
+    cat <<'JSON'
+{"number":123,"state":"closed","merged_at":"2026-07-12T04:00:00Z","merge_commit_sha":"merge-1","head":{"sha":"head-1","ref":"change-1"},"base":{"ref":"integration"},"draft":false,"mergeable":true,"mergeable_state":"clean"}
+JSON
+  elif [[ "${FINAL_HEAD_CHANGE:-0}" == "1" && "$count" == "2" ]]; then
+    cat <<'JSON'
+{"number":123,"state":"open","merged_at":null,"head":{"sha":"head-2","ref":"change-1"},"base":{"ref":"integration"},"draft":false,"mergeable":true,"mergeable_state":"clean"}
+JSON
+  elif [[ "${PR_HEAD_MODE:-head-1}" == "head-2" ]]; then
+    cat <<'JSON'
+{"number":123,"state":"open","merged_at":null,"head":{"sha":"head-2","ref":"change-1"},"base":{"ref":"integration"},"draft":false,"mergeable":true,"mergeable_state":"clean"}
+JSON
+  else
+    base="integration"
+    if [[ "${BASE_WRONG:-0}" == "1" ]]; then base="main"; fi
+    mergeable=true
+    if [[ "${MERGEABLE_FALSE:-0}" == "1" ]]; then mergeable=false; fi
+    printf '{"number":123,"state":"open","merged_at":null,"head":{"sha":"head-1","ref":"change-1"},"base":{"ref":"%s"},"draft":false,"mergeable":%s,"mergeable_state":"clean"}\n' "$base" "$mergeable"
+  fi
+  exit 0
+fi
+if [[ "${1:-}" == "api" && "${2:-}" == repos/owner/repo/commits/*/check-runs* ]]; then
+  count=0
+  if [[ -f "${CHECK_RUN_FETCH_COUNT_FILE:?}" ]]; then count="$(<"$CHECK_RUN_FETCH_COUNT_FILE")"; fi
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$CHECK_RUN_FETCH_COUNT_FILE"
+  case "${CHECK_MODE:-success}" in
+    empty) printf '%s\n' '{"total_count":0,"check_runs":[]}' ;;
+    empty-success)
+      if [[ "$count" -eq 1 ]]; then
+        printf '%s\n' '{"total_count":0,"check_runs":[]}'
+      else
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"completed","conclusion":"success"}]}'
+      fi
+      ;;
+    empty-success-pending)
+      if [[ "$count" -eq 1 ]]; then
+        printf '%s\n' '{"total_count":0,"check_runs":[]}'
+      elif [[ "$count" -eq 2 ]]; then
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"completed","conclusion":"success"}]}'
+      else
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"in_progress","conclusion":null}]}'
+      fi
+      ;;
+    empty-success-failure)
+      if [[ "$count" -eq 1 ]]; then
+        printf '%s\n' '{"total_count":0,"check_runs":[]}'
+      elif [[ "$count" -eq 2 ]]; then
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"completed","conclusion":"success"}]}'
+      else
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"completed","conclusion":"failure"}]}'
+      fi
+      ;;
+    success-pending-success)
+      if [[ "$count" -eq 2 ]]; then
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"in_progress","conclusion":null}]}'
+      else
+        printf '%s\n' '{"total_count":1,"check_runs":[{"name":"delayed","status":"completed","conclusion":"success"}]}'
+      fi
+      ;;
+    truncated) printf '%s\n' '{"total_count":101,"check_runs":[{"name":"visible","status":"completed","conclusion":"success"}]}' ;;
+    failing) printf '%s\n' '{"total_count":1,"check_runs":[{"status":"completed","conclusion":"failure"}]}' ;;
+    pending) printf '%s\n' '{"total_count":1,"check_runs":[{"status":"in_progress","conclusion":null}]}' ;;
+    *) printf '%s\n' '{"total_count":1,"check_runs":[{"status":"completed","conclusion":"success"}]}' ;;
+  esac
+  exit 0
+fi
+if [[ "${1:-}" == "api" && "${2:-}" == repos/owner/repo/commits/*/check-suites* ]]; then
+  count=0
+  if [[ -f "${CHECK_SUITE_FETCH_COUNT_FILE:?}" ]]; then count="$(<"$CHECK_SUITE_FETCH_COUNT_FILE")"; fi
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$CHECK_SUITE_FETCH_COUNT_FILE"
+  case "${CHECK_SUITE_MODE:-empty}" in
+    pending) printf '%s\n' '{"total_count":1,"check_suites":[{"app":{"name":"ci"},"status":"in_progress","conclusion":null}]}' ;;
+    failing) printf '%s\n' '{"total_count":1,"check_suites":[{"app":{"name":"ci"},"status":"completed","conclusion":"failure"}]}' ;;
+    success) printf '%s\n' '{"total_count":1,"check_suites":[{"app":{"name":"ci"},"status":"completed","conclusion":"success"}]}' ;;
+    truncated) printf '%s\n' '{"total_count":101,"check_suites":[{"app":{"name":"visible"},"status":"completed","conclusion":"success"}]}' ;;
+    *) printf '%s\n' '{"total_count":0,"check_suites":[]}' ;;
+  esac
+  exit 0
+fi
+if [[ "${1:-}" == "api" && "${2:-}" == repos/owner/repo/commits/*/status* ]]; then
+  count=0
+  if [[ -f "${STATUS_FETCH_COUNT_FILE:?}" ]]; then count="$(<"$STATUS_FETCH_COUNT_FILE")"; fi
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$STATUS_FETCH_COUNT_FILE"
+  case "${STATUS_MODE:-success}" in
+    checks-only) printf '%s\n' '{"state":"pending","total_count":0,"statuses":[]}' ;;
+    empty-success-failure)
+      case "$(<"${CHECK_RUN_FETCH_COUNT_FILE:?}")" in
+        1) printf '%s\n' '{"state":"pending","total_count":0,"statuses":[]}' ;;
+        2) printf '%s\n' '{"state":"success","total_count":1,"statuses":[{"state":"success"}]}' ;;
+        *) printf '%s\n' '{"state":"failure","total_count":1,"statuses":[{"state":"failure"}]}' ;;
+      esac
+      ;;
+    empty-success-pending)
+      case "$(<"${CHECK_RUN_FETCH_COUNT_FILE:?}")" in
+        1) printf '%s\n' '{"state":"pending","total_count":0,"statuses":[]}' ;;
+        2) printf '%s\n' '{"state":"success","total_count":1,"statuses":[{"state":"success"}]}' ;;
+        *) printf '%s\n' '{"state":"pending","total_count":1,"statuses":[{"state":"pending"}]}' ;;
+      esac
+      ;;
+    legacy-failure) printf '%s\n' '{"state":"failure","total_count":1,"statuses":[{"state":"failure"}]}' ;;
+    legacy-pending) printf '%s\n' '{"state":"pending","total_count":1,"statuses":[{"state":"pending"}]}' ;;
+    legacy-truncated) printf '%s\n' '{"state":"success","total_count":101,"statuses":[{"context":"visible","state":"success"}]}' ;;
+    *) printf '%s\n' '{"state":"success","total_count":0,"statuses":[]}' ;;
+  esac
+  exit 0
+fi
+if [[ "${1:-}" == "pr" && "${2:-}" == "merge" ]]; then
+  printf 'gh-pr-merge\n' >> "${OPENSPEC_BUDDY_MERGE_GATE_LOG:?}"
+  touch "${MERGE_MARKER:?}"
+  exit 0
+fi
+echo "unexpected gh invocation: $*" >&2
+exit 99
+GH
+chmod +x "$tmp_dir/gh"
+export PATH="$tmp_dir:$PATH"
+
+run_case() {
+  local name="$1"
+  shift
+  : > "$OPENSPEC_BUDDY_MERGE_GATE_LOG"
+  : > "$GH_LOG_FILE"
+  rm -f "$PR_FETCH_COUNT_FILE" "$CHECK_RUN_FETCH_COUNT_FILE" "$CHECK_SUITE_FETCH_COUNT_FILE" "$STATUS_FETCH_COUNT_FILE" "$SLEEP_LOG_FILE" "$MERGE_MARKER"
+  REVIEW_MODE=success CHECK_MODE=success CHECK_SUITE_MODE=empty STATUS_MODE=success OPENSPEC_BUDDY_ALLOW_NO_CI=false BASE_WRONG=0 MERGEABLE_FALSE=0 PR_HEAD_MODE=head-1 FINAL_HEAD_CHANGE=0 "$@"
+}
+
+expect_denied() {
+  local name="$1"
+  shift
+  run_case "$name" env "$@" bash "$helper" 42 123 head-1 >"$tmp_dir/$name.out" 2>"$tmp_dir/$name.err" || status=$?
+  status="${status:-0}"
+  if [[ "$status" -eq 0 ]]; then
+    echo "$name should be denied" >&2
+    exit 1
+  fi
+  if [[ -s "$tmp_dir/$name.merge" || -f "$MERGE_MARKER" ]]; then
+    echo "$name attempted a merge" >&2
+    exit 1
+  fi
+  unset status
+}
+
+expect_denied unavailable env REVIEW_MODE=unavailable
+expect_denied missing-response env REVIEW_MODE=missing
+expect_denied unresolved-thread env REVIEW_MODE=unresolved
+expect_denied ci-failing env CHECK_MODE=failing
+expect_denied ci-pending env CHECK_MODE=pending
+expect_denied check-suite-pending env CHECK_MODE=empty CHECK_SUITE_MODE=pending STATUS_MODE=checks-only
+expect_denied check-suite-failing env CHECK_MODE=empty CHECK_SUITE_MODE=failing STATUS_MODE=checks-only
+expect_denied check-suite-truncated env CHECK_MODE=empty CHECK_SUITE_MODE=truncated STATUS_MODE=checks-only
+expect_denied check-run-truncated env CHECK_MODE=truncated STATUS_MODE=checks-only
+expect_denied legacy-status-failure env STATUS_MODE=legacy-failure
+expect_denied legacy-status-pending env STATUS_MODE=legacy-pending
+expect_denied legacy-status-truncated env STATUS_MODE=legacy-truncated
+expect_denied not-mergeable env MERGEABLE_FALSE=1
+expect_denied wrong-base env BASE_WRONG=1
+expect_denied stale-head env PR_HEAD_MODE=head-2
+expect_denied head-race env FINAL_HEAD_CHANGE=1
+
+red_failures=()
+run_case success env OPENSPEC_BUDDY_CI_ZERO_SIGNAL_ATTEMPTS=3 OPENSPEC_BUDDY_CI_ZERO_SIGNAL_INTERVAL_SECONDS=0 REVIEW_MODE=success CHECK_MODE=success bash "$helper" 42 123 head-1 >"$tmp_dir/success.out"
+expected_order='fresh-pr-truth
+verify-review-clear
+verify-pr-coordination
+verify-ci-and-mergeability
+fresh-head-compare
+gh-pr-merge
+verify-merged-head'
+if [[ "$(<"$OPENSPEC_BUDDY_MERGE_GATE_LOG")" != "$expected_order" ]]; then
+  echo "unexpected merge gate order" >&2
+  cat "$OPENSPEC_BUDDY_MERGE_GATE_LOG" >&2
+  exit 1
+fi
+node -e '
+const data = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+if (data.merged !== true || data.pr !== "123" || data.head !== "head-1" || data.mergeCommit !== "merge-1" || data.reviewRequestId !== "request-1" || data.reviewResponseId !== "response-1") process.exit(1);
+' "$tmp_dir/success.out"
+if [[ "$(<"$CHECK_RUN_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" || "$(<"$CHECK_SUITE_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" || "$(<"$STATUS_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+  red_failures+=("an initially successful CI signal should use the full observation window")
+fi
+if [[ "$(wc -l < "$SLEEP_LOG_FILE")" -ne 6 ]] || grep -vxF '5' "$SLEEP_LOG_FILE" >/dev/null; then
+  red_failures+=("the production observation window should use six fixed five-second sleeps")
+fi
+if ! grep -F 'api repos/owner/repo/commits/head-1/status?per_page=100' "$GH_LOG_FILE" >/dev/null; then
+  red_failures+=("legacy status requests should set per_page=100")
+fi
+
+status=0
+run_case success-pending-success env CHECK_MODE=success-pending-success STATUS_MODE=checks-only bash "$helper" 42 123 head-1 >"$tmp_dir/success-pending-success.out" 2>"$tmp_dir/success-pending-success.err" || status=$?
+if [[ "$status" -eq 0 || -f "$MERGE_MARKER" ]]; then
+  red_failures+=("a pending middle sample must block even when surrounded by successful samples")
+fi
+if [[ "$(<"$CHECK_RUN_FETCH_COUNT_FILE")" -ne 2 ]]; then
+  red_failures+=("a pending middle sample should block immediately on the second sample")
+fi
+if [[ "${#red_failures[@]}" -gt 0 ]]; then
+  printf '%s\n' "${red_failures[@]}" >&2
+  exit 1
+fi
+
+run_case checks-only env STATUS_MODE=checks-only bash "$helper" 42 123 head-1 >"$tmp_dir/checks-only.out"
+node -e '
+const data = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+if (data.merged !== true || data.pr !== "123" || data.head !== "head-1") process.exit(1);
+' "$tmp_dir/checks-only.out"
+
+expect_denied empty-ci-default env CHECK_MODE=empty STATUS_MODE=checks-only
+if ! grep -F 'OPENSPEC_BUDDY_ALLOW_NO_CI=true' "$tmp_dir/empty-ci-default.err" >/dev/null; then
+  echo "default zero-signal refusal must identify the explicit opt-in" >&2
+  cat "$tmp_dir/empty-ci-default.err" >&2
+  exit 1
+fi
+expect_denied empty-success-check-pending env CHECK_MODE=empty-success-pending STATUS_MODE=checks-only
+expect_denied empty-success-check-failure env CHECK_MODE=empty-success-failure STATUS_MODE=checks-only
+expect_denied empty-success-legacy-pending env CHECK_MODE=empty STATUS_MODE=empty-success-pending
+expect_denied empty-success-legacy-failure env CHECK_MODE=empty STATUS_MODE=empty-success-failure
+
+run_case empty-success-final env CHECK_MODE=empty-success STATUS_MODE=checks-only bash "$helper" 42 123 head-1 >"$tmp_dir/empty-success-final.out"
+for count_file in "$CHECK_RUN_FETCH_COUNT_FILE" "$CHECK_SUITE_FETCH_COUNT_FILE" "$STATUS_FETCH_COUNT_FILE"; do
+  if [[ "$(<"$count_file")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+    echo "CI success after an initial zero signal should use the full observation window" >&2
+    exit 1
+  fi
+done
+
+run_case empty-ci-allowed env OPENSPEC_BUDDY_ALLOW_NO_CI=true CHECK_MODE=empty STATUS_MODE=checks-only bash "$helper" 42 123 head-1 >"$tmp_dir/empty-ci-allowed.out"
+node -e '
+const data = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+if (data.merged !== true || data.pr !== "123" || data.head !== "head-1") process.exit(1);
+' "$tmp_dir/empty-ci-allowed.out"
+if [[ "$(<"$CHECK_RUN_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+  echo "explicitly allowed continuous zero signal should use the full stability window" >&2
+  exit 1
+fi
+if [[ "$(<"$CHECK_SUITE_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+  echo "each zero-signal sample should query check suites" >&2
+  exit 1
+fi
+if [[ "$(<"$STATUS_FETCH_COUNT_FILE")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+  echo "each zero-signal sample should query legacy statuses" >&2
+  exit 1
+fi
+
+printf '%s\n' 'OPENSPEC_BUDDY_ALLOW_NO_CI=true' > "$OPENSPEC_BUDDY_REPO_ROOT/.env.openspec-buddy"
+run_case empty-ci-config env -u OPENSPEC_BUDDY_ALLOW_NO_CI CHECK_MODE=empty STATUS_MODE=checks-only bash "$helper" 42 123 head-1 >"$tmp_dir/empty-ci-config.out"
+rm "$OPENSPEC_BUDDY_REPO_ROOT/.env.openspec-buddy"
+node -e '
+const data = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+if (data.merged !== true || data.pr !== "123" || data.head !== "head-1") process.exit(1);
+' "$tmp_dir/empty-ci-config.out"
+for count_file in "$CHECK_RUN_FETCH_COUNT_FILE" "$CHECK_SUITE_FETCH_COUNT_FILE" "$STATUS_FETCH_COUNT_FILE"; do
+  if [[ "$(<"$count_file")" -ne "$EXPECTED_CI_SAMPLES" ]]; then
+    echo "file-configured continuous zero signal should use all seven samples" >&2
+    exit 1
+  fi
+done
+if [[ "$(wc -l < "$SLEEP_LOG_FILE")" -ne 6 ]] || grep -vxF '5' "$SLEEP_LOG_FILE" >/dev/null; then
+  echo "file-configured continuous zero signal should retain six fixed five-second sleeps" >&2
+  exit 1
+fi
+if ! grep -F -- 'pr merge --repo owner/repo 123 --squash --delete-branch --match-head-commit head-1' "$GH_LOG_FILE" >/dev/null; then
+  echo "merge command must target the verified repository explicitly" >&2
+  cat "$GH_LOG_FILE" >&2
+  exit 1
+fi
+
+echo "merge-pr-after-gates tests passed"

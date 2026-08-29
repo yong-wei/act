@@ -8,6 +8,8 @@ import {
   getEvaluableControllerMethods,
 } from '../submissions/controller-artifact-builder';
 import { buildArenaWorkbenchPreview } from '../submissions/workbench-preview';
+import { defaultControlAnalysisService } from '../evaluation/control-analysis-service';
+import { ControlEngineFailure } from '@/lib/control-engine';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
 import type { ChallengeTask } from '../types';
 
@@ -149,6 +151,7 @@ describe('arena controller artifact builder', () => {
       values: { kp: '2.4', ki: '0.8', kd: '0.35' },
       previousSubmission,
       now: '2026-05-11T10:00:00.000Z',
+      analysisService: defaultControlAnalysisService,
     });
 
     expect(preview.artifact).toMatchObject({
@@ -157,10 +160,37 @@ describe('arena controller artifact builder', () => {
       createdAt: '2026-05-11T10:00:00.000Z',
     });
     expect(preview.evaluation.taskId).toBe(baseTask.id);
-    expect(preview.evaluation.score).toBeGreaterThan(0);
-    expect(preview.comparison?.scoreDelta).toBeCloseTo(preview.evaluation.score - previousSubmission.evaluation.score, 5);
+    expect(
+      Object.values(preview.evaluation.metrics).some((value) => typeof value === 'number' && Number.isFinite(value)),
+    ).toBe(true);
+    expect(preview.evaluation.explanation.some((line) => line.includes('预览'))).toBe(true);
     expect(preview.comparison?.metricDeltas.map((delta) => delta.metricId)).toEqual(baseTask.primaryMetrics);
     expect(preview).not.toHaveProperty('submission');
+    expect(preview.persisted).toBe(false);
+    expect(preview.evaluationVisibility).toBe('preview');
+    expect(preview.officialEligible).toBe(false);
+    expect(preview.evaluation.metadata).toEqual(expect.objectContaining({
+      evaluationVisibility: 'preview',
+      officialEligible: false,
+      persisted: false,
+    }));
+  });
+
+  it('returns unavailable for white-box methods without a Rust preview capability', async () => {
+    await expect(buildArenaWorkbenchPreview({
+      task: mpcTask,
+      method: 'mpc',
+      values: {
+        predictionHorizon: '12',
+        controlHorizon: '3',
+        outputWeight: '1',
+        controlWeight: '0.2',
+        terminalWeight: '0.5',
+        inputLimit: '1',
+        sampleTime: '0.1',
+      },
+      analysisService: defaultControlAnalysisService,
+    })).rejects.toBeInstanceOf(ControlEngineFailure);
   });
 
   it('rejects non-finite parameters before calling the official evaluator', () => {
@@ -423,6 +453,8 @@ describe('arena controller artifact builder', () => {
 
     expect(source).toContain('buildControllerArtifactFromParams');
     expect(source).toContain('buildArenaWorkbenchPreview');
+    expect(source).toContain('setPreview(null)');
+    expect(source).toMatch(/setControllerMethod\(allowedMethod\);\s*setPreview\(null\);/);
     expect(source).toContain('getEvaluableControllerMethods');
     expect(source).toContain('sendArenaCoreEvent');
     expect(source).toContain('运行工作台仿真');

@@ -2,7 +2,7 @@ import type { CompetencyDimension, CompetencyVector } from './competency-model';
 import type {
   AdaptiveLearnerSecondaryDimension,
   ControlCorrectionDimensionId,
-} from './adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 
 export type KaqObjectiveDomain = 'knowledge' | 'capability' | 'quality';
 export type KaqObjectiveLevel = 'overall' | 'secondary' | 'tertiary';

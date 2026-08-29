@@ -20,7 +20,7 @@ import {
   getLearningGoal,
   type AdaptiveLearningPathEvidenceType,
   type LearningGoalDefinition,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 export const GOAL_SUBGRAPH_EXPANSION_VERSION = 'goal-subgraph-expansion.v1';
 

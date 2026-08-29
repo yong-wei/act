@@ -2,9 +2,9 @@ import type { LearningFact } from '@prisma/client';
 import type { LearningFactServingIdentity } from '@/lib/canonical-learning-fact-identity/contracts';
 import { projectLearningFactServingIdentity } from '@/lib/canonical-learning-fact-identity/serving';
 import {
-  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+  REGISTERED_ADAPTIVE_LEARNING_PATH_GOAL_IDS,
   isRegisteredAdaptiveLearningPathGoal,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/registered-goal-ids';
 import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
@@ -1014,7 +1014,7 @@ function isRegisteredPathEvidenceRow(row: Record<string, any>): boolean {
 }
 
 const REGISTERED_LEARNING_PATH_EVIDENCE_WHERE = {
-  path: { goalId: { in: Object.keys(ADAPTIVE_LEARNING_GOAL_DEFINITIONS) } },
+  path: { goalId: { in: [...REGISTERED_ADAPTIVE_LEARNING_PATH_GOAL_IDS] } },
 } as const;
 
 const CONTROL_CORRECTION_PATH_EXECUTION_SELECT = {

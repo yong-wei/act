@@ -1,3 +1,4 @@
+import { ControlEngineFailure } from '@/lib/control-engine';
 import {
   getArenaChallengeObject,
   getArenaChallengeTask,
@@ -9,6 +10,7 @@ import { normalizeMetricValue } from './scoring';
 import { evaluateMetricProfile } from './metric-profile-evaluator';
 import {
   createHeuristicWhiteBoxMetricProvider,
+  isAnalysisWhiteBoxMethod,
   normalizeWhiteBoxMetricProviderOutput,
   selectWhiteBoxMetricProvider,
   type WhiteBoxMetricProviderOutput,
@@ -620,7 +622,24 @@ export async function evaluateWhiteBoxSubmission(input: WhiteBoxEvaluationInput)
   }
 
   const controller = summarizeController(input.artifact, object.model);
-  const provider = input.metricProviderMode === 'template-preview' || controller.validationErrors.length > 0
+  const previewMode = input.metricProviderMode === 'control-engine-preview';
+  if (previewMode && controller.validationErrors.length > 0) {
+    throw new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'invalid-preview-controller',
+      message: controller.validationErrors.join('；'),
+      retryable: false,
+    });
+  }
+  if (previewMode && !isAnalysisWhiteBoxMethod(input.artifact.method)) {
+    throw new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'unsupported-preview-method',
+      message: '当前方法没有受支持的 Control Engine 预览能力，工作台不会使用模板数值替代。',
+      retryable: false,
+    });
+  }
+  const provider = !previewMode && (input.metricProviderMode === 'template-preview' || controller.validationErrors.length > 0)
     ? createHeuristicWhiteBoxMetricProvider()
     : selectWhiteBoxMetricProvider(input.artifact.method, {
       controlAnalysisService: input.controlAnalysisService,

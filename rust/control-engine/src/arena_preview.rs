@@ -21,24 +21,32 @@ fn required_finite(request: &Value, key: &str) -> Result<f64, String> {
     reject_non_finite(value, key)
 }
 
+fn authorized_finite(request: &Value, key: &str) -> Result<f64, String> {
+    let value = request
+        .get("authorizedModelParameters")
+        .and_then(Value::as_object)
+        .and_then(|map| map.get(key))
+        .and_then(Value::as_f64)
+        .ok_or_else(|| format!("identified capability requires authorized {key}"))?;
+    reject_non_finite(value, key)
+}
+
 pub fn compute_arena_cruise_roll_preview(request: &Value) -> Result<String, String> {
     let model_relation = request
         .get("modelRelation")
         .and_then(Value::as_str)
         .unwrap_or("surrogate");
-    if model_relation == "identified" {
-        let authorized = request.get("authorizedModelParameters");
-        let empty = match authorized {
-            None | Some(Value::Null) => true,
-            Some(Value::Object(map)) => map.is_empty(),
-            Some(_) => true,
+    let (plant_damping, plant_stiffness, plant_input_gain, emitted_relation) =
+        if model_relation == "identified" {
+            (
+                authorized_finite(request, "plantDamping")?,
+                authorized_finite(request, "plantStiffness")?,
+                authorized_finite(request, "plantInputGain")?,
+                "identified",
+            )
+        } else {
+            (0.72, 1.18, 0.68, "surrogate")
         };
-        if empty {
-            return Err(
-                "identified capability requires authorized model parameters".to_string(),
-            );
-        }
-    }
 
     let task_id = required_str(request, "taskId")?;
     let dataset_hash = required_str(request, "datasetHash")?;
@@ -75,7 +83,8 @@ pub fn compute_arena_cruise_roll_preview(request: &Value) -> Result<String, Stri
         let raw_control = -controller_gain * (roll - reference) - damping_compensation * roll_rate;
         let limit = 0.5_f64.max((energy_budget / 3.0).min(6.0));
         let control = raw_control.max(-limit).min(limit);
-        let acceleration = -0.72 * roll_rate - 1.18 * roll + 0.68 * control + wave;
+        let acceleration =
+            -plant_damping * roll_rate - plant_stiffness * roll + plant_input_gain * control + wave;
         roll_rate += acceleration * sample_time;
         roll += roll_rate * sample_time;
         control_energy += control * control * sample_time;
@@ -117,8 +126,11 @@ pub fn compute_arena_cruise_roll_preview(request: &Value) -> Result<String, Stri
             "datasetHash": dataset_hash,
             "identificationModelId": identification_model_id,
             "controllerHash": controller_hash,
+            "plantDamping": plant_damping,
+            "plantStiffness": plant_stiffness,
+            "plantInputGain": plant_input_gain,
         },
-        "modelRelation": "surrogate",
+        "modelRelation": emitted_relation,
     });
     serde_json::to_string(&payload).map_err(|error| error.to_string())
 }

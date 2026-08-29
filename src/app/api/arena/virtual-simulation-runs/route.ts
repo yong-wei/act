@@ -12,7 +12,7 @@ import {
   ArenaPlantAdapterSelectionError,
   getArenaPlantAdapterForVirtualPreviewTaskId,
 } from '@/features/arena/adapters/registry';
-import { ControlEngineFailure } from '@/lib/control-engine';
+import { ControlEngineFailure, controlEngineHttpStatus } from '@/lib/control-engine';
 import { rejectVirtualPreviewRequestBody } from '@/lib/practice-lab-run-contract';
 
 export const dynamic = 'force-dynamic';
@@ -80,10 +80,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ preview });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof ControlEngineFailure) {
+      return NextResponse.json({ error: error.message }, { status: controlEngineHttpStatus(error) });
+    }
     if (
       error instanceof ArenaVirtualSimulationRunInputError ||
-      error instanceof ArenaPlantAdapterSelectionError ||
-      error instanceof ControlEngineFailure
+      error instanceof ArenaPlantAdapterSelectionError
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

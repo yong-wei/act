@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { Prisma } from '@prisma/client';
+import { POINTER_MOVE, publishCurrentPointer } from '@/features/learning-record/projections/public-api';
 
 import {
   appendLearnerFactTransition,
@@ -54,6 +55,8 @@ interface CutoverFenceRow {
 }
 
 interface CurrentStateRow {
+  userId?: string;
+  stateVersionId?: string;
   stateWatermark: bigint;
   taskInputDigest?: string;
   calculationVersion: string;
@@ -96,7 +99,9 @@ interface PortraitV2MaterializationDb extends Partial<LearnerFactTransitionDb> {
   };
   learnerPortraitCurrentState?: {
     findUnique: (args: Record<string, unknown>) => Promise<CurrentStateRow | null>;
-    upsert: (args: Record<string, unknown>) => Promise<unknown>;
+    upsert?: (args: Record<string, unknown>) => Promise<unknown>;
+    create?: (args: Record<string, unknown>) => Promise<unknown>;
+    updateMany?: (args: Record<string, unknown>) => Promise<{ count: number }>;
   };
   learnerPortraitStateVersion?: {
     create: (args: { data: Record<string, unknown> }) => Promise<{ id: string }>;
@@ -565,28 +570,55 @@ async function publishState(
       trustedInputDigest: input.trustedInputDigest,
     },
   });
-  await db.learnerPortraitCurrentState.upsert({
-    where: { userId: input.userId },
-    create: {
-      userId: input.userId,
-      stateVersionId: state.id,
-      calculationVersion: input.expectation.calculationVersion,
-      generation: input.expectation.generation,
-      queueGeneration: input.expectation.queueGeneration,
-      stateWatermark: input.stateWatermark,
-      taskInputDigest: input.taskInputDigest,
-      cutoverFence: input.expectation.cutoverFence,
+  const pointer = await publishCurrentPointer({
+    findUnique: async ({ where }) => {
+      const row = await db.learnerPortraitCurrentState.findUnique({
+        where: { userId: where.userId },
+      });
+      if (!row) return null;
+      return {
+        subjectUserId: row.userId ?? input.userId,
+        versionId: row.stateVersionId ?? '',
+        calculationVersion: row.calculationVersion,
+        generation: row.generation,
+        queueGeneration: row.queueGeneration,
+        stateWatermark: row.stateWatermark,
+        cutoverFence: row.cutoverFence,
+        inputDigest: row.taskInputDigest ?? input.taskInputDigest,
+      };
     },
-    update: {
-      stateVersionId: state.id,
-      calculationVersion: input.expectation.calculationVersion,
-      generation: input.expectation.generation,
-      queueGeneration: input.expectation.queueGeneration,
-      stateWatermark: input.stateWatermark,
-      taskInputDigest: input.taskInputDigest,
-      cutoverFence: input.expectation.cutoverFence,
-    },
+    create: db.learnerPortraitCurrentState.create
+      ? async (args) => db.learnerPortraitCurrentState.create!(args)
+      : undefined,
+    updateMany: db.learnerPortraitCurrentState.updateMany
+      ? async (args) => db.learnerPortraitCurrentState.updateMany!(args)
+      : undefined,
+    upsert: db.learnerPortraitCurrentState.upsert
+      ? async (args) => db.learnerPortraitCurrentState.upsert!(args)
+      : undefined,
+  }, {
+    subjectUserId: input.userId,
+    versionId: state.id,
+    calculationVersion: input.expectation.calculationVersion,
+    generation: input.expectation.generation,
+    queueGeneration: input.expectation.queueGeneration,
+    stateWatermark: input.stateWatermark,
+    cutoverFence: input.expectation.cutoverFence,
+    inputDigest: input.taskInputDigest,
   });
+  if (pointer.move === POINTER_MOVE.stale || pointer.move === POINTER_MOVE.conflict) {
+    return {
+      written: false,
+      ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
+      stateVersionId: state.id,
+      stateKind: input.stateKind,
+      evidenceCount: input.evidenceCount,
+      affectedDimensions: input.affectedDimensions,
+      mappingIssues: input.mappingIssues,
+      stateWatermark: input.stateWatermark,
+      rebuildRequired: input.rebuildRequired,
+    };
+  }
   return {
     written: true,
     ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),

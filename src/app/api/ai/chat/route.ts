@@ -326,7 +326,6 @@ export async function POST(request: Request) {
         userId: session.user.id,
         role: mapEvidenceCopilotRole(session.user.role),
         hints: evidenceTaskResolution.hints,
-        db: prisma,
       });
     }
 

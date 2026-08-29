@@ -19,7 +19,7 @@
  */
 
 import type { SloshingState, SloshingParams } from '../../core/types';
-import { LNG_SLOSHING_PARAMS, clamp, toDegrees, toRadians } from '../../core/constants';
+import { LNG_SLOSHING_PARAMS, toDegrees } from '../../core/constants';
 
 // ============ 类型导出 ============
 
@@ -100,72 +100,7 @@ function sloshingDerivatives(
   return { dAngle, dRate };
 }
 
-/**
- * 晃荡动力学步进 (RK4 积分)
- */
-export function sloshingStep(
-  state: SloshingState,
-  shipYawRateRad: number,
-  dt: number,
-  params: SloshingParams = DEFAULT_SLOSHING_PARAMS
-): SloshingState {
-  const { angle, rate } = state;
-
-  // RK4 积分
-  const k1 = sloshingDerivatives(angle, rate, shipYawRateRad, params);
-
-  const k2 = sloshingDerivatives(
-    angle + 0.5 * dt * k1.dAngle,
-    rate + 0.5 * dt * k1.dRate,
-    shipYawRateRad,
-    params
-  );
-
-  const k3 = sloshingDerivatives(
-    angle + 0.5 * dt * k2.dAngle,
-    rate + 0.5 * dt * k2.dRate,
-    shipYawRateRad,
-    params
-  );
-
-  const k4 = sloshingDerivatives(
-    angle + dt * k3.dAngle,
-    rate + dt * k3.dRate,
-    shipYawRateRad,
-    params
-  );
-
-  // 更新状态
-  const newAngle =
-    angle + (dt / 6) * (k1.dAngle + 2 * k2.dAngle + 2 * k3.dAngle + k4.dAngle);
-
-  const newRate =
-    rate + (dt / 6) * (k1.dRate + 2 * k2.dRate + 2 * k3.dRate + k4.dRate);
-
-  // 计算货舱压力 (晃荡会导致压力变化)
-  const newPressure =
-    params.basePressure + params.pressureSensitivity * Math.abs(newAngle);
-
-  return {
-    angle: newAngle,
-    rate: newRate,
-    tankPressure: newPressure,
-  };
-}
-
 // ============ 耦合力矩计算 ============
-
-/**
- * 计算晃荡产生的反作用力矩 (作用于船体)
- */
-export function computeSloshingMoment(
-  sloshingState: SloshingState,
-  params: SloshingParams = DEFAULT_SLOSHING_PARAMS
-): number {
-  // 晃荡力矩反作用于船体
-  // N_sloshing = -k_coupling * θ_s
-  return -params.coupling * sloshingState.angle * 0.001; // 缩放因子
-}
 
 // ============ 指标计算 ============
 

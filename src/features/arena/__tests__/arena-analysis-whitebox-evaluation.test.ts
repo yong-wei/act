@@ -14,6 +14,7 @@ import {
 } from '../evaluation/whitebox-metric-provider';
 import type { ControllerArtifact } from '../types';
 import type { ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 
 const pidArtifact: ControllerArtifact = {
   id: 'artifact-analysis-pid',
@@ -74,6 +75,10 @@ describe('arena analysis-backed white-box evaluation', () => {
     expect(result.metrics.overshootPct).toBeGreaterThanOrEqual(0);
     expect(result.metrics.settlingTimeSec).toBeGreaterThan(0);
     expect(result.rootLocus.currentPoles.length).toBeGreaterThan(0);
+    expect(result.runtimeIdentity).toEqual(expect.objectContaining({
+      buildHash: expect.any(String),
+      protocolVersion: 'control-engine-facade/v1',
+    }));
   });
 
   it('uses analysis-whitebox-v1 for supported PID and serial-compensator methods', () => {
@@ -153,5 +158,52 @@ describe('arena analysis-backed white-box evaluation', () => {
 
     expect(output.metricSources.controlEnergy).toBe('derived-from-response');
     expect(output.explanation.join(' ')).toContain('derived');
+  });
+
+  it('ignores forged client score, trace, and checksum when deriving official metrics', async () => {
+    const service: ControlAnalysisService = {
+      compute: vi.fn(async () => makeAnalysisResult()),
+    };
+    const forged = {
+      ...pidArtifact,
+      params: {
+        ...pidArtifact.params,
+        score: 100,
+        trace: [{ t: 0, output: 9 }],
+        checksum: 'sha256:deadbeef',
+      },
+    };
+
+    const result = await evaluateWhiteBoxSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: forged,
+      controlAnalysisService: service,
+    });
+
+    expect(service.compute).toHaveBeenCalledOnce();
+    const analysisRequest = vi.mocked(service.compute).mock.calls[0]?.[0];
+    expect(JSON.stringify(analysisRequest)).not.toContain('"score":100');
+    expect(JSON.stringify(analysisRequest)).not.toContain('deadbeef');
+    expect(result.score).not.toBe(100);
+    expect(result.metrics.settlingTime).toBe(2.2);
+  });
+
+  it('fails closed when the analysis facade is unavailable instead of using client or zero scores', async () => {
+    const service: ControlAnalysisService = {
+      compute: vi.fn(async () => {
+        throw new ControlEngineFailure({
+          state: 'unavailable',
+          category: 'wasm-unavailable',
+          message: 'control-engine runtime unavailable',
+          retryable: true,
+        });
+      }),
+    };
+
+    await expect(evaluateWhiteBoxSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: { ...pidArtifact, params: { ...pidArtifact.params, score: 0 } },
+      controlAnalysisService: service,
+    })).rejects.toBeInstanceOf(ControlEngineFailure);
   });
 });

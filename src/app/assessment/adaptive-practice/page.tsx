@@ -73,13 +73,13 @@ import {
   type AdaptivePathUnlockProjectedAction,
   resolveAdaptivePathUnlockChainAction,
 } from '@/features/adaptive/adaptive-path-unlock-chain-view';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,
   type AdaptivePathUnlockChainNodeInput,
 } from '@/lib/adaptive-path-unlock-chain';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import type {
   EvidenceTimelineLearnerRecordSourceScope,
   StudentSafeEvidenceEventReference,

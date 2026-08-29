@@ -1,8 +1,8 @@
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
   isPathBlockingFallbackReason,
   type AdaptiveLearningPathRegisteredGoalDefinition,
-} from './adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { expandLearningGoalSubgraph } from './graphs/goal-subgraph-expansion-service';
 import type {
   LearningGoalResourceBaselineArtifacts,
@@ -522,7 +522,7 @@ export function buildLearningGoalPathGenerationDiagnostics(input: {
       const learningGoal = registeredGoal.learningGoal!;
       const baseline = baselineByGoalId.get(learningGoal.id);
       const expandedSubgraph = expandLearningGoalSubgraph(learningGoal.id);
-      const plan = buildAdaptiveLearningPathPlan({
+      const plan = planLearningPath({
         studentId: 'full-resource-path-readiness-gate',
         goal: registeredGoal.goal,
         learnerState: buildGateLearnerState(registeredGoal),

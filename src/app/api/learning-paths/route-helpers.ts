@@ -8,7 +8,7 @@ import {
   LEGACY_PATH_MUTATION_BLOCKED_CODE,
 } from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { isControlCorrectionPathRoundPersistenceEnabled } from '@/lib/control-correction-path-rounds';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type LearningPathRequesterRole = 'student' | 'teacher' | 'admin';

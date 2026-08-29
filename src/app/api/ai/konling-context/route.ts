@@ -12,8 +12,8 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+  readLearnerState,
+} from '@/features/personalization/learner-state/public-api';
 import {
   buildKonlingDualDomainProvenanceMetadataPayload,
   buildKonlingRuntimeContext,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     const learnerState = isAdaptiveLearnerStateServiceEnabled()
-      ? await readAdaptiveLearnerState(prisma, {
+      ? await readLearnerState({
           userId,
           classId,
           role: session.user.role === 'ADMIN'

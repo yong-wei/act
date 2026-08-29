@@ -31,7 +31,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/lib/adaptive-learning-path-planner', () => ({
+vi.mock('@/features/personalization/path-planning/public-api', () => ({
   isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
 }));
 

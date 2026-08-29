@@ -473,6 +473,45 @@ describe('micro-intervention learning evidence', () => {
     expect(facts.some((fact) => fact.factType === 'micro_intervention_validation')).toBe(true);
   });
 
+  it('projects with the identity persisted at staging when the live revision has moved', async () => {
+    const stagedIdentity: MicroInterventionEvidenceIdentity = {
+      ...IDENTITY,
+      captureRevision: 'staged-capture',
+    };
+    const outcome = sealedOutcome();
+    const watermark = sealedMicroInterventionProjectionWatermark(outcome, stagedIdentity);
+    const { db, facts, outbox } = createDb(outcome);
+    await db.evidenceOutbox.upsert({
+      where: { dedupeKey: `micro-intervention:pending:intervention-1:${watermark}` },
+      create: {
+        eventType: 'micro-intervention-evidence',
+        correlationId: 'intervention-1',
+        causationId: watermark,
+        ownerUserId: 'learner-1',
+        dedupeKey: `micro-intervention:pending:intervention-1:${watermark}`,
+        status: 'pending',
+        payload: {
+          kind: 'projection-task',
+          interventionId: 'intervention-1',
+          sourceWatermark: watermark,
+          identity: stagedIdentity,
+          attempts: 0,
+        },
+      },
+      update: {},
+    });
+
+    const result = await processPendingMicroInterventionEvidenceProjections(db as never, {
+      interventionId: 'intervention-1',
+    });
+    const tasks = [...outbox.values()].filter((row) => String(row.dedupeKey).startsWith('micro-intervention:pending:'));
+    expect(result.processed).toBe(1);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]?.status).toBe('projected');
+    expect(facts.length).toBeGreaterThan(0);
+    expect(JSON.stringify(facts)).toContain('staged-capture');
+  });
+
   it('maps catalog canonical nodes onto production authored-goal knowledge tags', () => {
     const evidence = applyMicroInterventionMasteryPolicy([{
       evidenceId: 'src',

@@ -17,7 +17,7 @@ import {
   VIEWPORT_WIDTH,
   type LevelSegment,
 } from './level-generator';
-import { computeControlOdysseyServerStep } from './control-engine-server-runtime';
+import { computeControlOdysseyServerStep } from '@/lib/control-engine/server';
 import {
   buildRustSimulationRequest,
   createInitialRustSimulationState,

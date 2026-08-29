@@ -6,10 +6,10 @@ import {
   type RustSimulationState,
 } from './rust-runtime-adapter';
 import {
-  computeRustSimulationStep,
-  isControlOdysseyRuntimeReady,
-  preloadControlOdysseyRuntime,
-} from './control-engine-runtime';
+  computeSimulationStepBrowserSync as computeRustSimulationStep,
+  isBrowserControlEngineReady as isControlOdysseyRuntimeReady,
+  preloadBrowserControlEngine as preloadControlOdysseyRuntime,
+} from '@/lib/control-engine/client';
 
 export type { ControlParams, ShipState };
 

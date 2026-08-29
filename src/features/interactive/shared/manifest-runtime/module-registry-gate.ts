@@ -238,7 +238,7 @@ const COURSE_PRIVATE_CONTROL_PANEL_SOURCE_MIGRATION_EXCEPTIONS: Record<string, C
   'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local design-task panels with control-linked-comparison'),
   'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local controller-selection panels with control-frequency-reading-workbench'),
   'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local scheme-validation panels with shared control workbench capability modules'),
-  'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local training runtime with training-workbench'),
+  'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local training runtime with training-workbench'),
 };
 
 function migrationException(

@@ -5,7 +5,7 @@ import {
   CONTROL_CORRECTION_GOAL_ID,
   readAdaptiveLearnerState,
   type MasteryEvidenceSourceType,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import {
   buildStudentEvidenceFeaturePayload,

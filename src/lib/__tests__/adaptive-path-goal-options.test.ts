@@ -5,7 +5,7 @@ import {
   getAdaptivePracticeGoalOptions,
   isAdaptivePracticeGoalId,
 } from '@/lib/adaptive-path-goal-options';
-import { listLearningGoals } from '@/lib/adaptive-learning-path-planner';
+import { listLearningGoals } from '@/features/personalization/path-planning/public-api';
 
 describe('adaptive path goal options', () => {
   it('projects every path-ready LearningGoal into a selectable adaptive practice option', () => {

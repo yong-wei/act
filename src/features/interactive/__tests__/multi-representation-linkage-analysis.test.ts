@@ -197,7 +197,7 @@ describe('multi representation linkage analysis adapter', () => {
       responseType: 'step',
     });
     const workerSource = readFileSync(
-      join(repoRoot, 'src/resources/control-system/analysis/control-analysis.worker.ts'),
+      join(repoRoot, 'src/lib/control-engine/analysis.worker.ts'),
       'utf8',
     );
 

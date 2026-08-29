@@ -18,8 +18,10 @@ import {
 type GeneratedCandidatePersistenceDb = Parameters<typeof loadGeneratedCandidateStore>[0];
 
 let inflightHydration: Promise<void> | null = null;
+let tornOverlayActive = false;
 
 export function applyGeneratedCandidateStoreToRuntimeOverlay(store: GeneratedCandidateStore) {
+  tornOverlayActive = false;
   const catalog = buildAdaptiveAssessmentItemCatalog({
     generatedCandidateStore: store,
     generatedQuestions: generatedQuestionsFromStore(store),
@@ -37,7 +39,7 @@ export function applyGeneratedCandidateStoreToRuntimeOverlay(store: GeneratedCan
 }
 
 export async function ensureGeneratedCatalogHydrated(db: unknown) {
-  if (isGeneratedRuntimeOverlayReady()) return;
+  if (isGeneratedRuntimeOverlayReady() && !tornOverlayActive) return;
   if (!isGeneratedCandidatePersistenceDb(db)) return;
   inflightHydration ??= hydrateGeneratedCatalogFromPersistence(db).finally(() => {
     inflightHydration = null;
@@ -47,8 +49,16 @@ export async function ensureGeneratedCatalogHydrated(db: unknown) {
 
 async function hydrateGeneratedCatalogFromPersistence(db: GeneratedCandidatePersistenceDb) {
   const store = await loadGeneratedCandidateStore(db);
-  if (hasTornPublicationLineage(store)) return;
-  if (isGeneratedRuntimeOverlayReady()) return;
+  if (hasTornPublicationLineage(store)) {
+    // Fail closed: a torn DB snapshot installs an empty ready overlay instead of
+    // falling through to static sidecar artifacts from a previous publish, which
+    // would let stale generated items keep governed-stage authority while the
+    // current lineage is unreadable. The next ensure call retries the read.
+    tornOverlayActive = true;
+    replaceGeneratedRuntimeOverlay({ items: [], decisions: [] });
+    return;
+  }
+  if (isGeneratedRuntimeOverlayReady() && !tornOverlayActive) return;
   applyGeneratedCandidateStoreToRuntimeOverlay(store);
 }
 

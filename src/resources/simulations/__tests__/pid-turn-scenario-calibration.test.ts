@@ -17,7 +17,7 @@ const { computeVirtualSimulationServerStepMock } = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock('../rust/control-engine-server-runtime', () => ({
+vi.mock('@/lib/control-engine/server', () => ({
   computeVirtualSimulationServerStep: computeVirtualSimulationServerStepMock,
 }));
 

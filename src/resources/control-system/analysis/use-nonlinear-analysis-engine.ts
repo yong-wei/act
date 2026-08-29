@@ -327,7 +327,7 @@ export function useNonlinearAnalysisEngine(
     }
 
     if (!workerRef.current) {
-      workerRef.current = new Worker(new URL('./control-analysis.worker.ts', import.meta.url), { type: 'module' });
+      workerRef.current = new Worker(new URL('../../../lib/control-engine/analysis.worker.ts', import.meta.url), { type: 'module' });
     }
 
     const worker = workerRef.current;

@@ -10,7 +10,7 @@ import { buildGraphCenterPayload } from '../data-governance/graph-center';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   isPathBlockingFallbackReason,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   buildLearningGoalResourceBaselineArtifacts,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,

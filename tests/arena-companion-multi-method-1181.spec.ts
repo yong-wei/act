@@ -11,7 +11,7 @@ const generatorPath = 'tests/arena-companion-multi-method-1181.spec.ts';
 const sourceFiles = [
   'src/features/ai/companion/ai-companion-panel.tsx',
   'src/features/ai/companion/arena-companion-context.ts',
-  'src/features/ai/companion/intervention-engine.ts',
+  'src/features/personalization/interventions/policy.ts',
   'src/features/control-workbench/shell/control-workbench-shell.tsx',
   'src/app/api/ai/intervention/generate/route.ts',
   'src/lib/konling-agent-runtime.ts',

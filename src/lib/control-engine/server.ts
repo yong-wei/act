@@ -4,8 +4,6 @@ import type { RustSimulationRequest, RustSimulationResult } from '@/resources/in
 import {
   assertFiniteTree,
   canonicalRequestHash,
-  ControlEngineFailure,
-  identifiedClaimWithoutParameters,
   mapFailure,
   newRequestId,
   okEnvelope,
@@ -13,7 +11,12 @@ import {
 } from './envelope';
 import { readGeneratedPackageIdentity } from './identity';
 import {
-  ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+  arenaPreviewCanonicalRequest,
+  assertArenaPreviewIdentityConsumed,
+  assertArenaPreviewSummaryWithinBaseline,
+  resolveArenaCruiseRollPlantParameters,
+} from './arena-preview-support';
+import {
   ARENA_PREVIEW_TEACHING_SEMANTICS,
   type ArenaCruiseRollPreviewRequest,
   type ArenaCruiseRollPreviewResult,
@@ -76,30 +79,14 @@ export function computeRlTrainingServer<TResult>(request: unknown): TResult {
 export function computeArenaVirtualPreviewResult(
   request: ArenaCruiseRollPreviewRequest,
 ): ArenaCruiseRollPreviewResult {
-  if (identifiedClaimWithoutParameters(request.modelRelation, request.authorizedModelParameters)) {
-    throw new ControlEngineFailure({
-      state: 'unavailable',
-      category: 'identified-without-authorized-parameters',
-      message: 'Identified control-engine capabilities require authorized model parameters consumed by Rust.',
-      retryable: false,
-    });
-  }
+  resolveArenaCruiseRollPlantParameters(request);
   const result = parseWasmJson<ArenaCruiseRollPreviewResult>(
     'compute_virtual_simulation_step',
     request,
     'computeArenaVirtualPreview',
   );
-  if (result.identity.taskId !== request.taskId
-    || result.identity.datasetHash !== request.datasetHash
-    || result.identity.identificationModelId !== request.identificationModelId
-    || result.identity.controllerHash !== request.controllerHash) {
-    throw new ControlEngineFailure({
-      state: 'unavailable',
-      category: 'identity-not-consumed',
-      message: 'Arena preview identity was not consumed by the Rust capability.',
-      retryable: false,
-    });
-  }
+  assertArenaPreviewIdentityConsumed(request, result);
+  assertArenaPreviewSummaryWithinBaseline(request, result.summary);
   return result;
 }
 
@@ -108,34 +95,13 @@ export async function computeArenaVirtualPreview(
 ): Promise<ControlEngineEnvelope<ArenaCruiseRollPreviewResult>> {
   try {
     const result = computeArenaVirtualPreviewResult(request);
-    if (result.identity.taskId !== request.taskId
-      || result.identity.datasetHash !== request.datasetHash
-      || result.identity.identificationModelId !== request.identificationModelId
-      || result.identity.controllerHash !== request.controllerHash) {
-      throw new ControlEngineFailure({
-        state: 'unavailable',
-        category: 'identity-not-consumed',
-        message: 'Arena preview identity was not consumed by the Rust capability.',
-        retryable: false,
-      });
-    }
+    assertArenaPreviewIdentityConsumed(request, result);
     const modelRelation: ControlEngineModelRelation = result.modelRelation === 'identified' ? 'identified' : 'surrogate';
     return okEnvelope({
       capability: 'computeArenaVirtualPreview',
       executor: 'server',
       requestId: newRequestId(),
-      canonicalRequestHash: await canonicalRequestHash({
-        modelId: ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
-        taskId: request.taskId,
-        datasetHash: request.datasetHash,
-        identificationModelId: request.identificationModelId,
-        controllerHash: request.controllerHash,
-        controllerGain: request.controllerGain,
-        dampingCompensation: request.dampingCompensation,
-        energyBudget: request.energyBudget,
-        initialRoll: request.initialRoll,
-        modelRelation,
-      }),
+      canonicalRequestHash: await canonicalRequestHash(arenaPreviewCanonicalRequest(request)),
       result,
       persisted: false,
       modelRelation,

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { AdaptiveLearningPathGraphContextInput } from './adaptive-learning-path-planner';
+import type { AdaptiveLearningPathGraphContextInput } from '@/features/personalization/path-planning/public-api';
 import type { LearningGoalResourceBaselineMatrixRow } from './learning-goal-resource-baseline';
 
 type PlannerLearningGoalBaseline = NonNullable<AdaptiveLearningPathGraphContextInput['learningGoalBaseline']>;

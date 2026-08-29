@@ -125,6 +125,9 @@ export interface ArenaCruiseRollPreviewResult {
     readonly datasetHash: string;
     readonly identificationModelId: string;
     readonly controllerHash: string;
+    readonly plantDamping: number;
+    readonly plantStiffness: number;
+    readonly plantInputGain: number;
   };
   readonly modelRelation: ControlEngineModelRelation;
 }

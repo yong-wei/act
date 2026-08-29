@@ -11,7 +11,7 @@ import {
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
   type AdaptiveLearnerSecondaryDimension,
   type AdaptiveLearnerState,
-} from '../adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { createEmptyCompetencyVector, type CompetencyDimension, type CompetencyVector } from '../competency-model';
 import {
   derivePortraitV2Compatibility,

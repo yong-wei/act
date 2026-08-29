@@ -24,7 +24,6 @@
 import type { WindLoadState } from '../../core/types';
 import {
   clamp,
-  lerp,
   toDegrees,
   toRadians,
   CONTAINER_MSC_PARAMS,
@@ -211,21 +210,6 @@ export function computeWindLoad(
     moment,
     relativeDirection: relativeDir,
   };
-}
-
-/**
- * 风载荷步进更新
- *
- * 用于在仿真循环中持续更新风载荷
- */
-export function windLoadStep(
-  shipHeading: number,
-  loadRatio: number,
-  env: WindEnvironment,
-  time: number,
-  params: WindLoadParams = DEFAULT_WIND_PARAMS
-): WindLoadState {
-  return computeWindLoad(shipHeading, loadRatio, env, params, time);
 }
 
 // ============ 指标计算 ============

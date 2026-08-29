@@ -12,8 +12,8 @@
 ## 2. 统一内核与入口
 
 - Rust 源码：`rust/control-engine/src/`
-- 浏览器虚拟仿真入口：`src/resources/simulations/rust/control-engine-runtime.ts`
-- 服务端虚拟仿真入口：`src/resources/simulations/rust/control-engine-server-runtime.ts`
+- 浏览器虚拟仿真入口：`src/lib/control-engine/client.ts`
+- 服务端虚拟仿真入口：`src/lib/control-engine/server.ts`
 - 互动学习批量仿真入口：`src/resources/interactive-learning/rust/interactive-simulation-runtime.ts`
 - 船舶仿真 facade：`src/resources/simulations/physics/simulation-engine-facade.ts`
 

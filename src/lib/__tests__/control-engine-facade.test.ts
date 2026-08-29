@@ -8,7 +8,9 @@ import {
   ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
   CAPTURED_SOURCE_COMMIT,
   FACADE_GENERATED_IMPORT_ALLOWLIST,
+  RAW_BUSINESS_LOADER_DENOMINATOR,
   RAW_BUSINESS_LOADERS,
+  RETIRED_RAW_BUSINESS_LOADERS,
   canonicalRequestHash,
   identifiedClaimWithoutParameters,
   rejectClientResultFields,
@@ -48,12 +50,19 @@ const analysisRequest: ControlAnalysisRequest = {
 };
 
 describe('control-engine wasm facade', () => {
-  it('freezes the nine raw business loaders including Unit 5-5', () => {
-    expect(RAW_BUSINESS_LOADERS).toHaveLength(9);
-    expect(RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual(expect.arrayContaining([
+  it('freezes the nine raw business-loader identities after R6 retirement', () => {
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR).toHaveLength(9);
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR.map((item) => item.path)).toEqual(expect.arrayContaining([
       'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts',
     ]));
-    expect(RAW_BUSINESS_LOADERS.every((item) => item.facadeException === false)).toBe(true);
+    expect(RAW_BUSINESS_LOADER_DENOMINATOR.every((item) => item.facadeException === false)).toBe(true);
+    expect(RETIRED_RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual(expect.arrayContaining([
+      'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts',
+    ]));
+    expect(RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual([
+      'src/resources/control-system/analysis/use-control-engine.ts',
+      'src/features/arena/evaluation/control-analysis-service.ts',
+    ]);
     expect(CAPTURED_SOURCE_COMMIT).toMatch(/^[a-f0-9]{40}$/);
   });
 
@@ -179,7 +188,12 @@ describe('control-engine wasm facade', () => {
       dampingCompensation: 0.72,
       energyBudget: 12,
       initialRoll: 0.2,
+      sampleTime: 0.2,
+      steps: 61,
       modelRelation: 'surrogate',
+      plantDamping: 0.72,
+      plantStiffness: 1.18,
+      plantInputGain: 0.68,
     }));
   });
 
@@ -198,7 +212,33 @@ describe('control-engine wasm facade', () => {
       sampleTime: 0.2,
       steps: 61,
       modelRelation: 'identified',
-    })).rejects.toThrow(/authorized model parameters/);
+    })).rejects.toThrow(/authorized plantDamping/);
+  });
+
+  it('consumes authorized plant parameters for identified arena preview', async () => {
+    const envelope = await computeArenaVirtualPreview({
+      modelId: ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+      taskId: 'task-cruise-roll-blackbox-identification',
+      datasetHash: 'arena-blackbox-dataset-preview123456',
+      identificationModelId: 'arena-identification-preview12345',
+      controllerHash: 'artifact-preview',
+      controllerGain: 1.6,
+      dampingCompensation: 0.72,
+      energyBudget: 12,
+      initialRoll: 0.2,
+      sampleTime: 0.2,
+      steps: 61,
+      modelRelation: 'identified',
+      authorizedModelParameters: {
+        plantDamping: 1.4,
+        plantStiffness: 2.2,
+        plantInputGain: 0.4,
+      },
+    });
+    expect(envelope.modelRelation).toBe('identified');
+    expect(envelope.result.identity.plantDamping).toBe(1.4);
+    expect(envelope.result.identity.plantStiffness).toBe(2.2);
+    expect(envelope.result.identity.plantInputGain).toBe(0.4);
   });
 
   it('characterizes fallback presentation as non-authoritative', () => {

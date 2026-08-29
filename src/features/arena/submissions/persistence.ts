@@ -1,6 +1,13 @@
 import { evaluateArenaSubmission, getArenaEvaluationProtocolVersion } from '../evaluation/evaluator';
+import {
+  arenaEvaluationCacheBindingConflicts,
+  isCompleteArenaEvaluationCacheIdentity,
+  resolveArenaEvaluationCacheBinding,
+  withArenaEvaluationCacheBinding,
+} from './evaluation-cache-identity';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ControllerArtifact } from '../types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 import {
   startOfUtcDay,
   type ArenaBlackBoxExperimentStore,
@@ -225,7 +232,18 @@ export async function createPersistedArenaSubmission(
   const artifactHash = hashControllerArtifact(artifact);
   const protocolVersion = getArenaEvaluationProtocolVersion({ taskId: input.taskId, method: artifact.method });
 
-  const existingEvaluation = await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion);
+  const cacheBinding = resolveArenaEvaluationCacheBinding(input.taskId);
+  const cachedEvaluation = isCompleteArenaEvaluationCacheIdentity({
+    taskId: input.taskId,
+    artifactHash,
+    protocolVersion,
+  })
+    ? await input.store.findEvaluationByHash(input.taskId, artifactHash, protocolVersion)
+    : null;
+  const existingEvaluation = cachedEvaluation
+    && !arenaEvaluationCacheBindingConflicts(cachedEvaluation.result.metadata, cacheBinding)
+    ? cachedEvaluation
+    : null;
   const duplicateSubmission = await input.store.findDuplicateSubmissionByArtifact?.({
     taskId: input.taskId,
     userId: input.userId,
@@ -237,6 +255,7 @@ export async function createPersistedArenaSubmission(
   try {
     evaluation = existingEvaluation?.result ?? await evaluateArenaSubmission({ taskId: input.taskId, artifact });
   } catch (error) {
+    if (error instanceof ControlEngineFailure) throw error;
     const message = error instanceof Error ? error.message : 'Invalid Arena submission';
     throw new ArenaSubmissionInputError(message);
   }
@@ -244,7 +263,10 @@ export async function createPersistedArenaSubmission(
     taskId: input.taskId,
     artifactHash,
     protocolVersion,
-    result: evaluation,
+    result: {
+      ...evaluation,
+      metadata: withArenaEvaluationCacheBinding(evaluation.metadata, cacheBinding),
+    },
     completedAt: input.submittedAt,
   });
   const storedArtifact = await input.store.upsertArtifact({
