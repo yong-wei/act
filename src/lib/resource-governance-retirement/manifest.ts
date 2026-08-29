@@ -15,7 +15,7 @@ import {
   type ZeroCallerReceipt,
 } from './contracts';
 import { archiveCoverageReasons, verifyRollbackArchive } from './archive';
-import { hashCandidateSet, hashDenominator } from './scan';
+import { hashCandidateSet, hashDenominator, receiptIntegrityReasons } from './scan';
 import { isGitRevision, isSha256Hex, retirementDigest } from './hash';
 import { compareLedgers } from './ledger';
 import { replacementIsImplemented, replacementParityFails } from './replacement';
@@ -140,6 +140,7 @@ export function collectManifestReasons(input: {
     if (!isSha256Hex(receipt.receiptDigest)) {
       reasons.push(`zero-caller-digest-missing:${receipt.candidateId}`);
     }
+    reasons.push(...receiptIntegrityReasons(receipt));
   }
   if (input.reviewerDecision === 'unreviewed') {
     reasons.push('reviewer-unreviewed');
@@ -160,8 +161,10 @@ export function deletionsAuthorizedByEvidence(input: {
         return false;
       }
       const receipt = input.zeroCallerReceipts.find((row) => row.candidateId === candidate.id);
-      return receipt?.zeroCallers === true
-        && candidate.replacement.implemented
+      if (!receipt) return false;
+      if (receiptIntegrityReasons(receipt).length > 0) return false;
+      if (receipt.hits.length !== 0) return false;
+      return candidate.replacement.implemented
         && candidate.replacement.parity.facade === false;
     })
     .map((candidate) => candidate.id)

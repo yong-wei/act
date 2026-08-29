@@ -135,6 +135,18 @@ export function buildZeroCallerReceipt(input: {
   };
 }
 
+export function receiptIntegrityReasons(receipt: ZeroCallerReceipt): string[] {
+  const reasons: string[] = [];
+  const { receiptDigest, ...body } = receipt;
+  if (retirementDigest(body) !== receiptDigest) {
+    reasons.push(`zero-caller-digest-mismatch:${receipt.candidateId}`);
+  }
+  if (receipt.zeroCallers !== (receipt.hits.length === 0)) {
+    reasons.push(`zero-caller-flag-mismatch:${receipt.candidateId}`);
+  }
+  return reasons;
+}
+
 function classifyHitKind(
   path: string,
   content: string,

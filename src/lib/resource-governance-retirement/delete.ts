@@ -49,6 +49,49 @@ export interface PostDeleteVerification {
   runTests(): PostDeleteCommandResult;
 }
 
+function worktreeDeletionReasons(input: {
+  worktree: RetirementWorktreeSnapshot;
+  graph: ResourceGovernanceGraph;
+  authorizedIds: readonly string[];
+}): string[] {
+  const reasons: string[] = [];
+  if (input.worktree.headRevision !== input.graph.headRevision) {
+    reasons.push('worktree-head-mismatch');
+  }
+  if (input.worktree.headRevision !== input.graph.captureRevision) {
+    reasons.push('worktree-mixed-revision');
+  }
+  if (input.worktree.dirtyPaths.length > 0) {
+    reasons.push(`worktree-dirty:${input.worktree.dirtyPaths[0]}`);
+  }
+  for (const candidate of input.graph.candidates) {
+    if (!input.authorizedIds.includes(candidate.id)) continue;
+    const sourcePath = candidate.sourcePath.replace(/\\/gu, '/');
+    const liveFile = input.worktree.files.find((file) => file.path.replace(/\\/gu, '/') === sourcePath);
+    if (!liveFile) {
+      reasons.push(`worktree-candidate-missing:${candidate.id}`);
+      continue;
+    }
+    const liveDigest = fileDigest(liveFile.content);
+    if (liveFile.digest !== liveDigest) {
+      reasons.push(`worktree-file-digest-mismatch:${candidate.id}`);
+    }
+    const archived = input.graph.archiveBytes[sourcePath];
+    if (archived === undefined || liveDigest !== fileDigest(archived)) {
+      reasons.push(`worktree-candidate-digest-drift:${candidate.id}`);
+    }
+    const liveHits = scanCandidateCallers({
+      candidate,
+      files: input.worktree.files,
+      excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
+    });
+    if (liveHits.length > 0) {
+      reasons.push(`zero-caller-race:${candidate.id}`);
+    }
+  }
+  return reasons;
+}
+
 export function deleteRetiredResourceGovernanceEntrypoints(input: {
   receiptId: string;
   manifest: ResourceGovernanceRetirementManifest;
@@ -113,46 +156,44 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     }
   }
 
-  let worktree: RetirementWorktreeSnapshot;
-  try {
-    worktree = input.captureWorktree();
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : 'unknown';
-    return blocked([`worktree-capture-failed:${detail}`]);
+  const readWorktree = (): RetirementWorktreeSnapshot | DeletionReceipt => {
+    try {
+      return input.captureWorktree();
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : 'unknown';
+      return blocked([`worktree-capture-failed:${detail}`]);
+    }
+  };
+
+  const firstCapture = readWorktree();
+  if ('status' in firstCapture && firstCapture.status === 'blocked') {
+    return firstCapture;
   }
-  if (worktree.headRevision !== input.graph.headRevision) {
-    return blocked(['worktree-head-mismatch']);
-  }
-  if (worktree.headRevision !== input.graph.captureRevision) {
-    return blocked(['worktree-mixed-revision']);
-  }
-  if (worktree.dirtyPaths.length > 0) {
-    return blocked([`worktree-dirty:${worktree.dirtyPaths[0]}`]);
+  const worktree = firstCapture as RetirementWorktreeSnapshot;
+  const firstReasons = worktreeDeletionReasons({
+    worktree,
+    graph: input.graph,
+    authorizedIds: verdict.deletionsAuthorized,
+  });
+  if (firstReasons.length > 0) {
+    return blocked(firstReasons);
   }
 
-  for (const candidate of input.graph.candidates) {
-    if (!verdict.deletionsAuthorized.includes(candidate.id)) continue;
-    const sourcePath = candidate.sourcePath.replace(/\\/gu, '/');
-    const liveFile = worktree.files.find((file) => file.path.replace(/\\/gu, '/') === sourcePath);
-    if (!liveFile) {
-      return blocked([`worktree-candidate-missing:${candidate.id}`]);
-    }
-    const liveDigest = fileDigest(liveFile.content);
-    if (liveFile.digest !== liveDigest) {
-      return blocked([`worktree-file-digest-mismatch:${candidate.id}`]);
-    }
-    const archived = input.graph.archiveBytes[sourcePath];
-    if (archived === undefined || liveDigest !== fileDigest(archived)) {
-      return blocked([`worktree-candidate-digest-drift:${candidate.id}`]);
-    }
-    const liveHits = scanCandidateCallers({
-      candidate,
-      files: worktree.files,
-      excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
-    });
-    if (liveHits.length > 0) {
-      return blocked([`zero-caller-race:${candidate.id}`]);
-    }
+  const recapture = readWorktree();
+  if ('status' in recapture && recapture.status === 'blocked') {
+    return recapture;
+  }
+  const liveWorktree = recapture as RetirementWorktreeSnapshot;
+  if (liveWorktree.headRevision !== worktree.headRevision) {
+    return blocked(['worktree-unstable-head']);
+  }
+  const recaptureReasons = worktreeDeletionReasons({
+    worktree: liveWorktree,
+    graph: input.graph,
+    authorizedIds: verdict.deletionsAuthorized,
+  });
+  if (recaptureReasons.length > 0) {
+    return blocked(recaptureReasons);
   }
 
   const deletedPaths: string[] = [];
@@ -165,45 +206,51 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     }
   };
 
-  for (const listed of input.listedPaths) {
-    const normalized = listed.replace(/\\/gu, '/');
-    input.fs.unlink(normalized);
-    deletedPaths.push(normalized);
-  }
-
-  const remainingFiles = worktree.files.filter(
-    (file) => !deletedPaths.includes(file.path.replace(/\\/gu, '/')),
-  );
-  for (const candidate of input.graph.candidates) {
-    if (!verdict.deletionsAuthorized.includes(candidate.id)) continue;
-    const hits = scanCandidateCallers({
-      candidate,
-      files: remainingFiles,
-      excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
-    });
-    if (hits.length > 0) {
-      restoreDeleted();
-      return blocked([`post-delete-zero-caller-failed:${candidate.id}`]);
+  try {
+    for (const listed of input.listedPaths) {
+      const normalized = listed.replace(/\\/gu, '/');
+      input.fs.unlink(normalized);
+      deletedPaths.push(normalized);
     }
-  }
 
-  const importBuild = input.postDeleteVerification.runImportBuild();
-  const tests = input.postDeleteVerification.runTests();
-  if (!importBuild.command) {
+    const remainingFiles = liveWorktree.files.filter(
+      (file) => !deletedPaths.includes(file.path.replace(/\\/gu, '/')),
+    );
+    for (const candidate of input.graph.candidates) {
+      if (!verdict.deletionsAuthorized.includes(candidate.id)) continue;
+      const hits = scanCandidateCallers({
+        candidate,
+        files: remainingFiles,
+        excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
+      });
+      if (hits.length > 0) {
+        restoreDeleted();
+        return blocked([`post-delete-zero-caller-failed:${candidate.id}`]);
+      }
+    }
+
+    const importBuild = input.postDeleteVerification.runImportBuild();
+    const tests = input.postDeleteVerification.runTests();
+    if (!importBuild.command) {
+      restoreDeleted();
+      return blocked(['post-delete-import-build-command-missing']);
+    }
+    if (!importBuild.ok) {
+      restoreDeleted();
+      return blocked([`post-delete-import-build-failed:${importBuild.command}`]);
+    }
+    if (!tests.command) {
+      restoreDeleted();
+      return blocked(['post-delete-tests-command-missing']);
+    }
+    if (!tests.ok) {
+      restoreDeleted();
+      return blocked([`post-delete-tests-failed:${tests.command}`]);
+    }
+  } catch (error) {
     restoreDeleted();
-    return blocked(['post-delete-import-build-command-missing']);
-  }
-  if (!importBuild.ok) {
-    restoreDeleted();
-    return blocked([`post-delete-import-build-failed:${importBuild.command}`]);
-  }
-  if (!tests.command) {
-    restoreDeleted();
-    return blocked(['post-delete-tests-command-missing']);
-  }
-  if (!tests.ok) {
-    restoreDeleted();
-    return blocked([`post-delete-tests-failed:${tests.command}`]);
+    const detail = error instanceof Error ? error.message : 'unknown';
+    return blocked([`post-delete-exception:${detail}`]);
   }
 
   const body = {

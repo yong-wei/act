@@ -129,15 +129,21 @@ function parseGitPorcelainPath(line: string): string[] {
  * live worktree. Production deletion must use this immediately before unlink.
  */
 export function captureRetirementWorktree(repoRoot: string): RetirementWorktreeSnapshot {
-  const headRevision = gitText(repoRoot, ['rev-parse', 'HEAD']).trim();
-  const porcelain = gitText(repoRoot, ['status', '--porcelain', '-uall']);
+  const headBefore = gitText(repoRoot, ['rev-parse', 'HEAD']).trim();
+  const dirtyBefore = gitText(repoRoot, ['status', '--porcelain', '-uall']);
+  const files = loadRetirementScanFiles(repoRoot);
+  const headAfter = gitText(repoRoot, ['rev-parse', 'HEAD']).trim();
+  const dirtyAfter = gitText(repoRoot, ['status', '--porcelain', '-uall']);
   const dirtyPaths = [...new Set(
-    porcelain.split('\n').flatMap(parseGitPorcelainPath).filter(Boolean),
+    `${dirtyBefore}\n${dirtyAfter}`.split('\n').flatMap(parseGitPorcelainPath).filter(Boolean),
   )].sort();
+  if (headBefore !== headAfter) {
+    dirtyPaths.push(`head-drift:${headBefore}->${headAfter}`);
+  }
   return {
-    headRevision,
+    headRevision: headAfter,
     dirtyPaths,
-    files: loadRetirementScanFiles(repoRoot),
+    files,
   };
 }
 

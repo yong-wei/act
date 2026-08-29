@@ -15,7 +15,7 @@ import {
   type RetirementDisposition,
 } from './contracts';
 import { verifyRollbackArchive, archiveCoverageReasons } from './archive';
-import { hashCandidateSet, hashDenominator, callersMatchReceipt, scanCandidateCallers } from './scan';
+import { hashCandidateSet, hashDenominator, callersMatchReceipt, scanCandidateCallers, receiptIntegrityReasons } from './scan';
 import { isSha256Hex, retirementDigest } from './hash';
 import { compareLedgers } from './ledger';
 import { scanProtectedSurfaces } from './protected';
@@ -103,6 +103,7 @@ export function verifyResourceGovernanceRetirement(
       reasons.push(`zero-caller-receipt-missing:${candidate.id}`);
       continue;
     }
+    reasons.push(...receiptIntegrityReasons(receipt));
     if (!callersMatchReceipt(declaredHits, receipt)) {
       reasons.push(`zero-caller-race:${candidate.id}`);
     }

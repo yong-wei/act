@@ -17,6 +17,7 @@ import {
   hashDenominator,
   looksLikeDirectoryOrGlob,
   mentionsEntrypoint,
+  retirementDigest,
   rollbackRetiredEntrypoints,
   scanCandidateCallers,
   scanProtectedSurfaces,
@@ -740,5 +741,115 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(receipt.reasons).toContain('post-delete-import-build-failed:npm run typecheck');
     expect(receipt.deletedPaths).toEqual([]);
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('recaptures the live worktree immediately before unlink', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    let captures = 0;
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-recapture',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: () => {
+        captures += 1;
+        if (captures === 1) {
+          return captureFromGraph(graph)();
+        }
+        return captureFromGraph(graph, {
+          files: [
+            ...graph.files,
+            graphFile(
+              'src/app/late-caller.ts',
+              "import { readObsoleteRegistry } from '@/lib/obsolete-registry-read';",
+            ),
+          ],
+        })();
+      },
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:04:00.000Z',
+    });
+    expect(captures).toBe(2);
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('zero-caller-race:registry-read:obsolete-helper');
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('restores unlinked bytes when post-delete verification throws', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-throw',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: {
+        runImportBuild: () => {
+          throw new Error('spawn failed');
+        },
+        runTests: () => ({ ok: true, command: 'npx vitest run resource-governance-retirement' }),
+      },
+      deletedAt: '2026-08-28T04:05:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('post-delete-exception:spawn failed');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('does not authorize deletion from a zero-caller flag that contradicts hits', () => {
+    const graph = completeGraph({});
+    const protectedScan = scanProtectedSurfaces({
+      captureRevision: graph.captureRevision,
+      candidates: graph.candidates,
+      protectedSurfaces: graph.protectedSurfaces,
+      presentPaths: graph.files.map((file) => file.path),
+    });
+    const liarBody = {
+      candidateId: 'registry-read:obsolete-helper',
+      captureRevision: REV,
+      scanRules: {
+        exactPath: true as const,
+        exactSymbol: true as const,
+        includeTests: true as const,
+        includeDynamic: true as const,
+        includeGenerated: true as const,
+        excludedFrameworkFiles: [] as string[],
+      },
+      hits: [{
+        path: 'src/hidden-reverse.ts',
+        symbol: 'readObsoleteRegistry',
+        callerClass: 'reverse' as const,
+        kind: 'reverse' as const,
+      }],
+      zeroCallers: true,
+    };
+    const liarReceipt = {
+      ...liarBody,
+      receiptDigest: retirementDigest(liarBody),
+    };
+    const manifest = buildResourceGovernanceRetirementManifest({
+      retirementId: 'retire-test',
+      graph,
+      reviewedAt: '2026-08-28T00:00:00.000Z',
+      reviewerDecision: 'approve-delete',
+      protectedSurfaceScan: protectedScan,
+      zeroCallerReceipts: [liarReceipt],
+    });
+    expect(manifest.status).toBe('blocked');
+    expect(manifest.reasons).toContain('zero-caller-flag-mismatch:registry-read:obsolete-helper');
+    const verdict = verifyResourceGovernanceRetirement(manifest, graph);
+    expect(verdict.deletionsAuthorized).toEqual([]);
+    expect(verdict.reasons).toContain('zero-caller-flag-mismatch:registry-read:obsolete-helper');
   });
 });
