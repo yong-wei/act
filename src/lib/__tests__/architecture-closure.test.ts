@@ -392,6 +392,70 @@ describe('architecture closure', () => {
     expect(logged.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
     expect(privacyViolation('learner alice@example.com answered 42')).toBe('user-identifier');
     expect(privacyViolation('copied /workspace/act/.logs/raw.log')).toBe('absolute-path');
+
+    const ownerLeak = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? receipt(stageId, { owner: 'alice@example.com' }) : receipt(stageId)
+      )),
+    });
+    const ownerLeaked = generateArchitectureClosure(capture(), ownerLeak, []);
+    expect(ownerLeaked.receipt.status).toBe('unresolved');
+    expect(ownerLeaked.serialized).not.toContain('alice@example.com');
+    expect(ownerLeaked.receipt.inputReceiptIdentities).toEqual([]);
+    expect(ownerLeaked.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
+  });
+
+  it('detects same-path different-digest observations across the final input set', () => {
+    const crossReceipt = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        baseline: receipt('baseline', {
+          observations: [{
+            identity: 'main:src/app/legacy.ts:aaa',
+            classification: 'included',
+            worktreeRole: 'main',
+            path: 'src/app/legacy.ts',
+            contentDigest: 'aaa',
+          }],
+          totals: { discovered: 1, included: 1, excluded: 0, duplicate: 0, unresolved: 0 },
+        }),
+        charter: receipt('charter', {
+          observations: [{
+            identity: 'isolated:src/app/legacy.ts:bbb',
+            classification: 'included',
+            worktreeRole: 'isolated',
+            path: 'src/app/legacy.ts',
+            contentDigest: 'bbb',
+          }],
+          totals: { discovered: 1, included: 1, excluded: 0, duplicate: 0, unresolved: 0 },
+        }),
+      },
+    });
+    const result = generateArchitectureClosure(capture(), crossReceipt, []);
+    expect(result.failures.some((item) => item.code === 'worktree-path-conflict')).toBe(true);
+    expect(result.receipt.status).toBe('unresolved');
+  });
+
+  it('fails closed when an authority input is a proposal or stale receipt', () => {
+    const proposal = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        baseline: receipt('baseline', { evidenceClass: 'proposal' }),
+      },
+    });
+    const proposed = generateArchitectureClosure(capture(), proposal, []);
+    expect(proposed.failures.some((item) => item.code === 'non-receipt-evidence')).toBe(true);
+    expect(proposed.receipt.status).toBe('unresolved');
+
+    const stale = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        charter: receipt('charter', { current: false }),
+      },
+    });
+    const staleResult = generateArchitectureClosure(capture(), stale, []);
+    expect(staleResult.failures.some((item) => item.code === 'stale-authority')).toBe(true);
+    expect(staleResult.receipt.status).toBe('unresolved');
   });
 
   it('records competing aggregators and keeps census/charter/fitness as non-substitutes', () => {

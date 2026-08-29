@@ -37,7 +37,7 @@ function extraKeys(value: object, allowed: readonly string[]): string | null {
   return null;
 }
 
-function forbiddenText(text: string): string | null {
+export function publicEvidenceTextViolation(text: string): string | null {
   if (EMAIL.test(text)) return 'user-identifier';
   if (ABSOLUTE_PATH.test(text)) return 'absolute-path';
   if (LEARNER.test(text)) return 'forbidden-payload';
@@ -46,7 +46,7 @@ function forbiddenText(text: string): string | null {
 }
 
 function walkStrings(value: unknown): string | null {
-  if (typeof value === 'string') return forbiddenText(value);
+  if (typeof value === 'string') return publicEvidenceTextViolation(value);
   if (Array.isArray(value)) {
     for (const item of value) {
       const found = walkStrings(item);
@@ -70,7 +70,7 @@ function inspectArray(
   if (!Array.isArray(value)) return 'unexpected-field';
   for (const item of value) {
     if (typeof item === 'string') {
-      const found = forbiddenText(item);
+      const found = publicEvidenceTextViolation(item);
       if (found) return found;
       continue;
     }
@@ -111,7 +111,7 @@ function inspectReceiptShape(value: unknown): string | null {
 export function closureOutputPrivacyViolation(text: string): string | null {
   const census = censusPrivacyViolation(text);
   if (census) return census;
-  const fromText = forbiddenText(text);
+  const fromText = publicEvidenceTextViolation(text);
   if (fromText) return fromText;
   try {
     return inspectReceiptShape(JSON.parse(text));
