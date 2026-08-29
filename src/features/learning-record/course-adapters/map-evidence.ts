@@ -13,6 +13,7 @@ import type {
   NormalizedCourseEvidenceMapping,
 } from '@/features/personalization/plugins/learning-record-adapter-types';
 import type { PersonalizationGoalPlugin } from '@/features/personalization/plugins/types';
+import { toPersistedAdapterEnvelope } from './persisted-envelope';
 
 function rejected(reason: CourseAdapterRejectReason): CourseAdapterMapResult {
   return {
@@ -77,21 +78,7 @@ export function applyNormalizedCourseMappingToEvent(
         lessonId: mappedLesson,
         canonicalLessonId: mapping.canonicalLessonId,
         canonicalActivityId: mapping.canonicalActivityId,
-        adapter: {
-          adapterId: mapping.adapterId,
-          adapterVersion: mapping.adapterVersion,
-          schemaVersion: mapping.schemaVersion,
-          pluginVersion: mapping.pluginVersion,
-          releaseRevision: mapping.releaseRevision,
-          captureRevision: mapping.captureRevision,
-          revision: mapping.revision,
-          decoderVersion: mapping.decoderVersion,
-          materializerVersion: mapping.materializerVersion,
-          inputDigest: mapping.inputDigest,
-          trustedSetDigest: mapping.trustedSetDigest,
-          sourceEventId: mapping.sourceEventId,
-          sourceLogId: mapping.sourceLogId ?? null,
-        },
+        adapter: toPersistedAdapterEnvelope(mapping),
       },
     },
   };

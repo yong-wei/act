@@ -72,6 +72,19 @@ function inspectPayload(input: CourseAdapterMapInput): string[] {
   ];
 }
 
+function isAuthorizedRebase(
+  receipt: CourseAdapterMapInput['rebaseReceipt'],
+  sourceRevision: string,
+  targetRevision: string,
+): boolean {
+  return Boolean(
+    receipt
+    && receipt.sourceRevision === sourceRevision
+    && receipt.targetRevision === targetRevision
+    && readString(receipt.authorizedBy)
+  );
+}
+
 export function mapControlCorrectionLearningRecord(
   input: CourseAdapterMapInput,
 ): CourseAdapterMapResult {
@@ -95,28 +108,18 @@ export function mapControlCorrectionLearningRecord(
   if (schemaVersion !== CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION) return rejected('version-mismatch');
   if (pluginVersion !== CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION) return rejected('version-mismatch');
   if (releaseRevision !== CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION) {
-    if (
-      input.rebaseReceipt
-      && input.rebaseReceipt.sourceRevision === releaseRevision
-      && input.rebaseReceipt.targetRevision === CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION
-      && readString(input.rebaseReceipt.authorizedBy)
-    ) {
-      // authorized rebase continues on the current adapter release
-    } else {
+    if (!isAuthorizedRebase(
+      input.rebaseReceipt,
+      releaseRevision,
+      CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+    )) {
       return rejected('revision-mismatch');
     }
   }
 
   const expectedCapture = readString(input.expectedCaptureRevision);
   if (expectedCapture && expectedCapture !== captureRevision) {
-    if (
-      !(
-        input.rebaseReceipt
-        && input.rebaseReceipt.sourceRevision === expectedCapture
-        && input.rebaseReceipt.targetRevision === captureRevision
-        && readString(input.rebaseReceipt.authorizedBy)
-      )
-    ) {
+    if (!isAuthorizedRebase(input.rebaseReceipt, expectedCapture, captureRevision)) {
       return rejected('stale-capture');
     }
   }
@@ -124,6 +127,11 @@ export function mapControlCorrectionLearningRecord(
     input.rebaseReceipt
     && readString(input.rebaseReceipt.sourceRevision)
     && readString(input.rebaseReceipt.targetRevision)
+    && !isAuthorizedRebase(
+      input.rebaseReceipt,
+      releaseRevision,
+      CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+    )
     && input.rebaseReceipt.sourceRevision !== captureRevision
     && input.rebaseReceipt.targetRevision !== captureRevision
   ) {

@@ -14,6 +14,7 @@ import {
 } from '@/lib/canonical-learning-fact-identity';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { opaqueSubjectRef } from '@/features/learning-record/event-contract/allowlist';
+import { toPersistedAdapterEnvelope } from '@/features/learning-record/course-adapters/persisted-envelope';
 import type { NormalizedCourseEvidenceMapping } from '@/features/personalization/plugins/learning-record-adapter-types';
 
 type ArenaEvidenceWritebackConsumer = 'student' | 'teacher' | 'admin' | 'service';
@@ -212,21 +213,7 @@ function buildLearningFact(input: {
       },
       ...(mapping
         ? {
-            adapter: {
-              adapterId: mapping.adapterId,
-              adapterVersion: mapping.adapterVersion,
-              schemaVersion: mapping.schemaVersion,
-              pluginId: mapping.pluginId,
-              pluginVersion: mapping.pluginVersion,
-              captureRevision: mapping.captureRevision,
-              releaseRevision: mapping.releaseRevision,
-              contributionKind: mapping.contributionKind,
-              officialAuthority: mapping.officialAuthority,
-              inputDigest: mapping.inputDigest,
-              trustedSetDigest: mapping.trustedSetDigest,
-              sourceEventId: mapping.sourceEventId,
-              sourceLogId: mapping.sourceLogId ?? null,
-            },
+            adapter: toPersistedAdapterEnvelope(mapping),
           }
         : {}),
     },
@@ -263,14 +250,29 @@ function buildArenaTaskLearningFact(
     capabilityMappingTags: task?.training.capabilityTags,
   });
   if (result.status !== 'accepted' || !result.evidence) return null;
-  return buildSimulationTaskLearningFact({
+  const fact = buildSimulationTaskLearningFact({
     userId: submission.userId,
     evidence: result.evidence,
     sourceLogId: `arena-submission:${submission.id}`,
     sessionId: submission.publicationId ?? submission.seasonId ?? null,
     courseId: mapping?.goalId ?? null,
     lessonId: mapping?.canonicalActivityId ?? mapping?.canonicalLessonId ?? null,
-  }) as unknown as Record<string, unknown>;
+  });
+  const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson)
+    ? fact.contextJson as Record<string, unknown>
+    : {};
+  return {
+    ...fact,
+    contextJson: {
+      ...context,
+      ...(mapping
+        ? {
+            goalId: mapping.goalId,
+            adapter: toPersistedAdapterEnvelope(mapping),
+          }
+        : {}),
+    },
+  } as unknown as Record<string, unknown>;
 }
 
 function projectPersistedEvidenceWriteback(

@@ -67,6 +67,7 @@ const GENERIC_LEARNING_RECORD_FILES = [
   'src/features/learning-record/ingestion/ingest.ts',
   'src/features/learning-record/ingestion/types.ts',
   'src/features/learning-record/course-adapters/map-evidence.ts',
+  'src/features/learning-record/course-adapters/persisted-envelope.ts',
   'src/features/learning-record/projections/read-ports.ts',
   'src/features/learning-record/consumers/ports.ts',
   'src/features/arena/evidence-writeback-persistence.ts',

@@ -88,6 +88,15 @@ describe('Arena evidence writeback persistence', () => {
         moduleId: 'arena:task-second-order-lead-pid',
         sourceLogId: 'arena-submission:submission-arena-writeback',
         competencyContribution: {},
+        contextJson: expect.objectContaining({
+          goalId: 'control-correction',
+          adapter: expect.objectContaining({
+            decoderVersion: expect.any(String),
+            materializerVersion: expect.any(String),
+            revision: expect.any(String),
+            canonicalActivityId: 'task-second-order-lead-pid',
+          }),
+        }),
       }),
       expect.objectContaining({
         userId: 'student-a',
@@ -108,6 +117,10 @@ describe('Arena evidence writeback persistence', () => {
           },
           adapter: expect.objectContaining({
             contributionKind: 'auxiliary-learning-evidence',
+            decoderVersion: expect.any(String),
+            materializerVersion: expect.any(String),
+            revision: expect.any(String),
+            canonicalActivityId: 'task-second-order-lead-pid',
             officialAuthority: expect.objectContaining({
               owner: 'arena-submission-result',
               score: 88,
