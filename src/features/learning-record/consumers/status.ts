@@ -51,3 +51,10 @@ export function isNewerGovernedFact(evidenceAsOf: string | null, latestFactAt: s
   if (!evidenceAsOf || !latestFactAt) return false;
   return Date.parse(latestFactAt) > Date.parse(evidenceAsOf);
 }
+
+export function isAuthoritativeConsumerRead(input: {
+  status: ProjectionStatus;
+  knownZero: boolean;
+}): boolean {
+  return input.status === PROJECTION_STATUS.qualified && !input.knownZero;
+}

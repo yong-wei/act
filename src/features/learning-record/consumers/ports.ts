@@ -14,9 +14,10 @@ import {
 import {
   readCurrentCumulativeClassPortrait,
   readCurrentCumulativePortrait,
+  type CumulativeClassPortraitReadModel,
   type CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
-import { PORTRAIT_V2_CALCULATION_VERSION, type PortraitV2Consumer } from '@/lib/data-governance/portrait-v2-model';
+import type { PortraitV2Consumer } from '@/lib/data-governance/portrait-v2-model';
 
 import { inspectConsumerBoundary } from './boundary';
 import { guardProjectionRead } from './errors';
@@ -57,30 +58,53 @@ function envelopeFromPortrait(
   portrait: CumulativePortraitReadModel,
   qualification: StudentProjectionRead['status'],
 ): ProjectionEnvelope | null {
-  const revision = portrait.generatedAt;
-  if (!revision) return null;
-  const freshness = portrait.evidenceAsOf ?? revision;
+  const publication = portrait.publication;
+  if (!publication) return null;
+  const revision = publication.captureRevision;
+  const receivedAt = portrait.generatedAt ?? revision;
+  const freshness = portrait.evidenceAsOf ?? receivedAt;
   return buildProjectionEnvelope({
     subjectUserId: userId,
-    processingWatermark: '0',
-    stateWatermark: portrait.evidenceAsOf ?? '0',
-    calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+    processingWatermark: publication.processingWatermark,
+    stateWatermark: publication.stateWatermark,
+    calculationVersion: publication.calculationVersion,
     captureRevision: revision,
-    generation: '0',
-    queueGeneration: '0',
-    cutoverFence: '0',
+    generation: publication.generation,
+    queueGeneration: publication.queueGeneration,
+    cutoverFence: publication.cutoverFence,
     coverage: coverageOf(portrait),
     freshness,
     confidence: portrait.confidence ?? 0,
     qualification,
     anchors: emptyAnchors(revision),
     times: {
-      trustedOccurredAt: portrait.evidenceAsOf ?? revision,
-      receivedAt: revision,
-      materializedAt: revision,
+      trustedOccurredAt: portrait.evidenceAsOf ?? freshness,
+      receivedAt,
+      materializedAt: receivedAt,
     },
     trustedFactIds: [],
   });
+}
+
+function suppressClassPortraitForConsumer(
+  classPortrait: CumulativeClassPortraitReadModel,
+  suppressed: boolean,
+): CumulativeClassPortraitReadModel {
+  if (!suppressed || classPortrait.stateKind !== 'SNAPSHOT') return classPortrait;
+  return {
+    ...classPortrait,
+    aggregate: null,
+    trendDistribution: null,
+    riskDistribution: null,
+    diagnosis: {
+      strengths: [],
+      improvementClusters: [],
+      limitations: [
+        ...(classPortrait.diagnosis?.limitations ?? []),
+        'independent-learner-small-sample',
+      ],
+    },
+  };
 }
 
 function fieldsWithoutEnvelope(
@@ -235,7 +259,7 @@ export async function readTeacherClassEvidencePort(input: {
     throw new Error('consumer-forbidden-field');
   }
   return {
-    classPortrait,
+    classPortrait: suppressClassPortraitForConsumer(classPortrait, classRead.suppressed),
     learnerPortraits,
     classRead,
     studentReads,

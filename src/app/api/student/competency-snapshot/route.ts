@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import {
+  isAuthoritativeConsumerRead,
   isConsumerUnauthorized,
   readStudentEvidencePort,
 } from '@/features/learning-record/consumers/public-api';
@@ -47,8 +48,8 @@ export async function GET(request: NextRequest) {
     const state = evidence.portrait;
     if (state.stateKind !== 'SNAPSHOT' || !state.payload) {
       return NextResponse.json({
-        derivationState: state.availabilityReason,
-        evidenceState: state.stateKind === 'NO_EVIDENCE' ? 'empty' : 'unavailable',
+        derivationState: evidence.reason ?? state.availabilityReason,
+        evidenceState: evidence.knownZero || state.stateKind === 'NO_EVIDENCE' ? 'empty' : 'unavailable',
         availabilityReason: state.availabilityReason,
         projectionStatus: evidence.status,
         projectionReason: evidence.reason,
@@ -64,11 +65,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const labeledCurrent = isAuthoritativeConsumerRead(evidence);
     const portrait = summarizePortraitV2(state.payload);
     const riskFlags = state.lastRisk.map(toSafeRisk);
     return NextResponse.json({
-      derivationState: 'current',
-      evidenceState: 'current',
+      derivationState: labeledCurrent ? 'current' : (evidence.reason ?? state.availabilityReason),
+      evidenceState: labeledCurrent ? 'current' : evidence.status,
       availabilityReason: state.availabilityReason,
       projectionStatus: evidence.status,
       projectionReason: evidence.reason,

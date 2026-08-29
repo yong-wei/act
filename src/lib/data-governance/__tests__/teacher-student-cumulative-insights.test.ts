@@ -134,6 +134,16 @@ function cumulativePortrait() {
     }],
     availabilityReason: 'available',
     generatedAt: '2026-07-23T08:00:00.000Z',
+    publication: {
+      calculationVersion: 'portrait-v2-cumulative.v3',
+      generation: '4',
+      queueGeneration: '9',
+      cutoverFence: '7',
+      stateWatermark: '12',
+      processingWatermark: '9',
+      captureRevision: 'state-1',
+      inputDigest: 'task-input-1',
+    },
   };
 }
 

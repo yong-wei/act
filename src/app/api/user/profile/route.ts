@@ -9,6 +9,7 @@ import type { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
+  isAuthoritativeConsumerRead,
   isConsumerUnauthorized,
   readStudentEvidencePort,
 } from '@/features/learning-record/consumers/public-api';
@@ -78,7 +79,7 @@ export interface UserProfileResponse {
     model: 'portrait-v2-cumulative';
     availability: {
       state: CumulativePortraitReadModel['stateKind'];
-      reason: CumulativePortraitAvailabilityReason;
+      reason: CumulativePortraitAvailabilityReason | string;
     };
     limitations: string[];
     overallScore: number | null;
@@ -394,7 +395,7 @@ export async function GET() {
 
     const [
       profile,
-      cumulativePortrait,
+      evidencePort,
       simulationLogs,
       simulationStats,
       ethicalLogs,
@@ -419,7 +420,7 @@ export async function GET() {
         db: prisma,
         viewer: { role: 'student', subjectUserId: userId },
         targetUserId: userId,
-      }).then((port) => port.portrait),
+      }),
       prisma.simulationLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -535,6 +536,8 @@ export async function GET() {
         : [];
 
     const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
+    const cumulativePortrait = evidencePort.portrait;
+    const labeledCurrent = isAuthoritativeConsumerRead(evidencePort);
     const portraitPayload = cumulativePortrait.stateKind === 'SNAPSHOT'
       ? cumulativePortrait.payload
       : null;
@@ -673,10 +676,19 @@ export async function GET() {
       competency: {
         model: 'portrait-v2-cumulative',
         availability: {
-          state: cumulativePortrait.stateKind,
-          reason: cumulativePortrait.availabilityReason,
+          state: labeledCurrent
+            ? cumulativePortrait.stateKind
+            : evidencePort.knownZero || cumulativePortrait.stateKind === 'NO_EVIDENCE'
+              ? 'NO_EVIDENCE'
+              : 'UNAVAILABLE',
+          reason: labeledCurrent
+            ? cumulativePortrait.availabilityReason
+            : (evidencePort.reason ?? cumulativePortrait.availabilityReason),
         },
-        limitations: portraitSummary?.limitations ?? [],
+        limitations: [
+          ...(portraitSummary?.limitations ?? []),
+          ...(!labeledCurrent && evidencePort.status === 'stale' ? ['stale-projection'] : []),
+        ],
         overallScore,
         level,
         confidence: cumulativePortrait.confidence,

@@ -21,6 +21,7 @@ import {
   viewerFromSession,
 } from '../public-api';
 import { PROJECTION_INDEPENDENT_LEARNER_MINIMUM, PROJECTION_STATUS } from '@/features/learning-record/projections/public-api';
+import { PORTRAIT_V2_CALCULATION_VERSION } from '@/lib/data-governance/portrait-v2-model';
 
 const mocks = vi.hoisted(() => ({
   readCurrentCumulativePortrait: vi.fn(),
@@ -47,6 +48,16 @@ function snapshotPortrait(overrides: Record<string, unknown> = {}) {
     lastRisk: [],
     availabilityReason: 'available',
     generatedAt: '2026-08-20T00:00:00.000Z',
+    publication: {
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: '4',
+      queueGeneration: '9',
+      cutoverFence: '7',
+      stateWatermark: '12',
+      processingWatermark: '9',
+      captureRevision: '2026-08-20T00:00:00.000Z',
+      inputDigest: 'task-input-1',
+    },
     ...overrides,
   };
 }
@@ -141,6 +152,7 @@ describe('learning-record consumers', () => {
       generatedAt: null,
       evidenceAsOf: null,
       availabilityReason: 'current-state-unavailable',
+      publication: null,
     }));
     const missing = await readStudentEvidencePort({
       db: {},
@@ -155,6 +167,7 @@ describe('learning-record consumers', () => {
       payload: null,
       generatedAt: null,
       availabilityReason: 'current-state-version-mismatch',
+      publication: null,
     }));
     const conflict = await readStudentEvidencePort({
       db: {},
@@ -188,6 +201,53 @@ describe('learning-record consumers', () => {
     expect(db.learningFact.findMany).not.toHaveBeenCalled();
   });
 
+  it('passes current pointer publication through the consumer envelope', async () => {
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      publication: {
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+        generation: '7',
+        queueGeneration: '11',
+        cutoverFence: '4',
+        stateWatermark: '3',
+        processingWatermark: '2',
+        captureRevision: 'state-rev-1',
+        inputDigest: 'digest-a',
+      },
+    }));
+    const student = await readStudentEvidencePort({
+      db: {},
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(student.read.envelope?.generation).toBe('7');
+    expect(student.read.envelope?.queueGeneration).toBe('11');
+    expect(student.read.envelope?.cutoverFence).toBe('4');
+    expect(student.read.envelope?.processingWatermark).toBe('2');
+    expect(student.read.envelope?.stateWatermark).toBe('3');
+    expect(student.read.fields.provenanceRevision).toBe('state-rev-1');
+  });
+
+  it('does not advertise a stale SNAPSHOT as current personalization evidence', async () => {
+    const { resolveFencedAdaptivePortrait } = await import(
+      '@/features/personalization/learner-state/internal'
+    );
+    mocks.readCurrentCumulativePortrait.mockResolvedValue(snapshotPortrait());
+    const resolved = await resolveFencedAdaptivePortrait({
+      learningFact: {
+        findFirst: vi.fn().mockResolvedValue({ startedAt: '2026-08-21T00:00:00.000Z' }),
+      },
+    } as never, {
+      userId: 'student-1',
+      consumer: 'planner',
+      now: new Date('2026-08-22T00:00:00.000Z'),
+      legacySnapshot: null,
+    });
+    expect(resolved.primaryPortrait).toBeNull();
+    expect(resolved.primaryPortraitState).toBe('UNAVAILABLE');
+    expect(resolved.primaryPortraitAvailability).toBe('newer-learning-fact');
+    expect(resolved.limitations).toContain('projection-newer-learning-fact');
+  });
+
   it('suppresses teacher aggregates below the independent-learner threshold', async () => {
     mocks.readCurrentCumulativeClassPortrait.mockResolvedValueOnce(classSnapshot({
       activeStudentCount: 1,
@@ -203,6 +263,11 @@ describe('learning-record consumers', () => {
     expect(small.classRead.suppressed).toBe(true);
     expect(small.classRead.aggregates).toBeNull();
     expect(small.classRead.coverage).toBe(1);
+    expect(small.classPortrait.aggregate).toBeNull();
+    expect(small.classPortrait.trendDistribution).toBeNull();
+    expect(small.classPortrait.riskDistribution).toBeNull();
+    expect(small.classPortrait.diagnosis?.strengths).toEqual([]);
+    expect(small.classPortrait.diagnosis?.limitations).toContain('independent-learner-small-sample');
 
     mocks.readCurrentCumulativePortrait.mockResolvedValue(snapshotPortrait());
     const largeIds = ['a', 'b', 'c', 'd', 'e'];
@@ -214,6 +279,12 @@ describe('learning-record consumers', () => {
     });
     expect(large.classRead.suppressed).toBe(false);
     expect(large.classRead.aggregates?.averageScore).toBe(82);
+    expect(large.classPortrait.trendDistribution).toEqual({
+      up: 1,
+      stable: 4,
+      down: 0,
+      'not-comparable': 0,
+    });
   });
 
   it('does not fall back to raw events when the projection is unavailable', async () => {
@@ -222,6 +293,7 @@ describe('learning-record consumers', () => {
       payload: null,
       generatedAt: null,
       availabilityReason: 'current-state-unavailable',
+      publication: null,
     }));
     const db = { interactionLog: { findMany: vi.fn() } };
     const result = await readStudentEvidencePort({

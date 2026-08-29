@@ -16,6 +16,7 @@ import {
   type RoleBasedLearningDiagnosis,
 } from '@/lib/data-governance/role-based-learning-diagnosis';
 import {
+  isAuthoritativeConsumerRead,
   isConsumerUnauthorized,
   readTeacherStudentEvidencePort,
   viewerFromSession,
@@ -350,9 +351,9 @@ export async function GET(
       overview: {
         overallScore: portrait.overallScore === null ? null : roundTo(portrait.overallScore, 1),
         overallLevel: levelForScore(portrait.overallScore),
-        evidenceState: portrait.stateKind === 'SNAPSHOT'
+        evidenceState: isAuthoritativeConsumerRead(evidencePort.student) && portrait.stateKind === 'SNAPSHOT'
           ? 'current'
-          : portrait.stateKind === 'NO_EVIDENCE'
+          : portrait.stateKind === 'NO_EVIDENCE' || evidencePort.student.knownZero
             ? 'no-evidence'
             : 'unavailable',
         availabilityReason: portrait.availabilityReason,

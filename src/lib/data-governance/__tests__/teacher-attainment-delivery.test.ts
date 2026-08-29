@@ -33,6 +33,7 @@ vi.mock('@/lib/data-governance/cumulative-portrait-read-model', async (importOri
 import { GET as getHeatmap } from '@/app/api/teacher/classes/[classId]/heatmap/route';
 import { GET as getInsights } from '@/app/api/teacher/classes/[classId]/insights/route';
 import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
+import { PORTRAIT_V2_CALCULATION_VERSION } from '@/lib/data-governance/portrait-v2-model';
 
 const repoRoot = process.cwd();
 const oldEvidenceAt = '2024-06-30T08:00:00.000Z';
@@ -126,6 +127,16 @@ function learnerPortrait(overrides: Record<string, unknown> = {}) {
     lastRisk: [{ type: 'constraint', severity: 'medium', occurredAt: oldEvidenceAt }],
     availabilityReason: 'available',
     generatedAt: '2026-07-23T08:00:00.000Z',
+    publication: {
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: '4',
+      queueGeneration: '9',
+      cutoverFence: '7',
+      stateWatermark: '12',
+      processingWatermark: '9',
+      captureRevision: 'state-1',
+      inputDigest: 'task-input-1',
+    },
     ...overrides,
   };
 }
@@ -185,11 +196,8 @@ describe('teacher cumulative attainment delivery', () => {
         noEvidenceStudents: 0,
         unavailableStudents: 0,
       },
-      trendDistribution: { up: 1 },
-      riskDistribution: {
-        membersWithRisk: 1,
-        byType: { constraint: 1 },
-      },
+      trendDistribution: null,
+      riskDistribution: null,
       lastUpdated: '2026-07-23T08:00:00.000Z',
     });
     expect(heatmap.matrix).toEqual([
@@ -219,9 +227,13 @@ describe('teacher cumulative attainment delivery', () => {
         mediumRiskStudents: 1,
         attentionStudents: 1,
       },
-      trendDistribution: { up: 1 },
-      riskDistribution: { byType: { constraint: 1 } },
-      diagnosis: { strengths: ['controlModelingRepresentation'] },
+      trendDistribution: null,
+      riskDistribution: null,
+      diagnosis: {
+        strengths: [],
+        improvementClusters: [],
+        limitations: ['independent-learner-small-sample'],
+      },
     });
     expect(insights.students[0]).toMatchObject({
       overallScore: 82,

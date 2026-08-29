@@ -19,7 +19,7 @@ export {
   readTeacherClassEvidencePort,
   readTeacherStudentEvidencePort,
 } from './ports';
-export { mapPortraitStatus } from './status';
+export { isAuthoritativeConsumerRead, mapPortraitStatus } from './status';
 export { viewerForPortraitConsumer, viewerFromSession } from './viewer';
 export type {
   SafeConsumerRead,

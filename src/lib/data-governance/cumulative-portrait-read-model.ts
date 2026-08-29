@@ -167,6 +167,17 @@ export interface CumulativeClassPortraitReadDb {
   };
 }
 
+export interface CumulativePortraitPublication {
+  calculationVersion: string;
+  generation: string;
+  queueGeneration: string;
+  cutoverFence: string;
+  stateWatermark: string;
+  processingWatermark: string;
+  captureRevision: string;
+  inputDigest: string | null;
+}
+
 export interface CumulativePortraitReadModel {
   stateKind: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
   payload: PortraitV2ProjectedPayload | null;
@@ -185,6 +196,7 @@ export interface CumulativePortraitReadModel {
   }>;
   availabilityReason: CumulativePortraitAvailabilityReason;
   generatedAt: string | null;
+  publication: CumulativePortraitPublication | null;
 }
 
 export interface CumulativeClassPortraitReadModel {
@@ -295,6 +307,7 @@ export async function readCurrentCumulativePortrait(
         ? 'no-evidence-after-revocation'
         : 'no-eligible-evidence',
       generatedAt,
+      publication: publicationFromCurrent(current, fence),
     };
   }
 
@@ -341,6 +354,7 @@ export async function readCurrentCumulativePortrait(
       lastRisk,
       availabilityReason: 'available',
       generatedAt,
+      publication: publicationFromCurrent(current, fence),
     };
   } catch {
     return unavailable('invalid-current-snapshot');
@@ -471,6 +485,22 @@ function matchesActiveClassFence(
     version.cutoverFence === current.cutoverFence;
 }
 
+function publicationFromCurrent(
+  current: CurrentPortraitStateRow,
+  fence: CutoverFenceRow,
+): CumulativePortraitPublication {
+  return {
+    calculationVersion: current.calculationVersion,
+    generation: String(current.generation),
+    queueGeneration: String(current.queueGeneration),
+    cutoverFence: String(current.cutoverFence),
+    stateWatermark: String(current.stateWatermark),
+    processingWatermark: String(fence.queueGeneration),
+    captureRevision: current.stateVersion.id,
+    inputDigest: current.taskInputDigest || current.stateVersion.taskInputDigest || null,
+  };
+}
+
 function unavailable(
   availabilityReason: Extract<
     CumulativePortraitAvailabilityReason,
@@ -488,6 +518,7 @@ function unavailable(
     lastRisk: [],
     availabilityReason,
     generatedAt: null,
+    publication: null,
   };
 }
 

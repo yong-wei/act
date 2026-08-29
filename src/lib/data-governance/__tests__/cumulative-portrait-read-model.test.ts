@@ -234,6 +234,16 @@ describe('readCurrentCumulativePortrait', () => {
       }],
     });
     expect(result.payload?.derivation.kind).toBe('native');
+    expect(result.publication).toEqual({
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: '4',
+      queueGeneration: '9',
+      cutoverFence: '7',
+      stateWatermark: '12',
+      processingWatermark: '9',
+      captureRevision: 'state-1',
+      inputDigest: 'task-input-1',
+    });
     expect(JSON.stringify(result)).not.toContain('fact-raw-id-must-not-leak');
     expect(JSON.stringify(result)).not.toContain('participation');
     expect(db.learnerPortraitCurrentState.findUnique).toHaveBeenCalledTimes(1);
