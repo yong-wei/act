@@ -141,6 +141,18 @@ assert.ok(
   'production preflight must recompute composed-manifest identity instead of trusting self-asserted digests',
 );
 assert.ok(
+  remote.includes('referenced domain fragment is not present in the candidate'),
+  'production preflight must reopen the actual domain-fragment files bound by the composed-manifest',
+);
+assert.ok(
+  remote.includes('reopened domain fragment does not match its recomputed identity'),
+  'production preflight must recompute each domain-fragment digest from its sealed body',
+);
+assert.ok(
+  deploy.includes('domain-fragments'),
+  'local wrapper must gate and upload the actual domain-fragment files with the candidate',
+);
+assert.ok(
   remote.includes('composed domain-fragment manifest does not bind the successor Authority'),
   'production preflight must reject a composed domain-fragment manifest that binds a different Authority than the successor',
 );
@@ -269,6 +281,16 @@ try {
     fs.existsSync(path.join(out, 'composed-domain-fragment-manifest.json')),
     'prepare must persist the composed domain-fragment manifest for remote reopen',
   );
+  const preparedComposed = JSON.parse(fs.readFileSync(
+    path.join(out, 'composed-domain-fragment-manifest.json'),
+    'utf8',
+  ));
+  for (const ref of preparedComposed.fragments) {
+    assert.ok(
+      fs.existsSync(path.join(out, 'domain-fragments', `${ref.fragmentId}.json`)),
+      `prepare must persist referenced domain fragment ${ref.fragmentId} for remote reopen`,
+    );
+  }
   const mixedIdentityQualify = spawnSync(
     path.join(root, 'node_modules/.bin/tsx'),
     [qualificationArtifacts, '--candidate-dir', out],

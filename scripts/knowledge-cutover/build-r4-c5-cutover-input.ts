@@ -11,6 +11,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { projectionDigest } from '@/lib/teaching-projection/hash';
+import type { DomainTeachingComposedManifest } from '@/lib/teaching-projection/domain-fragments/contracts';
+import {
+  DEFAULT_DOMAIN_FRAGMENT_SEARCH_ROOT,
+  loadReferencedDomainFragments,
+  writeDomainFragmentsToCandidate,
+} from '@/lib/latest-authority-oss-cutover/domain-fragment-files';
 import {
   buildActiveBaseline,
   buildCombinedDenominator,
@@ -296,12 +302,13 @@ function main(): void {
     presentationLabels.qualificationHash]) {
     requireDigest(value, 'frozen r4 identity');
   }
-  const composedDomainFragments = readJson<{
-    projectionHash: string;
-    sourceHashes: { fragments: string };
-  }>(COMPOSED_DOMAIN_FRAGMENT_MANIFEST);
+  const composedDomainFragments = readJson<DomainTeachingComposedManifest>(COMPOSED_DOMAIN_FRAGMENT_MANIFEST);
   requireDigest(composedDomainFragments.projectionHash, 'composed domain-fragment manifest');
   requireDigest(composedDomainFragments.sourceHashes.fragments, 'domain-fragment set');
+  const publishedFragments = loadReferencedDomainFragments(
+    composedDomainFragments,
+    path.join(ROOT, DEFAULT_DOMAIN_FRAGMENT_SEARCH_ROOT),
+  );
   if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
     fail('r4 presentation-label qualification requires review or did not pass');
   }
@@ -589,6 +596,7 @@ function main(): void {
   };
   immutableWrite(path.join(out, 'prepare-input.json'), input);
   immutableWrite(path.join(out, 'composed-domain-fragment-manifest.json'), composedDomainFragments);
+  writeDomainFragmentsToCandidate(out, publishedFragments);
   immutableWrite(path.join(out, 'predecessor-observation.json'), predecessor);
   immutableWrite(path.join(out, 'lifecycle-predecessor.json'), predecessor.lifecycle);
   immutableWrite(path.join(out, 'runtime-stage.json'), runtimeStage);

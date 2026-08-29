@@ -1233,3 +1233,47 @@ export function assertComposedManifestSelfConsistent(manifest: DomainTeachingCom
     );
   }
 }
+
+/**
+ * Reopen every composed-manifest fragment ref from actual fragment bytes.
+ * The fragment-set identity remains the refs digest; this proves those refs
+ * still describe the sealed fragment bodies.
+ */
+export function assertComposedManifestFragmentsReopened(
+  manifest: DomainTeachingComposedManifest,
+  fragments: readonly DomainTeachingFragment[],
+): void {
+  assertComposedManifestSelfConsistent(manifest);
+  if (fragments.length !== manifest.fragments.length) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment set does not reopen every referenced fragment',
+    );
+  }
+  for (let index = 0; index < manifest.fragments.length; index += 1) {
+    const ref = manifest.fragments[index];
+    const fragment = fragments[index];
+    if (fragment.fragmentId !== ref.fragmentId) {
+      throw new DomainCompositionError(
+        'projection-identity-drift',
+        'composed domain-fragment set order does not match the composed-manifest',
+      );
+    }
+    verifyDomainTeachingFragment(fragment);
+    if (
+      fragment.fragmentDigest !== ref.fragmentDigest
+      || fragment.sourceInventoryDigest !== ref.sourceInventoryDigest
+    ) {
+      throw new DomainCompositionError(
+        'projection-identity-drift',
+        'reopened domain fragment does not match its composed-manifest ref',
+      );
+    }
+    if (authorityBindingMismatchFields(fragment.authorityBinding, manifest.authorityBinding).length > 0) {
+      throw new DomainCompositionError(
+        'authority-mismatch',
+        'reopened domain fragment does not bind the composed-manifest Authority',
+      );
+    }
+  }
+}

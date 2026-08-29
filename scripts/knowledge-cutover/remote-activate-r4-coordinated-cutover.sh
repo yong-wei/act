@@ -260,6 +260,45 @@ if composed.get('projectionHash') != candidate.get('composedDomainFragmentManife
   raise SystemExit('composed domain-fragment manifest identity differs from candidate')
 if (composed.get('sourceHashes') or {}).get('fragments') != candidate.get('domainFragmentSetHash'):
   raise SystemExit('domain-fragment set identity differs from candidate')
+fragment_contract='act-domain-teaching-fragment/v1'
+fragment_builder='act-domain-teaching-fragment-builder/v1'
+if not fragments:
+  raise SystemExit('composed domain-fragment manifest has no fragments')
+seen_fragment_ids=set()
+for ref in fragments:
+  fragment_id=ref.get('fragmentId')
+  if not isinstance(fragment_id,str) or not re.fullmatch(r'dtf-[0-9a-f]{64}', fragment_id):
+    raise SystemExit('composed domain-fragment manifest fragment identity is invalid')
+  if fragment_id in seen_fragment_ids:
+    raise SystemExit('composed domain-fragment manifest has duplicate fragment identities')
+  seen_fragment_ids.add(fragment_id)
+  fragment_path=os.path.join(os.path.dirname(candidate_path), 'domain-fragments', f'{fragment_id}.json')
+  if not os.path.isfile(fragment_path) or os.path.islink(fragment_path):
+    raise SystemExit('referenced domain fragment is not present in the candidate')
+  fragment=json.load(open(fragment_path, encoding='utf-8'))
+  body={
+    'contract': fragment_contract,
+    'builderVersion': fragment_builder,
+    'fragmentKey': fragment.get('fragmentKey'),
+    'fragmentVersion': fragment.get('fragmentVersion'),
+    'domainKeys': sorted(fragment.get('domainKeys') or []),
+    'authorityBinding': fragment.get('authorityBinding'),
+    'authoritySelection': fragment.get('authoritySelection'),
+    'authoringRevision': fragment.get('authoringRevision'),
+    'sourceInventoryDigest': fragment.get('sourceInventoryDigest'),
+    'authorityDigest': fragment.get('authorityDigest'),
+    'evidenceRefs': sorted(fragment.get('evidenceRefs') or []),
+    'coreNodes': sorted(fragment.get('coreNodes') or [], key=lambda node: node.get('canonicalId') or ''),
+    'relations': sorted(fragment.get('relations') or [], key=lambda relation: relation.get('edgeId') or ''),
+  }
+  recomputed=sha(canonical(body))
+  if fragment.get('contract') != fragment_contract or fragment.get('fragmentDigest') != recomputed or fragment.get('fragmentId') != f'dtf-{recomputed}':
+    raise SystemExit('reopened domain fragment does not match its recomputed identity')
+  if fragment.get('fragmentId') != ref.get('fragmentId') or fragment.get('fragmentDigest') != ref.get('fragmentDigest') or fragment.get('sourceInventoryDigest') != ref.get('sourceInventoryDigest'):
+    raise SystemExit('reopened domain fragment does not match its composed-manifest ref')
+  fragment_authority=fragment.get('authorityBinding')
+  if not isinstance(fragment_authority, dict) or any(fragment_authority.get(key) != composed.get('authorityBinding', {}).get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
+    raise SystemExit('reopened domain fragment does not bind the composed-manifest Authority')
 composed_authority=composed.get('authorityBinding')
 if not isinstance(composed_authority,dict) or any(composed_authority.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('composed domain-fragment manifest does not bind the successor Authority')
