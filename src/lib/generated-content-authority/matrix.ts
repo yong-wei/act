@@ -54,7 +54,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '52e9ebec705b0f5a7a5ec4ce841599ad1f4a1a1e2cff606418bd6f9c3c3eb45e',
+  evidenceDigest: '4e74001691eab9d8ab744832612e8bf8b508b3b462686a5b25772dd9800a5eb4',
   rows: [
     {
       domain: 'assessment',

@@ -400,8 +400,19 @@ export function scanDomainAuthorityWrites(
       .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0] ?? null;
     const registeredOwnerDomain = (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
       .find(([, modules]) => modules.includes(path))?.[0] ?? null;
-    const owningDomain = registeredOwnerDomain ?? rootOwnerDomain;
-    if (!owningDomain) continue;
+    // 域根内未登记的 provider 调用点 = unowned caller，记录属主域违例
+    if (!registeredOwnerDomain) {
+      if (rootOwnerDomain) {
+        violations.push({
+          domain: rootOwnerDomain,
+          file: path,
+          kind: 'UNREGISTERED_PROVIDER',
+          detail: 'unregistered provider/generation entry (declare it in generationModules or remove the AI call)',
+        });
+      }
+      continue;
+    }
+    const owningDomain = registeredOwnerDomain;
 
     // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）
     const forbiddenForDomain = options.forbiddenSinkModulesByDomain[owningDomain] ?? [];

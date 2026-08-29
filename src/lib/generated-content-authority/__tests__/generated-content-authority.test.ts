@@ -10,6 +10,7 @@ import {
   assertGeneratedContentAuthorityFitness,
   computeEvidenceDigest,
   evaluateAssessmentDependencyQualification,
+  scanDomainAuthorityWrites,
   extractRepoPaths,
   evaluateGeneratedContentAuthorityFitness,
   scanAuthoritySinkImports,
@@ -344,6 +345,41 @@ describe('generated content authority — fixture fitness checks', () => {
       'smart-courseware': ['src/lib/smart-courseware/generation-service.ts'],
     });
     expect(clean).toEqual([]);
+  });
+
+  it('records an unregistered-provider violation for domain-root AI modules that import no sink', () => {
+    // 域根内新增仅调用 provider、不 import 任何 sink 的模块：仍必须产生
+    // UNREGISTERED_PROVIDER 违例（unowned caller 不可绕过门禁）
+    writeFileSync(join(root, 'src/lib/smart-courseware/rogue-provider.ts'),
+      "import { generateText } from 'ai';\nexport const call = generateText;\n");
+    commitAll(root, 'add rogue unregistered provider');
+    const violations = scanDomainAuthorityWrites(root, {
+      domainRootsByDomain: {
+        assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
+        'assignment-rubric': ['src/lib/assignments/', 'src/app/api/teacher/assignments/'],
+        'smart-lesson': ['src/lib/smart-lesson-plan/', 'src/app/api/teacher/smart-lesson-tasks/'],
+        'smart-courseware': ['src/lib/smart-courseware/', 'src/app/api/teacher/smart-courseware/'],
+      },
+      authorityWriteSitesByDomain: {
+        assessment: [], 'assignment-rubric': [], 'smart-lesson': [], 'smart-courseware': [],
+      },
+      registeredProviderModulesByDomain: {
+        assessment: ['src/features/assessment/adaptive-engine.ts'],
+        'assignment-rubric': ['src/lib/assignments/assignment-rubric-generation.ts'],
+        'smart-lesson': ['src/lib/smart-lesson-plan/provider-runtime.ts', 'src/lib/smart-lesson-plan/service.ts', 'src/lib/smart-lesson-plan/worker.ts'],
+        'smart-courseware': ['src/lib/smart-courseware/provider-runtime.ts', 'src/lib/smart-courseware/generation-service.ts', 'src/lib/smart-courseware/worker.ts'],
+      },
+      forbiddenSinkModulesByDomain: {
+        assessment: [], 'assignment-rubric': [], 'smart-lesson': [], 'smart-courseware': [],
+      },
+    });
+    const providerViolations = violations.filter((violation) => (
+      violation.kind === 'UNREGISTERED_PROVIDER' && violation.file === 'src/lib/smart-courseware/rogue-provider.ts'
+    ));
+    expect(providerViolations).toHaveLength(1);
+    expect(providerViolations[0].domain).toBe('smart-courseware');
+    writeFileSync(join(root, 'src/lib/smart-courseware/rogue-provider.ts'), 'export const rogue = true;\n');
+    commitAll(root, 'restore rogue fixture');
   });
 
   it('rejects undeclared cross-domain imports from other domains', () => {

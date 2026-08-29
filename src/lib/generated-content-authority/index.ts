@@ -13,6 +13,7 @@ export {
   evaluateGeneratedContentAuthorityFitness,
   assertGeneratedContentAuthorityFitness,
   extractRepoPaths,
+  scanDomainAuthorityWrites,
   scanAuthoritySinkImports,
   scanSuperdomainViolations,
   scanUndeclaredCrossDomainImports,

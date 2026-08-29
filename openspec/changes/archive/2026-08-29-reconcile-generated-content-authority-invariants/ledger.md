@@ -86,3 +86,7 @@
 ## 结构化违例路由（2026-08-29，PR #1693）
 
 scanDomainAuthorityWrites 改为返回结构化违例（domain/kind/file/detail）而非字符串前缀：属主域违例路由到对应矩阵行 finding；learning-record 域（learningFact 未登记写点）与无属主违例进全局 violations——settled 条件要求 violations 为空，全局违例同样 fail-closed。provider 登记发现范围明确为四域根 + 已登记入口（域外 AI 使用不属本矩阵管辖，写权威模型仍由全域写点发现捕获）；摘要重绑至治理文件纳入后的最终状态。
+
+## 未登记 provider 违例回归修复（2026-08-29，PR #1693）
+
+结构化重构时丢失了"域根内未登记 provider 调用点"的违例生成：已恢复——registeredOwnerDomain 为空且 rootOwnerDomain 非空时，生成属主域的 UNREGISTERED_PROVIDER 违例（仅调用 provider、不 import sink 的 unowned caller 同样不可绕过门禁）；回归测试以 rogue-provider fixture 锁定。摘要重绑至最终治理实现状态。
