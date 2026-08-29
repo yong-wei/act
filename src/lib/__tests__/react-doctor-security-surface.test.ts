@@ -22,17 +22,18 @@ function extractTemplateConstant(source: string, name: string) {
 }
 
 describe('React Doctor security surface policy', () => {
-  it('initializes theme before hydration without raw HTML injection in the root layout', () => {
+  it('initializes theme without raw HTML injection in the root layout', () => {
     const layoutSource = readProjectFile('src/app/layout.tsx');
     const themeScript = buildThemeInitScript('dark');
 
     expect(layoutSource).not.toContain('dangerouslySetInnerHTML');
-    expect(layoutSource).toContain("import Script from 'next/script'");
-    expect(layoutSource).toMatch(
-      /<Script\s+id="theme-init"\s+strategy="beforeInteractive">[\s\S]*\{buildThemeInitScript\(\)\}[\s\S]*<\/Script>/,
-    );
-    expect(themeScript).not.toMatch(/<\/script/i);
+    expect(layoutSource).not.toContain("from 'next/script'");
+    expect(layoutSource).not.toContain('<Script');
+    expect(layoutSource).toContain('<script id="theme-init">{buildThemeInitScript()}</script>');
+    expect(layoutSource).not.toContain('className="dark"');
     expect(layoutSource).toContain('<ThemeProvider>');
+    expect(themeScript).not.toMatch(/<\/script/i);
+    expect(themeScript).toContain("root.classList.add(theme)");
   });
 
   it('keeps handout print styles as trusted static project CSS', () => {

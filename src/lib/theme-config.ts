@@ -9,7 +9,7 @@ export function isTheme(value: unknown): value is ThemeMode {
 
 export function resolveInitialTheme(
   storedTheme: string | null | undefined,
-  systemPrefersDark: boolean,
+  systemPrefersDark?: boolean,
   defaultTheme: ThemeMode = DEFAULT_THEME,
 ): ThemeMode {
   if (isTheme(storedTheme)) {
@@ -24,6 +24,6 @@ export function resolveInitialTheme(
 }
 
 export function buildThemeInitScript(defaultTheme: ThemeMode = DEFAULT_THEME): string {
-  const fallback = isTheme(defaultTheme) ? defaultTheme : DEFAULT_THEME;
-  return `(function(){try{var key='${THEME_STORAGE_KEY}';var root=document.documentElement;var stored=localStorage.getItem(key);var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var fallback=prefersDark?'dark':'light';var theme=stored==='light'||stored==='dark'?stored:(fallback||'${fallback}');root.classList.remove('light','dark');root.classList.add(theme);root.style.colorScheme=theme;}catch(_e){document.documentElement.classList.remove('light','dark');document.documentElement.classList.add('${fallback}');document.documentElement.style.colorScheme='${fallback}';}})();`;
+  const fallbackTheme = isTheme(defaultTheme) ? defaultTheme : DEFAULT_THEME;
+  return `(function(){try{var key='${THEME_STORAGE_KEY}';var root=document.documentElement;var stored=localStorage.getItem(key);var theme=stored==='light'||stored==='dark'?stored:null;if(!theme){if(window.matchMedia){theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}else{theme='${fallbackTheme}';}}root.classList.remove('light','dark');root.classList.add(theme);root.style.colorScheme=theme;}catch(_e){document.documentElement.classList.remove('light','dark');document.documentElement.classList.add('${fallbackTheme}');document.documentElement.style.colorScheme='${fallbackTheme}';}})();`;
 }

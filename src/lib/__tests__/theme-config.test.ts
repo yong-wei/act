@@ -15,7 +15,8 @@ import {
 
 function runThemeInitScript(options: {
   storedTheme: string | null;
-  prefersDark: boolean;
+  prefersDark?: boolean;
+  matchMedia?: boolean;
   defaultTheme?: ThemeMode;
   initialClass?: string;
 }) {
@@ -34,14 +35,17 @@ function runThemeInitScript(options: {
     style: { colorScheme: '' },
   };
 
+  const windowHost: { matchMedia?: () => { matches: boolean } } = {};
+  if (options.matchMedia !== false) {
+    windowHost.matchMedia = () => ({ matches: Boolean(options.prefersDark) });
+  }
+
   vm.runInNewContext(buildThemeInitScript(options.defaultTheme), {
     document: { documentElement: root },
     localStorage: {
       getItem: (key: string) => (key === THEME_STORAGE_KEY ? options.storedTheme : null),
     },
-    window: {
-      matchMedia: () => ({ matches: options.prefersDark }),
-    },
+    window: windowHost,
   });
 
   return {
@@ -64,6 +68,7 @@ describe('theme-config', () => {
     expect(resolveInitialTheme('dark', false)).toBe('dark');
     expect(resolveInitialTheme(null, true)).toBe('dark');
     expect(resolveInitialTheme(null, false)).toBe('light');
+    expect(resolveInitialTheme(null, undefined)).toBe('dark');
   });
 
   it('applies stored light over a dark SSR root before hydration', () => {
@@ -87,6 +92,20 @@ describe('theme-config', () => {
     expect(runThemeInitScript({
       storedTheme: null,
       prefersDark: false,
+      initialClass: 'dark',
+    })).toEqual({ classes: ['light'], colorScheme: 'light' });
+  });
+
+  it('falls back to default dark when matchMedia is missing and storage is empty', () => {
+    expect(runThemeInitScript({
+      storedTheme: null,
+      matchMedia: false,
+      initialClass: '',
+    })).toEqual({ classes: ['dark'], colorScheme: 'dark' });
+
+    expect(runThemeInitScript({
+      storedTheme: 'light',
+      matchMedia: false,
       initialClass: 'dark',
     })).toEqual({ classes: ['light'], colorScheme: 'light' });
   });

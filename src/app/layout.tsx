@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/session-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
@@ -27,11 +26,11 @@ export default async function RootLayout({
   const session = await getServerAuthSession()
 
   return (
-    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script id="theme-init">{buildThemeInitScript()}</script>
+      </head>
       <body>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {buildThemeInitScript()}
-        </Script>
         <ThemeProvider>
           <SessionProvider session={session}>
             <GlobalAIProvider>
