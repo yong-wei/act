@@ -25,7 +25,7 @@ import { retirementDigest } from './hash';
 import { compareLedgers, reduceLedgerAfterDeletion } from './ledger';
 import { assertManifestReadyForDeletion } from './manifest';
 import { verifyResourceGovernanceRetirement } from './verify';
-import { restoreRollbackArchive } from './archive';
+import { restoreRollbackArchive, verifyRollbackArchive } from './archive';
 import type { GraphFile } from './contracts';
 
 export interface RetirementFileSystem {
@@ -347,6 +347,7 @@ export function rollbackRetiredEntrypoints(input: {
   graph: ResourceGovernanceGraph;
   fs: RetirementFileSystem;
   receipt: DeletionReceipt;
+  manifest: ResourceGovernanceRetirementManifest;
 }): { restored: readonly string[] } {
   const { receiptDigest, ...body } = input.receipt;
   if (retirementDigest(body) !== receiptDigest) {
@@ -361,6 +362,46 @@ export function rollbackRetiredEntrypoints(input: {
       'rollback-receipt-not-deleted',
       'rollback requires a successful deleted receipt',
       ['rollback-receipt-not-deleted'],
+    );
+  }
+  const { manifestDigest, ...manifestBody } = input.manifest;
+  if (retirementDigest(manifestBody) !== manifestDigest) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-manifest-digest-mismatch',
+      'rollback refused because the supplied manifest digest does not match',
+      ['rollback-manifest-digest-mismatch'],
+    );
+  }
+  if (input.receipt.retirementId !== input.manifest.retirementId) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-retirement-id-mismatch',
+      'rollback refused because the receipt retirementId does not match the manifest',
+      ['rollback-retirement-id-mismatch'],
+    );
+  }
+  if (input.receipt.manifestDigest !== input.manifest.manifestDigest) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-receipt-manifest-mismatch',
+      'rollback refused because the receipt is not bound to the supplied manifest',
+      ['rollback-receipt-manifest-mismatch'],
+    );
+  }
+  if (input.manifest.rollbackArchiveDigest !== input.graph.rollbackArchive.archiveDigest) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-archive-digest-mismatch',
+      'rollback refused because the manifest archive digest does not match the graph archive',
+      ['rollback-archive-digest-mismatch'],
+    );
+  }
+  const archiveReasons = verifyRollbackArchive(
+    input.graph.rollbackArchive,
+    input.graph.archiveBytes,
+  );
+  if (archiveReasons.length > 0) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-archive-invalid',
+      'rollback refused until the archive digest matches exact bytes',
+      archiveReasons,
     );
   }
   const expectedReduced = reduceLedgerAfterDeletion(

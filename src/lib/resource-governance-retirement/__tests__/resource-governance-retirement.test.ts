@@ -501,7 +501,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       deletedAt: '2026-08-28T01:00:00.000Z',
     });
     expect(receipt.status).toBe('deleted');
-    const restored = rollbackRetiredEntrypoints({ graph, fs, receipt });
+    const restored = rollbackRetiredEntrypoints({ graph, fs, receipt, manifest });
     expect(restored.restored).toContain('src/lib/obsolete-registry-read.ts');
     expect(fs.read('src/lib/obsolete-registry-read.ts')).toContain('readObsoleteRegistry');
     expect(graph.changeSurface.writesSelectors).toBe(false);
@@ -974,7 +974,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(receipt.reasons).toContain('pre-unlink-digest-mismatch:src/lib/obsolete-registry-read.ts');
     expect(receipt.reducedLedger).toBeNull();
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
-    expect(() => rollbackRetiredEntrypoints({ graph, fs, receipt })).toThrow(
+    expect(() => rollbackRetiredEntrypoints({ graph, fs, receipt, manifest })).toThrow(
       ResourceGovernanceRetirementGateError,
     );
   });
@@ -1065,10 +1065,57 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     });
     expect(receipt.status).toBe('deleted');
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(false);
-    const restored = rollbackRetiredEntrypoints({ graph, fs, receipt });
+    const restored = rollbackRetiredEntrypoints({ graph, fs, receipt, manifest });
     expect(restored.restored).toEqual(['src/lib/obsolete-registry-read.ts']);
     expect(fs.read('src/lib/obsolete-registry-read.ts')).toContain('readObsoleteRegistry');
     expect(fs.read('src/lib/other-retained.ts')).toBe('export const other = "live-edit";');
+  });
+
+  it('refuses rollback when the receipt is not bound to the supplied manifest and archive', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetired({
+      receiptId: 'del-bound-identity',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T01:20:00.000Z',
+    });
+    expect(receipt.status).toBe('deleted');
+
+    const { manifestDigest: _ignored, ...manifestBody } = manifest;
+    const foreignBody = { ...manifestBody, retirementId: 'other-retirement' };
+    const foreignManifest = {
+      ...foreignBody,
+      manifestDigest: retirementDigest(foreignBody),
+    };
+    expect(() => rollbackRetiredEntrypoints({
+      graph,
+      fs,
+      receipt,
+      manifest: foreignManifest,
+    })).toThrow(ResourceGovernanceRetirementGateError);
+
+    const otherArchive = buildRollbackArchive({
+      captureRevision: REV,
+      files: { 'src/lib/obsolete-registry-read.ts': 'export function otherBytes() {}' },
+    });
+    expect(() => rollbackRetiredEntrypoints({
+      graph: {
+        ...graph,
+        rollbackArchive: otherArchive,
+        archiveBytes: { 'src/lib/obsolete-registry-read.ts': 'export function otherBytes() {}' },
+      },
+      fs,
+      receipt,
+      manifest,
+    })).toThrow(ResourceGovernanceRetirementGateError);
   });
 
   it('restores earlier unlinks when a later listed path fails the digest check', () => {

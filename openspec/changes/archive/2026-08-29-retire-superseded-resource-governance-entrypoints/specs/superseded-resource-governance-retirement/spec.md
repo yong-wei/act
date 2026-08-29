@@ -120,6 +120,7 @@ The retirement operation SHALL delete only explicitly listed superseded source e
 
 - **WHEN** the post-delete verification or a later controlled check requires restoration
 - **THEN** the exact digest-verified pre-delete revision SHALL be restorable
-- **AND** rollback SHALL consume only a successful `deleted` receipt whose digest and reduced ledger authenticate the restored paths
+- **AND** rollback SHALL consume only a successful `deleted` receipt whose digest, reduced ledger, `retirementId`, and `manifestDigest` authenticate the restored paths
+- **AND** that manifest SHALL bind the same `rollbackArchiveDigest` as the graph archive being restored
 - **AND** rollback SHALL restore only that receipt's `deletedPaths`
 - **AND** rollback SHALL not mutate or relabel active production authority.

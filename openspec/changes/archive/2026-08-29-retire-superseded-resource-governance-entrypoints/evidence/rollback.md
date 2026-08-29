@@ -8,7 +8,7 @@ Contract tests in `src/lib/resource-governance-retirement/__tests__/resource-gov
 
 - Build a rollback archive whose entry digest is SHA-256 of the exact old file bytes.
 - Tampered bytes fail `verifyRollbackArchive`.
-- `rollbackRetiredEntrypoints` consumes a successful `deleted` receipt and writes only that receipt's archived bytes back through the injected filesystem.
+- `rollbackRetiredEntrypoints` consumes a successful `deleted` receipt bound to the matching manifest and archive, and writes only that receipt's archived bytes back through the injected filesystem.
 - A later listed-path digest mismatch restores any earlier unlinks from the archive before returning a blocked receipt.
 - Directory/glob deletion is refused before any unlink.
 - A caller that appears after the scan receipt is issued blocks deletion; no file is removed.
