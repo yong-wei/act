@@ -145,7 +145,9 @@ describe('architecture fitness', () => {
     const mutated = core([
       observation({ id: 'script:src/lib/existing.ts', kind: 'script', identity: 'src/lib/existing.ts' }),
       observation({ id: 'script:src/lib/architecture-test-commands/discover.ts', kind: 'script', identity: 'src/lib/architecture-test-commands/discover.ts' }),
+      observation({ id: 'script:src/lib/architecture-closure/generate.ts', kind: 'script', identity: 'src/lib/architecture-closure/generate.ts' }),
     ]);
     expect(checkFitness(mutated, allowlist).newViolations.some((item) => item.identity.includes('architecture-test-commands'))).toBe(false);
+    expect(checkFitness(mutated, allowlist).newViolations.some((item) => item.identity.includes('architecture-closure'))).toBe(false);
   });
 });

@@ -41,6 +41,7 @@
     "fitness:architecture": "node --import tsx ./scripts/architecture-fitness.ts",
     "fitness:architecture:write": "node --import tsx ./scripts/architecture-fitness.ts --write-allowlist",
     "fitness:architecture:write-ledger": "node --import tsx ./scripts/architecture-fitness.ts --write-ledger",
+    "verify:architecture-closure": "tsx ./scripts/architecture-closure.ts",
     "quality-gates:validate": "node --import tsx ./scripts/quality-gates.ts validate",
     "quality-gates:run": "node --import tsx ./scripts/quality-gates.ts run",
     "quality-gates:write-registry": "node --import tsx ./scripts/quality-gates.ts write-registry",

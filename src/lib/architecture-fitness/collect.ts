@@ -35,7 +35,7 @@ function isFrozenLibFile(path: string): boolean {
     path.startsWith('src/lib/')
     && !path.includes('->')
     && !path.includes('<-')
-    && !/^src\/lib\/architecture-(?:census|charter|fitness|test-commands)(?:\/|$)/u.test(path)
+    && !/^src\/lib\/architecture-(?:census|charter|fitness|test-commands|closure)(?:\/|$)/u.test(path)
     && !isTestPath(path)
     && /\.(?:ts|tsx|js|mjs)$/u.test(path)
   );
