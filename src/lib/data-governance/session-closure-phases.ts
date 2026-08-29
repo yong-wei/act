@@ -118,6 +118,7 @@ export async function runSessionClosurePhase(
         done: result.created,
         detail: result as Prisma.InputJsonValue,
       });
+      await projectClosureLedgerIntoReport(db, sessionId).catch(() => undefined);
       return { status: 'SUCCEEDED', detail: result as Record<string, unknown> };
     }
 
@@ -153,6 +154,7 @@ export async function runSessionClosurePhase(
       done: participants.length - failures,
       detail: detail as Prisma.InputJsonValue,
     });
+    await projectClosureLedgerIntoReport(db, sessionId).catch(() => undefined);
     return {
       status: failures > 0 ? 'FAILED' : 'SUCCEEDED',
       detail: { participants: participants.length, failures },
@@ -160,6 +162,7 @@ export async function runSessionClosurePhase(
   } catch (error) {
     const detail = { reason: String((error as Error)?.message ?? error).slice(0, 200) };
     await markPhase(db, row.id, { status: 'FAILED', detail: detail as Prisma.InputJsonValue });
+    await projectClosureLedgerIntoReport(db, sessionId).catch(() => undefined);
     return { status: 'FAILED', detail };
   }
 }
@@ -263,6 +266,65 @@ export async function replayMissingClosureFacts(
     if (persisted) created += 1;
   }
   return { examined: rows.length, missing, created };
+}
+
+/**
+ * 台账 → 报告投影回写：materialize/cache 回执变化后调用，使 class-summary
+ * 报告的 phases 与台账保持一致（消除"报告生成时快照"的滞后）。
+ * 与 session-reports.ts 生成时的投影共用同一形状；报告不存在时静默跳过。
+ */
+export async function projectClosureLedgerIntoReport(
+  db: SessionClosureDb,
+  sessionId: string,
+): Promise<void> {
+  const closure = await db.sessionClosureOutbox.findFirst({
+    where: { sessionId },
+    orderBy: { availableAt: 'desc' },
+    select: { id: true },
+  });
+  const report = await db.classSessionReport.findUnique({
+    where: { sessionId_reportType: { sessionId, reportType: 'class-summary' } },
+    select: { reportData: true },
+  });
+  if (!closure || !report) return;
+  const rows = await db.sessionClosurePhase.findMany({
+    where: { closureOutboxId: closure.id },
+    select: { phase: true, status: true, total: true, done: true, detail: true },
+  });
+  const materializeRow = rows.find((entry) => entry.phase === 'materialize') ?? null;
+  const cacheRow = rows.find((entry) => entry.phase === 'cache') ?? null;
+
+  const data: Record<string, unknown> =
+    report.reportData && typeof report.reportData === 'object' && !Array.isArray(report.reportData)
+      ? { ...(report.reportData as Record<string, unknown>) }
+      : {};
+  const phases: Record<string, unknown> =
+    data.phases && typeof data.phases === 'object' && !Array.isArray(data.phases)
+      ? { ...(data.phases as Record<string, unknown>) }
+      : {};
+  if (materializeRow) {
+    phases.materialized = {
+      status: materializeRow.status,
+      examined: materializeRow.total,
+      factsCreated: materializeRow.done,
+      source: 'session-closure-phase ledger',
+      ...(materializeRow.status === 'FAILED' ? { detail: materializeRow.detail } : {}),
+    };
+  }
+  if (cacheRow) {
+    phases.cached = {
+      status: cacheRow.status,
+      participants: cacheRow.total,
+      refreshed: cacheRow.done,
+      source: 'session-closure-phase ledger',
+      ...(cacheRow.status === 'FAILED' ? { detail: cacheRow.detail } : {}),
+    };
+  }
+  data.phases = phases;
+  await db.classSessionReport.update({
+    where: { sessionId_reportType: { sessionId, reportType: 'class-summary' } },
+    data: { reportData: data as Prisma.InputJsonValue },
+  });
 }
 
 /**

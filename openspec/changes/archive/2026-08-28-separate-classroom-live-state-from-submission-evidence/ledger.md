@@ -107,3 +107,7 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 1. **重放权威输入**：DUPLICATE 回执重放改为 `materializePersistedEvidenceById`——按回执 ID 读取持久化 `StudentStepResponse` 行作为事实物化的唯一输入；规范身份不含答案内容，重试载荷永远不作为事实来源。
 2. **依赖有序计划**：`planClosurePhaseRun` 统一协调器与测试的执行计划——materialize 未成功只调度 materialize；materialize 成功后调度未成功或 `updatedAt` 早于最近一次物化的下游（summarize/cache），物化重跑后陈旧消费者强制重算。
 3. **台账投影到报告**：`generateSessionSummaryReports` 读取最近闭包的阶段台账，reportData.phases 的 materialized/cached 直接反映真实回执状态（含 FAILED 与 detail 原因），无台账时 NOT_APPLICABLE；教师报告与结算真源一致。
+
+## 15. 报告投影收敛（2026-08-29，PR #1668）
+
+阶段回执变化（materialize/cache 成功或失败，含异常路径）后经 `projectClosureLedgerIntoReport` 主动把台账状态回写进 class-summary 报告，与报告生成时的投影共用同一形状——报告不再是生成时快照，教师页面看到的是与台账一致的最终阶段状态。
