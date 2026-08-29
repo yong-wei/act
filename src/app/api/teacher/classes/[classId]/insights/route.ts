@@ -52,7 +52,7 @@ interface TeacherClassInsightStudent {
   factCount: number;
   lastSnapshotAt: string | null;
   portraitV2: StudentPortrait['payload'];
-  availabilityReason: StudentPortrait['availabilityReason'];
+  availabilityReason: StudentPortrait['availabilityReason'] | string;
   evidenceStatus: {
     state: 'ready' | 'missing';
     refreshedAt: string | null;
