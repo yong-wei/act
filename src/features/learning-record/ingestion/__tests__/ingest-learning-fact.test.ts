@@ -527,6 +527,22 @@ describe('control-correction course adapter ingestion', () => {
     expect(result.status).toBe(INGESTION_STATUS.applied);
     expect(result.adapter?.status).toBe('mapped');
     expect(result.adapter?.adapterVersion).toBe('control-correction-learning-record-adapter.v1');
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        courseId: 'control-correction',
+        lessonId: 'unit-3-6-zero-design-workshop',
+        payload: expect.objectContaining({
+          goalId: 'control-correction',
+          adapter: expect.objectContaining({
+            adapterId: 'control-correction-learning-record-adapter',
+            adapterVersion: 'control-correction-learning-record-adapter.v1',
+            schemaVersion: 'control-correction-adapter.schema.v1',
+            captureRevision: 'rev-1',
+          }),
+        }),
+      }),
+    );
   });
 
   it('fails closed when an explicit goal is present without canonical identity', async () => {

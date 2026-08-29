@@ -146,6 +146,10 @@ export type CourseAdapterMapResult =
   | { status: 'not-applicable' };
 
 export interface CourseLearningRecordAdapter {
+  readonly adapterId: string;
+  readonly adapterVersion: string;
+  readonly schemaVersion: string;
+  readonly releaseRevision: string;
   map(input: CourseAdapterMapInput): CourseAdapterMapResult;
   projectPersonalization(mapping: NormalizedCourseEvidenceMapping): PersonalizationAdapterProjection;
 }

@@ -1,4 +1,7 @@
-export { mapCourseLearningRecordEvidence } from './map-evidence';
+export {
+  applyNormalizedCourseMappingToEvent,
+  mapCourseLearningRecordEvidence,
+} from './map-evidence';
 export type {
   CourseAdapterMapInput,
   CourseAdapterMapResult,

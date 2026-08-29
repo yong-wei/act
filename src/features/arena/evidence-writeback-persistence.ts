@@ -117,7 +117,7 @@ async function resolveCourseAdapterMapping(input: {
   submission: ArenaSubmissionRecord;
   sourceEventId: string;
 }): Promise<NormalizedCourseEvidenceMapping | null> {
-  const { resolvePersonalizationGoalContext } = await import(
+  const { getRegisteredPersonalizationGoalPlugin, resolvePersonalizationGoalContext } = await import(
     '@/features/personalization/plugins/public-api'
   );
   const { mapCourseLearningRecordEvidence } = await import(
@@ -125,10 +125,15 @@ async function resolveCourseAdapterMapping(input: {
   );
   const resolved = resolvePersonalizationGoalContext({ taskId: input.submission.taskId });
   if (resolved.status !== 'resolved') return null;
+  const plugin = getRegisteredPersonalizationGoalPlugin(resolved.context.goalId);
+  const adapter = plugin?.createLearningRecordAdapter?.();
   const mapped = mapCourseLearningRecordEvidence({
     goalId: resolved.context.goalId,
     pluginId: resolved.context.pluginId,
     pluginVersion: resolved.context.pluginVersion,
+    adapterVersion: adapter?.adapterVersion,
+    schemaVersion: adapter?.schemaVersion,
+    releaseRevision: adapter?.releaseRevision,
     captureRevision: input.submission.publicationId ?? input.submission.id,
     canonicalActivityId: input.submission.taskId,
     arenaReference: {

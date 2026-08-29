@@ -83,12 +83,14 @@ export function mapControlCorrectionLearningRecord(
     return rejected('unknown-mapping');
   }
 
-  const adapterVersion = readString(input.adapterVersion) ?? CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION;
-  const schemaVersion = readString(input.schemaVersion) ?? CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION;
-  const pluginVersion = readString(input.pluginVersion) ?? CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION;
-  const releaseRevision = readString(input.releaseRevision) ?? CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION;
+  const adapterVersion = readString(input.adapterVersion);
+  const schemaVersion = readString(input.schemaVersion);
+  const pluginVersion = readString(input.pluginVersion);
+  const releaseRevision = readString(input.releaseRevision);
   const captureRevision = readString(input.captureRevision);
-  if (!captureRevision) return rejected('missing-canonical-identity');
+  if (!captureRevision || !adapterVersion || !schemaVersion || !pluginVersion || !releaseRevision) {
+    return rejected('missing-canonical-identity');
+  }
   if (adapterVersion !== CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION) return rejected('version-mismatch');
   if (schemaVersion !== CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION) return rejected('version-mismatch');
   if (pluginVersion !== CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION) return rejected('version-mismatch');
@@ -287,6 +289,10 @@ export function projectControlCorrectionPersonalization(
 
 export function createControlCorrectionLearningRecordAdapter(): CourseLearningRecordAdapter {
   return {
+    adapterId: CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_ID,
+    adapterVersion: CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION,
+    schemaVersion: CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION,
+    releaseRevision: CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
     map: mapControlCorrectionLearningRecord,
     projectPersonalization: projectControlCorrectionPersonalization,
   };

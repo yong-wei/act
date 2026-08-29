@@ -1,3 +1,4 @@
+import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import { readString } from '@/features/personalization/plugins/json';
 import {
   getRegisteredPersonalizationGoalPlugin,
@@ -8,7 +9,10 @@ import type {
   CourseAdapterMapInput,
   CourseAdapterMapResult,
   CourseAdapterRejectReason,
+  CourseLearningRecordAdapter,
+  NormalizedCourseEvidenceMapping,
 } from '@/features/personalization/plugins/learning-record-adapter-types';
+import type { PersonalizationGoalPlugin } from '@/features/personalization/plugins/types';
 
 function rejected(reason: CourseAdapterRejectReason): CourseAdapterMapResult {
   return {
@@ -25,6 +29,53 @@ function reasonFromResolution(
   if (reason === 'plugin-retired' || reason === 'plugin-unavailable') return 'plugin-unavailable';
   if (reason === 'conflicting-mapping') return 'ambiguous-identity';
   return 'unknown-mapping';
+}
+
+function bindTrustedAdapterIdentity(
+  input: CourseAdapterMapInput,
+  plugin: PersonalizationGoalPlugin,
+  adapter: CourseLearningRecordAdapter,
+): CourseAdapterMapInput {
+  return {
+    ...input,
+    goalId: plugin.goalId,
+    pluginId: plugin.pluginId,
+    pluginVersion: readString(input.pluginVersion) ?? plugin.version,
+    adapterVersion: readString(input.adapterVersion) ?? adapter.adapterVersion,
+    schemaVersion: readString(input.schemaVersion) ?? adapter.schemaVersion,
+    releaseRevision: readString(input.releaseRevision) ?? adapter.releaseRevision,
+  };
+}
+
+export function applyNormalizedCourseMappingToEvent(
+  event: LearningEvent,
+  mapping: NormalizedCourseEvidenceMapping,
+): LearningEvent {
+  const payload = event.payload && typeof event.payload === 'object'
+    ? { ...event.payload }
+    : {};
+  return {
+    ...event,
+    courseId: event.courseId ?? mapping.goalId,
+    lessonId: event.lessonId ?? mapping.canonicalLessonId ?? mapping.canonicalActivityId,
+    payload: {
+      ...payload,
+      goalId: mapping.goalId,
+      pluginId: mapping.pluginId,
+      courseId: mapping.goalId,
+      lessonId: mapping.canonicalLessonId ?? mapping.canonicalActivityId,
+      canonicalLessonId: mapping.canonicalLessonId,
+      canonicalActivityId: mapping.canonicalActivityId,
+      adapter: {
+        adapterId: mapping.adapterId,
+        adapterVersion: mapping.adapterVersion,
+        schemaVersion: mapping.schemaVersion,
+        pluginVersion: mapping.pluginVersion,
+        releaseRevision: mapping.releaseRevision,
+        captureRevision: mapping.captureRevision,
+      },
+    },
+  };
 }
 
 export function mapCourseLearningRecordEvidence(
@@ -50,14 +101,11 @@ export function mapCourseLearningRecordEvidence(
     ? getRegisteredPersonalizationGoalPlugin(goalId)
     : personalizationPluginRegistry.getByPluginId(pluginId ?? '');
   if (!plugin) return rejected('unknown-mapping');
+  if (pluginId && plugin.pluginId !== pluginId) return rejected('ambiguous-identity');
   if (plugin.status !== 'active') return rejected('plugin-unavailable');
 
   const adapter = plugin.createLearningRecordAdapter?.();
   if (!adapter) return rejected('adapter-unavailable');
 
-  return adapter.map({
-    ...input,
-    goalId: plugin.goalId,
-    pluginId: plugin.pluginId,
-  });
+  return adapter.map(bindTrustedAdapterIdentity(input, plugin, adapter));
 }

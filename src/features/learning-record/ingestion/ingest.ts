@@ -13,6 +13,7 @@ import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-mat
 import { inspectIngestionBoundary, minimizedFailureRecord } from './sanitizer';
 import { evaluateSourceTimes } from './source-trust';
 import { buildProjectionTrigger, recordProjectionTriggerIntent } from './trigger';
+import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import type { CourseAdapterMapInput } from '@/features/personalization/plugins/learning-record-adapter-types';
 import {
   INGESTION_STATUS,
@@ -72,19 +73,21 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
 
 async function resolveCourseAdapter(input: IngestLearningFactInput): Promise<{
   receipt: NonNullable<IngestLearningFactResult['adapter']>;
+  persistEvent: LearningEvent;
   rejected?: { code: string };
 }> {
   const hint = adapterHint(input);
   if (!hint.goalId && !hint.pluginId) {
-    return { receipt: { status: 'not-applicable' } };
+    return { receipt: { status: 'not-applicable' }, persistEvent: input.event };
   }
-  const { mapCourseLearningRecordEvidence } = await import(
+  const { applyNormalizedCourseMappingToEvent, mapCourseLearningRecordEvidence } = await import(
     '@/features/learning-record/course-adapters/public-api'
   );
   const mapped = mapCourseLearningRecordEvidence(hint);
   if (mapped.status === 'rejected') {
     return {
       receipt: { status: 'rejected', reason: mapped.reason },
+      persistEvent: input.event,
       rejected: { code: mapped.reason },
     };
   }
@@ -95,9 +98,10 @@ async function resolveCourseAdapter(input: IngestLearningFactInput): Promise<{
         adapterVersion: mapped.mapping.adapterVersion,
         captureRevision: mapped.mapping.captureRevision,
       },
+      persistEvent: applyNormalizedCourseMappingToEvent(input.event, mapped.mapping),
     };
   }
-  return { receipt: { status: 'not-applicable' } };
+  return { receipt: { status: 'not-applicable' }, persistEvent: input.event };
 }
 
 function failed(
@@ -267,7 +271,7 @@ async function ingestInCurrentHandle(
     }
   }
 
-  const persisted = await persistCoreLearningFact(input.db, input.event);
+  const persisted = await persistCoreLearningFact(input.db, adapterResolution.persistEvent);
   if (persisted.created === 0) {
     return {
       status: persisted.skipped ? INGESTION_STATUS.deduplicated : INGESTION_STATUS.applied,

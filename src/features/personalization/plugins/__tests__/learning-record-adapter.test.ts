@@ -21,6 +21,7 @@ import {
   CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_ID,
   CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION,
   CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
+  CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION,
   createControlCorrectionLearningRecordAdapter,
   createIdempotentPluginWritePort,
   createPersonalizationPluginRegistry,
@@ -30,6 +31,11 @@ import type { CourseAdapterMapInput } from '../learning-record-adapter-types';
 function baseInput(overrides: Partial<CourseAdapterMapInput> = {}): CourseAdapterMapInput {
   return {
     goalId: CONTROL_CORRECTION_GOAL_ID,
+    pluginId: CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
+    pluginVersion: CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION,
+    adapterVersion: CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION,
+    schemaVersion: CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION,
+    releaseRevision: CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
     captureRevision: 'capture-1',
     canonicalLessonId: 'unit-3-6-zero-design-workshop',
     sourceEventId: 'evt-adapter-1',
@@ -75,6 +81,7 @@ describe('control-correction Learning Record adapter', () => {
   it('does not infer a mapping from course keywords when goal is omitted', () => {
     expect(mapCourseLearningRecordEvidence(baseInput({
       goalId: null,
+      pluginId: null,
       extra: { courseId: '3-6', lessonTitle: '零点设计' },
     }))).toEqual({ status: 'not-applicable' });
     expect(adapter.map(baseInput({ goalId: null, pluginId: null }))).toEqual({ status: 'not-applicable' });
@@ -102,6 +109,31 @@ describe('control-correction Learning Record adapter', () => {
     expect(mapCourseLearningRecordEvidence(baseInput({
       pluginVersion: 'control-correction-personalization-plugin.v0',
     }))).toMatchObject({ status: 'rejected', reason: 'version-mismatch' });
+    expect(adapter.map(baseInput({
+      adapterVersion: null,
+      schemaVersion: null,
+      pluginVersion: null,
+      releaseRevision: null,
+    }))).toMatchObject({ status: 'rejected', reason: 'missing-canonical-identity' });
+    expect(mapCourseLearningRecordEvidence(baseInput({
+      pluginId: 'other-personalization-plugin',
+    }))).toMatchObject({ status: 'rejected', reason: 'ambiguous-identity' });
+  });
+
+  it('lets the generic dispatcher bind registered version anchors when producers omit them', () => {
+    const mapped = mapCourseLearningRecordEvidence(baseInput({
+      pluginId: null,
+      pluginVersion: null,
+      adapterVersion: null,
+      schemaVersion: null,
+      releaseRevision: null,
+    }));
+    expect(mapped.status).toBe('mapped');
+    if (mapped.status !== 'mapped') return;
+    expect(mapped.mapping.adapterVersion).toBe(CONTROL_CORRECTION_LEARNING_RECORD_ADAPTER_VERSION);
+    expect(mapped.mapping.pluginVersion).toBe(CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_VERSION);
+    expect(mapped.mapping.schemaVersion).toBe(CONTROL_CORRECTION_ADAPTER_SCHEMA_VERSION);
+    expect(mapped.mapping.releaseRevision).toBe(CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION);
   });
 
   it('keeps official Arena score authoritative when auxiliary evidence conflicts', () => {
