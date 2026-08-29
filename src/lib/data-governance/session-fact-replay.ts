@@ -1,6 +1,9 @@
-import type { Prisma } from '@prisma/client';
-
-import { persistCoreLearningFact } from './learning-fact-materialization';
+import {
+  currentCaptureRevision,
+  ingestLearningFact,
+  INGESTION_STATUS,
+} from '@/features/learning-record/ingestion/public-api';
+import type { IngestionWriteDb } from '@/features/learning-record/ingestion/types';
 import { toLearningEvent } from './event-protocol';
 import type { ClosureEvidenceRow } from './session-closure-phases';
 
@@ -10,15 +13,18 @@ function readRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+type ReplayDb = {
+  learningFact: unknown;
+  studentStepResponse: { findUnique: Function };
+};
+
 /**
  * 按回执 ID 从数据库读取持久化证据并重放物化。
  * DUPLICATE 回执的自愈入口：重放的权威输入是已持久化的 StudentStepResponse
  * 行（与规范身份解耦的答案内容也以持久化行为准），绝不是重试请求的载荷。
  */
 export async function materializePersistedEvidenceById(
-  db: Parameters<typeof persistCoreLearningFact>[0] & {
-    studentStepResponse: { findUnique: Function };
-  },
+  db: ReplayDb,
   evidenceId: string,
 ): Promise<boolean> {
   const row = await db.studentStepResponse.findUnique({
@@ -46,13 +52,11 @@ export async function materializePersistedEvidenceById(
 }
 
 /**
- * 从持久化证据行重建 LearningEvent 并物化 LearningFact。
- * 与提交时的内联快路径共用 persistCoreLearningFact（幂等：sourceEventId 唯一
- * 约束 + skipDuplicates），是闭包 materialize 阶段与 DUPLICATE 回执重放的
- * 共同实现——不存在第二条物化语义。
+ * 从持久化证据行重建 LearningEvent 并经 canonical ingest 物化 LearningFact。
+ * 与提交快路径共用 ingestLearningFact（幂等：sourceEventId 唯一约束 + skipDuplicates）。
  */
 export async function materializeEvidenceRow(
-  db: Parameters<typeof persistCoreLearningFact>[0],
+  db: { learningFact: unknown },
   evidence: ClosureEvidenceRow,
 ): Promise<boolean> {
   const clientEventId = evidence.clientEventId;
@@ -61,6 +65,9 @@ export async function materializeEvidenceRow(
   const actionType = typeof responseData.eventType === 'string' && responseData.eventType.trim().length > 0
     ? responseData.eventType
     : 'lesson_submit';
+  const classId = typeof responseData.classId === 'string' && responseData.classId.trim().length > 0
+    ? responseData.classId.trim()
+    : undefined;
   const learningEvent = toLearningEvent({
     id: clientEventId,
     eventId: clientEventId,
@@ -85,6 +92,14 @@ export async function materializeEvidenceRow(
     pagePath: typeof responseData.originPath === 'string' ? responseData.originPath : '/classroom-closure-replay',
     pageType: 'classroom',
   });
-  const result = await persistCoreLearningFact(db, learningEvent);
-  return result.created > 0;
+  const result = await ingestLearningFact({
+    db: db as IngestionWriteDb,
+    transport: 'direct',
+    event: learningEvent,
+    actorUserId: evidence.userId,
+    captureRevision: currentCaptureRevision(),
+    classId,
+  });
+  return result.status === INGESTION_STATUS.applied
+    || result.status === INGESTION_STATUS.deduplicated;
 }

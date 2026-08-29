@@ -25,6 +25,7 @@ import {
   currentCaptureRevision,
   ingestLearningFact,
 } from '@/features/learning-record/ingestion/public-api';
+import { selectAckClaims } from '@/features/learning-record/retirement/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   failSessionClosureOutbox,
@@ -630,23 +631,31 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
       });
       continue;
     }
-    const result = await ingestLearningFact({
-      db: db as never,
-      transport: 'outbox-apply',
-      event: claim.event,
-      actorUserId: claim.event.userId,
-      captureRevision,
-      classId: claim.event.classId,
-    });
-    outcomes.push({
-      status: result.status,
-      inputDigest: result.inputDigest,
-      factsCreated: result.factsCreated,
-      failure: result.failure,
-    });
-    factsCreated += result.factsCreated;
-    if (result.trigger) {
-      triggeredUsers.add(result.trigger.subjectUserId);
+    try {
+      const result = await ingestLearningFact({
+        db: db as never,
+        transport: 'outbox-apply',
+        event: claim.event,
+        actorUserId: claim.event.userId,
+        captureRevision,
+        classId: claim.event.classId,
+      });
+      outcomes.push({
+        status: result.status,
+        inputDigest: result.inputDigest,
+        factsCreated: result.factsCreated,
+        failure: result.failure,
+      });
+      factsCreated += result.factsCreated;
+      if (result.trigger) {
+        triggeredUsers.add(result.trigger.subjectUserId);
+      }
+    } catch {
+      outcomes.push({
+        status: 'retryable_failed',
+        factsCreated: 0,
+        failure: { code: 'ingest-throw', fingerprint: 'ingest-throw' },
+      });
     }
   }
 
@@ -667,12 +676,14 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
     }
   }
 
-  await ackSecondaryEvents(batchDate, claims);
-  await markEventsProcessed(claims.length, batchDate);
+  const confirmed = selectAckClaims(claims, outcomes.map((item) => item.status));
+  await ackSecondaryEvents(batchDate, confirmed);
+  await markEventsProcessed(confirmed.length, batchDate);
 
   return {
-    processed: claims.length,
+    processed: confirmed.length,
     factsCreated,
+    deferred: claims.length - confirmed.length,
   };
 }
 

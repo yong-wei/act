@@ -11,6 +11,45 @@ import type { LearningEvent } from './event-protocol';
 import { isCoreEvent, isSecondaryEvent } from './event-types';
 
 export const SECONDARY_CLAIM_LEASE_MS = 5 * 60 * 1000;
+export const SECONDARY_BUFFER_CAPACITY = 10_000;
+export const SECONDARY_BUFFER_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+const SECONDARY_ENQUEUE_LUA = `
+local buffer = KEYS[1]
+local processing = KEYS[2]
+local capacity = tonumber(ARGV[1])
+local payload = ARGV[2]
+local ttl = tonumber(ARGV[3])
+local occupancy = redis.call('LLEN', buffer) + redis.call('LLEN', processing)
+if occupancy >= capacity then
+  return 0
+end
+redis.call('LPUSH', buffer, payload)
+if ttl > 0 then
+  redis.call('EXPIRE', buffer, ttl)
+end
+return 1
+`;
+
+const SECONDARY_RECOVER_LUA = `
+local processing = KEYS[1]
+local buffer = KEYS[2]
+local lease = KEYS[3]
+local now = tonumber(ARGV[1])
+local leaseMs = tonumber(ARGV[2])
+local items = redis.call('LRANGE', processing, 0, -1)
+local recovered = 0
+for _, raw in ipairs(items) do
+  local claimedAt = tonumber(redis.call('HGET', lease, redis.sha1hex(raw)))
+  if not claimedAt or (now - claimedAt >= leaseMs) then
+    redis.call('LREM', processing, 1, raw)
+    redis.call('RPUSH', buffer, raw)
+    redis.call('HDEL', lease, redis.sha1hex(raw))
+    recovered = recovered + 1
+  end
+end
+return recovered
+`;
 
 const REDIS_KEYS = {
   secondaryBuffer: (date: string) => `event:buffer:secondary:${date}`,
@@ -21,7 +60,7 @@ const REDIS_KEYS = {
 };
 
 function leaseField(raw: string): string {
-  return createHash('sha256').update(raw).digest('hex');
+  return createHash('sha1').update(raw).digest('hex');
 }
 
 export interface ClaimedSecondaryEvent {
@@ -93,17 +132,22 @@ export async function bufferSecondaryEvent(event: LearningEvent): Promise<boolea
 
   try {
     const date = new Date().toISOString().split('T')[0];
-    const key = REDIS_KEYS.secondaryBuffer(date);
-
-    // Compress event to JSON string
+    const bufferKey = REDIS_KEYS.secondaryBuffer(date);
+    const processingKey = REDIS_KEYS.secondaryProcessing(date);
     const eventJson = JSON.stringify(event);
-
-    // Push to list with max length protection (keep last 10000)
-    await client.lpush(key, eventJson);
-    await client.ltrim(key, 0, 9999);
-
-    // Set expiration (7 days)
-    await client.expire(key, 7 * 24 * 60 * 60);
+    const accepted = await client.eval(
+      SECONDARY_ENQUEUE_LUA,
+      2,
+      bufferKey,
+      processingKey,
+      SECONDARY_BUFFER_CAPACITY,
+      eventJson,
+      SECONDARY_BUFFER_TTL_SECONDS,
+    );
+    if (Number(accepted) !== 1) {
+      stats.dropped++;
+      return false;
+    }
 
     // Update stats
     await client.hincrby(REDIS_KEYS.dailyStats(date), 'buffered', 1);
@@ -131,17 +175,16 @@ export async function recoverExpiredSecondaryClaims(
   const processingKey = REDIS_KEYS.secondaryProcessing(date);
   const bufferKey = REDIS_KEYS.secondaryBuffer(date);
   const leaseKey = REDIS_KEYS.secondaryLease(date);
-  const items = await client.lrange(processingKey, 0, -1);
-  let recovered = 0;
-  for (const raw of items) {
-    const claimedAt = Number(await client.hget(leaseKey, leaseField(raw)));
-    if (Number.isFinite(claimedAt) && now - claimedAt < leaseMs) continue;
-    await client.lrem(processingKey, 1, raw);
-    await client.rpush(bufferKey, raw);
-    await client.hdel(leaseKey, leaseField(raw));
-    recovered += 1;
-  }
-  return recovered;
+  const recovered = await client.eval(
+    SECONDARY_RECOVER_LUA,
+    3,
+    processingKey,
+    bufferKey,
+    leaseKey,
+    now,
+    leaseMs,
+  );
+  return Number(recovered) || 0;
 }
 
 export async function claimSecondaryEvents(

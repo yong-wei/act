@@ -481,9 +481,13 @@ describe('ingestion producer characterization', () => {
     const interactive = readFileSync('src/app/api/interactive/events/route.ts', 'utf8');
     const buffer = readFileSync('src/lib/data-governance/event-buffer.ts', 'utf8');
     const worker = readFileSync('scripts/workers/data-governance-worker.ts', 'utf8');
+    const replay = readFileSync('src/lib/data-governance/session-fact-replay.ts', 'utf8');
     expect(interactive).toContain('ingestLearningFact');
     expect(interactive).not.toContain('persistCoreLearningFact');
+    expect(replay).not.toContain('persistCoreLearningFact');
+    expect(replay).toContain('ingestLearningFact');
     expect(buffer).not.toContain('client.rpop(key)');
+    expect(buffer).not.toContain('.ltrim(');
     expect(buffer).toContain('rpoplpush');
     expect(worker).toContain('claimSecondaryEvents');
     expect(worker).toContain('ackSecondaryEvents');

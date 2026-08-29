@@ -544,6 +544,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
   return fact;
 }
 
+/** Production callers must go through `ingestLearningFact`; do not add a second writer. */
 export async function persistCoreLearningFact(
   db: { learningFact: LearningFactCreateManyDelegate },
   event: LearningEvent,
