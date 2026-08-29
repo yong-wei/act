@@ -445,6 +445,12 @@ describe('POST /api/interactive/events', () => {
     expect(body.degraded).toBeGreaterThan(0);
     expect(body.routing).toMatchObject({ dropped: 1 });
     expect(body.routing.postgresql).toBeUndefined();
+    expect(body.routingFailures).toEqual([
+      expect.objectContaining({
+        reason: 'missing-canonical-identity',
+        clientEventId: 'client-submit-failed-ingest',
+      }),
+    ]);
   });
 
   it('deduplicates repeated classroom submissions through the shared evidence writer receipts', async () => {

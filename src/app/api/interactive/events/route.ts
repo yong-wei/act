@@ -1044,6 +1044,7 @@ export async function POST(request: NextRequest) {
       reason?: string;
       factsCreated: number;
       factActionType: string;
+      clientEventId?: string | null;
     }> = [];
     const sessionsNeedingReportRefresh = new Set<string>();
     const learningRecordStore = createMemoryAcceptanceStore();
@@ -1085,6 +1086,7 @@ export async function POST(request: NextRequest) {
               reason: error.code,
               factsCreated: 0,
               factActionType: canonicalEventType,
+              clientEventId,
             });
             continue;
           }
@@ -1137,6 +1139,7 @@ export async function POST(request: NextRequest) {
             : undefined,
           factsCreated: ingestFailed ? 0 : ingestResult.factsCreated,
           factActionType: canonicalEventType,
+          clientEventId,
         });
       } else {
         const result = await routeEvent(learningEvent);
@@ -1145,6 +1148,7 @@ export async function POST(request: NextRequest) {
           ...result,
           factsCreated: 0,
           factActionType: canonicalEventType,
+          clientEventId,
         });
       }
 
@@ -1180,6 +1184,14 @@ export async function POST(request: NextRequest) {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
+      routingFailures: routingResults
+        .filter((result) => result.destination === 'dropped')
+        .map((result) => ({
+          eventType: result.eventType,
+          factActionType: result.factActionType,
+          reason: result.reason ?? 'dropped',
+          clientEventId: result.clientEventId ?? null,
+        })),
       pending: 0,
     });
   } catch (error) {
