@@ -17,6 +17,9 @@ import {
 } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  INTERACTIVE_AI_LEARNING_CONTEXT_NOTE,
+} from '@/lib/interactive-ai-context';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   buildAiAuditTaskLogEntry,
@@ -351,6 +354,54 @@ export async function POST(request: Request) {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+    if (lessonContext?.stage === 'interactive' && session?.user?.id) {
+      const hintedCourseId = typeof pageContext?.courseId === 'string' ? pageContext.courseId.trim() : '';
+      const hintedPageId = typeof pageContext?.stepId === 'string' ? pageContext.stepId.trim() : '';
+      if (hintedCourseId && hintedPageId) {
+        const interactiveRuntime = await verifyKonlingRuntimeScope(prisma, {
+          authenticatedUserId: session.user.id,
+          role: session.user.role,
+          targetUserId: session.user.id,
+          classId: typeof classId === 'string' ? classId : null,
+          courseId: hintedCourseId,
+          pageId: hintedPageId,
+          resourceId: null,
+          pathNodeId: null,
+          pageContextHint: pageContext,
+        });
+        if (!interactiveRuntime.ok) {
+          return new Response(JSON.stringify({ error: interactiveRuntime.error }), {
+            status: interactiveRuntime.status,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        const authorizedInteractivePage = await resolveKonlingContextEventScope(
+          prisma,
+          interactiveRuntime.scope,
+        );
+        if (!authorizedInteractivePage) {
+          return new Response(JSON.stringify({ error: 'Page context is not registered for Konling.' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (
+          conversation
+          && (
+            conversation.courseId !== authorizedInteractivePage.courseId
+            || conversation.pageId !== authorizedInteractivePage.pageId
+          )
+        ) {
+          return new Response(JSON.stringify({
+            error: 'INTERACTIVE_AI_RESOURCE_MISMATCH',
+            status: 'isolated',
+          }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
     if (conversation && !requestedUserMessage) {
       return new Response(JSON.stringify({ error: 'Conversation turn requires a user message' }), {
@@ -801,6 +852,10 @@ export async function POST(request: Request) {
     } else {
       // 回退到旧的提示词构建方式
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
+    }
+
+    if (lessonContext?.stage === 'interactive') {
+      systemPrompt = `${systemPrompt}\n\n${INTERACTIVE_AI_LEARNING_CONTEXT_NOTE}`;
     }
 
     if (serverTaskContext) {
@@ -1321,6 +1376,12 @@ export async function POST(request: Request) {
     );
 
     const responseHeaders = new Headers(agentSessionResponseHeaders);
+    if (lessonContext?.stage === 'interactive') {
+      responseHeaders.set(
+        'X-Interactive-AI-Session',
+        conversation ? 'recoverable' : 'ephemeral',
+      );
+    }
     if (evidenceCopilotProjection) {
       responseHeaders.set('X-Evidence-Copilot-Status', evidenceCopilotProjection.status);
       responseHeaders.set(
