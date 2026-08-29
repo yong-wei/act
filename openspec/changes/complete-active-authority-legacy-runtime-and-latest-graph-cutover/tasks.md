@@ -36,11 +36,11 @@
 
 ## 5. Coherent active-envelope and Teaching readiness
 
-- [ ] 5.1 Define the read-only active consumer envelope over the final coordinated active receipt, Authority snapshot and manifest, domain catalog and shards, complete Teaching Projection and composed fragments, prerequisites, formal resources, consumer activation, and Runtime active identity.
+- [ ] 5.1 Extend `readKnowledgeSurface` and the existing `act-knowledge-surface/v1` response identity with a read-only latest-cutover verifier over the final coordinated active receipt, Authority snapshot and manifest, domain catalog and shards, complete Teaching Projection and composed fragments, prerequisites, formal resources, consumer activation, and Runtime active identity; do not add another assembler or cache authority.
 - [ ] 5.2 Reopen and hash-verify every envelope member and fail readiness on missing members, mixed versions, stale pointers, partial or unavailable Teaching state, mismatched resources, or absent final active receipt.
 - [ ] 5.3 Keep candidate and predecessor states truthful without interpreting a general projection pointer, database `KnowledgeLink`, engineering edge, local tree pointer, or legacy graph response as active Teaching proof.
 - [ ] 5.4 Feed only version-matched Teaching relations, resource descriptors, cards, information graphics, and cross-domain entrances from the coherent envelope into the active semantic view.
-- [ ] 5.5 Expose sanitized internal and product readiness evidence containing the exact coherent identities and reasons for failure without leaking private payloads, credentials, signed URLs, or local absolute paths.
+- [ ] 5.5 Expose sanitized internal and product readiness evidence from the common knowledge-surface envelope containing the exact coherent identities and reasons for failure without leaking private payloads, credentials, signed URLs, or local absolute paths.
 - [ ] 5.6 Verify current predecessor, qualified successor, provider rollback, missing fragment, partial projection, tampered member, and unknown-state behavior through unit and integration fixtures.
 
 ## 6. Provider handoff, deployment, and product cutover acceptance

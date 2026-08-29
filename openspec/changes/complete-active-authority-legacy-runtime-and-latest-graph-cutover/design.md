@@ -2,7 +2,7 @@
 
 `/knowledge` currently selects between two component trees. Legacy mode mounts `KnowledgeGraphSystem`, which owns the complete Force Graph lifecycle: layout and coordinate persistence, 2D/3D cameras, wheel and pointer gestures, drag and pin, reflow, hover, selection, filters, teaching-path emphasis, and drawer state. Active mode mounts `ActiveAuthorityGraph`; its root level is a static SVG and its domain level mounts the old low-level 2D/3D components through a reduced wrapper inside a bounded scrolling card. That wrapper creates empty layout state, fixed initial positions, inert drag persistence, and no shared camera or orchestration contract.
 
-The data boundary is different and must remain different. Active mode consumes version-matched Authority root/domain shards and formal Teaching/resource projections. Legacy mode consumes the historical graph API. Sharing the presentation runtime must never merge those sources, identities, caches, coordinates, filters, selection, or drawer state.
+The data boundary is different and must remain different. Active mode consumes version-matched Authority root/domain shards and formal Teaching/resource projections. Legacy mode consumes the historical graph API. Sharing the presentation runtime must never merge those sources, identities, caches, coordinates, filters, selection, or drawer state. The integration baseline now provides `act-knowledge-surface/v1` and `readKnowledgeSurface` as the single server-resolved, version-bound response envelope; this change must extend that public read seam rather than create another assembler or read model.
 
 Production currently demonstrates a second independent gap: deploying a new application image and importing database relations did not move the file-backed graph selectors. The active product still resolves the v0.22 shard set and its domain fragments do not provide a usable Teaching Projection. The existing `coordinate-latest-authority-and-active-oss-cutover` change owns execution-time ActKG capture, complete projection and resource qualification, Runtime publication, selector mutation, stopped-service journaling, and rollback. This change owns the `/knowledge` runtime and its consumer-side proof that the provider's final active combination is actually visible and coherent.
 
@@ -52,9 +52,9 @@ The active adapter emits real registered node types rather than flattening every
 
 The shared runtime receives governed presentation metadata without fetching or inferring topology. Force coordinates are presentation state only and cannot create relations or alter the active envelope.
 
-### 5. Introduce a consumer-side coherent active-envelope gate
+### 5. Add a hard latest-cutover verifier to the existing knowledge-surface envelope
 
-The `/knowledge` read path will materialize a consumer envelope from the provider's final coordinated active receipt and the currently selected immutable Runtime view. The envelope includes, at minimum:
+The `/knowledge` read path will continue through `readKnowledgeSurface` and its `act-knowledge-surface/v1` mode-, role-, scope-, Authority-, Teaching-, resource-, and cache-bound envelope. A product-readiness verifier will combine that server-resolved response identity with the provider's final coordinated active receipt and the currently selected immutable Runtime view. It will not copy repository or shard data, introduce a second cache, or permit a client-selected release. The verified identity set includes, at minimum:
 
 - captured Authority release, snapshot and manifest hashes;
 - domain catalog and every selected shard identity;
@@ -62,9 +62,9 @@ The `/knowledge` read path will materialize a consumer envelope from the provide
 - prerequisite publication, formal resource envelope/projection, and consumer activation identities;
 - Runtime Release manifest, active receipt, lifecycle generation, and coordinated active receipt.
 
-Every member is reopened and hash-verified. A missing fragment, `PARTIAL` or unavailable projection, mixed Authority, stale resource projection, or absent final active receipt makes the latest-combination readiness false. The base Authority may remain available in an explicitly truthful failure state, but that state is not production-cutover success and cannot be hidden by engineering edges or database rows.
+Every member is reopened and hash-verified through the existing source owners and immutable readers. A missing fragment, `PARTIAL` or unavailable projection, mixed Authority, stale resource projection, or absent final active receipt makes the latest-combination readiness false. The common read contract may still preserve base Authority under its bounded optional-failure rule, but that state is not production-cutover success and cannot be hidden by engineering edges or database rows.
 
-This gate is read-only. It never writes `current.json`, desired/active Runtime state, or transaction receipts.
+This verifier is read-only. It never writes `current.json`, desired/active Runtime state, or transaction receipts and never replaces the common response envelope.
 
 ### 6. Keep provider activation and product acceptance separate but jointly required
 

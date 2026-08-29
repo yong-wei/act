@@ -1,11 +1,11 @@
 ## ADDED Requirements
 
 ### Requirement: The active graph consumer accepts one coherent runtime combination
-The `/knowledge` active consumer SHALL derive its production readiness from one final coordinated active receipt whose immutable identities bind the exact Authority capture and snapshot, domain catalog and shards, complete Teaching Projection and composed domain fragments, prerequisite publication, formal resource projection, consumer activation, and active Runtime Release. It MUST reopen and hash-verify every referenced member and MUST NOT combine members from different releases, projections, resource envelopes, selector generations, or Runtime views.
+The `/knowledge` active consumer SHALL derive its production readiness by verifying the existing server-resolved `act-knowledge-surface/v1` response envelope against one final coordinated active receipt whose immutable identities bind the exact Authority capture and snapshot, domain catalog and shards, complete Teaching Projection and composed domain fragments, prerequisite publication, formal resource projection, consumer activation, and active Runtime Release. It MUST reopen and hash-verify every referenced member through the existing source owners and MUST NOT create a second read model, accept a client-selected release, or combine members from different releases, projections, resource envelopes, selector generations, or Runtime views.
 
 #### Scenario: All active members match
 - **WHEN** every referenced member reopens with the identities and hashes sealed by the final coordinated active receipt
-- **THEN** the consumer SHALL expose one coherent active envelope to the shared graph runtime
+- **THEN** the consumer SHALL expose the verified common response envelope and its coherent active identity set to the shared graph runtime
 - **AND** its readiness evidence SHALL report the exact release, projection, fragment, shard, resource, consumer, and Runtime identities
 
 #### Scenario: One active member is missing or mismatched
