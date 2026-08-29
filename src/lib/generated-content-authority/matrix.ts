@@ -29,6 +29,7 @@ export const ASSESSMENT_DEPENDENCY_EVIDENCE: readonly string[] = [
 export const LEARNING_FACT_SINK_MODULES: readonly string[] = [
   'src/lib/canonical-learning-fact-identity/writer.ts',
   'src/lib/data-governance/learning-fact-materialization.ts',
+  'src/lib/data-governance/interactive-evidence-scoring-recompute.ts',
   'src/lib/data-governance/simulation-task-learning-fact.ts',
 ];
 
@@ -54,7 +55,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '4e74001691eab9d8ab744832612e8bf8b508b3b462686a5b25772dd9800a5eb4',
+  evidenceDigest: '3f2b263f806a3e6caad6148d93246cc0b351db814341ff8780e810cf07caea16',
   rows: [
     {
       domain: 'assessment',
@@ -82,6 +83,14 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
       },
       generationModules: [
         'src/app/api/assessment/generated-candidates/route.ts',
+        'src/app/api/assessment/generate-question/route.ts',
+        'src/app/api/assessment/next-question/route.ts',
+        'src/app/api/assessment/submit-answer/route.ts',
+        'src/app/api/assessment/diagnostic/route.ts',
+        'src/app/api/assessment/remediation/route.ts',
+        'src/app/api/assessment/remediation/interventions/route.ts',
+        'src/app/api/assessment/remediation/interventions/events/route.ts',
+        'src/app/api/assessment/remediation/interventions/validation/route.ts',
         'src/features/assessment/adaptive-engine.ts',
       ],
       authorityWriteSites: [
@@ -100,7 +109,9 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/features/adaptive-assessment/adaptive-assessment-catalog-selector.ts（已发布产物的运行时消费者，denominator.callers 已声明）',
         'src/features/adaptive-assessment/generated-catalog-runtime.ts（声明 sink 模块自身，发布路由专属消费）',
         'src/features/assessment/adaptive-persistence.ts（学生作答持久化权威路径：submitAnswerDurably；非 AI 生成器，作答写入与 LearningFact 物化属既有域内契约）',
+        'src/app/api/assessment/remediation/route.ts（补救干预路径，generated-catalog-runtime 的合法消费方）',
       ],
+
       denominator: {
         routes: [
           'src/app/api/assessment/generate-question/route.ts',
@@ -363,6 +374,7 @@ export const LEARNING_FACT_WRITE_SITES: readonly string[] = [
   'src/lib/data-governance/simulation-task-learning-fact.ts',
   'src/lib/data-governance/document-rubric-grading-workbench.ts',
   'src/lib/data-governance/historical-evidence-materialization.ts',
+  'src/lib/data-governance/interactive-evidence-scoring-recompute.ts',
   'src/lib/data-governance/simulation-agent-evidence-materialization.ts',
   'src/lib/data-governance/course-evidence-backfill.ts',
   'src/lib/data-governance/yangfan-diagnostic-fixture.ts',
@@ -371,10 +383,16 @@ export const LEARNING_FACT_WRITE_SITES: readonly string[] = [
 ];
 
 /**
+ * 最终权威模型（修订/回执/评分/发布）：provider 调用文件中禁止出现这些写调用——
+ * AI 生成路径只能产出草稿/候选（Draft/Task 类），不得触碰最终权威。
+ */
+export const FINAL_AUTHORITY_WRITE_MODEL_PATTERN = /\.(learningFact|assignmentPublicationOperation|assignmentSubmission|gradingRun|gradingCriterionAssessment|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationOperation|adaptiveAssessmentGeneratedPublicationReceipt)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
+
+/**
  * 权威模型的 Prisma 写调用只允许出现在矩阵登记的 authorityWriteSites 内；
  * 该名单是 default-deny 的白名单——全域扫描发现的任何未登记写点即违例。
  */
-export const AUTHORITY_WRITE_MODEL_PATTERN = /\b(?:prisma|db|tx)\s*\.\s*(learningFact|adaptiveAssessmentGeneratedCandidate|adaptiveAssessmentGeneratedCandidateRevision|adaptiveAssessmentGeneratedCandidateEvent|adaptiveAssessmentGeneratedCandidateReview|adaptiveAssessmentGeneratedPublicationReceipt|assignmentRevision|assignmentQuestion|assignmentPublicationOperation|assignmentSubmission|gradingRun|gradingCriterionAssessment|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartLessonDraft|smartLessonTask|smartCoursewareRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationReceipt|smartCoursewarePublicationOperation|smartCoursewareModule|smartCoursewareModuleRevision)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
+export const AUTHORITY_WRITE_MODEL_PATTERN = /\.(learningFact|adaptiveAssessmentGeneratedCandidate|adaptiveAssessmentGeneratedCandidateRevision|adaptiveAssessmentGeneratedCandidateEvent|adaptiveAssessmentGeneratedCandidateReview|adaptiveAssessmentGeneratedPublicationReceipt|assignmentRevision|assignmentQuestion|assignmentPublicationOperation|assignmentSubmission|gradingRun|gradingCriterionAssessment|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartLessonDraft|smartLessonTask|smartCoursewareRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationReceipt|smartCoursewarePublicationOperation|smartCoursewareModule|smartCoursewareModuleRevision)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
 
 /**
  * 四域根目录：provider/AI 调用点的发现范围（域根内出现 AI 调用必须登记）。

@@ -90,3 +90,10 @@ scanDomainAuthorityWrites 改为返回结构化违例（domain/kind/file/detail�
 ## 未登记 provider 违例回归修复（2026-08-29，PR #1693）
 
 结构化重构时丢失了"域根内未登记 provider 调用点"的违例生成：已恢复——registeredOwnerDomain 为空且 rootOwnerDomain 非空时，生成属主域的 UNREGISTERED_PROVIDER 违例（仅调用 provider、不 import sink 的 unowned caller 同样不可绕过门禁）；回归测试以 rogue-provider fixture 锁定。摘要重绑至最终治理实现状态。
+
+## 结构化违例路由与 learningFact 白名单补全（2026-08-29，PR #1693）
+
+- scanDomainAuthorityWrites 返回结构化违例（domain/kind/file/detail）：属主域违例路由到行 finding，learning-record/无属主进全局 violations（settle 要求为空）。
+- learningFact 建立独立全域写点白名单（LEARNING_FACT_WRITE_SITES），生成器直写 prisma.learningFact.create 即违例；provider 相对路径 import 经规范化解析器识别；AI 调用模块 import 本域禁止 sink 即违例；域外 AI 使用明确不属本矩阵管辖。
+- interactive-evidence-scoring-recompute.ts 补入 LearningFact 写点白名单。
+- provider 文件中的最终权威模型写（FINAL_AUTHORITY_WRITE_MODEL_PATTERN：修订/回执/评分/发布）一律违例；草稿/任务类写不受限（spec 允许 AI 产出草稿）。

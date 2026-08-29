@@ -13,6 +13,7 @@ import {
   FORBIDDEN_SHARED_MODEL_PATTERNS,
   AUTHORITY_MODEL_DOMAIN,
   AUTHORITY_WRITE_MODEL_PATTERN,
+  FINAL_AUTHORITY_WRITE_MODEL_PATTERN,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   GENERATED_CONTENT_DOMAIN_ROOTS,
   LEARNING_FACT_WRITE_SITES,
@@ -345,6 +346,7 @@ export function scanDomainAuthorityWrites(
     authorityWriteSitesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
     registeredProviderModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
     forbiddenSinkModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
+    sinkScanExemptionsByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
   },
 ): FitnessScanViolation[] {
   const tracked = gitLsFiles(repoRoot);
@@ -362,6 +364,16 @@ export function scanDomainAuthorityWrites(
     if (!existsSync(absolute)) continue;
     const content = readFileSync(absolute, 'utf8');
 
+    // provider 发现走解析器：相对路径（../ai/provider-registry）与别名同等识别
+    const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content))
+      || (() => {
+        for (const specifier of extractSpecifiers(path, content)) {
+          const target = resolveSpecifier(path, specifier, tracked);
+          if (target && target.startsWith('src/lib/ai/provider-registry')) return true;
+        }
+        return false;
+      })();
+
     // 权威写点发现：全域 default-deny（写权威模型与域无关，必须登记）。
     // learningFact 归属 learning-record 域（其写点白名单为跨域 writer 清单）。
     for (const match of content.matchAll(globalPattern(AUTHORITY_WRITE_MODEL_PATTERN))) {
@@ -372,7 +384,13 @@ export function scanDomainAuthorityWrites(
       const writeSites = ownerDomain === 'learning-record'
         ? LEARNING_FACT_WRITE_SITES
         : (ownerDomain ? options.authorityWriteSitesByDomain[ownerDomain] ?? [] : []);
-      const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
+      // 最终权威模型（修订/回执/评分/发布）在 provider 调用文件中出现 → 违例：
+      // AI 路径只能产出草稿/候选，不得改写已批准权威
+      const isFinalAuthorityWrite = FINAL_AUTHORITY_WRITE_MODEL_PATTERN.test(
+        `${match[0].slice(1)}.${match[2]}(`,
+      );
+      const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path)
+        && !(isProviderCallSite && isFinalAuthorityWrite);
       if (!isWriteSite) {
         violations.push({
           domain: ownerDomain,
@@ -383,25 +401,13 @@ export function scanDomainAuthorityWrites(
       }
     }
 
-    // provider 发现走解析器：相对路径（../ai/provider-registry）与别名同等识别
-    const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content))
-      || (() => {
-        for (const specifier of extractSpecifiers(path, content)) {
-          const target = resolveSpecifier(path, specifier, tracked);
-          if (target && target.startsWith('src/lib/ai/provider-registry')) return true;
-        }
-        return false;
-      })();
-    if (!isProviderCallSite) continue;
-
-    // provider 登记发现范围 = 四域根 ∪ 已登记入口；无属主的域外 AI 使用
-    // 不属本矩阵管辖（写权威模型仍由上方全域写点发现捕获）
-    const rootOwnerDomain = (Object.entries(options.domainRootsByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
-      .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0] ?? null;
+    // provider 登记发现范围 = 四域根 ∪ 已登记入口；域根内未登记的 provider
+    // 调用点（unowned caller）记录属主域违例；非 provider 的普通域内文件不判
     const registeredOwnerDomain = (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
       .find(([, modules]) => modules.includes(path))?.[0] ?? null;
-    // 域根内未登记的 provider 调用点 = unowned caller，记录属主域违例
-    if (!registeredOwnerDomain) {
+    if (isProviderCallSite && !registeredOwnerDomain) {
+      const rootOwnerDomain = (Object.entries(options.domainRootsByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+        .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0] ?? null;
       if (rootOwnerDomain) {
         violations.push({
           domain: rootOwnerDomain,
@@ -412,10 +418,16 @@ export function scanDomainAuthorityWrites(
       }
       continue;
     }
-    const owningDomain = registeredOwnerDomain;
+    const owningDomain = (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+      .find(([, modules]) => modules.includes(path))?.[0];
+    if (!owningDomain) continue;
 
-    // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）
+    // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）；
+    // 声明的合法消费方豁免（公共 API/运行时 hydrate 等）不在此列
+    const isExemptConsumer = (options.sinkScanExemptionsByDomain[owningDomain] ?? [])
+      .some((exempt) => path.startsWith(exempt.split('（')[0]));
     const forbiddenForDomain = options.forbiddenSinkModulesByDomain[owningDomain] ?? [];
+    if (isExemptConsumer) continue;
     for (const specifier of extractSpecifiers(path, content)) {
       const target = resolveSpecifier(path, specifier, tracked);
       if (!target) continue;
@@ -600,6 +612,9 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     ) as Record<GeneratedContentDomain, readonly string[]>,
     forbiddenSinkModulesByDomain: Object.fromEntries(
       GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.forbiddenSinkModules]),
+    ) as Record<GeneratedContentDomain, readonly string[]>,
+    sinkScanExemptionsByDomain: Object.fromEntries(
+      GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.sinkScanExemptions ?? []]),
     ) as Record<GeneratedContentDomain, readonly string[]>,
   });
   const crossDomainViolations = scanUndeclaredCrossDomainImports(repoRoot, domainGenerationModules);

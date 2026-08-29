@@ -372,6 +372,9 @@ describe('generated content authority — fixture fitness checks', () => {
       forbiddenSinkModulesByDomain: {
         assessment: [], 'assignment-rubric': [], 'smart-lesson': [], 'smart-courseware': [],
       },
+      sinkScanExemptionsByDomain: {
+        assessment: [], 'assignment-rubric': [], 'smart-lesson': [], 'smart-courseware': [],
+      },
     });
     const providerViolations = violations.filter((violation) => (
       violation.kind === 'UNREGISTERED_PROVIDER' && violation.file === 'src/lib/smart-courseware/rogue-provider.ts'
