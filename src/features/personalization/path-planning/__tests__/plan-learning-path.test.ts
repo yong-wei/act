@@ -7,6 +7,7 @@ import {
   evaluateHardEligibility,
   getRegisteredAdaptiveLearningPathGoal,
   isRegisteredAdaptiveLearningPathGoal,
+  listLearningGoals,
   planLearningPath,
   createDefaultPlanLearningPathPorts,
 } from '../public-api';
@@ -241,6 +242,24 @@ describe('PlanLearningPath pipeline', () => {
     registry.register(plugin);
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID, registry)).toBeNull();
     expect(getRegisteredAdaptiveLearningPathGoal(CONTROL_CORRECTION_GOAL_ID)).not.toBeNull();
+  });
+
+  it('omits unavailable plugin goals from the public goal list', () => {
+    const plugin = personalizationPluginRegistry.get(CONTROL_CORRECTION_GOAL_ID);
+    expect(plugin).toBeTruthy();
+    const previousStatus = plugin!.status;
+    const previousPolicy = plugin!.pathPlanningPolicy;
+    try {
+      plugin!.status = 'retired';
+      expect(listLearningGoals().some((goal) => goal.id === CONTROL_CORRECTION_GOAL_ID)).toBe(false);
+      plugin!.status = 'active';
+      delete plugin!.pathPlanningPolicy;
+      expect(listLearningGoals().some((goal) => goal.id === CONTROL_CORRECTION_GOAL_ID)).toBe(false);
+    } finally {
+      plugin!.status = previousStatus;
+      plugin!.pathPlanningPolicy = previousPolicy;
+    }
+    expect(listLearningGoals().some((goal) => goal.id === CONTROL_CORRECTION_GOAL_ID)).toBe(true);
   });
 
   it('does not introduce RL or keep a src/lib planner import in the generic pipeline', () => {

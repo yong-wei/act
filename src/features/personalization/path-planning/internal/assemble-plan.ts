@@ -1865,8 +1865,8 @@ export function getLearningGoal(goalId: string): LearningGoalDefinition | null {
 }
 
 export function listLearningGoals(): LearningGoalDefinition[] {
-  return Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
-    .map((definition) => definition.learningGoal)
+  return Object.keys(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+    .map((goalId) => getRegisteredAdaptiveLearningPathGoal(goalId)?.learningGoal)
     .filter((item): item is LearningGoalDefinition => Boolean(item));
 }
 
