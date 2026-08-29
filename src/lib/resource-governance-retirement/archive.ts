@@ -110,6 +110,7 @@ export function restoreRollbackArchive(input: {
   archive: ResourceGovernanceRollbackArchive;
   files: Readonly<Record<string, string>>;
   writeFile: (path: string, content: string) => void;
+  onlyPaths?: readonly string[];
 }): { restored: readonly string[]; reasons: readonly string[] } {
   const reasons = verifyRollbackArchive(input.archive, input.files);
   if (reasons.length > 0) {
@@ -119,10 +120,24 @@ export function restoreRollbackArchive(input: {
       reasons,
     );
   }
+  const requested = input.onlyPaths === undefined
+    ? input.archive.entries.map((entry) => entry.path)
+    : [...new Set(input.onlyPaths.map((path) => path.replace(/\\/gu, '/')))];
+  const archived = new Map(
+    input.archive.entries.map((entry) => [entry.path.replace(/\\/gu, '/'), entry.path]),
+  );
   const restored: string[] = [];
-  for (const entry of input.archive.entries) {
-    input.writeFile(entry.path, input.files[entry.path]!);
-    restored.push(entry.path);
+  for (const path of requested) {
+    const archivedPath = archived.get(path);
+    if (archivedPath === undefined) {
+      throw new ResourceGovernanceRetirementGateError(
+        'rollback-path-not-archived',
+        `rollback path is not in the digest-verified archive: ${path}`,
+        [`rollback-path-not-archived:${path}`],
+      );
+    }
+    input.writeFile(archivedPath, input.files[archivedPath]!);
+    restored.push(archivedPath);
   }
   return { restored, reasons: [] };
 }

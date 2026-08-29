@@ -25,6 +25,16 @@ export function pathIsProtected(
   return null;
 }
 
+function protectedPathCovered(needle: string, present: ReadonlySet<string>): boolean {
+  const normalized = needle.replace(/\\/gu, '/');
+  for (const path of present) {
+    if (path === normalized || path.startsWith(`${normalized}/`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function scanProtectedSurfaces(input: {
   captureRevision: string;
   candidates: readonly RetirementCandidate[];
@@ -34,16 +44,11 @@ export function scanProtectedSurfaces(input: {
   const present = new Set(input.presentPaths.map((p) => p.replace(/\\/gu, '/')));
   const missingProtected: string[] = [];
   for (const surface of input.protectedSurfaces) {
-    const anyPresent = surface.paths.some((prefix) => {
-      const needle = prefix.replace(/\\/gu, '/');
-      for (const path of present) {
-        if (path === needle || path.startsWith(`${needle}/`) || needle.startsWith(`${path}/`)) {
-          return true;
-        }
+    for (const prefix of surface.paths) {
+      if (!protectedPathCovered(prefix, present)) {
+        missingProtected.push(`${surface.id}:${prefix.replace(/\\/gu, '/')}`);
       }
-      return false;
-    });
-    if (!anyPresent) missingProtected.push(surface.id);
+    }
   }
 
   const reachableFromProtected: string[] = [];

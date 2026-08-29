@@ -477,7 +477,11 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
   it('restores digest-verified pre-delete bytes without writing selectors or releases', () => {
     const graph = completeGraph({});
     const fs = memoryFs({});
-    const restored = rollbackRetiredEntrypoints({ graph, fs });
+    const restored = rollbackRetiredEntrypoints({
+      graph,
+      fs,
+      deletedPaths: ['src/lib/obsolete-registry-read.ts'],
+    });
     expect(restored.restored).toContain('src/lib/obsolete-registry-read.ts');
     expect(fs.read('src/lib/obsolete-registry-read.ts')).toContain('readObsoleteRegistry');
     expect(graph.changeSurface.writesSelectors).toBe(false);
@@ -989,5 +993,41 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
 
   it('exposes a production deletion entry that binds the real worktree lock', () => {
     expect(typeof deleteRetiredResourceGovernanceEntrypointsFromRepo).toBe('function');
+  });
+
+  it('restores only receipt deletedPaths and leaves other archived files untouched', () => {
+    const graph = completeGraph({
+      archiveFiles: {
+        'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+        'src/lib/other-retained.ts': 'export const other = true;',
+      },
+    });
+    const fs = memoryFs({
+      'src/lib/other-retained.ts': 'export const other = "live-edit";',
+    });
+    const restored = rollbackRetiredEntrypoints({
+      graph,
+      fs,
+      deletedPaths: ['src/lib/obsolete-registry-read.ts'],
+    });
+    expect(restored.restored).toEqual(['src/lib/obsolete-registry-read.ts']);
+    expect(fs.read('src/lib/obsolete-registry-read.ts')).toContain('readObsoleteRegistry');
+    expect(fs.read('src/lib/other-retained.ts')).toBe('export const other = "live-edit";');
+  });
+
+  it('requires every declared protected path to remain present', () => {
+    const scan = scanProtectedSurfaces({
+      captureRevision: REV,
+      candidates: [candidate()],
+      protectedSurfaces: [{
+        id: 'runtime-release-readers',
+        issueRefs: ['#1498'],
+        paths: ['src/lib/course-runtime.ts', 'src/app/api/course-runtime'],
+        reason: 'Immutable Runtime Release readers',
+      }],
+      presentPaths: ['src/lib/course-runtime.ts'],
+    });
+    expect(scan.intact).toBe(false);
+    expect(scan.missingProtected).toContain('runtime-release-readers:src/app/api/course-runtime');
   });
 });

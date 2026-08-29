@@ -348,10 +348,12 @@ export function deleteRetiredResourceGovernanceEntrypoints(
 export function rollbackRetiredEntrypoints(input: {
   graph: ResourceGovernanceGraph;
   fs: RetirementFileSystem;
+  deletedPaths: readonly string[];
 }): { restored: readonly string[] } {
   return restoreRollbackArchive({
     archive: input.graph.rollbackArchive,
     files: input.graph.archiveBytes,
     writeFile: input.fs.write,
+    onlyPaths: input.deletedPaths,
   });
 }
