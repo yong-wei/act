@@ -4,10 +4,10 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import {
-  shouldIntervene,
+  decideIntervention,
   type InterventionRules,
   type StudentState,
-} from '@/features/ai/companion/intervention-engine';
+} from '@/features/personalization/interventions/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,9 +44,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: scope.error }, { status: scope.status });
     }
 
-    const decision = shouldIntervene(body.studentState, body.interventionRules);
+    const decided = decideIntervention({
+      actorUserId: session.user.id,
+      subjectUserId: scope.scope.targetUserId,
+      role: session.user.role,
+      studentState: body.studentState,
+      rules: body.interventionRules,
+    });
     return NextResponse.json({
-      ...decision,
+      ...decided.decision,
+      policyRevision: decided.policyRevision,
+      grantsMastery: decided.grantsMastery,
       scope: {
         userId: scope.scope.targetUserId,
         classId: scope.scope.classId,

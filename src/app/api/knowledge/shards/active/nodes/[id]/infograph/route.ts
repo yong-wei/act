@@ -7,6 +7,7 @@ import {
   authorizeActiveGraph,
   readActiveDetailInfograph,
 } from '@/app/api/knowledge/_active-authority';
+import { knowledgeSurfaceSelectorRejection } from '@/lib/knowledge-surface';
 import {
   activeLocaleCapability,
   resolveActiveLocaleRequest,
@@ -26,6 +27,8 @@ export async function GET(
       { status: 404 },
     );
   }
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;

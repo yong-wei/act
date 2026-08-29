@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CompetencyVector } from '../competency-model';
-import { buildMigratedPortraitPayload } from '../portrait-v2-migration';
+import type { CompetencyVector } from '@/lib/data-governance/competency-model';
+import { buildMigratedPortraitPayload } from '@/lib/data-governance/portrait-v2-migration';
 
 const mocks = vi.hoisted(() => ({
   prisma: {
@@ -48,14 +48,14 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-import { generateRecommendations } from '../recommendation-engine';
-import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '../student-evidence-feature-cache';
-import { PORTRAIT_V2_DIMENSIONS } from '../kaq-objective-taxonomy';
+import { generateRecommendations } from '../public-api';
+import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
+import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   createPortraitV2Payload,
   PORTRAIT_V2_CALCULATION_VERSION,
   type PortraitV2Payload,
-} from '../portrait-v2-model';
+} from '@/lib/data-governance/portrait-v2-model';
 
 const strongSnapshotVector: CompetencyVector = {
   controlModeling: { score: 86, trend: 'stable', confidence: 0.82, evidenceCount: 6, lastUpdated: '2026-05-18T00:00:00.000Z' },

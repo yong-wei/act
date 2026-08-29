@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server';
 import { filterKnowledgeNodes, loadKnowledgeGraphData, toPublicKnowledgeGraphNode } from '@/lib/knowledge-graph-source';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { RuntimeKnowledgeRelationCoverageError, toPublicRuntimeKnowledgeDiagnostics } from '@/lib/knowledge-graph-relation-runtime';
+import { knowledgeSurfaceSelectorRejection } from '@/lib/knowledge-surface';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');

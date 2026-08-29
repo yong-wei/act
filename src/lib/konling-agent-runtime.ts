@@ -151,8 +151,8 @@ import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/freque
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
-import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
-import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
+import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
+import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
   analyzeResultTool,
   analyzeResultInputSchema,
@@ -8008,8 +8008,15 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
-  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
+  const decided = decideIntervention({
+    actorUserId: input.scope.authenticatedUserId,
+    subjectUserId: input.scope.targetUserId,
+    role: input.scope.role,
+    studentState: input.studentState,
+    arenaContext: input.arenaContext,
+  });
+  const decision = decided.decision;
+  const payload = decided.payload;
   if (!decision.shouldIntervene) {
     return {
       id: '',

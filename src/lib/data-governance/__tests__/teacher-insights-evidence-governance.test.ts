@@ -88,7 +88,7 @@ vi.mock('@/features/arena/submissions/prisma-store', () => ({
   prismaArenaSubmissionStore: mocks.prismaArenaSubmissionStore,
 }));
 
-vi.mock('@/lib/data-governance/recommendation-engine', () => ({
+vi.mock('@/features/personalization/recommendations/public-api', () => ({
   generateRecommendations: mocks.generateRecommendations,
 }));
 

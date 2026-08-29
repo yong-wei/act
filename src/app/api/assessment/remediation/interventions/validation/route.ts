@@ -8,10 +8,8 @@ import {
   submitMicroInterventionValidation,
   type MicroInterventionDb,
 } from '@/features/assessment/micro-intervention-outcomes';
-import {
-  enqueueMicroInterventionEvidenceProjection,
-  processPendingMicroInterventionEvidenceProjections,
-} from '@/features/assessment/micro-intervention-learning-evidence';
+import { runDecisionTransaction } from '@/features/personalization/interventions/application/decision-transaction';
+import { stageInterventionEvidenceProjection } from '@/features/personalization/interventions/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,31 +66,35 @@ export async function POST(request: Request) {
     if (!interventionId || !eventKey || !questionId || !selectedOption || typeof durationSeconds !== 'number') {
       return NextResponse.json({ error: 'VALIDATION_FIELDS_REQUIRED' }, { status: 400 });
     }
-    const result = await submitMicroInterventionValidation({
-      db: prisma as unknown as MicroInterventionDb,
-      authenticatedUserId: authenticated.userId,
-      interventionId,
-      eventKey,
-      questionId,
-      selectedOption,
-      durationSeconds,
-    });
-    if (!result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
-    if (result.status !== 'UNAVAILABLE') {
-      await enqueueMicroInterventionEvidenceProjection({
-        db: prisma as never,
+    const committed = await runDecisionTransaction(prisma, async (tx) => {
+      const submitted = await submitMicroInterventionValidation({
+        db: tx as unknown as MicroInterventionDb,
+        authenticatedUserId: authenticated.userId,
         interventionId,
-        ownerUserId: authenticated.userId,
+        eventKey,
+        questionId,
+        selectedOption,
+        durationSeconds,
       });
-      try {
-        await processPendingMicroInterventionEvidenceProjections(prisma as never, { interventionId });
-      } catch (error) {
-        console.error('[MicroIntervention] evidence projection failed:', error);
+      if (!submitted || submitted.status === 'UNAVAILABLE') {
+        return { result: submitted };
       }
-    }
-    return result.status === 'UNAVAILABLE'
-      ? NextResponse.json(result, { status: 409 })
-      : NextResponse.json(result);
+      const evidenceProjection = await stageInterventionEvidenceProjection({
+        db: tx as never,
+        interventionId,
+        actorUserId: authenticated.userId,
+        subjectUserId: authenticated.userId,
+        role: 'STUDENT',
+      });
+      return { result: submitted, evidenceProjection };
+    });
+    if (!committed.result) return NextResponse.json({ error: 'INTERVENTION_NOT_FOUND' }, { status: 404 });
+    return committed.result.status === 'UNAVAILABLE'
+      ? NextResponse.json(committed.result, { status: 409 })
+      : NextResponse.json({
+        ...committed.result,
+        evidenceProjection: committed.evidenceProjection,
+      });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof MicroInterventionRequestError) {

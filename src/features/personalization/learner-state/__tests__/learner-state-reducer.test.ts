@@ -182,7 +182,7 @@ describe('personalization learner-state boundary', () => {
     'src/app/ai/page.tsx',
     'src/lib/konling-agent-runtime.ts',
     'src/lib/evidence-copilot-context.ts',
-    'src/lib/data-governance/recommendation-engine.ts',
+    'src/features/personalization/recommendations/engine.ts',
     'src/lib/data-governance/graph-center-sources.ts',
     'src/lib/data-governance/control-correction-demo-package.ts',
   ];

@@ -40,7 +40,7 @@ describe('knowledge node detail route canonical identity', () => {
       );
 
       expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({ id });
+      await expect(response.json()).resolves.toMatchObject({ id });
       expect(graphSource.buildDetail).toHaveBeenCalledWith(expect.anything(), id);
     },
   );

@@ -34,7 +34,7 @@ const GENERIC_PERSONALIZATION_FILES = [
   'src/features/personalization/path-planning/application/plan-learning-path.ts',
   'src/features/personalization/path-planning/ports.ts',
   'src/features/personalization/path-planning/contracts.ts',
-  'src/lib/data-governance/recommendation-engine.ts',
+  'src/features/personalization/recommendations/engine.ts',
 ];
 
 const RETIRED_CONCRETE_IDS = [
