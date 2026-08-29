@@ -75,6 +75,37 @@ export function verifyRollbackArchive(
   return reasons;
 }
 
+export function archiveCoverageReasons(
+  archive: ResourceGovernanceRollbackArchive,
+  archiveBytes: Readonly<Record<string, string>>,
+  authorizedCandidates: readonly { id: string; sourcePath: string }[],
+): string[] {
+  const reasons: string[] = [];
+  const entriesByPath = new Map(
+    archive.entries.map((entry) => [entry.path.replace(/\\/gu, '/'), entry]),
+  );
+  for (const candidate of authorizedCandidates) {
+    const sourcePath = candidate.sourcePath.replace(/\\/gu, '/');
+    const entry = entriesByPath.get(sourcePath);
+    if (!entry) {
+      reasons.push(`rollback-missing-entry:${candidate.id}`);
+      continue;
+    }
+    if (entry.candidateId !== candidate.id) {
+      reasons.push(`rollback-entry-id-mismatch:${candidate.id}`);
+    }
+    const bytes = archiveBytes[sourcePath];
+    if (bytes === undefined || bytes.length === 0) {
+      reasons.push(`rollback-missing-bytes:${candidate.id}`);
+      continue;
+    }
+    if (retirementSha256(bytes) !== entry.contentDigest) {
+      reasons.push(`rollback-bytes-tamper:${candidate.id}`);
+    }
+  }
+  return reasons;
+}
+
 export function restoreRollbackArchive(input: {
   archive: ResourceGovernanceRollbackArchive;
   files: Readonly<Record<string, string>>;

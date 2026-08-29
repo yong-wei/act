@@ -22,7 +22,7 @@ No second Authority/Knowledge read model, Prisma schema, selector, or activation
 | `registry-read:student-resources-id-metadata-fallback` | registry-read | `GET /api/resources/[id]` old metadata fallback | no | already-absent (migrated in R1; route now calls RegistryIndex) |
 | `eligibility:full-resource-path-readiness-gate` | eligibility-read | `src/lib/full-resource-path-readiness-gate.ts` | yes | retained (audit script + tests) |
 | `eligibility:resource-node-aggregate-ready` | eligibility-read | `src/lib/resource-node-registry.ts` planning `readiness` | yes | retained (protected planning owner) |
-| `knowledge-projection:nodes-list-array-dto` | knowledge-resource-projection | `GET /api/knowledge/nodes` array DTO | yes | retained (three JSON-array clients) |
+| `knowledge-projection:nodes-list-array-dto` | knowledge-resource-projection | `GET /api/knowledge/nodes` array DTO | yes | retained (UI clients, tests, scripts, browser audits) |
 | `knowledge-projection:client-url-identity-reconstruction` | knowledge-resource-projection | leftover URL identity helper | no | already-absent (R3 selector rejection remains) |
 
 Source-owned render registry, `registeredResourceMetadata`, ResourceNode planning registry, Prisma `TeachingResource`, Legacy `loadKnowledgeGraphData`, Authority/shard loaders, Teaching Projection / Runtime Release readers, `#1498`/`#1503`/`#1509`/`#1515`/`#1543`, and `GET /api/knowledge/playlists` are protected, not deletion candidates.

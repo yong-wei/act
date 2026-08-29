@@ -15,7 +15,7 @@ Evidence-gated retirement is implemented. Live deletion of resource-governance e
 - `getRegisteredResourceMetadata` / `getAllRegisteredResourceMetadata` source table (live RegistryIndex adapter input plus assessment/governance callers)
 - `full-resource-path-readiness-gate.ts` until audit scripts/tests migrate to `evaluateResourceEligibility` purpose=`path`
 - ResourceNode planning `readiness` aggregate until it is split from the protected registry
-- `GET /api/knowledge/nodes` array DTO until playlist/orchestrator/knowledge-card clients consume `knowledgeSurface`
+- `GET /api/knowledge/nodes` array DTO until playlist/orchestrator/knowledge-card clients, route tests, governance scripts, and browser audit captures consume `knowledgeSurface`
 - `GET /api/knowledge/playlists`
 - Legacy graph loader, Authority/shard readers, Teaching Projection / Runtime Release readers, `#1543` math
 

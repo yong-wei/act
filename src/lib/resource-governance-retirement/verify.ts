@@ -14,12 +14,13 @@ import {
   type ResourceGovernanceRetirementVerdict,
   type RetirementDisposition,
 } from './contracts';
+import { verifyRollbackArchive, archiveCoverageReasons } from './archive';
 import { hashCandidateSet, hashDenominator, callersMatchReceipt, scanCandidateCallers } from './scan';
 import { isSha256Hex, retirementDigest } from './hash';
 import { compareLedgers } from './ledger';
 import { scanProtectedSurfaces } from './protected';
-import { verifyRollbackArchive } from './archive';
 import { changeSurfaceReasons, deletionsAuthorizedByEvidence } from './manifest';
+import { replacementIsImplemented, replacementParityFails } from './replacement';
 
 export function verifyResourceGovernanceRetirement(
   manifest: ResourceGovernanceRetirementManifest,
@@ -53,6 +54,28 @@ export function verifyResourceGovernanceRetirement(
   }
   if (manifest.denominatorHash !== liveDenominatorHash) {
     reasons.push('denominator-hash-mismatch');
+  }
+
+  if (
+    retirementDigest(manifest.replacementIdentities)
+    !== retirementDigest(currentGraph.candidates.map((row) => row.replacement))
+  ) {
+    reasons.push('replacement-identity-drift');
+  }
+  for (const candidate of currentGraph.candidates) {
+    reasons.push(
+      ...replacementIsImplemented(candidate.replacement).map(
+        (reason) => `${candidate.id}:${reason}`,
+      ),
+    );
+    reasons.push(
+      ...replacementParityFails(candidate.replacement).map(
+        (reason) => `${candidate.id}:${reason}`,
+      ),
+    );
+    if (candidate.replacement.captureRevision !== currentGraph.captureRevision) {
+      reasons.push(`replacement-revision-mismatch:${candidate.id}`);
+    }
   }
 
   const liveProtected = scanProtectedSurfaces({
@@ -100,14 +123,25 @@ export function verifyResourceGovernanceRetirement(
     reasons.push('rollback-archive-digest-mismatch');
   }
 
-  const uniqueReasons = [...new Set(reasons)].sort();
-  const authorized = uniqueReasons.length === 0
+  let uniqueReasons = [...new Set(reasons)].sort();
+  let authorized = uniqueReasons.length === 0
     ? deletionsAuthorizedByEvidence({
       graph: currentGraph,
       protectedSurfaceScan: liveProtected,
       zeroCallerReceipts: manifest.zeroCallerReceipts,
     })
     : [];
+
+  const archiveCoverage = archiveCoverageReasons(
+    currentGraph.rollbackArchive,
+    currentGraph.archiveBytes,
+    currentGraph.candidates.filter((candidate) => authorized.includes(candidate.id)),
+  );
+  if (archiveCoverage.length > 0) {
+    reasons.push(...archiveCoverage);
+    uniqueReasons = [...new Set(reasons)].sort();
+    authorized = [];
+  }
 
   const retained = currentGraph.candidates
     .filter((candidate) => !authorized.includes(candidate.id))

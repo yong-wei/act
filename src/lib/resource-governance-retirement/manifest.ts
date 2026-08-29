@@ -14,7 +14,7 @@ import {
   type ReviewerDecision,
   type ZeroCallerReceipt,
 } from './contracts';
-import { verifyRollbackArchive } from './archive';
+import { archiveCoverageReasons, verifyRollbackArchive } from './archive';
 import { hashCandidateSet, hashDenominator } from './scan';
 import { isGitRevision, isSha256Hex, retirementDigest } from './hash';
 import { compareLedgers } from './ledger';
@@ -102,6 +102,18 @@ export function collectManifestReasons(input: {
   reasons.push(...changeSurfaceReasons(graph.changeSurface));
   reasons.push(...compareLedgers(graph.priorLedger, graph.currentLedger));
   reasons.push(...verifyRollbackArchive(graph.rollbackArchive, graph.archiveBytes));
+  const wouldDelete = deletionsAuthorizedByEvidence({
+    graph,
+    protectedSurfaceScan: input.protectedSurfaceScan,
+    zeroCallerReceipts: input.zeroCallerReceipts,
+  });
+  reasons.push(
+    ...archiveCoverageReasons(
+      graph.rollbackArchive,
+      graph.archiveBytes,
+      graph.candidates.filter((candidate) => wouldDelete.includes(candidate.id)),
+    ),
+  );
 
   if (graph.rollbackArchive.captureRevision !== graph.captureRevision) {
     reasons.push('archive-capture-revision-mismatch');

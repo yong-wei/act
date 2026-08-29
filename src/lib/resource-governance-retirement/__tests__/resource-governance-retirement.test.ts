@@ -16,7 +16,9 @@ import {
   hashCandidateSet,
   hashDenominator,
   looksLikeDirectoryOrGlob,
+  mentionsEntrypoint,
   rollbackRetiredEntrypoints,
+  scanCandidateCallers,
   scanProtectedSurfaces,
   verifyResourceGovernanceRetirement,
   type GraphFile,
@@ -25,6 +27,11 @@ import {
   type RetirementCandidate,
   type RetirementFileSystem,
 } from '@/lib/resource-governance-retirement';
+import {
+  frozenCallerCoverageGaps,
+  loadRetirementScanFiles,
+  scanRetirementCandidatesFromRepo,
+} from '@/lib/resource-governance-retirement/repo-scan';
 import { RESOURCE_REGISTRY_INDEX_CONTRACT } from '@/features/knowledge/resource-index/public-api';
 import { RESOURCE_ELIGIBILITY_CONTRACT } from '@/features/knowledge/resource-eligibility/public-api';
 import { KNOWLEDGE_SURFACE_CONTRACT } from '@/lib/knowledge-surface';
@@ -411,13 +418,14 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(hashCandidateSet(FROZEN_CANDIDATES)).toMatch(/^[a-f0-9]{64}$/);
     expect(hashDenominator(FROZEN_CALLERS)).toMatch(/^[a-f0-9]{64}$/);
 
+    const liveFiles = loadRetirementScanFiles(process.cwd());
+    const present = new Set(liveFiles.map((file) => file.path));
     const files = [
-      ...FROZEN_CANDIDATES.map((row) => graphFile(row.sourcePath, `export const ${row.id} = true;`)),
-      graphFile('src/features/knowledge/resource-index/public-api.ts', 'export function resolveStudentVisibleIndexedResource() {}'),
-      graphFile('src/features/knowledge/resource-eligibility/public-api.ts', 'export function evaluateResourceEligibility() {}'),
-      graphFile('src/lib/knowledge-surface/read.ts', 'export function readKnowledgeSurface() {}'),
-      ...protectedPlaceholders(),
-      ...Object.values(FROZEN_CALLERS).flat().map((hit) => graphFile(hit.path, String(hit.symbol))),
+      ...liveFiles,
+      ...FROZEN_CANDIDATES
+        .filter((row) => !present.has(row.sourcePath))
+        .map((row) => graphFile(row.sourcePath, `export const ${row.id} = true;`)),
+      ...protectedPlaceholders().filter((file) => !present.has(file.path)),
     ];
     const ledger = buildDeprecationLedger({
       captureRevision: FROZEN_CAPTURE_REVISION,
@@ -457,6 +465,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const manifest = readyManifest(graph, 'retain');
     expect(manifest.status).toBe('retain');
     const verdict = verifyResourceGovernanceRetirement(manifest, graph);
+    expect(verdict.reasons).toEqual([]);
     expect(verdict.status).toBe('retain');
     expect(verdict.deletionsAuthorized).toEqual([]);
     expect(verdict.protectedSurfacesIntact).toBe(true);
@@ -476,5 +485,91 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     });
     expect(deleteAttempt.status).toBe('blocked');
     expect(deleteAttempt.deletedPaths).toEqual([]);
+  });
+
+  it('does not treat knowledge node detail, v2, or active hrefs as list DTO callers', () => {
+    const listDto = FROZEN_CANDIDATES.find((row) => row.id === 'knowledge-projection:nodes-list-array-dto')!;
+    const hits = scanCandidateCallers({
+      candidate: listDto,
+      files: [
+        graphFile('src/only-detail.ts', "fetch('/api/knowledge/nodes/' + id)"),
+        graphFile('src/only-v2.ts', "fetch('/api/knowledge/nodes/v2/node-1')"),
+        graphFile('src/only-active.ts', "fetch('/api/knowledge/nodes/active/node-1')"),
+        graphFile('src/list-query.ts', "fetch('/api/knowledge/nodes?source=db')"),
+      ],
+    });
+    expect(hits.map((hit) => hit.path)).toEqual(['src/list-query.ts']);
+    expect(mentionsEntrypoint("fetch('/api/knowledge/nodes/v2/x')", listDto.sourcePath)).toBe(false);
+    expect(mentionsEntrypoint("fetch('/api/knowledge/nodes?source=db')", listDto.sourcePath)).toBe(true);
+  });
+
+  it('covers the frozen denominator with a live repository scan', () => {
+    const live = scanRetirementCandidatesFromRepo(process.cwd());
+    expect(frozenCallerCoverageGaps(FROZEN_CALLERS, live)).toEqual([]);
+
+    const listHits = live['knowledge-projection:nodes-list-array-dto'] ?? [];
+    expect(listHits.some((hit) => hit.path.includes('knowledge-nodes-route.test.ts'))).toBe(true);
+    expect(listHits.some((hit) => hit.path.includes('knowledge-db-fallback-production.real-smoke.test.ts'))).toBe(true);
+    expect(listHits.some((hit) => hit.path.includes('capture-batch38.mjs'))).toBe(true);
+    expect(listHits.some((hit) => hit.path.includes('nodes/[id]') || hit.path.includes('nodes/v2') || hit.path.includes('nodes/active'))).toBe(false);
+  });
+
+  it('binds the full replacement identity into the candidate hash and rechecks it at verify time', () => {
+    const base = candidate();
+    const baseHash = hashCandidateSet([base]);
+    const authorizationFlipped = candidate({
+      replacement: {
+        ...passingReplacement(),
+        parity: {
+          ...passingReplacement().parity,
+          authorization: false,
+        },
+      },
+    });
+    const publicApiFlipped = candidate({
+      replacement: {
+        ...passingReplacement(),
+        publicApiPath: 'src/features/knowledge/resource-index/wrong-public-api.ts',
+      },
+    });
+    expect(hashCandidateSet([authorizationFlipped])).not.toBe(baseHash);
+    expect(hashCandidateSet([publicApiFlipped])).not.toBe(baseHash);
+
+    const goodGraph = completeGraph({});
+    const goodManifest = readyManifest(goodGraph, 'approve-delete');
+    const mutatedGraph = completeGraph({
+      candidates: [publicApiFlipped],
+    });
+    const verdict = verifyResourceGovernanceRetirement(goodManifest, mutatedGraph);
+    expect(verdict.status).toBe('blocked');
+    expect(verdict.deletionsAuthorized).toEqual([]);
+    expect(verdict.reasons.join(' ')).toMatch(/candidate-set-hash-mismatch|replacement-identity-drift/);
+  });
+
+  it('refuses deletion when the rollback archive does not cover an authorized candidate', () => {
+    const graph = completeGraph({ archiveFiles: {} });
+    const manifest = readyManifest(graph, 'approve-delete');
+    expect(manifest.status).toBe('blocked');
+    expect(manifest.reasons.some((reason) => reason.startsWith('rollback-missing-entry:'))).toBe(true);
+
+    const verdict = verifyResourceGovernanceRetirement(manifest, graph);
+    expect(verdict.status).toBe('blocked');
+    expect(verdict.deletionsAuthorized).toEqual([]);
+    expect(verdict.reasons.some((reason) => reason.startsWith('rollback-missing-entry:'))).toBe(true);
+
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-empty-archive',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      deletedAt: '2026-08-28T03:00:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
   });
 });

@@ -11,6 +11,17 @@ import type {
 import { classifyCallerPath } from './candidates';
 import { retirementDigest, retirementSha256 } from './hash';
 
+export const RETIREMENT_SCAN_ROOTS = ['src', 'scripts', 'tests', 'artifacts'] as const;
+export const RETIREMENT_SCAN_EXTENSIONS = [
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+  '.md',
+] as const;
+
 const DEFAULT_EXCLUDED_FRAGMENTS = [
   '/node_modules/',
   '/.git/',
@@ -24,7 +35,7 @@ export function fileDigest(content: string): string {
   return retirementSha256(content);
 }
 
-function pathExcluded(
+export function pathExcluded(
   filePath: string,
   extra: readonly string[] = [],
 ): boolean {
@@ -64,14 +75,7 @@ export function scanCandidateCallers(input: {
     if (pathExcluded(path, extraExcluded)) continue;
     if (file.isDirectory) continue;
 
-    const mentionsPath = file.content.includes(source)
-      || file.content.includes(source.replace(/^src\//u, '@/'))
-      || (source.startsWith('src/lib/')
-        && file.content.includes(`@/${source.slice('src/'.length).replace(/\.tsx?$/u, '')}`))
-      || (source.startsWith('src/app/api/')
-        && file.content.includes(
-          source.slice('src/app'.length).replace(/\/route\.tsx?$/u, ''),
-        ));
+    const mentionsPath = mentionsEntrypoint(file.content, source, path);
 
     const mentionsSymbol = symbol && symbol.length >= 16
       ? lineMatchesSymbol(file.content, symbol)
@@ -82,14 +86,7 @@ export function scanCandidateCallers(input: {
       path,
       symbol: mentionsSymbol ? symbol : source,
       callerClass: classifyCallerPath(path),
-      kind: path.includes('__tests__') || /\.test\./u.test(path)
-        ? 'test'
-        : file.content.includes('import(')
-          && mentionsPath
-          ? 'dynamic'
-          : mentionsPath
-            ? 'import'
-            : 'string',
+      kind: classifyHitKind(path, file.content, mentionsPath),
     });
   }
 
@@ -127,6 +124,75 @@ export function buildZeroCallerReceipt(input: {
   };
 }
 
+function classifyHitKind(
+  path: string,
+  content: string,
+  mentionsPath: boolean,
+): GraphCaller['kind'] {
+  const normalized = path.replace(/\\/gu, '/');
+  if (
+    normalized.includes('/__tests__/')
+    || normalized.startsWith('tests/')
+    || /\.(?:test|spec)\.[cm]?[jt]sx?$/u.test(normalized)
+  ) {
+    return 'test';
+  }
+  if (content.includes('import(') && mentionsPath) return 'dynamic';
+  if (mentionsPath) return 'import';
+  return 'string';
+}
+
+function posixRelative(fromDir: string, toDir: string): string {
+  const fromParts = fromDir.split('/').filter(Boolean);
+  const toParts = toDir.split('/').filter(Boolean);
+  let index = 0;
+  while (index < fromParts.length && index < toParts.length && fromParts[index] === toParts[index]) {
+    index += 1;
+  }
+  const up = fromParts.slice(index).map(() => '..');
+  const down = toParts.slice(index);
+  return [...up, ...down].join('/');
+}
+
+function mentionsRelativeImport(content: string, source: string, fromFile: string): boolean {
+  if (!/\.tsx?$/u.test(source)) return false;
+  const sourceDir = source.slice(0, source.lastIndexOf('/'));
+  const fromDir = fromFile.slice(0, fromFile.lastIndexOf('/'));
+  if (!sourceDir || !fromDir) return false;
+  const base = source.slice(source.lastIndexOf('/') + 1).replace(/\.tsx?$/u, '');
+  const relDir = posixRelative(fromDir, sourceDir);
+  const specifiers = relDir === ''
+    ? [`./${base}`, `./${base}.ts`, `./${base}.tsx`]
+    : [`${relDir}/${base}`, `${relDir}/${base}.ts`, `${relDir}/${base}.tsx`];
+  return specifiers.some((specifier) => content.includes(specifier));
+}
+
+/**
+ * Match an exact source path, TS path alias, relative import, or API href.
+ * List routes must not match detail / v2 / active suffixes.
+ */
+export function mentionsEntrypoint(
+  content: string,
+  source: string,
+  fromFile?: string,
+): boolean {
+  const normalized = source.replace(/\\/gu, '/');
+  if (content.includes(normalized)) return true;
+  const atPath = normalized.replace(/^src\//u, '@/');
+  if (content.includes(atPath)) return true;
+  const atPathNoExt = atPath.replace(/\.tsx?$/u, '');
+  if (atPathNoExt !== atPath && content.includes(atPathNoExt)) return true;
+  if (fromFile && mentionsRelativeImport(content, normalized, fromFile.replace(/\\/gu, '/'))) {
+    return true;
+  }
+  if (normalized.startsWith('src/app/api/') && /\/route\.tsx?$/u.test(normalized)) {
+    const href = normalized.slice('src/app'.length).replace(/\/route\.tsx?$/u, '');
+    const escaped = href.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+    return new RegExp(`${escaped}(?![\\w./-])`, 'u').test(content);
+  }
+  return false;
+}
+
 export function hashCandidateSet(candidates: readonly RetirementCandidate[]): string {
   return retirementDigest(
     [...candidates]
@@ -136,10 +202,10 @@ export function hashCandidateSet(candidates: readonly RetirementCandidate[]): st
         sourcePath: row.sourcePath,
         exportName: row.exportName,
         semanticRole: row.semanticRole,
-        replacementContract: row.replacement.contract,
-        replacementSymbol: row.replacement.publicSymbol,
+        replacement: row.replacement,
         migrationRevision: row.migrationRevision,
         retireable: row.retireable,
+        deletionCondition: row.deletionCondition,
       }))
       .sort((a, b) => a.id.localeCompare(b.id)),
   );
