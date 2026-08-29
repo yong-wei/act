@@ -257,20 +257,6 @@ describe('generated content authority — fixture fitness checks', () => {
     };
   }
 
-  it('fails closed when the declared revision is unrelated to the observed HEAD', () => {
-    const report = evaluateGeneratedContentAuthorityFitness({
-      repoRoot: root,
-      evidenceDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
-      declaredDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
-      headRelationOverride: 'UNRELATED',
-    });
-    expect(report.sourceBinding.headRelation).toBe('UNRELATED');
-    for (const row of report.rows) {
-      expect(row.invariantFindings.DOMAIN_OWNERSHIP.reasons.some((reason) => reason.includes('not an ancestor'))).toBe(true);
-    }
-    expect(report.settled).toBe('BLOCKED');
-  });
-
   it('qualifies a clean fixture tree whose evidence, sinks, and dependency are consistent', () => {
     const report = evaluateGeneratedContentAuthorityFitness(fixtureInput());
     expect(report.sourceBinding).toMatchObject({ binding: 'CURRENT', mixedWorktree: expect.anything() });

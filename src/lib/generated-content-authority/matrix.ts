@@ -84,6 +84,12 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/app/api/assessment/generated-candidates/route.ts',
         'src/features/assessment/adaptive-engine.ts',
       ],
+      authorityWriteSites: [
+        'src/features/adaptive-assessment/generated-candidate-persistence.ts（候选/修订/事件/评审/回执唯一持久化入口）',
+        'src/features/adaptive-assessment/generated-candidate-catalog.ts（writeGeneratedCatalogRelease：目录 sidecar 发布写点）',
+        'src/features/adaptive-assessment/adaptive-assessment-semantic-review.ts（人审决策 artifact 落盘）',
+        'src/features/assessment/adaptive-persistence.ts（学生作答持久化权威路径：submitAnswerDurably）',
+      ],
       forbiddenSinkModules: [
         'src/features/adaptive-assessment/generated-candidate-catalog.ts',
         'src/features/adaptive-assessment/generated-catalog-runtime.ts',
@@ -157,6 +163,11 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/assignments/assignment-rubric-generation.ts',
         'src/app/api/teacher/assignments/[assignmentId]/rubric-guidelines/generate/route.ts',
       ],
+      authorityWriteSites: [
+        'src/lib/assignments/assignment-service.ts（publishAssignmentRevision：修订发布与 rubricSnapshot 固化）',
+        'src/lib/assignments/assignment-review.ts（approveTeacherAssignmentReview：approval snapshot + approvedTotal；feedback release）',
+        'src/lib/assignments/submission-service.ts（学生作答/发布修订选择器配套写点）',
+      ],
       forbiddenSinkModules: [
         'src/lib/assignments/assignment-review.ts',
         'src/lib/assignments/assignment-service.ts',
@@ -214,6 +225,12 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/smart-lesson-plan/provider-runtime.ts',
         'src/lib/smart-lesson-plan/service.ts',
         'src/lib/smart-lesson-plan/worker.ts',
+      ],
+      authorityWriteSites: [
+        'src/lib/smart-lesson-plan/service.ts（createSmartLessonTask/updateSmartLessonDraft/approveSmartLessonDraft：任务/草稿/不可变修订全状态机）',
+        'src/lib/smart-lesson-plan/worker.ts（生成 job 状态写点）',
+        'src/lib/smart-lesson-plan/queue.ts（任务状态/入队写点）',
+        'src/lib/smart-lesson-plan/lifecycle.ts（archive/delete）',
       ],
       forbiddenSinkModules: [
         'src/lib/smart-courseware/publication-service.ts',
@@ -275,6 +292,14 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/smart-courseware/module-regeneration-service.ts',
         'src/lib/smart-courseware/worker.ts',
       ],
+      authorityWriteSites: [
+        'src/lib/smart-courseware/service.ts（approveSmartCoursewareDraft：修订创建）',
+        'src/lib/smart-courseware/publication-service.ts（publishSmartCoursewareRevision：发布回执/投影/操作幂等）',
+        'src/lib/smart-courseware/generation-service.ts（generation job/unit/attempt 状态写点）',
+        'src/lib/smart-courseware/module-regeneration-service.ts（模块候选生成/接受）',
+        'src/lib/smart-courseware/worker.ts（job 状态写点）',
+        'src/lib/smart-courseware/queue.ts（入队）',
+      ],
       forbiddenSinkModules: [
         'src/lib/smart-courseware/publication-service.ts',
         'src/lib/assignments/assignment-review.ts',
@@ -319,6 +344,18 @@ export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toModu
       'src/lib/smart-lesson-plan/schema.ts',
     ],
   },
+];
+
+/**
+ * 权威模型的 Prisma 写调用只允许出现在矩阵登记的 authorityWriteSites 内；
+ * 该名单是 default-deny 的白名单——全域扫描发现的任何未登记写点即违例。
+ */
+export const AUTHORITY_WRITE_MODEL_PATTERN = /\b(?:prisma|db|tx)\s*\.\s*(learningFact|adaptiveAssessmentGeneratedCandidate|adaptiveAssessmentGeneratedCandidateRevision|adaptiveAssessmentGeneratedCandidateEvent|adaptiveAssessmentGeneratedCandidateReview|adaptiveAssessmentGeneratedPublicationReceipt|assignmentRevision|assignmentQuestion|assignmentPublicationOperation|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartLessonDraft|smartLessonTask|smartCoursewareRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationReceipt|smartCoursewarePublicationOperation|smartCoursewareModule|smartCoursewareModuleRevision)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
+
+/** provider/AI 调用点发现：import 这些模块即视为生成入口，必须登记。 */
+export const PROVIDER_DISCOVERY_PATTERNS: readonly RegExp[] = [
+  /from\s+['"]@\/lib\/ai\/provider-registry['"]/u,
+  /from\s+['"]ai['"]/u,
 ];
 
 /** 四域根目录（未登记生成模块的发现范围）。 */

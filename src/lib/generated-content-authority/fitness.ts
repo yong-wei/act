@@ -11,8 +11,10 @@ import {
   ASSESSMENT_DEPENDENCY_EVIDENCE,
   DECLARED_CROSS_DOMAIN_IMPORT_PATHS,
   FORBIDDEN_SHARED_MODEL_PATTERNS,
+  AUTHORITY_WRITE_MODEL_PATTERN,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   GENERATED_CONTENT_DOMAIN_ROOTS,
+  PROVIDER_DISCOVERY_PATTERNS,
 } from './matrix';
 import type { GeneratedContentAuthorityRow } from './vocabulary';
 import {
@@ -305,6 +307,77 @@ export function scanAuthoritySinkImports(
   return blocked;
 }
 
+/** 域内权威写点扫描的分母：域根 tracked 源文件 + 声明模块（排除测试/豁免/治理模块自身）。 */
+function collectDomainScanFiles(
+  repoRoot: string,
+  domainRoots: readonly string[],
+  registeredModules: readonly string[],
+  exemptions: readonly string[],
+  tracked: ReadonlySet<string>,
+): Set<string> {
+  const scope = new Set<string>();
+  const isExempt = (path: string): boolean => (exemptions ?? []).some((exempt) => path.startsWith(exempt.split('（')[0]));
+  for (const root of domainRoots) {
+    for (const path of tracked) {
+      if (!path.startsWith(root)) continue;
+      if (path.includes('__tests__/') || /\.test\.[cm]?[jt]sx?$/u.test(path)) continue;
+      if (isExempt(path)) continue;
+      scope.add(path);
+    }
+  }
+  for (const modulePath of registeredModules) {
+    if (!isExempt(modulePath)) scope.add(modulePath);
+  }
+  return scope;
+}
+
+/**
+ * default-deny 权威写扫描（task 3.1 的封闭实现）：
+ * 1. 权威模型写调用（AUTHORITY_WRITE_MODEL_PATTERN）只允许出现在矩阵登记的
+ *    authorityWriteSites 文件内——新文件、API 路由、绕过 writer 的直写默认违例；
+ * 2. provider/AI 调用点（PROVIDER_DISCOVERY_PATTERNS）必须登记于 generationModules，
+ *    且 provider 文件内不得同时出现权威模型写调用（AI 路径与权威写入隔离）。
+ */
+export function scanDomainAuthorityWrites(
+  repoRoot: string,
+  options: {
+    domainRoots: readonly string[];
+    authorityWriteSites: readonly string[];
+    registeredProviderModules: readonly string[];
+    exemptions: readonly string[];
+  },
+): { unauthorizedWrites: string[]; unregisteredProviders: string[] } {
+  const tracked = gitLsFiles(repoRoot);
+  const writeSites = new Set(
+    options.authorityWriteSites.map((site) => site.split('（')[0].trim()),
+  );
+  const registeredProviders = new Set(options.registeredProviderModules);
+  const unauthorizedWrites: string[] = [];
+  const unregisteredProviders: string[] = [];
+
+  for (const path of collectDomainScanFiles(
+    repoRoot,
+    options.domainRoots,
+    options.registeredProviderModules,
+    options.exemptions,
+    tracked,
+  )) {
+    const absolute = join(repoRoot, path);
+    if (!existsSync(absolute)) continue;
+    const content = readFileSync(absolute, 'utf8');
+    const isWriteSite = writeSites.has(path);
+
+    if (AUTHORITY_WRITE_MODEL_PATTERN.test(content) && !isWriteSite) {
+      unauthorizedWrites.push(`unregistered authority-model write: ${path} (declare it in authorityWriteSites or route the write through the domain writer)`);
+    }
+    const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content));
+    if (isProviderCallSite && !registeredProviders.has(path)) {
+      unregisteredProviders.push(path);
+    }
+  }
+  return { unauthorizedWrites, unregisteredProviders };
+}
+
 /**
  * 跨域深 import 检查：生成模块不得 import 其它生成域内部，
  * 除非 (from,to) 落在 DECLARED_CROSS_DOMAIN_IMPORT_PATHS 允许边内。
@@ -459,7 +532,6 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     declaredRevision: declared,
     observedRevision: observed,
     binding: bindingState,
-    headRelation,
     mixedWorktree,
   };
 
@@ -491,12 +563,6 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     if (binding.binding === 'UNOBSERVED') {
       failInvariant(findings, 'DOMAIN_OWNERSHIP', 'evidence digest unobservable (fail-closed)');
     }
-    if (binding.headRelation === 'UNRELATED') {
-      failInvariant(findings, 'DOMAIN_OWNERSHIP', `declared source revision ${declared} is not an ancestor of observed HEAD (unreconciled governance content)`);
-    }
-    if (binding.headRelation === 'UNOBSERVED') {
-      failInvariant(findings, 'DOMAIN_OWNERSHIP', 'HEAD unobservable; source revision lineage unverifiable (fail-closed)');
-    }
 
     checkRowContractFields(row, findings);
     checkRowEvidencePresence(repoRoot, row, findings);
@@ -513,6 +579,23 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
       if (receipt.revision !== rowSourceRevision) {
         failInvariant(findings, 'DOMAIN_OWNERSHIP', `qa receipt revision ${receipt.revision} != reconciled source revision ${rowSourceRevision}`);
       }
+    }
+
+    // default-deny 权威写点发现（task 3.1 的封闭实现）：
+    // 全域 tracked 源文件中对权威模型的 Prisma 写调用必须落在矩阵登记的
+    // authorityWriteSites 内——新文件、API 路由、绕过 writer 的直写默认违例
+    const domainRoots = GENERATED_CONTENT_DOMAIN_ROOTS[row.domain];
+    const { unauthorizedWrites, unregisteredProviders } = scanDomainAuthorityWrites(repoRoot, {
+      domainRoots,
+      authorityWriteSites: row.authorityWriteSites,
+      registeredProviderModules: row.generationModules,
+      exemptions: row.sinkScanExemptions ?? [],
+    });
+    for (const violation of unauthorizedWrites) {
+      failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', violation);
+    }
+    for (const providerModule of unregisteredProviders) {
+      failInvariant(findings, 'DOMAIN_OWNERSHIP', `unregistered provider/generation entry: ${providerModule} (declare it in generationModules or remove the AI call)`);
     }
 
     for (const violation of crossDomainViolations) {
@@ -557,7 +640,6 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
   const settledStatus: GeneratedContentAuthorityStatus = rows.every((row) => row.status === 'QUALIFIED')
     && violations.length === 0
     && binding.binding === 'CURRENT'
-    && binding.headRelation === 'ANCESTOR'
     ? 'QUALIFIED'
     : 'BLOCKED';
 
@@ -581,9 +663,6 @@ export function assertGeneratedContentAuthorityFitness(
   }
   if (options.requireCleanWorktree && report.sourceBinding.mixedWorktree) {
     problems.push('worktree is mixed; governance evidence requires a clean tree');
-  }
-  if (options.requireReconciledHead && report.sourceBinding.headRelation !== 'ANCESTOR') {
-    problems.push(`declared source revision is ${report.sourceBinding.headRelation} relative to HEAD; re-run reconciliation`);
   }
   if (problems.length === 0) return;
 

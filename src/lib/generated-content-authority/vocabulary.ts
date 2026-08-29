@@ -75,8 +75,13 @@ export interface GeneratedContentAuthorityRow {
     readonly reference: string;
     readonly consumerBinding?: string;
   };
-  /** 参与来源扫描的生成/提供方模块（仓库相对路径） */
+  /** 登记的 provider/AI 生成入口模块（全域发现到的未登记调用点即违例） */
   readonly generationModules: readonly string[];
+  /**
+   * 合法权威写点文件：对本域权威模型（修订/回执/发布/评分等）的
+   * Prisma 写调用只允许出现在这些文件内；域根外新增写点默认违例。
+   */
+  readonly authorityWriteSites: readonly string[];
   /** 这些模块禁止 import 的权威 sink 模块 */
   readonly forbiddenSinkModules: readonly string[];
   /** 域根内合法的 sink 消费方（公共 API/桶导出等），豁免于根级 sink 扫描 */
@@ -118,10 +123,8 @@ export interface GeneratedContentFitnessReport {
     readonly declaredRevision: string;
     /** 当前观测 HEAD（上下文信息；绑定判定用证据摘要） */
     readonly observedRevision: string | null;
-    /** 绑定判定 = 矩阵 evidenceDigest 与当前证据文件的 sha256 摘要一致 */
+    /** 绑定判定 = 矩阵 evidenceDigest 与当前证据/治理文件内容的 sha256 摘要一致（纯内容寻址，squash 无关） */
     readonly binding: 'CURRENT' | 'STALE' | 'UNOBSERVED';
-    /** 声明修订与观测 HEAD 的谱系关系：仅 ANCESTOR 可收敛（UNRELATED/UNOBSERVED fail-closed） */
-    readonly headRelation: 'ANCESTOR' | 'UNRELATED' | 'UNOBSERVED';
     readonly mixedWorktree: boolean;
   };
   readonly rows: ReadonlyArray<{

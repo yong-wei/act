@@ -60,3 +60,11 @@
 1. **P1 未登记生成模块发现**：sink 扫描分母从"声明 generationModules"扩展为"声明模块 ∪ 四域根内全部 tracked 源文件"（排除 `__tests__`/`*.test.*` 与各行声明的合法消费方豁免：assessment 的 catalog-selector/runtime/persistence、assignments 的 route-guards/public-api、courseware 的 index.ts 桶导出）；rogue generator 直接 import 权威 sink 必被拦截（fixture 测试锁定）。
 2. **P1 目录摘要限定跟踪文件**：递归散列与单文件摘要均以 `git ls-files` 为准——`.DS_Store`、`*.log` 等未跟踪本地文件不再阻断绑定判定（脏工作树语义由 mixedWorktree 单独承载）。
 3. **P1 QA 回执修订绑定**：每条回执的 `revision` 必须等于行 `sourceRevision`（对账修订），否则行 NOT_QUALIFIED；reference 格式（内容寻址/仓库路径）已在 privacy 层强制。
+
+## 根源重构：default-deny 权威写点发现（2026-08-29，PR #1693）
+
+前五轮 finding 全为同一不变量的症状：**手工枚举的分母天然不封闭**（枚举生成模块漏 API 路由与新文件、枚举 sink 模块被 `prisma.*.createMany` 直写绕过、枚举历史锚点被 squash 破坏）。本轮将扫描模型反转为 default-deny 封闭结构：
+
+1. **权威写点发现**（替换 sink 模块 import 扫描）：全域 tracked 源文件按 `AUTHORITY_WRITE_MODEL_PATTERN`（learningFact/AssignmentRevision/SmartCoursewarePublicationRevision 等权威模型的 prisma 写调用）扫描，每个写点必须落在矩阵登记的 `authorityWriteSites` 白名单内——新文件、API 路由、绕过 writer 的直写默认违例，无需预先登记生成器。
+2. **provider 登记制**：全域发现 `@/lib/ai/provider-registry` 与 `'ai'` 调用点，未登记于 `generationModules` 即违例（AI 入口必须显式对账）。
+3. **纯内容寻址绑定**：删除 merge-base headRelation（squash 破坏谱系）；绑定判定 = evidenceDigest（含治理文件语义，排除 digest 字段自引用）与当前内容一致——squash/历史重写不影响判定，仅真实内容漂移触发 STALE。
