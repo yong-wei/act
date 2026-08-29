@@ -114,6 +114,10 @@ describe('candidate authoritative V2 routes', () => {
     mocks.getServerSession.mockResolvedValue(session('ADMIN'));
     const admin = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
     expect(admin.status).toBe(200);
+    const body = await admin.json() as { knowledgeSurface?: { authority?: { snapshotId: string | null; snapshotHash: string | null; releaseId: string } } };
+    expect(body.knowledgeSurface?.authority?.releaseId).toBe('control-theory-engineering-v0.2');
+    expect(body.knowledgeSurface?.authority?.snapshotId).toBeNull();
+    expect(body.knowledgeSurface?.authority?.snapshotHash).toBeNull();
     mocks.getServerSession.mockResolvedValue(session('SUPERUSER'));
     const forbidden = await getCanvas(new Request('http://localhost/api/knowledge/graph/v2'));
     expect(forbidden.status).toBe(403);
