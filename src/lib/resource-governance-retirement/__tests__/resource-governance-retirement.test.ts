@@ -430,6 +430,20 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     });
     expect(globBlocked.status).toBe('blocked');
     expect(looksLikeDirectoryOrGlob('src/lib/obsolete-*')).toBe(true);
+
+    const emptyListed = deleteRetired({
+      receiptId: 'del-empty',
+      manifest,
+      graph,
+      listedPaths: [],
+      fs: memoryFs({ 'src/lib/obsolete-registry-read.ts': 'x' }),
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T01:00:00.000Z',
+    });
+    expect(emptyListed.status).toBe('blocked');
+    expect(emptyListed.reasons).toContain('listed-paths-empty');
+    expect(emptyListed.reducedLedger).toBeNull();
   });
 
   it('fails closed when a caller appears between scan and deletion', () => {

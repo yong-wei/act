@@ -156,6 +156,10 @@ export function deleteRetiredResourceGovernanceEntrypoints(
       .map((candidate) => candidate.sourcePath.replace(/\\/gu, '/')),
   );
 
+  if (input.listedPaths.length === 0) {
+    return blocked(['listed-paths-empty']);
+  }
+
   for (const listed of input.listedPaths) {
     if (looksLikeDirectoryOrGlob(listed) || input.fs.isDirectory(listed)) {
       return blocked([`directory-or-glob-deletion:${listed}`]);
@@ -297,7 +301,9 @@ export function deleteRetiredResourceGovernanceEntrypoints(
       deletedPaths.includes(entry.sourcePath.replace(/\\/gu, '/')),
     );
     if (
-      ledgerReasons.length > 0
+      deletedPaths.length === 0
+      || deletedEntries.length !== deletedPaths.length
+      || ledgerReasons.length > 0
       || deletedEntries.some((entry) => entry.state !== 'deleted' || entry.consumers.length > 0)
     ) {
       restoreDeleted();

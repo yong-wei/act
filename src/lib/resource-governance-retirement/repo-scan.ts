@@ -132,14 +132,32 @@ function parseGitPorcelainPath(line: string): string[] {
 /**
  * Exclusive lock covering final worktree recapture through unlink.
  * Fail closed if another retirement deletion already holds the lock.
+ * Uses `git rev-parse --absolute-git-dir` so linked worktrees lock the real
+ * Git directory instead of a `.git` gitfile.
  */
 export function holdRetirementWorktreeLock(repoRoot: string): RetirementWorktreeLock {
-  const lockPath = join(repoRoot, '.git', 'resource-governance-retirement.lock');
+  let gitDir: string;
+  try {
+    gitDir = gitText(repoRoot, ['rev-parse', '--absolute-git-dir']).trim();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown';
+    throw new Error(`worktree-lock-git-dir:${detail}`);
+  }
+  if (!gitDir) {
+    throw new Error('worktree-lock-git-dir-empty');
+  }
+  const lockPath = join(gitDir, 'resource-governance-retirement.lock');
   let fd: number;
   try {
     fd = openSync(lockPath, 'wx');
-  } catch {
-    throw new Error('worktree-lock-busy');
+  } catch (error) {
+    const code = error && typeof error === 'object' && 'code' in error
+      ? String((error as { code?: string }).code ?? '')
+      : '';
+    if (code === 'EEXIST') {
+      throw new Error('worktree-lock-busy');
+    }
+    throw new Error(`worktree-lock-open-failed:${code || 'unknown'}`);
   }
   writeFileSync(fd, `${process.pid}\n`);
   let released = false;
