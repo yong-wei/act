@@ -87,6 +87,12 @@ export function candidateProjectionResponse<T extends object>(
       kind: context.kind,
       surfaceKey: context.surfaceKey,
     });
+    if (surface.status === 'identity-unavailable') {
+      return NextResponse.json(
+        { error: 'Candidate graph identity is unavailable.', code: 'CANDIDATE_GRAPH_IDENTITY_UNAVAILABLE' },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       surface.status === 'ok'
         ? withKnowledgeSurface(projection, surface.knowledgeSurface)

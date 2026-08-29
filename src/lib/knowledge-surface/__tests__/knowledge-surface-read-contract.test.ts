@@ -5,6 +5,8 @@ import {
   KnowledgeSurfaceCache,
   buildKnowledgeSurfaceCacheKey,
   classifyLearningContentManifest,
+  closeResourceBlockWithRegistryIndex,
+  knowledgeSurfaceFromCandidateProjection,
   knowledgeSurfaceFromLearnerShard,
   projectSourceOwnedLaunchDescriptor,
   readKnowledgeSurface,
@@ -309,5 +311,167 @@ describe('readKnowledgeSurface contract', () => {
     expect(result.knowledgeSurface.blocks.engineering.status).toBe('available');
     expect(result.knowledgeSurface.blocks.teaching.status).toBe('identity-mismatch');
     expect(result.knowledgeSurface.teaching).toBeNull();
+  });
+});
+
+describe('RegistryIndex resource closure', () => {
+  const capture = 'a'.repeat(40);
+  const href = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
+
+  function indexAt(revision: string, launcherRef = href) {
+    return {
+      contract: 'resource-registry-index/v1' as const,
+      generatorVersion: 'resource-registry-index.v1',
+      identity: '1'.repeat(64),
+      digest: '2'.repeat(64),
+      captures: [{
+        owner: 'resource-registry-metadata',
+        sourceKind: 'render-metadata' as const,
+        adapterVersion: 'render-metadata.v1',
+        inputDigest: '3'.repeat(64),
+        recordCount: 1,
+        sharedRevision: revision,
+      }],
+      entries: [{
+        descriptor: {
+          identity: {
+            key: 'k1',
+            sourceKind: 'render-metadata' as const,
+            sourceRef: 'unit-1-1-see-the-full-picture',
+            sourceVersion: 'render-metadata.v1',
+            contentHash: '4'.repeat(64),
+            scope: 'registry',
+          },
+          title: '看见全貌',
+          type: 'INTERACTIVE_COMP',
+          availability: 'available' as const,
+          availabilityCode: 'available',
+          status: '可用。',
+          foreignRefs: { registryId: 'unit-1-1-see-the-full-picture' },
+          launcher: {
+            contractClass: 'owned-route',
+            contractVersion: 'resource-launch-route.v1',
+            launcherRef,
+          },
+        },
+        access: {},
+        required: true,
+      }],
+    };
+  }
+
+  const availableBindings = {
+    state: 'available' as const,
+    items: [{
+      title: '看见全貌',
+      bindingRole: '讲解' as const,
+      resourceKind: '课程',
+      availability: 'available' as const,
+      launch: { kind: 'registry-resource' as const, href },
+    }],
+  };
+
+  it('binds RegistryIndex identity only when capture revision and entries close', () => {
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: availableBindings,
+      index: indexAt(capture),
+      expectedCaptureRevision: capture,
+    });
+    expect(closed.registryIndex?.identity).toBe('1'.repeat(64));
+    expect(closed.registryIndex?.captureRevision).toBe(capture);
+    expect(closed.bindings.state).toBe('available');
+  });
+
+  it('fails closed when live index capture differs from Teaching Projection revision', () => {
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: availableBindings,
+      index: indexAt('b'.repeat(40)),
+      expectedCaptureRevision: capture,
+    });
+    expect(closed.registryIndex).toBeNull();
+    expect(closed.bindings).toEqual({
+      state: 'unavailable',
+      message: '当前系统资源与所选对象身份不一致。',
+    });
+  });
+
+  it('fails closed when returned launch items are not in the index', () => {
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: availableBindings,
+      index: indexAt(capture, '/interactive-learning/courses/other-course'),
+      expectedCaptureRevision: capture,
+    });
+    expect(closed.registryIndex).toBeNull();
+    expect(closed.bindings.state).toBe('unavailable');
+  });
+});
+
+describe('candidate knowledge-surface identity', () => {
+  it('does not alias sourceDatasetHash or releaseHash as snapshot identity', () => {
+    const dataset = 'c'.repeat(64);
+    const releaseHash = 'd'.repeat(64);
+    const result = knowledgeSurfaceFromCandidateProjection({
+      source: {
+        authorityState: 'candidate',
+        releaseSetId: 'actkg-authoritative-candidate-v2',
+        releaseId: 'control-theory-engineering-v0.2',
+        productionAuthoritative: false,
+        historical: false,
+        sourceDatasetHash: dataset,
+        releaseHash,
+      },
+      role: 'ADMIN',
+      surfaceKey: 'canvas',
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.authority.snapshotId).toBeNull();
+    expect(result.knowledgeSurface.authority.snapshotHash).toBeNull();
+    expect(result.knowledgeSurface.authority.sourceDatasetHash).toBe(dataset);
+    expect(result.knowledgeSurface.authority.releaseHash).toBe(releaseHash);
+    expect(result.knowledgeSurface.authority.snapshotId).not.toBe(dataset);
+    expect(result.knowledgeSurface.authority.snapshotHash).not.toBe(releaseHash);
+    expect(result.knowledgeSurface.mode).toBe('candidate');
+  });
+
+  it('fails closed when an incomplete Authority snapshot overlay is supplied', () => {
+    const result = knowledgeSurfaceFromCandidateProjection({
+      source: {
+        authorityState: 'candidate',
+        releaseSetId: 'actkg-authoritative-candidate-v2',
+        releaseId: 'control-theory-engineering-v0.2',
+        productionAuthoritative: false,
+        historical: false,
+      },
+      role: 'ADMIN',
+      surfaceKey: 'canvas',
+      authoritySnapshot: { snapshotId: 'snap-1', snapshotHash: '' },
+    });
+    expect(result).toEqual({
+      status: 'identity-unavailable',
+      reason: 'candidate-snapshot-identity-incomplete',
+    });
+  });
+
+  it('binds a real Authority snapshot overlay without rewriting candidate release fields', () => {
+    const result = knowledgeSurfaceFromCandidateProjection({
+      source: {
+        authorityState: 'candidate',
+        releaseSetId: 'set-1',
+        releaseId: 'rel-1',
+        productionAuthoritative: false,
+        historical: false,
+        sourceDatasetHash: 'c'.repeat(64),
+      },
+      role: 'ADMIN',
+      surfaceKey: 'n1',
+      authoritySnapshot: { snapshotId: 'snap-real', snapshotHash: 'e'.repeat(64) },
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.authority.snapshotId).toBe('snap-real');
+    expect(result.knowledgeSurface.authority.snapshotHash).toBe('e'.repeat(64));
+    expect(result.knowledgeSurface.authority.releaseId).toBe('rel-1');
+    expect(result.knowledgeSurface.authority.sourceDatasetHash).toBe('c'.repeat(64));
   });
 });

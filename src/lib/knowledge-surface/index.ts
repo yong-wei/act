@@ -47,13 +47,19 @@ export {
 } from './read';
 
 export {
+  closeResourceBlockWithLiveRegistryIndex,
+  closeResourceBlockWithRegistryIndex,
+  tryLiveRegistryIndexIdentity,
+} from './registry-closure';
+
+export {
+  candidateAuthorityIdentity,
   knowledgeSurfaceFromActiveProvenance,
   knowledgeSurfaceFromCandidateProjection,
   knowledgeSurfaceFromLearnerShard,
   knowledgeSurfaceFromLegacyGraph,
   requireKnowledgeSurface,
   surfaceKeyForShard,
-  tryLiveRegistryIndexIdentity,
 } from './envelope';
 
 export { knowledgeSurfaceSelectorRejection } from './http';

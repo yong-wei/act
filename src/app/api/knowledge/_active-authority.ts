@@ -55,7 +55,7 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
-import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
+import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
 import {
@@ -65,14 +65,14 @@ import {
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
 import {
+  closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
   knowledgeSurfaceFromLearnerShard,
   knowledgeSurfaceSelectorRejection,
   sanitizePublicLaunchHref,
-  tryLiveRegistryIndexIdentity,
   withKnowledgeSurface,
 } from '@/lib/knowledge-surface';
-import type { KnowledgeSurfaceKind } from '@/lib/knowledge-surface';
+import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 
 export const ACTIVE_GRAPH_SUPPORT = {
@@ -536,21 +536,30 @@ export function activeShardResponse<T extends AuthorityLearnerShard>(
 function sanitizeResourceBindings(
   bindings: ActiveNodeResourceBindings,
   nodeId: string,
-): ActiveNodeResourceBindings {
-  if (bindings.state !== 'available') return bindings;
-  if (!tryLiveRegistryIndexIdentity()) {
-    return { state: 'unavailable', message: '当前系统资源暂时不可用。' };
+  expectedCaptureRevision: string | null,
+): {
+  bindings: ActiveNodeResourceBindings;
+  registryIndex: KnowledgeSurfaceRegistryIndexIdentity | null;
+} {
+  const closed = closeResourceBlockWithLiveRegistryIndex({
+    bindings,
+    expectedCaptureRevision,
+  });
+  if (closed.bindings.state !== 'available') {
+    return { bindings: closed.bindings, registryIndex: null };
   }
+  const items = closed.bindings.items.map((item) => {
+    const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
+    return {
+      ...item,
+      availability: href ? 'available' as const : 'unavailable' as const,
+      launch: { ...item.launch, href },
+    };
+  });
+  const stillAvailable = items.some((item) => item.availability === 'available');
   return {
-    state: 'available',
-    items: bindings.items.map((item) => {
-      const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
-      return {
-        ...item,
-        availability: href ? 'available' : 'unavailable',
-        launch: { ...item.launch, href },
-      };
-    }),
+    bindings: { state: 'available', items },
+    registryIndex: stillAvailable ? closed.registryIndex : null,
   };
 }
 
@@ -600,10 +609,13 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
         ?? projectActiveNodeMathematics(detail.node.teachingFields);
-      const resourceBindings = sanitizeResourceBindings(
+      const teachingCaptureRevision = readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
+      const closedResources = sanitizeResourceBindings(
         attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
         (raw as AuthorityNodeDetailShard).node.id,
+        teachingCaptureRevision,
       );
+      const resourceBindings = closedResources.bindings;
       const { teachingFields: _teachingFields, ...studentNode } = detail.node;
       const payload = {
         ...detail,
@@ -616,6 +628,8 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
         role: surfaceRole,
         locale: resolved.locale,
         resourceBindings,
+        registryIndex: closedResources.registryIndex,
+        teachingCaptureRevision,
       });
       return NextResponse.json(
         surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,

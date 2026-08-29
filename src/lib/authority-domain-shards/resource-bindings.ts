@@ -116,10 +116,12 @@ export function projectAuthorityNodeResourceBindings(input: {
   return { state: 'available', items };
 }
 
-export function attachActiveAuthorityResourceBindings(
-  shard: AuthorityNodeDetailShard,
-  viewerRole?: KnowledgeRole,
-): ActiveNodeResourceBindings {
+function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
+  status: 'unavailable' | 'mismatch' | 'available';
+  authoringRevision: string | null;
+  bindings?: readonly TeachingBindingRuntime[];
+  resources?: readonly TeachingResourceRuntime[];
+} {
   const teaching = shard.envelope.teaching;
   if (
     shard.envelope.match.teaching !== true
@@ -127,13 +129,13 @@ export function attachActiveAuthorityResourceBindings(
     || !teaching.projectionId
     || !teaching.projectionHash
   ) {
-    return { state: 'unavailable', message: '当前系统资源暂时不可用。' };
+    return { status: 'unavailable', authoringRevision: null };
   }
   const active = resolveActiveTeachingProjection(
     resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
   );
   if (active.status !== 'available' || !active.staged?.artifacts.gate.passed) {
-    return { state: 'unavailable', message: '当前系统资源暂时不可用。' };
+    return { status: 'unavailable', authoringRevision: null };
   }
   const authority = shard.envelope.authority;
   const manifest = active.staged.artifacts.manifest;
@@ -145,12 +147,38 @@ export function attachActiveAuthorityResourceBindings(
     || manifest.authoritySnapshotId !== authority.snapshotId
     || manifest.authoritySnapshotHash !== authority.snapshotHash
   ) {
+    return { status: 'mismatch', authoringRevision: null };
+  }
+  return {
+    status: 'available',
+    authoringRevision: manifest.authoringRevision,
+    bindings: active.staged.artifacts.bindings,
+    resources: active.staged.artifacts.resources,
+  };
+}
+
+export function readActiveTeachingCaptureRevision(
+  shard: AuthorityNodeDetailShard,
+): string | null {
+  const matched = matchActiveTeachingProjection(shard);
+  return matched.status === 'available' ? matched.authoringRevision : null;
+}
+
+export function attachActiveAuthorityResourceBindings(
+  shard: AuthorityNodeDetailShard,
+  viewerRole?: KnowledgeRole,
+): ActiveNodeResourceBindings {
+  const matched = matchActiveTeachingProjection(shard);
+  if (matched.status === 'unavailable') {
+    return { state: 'unavailable', message: '当前系统资源暂时不可用。' };
+  }
+  if (matched.status !== 'available' || !matched.bindings || !matched.resources) {
     return { state: 'unavailable', message: '当前系统资源与所选对象身份不一致。' };
   }
   return projectAuthorityNodeResourceBindings({
     nodeId: shard.node.id,
-    bindings: active.staged.artifacts.bindings,
-    resources: active.staged.artifacts.resources,
+    bindings: matched.bindings,
+    resources: matched.resources,
     viewerRole,
   });
 }

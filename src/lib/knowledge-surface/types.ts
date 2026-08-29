@@ -30,8 +30,8 @@ export type KnowledgeSurfaceBlockStatus = (typeof KNOWLEDGE_SURFACE_BLOCK_STATUS
 export type KnowledgeSurfaceRole = KnowledgeRole | 'NONE';
 
 export interface KnowledgeSurfaceAuthorityIdentity {
-  snapshotId: string;
-  snapshotHash: string;
+  snapshotId: string | null;
+  snapshotHash: string | null;
   releaseId: string;
   releaseSetId: string;
   activationId?: string | null;
@@ -53,6 +53,7 @@ export interface KnowledgeSurfaceRegistryIndexIdentity {
   contract: string;
   identity: string;
   digest: string;
+  captureRevision?: string | null;
 }
 
 export interface KnowledgeSurfaceMathIdentity {
@@ -110,4 +111,5 @@ export interface KnowledgeSurfaceReadRequest {
 
 export type KnowledgeSurfaceReadResult =
   | { status: 'selector-rejected'; parameter: string }
+  | { status: 'identity-unavailable'; reason: string }
   | { status: 'ok'; knowledgeSurface: KnowledgeSurfaceResponse; cacheKey: string };

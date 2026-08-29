@@ -10,13 +10,10 @@ import type {
 import type { KnowledgeRole } from '@/lib/authoritative-knowledge/contracts';
 import type { ProjectionIdentity } from '@/lib/authoritative-knowledge/contracts';
 import { GOVERNED_MATH_PRESENTATION_BUNDLE } from '@/lib/governed-math/sidecar';
-import {
-  getLiveResourceRegistryIndex,
-} from '@/features/knowledge/resource-index/public-api';
-
 import { readLearningContentManifestClassification } from './learning-content';
 import { readKnowledgeSurface } from './read';
 import type {
+  KnowledgeSurfaceAuthorityIdentity,
   KnowledgeSurfaceKind,
   KnowledgeSurfaceMode,
   KnowledgeSurfaceReadResult,
@@ -34,19 +31,6 @@ const SHARD_KIND: Record<AuthorityShardClass, KnowledgeSurfaceKind> = {
   'node-detail': 'detail',
 };
 
-export function tryLiveRegistryIndexIdentity(): KnowledgeSurfaceRegistryIndexIdentity | null {
-  try {
-    const index = getLiveResourceRegistryIndex();
-    return {
-      contract: index.contract,
-      identity: index.identity,
-      digest: index.digest,
-    };
-  } catch {
-    return null;
-  }
-}
-
 export function surfaceKeyForShard(shard: AuthorityLearnerShard): string {
   switch (shard.shardClass) {
     case 'root':
@@ -62,7 +46,10 @@ export function surfaceKeyForShard(shard: AuthorityLearnerShard): string {
   }
 }
 
-function teachingFromShard(shard: AuthorityLearnerShard): {
+function teachingFromShard(
+  shard: AuthorityLearnerShard,
+  captureRevision?: string | null,
+): {
   teaching: KnowledgeSurfaceTeachingIdentity | null;
   teachingMatch: boolean | null;
 } {
@@ -80,6 +67,7 @@ function teachingFromShard(shard: AuthorityLearnerShard): {
         projectionHash: teaching.projectionHash,
         cacheFamily: teaching.teachingCacheFamily,
         scopeId: teaching.teachingCacheFamily,
+        captureRevision: captureRevision ?? null,
       },
       teachingMatch: true,
     };
@@ -92,15 +80,20 @@ export function knowledgeSurfaceFromLearnerShard(input: {
   role: KnowledgeSurfaceRole;
   locale: string;
   resourceBindings?: ActiveNodeResourceBindings | null;
+  registryIndex?: KnowledgeSurfaceRegistryIndexIdentity | null;
+  teachingCaptureRevision?: string | null;
   classifyLearningContent?: boolean;
 }): KnowledgeSurfaceReadResult {
-  const { teaching, teachingMatch } = teachingFromShard(input.shard);
+  const { teaching, teachingMatch } = teachingFromShard(
+    input.shard,
+    input.teachingCaptureRevision,
+  );
   const resourceBindings = input.resourceBindings;
   const includeResourceContent = input.shard.shardClass === 'node-detail'
     && resourceBindings != null
     && resourceBindings.state !== 'empty';
   const registryIndex = includeResourceContent && resourceBindings.state === 'available'
-    ? tryLiveRegistryIndexIdentity()
+    ? (input.registryIndex ?? null)
     : null;
   const learningContentStatus = input.shard.shardClass !== 'node-detail' || input.classifyLearningContent === false
     ? 'not-applicable'
@@ -172,28 +165,53 @@ export function knowledgeSurfaceFromActiveProvenance(input: {
   });
 }
 
+export function candidateAuthorityIdentity(
+  source: ProjectionIdentity,
+  authoritySnapshot?: { snapshotId: string; snapshotHash: string } | null,
+):
+  | { status: 'ok'; authority: KnowledgeSurfaceAuthorityIdentity }
+  | { status: 'identity-unavailable'; reason: string } {
+  if (!source.releaseId || !source.releaseSetId) {
+    return { status: 'identity-unavailable', reason: 'candidate-release-identity-missing' };
+  }
+  const snapshotId = authoritySnapshot?.snapshotId?.trim() || null;
+  const snapshotHash = authoritySnapshot?.snapshotHash?.trim() || null;
+  if ((snapshotId && !snapshotHash) || (!snapshotId && snapshotHash)) {
+    return { status: 'identity-unavailable', reason: 'candidate-snapshot-identity-incomplete' };
+  }
+  return {
+    status: 'ok',
+    authority: {
+      snapshotId,
+      snapshotHash,
+      releaseId: source.releaseId,
+      releaseSetId: source.releaseSetId,
+      releaseHash: source.releaseHash ?? null,
+      sourceDatasetHash: source.sourceDatasetHash ?? null,
+      projectionDigest: source.projectionDigest ?? null,
+    },
+  };
+}
+
 export function knowledgeSurfaceFromCandidateProjection(input: {
   source: ProjectionIdentity;
   role: KnowledgeRole;
   kind?: KnowledgeSurfaceKind;
   surfaceKey: string;
   locale?: string;
+  authoritySnapshot?: { snapshotId: string; snapshotHash: string } | null;
 }): KnowledgeSurfaceReadResult {
+  const identity = candidateAuthorityIdentity(input.source, input.authoritySnapshot);
+  if (identity.status !== 'ok') {
+    return { status: 'identity-unavailable', reason: identity.reason };
+  }
   return readKnowledgeSurface({
     mode: 'candidate',
     kind: input.kind ?? 'candidate-diagnostic',
     role: input.role,
     locale: input.locale ?? 'zh-CN',
     surfaceKey: input.surfaceKey,
-    authority: {
-      snapshotId: input.source.sourceDatasetHash ?? input.source.releaseId,
-      snapshotHash: input.source.releaseHash ?? input.source.sourceDatasetHash ?? input.source.releaseId,
-      releaseId: input.source.releaseId,
-      releaseSetId: input.source.releaseSetId,
-      releaseHash: input.source.releaseHash ?? null,
-      sourceDatasetHash: input.source.sourceDatasetHash ?? null,
-      projectionDigest: input.source.projectionDigest ?? null,
-    },
+    authority: identity.authority,
     includeTeachingContent: false,
     includeResourceContent: false,
     math: null,
@@ -230,8 +248,11 @@ export function knowledgeSurfaceFromLegacyGraph(input: {
 export function requireKnowledgeSurface(
   result: KnowledgeSurfaceReadResult,
 ): KnowledgeSurfaceResponse {
-  if (result.status !== 'ok') {
+  if (result.status === 'selector-rejected') {
     throw new Error(`knowledge surface selector rejected: ${result.parameter}`);
+  }
+  if (result.status !== 'ok') {
+    throw new Error(`knowledge surface identity unavailable: ${result.reason}`);
   }
   return result.knowledgeSurface;
 }

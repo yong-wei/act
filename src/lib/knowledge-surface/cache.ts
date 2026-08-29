@@ -17,8 +17,8 @@ function digest(value: unknown): string {
 
 function authorityKey(authority: KnowledgeSurfaceAuthorityIdentity): string {
   return [
-    authority.snapshotId,
-    authority.snapshotHash,
+    authority.snapshotId ?? '',
+    authority.snapshotHash ?? '',
     authority.releaseId,
     authority.releaseSetId,
     authority.activationId ?? '',
@@ -42,7 +42,7 @@ function teachingKey(teaching: KnowledgeSurfaceTeachingIdentity | null | undefin
 
 function registryKey(index: KnowledgeSurfaceRegistryIndexIdentity | null | undefined): string {
   if (!index) return '';
-  return [index.contract, index.identity, index.digest].join(':');
+  return [index.contract, index.identity, index.digest, index.captureRevision ?? ''].join(':');
 }
 
 function mathKey(math: KnowledgeSurfaceMathIdentity | null | undefined): string {
