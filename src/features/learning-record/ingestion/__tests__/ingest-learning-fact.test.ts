@@ -509,6 +509,26 @@ describe('control-correction course adapter ingestion', () => {
     expect(persist.persistCoreLearningFact).toHaveBeenCalled();
   });
 
+  it('still persists generic lesson_submit payloads that contain answer fields without an explicit goal', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          answers: { q1: 'root-region' },
+          questionSummaries: [{ studentAnswer: 'A' }],
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter).toEqual({ status: 'not-applicable' });
+    expect(persist.persistCoreLearningFact).toHaveBeenCalled();
+  });
+
   it('maps an explicit control-correction goal with canonical identity', async () => {
     persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
     const result = await ingestLearningFact({
@@ -539,6 +559,10 @@ describe('control-correction course adapter ingestion', () => {
             adapterVersion: 'control-correction-learning-record-adapter.v1',
             schemaVersion: 'control-correction-adapter.schema.v1',
             captureRevision: 'rev-1',
+            decoderVersion: LEARNING_RECORD_DECODER_VERSION,
+            materializerVersion: LEARNING_RECORD_MATERIALIZER_VERSION,
+            inputDigest: expect.any(String),
+            trustedSetDigest: expect.any(String),
           }),
         }),
       }),

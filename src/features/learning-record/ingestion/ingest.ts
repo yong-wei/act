@@ -198,10 +198,12 @@ async function ingestInCurrentHandle(
   const now = input.now ?? new Date();
   const anchors = resolveAnchors(input);
   const times = resolveTimes(input);
-  const payloadHits = inspectIngestionBoundary(input.event.payload);
-  const envelopeHits = input.envelope ? inspectIngestionBoundary(input.envelope.payload) : [];
-  if (payloadHits.length > 0 || envelopeHits.length > 0) {
-    return failed(input, 'forbidden-field', { anchors, times });
+  const adapterHintFields = adapterHint(input);
+  if (adapterHintFields.goalId || adapterHintFields.pluginId) {
+    const payloadHits = inspectIngestionBoundary(input.event.payload);
+    if (payloadHits.length > 0) {
+      return failed(input, 'forbidden-field', { anchors, times });
+    }
   }
 
   const adapterResolution = await resolveCourseAdapter(input);
@@ -215,6 +217,10 @@ async function ingestInCurrentHandle(
   }
 
   if (input.envelope) {
+    const boundaryHits = inspectIngestionBoundary(input.envelope.payload);
+    if (boundaryHits.length > 0) {
+      return failed(input, 'forbidden-field', { anchors, times });
+    }
     if (
       input.envelope.anchors.captureRevision !== input.captureRevision
       && !(
