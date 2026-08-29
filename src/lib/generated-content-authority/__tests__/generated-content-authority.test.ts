@@ -403,13 +403,15 @@ describe('generated content authority — fixture fitness checks', () => {
     const afterWeaken = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
     expect(afterWeaken).not.toBe(before);
     writeFileSync(assessmentTestFile, 'export {};\n');
-    // 声明的测试证据目录（smart-lesson __tests__）内新增文件 → 摘要变化（递归散列）
+    // 声明的测试证据目录（smart-lesson __tests__）内新增 tracked 文件 → 摘要变化（递归散列）
     const lessonTestsDir = join(root, 'src/lib/smart-lesson-plan/__tests__');
     mkdirSync(lessonTestsDir, { recursive: true });
     writeFileSync(join(lessonTestsDir, 'extra-cover.test.ts'), 'export {};\n');
+    commitAll(root, 'add tracked dir evidence');
     const afterDirAdd = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
     expect(afterDirAdd).not.toBe(before);
     rmSync(join(lessonTestsDir, 'extra-cover.test.ts'));
+    commitAll(root, 'remove dir evidence');
     // 声明的测试证据文件被删除 → MISSING 标记 → 摘要变化
     rmSync(assessmentTestFile);
     const afterDelete = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);

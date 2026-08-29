@@ -12,6 +12,7 @@ import {
   DECLARED_CROSS_DOMAIN_IMPORT_PATHS,
   FORBIDDEN_SHARED_MODEL_PATTERNS,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
+  GENERATED_CONTENT_DOMAIN_ROOTS,
 } from './matrix';
 import type { GeneratedContentAuthorityRow } from './vocabulary';
 import {
@@ -208,25 +209,28 @@ function rowEvidencePaths(row: GeneratedContentAuthorityRow): string[] {
 export /** 递归散列目录内容（相对路径 + 每文件 sha256），目录内容变化必然改变摘要。 */
 function hashDirectoryRecursively(
   hash: ReturnType<typeof createHash>,
-  repoRoot: string,
+  tracked: ReadonlySet<string>,
   absoluteDir: string,
   displayRoot: string,
 ): void {
   const entries = readdirSync(absoluteDir, { withFileTypes: true })
-    .filter((entry) => entry.name !== '.gitkeep')
     .sort((left, right) => left.name.localeCompare(right.name));
   for (const entry of entries) {
     const absolute = join(absoluteDir, entry.name);
     const display = `${displayRoot}/${entry.name}`;
     if (entry.isDirectory()) {
-      hashDirectoryRecursively(hash, repoRoot, absolute, display);
+      hashDirectoryRecursively(hash, tracked, absolute, display);
     } else if (entry.isFile()) {
+      // 仅散列 git 跟踪文件：.DS_Store / *.log 等本地未跟踪文件不属于
+      // 捕获修订，不得阻断绑定判定
+      if (!tracked.has(display)) continue;
       hash.update(`${display}:${createHash('sha256').update(readFileSync(absolute)).digest('hex')}\n`);
     }
   }
 }
 
 export function computeEvidenceDigest(repoRoot: string, rows: readonly GeneratedContentAuthorityRow[]): string {
+  const tracked = gitLsFiles(repoRoot);
   const hash = createHash('sha256');
   for (const row of rows) {
     for (const path of rowEvidencePaths(row)) {
@@ -234,10 +238,13 @@ export function computeEvidenceDigest(repoRoot: string, rows: readonly Generated
       let marker = 'MISSING';
       if (existsSync(absolute)) {
         if (statSync(absolute).isDirectory()) {
-          hashDirectoryRecursively(hash, repoRoot, absolute, path);
+          hashDirectoryRecursively(hash, tracked, absolute, path);
           continue;
         }
-        marker = createHash('sha256').update(readFileSync(absolute)).digest('hex');
+        // 单文件证据同样限定跟踪文件：未跟踪 = 不属于捕获修订（MISSING 语义）
+        marker = tracked.has(path)
+          ? createHash('sha256').update(readFileSync(absolute)).digest('hex')
+          : 'MISSING';
       }
       hash.update(`${path}:${marker}`);
       hash.update('\n');
@@ -260,13 +267,29 @@ export function scanAuthoritySinkImports(
   repoRoot: string,
   generationModules: readonly string[],
   forbiddenSinkModules: readonly string[],
+  options: {
+    domainRoots?: readonly string[];
+    exemptions?: readonly string[];
+  } = {},
 ): Array<{ module: string; importedBy: string }> {
   const names = gitLsFiles(repoRoot);
   const forbidden = new Set(forbiddenSinkModules);
   const blocked: Array<{ module: string; importedBy: string }> = [];
   const seen = new Set<string>();
 
-  for (const modulePath of generationModules) {
+  // 分母 = 声明生成模块 ∪ 域根内全部 tracked 源文件（排除测试与豁免方）：
+  // 未登记的新生成模块（rogue generator）无法绕过 provider-to-authority 检查
+  const scanScope = new Set<string>(generationModules);
+  for (const root of options.domainRoots ?? []) {
+    for (const path of names) {
+      if (!path.startsWith(root)) continue;
+      if (path.includes('__tests__/') || /\.test\.[cm]?[jt]sx?$/u.test(path)) continue;
+      if ((options.exemptions ?? []).some((exempt) => path.startsWith(exempt.split('（')[0]))) continue;
+      scanScope.add(path);
+    }
+  }
+
+  for (const modulePath of scanScope) {
     const absolute = join(repoRoot, modulePath);
     if (!existsSync(absolute)) continue;
     const content = readFileSync(absolute, 'utf8');
@@ -478,9 +501,18 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     checkRowContractFields(row, findings);
     checkRowEvidencePresence(repoRoot, row, findings);
 
-    const blockedSinks = scanAuthoritySinkImports(repoRoot, row.generationModules, row.forbiddenSinkModules);
+    const blockedSinks = scanAuthoritySinkImports(repoRoot, row.generationModules, row.forbiddenSinkModules, {
+      domainRoots: GENERATED_CONTENT_DOMAIN_ROOTS[row.domain],
+      exemptions: row.sinkScanExemptions ?? [],
+    });
     for (const sink of blockedSinks) {
       failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', `generation module imports authority sink: ${sink.importedBy} -> ${sink.module}`);
+    }
+    // QA 回执修订绑定：每条回执 revision 必须等于行 sourceRevision（对账修订）
+    for (const receipt of row.qaReceipts ?? []) {
+      if (receipt.revision !== rowSourceRevision) {
+        failInvariant(findings, 'DOMAIN_OWNERSHIP', `qa receipt revision ${receipt.revision} != reconciled source revision ${rowSourceRevision}`);
+      }
     }
 
     for (const violation of crossDomainViolations) {

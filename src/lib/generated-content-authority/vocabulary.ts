@@ -79,6 +79,8 @@ export interface GeneratedContentAuthorityRow {
   readonly generationModules: readonly string[];
   /** 这些模块禁止 import 的权威 sink 模块 */
   readonly forbiddenSinkModules: readonly string[];
+  /** 域根内合法的 sink 消费方（公共 API/桶导出等），豁免于根级 sink 扫描 */
+  readonly sinkScanExemptions?: readonly string[];
   /** sink 策略说明（如本域接受/发布与生成同文件时的路由级守卫说明） */
   readonly sinkPolicyNotes?: string;
   /** 分母清单：route/api/model/worker/script/test/caller */

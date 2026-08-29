@@ -54,3 +54,9 @@
 1. **P1 谱系绑定**：`sourceBinding.headRelation`（ANCESTOR/UNRELATED/UNOBSERVED）经 `git merge-base --is-ancestor` 判定声明修订是否在当前历史中；UNRELATED/UNOBSERVED 行级 fail-closed、settle 拒绝、严格门 `requireReconciledHead` 失败。采用祖先语义而非 HEAD 相等：声明修订写入其自身内容的提交在哈希上不可自指（与 architecture-fitness 的 REQUIRED_BASELINE 产物对比惯例同构）；证据内容漂移由 evidenceDigest 单独判定。
 2. **P1 扫描分母补全**：`module-regeneration-service.ts`（Smart Courseware 实际 AI 模块候选生成器，:155）加入 generationModules；已核验其 import 仅含声明公共契约（generated-slide-contract、course-basis、smart-lesson-plan domain/schema），当前树扫描零违例。
 3. **P1 回执字段白名单**：回执形状对象仅允许 reference/outputHash/toolVersion/revision/conclusion 五字段，额外字段（如 payload 夹带原始 provider 响应）以 unknown-receipt-field 拒绝；conclusion 限 PASS|FAIL|INCONCLUSIVE 枚举。
+
+## Codex 第四轮 feedback 修复（2026-08-29，PR #1693）
+
+1. **P1 未登记生成模块发现**：sink 扫描分母从"声明 generationModules"扩展为"声明模块 ∪ 四域根内全部 tracked 源文件"（排除 `__tests__`/`*.test.*` 与各行声明的合法消费方豁免：assessment 的 catalog-selector/runtime/persistence、assignments 的 route-guards/public-api、courseware 的 index.ts 桶导出）；rogue generator 直接 import 权威 sink 必被拦截（fixture 测试锁定）。
+2. **P1 目录摘要限定跟踪文件**：递归散列与单文件摘要均以 `git ls-files` 为准——`.DS_Store`、`*.log` 等未跟踪本地文件不再阻断绑定判定（脏工作树语义由 mixedWorktree 单独承载）。
+3. **P1 QA 回执修订绑定**：每条回执的 `revision` 必须等于行 `sourceRevision`（对账修订），否则行 NOT_QUALIFIED；reference 格式（内容寻址/仓库路径）已在 privacy 层强制。

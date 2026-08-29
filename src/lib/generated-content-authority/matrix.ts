@@ -1,4 +1,4 @@
-import type { DeclaredCrossDomainEdge, GeneratedContentAuthorityRow } from './vocabulary';
+import type { DeclaredCrossDomainEdge, GeneratedContentAuthorityRow, GeneratedContentDomain } from './vocabulary';
 
 import { GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION } from './vocabulary';
 
@@ -54,7 +54,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '5d04ccbbfb23feab2081c3586dc0f897dd33550b17aea183c6eff15476f68c75',
+  evidenceDigest: '930fbfdb160c403da57e37549e1503e63e6297fe351ac4065683855914bbd66f',
   rows: [
     {
       domain: 'assessment',
@@ -90,6 +90,11 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         ...LEARNING_FACT_SINK_MODULES,
       ],
       sinkPolicyNotes: '候选草稿持久化（persistGeneratedCandidateStore）属草稿写入而非权威 sink；目录发布与运行时 overlay 仅 ADMIN publish 路由可达',
+      sinkScanExemptions: [
+        'src/features/adaptive-assessment/adaptive-assessment-catalog-selector.ts（已发布产物的运行时消费者，denominator.callers 已声明）',
+        'src/features/adaptive-assessment/generated-catalog-runtime.ts（声明 sink 模块自身，发布路由专属消费）',
+        'src/features/assessment/adaptive-persistence.ts（学生作答持久化权威路径：submitAnswerDurably；非 AI 生成器，作答写入与 LearningFact 物化属既有域内契约）',
+      ],
       denominator: {
         routes: [
           'src/app/api/assessment/generate-question/route.ts',
@@ -112,6 +117,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         callers: [
           'src/features/adaptive-assessment/generated-catalog-runtime.ts（运行时 overlay 消费）',
           'src/features/adaptive-assessment/adaptive-assessment-catalog-selector.ts（选题消费）',
+          'src/features/assessment/adaptive-persistence.ts（submitAnswerDurably：作答持久化权威路径）',
         ],
       },
       privacyClass: 'private-audit-hashes',
@@ -158,6 +164,10 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         ...LEARNING_FACT_SINK_MODULES,
       ],
       sinkPolicyNotes: '发布（publishAssignmentRevision）与评分/反馈权威（assignment-review.ts）均对生成模块关闭：生成路由仅返回可编辑指南，教师发布时才固化为 rubricSnapshot',
+      sinkScanExemptions: [
+        'src/lib/assignments/assignment-route-guards.ts（授权守卫，公共 API 层合法消费方）',
+        'src/lib/assignments/public-api.ts（公共 API 层合法消费方）',
+      ],
       denominator: {
         routes: [
           'src/app/api/teacher/assignments/[assignmentId]/rubric-guidelines/generate/route.ts',
@@ -270,6 +280,9 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/assignments/assignment-review.ts',
         ...LEARNING_FACT_SINK_MODULES,
       ],
+      sinkScanExemptions: [
+        'src/lib/smart-courseware/index.ts（桶导出，公共 API 层合法消费方）',
+      ],
       denominator: {
         routes: [
           'src/app/api/teacher/smart-courseware/drafts/route.ts',
@@ -307,6 +320,14 @@ export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toModu
     ],
   },
 ];
+
+/** 四域根目录（未登记生成模块的发现范围）。 */
+export const GENERATED_CONTENT_DOMAIN_ROOTS: Readonly<Record<GeneratedContentDomain, readonly string[]>> = {
+  assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/'],
+  'assignment-rubric': ['src/lib/assignments/'],
+  'smart-lesson': ['src/lib/smart-lesson-plan/'],
+  'smart-courseware': ['src/lib/smart-courseware/'],
+};
 
 /** Prisma schema 中禁止出现的共享候选/状态模型名（no-superdomain）。 */
 export const FORBIDDEN_SHARED_MODEL_PATTERNS: readonly RegExp[] = [
