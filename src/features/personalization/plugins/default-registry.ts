@@ -1,15 +1,15 @@
 import type {
   AdaptiveGoalSliceDefinition,
   AdaptiveLearnerStateGoalId,
-} from '@/features/personalization/learner-state/goal-slice-constants';
+} from '@/features/personalization/learner-state/internal';
 import { createControlCorrectionPersonalizationPlugin } from './control-correction/plugin';
-import { personalizationPluginRegistry } from './registry-singleton';
+import { personalizationPluginRegistry } from './registry';
 import { readString } from './json';
 import type { PersonalizationGoalHint, PersonalizationGoalResolution } from './types';
 
 personalizationPluginRegistry.register(createControlCorrectionPersonalizationPlugin());
 
-export { personalizationPluginRegistry } from './registry-singleton';
+export { personalizationPluginRegistry };
 
 export const ADAPTIVE_GOAL_SLICE_REGISTRY = Object.fromEntries(
   personalizationPluginRegistry.list().map((plugin) => [plugin.goalId, plugin.sliceDefinition]),

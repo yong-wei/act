@@ -1,4 +1,4 @@
-import type { AdaptiveGoalSliceDefinition } from '@/features/personalization/learner-state/goal-slice-constants';
+import type { AdaptiveGoalSliceDefinition } from '@/features/personalization/learner-state/internal';
 import type { CourseLearningRecordAdapter } from './learning-record-adapter-types';
 
 export type PersonalizationPluginStatus = 'active' | 'disabled' | 'retired';

@@ -29,7 +29,6 @@ import { ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION } from '@/features/personaliza
 const GENERIC_PERSONALIZATION_FILES = [
   'src/features/personalization/learner-state/internal.ts',
   'src/features/personalization/learner-state/public-api.ts',
-  'src/features/personalization/learner-state/goal-slice-constants.ts',
   'src/features/personalization/learner-state/adapters/db-runtime.ts',
   'src/features/personalization/learner-state/application/read-learner-state.ts',
   'src/features/personalization/path-planning/application/plan-learning-path.ts',
@@ -48,7 +47,6 @@ const RETIRED_CONCRETE_IDS = [
 
 const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/registry.ts',
-  'src/features/personalization/plugins/registry-singleton.ts',
   'src/features/personalization/plugins/types.ts',
   'src/features/personalization/plugins/default-registry.ts',
   'src/features/personalization/plugins/public-api.ts',
@@ -58,6 +56,7 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/evidence-match.ts',
   'src/features/personalization/plugins/control-correction/db-evidence.ts',
   'src/features/personalization/plugins/control-correction/slice-contract.ts',
+  'src/features/personalization/plugins/control-correction/slice-constants.ts',
   'src/features/personalization/plugins/control-correction/capability-targets.ts',
   'src/features/personalization/plugins/control-correction/path-planning-policy.ts',
   'src/features/personalization/plugins/control-correction/learning-record-adapter.ts',
