@@ -114,6 +114,7 @@ export function mapControlCorrectionLearningRecord(
         input.rebaseReceipt
         && input.rebaseReceipt.sourceRevision === expectedCapture
         && input.rebaseReceipt.targetRevision === captureRevision
+        && readString(input.rebaseReceipt.authorizedBy)
       )
     ) {
       return rejected('stale-capture');

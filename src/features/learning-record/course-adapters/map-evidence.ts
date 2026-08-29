@@ -50,29 +50,41 @@ function bindTrustedAdapterIdentity(
 export function applyNormalizedCourseMappingToEvent(
   event: LearningEvent,
   mapping: NormalizedCourseEvidenceMapping,
-): LearningEvent {
+):
+  | { status: 'applied'; event: LearningEvent }
+  | { status: 'rejected'; reason: 'ambiguous-identity' } {
+  const mappedLesson = mapping.canonicalLessonId ?? mapping.canonicalActivityId;
+  if (readString(event.courseId) && event.courseId !== mapping.goalId) {
+    return { status: 'rejected', reason: 'ambiguous-identity' };
+  }
+  if (readString(event.lessonId) && mappedLesson && event.lessonId !== mappedLesson) {
+    return { status: 'rejected', reason: 'ambiguous-identity' };
+  }
   const payload = event.payload && typeof event.payload === 'object'
     ? { ...event.payload }
     : {};
   return {
-    ...event,
-    courseId: event.courseId ?? mapping.goalId,
-    lessonId: event.lessonId ?? mapping.canonicalLessonId ?? mapping.canonicalActivityId,
-    payload: {
-      ...payload,
-      goalId: mapping.goalId,
-      pluginId: mapping.pluginId,
+    status: 'applied',
+    event: {
+      ...event,
       courseId: mapping.goalId,
-      lessonId: mapping.canonicalLessonId ?? mapping.canonicalActivityId,
-      canonicalLessonId: mapping.canonicalLessonId,
-      canonicalActivityId: mapping.canonicalActivityId,
-      adapter: {
-        adapterId: mapping.adapterId,
-        adapterVersion: mapping.adapterVersion,
-        schemaVersion: mapping.schemaVersion,
-        pluginVersion: mapping.pluginVersion,
-        releaseRevision: mapping.releaseRevision,
-        captureRevision: mapping.captureRevision,
+      lessonId: mappedLesson,
+      payload: {
+        ...payload,
+        goalId: mapping.goalId,
+        pluginId: mapping.pluginId,
+        courseId: mapping.goalId,
+        lessonId: mappedLesson,
+        canonicalLessonId: mapping.canonicalLessonId,
+        canonicalActivityId: mapping.canonicalActivityId,
+        adapter: {
+          adapterId: mapping.adapterId,
+          adapterVersion: mapping.adapterVersion,
+          schemaVersion: mapping.schemaVersion,
+          pluginVersion: mapping.pluginVersion,
+          releaseRevision: mapping.releaseRevision,
+          captureRevision: mapping.captureRevision,
+        },
       },
     },
   };

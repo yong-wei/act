@@ -277,6 +277,14 @@ describe('control-correction Learning Record adapter', () => {
         authorizedBy: 'operator-1',
       },
     }))).toMatchObject({ status: 'rejected', reason: 'cross-revision' });
+    expect(adapter.map(baseInput({
+      expectedCaptureRevision: 'capture-0',
+      rebaseReceipt: {
+        sourceRevision: 'capture-0',
+        targetRevision: 'capture-1',
+        authorizedBy: '',
+      },
+    }))).toMatchObject({ status: 'rejected', reason: 'stale-capture' });
   });
 
   it('enforces retention caps, terminal deletion and unreadability of isolated raw artifacts', () => {

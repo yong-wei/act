@@ -561,4 +561,47 @@ describe('control-correction course adapter ingestion', () => {
     expect(result.failure?.code).toBe('missing-canonical-identity');
     expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
   });
+
+  it('fails closed on direct payloads with forbidden fields even when an explicit goal is present', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          answer: 'B',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.failure?.code).toBe('forbidden-field');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when mapped goal identity conflicts with top-level course fields', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        courseId: 'other-course',
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.adapter?.status).toBe('rejected');
+    expect(result.failure?.code).toBe('ambiguous-identity');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
 });

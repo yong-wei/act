@@ -1,5 +1,4 @@
 import {
-  collectForbiddenFields,
   opaqueSubjectRef,
   projectAllowlistedPayload,
 } from '@/features/learning-record/event-contract/allowlist';
@@ -68,6 +67,7 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
     }),
     materialization: input.transport === 'outbox-apply' ? 'outbox' : 'direct',
     rebaseReceipt: input.rebaseReceipt,
+    extra: payload,
   };
 }
 
@@ -92,13 +92,21 @@ async function resolveCourseAdapter(input: IngestLearningFactInput): Promise<{
     };
   }
   if (mapped.status === 'mapped') {
+    const applied = applyNormalizedCourseMappingToEvent(input.event, mapped.mapping);
+    if (applied.status === 'rejected') {
+      return {
+        receipt: { status: 'rejected', reason: applied.reason },
+        persistEvent: input.event,
+        rejected: { code: applied.reason },
+      };
+    }
     return {
       receipt: {
         status: 'mapped',
         adapterVersion: mapped.mapping.adapterVersion,
         captureRevision: mapped.mapping.captureRevision,
       },
-      persistEvent: applyNormalizedCourseMappingToEvent(input.event, mapped.mapping),
+      persistEvent: applied.event,
     };
   }
   return { receipt: { status: 'not-applicable' }, persistEvent: input.event };
@@ -190,6 +198,12 @@ async function ingestInCurrentHandle(
   const now = input.now ?? new Date();
   const anchors = resolveAnchors(input);
   const times = resolveTimes(input);
+  const payloadHits = inspectIngestionBoundary(input.event.payload);
+  const envelopeHits = input.envelope ? inspectIngestionBoundary(input.envelope.payload) : [];
+  if (payloadHits.length > 0 || envelopeHits.length > 0) {
+    return failed(input, 'forbidden-field', { anchors, times });
+  }
+
   const adapterResolution = await resolveCourseAdapter(input);
   if (adapterResolution.rejected) {
     return failed(input, adapterResolution.rejected.code, {
@@ -201,11 +215,6 @@ async function ingestInCurrentHandle(
   }
 
   if (input.envelope) {
-    const boundaryHits = inspectIngestionBoundary(input.envelope.payload);
-    const extraForbidden = collectForbiddenFields(input.envelope.payload);
-    if (boundaryHits.length > 0 || extraForbidden.length > 0) {
-      return failed(input, 'forbidden-field', { anchors, times });
-    }
     if (
       input.envelope.anchors.captureRevision !== input.captureRevision
       && !(
