@@ -403,6 +403,16 @@ describe('architecture closure', () => {
     expect(ownerLeaked.serialized).not.toContain('alice@example.com');
     expect(ownerLeaked.receipt.inputReceiptIdentities).toEqual([]);
     expect(ownerLeaked.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
+
+    const opaqueOwner = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? receipt(stageId, { owner: 'student-12345' }) : receipt(stageId)
+      )),
+    });
+    const opaque = generateArchitectureClosure(capture(), opaqueOwner, []);
+    expect(opaque.receipt.status).toBe('unresolved');
+    expect(opaque.serialized).not.toContain('student-12345');
+    expect(opaque.failures.some((item) => item.code === 'privacy-violation')).toBe(true);
   });
 
   it('detects same-path different-digest observations across the final input set', () => {
@@ -434,6 +444,9 @@ describe('architecture closure', () => {
     const result = generateArchitectureClosure(capture(), crossReceipt, []);
     expect(result.failures.some((item) => item.code === 'worktree-path-conflict')).toBe(true);
     expect(result.receipt.status).toBe('unresolved');
+    expect(result.receipt.totals.unresolved).toBeGreaterThan(0);
+    expect(result.receipt.remainingCompatibilityRecords.some((item) => item.identity === 'main:src/app/legacy.ts:aaa')).toBe(true);
+    expect(result.receipt.remainingCompatibilityRecords.some((item) => item.identity === 'isolated:src/app/legacy.ts:bbb')).toBe(true);
   });
 
   it('fails closed when an authority input is a proposal or stale receipt', () => {
@@ -456,6 +469,56 @@ describe('architecture closure', () => {
     const staleResult = generateArchitectureClosure(capture(), stale, []);
     expect(staleResult.failures.some((item) => item.code === 'stale-authority')).toBe(true);
     expect(staleResult.receipt.status).toBe('unresolved');
+  });
+
+  it('rejects illegal metric status and missing receipt arrays without throwing', () => {
+    const bogusMetric = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        fitness: receipt('fitness', {
+          metrics: [
+            {
+              metricId: 'scc-count',
+              scope: 'production',
+              unit: 'count',
+              value: 3,
+              sourceField: 'totals.scc',
+              phase: 'before',
+              status: 'qualified',
+            },
+            {
+              metricId: 'scc-count',
+              scope: 'production',
+              unit: 'count',
+              value: 1,
+              sourceField: 'totals.scc',
+              phase: 'after',
+              status: 'bogus' as 'qualified',
+            },
+          ],
+        }),
+      },
+    });
+    const bogus = generateArchitectureClosure(capture(), bogusMetric, []);
+    expect(bogus.failures.some((item) => item.code === 'invalid-metric-status')).toBe(true);
+    expect(bogus.receipt.status).toBe('unresolved');
+    expect(bogus.receipt.afterMetrics.every((item) => item.status !== 'bogus')).toBe(true);
+
+    const honest = receipt('quality-1554');
+    const { compatibilityRecords: _ignored, contentDigest: _digest, ...body } = honest;
+    const broken = {
+      ...body,
+      contentDigest: sha256Text(serializeDeterministic(body)),
+    } as ClosureInputReceipt;
+    const missingArrays = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? broken : receipt(stageId)
+      )),
+    });
+    expect(() => generateArchitectureClosure(capture(), missingArrays, [])).not.toThrow();
+    const missing = generateArchitectureClosure(capture(), missingArrays, []);
+    expect(missing.failures.some((item) => item.code === 'invalid-receipt-payload')).toBe(true);
+    expect(missing.receipt.status).toBe('unresolved');
   });
 
   it('records competing aggregators and keeps census/charter/fitness as non-substitutes', () => {

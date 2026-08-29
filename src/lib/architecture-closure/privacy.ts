@@ -4,6 +4,9 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/u;
 const ABSOLUTE_PATH = /(?:^|[\s"'`=(,:])(?:\/(?:Users|home|private|var|tmp|opt|etc|workspace|root|mnt|media|usr|data)(?:\/|[\\"'\s,]|$)|[A-Za-z]:\\|(?:\/[\w.-]+){2,}\/[\w.-]+)/u;
 const LEARNER = /\b(?:studentId|userId|rawAnswer|eventPayload|cookie|learner)\b/iu;
 const RAW_LOG = /(?:^|[\\"'\s=(,:])(?:\.logs\/|\/(?:[\w.-]+\/)*\.logs\/)/u;
+const USER_IDENTITY = /(?:^|[^A-Za-z])(?:student|user|learner|uid|email)[-_][A-Za-z0-9_-]+/iu;
+const OWNER_TOKEN = /^[a-z]+(?:-[a-z]+)*$/u;
+const FORBIDDEN_OWNER = /^(?:student|user|learner|uid|email)$/u;
 
 const RECEIPT_KEYS = [
   'schemaVersion', 'receiptId', 'sourceIdentity', 'inputReceiptIdentities',
@@ -39,9 +42,17 @@ function extraKeys(value: object, allowed: readonly string[]): string | null {
 
 export function publicEvidenceTextViolation(text: string): string | null {
   if (EMAIL.test(text)) return 'user-identifier';
+  if (USER_IDENTITY.test(text)) return 'user-identifier';
   if (ABSOLUTE_PATH.test(text)) return 'absolute-path';
   if (LEARNER.test(text)) return 'forbidden-payload';
   if (RAW_LOG.test(text)) return 'raw-log';
+  return null;
+}
+
+export function publicOwnerViolation(owner: string): string | null {
+  const text = publicEvidenceTextViolation(owner);
+  if (text) return text;
+  if (!OWNER_TOKEN.test(owner) || FORBIDDEN_OWNER.test(owner)) return 'user-identifier';
   return null;
 }
 
@@ -77,6 +88,10 @@ function inspectArray(
     if (!item || typeof item !== 'object' || Array.isArray(item)) return 'unexpected-field';
     const extra = extraKeys(item, allowed);
     if (extra) return extra;
+    if ('owner' in item && typeof (item as { owner: unknown }).owner === 'string') {
+      const ownerViolation = publicOwnerViolation((item as { owner: string }).owner);
+      if (ownerViolation) return ownerViolation;
+    }
     const found = walkStrings(item);
     if (found) return found;
   }

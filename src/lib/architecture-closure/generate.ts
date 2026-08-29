@@ -1,4 +1,5 @@
 import type { CharacterizationFinding } from './characterize';
+import { CLOSURE_OWNER } from './stages';
 import { privacyViolation, serializeDeterministic, sha256Text, sha256WithoutKey } from './serialize';
 import { allInputReceipts, isTerminalStageId, sortedUnique } from './stages';
 import {
@@ -115,7 +116,13 @@ function validateReceiptShape(receipt: ClosureInputReceipt | undefined, stageId:
   if (typeof receipt.contentDigest === 'string' && receipt.contentDigest.length > 0) {
     validateContentDigest(receipt, failures);
   }
-  if (!Array.isArray(receipt.observations) || !receipt.totals || !Array.isArray(receipt.metrics)) {
+  if (
+    !Array.isArray(receipt.observations)
+    || !receipt.totals
+    || !Array.isArray(receipt.metrics)
+    || !Array.isArray(receipt.compatibilityRecords)
+    || !Array.isArray(receipt.blockedRecords)
+  ) {
     failures.push({ code: 'invalid-receipt-payload', stageId });
     return false;
   }
@@ -156,7 +163,7 @@ function validateDenominator(receipt: ClosureInputReceipt, failures: ClosureFail
   }
 }
 
-function pathConflicts(observations: readonly ClosureObservation[], failures: ClosureFailure[], stageId = 'global'): void {
+function conflictingPaths(observations: readonly ClosureObservation[]): string[] {
   const byPath = new Map<string, ClosureObservation[]>();
   for (const observation of observations) {
     if (!observation.path) continue;
@@ -164,18 +171,62 @@ function pathConflicts(observations: readonly ClosureObservation[], failures: Cl
     list.push(observation);
     byPath.set(observation.path, list);
   }
-  for (const [path, group] of [...byPath.entries()].sort(([left], [right]) => left.localeCompare(right))) {
-    const digests = new Set(group.map((item) => item.contentDigest ?? ''));
-    if (digests.size <= 1) continue;
+  return [...byPath.entries()]
+    .filter(([, group]) => new Set(group.map((item) => item.contentDigest ?? '')).size > 1)
+    .map(([path]) => path)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function pathConflicts(observations: readonly ClosureObservation[], failures: ClosureFailure[], stageId = 'global'): string[] {
+  const conflicts = conflictingPaths(observations);
+  for (const path of conflicts) {
     failures.push({ code: 'worktree-path-conflict', stageId, identity: path });
-    const identities = new Set(group.map(observationIdentity));
-    if (identities.size < group.length) {
-      failures.push({ code: 'worktree-path-conflict', stageId, identity: path });
-    }
-    for (const observation of group) {
+    for (const observation of observations.filter((item) => item.path === path)) {
       failures.push({ code: 'worktree-path-conflict', stageId, identity: observationIdentity(observation) });
     }
   }
+  return conflicts;
+}
+
+function reconcileConflictTotals(
+  receipts: readonly ClosureInputReceipt[],
+  conflictPathList: readonly string[],
+): { totals: ClosureTotals; conflictRecords: CompatibilityRecord[] } {
+  const conflictPaths = new Set(conflictPathList);
+  const summed = receipts.reduce((sum, item) => addTotals(sum, item.totals), emptyTotals());
+  const totals = {
+    discovered: summed.discovered,
+    included: summed.included,
+    excluded: summed.excluded,
+    duplicate: summed.duplicate,
+    unresolved: summed.unresolved,
+  };
+  const conflictRecords: CompatibilityRecord[] = [];
+  for (const receipt of receipts) {
+    for (const observation of receipt.observations) {
+      if (!observation.path || !conflictPaths.has(observation.path)) continue;
+      if (observation.classification === 'included') {
+        totals.included -= 1;
+        totals.unresolved += 1;
+      } else if (observation.classification === 'excluded') {
+        totals.excluded -= 1;
+        totals.unresolved += 1;
+      } else if (observation.classification === 'duplicate') {
+        totals.duplicate -= 1;
+        totals.unresolved += 1;
+      }
+      conflictRecords.push({
+        identity: observationIdentity(observation),
+        owner: CLOSURE_OWNER,
+        inClosureScope: true,
+        deletionProof: null,
+        reason: 'worktree-path-conflict',
+        resolutionCondition: 'retain-both-worktree-observations',
+      });
+    }
+  }
+  conflictRecords.sort((left, right) => left.identity.localeCompare(right.identity));
+  return { totals, conflictRecords };
 }
 
 function duplicateIdentities(observations: readonly ClosureObservation[], failures: ClosureFailure[], stageId = 'global'): void {
@@ -299,6 +350,14 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
       const bucket = seen.get(key) ?? [];
       bucket.push({ phase: metric.phase, receiptId: receipt.receiptId });
       seen.set(key, bucket);
+      if (!asStatus(metric.status)) {
+        failures.push({ code: 'invalid-metric-status', stageId: receipt.stageId, identity: key });
+        continue;
+      }
+      if (!metric.metricId || !metric.scope || metric.value === undefined || metric.value === null || metric.unit === '' || !metric.sourceField) {
+        failures.push({ code: 'missing-metric-value', stageId: receipt.stageId, identity: key });
+        continue;
+      }
       const normalized: NormalizedMetric = {
         metricId: metric.metricId,
         scope: metric.scope,
@@ -311,9 +370,6 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
       if (metric.phase === 'before') beforeMetrics.push(normalized);
       else if (metric.phase === 'after') afterMetrics.push(normalized);
       else failures.push({ code: 'invalid-metric-phase', stageId: receipt.stageId, identity: key });
-      if (metric.value === undefined || metric.value === null || metric.unit === '' || !metric.sourceField) {
-        failures.push({ code: 'missing-metric-value', stageId: receipt.stageId, identity: key });
-      }
     }
   }
 
@@ -461,17 +517,25 @@ export function generateArchitectureClosure(
     validateDenominator(terminal, failures);
   }
 
-  const receipts = allInputReceipts(manifest).filter((item): item is ClosureInputReceipt => Boolean(item));
+  const receipts = allInputReceipts(manifest).filter((item): item is ClosureInputReceipt => (
+    Boolean(item)
+    && Array.isArray(item.observations)
+    && Boolean(item.totals)
+    && Array.isArray(item.metrics)
+    && Array.isArray(item.compatibilityRecords)
+    && Array.isArray(item.blockedRecords)
+  ));
   const observations = receipts.flatMap((item) => item.observations);
   duplicateIdentities(observations, failures);
-  pathConflicts(observations, failures);
+  const conflictPathList = pathConflicts(observations, failures);
   const coverage = buildCoverage(manifest.terminals ?? [], capture, failures);
   const { beforeMetrics, afterMetrics } = collectMetrics(receipts, failures);
-  const totals = receipts.reduce((sum, item) => addTotals(sum, item.totals), emptyTotals());
+  const { totals, conflictRecords } = reconcileConflictTotals(receipts, conflictPathList);
   if (!totalsClosed(totals)) failures.push({ code: 'denominator-mismatch', detail: 'global' });
 
   const remainingCompatibilityRecords = receipts
     .flatMap((item) => item.compatibilityRecords)
+    .concat(conflictRecords)
     .slice()
     .sort((left, right) => left.identity.localeCompare(right.identity));
   for (const record of remainingCompatibilityRecords) {
