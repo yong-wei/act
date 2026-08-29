@@ -165,10 +165,36 @@ describe('useInteractiveAI governed session', () => {
     await waitFor(() => latest?.messages.length === 1 && latest.messages[0]?.content === '那积分项呢？');
   });
 
-  it('surfaces an explicit unavailable state when recovery fails', async () => {
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ error: 'boom' }, { status: 500 }));
+  it('does not create a session while recovery is loading or unavailable', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        await new Promise(() => undefined);
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'loading');
+    await expect(act(async () => {
+      await latest?.sendMessage('还没恢复完');
+    })).rejects.toThrow('正在恢复学习对话，请稍候。');
+    expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/sessions')).toBe(false);
+
+    act(() => {
+      root.unmount();
+    });
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(jsonResponse({ error: 'boom' }, { status: 500 }));
+    root = createRoot(container);
+    latest = null;
     await mount();
     await waitFor(() => latest?.recoveryStatus === 'unavailable');
-    expect(latest?.error?.message).toContain('无法恢复学习对话');
+    await expect(act(async () => {
+      await latest?.sendMessage('恢复失败后继续问');
+    })).rejects.toThrow('无法恢复学习对话');
+    expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/sessions')).toBe(false);
+    expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/chat')).toBe(false);
   });
 });

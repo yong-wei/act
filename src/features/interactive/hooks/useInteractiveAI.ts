@@ -70,6 +70,8 @@ export function useInteractiveAI(
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const recoveryStatusRef = useRef<InteractiveAIContextValue['recoveryStatus']>('idle');
+  recoveryStatusRef.current = recoveryStatus;
 
   const isEnabled = config.config.ai?.enabled !== false;
   const isAuthenticated = Boolean(session?.user?.id);
@@ -159,11 +161,23 @@ export function useInteractiveAI(
     setError(null);
 
     try {
+      if (authStatus === 'loading') {
+        throw new Error('正在恢复学习对话，请稍候。');
+      }
       let conversationId = conversationIdRef.current;
-      if (isAuthenticated && !conversationId) {
-        conversationId = await ensureInteractiveConversation(pageId, config.title);
-        conversationIdRef.current = conversationId;
-        setRecoveryStatus('ready');
+      if (isAuthenticated) {
+        const status = recoveryStatusRef.current;
+        if (status === 'idle' || status === 'loading') {
+          throw new Error('正在恢复学习对话，请稍候。');
+        }
+        if (status === 'unavailable') {
+          throw new Error('无法恢复学习对话，请重试或返回当前资源。');
+        }
+        if (!conversationId) {
+          conversationId = await ensureInteractiveConversation(pageId, config.title);
+          conversationIdRef.current = conversationId;
+          setRecoveryStatus('ready');
+        }
       }
 
       const response = await fetch('/api/ai/chat', {
@@ -223,7 +237,7 @@ export function useInteractiveAI(
     } finally {
       setIsLoading(false);
     }
-  }, [isEnabled, isAuthenticated, config, persona, pageId, onMessage, onEvent]);
+  }, [isEnabled, isAuthenticated, authStatus, config, persona, pageId, onMessage, onEvent]);
 
   return {
     isEnabled,

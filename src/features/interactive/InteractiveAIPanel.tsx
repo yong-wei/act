@@ -35,7 +35,10 @@ export function InteractiveAIPanel({
   // 发送消息
   const handleSend = async () => {
     const content = input.trim();
-    if (!content || ai.isLoading) return;
+    const recoveryBlocked = ai.recoveryStatus === 'idle'
+      || ai.recoveryStatus === 'loading'
+      || ai.recoveryStatus === 'unavailable';
+    if (!content || ai.isLoading || recoveryBlocked) return;
 
     setInput('');
     try {
@@ -162,7 +165,7 @@ export function InteractiveAIPanel({
           />
           <button type="button"
             onClick={handleSend}
-            disabled={!input.trim() || ai.isLoading}
+            disabled={!input.trim() || ai.isLoading || ai.recoveryStatus === 'idle' || ai.recoveryStatus === 'loading' || ai.recoveryStatus === 'unavailable'}
             aria-label="发送问题"
             className="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
           >
