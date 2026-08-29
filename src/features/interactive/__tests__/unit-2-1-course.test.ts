@@ -235,9 +235,11 @@ describe('unit 2-1 interactive course', () => {
   });
 
   it('adds the new 2-1 public course routes and removes retired module 1 public routes', () => {
-    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-2-1-modeling-language/page.tsx'))).toBe(true);
-    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-2-1-modeling-language/teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/course-app-routes/unit-2-1-modeling-language/entry.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/course-app-routes/unit-2-1-modeling-language/student.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/course-app-routes/unit-2-1-modeling-language/teacher.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]/page.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-2-1-modeling-language/page.tsx'))).toBe(false);
 
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-1-1-laplace-transfer-function/page.tsx'))).toBe(false);
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/unit-1-2-block-diagram-simplification/page.tsx'))).toBe(false);

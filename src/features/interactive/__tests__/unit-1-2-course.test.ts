@@ -131,9 +131,11 @@ describe('unit 1-2 modeling from object to system course', () => {
       routeSegment: UNIT_1_2_ROUTE_SEGMENT,
       isPremiumCourse: true,
     });
-    expect(existsSync(join(repoRoot, `src/app/interactive-learning/courses/${UNIT_1_2_ROUTE_SEGMENT}/page.tsx`))).toBe(true);
-    expect(existsSync(join(repoRoot, `src/app/interactive-learning/courses/${UNIT_1_2_ROUTE_SEGMENT}/student/[sessionId]/page.tsx`))).toBe(true);
-    expect(existsSync(join(repoRoot, `src/app/interactive-learning/courses/${UNIT_1_2_ROUTE_SEGMENT}/teacher/[sessionId]/page.tsx`))).toBe(true);
+    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/entry.tsx`))).toBe(true);
+    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/student.tsx`))).toBe(true);
+    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/teacher.tsx`))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]/page.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, `src/app/interactive-learning/courses/${UNIT_1_2_ROUTE_SEGMENT}/page.tsx`))).toBe(false);
   });
 
   it('keeps the retired block-diagram 1-2 course unresolved', () => {

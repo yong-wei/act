@@ -10,7 +10,9 @@ import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-ma
 
 const repoRoot = process.cwd();
 const featureDir = join(repoRoot, 'src/features/interactive/unit-1-2-modeling-from-object-to-system');
-const appDir = join(repoRoot, 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system');
+const privateAppDir = join(repoRoot, 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system');
+const adapterDir = join(repoRoot, 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system');
+const dispatcherDir = join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]');
 const runtimeManifestPath = join(repoRoot, 'course-content/runtime/lessons/1-2/interactive-manifest.json');
 
 function read(relativePath: string) {
@@ -35,10 +37,10 @@ describe('unit-1-2 shared classroom shell characterization', () => {
   });
 
   it('keeps classroom routes on shared shell and session application boundaries', () => {
-    const entryRoute = read('src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/page.tsx');
-    const studentRoute = read('src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/[sessionId]/page.tsx');
-    const teacherRoute = read('src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/[sessionId]/page.tsx');
-    const waitingRoute = read('src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/[sessionId]/waiting/page.tsx');
+    const entryRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/entry.tsx');
+    const studentRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/student.tsx');
+    const teacherRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/teacher.tsx');
+    const waitingRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/waiting.tsx');
     const entryPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page.tsx');
     const studentPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx');
     const teacherPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx');
@@ -67,7 +69,10 @@ describe('unit-1-2 shared classroom shell characterization', () => {
     }
 
     expect(existsSync(join(featureDir, 'course-header.tsx'))).toBe(false);
-    expect(existsSync(join(appDir, 'page.tsx'))).toBe(true);
+    expect(existsSync(join(privateAppDir, 'page.tsx'))).toBe(false);
+    expect(existsSync(join(adapterDir, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(dispatcherDir, 'page.tsx'))).toBe(true);
+    expect(read('src/app/interactive-learning/courses/[routeSegment]/page.tsx')).toContain('notFound()');
     expect(LEGACY_LESSON_RUNTIME_ROUTE_SLUGS).not.toContain('unit-1-2-modeling-from-object-to-system');
   });
 });

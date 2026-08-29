@@ -14,7 +14,7 @@ vi.mock('@/resources/control-system/charts/control-chart-panel', () => ({
 
 const repoRoot = process.cwd();
 const routeSegment = 'unit-5-1-linear-backbone-boundaries';
-const routeBase = join(repoRoot, 'src/app/interactive-learning/courses', routeSegment);
+const routeBase = join(repoRoot, 'src/features/interactive/course-app-routes', routeSegment);
 const featureBase = join(repoRoot, 'src/features/interactive', routeSegment);
 const manifestPath = join(repoRoot, 'course-content/runtime/lessons/5-1/interactive-manifest.json');
 
@@ -69,9 +69,9 @@ describe('unit 5-1 interactive course', () => {
   });
 
   it('exposes route files and keeps step-panels as a shared manifest runtime adapter with a narrow nonlinear panel', () => {
-    expect(existsSync(join(routeBase, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
 
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');

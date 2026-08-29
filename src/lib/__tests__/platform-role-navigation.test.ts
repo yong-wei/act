@@ -372,6 +372,7 @@ describe('platform role navigation', () => {
       '/interactive-learning/cross-domain-exploration',
       '/interactive-learning/courses/[courseId]',
       '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
+      '/interactive-learning/courses/[courseId]/demo',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',

@@ -801,6 +801,9 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
       add('/admin/data-governance');
     }
     for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      if (route.screenshotProfile === 'temporary-exception' || route.screenshotProfile === 'representative-covered') {
+        continue;
+      }
       if (matchesRouteFile(file, route.routeFile) || matchesCoveredGlob(file, route.coveredRouteGlob)) add(route.href);
     }
     for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {

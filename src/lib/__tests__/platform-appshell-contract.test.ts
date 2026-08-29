@@ -330,9 +330,31 @@ function patternSpecificity(pattern: string) {
     .join('/').length;
 }
 
+const MANIFEST_COURSE_DISPATCHER_PAGES = new Set([
+  'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
+  'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx',
+  'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/page.tsx',
+  'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/waiting/page.tsx',
+  'src/app/interactive-learning/courses/[routeSegment]/demo/page.tsx',
+]);
+
+function isManifestCourseDispatcher(file: string) {
+  return MANIFEST_COURSE_DISPATCHER_PAGES.has(relative(process.cwd(), file).split(posix.sep).join('/'));
+}
+
 function findRouteCoverage(file: string): RouteCoverage | undefined {
   const routePath = routePathFromPageFile(file);
   if (routePath === '/') return { kind: 'home-route', evidence: 'homepage exception' };
+
+  if (isManifestCourseDispatcher(file)) {
+    const source = readFileSync(file, 'utf8');
+    if (
+      source.includes("from '@/features/interactive/shared/manifest-course-app-loaders'") &&
+      source.includes('notFound()')
+    ) {
+      return { kind: 'compatible-wrapper', evidence: 'manifest-course-shared-dispatcher' };
+    }
+  }
 
   const directWrapper = findRegisteredWrapperEvidence(file);
   if (directWrapper) {

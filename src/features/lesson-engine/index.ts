@@ -3,9 +3,6 @@
  * Lesson Engine Module Exports
  */
 
-// 主组件
-export { LessonPlayer } from './LessonPlayer';
-export { ResourceRenderer } from './ResourceRenderer';
 export {
   ContextInjector,
   useLessonContext,
