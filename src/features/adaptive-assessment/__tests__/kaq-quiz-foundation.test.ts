@@ -5,14 +5,14 @@ import {
   checkpointAuthoredQuestionRuntimeId,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
-} from '../../adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '../learning-goal-checkpoint-question-sets';
 import { buildGeneratedQuestion, PRESET_QUESTIONS } from '../../assessment/adaptive-question-bank';
 import {
   buildKaqQuizFoundationArtifacts,
   canQuizOutcomeSatisfyReadiness,
   materializeKaqQuizOutcomeEvidence,
   validateKaqQuizEvidenceContract,
-} from '../kaq-quiz-coverage';
+} from '../kaq-quiz-foundation';
 
 describe('K/A/Q quiz foundation coverage', () => {
   it('builds complete quiz set coverage for every baseline LearningGoal', () => {

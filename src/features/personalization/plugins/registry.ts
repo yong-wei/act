@@ -166,3 +166,5 @@ export class PersonalizationPluginRegistry {
 export function createPersonalizationPluginRegistry(): PersonalizationPluginRegistry {
   return new PersonalizationPluginRegistry();
 }
+
+export const personalizationPluginRegistry = createPersonalizationPluginRegistry();

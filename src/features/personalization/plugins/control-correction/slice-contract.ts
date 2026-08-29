@@ -1,16 +1,19 @@
+import type {
+  AdaptiveGoalSliceDefinition,
+  AdaptiveGoalSliceDimensionDefinition,
+  ControlCorrectionTargetLevel,
+} from '@/features/personalization/learner-state/internal';
+import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from './capability-targets';
 import {
-  ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   CONTROL_CORRECTION_GOAL_DIMENSIONS,
   CONTROL_CORRECTION_GOAL_ID,
+  CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
   CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
   CONTROL_CORRECTION_PRIVACY,
   CONTROL_CORRECTION_PRIVACY_CLASSES,
   CONTROL_CORRECTION_TARGET_LEVELS,
-  type AdaptiveGoalSliceDefinition,
-  type AdaptiveGoalSliceDimensionDefinition,
-  type ControlCorrectionTargetLevel,
-} from '@/features/personalization/learner-state/internal';
-import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from './capability-targets';
+  PATH_CONTEXT_FIELD_CONTRACT,
+} from './slice-constants';
 
 const CONTROL_CORRECTION_TARGET_LEVEL_MAPPING: Record<ControlCorrectionTargetLevel, string> = {
   foundation: 'recognizes canonical control-correction concepts with guided evidence',
@@ -24,12 +27,12 @@ const CONTROL_CORRECTION_DIMENSION_DEFINITIONS: AdaptiveGoalSliceDimensionDefini
     id,
     valueRange: '0-100',
     targetLevelMapping: CONTROL_CORRECTION_TARGET_LEVEL_MAPPING,
-    sourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
+    sourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
     evidenceThreshold: 'dimension declares sufficient, partial, stale, or missing governed evidence',
     freshnessPolicy: 'current within governed learner-state evidence window, stale when sources age out, missing when no declared source is present',
-    confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
+    confidencePolicy: CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.confidencePolicy,
     privacy: CONTROL_CORRECTION_PRIVACY,
-    fallbackReason: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.fallbackReason,
+    fallbackReason: CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.fallbackReason,
   }));
 
 export const controlCorrectionGoalSliceDefinition: AdaptiveGoalSliceDefinition = {
@@ -38,26 +41,30 @@ export const controlCorrectionGoalSliceDefinition: AdaptiveGoalSliceDefinition =
   shortLabel: 'Control Correction',
   payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
   dimensions: CONTROL_CORRECTION_DIMENSION_DEFINITIONS,
-  targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
+  targetLevels: [...CONTROL_CORRECTION_TARGET_LEVELS],
   capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
-  evidenceSourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
+  evidenceSourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
   privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
-  confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
+  confidencePolicy: CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.confidencePolicy,
   fieldFamilies: {
     pathContext: {
-      ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.pathContext,
+      ...PATH_CONTEXT_FIELD_CONTRACT,
+      sourceFamilies: [...PATH_CONTEXT_FIELD_CONTRACT.sourceFamilies],
       valueRange: 'active path id/status/current node, terminal validation state, recent path references, no-active-path marker',
     },
     report: {
-      ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+      ...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
+      sourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
       valueRange: 'declared report-ready control-correction dimensions and metadata',
     },
     konling: {
-      ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+      ...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
+      sourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
       valueRange: 'declared Konling-readable control-correction dimensions and metadata',
     },
     grading: {
-      ...ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice,
+      ...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
+      sourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
       valueRange: 'not declared for grading decisions',
       fallbackReason: 'grading-eligibility-not-declared',
     },

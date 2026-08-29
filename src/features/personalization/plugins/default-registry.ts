@@ -3,12 +3,13 @@ import type {
   AdaptiveLearnerStateGoalId,
 } from '@/features/personalization/learner-state/internal';
 import { createControlCorrectionPersonalizationPlugin } from './control-correction/plugin';
-import { createPersonalizationPluginRegistry } from './registry';
+import { personalizationPluginRegistry } from './registry';
 import { readString } from './json';
 import type { PersonalizationGoalHint, PersonalizationGoalResolution } from './types';
 
-export const personalizationPluginRegistry = createPersonalizationPluginRegistry();
 personalizationPluginRegistry.register(createControlCorrectionPersonalizationPlugin());
+
+export { personalizationPluginRegistry };
 
 export const ADAPTIVE_GOAL_SLICE_REGISTRY = Object.fromEntries(
   personalizationPluginRegistry.list().map((plugin) => [plugin.goalId, plugin.sliceDefinition]),
