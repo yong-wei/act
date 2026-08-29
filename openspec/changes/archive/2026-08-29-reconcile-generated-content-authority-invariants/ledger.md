@@ -76,3 +76,9 @@
 1. **learningFact 归属修正**：LearningFact 是跨域 Learning Record 权威（document-grading、simulation-agent、historical-evidence、backfill 等多处合法写点），由既有 trusted-learning-fact-filter/canonical identity 契约治理（spec Non-Goal）；从 AUTHORITY_MODEL_DOMAIN 移除，四域矩阵不对其写点做 fail-closed 判定。
 2. **评分/批改基础设施写点登记**（assignment 行）：math-document-grading-lifecycle/persistence、teacher-assignment-review-outbox、document-grading approve 路由（人类审批驱动）。
 3. **跨域级联清理显式登记**（smart-courseware 行）：smart-lesson-plan/lifecycle.ts 在 lesson archive/delete 时对 courseware 记录的级联清理写点；smart-lesson 行登记 teacher-default-class-service.ts（教师操作驱动的默认任务创建）。
+
+## Codex 对 default-deny 重构的复审修复（2026-08-29，PR #1693）
+
+1. **P1 治理实现纳入摘要**：computeEvidenceDigest 现散列全部治理模块文件（vocabulary/privacy/matrix/fitness/index），matrix.ts 的 evidenceDigest 字段行在散列前归一化为占位符（消除自引用）——削弱扫描逻辑/篡改策略必然 STALE。
+2. **P1 learningFact 直写封堵**：LearningFact 建立独立的全域写点白名单（LEARNING_FACT_WRITE_SITES：canonical writer、materialization、simulation/document-grading/backfill 等既有 writer 与人类审批路由），全域扫描中 learningFact 写调用仅允许出现在名单内——生成器直写 prisma.learningFact.create 即违例（fixture 锁定）。
+3. **P1 provider 相对路径发现**：provider 发现除文本正则外改用规范化解析器（resolveSpecifier）识别相对路径（../ai/provider-registry）与别名 import；AI 调用模块同时禁止 import 本域禁止 sink（import 即违例）；域外 AI 使用（chat/diagnosis/konling 等非四域）不属本矩阵管辖，明确跳过。

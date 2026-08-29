@@ -54,7 +54,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '930fbfdb160c403da57e37549e1503e63e6297fe351ac4065683855914bbd66f',
+  evidenceDigest: '634331bc3f7221f18d23ccb2931e8870f73e834a7acd6a13e5f5d42189c46dc3',
   rows: [
     {
       domain: 'assessment',
@@ -350,6 +350,24 @@ export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toModu
       'src/lib/smart-lesson-plan/schema.ts',
     ],
   },
+];
+
+/**
+ * LearningFact 写点白名单（全域 default-deny）：LearningFact 是跨域 Learning
+ * Record 权威，其 Prisma 写调用只允许出现在下列既有 writer/治理模块内；
+ * 生成器/未登记模块直写即违例（与四域 authorityWriteSites 并行的独立封闭面）。
+ */
+export const LEARNING_FACT_WRITE_SITES: readonly string[] = [
+  'src/lib/canonical-learning-fact-identity/writer.ts',
+  'src/lib/data-governance/learning-fact-materialization.ts',
+  'src/lib/data-governance/simulation-task-learning-fact.ts',
+  'src/lib/data-governance/document-rubric-grading-workbench.ts',
+  'src/lib/data-governance/historical-evidence-materialization.ts',
+  'src/lib/data-governance/simulation-agent-evidence-materialization.ts',
+  'src/lib/data-governance/course-evidence-backfill.ts',
+  'src/lib/data-governance/yangfan-diagnostic-fixture.ts',
+  'src/lib/konling-agent-runtime.ts',
+  'src/app/api/teacher/document-grading/approve/route.ts',
 ];
 
 /**

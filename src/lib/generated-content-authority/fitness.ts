@@ -15,6 +15,7 @@ import {
   AUTHORITY_WRITE_MODEL_PATTERN,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   GENERATED_CONTENT_DOMAIN_ROOTS,
+  LEARNING_FACT_WRITE_SITES,
   PROVIDER_DISCOVERY_PATTERNS,
 } from './matrix';
 import type { GeneratedContentAuthorityRow } from './vocabulary';
@@ -56,6 +57,15 @@ function failInvariant(findings: InvariantFindings, invariant: GeneratedContentI
 
 
 const SOURCE_EXTENSION = /\.(?:[cm]?[jt]sx?)$/iu;
+
+/** 治理实现文件：纳入 evidenceDigest（matrix.ts 的 digest 字段自引用归一化）。 */
+export const GOVERNANCE_MODULE_PATHS: readonly string[] = [
+  'src/lib/generated-content-authority/vocabulary.ts',
+  'src/lib/generated-content-authority/privacy.ts',
+  'src/lib/generated-content-authority/matrix.ts',
+  'src/lib/generated-content-authority/fitness.ts',
+  'src/lib/generated-content-authority/index.ts',
+];
 
 function candidatePaths(target: string): string[] {
   if (SOURCE_EXTENSION.test(target)) return [target];
@@ -235,6 +245,19 @@ function hashDirectoryRecursively(
 export function computeEvidenceDigest(repoRoot: string, rows: readonly GeneratedContentAuthorityRow[]): string {
   const tracked = gitLsFiles(repoRoot);
   const hash = createHash('sha256');
+  // 治理实现与矩阵策略纳入摘要：削弱扫描逻辑/篡改策略必然 STALE。
+  // matrix.ts 的 evidenceDigest 字段行先归一化为占位符再散列（消除自引用）。
+  for (const governancePath of GOVERNANCE_MODULE_PATHS) {
+    const absolute = join(repoRoot, governancePath);
+    let content = 'MISSING';
+    if (tracked.has(governancePath) && existsSync(absolute)) {
+      content = readFileSync(absolute, 'utf8').replace(
+        /evidenceDigest: '[^']*'/u,
+        "evidenceDigest: '<self>'",
+      );
+    }
+    hash.update(`${governancePath}:${createHash('sha256').update(content).digest('hex')}\n`);
+  }
   for (const row of rows) {
     for (const path of rowEvidencePaths(row)) {
       const absolute = join(repoRoot, path);
@@ -313,6 +336,7 @@ export function scanDomainAuthorityWrites(
     domainRootsByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
     authorityWriteSitesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
     registeredProviderModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
+    forbiddenSinkModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
   },
 ): { unauthorizedWrites: string[]; unregisteredProviders: string[] } {
   const tracked = gitLsFiles(repoRoot);
@@ -334,30 +358,53 @@ export function scanDomainAuthorityWrites(
     // 权威写点发现：全域 default-deny（写权威模型与域无关，必须登记）
     for (const match of content.matchAll(globalPattern(AUTHORITY_WRITE_MODEL_PATTERN))) {
       const model = match[1];
-      const ownerDomain = AUTHORITY_MODEL_DOMAIN[model];
-      if (!ownerDomain) continue;
-      const writeSites = options.authorityWriteSitesByDomain[ownerDomain] ?? [];
+      const writeSites = model === 'learningFact'
+        ? LEARNING_FACT_WRITE_SITES
+        : (options.authorityWriteSitesByDomain[AUTHORITY_MODEL_DOMAIN[model] ?? ''] ?? []);
       const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
       if (!isWriteSite) {
-        unauthorizedWrites.push(`unregistered ${ownerDomain} authority-model write (${model}): ${path}`);
+        unauthorizedWrites.push(`unregistered authority-model write (${model}): ${path} (declare it in the domain authorityWriteSites or the LearningFact write-site list)`);
       }
     }
 
-    // provider 登记发现：范围限于四域根 + 已登记入口（域外 AI 使用不属本矩阵管辖）
-    const providerScopeRoots = Object.entries(options.domainRootsByDomain)
-      .flatMap(([domain, roots]) => roots.map((root) => ({ domain: domain as GeneratedContentDomain, root })));
-    const inProviderScope = providerScopeRoots.some(({ root }) => path.startsWith(root))
+    // provider 发现走解析器：相对路径（../ai/provider-registry）与别名同等识别
+    const inDomainScope = Object.values(options.domainRootsByDomain)
+      .some((roots) => roots.some((root) => path.startsWith(root)))
       || (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
         .some((modules) => modules.includes(path));
-    if (!inProviderScope) continue;
-    const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content));
+    let isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content));
+    if (!isProviderCallSite && inDomainScope) {
+      for (const specifier of extractSpecifiers(path, content)) {
+        const target = resolveSpecifier(path, specifier, tracked);
+        if (target && target.startsWith('src/lib/ai/provider-registry')) {
+          isProviderCallSite = true;
+          break;
+        }
+      }
+    }
+    // provider 登记只管辖四域根与已登记入口；域外 AI 使用不属本矩阵
+    if (!inDomainScope) continue;
     if (isProviderCallSite) {
       const registered = (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
         .some((modules) => modules.includes(path));
       if (!registered) {
         unregisteredProviders.push(path);
       }
+      // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）
+      const owningDomain = (Object.entries(options.domainRootsByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+        .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0]
+        ?? (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+          .find(([, modules]) => modules.includes(path))?.[0];
+      const forbiddenForDomain = options.forbiddenSinkModulesByDomain?.[owningDomain ?? 'smart-lesson'] ?? [];
+      for (const specifier of extractSpecifiers(path, content)) {
+        const target = resolveSpecifier(path, specifier, tracked);
+        if (!target) continue;
+        if (forbiddenForDomain.some((sink) => target === sink || target.startsWith(sink.split('（')[0]))) {
+          unauthorizedWrites.push(`provider module imports authority sink: ${path} -> ${target}`);
+        }
+      }
     }
+
 
     for (const match of content.matchAll(new RegExp(AUTHORITY_WRITE_MODEL_PATTERN.source, AUTHORITY_WRITE_MODEL_PATTERN.flags.includes('g') ? AUTHORITY_WRITE_MODEL_PATTERN.flags : AUTHORITY_WRITE_MODEL_PATTERN.flags + 'g'))) {
       const model = match[1];
@@ -538,6 +585,9 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     ) as Record<GeneratedContentDomain, readonly string[]>,
     registeredProviderModulesByDomain: Object.fromEntries(
       GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.generationModules]),
+    ) as Record<GeneratedContentDomain, readonly string[]>,
+    forbiddenSinkModulesByDomain: Object.fromEntries(
+      GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.forbiddenSinkModules]),
     ) as Record<GeneratedContentDomain, readonly string[]>,
   });
   const crossDomainViolations = scanUndeclaredCrossDomainImports(repoRoot, domainGenerationModules);
