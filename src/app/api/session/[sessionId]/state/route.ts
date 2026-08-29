@@ -6,6 +6,7 @@ import {
   ClassroomSessionError,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
+  jsonSafeClassroomPayload,
 } from '@/features/classroom/session';
 import {
   readClassroomSessionStateUseCase,
@@ -42,7 +43,7 @@ export async function POST(request: Request, props: { params: Promise<{ sessionI
       sessionId: params.sessionId,
       body,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const mapped = mapError(error);
@@ -70,7 +71,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       sessionId: params.sessionId,
       scope: searchParams.get('scope'),
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const mapped = mapError(error);

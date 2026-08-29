@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -127,6 +128,14 @@ describe('persistCourseBundleRevision', () => {
       }),
     );
     expect(revision.bundleRevision).toBe(4);
+  });
+
+  it('stores Prisma.JsonNull when the unreleased worktree locator is absent', async () => {
+    mocks.courseBundleRevision.findUnique.mockResolvedValue(null);
+    mocks.courseBundleRevision.aggregate.mockResolvedValue({ _max: { bundleRevision: 0 } });
+    mocks.courseBundleRevision.create.mockResolvedValue(persistedRevision());
+    await persistCourseBundleRevision(tx as never, identity({ runtimeObjectLocator: null }));
+    expect(mocks.courseBundleRevision.create.mock.calls[0][0].data.runtimeObjectLocator).toBe(Prisma.JsonNull);
   });
 
   it('recovers when a concurrent writer inserts the same digest first', async () => {

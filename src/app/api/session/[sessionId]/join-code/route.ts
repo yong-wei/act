@@ -7,6 +7,7 @@ import {
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
   regenerateClassroomSessionJoinCodeUseCase,
+  jsonSafeClassroomPayload,
 } from '@/features/classroom/session';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export async function PATCH(_request: Request, props: { params: Promise<{ sessio
       },
       sessionId: params.sessionId,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {

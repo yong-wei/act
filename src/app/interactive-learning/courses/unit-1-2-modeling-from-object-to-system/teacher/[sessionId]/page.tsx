@@ -25,7 +25,7 @@ export default async function UNIT_1_2TeacherRoute(
     role: 'teacher',
   });
   if (runtimeResult.status === 'drift') {
-    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} />;
+    return <CourseBundleDriftState code={runtimeResult.code} sessionId={runtimeResult.sessionId} viewerRole="teacher" />;
   }
   if (runtimeResult.status === 'route-mismatch') {
     redirect(runtimeResult.redirectHref);

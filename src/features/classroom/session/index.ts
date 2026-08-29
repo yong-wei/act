@@ -14,6 +14,7 @@ export {
 } from './public-api';
 export { ClassroomSessionError } from './errors';
 export { classroomSessionErrorBody, classroomSessionHttpStatus } from './http';
+export { jsonSafeClassroomPayload } from './json-safe';
 export type {
   ClassroomSessionAccessOperation,
   ClassroomSessionAccessRecord,

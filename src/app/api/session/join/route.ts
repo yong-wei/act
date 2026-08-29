@@ -6,6 +6,7 @@ import {
   ClassroomSessionError,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
+  jsonSafeClassroomPayload,
 } from '@/features/classroom/session';
 import { joinClassroomSessionUseCase } from '@/features/classroom/session/join-api';
 
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
       },
       joinCode: searchParams.get('code') ?? '',
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {
