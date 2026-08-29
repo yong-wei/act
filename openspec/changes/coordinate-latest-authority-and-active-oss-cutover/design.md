@@ -16,7 +16,7 @@ ActKG remains the Canonical Engineering authority. ACT owns course scope, teachi
 - Preserve every production-active logical resource in the successor denominator while permitting an explicit new or changed resource delta.
 - Reuse unchanged resource bindings and teaching decisions through content- and dependency-complete identities.
 - Require complete containment, prerequisite, and pedagogical-association dispositions with zero pending decisions for coordinated production selection.
-- Seal Authority, locale qualification, Teaching Projection, formal resource envelope, Runtime Release, domain shards, consumer activation, selectors, predecessor, and rollback evidence into one coordinated candidate identity.
+- Seal Authority, locale qualification, Teaching Projection, composed domain-fragment manifest and immutable fragments, formal resource envelope, Runtime Release, domain shards, consumer activation, selectors, predecessor, and rollback evidence into one coordinated candidate identity.
 - Provide a stopped-service transaction that either exposes the complete successor combination or restores the complete predecessor combination.
 
 **Non-Goals:**
@@ -63,11 +63,12 @@ For every Canonical Object in the sealed target-course active-domain scope, cont
 
 Before generating dependent artifacts, the coordinator seals an immutable allocation record containing an opaque unique coordination run ID plus the Authority capture, compatibility result, course scope, active resource baseline, explicit delta, policy versions, and implementation identities. The allocation-record hash is the common namespace for inner artifacts. An inner artifact may bind that record and any earlier dependency, but it must never bind the hash of a candidate or active receipt that will be computed from the inner artifact itself.
 
-Generation then follows one direction: Authority capture and allocation record; formal resource envelope; complete Teaching Projection and governed relations; shards, prerequisite publication, consumer activation, and successor Runtime manifest; coordinated candidate receipt. The allocation and formal resource envelope are sealed before Runtime publication so the immutable Runtime manifest can bind their exact hashes. A non-selectable Runtime stage may increment lifecycle generation, but it does not alter the frozen resource baseline: the candidate separately captures the current lifecycle predecessor for activation fencing. The outer candidate receipt binds at least:
+Generation then follows one direction: Authority capture and allocation record; formal resource envelope; complete Teaching Projection and governed relations; composed domain-fragment manifest and immutable fragments; shards, prerequisite publication, consumer activation, and successor Runtime manifest; coordinated candidate receipt. The allocation and formal resource envelope are sealed before Runtime publication so the immutable Runtime manifest can bind their exact hashes. A non-selectable Runtime stage may increment lifecycle generation, but it does not alter the frozen resource baseline: the candidate separately captures the current lifecycle predecessor for activation fencing. The outer candidate receipt binds at least:
 
 - Authority capture and compatibility receipt;
 - exact locale qualification for the captured Authority;
 - course active-domain scope and complete Teaching Projection;
+- composed domain-fragment manifest, immutable fragment-set identity, and semantic hash;
 - formal resource candidate, included, retired, development-only, atom, binding, and qualification hashes;
 - successor Runtime Release manifest, materialization, and active-receipt expectations;
 - Authority domain-shard catalog and shard set;
@@ -75,9 +76,9 @@ Generation then follows one direction: Authority capture and allocation record; 
 - the complete current predecessor selectors and Runtime lifecycle generation;
 - ordered successor selector expectations, transaction implementation identity, rollback plan, and verification policy.
 
-Every component is reopened and hash-verified before the operation can become a qualified non-selectable candidate. A mixed Authority, allocation, scope, resource, locale, Runtime Release, shard, or consumer identity invalidates the complete envelope. The candidate receipt is the only content-addressed outer closure over those inner hashes; inner receipts are immutable and are never rewritten to refer back to it.
+Every component is reopened and hash-verified before the operation can become a qualified non-selectable candidate. A mixed Authority, allocation, scope, resource, locale, Teaching fragment, Runtime Release, shard, or consumer identity invalidates the complete envelope. The candidate receipt is the only content-addressed outer closure over those inner hashes; inner receipts are immutable and are never rewritten to refer back to it.
 
-The selector plane is intentionally split by its real authority boundary. `authority/current.json` is a mutable host-side selector and is journaled directly. Teaching Projection, prerequisites, display catalog, domain shards, and consumer activation are static members of an immutable Runtime blob view; they move together when the Runtime lifecycle makes that view active. The candidate captures the complete predecessor matrix, but the pre-Runtime mutation receipt covers only selectors that can truthfully mutate before Runtime activation. The final active receipt separately binds the exact active Runtime identity and its immutable static-selector closure.
+The selector plane is intentionally split by its real authority boundary. `authority/current.json` is a mutable host-side selector and is journaled directly. Teaching Projection, its composed domain-fragment manifest and immutable fragments, prerequisites, display catalog, domain shards, and consumer activation are static members of an immutable Runtime blob view; they move together when the Runtime lifecycle makes that view active. The candidate captures the complete predecessor matrix, but the pre-Runtime mutation receipt covers only selectors that can truthfully mutate before Runtime activation. The final active receipt separately binds the exact active Runtime identity and its immutable static-selector closure.
 
 ### 6. An outer stopped-service journal provides user-visible atomicity
 
