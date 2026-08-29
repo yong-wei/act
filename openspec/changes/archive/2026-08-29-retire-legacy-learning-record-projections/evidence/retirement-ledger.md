@@ -42,7 +42,7 @@ This ledger is the only deletion gate. Unclosed rows fail closed.
 ## 3. Gated deletion evidence
 
 - RPOP: already absent after #1583; this change keeps the characterization and forbids reintroduction.
-- `LTRIM`: removed. Capacity is fail-closed (`llen >= 10000` rejects new secondary writes).
+- `LTRIM`: removed. Capacity is fail-closed: enqueue Lua atomically sums buffer+processing occupancy before `LPUSH`; expired-claim recovery moves `LREM`+`RPUSH` in the same Lua so occupancy never dips for a concurrent enqueue.
 - Duplicate `persistCoreLearningFact` from session replay: deleted.
 - Page-level raw score aggregators: none reached zero required callers as current-score sources; remaining InteractionLog uses are retained-authorized.
 - Historical `LearningFact`, competency snapshots, transitions, outbox, official Arena/Assessment results: preserved.

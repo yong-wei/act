@@ -31,6 +31,26 @@ end
 return 1
 `;
 
+const SECONDARY_RECOVER_LUA = `
+local processing = KEYS[1]
+local buffer = KEYS[2]
+local lease = KEYS[3]
+local now = tonumber(ARGV[1])
+local leaseMs = tonumber(ARGV[2])
+local items = redis.call('LRANGE', processing, 0, -1)
+local recovered = 0
+for _, raw in ipairs(items) do
+  local claimedAt = tonumber(redis.call('HGET', lease, redis.sha1hex(raw)))
+  if not claimedAt or (now - claimedAt >= leaseMs) then
+    redis.call('LREM', processing, 1, raw)
+    redis.call('RPUSH', buffer, raw)
+    redis.call('HDEL', lease, redis.sha1hex(raw))
+    recovered = recovered + 1
+  end
+end
+return recovered
+`;
+
 const REDIS_KEYS = {
   secondaryBuffer: (date: string) => `event:buffer:secondary:${date}`,
   secondaryProcessing: (date: string) => `event:processing:secondary:${date}`,
@@ -40,7 +60,7 @@ const REDIS_KEYS = {
 };
 
 function leaseField(raw: string): string {
-  return createHash('sha256').update(raw).digest('hex');
+  return createHash('sha1').update(raw).digest('hex');
 }
 
 export interface ClaimedSecondaryEvent {
@@ -155,17 +175,16 @@ export async function recoverExpiredSecondaryClaims(
   const processingKey = REDIS_KEYS.secondaryProcessing(date);
   const bufferKey = REDIS_KEYS.secondaryBuffer(date);
   const leaseKey = REDIS_KEYS.secondaryLease(date);
-  const items = await client.lrange(processingKey, 0, -1);
-  let recovered = 0;
-  for (const raw of items) {
-    const claimedAt = Number(await client.hget(leaseKey, leaseField(raw)));
-    if (Number.isFinite(claimedAt) && now - claimedAt < leaseMs) continue;
-    await client.lrem(processingKey, 1, raw);
-    await client.rpush(bufferKey, raw);
-    await client.hdel(leaseKey, leaseField(raw));
-    recovered += 1;
-  }
-  return recovered;
+  const recovered = await client.eval(
+    SECONDARY_RECOVER_LUA,
+    3,
+    processingKey,
+    bufferKey,
+    leaseKey,
+    now,
+    leaseMs,
+  );
+  return Number(recovered) || 0;
 }
 
 export async function claimSecondaryEvents(

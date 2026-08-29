@@ -269,6 +269,7 @@ describe('claimSecondaryEvents', () => {
     mockIsReady.mockReturnValue(true);
     mockLrange.mockResolvedValue([]);
     mockHget.mockResolvedValue(null);
+    mockEval.mockResolvedValue(0);
   });
 
   it('moves events with rpoplpush instead of destructive rpop', async () => {
@@ -318,14 +319,24 @@ describe('claimSecondaryEvents', () => {
     expect(claims[0].invalid).toBe(true);
   });
 
-  it('requeues expired processing entries', async () => {
-    const raw = JSON.stringify(createMockEvent());
-    mockLrange.mockResolvedValue([raw]);
-    mockHget.mockResolvedValue(String(Date.now() - 10 * 60 * 1000));
+  it('requeues expired processing entries atomically without dropping occupancy', async () => {
+    mockEval.mockResolvedValue(1);
     const recovered = await recoverExpiredSecondaryClaims('2024-01-01', Date.now());
     expect(recovered).toBe(1);
-    expect(mockRpush).toHaveBeenCalled();
-    expect(mockLrem).toHaveBeenCalled();
+    expect(mockEval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('LREM', processing, 1, raw)"),
+      3,
+      expect.stringContaining('event:processing:secondary:'),
+      expect.stringContaining('event:buffer:secondary:'),
+      expect.stringContaining('event:lease:secondary:'),
+      expect.any(Number),
+      5 * 60 * 1000,
+    );
+    const script = String(mockEval.mock.calls[0]?.[0]);
+    expect(script).toContain("redis.call('RPUSH', buffer, raw)");
+    expect(script).toContain('redis.sha1hex(raw)');
+    expect(mockLrem).not.toHaveBeenCalled();
+    expect(mockRpush).not.toHaveBeenCalled();
   });
 });
 
