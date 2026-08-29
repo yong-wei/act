@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
-import { AppHeader } from '@/components/platform/app-shell';
+import { AppHeader, AppShell } from '@/components/platform/app-shell';
 import {
   APP_SHELL_GOVERNANCE_CHANGE_ID,
   APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX,
@@ -869,5 +869,39 @@ describe('universal AppShell frame contract', () => {
         new Set(),
       ),
     ).toBe('fixture.tsx:RoleWorkspaceShell');
+  });
+});
+
+describe('AppShell print hygiene contract', () => {
+  it('hides shell chrome from browser print output while keeping workspace content', () => {
+    const markup = renderToStaticMarkup(
+      createElement(AppShell, {
+        viewerRole: 'teacher',
+        title: '教师工作台',
+        subtitle: '课程编排、班级管理、证据审核与课堂报告',
+        activeHref: '/teacher/classes/class-1',
+        sidebarMode: 'collapsible',
+        breadcrumbs: [{ label: '首页', href: '/' }, { label: '教师工作台' }],
+        workspaceSlots: {
+          commandBar: createElement('nav', { 'data-teacher-operations-nav': 'true' }, '班级页签'),
+        },
+      }),
+    );
+
+    expect(markup).toMatch(/<header[^>]*print:hidden/);
+    expect(markup).toMatch(/<aside[^>]*print:hidden/);
+    expect(markup).toMatch(/<nav aria-label="平台导航"[^>]*print:hidden/);
+    expect(markup).toMatch(/data-app-shell-zone="command-bar"[^>]*print:hidden/);
+    const gridMatch = markup.match(/<div class="([^"]*)" data-app-shell-layout="collapsible"/);
+    expect(gridMatch?.[1]).toContain('print:block');
+    expect(markup).not.toMatch(/data-teacher-operations-nav[^>]*print:hidden/);
+  });
+
+  it('defines the shared no-print utility for print media and keeps it referenced', () => {
+    const css = readSource('src/app/globals.css');
+    expect(css).toMatch(/@media print\s*\{[^}]*\.no-print\s*\{[^}]*display:\s*none\s*!important/);
+
+    const floatingControls = readSource('src/components/shared/page-floating-controls.tsx');
+    expect(floatingControls).toContain('no-print');
   });
 });

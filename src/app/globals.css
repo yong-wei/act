@@ -2312,3 +2312,11 @@
 .animate-victory-bounce {
   animation: victory-bounce 0.5s ease-in-out infinite;
 }
+
+/* 打印媒体统一隐藏出口：浮动控件层等 web-only 元素通过 .no-print 退出打印输出
+   （浏览器自动页眉页脚不在此列，由浏览器打印设置控制）。 */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
