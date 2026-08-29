@@ -19,6 +19,7 @@ import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-f
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import type { WidgetResult } from '@/resources/widgets/widget-props';
 import { selectResourceCompletionHandler } from './completion-boundary';
+import { resolveAdaptivePathCompletionContinueHref } from './path-completion-navigation';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -113,15 +114,17 @@ export default function InteractiveResourcePage() {
       window.location.assign(buildFeedbackTaskHref(feedbackContext.returnHref, feedbackContext, {
         status: 'completed',
       }));
-      return;
+      return null;
     }
-    if (!pathLaunchContext) return;
+    if (!pathLaunchContext) return null;
     const request = buildAdaptivePathCompletionRequest({
       launchContext: pathLaunchContext,
       completedAt: new Date().toISOString(),
       completionResult: result && typeof result === 'object' ? result as unknown as Record<string, unknown> : undefined,
     });
-    if (!request) return;
+    if (!request) {
+      throw new Error('当前资源不能通过路径完成接口确认进度');
+    }
 
     const response = await fetch(request.href, {
       method: request.method,
@@ -131,21 +134,39 @@ export default function InteractiveResourcePage() {
     if (!response.ok) {
       throw new Error(`Path resource completion rejected with status ${response.status}`);
     }
-    publishAdaptivePathJourneyResponse(await response.json().catch(() => null));
+    const payload = await response.json().catch(() => null);
+    publishAdaptivePathJourneyResponse(payload);
+    return payload;
+  };
+
+  const writePathResourceCompletion = async (result?: WidgetResult) => {
+    await completePathResource(result);
   };
 
   const handlePathResourceComplete = async (result?: WidgetResult) => {
     try {
-      await completePathResource(result);
+      await writePathResourceCompletion(result);
     } catch (completionError) {
       console.error('Failed to write path resource completion', completionError);
     }
   };
 
+  const continuePathAfterResourceComplete = async (result?: WidgetResult) => {
+    const payload = await completePathResource(result);
+    if (!pathLaunchContext) return;
+    const continueHref = resolveAdaptivePathCompletionContinueHref({
+      payload,
+      currentHref: `${window.location.pathname}${window.location.search}`,
+      fallbackHref: pathLaunchContext.returnHref,
+    });
+    window.location.assign(continueHref);
+  };
+
   const resourceCompletionHandler = selectResourceCompletionHandler(
     resource?.registryId,
-    completePathResource,
+    writePathResourceCompletion,
     handlePathResourceComplete,
+    continuePathAfterResourceComplete,
   );
 
   return (
