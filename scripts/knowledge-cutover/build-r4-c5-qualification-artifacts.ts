@@ -146,6 +146,25 @@ function main(): void {
     releaseId: string;
     releaseSetId: string;
   }>(path.join(candidateDir, 'authority-current.json'));
+  const composed = readJson<{
+    projectionHash: string;
+    sourceHashes: { fragments: string };
+    authorityBinding: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
+  }>(path.join(candidateDir, 'composed-domain-fragment-manifest.json'));
+  requireHash(composed.projectionHash, 'composed domain-fragment manifest');
+  requireHash(composed.sourceHashes.fragments, 'domain-fragment set');
+  if (composed.projectionHash !== candidate.composedDomainFragmentManifestHash
+    || composed.sourceHashes.fragments !== candidate.domainFragmentSetHash) {
+    throw new Error('reopened composed domain-fragment identities differ from candidate');
+  }
+  if (
+    composed.authorityBinding.snapshotId !== successorAuthority.snapshotId
+    || composed.authorityBinding.snapshotHash !== successorAuthority.snapshotHash
+    || composed.authorityBinding.releaseId !== successorAuthority.releaseId
+    || composed.authorityBinding.releaseSetId !== successorAuthority.releaseSetId
+  ) {
+    throw new Error('composed domain-fragment manifest does not bind the successor Authority');
+  }
   if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
     throw new Error('presentation-label qualification did not pass without review');
   }

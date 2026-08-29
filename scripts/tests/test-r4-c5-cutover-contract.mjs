@@ -131,6 +131,10 @@ assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapsh
 assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and validate the Authority snapshot from the sealed successor');
 assert.doesNotMatch(deploy, /snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/, 'local wrapper must not retain the superseded c4 snapshot');
 assert.doesNotMatch(deploy, /scripts\/build\.sh|docker buildx/, 'outer cutover wrapper must not build on the production path');
+assert.ok(
+  deploy.includes('composed-domain-fragment-manifest.json'),
+  'local wrapper must gate and upload the composed domain-fragment manifest with the candidate',
+);
 assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
 assert.ok(
   remote.includes('composed domain-fragment manifest does not bind the successor Authority'),
@@ -257,10 +261,20 @@ try {
     '--capture', 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/authority-capture/authority-capture.json',
     '--input', path.join(out, 'prepare-input.json'), '--out', out,
   ], { cwd: root, encoding: 'utf8' });
-  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [qualificationArtifacts, '--candidate-dir', out], { cwd: root, encoding: 'utf8' });
-  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'qualify',
-    '--candidate', path.join(out, 'candidate-receipt.json'), '--artifacts', path.join(out, 'outer-artifacts.json'),
-  ], { cwd: root, encoding: 'utf8' });
+  assert.ok(
+    fs.existsSync(path.join(out, 'composed-domain-fragment-manifest.json')),
+    'prepare must persist the composed domain-fragment manifest for remote reopen',
+  );
+  const mixedIdentityQualify = spawnSync(
+    path.join(root, 'node_modules/.bin/tsx'),
+    [qualificationArtifacts, '--candidate-dir', out],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(mixedIdentityQualify.status, 0, 'a v0.9 composed-manifest must not qualify against the v0.37 successor');
+  assert.match(
+    `${mixedIdentityQualify.stdout}${mixedIdentityQualify.stderr}`,
+    /composed domain-fragment manifest does not bind the successor Authority/,
+  );
   const tamperedRuntimeRelease = { ...runtimeRelease, manifestWireSha256: 'f'.repeat(64) };
   fs.writeFileSync(stagePath, `${JSON.stringify({
     contract: 'coordinated-runtime-stage/v1',

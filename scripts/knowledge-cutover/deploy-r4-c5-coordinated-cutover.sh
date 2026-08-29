@@ -27,7 +27,7 @@ done
 [[ -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
 
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json composed-domain-fragment-manifest.json; do
   [[ -f "$candidate_dir/$file" && ! -L "$candidate_dir/$file" ]] || { echo "ERROR: qualified candidate file is missing: $file" >&2; exit 1; }
 done
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
@@ -65,7 +65,7 @@ copy_immutable() {
 }
 
 remote "test ! -e '$remote_dir' && mkdir -p '$remote_dir'"
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json composed-domain-fragment-manifest.json; do
   copy_immutable "$candidate_dir/$file" "$remote_dir/$file"
 done
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
