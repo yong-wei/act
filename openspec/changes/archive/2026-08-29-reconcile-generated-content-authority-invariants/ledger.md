@@ -103,3 +103,9 @@ scanDomainAuthorityWrites 改为返回结构化违例（domain/kind/file/detail�
 - 修复 FINAL_AUTHORITY_WRITE_MODEL_PATTERN 判定拼接错误（重组文本丢失前导点且重复操作名导致恒 false）：直接对完整匹配文本 match[0] 判定；白名单文件同时调用 provider 并改写最终权威（assignmentSubmission 等）必产生违例。
 - 回归测试锁定：白名单文件引入 provider 调用 + tx.assignmentSubmission.update → UNREGISTERED_AUTHORITY_WRITE（assignment-rubric）。
 - 摘要重绑至最终治理实现（f7ea8b74）。
+
+## 可选链覆盖与回执修订绑定恢复（2026-08-29，PR #1693）
+
+- AUTHORITY_WRITE_MODEL_PATTERN 与 FINAL pattern 支持可选链访问（`model?.write`）——`prisma.smartCoursewarePublicationRevision?.create`、`db.learningFact?.createMany` 等形式不再绕过检测（正则测试锁定）。
+- 恢复 qaReceipts 修订绑定：每条回执 revision 必须等于行 sourceRevision，否则行 NOT_QUALIFIED（结构化重构时曾丢失）。
+- 摘要重绑至最终治理实现（本轮含 AUTHORITY_WRITE_MODEL_PATTERN 导出与可选链覆盖）。

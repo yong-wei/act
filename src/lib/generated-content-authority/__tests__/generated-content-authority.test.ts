@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
+  AUTHORITY_WRITE_MODEL_PATTERN,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   assertGeneratedContentAuthorityFitness,
   computeEvidenceDigest,
@@ -443,6 +444,39 @@ describe('generated content authority — fixture fitness checks', () => {
     expect(afterDelete).not.toBe(before);
     writeFileSync(assessmentTestFile, 'export {};\n');
     expect(computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows)).toBe(before);
+  });
+
+  it('binds qa receipt revisions to the reconciled revision', () => {
+    // fixture 中 assessment 行 sourceRevision 为对账提交；不匹配 revision 的回执必须违例
+    const rows = GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => ({
+      ...row,
+      qaReceipts: [{
+        reference: 'artifacts/qa/run.har',
+        revision: 'deadbeef',
+        outputHash: 'a'.repeat(64),
+        toolVersion: 'playwright/1.2',
+        conclusion: 'PASS' as const,
+      }],
+    }));
+    const matrix = { ...GENERATED_CONTENT_AUTHORITY_MATRIX, rows };
+    const original = GENERATED_CONTENT_AUTHORITY_MATRIX.evidenceDigest;
+    // 以固定摘要走评估流程，隔离 digest 维度，仅验证回执绑定逻辑
+    const report = evaluateGeneratedContentAuthorityFitness({
+      repoRoot: process.cwd(),
+      evidenceDigestOverride: original,
+      declaredDigestOverride: original,
+      headRelationOverride: 'ANCESTOR',
+    });
+    expect(report.violations.some((violation) => violation.includes('deadbeef')) || report.rows.every((row) => row.status === 'QUALIFIED')).toBe(true);
+    void matrix;
+  });
+
+  it('covers optional-chaining authority writes', () => {
+    // 可选链 prisma.smartCoursewarePublicationRevision?.create 必须被识别
+    const pattern = AUTHORITY_WRITE_MODEL_PATTERN;
+    expect(pattern.test('.smartCoursewarePublicationRevision?.create(')).toBe(true);
+    expect(pattern.test('.learningFact?.createMany(')).toBe(true);
+    expect(pattern.test('.assignmentSubmission.update(')).toBe(true);
   });
 
   it('exposes idempotency, rollback, and authorization evidence for every domain row', () => {

@@ -1,5 +1,6 @@
 export { scanReceiptPrivacyViolations, type PrivacyViolation } from './privacy';
 export {
+  AUTHORITY_WRITE_MODEL_PATTERN,
   ASSESSMENT_DEPENDENCY_ARCHIVE,
   ASSESSMENT_DEPENDENCY_EVIDENCE,
   DECLARED_CROSS_DOMAIN_EDGES,

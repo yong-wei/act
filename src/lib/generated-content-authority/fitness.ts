@@ -663,6 +663,13 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
         violations.push(`${scanViolation.kind} (${scanViolation.domain ?? 'unattributed'}): ${scanViolation.file} — ${scanViolation.detail}`);
       }
     }
+
+    // QA 回执修订绑定：每条回执 revision 必须等于行 sourceRevision（对账修订）
+    for (const receipt of row.qaReceipts ?? []) {
+      if (receipt.revision !== rowSourceRevision) {
+        failInvariant(findings, 'DOMAIN_OWNERSHIP', `qa receipt revision ${receipt.revision} != reconciled source revision ${rowSourceRevision}`);
+      }
+    }
     for (const violation of crossDomainViolations) {
       if (violation.startsWith(`undeclared cross-domain import: `)) {
         const fromModule = violation.split(' -> ')[0].replace('undeclared cross-domain import: ', '');
