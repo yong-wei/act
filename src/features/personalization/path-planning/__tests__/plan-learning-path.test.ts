@@ -193,6 +193,62 @@ describe('PlanLearningPath pipeline', () => {
     expect(bundleNodeIds.some((nodeId) => nodeId.includes('extra-card'))).toBe(false);
   });
 
+  it('preserves ConstraintRepair order among assembled path nodes', () => {
+    const input = {
+      studentId: 'student-1',
+      goal: {
+        id: 'goal-bode',
+        title: '补齐伯德图',
+        knowledgeTargets: ['kn-bode'],
+      },
+      learnerState: null,
+      registry: buildResourceNodeRegistry({
+        registeredResources: [
+          {
+            id: 'visible-card',
+            label: '可见知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/visible-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+          {
+            id: 'extra-card',
+            label: '额外知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/extra-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+        ],
+        aiInterventions: [],
+      }),
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible', 'teacher-scoped', 'class-shared', 'public'],
+        device: 'desktop',
+      },
+    };
+    const ports = createDefaultPlanLearningPathPorts();
+    const originalRepair = ports.repair.repair.bind(ports.repair);
+    let repairedNodeIds: string[] = [];
+    ports.repair = {
+      repair(context, ranked) {
+        const repaired = originalRepair(context, ranked);
+        const ordered = [...repaired.ordered].reverse();
+        repairedNodeIds = ordered.map((node) => node.id);
+        return { ordered };
+      },
+    };
+    const plan = planLearningPath(input, ports);
+    const registryNodeIds = new Set(input.registry.nodes.map((node) => node.id));
+    const resourceNodeIds = plan.mainPath
+      .map((node) => node.nodeId)
+      .filter((nodeId) => registryNodeIds.has(nodeId));
+    expect(resourceNodeIds.length).toBeGreaterThan(1);
+    expect(resourceNodeIds).toEqual(
+      repairedNodeIds.filter((nodeId) => resourceNodeIds.includes(nodeId)),
+    );
+  });
+
   it('uses the active plugin path-planning policy instead of the static catalog', () => {
     const registry = createPersonalizationPluginRegistry();
     const plugin = createControlCorrectionPersonalizationPlugin();

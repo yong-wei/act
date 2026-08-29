@@ -2093,6 +2093,25 @@ function withCollectionBackedPlanningInput(
   };
 }
 
+function applyStageRepairedNodeOrder(
+  internallyRepairedMainPathNodes: ScoredNode[],
+  stageRepairedNodeIds: readonly string[] | undefined,
+  insertedNodeIds: readonly string[] = [],
+): ScoredNode[] {
+  if (!stageRepairedNodeIds) {
+    return internallyRepairedMainPathNodes;
+  }
+  const stageOrderIndex = new Map(stageRepairedNodeIds.map((nodeId, index) => [nodeId, index]));
+  const allowedNodes = internallyRepairedMainPathNodes.filter((entry) => stageOrderIndex.has(entry.node.id));
+  if (allowedNodes.some((entry) => insertedNodeIds.includes(entry.node.id))) {
+    return allowedNodes;
+  }
+  return [...allowedNodes].sort(
+    (left, right) =>
+      (stageOrderIndex.get(left.node.id) ?? 0) - (stageOrderIndex.get(right.node.id) ?? 0),
+  );
+}
+
 function assembleAdaptiveLearningPathPlanInternal(
   rawInput: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
@@ -2279,10 +2298,11 @@ function assembleAdaptiveLearningPathPlanInternal(
     .map((nodeId) => scoredByNodeId.get(nodeId))
     .filter((entry): entry is ScoredNode => Boolean(entry));
   const internallyRepairedMainPathNodes = repairedEntries.length > 0 ? repairedEntries : mainPathNodes;
-  const allowedStageNodeIds = stageRepairedNodeIds ? new Set(stageRepairedNodeIds) : null;
-  const repairedMainPathNodes = allowedStageNodeIds
-    ? internallyRepairedMainPathNodes.filter((entry) => allowedStageNodeIds.has(entry.node.id))
-    : internallyRepairedMainPathNodes;
+  const repairedMainPathNodes = applyStageRepairedNodeOrder(
+    internallyRepairedMainPathNodes,
+    stageRepairedNodeIds,
+    constraintRepair.insertedNodeIds,
+  );
   const originalFallbackReasons = constraintRepair.status === 'infeasible'
     ? buildFallbackReasons({
         learnerState: input.learnerState,
