@@ -8,9 +8,10 @@ import type {
   ArenaSubmissionRecord,
 } from './submissions/types';
 import {
-  ARENA_OFFICIAL_TARGET,
+  arenaOfficialTargetLabel,
   buildMissingArenaSubmissionEvidenceWriteback,
   getArenaAttemptStatus,
+  resolveArenaOfficialTarget,
 } from './submissions/evidence-status';
 import { isArenaSubmissionEffectiveForRanking } from './submissions/ranking-policy';
 
@@ -23,10 +24,6 @@ export {
   buildMissingArenaSubmissionEvidenceWriteback,
   getArenaAttemptStatus,
 } from './submissions/evidence-status';
-
-const CONTROL_CORRECTION_OFFICIAL_ARENA_TASKS = new Set([
-  'task-second-order-lead-pid',
-]);
 
 export function buildArenaRankingExplanation(status: ArenaAttemptStatus): string {
   if (status === 'effective') return '有效尝试：计入个人最佳和优秀方案候选。';
@@ -61,7 +58,7 @@ function buildLimitedWriteback(
     sourceRef: { kind: 'ArenaSubmission', id: submission.id },
     attemptStatus,
     visibilityState: 'diagnostic-only',
-    targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+    targetLabel: arenaOfficialTargetLabel(submission.taskId),
     summary: reason,
     recoveryAction: '重新提交一次截止前、有效且非零分的官方 Arena 结果；若仍无法写回，请由教师在报告中复核证据绑定。',
     limitationCodes: exposeLimitationCodes ? limitationCodes : [],
@@ -89,7 +86,7 @@ export function buildArenaSubmissionEvidenceWriteback(
       sourceRef: { kind: 'ArenaSubmission', id: submission.id },
       attemptStatus,
       visibilityState: 'unavailable',
-      targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+      targetLabel: arenaOfficialTargetLabel(submission.taskId),
       summary: '官方提交缺少学生所有者，无法写入学生证据时间线。',
       recoveryAction: '教师需要在报告中复核提交身份，并重新触发带有学生身份的官方提交。',
       limitationCodes: exposeLimitationCodes ? ['missing-subject-owner'] : [],
@@ -98,13 +95,14 @@ export function buildArenaSubmissionEvidenceWriteback(
     };
   }
 
-  if (!CONTROL_CORRECTION_OFFICIAL_ARENA_TASKS.has(submission.taskId)) {
+  const officialTarget = resolveArenaOfficialTarget(submission.taskId);
+  if (!officialTarget) {
     return {
       status: 'degraded',
       sourceRef: { kind: 'ArenaSubmission', id: submission.id },
       attemptStatus,
       visibilityState: 'diagnostic-only',
-      targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+      targetLabel: arenaOfficialTargetLabel(submission.taskId),
       summary: '该 Arena 任务尚未绑定到 KAQ 目标，官方结果保留为诊断证据并继续参与排名。',
       recoveryAction: '教师报告中保留官方提交记录；管理员需要为该任务补充 KAQ 目标绑定后再重试写回，以获得完整掌握证据。',
       limitationCodes: exposeLimitationCodes ? ['missing-target-binding'] : [],
@@ -139,9 +137,9 @@ export function buildArenaSubmissionEvidenceWriteback(
     contributions: [
       {
         domain: 'capability',
-        objectiveId: ARENA_OFFICIAL_TARGET.objectiveId,
-        graphNodeId: ARENA_OFFICIAL_TARGET.graphNodeId,
-        learningGoalId: ARENA_OFFICIAL_TARGET.learningGoalId,
+        objectiveId: officialTarget.objectiveId,
+        graphNodeId: officialTarget.graphNodeId,
+        learningGoalId: officialTarget.learningGoalId,
         confidence: scoreConfidence(submission),
         terminalValidationCandidate: true,
       },
@@ -164,7 +162,7 @@ export function buildArenaSubmissionEvidenceWriteback(
       : result.status === 'degraded'
         ? 'diagnostic-only'
         : 'unavailable',
-    targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+    targetLabel: arenaOfficialTargetLabel(submission.taskId),
     summary,
     recoveryAction: result.status === 'accepted'
       ? '无需处理；教师报告可直接引用该官方证据。'

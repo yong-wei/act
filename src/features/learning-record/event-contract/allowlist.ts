@@ -20,6 +20,16 @@ const ALLOWED_PAYLOAD_KEYS = new Set([
   'moduleId',
   'targetType',
   'targetId',
+  'goalId',
+  'pluginId',
+  'adapterVersion',
+  'releaseRevision',
+  'canonicalLessonId',
+  'canonicalResourceId',
+  'canonicalActivityId',
+  'arenaTaskId',
+  'idempotencyKey',
+  'materialization',
 ]);
 
 export function collectForbiddenFields(value: unknown, path = ''): string[] {

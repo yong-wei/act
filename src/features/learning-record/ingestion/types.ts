@@ -57,6 +57,12 @@ export interface IngestLearningFactResult {
   times?: TrustedTimeSet;
   rematerialization?: { decoderVersion: string; materializerVersion: string };
   failure?: { code: string; fingerprint: string; stage?: string };
+  adapter?: {
+    status: 'mapped' | 'not-applicable' | 'rejected';
+    reason?: string;
+    adapterVersion?: string;
+    captureRevision?: string;
+  };
 }
 
 export interface EvidenceOutboxDelegate {

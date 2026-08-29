@@ -21,6 +21,9 @@ export class PersonalizationPluginRegistry {
     if (this.plugins.has(plugin.goalId)) {
       throw mappingError('duplicate-goal', plugin.goalId);
     }
+    if ([...this.plugins.values()].some((existing) => existing.pluginId === plugin.pluginId)) {
+      throw mappingError('duplicate-plugin', plugin.pluginId);
+    }
     this.indexIds(this.courseToGoal, plugin.courseIds, plugin.goalId, 'course');
     this.indexIds(this.lessonToGoal, plugin.lessonIds, plugin.goalId, 'lesson');
     this.indexIds(this.taskToGoal, plugin.arenaTaskIds, plugin.goalId, 'task');
@@ -29,6 +32,12 @@ export class PersonalizationPluginRegistry {
 
   get(goalId: string): PersonalizationGoalPlugin | null {
     return this.plugins.get(goalId) ?? null;
+  }
+
+  getByPluginId(pluginId: string): PersonalizationGoalPlugin | null {
+    const matches = this.list().filter((plugin) => plugin.pluginId === pluginId);
+    if (matches.length !== 1) return null;
+    return matches[0];
   }
 
   list(): PersonalizationGoalPlugin[] {

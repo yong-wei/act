@@ -13,6 +13,7 @@ import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-mat
 import { inspectIngestionBoundary, minimizedFailureRecord } from './sanitizer';
 import { evaluateSourceTimes } from './source-trust';
 import { buildProjectionTrigger, recordProjectionTriggerIntent } from './trigger';
+import type { CourseAdapterMapInput } from '@/features/personalization/plugins/learning-record-adapter-types';
 import {
   INGESTION_STATUS,
   ingestionDedupeKey,
@@ -24,6 +25,79 @@ import {
 
 function fingerprint(code: string): string {
   return sha256Canonical({ code }).slice(0, 16);
+}
+
+function readPayloadString(
+  payload: Record<string, unknown> | undefined,
+  envelopePayload: Record<string, unknown> | undefined,
+  key: string,
+): string | null {
+  const fromEnvelope = envelopePayload?.[key];
+  const fromPayload = payload?.[key];
+  if (typeof fromEnvelope === 'string' && fromEnvelope.trim()) return fromEnvelope.trim();
+  if (typeof fromPayload === 'string' && fromPayload.trim()) return fromPayload.trim();
+  return null;
+}
+
+function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
+  const payload = (input.event.payload ?? {}) as Record<string, unknown>;
+  const envelopePayload = input.envelope?.payload as Record<string, unknown> | undefined;
+  const arenaTaskId = readPayloadString(payload, envelopePayload, 'arenaTaskId');
+  return {
+    goalId: readPayloadString(payload, envelopePayload, 'goalId'),
+    pluginId: readPayloadString(payload, envelopePayload, 'pluginId'),
+    pluginVersion: readPayloadString(payload, envelopePayload, 'pluginVersion'),
+    adapterVersion: readPayloadString(payload, envelopePayload, 'adapterVersion'),
+    schemaVersion: readPayloadString(payload, envelopePayload, 'schemaVersion'),
+    releaseRevision: readPayloadString(payload, envelopePayload, 'releaseRevision'),
+    captureRevision: input.captureRevision,
+    expectedCaptureRevision: readPayloadString(payload, envelopePayload, 'expectedCaptureRevision'),
+    canonicalLessonId: readPayloadString(payload, envelopePayload, 'canonicalLessonId'),
+    canonicalResourceId: readPayloadString(payload, envelopePayload, 'canonicalResourceId'),
+    canonicalActivityId: readPayloadString(payload, envelopePayload, 'canonicalActivityId'),
+    arenaReference: arenaTaskId ? { taskId: arenaTaskId } : null,
+    sourceEventId: input.event.eventId,
+    sourceLogId: readPayloadString(payload, envelopePayload, 'sourceLogId') ?? undefined,
+    trustedOccurredAt: anchorsTrustedOccurredAt(input),
+    receivedAt: (input.now ?? new Date()).toISOString(),
+    subjectRef: opaqueSubjectRef(input.actorUserId),
+    idempotencyKey: ingestionDedupeKey({
+      sourceEventId: input.event.eventId,
+      captureRevision: input.captureRevision,
+    }),
+    materialization: input.transport === 'outbox-apply' ? 'outbox' : 'direct',
+    rebaseReceipt: input.rebaseReceipt,
+  };
+}
+
+async function resolveCourseAdapter(input: IngestLearningFactInput): Promise<{
+  receipt: NonNullable<IngestLearningFactResult['adapter']>;
+  rejected?: { code: string };
+}> {
+  const hint = adapterHint(input);
+  if (!hint.goalId && !hint.pluginId) {
+    return { receipt: { status: 'not-applicable' } };
+  }
+  const { mapCourseLearningRecordEvidence } = await import(
+    '@/features/learning-record/course-adapters/public-api'
+  );
+  const mapped = mapCourseLearningRecordEvidence(hint);
+  if (mapped.status === 'rejected') {
+    return {
+      receipt: { status: 'rejected', reason: mapped.reason },
+      rejected: { code: mapped.reason },
+    };
+  }
+  if (mapped.status === 'mapped') {
+    return {
+      receipt: {
+        status: 'mapped',
+        adapterVersion: mapped.mapping.adapterVersion,
+        captureRevision: mapped.mapping.captureRevision,
+      },
+    };
+  }
+  return { receipt: { status: 'not-applicable' } };
 }
 
 function failed(
@@ -112,6 +186,15 @@ async function ingestInCurrentHandle(
   const now = input.now ?? new Date();
   const anchors = resolveAnchors(input);
   const times = resolveTimes(input);
+  const adapterResolution = await resolveCourseAdapter(input);
+  if (adapterResolution.rejected) {
+    return failed(input, adapterResolution.rejected.code, {
+      anchors,
+      times,
+      adapter: adapterResolution.receipt,
+      failure: { code: adapterResolution.rejected.code, fingerprint: fingerprint(adapterResolution.rejected.code), stage: 'adapter' },
+    });
+  }
 
   if (input.envelope) {
     const boundaryHits = inspectIngestionBoundary(input.envelope.payload);
@@ -237,6 +320,7 @@ async function ingestInCurrentHandle(
     factsCreated: persisted.created,
     anchors,
     times: resolveTimes(input, now.toISOString()),
+    adapter: adapterResolution.receipt,
   };
 }
 

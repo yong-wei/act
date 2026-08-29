@@ -9,7 +9,7 @@ import {
   type AdaptiveGoalSliceDefinition,
   type AdaptiveGoalSliceDimensionDefinition,
   type ControlCorrectionTargetLevel,
-} from '@/features/personalization/learner-state/internal';
+} from '@/features/personalization/learner-state/goal-slice-constants';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from './capability-targets';
 
 const CONTROL_CORRECTION_TARGET_LEVEL_MAPPING: Record<ControlCorrectionTargetLevel, string> = {

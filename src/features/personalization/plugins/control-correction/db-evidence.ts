@@ -1,9 +1,5 @@
 import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
-import {
-  attachPersistedArenaWritebacks,
-  uniqueFactsById,
-  type AdaptiveLearnerStateDb,
-} from '@/features/personalization/learner-state/internal';
+import type { AdaptiveLearnerStateDb } from '@/features/personalization/learner-state/internal';
 import type { GoalPluginEvidencePort } from '../types';
 import { readString } from '../json';
 import {
@@ -19,6 +15,18 @@ import {
 } from './evidence-match';
 
 const CONTROL_CORRECTION_FACT_TAKE = 500;
+
+function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const seen = new Set<string>();
+  const result: Array<Record<string, unknown>> = [];
+  for (const fact of facts) {
+    const id = readString(fact.id);
+    if (id && seen.has(id)) continue;
+    if (id) seen.add(id);
+    result.push(fact);
+  }
+  return result;
+}
 
 export async function readControlCorrectionLearningFacts(
   db: AdaptiveLearnerStateDb,
@@ -105,6 +113,9 @@ export function createControlCorrectionEvidencePort(
         orderBy: { submittedAt: 'desc' },
         take: 200,
       }) ?? [];
+      const { attachPersistedArenaWritebacks } = await import(
+        '@/features/personalization/learner-state/internal'
+      );
       return attachPersistedArenaWritebacks(db, submissions);
     },
     readAgentToolRuns: async (userId) => db.agentToolRun?.findMany?.({

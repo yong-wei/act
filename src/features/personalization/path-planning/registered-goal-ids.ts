@@ -1,5 +1,5 @@
 import { CONTROL_CORRECTION_GOAL_ID } from '@/features/personalization/plugins/control-correction/mappings';
-import { personalizationPluginRegistry } from '@/features/personalization/plugins/default-registry';
+import { personalizationPluginRegistry } from '@/features/personalization/plugins/registry-singleton';
 
 export const REGISTERED_ADAPTIVE_LEARNING_PATH_GOAL_IDS = [
   CONTROL_CORRECTION_GOAL_ID,

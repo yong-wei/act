@@ -5,7 +5,7 @@ import {
   authorizeReplay,
   successfulPayloadExpired,
   verifyDeletionUnreadability,
-} from '@/features/learning-record/ingestion/public-api';
+} from '@/features/learning-record/ingestion/retention';
 import { inspectIngestionBoundary, minimizedFailureRecord } from '@/features/learning-record/ingestion/sanitizer';
 
 export const PROJECTION_RETENTION = INGESTION_RETENTION;

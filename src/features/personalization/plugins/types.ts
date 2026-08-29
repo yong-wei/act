@@ -1,4 +1,5 @@
-import type { AdaptiveGoalSliceDefinition } from '@/features/personalization/learner-state/internal';
+import type { AdaptiveGoalSliceDefinition } from '@/features/personalization/learner-state/goal-slice-constants';
+import type { CourseLearningRecordAdapter } from './learning-record-adapter-types';
 
 export type PersonalizationPluginStatus = 'active' | 'disabled' | 'retired';
 
@@ -96,6 +97,13 @@ export interface PersonalizationPluginPathPlanningPolicy {
   evidenceRequirements: readonly string[];
 }
 
+export interface PersonalizationArenaOfficialTarget {
+  learningGoalId: string;
+  objectiveId: string;
+  graphNodeId: string;
+  targetLabel: string;
+}
+
 export interface PersonalizationGoalPlugin<TDb = unknown> {
   pluginId: string;
   goalId: string;
@@ -106,6 +114,8 @@ export interface PersonalizationGoalPlugin<TDb = unknown> {
   arenaTaskIds: readonly string[];
   sliceDefinition: AdaptiveGoalSliceDefinition;
   pathPlanningPolicy?: PersonalizationPluginPathPlanningPolicy;
+  arenaOfficialTarget?: PersonalizationArenaOfficialTarget;
   createEvidencePort(db: TDb): GoalPluginEvidencePort;
   createWritePort(): PersonalizationPluginWritePort;
+  createLearningRecordAdapter(): CourseLearningRecordAdapter;
 }

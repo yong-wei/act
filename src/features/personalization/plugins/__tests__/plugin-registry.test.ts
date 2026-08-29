@@ -29,6 +29,7 @@ import { ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION } from '@/features/personaliza
 const GENERIC_PERSONALIZATION_FILES = [
   'src/features/personalization/learner-state/internal.ts',
   'src/features/personalization/learner-state/public-api.ts',
+  'src/features/personalization/learner-state/goal-slice-constants.ts',
   'src/features/personalization/learner-state/adapters/db-runtime.ts',
   'src/features/personalization/learner-state/application/read-learner-state.ts',
   'src/features/personalization/path-planning/application/plan-learning-path.ts',
@@ -47,6 +48,7 @@ const RETIRED_CONCRETE_IDS = [
 
 const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/registry.ts',
+  'src/features/personalization/plugins/registry-singleton.ts',
   'src/features/personalization/plugins/types.ts',
   'src/features/personalization/plugins/default-registry.ts',
   'src/features/personalization/plugins/public-api.ts',
@@ -58,6 +60,19 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/slice-contract.ts',
   'src/features/personalization/plugins/control-correction/capability-targets.ts',
   'src/features/personalization/plugins/control-correction/path-planning-policy.ts',
+  'src/features/personalization/plugins/control-correction/learning-record-adapter.ts',
+  'src/features/personalization/plugins/learning-record-adapter-types.ts',
+];
+
+const GENERIC_LEARNING_RECORD_FILES = [
+  'src/features/learning-record/ingestion/ingest.ts',
+  'src/features/learning-record/ingestion/types.ts',
+  'src/features/learning-record/course-adapters/map-evidence.ts',
+  'src/features/learning-record/projections/read-ports.ts',
+  'src/features/learning-record/consumers/ports.ts',
+  'src/features/arena/evidence-writeback-persistence.ts',
+  'src/features/arena/evidence-writeback.ts',
+  'src/features/arena/submissions/evidence-status.ts',
 ];
 
 function emptyFeatureRead(): LearnerStateReducerInput['featureRead'] {
@@ -289,7 +304,7 @@ describe('personalization plugin registry', () => {
   });
 
   it('keeps generic Personalization modules free of control-correction course and Arena IDs', () => {
-    for (const file of GENERIC_PERSONALIZATION_FILES) {
+    for (const file of [...GENERIC_PERSONALIZATION_FILES, ...GENERIC_LEARNING_RECORD_FILES]) {
       const source = readFileSync(file, 'utf8');
       for (const token of RETIRED_CONCRETE_IDS) {
         expect(source, `${file} contains ${token}`).not.toContain(token);

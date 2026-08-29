@@ -490,3 +490,59 @@ describe('ingestion producer characterization', () => {
     expect(worker).toContain('ingestLearningFact');
   });
 });
+
+describe('control-correction course adapter ingestion', () => {
+  beforeEach(() => {
+    persist.persistCoreLearningFact.mockReset();
+  });
+  it('does not infer a course mapping from payload courseId without an explicit goal', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({ payload: { stepId: 'step-01', courseId: '3-6' } }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter).toEqual({ status: 'not-applicable' });
+    expect(persist.persistCoreLearningFact).toHaveBeenCalled();
+  });
+
+  it('maps an explicit control-correction goal with canonical identity', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter?.status).toBe('mapped');
+    expect(result.adapter?.adapterVersion).toBe('control-correction-learning-record-adapter.v1');
+  });
+
+  it('fails closed when an explicit goal is present without canonical identity', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: { stepId: 'step-01', goalId: 'control-correction' },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.adapter?.status).toBe('rejected');
+    expect(result.failure?.code).toBe('missing-canonical-identity');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+});
