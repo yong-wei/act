@@ -27,6 +27,17 @@ import {
 } from '@/features/learning-record/ingestion/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
+  failSessionClosureOutbox,
+  redispatchPendingSessionClosures,
+} from '@/lib/data-governance/session-closure-outbox';
+import {
+  ensureSessionClosurePhases,
+  incompletePhases,
+  runSessionClosurePhase,
+  settleSessionClosuresIfComplete,
+} from '@/lib/data-governance/session-closure-phases';
+import { materializeEvidenceRow } from '@/lib/data-governance/session-fact-replay';
+import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
 } from '@/lib/data-governance/student-evidence-feature-cache';
@@ -971,12 +982,60 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
+  // 收敛协调器：对每个未完成闭包确保阶段台账行存在，按台账重放未完成阶段，
+  // 并在全部阶段回执 SUCCEEDED 后才结算。台账是闭包完备性的唯一真源。
+  if (job.data.coordinator) {
+    const db = getPrismaClient();
+    if (!reportQueue || !redis) {
+      throw new Error('worker queues are not initialised');
+    }
+    const queue = reportQueue;
+    const sessionIds = await redispatchPendingSessionClosures(db, async (sessionId) => {
+      const rows = await ensureSessionClosurePhases(db, sessionId);
+      for (const phase of incompletePhases(rows)) {
+        // 唯一 jobId：BullMQ 对已存在（含 failed 集合）的 jobId 重复 add 是 no-op
+        await queue.add(`session-closure-phase-${phase}`, { sessionId, phase }, {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          jobId: `session-closure-phase-${sessionId}-${phase}-${Date.now()}`,
+          removeOnComplete: { count: 20 },
+          removeOnFail: { count: 50 },
+        });
+      }
+    });
+    const settled = await settleSessionClosuresIfComplete(db, sessionIds);
+    if (sessionIds.length > 0 || settled > 0) {
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Converged closure finalization for ${sessionIds.length} session(s), settled ${settled}`);
+    }
+    return { redispatchedSessions: sessionIds, settledClosures: settled };
+  }
+
+  // 阶段作业：执行单个闭包阶段并写入台账回执
+  if (job.data.phase && job.data.sessionId) {
+    const db = getPrismaClient();
+    const result = await runSessionClosurePhase(db, job.data.sessionId, job.data.phase, {
+      refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(db as any, userId),
+      materializeEvidence: (evidence) => materializeEvidenceRow(db, evidence),
+    });
+    if (result.status === 'FAILED') {
+      throw new Error(`session closure phase ${job.data.phase} failed: ${JSON.stringify(result.detail)}`);
+    }
+    return { sessionId: job.data.sessionId, phase: job.data.phase, ...result };
+  }
+
   if (!job.data.sessionId) {
     throw new Error('session-report job requires sessionId');
   }
 
   const db = getPrismaClient();
-  return generateSessionSummaryReports(db, job.data.sessionId);
+  try {
+    // 水位限定报告写入 summarized 阶段；结算由 coordinator 在全部必需阶段
+    // （summarized + cached）完成后按阶段判定执行
+    return await generateSessionSummaryReports(db, job.data.sessionId);
+  } catch (error) {
+    await failSessionClosureOutbox(db, job.data.sessionId, 'session-report-failed');
+    throw error;
+  }
 }
 
 async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>) {

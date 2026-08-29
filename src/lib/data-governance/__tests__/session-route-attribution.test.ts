@@ -13,6 +13,11 @@ const mocks = vi.hoisted(() => ({
     class: {
       findMany: vi.fn(),
     },
+    sessionClosureOutbox: {
+      create: vi.fn().mockResolvedValue({}),
+    },
+    $executeRaw: vi.fn().mockResolvedValue(undefined),
+    $transaction: vi.fn(),
   },
   redisClient: {
     isReady: vi.fn(),
@@ -63,26 +68,36 @@ describe('PATCH /api/session/[sessionId]', () => {
     });
     mocks.classroomRateLimiter.check.mockReturnValue({ allowed: true });
     mocks.redisClient.isReady.mockReturnValue(false);
+    mocks.prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn(mocks.prisma));
   });
 
   it('keeps a classless direct-start session unattributed when it is finished', async () => {
-    mocks.prisma.classSession.findUnique.mockResolvedValue({
-      teacherId: 'teacher-1',
-      status: 'ACTIVE',
-    });
-    mocks.prisma.classSession.update.mockResolvedValue({
-      id: 'session-1',
-      joinCode: '187470',
-      planId: 'plan-1',
-      teacherId: 'teacher-1',
-      classId: null,
-      status: 'FINISHED',
-      currentStage: null,
-      currentItemId: null,
-      startTime: new Date('2026-04-28T00:24:02.789Z'),
-      endTime: new Date('2026-04-28T02:03:12.410Z'),
-      updatedAt: new Date('2026-04-28T02:03:12.410Z'),
-    });
+    mocks.prisma.classSession.findUnique
+      // 授权读取
+      .mockResolvedValueOnce({ teacherId: 'teacher-1', status: 'ACTIVE' })
+      // end 事务内的会话锁读取
+      .mockResolvedValueOnce({
+        status: 'ACTIVE',
+        submissionSequence: 0n,
+        closureRevision: 0,
+        acceptedSubmissionWatermark: null,
+      })
+      // 事务后的可读会话读取
+      .mockResolvedValueOnce({
+        id: 'session-1',
+        joinCode: '187470',
+        planId: 'plan-1',
+        teacherId: 'teacher-1',
+        classId: null,
+        status: 'FINISHED',
+        currentStage: null,
+        currentItemId: null,
+        startTime: new Date('2026-04-28T00:24:02.789Z'),
+        endTime: new Date('2026-04-28T02:03:12.410Z'),
+        updatedAt: new Date('2026-04-28T02:03:12.410Z'),
+        plan: { title: 'Plan' },
+        class: null,
+      });
     const response = await PATCH(
       new Request('http://localhost/api/session/session-1', {
         method: 'PATCH',

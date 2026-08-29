@@ -114,6 +114,12 @@ function createLifecycleRuntime(
       currentItemId: input.currentItemId ?? 'item-1',
       currentStage: input.currentStage ?? 'BRIDGE_IN',
     })),
+    persistSessionEnd: vi.fn().mockImplementation(async () => ({
+      outcome: 'ended',
+      closureRevision: 1,
+      acceptedSubmissionWatermark: 0n,
+      session: readableSession({ status: 'FINISHED' }),
+    })),
     publishSessionState: vi.fn(),
     logPatch: vi.fn(),
     finalizeEndedSession: vi.fn(),
@@ -218,7 +224,7 @@ describe('classroom session application service', () => {
     })).rejects.toMatchObject({ code: 'invalid-input' });
   });
 
-  it('re-runs finalization on a second end so a failed first finalize can recover', async () => {
+  it('ends through the atomic watermark boundary and re-runs finalization on a second end so a failed first finalize can recover', async () => {
     const runtime = createLifecycleRuntime({
       loadAccessSession: vi.fn()
         .mockResolvedValueOnce(accessSession({ status: 'ACTIVE' }))
@@ -233,14 +239,31 @@ describe('classroom session application service', () => {
       sessionId: 'session-1',
     });
     expect(runtime.finalizeEndedSession).toHaveBeenCalledTimes(2);
-    expect(runtime.persistAdvance).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      status: 'FINISHED',
+    // FINISHED 转移必须走与提交共享的会话锁事务，不得绕过水位边界
+    expect(runtime.persistSessionEnd).toHaveBeenCalledTimes(2);
+    expect(runtime.persistSessionEnd).toHaveBeenCalledWith(expect.objectContaining({
+      sessionId: 'session-1',
       endTime: new Date('2026-01-01T00:00:00.000Z'),
     }));
-    expect(runtime.persistAdvance).toHaveBeenNthCalledWith(2, expect.objectContaining({
+    expect((runtime.persistSessionEnd as ReturnType<typeof vi.fn>).mock.results[0].value).toBeDefined();
+    expect(runtime.persistAdvance).not.toHaveBeenCalledWith(expect.objectContaining({
       status: 'FINISHED',
     }));
-    expect((runtime.persistAdvance as ReturnType<typeof vi.fn>).mock.calls[1][0].endTime).toBeUndefined();
+  });
+
+  it('keeps non-end advances on persistAdvance without touching the closure boundary', async () => {
+    const runtime = createLifecycleRuntime();
+    await advanceClassroomSession(runtime, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      sessionId: 'session-1',
+      status: 'PAUSED',
+    });
+    expect(runtime.persistAdvance).toHaveBeenCalledWith(expect.objectContaining({
+      sessionId: 'session-1',
+      status: 'PAUSED',
+    }));
+    expect(runtime.persistSessionEnd).not.toHaveBeenCalled();
+    expect(runtime.finalizeEndedSession).not.toHaveBeenCalled();
   });
 
   it('maps generated-courseware recovery to a conflict', async () => {

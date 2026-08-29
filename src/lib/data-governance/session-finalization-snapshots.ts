@@ -13,6 +13,7 @@ interface SessionReportJob {
 
 interface EvidenceFeatureCacheJob {
   userId?: string;
+  sessionId?: string;
   coordinator?: boolean;
 }
 
@@ -150,7 +151,7 @@ export async function enqueueSessionFinalizationEvidenceFeatureCacheRefresh(
       for (const userId of userIds) {
         await cacheQueue.add(
           `evidence-feature-cache-refresh-${userId}`,
-          { userId },
+          { userId, sessionId },
           {
             attempts: 2,
             backoff: { type: 'exponential', delay: 10000 },

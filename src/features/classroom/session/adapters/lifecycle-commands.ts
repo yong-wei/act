@@ -1,5 +1,6 @@
-import { BopppsStage, SessionStatus } from '@prisma/client';
+import { BopppsStage, Prisma, SessionStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { ClassroomSessionError } from '../errors';
 import {
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
   enqueueSessionFinalizationEventIngestion,
@@ -24,6 +25,7 @@ import {
   type ClassroomLifecycleRuntime,
   type ClassroomReadableSession,
 } from '../application/lifecycle';
+import { persistSessionEndTransactionCommand } from './submission-evidence-commands';
 import type { AdvanceClassroomSessionInput, EndClassroomSessionInput, ReadClassroomSessionInput, StreamClassroomSessionInput } from '../types';
 
 async function generateSessionSummaryReportsSafely(sessionId: string) {
@@ -171,6 +173,29 @@ export function createPrismaClassroomLifecycleRuntime(): ClassroomLifecycleRunti
         updateData.status = input.status as SessionStatus;
         if (input.endTime) updateData.endTime = input.endTime;
       }
+      if (input.status !== undefined) {
+        // 状态转移与写入合并为同一条件更新：禁止任何路径把已闭课会话改回
+        // 课前状态，防止闭课后新提交分配高于已固化水位的 ACCEPTED 序列。
+        // 不允许 CAS 之后再做第二次无条件写——那会在并发闭课提交后覆盖回课前状态。
+        const cas = await prisma.classSession.updateMany({
+          where: { id: input.sessionId, status: { not: SessionStatus.FINISHED } },
+          data: updateData,
+        });
+        if (cas.count === 0) {
+          throw new ClassroomSessionError('session-finished', 'Session is finished; status transitions are closed');
+        }
+        const updatedSession = await prisma.classSession.findUnique({
+          where: { id: input.sessionId },
+          include: {
+            plan: { select: { title: true } },
+            class: { select: { name: true } },
+          },
+        });
+        if (!updatedSession) {
+          throw new ClassroomSessionError('not-found', '课堂不存在');
+        }
+        return updatedSession;
+      }
       const updatedSession = await prisma.classSession.update({
         where: { id: input.sessionId },
         data: updateData,
@@ -180,6 +205,42 @@ export function createPrismaClassroomLifecycleRuntime(): ClassroomLifecycleRunti
         },
       });
       return updatedSession;
+    },
+    persistSessionEnd: async (input) => {
+      const outcome = await persistSessionEndTransactionCommand(prisma, {
+        sessionId: input.sessionId,
+        endTime: input.endTime,
+      });
+      const session = await prisma.classSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          id: true,
+          joinCode: true,
+          status: true,
+          classId: true,
+          currentItemId: true,
+          currentStage: true,
+          updatedAt: true,
+          planId: true,
+          manifestHash: true,
+          coursewarePublicationRevisionId: true,
+          coursewareDisplayName: true,
+          coursewareRevisionNumber: true,
+          coursewarePlanRevisionNumber: true,
+          plan: { select: { title: true } },
+          class: { select: { name: true } },
+        },
+      });
+      if (!session) {
+        // 结束事务刚校验过会话存在；此分支仅为类型完备兜底
+        throw new Error(`Session ${input.sessionId} disappeared during end transaction`);
+      }
+      return {
+        outcome: outcome.outcome,
+        closureRevision: outcome.closureRevision,
+        acceptedSubmissionWatermark: outcome.acceptedSubmissionWatermark,
+        session: { ...asReadableSession(session) } as ClassroomReadableSession & Record<string, unknown>,
+      };
     },
     publishSessionState: async (sessionId, session, identity) => {
       if (!redisClient.isReady()) return;

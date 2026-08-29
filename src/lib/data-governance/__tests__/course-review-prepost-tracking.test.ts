@@ -119,12 +119,13 @@ describe('course review pre/post tracking parser', () => {
     });
   });
 
-  it('marks unrecoverable legacy state as limited without fabricated question summaries', () => {
+  it('returns no record when only mutable state holds legacy responses and no durable submission exists', () => {
     const manifest = readManifest('5-3');
     const resolved = resolveCourseEvidenceSpec({ manifest });
     expect(resolved.status).toBe('supported');
     if (resolved.status !== 'supported') throw new Error('5-3 did not resolve');
 
+    // live state 中的遗留 responses 不再被用于重建作答：无持久化提交即无记录
     const record = parseCourseReviewPrepostRecord({
       user,
       stateData: {
@@ -143,14 +144,7 @@ describe('course review pre/post tracking parser', () => {
       submissions: [],
     });
 
-    expect(record).toMatchObject({
-      recoverability: 'limited',
-      evidenceQuality: 'legacy',
-      pre: { stepId: 'step-03', score: null, evidenceQuality: 'legacy' },
-      post: { stepId: 'step-14', score: null, evidenceQuality: 'missing' },
-      delta: null,
-      questionSummaries: [],
-    });
+    expect(record).toBeNull();
   });
 
   it('excludes initialized student state when no pre/post evidence exists', () => {

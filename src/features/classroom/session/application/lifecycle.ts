@@ -79,6 +79,21 @@ export interface ClassroomLifecycleRuntime {
     endTime?: Date;
     updatedAt: Date;
   }): Promise<ClassroomReadableSession & Record<string, unknown>>;
+  /**
+   * 闭课专用事务：与提交接受共享同一会话锁，在同一事务内写 status/endTime/
+   * acceptedSubmissionWatermark/closureRevision 并 stage 恰好一条闭包 outbox。
+   * 重复 end 幂等返回既有水位。FINISHED 转移必须走此边界，不得使用 persistAdvance。
+   */
+  persistSessionEnd(input: {
+    sessionId: string;
+    endTime: Date;
+    updatedAt: Date;
+  }): Promise<{
+    outcome: 'ended' | 'already-ended';
+    closureRevision: number;
+    acceptedSubmissionWatermark: bigint | null;
+    session: ClassroomReadableSession & Record<string, unknown>;
+  }>;
   publishSessionState(
     sessionId: string,
     session: ClassroomReadableSession,
@@ -201,6 +216,7 @@ export async function advanceClassroomSession(
   }
 
   const updatedAt = runtime.now();
+  const isEndTransition = input.status === 'FINISHED';
   const persistInput: Parameters<ClassroomLifecycleRuntime['persistAdvance']>[0] = {
     sessionId: input.sessionId,
     updatedAt,
@@ -216,13 +232,21 @@ export async function advanceClassroomSession(
     if (!SESSION_STATUSES.includes(input.status as typeof SESSION_STATUSES[number])) {
       throw new ClassroomSessionError('invalid-input', 'Invalid status value');
     }
-    persistInput.status = input.status;
-    if (input.status === 'FINISHED' && existingSession.status !== 'FINISHED') {
-      persistInput.endTime = updatedAt;
-    }
+    // FINISHED 由 persistSessionEnd 事务边界负责，禁止绕过水位写入
+    if (!isEndTransition) persistInput.status = input.status;
   }
 
-  const updatedSession = await runtime.persistAdvance(persistInput);
+  let updatedSession: ClassroomReadableSession & Record<string, unknown>;
+  if (isEndTransition) {
+    const endOutcome = await runtime.persistSessionEnd({
+      sessionId: input.sessionId,
+      endTime: updatedAt,
+      updatedAt,
+    });
+    updatedSession = endOutcome.session;
+  } else {
+    updatedSession = await runtime.persistAdvance(persistInput);
+  }
   await runtime.publishSessionState(input.sessionId, updatedSession, generatedResolution.identity);
 
   if (input.currentItemId !== undefined || input.status !== undefined) {
@@ -238,7 +262,7 @@ export async function advanceClassroomSession(
     });
   }
 
-  if (input.status === 'FINISHED') {
+  if (isEndTransition) {
     await runtime.finalizeEndedSession(input.sessionId);
   }
 
