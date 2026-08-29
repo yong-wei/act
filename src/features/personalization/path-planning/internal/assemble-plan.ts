@@ -2103,13 +2103,55 @@ function applyStageRepairedNodeOrder(
   }
   const stageOrderIndex = new Map(stageRepairedNodeIds.map((nodeId, index) => [nodeId, index]));
   const allowedNodes = internallyRepairedMainPathNodes.filter((entry) => stageOrderIndex.has(entry.node.id));
-  if (allowedNodes.some((entry) => insertedNodeIds.includes(entry.node.id))) {
+  if (allowedNodes.length <= 1) {
     return allowedNodes;
   }
-  return [...allowedNodes].sort(
-    (left, right) =>
-      (stageOrderIndex.get(left.node.id) ?? 0) - (stageOrderIndex.get(right.node.id) ?? 0),
-  );
+
+  const ids = allowedNodes.map((entry) => entry.node.id);
+  const byId = new Map(allowedNodes.map((entry) => [entry.node.id, entry]));
+  const predecessors = new Map(ids.map((id) => [id, new Set<string>()]));
+  const addEdge = (beforeId: string, afterId: string) => {
+    if (beforeId === afterId || !predecessors.has(beforeId) || !predecessors.has(afterId)) {
+      return;
+    }
+    predecessors.get(afterId)!.add(beforeId);
+  };
+
+  for (const entry of allowedNodes) {
+    for (const prerequisiteId of entry.node.planningMetadata.prerequisites) {
+      addEdge(prerequisiteId, entry.node.id);
+    }
+    for (const fallbackId of entry.node.planningMetadata.readiness?.fallbackNodeIds ?? []) {
+      addEdge(fallbackId, entry.node.id);
+    }
+  }
+
+  const inserted = new Set(insertedNodeIds);
+  for (let index = 0; index < allowedNodes.length; index += 1) {
+    const current = allowedNodes[index]!;
+    if (!inserted.has(current.node.id)) {
+      continue;
+    }
+    const successor = allowedNodes.slice(index + 1).find((entry) => !inserted.has(entry.node.id));
+    if (successor) {
+      addEdge(current.node.id, successor.node.id);
+    }
+  }
+
+  const remaining = new Set(ids);
+  const ordered: ScoredNode[] = [];
+  while (remaining.size > 0) {
+    const ready = [...remaining].filter((id) =>
+      [...predecessors.get(id)!].every((beforeId) => !remaining.has(beforeId)),
+    );
+    const pool = (ready.length > 0 ? ready : [...remaining]).sort((left, right) =>
+      (stageOrderIndex.get(left) ?? 0) - (stageOrderIndex.get(right) ?? 0),
+    );
+    const nextId = pool[0]!;
+    remaining.delete(nextId);
+    ordered.push(byId.get(nextId)!);
+  }
+  return ordered;
 }
 
 function assembleAdaptiveLearningPathPlanInternal(

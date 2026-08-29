@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   PLAN_LEARNING_PATH_STAGE_ORDER,
   evaluateHardEligibility,
   getRegisteredAdaptiveLearningPathGoal,
@@ -246,6 +247,114 @@ describe('PlanLearningPath pipeline', () => {
     expect(resourceNodeIds.length).toBeGreaterThan(1);
     expect(resourceNodeIds).toEqual(
       repairedNodeIds.filter((nodeId) => resourceNodeIds.includes(nodeId)),
+    );
+  });
+
+  it('pins inserted fallback nodes while reordering the remaining stage nodes', () => {
+    const input = {
+      studentId: 'student-1',
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: fixture uses legacy competency input to lock the textbook fallback.
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 1,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      registry: buildResourceNodeRegistry({
+        registeredResources: [
+          {
+            id: 'visible-card',
+            label: '可见知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/visible-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+          {
+            id: 'extra-card',
+            label: '额外知识卡',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/extra-card',
+            knowledgeNodeIds: ['kn-bode'],
+          },
+        ],
+        textbookSections: [{
+          bookId: 'repair-nonblocking',
+          sectionId: 'prep',
+          title: '准备教材段',
+          citationHref: '/course-runtime/resources/textbooks/repair-nonblocking/sections/prep.md',
+          knowledgeNodeIds: ['prep-only'],
+          estimatedTimeMinutes: 5,
+          planningOverride: {
+            evidenceInstrumentation: ['textbook_section_viewed'],
+          },
+        }, {
+          bookId: 'repair-nonblocking',
+          sectionId: 'locked',
+          title: '锁定教材段',
+          citationHref: '/course-runtime/resources/textbooks/repair-nonblocking/sections/locked.md',
+          knowledgeNodeIds: ['kn-bode'],
+          estimatedTimeMinutes: 10,
+          planningOverride: {
+            evidenceInstrumentation: ['textbook_section_viewed'],
+            readiness: {
+              minimumCompetency: { parameterDesign: 0.8 },
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: [],
+              requiredOutcomeRefs: [],
+              fallbackNodeIds: ['textbook-section:repair-nonblocking:prep'],
+              unlockMessage: '先完成准备教材段。',
+            },
+          },
+        }],
+        aiInterventions: [],
+      }),
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible', 'teacher-scoped', 'class-shared', 'public'],
+        device: 'desktop',
+      },
+    };
+    const ports = createDefaultPlanLearningPathPorts();
+    const originalRepair = ports.repair.repair.bind(ports.repair);
+    let repairedNodeIds: string[] = [];
+    ports.repair = {
+      repair(context, ranked) {
+        const repaired = originalRepair(context, ranked);
+        const ordered = [...repaired.ordered].reverse();
+        repairedNodeIds = ordered.map((node) => node.id);
+        return { ordered };
+      },
+    };
+    const plan = planLearningPath(input, ports);
+    const insertedPrepId = 'textbook-section:repair-nonblocking:prep';
+    const lockedId = 'textbook-section:repair-nonblocking:locked';
+    expect(plan.constraintRepair?.insertedNodeIds).toContain(insertedPrepId);
+    const registryNodeIds = new Set(input.registry.nodes.map((node) => node.id));
+    const resourceNodeIds = plan.mainPath
+      .map((node) => node.nodeId)
+      .filter((nodeId) => registryNodeIds.has(nodeId));
+    const prepIndex = resourceNodeIds.indexOf(insertedPrepId);
+    const lockedIndex = resourceNodeIds.indexOf(lockedId);
+    expect(prepIndex).toBeGreaterThanOrEqual(0);
+    expect(lockedIndex).toBeGreaterThan(prepIndex);
+    const movableIds = resourceNodeIds.filter((nodeId) => nodeId !== insertedPrepId);
+    expect(movableIds).toEqual(
+      repairedNodeIds.filter((nodeId) => movableIds.includes(nodeId)),
     );
   });
 
