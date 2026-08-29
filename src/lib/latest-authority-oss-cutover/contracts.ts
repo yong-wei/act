@@ -429,6 +429,8 @@ export interface CoordinatedCandidateReceipt {
   readonly localeQualificationHash: string;
   readonly teachingProjectionHash: string;
   readonly teachingClosureReceiptHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
   readonly formalResourceEnvelopeHash: string;
   readonly continuityReceiptHash: string;
   readonly derivationReceiptHash: string;
@@ -526,6 +528,8 @@ export interface CoordinatedRuntimeManifestExtension {
   readonly captureHash: string;
   readonly teachingProjectionHash: string;
   readonly teachingClosureReceiptHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
   readonly formalResourceEnvelopeHash: string;
   readonly continuityReceiptHash: string;
   readonly domainShardSetHash: string;

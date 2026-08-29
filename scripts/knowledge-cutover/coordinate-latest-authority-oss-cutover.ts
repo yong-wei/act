@@ -23,7 +23,7 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { readdirSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -303,6 +303,8 @@ interface PrepareInputs {
   readonly inner: {
     readonly localeQualificationHash: string;
     readonly teachingProjectionHash: string;
+    readonly composedDomainFragmentManifestHash: string;
+    readonly domainFragmentSetHash: string;
     readonly formalResourceEnvelopeHash: string;
     readonly derivationReceiptHash: string;
     readonly successorRuntimeManifest: { releaseId: string; manifestSha256: string; treeSha256: string };
@@ -332,12 +334,13 @@ interface RemediationBinding {
 
 /** Inner hash fields the remediation handoff owns; copies must never diverge. */
 const REMEDIATION_INNER_FIELDS: readonly {
-  readonly innerKey: 'teachingProjectionHash' | 'formalResourceEnvelopeHash' | 'domainShardSetHash' | 'prerequisitePublicationHash' | 'consumerActivationHash';
-  readonly handoffKey: 'teachingProjectionHash' | 'resourceEnvelopeHash' | 'domainShardsHash' | 'prerequisitePublicationHash' | 'consumerProjectionsHash';
+  readonly innerKey: 'teachingProjectionHash' | 'formalResourceEnvelopeHash' | 'domainShardSetHash' | 'domainFragmentSetHash' | 'prerequisitePublicationHash' | 'consumerActivationHash';
+  readonly handoffKey: 'teachingProjectionHash' | 'resourceEnvelopeHash' | 'domainShardsHash' | 'domainFragmentsHash' | 'prerequisitePublicationHash' | 'consumerProjectionsHash';
 }[] = [
   { innerKey: 'teachingProjectionHash', handoffKey: 'teachingProjectionHash' },
   { innerKey: 'formalResourceEnvelopeHash', handoffKey: 'resourceEnvelopeHash' },
   { innerKey: 'domainShardSetHash', handoffKey: 'domainShardsHash' },
+  { innerKey: 'domainFragmentSetHash', handoffKey: 'domainFragmentsHash' },
   { innerKey: 'prerequisitePublicationHash', handoffKey: 'prerequisitePublicationHash' },
   { innerKey: 'consumerActivationHash', handoffKey: 'consumerProjectionsHash' },
 ];
@@ -469,6 +472,8 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     captureHash: authorityCaptureHash,
     teachingProjectionHash: inner.teachingProjectionHash,
     teachingClosureReceiptHash: closure.receiptHash,
+    composedDomainFragmentManifestHash: inner.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: inner.domainFragmentSetHash,
     formalResourceEnvelopeHash: inner.formalResourceEnvelopeHash,
     continuityReceiptHash: continuity.receiptHash,
     domainShardSetHash: inner.domainShardSetHash,
@@ -491,6 +496,20 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
       artifactKind: 'teaching-projection',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocation.allocationHash }],
       artifactHash: inner.teachingProjectionHash,
+    }),
+    bindInnerArtifact({
+      allocation,
+      artifactId: 'composed-domain-fragment-manifest',
+      artifactKind: 'composed-domain-fragment-manifest',
+      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: inner.teachingProjectionHash }],
+      artifactHash: inner.composedDomainFragmentManifestHash,
+    }),
+    bindInnerArtifact({
+      allocation,
+      artifactId: 'domain-fragment-set',
+      artifactKind: 'domain-fragment-set',
+      dependsOn: [{ artifactId: 'composed-domain-fragment-manifest', artifactHash: inner.composedDomainFragmentManifestHash }],
+      artifactHash: inner.domainFragmentSetHash,
     }),
     bindInnerArtifact({
       allocation,
@@ -535,6 +554,8 @@ async function runPrepare(values: Map<string, string>): Promise<void> {
     localeQualificationHash: inner.localeQualificationHash,
     teachingProjectionHash: inner.teachingProjectionHash,
     teachingClosureReceiptHash: closure.receiptHash,
+    composedDomainFragmentManifestHash: inner.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: inner.domainFragmentSetHash,
     formalResourceEnvelopeHash: inner.formalResourceEnvelopeHash,
     continuityReceiptHash: continuity.receiptHash,
     derivationReceiptHash: inner.derivationReceiptHash,
@@ -598,12 +619,19 @@ async function runQualify(values: Map<string, string>): Promise<void> {
       .sort();
     const consumerGraphHash = await sha256File(path.join(projectionDir, 'consumers/graph-view.json'));
     const consumerPrerequisiteHash = await sha256File(path.join(projectionDir, 'consumers/prerequisite-publication.json'));
+    const fragmentSetHash = projectionDigest({
+      files: await Promise.all(
+        fragmentFiles.map(async (name) => [name, await sha256File(path.join(projectionDir, 'fragments', name))] as const),
+      ),
+    });
+    const composedManifestPath = path.join(projectionDir, 'composed-manifest.json');
     const remediationArtifacts: Record<string, { artifactHash: string; allocationHash?: string }> = {
       'authority-capture': { artifactHash: allocation.captureHash },
       'teaching-projection': {
         artifactHash: await sha256JsonField(path.join(projectionDir, 'projection.json'), 'projectionHash'),
         allocationHash: await optionalAllocationField(path.join(projectionDir, 'projection.json')),
       },
+      'domain-fragment-set': { artifactHash: fragmentSetHash },
       'formal-resource-envelope': {
         artifactHash: await sha256JsonField(path.join(remediationRoot, 'resource-envelope.json'), 'envelopeHash'),
         allocationHash: await optionalAllocationField(path.join(remediationRoot, 'resource-envelope.json')),
@@ -611,16 +639,15 @@ async function runQualify(values: Map<string, string>): Promise<void> {
       // The teaching-closure receipt is a coordinated-closure evaluation over
       // the remediation ledgers, not the remediation total-closure file; it
       // is qualified from the prepare output instead.
-      'authority-domain-shard-set': {
-        artifactHash: projectionDigest({
-          files: await Promise.all(
-            fragmentFiles.map(async (name) => [name, await sha256File(path.join(projectionDir, 'fragments', name))] as const),
-          ),
-        }),
-      },
+      'authority-domain-shard-set': { artifactHash: fragmentSetHash },
       'prerequisite-publication': { artifactHash: consumerPrerequisiteHash },
       'consumer-activation': { artifactHash: projectionDigest({ graph: consumerGraphHash, prerequisite: consumerPrerequisiteHash }) },
     };
+    if (existsSync(path.resolve(composedManifestPath))) {
+      remediationArtifacts['composed-domain-fragment-manifest'] = {
+        artifactHash: await sha256JsonField(composedManifestPath, 'projectionHash'),
+      };
+    }
     for (const [artifactId, row] of Object.entries(remediationArtifacts)) artifacts.set(artifactId, row);
   }
   const artifactsFile = values.get('--artifacts');

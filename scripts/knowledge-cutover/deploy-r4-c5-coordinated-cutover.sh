@@ -27,9 +27,33 @@ done
 [[ -f "$KNOWN_HOSTS_FILE" ]] || { echo "ERROR: ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE is required" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
 
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json composed-domain-fragment-manifest.json; do
   [[ -f "$candidate_dir/$file" && ! -L "$candidate_dir/$file" ]] || { echo "ERROR: qualified candidate file is missing: $file" >&2; exit 1; }
 done
+fragment_files="$(python3 - "$candidate_dir" <<'PY'
+import json, os, re, sys
+root = sys.argv[1]
+composed = json.load(open(os.path.join(root, 'composed-domain-fragment-manifest.json'), encoding='utf-8'))
+refs = composed.get('fragments')
+if not isinstance(refs, list) or not refs:
+    raise SystemExit('composed domain-fragment manifest has no fragments')
+seen = set()
+paths = []
+for ref in refs:
+    fragment_id = ref.get('fragmentId')
+    if not isinstance(fragment_id, str) or not re.fullmatch(r'dtf-[0-9a-f]{64}', fragment_id):
+        raise SystemExit('composed domain-fragment manifest fragment identity is invalid')
+    if fragment_id in seen:
+        raise SystemExit('composed domain-fragment manifest has duplicate fragment identities')
+    seen.add(fragment_id)
+    relative = os.path.join('domain-fragments', f'{fragment_id}.json')
+    full = os.path.join(root, relative)
+    if not os.path.isfile(full) or os.path.islink(full):
+        raise SystemExit(f'referenced domain fragment is not present: {fragment_id}')
+    paths.append(relative)
+print('\n'.join(paths))
+PY
+)"
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
   [[ -f "$runtime_artifact_dir/$file" && ! -L "$runtime_artifact_dir/$file" ]] || { echo "ERROR: staged Runtime artifact is missing: $file" >&2; exit 1; }
 done
@@ -64,10 +88,14 @@ copy_immutable() {
   remote "test \"\$(sha256sum '${target}.tmp' | awk '{print \$1}')\" = '$expected' && chmod 0600 '${target}.tmp' && mv '${target}.tmp' '${target}'"
 }
 
-remote "test ! -e '$remote_dir' && mkdir -p '$remote_dir'"
-for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json; do
+remote "test ! -e '$remote_dir' && mkdir -p '$remote_dir/domain-fragments'"
+for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json composed-domain-fragment-manifest.json; do
   copy_immutable "$candidate_dir/$file" "$remote_dir/$file"
 done
+while IFS= read -r rel; do
+  [[ -n "$rel" ]] || continue
+  copy_immutable "$candidate_dir/$rel" "$remote_dir/$rel"
+done <<< "$fragment_files"
 for file in manifest.json release-receipt.json publisher-verification.json lifecycle-identity.json materialization-receipt.json staged-runtime.json; do
   copy_immutable "$runtime_artifact_dir/$file" "$remote_dir/$file"
 done

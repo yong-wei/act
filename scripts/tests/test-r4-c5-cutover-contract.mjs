@@ -131,7 +131,35 @@ assert.match(deploy, /tar -C "\$\(dirname "\$source_snapshot"\)" -cf - "\$snapsh
 assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and validate the Authority snapshot from the sealed successor');
 assert.doesNotMatch(deploy, /snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/, 'local wrapper must not retain the superseded c4 snapshot');
 assert.doesNotMatch(deploy, /scripts\/build\.sh|docker buildx/, 'outer cutover wrapper must not build on the production path');
+assert.ok(
+  deploy.includes('composed-domain-fragment-manifest.json'),
+  'local wrapper must gate and upload the composed domain-fragment manifest with the candidate',
+);
 assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
+assert.ok(
+  remote.includes('composed domain-fragment manifest does not match its recomputed identity'),
+  'production preflight must recompute composed-manifest identity instead of trusting self-asserted digests',
+);
+assert.ok(
+  remote.includes('referenced domain fragment is not present in the candidate'),
+  'production preflight must reopen the actual domain-fragment files bound by the composed-manifest',
+);
+assert.ok(
+  remote.includes('reopened domain fragment does not match its recomputed identity'),
+  'production preflight must recompute each domain-fragment digest from its sealed body',
+);
+assert.ok(
+  deploy.includes('domain-fragments'),
+  'local wrapper must gate and upload the actual domain-fragment files with the candidate',
+);
+assert.ok(
+  remote.includes('composed domain-fragment manifest does not bind the successor Authority'),
+  'production preflight must reject a composed domain-fragment manifest that binds a different Authority than the successor',
+);
+assert.ok(
+  remote.includes('Runtime manifest extension does not bind the composed domain-fragment identities'),
+  'production preflight must require the Runtime extension to bind the composed domain-fragment identities',
+);
 assert.doesNotMatch(activationTransaction, /coordinated-graph-receipt/, 'activation wrapper must not retain the cyclic final-receipt argument');
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-r4-c5-builder-'));
@@ -224,6 +252,9 @@ try {
   const input = JSON.parse(fs.readFileSync(path.join(out, 'prepare-input.json'), 'utf8'));
   assert.equal(input.allocation.allocationHash, allocation.allocationHash, 'Runtime staging must consume the presealed allocation');
   assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
+  assert.match(input.inner.composedDomainFragmentManifestHash, /^[a-f0-9]{64}$/, 'candidate must bind the composed domain-fragment manifest');
+  assert.match(input.inner.domainFragmentSetHash, /^[a-f0-9]{64}$/, 'candidate must bind the immutable domain-fragment set');
+  assert.notEqual(input.inner.composedDomainFragmentManifestHash, input.inner.domainFragmentSetHash, 'composed-manifest identity must not be collapsed into the fragment-set digest');
   assert.deepEqual(
     JSON.parse(fs.readFileSync(path.join(out, 'lifecycle-predecessor.json'), 'utf8')),
     stagedLifecycle,
@@ -246,10 +277,30 @@ try {
     '--capture', 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/authority-capture/authority-capture.json',
     '--input', path.join(out, 'prepare-input.json'), '--out', out,
   ], { cwd: root, encoding: 'utf8' });
-  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [qualificationArtifacts, '--candidate-dir', out], { cwd: root, encoding: 'utf8' });
-  execFileSync(path.join(root, 'node_modules/.bin/tsx'), [coordinator, 'qualify',
-    '--candidate', path.join(out, 'candidate-receipt.json'), '--artifacts', path.join(out, 'outer-artifacts.json'),
-  ], { cwd: root, encoding: 'utf8' });
+  assert.ok(
+    fs.existsSync(path.join(out, 'composed-domain-fragment-manifest.json')),
+    'prepare must persist the composed domain-fragment manifest for remote reopen',
+  );
+  const preparedComposed = JSON.parse(fs.readFileSync(
+    path.join(out, 'composed-domain-fragment-manifest.json'),
+    'utf8',
+  ));
+  for (const ref of preparedComposed.fragments) {
+    assert.ok(
+      fs.existsSync(path.join(out, 'domain-fragments', `${ref.fragmentId}.json`)),
+      `prepare must persist referenced domain fragment ${ref.fragmentId} for remote reopen`,
+    );
+  }
+  const mixedIdentityQualify = spawnSync(
+    path.join(root, 'node_modules/.bin/tsx'),
+    [qualificationArtifacts, '--candidate-dir', out],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(mixedIdentityQualify.status, 0, 'a v0.9 composed-manifest must not qualify against the v0.37 successor');
+  assert.match(
+    `${mixedIdentityQualify.stdout}${mixedIdentityQualify.stderr}`,
+    /composed domain-fragment manifest does not bind the successor Authority/,
+  );
   const tamperedRuntimeRelease = { ...runtimeRelease, manifestWireSha256: 'f'.repeat(64) };
   fs.writeFileSync(stagePath, `${JSON.stringify({
     contract: 'coordinated-runtime-stage/v1',

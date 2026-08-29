@@ -41,6 +41,8 @@ const HASH_A = 'a'.repeat(64);
 const HASH_B = 'b'.repeat(64);
 const HASH_C = 'c'.repeat(64);
 const HASH_D = 'd'.repeat(64);
+const HASH_E = 'e'.repeat(64);
+const HASH_F = 'f'.repeat(64);
 
 function allocation(): CoordinationAllocationRecord {
   return sealCoordinationAllocationRecord({
@@ -80,6 +82,20 @@ function candidateInput(allocationRecord: CoordinationAllocationRecord) {
     }),
     bindInnerArtifact({
       allocation: allocationRecord,
+      artifactId: 'composed-domain-fragment-manifest',
+      artifactKind: 'composed-domain-fragment-manifest',
+      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: HASH_A }],
+      artifactHash: HASH_E,
+    }),
+    bindInnerArtifact({
+      allocation: allocationRecord,
+      artifactId: 'domain-fragment-set',
+      artifactKind: 'domain-fragment-set',
+      dependsOn: [{ artifactId: 'composed-domain-fragment-manifest', artifactHash: HASH_E }],
+      artifactHash: HASH_F,
+    }),
+    bindInnerArtifact({
+      allocation: allocationRecord,
       artifactId: 'successor-runtime-binding',
       artifactKind: 'coordinated-runtime-manifest-extension',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocationRecord.allocationHash }],
@@ -93,6 +109,8 @@ function candidateInput(allocationRecord: CoordinationAllocationRecord) {
     localeQualificationHash: HASH_D,
     teachingProjectionHash: HASH_A,
     teachingClosureReceiptHash: HASH_D,
+    composedDomainFragmentManifestHash: HASH_E,
+    domainFragmentSetHash: HASH_F,
     formalResourceEnvelopeHash: HASH_C,
     continuityReceiptHash: HASH_B,
     derivationReceiptHash: HASH_D,
@@ -142,6 +160,8 @@ describe('coordinated candidate envelope', () => {
     const allocationRecord = allocation();
     const receipt = sealCoordinatedCandidateReceipt(candidateInput(allocationRecord));
     expect(receipt.selectable).toBe(false);
+    expect(receipt.composedDomainFragmentManifestHash).toBe(HASH_E);
+    expect(receipt.domainFragmentSetHash).toBe(HASH_F);
     expect(receipt.receiptHash).toMatch(/^[a-f0-9]{64}$/);
     expect(() => assertCandidateNonSelectable(receipt)).not.toThrow();
     // Deterministic construction: same inputs produce the same body hash.
@@ -206,6 +226,8 @@ describe('coordinated candidate envelope', () => {
         ['locale-qualification', { artifactHash: receipt.localeQualificationHash }],
         ['teaching-projection', { artifactHash: receipt.teachingProjectionHash, allocationHash: allocationRecord.allocationHash }],
         ['teaching-closure-receipt', { artifactHash: receipt.teachingClosureReceiptHash }],
+        ['composed-domain-fragment-manifest', { artifactHash: receipt.composedDomainFragmentManifestHash }],
+        ['domain-fragment-set', { artifactHash: receipt.domainFragmentSetHash }],
         ['formal-resource-envelope', { artifactHash: receipt.formalResourceEnvelopeHash }],
         ['continuity-receipt', { artifactHash: receipt.continuityReceiptHash }],
         ['derivation-receipt', { artifactHash: receipt.derivationReceiptHash }],
@@ -599,6 +621,8 @@ describe('Runtime and readiness integration', () => {
       captureHash: HASH_A,
       teachingProjectionHash: HASH_A,
       teachingClosureReceiptHash: HASH_D,
+      composedDomainFragmentManifestHash: HASH_E,
+      domainFragmentSetHash: HASH_F,
       formalResourceEnvelopeHash: HASH_C,
       continuityReceiptHash: HASH_B,
       domainShardSetHash: HASH_B,

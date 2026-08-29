@@ -4,7 +4,8 @@
  *
  * The successor Runtime Release v2 binding closes over the coordinated
  * envelope (resource denominator, formal binding envelope, captured
- * Authority, complete Teaching Projection, domain shards, prerequisite
+ * Authority, complete Teaching Projection, composed domain-fragment
+ * manifest and immutable fragment set, domain shards, prerequisite
  * publication, shared consumer activation, coordination allocation record,
  * and the complete predecessor Runtime and graph identities) by binding the
  * successor manifest's content-addressed identity. During activation the
@@ -85,6 +86,8 @@ export function buildCoordinatedRuntimeManifestExtension(input: {
   captureHash: string;
   teachingProjectionHash: string;
   teachingClosureReceiptHash: string;
+  composedDomainFragmentManifestHash: string;
+  domainFragmentSetHash: string;
   formalResourceEnvelopeHash: string;
   continuityReceiptHash: string;
   domainShardSetHash: string;
@@ -102,6 +105,8 @@ export function buildCoordinatedRuntimeManifestExtension(input: {
     'captureHash',
     'teachingProjectionHash',
     'teachingClosureReceiptHash',
+    'composedDomainFragmentManifestHash',
+    'domainFragmentSetHash',
     'formalResourceEnvelopeHash',
     'continuityReceiptHash',
     'domainShardSetHash',
@@ -141,6 +146,8 @@ export function buildCoordinatedRuntimeManifestExtension(input: {
     captureHash: input.captureHash,
     teachingProjectionHash: input.teachingProjectionHash,
     teachingClosureReceiptHash: input.teachingClosureReceiptHash,
+    composedDomainFragmentManifestHash: input.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: input.domainFragmentSetHash,
     formalResourceEnvelopeHash: input.formalResourceEnvelopeHash,
     continuityReceiptHash: input.continuityReceiptHash,
     domainShardSetHash: input.domainShardSetHash,

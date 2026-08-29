@@ -1162,3 +1162,118 @@ export function verifyDomainTeachingComposedArtifacts(
   }
   return recomputed;
 }
+
+/**
+ * Recompute composed-manifest identity from the sealed body. Qualification
+ * and production preflight must not trust self-asserted digest fields.
+ */
+export function recomputeComposedManifestIdentity(manifest: DomainTeachingComposedManifest): {
+  fragmentsHash: string;
+  bodyHash: string;
+  projectionHash: string;
+} {
+  const fragmentsHash = projectionDigest(
+    manifest.fragments.map((ref) => ({
+      order: ref.order,
+      fragmentId: ref.fragmentId,
+      fragmentDigest: ref.fragmentDigest,
+      sourceInventoryDigest: ref.sourceInventoryDigest,
+    })),
+  );
+  const body = {
+    contract: manifest.contract,
+    builderVersion: manifest.builderVersion,
+    authorityBinding: manifest.authorityBinding,
+    authoritySelection: manifest.authoritySelection,
+    authoringRevision: manifest.authoringRevision,
+    sourceInventoryDigest: manifest.sourceInventoryDigest,
+    authorityDigest: manifest.authorityDigest,
+    fragments: manifest.fragments,
+    domainCoverage: manifest.domainCoverage,
+    coreNodeCount: manifest.coreNodeCount,
+    relationCount: manifest.relationCount,
+    gateStatus: manifest.gateStatus,
+    gatePassed: manifest.gatePassed,
+    sourceHashes: {
+      fragments: fragmentsHash,
+      sourceInventory: manifest.sourceInventoryDigest,
+    },
+  };
+  const bodyHash = projectionDigest(body);
+  return {
+    fragmentsHash,
+    bodyHash,
+    projectionHash: projectionDigest({
+      ...body,
+      sourceHashes: {
+        fragments: fragmentsHash,
+        sourceInventory: manifest.sourceInventoryDigest,
+        body: bodyHash,
+      },
+    }),
+  };
+}
+
+export function assertComposedManifestSelfConsistent(manifest: DomainTeachingComposedManifest): void {
+  if (manifest.sourceInventoryDigest !== manifest.sourceHashes.sourceInventory) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment manifest source-inventory digests are inconsistent',
+    );
+  }
+  const recomputed = recomputeComposedManifestIdentity(manifest);
+  if (
+    recomputed.fragmentsHash !== manifest.sourceHashes.fragments
+    || recomputed.bodyHash !== manifest.sourceHashes.body
+    || recomputed.projectionHash !== manifest.projectionHash
+  ) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment manifest does not match its recomputed identity',
+    );
+  }
+}
+
+/**
+ * Reopen every composed-manifest fragment ref from actual fragment bytes.
+ * The fragment-set identity remains the refs digest; this proves those refs
+ * still describe the sealed fragment bodies.
+ */
+export function assertComposedManifestFragmentsReopened(
+  manifest: DomainTeachingComposedManifest,
+  fragments: readonly DomainTeachingFragment[],
+): void {
+  assertComposedManifestSelfConsistent(manifest);
+  if (fragments.length !== manifest.fragments.length) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment set does not reopen every referenced fragment',
+    );
+  }
+  for (let index = 0; index < manifest.fragments.length; index += 1) {
+    const ref = manifest.fragments[index];
+    const fragment = fragments[index];
+    if (fragment.fragmentId !== ref.fragmentId) {
+      throw new DomainCompositionError(
+        'projection-identity-drift',
+        'composed domain-fragment set order does not match the composed-manifest',
+      );
+    }
+    verifyDomainTeachingFragment(fragment);
+    if (
+      fragment.fragmentDigest !== ref.fragmentDigest
+      || fragment.sourceInventoryDigest !== ref.sourceInventoryDigest
+    ) {
+      throw new DomainCompositionError(
+        'projection-identity-drift',
+        'reopened domain fragment does not match its composed-manifest ref',
+      );
+    }
+    if (authorityBindingMismatchFields(fragment.authorityBinding, manifest.authorityBinding).length > 0) {
+      throw new DomainCompositionError(
+        'authority-mismatch',
+        'reopened domain fragment does not bind the composed-manifest Authority',
+      );
+    }
+  }
+}

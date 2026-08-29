@@ -6,6 +6,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { projectionDigest } from '@/lib/teaching-projection/hash';
+import type { DomainTeachingComposedManifest } from '@/lib/teaching-projection/domain-fragments/contracts';
+import { loadCandidateDomainFragments } from '@/lib/latest-authority-oss-cutover/domain-fragment-files';
 import { assertCandidateReceiptSelfHash } from '@/lib/latest-authority-oss-cutover/envelope';
 import type { CoordinatedCandidateReceipt } from '@/lib/latest-authority-oss-cutover/contracts';
 
@@ -146,6 +148,24 @@ function main(): void {
     releaseId: string;
     releaseSetId: string;
   }>(path.join(candidateDir, 'authority-current.json'));
+  const composed = readJson<DomainTeachingComposedManifest>(
+    path.join(candidateDir, 'composed-domain-fragment-manifest.json'),
+  );
+  loadCandidateDomainFragments(candidateDir, composed);
+  requireHash(composed.projectionHash, 'composed domain-fragment manifest');
+  requireHash(composed.sourceHashes.fragments, 'domain-fragment set');
+  if (composed.projectionHash !== candidate.composedDomainFragmentManifestHash
+    || composed.sourceHashes.fragments !== candidate.domainFragmentSetHash) {
+    throw new Error('reopened composed domain-fragment identities differ from candidate');
+  }
+  if (
+    composed.authorityBinding.snapshotId !== successorAuthority.snapshotId
+    || composed.authorityBinding.snapshotHash !== successorAuthority.snapshotHash
+    || composed.authorityBinding.releaseId !== successorAuthority.releaseId
+    || composed.authorityBinding.releaseSetId !== successorAuthority.releaseSetId
+  ) {
+    throw new Error('composed domain-fragment manifest does not bind the successor Authority');
+  }
   if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
     throw new Error('presentation-label qualification did not pass without review');
   }
@@ -271,6 +291,8 @@ function main(): void {
     { artifactId: 'locale-qualification', artifactHash: locale },
     { artifactId: 'teaching-projection', artifactHash: requireHash(selectors.selectors.projection.projectionHash, 'Teaching Projection') },
     { artifactId: 'teaching-closure-receipt', artifactHash: requireHash(teaching.receiptHash, 'Teaching closure') },
+    { artifactId: 'composed-domain-fragment-manifest', artifactHash: requireHash(candidate.composedDomainFragmentManifestHash, 'composed domain-fragment manifest') },
+    { artifactId: 'domain-fragment-set', artifactHash: requireHash(candidate.domainFragmentSetHash, 'domain-fragment set') },
     { artifactId: 'formal-resource-envelope', artifactHash: requireHash(envelope.envelopeHash, 'formal resource envelope'), allocationHash: envelope.allocationHash },
     { artifactId: 'continuity-receipt', artifactHash: requireHash(continuity.receiptHash, 'continuity receipt') },
     { artifactId: 'derivation-receipt', artifactHash: requireHash(derivation.receiptHash, 'derivation receipt'), allocationHash: derivation.allocationHash },
@@ -286,6 +308,8 @@ function main(): void {
     ['locale-qualification', candidate.localeQualificationHash],
     ['teaching-projection', candidate.teachingProjectionHash],
     ['teaching-closure-receipt', candidate.teachingClosureReceiptHash],
+    ['composed-domain-fragment-manifest', candidate.composedDomainFragmentManifestHash],
+    ['domain-fragment-set', candidate.domainFragmentSetHash],
     ['formal-resource-envelope', candidate.formalResourceEnvelopeHash],
     ['continuity-receipt', candidate.continuityReceiptHash],
     ['derivation-receipt', candidate.derivationReceiptHash],
