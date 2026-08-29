@@ -12,6 +12,7 @@ const ALLOWED_STAGING_KEYS = new Set([
   'lessonKey',
   'attemptKey',
   'normalizedResult',
+  'normalizedValue',
   'confidence',
   'durationMs',
   'priority',
@@ -36,6 +37,18 @@ const ALLOWED_STAGING_KEYS = new Set([
   'sourceLogId',
   'kind',
   'classId',
+  'goalId',
+  'pluginId',
+  'pluginVersion',
+  'adapterVersion',
+  'releaseRevision',
+  'canonicalLessonId',
+  'canonicalResourceId',
+  'canonicalActivityId',
+  'arenaTaskId',
+  'expectedCaptureRevision',
+  'idempotencyKey',
+  'materialization',
 ]);
 
 export function collectEncodingViolations(value: unknown, path = ''): string[] {

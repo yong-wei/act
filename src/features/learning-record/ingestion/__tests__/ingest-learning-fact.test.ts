@@ -490,3 +490,207 @@ describe('ingestion producer characterization', () => {
     expect(worker).toContain('ingestLearningFact');
   });
 });
+
+describe('control-correction course adapter ingestion', () => {
+  beforeEach(() => {
+    persist.persistCoreLearningFact.mockReset();
+  });
+  it('does not infer a course mapping from payload courseId without an explicit goal', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({ payload: { stepId: 'step-01', courseId: '3-6' } }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter).toEqual({ status: 'not-applicable' });
+    expect(persist.persistCoreLearningFact).toHaveBeenCalled();
+  });
+
+  it('still persists generic lesson_submit payloads that contain answer fields without an explicit goal', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          answers: { q1: 'root-region' },
+          questionSummaries: [{ studentAnswer: 'A' }],
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter).toEqual({ status: 'not-applicable' });
+    expect(persist.persistCoreLearningFact).toHaveBeenCalled();
+  });
+
+  it('maps an explicit control-correction goal with canonical identity', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter?.status).toBe('mapped');
+    expect(result.adapter?.adapterVersion).toBe('control-correction-learning-record-adapter.v1');
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        courseId: 'control-correction',
+        lessonId: 'unit-3-6-zero-design-workshop',
+        payload: expect.objectContaining({
+          goalId: 'control-correction',
+          adapter: expect.objectContaining({
+            adapterId: 'control-correction-learning-record-adapter',
+            adapterVersion: 'control-correction-learning-record-adapter.v1',
+            schemaVersion: 'control-correction-adapter.schema.v1',
+            captureRevision: 'rev-1',
+            decoderVersion: LEARNING_RECORD_DECODER_VERSION,
+            materializerVersion: LEARNING_RECORD_MATERIALIZER_VERSION,
+            inputDigest: expect.any(String),
+            trustedSetDigest: expect.any(String),
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('passes allowlisted numeric adapter fields through ingest mapping', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          normalizedValue: 0.75,
+          confidence: 0.8,
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter?.status).toBe('mapped');
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          adapter: expect.objectContaining({
+            normalizedValue: 0.75,
+            confidence: 0.8,
+            quality: 'high',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('passes numeric normalizedResult through ingest mapping when normalizedValue is absent', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'outbox-apply',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          normalizedResult: 0.42,
+          confidence: 0.5,
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          adapter: expect.objectContaining({
+            normalizedValue: 0.42,
+            confidence: 0.5,
+            quality: 'medium',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('fails closed when an explicit goal is present without canonical identity', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: { stepId: 'step-01', goalId: 'control-correction' },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.adapter?.status).toBe('rejected');
+    expect(result.failure?.code).toBe('missing-canonical-identity');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('fails closed on direct payloads with forbidden fields even when an explicit goal is present', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          answer: 'B',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.failure?.code).toBe('forbidden-field');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when mapped goal identity conflicts with top-level course fields', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        courseId: 'other-course',
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.adapter?.status).toBe('rejected');
+    expect(result.failure?.code).toBe('ambiguous-identity');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+});

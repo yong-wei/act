@@ -1,8 +1,9 @@
 import { createIdempotentPluginWritePort } from '../adapters/write-port';
+import { createControlCorrectionLearningRecordAdapter } from './learning-record-adapter';
 import type { PersonalizationGoalPlugin } from '../types';
-import type { AdaptiveGoalSliceDefinition } from '@/features/personalization/learner-state/internal';
 import { createControlCorrectionEvidencePort } from './db-evidence';
 import {
+  CONTROL_CORRECTION_ARENA_OFFICIAL_TARGET,
   CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
   CONTROL_CORRECTION_COURSE_ID_VALUES,
   CONTROL_CORRECTION_GOAL_ID,
@@ -15,7 +16,7 @@ import { controlCorrectionGoalSliceDefinition } from './slice-contract';
 
 export function createControlCorrectionPersonalizationPlugin(
   status: PersonalizationGoalPlugin['status'] = 'active',
-  sliceDefinition: AdaptiveGoalSliceDefinition = controlCorrectionGoalSliceDefinition,
+  sliceDefinition: PersonalizationGoalPlugin['sliceDefinition'] = controlCorrectionGoalSliceDefinition,
 ): PersonalizationGoalPlugin {
   return {
     pluginId: CONTROL_CORRECTION_PERSONALIZATION_PLUGIN_ID,
@@ -26,8 +27,10 @@ export function createControlCorrectionPersonalizationPlugin(
     lessonIds: CONTROL_CORRECTION_LESSON_ID_VALUES,
     arenaTaskIds: CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
     sliceDefinition,
+    arenaOfficialTarget: { ...CONTROL_CORRECTION_ARENA_OFFICIAL_TARGET },
     pathPlanningPolicy: structuredClone(CONTROL_CORRECTION_PATH_PLANNING_POLICY),
     createEvidencePort: createControlCorrectionEvidencePort,
     createWritePort: createIdempotentPluginWritePort,
+    createLearningRecordAdapter: createControlCorrectionLearningRecordAdapter,
   };
 }

@@ -56,8 +56,23 @@ const PLUGIN_SOURCE_FILES = [
   'src/features/personalization/plugins/control-correction/evidence-match.ts',
   'src/features/personalization/plugins/control-correction/db-evidence.ts',
   'src/features/personalization/plugins/control-correction/slice-contract.ts',
+  'src/features/personalization/plugins/control-correction/slice-constants.ts',
   'src/features/personalization/plugins/control-correction/capability-targets.ts',
   'src/features/personalization/plugins/control-correction/path-planning-policy.ts',
+  'src/features/personalization/plugins/control-correction/learning-record-adapter.ts',
+  'src/features/personalization/plugins/learning-record-adapter-types.ts',
+];
+
+const GENERIC_LEARNING_RECORD_FILES = [
+  'src/features/learning-record/ingestion/ingest.ts',
+  'src/features/learning-record/ingestion/types.ts',
+  'src/features/learning-record/course-adapters/map-evidence.ts',
+  'src/features/learning-record/course-adapters/persisted-envelope.ts',
+  'src/features/learning-record/projections/read-ports.ts',
+  'src/features/learning-record/consumers/ports.ts',
+  'src/features/arena/evidence-writeback-persistence.ts',
+  'src/features/arena/evidence-writeback.ts',
+  'src/features/arena/submissions/evidence-status.ts',
 ];
 
 function emptyFeatureRead(): LearnerStateReducerInput['featureRead'] {
@@ -289,7 +304,7 @@ describe('personalization plugin registry', () => {
   });
 
   it('keeps generic Personalization modules free of control-correction course and Arena IDs', () => {
-    for (const file of GENERIC_PERSONALIZATION_FILES) {
+    for (const file of [...GENERIC_PERSONALIZATION_FILES, ...GENERIC_LEARNING_RECORD_FILES]) {
       const source = readFileSync(file, 'utf8');
       for (const token of RETIRED_CONCRETE_IDS) {
         expect(source, `${file} contains ${token}`).not.toContain(token);

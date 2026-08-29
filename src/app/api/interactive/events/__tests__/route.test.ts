@@ -410,6 +410,49 @@ describe('POST /api/interactive/events', () => {
     );
   });
 
+  it('surfaces Learning Record ingest failures as dropped routing instead of a silent PostgreSQL success', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.ingestLearningFact.mockResolvedValue({
+      factsCreated: 0,
+      status: 'terminal_failed',
+      failure: { code: 'missing-canonical-identity' },
+      adapter: { status: 'rejected', reason: 'missing-canonical-identity' },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-failed-ingest',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:42.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            score: 100,
+            answerDigest: { 'weight-preference': 'C' },
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.degraded).toBeGreaterThan(0);
+    expect(body.routing).toMatchObject({ dropped: 1 });
+    expect(body.routing.postgresql).toBeUndefined();
+    expect(body.routingFailures).toEqual([
+      expect.objectContaining({
+        reason: 'missing-canonical-identity',
+        clientEventId: 'client-submit-failed-ingest',
+      }),
+    ]);
+  });
+
   it('deduplicates repeated classroom submissions through the shared evidence writer receipts', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });

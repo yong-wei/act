@@ -108,6 +108,38 @@ describe('eventToLearningFactInput', () => {
     });
   });
 
+  it('copies mapped goal identity and adapter provenance into persisted fact context', () => {
+    const fact = eventToLearningFactInput(createEvent({
+      courseId: 'mapped-goal',
+      lessonId: 'canonical-lesson-1',
+      payload: {
+        eventType: 'lesson_submit',
+        stepId: 'step-04',
+        lessonKey: 'unit-3-6-zero-design-workshop-v1',
+        score: 67,
+        goalId: 'mapped-goal',
+        adapter: {
+          adapterId: 'example-adapter',
+          adapterVersion: 'example-adapter.v1',
+          schemaVersion: 'example-adapter.schema.v1',
+          captureRevision: 'rev-1',
+        },
+      },
+    }));
+
+    expect(fact?.courseId).toBe('mapped-goal');
+    expect(fact?.lessonId).toBe('canonical-lesson-1');
+    expect(fact?.contextJson).toMatchObject({
+      goalId: 'mapped-goal',
+      adapter: {
+        adapterId: 'example-adapter',
+        adapterVersion: 'example-adapter.v1',
+        schemaVersion: 'example-adapter.schema.v1',
+        captureRevision: 'rev-1',
+      },
+    });
+  });
+
   it('ignores low-value secondary events that should not update student competency facts', () => {
     const fact = eventToLearningFactInput(createEvent({
       actionType: 'view',
