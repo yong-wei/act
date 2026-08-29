@@ -4,13 +4,16 @@
  * closed census used by contract tests so FROZEN_CALLERS cannot drift.
  */
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 
 import { FROZEN_CANDIDATES } from './candidates';
 import type { GraphCaller, GraphFile, RetirementCandidate } from './contracts';
+import type { RetirementWorktreeSnapshot } from './delete';
 import {
   RETIREMENT_SCAN_EXTENSIONS,
+  RETIREMENT_SCAN_ROOT_FILES,
   RETIREMENT_SCAN_ROOTS,
   fileDigest,
   pathExcluded,
@@ -63,6 +66,12 @@ export function listRetirementScanFiles(repoRoot: string): string[] {
     if (!existsSync(abs)) continue;
     walkFiles(abs, repoRoot, files);
   }
+  for (const rootFile of RETIREMENT_SCAN_ROOT_FILES) {
+    const abs = join(repoRoot, rootFile);
+    if (!existsSync(abs)) continue;
+    if (pathExcluded(rootFile)) continue;
+    files.push(rootFile);
+  }
   return [...new Set(files)].sort();
 }
 
@@ -84,6 +93,52 @@ export function scanRetirementCandidatesFromRepo(
       scanCandidateCallers({ candidate, files }),
     ]),
   );
+}
+
+function gitText(repoRoot: string, args: readonly string[]): string {
+  const result = spawnSync('git', [...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    throw new Error(`git ${args.join(' ')} failed: ${result.stderr || result.stdout || 'unknown'}`);
+  }
+  return result.stdout;
+}
+
+function unquoteGitPath(path: string): string {
+  const trimmed = path.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1).replace(/\\"/gu, '"');
+  }
+  return trimmed;
+}
+
+function parseGitPorcelainPath(line: string): string[] {
+  if (!line) return [];
+  const rest = line.length >= 3 ? line.slice(3) : line;
+  if (rest.includes(' -> ')) {
+    return rest.split(' -> ').map(unquoteGitPath);
+  }
+  return [unquoteGitPath(rest)];
+}
+
+/**
+ * Recapture HEAD, dirty paths, and the retirement scan-root file set from the
+ * live worktree. Production deletion must use this immediately before unlink.
+ */
+export function captureRetirementWorktree(repoRoot: string): RetirementWorktreeSnapshot {
+  const headRevision = gitText(repoRoot, ['rev-parse', 'HEAD']).trim();
+  const porcelain = gitText(repoRoot, ['status', '--porcelain', '-uall']);
+  const dirtyPaths = [...new Set(
+    porcelain.split('\n').flatMap(parseGitPorcelainPath).filter(Boolean),
+  )].sort();
+  return {
+    headRevision,
+    dirtyPaths,
+    files: loadRetirementScanFiles(repoRoot),
+  };
 }
 
 export function frozenCallerCoverageGaps(

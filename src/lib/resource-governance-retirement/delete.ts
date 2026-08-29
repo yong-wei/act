@@ -3,6 +3,12 @@
  *
  * Deletes only listed source entrypoints after the gate passes. Directory or
  * glob targets, unknown callers, and post-scan races fail closed.
+ *
+ * Production callers must pass `captureRetirementWorktree(repoRoot)` from
+ * `./repo-scan` so HEAD, dirty paths, file digests, and callers are recaptured
+ * from the live worktree immediately before unlink. `postDeleteImportBuild` is
+ * bound only to injected import/build and test command results, never to a
+ * remaining-file string scan.
  */
 
 import {
@@ -12,11 +18,12 @@ import {
   type ResourceGovernanceGraph,
   type ResourceGovernanceRetirementManifest,
 } from './contracts';
-import { looksLikeDirectoryOrGlob, scanCandidateCallers } from './scan';
+import { looksLikeDirectoryOrGlob, scanCandidateCallers, fileDigest } from './scan';
 import { retirementDigest } from './hash';
 import { assertManifestReadyForDeletion } from './manifest';
 import { verifyResourceGovernanceRetirement } from './verify';
 import { restoreRollbackArchive } from './archive';
+import type { GraphFile } from './contracts';
 
 export interface RetirementFileSystem {
   exists(path: string): boolean;
@@ -26,12 +33,30 @@ export interface RetirementFileSystem {
   write(path: string, content: string): void;
 }
 
+export interface RetirementWorktreeSnapshot {
+  headRevision: string;
+  dirtyPaths: readonly string[];
+  files: readonly GraphFile[];
+}
+
+export interface PostDeleteCommandResult {
+  ok: boolean;
+  command: string;
+}
+
+export interface PostDeleteVerification {
+  runImportBuild(): PostDeleteCommandResult;
+  runTests(): PostDeleteCommandResult;
+}
+
 export function deleteRetiredResourceGovernanceEntrypoints(input: {
   receiptId: string;
   manifest: ResourceGovernanceRetirementManifest;
   graph: ResourceGovernanceGraph;
   listedPaths: readonly string[];
   fs: RetirementFileSystem;
+  captureWorktree: () => RetirementWorktreeSnapshot;
+  postDeleteVerification: PostDeleteVerification;
   deletedAt: string;
 }): DeletionReceipt {
   const blocked = (reasons: readonly string[]): DeletionReceipt => {
@@ -88,11 +113,41 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     }
   }
 
+  let worktree: RetirementWorktreeSnapshot;
+  try {
+    worktree = input.captureWorktree();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown';
+    return blocked([`worktree-capture-failed:${detail}`]);
+  }
+  if (worktree.headRevision !== input.graph.headRevision) {
+    return blocked(['worktree-head-mismatch']);
+  }
+  if (worktree.headRevision !== input.graph.captureRevision) {
+    return blocked(['worktree-mixed-revision']);
+  }
+  if (worktree.dirtyPaths.length > 0) {
+    return blocked([`worktree-dirty:${worktree.dirtyPaths[0]}`]);
+  }
+
   for (const candidate of input.graph.candidates) {
     if (!verdict.deletionsAuthorized.includes(candidate.id)) continue;
+    const sourcePath = candidate.sourcePath.replace(/\\/gu, '/');
+    const liveFile = worktree.files.find((file) => file.path.replace(/\\/gu, '/') === sourcePath);
+    if (!liveFile) {
+      return blocked([`worktree-candidate-missing:${candidate.id}`]);
+    }
+    const liveDigest = fileDigest(liveFile.content);
+    if (liveFile.digest !== liveDigest) {
+      return blocked([`worktree-file-digest-mismatch:${candidate.id}`]);
+    }
+    const archived = input.graph.archiveBytes[sourcePath];
+    if (archived === undefined || liveDigest !== fileDigest(archived)) {
+      return blocked([`worktree-candidate-digest-drift:${candidate.id}`]);
+    }
     const liveHits = scanCandidateCallers({
       candidate,
-      files: input.graph.files,
+      files: worktree.files,
       excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
     });
     if (liveHits.length > 0) {
@@ -101,32 +156,55 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
   }
 
   const deletedPaths: string[] = [];
+  const restoreDeleted = (): void => {
+    for (const path of deletedPaths) {
+      const archived = input.graph.archiveBytes[path];
+      if (archived !== undefined) {
+        input.fs.write(path, archived);
+      }
+    }
+  };
+
   for (const listed of input.listedPaths) {
     const normalized = listed.replace(/\\/gu, '/');
     input.fs.unlink(normalized);
     deletedPaths.push(normalized);
   }
 
-  const remainingFiles = input.graph.files.filter(
+  const remainingFiles = worktree.files.filter(
     (file) => !deletedPaths.includes(file.path.replace(/\\/gu, '/')),
   );
-  let postDeleteZeroCaller = true;
   for (const candidate of input.graph.candidates) {
     if (!verdict.deletionsAuthorized.includes(candidate.id)) continue;
     const hits = scanCandidateCallers({
-      candidate: { ...candidate, sourcePath: candidate.sourcePath },
+      candidate,
       files: remainingFiles,
       excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
     });
     if (hits.length > 0) {
-      postDeleteZeroCaller = false;
+      restoreDeleted();
+      return blocked([`post-delete-zero-caller-failed:${candidate.id}`]);
     }
   }
 
-  const remainingImportsDeletedPath = remainingFiles.some((file) =>
-    deletedPaths.some((deleted) => file.content.includes(deleted)),
-  );
-  const postDeleteImportBuild = !remainingImportsDeletedPath && postDeleteZeroCaller;
+  const importBuild = input.postDeleteVerification.runImportBuild();
+  const tests = input.postDeleteVerification.runTests();
+  if (!importBuild.command) {
+    restoreDeleted();
+    return blocked(['post-delete-import-build-command-missing']);
+  }
+  if (!importBuild.ok) {
+    restoreDeleted();
+    return blocked([`post-delete-import-build-failed:${importBuild.command}`]);
+  }
+  if (!tests.command) {
+    restoreDeleted();
+    return blocked(['post-delete-tests-command-missing']);
+  }
+  if (!tests.ok) {
+    restoreDeleted();
+    return blocked([`post-delete-tests-failed:${tests.command}`]);
+  }
 
   const body = {
     contract: RESOURCE_GOVERNANCE_RETIREMENT_DELETION_RECEIPT_CONTRACT,
@@ -135,8 +213,8 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     manifestDigest: input.manifest.manifestDigest,
     deletedPaths,
     deletedAt: input.deletedAt,
-    postDeleteZeroCaller,
-    postDeleteImportBuild,
+    postDeleteZeroCaller: true,
+    postDeleteImportBuild: true,
     status: 'deleted' as const,
     reasons: [] as string[],
   };

@@ -1,16 +1,17 @@
 # Caller denominator
 
 Captured at `fce5b9fc4a4c7dd408297c3d90d2cf407c953b71`.
-Encoded in `src/lib/resource-governance-retirement/candidates.ts` (`FROZEN_CANDIDATES`, `FROZEN_CALLERS`).
-Scan roots: `src/`, `scripts/`, `tests/`, `artifacts/`.
-Scan rules: exact path, `@/` alias, same-tree relative import, and API href with no detail/v2/active suffix; long symbols only; production/test/script/route/browser/dynamic; tests count; retirement package excluded.
-Live coverage is asserted by `scanRetirementCandidatesFromRepo` against `FROZEN_CALLERS` (retireable candidates).
+Encoded in `src/lib/resource-governance-retirement/frozen-callers.ts` (`FROZEN_CALLERS`).
+Scan roots: `src/`, `scripts/`, `tests/`, `artifacts/`, `course-content/`, `openspec/`, `docs/`, `prisma/`, plus root `package.json`.
+Extensions: `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` `.md` `.json`.
+Scan rules: exact path, `@/` alias, same-tree relative import, and API href with no detail/v2/active suffix; long symbols only; production/test/script/route/browser/dynamic/historical/model; tests count; retirement package excluded.
+Live coverage is asserted by `scanRetirementCandidatesFromRepo` against `FROZEN_CALLERS` in both directions. The complete caller list is `FROZEN_CALLERS`; this file only summarizes.
 
 ## registry-read:student-resources-id-metadata-fallback
 
 Old call site: `getRegisteredResourceMetadata` inside `src/app/api/resources/[id]/route.ts`.
 Live replacement: `resolveStudentVisibleIndexedResource`.
-Remaining `getRegisteredResourceMetadata` callers belong to the protected `resource-registry-metadata.ts` table, not this candidate. The route file itself stays; `src/lib/__tests__/resources-api-route.test.ts` still names the live route path.
+Remaining `getRegisteredResourceMetadata` callers belong to the protected `resource-registry-metadata.ts` table, not this candidate. The route file itself stays. Expanded scan still finds historical docs/openspec mentions of the route path plus `src/lib/__tests__/resources-api-route.test.ts`.
 
 ## eligibility:full-resource-path-readiness-gate
 
@@ -18,12 +19,13 @@ Remaining `getRegisteredResourceMetadata` callers belong to the protected `resou
 | --- | --- |
 | `src/lib/__tests__/resource-field-completion-audit.test.ts` | test |
 | `scripts/db/generate-resource-field-completion-audit.ts` | script |
+| docs/openspec historical mentions of the TypeScript path | historical |
 
-`scripts/db/seed-yangfan-diagnostic-learning-state.ts` reads the generated summary JSON, not the TypeScript entrypoint, so it is not a module caller.
+`scripts/db/seed-yangfan-diagnostic-learning-state.ts` reads the generated summary JSON, not the TypeScript entrypoint, so it is not a module caller. Complete list: `FROZEN_CALLERS['eligibility:full-resource-path-readiness-gate']` (13).
 
 ## eligibility:resource-node-aggregate-ready
 
-The source path is the protected ResourceNode planning registry. Live scan found 53 classified importers (teacher APIs, path/planning, data-governance, tests, and `tests/issue-1437-resource-node-destination.spec.ts`). The complete list is `FROZEN_CALLERS['eligibility:resource-node-aggregate-ready']`.
+The source path is the protected ResourceNode planning registry. Expanded scan found 73 classified importers (teacher APIs, path/planning, data-governance, tests, docs/openspec historical mentions, and `tests/issue-1437-resource-node-destination.spec.ts`). The complete list is `FROZEN_CALLERS['eligibility:resource-node-aggregate-ready']`.
 
 ## knowledge-projection:nodes-list-array-dto
 
@@ -48,8 +50,9 @@ Exact `GET /api/knowledge/nodes` list href or `src/app/api/knowledge/nodes/route
 | `artifacts/.../chapters/61-function-state-flows-batch53.md` | browser |
 | `artifacts/.../report.md` | browser |
 | `artifacts/.../remediation/.../evidence.md` | browser |
+| docs/openspec historical mentions of the route path | historical |
 
-`GET /api/knowledge/nodes` still returns a JSON array. Object graph/detail routes already carry `knowledgeSurface`.
+Complete list: `FROZEN_CALLERS['knowledge-projection:nodes-list-array-dto']` (33). `GET /api/knowledge/nodes` still returns a JSON array. Object graph/detail routes already carry `knowledgeSurface`.
 
 ## knowledge-projection:client-url-identity-reconstruction
 

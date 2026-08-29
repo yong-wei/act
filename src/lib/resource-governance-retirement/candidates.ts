@@ -228,90 +228,7 @@ export const FROZEN_CANDIDATES: readonly RetirementCandidate[] = [
   },
 ];
 
-export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = {
-  'registry-read:student-resources-id-metadata-fallback': [
-    { path: 'src/lib/__tests__/resources-api-route.test.ts', symbol: 'src/app/api/resources/[id]/route.ts', callerClass: 'test', kind: 'test' },
-  ],
-  'eligibility:full-resource-path-readiness-gate': [
-    { path: 'scripts/db/generate-resource-field-completion-audit.ts', symbol: 'buildFullResourcePathReadinessGate', callerClass: 'script', kind: 'import' },
-    { path: 'src/lib/__tests__/resource-field-completion-audit.test.ts', symbol: 'buildFullResourcePathReadinessGate', callerClass: 'test', kind: 'test' },
-  ],
-  'eligibility:resource-node-aggregate-ready': [
-    { path: 'scripts/db/generate-resource-field-completion-audit.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'script', kind: 'import' },
-    { path: 'scripts/tests/test-new-resource-semantic-completeness-command.mjs', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'script', kind: 'import' },
-    { path: 'src/app/api/teacher/resource-nodes/[nodeId]/route.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'route-api', kind: 'import' },
-    { path: 'src/app/api/teacher/resource-nodes/route.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'route-api', kind: 'import' },
-    { path: 'src/app/api/teacher/sar-suggested-bindings/review/route.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'route-api', kind: 'import' },
-    { path: 'src/app/teacher/resources/resource-nodes/page.tsx', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'src/features/assessment/micro-intervention-outcomes.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/features/assessment/remediation-orchestration.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/features/knowledge/resource-node-workspace-contracts.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/features/teacher/resources/teacher-resource-node-management.tsx', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'src/lib/__tests__/adaptive-learning-center-ui.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/adaptive-learning-optimization-experiments.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/adaptive-learning-path-planner.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/adaptive-path-journey-control.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/adaptive-path-timeline.client.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/canonical-learning-path-transition.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/control-correction-path-rounds.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/konling-agent-runtime.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/resource-field-completion-audit.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/resource-node-knowledge-workspace-ui.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/resource-node-registry.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/runtime-resource-projections.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/teacher-resource-node-management.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/adaptive-learning-path-planner.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/adaptive-planning/resource-ranker.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/canonical-resource-binding/runtime-projection.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/control-correction-resource-seed.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/__tests__/data-completeness-audit.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/graph-center-client-rendering.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/graph-center.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/new-resource-semantic-completeness-gate.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/sar-projection.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/teacher-prep-pack-generation.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/control-correction-demo-package.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/data-completeness-audit.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/graph-center-sources.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/graph-center.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/new-resource-semantic-completeness-gate.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/resource-coverage-matching.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/sar-projection.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/data-governance/teacher-prep-pack-generation.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/frequency-response-resource-seed.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/full-resource-path-readiness-gate.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/konling-agent-runtime.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'dynamic' },
-    { path: 'src/lib/resource-field-completion-audit.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/resource-node-path-readiness-review-batch.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/resource-registry-metadata.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/runtime-resource-projections.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/structured-textbook-runtime.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/teacher-resource-node-data.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/teacher-resource-node-management.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/textbook-media-grounding.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'tests/issue-1437-resource-node-destination.spec.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-  ],
-  'knowledge-projection:nodes-list-array-dto': [
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/chapters/46-function-state-flows-batch38.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/chapters/60-function-state-flows-batch52.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/chapters/61-function-state-flows-batch53.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/remediation/audit-remediation-authoring-api-task-consumption-closure/evidence.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/report.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/scripts/capture-batch38.mjs', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/scripts/capture-batch52.mjs', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/scripts/capture-batch53.mjs', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'scripts/tests/test-runtime-knowledge-governance.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'script', kind: 'import' },
-    { path: 'src/app/__tests__/authoring-resource-flow-source.test.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/features/knowledge/__tests__/knowledge-nodes-route.test.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/features/knowledge/playlist-builder.tsx', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'src/features/lesson-engine/orchestrator-builder.tsx', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'browser', kind: 'import' },
-    { path: 'src/lib/__tests__/authoritative-knowledge-repository.test.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/knowledge-db-fallback-production.real-smoke.test.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/shared-react-state-effect-safety.test.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/resources/interactive-learning/shared/knowledge-cards-data.ts', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'production', kind: 'import' },
-  ],
-  'knowledge-projection:client-url-identity-reconstruction': [],
-};
+export { FROZEN_CALLERS } from './frozen-callers';
 
 export function classifyCallerPath(path: string): GraphCaller['callerClass'] {
   const normalized = path.replace(/\\/gu, '/');
@@ -323,6 +240,11 @@ export function classifyCallerPath(path: string): GraphCaller['callerClass'] {
     return 'test';
   }
   if (normalized.startsWith('scripts/')) return 'script';
+  if (normalized === 'package.json') return 'script';
+  if (normalized.startsWith('prisma/')) return 'model';
+  if (normalized.startsWith('course-content/')) return 'historical';
+  if (normalized.startsWith('openspec/')) return 'historical';
+  if (normalized.startsWith('docs/')) return 'historical';
   if (normalized.startsWith('artifacts/')) return 'browser';
   if (normalized.includes('/api/')) return 'route-api';
   if (normalized.endsWith('.tsx') || normalized.endsWith('.mjs')) return 'browser';

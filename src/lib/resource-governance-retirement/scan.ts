@@ -11,7 +11,17 @@ import type {
 import { classifyCallerPath } from './candidates';
 import { retirementDigest, retirementSha256 } from './hash';
 
-export const RETIREMENT_SCAN_ROOTS = ['src', 'scripts', 'tests', 'artifacts'] as const;
+export const RETIREMENT_SCAN_ROOTS = [
+  'src',
+  'scripts',
+  'tests',
+  'artifacts',
+  'course-content',
+  'openspec',
+  'docs',
+  'prisma',
+] as const;
+export const RETIREMENT_SCAN_ROOT_FILES = ['package.json'] as const;
 export const RETIREMENT_SCAN_EXTENSIONS = [
   '.ts',
   '.tsx',
@@ -20,6 +30,7 @@ export const RETIREMENT_SCAN_EXTENSIONS = [
   '.mjs',
   '.cjs',
   '.md',
+  '.json',
 ] as const;
 
 const DEFAULT_EXCLUDED_FRAGMENTS = [

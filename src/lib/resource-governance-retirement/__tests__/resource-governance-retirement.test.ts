@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
   CLEAN_CHANGE_SURFACE,
@@ -22,15 +22,18 @@ import {
   scanProtectedSurfaces,
   verifyResourceGovernanceRetirement,
   type GraphFile,
+  type PostDeleteVerification,
   type ReplacementIdentity,
   type ResourceGovernanceGraph,
   type RetirementCandidate,
   type RetirementFileSystem,
+  type RetirementWorktreeSnapshot,
+  RETIREMENT_SCAN_ROOTS,
+  RETIREMENT_SCAN_ROOT_FILES,
 } from '@/lib/resource-governance-retirement';
 import {
   frozenCallerCoverageGaps,
   loadRetirementScanFiles,
-  scanRetirementCandidatesFromRepo,
 } from '@/lib/resource-governance-retirement/repo-scan';
 import { RESOURCE_REGISTRY_INDEX_CONTRACT } from '@/features/knowledge/resource-index/public-api';
 import { RESOURCE_ELIGIBILITY_CONTRACT } from '@/features/knowledge/resource-eligibility/public-api';
@@ -75,6 +78,25 @@ function candidate(overrides: Partial<RetirementCandidate> = {}): RetirementCand
     deletionCondition: 'zero callers after R1 migration',
     ...overrides,
   };
+}
+
+function passingPostDeleteVerification(ok = true): PostDeleteVerification {
+  return {
+    runImportBuild: () => ({ ok, command: 'vitest run --retirement-import-build' }),
+    runTests: () => ({ ok, command: 'vitest run resource-governance-retirement' }),
+  };
+}
+
+function captureFromGraph(
+  graph: ResourceGovernanceGraph,
+  overrides: Partial<RetirementWorktreeSnapshot> = {},
+): () => RetirementWorktreeSnapshot {
+  return () => ({
+    headRevision: graph.headRevision,
+    dirtyPaths: [],
+    files: graph.files,
+    ...overrides,
+  });
 }
 
 function memoryFs(initial: Record<string, string>): RetirementFileSystem & { files: Record<string, string> } {
@@ -188,6 +210,11 @@ function readyManifest(graph: ResourceGovernanceGraph, decision: 'retain' | 'app
 }
 
 describe('resource-governance retirement evidence gate (#1592)', () => {
+  let liveScanFiles: GraphFile[] = [];
+
+  beforeAll(() => {
+    liveScanFiles = loadRetirementScanFiles(process.cwd());
+  }, 60_000);
   it('blocks deletion when evidence is incomplete, mixed, or mismatched', () => {
     const mixed = completeGraph({ captureRevision: REV, headRevision: OTHER_REV });
     const mixedManifest = readyManifest(mixed, 'retain');
@@ -356,6 +383,8 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       graph,
       listedPaths: ['src/lib/obsolete-registry-read.ts'],
       fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
       deletedAt: '2026-08-28T01:00:00.000Z',
     });
     expect(receipt.status).toBe('deleted');
@@ -370,6 +399,8 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       graph,
       listedPaths: ['src/lib/obsolete-*'],
       fs: memoryFs({ 'src/lib/obsolete-registry-read.ts': 'x' }),
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
       deletedAt: '2026-08-28T01:00:00.000Z',
     });
     expect(globBlocked.status).toBe('blocked');
@@ -395,6 +426,8 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       graph: raced,
       listedPaths: ['src/lib/obsolete-registry-read.ts'],
       fs: memoryFs({ 'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() {}' }),
+      captureWorktree: captureFromGraph(raced),
+      postDeleteVerification: passingPostDeleteVerification(),
       deletedAt: '2026-08-28T01:00:00.000Z',
     });
     expect(receipt.status).toBe('blocked');
@@ -418,7 +451,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(hashCandidateSet(FROZEN_CANDIDATES)).toMatch(/^[a-f0-9]{64}$/);
     expect(hashDenominator(FROZEN_CALLERS)).toMatch(/^[a-f0-9]{64}$/);
 
-    const liveFiles = loadRetirementScanFiles(process.cwd());
+    const liveFiles = liveScanFiles;
     const present = new Set(liveFiles.map((file) => file.path));
     const files = [
       ...liveFiles,
@@ -481,6 +514,8 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       graph,
       listedPaths: ['src/lib/full-resource-path-readiness-gate.ts'],
       fs: memoryFs({ 'src/lib/full-resource-path-readiness-gate.ts': 'gate' }),
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
       deletedAt: '2026-08-28T02:00:00.000Z',
     });
     expect(deleteAttempt.status).toBe('blocked');
@@ -504,8 +539,34 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
   });
 
   it('covers the frozen denominator with a live repository scan', () => {
-    const live = scanRetirementCandidatesFromRepo(process.cwd());
+    expect(RETIREMENT_SCAN_ROOTS).toEqual(expect.arrayContaining([
+      'src',
+      'scripts',
+      'tests',
+      'artifacts',
+      'course-content',
+      'openspec',
+      'docs',
+      'prisma',
+    ]));
+    expect(RETIREMENT_SCAN_ROOT_FILES).toContain('package.json');
+    const live = Object.fromEntries(
+      FROZEN_CANDIDATES.map((candidate) => [
+        candidate.id,
+        scanCandidateCallers({ candidate, files: liveScanFiles }),
+      ]),
+    );
     expect(frozenCallerCoverageGaps(FROZEN_CALLERS, live)).toEqual([]);
+    expect(frozenCallerCoverageGaps(live, FROZEN_CALLERS)).toEqual([]);
+    expect(liveScanFiles.some((file) => file.path === 'package.json')).toBe(true);
+    expect(liveScanFiles.some((file) => file.path.startsWith('docs/'))).toBe(true);
+    expect(liveScanFiles.some((file) => file.path.startsWith('openspec/'))).toBe(true);
+    expect(liveScanFiles.some((file) => file.path.startsWith('course-content/'))).toBe(true);
+    expect(liveScanFiles.some((file) => file.path.startsWith('prisma/'))).toBe(true);
+
+    const fallbackHits = live['registry-read:student-resources-id-metadata-fallback'] ?? [];
+    expect(fallbackHits.some((hit) => hit.path.startsWith('docs/'))).toBe(true);
+    expect(fallbackHits.some((hit) => hit.path.startsWith('openspec/'))).toBe(true);
 
     const listHits = live['knowledge-projection:nodes-list-array-dto'] ?? [];
     expect(listHits.some((hit) => hit.path.includes('knowledge-nodes-route.test.ts'))).toBe(true);
@@ -566,9 +627,117 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       graph,
       listedPaths: ['src/lib/obsolete-registry-read.ts'],
       fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
       deletedAt: '2026-08-28T03:00:00.000Z',
     });
     expect(receipt.status).toBe('blocked');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('refuses deletion when the live worktree is dirty', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-dirty',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph, { dirtyPaths: ['src/app/unrelated.ts'] }),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:00:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('worktree-dirty:src/app/unrelated.ts');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('refuses deletion when the live worktree adds a caller after the frozen graph', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-live-caller',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph, {
+        files: [
+          ...graph.files,
+          graphFile(
+            'src/app/new-caller.ts',
+            "import { readObsoleteRegistry } from '@/lib/obsolete-registry-read';",
+          ),
+        ],
+      }),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:01:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('zero-caller-race:registry-read:obsolete-helper');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('refuses deletion when a candidate file digest drifted in the live worktree', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-digest-drift',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph, {
+        files: graph.files.map((file) => (
+          file.path === 'src/lib/obsolete-registry-read.ts'
+            ? graphFile(file.path, `${file.content}\n// drifted`)
+            : file
+        )),
+      }),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:02:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('worktree-candidate-digest-drift:registry-read:obsolete-helper');
+    expect(receipt.deletedPaths).toEqual([]);
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('binds postDeleteImportBuild to command results and restores on failure', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-build-fail',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: {
+        runImportBuild: () => ({ ok: false, command: 'npm run typecheck' }),
+        runTests: () => ({ ok: true, command: 'npx vitest run resource-governance-retirement' }),
+      },
+      deletedAt: '2026-08-28T04:03:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.postDeleteImportBuild).toBe(false);
+    expect(receipt.reasons).toContain('post-delete-import-build-failed:npm run typecheck');
     expect(receipt.deletedPaths).toEqual([]);
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
   });

@@ -31,6 +31,7 @@ Source-owned render registry, `registeredResourceMetadata`, ResourceNode plannin
 
 - `verifyResourceGovernanceRetirement(manifest, currentGraph)` in `src/lib/resource-governance-retirement/`
 - Exact-path deletion command `deleteRetiredResourceGovernanceEntrypoints`
-- Domain-local deprecation ledger (does not edit the frozen architecture-charter census)
+- Live worktree recapture `captureRetirementWorktree` immediately before unlink
+- `postDeleteImportBuild` bound to import/build and test command results
 
 Live deletion in this slice: none. Completing the gate with explicit retain conditions is the authorized outcome when callers or protected surfaces remain.
