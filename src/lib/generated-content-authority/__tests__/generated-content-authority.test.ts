@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   assertGeneratedContentAuthorityFitness,
+  computeEvidenceDigest,
   evaluateAssessmentDependencyQualification,
   extractRepoPaths,
   evaluateGeneratedContentAuthorityFitness,
@@ -179,9 +180,13 @@ describe('generated content authority — fixture fitness checks', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  // 自洽绑定：fixture 的证据语义与真实修订无关，默认绑定矩阵声明修订
-  function fixtureInput(observed: string | null = GENERATED_CONTENT_AUTHORITY_MATRIX.sourceRevision) {
-    return { repoRoot: root, observedRevisionOverride: observed };
+  // 自洽绑定：fixture 的声明摘要与观测摘要都按 fixture 文件现算
+  function fixtureInput(evidenceDigest: string | null = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows)) {
+    return {
+      repoRoot: root,
+      evidenceDigestOverride: evidenceDigest,
+      declaredDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
+    };
   }
 
   it('qualifies a clean fixture tree whose evidence, sinks, and dependency are consistent', () => {
@@ -214,18 +219,18 @@ describe('generated content authority — fixture fitness checks', () => {
     commitAll(root, 'restore sink fixture');
   });
 
-  it('marks stale source revisions as BLOCKED via fail-closed binding', () => {
-    const report = evaluateGeneratedContentAuthorityFitness({ repoRoot: root, observedRevisionOverride: '0'.repeat(40) });
+  it('marks stale evidence digests as BLOCKED via fail-closed binding', () => {
+    const report = evaluateGeneratedContentAuthorityFitness({ repoRoot: root, evidenceDigestOverride: '0'.repeat(64) });
     expect(report.sourceBinding.binding).toBe('STALE');
     for (const row of report.rows) {
       expect(row.status).toBe('NOT_QUALIFIED');
-      expect(row.invariantFindings.DOMAIN_OWNERSHIP.reasons.some((reason) => reason.startsWith('stale source revision'))).toBe(true);
+      expect(row.invariantFindings.DOMAIN_OWNERSHIP.reasons.some((reason) => reason.startsWith('stale evidence digest'))).toBe(true);
     }
     expect(report.settled).toBe('BLOCKED');
   });
 
-  it('fails closed when the observed revision is unobservable', () => {
-    const report = evaluateGeneratedContentAuthorityFitness({ repoRoot: root, observedRevisionOverride: null });
+  it('fails closed when the evidence digest is unobservable', () => {
+    const report = evaluateGeneratedContentAuthorityFitness({ repoRoot: root, evidenceDigestOverride: null });
     expect(report.sourceBinding.binding).toBe('UNOBSERVED');
     expect(report.settled).toBe('BLOCKED');
   });
@@ -238,7 +243,7 @@ describe('generated content authority — fixture fitness checks', () => {
       const report = evaluateGeneratedContentAuthorityFitness(fixtureInput());
       const assessment = report.rows.find((row) => row.domain === 'assessment')!;
       expect(assessment.dependency.qualification).toBe('NOT_QUALIFIED');
-      expect(assessment.status).toBe('BLOCKED');
+      expect(assessment.status, JSON.stringify(assessment.invariantFindings)).toBe('BLOCKED');
       expect(assessment.invariantFindings.HUMAN_ACCEPTED.status).toBe('BLOCKED');
       // 其它域不受 Assessment 依赖连带
       const smartCourseware = report.rows.find((row) => row.domain === 'smart-courseware')!;

@@ -48,10 +48,13 @@ export const DECLARED_CROSS_DOMAIN_EDGES: readonly DeclaredCrossDomainEdge[] = [
 export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
   readonly schemaVersion: typeof GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION;
   readonly sourceRevision: string;
+  /** 全部被引用证据文件的内容摘要（sha256）；fitness check 重算比对判定 STALE */
+  readonly evidenceDigest: string;
   readonly rows: readonly GeneratedContentAuthorityRow[];
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+  evidenceDigest: '521f1793a2ca280ec1921fa65777600fade831d4c9284be6b5ab0537554af991',
   rows: [
     {
       domain: 'assessment',

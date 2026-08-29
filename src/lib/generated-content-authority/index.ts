@@ -8,6 +8,7 @@ export {
   LEARNING_FACT_SINK_MODULES,
 } from './matrix';
 export {
+  computeEvidenceDigest,
   evaluateAssessmentDependencyQualification,
   evaluateGeneratedContentAuthorityFitness,
   assertGeneratedContentAuthorityFitness,

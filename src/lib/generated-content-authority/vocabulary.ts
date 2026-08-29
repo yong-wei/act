@@ -112,8 +112,11 @@ export interface DeclaredCrossDomainEdge {
 export interface GeneratedContentFitnessReport {
   readonly schemaVersion: typeof GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION;
   readonly sourceBinding: {
+    /** 对账提交（参考标签） */
     readonly declaredRevision: string;
+    /** 当前观测 HEAD（上下文信息；绑定判定用证据摘要） */
     readonly observedRevision: string | null;
+    /** 绑定判定 = 矩阵 evidenceDigest 与当前证据文件的 sha256 摘要一致 */
     readonly binding: 'CURRENT' | 'STALE' | 'UNOBSERVED';
     readonly mixedWorktree: boolean;
   };

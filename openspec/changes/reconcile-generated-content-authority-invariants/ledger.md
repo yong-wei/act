@@ -4,7 +4,7 @@
 
 ## 1. 冻结的分母与源绑定（tasks 1.1–1.4）
 
-- 源绑定：矩阵 `sourceRevision` 绑定实现提交 `5b44e6c128c2f36811a496ac3be272f073d8ba15`（四域行同值）。fitness check 观测 git HEAD：CURRENT 才收敛；STALE/UNOBSERVED/混合工作树 → 行级 fail-closed（BLOCKED/NOT_QUALIFIED），严格门 `npm run test:generated-content-authority` 额外要求干净树。
+- 源绑定：矩阵 `sourceRevision` 记录对账提交 `5b44e6c128c2f36811a496ac3be272f073d8ba15`（四域行同值，参考标签）；实际绑定判定用 `evidenceDigest`——对矩阵全部被引用证据文件（路径排序）计算的 sha256 内容摘要。fitness check 重算当前摘要并比对：CURRENT 才收敛；STALE（证据文件真实漂移）/UNOBSERVED → 行级 fail-closed（BLOCKED/NOT_QUALIFIED）；HEAD 移动本身不影响绑定。严格门 `npm run test:generated-content-authority` 额外要求干净树。证据文件变更后的再对账流程：重算 `computeEvidenceDigest` → 更新矩阵 `evidenceDigest` → 提交。
 - 四域 owner/路由/API/模型/worker/脚本/测试/调用方分母记录在 `src/lib/generated-content-authority/matrix.ts` 的 `GENERATED_CONTENT_AUTHORITY_MATRIX`（每行 `denominator` 字段，全部为已验证存在的仓库相对路径）。
 - 各域本地身份：草稿身份、确定性验证证据、人类接受点、不可变修订（含漂移守卫）、发布回执（或等价权威）、隐私类、幂等边界、回滚 owner 均为矩阵行字段。
 - 禁止 sink 清单：Assessment 目录发布/运行时 overlay（generated-candidate-catalog.ts / generated-catalog-runtime.ts）、Assignment 评分/反馈权威（assignment-review.ts）、Smart Courseware 发布（publication-service.ts）、LearningFact 写入器三处（canonical writer / learning-fact-materialization / simulation-task-learning-fact）。混合/陈旧证据 → 行 NOT_QUALIFIED。

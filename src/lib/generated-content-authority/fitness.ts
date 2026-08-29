@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -12,6 +13,7 @@ import {
   FORBIDDEN_SHARED_MODEL_PATTERNS,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
 } from './matrix';
+import type { GeneratedContentAuthorityRow } from './vocabulary';
 import {
   GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   GENERATED_CONTENT_INVARIANTS,
@@ -27,10 +29,12 @@ interface FitnessInput {
   /** 仓库根（默认 process.cwd()） */
   readonly repoRoot?: string;
   /**
-   * 观测源修订覆盖。默认从 git 读取 HEAD；单测可注入以验证 STALE/UNOBSERVED 语义。
-   * 传 null 表示无法观测（UNOBSERVED，fail-closed）。
+   * 证据摘要覆盖。默认重算当前证据文件的 sha256 摘要并与矩阵比对；
+   * 单测可注入以验证 STALE/UNOBSERVED 语义（null = 无法观测，fail-closed）。
    */
-  readonly observedRevisionOverride?: string | null;
+  readonly evidenceDigestOverride?: string | null;
+  /** 单测注入：模拟矩阵声明的摘要（默认读真实矩阵字段） */
+  readonly declaredDigestOverride?: string;
 }
 
 function emptyFindings(): InvariantFindings {
@@ -113,6 +117,49 @@ export function evaluateAssessmentDependencyQualification(repoRoot: string): {
   return reasons.length === 0
     ? { qualification: 'QUALIFIED', reasons: [`#1564 archived with complete tasks and ${ASSESSMENT_DEPENDENCY_EVIDENCE.length} evidence files present`] }
     : { qualification: 'NOT_QUALIFIED', reasons };
+}
+
+function rowEvidencePaths(row: GeneratedContentAuthorityRow): string[] {
+  const references: readonly string[] = [
+    row.draftIdentity.creationReference,
+    ...(row.draftIdentity.notes ? [row.draftIdentity.notes] : []),
+    ...row.validationEvidence,
+    ...row.humanAcceptance,
+    row.immutableRevision.driftGuardReference ?? '',
+    row.publicationReceipt.reference,
+    row.publicationReceipt.consumerBinding ?? '',
+    ...row.denominator.routes,
+    ...row.denominator.workers,
+    ...row.denominator.callers,
+    ...row.generationModules,
+    ...row.forbiddenSinkModules,
+  ];
+  const paths = new Set<string>();
+  for (const reference of references) {
+    for (const path of extractRepoPaths(reference)) paths.add(path);
+  }
+  for (const path of [...row.generationModules, ...row.forbiddenSinkModules]) paths.add(path);
+  return [...paths].sort();
+}
+
+/**
+ * 证据文件内容摘要：对矩阵全部被引用证据文件按路径排序后做 sha256。
+ * 绑定判定用（HEAD 移动不影响；证据文件真实漂移才 STALE）。
+ */
+export function computeEvidenceDigest(repoRoot: string, rows: readonly GeneratedContentAuthorityRow[]): string {
+  const hash = createHash('sha256');
+  for (const row of rows) {
+    for (const path of rowEvidencePaths(row)) {
+      const absolute = join(repoRoot, path);
+      let marker = 'MISSING';
+      if (existsSync(absolute)) {
+        marker = statSync(absolute).isDirectory() ? 'DIR' : createHash('sha256').update(readFileSync(absolute)).digest('hex');
+      }
+      hash.update(`${path}:${marker}`);
+      hash.update('\n');
+    }
+  }
+  return hash.digest('hex');
 }
 
 /** 从证据引用文本中提取仓库相对路径候选（src|prisma|openspec|data|scripts 前缀）。 */
@@ -283,15 +330,22 @@ function checkRowContractFields(
 export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {}): GeneratedContentFitnessReport {
   const repoRoot = resolve(input.repoRoot ?? process.cwd());
   const declared = GENERATED_CONTENT_AUTHORITY_MATRIX.sourceRevision;
-  const observed = input.observedRevisionOverride !== undefined
-    ? input.observedRevisionOverride
-    : observedHeadRevision(repoRoot);
+  const declaredDigest = input.declaredDigestOverride ?? GENERATED_CONTENT_AUTHORITY_MATRIX.evidenceDigest;
+  const observed = observedHeadRevision(repoRoot);
   const mixedWorktree = hasMixedWorktree(repoRoot);
+  const computedDigest = computeEvidenceDigest(repoRoot, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
+  const bindingState: 'CURRENT' | 'STALE' | 'UNOBSERVED' = input.evidenceDigestOverride !== undefined
+    ? (input.evidenceDigestOverride === null
+      ? 'UNOBSERVED'
+      : input.evidenceDigestOverride === declaredDigest ? 'CURRENT' : 'STALE')
+    : (input.declaredDigestOverride === undefined && declaredDigest === 'PENDING-EVIDENCE-DIGEST'
+      ? 'UNOBSERVED'
+      : computedDigest === declaredDigest ? 'CURRENT' : 'STALE');
 
   const binding: GeneratedContentFitnessReport['sourceBinding'] = {
     declaredRevision: declared,
     observedRevision: observed,
-    binding: observed === null ? 'UNOBSERVED' : observed === declared ? 'CURRENT' : 'STALE',
+    binding: bindingState,
     mixedWorktree,
   };
 
@@ -318,10 +372,10 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
       failInvariant(findings, 'DOMAIN_OWNERSHIP', `mixed source revision: row ${rowSourceRevision} != matrix ${declared}`);
     }
     if (binding.binding === 'STALE') {
-      failInvariant(findings, 'DOMAIN_OWNERSHIP', `stale source revision: declared ${declared}, observed ${observed}`);
+      failInvariant(findings, 'DOMAIN_OWNERSHIP', 'stale evidence digest: matrix evidence has drifted from the recorded files');
     }
     if (binding.binding === 'UNOBSERVED') {
-      failInvariant(findings, 'DOMAIN_OWNERSHIP', 'source revision unobservable (fail-closed)');
+      failInvariant(findings, 'DOMAIN_OWNERSHIP', 'evidence digest unobservable (fail-closed)');
     }
 
     checkRowContractFields(row, findings);
