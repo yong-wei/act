@@ -72,7 +72,7 @@ export interface TeacherClassInsightsPayload {
   scopeLabel: typeof CUMULATIVE_ATTAINMENT_LABEL;
   availability: {
     state: CumulativeClassPortraitReadModel['stateKind'];
-    reason: CumulativeClassPortraitReadModel['availabilityReason'];
+    reason: CumulativeClassPortraitReadModel['availabilityReason'] | string;
   };
   classInfo: {
     id: string;
@@ -196,9 +196,13 @@ export async function GET(
         })
       : [];
     const students = classData.students.map((profile) =>
-      buildStudent(profile, portraits.get(profile.userId)!));
+      buildStudent(
+        profile,
+        portraits.get(profile.userId)!,
+        teacherPort.studentReads.get(profile.userId),
+      ));
     const coveredStudents = students.filter((student) =>
-      student.availabilityReason === 'available').length;
+      student.evidenceStatus.state === 'ready').length;
     const latestStudentSnapshotAt = students
       .flatMap((student) => student.lastSnapshotAt ? [student.lastSnapshotAt] : [])
       .sort()
@@ -233,7 +237,9 @@ export async function GET(
       scopeLabel: CUMULATIVE_ATTAINMENT_LABEL,
       availability: {
         state: classPortrait.stateKind,
-        reason: classPortrait.availabilityReason,
+        reason: teacherPort.classRead.status === 'stale'
+          ? (teacherPort.classRead.reason ?? 'stale')
+          : classPortrait.availabilityReason,
       },
       classInfo: {
         id: classData.id,
@@ -314,6 +320,7 @@ function buildStudent(
     user: { id: string; name: string | null; email: string | null };
   },
   portrait: CumulativePortraitReadModel,
+  read?: { status: string; reason: string | null },
 ): TeacherClassInsightStudent {
   const dimensions = portrait.payload?.dimensions.filter((dimension) =>
     dimension.evidenceSummary.totalCount > 0) ?? [];
@@ -322,18 +329,17 @@ function buildStudent(
     total + dimension.evidenceSummary.totalCount, 0);
   const riskLevel = highestRisk(portrait.lastRisk.map((risk) => risk.severity));
   const confidenceScore = portrait.confidence ?? 0;
+  const current = read?.status === 'qualified' && portrait.availabilityReason === 'available';
   return {
     id: profile.user.id,
     name: profile.user.name || '未命名学生',
     email: profile.user.email,
     studentNumber: profile.studentNumber,
-    overallScore: portrait.availabilityReason === 'available' ? portrait.overallScore : null,
-    overallLevel: portrait.overallScore === null
+    overallScore: current ? portrait.overallScore : null,
+    overallLevel: !current || portrait.overallScore === null
       ? null
       : COMPETENCY_LEVELS[getCompetencyLevelKey(portrait.overallScore)].label,
-    overallScoreSource: portrait.availabilityReason === 'available'
-      ? 'native-portrait-v2'
-      : null,
+    overallScoreSource: current ? 'native-portrait-v2' : null,
     riskLevel,
     riskLabel: getRiskLabel(riskLevel),
     trendDirection: portrait.lastTrend ?? 'not-comparable',
@@ -343,9 +349,9 @@ function buildStudent(
     factCount: evidenceCount,
     lastSnapshotAt: portrait.generatedAt,
     portraitV2: portrait.payload,
-    availabilityReason: portrait.availabilityReason,
+    availabilityReason: read?.reason ?? portrait.availabilityReason,
     evidenceStatus: {
-      state: portrait.availabilityReason === 'available' ? 'ready' : 'missing',
+      state: current ? 'ready' : 'missing',
       refreshedAt: portrait.generatedAt,
       lastEvidenceAt: portrait.evidenceAsOf,
       confidence: {

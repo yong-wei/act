@@ -29,7 +29,7 @@ export interface HeatmapData {
   scopeLabel: typeof CUMULATIVE_ATTAINMENT_LABEL;
   availability: {
     state: CumulativeClassPortraitReadModel['stateKind'];
-    reason: CumulativeClassPortraitReadModel['availabilityReason'];
+    reason: CumulativeClassPortraitReadModel['availabilityReason'] | string;
   };
   coverage: {
     rosterStudents: number;
@@ -125,17 +125,22 @@ export async function GET(
     });
     const classPortrait = teacherPort.classPortrait;
     const portraits = teacherPort.learnerPortraits;
+    const studentReads = teacherPort.studentReads;
     const studentRows: HeatmapData['students'] = classStudents.map((profile) => {
       const portrait = portraits.get(profile.userId)!;
+      const read = studentReads.get(profile.userId);
+      const coverageState = read?.status === 'qualified' && portrait.stateKind === 'SNAPSHOT'
+        ? 'covered' as const
+        : portrait.stateKind === 'NO_EVIDENCE' || read?.status === 'partial'
+          ? 'no-evidence' as const
+          : 'unavailable' as const;
       return {
         id: profile.user.id,
         name: profile.user.name,
         avatar: profile.user.image,
         studentNumber: profile.studentNumber,
-        coverageState: portrait.stateKind === 'SNAPSHOT'
-          ? 'covered'
-          : portrait.stateKind === 'NO_EVIDENCE' ? 'no-evidence' : 'unavailable',
-        availabilityReason: portrait.availabilityReason,
+        coverageState,
+        availabilityReason: read?.reason ?? portrait.availabilityReason,
         trendDirection: portrait.lastTrend ?? 'not-comparable',
         riskLevel: highestRisk(portrait.lastRisk.map((risk) => risk.severity)),
       };
@@ -143,7 +148,8 @@ export async function GET(
     const matrix: HeatmapData['matrix'] = [];
     for (const profile of classStudents) {
       const portrait = portraits.get(profile.userId)!;
-      if (portrait.stateKind !== 'SNAPSHOT' || !portrait.payload) continue;
+      const read = studentReads.get(profile.userId);
+      if (read?.status !== 'qualified' || portrait.stateKind !== 'SNAPSHOT' || !portrait.payload) continue;
       const riskLevel = highestRisk(portrait.lastRisk.map((risk) => risk.severity));
       for (const dimension of dimensions) {
         const value = portrait.payload.dimensions.find((item) => item.id === dimension);
@@ -164,7 +170,9 @@ export async function GET(
       scopeLabel: CUMULATIVE_ATTAINMENT_LABEL,
       availability: {
         state: classPortrait.stateKind,
-        reason: classPortrait.availabilityReason,
+        reason: teacherPort.classRead.status === 'stale'
+          ? (teacherPort.classRead.reason ?? 'stale')
+          : classPortrait.availabilityReason,
       },
       coverage: {
         rosterStudents: studentRows.length,

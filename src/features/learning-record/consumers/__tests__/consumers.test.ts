@@ -248,6 +248,24 @@ describe('learning-record consumers', () => {
     expect(resolved.limitations).toContain('projection-newer-learning-fact');
   });
 
+  it('marks class member reads stale and degrades the class projection status', async () => {
+    mocks.readCurrentCumulativeClassPortrait.mockResolvedValueOnce(classSnapshot());
+    const stale = await readTeacherClassEvidencePort({
+      db: {
+        learningFact: {
+          findFirst: vi.fn().mockResolvedValue({ startedAt: '2026-08-21T00:00:00.000Z' }),
+        },
+      },
+      viewer: { role: 'admin', subjectUserId: 'admin-1' },
+      classId: 'class-1',
+      memberUserIds: ['a', 'b', 'c', 'd', 'e'],
+    });
+    expect(stale.studentReads.get('a')?.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.classRead.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.classRead.reason).toBe('newer-learning-fact');
+    expect(stale.classRead.suppressed).toBe(false);
+  });
+
   it('suppresses teacher aggregates below the independent-learner threshold', async () => {
     mocks.readCurrentCumulativeClassPortrait.mockResolvedValueOnce(classSnapshot({
       activeStudentCount: 1,

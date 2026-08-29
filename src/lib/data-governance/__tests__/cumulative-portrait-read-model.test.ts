@@ -77,6 +77,7 @@ function fixture(overrides: {
   fence?: Record<string, unknown> | null;
   pendingReconciliation?: boolean;
   run?: Record<string, unknown> | null;
+  lastSequence?: bigint | null;
 } = {}) {
   const payload = nativePayload();
   const fence = overrides.fence === undefined
@@ -164,6 +165,11 @@ function fixture(overrides: {
         overrides.pendingReconciliation ? { userId: 'student-1' } : null,
       ),
     },
+    learnerFactTransitionSequence: {
+      findUnique: vi.fn().mockResolvedValue(
+        overrides.lastSequence == null ? null : { lastSequence: overrides.lastSequence },
+      ),
+    },
   } as unknown as CumulativePortraitReadDb;
   return { db, current, stateVersion };
 }
@@ -240,13 +246,23 @@ describe('readCurrentCumulativePortrait', () => {
       queueGeneration: '9',
       cutoverFence: '7',
       stateWatermark: '12',
-      processingWatermark: '9',
+      processingWatermark: '12',
       captureRevision: 'state-1',
       inputDigest: 'task-input-1',
     });
     expect(JSON.stringify(result)).not.toContain('fact-raw-id-must-not-leak');
     expect(JSON.stringify(result)).not.toContain('participation');
     expect(db.learnerPortraitCurrentState.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the persisted fact-journal sequence as processing watermark, not queue generation', async () => {
+    const { db } = fixture({ lastSequence: BigInt(15) });
+    const result = await readCurrentCumulativePortrait(db, 'student-1');
+    expect(result.publication).toMatchObject({
+      processingWatermark: '15',
+      stateWatermark: '12',
+      queueGeneration: '9',
+    });
   });
 
   it('fails closed when the current pointer generation differs from the active fence', async () => {

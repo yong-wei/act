@@ -103,6 +103,9 @@ export interface CumulativePortraitReadDb {
   learningMaterializationRebuildRequest?: {
     findFirst: (args: any) => PromiseLike<{ userId: string } | null>;
   };
+  learnerFactTransitionSequence?: {
+    findUnique: (args: any) => PromiseLike<{ lastSequence: bigint } | null>;
+  };
 }
 
 interface CurrentClassPortraitStateRow {
@@ -286,6 +289,12 @@ export async function readCurrentCumulativePortrait(
     return unavailable('current-state-version-mismatch');
   }
 
+  const processingRow = await db.learnerFactTransitionSequence?.findUnique({
+    where: { userId },
+    select: { lastSequence: true },
+  });
+  const publication = publicationFromCurrent(current, processingRow?.lastSequence);
+
   const state = current.stateVersion;
   const coverage = readCoverage(state.dimensionCoverage);
   const lastTrend = readTrend(state.lastTrend);
@@ -307,7 +316,7 @@ export async function readCurrentCumulativePortrait(
         ? 'no-evidence-after-revocation'
         : 'no-eligible-evidence',
       generatedAt,
-      publication: publicationFromCurrent(current, fence),
+      publication,
     };
   }
 
@@ -354,7 +363,7 @@ export async function readCurrentCumulativePortrait(
       lastRisk,
       availabilityReason: 'available',
       generatedAt,
-      publication: publicationFromCurrent(current, fence),
+      publication,
     };
   } catch {
     return unavailable('invalid-current-snapshot');
@@ -487,7 +496,7 @@ function matchesActiveClassFence(
 
 function publicationFromCurrent(
   current: CurrentPortraitStateRow,
-  fence: CutoverFenceRow,
+  processingSequence?: bigint | null,
 ): CumulativePortraitPublication {
   return {
     calculationVersion: current.calculationVersion,
@@ -495,7 +504,7 @@ function publicationFromCurrent(
     queueGeneration: String(current.queueGeneration),
     cutoverFence: String(current.cutoverFence),
     stateWatermark: String(current.stateWatermark),
-    processingWatermark: String(fence.queueGeneration),
+    processingWatermark: String(processingSequence ?? current.stateWatermark),
     captureRevision: current.stateVersion.id,
     inputDigest: current.taskInputDigest || current.stateVersion.taskInputDigest || null,
   };

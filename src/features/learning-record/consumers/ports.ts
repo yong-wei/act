@@ -46,6 +46,15 @@ async function readLatestGovernedFactAt(db: unknown, userId: string): Promise<st
   return startedAt instanceof Date ? startedAt.toISOString() : String(startedAt);
 }
 
+function isProcessingAheadOfState(publication: CumulativePortraitReadModel['publication']): boolean {
+  if (!publication) return false;
+  try {
+    return BigInt(publication.processingWatermark) > BigInt(publication.stateWatermark);
+  } catch {
+    return false;
+  }
+}
+
 function coverageOf(portrait: CumulativePortraitReadModel): number {
   const evidenced = portrait.dimensionCoverage.evidencedDimensionIds.length;
   const missing = portrait.dimensionCoverage.missingDimensionIds.length;
@@ -158,7 +167,10 @@ export async function readAuthorizedCumulativePortrait(input: {
   const latestFactAt = await readLatestGovernedFactAt(input.db, input.targetUserId);
   if (
     mapped.status === PROJECTION_STATUS.qualified
-    && isNewerGovernedFact(portrait.evidenceAsOf, latestFactAt)
+    && (
+      isNewerGovernedFact(portrait.evidenceAsOf, latestFactAt)
+      || isProcessingAheadOfState(portrait.publication)
+    )
   ) {
     read = markStale(read, 'newer-learning-fact');
   }
@@ -211,18 +223,14 @@ export async function readTeacherClassEvidencePort(input: {
   const consumer = input.consumer ?? 'reviewer';
   const classPortrait = await readCurrentCumulativeClassPortrait(input.db, input.classId);
   const learnerEntries = await Promise.all(input.memberUserIds.map(async (userId) => {
-    const portrait = await readCurrentCumulativePortrait(input.db, userId, consumer);
-    const mapped = mapPortraitStatus(portrait);
-    const envelope = envelopeFromPortrait(userId, portrait, mapped.status);
-    const read = envelope
-      ? studentFieldsFromEnvelope(envelope, mapped.status, mapped.reason)
-      : fieldsWithoutEnvelope(
-        mapped.status === PROJECTION_STATUS.qualified
-          ? PROJECTION_STATUS.unavailable
-          : mapped.status,
-        mapped.reason,
-      );
-    return [userId, portrait, read] as const;
+    const student = await readAuthorizedCumulativePortrait({
+      db: input.db,
+      viewer: input.viewer,
+      targetUserId: userId,
+      classId: input.classId,
+      consumer,
+    });
+    return [userId, student.portrait, student.read] as const;
   }));
   const learnerPortraits = new Map(learnerEntries.map(([userId, portrait]) => [userId, portrait]));
   const studentReads = new Map(learnerEntries.map(([userId, , read]) => [userId, read]));
@@ -230,22 +238,33 @@ export async function readTeacherClassEvidencePort(input: {
     { length: classPortrait.activeStudentCount },
     (_, index) => `independent-learner:${index}`,
   );
-  const classRead = projectTeacherClassRead({
+  const memberStale = Array.from(studentReads.values()).some(
+    (read) => read.status === PROJECTION_STATUS.stale,
+  );
+  const classStatus = classPortrait.availabilityReason === 'current-state-version-mismatch'
+    ? PROJECTION_STATUS.conflict
+    : classPortrait.stateKind === 'SNAPSHOT'
+      ? (memberStale ? PROJECTION_STATUS.stale : PROJECTION_STATUS.qualified)
+      : classPortrait.availabilityReason === 'reconciliation-pending'
+        || classPortrait.availabilityReason === 'migration-in-progress'
+        ? PROJECTION_STATUS.stale
+        : PROJECTION_STATUS.unavailable;
+  const projected = projectTeacherClassRead({
     independentLearnerIds,
     averageScore: classPortrait.aggregate?.overall.mean ?? null,
     trend: null,
     coverage: classPortrait.totalStudentCount === 0
       ? 0
       : classPortrait.activeStudentCount / classPortrait.totalStudentCount,
-    status: classPortrait.availabilityReason === 'current-state-version-mismatch'
-      ? PROJECTION_STATUS.conflict
-      : classPortrait.stateKind === 'SNAPSHOT'
-        ? PROJECTION_STATUS.qualified
-        : classPortrait.availabilityReason === 'reconciliation-pending'
-          || classPortrait.availabilityReason === 'migration-in-progress'
-          ? PROJECTION_STATUS.stale
-          : PROJECTION_STATUS.unavailable,
+    status: classStatus,
   });
+  const classRead = memberStale
+    ? {
+      ...projected,
+      status: PROJECTION_STATUS.stale,
+      reason: projected.reason ?? 'newer-learning-fact',
+    }
+    : projected;
   const exportFields = {
     status: classRead.status,
     independentLearnerCount: classRead.independentLearnerCount,
