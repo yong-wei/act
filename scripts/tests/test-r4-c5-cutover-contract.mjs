@@ -132,6 +132,14 @@ assert.match(deploy, /authority-current\.json/, 'local wrapper must derive and v
 assert.doesNotMatch(deploy, /snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a/, 'local wrapper must not retain the superseded c4 snapshot');
 assert.doesNotMatch(deploy, /scripts\/build\.sh|docker buildx/, 'outer cutover wrapper must not build on the production path');
 assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
+assert.ok(
+  remote.includes('composed domain-fragment manifest does not bind the successor Authority'),
+  'production preflight must reject a composed domain-fragment manifest that binds a different Authority than the successor',
+);
+assert.ok(
+  remote.includes('Runtime manifest extension does not bind the composed domain-fragment identities'),
+  'production preflight must require the Runtime extension to bind the composed domain-fragment identities',
+);
 assert.doesNotMatch(activationTransaction, /coordinated-graph-receipt/, 'activation wrapper must not retain the cyclic final-receipt argument');
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-r4-c5-builder-'));
@@ -224,6 +232,9 @@ try {
   const input = JSON.parse(fs.readFileSync(path.join(out, 'prepare-input.json'), 'utf8'));
   assert.equal(input.allocation.allocationHash, allocation.allocationHash, 'Runtime staging must consume the presealed allocation');
   assert.equal(input.inner.formalResourceEnvelopeHash, envelope.envelopeHash, 'Runtime staging must consume the presealed formal envelope');
+  assert.match(input.inner.composedDomainFragmentManifestHash, /^[a-f0-9]{64}$/, 'candidate must bind the composed domain-fragment manifest');
+  assert.match(input.inner.domainFragmentSetHash, /^[a-f0-9]{64}$/, 'candidate must bind the immutable domain-fragment set');
+  assert.notEqual(input.inner.composedDomainFragmentManifestHash, input.inner.domainFragmentSetHash, 'composed-manifest identity must not be collapsed into the fragment-set digest');
   assert.deepEqual(
     JSON.parse(fs.readFileSync(path.join(out, 'lifecycle-predecessor.json'), 'utf8')),
     stagedLifecycle,

@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-26
+> Last updated: 2026-08-29
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## 🚀 Next phase
 
-**Coordinated v0.37-r4 cutover (2026-08-26):** 已捕获 `r4` 并完成一次性历史基线闭合：7,476 个 Authority 对象、22,428 条教学处置、1,058 条正式资源信封与 2,296 条连续性义务均保留可复验输入；零项未闭合正式教学义务。基线以正式教学、显式不适用、运行时支持和仅目录四类义务分别处理，不将支持性资源伪造成 Canonical 绑定，也不建立逐条人工审核队列。r4 语义缓存已确认 10,523 条输入可复用、零条需因图谱语义重算；运行时选择器候选与 v0.22 前任证据已在本地静态树中封存。c5 已实现为两阶段增量闭合：先以生产前任封存 allocation/formal envelope 并发布不可选择 Runtime，后重捕获同一 active Runtime 的生命周期栅栏、生成并资格验证 candidate；Authority 通过宿主指针 journaled mutation，另外五个静态选择器随 Runtime blob view 同步。Runtime 先受 journaled pre-activation authorization 约束，最终 active receipt 只在 Runtime re-read 后写入；恢复不得覆盖未知状态。浏览器验收以 Authority 根目录声明的领域数校验完整根入口，而不再把 v0.22 的 8 个领域硬编码为 r4 的发布条件。生产当前仍为 v0.22；Authority current、Runtime lifecycle、DB 与服务均未改动。已完成本地三角色受管 QA fixture 与脚本化边界验证，但独立视觉验收仍为 pending，且本地 active 视图呈现 104 objects / 0 relations，不能作为 r4 可部署性证据。下一步是先查明该本地 active authority 投影状态，再将实现合入 `integration`，部署应用控制面，运行 c5 的 pre-stage / materialize / candidate / stopped-service transaction。不得用本地旧 v0.9 指针、标签匹配或人工“批量审核”代替该链路。
+**Coordinated v0.37-r4 cutover (2026-08-29):** #1509 已把 composed domain-fragment manifest 与 immutable fragment set 写入候选回执、Runtime 扩展、资格重开和生产预检。本地 r4-c5 契约与 63 项 cutover 单测通过。作者态 composed-manifest 仍绑 v0.9；生产预检会拒绝该混身份，因此 10.5–10.7 仍需独立部署/激活授权，以及一份绑定后继 Authority 的 v0.37 composed-manifest。生产仍为 v0.22。不要用 v0.9 指针或文件字节哈希冒充 fragment 身份。#1683 在 #1509 关闭且有真实最终 active receipt 之前不得认领。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 

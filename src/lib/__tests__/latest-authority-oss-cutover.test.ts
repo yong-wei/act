@@ -1079,6 +1079,8 @@ describe('complete Teaching Projection governance', () => {
       authoritySnapshotHash: HASH_C,
       allocationHash: HASH_A,
       formalResourceEnvelopeHash: HASH_B,
+      composedDomainFragmentManifestHash: HASH_A,
+      domainFragmentSetHash: HASH_D,
     };
     const complete = {
       publicationState: 'COMPLETE',
@@ -1094,6 +1096,14 @@ describe('complete Teaching Projection governance', () => {
       { ...complete, scopeHash: 'e'.repeat(64) },
       expected,
     )).toThrow(/different scope/);
+    expect(() => assertProjectionEligibleForCoordinatedSelection(
+      { ...complete, composedDomainFragmentManifestHash: 'e'.repeat(64) },
+      expected,
+    )).toThrow(/composed domain-fragment manifest/);
+    expect(() => assertProjectionEligibleForCoordinatedSelection(
+      { ...complete, domainFragmentSetHash: 'e'.repeat(64) },
+      expected,
+    )).toThrow(/domain-fragment set/);
   });
 });
 

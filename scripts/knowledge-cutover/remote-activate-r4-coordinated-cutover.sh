@@ -117,16 +117,17 @@ candidate_path, successor_path, stage_path, observed_path, predecessor_lifecycle
 sha = lambda value: hashlib.sha256(value).hexdigest()
 canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
 candidate = json.load(open(candidate_path, encoding='utf-8'))
-keys = ['allocationHash','authorityCaptureHash','builderVersion','candidateId','consumerActivationHash','continuityReceiptHash','contract','derivationReceiptHash','domainShardCatalogHash','domainShardSetHash','formalResourceEnvelopeHash','localeQualificationHash','predecessor','predecessorRuntimeLifecycleGeneration','prerequisitePublicationHash','receiptHash','rollbackPlanHash','sealedAt','selectable','successorRuntimeManifestHash','successorRuntimeMaterializationHash','successorSelectorExpectations','teachingClosureReceiptHash','teachingProjectionHash','transactionImplementationIdentity','verificationPolicyHash']
+keys = ['allocationHash','authorityCaptureHash','builderVersion','candidateId','composedDomainFragmentManifestHash','consumerActivationHash','continuityReceiptHash','contract','derivationReceiptHash','domainFragmentSetHash','domainShardCatalogHash','domainShardSetHash','formalResourceEnvelopeHash','localeQualificationHash','predecessor','predecessorRuntimeLifecycleGeneration','prerequisitePublicationHash','receiptHash','rollbackPlanHash','sealedAt','selectable','successorRuntimeManifestHash','successorRuntimeMaterializationHash','successorSelectorExpectations','teachingClosureReceiptHash','teachingProjectionHash','transactionImplementationIdentity','verificationPolicyHash']
 if sorted(candidate) != keys or candidate['contract'] != 'coordinated-candidate-receipt/v1' or candidate['builderVersion'] != 'latest-authority-oss-cutover-builder/v1' or candidate['selectable'] is not False:
   raise SystemExit('invalid non-selectable coordinated candidate')
-hash_keys = ['candidateId','sealedAt','allocationHash','authorityCaptureHash','localeQualificationHash','teachingProjectionHash','teachingClosureReceiptHash','formalResourceEnvelopeHash','continuityReceiptHash','derivationReceiptHash','successorRuntimeManifestHash','successorRuntimeMaterializationHash','domainShardCatalogHash','domainShardSetHash','prerequisitePublicationHash','consumerActivationHash','predecessor','predecessorRuntimeLifecycleGeneration','successorSelectorExpectations','transactionImplementationIdentity','rollbackPlanHash','verificationPolicyHash']
+hash_keys = ['candidateId','sealedAt','allocationHash','authorityCaptureHash','localeQualificationHash','teachingProjectionHash','teachingClosureReceiptHash','composedDomainFragmentManifestHash','domainFragmentSetHash','formalResourceEnvelopeHash','continuityReceiptHash','derivationReceiptHash','successorRuntimeManifestHash','successorRuntimeMaterializationHash','domainShardCatalogHash','domainShardSetHash','prerequisitePublicationHash','consumerActivationHash','predecessor','predecessorRuntimeLifecycleGeneration','successorSelectorExpectations','transactionImplementationIdentity','rollbackPlanHash','verificationPolicyHash']
 if sha(canonical({key: candidate[key] for key in hash_keys})) != candidate['receiptHash']:
   raise SystemExit('candidate receipt hash is invalid')
 artifacts=json.load(open(artifacts_path, encoding='utf-8'))
 expected_artifacts={
   'authority-capture':candidate['authorityCaptureHash'], 'locale-qualification':candidate['localeQualificationHash'],
   'teaching-projection':candidate['teachingProjectionHash'], 'teaching-closure-receipt':candidate['teachingClosureReceiptHash'],
+  'composed-domain-fragment-manifest':candidate['composedDomainFragmentManifestHash'], 'domain-fragment-set':candidate['domainFragmentSetHash'],
   'formal-resource-envelope':candidate['formalResourceEnvelopeHash'], 'continuity-receipt':candidate['continuityReceiptHash'],
   'derivation-receipt':candidate['derivationReceiptHash'], 'successor-runtime-manifest':candidate['successorRuntimeManifestHash'],
   'successor-runtime-materialization':candidate['successorRuntimeMaterializationHash'], 'authority-domain-shard-catalog':candidate['domainShardCatalogHash'],
@@ -217,6 +218,8 @@ if candidate.get('predecessorRuntimeLifecycleGeneration') != runtime.get('lifecy
   raise SystemExit('candidate Runtime predecessor lifecycle generation drifted')
 if extension.get('predecessorRuntimeReleaseId') != runtime.get('releaseId') or extension.get('predecessorRuntimeManifestSha256') != runtime.get('manifestSha256') or extension.get('predecessorLifecycleGeneration') != runtime.get('lifecycleGeneration'):
   raise SystemExit('Runtime manifest extension predecessor differs from the observed Runtime')
+if extension.get('composedDomainFragmentManifestHash') != candidate.get('composedDomainFragmentManifestHash') or extension.get('domainFragmentSetHash') != candidate.get('domainFragmentSetHash'):
+  raise SystemExit('Runtime manifest extension does not bind the composed domain-fragment identities')
 after = open(successor_path, 'rb').read()
 if candidate['successorSelectorExpectations'] != [{'selectorId':'authority:current','expectedSuccessorIdentity':sha(after)}]:
   raise SystemExit('Authority successor does not match candidate')
@@ -239,6 +242,17 @@ if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHas
 if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshotHash'):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
 binding_authority=projection_scope_binding.get('authority')
+composed_path=os.path.join(os.path.dirname(candidate_path), 'composed-domain-fragment-manifest.json')
+if not os.path.isfile(composed_path):
+  raise SystemExit('composed domain-fragment manifest is not present in the candidate')
+composed=json.load(open(composed_path, encoding='utf-8'))
+if composed.get('projectionHash') != candidate.get('composedDomainFragmentManifestHash'):
+  raise SystemExit('composed domain-fragment manifest identity differs from candidate')
+if (composed.get('sourceHashes') or {}).get('fragments') != candidate.get('domainFragmentSetHash'):
+  raise SystemExit('domain-fragment set identity differs from candidate')
+composed_authority=composed.get('authorityBinding')
+if not isinstance(composed_authority,dict) or any(composed_authority.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
+  raise SystemExit('composed domain-fragment manifest does not bind the successor Authority')
 if not isinstance(binding_authority,dict) or any(binding_authority.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
 declaration = {'contract':'runtime-blob-coordinated-cutover.v1', **runtime_stage, 'candidateReceiptHash':candidate['receiptHash']}

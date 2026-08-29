@@ -195,6 +195,10 @@ async function main(): Promise<void> {
     lifecycleGeneration: 1,
   };
   const fragmentFiles = readdirSync(absolute(`${REMEDIATION_ROOT}/teaching-projection/fragments`)).filter((name) => name.endsWith('.json')).sort();
+  const composedDomainFragments = readJson<{
+    readonly projectionHash: string;
+    readonly sourceHashes: { readonly fragments: string };
+  }>('course-content/authoring/knowledge/teaching-projection/domain-fragments/composed-manifest.json');
   const prepareInput = {
     activeRelease,
     // The v0.9 predecessor carries the authority knowledge snapshot only;
@@ -219,6 +223,7 @@ async function main(): Promise<void> {
         treeSha256: sha256File(`${R3_BUNDLE}/SHA256SUMS`),
       },
       successorRuntimeMaterializationHash: sha256File(`${OUT_DIR}/successor-runtime-materialization.json`),
+      composedDomainFragmentManifestHash: composedDomainFragments.projectionHash,
       domainShardCatalogHash: projectionDigest({ files: fragmentFiles }),
     },
     predecessor: PRODUCTION_POINTERS.map((pointer) => ({ selectorId: pointer, identity: PREDECESSOR_RELEASE_ID })),
@@ -263,6 +268,7 @@ async function main(): Promise<void> {
     { artifactId: 'successor-runtime-manifest', artifactHash: runtimeExtensionHash },
     { artifactId: 'successor-runtime-materialization', artifactHash: sha256File(`${OUT_DIR}/successor-runtime-materialization.json`) },
     { artifactId: 'authority-domain-shard-catalog', artifactHash: projectionDigest({ files: fragmentFiles }) },
+    { artifactId: 'composed-domain-fragment-manifest', artifactHash: composedDomainFragments.projectionHash },
   ];
   writeDeterministicJson(`${OUT_DIR}/outer-artifacts.json`, outerArtifacts);
   await runCli([

@@ -28,6 +28,7 @@ const ROOT = process.cwd();
 const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
 const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
 const DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST = 'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae/manifest.json';
+const COMPOSED_DOMAIN_FRAGMENT_MANIFEST = 'course-content/authoring/knowledge/teaching-projection/domain-fragments/composed-manifest.json';
 
 type RuntimeLifecycleIdentity = {
   readonly schemaVersion: 'runtime-blob-release-identity.v1';
@@ -295,6 +296,12 @@ function main(): void {
     presentationLabels.qualificationHash]) {
     requireDigest(value, 'frozen r4 identity');
   }
+  const composedDomainFragments = readJson<{
+    projectionHash: string;
+    sourceHashes: { fragments: string };
+  }>(COMPOSED_DOMAIN_FRAGMENT_MANIFEST);
+  requireDigest(composedDomainFragments.projectionHash, 'composed domain-fragment manifest');
+  requireDigest(composedDomainFragments.sourceHashes.fragments, 'domain-fragment set');
   if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
     fail('r4 presentation-label qualification requires review or did not pass');
   }
@@ -561,6 +568,8 @@ function main(): void {
     inner: {
       localeQualificationHash: sha256File('course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/locale-manifest.json'),
       teachingProjectionHash: selectors.selectors.projection.projectionHash,
+      composedDomainFragmentManifestHash: composedDomainFragments.projectionHash,
+      domainFragmentSetHash: composedDomainFragments.sourceHashes.fragments,
       formalResourceEnvelopeHash: persistedFormalEnvelope.envelopeHash,
       derivationReceiptHash: persistedDerivation.receiptHash,
       successorRuntimeManifest: runtimeStage.runtimeRelease,
@@ -579,6 +588,7 @@ function main(): void {
     allocation,
   };
   immutableWrite(path.join(out, 'prepare-input.json'), input);
+  immutableWrite(path.join(out, 'composed-domain-fragment-manifest.json'), composedDomainFragments);
   immutableWrite(path.join(out, 'predecessor-observation.json'), predecessor);
   immutableWrite(path.join(out, 'lifecycle-predecessor.json'), predecessor.lifecycle);
   immutableWrite(path.join(out, 'runtime-stage.json'), runtimeStage);
