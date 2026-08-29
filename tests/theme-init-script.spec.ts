@@ -6,6 +6,8 @@ const themeScenarios = [
   { name: 'system fallback', storedTheme: null, systemTheme: 'light', expectedTheme: 'light' },
 ] as const;
 
+const routes = ['/', '/login'] as const;
+
 const viewports = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'mobile', width: 320, height: 800 },
@@ -57,50 +59,54 @@ async function assertFirstFrameTheme(page: Page, expectedTheme: 'light' | 'dark'
 }
 
 for (const viewport of viewports) {
-  for (const scenario of themeScenarios) {
-    test(`${viewport.name}: ${scenario.name} initializes before hydration without a theme regression`, async ({ page }) => {
-      const relevantConsoleErrors: string[] = [];
+  for (const route of routes) {
+    for (const scenario of themeScenarios) {
+      test(`${viewport.name} ${route}: ${scenario.name} initializes before hydration without a theme regression`, async ({ page }) => {
+        const relevantConsoleErrors: string[] = [];
 
-      await page.setViewportSize(viewport);
-      await primeTheme(page, scenario.storedTheme, scenario.systemTheme);
-      page.on('console', (message) => {
-        if (message.type() === 'error' && themeConsoleError.test(message.text())) {
-          relevantConsoleErrors.push(message.text());
+        await page.setViewportSize(viewport);
+        await primeTheme(page, scenario.storedTheme, scenario.systemTheme);
+        page.on('console', (message) => {
+          if (message.type() === 'error' && themeConsoleError.test(message.text())) {
+            relevantConsoleErrors.push(message.text());
+          }
+        });
+        page.on('pageerror', (error) => {
+          if (themeConsoleError.test(error.message)) {
+            relevantConsoleErrors.push(error.message);
+          }
+        });
+
+        await page.goto(route, { waitUntil: 'domcontentloaded' });
+        await assertFirstFrameTheme(page, scenario.expectedTheme);
+
+        await page.waitForLoadState('networkidle');
+        await page.waitForFunction((theme) => {
+          const root = document.documentElement;
+          return root.classList.contains(theme)
+            && !root.classList.contains(theme === 'light' ? 'dark' : 'light')
+            && root.style.colorScheme === theme;
+        }, scenario.expectedTheme);
+        const hydratedState = await page.evaluate(() => ({
+          className: document.documentElement.className,
+          colorScheme: document.documentElement.style.colorScheme,
+          clientWidth: document.documentElement.clientWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          stored: localStorage.getItem('ai-obe-theme'),
+        }));
+
+        expect(hydratedState.className.split(' ')).toContain(scenario.expectedTheme);
+        expect(hydratedState.className.split(' ').filter((name) => name === 'light' || name === 'dark')).toEqual([
+          scenario.expectedTheme,
+        ]);
+        expect(hydratedState.colorScheme).toBe(scenario.expectedTheme);
+        expect(hydratedState.scrollWidth).toBeLessThanOrEqual(hydratedState.clientWidth);
+        expect(relevantConsoleErrors).toEqual([]);
+        if (scenario.storedTheme) {
+          expect(hydratedState.stored).toBe(scenario.storedTheme);
         }
       });
-      page.on('pageerror', (error) => {
-        if (themeConsoleError.test(error.message)) {
-          relevantConsoleErrors.push(error.message);
-        }
-      });
-
-      await page.goto('/', { waitUntil: 'domcontentloaded' });
-      await assertFirstFrameTheme(page, scenario.expectedTheme);
-
-      await page.waitForLoadState('networkidle');
-      await page.waitForFunction((theme) => {
-        const root = document.documentElement;
-        return root.classList.contains(theme) && root.style.colorScheme === theme;
-      }, scenario.expectedTheme);
-      const hydratedState = await page.evaluate(() => ({
-        className: document.documentElement.className,
-        colorScheme: document.documentElement.style.colorScheme,
-        clientWidth: document.documentElement.clientWidth,
-        scrollWidth: document.documentElement.scrollWidth,
-        stored: localStorage.getItem('ai-obe-theme'),
-      }));
-
-      expect(hydratedState.className.split(' ')).toContain(scenario.expectedTheme);
-      expect(hydratedState.className.split(' ').filter((name) => name === 'light' || name === 'dark')).toEqual([
-        scenario.expectedTheme,
-      ]);
-      expect(hydratedState.colorScheme).toBe(scenario.expectedTheme);
-      expect(hydratedState.scrollWidth).toBeLessThanOrEqual(hydratedState.clientWidth);
-      expect(relevantConsoleErrors).toEqual([]);
-      if (scenario.storedTheme) {
-        expect(hydratedState.stored).toBe(scenario.storedTheme);
-      }
-    });
+    }
   }
 }
 

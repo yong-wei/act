@@ -24,6 +24,7 @@ assert.equal(resolveInitialTheme(null, true), 'dark');
 assert.equal(resolveInitialTheme(null, false), 'light');
 assert.equal(resolveInitialTheme('system', false), 'light');
 assert.equal(resolveInitialTheme(undefined, true), 'dark');
+assert.equal(resolveInitialTheme(null, undefined), 'dark');
 
 const layoutSource = readFileSync(path.resolve('src/app/layout.tsx'), 'utf8');
 assert.ok(
@@ -45,9 +46,11 @@ assert.equal(script.includes('eval('), false);
 function runThemeInit({
   storedTheme,
   systemPrefersDark,
+  matchMedia = true,
 }: {
   storedTheme: string | null;
-  systemPrefersDark: boolean;
+  systemPrefersDark?: boolean;
+  matchMedia?: boolean;
 }) {
   const classList = new Set<string>();
   const root = {
@@ -61,15 +64,19 @@ function runThemeInit({
     },
     style: { colorScheme: '' },
   };
+  const windowHost: {
+    matchMedia?: (query: string) => { matches: boolean };
+  } = {};
+  if (matchMedia) {
+    windowHost.matchMedia = (query: string) => ({
+      matches: query.includes('prefers-color-scheme: dark') ? Boolean(systemPrefersDark) : !systemPrefersDark,
+    });
+  }
   const sandbox = {
     document: {
       documentElement: root,
     },
-    window: {
-      matchMedia: (query: string) => ({
-        matches: query.includes('prefers-color-scheme: dark') ? systemPrefersDark : !systemPrefersDark,
-      }),
-    },
+    window: windowHost,
     localStorage: {
       getItem: () => storedTheme,
     },
@@ -96,6 +103,14 @@ assert.deepEqual(runThemeInit({ storedTheme: null, systemPrefersDark: false }), 
 assert.deepEqual(runThemeInit({ storedTheme: 'system', systemPrefersDark: true }), {
   classes: ['dark'],
   colorScheme: 'dark',
+});
+assert.deepEqual(runThemeInit({ storedTheme: null, matchMedia: false }), {
+  classes: ['dark'],
+  colorScheme: 'dark',
+});
+assert.deepEqual(runThemeInit({ storedTheme: 'light', matchMedia: false }), {
+  classes: ['light'],
+  colorScheme: 'light',
 });
 
 console.log('theme toggle test passed');

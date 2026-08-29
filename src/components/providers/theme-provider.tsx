@@ -22,7 +22,10 @@ function applyTheme(theme: ThemeMode) {
 
 function readResolvedTheme(defaultTheme: ThemeMode): ThemeMode {
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const systemPrefersDark =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : undefined;
   return resolveInitialTheme(storedTheme, systemPrefersDark, defaultTheme);
 }
 

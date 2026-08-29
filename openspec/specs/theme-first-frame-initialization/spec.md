@@ -27,6 +27,12 @@ The application SHALL resolve the document theme before the first paint of a new
 - **THEN** the first painted frame SHALL use that system preference
 - **AND** the document root SHALL have exactly one matching theme class and matching `color-scheme`
 
+#### Scenario: Missing matchMedia falls back to the default theme
+
+- **WHEN** theme storage is empty and `window.matchMedia` is unavailable
+- **THEN** the first painted frame SHALL use the existing default theme
+- **AND** the document SHALL NOT apply light merely because `matchMedia` is missing
+
 #### Scenario: Script failure falls back to the default theme
 
 - **WHEN** pre-hydration theme initialization cannot read storage or system preference
