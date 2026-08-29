@@ -569,6 +569,71 @@ describe('control-correction course adapter ingestion', () => {
     );
   });
 
+  it('passes allowlisted numeric adapter fields through ingest mapping', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          normalizedValue: 0.75,
+          confidence: 0.8,
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(result.adapter?.status).toBe('mapped');
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          adapter: expect.objectContaining({
+            normalizedValue: 0.75,
+            confidence: 0.8,
+            quality: 'high',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('passes numeric normalizedResult through ingest mapping when normalizedValue is absent', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'outbox-apply',
+      event: event({
+        payload: {
+          stepId: 'step-01',
+          goalId: 'control-correction',
+          canonicalLessonId: 'unit-3-6-zero-design-workshop',
+          normalizedResult: 0.42,
+          confidence: 0.5,
+        },
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.applied);
+    expect(persist.persistCoreLearningFact).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          adapter: expect.objectContaining({
+            normalizedValue: 0.42,
+            confidence: 0.5,
+            quality: 'medium',
+          }),
+        }),
+      }),
+    );
+  });
+
   it('fails closed when an explicit goal is present without canonical identity', async () => {
     persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
     const result = await ingestLearningFact({

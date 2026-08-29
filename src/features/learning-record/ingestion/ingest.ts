@@ -39,6 +39,18 @@ function readPayloadString(
   return null;
 }
 
+function readPayloadNumber(
+  payload: Record<string, unknown> | undefined,
+  envelopePayload: Record<string, unknown> | undefined,
+  key: string,
+): number | null {
+  const fromEnvelope = envelopePayload?.[key];
+  const fromPayload = payload?.[key];
+  if (typeof fromEnvelope === 'number' && Number.isFinite(fromEnvelope)) return fromEnvelope;
+  if (typeof fromPayload === 'number' && Number.isFinite(fromPayload)) return fromPayload;
+  return null;
+}
+
 function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
   const payload = (input.event.payload ?? {}) as Record<string, unknown>;
   const envelopePayload = input.envelope?.payload as Record<string, unknown> | undefined;
@@ -58,6 +70,9 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
     arenaReference: arenaTaskId ? { taskId: arenaTaskId } : null,
     sourceEventId: input.event.eventId,
     sourceLogId: readPayloadString(payload, envelopePayload, 'sourceLogId') ?? undefined,
+    normalizedValue: readPayloadNumber(payload, envelopePayload, 'normalizedValue')
+      ?? readPayloadNumber(payload, envelopePayload, 'normalizedResult'),
+    confidence: readPayloadNumber(payload, envelopePayload, 'confidence'),
     trustedOccurredAt: anchorsTrustedOccurredAt(input),
     receivedAt: (input.now ?? new Date()).toISOString(),
     subjectRef: opaqueSubjectRef(input.actorUserId),
@@ -67,6 +82,7 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
     }),
     materialization: input.transport === 'outbox-apply' ? 'outbox' : 'direct',
     rebaseReceipt: input.rebaseReceipt,
+    captureRebaseReceipt: input.captureRebaseReceipt,
     extra: payload,
   };
 }
@@ -227,6 +243,11 @@ async function ingestInCurrentHandle(
         input.rebaseReceipt
         && input.rebaseReceipt.sourceRevision === input.envelope.anchors.captureRevision
         && input.rebaseReceipt.targetRevision === input.captureRevision
+      )
+      && !(
+        input.captureRebaseReceipt
+        && input.captureRebaseReceipt.sourceRevision === input.envelope.anchors.captureRevision
+        && input.captureRebaseReceipt.targetRevision === input.captureRevision
       )
     ) {
       return failed(input, 'cross-revision', { anchors, times });

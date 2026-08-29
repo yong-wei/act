@@ -13,6 +13,7 @@ const ALLOWED_PAYLOAD_KEYS = new Set([
   'lessonKey',
   'attemptKey',
   'normalizedResult',
+  'normalizedValue',
   'confidence',
   'durationMs',
   'priority',

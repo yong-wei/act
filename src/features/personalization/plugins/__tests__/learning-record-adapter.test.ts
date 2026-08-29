@@ -293,6 +293,29 @@ describe('control-correction Learning Record adapter', () => {
         authorizedBy: 'operator-1',
       },
     })).status).toBe('mapped');
+    expect(adapter.map(baseInput({
+      releaseRevision: 'course-release-old',
+      expectedCaptureRevision: 'capture-0',
+      rebaseReceipt: {
+        sourceRevision: 'course-release-old',
+        targetRevision: CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+        authorizedBy: 'operator-1',
+      },
+    }))).toMatchObject({ status: 'rejected', reason: 'stale-capture' });
+    expect(adapter.map(baseInput({
+      releaseRevision: 'course-release-old',
+      expectedCaptureRevision: 'capture-0',
+      rebaseReceipt: {
+        sourceRevision: 'course-release-old',
+        targetRevision: CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+        authorizedBy: 'operator-1',
+      },
+      captureRebaseReceipt: {
+        sourceRevision: 'capture-0',
+        targetRevision: 'capture-1',
+        authorizedBy: 'operator-1',
+      },
+    })).status).toBe('mapped');
   });
 
   it('enforces retention caps, terminal deletion and unreadability of isolated raw artifacts', () => {

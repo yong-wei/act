@@ -18,6 +18,7 @@ import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
 import { shouldMaterializeLearningFact } from '@/lib/data-governance/learning-fact-materialization';
 import { currentCaptureRevision, ingestLearningFact } from '@/features/learning-record/ingestion/public-api';
+import { INGESTION_STATUS } from '@/features/learning-record/ingestion/types';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
@@ -1046,6 +1047,7 @@ export async function POST(request: NextRequest) {
     }> = [];
     const sessionsNeedingReportRefresh = new Set<string>();
     const learningRecordStore = createMemoryAcceptanceStore();
+    let ingestDegraded = 0;
 
     for (const eventData of [...sourceLinkedEvents, ...acceptedSubmissionMaterializationEvents]) {
       const payload =
@@ -1124,10 +1126,16 @@ export async function POST(request: NextRequest) {
           captureRevision: currentCaptureRevision(),
           classId: learningEvent.classId,
         });
+        const ingestFailed = ingestResult.status === INGESTION_STATUS.terminalFailed
+          || ingestResult.status === INGESTION_STATUS.retryableFailed;
+        if (ingestFailed) ingestDegraded += 1;
         routingResults.push({
           eventType: learningEvent.actionType,
-          destination: 'postgresql',
-          factsCreated: ingestResult.factsCreated,
+          destination: ingestFailed ? 'dropped' : 'postgresql',
+          reason: ingestFailed
+            ? (ingestResult.failure?.code ?? ingestResult.adapter?.reason ?? ingestResult.status)
+            : undefined,
+          factsCreated: ingestFailed ? 0 : ingestResult.factsCreated,
           factActionType: canonicalEventType,
         });
       } else {
@@ -1163,7 +1171,7 @@ export async function POST(request: NextRequest) {
       success: true,
       count: dedupedLegacyEvents.length + submissionOutcome.acceptedCount
         + submissionOutcome.postSessionReviewCount + submissionOutcome.duplicateCount,
-      degraded: degradedEvents.length + degradedSubmissionEvents,
+      degraded: degradedEvents.length + degradedSubmissionEvents + ingestDegraded,
       duplicates: duplicateEvents + submissionOutcome.duplicateCount,
       submissionDuplicates: submissionOutcome.duplicateCount,
       postSessionReviewSubmissions: submissionOutcome.postSessionReviewCount,

@@ -24,5 +24,7 @@ export function toPersistedAdapterEnvelope(mapping: NormalizedCourseEvidenceMapp
     officialAuthority: mapping.officialAuthority,
     quality: mapping.quality,
     coverage: mapping.coverage,
+    normalizedValue: mapping.normalizedValue,
+    confidence: mapping.confidence,
   };
 }

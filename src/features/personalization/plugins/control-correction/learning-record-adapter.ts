@@ -73,7 +73,7 @@ function inspectPayload(input: CourseAdapterMapInput): string[] {
 }
 
 function isAuthorizedRebase(
-  receipt: CourseAdapterMapInput['rebaseReceipt'],
+  receipt: CourseAdapterMapInput['rebaseReceipt'] | CourseAdapterMapInput['captureRebaseReceipt'],
   sourceRevision: string,
   targetRevision: string,
 ): boolean {
@@ -83,6 +83,30 @@ function isAuthorizedRebase(
     && receipt.targetRevision === targetRevision
     && readString(receipt.authorizedBy)
   );
+}
+
+function isUnauthorizedRebaseReceipt(
+  receipt: CourseAdapterMapInput['rebaseReceipt'] | CourseAdapterMapInput['captureRebaseReceipt'],
+  releaseRevision: string,
+  expectedCapture: string | null,
+  captureRevision: string,
+): boolean {
+  if (!receipt) return false;
+  if (!readString(receipt.sourceRevision) || !readString(receipt.targetRevision)) return false;
+  if (isAuthorizedRebase(
+    receipt,
+    releaseRevision,
+    CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+  )) {
+    return false;
+  }
+  if (expectedCapture && isAuthorizedRebase(receipt, expectedCapture, captureRevision)) {
+    return false;
+  }
+  if (receipt.sourceRevision === captureRevision || receipt.targetRevision === captureRevision) {
+    return false;
+  }
+  return true;
 }
 
 export function mapControlCorrectionLearningRecord(
@@ -119,21 +143,23 @@ export function mapControlCorrectionLearningRecord(
 
   const expectedCapture = readString(input.expectedCaptureRevision);
   if (expectedCapture && expectedCapture !== captureRevision) {
-    if (!isAuthorizedRebase(input.rebaseReceipt, expectedCapture, captureRevision)) {
+    const captureAuthorized = isAuthorizedRebase(
+      input.captureRebaseReceipt,
+      expectedCapture,
+      captureRevision,
+    ) || isAuthorizedRebase(input.rebaseReceipt, expectedCapture, captureRevision);
+    if (!captureAuthorized) {
       return rejected('stale-capture');
     }
   }
   if (
-    input.rebaseReceipt
-    && readString(input.rebaseReceipt.sourceRevision)
-    && readString(input.rebaseReceipt.targetRevision)
-    && !isAuthorizedRebase(
-      input.rebaseReceipt,
+    isUnauthorizedRebaseReceipt(input.rebaseReceipt, releaseRevision, expectedCapture, captureRevision)
+    || isUnauthorizedRebaseReceipt(
+      input.captureRebaseReceipt,
       releaseRevision,
-      CONTROL_CORRECTION_ADAPTER_RELEASE_REVISION,
+      expectedCapture,
+      captureRevision,
     )
-    && input.rebaseReceipt.sourceRevision !== captureRevision
-    && input.rebaseReceipt.targetRevision !== captureRevision
   ) {
     return rejected('cross-revision');
   }

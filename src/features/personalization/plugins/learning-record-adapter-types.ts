@@ -74,6 +74,7 @@ export interface CourseAdapterMapInput {
   rawArtifactRef?: CourseAdapterRawArtifactRef | null;
   officialArenaResult?: CourseAdapterOfficialArenaResult | null;
   rebaseReceipt?: CourseAdapterRebaseReceipt | null;
+  captureRebaseReceipt?: CourseAdapterRebaseReceipt | null;
   replayAuthorization?: ReplayAuthorization | null;
   extra?: Record<string, unknown> | null;
 }
