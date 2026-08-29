@@ -48,6 +48,16 @@ import {
   isControlCorrectionArenaTaskId,
   isControlCorrectionFact,
 } from '@/features/personalization/plugins/control-correction/evidence-match';
+import {
+  CONTROL_CORRECTION_GOAL_DIMENSIONS as CONTROL_CORRECTION_GOAL_DIMENSION_IDS,
+  CONTROL_CORRECTION_GOAL_ID as CONTROL_CORRECTION_GOAL_ID_VALUE,
+  CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
+  CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
+  CONTROL_CORRECTION_PRIVACY as CONTROL_CORRECTION_PRIVACY_VALUE,
+  CONTROL_CORRECTION_PRIVACY_CLASSES as CONTROL_CORRECTION_PRIVACY_CLASSES_VALUE,
+  CONTROL_CORRECTION_TARGET_LEVELS as CONTROL_CORRECTION_TARGET_LEVEL_VALUES,
+  PATH_CONTEXT_FIELD_CONTRACT,
+} from '@/features/personalization/plugins/control-correction/slice-constants';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -87,25 +97,14 @@ export type ControlCorrectionDimensionId =
   | 'reflection'
   | 'ai-collaboration';
 
-export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = 'control-correction';
-export const CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION = 'control-correction-goal-slice.v1';
+export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = CONTROL_CORRECTION_GOAL_ID_VALUE;
+export { CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION };
 const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
-  'foundation',
-  'developing',
-  'proficient',
-  'advanced',
+  ...CONTROL_CORRECTION_TARGET_LEVEL_VALUES,
 ];
 export const CONTROL_CORRECTION_GOAL_DIMENSIONS: ControlCorrectionDimensionId[] = [
-  'time-domain-analysis',
-  'root-locus-reasoning',
-  'frequency-domain-margin-analysis',
-  'method-selection',
-  'constraint-tradeoff',
-  'simulation-validation',
-  'arena-transfer',
-  'reflection',
-  'ai-collaboration',
+  ...CONTROL_CORRECTION_GOAL_DIMENSION_IDS,
 ];
 
 export type AdaptiveLearnerSecondaryDimension =
@@ -227,13 +226,8 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
     privacyScope: 'student-visible',
   },
   pathContext: {
-    valueRange: 'active/bookmarked/recent path counts and references',
-    sourceFamilies: ['LearningPath', 'future AdaptiveLearningPath'],
-    algorithmVersion: ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
-    evidenceThreshold: 'at least one path record or empty explicit path context',
-    confidencePolicy: 'path-context-is-contextual',
-    fallbackReason: 'path-planning-not-started',
-    privacyScope: 'student-visible',
+    ...PATH_CONTEXT_FIELD_CONTRACT,
+    sourceFamilies: [...PATH_CONTEXT_FIELD_CONTRACT.sourceFamilies],
   },
   riskState: {
     valueRange: 'none/low/medium/high plus redacted active flags',
@@ -254,14 +248,8 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
     privacyScope: 'student-visible',
   },
   controlCorrectionGoalSlice: {
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy goal sources remain explicit compatibility fallbacks.
-    valueRange: 'stable governed dimensions for the control-correction goal',
-    sourceFamilies: ['StudentPortraitV2Snapshot', 'StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission', 'AgentToolRun'],
-    algorithmVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
-    evidenceThreshold: 'each dimension declares sufficient, partial, stale, or missing governed evidence',
-    confidencePolicy: 'dimension confidence is capped by source coverage and fallback markers',
-    fallbackReason: 'missing-control-correction-governed-evidence',
-    privacyScope: 'student-visible',
+    ...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
+    sourceFamilies: [...CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT.sourceFamilies],
   },
 };
 
@@ -619,20 +607,11 @@ const CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES: Record<
 };
 
 export const CONTROL_CORRECTION_PRIVACY: ControlCorrectionGoalSliceDimension['privacy'] = {
-  score: 'student-visible',
-  sourceCoverage: 'student-visible',
-  confidence: 'student-visible',
-  teacherExplanation: 'teacher-scoped',
-  auditRefs: 'audit-only',
-  rawPayloads: 'system-internal',
+  ...CONTROL_CORRECTION_PRIVACY_VALUE,
 };
 
 export const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['privacyClasses'] = {
-  student: 'student-visible',
-  teacher: 'teacher-scoped',
-  admin: 'admin-scoped',
-  audit: 'audit-only',
-  internal: 'system-internal',
+  ...CONTROL_CORRECTION_PRIVACY_CLASSES_VALUE,
 };
 
 const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
