@@ -35,6 +35,8 @@ interface FitnessInput {
   readonly evidenceDigestOverride?: string | null;
   /** 单测注入：模拟矩阵声明的摘要（默认读真实矩阵字段） */
   readonly declaredDigestOverride?: string;
+  /** 单测注入：模拟声明修订与 HEAD 的谱系关系（默认 git merge-base 判定） */
+  readonly headRelationOverride?: 'ANCESTOR' | 'UNRELATED' | 'UNOBSERVED';
 }
 
 function emptyFindings(): InvariantFindings {
@@ -96,6 +98,27 @@ function observedHeadRevision(repoRoot: string): string | null {
     return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
   } catch {
     return null;
+  }
+}
+
+/**
+ * 声明修订与观测 HEAD 的谱系关系：ANCESTOR = 对账提交在当前历史中
+ * （git merge-base --is-ancestor）；UNRELATED/不可观测 → fail-closed。
+ * 采用祖先语义而非 HEAD 相等：声明修订写入其自身内容的提交在哈希上
+ * 不可自指（与仓库 architecture-fitness 的 REQUIRED_BASELINE 提交产物
+ * 对比惯例一致）；证据内容漂移由 evidenceDigest 单独判定。
+ */
+function resolveHeadRelation(repoRoot: string, declaredRevision: string): 'ANCESTOR' | 'UNRELATED' | 'UNOBSERVED' {
+  const observed = observedHeadRevision(repoRoot);
+  if (!observed) return 'UNOBSERVED';
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', declaredRevision, observed], {
+      cwd: repoRoot,
+      stdio: 'ignore',
+    });
+    return 'ANCESTOR';
+  } catch {
+    return 'UNRELATED';
   }
 }
 
@@ -408,10 +431,12 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
       ? 'UNOBSERVED'
       : computedDigest === declaredDigest ? 'CURRENT' : 'STALE');
 
+  const headRelation = input.headRelationOverride ?? resolveHeadRelation(repoRoot, declared);
   const binding: GeneratedContentFitnessReport['sourceBinding'] = {
     declaredRevision: declared,
     observedRevision: observed,
     binding: bindingState,
+    headRelation,
     mixedWorktree,
   };
 
@@ -442,6 +467,12 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     }
     if (binding.binding === 'UNOBSERVED') {
       failInvariant(findings, 'DOMAIN_OWNERSHIP', 'evidence digest unobservable (fail-closed)');
+    }
+    if (binding.headRelation === 'UNRELATED') {
+      failInvariant(findings, 'DOMAIN_OWNERSHIP', `declared source revision ${declared} is not an ancestor of observed HEAD (unreconciled governance content)`);
+    }
+    if (binding.headRelation === 'UNOBSERVED') {
+      failInvariant(findings, 'DOMAIN_OWNERSHIP', 'HEAD unobservable; source revision lineage unverifiable (fail-closed)');
     }
 
     checkRowContractFields(row, findings);
@@ -494,6 +525,7 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
   const settledStatus: GeneratedContentAuthorityStatus = rows.every((row) => row.status === 'QUALIFIED')
     && violations.length === 0
     && binding.binding === 'CURRENT'
+    && binding.headRelation === 'ANCESTOR'
     ? 'QUALIFIED'
     : 'BLOCKED';
 
@@ -509,7 +541,7 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
 /** 门禁断言：fitness 未收敛（BLOCKED/NOT_QUALIFIED）或工作树混合时抛错，fail-closed。 */
 export function assertGeneratedContentAuthorityFitness(
   report: GeneratedContentFitnessReport,
-  options: { requireCleanWorktree?: boolean } = {},
+  options: { requireCleanWorktree?: boolean; requireReconciledHead?: boolean } = {},
 ): void {
   const problems: string[] = [];
   if (report.settled !== 'QUALIFIED') {
@@ -517,6 +549,9 @@ export function assertGeneratedContentAuthorityFitness(
   }
   if (options.requireCleanWorktree && report.sourceBinding.mixedWorktree) {
     problems.push('worktree is mixed; governance evidence requires a clean tree');
+  }
+  if (options.requireReconciledHead && report.sourceBinding.headRelation !== 'ANCESTOR') {
+    problems.push(`declared source revision is ${report.sourceBinding.headRelation} relative to HEAD; re-run reconciliation`);
   }
   if (problems.length === 0) return;
 

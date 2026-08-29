@@ -212,10 +212,22 @@ describe('generated content authority — receipt privacy scanning', () => {
           revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
           conclusion: 'PASS',
         },
+        {
+          // 回执形状中的未知字段：原始 provider 载荷夹带即拒绝
+          reference: 'artifacts/qa/run-2.har',
+          outputHash: 'e'.repeat(64),
+          toolVersion: 'playwright/1.2',
+          revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+          conclusion: 'PASS',
+          payload: 'raw-provider-output',
+        },
       ],
     });
     const failed = violations.filter((violation) => violation.reason === 'unstructured-payload-value');
     expect(failed).toHaveLength(3);
+    const unknownFields = violations.filter((violation) => violation.reason === 'unknown-receipt-field');
+    expect(unknownFields).toHaveLength(1);
+    expect(unknownFields[0].path).toContain('.payload');
     expect(failed[0].path).toContain('qaReceipts[0].reference');
     expect(failed[1].path).toContain('qaReceipts[2].reference');
   });
@@ -241,8 +253,23 @@ describe('generated content authority — fixture fitness checks', () => {
       repoRoot: root,
       evidenceDigestOverride: evidenceDigest,
       declaredDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
+      headRelationOverride: 'ANCESTOR' as const,
     };
   }
+
+  it('fails closed when the declared revision is unrelated to the observed HEAD', () => {
+    const report = evaluateGeneratedContentAuthorityFitness({
+      repoRoot: root,
+      evidenceDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
+      declaredDigestOverride: computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows),
+      headRelationOverride: 'UNRELATED',
+    });
+    expect(report.sourceBinding.headRelation).toBe('UNRELATED');
+    for (const row of report.rows) {
+      expect(row.invariantFindings.DOMAIN_OWNERSHIP.reasons.some((reason) => reason.includes('not an ancestor'))).toBe(true);
+    }
+    expect(report.settled).toBe('BLOCKED');
+  });
 
   it('qualifies a clean fixture tree whose evidence, sinks, and dependency are consistent', () => {
     const report = evaluateGeneratedContentAuthorityFitness(fixtureInput());

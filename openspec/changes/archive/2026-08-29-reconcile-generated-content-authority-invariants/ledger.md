@@ -48,3 +48,9 @@
 
 1. **P1 Assignment 发布服务入禁清单**：`assignment-service.ts`（publishAssignmentRevision）加入 assignment-rubric 禁止 sink；生成路由仅返回可编辑指南（已核验两生成模块 import 不含该文件），教师发布时才固化 rubricSnapshot。
 2. **P1 回执字段类型化格式**：结构化校验从"任意无空白串"升级为按字段类型——reference 必须为 64-hex 或仓库相对路径前缀（src|prisma|openspec|data|scripts|docs|external|artifacts）、outputHash 必须 64-hex、revision 必须 7-64 hex、toolVersion 语义版本式；`user:42` 等无空格用户标识同样 fail-closed。
+
+## Codex 第三轮 feedback 修复（2026-08-29，PR #1693）
+
+1. **P1 谱系绑定**：`sourceBinding.headRelation`（ANCESTOR/UNRELATED/UNOBSERVED）经 `git merge-base --is-ancestor` 判定声明修订是否在当前历史中；UNRELATED/UNOBSERVED 行级 fail-closed、settle 拒绝、严格门 `requireReconciledHead` 失败。采用祖先语义而非 HEAD 相等：声明修订写入其自身内容的提交在哈希上不可自指（与 architecture-fitness 的 REQUIRED_BASELINE 产物对比惯例同构）；证据内容漂移由 evidenceDigest 单独判定。
+2. **P1 扫描分母补全**：`module-regeneration-service.ts`（Smart Courseware 实际 AI 模块候选生成器，:155）加入 generationModules；已核验其 import 仅含声明公共契约（generated-slide-contract、course-basis、smart-lesson-plan domain/schema），当前树扫描零违例。
+3. **P1 回执字段白名单**：回执形状对象仅允许 reference/outputHash/toolVersion/revision/conclusion 五字段，额外字段（如 payload 夹带原始 provider 响应）以 unknown-receipt-field 拒绝；conclusion 限 PASS|FAIL|INCONCLUSIVE 枚举。

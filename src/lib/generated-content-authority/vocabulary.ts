@@ -118,6 +118,8 @@ export interface GeneratedContentFitnessReport {
     readonly observedRevision: string | null;
     /** 绑定判定 = 矩阵 evidenceDigest 与当前证据文件的 sha256 摘要一致 */
     readonly binding: 'CURRENT' | 'STALE' | 'UNOBSERVED';
+    /** 声明修订与观测 HEAD 的谱系关系：仅 ANCESTOR 可收敛（UNRELATED/UNOBSERVED fail-closed） */
+    readonly headRelation: 'ANCESTOR' | 'UNRELATED' | 'UNOBSERVED';
     readonly mixedWorktree: boolean;
   };
   readonly rows: ReadonlyArray<{

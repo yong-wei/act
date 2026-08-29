@@ -38,13 +38,14 @@ export interface PrivacyViolation {
  * 无空白、无自由文本的引用/哈希/版本串。原始模型响应、学生答案、
  * 用户标识等自由载荷不可能满足该格式，从而在值层面 fail-closed。
  */
-const STRUCTURED_VALUE_KEYS = new Set(['reference', 'outputHash', 'toolVersion', 'revision']);
+const STRUCTURED_VALUE_KEYS = new Set(['reference', 'outputHash', 'toolVersion', 'revision', 'conclusion']);
 /** 按字段类型的内容格式：引用=内容寻址/仓库相对路径；哈希=hex；版本=语义版本式。 */
 const STRUCTURED_VALUE_PATTERNS: Readonly<Record<string, RegExp>> = {
   reference: /^(?:[a-f0-9]{64}|(?:src|prisma|openspec|data|scripts|docs|external|artifacts)\/[\w@\[\].!~/-]+)$/u,
   outputHash: /^[a-f0-9]{64}$/u,
   toolVersion: /^[A-Za-z0-9][A-Za-z0-9.\/-]{0,60}$/u,
   revision: /^[a-f0-9]{7,64}$/u,
+  conclusion: /^(?:PASS|FAIL|INCONCLUSIVE)$/u,
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -81,20 +82,20 @@ export function scanReceiptPrivacyViolations(
       }
       return;
     }
-    // QA 回执形状（outputHash+toolVersion 同时在场）：其结构化字段必须满足
-    // 无空白引用/哈希/版本格式——自由文本载荷（原始回答、用户标识等）fail-closed。
-    // 矩阵描述性 reference 字段不在回执形状内，不受此约束。
+    // QA 回执形状（outputHash+toolVersion 同时在场）：字段白名单 + 结构化格式。
+    // 额外字段（如 payload/raw）一律拒绝，防止 TypeScript 结构类型把原始
+    // provider 响应夹带进公开回执。
     if ('outputHash' in node && 'toolVersion' in node) {
       for (const [receiptKey, receiptValue] of Object.entries(node)) {
-        if (!STRUCTURED_VALUE_KEYS.has(receiptKey) || typeof receiptValue !== 'string' || receiptValue.length === 0) continue;
+        if (!STRUCTURED_VALUE_KEYS.has(receiptKey)) {
+          violations.push({ path: `${path}.${receiptKey}`, reason: 'unknown-receipt-field' });
+          continue;
+        }
+        if (typeof receiptValue !== 'string' || receiptValue.length === 0) continue;
         const pattern = STRUCTURED_VALUE_PATTERNS[receiptKey];
         if (!pattern || !pattern.test(receiptValue)) {
           violations.push({ path: `${path}.${receiptKey}`, reason: 'unstructured-payload-value' });
         }
-      }
-      for (const [receiptKey, receiptValue] of Object.entries(node)) {
-        if (STRUCTURED_VALUE_KEYS.has(receiptKey)) continue;
-        walk(receiptValue, `${path}.${receiptKey}`);
       }
       return;
     }

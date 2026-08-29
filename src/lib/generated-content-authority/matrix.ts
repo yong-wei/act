@@ -262,6 +262,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
       generationModules: [
         'src/lib/smart-courseware/provider-runtime.ts',
         'src/lib/smart-courseware/generation-service.ts',
+        'src/lib/smart-courseware/module-regeneration-service.ts',
         'src/lib/smart-courseware/worker.ts',
       ],
       forbiddenSinkModules: [
