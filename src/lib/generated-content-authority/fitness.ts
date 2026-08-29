@@ -74,10 +74,15 @@ function rowStatusFromFindings(
   findings: InvariantFindings,
   dependency: 'NOT_APPLICABLE' | 'QUALIFIED' | 'NOT_QUALIFIED',
 ): GeneratedContentAuthorityStatus {
-  if (GENERATED_CONTENT_INVARIANTS.some((invariant) => findings[invariant].status !== 'QUALIFIED')) {
+  // NOT_QUALIFIED（证据缺失/违例）压过 BLOCKED（显式依赖未满足）；
+  // 仅 BLOCKED 级 finding 时行保持 BLOCKED 且依赖可见。
+  if (GENERATED_CONTENT_INVARIANTS.some((invariant) => findings[invariant].status === 'NOT_QUALIFIED')) {
     return 'NOT_QUALIFIED';
   }
-  if (dependency === 'NOT_QUALIFIED') return 'BLOCKED';
+  if (dependency === 'NOT_QUALIFIED'
+    || GENERATED_CONTENT_INVARIANTS.some((invariant) => findings[invariant].status === 'BLOCKED')) {
+    return 'BLOCKED';
+  }
   return 'QUALIFIED';
 }
 

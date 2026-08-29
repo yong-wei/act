@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -33,7 +33,10 @@ function initFixtureRepo(): string {
 
 function commitAll(repoRoot: string, message: string): string {
   git(repoRoot, ['add', '-A']);
-  git(repoRoot, ['commit', '-m', message]);
+  const staged = git(repoRoot, ['diff', '--cached', '--name-only']);
+  if (staged.trim().length > 0) {
+    git(repoRoot, ['commit', '-m', message]);
+  }
   return git(repoRoot, ['rev-parse', 'HEAD']);
 }
 
@@ -46,10 +49,14 @@ function writeFixtureTree(root: string, options: {
 } = {}): void {
   const dirs = [
     'src/features/adaptive-assessment',
+    'src/features/adaptive-assessment/__tests__',
     'src/features/assessment',
     'src/lib/assignments',
     'src/lib/smart-lesson-plan',
     'src/lib/smart-courseware',
+    'src/app/api/assessment/generated-candidates',
+    'src/lib/canonical-learning-fact-identity',
+    'src/lib/data-governance',
     'prisma',
     'openspec/changes/archive/2026-08-28-reconcile-reviewed-assessment-generation-governance',
   ];
@@ -172,7 +179,8 @@ describe('generated content authority — fixture fitness checks', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  function fixtureInput(observed: string | null = baseRevision) {
+  // 自洽绑定：fixture 的证据语义与真实修订无关，默认绑定矩阵声明修订
+  function fixtureInput(observed: string | null = GENERATED_CONTENT_AUTHORITY_MATRIX.sourceRevision) {
     return { repoRoot: root, observedRevisionOverride: observed };
   }
 
@@ -201,6 +209,9 @@ describe('generated content authority — fixture fitness checks', () => {
     expect(assessment.invariantFindings.NO_DIRECT_AUTHORITY_WRITE.status).toBe('NOT_QUALIFIED');
     expect(report.settled).toBe('BLOCKED');
     expect(() => assertGeneratedContentAuthorityFitness(report)).toThrow(/NO_DIRECT_AUTHORITY_WRITE/);
+    // 恢复现场，避免污染后续用例
+    writeFileSync(join(root, 'src/app/api/assessment/generated-candidates/route.ts'), 'export const route = true;\n');
+    commitAll(root, 'restore sink fixture');
   });
 
   it('marks stale source revisions as BLOCKED via fail-closed binding', () => {

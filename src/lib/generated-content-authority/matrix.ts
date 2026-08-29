@@ -51,12 +51,12 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
   readonly rows: readonly GeneratedContentAuthorityRow[];
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
-  sourceRevision: 'PENDING-RECONCILIATION-REVISION',
+  sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
   rows: [
     {
       domain: 'assessment',
       owner: 'src/features/adaptive-assessment（Assessment/adaptive-assessment 治理，#1564 实现）',
-      sourceRevision: 'PENDING-RECONCILIATION-REVISION',
+      sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
       draftIdentity: {
         creationReference: 'src/app/api/assessment/generated-candidates/route.ts → createGeneratedCandidate (src/features/adaptive-assessment/generated-candidate-governance.ts)',
         notes: 'provider/model/prompt 哈希作为私有审计证据入 envelope（:257-258），载荷本体不入库',
@@ -122,7 +122,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
     {
       domain: 'assignment-rubric',
       owner: 'src/lib/assignments（Assignment 公共生命周期边界）',
-      sourceRevision: 'PENDING-RECONCILIATION-REVISION',
+      sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
       draftIdentity: {
         creationReference: 'src/app/api/teacher/assignments/[assignmentId]/rubric-guidelines/generate/route.ts → generateAssignmentRubricGuidelines（assignment-rubric-generation.ts:106，LLM 调用 :149）',
         notes: '生成结果先以可编辑指南返回教师 UI，仅在人类发布修订时固化为 rubricSnapshot',
@@ -173,7 +173,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
     {
       domain: 'smart-lesson',
       owner: 'src/lib/smart-lesson-plan（task/draft/revision/job 契约）',
-      sourceRevision: 'PENDING-RECONCILIATION-REVISION',
+      sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
       draftIdentity: {
         creationReference: 'src/lib/smart-lesson-plan/service.ts createSmartLessonTask / startGenerationJob（:858）→ SmartLessonDraft',
         notes: 'advisory review（recordAdvisoryReview:1524）是顾问性输入，不是人类接受',
@@ -230,7 +230,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
     {
       domain: 'smart-courseware',
       owner: 'src/lib/smart-courseware（draft/revision/module/job/publication 契约）',
-      sourceRevision: 'PENDING-RECONCILIATION-REVISION',
+      sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
       draftIdentity: {
         creationReference: 'src/lib/smart-courseware/generation-service.ts startCoursewareGenerationJob（:35）/ module-regeneration-service.ts generateCoursewareModuleCandidate（:155）→ SmartCoursewareDraft',
       },

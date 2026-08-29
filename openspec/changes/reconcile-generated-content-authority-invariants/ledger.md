@@ -1,0 +1,38 @@
+# Ledger — reconcile-generated-content-authority-invariants
+
+跨域对账矩阵与只读架构 fitness checks 的实现台账。学域运行时契约（Assessment/Assignment/Smart Lesson/Smart Courseware）全部保持域内所有；本 change 不引入 AI superdomain、共享候选表、共享状态机或跨域持久化。
+
+## 1. 冻结的分母与源绑定（tasks 1.1–1.4）
+
+- 源绑定：矩阵 `sourceRevision` 绑定实现提交 `5b44e6c128c2f36811a496ac3be272f073d8ba15`（四域行同值）。fitness check 观测 git HEAD：CURRENT 才收敛；STALE/UNOBSERVED/混合工作树 → 行级 fail-closed（BLOCKED/NOT_QUALIFIED），严格门 `npm run test:generated-content-authority` 额外要求干净树。
+- 四域 owner/路由/API/模型/worker/脚本/测试/调用方分母记录在 `src/lib/generated-content-authority/matrix.ts` 的 `GENERATED_CONTENT_AUTHORITY_MATRIX`（每行 `denominator` 字段，全部为已验证存在的仓库相对路径）。
+- 各域本地身份：草稿身份、确定性验证证据、人类接受点、不可变修订（含漂移守卫）、发布回执（或等价权威）、隐私类、幂等边界、回滚 owner 均为矩阵行字段。
+- 禁止 sink 清单：Assessment 目录发布/运行时 overlay（generated-candidate-catalog.ts / generated-catalog-runtime.ts）、Assignment 评分/反馈权威（assignment-review.ts）、Smart Courseware 发布（publication-service.ts）、LearningFact 写入器三处（canonical writer / learning-fact-materialization / simulation-task-learning-fact）。混合/陈旧证据 → 行 NOT_QUALIFIED。
+
+## 2. 不变量契约与矩阵（tasks 2.1–2.5）
+
+- 七条不变量词表（DRAFT_EDITABLE…DOMAIN_OWNERSHIP）见 `src/lib/generated-content-authority/vocabulary.ts`，是验证视角而非共享枚举/持久化模型。
+- 矩阵 schema 即 `GeneratedContentAuthorityRow` 类型 + 提交的矩阵数据；无任何 Prisma 模型（no-shared-persistence）。
+- Assessment 行绑定 `reconcile-reviewed-assessment-generation-governance`（#1564，已归档 2026-08-28，tasks 14/14 完成）：fitness check `evaluateAssessmentDependencyQualification` 动态评估其资格（归档存在 + 任务全勾 + 7 个实现/测试证据文件在位）→ 当前 QUALIFIED；若未来证据缺失/不一致 → 行 BLOCKED，不在此 change 内实现 Assessment。
+- Assignment rubric / Smart Lesson / Smart Courseware 行引用其既有公共边界与不可变修订（AssignmentRevision.contentHash/frozenAt、SmartLessonRevision 审批字段、SmartCoursewarePublicationRevision.receiptSnapshot）；Smart Lesson 无独立发布回执模型，按 spec 记录为 EQUIVALENT 权威并声明消费边界（SmartCoursewarePublicationRevision.planRevisionId）。
+
+## 3. 只读架构 fitness checks（tasks 3.1–3.4）
+
+实现于 `src/lib/generated-content-authority/fitness.ts`，全部只读（不调用生成/发布服务、不修改产品记录）：
+
+- **sink 扫描**（`scanAuthoritySinkImports`）：TS 级 import 解析（复用 architecture-census/imports）检查声明生成模块是否 import 禁止 sink 模块；命中即 NO_DIRECT_AUTHORITY_WRITE 失败并记录 blockedSinks。
+- **跨域深 import**（`scanUndeclaredCrossDomainImports`）：生成模块 import 其它生成域内部必须落在 `DECLARED_CROSS_DOMAIN_IMPORT_PATHS` 允许边（当前仅 smart-courseware → smart-lesson-plan 公共契约一条）。
+- **no-superdomain**（`scanSuperdomainViolations`）：产品代码 import 治理矩阵模块、Prisma 声明共享候选/状态模型（GeneratedContentCandidate/GeneratedContentAuthority/UnifiedAiCandidate/SharedCandidate）即失败。
+- **回执校验**：契约字段完整性（owner/幂等/回滚/验证/人审/不可变修订/发布证据）、证据路径存在性、矩阵自身隐私扫描（`privacy.ts`：prompt/模型响应/作答/反馈/凭据/用户标识/本机绝对路径的键与值模式）。
+- blocked 行保持可见并携带原因；检查器从不改写行状态以外的任何数据。
+
+## 4. 验证与交接（tasks 4.1–4.5）
+
+- 单元/fixture 测试（13 项，`src/lib/generated-content-authority/__tests__/generated-content-authority.test.ts`）：隐私拒绝与放行、干净树收敛、sink 违例 fail-closed、STALE/UNOBSERVED 绑定、#1564 缺证 → Assessment BLOCKED（其余域不连带）、未声明跨域边拒绝 + 声明边放行、共享模型/产品 import 拒绝、每域幂等/回滚/授权证据存在。
+- 真仓库评估：四行全 QUALIFIED、violations 为空、Assessment 依赖 QUALIFIED（自洽绑定语义）。
+- 严格门：`npm run test:generated-content-authority`（scripts/tests/test-generated-content-authority-gate.ts）以观测 HEAD + 干净树 fail-closed；矩阵绑定之后的任何新提交都会使门进入 STALE，需按本 ledger §1 重新对账并更新 `sourceRevision`。
+- 运行级 QA 产物（截图/trace/HAR/log）保持外部化；矩阵结构支持内容寻址 QA 回执（reference/revision/outputHash/toolVersion/conclusion），本 change 未声明任何 QA 回执。
+
+## 5. 与 #1583 的关系
+
+统一 LearningFact 摄取管线（#1583，已合并 integration）是 LearningFact 权威写路径的域内实现；本矩阵把 `canonical-learning-fact-identity/writer.ts` 与 `learning-fact-materialization.ts` 列为全域生成模块的禁止 sink——两个治理层互不隶属、方向一致。

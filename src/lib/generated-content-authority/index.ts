@@ -11,6 +11,7 @@ export {
   evaluateAssessmentDependencyQualification,
   evaluateGeneratedContentAuthorityFitness,
   assertGeneratedContentAuthorityFitness,
+  extractRepoPaths,
   scanAuthoritySinkImports,
   scanSuperdomainViolations,
   scanUndeclaredCrossDomainImports,
