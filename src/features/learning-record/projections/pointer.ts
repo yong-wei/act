@@ -82,9 +82,11 @@ export async function publishCurrentPointer(
       where: {
         userId: candidate.subjectUserId,
         generation: existing.generation,
+        queueGeneration: existing.queueGeneration,
         stateWatermark: existing.stateWatermark,
         cutoverFence: existing.cutoverFence,
         calculationVersion: existing.calculationVersion,
+        taskInputDigest: existing.inputDigest,
       },
       data,
     });

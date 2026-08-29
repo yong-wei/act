@@ -1,6 +1,6 @@
 import { opaqueSubjectRef } from '@/features/learning-record/event-contract/allowlist';
 import { sha256Canonical } from '@/features/learning-record/event-contract/digest';
-import { inspectIngestionBoundary } from '@/features/learning-record/ingestion/sanitizer';
+import { inspectProjectionBoundary } from './boundary';
 import {
   PROJECTION_STATUS,
   type ProjectionAnchors,
@@ -75,7 +75,7 @@ export function qualifyCandidate(input: {
   expectedInputDigest?: string;
   payload: Record<string, unknown>;
 }): { qualification: ProjectionStatus; violations: string[] } {
-  const violations = inspectIngestionBoundary(input.payload);
+  const violations = inspectProjectionBoundary(input.payload);
   if (violations.length > 0) {
     return { qualification: PROJECTION_STATUS.failed, violations };
   }
@@ -111,6 +111,12 @@ export function buildProjectionEnvelope(input: {
   trustedFactIds: string[];
   rematerialization?: ProjectionEnvelope['rematerialization'];
 }): ProjectionEnvelope {
+  if (
+    input.captureRevision !== input.anchors.revision
+    || input.captureRevision !== input.anchors.captureRevision
+  ) {
+    throw new Error('projection-revision-mismatch');
+  }
   const subjectRef = opaqueSubjectRef(input.subjectUserId);
   const inputDigest = projectionInputDigest({
     anchors: input.anchors,

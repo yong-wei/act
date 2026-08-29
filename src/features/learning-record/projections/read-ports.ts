@@ -12,10 +12,29 @@ import {
 export function authorizeProjectionRead(
   viewer: ProjectionViewer,
   targetUserId: string,
+  target: { classId?: string } = {},
 ): void {
-  if (viewer.role === 'student' && viewer.subjectUserId !== targetUserId) {
+  if (viewer.role === 'student') {
+    if (viewer.subjectUserId !== targetUserId) {
+      throw new Error('projection-unauthorized');
+    }
+    return;
+  }
+  if (viewer.role === 'admin') return;
+  const classId = target.classId;
+  const classIds = viewer.classIds ?? [];
+  if (viewer.role === 'teacher') {
+    if (!classId || !classIds.includes(classId)) {
+      throw new Error('projection-unauthorized');
+    }
+    return;
+  }
+  if (viewer.role === 'ai' || viewer.role === 'personalization') {
+    if (viewer.subjectUserId === targetUserId) return;
+    if (classId && classIds.includes(classId)) return;
     throw new Error('projection-unauthorized');
   }
+  throw new Error('projection-unauthorized');
 }
 
 export function studentFieldsFromEnvelope(

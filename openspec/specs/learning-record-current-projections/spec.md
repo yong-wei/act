@@ -74,6 +74,11 @@ Student, teacher, AI and Personalization read ports SHALL expose only fields per
 - **WHEN** a student attempts to read another learner's projection
 - **THEN** authorization fails closed before current data is returned
 
+#### Scenario: Teacher or AI request lacks bound scope
+
+- **WHEN** a teacher, AI or Personalization caller has no server-derived class or subject scope for the requested learner
+- **THEN** authorization fails closed before current data is returned
+
 ### Requirement: Projection traceability is closed
 
 Each exposed projection field or aggregate SHALL be traceable to the contributing LearningFact set, source/revision and current status. Projection receipts SHALL record denominator, skipped/invalid inputs, replay and privacy validation outcomes.

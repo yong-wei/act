@@ -64,9 +64,11 @@ function memoryPointerDb(seed: CurrentPointerRecord | null = null): PointerWrite
       if (
         !existing
         || existing.generation !== where.generation
+        || existing.queueGeneration !== where.queueGeneration
         || existing.stateWatermark !== where.stateWatermark
         || existing.cutoverFence !== where.cutoverFence
         || existing.calculationVersion !== where.calculationVersion
+        || existing.inputDigest !== where.taskInputDigest
       ) {
         return { count: 0 };
       }
@@ -194,6 +196,24 @@ describe('learning-record current projection publication', () => {
     });
   });
 
+  it('makes a concurrent same-fence digest race lose CAS', async () => {
+    const snapshot = pointer();
+    const db = memoryPointerDb(snapshot);
+    const first = await publishCurrentPointer(db, pointer({
+      versionId: 'ver-2',
+      inputDigest: 'digest-b',
+    }));
+    expect(first.move).toBe(POINTER_MOVE.advance);
+    db.findUnique = async () => snapshot;
+    const raced = await publishCurrentPointer(db, pointer({
+      versionId: 'ver-3',
+      inputDigest: 'digest-c',
+    }));
+    expect(raced.move).toBe(POINTER_MOVE.conflict);
+    expect(db.rows.get('student-1')?.versionId).toBe('ver-2');
+    expect(db.rows.get('student-1')?.inputDigest).toBe('digest-b');
+  });
+
   it('publishes create then refuses a concurrent stale write', async () => {
     const db = memoryPointerDb();
     const first = await publishCurrentPointer(db, pointer());
@@ -262,7 +282,21 @@ describe('learning-record current projection publication', () => {
     expect(() => authorizeProjectionRead({ role: 'student', subjectUserId: 'a' }, 'b'))
       .toThrow('projection-unauthorized');
     expect(() => authorizeProjectionRead({ role: 'student', subjectUserId: 'a' }, 'a')).not.toThrow();
-    expect(() => authorizeProjectionRead({ role: 'teacher' }, 'a')).not.toThrow();
+    expect(() => authorizeProjectionRead({ role: 'teacher' }, 'a')).toThrow('projection-unauthorized');
+    expect(() => authorizeProjectionRead(
+      { role: 'teacher', classIds: ['class-a'] },
+      'b',
+      { classId: 'class-b' },
+    )).toThrow('projection-unauthorized');
+    expect(() => authorizeProjectionRead(
+      { role: 'teacher', classIds: ['class-a'] },
+      'b',
+      { classId: 'class-a' },
+    )).not.toThrow();
+    expect(() => authorizeProjectionRead({ role: 'ai' }, 'a')).toThrow('projection-unauthorized');
+    expect(() => authorizeProjectionRead({ role: 'ai', subjectUserId: 'a' }, 'a')).not.toThrow();
+    expect(() => authorizeProjectionRead({ role: 'personalization' }, 'a')).toThrow('projection-unauthorized');
+    expect(() => authorizeProjectionRead({ role: 'admin' }, 'a')).not.toThrow();
   });
 
   it('suppresses teacher aggregates below the independent-learner threshold', () => {
@@ -353,6 +387,26 @@ describe('learning-record current projection publication', () => {
     expect(right.rematerialization?.decoderVersion).toBe('2');
   });
 
+  it('rejects a captureRevision that does not match anchors', () => {
+    expect(() => buildProjectionEnvelope({
+      subjectUserId: 'student-1',
+      processingWatermark: '1',
+      stateWatermark: '3',
+      calculationVersion: 'v2',
+      captureRevision: 'rev-b',
+      generation: '7',
+      queueGeneration: '11',
+      cutoverFence: '4',
+      coverage: 1,
+      freshness: 't',
+      confidence: 1,
+      qualification: PROJECTION_STATUS.qualified,
+      anchors: emptyAnchors('rev-a'),
+      times: envelopeTimes(),
+      trustedFactIds: ['f1'],
+    })).toThrow('projection-revision-mismatch');
+  });
+
   it('rejects forbidden projection fields and isolates raw artifacts', () => {
     const failed = qualifyCandidate({
       trustedEvidenceCount: 1,
@@ -360,6 +414,11 @@ describe('learning-record current projection publication', () => {
       payload: { answer: 'B', stack: 'Error: boom at /Users/YW/app.ts' },
     });
     expect(failed.qualification).toBe(PROJECTION_STATUS.failed);
+    expect(qualifyCandidate({
+      trustedEvidenceCount: 1,
+      inputDigest: 'a',
+      payload: { studentReflection: 'I failed question 2' },
+    }).qualification).toBe(PROJECTION_STATUS.failed);
     expect(inspectProjectionBoundary({ userId: 'student-1', prompt: 'x' }).length).toBeGreaterThan(0);
     expect(redactedProjectionFailure('forbidden-field').code).toBe('forbidden-field');
     expect(() => authorizeRawArtifact({ approved: false, role: 'queue' })).toThrow();
