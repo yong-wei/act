@@ -142,6 +142,21 @@ describe('StudentMicroTutoringPanel', () => {
     expect(queryByRole(container, 'button', { name: '重新尝试微辅导' })).toBeNull();
   });
 
+  it('explains a missing validation snapshot instead of a generic unavailable task', async () => {
+    fetchMock.mockResolvedValueOnce(json({
+      status: 'UNAVAILABLE',
+      unavailableReason: 'VALIDATION_QUESTION_UNAVAILABLE',
+    }, 409));
+
+    await act(async () => root.render(createElement(StudentMicroTutoringPanel, { answerId: 'answer-1', onRequestHint })));
+    fireEvent.click(getByRole(container, 'button', { name: '开始微辅导' }));
+    await flush();
+
+    expect(getByText(container, '当前没有可用于本次微辅导的独立验证题快照，暂时不能开始任务。')).toBeTruthy();
+    expect(container.textContent).not.toContain('当前没有可安全执行的微辅导任务。');
+    expect(queryByRole(container, 'button', { name: '重新尝试微辅导' })).toBeNull();
+  });
+
   it.each([401, 403])('does not offer a same-request retry after a %i authorization failure', async (status) => {
     fetchMock
       .mockResolvedValueOnce(json(AVAILABLE))
