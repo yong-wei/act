@@ -35,8 +35,22 @@ export function parseArchitectureClosureReceipt(text: string): NormalizedClosure
   if (!parsed.sourceIdentity?.sourceCommit || !parsed.sourceIdentity?.sourceTree) {
     throw new Error('missing-source-identity');
   }
-  if (!Array.isArray(parsed.inputReceiptIdentities) || !parsed.totals || !parsed.terminalCoverage) {
+  if (
+    !Array.isArray(parsed.inputReceiptIdentities)
+    || !Array.isArray(parsed.observations)
+    || !parsed.totals
+    || !parsed.terminalCoverage
+  ) {
     throw new Error('invalid-closure-receipt');
+  }
+  if (
+    typeof parsed.totals.discovered !== 'number'
+    || typeof parsed.totals.included !== 'number'
+    || typeof parsed.totals.excluded !== 'number'
+    || typeof parsed.totals.duplicate !== 'number'
+    || typeof parsed.totals.unresolved !== 'number'
+  ) {
+    throw new Error('invalid-closure-totals');
   }
   if (!RECEIPT_ID.test(parsed.receiptId)) {
     throw new Error(`invalid-receipt-id:${String(parsed.receiptId)}`);

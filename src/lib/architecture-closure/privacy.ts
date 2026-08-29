@@ -10,8 +10,11 @@ const FORBIDDEN_OWNER = /^(?:student|user|learner|uid|email)$/u;
 
 const RECEIPT_KEYS = [
   'schemaVersion', 'receiptId', 'sourceIdentity', 'inputReceiptIdentities',
-  'beforeMetrics', 'afterMetrics', 'totals', 'terminalCoverage',
+  'observations', 'beforeMetrics', 'afterMetrics', 'totals', 'terminalCoverage',
   'remainingCompatibilityRecords', 'blockedRecords', 'status',
+] as const;
+const OBSERVATION_KEYS = [
+  'identity', 'classification', 'sourceStageId', 'worktreeRole', 'path', 'contentDigest',
 ] as const;
 const SOURCE_IDENTITY_KEYS = ['sourceCommit', 'sourceTree'] as const;
 const RECEIPT_IDENTITY_KEYS = [
@@ -110,12 +113,16 @@ function inspectReceiptShape(value: unknown): string | null {
   if (receipt.totals && typeof receipt.totals === 'object' && !Array.isArray(receipt.totals)) {
     const found = extraKeys(receipt.totals, TOTALS_KEYS);
     if (found) return found;
+    for (const key of TOTALS_KEYS) {
+      if (typeof (receipt.totals as Record<string, unknown>)[key] !== 'number') return 'unexpected-field';
+    }
   }
   if (receipt.terminalCoverage && typeof receipt.terminalCoverage === 'object' && !Array.isArray(receipt.terminalCoverage)) {
     const found = extraKeys(receipt.terminalCoverage, COVERAGE_KEYS);
     if (found) return found;
   }
   return inspectArray(receipt.inputReceiptIdentities, RECEIPT_IDENTITY_KEYS)
+    ?? inspectArray(receipt.observations, OBSERVATION_KEYS)
     ?? inspectArray(receipt.beforeMetrics, METRIC_KEYS)
     ?? inspectArray(receipt.afterMetrics, METRIC_KEYS)
     ?? inspectArray(receipt.remainingCompatibilityRecords, COMPATIBILITY_KEYS)

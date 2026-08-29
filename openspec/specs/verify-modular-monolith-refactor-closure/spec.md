@@ -40,8 +40,11 @@ Each input stage SHALL provide stable observation records classified as
 `discovered`, `included`, `excluded`, `duplicate`, and `unresolved` totals. The
 validator SHALL require `discovered = included + excluded + duplicate +
 unresolved` for every stage and for the global sum. Excluded, duplicate, and
-unresolved records SHALL remain visible in the normalized receipt and count in
-the denominator.
+unresolved records SHALL remain visible in the normalized receipt as sorted
+safe `observations` projections (`identity`, `classification`, `sourceStageId`,
+and optional `worktreeRole` / relative `path` / `contentDigest`) and SHALL
+count in the denominator. The validator SHALL NOT copy observation free-text
+`reason` fields into the public receipt.
 
 #### Scenario: An input denominator is complete
 
@@ -49,7 +52,10 @@ the denominator.
   reconcile
 - **THEN** the stage SHALL contribute its records and totals to the global
   receipt
-- **AND** the global totals SHALL be the deterministic sum of the stage totals.
+- **AND** the global totals SHALL be the deterministic sum of the stage totals
+  unless a worktree path conflict reclassifies records into `unresolved`
+- **AND** every contributed observation SHALL appear in the normalized
+  `observations` array with a stable identity and classification.
 
 #### Scenario: An item is missing from the denominator
 
@@ -64,9 +70,21 @@ the denominator.
 - **WHEN** main and isolated observations contain the same path with different
   content digests
 - **THEN** both observations SHALL be retained under distinct
-  `worktreeRole:path:contentDigest` identities
+  `worktreeRole:path:contentDigest` identities in the normalized `observations`
+  array
 - **AND** the identity conflict SHALL enter the duplicate/unresolved totals and
   prevent qualification; the validator SHALL not choose one silently.
+
+#### Scenario: Nested receipt elements are not objects
+
+- **WHEN** a declared input receipt has the required arrays but contains `null`
+  or a non-object nested element, a non-number totals field, or a metric whose
+  `metricId`, `scope`, `unit`, or `sourceField` is missing or not a non-empty
+  string
+- **THEN** validation SHALL fail closed with `invalid-receipt-payload` or
+  `missing-metric-value` and `status: unresolved`
+- **AND** the command SHALL NOT throw; the public receipt SHALL contain only
+  reconstructed numeric totals and object observations.
 
 ### Requirement: Terminal coverage is one-to-one and revision-bound
 
@@ -152,15 +170,20 @@ QA lifecycle, or AI state machine.
 ### Requirement: The normalized closure receipt is deterministic and portable
 
 The capability SHALL emit one canonical normalized receipt containing
-`schemaVersion`, `sourceIdentity`, sorted `inputReceiptIdentities`,
-`beforeMetrics`, `afterMetrics`, `totals`, `terminalCoverage`,
+`schemaVersion`, `sourceIdentity`, sorted `inputReceiptIdentities`, sorted
+`observations`, `beforeMetrics`, `afterMetrics`, `totals`, `terminalCoverage`,
 `remainingCompatibilityRecords`, `blockedRecords`, and exactly one status from
-`qualified`, `blocked`, `observed`, or `unresolved`. Arrays and keys SHALL be
-serialized in stable order, and the receipt identity SHALL be derived from the
-normalized bytes. The receipt SHALL contain only portable identities, safe
-conclusions, references, and totals; it SHALL not copy raw evidence, secrets,
-credentials, user identifiers, answers, cookies, absolute paths, screenshots,
-traces, HARs, or logs.
+`qualified`, `blocked`, `observed`, or `unresolved`. Every public field SHALL be
+reconstructed from a typed template; the validator SHALL NOT copy upstream
+objects, totals, or extra keys through to the published receipt. Arrays and
+keys SHALL be serialized in stable order, and the receipt identity SHALL be
+derived from the normalized bytes. The receipt SHALL contain only portable
+identities, safe conclusions, references, and numeric totals; it SHALL not copy
+raw evidence, secrets, credentials, user identifiers, answers, cookies,
+absolute paths, screenshots, traces, HARs, or logs. After any privacy fallback,
+the validator SHALL scan the serialized receipt again and, if it is still dirty,
+replace it with a receipt that contains only the schema, qualified Git SHAs or
+zeros, numeric zero totals, known stage coverage, and a generic blocked record.
 
 #### Scenario: The same inputs are normalized twice
 

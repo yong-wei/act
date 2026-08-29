@@ -12,4 +12,6 @@ Upstream census, charter, fitness, quality, toolchain, QA, and domain commands r
 
 `qualified` means the declared evidence is current and internally consistent. Receipt production is not production activation and does not complete work outside the declared closure scope.
 
-Dirty or mixed worktrees, source/tree drift, missing/duplicate/stale terminals, incomplete denominators, privacy violations, and competing aggregators fail closed as `unresolved`. A blocked terminal or in-scope compatibility record without deletion proof yields `blocked`. Observational terminals yield `observed`.
+Dirty or mixed worktrees, source/tree drift, missing/duplicate/stale terminals, incomplete denominators, nested schema-invalid receipts, privacy violations, and competing aggregators fail closed as `unresolved`. A blocked terminal or in-scope compatibility record without deletion proof yields `blocked`. Observational terminals yield `observed`.
+
+The normalized receipt reconstructs every public field from a typed template. It includes a sorted safe `observations` projection so included, excluded, duplicate, and unresolved records remain visible and count in the denominator. Totals are numeric and closed (`discovered = included + excluded + duplicate + unresolved`). Invalid nested elements such as `observations: [null]` do not throw; they produce an unresolved receipt. Privacy fallback never copies upstream totals or identities; the published `serialized` bytes are scanned again before return.

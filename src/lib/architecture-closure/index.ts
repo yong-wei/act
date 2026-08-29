@@ -18,5 +18,6 @@ export type {
   ClosureInputReceipt,
   ClosureGeneration,
   NormalizedClosureReceipt,
+  NormalizedObservation,
   ClosureStatus,
 } from './types';

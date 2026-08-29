@@ -142,6 +142,15 @@ export interface ReceiptIdentity {
   readonly evidenceClass: EvidenceClass;
 }
 
+export interface NormalizedObservation {
+  readonly identity: string;
+  readonly classification: ObservationClass;
+  readonly sourceStageId: string;
+  readonly worktreeRole?: WorktreeRole;
+  readonly path?: string;
+  readonly contentDigest?: string;
+}
+
 export interface NormalizedMetric {
   readonly metricId: string;
   readonly scope: string;
@@ -172,6 +181,7 @@ export interface NormalizedClosureReceipt {
   readonly receiptId: string;
   readonly sourceIdentity: SourceIdentity;
   readonly inputReceiptIdentities: readonly ReceiptIdentity[];
+  readonly observations: readonly NormalizedObservation[];
   readonly beforeMetrics: readonly NormalizedMetric[];
   readonly afterMetrics: readonly NormalizedMetric[];
   readonly totals: ClosureTotals;

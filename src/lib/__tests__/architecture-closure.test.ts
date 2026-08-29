@@ -138,6 +138,8 @@ describe('architecture closure', () => {
     expect(first.receipt.terminalCoverage.expected).toEqual([...REQUIRED_TERMINAL_STAGE_IDS]);
     expect(first.receipt.terminalCoverage.present).toEqual([...REQUIRED_TERMINAL_STAGE_IDS].sort((left, right) => left.localeCompare(right)));
     expect(first.receipt.totals.discovered).toBe(AUTHORITY_INPUT_IDS.length + REQUIRED_TERMINAL_STAGE_IDS.length);
+    expect(first.receipt.observations).toHaveLength(AUTHORITY_INPUT_IDS.length + REQUIRED_TERMINAL_STAGE_IDS.length);
+    expect(first.receipt.observations.every((item) => item.classification === 'included')).toBe(true);
     expect(first.receipt.beforeMetrics).toHaveLength(1);
     expect(first.receipt.afterMetrics).toHaveLength(1);
     expect(first.receipt.beforeMetrics[0]?.metricId).toBe('scc-count');
@@ -222,6 +224,12 @@ describe('architecture closure', () => {
     const mixedResult = generateArchitectureClosure(capture(), mixed, []);
     expect(mixedResult.receipt.status).toBe('unresolved');
     expect(mixedResult.receipt.totals.unresolved).toBeGreaterThan(0);
+    expect(mixedResult.receipt.observations.some((item) => (
+      item.identity === 'main:src/app/legacy.ts:aaa' && item.classification === 'unresolved'
+    ))).toBe(true);
+    expect(mixedResult.receipt.observations.some((item) => (
+      item.identity === 'isolated:src/app/legacy.ts:bbb' && item.classification === 'unresolved'
+    ))).toBe(true);
 
     const incomplete = qualifiedManifest({
       inputs: {
@@ -447,6 +455,19 @@ describe('architecture closure', () => {
     expect(result.receipt.totals.unresolved).toBeGreaterThan(0);
     expect(result.receipt.remainingCompatibilityRecords.some((item) => item.identity === 'main:src/app/legacy.ts:aaa')).toBe(true);
     expect(result.receipt.remainingCompatibilityRecords.some((item) => item.identity === 'isolated:src/app/legacy.ts:bbb')).toBe(true);
+    expect(result.receipt.observations.some((item) => (
+      item.identity === 'main:src/app/legacy.ts:aaa' && item.classification === 'unresolved'
+    ))).toBe(true);
+    expect(result.receipt.observations.some((item) => (
+      item.identity === 'isolated:src/app/legacy.ts:bbb' && item.classification === 'unresolved'
+    ))).toBe(true);
+    expect(result.receipt.totals.unresolved).toBeGreaterThanOrEqual(2);
+    expect(result.receipt.totals.discovered).toBe(
+      result.receipt.totals.included
+      + result.receipt.totals.excluded
+      + result.receipt.totals.duplicate
+      + result.receipt.totals.unresolved,
+    );
   });
 
   it('fails closed when an authority input is a proposal or stale receipt', () => {
@@ -519,6 +540,117 @@ describe('architecture closure', () => {
     const missing = generateArchitectureClosure(capture(), missingArrays, []);
     expect(missing.failures.some((item) => item.code === 'invalid-receipt-payload')).toBe(true);
     expect(missing.receipt.status).toBe('unresolved');
+  });
+
+  it('reconstructs public receipts, keeps denominator observations, and fail-closes nested schema', () => {
+    const excluded = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        baseline: receipt('baseline', {
+          observations: [
+            observation('baseline:item'),
+            observation('baseline:excluded-item', 'excluded'),
+            observation('baseline:duplicate-item', 'duplicate'),
+          ],
+          totals: { discovered: 3, included: 1, excluded: 1, duplicate: 1, unresolved: 0 },
+        }),
+      },
+    });
+    const visible = generateArchitectureClosure(capture(), excluded, []);
+    expect(visible.receipt.observations.some((item) => (
+      item.identity === 'baseline:excluded-item' && item.classification === 'excluded'
+    ))).toBe(true);
+    expect(visible.receipt.observations.some((item) => (
+      item.identity === 'baseline:duplicate-item' && item.classification === 'duplicate'
+    ))).toBe(true);
+    expect(visible.receipt.totals.excluded).toBe(1);
+    expect(visible.receipt.totals.duplicate).toBe(1);
+    expect(visible.receipt.totals.discovered).toBe(
+      visible.receipt.totals.included
+      + visible.receipt.totals.excluded
+      + visible.receipt.totals.duplicate
+      + visible.receipt.totals.unresolved,
+    );
+
+    const honest = receipt('quality-1554');
+    const pollutedBody = {
+      ...honest,
+      totals: {
+        discovered: 'alice@example.com',
+        included: 1,
+        excluded: 0,
+        duplicate: 0,
+        unresolved: 0,
+      },
+    };
+    const { contentDigest: _digest, ...pollutedWithoutDigest } = pollutedBody;
+    const polluted = {
+      ...pollutedWithoutDigest,
+      contentDigest: sha256Text(serializeDeterministic(pollutedWithoutDigest)),
+    } as ClosureInputReceipt;
+    const dirtyTotals = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? polluted : receipt(stageId)
+      )),
+    });
+    expect(() => generateArchitectureClosure(capture(), dirtyTotals, [])).not.toThrow();
+    const leakedTotals = generateArchitectureClosure(capture(), dirtyTotals, []);
+    expect(leakedTotals.failures.some((item) => item.code === 'invalid-receipt-payload')).toBe(true);
+    expect(leakedTotals.receipt.status).toBe('unresolved');
+    expect(typeof leakedTotals.receipt.totals.discovered).toBe('number');
+    expect(leakedTotals.serialized).not.toContain('alice@example.com');
+    expect(leakedTotals.receipt.inputReceiptIdentities.every((item) => typeof item.owner === 'string')).toBe(true);
+
+    const omittedUnit = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        fitness: receipt('fitness', {
+          metrics: [
+            {
+              metricId: 'scc-count',
+              scope: 'production',
+              value: 3,
+              sourceField: 'totals.scc',
+              phase: 'before',
+              status: 'qualified',
+            } as ClosureInputReceipt['metrics'][number],
+            {
+              metricId: 'scc-count',
+              scope: 'production',
+              value: 1,
+              sourceField: 'totals.scc',
+              phase: 'after',
+              status: 'qualified',
+            } as ClosureInputReceipt['metrics'][number],
+          ],
+        }),
+      },
+    });
+    const missingUnit = generateArchitectureClosure(capture(), omittedUnit, []);
+    expect(missingUnit.failures.some((item) => item.code === 'missing-metric-value')).toBe(true);
+    expect(missingUnit.receipt.status).toBe('unresolved');
+    expect(missingUnit.receipt.beforeMetrics.every((item) => typeof item.unit === 'string' && item.unit.length > 0)).toBe(true);
+    expect(missingUnit.receipt.afterMetrics.every((item) => typeof item.unit === 'string' && item.unit.length > 0)).toBe(true);
+
+    const nullObservationBody = {
+      ...honest,
+      observations: [null],
+    };
+    const { contentDigest: _nullDigest, ...nullWithoutDigest } = nullObservationBody;
+    const nullObservation = {
+      ...nullWithoutDigest,
+      contentDigest: sha256Text(serializeDeterministic(nullWithoutDigest)),
+    } as ClosureInputReceipt;
+    const nestedNull = qualifiedManifest({
+      terminals: REQUIRED_TERMINAL_STAGE_IDS.map((stageId) => (
+        stageId === 'quality-1554' ? nullObservation : receipt(stageId)
+      )),
+    });
+    expect(() => generateArchitectureClosure(capture(), nestedNull, [])).not.toThrow();
+    const nested = generateArchitectureClosure(capture(), nestedNull, []);
+    expect(nested.failures.some((item) => item.code === 'invalid-receipt-payload')).toBe(true);
+    expect(nested.receipt.status).toBe('unresolved');
+    expect(nested.receipt.observations.every((item) => item && typeof item === 'object' && typeof item.identity === 'string')).toBe(true);
   });
 
   it('records competing aggregators and keeps census/charter/fitness as non-substitutes', () => {

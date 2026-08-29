@@ -1,13 +1,14 @@
 import type { CharacterizationFinding } from './characterize';
 import { CLOSURE_OWNER } from './stages';
+import { privacyFallbackReceipt, rebuildPublicReceipt, rebuildTotals } from './rebuild';
+import { parseClosureInputReceipt } from './schema';
 import { privacyViolation, serializeDeterministic, sha256Text, sha256WithoutKey } from './serialize';
-import { allInputReceipts, isTerminalStageId, sortedUnique } from './stages';
+import { isTerminalStageId, sortedUnique } from './stages';
 import {
   AUTHORITY_INPUT_IDS,
   CLOSURE_MANIFEST_SCHEMA_VERSION,
   CLOSURE_SCHEMA_VERSION,
   CLOSURE_STATUSES,
-  EVIDENCE_CLASSES,
   OBSERVATION_CLASSES,
   REQUIRED_TERMINAL_STAGE_IDS,
 } from './types';
@@ -24,6 +25,7 @@ import type {
   CompatibilityRecord,
   NormalizedClosureReceipt,
   NormalizedMetric,
+  NormalizedObservation,
   ReceiptIdentity,
   TerminalCoverage,
 } from './types';
@@ -49,14 +51,16 @@ function totalsClosed(totals: ClosureTotals): boolean {
   return totals.discovered === totals.included + totals.excluded + totals.duplicate + totals.unresolved;
 }
 
-function countedTotals(observations: readonly ClosureObservation[]): ClosureTotals {
-  const totals = emptyTotals();
-  const next = { ...totals };
-  next.discovered = observations.length;
+function countedTotals(observations: readonly { classification: ClosureObservation['classification'] }[]): ClosureTotals {
+  const next = { ...emptyTotals(), discovered: observations.length };
   for (const observation of observations) {
     next[observation.classification] += 1;
   }
   return next;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function asStatus(value: unknown): ClosureStatus | null {
@@ -93,49 +97,18 @@ function observationIdentity(observation: ClosureObservation): string {
   return observation.identity;
 }
 
-function validateReceiptShape(receipt: ClosureInputReceipt | undefined, stageId: string, failures: ClosureFailure[]): receipt is ClosureInputReceipt {
-  if (!receipt) {
-    failures.push({ code: 'missing-input', stageId });
-    return false;
-  }
-  const required = [
-    'receiptId', 'contentDigest', 'schemaVersion', 'owner', 'scope',
-    'sourceCommit', 'sourceTree', 'producerChange', 'producerRevision',
-  ] as const;
-  for (const field of required) {
-    if (!receipt[field] || typeof receipt[field] !== 'string') {
-      failures.push({ code: 'invalid-receipt-identity', stageId, identity: field });
-    }
-  }
-  if (!asStatus(receipt.status)) {
-    failures.push({ code: 'invalid-receipt-status', stageId, identity: String(receipt.status) });
-  }
-  if (!(EVIDENCE_CLASSES as readonly string[]).includes(receipt.evidenceClass)) {
-    failures.push({ code: 'invalid-evidence-class', stageId, identity: String(receipt.evidenceClass) });
-  }
-  if (typeof receipt.contentDigest === 'string' && receipt.contentDigest.length > 0) {
-    validateContentDigest(receipt, failures);
-  }
-  if (
-    !Array.isArray(receipt.observations)
-    || !receipt.totals
-    || !Array.isArray(receipt.metrics)
-    || !Array.isArray(receipt.compatibilityRecords)
-    || !Array.isArray(receipt.blockedRecords)
-  ) {
-    failures.push({ code: 'invalid-receipt-payload', stageId });
-    return false;
-  }
-  return true;
-}
-
-function validateContentDigest(receipt: ClosureInputReceipt, failures: ClosureFailure[]): void {
-  if (!CONTENT_DIGEST.test(receipt.contentDigest)) {
-    failures.push({ code: 'invalid-content-digest', stageId: receipt.stageId, identity: receipt.receiptId });
+function validateRawContentDigest(
+  raw: unknown,
+  stageId: string,
+  receiptId: string,
+  failures: ClosureFailure[],
+): void {
+  if (!isRecord(raw) || typeof raw.contentDigest !== 'string' || !CONTENT_DIGEST.test(raw.contentDigest)) {
+    failures.push({ code: 'invalid-content-digest', stageId, identity: receiptId });
     return;
   }
-  if (sha256WithoutKey(receipt, 'contentDigest') !== receipt.contentDigest) {
-    failures.push({ code: 'content-digest-mismatch', stageId: receipt.stageId, identity: receipt.receiptId });
+  if (sha256WithoutKey(raw, 'contentDigest') !== raw.contentDigest) {
+    failures.push({ code: 'content-digest-mismatch', stageId, identity: receiptId });
   }
 }
 
@@ -188,34 +161,49 @@ function pathConflicts(observations: readonly ClosureObservation[], failures: Cl
   return conflicts;
 }
 
-function reconcileConflictTotals(
+function projectObservations(
   receipts: readonly ClosureInputReceipt[],
   conflictPathList: readonly string[],
-): { totals: ClosureTotals; conflictRecords: CompatibilityRecord[] } {
+): NormalizedObservation[] {
   const conflictPaths = new Set(conflictPathList);
-  const summed = receipts.reduce((sum, item) => addTotals(sum, item.totals), emptyTotals());
-  const totals = {
-    discovered: summed.discovered,
-    included: summed.included,
-    excluded: summed.excluded,
-    duplicate: summed.duplicate,
-    unresolved: summed.unresolved,
-  };
-  const conflictRecords: CompatibilityRecord[] = [];
+  const projected: NormalizedObservation[] = [];
+  for (const receipt of receipts) {
+    for (const observation of receipt.observations) {
+      const classification = observation.path && conflictPaths.has(observation.path)
+        ? 'unresolved'
+        : observation.classification;
+      const next: {
+        identity: string;
+        classification: NormalizedObservation['classification'];
+        sourceStageId: string;
+        worktreeRole?: NormalizedObservation['worktreeRole'];
+        path?: string;
+        contentDigest?: string;
+      } = {
+        identity: observationIdentity(observation),
+        classification,
+        sourceStageId: receipt.stageId,
+      };
+      if (observation.worktreeRole) next.worktreeRole = observation.worktreeRole;
+      if (observation.path) next.path = observation.path;
+      if (observation.contentDigest) next.contentDigest = observation.contentDigest;
+      projected.push(next);
+    }
+  }
+  projected.sort((left, right) => left.identity.localeCompare(right.identity) || left.sourceStageId.localeCompare(right.sourceStageId));
+  return projected;
+}
+
+function conflictRecordsFor(
+  receipts: readonly ClosureInputReceipt[],
+  conflictPathList: readonly string[],
+): CompatibilityRecord[] {
+  const conflictPaths = new Set(conflictPathList);
+  const records: CompatibilityRecord[] = [];
   for (const receipt of receipts) {
     for (const observation of receipt.observations) {
       if (!observation.path || !conflictPaths.has(observation.path)) continue;
-      if (observation.classification === 'included') {
-        totals.included -= 1;
-        totals.unresolved += 1;
-      } else if (observation.classification === 'excluded') {
-        totals.excluded -= 1;
-        totals.unresolved += 1;
-      } else if (observation.classification === 'duplicate') {
-        totals.duplicate -= 1;
-        totals.unresolved += 1;
-      }
-      conflictRecords.push({
+      records.push({
         identity: observationIdentity(observation),
         owner: CLOSURE_OWNER,
         inClosureScope: true,
@@ -225,15 +213,14 @@ function reconcileConflictTotals(
       });
     }
   }
-  conflictRecords.sort((left, right) => left.identity.localeCompare(right.identity));
-  return { totals, conflictRecords };
+  records.sort((left, right) => left.identity.localeCompare(right.identity));
+  return records;
 }
 
-function duplicateIdentities(observations: readonly ClosureObservation[], failures: ClosureFailure[], stageId = 'global'): void {
+function duplicateIdentities(observations: readonly { identity: string }[], failures: ClosureFailure[], stageId = 'global'): void {
   const seen = new Map<string, number>();
   for (const observation of observations) {
-    const identity = observationIdentity(observation);
-    seen.set(identity, (seen.get(identity) ?? 0) + 1);
+    seen.set(observation.identity, (seen.get(observation.identity) ?? 0) + 1);
   }
   for (const [identity, count] of [...seen.entries()].sort(([left], [right]) => left.localeCompare(right))) {
     if (count > 1) failures.push({ code: 'duplicate-identity', stageId, identity });
@@ -330,6 +317,10 @@ function buildCoverage(terminals: readonly ClosureInputReceipt[], capture: Closu
   };
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
 function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: ClosureFailure[]): {
   beforeMetrics: NormalizedMetric[];
   afterMetrics: NormalizedMetric[];
@@ -341,6 +332,25 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
 
   for (const receipt of receipts) {
     for (const metric of receipt.metrics) {
+      if (!asStatus(metric.status)) {
+        failures.push({ code: 'invalid-metric-status', stageId: receipt.stageId, identity: String(metric.metricId) });
+        continue;
+      }
+      if (
+        !isNonEmptyString(metric.metricId)
+        || !isNonEmptyString(metric.scope)
+        || !isNonEmptyString(metric.unit)
+        || !isNonEmptyString(metric.sourceField)
+        || metric.value === undefined
+        || metric.value === null
+      ) {
+        failures.push({
+          code: 'missing-metric-value',
+          stageId: receipt.stageId,
+          identity: `${String(metric.metricId)}|${String(metric.scope)}|${String(metric.unit)}`,
+        });
+        continue;
+      }
       const identity = `${metric.metricId}|${metric.scope}|${metric.unit}`;
       const authority = `${receipt.receiptId}|${metric.sourceField}`;
       const key = `${identity}|${authority}`;
@@ -350,14 +360,6 @@ function collectMetrics(receipts: readonly ClosureInputReceipt[], failures: Clos
       const bucket = seen.get(key) ?? [];
       bucket.push({ phase: metric.phase, receiptId: receipt.receiptId });
       seen.set(key, bucket);
-      if (!asStatus(metric.status)) {
-        failures.push({ code: 'invalid-metric-status', stageId: receipt.stageId, identity: key });
-        continue;
-      }
-      if (!metric.metricId || !metric.scope || metric.value === undefined || metric.value === null || metric.unit === '' || !metric.sourceField) {
-        failures.push({ code: 'missing-metric-value', stageId: receipt.stageId, identity: key });
-        continue;
-      }
       const normalized: NormalizedMetric = {
         metricId: metric.metricId,
         scope: metric.scope,
@@ -401,9 +403,10 @@ function decideStatus(args: {
   capture: ClosureCapture;
   coverage: TerminalCoverage;
   receipts: readonly ClosureInputReceipt[];
+  observations: readonly NormalizedObservation[];
   competing: readonly CharacterizationFinding[];
 }): ClosureStatus {
-  const { failures, capture, coverage, receipts, competing } = args;
+  const { failures, capture, coverage, receipts, observations, competing } = args;
   if (
     capture.dirty
     || capture.mixedWorktree
@@ -416,7 +419,8 @@ function decideStatus(args: {
     || coverage.stale.length > 0
     || coverage.unresolved.length > 0
     || failures.some((item) => item.code !== 'blocked-terminal' && item.code !== 'blocking-compatibility')
-    || receipts.some((item) => item.status === 'unresolved' || item.observations.some((row) => row.classification === 'unresolved'))
+    || receipts.some((item) => item.status === 'unresolved')
+    || observations.some((row) => row.classification === 'unresolved')
   ) {
     return 'unresolved';
   }
@@ -432,41 +436,53 @@ function decideStatus(args: {
   return 'observed';
 }
 
-function knownCoverageIds(values: readonly string[]): string[] {
-  const allowed = new Set<string>([...REQUIRED_TERMINAL_STAGE_IDS, ...AUTHORITY_INPUT_IDS]);
-  return values.filter((value) => allowed.has(value));
-}
-
-function privacySafeReceipt(receipt: NormalizedClosureReceipt): NormalizedClosureReceipt {
-  const sourceCommit = GIT_SHA.test(receipt.sourceIdentity.sourceCommit) ? receipt.sourceIdentity.sourceCommit : '0'.repeat(40);
-  const sourceTree = GIT_SHA.test(receipt.sourceIdentity.sourceTree) ? receipt.sourceIdentity.sourceTree : '0'.repeat(40);
+function sealReceipt(draft: Omit<NormalizedClosureReceipt, 'receiptId'>): NormalizedClosureReceipt {
+  const body = rebuildPublicReceipt({
+    sourceIdentity: draft.sourceIdentity,
+    inputReceiptIdentities: draft.inputReceiptIdentities,
+    observations: draft.observations,
+    beforeMetrics: draft.beforeMetrics,
+    afterMetrics: draft.afterMetrics,
+    totals: rebuildTotals(draft.totals),
+    terminalCoverage: draft.terminalCoverage,
+    remainingCompatibilityRecords: draft.remainingCompatibilityRecords,
+    blockedRecords: draft.blockedRecords,
+    status: draft.status,
+  });
   return {
     schemaVersion: CLOSURE_SCHEMA_VERSION,
-    receiptId: '0'.repeat(64),
-    sourceIdentity: { sourceCommit, sourceTree },
-    inputReceiptIdentities: [],
-    beforeMetrics: [],
-    afterMetrics: [],
-    totals: receipt.totals,
-    terminalCoverage: {
-      expected: [...REQUIRED_TERMINAL_STAGE_IDS],
-      present: knownCoverageIds(receipt.terminalCoverage.present),
-      missing: knownCoverageIds(receipt.terminalCoverage.missing),
-      duplicate: knownCoverageIds(receipt.terminalCoverage.duplicate),
-      stale: knownCoverageIds(receipt.terminalCoverage.stale),
-      blocked: knownCoverageIds(receipt.terminalCoverage.blocked),
-      unresolved: knownCoverageIds(receipt.terminalCoverage.unresolved),
-    },
-    remainingCompatibilityRecords: [],
-    blockedRecords: [{
-      identity: 'privacy-violation',
-      owner: 'platform',
-      sourceReceiptId: '0'.repeat(64),
-      reason: 'privacy-violation',
-      resolutionCondition: 'remove-secrets-absolute-paths-raw-payloads-and-user-identifiers',
-    }],
-    status: 'unresolved',
+    receiptId: sha256Text(serializeDeterministic(body)),
+    sourceIdentity: body.sourceIdentity,
+    inputReceiptIdentities: body.inputReceiptIdentities,
+    observations: body.observations,
+    beforeMetrics: body.beforeMetrics,
+    afterMetrics: body.afterMetrics,
+    totals: body.totals,
+    terminalCoverage: body.terminalCoverage,
+    remainingCompatibilityRecords: body.remainingCompatibilityRecords,
+    blockedRecords: body.blockedRecords,
+    status: body.status,
   };
+}
+
+function publishReceipt(
+  draft: Omit<NormalizedClosureReceipt, 'receiptId'>,
+  capture: ClosureCapture,
+  failures: ClosureFailure[],
+): NormalizedClosureReceipt {
+  let receipt = sealReceipt(draft);
+  if (!privacyViolation(serializeDeterministic(receipt))) return receipt;
+  failures.push({ code: 'privacy-violation' });
+  receipt = sealReceipt(privacyFallbackReceipt({
+    sourceCommit: capture.sourceCommit,
+    sourceTree: capture.sourceTree,
+  }));
+  if (!privacyViolation(serializeDeterministic(receipt))) return receipt;
+  receipt = sealReceipt(privacyFallbackReceipt({
+    sourceCommit: '0'.repeat(40),
+    sourceTree: '0'.repeat(40),
+  }));
+  return receipt;
 }
 
 export function sealClosureInput(input: Omit<ClosureInputReceipt, 'contentDigest'>): ClosureInputReceipt {
@@ -498,44 +514,61 @@ export function generateArchitectureClosure(
     failures.push({ code: 'competing-aggregator', identity: finding.identity, detail: finding.reason });
   }
 
+  const receipts: ClosureInputReceipt[] = [];
+  const terminalReceipts: ClosureInputReceipt[] = [];
+
   for (const id of AUTHORITY_INPUT_IDS) {
-    const receipt = manifest.inputs?.[id];
-    if (!validateReceiptShape(receipt, id, failures)) continue;
-    if (receipt.stageId !== id) failures.push({ code: 'authority-stage-mismatch', stageId: id, identity: receipt.stageId });
-    if (receipt.sourceCommit !== capture.sourceCommit || receipt.sourceTree !== capture.sourceTree) {
+    const parsed = parseClosureInputReceipt(manifest.inputs?.[id], id, failures);
+    if (!parsed) continue;
+    if (parsed.stageId !== id) failures.push({ code: 'authority-stage-mismatch', stageId: id, identity: parsed.stageId });
+    if (parsed.sourceCommit !== capture.sourceCommit || parsed.sourceTree !== capture.sourceTree) {
       failures.push({ code: 'source-identity-drift', stageId: id });
     }
-    validateCurrentReceipt(receipt, failures, 'authority');
-    validateDenominator(receipt, failures);
+    validateCurrentReceipt(parsed, failures, 'authority');
+    validateRawContentDigest(manifest.inputs?.[id], parsed.stageId, parsed.receiptId, failures);
+    validateDenominator(parsed, failures);
+    receipts.push(parsed);
   }
 
-  for (const terminal of manifest.terminals ?? []) {
-    if (!validateReceiptShape(terminal, terminal.stageId || 'unknown', failures)) continue;
-    if (terminal.sourceCommit !== capture.sourceCommit || terminal.sourceTree !== capture.sourceTree) {
-      failures.push({ code: 'source-identity-drift', stageId: terminal.stageId });
+  const declaredTerminals = Array.isArray(manifest.terminals) ? manifest.terminals : [];
+  if (!Array.isArray(manifest.terminals)) {
+    failures.push({ code: 'invalid-receipt-payload', stageId: 'terminals' });
+  }
+  for (const terminal of declaredTerminals) {
+    const stageId = typeof terminal?.stageId === 'string' && terminal.stageId ? terminal.stageId : 'unknown';
+    const parsed = parseClosureInputReceipt(terminal, stageId, failures);
+    if (!parsed) continue;
+    if (parsed.sourceCommit !== capture.sourceCommit || parsed.sourceTree !== capture.sourceTree) {
+      failures.push({ code: 'source-identity-drift', stageId: parsed.stageId });
     }
-    validateDenominator(terminal, failures);
+    validateRawContentDigest(terminal, parsed.stageId, parsed.receiptId, failures);
+    validateDenominator(parsed, failures);
+    receipts.push(parsed);
+    terminalReceipts.push(parsed);
   }
 
-  const receipts = allInputReceipts(manifest).filter((item): item is ClosureInputReceipt => (
-    Boolean(item)
-    && Array.isArray(item.observations)
-    && Boolean(item.totals)
-    && Array.isArray(item.metrics)
-    && Array.isArray(item.compatibilityRecords)
-    && Array.isArray(item.blockedRecords)
-  ));
-  const observations = receipts.flatMap((item) => item.observations);
+  const rawObservations = receipts.flatMap((item) => item.observations);
+  const conflictPathList = pathConflicts(rawObservations, failures);
+  const observations = projectObservations(receipts, conflictPathList);
   duplicateIdentities(observations, failures);
-  const conflictPathList = pathConflicts(observations, failures);
-  const coverage = buildCoverage(manifest.terminals ?? [], capture, failures);
+  const coverage = buildCoverage(terminalReceipts, capture, failures);
   const { beforeMetrics, afterMetrics } = collectMetrics(receipts, failures);
-  const { totals, conflictRecords } = reconcileConflictTotals(receipts, conflictPathList);
+  const totals = countedTotals(observations);
+  const summed = receipts.reduce((sum, item) => addTotals(sum, item.totals), emptyTotals());
+  if (conflictPathList.length === 0 && (
+    summed.discovered !== totals.discovered
+    || summed.included !== totals.included
+    || summed.excluded !== totals.excluded
+    || summed.duplicate !== totals.duplicate
+    || summed.unresolved !== totals.unresolved
+  )) {
+    failures.push({ code: 'denominator-mismatch', detail: 'global-sum' });
+  }
   if (!totalsClosed(totals)) failures.push({ code: 'denominator-mismatch', detail: 'global' });
 
   const remainingCompatibilityRecords = receipts
     .flatMap((item) => item.compatibilityRecords)
-    .concat(conflictRecords)
+    .concat(conflictRecordsFor(receipts, conflictPathList))
     .slice()
     .sort((left, right) => left.identity.localeCompare(right.identity));
   for (const record of remainingCompatibilityRecords) {
@@ -545,7 +578,13 @@ export function generateArchitectureClosure(
   }
 
   const blockedRecords: BlockedRecord[] = receipts
-    .flatMap((item) => item.blockedRecords.map((record) => ({ ...record, sourceReceiptId: record.sourceReceiptId || item.receiptId })))
+    .flatMap((item) => item.blockedRecords.map((record) => ({
+      identity: record.identity,
+      owner: record.owner,
+      sourceReceiptId: record.sourceReceiptId || item.receiptId,
+      reason: record.reason,
+      resolutionCondition: record.resolutionCondition,
+    })))
     .concat(receipts.filter((item) => item.status === 'blocked').map((item) => ({
       identity: item.stageId,
       owner: item.owner,
@@ -555,11 +594,13 @@ export function generateArchitectureClosure(
     })))
     .sort((left, right) => left.identity.localeCompare(right.identity));
 
-  const status = decideStatus({ failures, capture, coverage, receipts, competing });
-  const draft: Omit<NormalizedClosureReceipt, 'receiptId'> = {
-    schemaVersion: CLOSURE_SCHEMA_VERSION,
+  const status = decideStatus({ failures, capture, coverage, receipts, observations, competing });
+  const draft = rebuildPublicReceipt({
     sourceIdentity: { sourceCommit: capture.sourceCommit, sourceTree: capture.sourceTree },
-    inputReceiptIdentities: receipts.map(identityOf).sort((left, right) => left.stageId.localeCompare(right.stageId) || left.receiptId.localeCompare(right.receiptId)),
+    inputReceiptIdentities: receipts
+      .map(identityOf)
+      .sort((left, right) => left.stageId.localeCompare(right.stageId) || left.receiptId.localeCompare(right.receiptId)),
+    observations,
     beforeMetrics,
     afterMetrics,
     totals,
@@ -567,38 +608,26 @@ export function generateArchitectureClosure(
     remainingCompatibilityRecords,
     blockedRecords,
     status,
-  };
-  let receipt: NormalizedClosureReceipt = {
-    ...draft,
-    receiptId: sha256Text(serializeDeterministic(draft)),
-  };
-  if (privacyViolation(serializeDeterministic(receipt))) {
-    failures.push({ code: 'privacy-violation' });
-    const sanitized = privacySafeReceipt({ ...receipt, status: 'unresolved' });
-    receipt = {
-      ...sanitized,
-      receiptId: recomputeClosureReceiptId(sanitized),
-    };
-    if (privacyViolation(serializeDeterministic(receipt))) {
-      const fallback = privacySafeReceipt({
-        ...sanitized,
-        terminalCoverage: {
-          expected: [...REQUIRED_TERMINAL_STAGE_IDS],
-          present: [],
-          missing: [...REQUIRED_TERMINAL_STAGE_IDS],
-          duplicate: [],
-          stale: [],
-          blocked: [],
-          unresolved: [],
-        },
-      });
-      receipt = {
-        ...fallback,
-        receiptId: recomputeClosureReceiptId(fallback),
-      };
-    }
-  }
+  });
+  const receipt = publishReceipt(draft, capture, failures);
   const serialized = serializeDeterministic(receipt);
+  const lateViolation = privacyViolation(serialized);
+  if (lateViolation) {
+    if (!failures.some((item) => item.code === 'privacy-violation')) {
+      failures.push({ code: 'privacy-violation', detail: lateViolation });
+    }
+    const fallback = sealReceipt(privacyFallbackReceipt({
+      sourceCommit: '0'.repeat(40),
+      sourceTree: '0'.repeat(40),
+    }));
+    const fallbackSerialized = serializeDeterministic(fallback);
+    return {
+      receipt: fallback,
+      serialized: fallbackSerialized,
+      digest: sha256Text(fallbackSerialized),
+      failures,
+    };
+  }
   return {
     receipt,
     serialized,
