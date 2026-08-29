@@ -466,13 +466,15 @@ async function acceptClassifiedSubmissions(
       postSessionReviewCount += 1;
     } else {
       duplicateCount += 1;
-      // DUPLICATE 回执幂等重放事实物化：权威输入是回执 ID 对应的持久化证据行
-      // （规范身份不含答案内容，重试载荷不得作为事实来源）；
-      // sourceEventId 唯一约束保证不双计
-      try {
-        await materializePersistedEvidenceById(prisma, receipt.evidenceId);
-      } catch (error) {
-        console.error('[Interactive Events API] Duplicate-receipt fact replay failed (closure phase will recover):', error);
+      // 仅 ACCEPTED 回执重放事实物化：POST_SESSION_REVIEW 的重复回执不得
+      // 把晚到复盘事实写进原闭包的报告读法；权威输入是回执 ID 对应的
+      // 持久化证据行（sourceEventId 唯一约束保证不双计）
+      if (receipt.evidenceStatus === 'ACCEPTED') {
+        try {
+          await materializePersistedEvidenceById(prisma, receipt.evidenceId);
+        } catch (error) {
+          console.error('[Interactive Events API] Duplicate-receipt fact replay failed (closure phase will recover):', error);
+        }
       }
     }
   }
@@ -850,9 +852,21 @@ export async function POST(request: NextRequest) {
       role: session.user.role,
       profile: session.user.profile ?? null,
     });
+
+    // 先分区：分类提交的幂等权威在写入器事务内（唯一锚点 + 回执重放），
+    // 绝不被通用 clientEventId 预过滤拦截——同 clientEventId 的重试必须
+    // 到达写入器以取得 DUPLICATE 回执并重放持久化证据。
+    const prePartition = partitionClassifiedSubmissionEvents(enrichedValidEvents, session.user.id);
+    let degradedSubmissionEvents = 0;
+    for (const item of prePartition.identityLessSubmissions) {
+      logDegradedEvent(session.user.id, item.event, 'submission_without_canonical_identity');
+      degradedSubmissionEvents += 1;
+    }
+
+    // clientEventId 预去重只作用于被动/遗留事件（它们的写路径无事务幂等）
     const clientEventIds = Array.from(
       new Set(
-        enrichedValidEvents
+        prePartition.legacy
           .map((item) => item.clientEventId)
           .filter((value): value is string => typeof value === 'string' && value.length > 0),
       ),
@@ -876,7 +890,7 @@ export async function POST(request: NextRequest) {
     );
     const seenClientEventIds = new Set<string>();
     let duplicateEvents = 0;
-    const dedupedEvents = enrichedValidEvents.filter((item) => {
+    const dedupedLegacyEvents = prePartition.legacy.filter((item) => {
       if (!item.clientEventId) {
         return true;
       }
@@ -888,7 +902,7 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
-    const trustedEvidenceEvents = dedupedEvents.map((item) => {
+    const trustPayload = (item: NormalizedInteractionEvent) => {
       const payload = item.event.data && typeof item.event.data === 'object' ? item.event.data : {};
       const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
       const trustedPayload = trustNestedEvidenceActorRoles(
@@ -902,17 +916,9 @@ export async function POST(request: NextRequest) {
           data: trustedPayload,
         },
       };
-    });
-
-    // 分类提交走共享写入器（会话事务边界）；无法建立规范身份的提交降级拒绝
-    // （不存在绕过水位边界的证据写入路径）；被动事件保持批量持久化路径。
-    const { submissions: classifiedSubmissions, identityLessSubmissions, legacy: legacyEvidenceEvents } =
-      partitionClassifiedSubmissionEvents(trustedEvidenceEvents, session.user.id);
-    let degradedSubmissionEvents = 0;
-    for (const item of identityLessSubmissions) {
-      logDegradedEvent(session.user.id, item.event, 'submission_without_canonical_identity');
-      degradedSubmissionEvents += 1;
-    }
+    };
+    const legacyEvidenceEvents = dedupedLegacyEvents.map(trustPayload);
+    const classifiedSubmissions = prePartition.submissions.map(trustPayload);
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
@@ -1134,7 +1140,8 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: dedupedEvents.length - degradedSubmissionEvents,
+      count: dedupedLegacyEvents.length + submissionOutcome.acceptedCount
+        + submissionOutcome.postSessionReviewCount + submissionOutcome.duplicateCount,
       degraded: degradedEvents.length + degradedSubmissionEvents,
       duplicates: duplicateEvents + submissionOutcome.duplicateCount,
       submissionDuplicates: submissionOutcome.duplicateCount,

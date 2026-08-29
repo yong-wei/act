@@ -130,6 +130,7 @@ describe('POST /api/interactive/events', () => {
       sourceLogId: 'source-existing-duplicate',
       submittedAt: new Date('2026-05-12T01:46:42.900Z'),
       responseData: { eventType: 'lesson_submit', score: 100 },
+      evidenceStatus: 'ACCEPTED',
     });
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });

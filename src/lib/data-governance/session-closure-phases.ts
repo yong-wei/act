@@ -360,10 +360,11 @@ export async function settleSessionClosuresIfComplete(
 }
 
 /**
- * 阶段执行计划（依赖有序）：materialize 是 summarize/cache 的输入生产者。
- * - materialize 未成功：只计划 materialize（下游现在跑也只会消费到不完整事实）；
- * - materialize 成功：计划未成功的下游，以及 updatedAt 早于最近一次物化
- *   的下游（物化重跑后陈旧的消费者必须重算）。
+ * 阶段执行计划（严格串行依赖链）：materialize → cache → summarize。
+ * summarize 是报告的生成者，必须最后运行——它读取的台账已含最终 cache
+ * 回执，从结构上消除"并发阶段把 PENDING 快照固化进报告"的竞态。
+ * 每级在输入阶段成功后才运行，且输入阶段重跑后（updatedAt 更新），
+ * 陈旧的下游会被强制重算。
  */
 export function planClosurePhaseRun(rows: PhaseRow[]): SessionClosurePhaseName[] {
   const byPhase = new Map(rows.map((row) => [row.phase, row]));
@@ -371,15 +372,19 @@ export function planClosurePhaseRun(rows: PhaseRow[]): SessionClosurePhaseName[]
   if (!materialize || materialize.status !== 'SUCCEEDED') {
     return materialize ? ['materialize'] : [];
   }
-  const plan: SessionClosurePhaseName[] = [];
-  for (const downstream of ['summarize', 'cache'] as const) {
-    const row = byPhase.get(downstream);
-    if (!row) continue;
-    if (row.status !== 'SUCCEEDED' || new Date(row.updatedAt) < new Date(materialize.updatedAt)) {
-      plan.push(downstream);
-    }
+  const cache = byPhase.get('cache');
+  if (!cache) return [];
+  if (cache.status !== 'SUCCEEDED' || new Date(cache.updatedAt) < new Date(materialize.updatedAt)) {
+    return ['cache'];
   }
-  return plan;
+  const summarize = byPhase.get('summarize');
+  if (!summarize) return [];
+  const stale = new Date(summarize.updatedAt) < new Date(materialize.updatedAt)
+    || new Date(summarize.updatedAt) < new Date(cache.updatedAt);
+  if (summarize.status !== 'SUCCEEDED' || stale) {
+    return ['summarize'];
+  }
+  return [];
 }
 
 /** 未完成阶段的清单（含陈旧失效）：协调器据此重放（唯一的恢复入口）。 */

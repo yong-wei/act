@@ -111,3 +111,9 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 ## 15. 报告投影收敛（2026-08-29，PR #1668）
 
 阶段回执变化（materialize/cache 成功或失败，含异常路径）后经 `projectClosureLedgerIntoReport` 主动把台账状态回写进 class-summary 报告，与报告生成时的投影共用同一形状——报告不再是生成时快照，教师页面看到的是与台账一致的最终阶段状态。
+
+## 16. 收敛模型的最后一轮精化（2026-08-29，PR #1668）
+
+1. **重试必达写入器**：分区前移到 clientEventId 预去重之前——分类提交的幂等权威完全在写入器事务内（唯一锚点 + 回执重放），同 clientEventId 重试不再被通用预过滤拦截，DUPLICATE 回执与持久化证据重放始终可达。
+2. **重放仅限 ACCEPTED**：DUPLICATE 回执重放要求 `receipt.evidenceStatus === 'ACCEPTED'`，且 `materializePersistedEvidenceById` 在持久化行层再次拒绝 POST_SESSION_REVIEW——晚到复盘事实不可能经重放进入原闭包报告。
+3. **阶段链严格串行**：`planClosurePhaseRun` 改为 materialize → cache → summarize 单链（summarize 最后生成报告，读取的台账已含最终 cache 回执），结构上消除并发阶段把 PENDING 快照固化进报告的竞态。

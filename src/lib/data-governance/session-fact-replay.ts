@@ -30,9 +30,11 @@ export async function materializePersistedEvidenceById(
       sourceLogId: true,
       submittedAt: true,
       responseData: true,
+      evidenceStatus: true,
     },
   });
-  if (!row || !row.clientEventId) return false;
+  // 晚到复盘证据永不重放为事实（默认报告按会话读事实，会污染原闭包）
+  if (!row || !row.clientEventId || row.evidenceStatus !== 'ACCEPTED') return false;
   return materializeEvidenceRow(db, {
     userId: row.userId,
     sessionId: row.sessionId,
