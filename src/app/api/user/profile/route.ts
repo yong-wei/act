@@ -8,6 +8,10 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  isConsumerUnauthorized,
+  readStudentEvidencePort,
+} from '@/features/learning-record/consumers/public-api';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { prisma } from '@/lib/prisma';
 import {
@@ -22,10 +26,9 @@ import {
   type ProfileActivityItem,
 } from '@/lib/data-governance/profile-center';
 import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
-import {
-  readCurrentCumulativePortrait,
-  type CumulativePortraitAvailabilityReason,
-  type CumulativePortraitReadModel,
+import type {
+  CumulativePortraitAvailabilityReason,
+  CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   readAbilityReport,
@@ -412,7 +415,11 @@ export async function GET() {
           ethicsScore: true,
         },
       }),
-      readCurrentCumulativePortrait(prisma, userId, 'student'),
+      readStudentEvidencePort({
+        db: prisma,
+        viewer: { role: 'student', subjectUserId: userId },
+        targetUserId: userId,
+      }).then((port) => port.portrait),
       prisma.simulationLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -714,6 +721,9 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('获取用户画像失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

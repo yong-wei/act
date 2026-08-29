@@ -10,7 +10,7 @@ import {
   buildCourseBasisLessonDesignSourcePack,
 } from '../course-basis/lesson-design-source-pack';
 import { teacherCourseBasisCitationTargetId } from '../source-pack/teacher-course-basis';
-import { readCurrentCumulativeClassPortrait } from '../data-governance/cumulative-portrait-read-model';
+import { readTeacherClassEvidencePort } from '@/features/learning-record/consumers/public-api';
 
 import { generateSmartLessonAdvisoryReport } from './provider-runtime';
 
@@ -1814,7 +1814,13 @@ async function readGenerationClassContext(
     select: { id: true },
   });
   if (!ownedClass) throw new SmartLessonPlanError('selected-class-not-authorized', 403);
-  const portrait = await readCurrentCumulativeClassPortrait(tx, ownedClass.id);
+  const classRead = await readTeacherClassEvidencePort({
+    db: tx,
+    viewer: { role: 'teacher', subjectUserId: ownerId, classIds: [ownedClass.id] },
+    classId: ownedClass.id,
+    memberUserIds: [],
+  });
+  const portrait = classRead.classPortrait;
   if (portrait.stateKind !== 'SNAPSHOT') return null;
   return projectCurrentCumulativeClassPortrait({ classId: ownedClass.id, portrait });
 }

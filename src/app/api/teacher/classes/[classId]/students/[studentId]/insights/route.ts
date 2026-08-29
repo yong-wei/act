@@ -5,11 +5,7 @@ import {
   PORTRAIT_V2_DIMENSIONS,
   type PortraitV2DimensionId,
 } from '@/lib/data-governance/kaq-objective-taxonomy';
-import {
-  readCurrentCumulativeClassPortrait,
-  readCurrentCumulativePortrait,
-  type CumulativePortraitAvailabilityReason,
-} from '@/lib/data-governance/cumulative-portrait-read-model';
+import type { CumulativePortraitAvailabilityReason } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   createPrismaDiagnosisReportSnapshotStore,
   hasDiagnosisReportSnapshotPersistenceTable,
@@ -19,6 +15,11 @@ import {
   materializeRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosis,
 } from '@/lib/data-governance/role-based-learning-diagnosis';
+import {
+  isConsumerUnauthorized,
+  readTeacherStudentEvidencePort,
+  viewerFromSession,
+} from '@/features/learning-record/consumers/public-api';
 import { resolveTeacherStudentPortraitAccess } from '@/lib/data-governance/portrait-reconciliation-access';
 import { summarizeSubmissionEvidencePayload } from '@/lib/data-governance/submission-evidence-quality';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -188,15 +189,18 @@ export async function GET(
     const { classData, studentProfile } = access;
 
     const [
-      portrait,
-      classPortrait,
+      evidencePort,
       latestFacts,
       durableSubmissions,
       sessionReports,
       growthRecords,
     ] = await Promise.all([
-      readCurrentCumulativePortrait(prisma, studentId, 'reviewer'),
-      readCurrentCumulativeClassPortrait(prisma, classId),
+      readTeacherStudentEvidencePort({
+        db: prisma,
+        viewer: viewerFromSession(session, [classId]),
+        classId,
+        studentId,
+      }),
       prisma.learningFact.findMany({
         where: { userId: studentId },
         orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
@@ -258,6 +262,8 @@ export async function GET(
         },
       }),
     ]);
+    const portrait = evidencePort.student.portrait;
+    const classPortrait = evidencePort.classPortrait;
 
     const dimensions = PORTRAIT_V2_DIMENSIONS.map(({ id, label }) => {
       const dimension = portrait.payload?.dimensions.find((item) => item.id === id);
@@ -364,11 +370,15 @@ export async function GET(
       taskAttainment: {
         personal: dimensions.find((dimension) =>
           dimension.id === 'simulationValidationEvidence')?.taskAttainment ?? null,
-        classAggregate: classPortrait.aggregate?.taskAttainment ?? null,
+        classAggregate: evidencePort.classRead.suppressed
+          ? null
+          : classPortrait.aggregate?.taskAttainment ?? null,
       },
       classComparison: dimensions.map((dimension) => {
         const classDimension = classPortrait.aggregate?.dimensions[dimension.id] ?? null;
-        const classAverage = classDimension?.mean ?? null;
+        const classAverage = evidencePort.classRead.suppressed
+          ? null
+          : classDimension?.mean ?? null;
         const available = dimension.score !== null && classAverage !== null;
         return {
           dimension: dimension.id,
@@ -443,6 +453,9 @@ export async function GET(
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('[TeacherStudentInsights] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

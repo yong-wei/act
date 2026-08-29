@@ -7,7 +7,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import { listCourseBases } from '@/lib/course-basis';
 import { prisma } from '@/lib/prisma';
 import { getSmartLessonTask, listSmartLessonTaskSummaries } from '@/lib/smart-lesson-plan';
-import { readCurrentCumulativeClassPortrait } from '@/lib/data-governance/cumulative-portrait-read-model';
+import { readTeacherClassEvidencePort } from '@/features/learning-record/consumers/public-api';
 import { loadSmartPreparationTextbookCatalog } from '@/lib/smart-lesson-plan/textbook-resource-pack';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +47,12 @@ export default async function SmartPrepPage({
   ];
   const portraitRows = await Promise.all(classes.map(async (item) => ({
     item,
-    portrait: await readCurrentCumulativeClassPortrait(prisma, item.id),
+    portrait: (await readTeacherClassEvidencePort({
+      db: prisma,
+      viewer: { role: 'teacher', subjectUserId: session.user.id, classIds: [item.id] },
+      classId: item.id,
+      memberUserIds: [],
+    })).classPortrait,
   })));
   const classDiagnosisOptions = portraitRows.map(({ item, portrait }) => ({
     classId: item.id,

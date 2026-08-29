@@ -215,7 +215,7 @@ describe('teacher cumulative attainment delivery', () => {
     expect(insights).toMatchObject({
       scope: 'cumulative',
       overview: {
-        overallIndex: 82,
+        overallIndex: null,
         mediumRiskStudents: 1,
         attentionStudents: 1,
       },

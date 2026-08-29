@@ -133,6 +133,7 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(mocks.readCurrentCumulativePortrait).toHaveBeenCalledWith(
       mocks.prisma,
       'student-1',
+      'student',
     );
     expect(body).toMatchObject({
       derivationState: 'current',
@@ -232,5 +233,17 @@ describe('GET /api/student/competency-snapshot', () => {
 
     expect(response.status).toBe(401);
     expect(mocks.readCurrentCumulativePortrait).not.toHaveBeenCalled();
+  });
+
+  it('ignores client subject identifiers and only reads the authenticated student', async () => {
+    await GET(new NextRequest(
+      'http://localhost/api/student/competency-snapshot?userId=other-student',
+    ));
+
+    expect(mocks.readCurrentCumulativePortrait).toHaveBeenCalledWith(
+      mocks.prisma,
+      'student-1',
+      'student',
+    );
   });
 });

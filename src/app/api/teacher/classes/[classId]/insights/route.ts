@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server';
 
 import { buildArenaClassEvidenceSummary } from '@/features/arena/evidence-summary';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  isConsumerUnauthorized,
+  readTeacherClassEvidencePort,
+  viewerFromSession,
+} from '@/features/learning-record/consumers/public-api';
 import { summarizeGovernanceState } from '@/features/teacher/teacher-insights';
 import { getServerAuthSession } from '@/lib/auth';
 import { COMPETENCY_LEVELS } from '@/lib/data-governance/competency-model';
-import {
-  readCurrentCumulativeClassPortrait,
-  readCurrentCumulativePortrait,
-  type CumulativeClassPortraitReadModel,
-  type CumulativePortraitReadModel,
+import type {
+  CumulativeClassPortraitReadModel,
+  CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   PORTRAIT_V2_DIMENSIONS,
@@ -30,7 +33,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
-type StudentPortrait = Awaited<ReturnType<typeof readCurrentCumulativePortrait>>;
+type StudentPortrait = CumulativePortraitReadModel;
 
 interface TeacherClassInsightStudent {
   id: string;
@@ -156,13 +159,15 @@ export async function GET(
       return NextResponse.json(unsupportedScopeError, { status: 400 });
     }
 
-    const classPortrait = await readCurrentCumulativeClassPortrait(prisma, classId);
-    const portraitEntries = await Promise.all(classData.students.map(async (profile) => [
-      profile.userId,
-      await readCurrentCumulativePortrait(prisma, profile.userId),
-    ] as const));
-    const portraits = new Map(portraitEntries);
-    const studentIds = classData.students.map((profile) => profile.userId);
+    const memberUserIds = classData.students.map((profile) => profile.userId);
+    const teacherPort = await readTeacherClassEvidencePort({
+      db: prisma,
+      viewer: viewerFromSession(session, [classId]),
+      classId,
+      memberUserIds,
+    });
+    const classPortrait = teacherPort.classPortrait;
+    const portraits = teacherPort.learnerPortraits;
     const [classSessionIds, classArenaSubmissions] = await Promise.all([
       prisma.classSession.findMany({
         where: { classId },
@@ -171,11 +176,11 @@ export async function GET(
       prismaArenaSubmissionStore.listSubmissions({ classId }),
     ]);
     const arenaSubmissions = classArenaSubmissions.filter(({ userId }) =>
-      typeof userId === 'string' && studentIds.includes(userId));
-    const arenaLearningFacts = studentIds.length
+      typeof userId === 'string' && memberUserIds.includes(userId));
+    const arenaLearningFacts = memberUserIds.length
       ? await prisma.learningFact.findMany({
           where: {
-            userId: { in: studentIds },
+            userId: { in: memberUserIds },
             factType: 'design',
             OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
           },
@@ -216,8 +221,8 @@ export async function GET(
       return {
         dimension: id,
         label,
-        mean: aggregate?.mean ?? null,
-        meanConfidence: aggregate?.meanConfidence ?? null,
+        mean: teacherPort.classRead.suppressed ? null : (aggregate?.mean ?? null),
+        meanConfidence: teacherPort.classRead.suppressed ? null : (aggregate?.meanConfidence ?? null),
         includedCount: aggregate?.includedCount ?? 0,
         missingCount: aggregate?.missingCount ?? students.length,
       };
@@ -248,7 +253,7 @@ export async function GET(
         latestStudentSnapshotAt,
       },
       overview: {
-        overallIndex: classPortrait.aggregate?.overall.mean ?? null,
+        overallIndex: teacherPort.classRead.aggregates?.averageScore ?? null,
         highRiskStudents,
         mediumRiskStudents,
         attentionStudents,
@@ -263,7 +268,9 @@ export async function GET(
           ? 'unavailable'
           : classPortrait.activeStudentCount > 0 ? 'ready' : 'no-evidence',
         dimensions: abilityDimensions,
-        taskAttainment: classPortrait.aggregate?.taskAttainment ?? null,
+        taskAttainment: teacherPort.classRead.suppressed
+          ? null
+          : classPortrait.aggregate?.taskAttainment ?? null,
         levelDistribution: students.reduce<LevelDistribution>((distribution, student) => {
           if (student.overallScore !== null) {
             distribution[getCompetencyLevelKey(student.overallScore)] += 1;
@@ -289,6 +296,9 @@ export async function GET(
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('[TeacherClassInsights] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

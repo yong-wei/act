@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getServerAuthSession } from '@/lib/auth';
 import {
-  readCurrentCumulativeClassPortrait,
-  readCurrentCumulativePortrait,
-  type CumulativeClassPortraitReadModel,
-} from '@/lib/data-governance/cumulative-portrait-read-model';
+  isConsumerUnauthorized,
+  readTeacherClassEvidencePort,
+  viewerFromSession,
+} from '@/features/learning-record/consumers/public-api';
+import { getServerAuthSession } from '@/lib/auth';
+import type { CumulativeClassPortraitReadModel } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   PORTRAIT_V2_DIMENSIONS,
   type PortraitV2DimensionId,
@@ -116,14 +117,14 @@ export async function GET(
       },
       orderBy: { createdAt: 'asc' },
     });
-    const [classPortrait, portraitEntries] = await Promise.all([
-      readCurrentCumulativeClassPortrait(prisma, classId),
-      Promise.all(classStudents.map(async (profile) => [
-        profile.userId,
-        await readCurrentCumulativePortrait(prisma, profile.userId),
-      ] as const)),
-    ]);
-    const portraits = new Map(portraitEntries);
+    const teacherPort = await readTeacherClassEvidencePort({
+      db: prisma,
+      viewer: viewerFromSession(session, [classId]),
+      classId,
+      memberUserIds: classStudents.map((profile) => profile.userId),
+    });
+    const classPortrait = teacherPort.classPortrait;
+    const portraits = teacherPort.learnerPortraits;
     const studentRows: HeatmapData['students'] = classStudents.map((profile) => {
       const portrait = portraits.get(profile.userId)!;
       return {
@@ -186,6 +187,9 @@ export async function GET(
     return NextResponse.json(response, { headers });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('[ClassHeatmap] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();

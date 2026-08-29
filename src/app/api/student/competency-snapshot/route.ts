@@ -4,12 +4,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getServerAuthSession } from '@/lib/auth';
 import {
-  readCurrentCumulativePortrait,
-  type CumulativePortraitReadDb,
-  type CumulativePortraitReadModel,
-} from '@/lib/data-governance/cumulative-portrait-read-model';
+  isConsumerUnauthorized,
+  readStudentEvidencePort,
+} from '@/features/learning-record/consumers/public-api';
+import { getServerAuthSession } from '@/lib/auth';
+import type { CumulativePortraitReadModel } from '@/lib/data-governance/cumulative-portrait-read-model';
 import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
 import type {
   RoleBasedLearningDiagnosis,
@@ -39,15 +39,20 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const state = await readCurrentCumulativePortrait(
-      prisma as unknown as CumulativePortraitReadDb,
-      session.user.id,
-    );
+    const evidence = await readStudentEvidencePort({
+      db: prisma,
+      viewer: { role: 'student', subjectUserId: session.user.id },
+      targetUserId: session.user.id,
+    });
+    const state = evidence.portrait;
     if (state.stateKind !== 'SNAPSHOT' || !state.payload) {
       return NextResponse.json({
         derivationState: state.availabilityReason,
         evidenceState: state.stateKind === 'NO_EVIDENCE' ? 'empty' : 'unavailable',
         availabilityReason: state.availabilityReason,
+        projectionStatus: evidence.status,
+        projectionReason: evidence.reason,
+        knownZero: evidence.knownZero,
         currentSnapshot: null,
         previousSnapshot: null,
         trendVector: null,
@@ -65,6 +70,10 @@ export async function GET(request: NextRequest) {
       derivationState: 'current',
       evidenceState: 'current',
       availabilityReason: state.availabilityReason,
+      projectionStatus: evidence.status,
+      projectionReason: evidence.reason,
+      knownZero: evidence.knownZero,
+      provenanceRevision: evidence.read.fields.provenanceRevision,
       currentSnapshot: {
         portrait,
         snapshotAt: state.generatedAt,
@@ -87,6 +96,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('[StudentSnapshot] Error:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }
