@@ -1,5 +1,7 @@
 import { privacyViolation as censusPrivacyViolation } from '@/lib/architecture-census/privacy';
 
+import { isSafeObservationIdentity } from './observation-identity';
+
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/u;
 const ABSOLUTE_PATH = /(?:^|[\s"'`=(,:])(?:\/(?:Users|home|private|var|tmp|opt|etc|workspace|root|mnt|media|usr|data)(?:\/|[\\"'\s,]|$)|[A-Za-z]:\\|(?:\/[\w.-]+){2,}\/[\w.-]+)/u;
 const LEARNER = /\b(?:studentId|userId|rawAnswer|eventPayload|cookie|learner)\b/iu;
@@ -94,6 +96,15 @@ function inspectArray(
     if ('owner' in item && typeof (item as { owner: unknown }).owner === 'string') {
       const ownerViolation = publicOwnerViolation((item as { owner: string }).owner);
       if (ownerViolation) return ownerViolation;
+    }
+    const observation = item as { identity?: unknown; classification?: unknown; sourceStageId?: unknown };
+    if (typeof observation.identity === 'string' && typeof observation.classification === 'string') {
+      if (!isSafeObservationIdentity(
+        observation.identity,
+        typeof observation.sourceStageId === 'string' ? observation.sourceStageId : undefined,
+      )) {
+        return 'user-identifier';
+      }
     }
     const found = walkStrings(item);
     if (found) return found;

@@ -1,4 +1,5 @@
 import type { CharacterizationFinding } from './characterize';
+import { publicObservationIdentity } from './observation-identity';
 import { CLOSURE_OWNER } from './stages';
 import { privacyFallbackReceipt, rebuildPublicReceipt, rebuildTotals } from './rebuild';
 import { parseClosureInputReceipt } from './schema';
@@ -164,6 +165,7 @@ function pathConflicts(observations: readonly ClosureObservation[], failures: Cl
 function projectObservations(
   receipts: readonly ClosureInputReceipt[],
   conflictPathList: readonly string[],
+  failures: ClosureFailure[],
 ): NormalizedObservation[] {
   const conflictPaths = new Set(conflictPathList);
   const projected: NormalizedObservation[] = [];
@@ -172,6 +174,14 @@ function projectObservations(
       const classification = observation.path && conflictPaths.has(observation.path)
         ? 'unresolved'
         : observation.classification;
+      const published = publicObservationIdentity(observationIdentity(observation), receipt.stageId);
+      if (!published.safe) {
+        failures.push({
+          code: 'unsafe-observation-identity',
+          stageId: receipt.stageId,
+          identity: published.identity,
+        });
+      }
       const next: {
         identity: string;
         classification: NormalizedObservation['classification'];
@@ -180,7 +190,7 @@ function projectObservations(
         path?: string;
         contentDigest?: string;
       } = {
-        identity: observationIdentity(observation),
+        identity: published.identity,
         classification,
         sourceStageId: receipt.stageId,
       };
@@ -420,7 +430,7 @@ function decideStatus(args: {
     || coverage.unresolved.length > 0
     || failures.some((item) => item.code !== 'blocked-terminal' && item.code !== 'blocking-compatibility')
     || receipts.some((item) => item.status === 'unresolved')
-    || observations.some((row) => row.classification === 'unresolved')
+    || observations.some((row) => row.classification === 'unresolved' || row.classification === 'duplicate')
   ) {
     return 'unresolved';
   }
@@ -549,8 +559,17 @@ export function generateArchitectureClosure(
 
   const rawObservations = receipts.flatMap((item) => item.observations);
   const conflictPathList = pathConflicts(rawObservations, failures);
-  const observations = projectObservations(receipts, conflictPathList);
+  const observations = projectObservations(receipts, conflictPathList, failures);
   duplicateIdentities(observations, failures);
+  for (const observation of observations) {
+    if (observation.classification === 'duplicate') {
+      failures.push({
+        code: 'duplicate-observation',
+        stageId: observation.sourceStageId,
+        identity: observation.identity,
+      });
+    }
+  }
   const coverage = buildCoverage(terminalReceipts, capture, failures);
   const { beforeMetrics, afterMetrics } = collectMetrics(receipts, failures);
   const totals = countedTotals(observations);

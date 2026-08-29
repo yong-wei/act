@@ -550,27 +550,61 @@ describe('architecture closure', () => {
           observations: [
             observation('baseline:item'),
             observation('baseline:excluded-item', 'excluded'),
-            observation('baseline:duplicate-item', 'duplicate'),
           ],
-          totals: { discovered: 3, included: 1, excluded: 1, duplicate: 1, unresolved: 0 },
+          totals: { discovered: 2, included: 1, excluded: 1, duplicate: 0, unresolved: 0 },
         }),
       },
     });
     const visible = generateArchitectureClosure(capture(), excluded, []);
+    expect(visible.receipt.status).toBe('qualified');
     expect(visible.receipt.observations.some((item) => (
       item.identity === 'baseline:excluded-item' && item.classification === 'excluded'
     ))).toBe(true);
-    expect(visible.receipt.observations.some((item) => (
-      item.identity === 'baseline:duplicate-item' && item.classification === 'duplicate'
-    ))).toBe(true);
     expect(visible.receipt.totals.excluded).toBe(1);
-    expect(visible.receipt.totals.duplicate).toBe(1);
     expect(visible.receipt.totals.discovered).toBe(
       visible.receipt.totals.included
       + visible.receipt.totals.excluded
       + visible.receipt.totals.duplicate
       + visible.receipt.totals.unresolved,
     );
+
+    const duplicated = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        baseline: receipt('baseline', {
+          observations: [
+            observation('baseline:item'),
+            observation('baseline:duplicate-item', 'duplicate'),
+          ],
+          totals: { discovered: 2, included: 1, excluded: 0, duplicate: 1, unresolved: 0 },
+        }),
+      },
+    });
+    const duplicateResult = generateArchitectureClosure(capture(), duplicated, []);
+    expect(duplicateResult.receipt.status).toBe('unresolved');
+    expect(duplicateResult.failures.some((item) => item.code === 'duplicate-observation')).toBe(true);
+    expect(duplicateResult.receipt.observations.some((item) => (
+      item.identity === 'baseline:duplicate-item' && item.classification === 'duplicate'
+    ))).toBe(true);
+    expect(duplicateResult.receipt.totals.duplicate).toBe(1);
+
+    const opaque = qualifiedManifest({
+      inputs: {
+        ...qualifiedManifest().inputs,
+        baseline: receipt('baseline', {
+          observations: [observation('alice-12345')],
+          totals: { discovered: 1, included: 1, excluded: 0, duplicate: 0, unresolved: 0 },
+        }),
+      },
+    });
+    const opaqueIdentity = generateArchitectureClosure(capture(), opaque, []);
+    expect(opaqueIdentity.receipt.status).toBe('unresolved');
+    expect(opaqueIdentity.failures.some((item) => item.code === 'unsafe-observation-identity')).toBe(true);
+    expect(opaqueIdentity.serialized).not.toContain('alice-12345');
+    expect(opaqueIdentity.receipt.observations.every((item) => !item.identity.includes('alice'))).toBe(true);
+    expect(opaqueIdentity.receipt.observations.some((item) => (
+      item.sourceStageId === 'baseline' && item.identity.startsWith('obs:')
+    ))).toBe(true);
 
     const honest = receipt('quality-1554');
     const pollutedBody = {

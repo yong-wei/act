@@ -1,3 +1,4 @@
+import { publicObservationIdentity } from './observation-identity';
 import { CLOSURE_OWNER } from './stages';
 import {
   AUTHORITY_INPUT_IDS,
@@ -103,7 +104,7 @@ function rebuildObservation(observation: NormalizedObservation): NormalizedObser
     path?: string;
     contentDigest?: string;
   } = {
-    identity: observation.identity,
+    identity: publicObservationIdentity(observation.identity, observation.sourceStageId).identity,
     classification: (OBSERVATION_CLASSES as readonly string[]).includes(observation.classification)
       ? observation.classification
       : 'unresolved',

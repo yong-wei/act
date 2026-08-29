@@ -43,8 +43,14 @@ unresolved` for every stage and for the global sum. Excluded, duplicate, and
 unresolved records SHALL remain visible in the normalized receipt as sorted
 safe `observations` projections (`identity`, `classification`, `sourceStageId`,
 and optional `worktreeRole` / relative `path` / `contentDigest`) and SHALL
-count in the denominator. The validator SHALL NOT copy observation free-text
-`reason` fields into the public receipt.
+count in the denominator. Public observation identities SHALL match
+`{knownStageId}:{token}` or `{worktreeRole}:{relativePath}:{contentDigest}`.
+Any other identity SHALL be replaced by an irreversible `obs:` digest and
+SHALL prevent qualification. The validator SHALL NOT copy observation
+free-text `reason` fields into the public receipt. A `duplicate` observation
+in the final set SHALL keep its record in the denominator and SHALL make
+status `unresolved`. A justified `excluded` observation SHALL remain visible
+and SHALL NOT by itself prevent qualification.
 
 #### Scenario: An input denominator is complete
 
@@ -55,7 +61,16 @@ count in the denominator. The validator SHALL NOT copy observation free-text
 - **AND** the global totals SHALL be the deterministic sum of the stage totals
   unless a worktree path conflict reclassifies records into `unresolved`
 - **AND** every contributed observation SHALL appear in the normalized
-  `observations` array with a stable identity and classification.
+  `observations` array with a stable producer identity and classification.
+
+#### Scenario: A duplicate observation remains in the denominator
+
+- **WHEN** an otherwise complete input declares a `duplicate` observation with
+  closed totals
+- **THEN** the record SHALL remain visible in the normalized `observations`
+  array and count in `totals.duplicate`
+- **AND** status SHALL be `unresolved`; the validator SHALL NOT grant
+  `qualified` while any duplicate observation remains.
 
 #### Scenario: An item is missing from the denominator
 
