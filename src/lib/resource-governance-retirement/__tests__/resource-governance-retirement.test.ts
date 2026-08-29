@@ -852,4 +852,61 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(verdict.deletionsAuthorized).toEqual([]);
     expect(verdict.reasons).toContain('zero-caller-flag-mismatch:registry-read:obsolete-helper');
   });
+
+  it('holds the worktree lock across final recapture and digest-checked unlink', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
+    });
+    const events: string[] = [];
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-lock',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: () => {
+        events.push('capture');
+        return captureFromGraph(graph)();
+      },
+      holdWorktreeLock: () => {
+        events.push('lock');
+        return {
+          release() {
+            events.push('unlock');
+          },
+        };
+      },
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:06:00.000Z',
+    });
+    expect(receipt.status).toBe('deleted');
+    expect(events[0]).toBe('capture');
+    expect(events[1]).toBe('lock');
+    expect(events[2]).toBe('capture');
+    expect(events.at(-1)).toBe('unlock');
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(false);
+  });
+
+  it('refuses unlink when on-disk bytes no longer match the verified archive digest', () => {
+    const graph = completeGraph({});
+    const manifest = readyManifest(graph, 'approve-delete');
+    const fs = memoryFs({
+      'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }\n// mutated after capture',
+    });
+    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+      receiptId: 'del-ondisk-drift',
+      manifest,
+      graph,
+      listedPaths: ['src/lib/obsolete-registry-read.ts'],
+      fs,
+      captureWorktree: captureFromGraph(graph),
+      postDeleteVerification: passingPostDeleteVerification(),
+      deletedAt: '2026-08-28T04:07:00.000Z',
+    });
+    expect(receipt.status).toBe('blocked');
+    expect(receipt.reasons).toContain('pre-unlink-digest-mismatch:src/lib/obsolete-registry-read.ts');
+    expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
 });

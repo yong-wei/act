@@ -4,11 +4,10 @@
  * Deletes only listed source entrypoints after the gate passes. Directory or
  * glob targets, unknown callers, and post-scan races fail closed.
  *
- * Production callers must pass `captureRetirementWorktree(repoRoot)` from
- * `./repo-scan` so HEAD, dirty paths, file digests, and callers are recaptured
- * from the live worktree immediately before unlink. `postDeleteImportBuild` is
- * bound only to injected import/build and test command results, never to a
- * remaining-file string scan.
+ * Production callers must pass `captureRetirementWorktree(repoRoot)` and
+ * `holdRetirementWorktreeLock(repoRoot)` from `./repo-scan`. The lock covers
+ * the final recapture through digest-checked unlink. `postDeleteImportBuild`
+ * is bound only to injected import/build and test command results.
  */
 
 import {
@@ -47,6 +46,10 @@ export interface PostDeleteCommandResult {
 export interface PostDeleteVerification {
   runImportBuild(): PostDeleteCommandResult;
   runTests(): PostDeleteCommandResult;
+}
+
+export interface RetirementWorktreeLock {
+  release(): void;
 }
 
 function worktreeDeletionReasons(input: {
@@ -99,6 +102,7 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
   listedPaths: readonly string[];
   fs: RetirementFileSystem;
   captureWorktree: () => RetirementWorktreeSnapshot;
+  holdWorktreeLock?: () => RetirementWorktreeLock;
   postDeleteVerification: PostDeleteVerification;
   deletedAt: string;
 }): DeletionReceipt {
@@ -179,21 +183,12 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     return blocked(firstReasons);
   }
 
-  const recapture = readWorktree();
-  if ('status' in recapture && recapture.status === 'blocked') {
-    return recapture;
-  }
-  const liveWorktree = recapture as RetirementWorktreeSnapshot;
-  if (liveWorktree.headRevision !== worktree.headRevision) {
-    return blocked(['worktree-unstable-head']);
-  }
-  const recaptureReasons = worktreeDeletionReasons({
-    worktree: liveWorktree,
-    graph: input.graph,
-    authorizedIds: verdict.deletionsAuthorized,
-  });
-  if (recaptureReasons.length > 0) {
-    return blocked(recaptureReasons);
+  let lockHandle: RetirementWorktreeLock;
+  try {
+    lockHandle = (input.holdWorktreeLock ?? (() => ({ release() {} })))();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'unknown';
+    return blocked([`worktree-lock-failed:${detail}`]);
   }
 
   const deletedPaths: string[] = [];
@@ -207,8 +202,33 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
   };
 
   try {
+    const recapture = readWorktree();
+    if ('status' in recapture && recapture.status === 'blocked') {
+      return recapture;
+    }
+    const liveWorktree = recapture as RetirementWorktreeSnapshot;
+    if (liveWorktree.headRevision !== worktree.headRevision) {
+      return blocked(['worktree-unstable-head']);
+    }
+    const recaptureReasons = worktreeDeletionReasons({
+      worktree: liveWorktree,
+      graph: input.graph,
+      authorizedIds: verdict.deletionsAuthorized,
+    });
+    if (recaptureReasons.length > 0) {
+      return blocked(recaptureReasons);
+    }
+
     for (const listed of input.listedPaths) {
       const normalized = listed.replace(/\\/gu, '/');
+      const archived = input.graph.archiveBytes[normalized];
+      if (archived === undefined) {
+        return blocked([`pre-unlink-archive-missing:${normalized}`]);
+      }
+      const onDisk = input.fs.read(normalized);
+      if (fileDigest(onDisk) !== fileDigest(archived)) {
+        return blocked([`pre-unlink-digest-mismatch:${normalized}`]);
+      }
       input.fs.unlink(normalized);
       deletedPaths.push(normalized);
     }
@@ -251,6 +271,8 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     restoreDeleted();
     const detail = error instanceof Error ? error.message : 'unknown';
     return blocked([`post-delete-exception:${detail}`]);
+  } finally {
+    lockHandle.release();
   }
 
   const body = {

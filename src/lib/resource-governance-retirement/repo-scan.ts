@@ -5,12 +5,12 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 
 import { FROZEN_CANDIDATES } from './candidates';
 import type { GraphCaller, GraphFile, RetirementCandidate } from './contracts';
-import type { RetirementWorktreeSnapshot } from './delete';
+import type { RetirementWorktreeLock, RetirementWorktreeSnapshot } from './delete';
 import {
   RETIREMENT_SCAN_EXTENSIONS,
   RETIREMENT_SCAN_ROOT_FILES,
@@ -125,9 +125,34 @@ function parseGitPorcelainPath(line: string): string[] {
 }
 
 /**
- * Recapture HEAD, dirty paths, and the retirement scan-root file set from the
- * live worktree. Production deletion must use this immediately before unlink.
+ * Exclusive lock covering final worktree recapture through unlink.
+ * Fail closed if another retirement deletion already holds the lock.
  */
+export function holdRetirementWorktreeLock(repoRoot: string): RetirementWorktreeLock {
+  const lockPath = join(repoRoot, '.git', 'resource-governance-retirement.lock');
+  let fd: number;
+  try {
+    fd = openSync(lockPath, 'wx');
+  } catch {
+    throw new Error('worktree-lock-busy');
+  }
+  writeFileSync(fd, `${process.pid}\n`);
+  let released = false;
+  return {
+    release() {
+      if (released) return;
+      released = true;
+      closeSync(fd);
+      try {
+        unlinkSync(lockPath);
+      } catch {
+        // Best-effort lockfile cleanup; absence is not a deletion failure.
+      }
+    },
+  };
+}
+
+/** Recapture HEAD, dirty paths, and scan-root files from the live worktree. */
 export function captureRetirementWorktree(repoRoot: string): RetirementWorktreeSnapshot {
   const headBefore = gitText(repoRoot, ['rev-parse', 'HEAD']).trim();
   const dirtyBefore = gitText(repoRoot, ['status', '--porcelain', '-uall']);
