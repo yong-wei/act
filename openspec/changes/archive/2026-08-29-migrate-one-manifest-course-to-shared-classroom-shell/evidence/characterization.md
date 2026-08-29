@@ -1,6 +1,6 @@
 # Behavior matrix and qualification notes
 
-Capture revision: working tree (filled with commit SHA at archive).
+Capture revision: `c26573cb7c6e1c406f380dcdf3c110e21dde7831`.
 
 ## Preserved
 
