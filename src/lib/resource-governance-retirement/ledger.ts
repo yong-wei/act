@@ -104,7 +104,17 @@ export function compareLedgers(
   if (next.ledgerDigest !== expectedDigest) {
     reasons.push('ledger-digest-tamper');
   }
-  if (!prior) return reasons;
+  if (!prior) {
+    if (next.allowlist.length > 0) {
+      reasons.push('prior-ledger-omitted:allowlist');
+    }
+    if (next.entries.some((entry) => (
+      entry.state === 'deleted' || entry.state === 'historical-adapter'
+    ))) {
+      reasons.push('prior-ledger-omitted:deleted-or-adapter');
+    }
+    return reasons;
+  }
 
   const priorAllow = new Map(prior.allowlist.map((row) => [row.id, row]));
   const nextAllow = new Map(next.allowlist.map((row) => [row.id, row]));

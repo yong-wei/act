@@ -93,6 +93,12 @@ The retirement validator SHALL compare the current architecture allowlist and de
 - **THEN** monotonic validation SHALL fail
 - **AND** the candidate SHALL remain retained until its actual caller or replacement is resolved.
 
+#### Scenario: Prior ledger is omitted for a reduced or excepted ledger
+
+- **WHEN** the current ledger has allowlist exceptions or `deleted` / `historical-adapter` entries and no prior ledger is supplied
+- **THEN** monotonic validation SHALL fail
+- **AND** a genesis ledger of only `retained` / `already-absent` entries with an empty allowlist MAY omit prior.
+
 ### Requirement: Deletion and rollback do not activate releases
 
 The retirement operation SHALL delete only explicitly listed superseded source entrypoints after validation and SHALL not write Authority, Teaching Projection, Runtime Release, consumer selectors, production deployment state, learning records, or historical artifacts. Rollback SHALL restore the exact archived pre-delete revision without creating a permanent live fallback.
@@ -104,8 +110,16 @@ The retirement operation SHALL delete only explicitly listed superseded source e
 - **AND** production deletion SHALL hold a real worktree lock from final recapture through unlink
 - **AND** all protected readers, records, and selectors SHALL remain unchanged.
 
+#### Scenario: A later listed path fails after an earlier unlink
+
+- **WHEN** one listed entrypoint has already been unlinked and a later listed path fails the pre-unlink digest check or a later post-delete gate
+- **THEN** the command SHALL restore every path it already unlinked from the digest-verified archive
+- **AND** the receipt SHALL be blocked with no reduced ledger.
+
 #### Scenario: Rollback is required
 
 - **WHEN** the post-delete verification or a later controlled check requires restoration
 - **THEN** the exact digest-verified pre-delete revision SHALL be restorable
+- **AND** rollback SHALL consume only a successful `deleted` receipt whose digest and reduced ledger authenticate the restored paths
+- **AND** rollback SHALL restore only that receipt's `deletedPaths`
 - **AND** rollback SHALL not mutate or relabel active production authority.

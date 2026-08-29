@@ -220,13 +220,18 @@ export function deleteRetiredResourceGovernanceEntrypoints(
   };
 
   try {
+    const fail = (reasons: readonly string[]): DeletionReceipt => {
+      restoreDeleted();
+      return blocked(reasons);
+    };
     const recapture = readWorktree();
     if ('status' in recapture && recapture.status === 'blocked') {
+      restoreDeleted();
       return recapture;
     }
     const liveWorktree = recapture as RetirementWorktreeSnapshot;
     if (liveWorktree.headRevision !== worktree.headRevision) {
-      return blocked(['worktree-unstable-head']);
+      return fail(['worktree-unstable-head']);
     }
     const recaptureReasons = worktreeDeletionReasons({
       worktree: liveWorktree,
@@ -234,18 +239,18 @@ export function deleteRetiredResourceGovernanceEntrypoints(
       authorizedIds: verdict.deletionsAuthorized,
     });
     if (recaptureReasons.length > 0) {
-      return blocked(recaptureReasons);
+      return fail(recaptureReasons);
     }
 
     for (const listed of input.listedPaths) {
       const normalized = listed.replace(/\\/gu, '/');
       const archived = input.graph.archiveBytes[normalized];
       if (archived === undefined) {
-        return blocked([`pre-unlink-archive-missing:${normalized}`]);
+        return fail([`pre-unlink-archive-missing:${normalized}`]);
       }
       const onDisk = input.fs.read(normalized);
       if (fileDigest(onDisk) !== fileDigest(archived)) {
-        return blocked([`pre-unlink-digest-mismatch:${normalized}`]);
+        return fail([`pre-unlink-digest-mismatch:${normalized}`]);
       }
       input.fs.unlink(normalized);
       deletedPaths.push(normalized);
@@ -262,39 +267,33 @@ export function deleteRetiredResourceGovernanceEntrypoints(
         excludedFrameworkFiles: input.graph.excludedFrameworkFiles,
       });
       if (hits.length > 0) {
-        restoreDeleted();
-        return blocked([`post-delete-zero-caller-failed:${candidate.id}`]);
+        return fail([`post-delete-zero-caller-failed:${candidate.id}`]);
       }
     }
 
     const importBuild = input.postDeleteVerification.runImportBuild();
     const tests = input.postDeleteVerification.runTests();
     if (!importBuild.command) {
-      restoreDeleted();
-      return blocked(['post-delete-import-build-command-missing']);
+      return fail(['post-delete-import-build-command-missing']);
     }
     if (!importBuild.ok) {
-      restoreDeleted();
-      return blocked([`post-delete-import-build-failed:${importBuild.command}`]);
+      return fail([`post-delete-import-build-failed:${importBuild.command}`]);
     }
     if (!tests.command) {
-      restoreDeleted();
-      return blocked(['post-delete-tests-command-missing']);
+      return fail(['post-delete-tests-command-missing']);
     }
     if (!tests.ok) {
-      restoreDeleted();
-      return blocked([`post-delete-tests-failed:${tests.command}`]);
+      return fail([`post-delete-tests-failed:${tests.command}`]);
     }
 
     let nextLedger: ResourceGovernanceDeprecationLedger;
     try {
       nextLedger = reduceLedgerAfterDeletion(input.graph.currentLedger, deletedPaths);
     } catch (error) {
-      restoreDeleted();
       const reasons = error instanceof ResourceGovernanceRetirementGateError
         ? error.reasons
         : [`reduced-ledger-failed:${error instanceof Error ? error.message : 'unknown'}`];
-      return blocked(reasons);
+      return fail(reasons);
     }
     const ledgerReasons = compareLedgers(input.graph.currentLedger, nextLedger);
     const deletedEntries = nextLedger.entries.filter((entry) =>
@@ -306,8 +305,7 @@ export function deleteRetiredResourceGovernanceEntrypoints(
       || ledgerReasons.length > 0
       || deletedEntries.some((entry) => entry.state !== 'deleted' || entry.consumers.length > 0)
     ) {
-      restoreDeleted();
-      return blocked([
+      return fail([
         'reduced-ledger-not-monotonic',
         ...ledgerReasons,
         ...deletedEntries
@@ -348,12 +346,51 @@ export function deleteRetiredResourceGovernanceEntrypoints(
 export function rollbackRetiredEntrypoints(input: {
   graph: ResourceGovernanceGraph;
   fs: RetirementFileSystem;
-  deletedPaths: readonly string[];
+  receipt: DeletionReceipt;
 }): { restored: readonly string[] } {
+  const { receiptDigest, ...body } = input.receipt;
+  if (retirementDigest(body) !== receiptDigest) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-receipt-digest-mismatch',
+      'rollback refused because the deletion receipt digest does not match',
+      ['rollback-receipt-digest-mismatch'],
+    );
+  }
+  if (input.receipt.status !== 'deleted') {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-receipt-not-deleted',
+      'rollback requires a successful deleted receipt',
+      ['rollback-receipt-not-deleted'],
+    );
+  }
+  const expectedReduced = reduceLedgerAfterDeletion(
+    input.graph.currentLedger,
+    input.receipt.deletedPaths,
+  );
+  if (
+    input.receipt.reducedLedger === null
+    || input.receipt.reducedLedger.ledgerDigest !== expectedReduced.ledgerDigest
+  ) {
+    throw new ResourceGovernanceRetirementGateError(
+      'rollback-receipt-ledger-mismatch',
+      'rollback refused because the receipt reduced ledger does not match the graph',
+      ['rollback-receipt-ledger-mismatch'],
+    );
+  }
+  for (const path of input.receipt.deletedPaths) {
+    const normalized = path.replace(/\\/gu, '/');
+    if (input.fs.exists(normalized)) {
+      throw new ResourceGovernanceRetirementGateError(
+        'rollback-target-still-present',
+        `rollback refused to overwrite a live path: ${normalized}`,
+        [`rollback-target-still-present:${normalized}`],
+      );
+    }
+  }
   return restoreRollbackArchive({
     archive: input.graph.rollbackArchive,
     files: input.graph.archiveBytes,
     writeFile: input.fs.write,
-    onlyPaths: input.deletedPaths,
+    onlyPaths: input.receipt.deletedPaths,
   });
 }
