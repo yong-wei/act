@@ -1,6 +1,6 @@
 # Behavior matrix and qualification notes
 
-Capture revision: `c26573cb7c6e1c406f380dcdf3c110e21dde7831`.
+Capture revision: `10577fdf59a884c5d452d0a62af17a04df83dcb2`.
 
 ## Preserved
 
