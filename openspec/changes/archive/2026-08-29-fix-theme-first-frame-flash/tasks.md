@@ -12,4 +12,4 @@
 
 ## 3. Validation
 
-- [ ] 3.1 Run `npm run test:theme`, focused Playwright theme specs, and `npx tsc --pretty false --noEmit` or `npm run typecheck` on the changed files, then `openspec validate fix-theme-first-frame-flash --strict`
+- [x] 3.1 Run `npm run test:theme`, focused Playwright theme specs, and `npx tsc --pretty false --noEmit` or `npm run typecheck` on the changed files, then `openspec validate fix-theme-first-frame-flash --strict`
