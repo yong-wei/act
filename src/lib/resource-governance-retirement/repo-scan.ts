@@ -9,8 +9,13 @@ import { closeSync, existsSync, openSync, readdirSync, readFileSync, statSync, u
 import { extname, join, relative } from 'node:path';
 
 import { FROZEN_CANDIDATES } from './candidates';
-import type { GraphCaller, GraphFile, RetirementCandidate } from './contracts';
-import type { RetirementWorktreeLock, RetirementWorktreeSnapshot } from './delete';
+import type { DeletionReceipt, GraphCaller, GraphFile, RetirementCandidate } from './contracts';
+import {
+  deleteRetiredResourceGovernanceEntrypoints,
+  type DeleteRetiredEntrypointsInput,
+  type RetirementWorktreeLock,
+  type RetirementWorktreeSnapshot,
+} from './delete';
 import {
   RETIREMENT_SCAN_EXTENSIONS,
   RETIREMENT_SCAN_ROOT_FILES,
@@ -170,6 +175,22 @@ export function captureRetirementWorktree(repoRoot: string): RetirementWorktreeS
     dirtyPaths,
     files,
   };
+}
+
+/**
+ * Production deletion entry: binds a live worktree capture and exclusive lock.
+ * Do not re-export this from the package barrel; web graph must not pull the
+ * filesystem walker into the Next.js production graph.
+ */
+export function deleteRetiredResourceGovernanceEntrypointsFromRepo(
+  repoRoot: string,
+  input: Omit<DeleteRetiredEntrypointsInput, 'captureWorktree' | 'holdWorktreeLock'>,
+): DeletionReceipt {
+  return deleteRetiredResourceGovernanceEntrypoints({
+    ...input,
+    captureWorktree: () => captureRetirementWorktree(repoRoot),
+    holdWorktreeLock: () => holdRetirementWorktreeLock(repoRoot),
+  });
 }
 
 export function frozenCallerCoverageGaps(

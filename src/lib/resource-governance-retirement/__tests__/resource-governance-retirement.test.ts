@@ -17,6 +17,7 @@ import {
   hashDenominator,
   looksLikeDirectoryOrGlob,
   mentionsEntrypoint,
+  reduceLedgerAfterDeletion,
   retirementDigest,
   rollbackRetiredEntrypoints,
   scanCandidateCallers,
@@ -31,8 +32,10 @@ import {
   type RetirementWorktreeSnapshot,
   RETIREMENT_SCAN_ROOTS,
   RETIREMENT_SCAN_ROOT_FILES,
+  RETIREMENT_SCAN_EXTENSIONS,
 } from '@/lib/resource-governance-retirement';
 import {
+  deleteRetiredResourceGovernanceEntrypointsFromRepo,
   frozenCallerCoverageGaps,
   loadRetirementScanFiles,
 } from '@/lib/resource-governance-retirement/repo-scan';
@@ -97,6 +100,21 @@ function captureFromGraph(
     dirtyPaths: [],
     files: graph.files,
     ...overrides,
+  });
+}
+
+function holdNoopLock() {
+  return { release() {} };
+}
+
+function deleteRetired(
+  input: Omit<Parameters<typeof deleteRetiredResourceGovernanceEntrypoints>[0], 'holdWorktreeLock'> & {
+    holdWorktreeLock?: Parameters<typeof deleteRetiredResourceGovernanceEntrypoints>[0]['holdWorktreeLock'];
+  },
+) {
+  return deleteRetiredResourceGovernanceEntrypoints({
+    holdWorktreeLock: holdNoopLock,
+    ...input,
   });
 }
 
@@ -378,7 +396,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-1',
       manifest,
       graph,
@@ -392,9 +410,15 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(receipt.deletedPaths).toEqual(['src/lib/obsolete-registry-read.ts']);
     expect(receipt.postDeleteZeroCaller).toBe(true);
     expect(receipt.postDeleteImportBuild).toBe(true);
+    expect(receipt.reducedLedger).not.toBeNull();
+    expect(receipt.reducedLedger?.entries.find((row) => row.id === 'registry-read:obsolete-helper')).toMatchObject({
+      state: 'deleted',
+      consumers: [],
+    });
+    expect(compareLedgers(graph.currentLedger, receipt.reducedLedger!)).toEqual([]);
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(false);
 
-    const globBlocked = deleteRetiredResourceGovernanceEntrypoints({
+    const globBlocked = deleteRetired({
       receiptId: 'del-glob',
       manifest,
       graph,
@@ -421,7 +445,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
         ),
       ],
     };
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-race',
       manifest,
       graph: raced,
@@ -509,7 +533,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       KNOWLEDGE_SURFACE_CONTRACT,
     ]));
 
-    const deleteAttempt = deleteRetiredResourceGovernanceEntrypoints({
+    const deleteAttempt = deleteRetired({
       receiptId: 'no-live-delete',
       manifest,
       graph,
@@ -551,6 +575,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       'prisma',
     ]));
     expect(RETIREMENT_SCAN_ROOT_FILES).toContain('package.json');
+    expect(RETIREMENT_SCAN_EXTENSIONS).toEqual(expect.arrayContaining(['.yaml', '.yml']));
     const live = Object.fromEntries(
       FROZEN_CANDIDATES.map((candidate) => [
         candidate.id,
@@ -573,6 +598,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(listHits.some((hit) => hit.path.includes('knowledge-nodes-route.test.ts'))).toBe(true);
     expect(listHits.some((hit) => hit.path.includes('knowledge-db-fallback-production.real-smoke.test.ts'))).toBe(true);
     expect(listHits.some((hit) => hit.path.includes('capture-batch38.mjs'))).toBe(true);
+    expect(listHits.some((hit) => hit.path === 'docs/proposals/course-knowledge-base-governance-source-registry.yaml')).toBe(true);
     expect(listHits.some((hit) => hit.path.includes('nodes/[id]') || hit.path.includes('nodes/v2') || hit.path.includes('nodes/active'))).toBe(false);
   });
 
@@ -622,7 +648,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-empty-archive',
       manifest,
       graph,
@@ -643,7 +669,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-dirty',
       manifest,
       graph,
@@ -665,7 +691,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-live-caller',
       manifest,
       graph,
@@ -695,7 +721,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-digest-drift',
       manifest,
       graph,
@@ -723,7 +749,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-build-fail',
       manifest,
       graph,
@@ -750,7 +776,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
     let captures = 0;
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-recapture',
       manifest,
       graph,
@@ -786,7 +812,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-throw',
       manifest,
       graph,
@@ -860,7 +886,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }',
     });
     const events: string[] = [];
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-lock',
       manifest,
       graph,
@@ -886,6 +912,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     expect(events[1]).toBe('lock');
     expect(events[2]).toBe('capture');
     expect(events.at(-1)).toBe('unlock');
+    expect(receipt.reducedLedger?.entries[0]?.state).toBe('deleted');
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(false);
   });
 
@@ -895,7 +922,7 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     const fs = memoryFs({
       'src/lib/obsolete-registry-read.ts': 'export function readObsoleteRegistry() { return null; }\n// mutated after capture',
     });
-    const receipt = deleteRetiredResourceGovernanceEntrypoints({
+    const receipt = deleteRetired({
       receiptId: 'del-ondisk-drift',
       manifest,
       graph,
@@ -907,6 +934,46 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
     });
     expect(receipt.status).toBe('blocked');
     expect(receipt.reasons).toContain('pre-unlink-digest-mismatch:src/lib/obsolete-registry-read.ts');
+    expect(receipt.reducedLedger).toBeNull();
     expect(fs.exists('src/lib/obsolete-registry-read.ts')).toBe(true);
+  });
+
+  it('does not authorize deletion when the ledger entry is missing or not retained', () => {
+    const missingLedger = completeGraph({ ledgerEntries: [] });
+    const missingManifest = readyManifest(missingLedger, 'approve-delete');
+    expect(missingManifest.status).toBe('retain');
+    expect(verifyResourceGovernanceRetirement(missingManifest, missingLedger).deletionsAuthorized).toEqual([]);
+
+    const deletedLedger = completeGraph({
+      ledgerEntries: [{
+        id: 'registry-read:obsolete-helper',
+        owner: 'knowledge',
+        sourcePath: 'src/lib/obsolete-registry-read.ts',
+        consumers: [],
+        replacement: RESOURCE_REGISTRY_INDEX_CONTRACT,
+        migrationRevision: REV,
+        state: 'deleted',
+        deletionCondition: 'already retired',
+        rollbackIdentity: REV,
+      }],
+    });
+    const deletedManifest = readyManifest(deletedLedger, 'approve-delete');
+    expect(deletedManifest.status).toBe('retain');
+    expect(verifyResourceGovernanceRetirement(deletedManifest, deletedLedger).deletionsAuthorized).toEqual([]);
+  });
+
+  it('records a reduced ledger with deleted state after a successful exact-path delete', () => {
+    const graph = completeGraph({});
+    const reduced = reduceLedgerAfterDeletion(
+      graph.currentLedger,
+      ['src/lib/obsolete-registry-read.ts'],
+    );
+    expect(reduced.entries[0]?.state).toBe('deleted');
+    expect(reduced.entries[0]?.consumers).toEqual([]);
+    expect(compareLedgers(graph.currentLedger, reduced)).toEqual([]);
+  });
+
+  it('exposes a production deletion entry that binds the real worktree lock', () => {
+    expect(typeof deleteRetiredResourceGovernanceEntrypointsFromRepo).toBe('function');
   });
 });

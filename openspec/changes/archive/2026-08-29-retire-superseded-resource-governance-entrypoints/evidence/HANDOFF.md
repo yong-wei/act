@@ -10,7 +10,7 @@ Deletion: `deleteRetiredResourceGovernanceEntrypoints` (exact paths only)
 
 Evidence-gated retirement is implemented. Live deletion of resource-governance entrypoints in this slice is **none**. Remaining candidates are retained with explicit deletion conditions in `evidence/deprecation-ledger.md`.
 
-Deletion recaptures HEAD, dirty paths, file digests, and callers from the live worktree immediately before unlink. Caller scan roots include `src`, `scripts`, `tests`, `artifacts`, `course-content`, `openspec`, `docs`, `prisma`, and root `package.json`. `postDeleteImportBuild` is issued only after injected import/build and test commands succeed; a failed command restores archived bytes and blocks.
+Deletion recaptures HEAD, dirty paths, file digests, and callers from the live worktree immediately before unlink, under an exclusive worktree lock. Production deletion uses `deleteRetiredResourceGovernanceEntrypointsFromRepo`, which binds `captureRetirementWorktree` and `holdRetirementWorktreeLock`. Caller scan roots include `src`, `scripts`, `tests`, `artifacts`, `course-content`, `openspec`, `docs`, `prisma`, and root `package.json`; extensions include `.yaml` and `.yml`. Successful receipts carry a reduced ledger whose deleted entries are `deleted` with empty consumers. `postDeleteImportBuild` is issued only after injected import/build and test commands succeed; a failed command restores archived bytes and blocks.
 
 ## Still not deleted (follow-up slices)
 

@@ -164,6 +164,8 @@ export function deletionsAuthorizedByEvidence(input: {
       if (!receipt) return false;
       if (receiptIntegrityReasons(receipt).length > 0) return false;
       if (receipt.hits.length !== 0) return false;
+      const ledger = input.graph.currentLedger.entries.find((row) => row.id === candidate.id);
+      if (!ledger || ledger.state !== 'retained') return false;
       return candidate.replacement.implemented
         && candidate.replacement.parity.facade === false;
     })

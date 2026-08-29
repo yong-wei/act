@@ -326,6 +326,7 @@ export interface DeletionReceipt {
   deletedAt: string;
   postDeleteZeroCaller: boolean;
   postDeleteImportBuild: boolean;
+  reducedLedger: ResourceGovernanceDeprecationLedger | null;
   status: 'deleted' | 'blocked' | 'retained';
   reasons: readonly string[];
   receiptDigest: string;

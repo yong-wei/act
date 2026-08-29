@@ -31,6 +31,8 @@ export const RETIREMENT_SCAN_EXTENSIONS = [
   '.cjs',
   '.md',
   '.json',
+  '.yaml',
+  '.yml',
 ] as const;
 
 const DEFAULT_EXCLUDED_FRAGMENTS = [

@@ -23,11 +23,11 @@ The system SHALL refuse deletion of a resource-governance entrypoint unless an i
 
 ### Requirement: Consumer denominator and zero callers are closed
 
-The retirement validator SHALL account for production, test, generated, compatibility, framework, route/API, model, script, browser, reverse, dynamic, historical, and rollback callers at the captured revision. Zero-caller evidence SHALL refer to the exact candidate path/symbol and scan rules.
+The retirement validator SHALL account for production, test, generated, compatibility, framework, route/API, model, script, browser, reverse, dynamic, historical, and rollback callers at the captured revision. Zero-caller evidence SHALL refer to the exact candidate path/symbol and scan rules. The closed scan SHALL include `.yaml` and `.yml` files under the same roots as Markdown and JSON.
 
 #### Scenario: A hidden caller remains
 
-- **WHEN** a route convention, dynamic import, package script, generated artifact, compatibility alias, test, or rollback reader still reaches the candidate
+- **WHEN** a route convention, dynamic import, package script, generated artifact, compatibility alias, test, rollback reader, or YAML/YML source still reaches the candidate
 - **THEN** the zero-caller gate SHALL fail
 - **AND** the candidate SHALL not be deleted.
 
@@ -77,7 +77,14 @@ The retirement validator SHALL compare the current architecture allowlist and de
 
 - **WHEN** a candidate is deleted with valid zero-caller and rollback evidence
 - **THEN** the ledger and allowlist SHALL record the reduced entry/edge set and deletion receipt
+- **AND** the receipt reduced ledger SHALL mark those entries `deleted` with empty consumers
 - **AND** the new state SHALL not add a replacement exception for the same old path.
+
+#### Scenario: Deletion is not bound to a retained ledger entry
+
+- **WHEN** a candidate has no current ledger row or the row is not `retained`
+- **THEN** deletion SHALL not be authorized
+- **AND** the candidate SHALL remain recorded until a later monotonic ledger update.
 
 #### Scenario: A new exception is proposed
 
@@ -93,6 +100,7 @@ The retirement operation SHALL delete only explicitly listed superseded source e
 
 - **WHEN** all retirement gates pass
 - **THEN** only the listed old entrypoints MAY be removed and a post-delete zero-caller/build/test receipt SHALL be emitted
+- **AND** production deletion SHALL hold a real worktree lock from final recapture through unlink
 - **AND** all protected readers, records, and selectors SHALL remain unchanged.
 
 #### Scenario: Rollback is required

@@ -3,7 +3,7 @@
 Captured at `fce5b9fc4a4c7dd408297c3d90d2cf407c953b71`.
 Encoded in `src/lib/resource-governance-retirement/frozen-callers.ts` (`FROZEN_CALLERS`).
 Scan roots: `src/`, `scripts/`, `tests/`, `artifacts/`, `course-content/`, `openspec/`, `docs/`, `prisma/`, plus root `package.json`.
-Extensions: `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` `.md` `.json`.
+Extensions: `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` `.md` `.json` `.yaml` `.yml`.
 Scan rules: exact path, `@/` alias, same-tree relative import, and API href with no detail/v2/active suffix; long symbols only; production/test/script/route/browser/dynamic/historical/model; tests count; retirement package excluded.
 Live coverage is asserted by `scanRetirementCandidatesFromRepo` against `FROZEN_CALLERS` in both directions. The complete caller list is `FROZEN_CALLERS`; this file only summarizes.
 
@@ -51,8 +51,9 @@ Exact `GET /api/knowledge/nodes` list href or `src/app/api/knowledge/nodes/route
 | `artifacts/.../report.md` | browser |
 | `artifacts/.../remediation/.../evidence.md` | browser |
 | docs/openspec historical mentions of the route path | historical |
+| `docs/proposals/course-knowledge-base-governance-source-registry.yaml` | historical |
 
-Complete list: `FROZEN_CALLERS['knowledge-projection:nodes-list-array-dto']` (33). `GET /api/knowledge/nodes` still returns a JSON array. Object graph/detail routes already carry `knowledgeSurface`.
+Complete list: `FROZEN_CALLERS['knowledge-projection:nodes-list-array-dto']` (34). `GET /api/knowledge/nodes` still returns a JSON array. Object graph/detail routes already carry `knowledgeSurface`.
 
 ## knowledge-projection:client-url-identity-reconstruction
 

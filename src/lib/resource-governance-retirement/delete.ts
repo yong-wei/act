@@ -4,21 +4,25 @@
  * Deletes only listed source entrypoints after the gate passes. Directory or
  * glob targets, unknown callers, and post-scan races fail closed.
  *
- * Production callers must pass `captureRetirementWorktree(repoRoot)` and
- * `holdRetirementWorktreeLock(repoRoot)` from `./repo-scan`. The lock covers
- * the final recapture through digest-checked unlink. `postDeleteImportBuild`
- * is bound only to injected import/build and test command results.
+ * Production callers must use `deleteRetiredResourceGovernanceEntrypointsFromRepo`
+ * in `./repo-scan`, which binds `captureRetirementWorktree` and a required
+ * `holdRetirementWorktreeLock`. The lock covers the final recapture through
+ * digest-checked unlink. Tests may inject a lock, but omitting it fails closed.
+ * `postDeleteImportBuild` is bound only to injected import/build and test
+ * command results.
  */
 
 import {
   RESOURCE_GOVERNANCE_RETIREMENT_DELETION_RECEIPT_CONTRACT,
   ResourceGovernanceRetirementGateError,
   type DeletionReceipt,
+  type ResourceGovernanceDeprecationLedger,
   type ResourceGovernanceGraph,
   type ResourceGovernanceRetirementManifest,
 } from './contracts';
 import { looksLikeDirectoryOrGlob, scanCandidateCallers, fileDigest } from './scan';
 import { retirementDigest } from './hash';
+import { compareLedgers, reduceLedgerAfterDeletion } from './ledger';
 import { assertManifestReadyForDeletion } from './manifest';
 import { verifyResourceGovernanceRetirement } from './verify';
 import { restoreRollbackArchive } from './archive';
@@ -95,17 +99,21 @@ function worktreeDeletionReasons(input: {
   return reasons;
 }
 
-export function deleteRetiredResourceGovernanceEntrypoints(input: {
+export interface DeleteRetiredEntrypointsInput {
   receiptId: string;
   manifest: ResourceGovernanceRetirementManifest;
   graph: ResourceGovernanceGraph;
   listedPaths: readonly string[];
   fs: RetirementFileSystem;
   captureWorktree: () => RetirementWorktreeSnapshot;
-  holdWorktreeLock?: () => RetirementWorktreeLock;
+  holdWorktreeLock: () => RetirementWorktreeLock;
   postDeleteVerification: PostDeleteVerification;
   deletedAt: string;
-}): DeletionReceipt {
+}
+
+export function deleteRetiredResourceGovernanceEntrypoints(
+  input: DeleteRetiredEntrypointsInput,
+): DeletionReceipt {
   const blocked = (reasons: readonly string[]): DeletionReceipt => {
     const body = {
       contract: RESOURCE_GOVERNANCE_RETIREMENT_DELETION_RECEIPT_CONTRACT,
@@ -116,6 +124,7 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
       deletedAt: input.deletedAt,
       postDeleteZeroCaller: false,
       postDeleteImportBuild: false,
+      reducedLedger: null,
       status: 'blocked' as const,
       reasons: [...reasons],
     };
@@ -183,15 +192,20 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     return blocked(firstReasons);
   }
 
+  if (typeof input.holdWorktreeLock !== 'function') {
+    return blocked(['worktree-lock-required']);
+  }
+
   let lockHandle: RetirementWorktreeLock;
   try {
-    lockHandle = (input.holdWorktreeLock ?? (() => ({ release() {} })))();
+    lockHandle = input.holdWorktreeLock();
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'unknown';
     return blocked([`worktree-lock-failed:${detail}`]);
   }
 
   const deletedPaths: string[] = [];
+  let reducedLedger: ResourceGovernanceDeprecationLedger | null = null;
   const restoreDeleted = (): void => {
     for (const path of deletedPaths) {
       const archived = input.graph.archiveBytes[path];
@@ -267,12 +281,46 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
       restoreDeleted();
       return blocked([`post-delete-tests-failed:${tests.command}`]);
     }
+
+    let nextLedger: ResourceGovernanceDeprecationLedger;
+    try {
+      nextLedger = reduceLedgerAfterDeletion(input.graph.currentLedger, deletedPaths);
+    } catch (error) {
+      restoreDeleted();
+      const reasons = error instanceof ResourceGovernanceRetirementGateError
+        ? error.reasons
+        : [`reduced-ledger-failed:${error instanceof Error ? error.message : 'unknown'}`];
+      return blocked(reasons);
+    }
+    const ledgerReasons = compareLedgers(input.graph.currentLedger, nextLedger);
+    const deletedEntries = nextLedger.entries.filter((entry) =>
+      deletedPaths.includes(entry.sourcePath.replace(/\\/gu, '/')),
+    );
+    if (
+      ledgerReasons.length > 0
+      || deletedEntries.some((entry) => entry.state !== 'deleted' || entry.consumers.length > 0)
+    ) {
+      restoreDeleted();
+      return blocked([
+        'reduced-ledger-not-monotonic',
+        ...ledgerReasons,
+        ...deletedEntries
+          .filter((entry) => entry.state !== 'deleted' || entry.consumers.length > 0)
+          .map((entry) => `reduced-ledger-entry-not-deleted:${entry.id}`),
+      ]);
+    }
+    reducedLedger = nextLedger;
   } catch (error) {
     restoreDeleted();
     const detail = error instanceof Error ? error.message : 'unknown';
     return blocked([`post-delete-exception:${detail}`]);
   } finally {
     lockHandle.release();
+  }
+
+  if (reducedLedger === null) {
+    restoreDeleted();
+    return blocked(['reduced-ledger-missing']);
   }
 
   const body = {
@@ -284,6 +332,7 @@ export function deleteRetiredResourceGovernanceEntrypoints(input: {
     deletedAt: input.deletedAt,
     postDeleteZeroCaller: true,
     postDeleteImportBuild: true,
+    reducedLedger,
     status: 'deleted' as const,
     reasons: [] as string[],
   };

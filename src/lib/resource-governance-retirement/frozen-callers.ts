@@ -126,6 +126,7 @@ export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = 
     { path: 'docs/architecture/modular-monolith-charter.json', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
     { path: 'docs/architecture/modular-monolith/baseline/census-core.json', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
     { path: 'docs/archive/legacy-docs/KNOWLEDGE_REFACTOR_PLAN.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
+    { path: 'docs/proposals/course-knowledge-base-governance-source-registry.yaml', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
     { path: 'openspec/changes/archive/2026-07-01-audit-remediation-authoring-api-task-consumption-closure/proposal.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
     { path: 'openspec/changes/archive/2026-08-28-consolidate-versioned-knowledge-surface-read-contracts/evidence/caller-denominator.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },
     { path: 'openspec/changes/archive/2026-08-28-consolidate-versioned-knowledge-surface-read-contracts/evidence/characterization.md', symbol: 'src/app/api/knowledge/nodes/route.ts', callerClass: 'historical', kind: 'import' },

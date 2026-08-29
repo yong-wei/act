@@ -36,6 +36,44 @@ export function buildDeprecationLedger(input: {
   };
 }
 
+/**
+ * Successful deletion records the same entries with deleted state and empty
+ * consumers. Paths that are not in the current ledger fail closed.
+ */
+export function reduceLedgerAfterDeletion(
+  current: ResourceGovernanceDeprecationLedger,
+  deletedPaths: readonly string[],
+): ResourceGovernanceDeprecationLedger {
+  const deleted = new Set(deletedPaths.map((path) => path.replace(/\\/gu, '/')));
+  const matched = new Set<string>();
+  const entries: DeprecationLedgerEntry[] = current.entries.map((entry) => {
+    const sourcePath = entry.sourcePath.replace(/\\/gu, '/');
+    if (!deleted.has(sourcePath)) {
+      return entry;
+    }
+    matched.add(sourcePath);
+    return {
+      ...entry,
+      state: 'deleted',
+      consumers: [],
+    };
+  });
+  for (const path of deleted) {
+    if (!matched.has(path)) {
+      throw new ResourceGovernanceRetirementGateError(
+        'reduced-ledger-unmatched-path',
+        `deleted path is not a current ledger entry: ${path}`,
+        [`reduced-ledger-unmatched-path:${path}`],
+      );
+    }
+  }
+  return buildDeprecationLedger({
+    captureRevision: current.captureRevision,
+    allowlist: current.allowlist,
+    entries,
+  });
+}
+
 function patternBroadens(prior: string, next: string): boolean {
   if (prior === next) return false;
   if (next === '*' || next === '**') return true;
