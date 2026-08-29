@@ -662,13 +662,38 @@ function buildCourseSection(page: PageContext): string {
 /**
  * 构建用户画像部分
  */
+function profileAvailabilityLabel(status: UserProfile['profileAvailability']): string {
+  if (status === 'unavailable') return '不可用';
+  if (status === 'stale') return '已过期';
+  if (status === 'low-confidence') return '低置信度';
+  if (status === 'available') return '可用';
+  return '缺失';
+}
+
 function buildUserProfileSection(user: UserProfile): string {
   const lines: string[] = [];
+  const availability = user.profileAvailability
+    ?? (user.portraitV2 ? 'available' : 'missing');
 
   lines.push(`**学生画像**:`);
   lines.push(`- 姓名: ${user.name}`);
-  lines.push(`- 学习风格: ${getLearningStyleLabel(user.learningStyle)}`);
-  lines.push(`- 认知水平: L${user.cognitiveLevel}`);
+  lines.push(`- 个性化状态: ${profileAvailabilityLabel(availability)}`);
+
+  if (availability !== 'available') {
+    lines.push('- 不得根据默认能力、学习风格、客户端画像或缺失值作出个人化结论。');
+    for (const limitation of user.profileLimitations ?? []) {
+      lines.push(`- 画像限制: ${limitation}`);
+    }
+    lines.push('- 可根据当前课程主题和步骤提供通用辅导，并建议补充可核验的学习证据。');
+    return lines.join('\n');
+  }
+
+  if (user.learningStyle) {
+    lines.push(`- 学习风格: ${getLearningStyleLabel(user.learningStyle)}`);
+  }
+  if (user.cognitiveLevel) {
+    lines.push(`- 认知水平: L${user.cognitiveLevel}`);
+  }
 
   if (user.fleetGroup) {
     lines.push(`- 所属舰队: ${user.fleetGroup}`);
@@ -682,7 +707,6 @@ function buildUserProfileSection(user: UserProfile): string {
     if (user.portraitV2.limitations.length > 0) {
       lines.push(`- 画像限制: ${user.portraitV2.limitations.join('；')}`);
     }
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: legacy prompt summary is a cold-start fallback only.
   } else if (user.abilityVector) {
     lines.push(`- 能力特点: ${describeAbilityVector(user.abilityVector)}`);
   }
@@ -801,7 +825,11 @@ export function buildSimpleSystemPrompt(context: AIContext): string {
 主题: ${page.topic}
 学习目标: ${page.learningObjectives?.slice(0, 2).join('、') || '掌握核心概念'}
 
-学生: ${user.name}，${getLearningStyleLabel(user.learningStyle)}，L${user.cognitiveLevel}水平
+学生: ${user.name}${user.profileAvailability && user.profileAvailability !== 'available'
+    ? '，个性化画像不可用，仅提供通用课程辅导'
+    : user.cognitiveLevel
+      ? `，L${user.cognitiveLevel}水平`
+      : ''}
 
 回答控制在150字内。`;
 }

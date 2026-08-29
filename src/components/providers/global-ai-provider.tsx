@@ -139,19 +139,9 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const userProfile = useMemo<UserProfile | null>(() => {
     if (!session?.user) return null;
 
-    // 从session中提取用户信息构建画像
     return {
       id: session.user.id || 'unknown',
       name: session.user.name || session.user.email || '学生',
-      learningStyle: 'INTERACTIVE', // 默认值
-      cognitiveLevel: 3, // 默认值
-      abilityVector: {
-        computational: 0.5,
-        crossDomain: 0.5,
-        design: 0.5,
-        analysis: 0.5,
-        evaluation: 0.5,
-      },
     };
   }, [session]);
 

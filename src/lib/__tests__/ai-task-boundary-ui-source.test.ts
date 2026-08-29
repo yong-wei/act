@@ -51,6 +51,13 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('data-ai-task-boundary="evidence-copilot-summary"');
     expect(copilot).toContain('auditTaskContext: portfolioReflectionTaskContext ?? evidenceTaskContext');
     expect(copilot).toContain("taskType: 'evidence-copilot'");
+    expect(copilot).toContain("fetch('/api/ai/copilot-profile')");
+    expect(copilot).toContain('data-copilot-profile-status');
+    expect(copilot).toContain('data-copilot-profile-next-action');
+    expect(copilot).not.toContain('userProfile');
+    expect(copilotPanel).not.toContain('userProfile');
+    expect(globalSidebar).not.toContain('userProfile');
+    expect(konlingSidebar).not.toContain('userProfile');
     expect(copilot).not.toContain('taskContext: evidenceSummary');
     expect(copilot).not.toContain('证据来源：${evidenceSummary.source}');
     expect(konlingSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');

@@ -3272,7 +3272,9 @@ describe('konling agent runtime', () => {
       pageId: 'adaptive-path-center',
     });
 
-    expect(runtime.userProfile.cognitiveLevel).toBe(3);
+    expect(runtime.userProfile.cognitiveLevel).toBeUndefined();
+    expect(runtime.userProfile.profileAvailability).not.toBe('available');
+    expect(runtime.userProfile.learningStyle).toBeUndefined();
   });
 
   it('uses portrait scores when every portrait dimension is usable', async () => {
@@ -4471,7 +4473,7 @@ describe('konling agent runtime', () => {
     });
 
     expect(runtime.learnerState).toMatchObject({ authority: 'server-owned' });
-    expect(runtime.userProfile.abilityVector.computational).toBeCloseTo(0.88);
+    expect(runtime.userProfile.abilityVector?.computational).toBeCloseTo(0.88);
     expect(runtime.planContext.nextNodeIds).toEqual(['node-1', 'node-2']);
 
     const prompt = buildKonlingSystemPrompt({

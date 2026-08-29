@@ -33,6 +33,14 @@ import {
   resolveEvidenceCopilotContext,
   type EvidenceCopilotProjection,
 } from '@/lib/evidence-copilot-context';
+import {
+  buildGovernedCopilotProfilePrompt,
+  mapGovernedCopilotRole,
+  projectGovernedCopilotProfile,
+  resolveCopilotPromptUser,
+  resolveGovernedCopilotProfile,
+  type GovernedCopilotProfileProjection,
+} from '@/lib/governed-copilot-profile-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -227,7 +235,7 @@ export async function POST(request: Request) {
       simulationState,
       lessonContext,
       pageContext,
-      userProfile,
+      userProfile: clientUserProfile,
       courseId,
       pageId,
       classId,
@@ -318,6 +326,8 @@ export async function POST(request: Request) {
       : null;
     const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
     let evidenceCopilotProjection: EvidenceCopilotProjection | null = null;
+    let governedCopilotProfile: GovernedCopilotProfileProjection | null = null;
+    let skipGovernedProfilePrompt = false;
     if (evidenceTaskResolution.status === 'valid') {
       if (!session?.user?.id) {
         return new Response(JSON.stringify({ error: '未授权' }), {
@@ -625,6 +635,12 @@ export async function POST(request: Request) {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
       });
+      governedCopilotProfile = projectGovernedCopilotProfile(runtimeContext.learnerState, {
+        authenticatedUserId: session.user.id,
+        displayName: session.user.name ?? '同学',
+        unavailable: !runtimeContext.learnerState,
+      });
+      skipGovernedProfilePrompt = candidateOnly;
       const textbookRuntimeContext = applyTextbookCoachRuntimeContext(runtimeContext, serverModeContext);
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
         modeId: effectiveModeId,
@@ -842,10 +858,26 @@ export async function POST(request: Request) {
         'X-Konling-Assistant-Mode-Status': modeContract.status,
       };
       tools = buildScopedKonlingAiTools(toolRuntime);
-    } else if (pageContext && userProfile) {
+    } else if (pageContext) {
+      governedCopilotProfile = session?.user?.id
+        ? await resolveGovernedCopilotProfile({
+            userId: session.user.id,
+            role: mapGovernedCopilotRole(session.user.role),
+            displayName: session.user.name,
+          })
+        : projectGovernedCopilotProfile(null, {
+            authenticatedUserId: null,
+            displayName: '同学',
+            unavailable: true,
+          });
       const aiContext: AIContext = {
         page: pageContext,
-        user: userProfile,
+        user: resolveCopilotPromptUser({
+          authenticatedUserId: session?.user?.id,
+          authenticatedDisplayName: session?.user?.name,
+          clientUserProfile,
+          governedProfile: governedCopilotProfile,
+        }),
         sessionHistory: messages.slice(0, -1),
       };
       systemPrompt = buildKonlingSystemPrompt(aiContext);
@@ -863,6 +895,9 @@ export async function POST(request: Request) {
     }
     if (evidenceCopilotProjection) {
       systemPrompt = `${systemPrompt}\n\n${buildEvidenceCopilotPrompt(evidenceCopilotProjection)}`;
+    }
+    if (governedCopilotProfile && !skipGovernedProfilePrompt) {
+      systemPrompt = `${systemPrompt}\n\n${buildGovernedCopilotProfilePrompt(governedCopilotProfile)}`;
     }
 
     tools = withoutCalculateTool(tools);
@@ -1387,6 +1422,13 @@ export async function POST(request: Request) {
       responseHeaders.set(
         'X-Evidence-Copilot-Limitations',
         encodeURIComponent(evidenceCopilotProjection.limitations.join('|')),
+      );
+    }
+    if (governedCopilotProfile) {
+      responseHeaders.set('X-Governed-Copilot-Profile-Status', governedCopilotProfile.status);
+      responseHeaders.set(
+        'X-Governed-Copilot-Profile-Limitations',
+        encodeURIComponent(governedCopilotProfile.limitations.join('|')),
       );
     }
 
