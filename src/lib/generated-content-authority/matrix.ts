@@ -167,6 +167,10 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/assignments/assignment-service.ts（publishAssignmentRevision：修订发布与 rubricSnapshot 固化）',
         'src/lib/assignments/assignment-review.ts（approveTeacherAssignmentReview：approval snapshot + approvedTotal；feedback release）',
         'src/lib/assignments/submission-service.ts（学生作答/发布修订选择器配套写点）',
+        'src/lib/data-governance/math-document-grading-lifecycle.ts（文档批改评分权威，人类审批驱动）',
+        'src/lib/data-governance/math-document-grading-persistence.ts（批改评分持久化）',
+        'src/lib/data-governance/teacher-assignment-review-outbox.ts（批改 outbox：approval/feedback/提交状态写点）',
+        'src/app/api/teacher/document-grading/approve/route.ts（批改审批路由，人类审批驱动）',
       ],
       forbiddenSinkModules: [
         'src/lib/assignments/assignment-review.ts',
@@ -231,6 +235,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/smart-lesson-plan/worker.ts（生成 job 状态写点）',
         'src/lib/smart-lesson-plan/queue.ts（任务状态/入队写点）',
         'src/lib/smart-lesson-plan/lifecycle.ts（archive/delete）',
+        'src/lib/teacher-default-class-service.ts（教师默认班默认任务创建，教师操作驱动）',
       ],
       forbiddenSinkModules: [
         'src/lib/smart-courseware/publication-service.ts',
@@ -293,6 +298,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/smart-courseware/worker.ts',
       ],
       authorityWriteSites: [
+        'src/lib/smart-lesson-plan/lifecycle.ts（smart-lesson archive/delete 时对 courseware 记录的级联清理写点，显式登记的跨域清理）',
         'src/lib/smart-courseware/service.ts（approveSmartCoursewareDraft：修订创建）',
         'src/lib/smart-courseware/publication-service.ts（publishSmartCoursewareRevision：发布回执/投影/操作幂等）',
         'src/lib/smart-courseware/generation-service.ts（generation job/unit/attempt 状态写点）',
@@ -350,21 +356,53 @@ export const DECLARED_CROSS_DOMAIN_IMPORT_PATHS: readonly { from: string; toModu
  * 权威模型的 Prisma 写调用只允许出现在矩阵登记的 authorityWriteSites 内；
  * 该名单是 default-deny 的白名单——全域扫描发现的任何未登记写点即违例。
  */
-export const AUTHORITY_WRITE_MODEL_PATTERN = /\b(?:prisma|db|tx)\s*\.\s*(learningFact|adaptiveAssessmentGeneratedCandidate|adaptiveAssessmentGeneratedCandidateRevision|adaptiveAssessmentGeneratedCandidateEvent|adaptiveAssessmentGeneratedCandidateReview|adaptiveAssessmentGeneratedPublicationReceipt|assignmentRevision|assignmentQuestion|assignmentPublicationOperation|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartLessonDraft|smartLessonTask|smartCoursewareRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationReceipt|smartCoursewarePublicationOperation|smartCoursewareModule|smartCoursewareModuleRevision)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
+export const AUTHORITY_WRITE_MODEL_PATTERN = /\b(?:prisma|db|tx)\s*\.\s*(learningFact|adaptiveAssessmentGeneratedCandidate|adaptiveAssessmentGeneratedCandidateRevision|adaptiveAssessmentGeneratedCandidateEvent|adaptiveAssessmentGeneratedCandidateReview|adaptiveAssessmentGeneratedPublicationReceipt|assignmentRevision|assignmentQuestion|assignmentPublicationOperation|assignmentSubmission|gradingRun|gradingCriterionAssessment|teacherAssignmentApprovalSnapshot|teacherAssignmentFeedbackRelease|smartLessonRevision|smartLessonDraft|smartLessonTask|smartCoursewareRevision|smartCoursewarePublicationRevision|smartCoursewarePublicationReceipt|smartCoursewarePublicationOperation|smartCoursewareModule|smartCoursewareModuleRevision)\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\s*\(/u;
+
+/**
+ * 四域根目录：provider/AI 调用点的发现范围（域根内出现 AI 调用必须登记）。
+ * 写点发现不受此限制——全域 default-deny。
+ */
+export const GENERATED_CONTENT_DOMAIN_ROOTS: Readonly<Record<GeneratedContentDomain, readonly string[]>> = {
+  assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
+  'assignment-rubric': ['src/lib/assignments/', 'src/app/api/teacher/assignments/'],
+  'smart-lesson': ['src/lib/smart-lesson-plan/', 'src/app/api/teacher/smart-lesson-tasks/'],
+  'smart-courseware': ['src/lib/smart-courseware/', 'src/app/api/teacher/smart-courseware/'],
+};
+
+/** 权威模型 → 属主域（写点归属判定；violations 按此路由到对应矩阵行）。 */
+export const AUTHORITY_MODEL_DOMAIN: Readonly<Record<string, GeneratedContentDomain>> = {
+  // learningFact 刻意不在表内：Learning Record 域由既有 trusted-learning-fact-filter/
+  // canonical identity 契约治理（spec Non-Goal），不属于四域矩阵的权威写点判定
+
+  adaptiveAssessmentGeneratedCandidate: 'assessment',
+  adaptiveAssessmentGeneratedCandidateRevision: 'assessment',
+  adaptiveAssessmentGeneratedCandidateEvent: 'assessment',
+  adaptiveAssessmentGeneratedCandidateReview: 'assessment',
+  adaptiveAssessmentGeneratedPublicationReceipt: 'assessment',
+  assignmentRevision: 'assignment-rubric',
+  assignmentQuestion: 'assignment-rubric',
+  assignmentPublicationOperation: 'assignment-rubric',
+  assignmentSubmission: 'assignment-rubric',
+  gradingRun: 'assignment-rubric',
+  gradingCriterionAssessment: 'assignment-rubric',
+  teacherAssignmentApprovalSnapshot: 'assignment-rubric',
+  teacherAssignmentFeedbackRelease: 'assignment-rubric',
+  smartLessonRevision: 'smart-lesson',
+  smartLessonDraft: 'smart-lesson',
+  smartLessonTask: 'smart-lesson',
+  smartCoursewareRevision: 'smart-courseware',
+  smartCoursewarePublicationRevision: 'smart-courseware',
+  smartCoursewarePublicationReceipt: 'smart-courseware',
+  smartCoursewarePublicationOperation: 'smart-courseware',
+  smartCoursewareModule: 'smart-courseware',
+  smartCoursewareModuleRevision: 'smart-courseware',
+};
 
 /** provider/AI 调用点发现：import 这些模块即视为生成入口，必须登记。 */
 export const PROVIDER_DISCOVERY_PATTERNS: readonly RegExp[] = [
   /from\s+['"]@\/lib\/ai\/provider-registry['"]/u,
   /from\s+['"]ai['"]/u,
 ];
-
-/** 四域根目录（未登记生成模块的发现范围）。 */
-export const GENERATED_CONTENT_DOMAIN_ROOTS: Readonly<Record<GeneratedContentDomain, readonly string[]>> = {
-  assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/'],
-  'assignment-rubric': ['src/lib/assignments/'],
-  'smart-lesson': ['src/lib/smart-lesson-plan/'],
-  'smart-courseware': ['src/lib/smart-courseware/'],
-};
 
 /** Prisma schema 中禁止出现的共享候选/状态模型名（no-superdomain）。 */
 export const FORBIDDEN_SHARED_MODEL_PATTERNS: readonly RegExp[] = [

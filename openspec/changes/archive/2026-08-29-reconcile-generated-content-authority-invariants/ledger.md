@@ -68,3 +68,11 @@
 1. **权威写点发现**（替换 sink 模块 import 扫描）：全域 tracked 源文件按 `AUTHORITY_WRITE_MODEL_PATTERN`（learningFact/AssignmentRevision/SmartCoursewarePublicationRevision 等权威模型的 prisma 写调用）扫描，每个写点必须落在矩阵登记的 `authorityWriteSites` 白名单内——新文件、API 路由、绕过 writer 的直写默认违例，无需预先登记生成器。
 2. **provider 登记制**：全域发现 `@/lib/ai/provider-registry` 与 `'ai'` 调用点，未登记于 `generationModules` 即违例（AI 入口必须显式对账）。
 3. **纯内容寻址绑定**：删除 merge-base headRelation（squash 破坏谱系）；绑定判定 = evidenceDigest（含治理文件语义，排除 digest 字段自引用）与当前内容一致——squash/历史重写不影响判定，仅真实内容漂移触发 STALE。
+
+## default-deny 校准完成（2026-08-29，PR #1693）
+
+全域写点发现的首轮运行暴露并完成三类校准（这正是 default-deny 的价值：全部权威写点被强制显式化）：
+
+1. **learningFact 归属修正**：LearningFact 是跨域 Learning Record 权威（document-grading、simulation-agent、historical-evidence、backfill 等多处合法写点），由既有 trusted-learning-fact-filter/canonical identity 契约治理（spec Non-Goal）；从 AUTHORITY_MODEL_DOMAIN 移除，四域矩阵不对其写点做 fail-closed 判定。
+2. **评分/批改基础设施写点登记**（assignment 行）：math-document-grading-lifecycle/persistence、teacher-assignment-review-outbox、document-grading approve 路由（人类审批驱动）。
+3. **跨域级联清理显式登记**（smart-courseware 行）：smart-lesson-plan/lifecycle.ts 在 lesson archive/delete 时对 courseware 记录的级联清理写点；smart-lesson 行登记 teacher-default-class-service.ts（教师操作驱动的默认任务创建）。

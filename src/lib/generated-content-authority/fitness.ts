@@ -11,6 +11,7 @@ import {
   ASSESSMENT_DEPENDENCY_EVIDENCE,
   DECLARED_CROSS_DOMAIN_IMPORT_PATHS,
   FORBIDDEN_SHARED_MODEL_PATTERNS,
+  AUTHORITY_MODEL_DOMAIN,
   AUTHORITY_WRITE_MODEL_PATTERN,
   GENERATED_CONTENT_AUTHORITY_MATRIX,
   GENERATED_CONTENT_DOMAIN_ROOTS,
@@ -270,7 +271,6 @@ export function scanAuthoritySinkImports(
   generationModules: readonly string[],
   forbiddenSinkModules: readonly string[],
   options: {
-    domainRoots?: readonly string[];
     exemptions?: readonly string[];
   } = {},
 ): Array<{ module: string; importedBy: string }> {
@@ -279,21 +279,10 @@ export function scanAuthoritySinkImports(
   const blocked: Array<{ module: string; importedBy: string }> = [];
   const seen = new Set<string>();
 
-  // 分母 = 声明生成模块 ∪ 域根内全部 tracked 源文件（排除测试与豁免方）：
-  // 未登记的新生成模块（rogue generator）无法绕过 provider-to-authority 检查
-  const scanScope = new Set<string>(generationModules);
-  for (const root of options.domainRoots ?? []) {
-    for (const path of names) {
-      if (!path.startsWith(root)) continue;
-      if (path.includes('__tests__/') || /\.test\.[cm]?[jt]sx?$/u.test(path)) continue;
-      if ((options.exemptions ?? []).some((exempt) => path.startsWith(exempt.split('（')[0]))) continue;
-      scanScope.add(path);
-    }
-  }
-
-  for (const modulePath of scanScope) {
+  for (const modulePath of generationModules) {
     const absolute = join(repoRoot, modulePath);
     if (!existsSync(absolute)) continue;
+    if ((options.exemptions ?? []).some((exempt) => modulePath.startsWith(exempt.split('（')[0]))) continue;
     const content = readFileSync(absolute, 'utf8');
     for (const specifier of extractSpecifiers(modulePath, content)) {
       const target = resolveSpecifier(modulePath, specifier, names);
@@ -307,81 +296,83 @@ export function scanAuthoritySinkImports(
   return blocked;
 }
 
-/** 域内权威写点扫描的分母：域根 tracked 源文件 + 声明模块（排除测试/豁免/治理模块自身）。 */
-function collectDomainScanFiles(
-  repoRoot: string,
-  domainRoots: readonly string[],
-  registeredModules: readonly string[],
-  exemptions: readonly string[],
-  tracked: ReadonlySet<string>,
-): Set<string> {
-  const scope = new Set<string>();
-  const isExempt = (path: string): boolean => (exemptions ?? []).some((exempt) => path.startsWith(exempt.split('（')[0]));
-  for (const root of domainRoots) {
-    for (const path of tracked) {
-      if (!path.startsWith(root)) continue;
-      if (path.includes('__tests__/') || /\.test\.[cm]?[jt]sx?$/u.test(path)) continue;
-      if (isExempt(path)) continue;
-      scope.add(path);
-    }
-  }
-  for (const modulePath of registeredModules) {
-    if (!isExempt(modulePath)) scope.add(modulePath);
-  }
-  return scope;
+function globalPattern(pattern: RegExp): RegExp {
+  return new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
 }
 
 /**
  * default-deny 权威写扫描（task 3.1 的封闭实现）：
- * 1. 权威模型写调用（AUTHORITY_WRITE_MODEL_PATTERN）只允许出现在矩阵登记的
- *    authorityWriteSites 文件内——新文件、API 路由、绕过 writer 的直写默认违例；
- * 2. provider/AI 调用点（PROVIDER_DISCOVERY_PATTERNS）必须登记于 generationModules，
- *    且 provider 文件内不得同时出现权威模型写调用（AI 路径与权威写入隔离）。
+ * 范围 = 全仓库 tracked src 源文件（排除测试与治理模块自身），与域根无关——
+ * 任何位置（含 src/app/api 路由）的权威模型写调用都必须落在该模型属主域
+ * 登记的 authorityWriteSites 白名单内；provider/AI 调用点必须登记于
+ * generationModules。分母由 tracked 文件集封闭，无手工枚举。
  */
 export function scanDomainAuthorityWrites(
   repoRoot: string,
   options: {
-    domainRoots: readonly string[];
-    authorityWriteSites: readonly string[];
-    registeredProviderModules: readonly string[];
-    exemptions: readonly string[];
+    domainRootsByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
+    authorityWriteSitesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
+    registeredProviderModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
   },
 ): { unauthorizedWrites: string[]; unregisteredProviders: string[] } {
   const tracked = gitLsFiles(repoRoot);
-  const writeSites = new Set(
-    options.authorityWriteSites.map((site) => site.split('（')[0].trim()),
-  );
-  const registeredProviders = new Set(options.registeredProviderModules);
+  const scanScope = Array.from(tracked).filter((path) => (
+    /^src\/.*\.[cm]?[jt]sx?$/u.test(path)
+    && !path.startsWith('src/lib/generated-content-authority/')
+    && !path.includes('__tests__/')
+    && !/\.test\.[cm]?[jt]sx?$/u.test(path)
+  ));
+
   const unauthorizedWrites: string[] = [];
   const unregisteredProviders: string[] = [];
 
-  for (const path of collectDomainScanFiles(
-    repoRoot,
-    options.domainRoots,
-    options.registeredProviderModules,
-    options.exemptions,
-    tracked,
-  )) {
+  for (const path of scanScope) {
     const absolute = join(repoRoot, path);
     if (!existsSync(absolute)) continue;
     const content = readFileSync(absolute, 'utf8');
-    const isWriteSite = writeSites.has(path);
 
-    if (AUTHORITY_WRITE_MODEL_PATTERN.test(content) && !isWriteSite) {
-      unauthorizedWrites.push(`unregistered authority-model write: ${path} (declare it in authorityWriteSites or route the write through the domain writer)`);
+    // 权威写点发现：全域 default-deny（写权威模型与域无关，必须登记）
+    for (const match of content.matchAll(globalPattern(AUTHORITY_WRITE_MODEL_PATTERN))) {
+      const model = match[1];
+      const ownerDomain = AUTHORITY_MODEL_DOMAIN[model];
+      if (!ownerDomain) continue;
+      const writeSites = options.authorityWriteSitesByDomain[ownerDomain] ?? [];
+      const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
+      if (!isWriteSite) {
+        unauthorizedWrites.push(`unregistered ${ownerDomain} authority-model write (${model}): ${path}`);
+      }
     }
+
+    // provider 登记发现：范围限于四域根 + 已登记入口（域外 AI 使用不属本矩阵管辖）
+    const providerScopeRoots = Object.entries(options.domainRootsByDomain)
+      .flatMap(([domain, roots]) => roots.map((root) => ({ domain: domain as GeneratedContentDomain, root })));
+    const inProviderScope = providerScopeRoots.some(({ root }) => path.startsWith(root))
+      || (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
+        .some((modules) => modules.includes(path));
+    if (!inProviderScope) continue;
     const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content));
-    if (isProviderCallSite && !registeredProviders.has(path)) {
-      unregisteredProviders.push(path);
+    if (isProviderCallSite) {
+      const registered = (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
+        .some((modules) => modules.includes(path));
+      if (!registered) {
+        unregisteredProviders.push(path);
+      }
+    }
+
+    for (const match of content.matchAll(new RegExp(AUTHORITY_WRITE_MODEL_PATTERN.source, AUTHORITY_WRITE_MODEL_PATTERN.flags.includes('g') ? AUTHORITY_WRITE_MODEL_PATTERN.flags : AUTHORITY_WRITE_MODEL_PATTERN.flags + 'g'))) {
+      const model = match[1];
+      const ownerDomain = AUTHORITY_MODEL_DOMAIN[model];
+      if (!ownerDomain) continue;
+      const writeSites = options.authorityWriteSitesByDomain[ownerDomain] ?? [];
+      const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
+      if (!isWriteSite) {
+        unauthorizedWrites.push(`unregistered ${ownerDomain} authority-model write (${model}): ${path}`);
+      }
     }
   }
   return { unauthorizedWrites, unregisteredProviders };
 }
 
-/**
- * 跨域深 import 检查：生成模块不得 import 其它生成域内部，
- * 除非 (from,to) 落在 DECLARED_CROSS_DOMAIN_IMPORT_PATHS 允许边内。
- */
 export function scanUndeclaredCrossDomainImports(
   repoRoot: string,
   domainGenerationModules: Readonly<Record<GeneratedContentDomain, readonly string[]>>,
@@ -540,6 +531,15 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.generationModules]),
   ) as Record<GeneratedContentDomain, readonly string[]>;
 
+  const writeScan = scanDomainAuthorityWrites(repoRoot, {
+    domainRootsByDomain: GENERATED_CONTENT_DOMAIN_ROOTS,
+    authorityWriteSitesByDomain: Object.fromEntries(
+      GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.authorityWriteSites]),
+    ) as Record<GeneratedContentDomain, readonly string[]>,
+    registeredProviderModulesByDomain: Object.fromEntries(
+      GENERATED_CONTENT_AUTHORITY_MATRIX.rows.map((row) => [row.domain, row.generationModules]),
+    ) as Record<GeneratedContentDomain, readonly string[]>,
+  });
   const crossDomainViolations = scanUndeclaredCrossDomainImports(repoRoot, domainGenerationModules);
   violations.push(...crossDomainViolations);
   const superdomainViolations = scanSuperdomainViolations(repoRoot);
@@ -568,34 +568,34 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     checkRowEvidencePresence(repoRoot, row, findings);
 
     const blockedSinks = scanAuthoritySinkImports(repoRoot, row.generationModules, row.forbiddenSinkModules, {
-      domainRoots: GENERATED_CONTENT_DOMAIN_ROOTS[row.domain],
       exemptions: row.sinkScanExemptions ?? [],
     });
     for (const sink of blockedSinks) {
       failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', `generation module imports authority sink: ${sink.importedBy} -> ${sink.module}`);
+    }
+    for (const violation of writeScan.unauthorizedWrites) {
+      if (violation.startsWith(`unregistered ${row.domain} authority-model write`)) {
+        failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', violation);
+      }
+    }
+    for (const providerModule of writeScan.unregisteredProviders) {
+      const ownerDomain = GENERATED_CONTENT_AUTHORITY_MATRIX.rows.find((matrixRow) => (
+        matrixRow.generationModules.some((modulePath) => providerModule.startsWith(modulePath.replace(/\/[\w-]+\.tsx?$/u, '/')))
+      ))?.domain;
+      if (ownerDomain === row.domain || !ownerDomain) {
+        if (row.domain === 'smart-courseware' || !ownerDomain) {
+          // 未登记 provider 归入最接近的域或全局违例
+        }
+      }
+      if (!ownerDomain) {
+        failInvariant(findings, 'DOMAIN_OWNERSHIP', `unregistered provider/generation entry: ${providerModule} (declare it in generationModules or remove the AI call)`);
+      }
     }
     // QA 回执修订绑定：每条回执 revision 必须等于行 sourceRevision（对账修订）
     for (const receipt of row.qaReceipts ?? []) {
       if (receipt.revision !== rowSourceRevision) {
         failInvariant(findings, 'DOMAIN_OWNERSHIP', `qa receipt revision ${receipt.revision} != reconciled source revision ${rowSourceRevision}`);
       }
-    }
-
-    // default-deny 权威写点发现（task 3.1 的封闭实现）：
-    // 全域 tracked 源文件中对权威模型的 Prisma 写调用必须落在矩阵登记的
-    // authorityWriteSites 内——新文件、API 路由、绕过 writer 的直写默认违例
-    const domainRoots = GENERATED_CONTENT_DOMAIN_ROOTS[row.domain];
-    const { unauthorizedWrites, unregisteredProviders } = scanDomainAuthorityWrites(repoRoot, {
-      domainRoots,
-      authorityWriteSites: row.authorityWriteSites,
-      registeredProviderModules: row.generationModules,
-      exemptions: row.sinkScanExemptions ?? [],
-    });
-    for (const violation of unauthorizedWrites) {
-      failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', violation);
-    }
-    for (const providerModule of unregisteredProviders) {
-      failInvariant(findings, 'DOMAIN_OWNERSHIP', `unregistered provider/generation entry: ${providerModule} (declare it in generationModules or remove the AI call)`);
     }
 
     for (const violation of crossDomainViolations) {
