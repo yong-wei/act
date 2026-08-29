@@ -1909,7 +1909,7 @@ describe('resource field completion audit', () => {
       expect(routeSegment).toBeTruthy();
       expect(existsSync(join(
         process.cwd(),
-        `src/app/interactive-learning/courses/${routeSegment}/student/[sessionId]/page.tsx`,
+        `src/features/interactive/course-app-routes/${routeSegment}/student.tsx`,
       ))).toBe(true);
     }
     const manifestModuleRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:3-5:step-01:boundary-card');

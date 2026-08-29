@@ -85,10 +85,10 @@ describe('layered graph workspace UI contracts (#1273)', () => {
       'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx',
     );
     const studentRoute = readRepoFile(
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
     );
     const teacherRoute = readRepoFile(
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/teacher.tsx',
     );
     const consumers = readRepoFile('src/lib/layered-graph/consumers.ts');
     const pageContext = readRepoFile('src/lib/layered-graph/course-page-context.ts');

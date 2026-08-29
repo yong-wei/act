@@ -38,7 +38,8 @@ function isResolvableSeedTarget(target: string): boolean {
     const parts = pathOnly.split('/');
     const courseSlug = parts[3];
     return Boolean(courseSlug) &&
-      existsSync(path.join(process.cwd(), `src/app/interactive-learning/courses/${courseSlug}/student/[sessionId]/page.tsx`));
+      existsSync(path.join(process.cwd(), `src/features/interactive/course-app-routes/${courseSlug}/student.tsx`)) &&
+      existsSync(path.join(process.cwd(), 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx'));
   }
   if (pathOnly.startsWith('/arena/challenges/')) {
     return existsSync(path.join(process.cwd(), 'src/app/arena/challenges/[taskId]/page.tsx'));

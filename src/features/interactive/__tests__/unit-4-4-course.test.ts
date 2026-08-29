@@ -131,7 +131,7 @@ describe('unit 4-4 interactive course', () => {
       existsSync(
         join(
           repoRoot,
-          'src/app/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/page.tsx',
+          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/entry.tsx',
         ),
       ),
     ).toBe(true);
@@ -139,7 +139,7 @@ describe('unit 4-4 interactive course', () => {
       existsSync(
         join(
           repoRoot,
-          'src/app/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/[sessionId]/page.tsx',
+          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/student.tsx',
         ),
       ),
     ).toBe(true);
@@ -147,10 +147,11 @@ describe('unit 4-4 interactive course', () => {
       existsSync(
         join(
           repoRoot,
-          'src/app/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/teacher/[sessionId]/page.tsx',
+          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/teacher.tsx',
         ),
       ),
     ).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]/page.tsx'))).toBe(true);
   });
 
   it('implements runtime-first step panels and teacher reveal flow in the dedicated 4-4 lesson slice', async () => {

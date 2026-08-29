@@ -1210,7 +1210,7 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
   },
   {
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
-    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     requiredThemes: ['light', 'dark'],
     requiredWidths: [1440, 320],
     role: 'student',
@@ -1220,7 +1220,7 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
   },
   {
     href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
-    routeFile: 'src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     requiredThemes: ['light', 'dark'],
     requiredWidths: [1440, 320],
     role: 'student',

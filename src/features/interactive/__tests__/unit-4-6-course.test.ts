@@ -11,7 +11,7 @@ vi.mock('server-only', () => ({}));
 const repoRoot = process.cwd();
 const routeBase = join(
   repoRoot,
-  'src/app/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding',
+  'src/features/interactive/course-app-routes/unit-4-6-fixed-structure-boundary-structural-encoding',
 );
 const featureBase = join(
   repoRoot,
@@ -117,9 +117,9 @@ describe('unit 4-6 interactive course', () => {
   });
 
   it('exposes the dedicated route files and keeps the implementation runtime-first', () => {
-    expect(existsSync(join(routeBase, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
 
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');

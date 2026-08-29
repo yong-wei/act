@@ -102,8 +102,8 @@ describe('interactive student route query boundary', () => {
 
   it('keeps redirect ordering before auth/runtime awaits while passing demoStepId from the route', () => {
     const routes = [
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
-      'src/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page.tsx',
+      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
+      'src/features/interactive/course-app-routes/unit-2-1-modeling-language/student.tsx',
     ];
 
     for (const routePath of routes) {
@@ -123,11 +123,11 @@ describe('interactive student route query boundary', () => {
   it('passes demoStepId through representative route auth and non-auth branches', async () => {
     const routes = [
       {
-        modulePath: '@/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page',
+        modulePath: '@/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student',
         expectedLessonId: '1-1',
       },
       {
-        modulePath: '@/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page',
+        modulePath: '@/features/interactive/course-app-routes/unit-2-1-modeling-language/student',
         expectedLessonId: '2-1',
       },
     ] as const;
@@ -165,7 +165,7 @@ describe('interactive student route query boundary', () => {
     const mocks = await loadRouteMocks();
     mocks.redirectInactiveStudentSessionToLessonEntry.mockRejectedValueOnce(new Error('redirected'));
 
-    const routeModule = await import('@/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page');
+    const routeModule = await import('@/features/interactive/course-app-routes/unit-2-1-modeling-language/student');
 
     await expect(routeModule.default({
       params: Promise.resolve({ sessionId: 'closed-session' }),

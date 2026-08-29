@@ -731,7 +731,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/[courseId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     routePattern: '/interactive-learning/courses/:courseId',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/page.tsx',
     frame: 'learning-atlas',
@@ -751,7 +751,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
     routeFile:
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/waiting/page.tsx',
+      'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/waiting/page.tsx',
     routePattern: '/interactive-learning/courses/:courseId/teacher/:sessionId/waiting',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/teacher/[sessionId]/waiting/page.tsx',
     frame: 'learning-atlas',
@@ -769,8 +769,27 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     },
   }),
   primaryRoute({
+    href: '/interactive-learning/courses/[courseId]/demo',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/demo/page.tsx',
+    routePattern: '/interactive-learning/courses/:courseId/demo',
+    coveredRouteGlob: 'src/app/interactive-learning/courses/*/demo/page.tsx',
+    frame: 'learning-atlas',
+    roleScope: ['guest', 'student'],
+    authState: 'public',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: 'retire-private-course-session-route-bridges',
+    contextualReturn: {
+      sourceContext: 'interactive-learning',
+      targetHint: 'Return to the concrete course entry; unknown course demo segments are not found.',
+      fallbackHref: '/interactive-learning/courses',
+    },
+  }),
+  primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
-    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
@@ -781,7 +800,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
-    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
@@ -792,7 +811,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx',
     frame: 'mission-workspace',
     roleScope: ['guest', 'student'],
     authState: 'mixed',
@@ -805,7 +824,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/page.tsx',
     frame: 'mission-workspace',
     roleScope: ['teacher', 'admin'],
     authState: 'mixed',
@@ -818,7 +837,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
-    routeFile: 'src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
@@ -1237,7 +1256,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/:sessionId',
     frame: 'mission-workspace',
     roleScope: ['guest', 'student'],
@@ -1251,7 +1270,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/:sessionId',
     frame: 'mission-workspace',
     roleScope: ['teacher', 'admin'],
@@ -1265,7 +1284,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/[course]/student/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/:course/student/:sessionId',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
     frame: 'mission-workspace',
@@ -1290,7 +1309,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/interactive-learning/courses/[course]/teacher/[sessionId]',
-    routeFile: 'src/app/interactive-learning/courses/unit-2-1-modeling-language/teacher/[sessionId]/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/:course/teacher/:sessionId',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/teacher/[sessionId]/page.tsx',
     frame: 'mission-workspace',
@@ -2148,7 +2167,7 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
   },
   {
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
-    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
+    routeFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     viewportWidths: [1440, 320],
     currentIntent: 'learn',
     firstViewportRequirement:
