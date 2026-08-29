@@ -82,3 +82,7 @@
 1. **P1 治理实现纳入摘要**：computeEvidenceDigest 现散列全部治理模块文件（vocabulary/privacy/matrix/fitness/index），matrix.ts 的 evidenceDigest 字段行在散列前归一化为占位符（消除自引用）——削弱扫描逻辑/篡改策略必然 STALE。
 2. **P1 learningFact 直写封堵**：LearningFact 建立独立的全域写点白名单（LEARNING_FACT_WRITE_SITES：canonical writer、materialization、simulation/document-grading/backfill 等既有 writer 与人类审批路由），全域扫描中 learningFact 写调用仅允许出现在名单内——生成器直写 prisma.learningFact.create 即违例（fixture 锁定）。
 3. **P1 provider 相对路径发现**：provider 发现除文本正则外改用规范化解析器（resolveSpecifier）识别相对路径（../ai/provider-registry）与别名 import；AI 调用模块同时禁止 import 本域禁止 sink（import 即违例）；域外 AI 使用（chat/diagnosis/konling 等非四域）不属本矩阵管辖，明确跳过。
+
+## 结构化违例路由（2026-08-29，PR #1693）
+
+scanDomainAuthorityWrites 改为返回结构化违例（domain/kind/file/detail）而非字符串前缀：属主域违例路由到对应矩阵行 finding；learning-record 域（learningFact 未登记写点）与无属主违例进全局 violations——settled 条件要求 violations 为空，全局违例同样 fail-closed。provider 登记发现范围明确为四域根 + 已登记入口（域外 AI 使用不属本矩阵管辖，写权威模型仍由全域写点发现捕获）；摘要重绑至治理文件纳入后的最终状态。

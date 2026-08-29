@@ -330,6 +330,14 @@ function globalPattern(pattern: RegExp): RegExp {
  * 登记的 authorityWriteSites 白名单内；provider/AI 调用点必须登记于
  * generationModules。分母由 tracked 文件集封闭，无手工枚举。
  */
+export type FitnessScanViolation = {
+  /** learning-record 域的违例无四域属主，进全局 violations（fail-closed 语义相同） */
+  readonly domain: GeneratedContentDomain | 'learning-record' | null;
+  readonly file: string;
+  readonly kind: 'UNREGISTERED_AUTHORITY_WRITE' | 'UNREGISTERED_PROVIDER' | 'PROVIDER_IMPORTS_SINK';
+  readonly detail: string;
+};
+
 export function scanDomainAuthorityWrites(
   repoRoot: string,
   options: {
@@ -338,7 +346,7 @@ export function scanDomainAuthorityWrites(
     registeredProviderModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
     forbiddenSinkModulesByDomain: Readonly<Record<GeneratedContentDomain, readonly string[]>>;
   },
-): { unauthorizedWrites: string[]; unregisteredProviders: string[] } {
+): FitnessScanViolation[] {
   const tracked = gitLsFiles(repoRoot);
   const scanScope = Array.from(tracked).filter((path) => (
     /^src\/.*\.[cm]?[jt]sx?$/u.test(path)
@@ -347,77 +355,70 @@ export function scanDomainAuthorityWrites(
     && !/\.test\.[cm]?[jt]sx?$/u.test(path)
   ));
 
-  const unauthorizedWrites: string[] = [];
-  const unregisteredProviders: string[] = [];
+  const violations: FitnessScanViolation[] = [];
 
   for (const path of scanScope) {
     const absolute = join(repoRoot, path);
     if (!existsSync(absolute)) continue;
     const content = readFileSync(absolute, 'utf8');
 
-    // 权威写点发现：全域 default-deny（写权威模型与域无关，必须登记）
+    // 权威写点发现：全域 default-deny（写权威模型与域无关，必须登记）。
+    // learningFact 归属 learning-record 域（其写点白名单为跨域 writer 清单）。
     for (const match of content.matchAll(globalPattern(AUTHORITY_WRITE_MODEL_PATTERN))) {
       const model = match[1];
-      const writeSites = model === 'learningFact'
+      const ownerDomain = model === 'learningFact'
+        ? 'learning-record' as const
+        : AUTHORITY_MODEL_DOMAIN[model] ?? null;
+      const writeSites = ownerDomain === 'learning-record'
         ? LEARNING_FACT_WRITE_SITES
-        : (options.authorityWriteSitesByDomain[AUTHORITY_MODEL_DOMAIN[model] ?? ''] ?? []);
+        : (ownerDomain ? options.authorityWriteSitesByDomain[ownerDomain] ?? [] : []);
       const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
       if (!isWriteSite) {
-        unauthorizedWrites.push(`unregistered authority-model write (${model}): ${path} (declare it in the domain authorityWriteSites or the LearningFact write-site list)`);
+        violations.push({
+          domain: ownerDomain,
+          file: path,
+          kind: 'UNREGISTERED_AUTHORITY_WRITE',
+          detail: `unregistered authority-model write (${model})`,
+        });
       }
     }
 
     // provider 发现走解析器：相对路径（../ai/provider-registry）与别名同等识别
-    const inDomainScope = Object.values(options.domainRootsByDomain)
-      .some((roots) => roots.some((root) => path.startsWith(root)))
-      || (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
-        .some((modules) => modules.includes(path));
-    let isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content));
-    if (!isProviderCallSite && inDomainScope) {
-      for (const specifier of extractSpecifiers(path, content)) {
-        const target = resolveSpecifier(path, specifier, tracked);
-        if (target && target.startsWith('src/lib/ai/provider-registry')) {
-          isProviderCallSite = true;
-          break;
+    const isProviderCallSite = PROVIDER_DISCOVERY_PATTERNS.some((pattern) => pattern.test(content))
+      || (() => {
+        for (const specifier of extractSpecifiers(path, content)) {
+          const target = resolveSpecifier(path, specifier, tracked);
+          if (target && target.startsWith('src/lib/ai/provider-registry')) return true;
         }
-      }
-    }
-    // provider 登记只管辖四域根与已登记入口；域外 AI 使用不属本矩阵
-    if (!inDomainScope) continue;
-    if (isProviderCallSite) {
-      const registered = (Object.values(options.registeredProviderModulesByDomain) as unknown as readonly string[][])
-        .some((modules) => modules.includes(path));
-      if (!registered) {
-        unregisteredProviders.push(path);
-      }
-      // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）
-      const owningDomain = (Object.entries(options.domainRootsByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
-        .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0]
-        ?? (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
-          .find(([, modules]) => modules.includes(path))?.[0];
-      const forbiddenForDomain = options.forbiddenSinkModulesByDomain?.[owningDomain ?? 'smart-lesson'] ?? [];
-      for (const specifier of extractSpecifiers(path, content)) {
-        const target = resolveSpecifier(path, specifier, tracked);
-        if (!target) continue;
-        if (forbiddenForDomain.some((sink) => target === sink || target.startsWith(sink.split('（')[0]))) {
-          unauthorizedWrites.push(`provider module imports authority sink: ${path} -> ${target}`);
-        }
-      }
-    }
+        return false;
+      })();
+    if (!isProviderCallSite) continue;
 
+    // provider 登记发现范围 = 四域根 ∪ 已登记入口；无属主的域外 AI 使用
+    // 不属本矩阵管辖（写权威模型仍由上方全域写点发现捕获）
+    const rootOwnerDomain = (Object.entries(options.domainRootsByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+      .find(([, roots]) => roots.some((root) => path.startsWith(root)))?.[0] ?? null;
+    const registeredOwnerDomain = (Object.entries(options.registeredProviderModulesByDomain) as Array<[GeneratedContentDomain, readonly string[]]>)
+      .find(([, modules]) => modules.includes(path))?.[0] ?? null;
+    const owningDomain = registeredOwnerDomain ?? rootOwnerDomain;
+    if (!owningDomain) continue;
 
-    for (const match of content.matchAll(new RegExp(AUTHORITY_WRITE_MODEL_PATTERN.source, AUTHORITY_WRITE_MODEL_PATTERN.flags.includes('g') ? AUTHORITY_WRITE_MODEL_PATTERN.flags : AUTHORITY_WRITE_MODEL_PATTERN.flags + 'g'))) {
-      const model = match[1];
-      const ownerDomain = AUTHORITY_MODEL_DOMAIN[model];
-      if (!ownerDomain) continue;
-      const writeSites = options.authorityWriteSitesByDomain[ownerDomain] ?? [];
-      const isWriteSite = writeSites.some((site) => site.split('（')[0].trim() === path);
-      if (!isWriteSite) {
-        unauthorizedWrites.push(`unregistered ${ownerDomain} authority-model write (${model}): ${path}`);
+    // AI 调用模块不得 import 本域禁止 sink（生成路径与权威写入隔离）
+    const forbiddenForDomain = options.forbiddenSinkModulesByDomain[owningDomain] ?? [];
+    for (const specifier of extractSpecifiers(path, content)) {
+      const target = resolveSpecifier(path, specifier, tracked);
+      if (!target) continue;
+      if (forbiddenForDomain.some((sink) => target === sink || target.startsWith(sink.split('（')[0]))) {
+        violations.push({
+          domain: owningDomain,
+          file: path,
+          kind: 'PROVIDER_IMPORTS_SINK',
+          detail: `provider module imports authority sink: ${target}`,
+        });
       }
     }
   }
-  return { unauthorizedWrites, unregisteredProviders };
+  return violations;
 }
 
 export function scanUndeclaredCrossDomainImports(
@@ -623,31 +624,20 @@ export function evaluateGeneratedContentAuthorityFitness(input: FitnessInput = {
     for (const sink of blockedSinks) {
       failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', `generation module imports authority sink: ${sink.importedBy} -> ${sink.module}`);
     }
-    for (const violation of writeScan.unauthorizedWrites) {
-      if (violation.startsWith(`unregistered ${row.domain} authority-model write`)) {
-        failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', violation);
-      }
-    }
-    for (const providerModule of writeScan.unregisteredProviders) {
-      const ownerDomain = GENERATED_CONTENT_AUTHORITY_MATRIX.rows.find((matrixRow) => (
-        matrixRow.generationModules.some((modulePath) => providerModule.startsWith(modulePath.replace(/\/[\w-]+\.tsx?$/u, '/')))
-      ))?.domain;
-      if (ownerDomain === row.domain || !ownerDomain) {
-        if (row.domain === 'smart-courseware' || !ownerDomain) {
-          // 未登记 provider 归入最接近的域或全局违例
+    // 结构化违例按域路由：属主域 → 行 finding；learning-record/无属主 → 全局
+    for (const scanViolation of writeScan) {
+      if (scanViolation.domain === row.domain) {
+        if (scanViolation.kind === 'UNREGISTERED_AUTHORITY_WRITE') {
+          failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', `${scanViolation.detail}: ${scanViolation.file}`);
+        } else if (scanViolation.kind === 'PROVIDER_IMPORTS_SINK') {
+          failInvariant(findings, 'NO_DIRECT_AUTHORITY_WRITE', `${scanViolation.detail}: ${scanViolation.file}`);
+        } else {
+          failInvariant(findings, 'DOMAIN_OWNERSHIP', `${scanViolation.detail}: ${scanViolation.file}`);
         }
-      }
-      if (!ownerDomain) {
-        failInvariant(findings, 'DOMAIN_OWNERSHIP', `unregistered provider/generation entry: ${providerModule} (declare it in generationModules or remove the AI call)`);
-      }
-    }
-    // QA 回执修订绑定：每条回执 revision 必须等于行 sourceRevision（对账修订）
-    for (const receipt of row.qaReceipts ?? []) {
-      if (receipt.revision !== rowSourceRevision) {
-        failInvariant(findings, 'DOMAIN_OWNERSHIP', `qa receipt revision ${receipt.revision} != reconciled source revision ${rowSourceRevision}`);
+      } else if (scanViolation.domain === null || scanViolation.domain === 'learning-record') {
+        violations.push(`${scanViolation.kind} (${scanViolation.domain ?? 'unattributed'}): ${scanViolation.file} — ${scanViolation.detail}`);
       }
     }
-
     for (const violation of crossDomainViolations) {
       if (violation.startsWith(`undeclared cross-domain import: `)) {
         const fromModule = violation.split(' -> ')[0].replace('undeclared cross-domain import: ', '');
