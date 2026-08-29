@@ -478,6 +478,7 @@ describe('universal AppShell frame contract', () => {
     expect(migratedRouteExceptions).toEqual([]);
 
     expect(LEGACY_LESSON_RUNTIME_ROUTE_SLUGS).not.toContain('unit-1-1-see-the-full-picture');
+    expect(LEGACY_LESSON_RUNTIME_ROUTE_SLUGS).not.toContain('unit-1-2-modeling-from-object-to-system');
     expect(LEGACY_LESSON_RUNTIME_ROUTE_SLUGS).not.toContain('unit-4-1-design-task-expression');
     expect(UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS.map((exception) => exception.routePattern)).not.toEqual(
       expect.arrayContaining([
@@ -485,6 +486,14 @@ describe('universal AppShell frame contract', () => {
         '/interactive-learning/courses/*/teacher/*',
       ]),
     );
+    expect(
+      UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS.some((exception) =>
+        matchRoutePattern(
+          exception.routePattern,
+          '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo-session',
+        ),
+      ),
+    ).toBe(false);
     expect(
       UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS.some((exception) =>
         matchRoutePattern(

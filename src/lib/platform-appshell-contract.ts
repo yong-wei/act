@@ -91,7 +91,6 @@ export const APP_SHELL_GOVERNANCE_CHANGE_ID = 'enforce-appshell-route-coverage-g
 
 export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [
   'cruise-comfort-boppps',
-  'unit-1-2-modeling-from-object-to-system',
   'unit-1-3-parameter-pole-migration',
   'unit-1-4-time-frequency-views',
   'unit-1-5-three-domain-gain-sweep',
@@ -366,6 +365,20 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
 ];
 
 export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
+  {
+    routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/*',
+    sourceFile: 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/[sessionId]/page.tsx',
+    shellEvidence: 'compatible-wrapper',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC2', 'AC5'],
+  },
+  {
+    routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/*',
+    sourceFile: 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/[sessionId]/page.tsx',
+    shellEvidence: 'compatible-wrapper',
+    routeFamily: 'course-runtime',
+    acceptanceIds: ['AC1', 'AC2', 'AC5'],
+  },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/*',
     sourceFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',

@@ -989,6 +989,9 @@ describe('platform UI contracts', () => {
     const unit11StudentSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx');
     const unit11StepPanelsSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx');
     const unit11TeacherSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx');
+    const unit12StudentSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx');
+    const unit12StepPanelsSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx');
+    const unit12TeacherSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx');
     const unit41StudentSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const unit41StepPanelsSource = readSource(
       'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx',
@@ -1012,14 +1015,14 @@ describe('platform UI contracts', () => {
     expect(runtimeShellSource).not.toContain('premium-lesson-topbar');
     expect(runtimeShellSource).not.toContain('max-w-[1180px]');
 
-    for (const source of [unit11StudentSource, unit11TeacherSource, unit41StudentSource, unit41TeacherSource]) {
+    for (const source of [unit11StudentSource, unit11TeacherSource, unit12StudentSource, unit12TeacherSource, unit41StudentSource, unit41TeacherSource]) {
       expect(source).toContain('LessonRuntimeShell');
       expect(source).not.toContain('CourseHeader');
       expect(source).not.toContain('premium-lesson-topbar');
       expect(source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
     }
 
-    for (const source of [unit11StudentSource, unit41StudentSource]) {
+    for (const source of [unit11StudentSource, unit12StudentSource, unit41StudentSource]) {
       expect(source).toContain("mode={isDemo ? 'guest' : 'student'}");
       expect(source).toContain('readOnly={isDemo}');
       expect(source).toContain('inlineTool');
@@ -1038,8 +1041,9 @@ describe('platform UI contracts', () => {
     expect(manifestActivitySource).toContain('演示模式会展示作答流程，但不会写入课堂汇总。');
     expect(unit11StepPanelsSource).toContain('演示模式仅本机预览，不会同步到教师端汇总。');
     expect(unit41StepPanelsSource).toContain('readOnly?: boolean');
+    expect(unit12StepPanelsSource).toContain('readOnly?: boolean');
 
-    for (const source of [unit11TeacherSource, unit41TeacherSource]) {
+    for (const source of [unit11TeacherSource, unit12TeacherSource, unit41TeacherSource]) {
       expect(source).toContain('mode="teacher"');
       expect(source).toContain('data-teacher-projection-runtime');
       expect(source).toContain('toolsDefaultState="collapsed"');

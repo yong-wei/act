@@ -1,4 +1,5 @@
 import { ClassroomSessionError } from './errors';
+import { jsonSafeClassroomPayload } from './json-safe';
 
 export function classroomSessionHttpStatus(error: ClassroomSessionError): number {
   switch (error.code) {
@@ -32,8 +33,8 @@ export function classroomSessionHttpStatus(error: ClassroomSessionError): number
 }
 
 export function classroomSessionErrorBody(error: ClassroomSessionError): Record<string, unknown> {
-  return {
+  return jsonSafeClassroomPayload({
     error: error.message,
     ...error.payload,
-  };
+  });
 }

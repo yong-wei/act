@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { randomUUID } from 'node:crypto';
-import type { Prisma, PrismaClient, CourseBundleRevision } from '@prisma/client';
+import { Prisma, type PrismaClient, type CourseBundleRevision } from '@prisma/client';
 
 import {
   COURSE_BUNDLE_PLAN_PROJECTION_QUALIFICATION,
@@ -128,7 +128,9 @@ export async function persistCourseBundleRevision(
         runtimeTreeSha256: identity.runtimeTreeSha256,
         runtimeManifestSha256: identity.runtimeManifestSha256,
         runtimeSourceRevision: identity.runtimeSourceRevision,
-        runtimeObjectLocator: identity.runtimeObjectLocator as Prisma.InputJsonValue,
+        runtimeObjectLocator: identity.runtimeObjectLocator === null
+          ? Prisma.JsonNull
+          : identity.runtimeObjectLocator as Prisma.InputJsonValue,
         bundleDigest: identity.bundleDigest,
         identityProjectionHash: identity.identityProjectionHash,
         manifestHash: identity.manifestHash,

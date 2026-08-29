@@ -8,6 +8,7 @@ import {
   advanceClassroomSessionUseCase,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
+  jsonSafeClassroomPayload,
   readClassroomSessionUseCase,
 } from '@/features/classroom/session';
 
@@ -16,7 +17,7 @@ export const dynamic = 'force-dynamic';
 function mapError(error: unknown) {
   if (error instanceof ClassroomSessionError) {
     if (error.code === 'conflict' && error.message === 'generated-courseware') {
-      return NextResponse.json(error.payload, { status: 409 });
+      return NextResponse.json(jsonSafeClassroomPayload(error.payload), { status: 409 });
     }
     return NextResponse.json(
       classroomSessionErrorBody(error),
@@ -53,7 +54,7 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
       status: body.status,
       classroomEvent: body.classroomEvent,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const mapped = mapError(error);
@@ -78,7 +79,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       },
       sessionId: params.sessionId,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     const mapped = mapError(error);

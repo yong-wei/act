@@ -6,6 +6,7 @@ import {
   ClassroomSessionError,
   classroomSessionErrorBody,
   classroomSessionHttpStatus,
+  jsonSafeClassroomPayload,
 } from '@/features/classroom/session';
 import { createClassroomSessionUseCase } from '@/features/classroom/session/create-api';
 
@@ -31,12 +32,12 @@ export async function POST(request: Request) {
       duplicateAction: body.duplicateAction,
       sourcePresetKey: body.sourcePresetKey,
     });
-    return NextResponse.json(result);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof ClassroomSessionError) {
       if (error.code === 'reuse-session') {
-        return NextResponse.json(error.payload.session);
+        return NextResponse.json(jsonSafeClassroomPayload(error.payload.session));
       }
       return NextResponse.json(
         classroomSessionErrorBody(error),
