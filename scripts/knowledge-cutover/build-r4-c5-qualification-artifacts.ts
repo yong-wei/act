@@ -6,6 +6,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { projectionDigest } from '@/lib/teaching-projection/hash';
+import { assertComposedManifestSelfConsistent } from '@/lib/teaching-projection/domain-fragments/compose';
+import type { DomainTeachingComposedManifest } from '@/lib/teaching-projection/domain-fragments/contracts';
 import { assertCandidateReceiptSelfHash } from '@/lib/latest-authority-oss-cutover/envelope';
 import type { CoordinatedCandidateReceipt } from '@/lib/latest-authority-oss-cutover/contracts';
 
@@ -146,11 +148,10 @@ function main(): void {
     releaseId: string;
     releaseSetId: string;
   }>(path.join(candidateDir, 'authority-current.json'));
-  const composed = readJson<{
-    projectionHash: string;
-    sourceHashes: { fragments: string };
-    authorityBinding: { snapshotId: string; snapshotHash: string; releaseId: string; releaseSetId: string };
-  }>(path.join(candidateDir, 'composed-domain-fragment-manifest.json'));
+  const composed = readJson<DomainTeachingComposedManifest>(
+    path.join(candidateDir, 'composed-domain-fragment-manifest.json'),
+  );
+  assertComposedManifestSelfConsistent(composed);
   requireHash(composed.projectionHash, 'composed domain-fragment manifest');
   requireHash(composed.sourceHashes.fragments, 'domain-fragment set');
   if (composed.projectionHash !== candidate.composedDomainFragmentManifestHash

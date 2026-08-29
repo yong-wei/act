@@ -246,6 +246,16 @@ composed_path=os.path.join(os.path.dirname(candidate_path), 'composed-domain-fra
 if not os.path.isfile(composed_path):
   raise SystemExit('composed domain-fragment manifest is not present in the candidate')
 composed=json.load(open(composed_path, encoding='utf-8'))
+fragments=composed.get('fragments')
+source_hashes=composed.get('sourceHashes') if isinstance(composed.get('sourceHashes'), dict) else {}
+if not isinstance(fragments, list): raise SystemExit('composed domain-fragment manifest fragments are invalid')
+recomputed_fragments=sha(canonical([{'order':ref.get('order'),'fragmentId':ref.get('fragmentId'),'fragmentDigest':ref.get('fragmentDigest'),'sourceInventoryDigest':ref.get('sourceInventoryDigest')} for ref in fragments]))
+body={key:composed[key] for key in composed if key not in ('projectionHash','projectionId')}
+body['sourceHashes']={'fragments':recomputed_fragments,'sourceInventory':composed.get('sourceInventoryDigest')}
+body_hash=sha(canonical(body))
+projection_hash=sha(canonical({**body,'sourceHashes':{'fragments':recomputed_fragments,'sourceInventory':composed.get('sourceInventoryDigest'),'body':body_hash}}))
+if composed.get('sourceInventoryDigest') != source_hashes.get('sourceInventory') or recomputed_fragments != source_hashes.get('fragments') or body_hash != source_hashes.get('body') or projection_hash != composed.get('projectionHash'):
+  raise SystemExit('composed domain-fragment manifest does not match its recomputed identity')
 if composed.get('projectionHash') != candidate.get('composedDomainFragmentManifestHash'):
   raise SystemExit('composed domain-fragment manifest identity differs from candidate')
 if (composed.get('sourceHashes') or {}).get('fragments') != candidate.get('domainFragmentSetHash'):

@@ -1162,3 +1162,74 @@ export function verifyDomainTeachingComposedArtifacts(
   }
   return recomputed;
 }
+
+/**
+ * Recompute composed-manifest identity from the sealed body. Qualification
+ * and production preflight must not trust self-asserted digest fields.
+ */
+export function recomputeComposedManifestIdentity(manifest: DomainTeachingComposedManifest): {
+  fragmentsHash: string;
+  bodyHash: string;
+  projectionHash: string;
+} {
+  const fragmentsHash = projectionDigest(
+    manifest.fragments.map((ref) => ({
+      order: ref.order,
+      fragmentId: ref.fragmentId,
+      fragmentDigest: ref.fragmentDigest,
+      sourceInventoryDigest: ref.sourceInventoryDigest,
+    })),
+  );
+  const body = {
+    contract: manifest.contract,
+    builderVersion: manifest.builderVersion,
+    authorityBinding: manifest.authorityBinding,
+    authoritySelection: manifest.authoritySelection,
+    authoringRevision: manifest.authoringRevision,
+    sourceInventoryDigest: manifest.sourceInventoryDigest,
+    authorityDigest: manifest.authorityDigest,
+    fragments: manifest.fragments,
+    domainCoverage: manifest.domainCoverage,
+    coreNodeCount: manifest.coreNodeCount,
+    relationCount: manifest.relationCount,
+    gateStatus: manifest.gateStatus,
+    gatePassed: manifest.gatePassed,
+    sourceHashes: {
+      fragments: fragmentsHash,
+      sourceInventory: manifest.sourceInventoryDigest,
+    },
+  };
+  const bodyHash = projectionDigest(body);
+  return {
+    fragmentsHash,
+    bodyHash,
+    projectionHash: projectionDigest({
+      ...body,
+      sourceHashes: {
+        fragments: fragmentsHash,
+        sourceInventory: manifest.sourceInventoryDigest,
+        body: bodyHash,
+      },
+    }),
+  };
+}
+
+export function assertComposedManifestSelfConsistent(manifest: DomainTeachingComposedManifest): void {
+  if (manifest.sourceInventoryDigest !== manifest.sourceHashes.sourceInventory) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment manifest source-inventory digests are inconsistent',
+    );
+  }
+  const recomputed = recomputeComposedManifestIdentity(manifest);
+  if (
+    recomputed.fragmentsHash !== manifest.sourceHashes.fragments
+    || recomputed.bodyHash !== manifest.sourceHashes.body
+    || recomputed.projectionHash !== manifest.projectionHash
+  ) {
+    throw new DomainCompositionError(
+      'projection-identity-drift',
+      'composed domain-fragment manifest does not match its recomputed identity',
+    );
+  }
+}

@@ -137,6 +137,10 @@ assert.ok(
 );
 assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
 assert.ok(
+  remote.includes('composed domain-fragment manifest does not match its recomputed identity'),
+  'production preflight must recompute composed-manifest identity instead of trusting self-asserted digests',
+);
+assert.ok(
   remote.includes('composed domain-fragment manifest does not bind the successor Authority'),
   'production preflight must reject a composed domain-fragment manifest that binds a different Authority than the successor',
 );
