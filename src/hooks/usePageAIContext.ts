@@ -46,24 +46,13 @@ export function usePageAIContext(options: UsePageAIContextOptions = {}): {
     };
   }, [options, pathname, searchParams]);
 
-  // 构建用户画像（使用默认值）
+  // 仅保留认证身份；学习风格与能力事实由服务端受治理画像提供。
   const userProfile = useMemo<UserProfile | null>(() => {
     if (!session?.user) return null;
 
     return {
       id: session.user.id || 'anonymous',
       name: session.user.name || '同学',
-      learningStyle: 'VISUAL',
-      cognitiveLevel: 3,
-      abilityVector: {
-        computational: 0.5,
-        crossDomain: 0.5,
-        design: 0.5,
-        analysis: 0.5,
-        evaluation: 0.5,
-      },
-      fleetGroup: undefined,
-      className: session.user.profile?.className ?? undefined,
     };
   }, [session]);
 
@@ -160,16 +149,6 @@ export function useLessonAIContext(
     const userProfile: UserProfile = {
       id: session.user.id || 'anonymous',
       name: session.user.name || '同学',
-      learningStyle: 'VISUAL',
-      cognitiveLevel: 3,
-      abilityVector: {
-        computational: 0.5,
-        crossDomain: 0.5,
-        design: 0.5,
-        analysis: 0.5,
-        evaluation: 0.5,
-      },
-      fleetGroup: undefined,
     };
 
     return { page: pageContext, user: userProfile };

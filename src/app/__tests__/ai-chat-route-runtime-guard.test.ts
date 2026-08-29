@@ -76,6 +76,14 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('parseEvidenceCopilotRequest');
     expect(chatRouteSource).toContain('resolveEvidenceCopilotContext');
     expect(chatRouteSource).toContain('buildEvidenceCopilotPrompt');
+    expect(chatRouteSource).toContain('resolveGovernedCopilotProfile');
+    expect(chatRouteSource).toContain('resolveCopilotPromptUser');
+    expect(chatRouteSource).toContain('buildGovernedCopilotProfilePrompt');
+    expect(chatRouteSource).toContain('X-Governed-Copilot-Profile-Status');
+    expect(chatRouteSource).toContain('clientUserProfile');
+    expect(chatRouteSource).not.toContain('user: userProfile');
+    expect(chatRouteSource).not.toContain('prisma.learningFact');
+    expect(chatRouteSource).not.toContain('LearningFact.create');
     expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
     expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
     expect(chatRouteSource).toContain('X-Evidence-Copilot-Status');

@@ -107,7 +107,6 @@ export function GlobalAISidebar() {
 
   const {
     pageContext,
-    userProfile,
     enabled,
     isOpen,
     closeSidebar,
@@ -293,7 +292,6 @@ export function GlobalAISidebar() {
     : activeAssistantBinding;
   const chatBody = useMemo(() => ({
     pageContext,
-    userProfile,
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: conversationPageId,
@@ -305,7 +303,7 @@ export function GlobalAISidebar() {
     agentSessionId: agentSessionId ?? undefined,
     modeClientContextHints: sendAssistantBinding?.modeClientContextHints,
     knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints,
-  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
+  }), [pageContext, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,

@@ -37,9 +37,9 @@ import {
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
 import {
-  hasAuthoritativePortraitV2Evidence,
-  summarizePortraitV2,
-} from '@/lib/data-governance/portrait-v2-consumer';
+  projectGovernedCopilotProfile,
+  toServerOwnedUserProfile,
+} from '@/lib/governed-copilot-profile-context';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
@@ -149,7 +149,7 @@ import {
 } from '@/lib/teacher-resource-node-data';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
-import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
+import type { PageContext, UserProfile } from '@/types/ai-context';
 import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
 import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
@@ -9943,72 +9943,16 @@ function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Part
   };
 }
 
-function hasTrustedPortraitForKonling(state: AdaptiveLearnerState | null): boolean {
-  return Boolean(
-    state
-      && state.primaryPortraitState === 'SNAPSHOT'
-      && state.primaryPortraitAvailability === 'available'
-      && state.primaryPortrait
-      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
-  );
-}
-
 function buildServerOwnedUserProfile(input: {
   userId: string;
   name: string;
   learnerState: AdaptiveLearnerState | null;
 }): UserProfile {
-  const trustedPortrait = hasTrustedPortraitForKonling(input.learnerState);
-  const portraitPayload = trustedPortrait ? input.learnerState?.primaryPortrait : null;
-  const portraitV2 = portraitPayload && Array.isArray(portraitPayload.dimensions)
-    ? summarizePortraitV2(portraitPayload)
-    : undefined;
-  return {
-    id: input.userId,
-    name: input.name,
-    learningStyle: 'INTERACTIVE',
-    cognitiveLevel: inferCognitiveLevel(input.learnerState),
-    abilityVector: toLegacyAbilityVector(input.learnerState),
-    ...(portraitV2 ? { portraitV2 } : {}),
-  };
-}
-
-function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
-  if (!hasTrustedPortraitForKonling(state)) return 3;
-  const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
-    ? state.primaryPortrait.dimensions
-    : [];
-  const portraitValues = portraitDimensions.length > 0 && portraitDimensions.every((entry) =>
-    entry.evidenceSummary.totalCount > 0
-      && (entry.freshness.state === 'current' || entry.freshness.state === 'partial')
-      && typeof entry.score === 'number'
-      && Number.isFinite(entry.score)
-  )
-    ? portraitDimensions.map((entry) => entry.score)
-    : [];
-  const values = portraitValues;
-  if (values.length === 0) return 3;
-  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
-  if (avg >= 85) return 5;
-  if (avg >= 70) return 4;
-  if (avg >= 50) return 3;
-  if (avg >= 30) return 2;
-  return 1;
-}
-
-function toLegacyAbilityVector(state: AdaptiveLearnerState | null): AbilityVector {
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: AIContext still exposes this legacy field.
-  const trustedState = state && hasTrustedPortraitForKonling(state) ? state : null;
-  const vector = trustedState
-    ? trustedState.primaryCompetencies.vector as unknown as Record<string, { score?: number } | undefined>
-    : {};
-  return {
-    computational: normalizeScore(vector.controlModeling?.score),
-    crossDomain: normalizeScore(vector.crossDomainTransfer?.score),
-    design: normalizeScore(vector.parameterDesign?.score),
-    analysis: normalizeScore(vector.selfDirectedLearning?.score),
-    evaluation: normalizeScore(vector.engineeringDecision?.score),
-  };
+  return toServerOwnedUserProfile(projectGovernedCopilotProfile(input.learnerState, {
+    authenticatedUserId: input.userId,
+    displayName: input.name,
+    unavailable: !input.learnerState,
+  }));
 }
 
 function buildMissingContext(input: {
@@ -10194,10 +10138,6 @@ function summarizeText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, ' ').trim();
   if (normalized.length <= maxLength) return normalized;
   return `${normalized.slice(0, maxLength - 1)}…`;
-}
-
-function normalizeScore(value: unknown): number {
-  return typeof value === 'number' ? Math.max(0, Math.min(1, value / 100)) : 0.5;
 }
 
 function arrayOfStrings(value: unknown): string[] {
