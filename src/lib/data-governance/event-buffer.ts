@@ -12,6 +12,24 @@ import { isCoreEvent, isSecondaryEvent } from './event-types';
 
 export const SECONDARY_CLAIM_LEASE_MS = 5 * 60 * 1000;
 export const SECONDARY_BUFFER_CAPACITY = 10_000;
+export const SECONDARY_BUFFER_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+const SECONDARY_ENQUEUE_LUA = `
+local buffer = KEYS[1]
+local processing = KEYS[2]
+local capacity = tonumber(ARGV[1])
+local payload = ARGV[2]
+local ttl = tonumber(ARGV[3])
+local occupancy = redis.call('LLEN', buffer) + redis.call('LLEN', processing)
+if occupancy >= capacity then
+  return 0
+end
+redis.call('LPUSH', buffer, payload)
+if ttl > 0 then
+  redis.call('EXPIRE', buffer, ttl)
+end
+return 1
+`;
 
 const REDIS_KEYS = {
   secondaryBuffer: (date: string) => `event:buffer:secondary:${date}`,
@@ -94,18 +112,22 @@ export async function bufferSecondaryEvent(event: LearningEvent): Promise<boolea
 
   try {
     const date = new Date().toISOString().split('T')[0];
-    const key = REDIS_KEYS.secondaryBuffer(date);
-    const buffered = await client.llen(key);
-    if (buffered >= SECONDARY_BUFFER_CAPACITY) {
+    const bufferKey = REDIS_KEYS.secondaryBuffer(date);
+    const processingKey = REDIS_KEYS.secondaryProcessing(date);
+    const eventJson = JSON.stringify(event);
+    const accepted = await client.eval(
+      SECONDARY_ENQUEUE_LUA,
+      2,
+      bufferKey,
+      processingKey,
+      SECONDARY_BUFFER_CAPACITY,
+      eventJson,
+      SECONDARY_BUFFER_TTL_SECONDS,
+    );
+    if (Number(accepted) !== 1) {
       stats.dropped++;
       return false;
     }
-
-    const eventJson = JSON.stringify(event);
-    await client.lpush(key, eventJson);
-
-    // Set expiration (7 days)
-    await client.expire(key, 7 * 24 * 60 * 60);
 
     // Update stats
     await client.hincrby(REDIS_KEYS.dailyStats(date), 'buffered', 1);

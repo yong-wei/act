@@ -19,7 +19,7 @@ export const RETIREMENT_ROWS: readonly RetirementRow[] = [
   row('producer.historical.backfill', 'backfill', 'writeLegacyKnowledgeScopedLearningFacts', 'data-governance', 'retained-authorized', false),
   row('worker.secondary.drain', 'worker', 'per-message receipt + confirmed ack', 'data-governance-worker', 'current-replacement', true),
   row('queue.rpop.destructive', 'queue', 'rpoplpush claim/lease', 'data-governance', 'code-retired', true),
-  row('queue.ltrim.destructive', 'queue', 'reject writes at capacity', 'data-governance', 'code-retired', true),
+  row('queue.ltrim.destructive', 'queue', 'atomic Lua occupancy of buffer+processing', 'data-governance', 'code-retired', true),
   row('materializer.session-fact-replay', 'materializer', 'ingestLearningFact', 'interactive', 'code-retired', true),
   row('materializer.persist-core.ingest-only', 'materializer', 'ingestLearningFact only', 'ingestion', 'current-replacement', true),
   row('consumer.student.port', 'consumer', 'readStudentEvidencePort', 'learning-record consumers', 'current-replacement', true),

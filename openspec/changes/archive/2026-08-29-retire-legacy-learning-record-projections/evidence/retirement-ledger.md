@@ -16,7 +16,7 @@ This ledger is the only deletion gate. Unclosed rows fail closed.
 | producer.historical.backfill | backfill | `writeLegacyKnowledgeScopedLearningFacts` | historical/migration only | data-governance | retained-authorized | no production backfill in this change |
 | worker.secondary.drain | worker | `processEventIngestionJob` | ingest + per-message receipt + ack confirmed only | data-governance-worker | current-replacement | ack only applied/deduplicated/terminal_failed |
 | queue.rpop.destructive | queue | `client.rpop` | `rpoplpush` claim/lease | data-governance | code-retired | zero `client.rpop` in production sources |
-| queue.ltrim.destructive | queue | `client.ltrim` on secondary list | reject writes at capacity | data-governance | code-retired | no silent drop of unconfirmed messages |
+| queue.ltrim.destructive | queue | `client.ltrim` on secondary list | atomic Lua occupancy of buffer+processing | data-governance | code-retired | no silent drop of unconfirmed messages |
 | materializer.session-fact-replay | materializer | `session-fact-replay.ts` | `ingestLearningFact` | interactive + closure | code-retired | `persistCoreLearningFact` only from ingest |
 | materializer.persist-core.ingest-only | materializer | `learning-fact-materialization.ts` | called only by ingest | ingestion | current-replacement | not a public second writer |
 | consumer.student.port | consumer | student evidence / competency-snapshot route | `readStudentEvidencePort` | learning-record consumers | current-replacement | n/a |

@@ -103,6 +103,7 @@ describe('gated deletion zero-caller', () => {
     expect(buffer).not.toContain('.ltrim(');
     expect(buffer).toContain('rpoplpush');
     expect(buffer).toContain('SECONDARY_BUFFER_CAPACITY');
+    expect(buffer).toContain("redis.call('LLEN', buffer) + redis.call('LLEN', processing)");
     expect(replay).not.toContain('persistCoreLearningFact');
     expect(replay).toContain('ingestLearningFact');
     expect(interactive).not.toContain('persistCoreLearningFact');
