@@ -204,10 +204,18 @@ describe('generated content authority — receipt privacy scanning', () => {
           revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
           conclusion: 'FAIL',
         },
+        {
+          // 无空格但非内容寻址/仓库路径：用户标识仍被字段格式拒绝
+          reference: 'user:42',
+          outputHash: 'd'.repeat(64),
+          toolVersion: 'playwright/1.2',
+          revision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
+          conclusion: 'PASS',
+        },
       ],
     });
     const failed = violations.filter((violation) => violation.reason === 'unstructured-payload-value');
-    expect(failed).toHaveLength(2);
+    expect(failed).toHaveLength(3);
     expect(failed[0].path).toContain('qaReceipts[0].reference');
     expect(failed[1].path).toContain('qaReceipts[2].reference');
   });

@@ -43,3 +43,8 @@
 2. **P1 回执值结构校验**：QA 回执形状对象（outputHash+toolVersion 同时在场）的 reference/outputHash/toolVersion/revision 必须匹配无空白结构化格式（`unstructured-payload-value` 违例）；自由文本载荷（原始回答、用户标识、模型输出）fail-closed。矩阵描述性 reference 字段不受影响。
 3. **P1 允许边收窄**：`DECLARED_CROSS_DOMAIN_IMPORT_PATHS` 从目录前缀收窄到具体公共契约文件（smart-lesson-plan 的 domain.ts/schema.ts）；courseware 生成模块 import `approveSmartLessonDraft` 等权威函数即违例。
 4. **P2 import 解析完备**：superdomain/sink/跨域扫描改用自带规范化解析器（@/ 别名 + posix 归一化相对路径 + TS 扩展名候选），相对路径深 import（`../../lib/generated-content-authority/matrix`）同样可判定。
+
+## Codex 第二轮 feedback 修复（2026-08-29，PR #1693）
+
+1. **P1 Assignment 发布服务入禁清单**：`assignment-service.ts`（publishAssignmentRevision）加入 assignment-rubric 禁止 sink；生成路由仅返回可编辑指南（已核验两生成模块 import 不含该文件），教师发布时才固化 rubricSnapshot。
+2. **P1 回执字段类型化格式**：结构化校验从"任意无空白串"升级为按字段类型——reference 必须为 64-hex 或仓库相对路径前缀（src|prisma|openspec|data|scripts|docs|external|artifacts）、outputHash 必须 64-hex、revision 必须 7-64 hex、toolVersion 语义版本式；`user:42` 等无空格用户标识同样 fail-closed。

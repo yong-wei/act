@@ -38,8 +38,14 @@ export interface PrivacyViolation {
  * 无空白、无自由文本的引用/哈希/版本串。原始模型响应、学生答案、
  * 用户标识等自由载荷不可能满足该格式，从而在值层面 fail-closed。
  */
-const STRUCTURED_VALUE_PATTERN = /^[A-Za-z0-9_@\[\].!~/:+~-]{1,200}$/u;
 const STRUCTURED_VALUE_KEYS = new Set(['reference', 'outputHash', 'toolVersion', 'revision']);
+/** 按字段类型的内容格式：引用=内容寻址/仓库相对路径；哈希=hex；版本=语义版本式。 */
+const STRUCTURED_VALUE_PATTERNS: Readonly<Record<string, RegExp>> = {
+  reference: /^(?:[a-f0-9]{64}|(?:src|prisma|openspec|data|scripts|docs|external|artifacts)\/[\w@\[\].!~/-]+)$/u,
+  outputHash: /^[a-f0-9]{64}$/u,
+  toolVersion: /^[A-Za-z0-9][A-Za-z0-9.\/-]{0,60}$/u,
+  revision: /^[a-f0-9]{7,64}$/u,
+};
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -81,7 +87,8 @@ export function scanReceiptPrivacyViolations(
     if ('outputHash' in node && 'toolVersion' in node) {
       for (const [receiptKey, receiptValue] of Object.entries(node)) {
         if (!STRUCTURED_VALUE_KEYS.has(receiptKey) || typeof receiptValue !== 'string' || receiptValue.length === 0) continue;
-        if (!STRUCTURED_VALUE_PATTERN.test(receiptValue)) {
+        const pattern = STRUCTURED_VALUE_PATTERNS[receiptKey];
+        if (!pattern || !pattern.test(receiptValue)) {
           violations.push({ path: `${path}.${receiptKey}`, reason: 'unstructured-payload-value' });
         }
       }

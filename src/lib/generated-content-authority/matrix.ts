@@ -153,9 +153,11 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
       ],
       forbiddenSinkModules: [
         'src/lib/assignments/assignment-review.ts',
+        'src/lib/assignments/assignment-service.ts',
         'src/lib/smart-courseware/publication-service.ts',
         ...LEARNING_FACT_SINK_MODULES,
       ],
+      sinkPolicyNotes: '发布（publishAssignmentRevision）与评分/反馈权威（assignment-review.ts）均对生成模块关闭：生成路由仅返回可编辑指南，教师发布时才固化为 rubricSnapshot',
       denominator: {
         routes: [
           'src/app/api/teacher/assignments/[assignmentId]/rubric-guidelines/generate/route.ts',
