@@ -319,7 +319,7 @@ export function planMicroTutoringValidationItemRefSync(input: {
     };
     entries.push({
       action: 'create',
-      id: `micro-tutoring-item-ref:${entry.sourceId}`,
+      id: `micro-tutoring-item-ref:${entry.sourceId}:${entry.contentHash}`,
       sourceId: entry.sourceId,
       questionId: entry.sourceId,
       contentHash: entry.contentHash,

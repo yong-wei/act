@@ -162,7 +162,7 @@ describe('micro tutoring v2 validation AdaptiveAssessmentItemRef sync', () => {
 
     const historical: ValidationItemRefSyncRow = {
       ...created,
-      id: 'historical-hash',
+      id: `micro-tutoring-item-ref:${SAMPLE_SOURCE_ID}`,
       contentHash: 'b'.repeat(64),
     };
     const historicalPlan = planMicroTutoringValidationItemRefSync({
@@ -170,10 +170,16 @@ describe('micro tutoring v2 validation AdaptiveAssessmentItemRef sync', () => {
       captureRevision: CAPTURE,
     });
     if (!historicalPlan.ok) throw new Error('expected historical plan');
-    expect(historicalPlan.entries.find((entry) => entry.sourceId === SAMPLE_SOURCE_ID)?.action).toBe('create');
+    const createdCurrent = historicalPlan.entries.find((entry) => entry.sourceId === SAMPLE_SOURCE_ID);
+    expect(createdCurrent?.action).toBe('create');
+    expect(createdCurrent?.id).toBe(`micro-tutoring-item-ref:${SAMPLE_SOURCE_ID}:${created.contentHash}`);
+    expect(createdCurrent?.id).not.toBe(historical.id);
     const afterHistorical = applyMicroTutoringValidationItemRefSyncPlan([historical], historicalPlan);
-    expect(afterHistorical.filter((row) =>
-      row.questionId === SAMPLE_SOURCE_ID)).toHaveLength(2);
+    const sampleRows = afterHistorical.filter((row) => row.questionId === SAMPLE_SOURCE_ID);
+    expect(sampleRows).toHaveLength(2);
+    expect(sampleRows.map((row) => row.id).sort()).toEqual(
+      [historical.id, createdCurrent!.id].sort(),
+    );
   });
 
   it('fail-closes dirty git, missing catalog, hash drift, version drift, revoked access and identity conflicts', {
