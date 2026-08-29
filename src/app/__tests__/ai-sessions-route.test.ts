@@ -113,6 +113,23 @@ describe('/api/ai/sessions route', () => {
     expect(mocks.prisma.konlingSession.create).not.toHaveBeenCalled();
   });
 
+  it('filters owner conversations by courseId and pageId when recovering a resource session', async () => {
+    mocks.prisma.konlingSession.findMany.mockResolvedValueOnce([]);
+
+    const response = await GET(new NextRequest(
+      'http://localhost/api/ai/sessions?courseId=interactive&pageId=%2Finteractive-learning%2Fresources%2Fpid-tuner',
+    ));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.konlingSession.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        courseId: 'interactive',
+        pageId: '/interactive-learning/resources/pid-tuner',
+      }),
+    }));
+  });
+
   it('creates a new blank conversation only through POST', async () => {
     mocks.prisma.konlingSession.create.mockResolvedValueOnce(createdConversation('course-1', 'page-1'));
 

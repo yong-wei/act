@@ -442,6 +442,26 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('return NextResponse.json({ error: error.message }, { status: error.status })');
   });
 
+  it('isolates interactive course AI history to the authorized resource page', () => {
+    expect(chatRouteSource).toContain("lessonContext?.stage === 'interactive'");
+    expect(chatRouteSource).toContain('INTERACTIVE_AI_RESOURCE_MISMATCH');
+    expect(chatRouteSource).toContain('X-Interactive-AI-Session');
+    expect(chatRouteSource).not.toContain('contextData');
+    const interactiveHook = readFileSync(
+      join(process.cwd(), 'src/features/interactive/hooks/useInteractiveAI.ts'),
+      'utf8',
+    );
+    expect(interactiveHook).toContain('buildInteractiveAiChatBody');
+    expect(interactiveHook).toContain('conversationId');
+    expect(interactiveHook).not.toContain('contextData,');
+    const interactiveProvider = readFileSync(
+      join(process.cwd(), 'src/features/interactive/InteractiveProvider.tsx'),
+      'utf8',
+    );
+    expect(interactiveProvider).toContain('classroomSessionId: sessionId');
+    expect(interactiveProvider).not.toContain('contextData');
+  });
+
   it('hides the public simulation AI companion entry when no user is authenticated', () => {
     expect(globalAIProviderSource).toContain("sessionStatus !== 'authenticated'");
     expect(globalAIProviderSource).toContain('!session?.user');

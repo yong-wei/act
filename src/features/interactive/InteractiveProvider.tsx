@@ -104,10 +104,7 @@ export function InteractiveProvider({
   const ai = useInteractiveAI({
     config,
     persona: config.config.ai?.persona,
-    contextData: {
-      progress: progressValue,
-      isComplete: isProgressComplete,
-    },
+    classroomSessionId: sessionId,
     onEvent: (eventType, data) => {
       if (eventType === 'ai_panel_open') {
         tracking.emit('interact', {
