@@ -1,8 +1,0 @@
-#!/bin/sh
-
-if [ "$1" = "api" ] && printf '%s' "$2" | /usr/bin/grep -Eq '^repos/yong-wei/act/commits/[0-9a-f]{40}$'; then
-  /opt/homebrew/bin/gh "$@" | python3 -c 'import json, sys; payload=json.load(sys.stdin); print(json.dumps({"commit": {"author": payload.get("commit", {}).get("author", {}), "committer": payload.get("commit", {}).get("committer", {})}}))'
-  exit $?
-fi
-
-exec /opt/homebrew/bin/gh "$@"
