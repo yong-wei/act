@@ -63,7 +63,7 @@ import {
   type ClassifiedSubmissionWriteInput,
 } from '@/features/classroom/session/submission-evidence';
 import { createPrismaSubmissionEvidenceRuntime } from '@/features/classroom/session/adapters/submission-evidence-commands';
-import { materializeEvidenceRow } from '@/lib/data-governance/session-fact-replay';
+import { materializePersistedEvidenceById } from '@/lib/data-governance/session-fact-replay';
 
 export const dynamic = 'force-dynamic';
 
@@ -466,17 +466,11 @@ async function acceptClassifiedSubmissions(
       postSessionReviewCount += 1;
     } else {
       duplicateCount += 1;
-      // DUPLICATE 回执幂等重放事实物化：若原请求在内联物化前中断，
-      // 客户端重试即补齐缺失事实（sourceEventId 唯一约束保证不双计）
+      // DUPLICATE 回执幂等重放事实物化：权威输入是回执 ID 对应的持久化证据行
+      // （规范身份不含答案内容，重试载荷不得作为事实来源）；
+      // sourceEventId 唯一约束保证不双计
       try {
-        await materializeEvidenceRow(prisma, {
-          userId: input.userId,
-          sessionId: input.sourceEvent.sessionId,
-          clientEventId: input.sourceEvent.clientEventId,
-          sourceLogId: receipt.sourceLogId || null,
-          submittedAt: input.response.submittedAt,
-          responseData: input.response.buildResponseData(receipt.sourceLogId) as Prisma.JsonValue,
-        });
+        await materializePersistedEvidenceById(prisma, receipt.evidenceId);
       } catch (error) {
         console.error('[Interactive Events API] Duplicate-receipt fact replay failed (closure phase will recover):', error);
       }

@@ -79,14 +79,14 @@ describe('session finalization queues', () => {
     expect(mocks.Queue).toHaveBeenCalledWith('evidence-feature-cache', { connection: { status: 'ready' } });
     expect(mocks.queueAdd).toHaveBeenCalledWith(
       'evidence-feature-cache-refresh-student-1',
-      { userId: 'student-1' },
+      { userId: 'student-1', sessionId: 'session-5-3' },
       expect.objectContaining({
         jobId: 'evidence-feature-cache-student-1-session-finalize-session-5-3',
       }),
     );
     expect(mocks.queueAdd).toHaveBeenCalledWith(
       'evidence-feature-cache-refresh-student-2',
-      { userId: 'student-2' },
+      { userId: 'student-2', sessionId: 'session-5-3' },
       expect.objectContaining({
         jobId: 'evidence-feature-cache-student-2-session-finalize-session-5-3',
       }),

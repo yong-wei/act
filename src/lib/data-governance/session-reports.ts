@@ -27,6 +27,8 @@ type ReportPrisma = Pick<PrismaClient,
   | 'studentCompetencySnapshot'
   | 'classSessionReport'
   | 'studentSessionReport'
+  | 'sessionClosureOutbox'
+  | 'sessionClosurePhase'
   | 'user'
 >;
 
@@ -596,6 +598,21 @@ export async function generateSessionSummaryReports(
     ? postSessionReviewTotal - includedReviewCount
     : postSessionReviewTotal;
 
+  // 阶段台账投影源：最近一次闭包的阶段回执（无闭包则为空，报告显示 NOT_APPLICABLE）
+  const closureLedger = await db.sessionClosureOutbox.findFirst({
+    where: { sessionId },
+    orderBy: { availableAt: 'desc' },
+    select: { id: true },
+  });
+  const closureLedgerPhases = closureLedger
+    ? await db.sessionClosurePhase.findMany({
+      where: { closureOutboxId: closureLedger.id },
+      select: { phase: true, status: true, total: true, done: true, detail: true },
+    })
+    : [];
+  const materializeLedgerRow = closureLedgerPhases.find((entry) => entry.phase === 'materialize') ?? null;
+  const cacheLedgerRow = closureLedgerPhases.find((entry) => entry.phase === 'cache') ?? null;
+
   const roleUserIds = Array.from(new Set([
     ...closureLogs.map((log) => log.userId),
     ...facts.map((fact) => fact.userId),
@@ -781,6 +798,8 @@ export async function generateSessionSummaryReports(
         },
       }
       : {}),
+    // 阶段状态投影自 SessionClosurePhase 台账（最近一次闭包）：
+    // 教师报告如实暴露每个阶段的真实回执（含 FAILED 与原因），不再写死
     phases: {
       captured: {
         status: 'SUCCEEDED',
@@ -788,21 +807,37 @@ export async function generateSessionSummaryReports(
         acceptedSubmissions: studentSubmissions.length,
         postSessionReviewIncluded: recompute ? postSessionReviewTotal : 0,
       },
-      materialized: {
-        // 报告时点的观测计数：事实物化由事件摄取流水线异步推进，此处不声称完成
-        status: 'OBSERVED',
-        learningFacts: studentFacts.length,
-        note: 'LearningFact rows linked to this session at report time; completion is owned by the event-ingestion pipeline',
-      },
+      materialized: materializeLedgerRow
+        ? {
+          status: materializeLedgerRow.status,
+          examined: materializeLedgerRow.total,
+          factsCreated: materializeLedgerRow.done,
+          source: 'session-closure-phase ledger',
+          learningFacts: studentFacts.length,
+          ...(materializeLedgerRow.status === 'FAILED' ? { detail: materializeLedgerRow.detail } : {}),
+        }
+        : {
+          status: 'NOT_APPLICABLE',
+          note: 'no staged closure ledger for this session yet',
+          learningFacts: studentFacts.length,
+        },
       summarized: {
         status: 'SUCCEEDED',
         generatedAt: new Date().toISOString(),
         reportTypes: recompute ? ['class-summary-recompute'] : ['class-summary', 'student-summary'],
       },
-      cached: {
-        status: 'DEFERRED',
-        note: 'per-user cache refresh is a closure phase tracked in SessionClosurePhase; settlement requires its SUCCEEDED receipt',
-      },
+      cached: cacheLedgerRow
+        ? {
+          status: cacheLedgerRow.status,
+          participants: cacheLedgerRow.total,
+          refreshed: cacheLedgerRow.done,
+          source: 'session-closure-phase ledger',
+          ...(cacheLedgerRow.status === 'FAILED' ? { detail: cacheLedgerRow.detail } : {}),
+        }
+        : {
+          status: 'NOT_APPLICABLE',
+          note: 'no staged closure ledger for this session yet',
+        },
     },
     afterSessionEndEvents,
     sessionGovernanceSummary: {

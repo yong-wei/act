@@ -28,6 +28,7 @@ const PHASE_SELECT = {
   total: true,
   done: true,
   detail: true,
+  updatedAt: true,
 } as const;
 
 type PhaseRow = {
@@ -39,6 +40,7 @@ type PhaseRow = {
   total: number | null;
   done: number;
   detail: Prisma.JsonValue;
+  updatedAt: Date;
 };
 
 /**
@@ -295,9 +297,30 @@ export async function settleSessionClosuresIfComplete(
   return settled;
 }
 
-/** 未完成阶段的清单：协调器据此重放（唯一的恢复入口）。 */
+/**
+ * 阶段执行计划（依赖有序）：materialize 是 summarize/cache 的输入生产者。
+ * - materialize 未成功：只计划 materialize（下游现在跑也只会消费到不完整事实）；
+ * - materialize 成功：计划未成功的下游，以及 updatedAt 早于最近一次物化
+ *   的下游（物化重跑后陈旧的消费者必须重算）。
+ */
+export function planClosurePhaseRun(rows: PhaseRow[]): SessionClosurePhaseName[] {
+  const byPhase = new Map(rows.map((row) => [row.phase, row]));
+  const materialize = byPhase.get('materialize');
+  if (!materialize || materialize.status !== 'SUCCEEDED') {
+    return materialize ? ['materialize'] : [];
+  }
+  const plan: SessionClosurePhaseName[] = [];
+  for (const downstream of ['summarize', 'cache'] as const) {
+    const row = byPhase.get(downstream);
+    if (!row) continue;
+    if (row.status !== 'SUCCEEDED' || new Date(row.updatedAt) < new Date(materialize.updatedAt)) {
+      plan.push(downstream);
+    }
+  }
+  return plan;
+}
+
+/** 未完成阶段的清单（含陈旧失效）：协调器据此重放（唯一的恢复入口）。 */
 export function incompletePhases(rows: PhaseRow[]): SessionClosurePhaseName[] {
-  return CLOSURE_PHASES.filter((phase) =>
-    !rows.some((row) => row.phase === phase && row.status === 'SUCCEEDED')
-  );
+  return planClosurePhaseRun(rows);
 }

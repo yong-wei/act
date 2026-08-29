@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     studentStepResponse: {
       createMany: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     simulationRun: {
       findFirst: vi.fn(),
@@ -121,6 +122,15 @@ describe('POST /api/interactive/events', () => {
     ]);
     mocks.prisma.studentStepResponse.createMany.mockResolvedValue({ count: 0 });
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    // DUPLICATE 回执重放按回执 ID 读取持久化证据行
+    mocks.prisma.studentStepResponse.findUnique.mockResolvedValue({
+      userId: 'student-1',
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      clientEventId: 'client-existing-duplicate',
+      sourceLogId: 'source-existing-duplicate',
+      submittedAt: new Date('2026-05-12T01:46:42.900Z'),
+      responseData: { eventType: 'lesson_submit', score: 100 },
+    });
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);

@@ -8,6 +8,7 @@ import { generateSessionSummaryReports } from '@/lib/data-governance/session-rep
 import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
 import {
   ensureSessionClosurePhases,
+  planClosurePhaseRun,
   replayMissingClosureFacts,
   runSessionClosurePhase,
   settleSessionClosuresIfComplete,
@@ -254,13 +255,17 @@ describe.runIf(enabled)('classroom live-state / submission evidence PostgreSQL i
   it('converges the closure through the phase ledger and settles only when every phase succeeds', async () => {
     // 模拟协调器：确保台账 → 逐阶段执行 → 收敛结算
     async function converge(sessionId: string) {
-      const rows = await ensureSessionClosurePhases(prisma, sessionId);
-      for (const row of rows) {
-        if (row.status === 'SUCCEEDED') continue;
-        await runSessionClosurePhase(prisma, sessionId, row.phase as 'materialize' | 'summarize' | 'cache', {
-          refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(prisma as never, userId),
-          materializeEvidence: (evidence) => materializeEvidenceRow(prisma, evidence),
-        });
+      // 与生产协调器同构：按依赖有序计划执行（materialize → summarize/cache）
+      for (let round = 0; round < 4; round += 1) {
+        const rows = await ensureSessionClosurePhases(prisma, sessionId);
+        const plan = planClosurePhaseRun(rows);
+        if (plan.length === 0) break;
+        for (const phase of plan) {
+          await runSessionClosurePhase(prisma, sessionId, phase, {
+            refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(prisma as never, userId),
+            materializeEvidence: (evidence) => materializeEvidenceRow(prisma, evidence),
+          });
+        }
       }
       return settleSessionClosuresIfComplete(prisma, [sessionId]);
     }

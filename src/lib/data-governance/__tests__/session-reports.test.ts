@@ -12,11 +12,15 @@ describe('generateSessionSummaryReports', () => {
     studentCompetencySnapshot: { findMany: vi.fn() },
     classSessionReport: { upsert: vi.fn() },
     studentSessionReport: { upsert: vi.fn() },
+    sessionClosureOutbox: { findFirst: vi.fn().mockResolvedValue(null) },
+    sessionClosurePhase: { findMany: vi.fn().mockResolvedValue([]) },
     user: { findMany: vi.fn() },
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma.sessionClosureOutbox.findFirst.mockResolvedValue(null);
+    prisma.sessionClosurePhase.findMany.mockResolvedValue([]);
     prisma.user.findMany.mockImplementation(async (args: { where?: { id?: { in?: string[] } } }) => (
       args.where?.id?.in ?? []
     ).map((id) => ({

@@ -99,3 +99,11 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - **cache 阶段**：参与者从水位内证据 distinct userId 推导（与 StudentState 彻底解耦），逐人刷新并在台账行聚合 done/total/detail，任一失败保持 FAILED 待重放。
 - **summarize 阶段**：水位限定报告重算（幂等 upsert）。
 - 真 PG 集成测试覆盖：台账收敛结算、重复投递不双计、事实丢失→重放补齐→幂等、缓存参与者从证据推导（fixture 无 StudentState 行）。
+
+## 14. 根治重构的第二轮精化（2026-08-29，PR #1668）
+
+对阶段台账状态机的三条精化（仍属同一收敛模型，非新设计）：
+
+1. **重放权威输入**：DUPLICATE 回执重放改为 `materializePersistedEvidenceById`——按回执 ID 读取持久化 `StudentStepResponse` 行作为事实物化的唯一输入；规范身份不含答案内容，重试载荷永远不作为事实来源。
+2. **依赖有序计划**：`planClosurePhaseRun` 统一协调器与测试的执行计划——materialize 未成功只调度 materialize；materialize 成功后调度未成功或 `updatedAt` 早于最近一次物化的下游（summarize/cache），物化重跑后陈旧消费者强制重算。
+3. **台账投影到报告**：`generateSessionSummaryReports` 读取最近闭包的阶段台账，reportData.phases 的 materialized/cached 直接反映真实回执状态（含 FAILED 与 detail 原因），无台账时 NOT_APPLICABLE；教师报告与结算真源一致。

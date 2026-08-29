@@ -11,6 +11,39 @@ function readRecord(value: unknown): Record<string, unknown> {
 }
 
 /**
+ * 按回执 ID 从数据库读取持久化证据并重放物化。
+ * DUPLICATE 回执的自愈入口：重放的权威输入是已持久化的 StudentStepResponse
+ * 行（与规范身份解耦的答案内容也以持久化行为准），绝不是重试请求的载荷。
+ */
+export async function materializePersistedEvidenceById(
+  db: Parameters<typeof persistCoreLearningFact>[0] & {
+    studentStepResponse: { findUnique: Function };
+  },
+  evidenceId: string,
+): Promise<boolean> {
+  const row = await db.studentStepResponse.findUnique({
+    where: { id: evidenceId },
+    select: {
+      userId: true,
+      sessionId: true,
+      clientEventId: true,
+      sourceLogId: true,
+      submittedAt: true,
+      responseData: true,
+    },
+  });
+  if (!row || !row.clientEventId) return false;
+  return materializeEvidenceRow(db, {
+    userId: row.userId,
+    sessionId: row.sessionId,
+    clientEventId: row.clientEventId,
+    sourceLogId: row.sourceLogId,
+    submittedAt: row.submittedAt,
+    responseData: row.responseData,
+  });
+}
+
+/**
  * 从持久化证据行重建 LearningEvent 并物化 LearningFact。
  * 与提交时的内联快路径共用 persistCoreLearningFact（幂等：sourceEventId 唯一
  * 约束 + skipDuplicates），是闭包 materialize 阶段与 DUPLICATE 回执重放的
