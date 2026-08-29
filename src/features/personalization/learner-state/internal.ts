@@ -28,7 +28,11 @@ import {
   type PortraitV2Consumer,
   type PortraitV2LegacyCompatibility,
 } from '@/lib/data-governance/portrait-v2-consumer';
-import { readCurrentCumulativePortrait } from '@/lib/data-governance/cumulative-portrait-read-model';
+import {
+  isAuthoritativeConsumerRead,
+  readAuthorizedCumulativePortrait,
+  viewerForPortraitConsumer,
+} from '@/features/learning-record/consumers/public-api';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,
@@ -865,25 +869,34 @@ export async function resolveFencedAdaptivePortrait(
     legacySnapshot: any;
   },
 ): Promise<PortraitResolution> {
-  const current = await readCurrentCumulativePortrait(db, input.userId, input.consumer);
+  const currentRead = await readAuthorizedCumulativePortrait({
+    db,
+    viewer: viewerForPortraitConsumer(input.consumer, input.userId),
+    targetUserId: input.userId,
+    consumer: input.consumer,
+  });
+  const current = currentRead.portrait;
   // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy vector is retained only as non-authoritative compatibility output.
   const legacyVector = input.legacySnapshot?.competencyVector &&
     typeof input.legacySnapshot.competencyVector === 'object'
     ? input.legacySnapshot.competencyVector as CompetencyVector
     : createEmptyCompetencyVector();
-  const primaryPortrait = current.stateKind === 'SNAPSHOT' && current.payload
+  const authoritative = isAuthoritativeConsumerRead(currentRead);
+  const primaryPortrait = authoritative && current.stateKind === 'SNAPSHOT' && current.payload
     ? current.payload
     : null;
+  const primaryPortraitState = authoritative && current.stateKind === 'SNAPSHOT'
+    ? 'SNAPSHOT' as const
+    : currentRead.knownZero || current.stateKind === 'NO_EVIDENCE'
+      ? 'NO_EVIDENCE' as const
+      : 'UNAVAILABLE' as const;
+  const primaryPortraitAvailability = authoritative && current.stateKind === 'SNAPSHOT'
+    ? 'available'
+    : currentRead.reason ?? current.availabilityReason;
   return {
     primaryPortrait,
-    primaryPortraitState: current.stateKind === 'SNAPSHOT'
-      ? 'SNAPSHOT'
-      : current.stateKind === 'NO_EVIDENCE'
-        ? 'NO_EVIDENCE'
-        : 'UNAVAILABLE',
-    primaryPortraitAvailability: current.stateKind === 'SNAPSHOT'
-      ? 'available'
-      : current.availabilityReason,
+    primaryPortraitState,
+    primaryPortraitAvailability,
     // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source label documents non-authoritative legacy provenance.
     legacyCompatibility: {
       authority: 'legacy-compatibility-only' as const,
@@ -894,9 +907,14 @@ export async function resolveFencedAdaptivePortrait(
         ? input.legacySnapshot.snapshotAt.toISOString()
         : input.now.toISOString(),
     },
-    limitations: current.stateKind === 'SNAPSHOT'
+    limitations: authoritative && current.stateKind === 'SNAPSHOT'
       ? []
-      : [`cumulative-portrait-${current.availabilityReason}`],
+      : [
+        `cumulative-portrait-${current.availabilityReason}`,
+        ...(currentRead.reason && currentRead.reason !== current.availabilityReason
+          ? [`projection-${currentRead.reason}`]
+          : []),
+      ],
   };
 }
 

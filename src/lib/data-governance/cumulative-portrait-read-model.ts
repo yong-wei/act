@@ -103,6 +103,9 @@ export interface CumulativePortraitReadDb {
   learningMaterializationRebuildRequest?: {
     findFirst: (args: any) => PromiseLike<{ userId: string } | null>;
   };
+  learnerFactTransitionSequence?: {
+    findUnique: (args: any) => PromiseLike<{ lastSequence: bigint } | null>;
+  };
 }
 
 interface CurrentClassPortraitStateRow {
@@ -167,6 +170,17 @@ export interface CumulativeClassPortraitReadDb {
   };
 }
 
+export interface CumulativePortraitPublication {
+  calculationVersion: string;
+  generation: string;
+  queueGeneration: string;
+  cutoverFence: string;
+  stateWatermark: string;
+  processingWatermark: string;
+  captureRevision: string;
+  inputDigest: string | null;
+}
+
 export interface CumulativePortraitReadModel {
   stateKind: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE';
   payload: PortraitV2ProjectedPayload | null;
@@ -185,6 +199,7 @@ export interface CumulativePortraitReadModel {
   }>;
   availabilityReason: CumulativePortraitAvailabilityReason;
   generatedAt: string | null;
+  publication: CumulativePortraitPublication | null;
 }
 
 export interface CumulativeClassPortraitReadModel {
@@ -274,6 +289,12 @@ export async function readCurrentCumulativePortrait(
     return unavailable('current-state-version-mismatch');
   }
 
+  const processingRow = await db.learnerFactTransitionSequence?.findUnique({
+    where: { userId },
+    select: { lastSequence: true },
+  });
+  const publication = publicationFromCurrent(current, processingRow?.lastSequence);
+
   const state = current.stateVersion;
   const coverage = readCoverage(state.dimensionCoverage);
   const lastTrend = readTrend(state.lastTrend);
@@ -295,6 +316,7 @@ export async function readCurrentCumulativePortrait(
         ? 'no-evidence-after-revocation'
         : 'no-eligible-evidence',
       generatedAt,
+      publication,
     };
   }
 
@@ -341,6 +363,7 @@ export async function readCurrentCumulativePortrait(
       lastRisk,
       availabilityReason: 'available',
       generatedAt,
+      publication,
     };
   } catch {
     return unavailable('invalid-current-snapshot');
@@ -471,6 +494,22 @@ function matchesActiveClassFence(
     version.cutoverFence === current.cutoverFence;
 }
 
+function publicationFromCurrent(
+  current: CurrentPortraitStateRow,
+  processingSequence?: bigint | null,
+): CumulativePortraitPublication {
+  return {
+    calculationVersion: current.calculationVersion,
+    generation: String(current.generation),
+    queueGeneration: String(current.queueGeneration),
+    cutoverFence: String(current.cutoverFence),
+    stateWatermark: String(current.stateWatermark),
+    processingWatermark: String(processingSequence ?? current.stateWatermark),
+    captureRevision: current.stateVersion.id,
+    inputDigest: current.taskInputDigest || current.stateVersion.taskInputDigest || null,
+  };
+}
+
 function unavailable(
   availabilityReason: Extract<
     CumulativePortraitAvailabilityReason,
@@ -488,6 +527,7 @@ function unavailable(
     lastRisk: [],
     availabilityReason,
     generatedAt: null,
+    publication: null,
   };
 }
 
