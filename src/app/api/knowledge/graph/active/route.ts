@@ -1,4 +1,5 @@
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { knowledgeSurfaceSelectorRejection } from '@/lib/knowledge-surface';
 import {
   activeProjectionResponse,
   activeUnavailableResponse,
@@ -12,14 +13,20 @@ export const runtime = 'nodejs';
 /**
  * Authorized diagnostics only. Product `/knowledge` interaction must use
  * versioned domain shards and must not request this full-canvas payload.
- * Query parameters are ignored: snapshot/release selectors stay server-side.
+ * Identity selectors are rejected; snapshot/release stay server-side.
  */
-export async function GET(_request: Request) {
+export async function GET(request: Request) {
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
   try {
     const authorization = await authorizeActiveFullGraphDiagnostics();
     if (!authorization.ok) return authorization.response;
     const result = readActiveCanvas();
-    return activeProjectionResponse(result);
+    return activeProjectionResponse(result, {
+      kind: 'root',
+      role: authorization.role,
+      surfaceKey: 'active-canvas',
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Active Authority graph request failed:', error);

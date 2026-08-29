@@ -31,6 +31,11 @@ export async function GET(
     if (!authorization.ok) return authorization.response;
     return candidateProjectionResponse(
       await readCandidateNode(authorization.role, id),
+      {
+        role: authorization.role,
+        surfaceKey: id,
+        kind: 'candidate-diagnostic',
+      },
     );
   } catch (error) {
     rethrowIfNextDynamicError(error);
