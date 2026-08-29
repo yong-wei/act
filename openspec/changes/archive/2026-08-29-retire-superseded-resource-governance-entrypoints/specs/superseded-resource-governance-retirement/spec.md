@@ -24,11 +24,11 @@ The system SHALL refuse deletion of a resource-governance entrypoint unless an i
 
 ### Requirement: Consumer denominator and zero callers are closed
 
-The retirement validator SHALL account for production, test, generated, compatibility, framework, route/API, model, script, browser, reverse, dynamic, historical, and rollback callers at the captured revision. Zero-caller evidence SHALL refer to the exact candidate path/symbol and scan rules.
+The retirement validator SHALL account for production, test, generated, compatibility, framework, route/API, model, script, browser, reverse, dynamic, historical, and rollback callers at the captured revision. Zero-caller evidence SHALL refer to the exact candidate path/symbol and scan rules. The closed scan SHALL include `.yaml` and `.yml` files under the same roots as Markdown and JSON.
 
 #### Scenario: A hidden caller remains
 
-- **WHEN** a route convention, dynamic import, package script, generated artifact, compatibility alias, test, or rollback reader still reaches the candidate
+- **WHEN** a route convention, dynamic import, package script, generated artifact, compatibility alias, test, rollback reader, or YAML/YML source still reaches the candidate
 - **THEN** the zero-caller gate SHALL fail
 - **AND** the candidate SHALL not be deleted.
 
@@ -37,6 +37,12 @@ The retirement validator SHALL account for production, test, generated, compatib
 - **WHEN** every classified caller uses the revision-matching R1 RegistryIndex, R2 eligibility contract, or R3 knowledge read contract and the post-migration scan is empty
 - **THEN** the candidate MAY pass the zero-caller gate
 - **AND** the exact denominator hash and scan receipt SHALL be stored in the manifest.
+
+#### Scenario: Frozen callers are bound to the capture revision
+
+- **WHEN** a caller denominator is frozen at `captureRevision`
+- **THEN** every frozen caller path SHALL exist in that Git tree
+- **AND** freeze coverage SHALL be recomputed from that tree rather than an unrelated later worktree.
 
 ### Requirement: Replacement and migration are revision-bound
 
@@ -72,19 +78,38 @@ Retirement SHALL preserve Legacy knowledge display, historical Authority/runtime
 
 ### Requirement: Allowlist and deprecation state only decrease
 
-The retirement validator SHALL compare the current architecture allowlist and deprecation ledger with the prior manifest and SHALL permit only entry removal or narrowing to an explicitly retained historical adapter. It SHALL reject new exceptions, broadened patterns, hidden callers, or unexplained resurrection of a retired entry.
+The retirement validator SHALL compare the current architecture allowlist and deprecation ledger with the prior manifest and SHALL permit only entry removal or narrowing to an explicitly retained historical adapter. It SHALL reject new exceptions, broadened patterns, hidden callers, or unexplained resurrection of a retired entry. Prior ledger evidence SHALL have a matching digest before monotonic comparison.
 
 #### Scenario: One entry is deleted
 
 - **WHEN** a candidate is deleted with valid zero-caller and rollback evidence
 - **THEN** the ledger and allowlist SHALL record the reduced entry/edge set and deletion receipt
+- **AND** the receipt reduced ledger SHALL mark those entries `deleted` with empty consumers
 - **AND** the new state SHALL not add a replacement exception for the same old path.
+
+#### Scenario: Deletion is not bound to a retained ledger entry
+
+- **WHEN** a candidate has no current ledger row or the row is not `retained`
+- **THEN** deletion SHALL not be authorized
+- **AND** the candidate SHALL remain recorded until a later monotonic ledger update.
+
+#### Scenario: Ledger row identity does not match the candidate
+
+- **WHEN** a retained ledger row shares a candidate id but differs in `sourcePath`, owner, replacement contract, or migration revision
+- **THEN** deletion SHALL not be authorized
+- **AND** reduced-ledger recording SHALL require the deleted identity, not path-only matching.
 
 #### Scenario: A new exception is proposed
 
 - **WHEN** a migration adds an allowlist entry or broadens a compatibility pattern to avoid deletion
 - **THEN** monotonic validation SHALL fail
 - **AND** the candidate SHALL remain retained until its actual caller or replacement is resolved.
+
+#### Scenario: Prior ledger is omitted for a reduced or excepted ledger
+
+- **WHEN** the current ledger has allowlist exceptions or `deleted` / `historical-adapter` entries and no prior ledger is supplied
+- **THEN** monotonic validation SHALL fail
+- **AND** a genesis ledger of only `retained` / `already-absent` entries with an empty allowlist MAY omit prior.
 
 ### Requirement: Deletion and rollback do not activate releases
 
@@ -94,10 +119,20 @@ The retirement operation SHALL delete only explicitly listed superseded source e
 
 - **WHEN** all retirement gates pass
 - **THEN** only the listed old entrypoints MAY be removed and a post-delete zero-caller/build/test receipt SHALL be emitted
+- **AND** production deletion SHALL hold a real worktree lock from final recapture through unlink
 - **AND** all protected readers, records, and selectors SHALL remain unchanged.
+
+#### Scenario: A later listed path fails after an earlier unlink
+
+- **WHEN** one listed entrypoint has already been unlinked and a later listed path fails the pre-unlink digest check or a later post-delete gate
+- **THEN** the command SHALL restore every path it already unlinked from the digest-verified archive
+- **AND** the receipt SHALL be blocked with no reduced ledger.
 
 #### Scenario: Rollback is required
 
 - **WHEN** the post-delete verification or a later controlled check requires restoration
 - **THEN** the exact digest-verified pre-delete revision SHALL be restorable
+- **AND** rollback SHALL consume only a successful `deleted` receipt whose digest, reduced ledger, `retirementId`, and `manifestDigest` authenticate the restored paths
+- **AND** that manifest SHALL bind the same `rollbackArchiveDigest` as the graph archive being restored
+- **AND** rollback SHALL restore only that receipt's `deletedPaths`
 - **AND** rollback SHALL not mutate or relabel active production authority.

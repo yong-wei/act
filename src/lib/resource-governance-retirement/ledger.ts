@@ -1,0 +1,292 @@
+/**
+ * Monotonic architecture allowlist / deprecation ledger (#1592).
+ */
+
+import {
+  RESOURCE_GOVERNANCE_RETIREMENT_LEDGER_CONTRACT,
+  ResourceGovernanceRetirementGateError,
+  type AllowlistException,
+  type DeprecationLedgerEntry,
+  type ResourceGovernanceDeprecationLedger,
+  type RetirementCandidate,
+} from './contracts';
+import { isGitRevision, retirementDigest } from './hash';
+
+export function buildDeprecationLedger(input: {
+  captureRevision: string;
+  allowlist?: readonly AllowlistException[];
+  entries: readonly DeprecationLedgerEntry[];
+}): ResourceGovernanceDeprecationLedger {
+  if (!isGitRevision(input.captureRevision)) {
+    throw new ResourceGovernanceRetirementGateError(
+      'ledger-revision-invalid',
+      'deprecation ledger captureRevision must be a 40-char git sha',
+    );
+  }
+  const allowlist = [...(input.allowlist ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+  const entries = [...input.entries].sort((a, b) => a.id.localeCompare(b.id));
+  const body = {
+    contract: RESOURCE_GOVERNANCE_RETIREMENT_LEDGER_CONTRACT,
+    captureRevision: input.captureRevision,
+    allowlist,
+    entries,
+  };
+  return {
+    ...body,
+    ledgerDigest: retirementDigest(body),
+  };
+}
+
+export function ledgerRowIdentityMatches(
+  entry: DeprecationLedgerEntry,
+  candidate: Pick<
+    RetirementCandidate,
+    'id' | 'owner' | 'sourcePath' | 'migrationRevision'
+  > & { replacement: { contract: string } },
+): boolean {
+  return (
+    entry.id === candidate.id
+    && entry.owner === candidate.owner
+    && entry.sourcePath.replace(/\\/gu, '/') === candidate.sourcePath.replace(/\\/gu, '/')
+    && entry.replacement === candidate.replacement.contract
+    && entry.migrationRevision === candidate.migrationRevision
+  );
+}
+
+export function deletedIdentitiesForPaths(input: {
+  candidates: readonly RetirementCandidate[];
+  authorizedIds: readonly string[];
+  listedPaths: readonly string[];
+}): Array<{ id: string; sourcePath: string }> {
+  const authorized = new Set(input.authorizedIds);
+  return input.listedPaths.map((listed) => {
+    const sourcePath = listed.replace(/\\/gu, '/');
+    const matches = input.candidates.filter((row) => (
+      authorized.has(row.id)
+      && row.sourcePath.replace(/\\/gu, '/') === sourcePath
+    ));
+    if (matches.length !== 1) {
+      throw new ResourceGovernanceRetirementGateError(
+        'deleted-identity-unresolved',
+        `listed path does not map to exactly one authorized candidate: ${sourcePath}`,
+        [`deleted-identity-unresolved:${sourcePath}`],
+      );
+    }
+    return { id: matches[0]!.id, sourcePath };
+  });
+}
+
+/**
+ * Successful deletion records the same identities with deleted state and empty
+ * consumers. Rows must match by candidate id and sourcePath.
+ */
+export function reduceLedgerAfterDeletion(
+  current: ResourceGovernanceDeprecationLedger,
+  deleted: readonly { id: string; sourcePath: string }[],
+): ResourceGovernanceDeprecationLedger {
+  const byId = new Map(
+    deleted.map((row) => [row.id, row.sourcePath.replace(/\\/gu, '/')]),
+  );
+  const matched = new Set<string>();
+  const entries: DeprecationLedgerEntry[] = current.entries.map((entry) => {
+    const expectedPath = byId.get(entry.id);
+    if (expectedPath === undefined) {
+      return entry;
+    }
+    if (entry.sourcePath.replace(/\\/gu, '/') !== expectedPath) {
+      throw new ResourceGovernanceRetirementGateError(
+        'reduced-ledger-identity-mismatch',
+        `deleted id does not match ledger sourcePath: ${entry.id}`,
+        [`reduced-ledger-identity-mismatch:${entry.id}`],
+      );
+    }
+    matched.add(entry.id);
+    return {
+      ...entry,
+      state: 'deleted',
+      consumers: [],
+    };
+  });
+  for (const row of deleted) {
+    if (!matched.has(row.id)) {
+      throw new ResourceGovernanceRetirementGateError(
+        'reduced-ledger-unmatched-id',
+        `deleted identity is not a current ledger entry: ${row.id}`,
+        [`reduced-ledger-unmatched-id:${row.id}`],
+      );
+    }
+  }
+  return buildDeprecationLedger({
+    captureRevision: current.captureRevision,
+    allowlist: current.allowlist,
+    entries,
+  });
+}
+
+function escapeGlobRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function globToRegExp(pattern: string): RegExp {
+  let index = 0;
+  let source = '^';
+  while (index < pattern.length) {
+    if (pattern.startsWith('**/', index)) {
+      source += '(?:.*/)?';
+      index += 3;
+      continue;
+    }
+    if (pattern.startsWith('**', index)) {
+      source += '.*';
+      index += 2;
+      continue;
+    }
+    if (pattern[index] === '*') {
+      source += '[^/]*';
+      index += 1;
+      continue;
+    }
+    source += escapeGlobRegex(pattern[index]!);
+    index += 1;
+  }
+  return new RegExp(`${source}$`, 'u');
+}
+
+function globWitnesses(pattern: string): string[] {
+  const deep = pattern
+    .replaceAll('**/', 'widen-a/widen-b/')
+    .replaceAll('**', 'widen-a/widen-b')
+    .replaceAll('*', 'widen-item');
+  const shallow = pattern
+    .replaceAll('**/', '')
+    .replaceAll('**', '')
+    .replaceAll('*', 'widen-item');
+  return [...new Set([pattern, deep, shallow].filter(Boolean))];
+}
+
+function patternBroadens(prior: string, next: string): boolean {
+  if (prior === next) return false;
+  if (next === '*' || next === '**') return true;
+  const priorRe = globToRegExp(prior);
+  const nextRe = globToRegExp(next);
+  if (globWitnesses(next).some((path) => nextRe.test(path) && !priorRe.test(path))) {
+    return true;
+  }
+  if (!prior.includes('*') && next.includes('*')) return true;
+  return false;
+}
+
+/**
+ * Later ledgers may only remove entries, narrow to an explicit historical
+ * adapter, or keep retained rows. New exceptions, broadened patterns, and
+ * unexplained resurrection fail closed.
+ */
+export function compareLedgers(
+  prior: ResourceGovernanceDeprecationLedger | null,
+  next: ResourceGovernanceDeprecationLedger,
+): string[] {
+  const reasons: string[] = [];
+  const expectedDigest = retirementDigest({
+    contract: next.contract,
+    captureRevision: next.captureRevision,
+    allowlist: next.allowlist,
+    entries: next.entries,
+  });
+  if (next.ledgerDigest !== expectedDigest) {
+    reasons.push('ledger-digest-tamper');
+  }
+  if (prior) {
+    const expectedPriorDigest = retirementDigest({
+      contract: prior.contract,
+      captureRevision: prior.captureRevision,
+      allowlist: prior.allowlist,
+      entries: prior.entries,
+    });
+    if (prior.ledgerDigest !== expectedPriorDigest) {
+      reasons.push('prior-ledger-digest-tamper');
+    }
+  }
+  if (!prior) {
+    if (next.allowlist.length > 0) {
+      reasons.push('prior-ledger-omitted:allowlist');
+    }
+    if (next.entries.some((entry) => (
+      entry.state === 'deleted' || entry.state === 'historical-adapter'
+    ))) {
+      reasons.push('prior-ledger-omitted:deleted-or-adapter');
+    }
+    return reasons;
+  }
+
+  const priorAllow = new Map(prior.allowlist.map((row) => [row.id, row]));
+  const nextAllow = new Map(next.allowlist.map((row) => [row.id, row]));
+  for (const id of nextAllow.keys()) {
+    if (!priorAllow.has(id)) {
+      reasons.push(`allowlist-new-exception:${id}`);
+    }
+  }
+  for (const [id, priorRow] of priorAllow) {
+    const nextRow = nextAllow.get(id);
+    if (!nextRow) continue;
+    if (patternBroadens(priorRow.pattern, nextRow.pattern)) {
+      reasons.push(`allowlist-pattern-broadened:${id}`);
+    }
+  }
+
+  const priorEntries = new Map(prior.entries.map((row) => [row.id, row]));
+  const nextEntries = new Map(next.entries.map((row) => [row.id, row]));
+
+  for (const id of nextEntries.keys()) {
+    if (!priorEntries.has(id)) {
+      reasons.push(`ledger-new-entry:${id}`);
+    }
+  }
+
+  for (const [id, priorRow] of priorEntries) {
+    const nextRow = nextEntries.get(id);
+    if (!nextRow) {
+      if (priorRow.state !== 'deleted' && priorRow.state !== 'already-absent') {
+        reasons.push(`ledger-unexplained-removal:${id}`);
+      }
+      continue;
+    }
+    if (priorRow.state === 'deleted' && nextRow.state !== 'deleted') {
+      reasons.push(`ledger-resurrection:${id}`);
+    }
+    if (
+      priorRow.state === 'historical-adapter'
+      && nextRow.state === 'retained'
+    ) {
+      reasons.push(`ledger-unexplained-state-reversal:${id}`);
+    }
+    if (
+      priorRow.state === 'already-absent'
+      && nextRow.state === 'retained'
+    ) {
+      reasons.push(`ledger-unexplained-state-reversal:${id}`);
+    }
+  }
+
+  if (next.allowlist.length > prior.allowlist.length) {
+    reasons.push('allowlist-count-increased');
+  }
+  if (next.entries.length > prior.entries.length) {
+    reasons.push('ledger-entry-count-increased');
+  }
+
+  return reasons;
+}
+
+export function assertLedgerMonotonic(
+  prior: ResourceGovernanceDeprecationLedger | null,
+  next: ResourceGovernanceDeprecationLedger,
+): void {
+  const reasons = compareLedgers(prior, next);
+  if (reasons.length > 0) {
+    throw new ResourceGovernanceRetirementGateError(
+      'ledger-not-monotonic',
+      'architecture allowlist / deprecation ledger must only decrease or narrow',
+      reasons,
+    );
+  }
+}
