@@ -305,8 +305,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain("dispatchInspection({ type: 'toggle-explicit-focus', nodeId: visibleSelectedNode.id })");
     expect(systemSource).toContain('useKnowledgeGraphRuntimeLayout');
     const layoutHookSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/graph/use-knowledge-graph-runtime-layout.ts'), 'utf8');
-    expect(layoutHookSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
-    expect(layoutHookSource).toContain('setRelayoutVersion((current) => current + 1);');
+    expect(layoutHookSource).toContain('setRelayoutVersionByDimension');
+    expect(layoutHookSource).toContain('[dimension]: (current[dimension] ?? 0) + 1');
     expect(systemSource).toContain('selectKnowledgeNavigationSnapshot(graphCache, navigation.view)');
     expect(systemSource).toContain('const expandedDirectLinks = useMemo<KnowledgeLinkData[]>(() => [], []);');
     expect(systemSource).not.toContain('expansionCommitQueueRef');

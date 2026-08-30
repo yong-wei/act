@@ -1177,11 +1177,11 @@ export function ActiveAuthorityGraph({
   chromeHostRef,
   runtimeControlsRef,
 }: ActiveAuthorityGraphProps) {
-  const runtimeLayout = useKnowledgeGraphRuntimeLayout();
+  const dimension = dimensionProp ?? '2d';
+  const runtimeLayout = useKnowledgeGraphRuntimeLayout({ dimension });
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
-  const dimension = dimensionProp ?? '2d';
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
     state,

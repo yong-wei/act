@@ -314,13 +314,23 @@ test.describe('issue 1493 active graph presentation', () => {
 
     const toolbar = page.locator('[data-knowledge-workspace-toolbar="true"]');
     const title = page.locator('[data-active-authority-title="true"]');
+    const language = page.locator('[data-graph-language-switch="true"]');
     const toolbarBox = await toolbar.boundingBox();
     const titleBox = await title.boundingBox();
+    const languageBox = await language.boundingBox();
     if (toolbarBox && titleBox) {
       const overlapX = Math.min(toolbarBox.x + toolbarBox.width, titleBox.x + titleBox.width)
         - Math.max(toolbarBox.x, titleBox.x);
       const overlapY = Math.min(toolbarBox.y + toolbarBox.height, titleBox.y + titleBox.height)
         - Math.max(toolbarBox.y, titleBox.y);
+      expect(overlapX <= 0 || overlapY <= 0).toBeTruthy();
+    }
+    expect(languageBox).toBeTruthy();
+    if (toolbarBox && languageBox) {
+      const overlapX = Math.min(toolbarBox.x + toolbarBox.width, languageBox.x + languageBox.width)
+        - Math.max(toolbarBox.x, languageBox.x);
+      const overlapY = Math.min(toolbarBox.y + toolbarBox.height, languageBox.y + languageBox.height)
+        - Math.max(toolbarBox.y, languageBox.y);
       expect(overlapX <= 0 || overlapY <= 0).toBeTruthy();
     }
 

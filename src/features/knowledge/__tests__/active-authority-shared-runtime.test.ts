@@ -10,8 +10,13 @@ import {
   toActiveRuntimeNodes,
   toActiveRootRuntimeNodes,
 } from '../graph/authority-runtime-adapter';
-import { getEmptyKnowledgeGraphLayoutState } from '../graph/layout-state';
-import { isMutableRuntimeLayout } from '../graph/use-knowledge-graph-runtime-layout';
+import { getEmptyKnowledgeGraphLayoutState, storeKnowledgeGraphNodePosition } from '../graph/layout-state';
+import {
+  createEmptyDimensionLayoutStore,
+  isMutableRuntimeLayout,
+  selectDimensionLayout,
+  writeDimensionLayout,
+} from '../graph/use-knowledge-graph-runtime-layout';
 import { getKnowledgeConceptNodeShape, getKnowledgeNodeScale } from '../graph/visual-config';
 
 function node(id: string, canonicalType: string, label: string): ActiveCanvasNode {
@@ -62,6 +67,10 @@ describe('active authority shared force runtime', () => {
     expect(workspace).toContain('min-h-0');
     expect(workspace).not.toContain('overflow-y-auto');
     expect(workspace).toContain('data-knowledge-workspace-chrome-slot');
+    expect(workspace).toContain('data-knowledge-toolbar-gutter="language"');
+    expect(workspace).toContain('left-[16.5rem]');
+    expect(graph).toContain('data-graph-language-switch="true"');
+    expect(graph).toContain('useKnowledgeGraphRuntimeLayout({ dimension })');
     expect(workspace).toContain('data-knowledge-layout-control="fit-view"');
     expect(workspace).toContain('data-knowledge-layout-control="relayout"');
     expect(workspace).toContain('createGraphRuntimeSessionStore');
@@ -132,6 +141,21 @@ describe('active authority shared force runtime', () => {
     const empty = getEmptyKnowledgeGraphLayoutState();
     expect(isMutableRuntimeLayout(empty)).toBe(true);
     expect(empty.positionsByNodeId).toEqual({});
+  });
+
+  it('keeps 2D drag pins out of the 3D layout store', () => {
+    const pinned = storeKnowledgeGraphNodePosition(getEmptyKnowledgeGraphLayoutState(), {
+      id: 'node-a',
+      x: 48,
+      y: -12,
+    });
+    const afterTwoD = writeDimensionLayout(createEmptyDimensionLayoutStore(), '2d', pinned);
+    expect(selectDimensionLayout(afterTwoD, '2d').positionsByNodeId['node-a']).toMatchObject({
+      x: 48,
+      y: -12,
+      pinned: true,
+    });
+    expect(selectDimensionLayout(afterTwoD, '3d').positionsByNodeId).toEqual({});
   });
 
   it('lets governed presentation metadata win over legacy type flattening', () => {

@@ -281,6 +281,7 @@ export function KnowledgeGraphSystem({
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
   const {
     layoutState,
     setLayoutState,
@@ -289,7 +290,10 @@ export function KnowledgeGraphSystem({
     handleNodeDragEnd,
     requestFitView,
     requestRelayout,
-  } = useKnowledgeGraphRuntimeLayout({ initialFitTarget: 'root' });
+  } = useKnowledgeGraphRuntimeLayout({
+    initialFitTarget: 'root',
+    dimension: viewMode === '3D' ? '3d' : '2d',
+  });
   const teachingLayoutFitDomainRef = useRef<string | null>(null);
   const materializedDomainFitSignaturesRef = useRef(new Set<string>());
   const hoverAnimationFrameRef = useRef<number | null>(null);
@@ -306,8 +310,6 @@ export function KnowledgeGraphSystem({
   const loadingShardOwnerByKeyRef = useRef(new Map<string, number>());
   const currentNavigationLoadingRef = useRef<{ shardKey: string; requestId: number } | null>(null);
 
-  // 视图模式：默认 2D
-  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
   const [manipulatedAutoFitScopeKeys, setManipulatedAutoFitScopeKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );

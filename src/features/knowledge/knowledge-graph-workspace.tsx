@@ -64,9 +64,10 @@ export function KnowledgeGraphWorkspace({
       data-knowledge-session-store="namespace"
     >
       <div
-        className="absolute right-3 top-3 z-50 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1 rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur max-[639px]:left-3 max-[639px]:right-3 max-[639px]:w-auto max-[639px]:flex-nowrap max-[639px]:overflow-x-auto"
+        className="absolute left-[16.5rem] right-3 top-3 z-50 flex min-w-0 flex-wrap items-center justify-end gap-1 rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur max-[639px]:left-3 max-[639px]:right-3 max-[639px]:w-auto max-[639px]:flex-nowrap max-[639px]:overflow-x-auto"
         data-knowledge-mode-switch="true"
         data-knowledge-workspace-toolbar="true"
+        data-knowledge-toolbar-gutter="language"
       >
         <button
           type="button"
