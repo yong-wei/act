@@ -43,6 +43,8 @@ flock -x 9
 journal_path=""
 status_path="$journal_dir/r4-c5-current.json"
 previous_pointer="$candidate_dir/previous-authority-current.json"
+previous_active_receipt="$candidate_dir/previous-active-receipt.json"
+previous_selection="$candidate_dir/previous-runtime-selection.json"
 final_receipt="$STATE_DIR/coordinated-active-receipt.json"
 previous_final_receipt="$candidate_dir/previous-coordinated-active-receipt.json"
 transaction_id=""
@@ -448,6 +450,24 @@ subprocess.check_call(['python3', materializer, 'select', '--release-id', releas
 PY
 }
 
+restore_host_predecessor_receipt() {
+  [[ -f "$previous_active_receipt" && ! -L "$previous_active_receipt" ]] || return 1
+  [[ -f "$previous_selection" && ! -L "$previous_selection" ]] || return 1
+  python3 - "$previous_active_receipt" "$candidate_dir/predecessor-observation.json" <<'PY'
+import hashlib, json, sys
+receipt_path, observation_path = sys.argv[1:]
+observed = json.load(open(observation_path, encoding='utf-8'))
+digest = hashlib.sha256(open(receipt_path, 'rb').read()).hexdigest()
+expected = ((observed.get('runtime') or {}).get('activeReceiptHash'))
+if digest != expected:
+    raise SystemExit('captured predecessor active receipt does not match the observation')
+PY
+  cp -- "$previous_active_receipt" "$STATE_DIR/act-runtime-active-receipt.json"
+  chmod 0644 "$STATE_DIR/act-runtime-active-receipt.json"
+  cp -- "$previous_selection" "$STATE_DIR/act-runtime-selection.json"
+  chmod 0600 "$STATE_DIR/act-runtime-selection.json"
+}
+
 restore_final_receipt() {
   if [[ "$final_receipt_written" != "1" ]]; then return 0; fi
   [[ -f "$final_receipt" && ! -L "$final_receipt" ]] || return 1
@@ -729,6 +749,9 @@ recover() {
       restore_runtime_predecessor || recovery_safe=0
     fi
     if [[ "$recovery_safe" == "1" ]]; then
+      restore_host_predecessor_receipt || recovery_safe=0
+    fi
+    if [[ "$recovery_safe" == "1" ]]; then
       restore_blob_view_predecessor || recovery_safe=0
     fi
   fi
@@ -833,6 +856,9 @@ if [[ -e "$final_receipt" ]]; then
   previous_final_receipt_present=1
 fi
 cp -- "$AUTHORITY_ROOT/current.json" "$previous_pointer"
+cp -- "$STATE_DIR/act-runtime-active-receipt.json" "$previous_active_receipt"
+cp -- "$STATE_DIR/act-runtime-selection.json" "$previous_selection"
+chmod 0600 "$previous_active_receipt" "$previous_selection"
 transaction_id="tx-$(python3 -c 'import uuid; print(uuid.uuid4())')"
 journal_path="$journal_dir/${transaction_id}.json"
 opened_at="$(python3 -c 'import datetime; print(datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"))')"

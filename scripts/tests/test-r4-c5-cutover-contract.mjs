@@ -56,11 +56,19 @@ assert.ok(
   'recovery must select the predecessor blob-view before restarting consumers',
 );
 assert.ok(
+  remote.includes('restore_host_predecessor_receipt')
+    && remote.includes('previous-active-receipt.json')
+    && remote.includes('previous-runtime-selection.json'),
+  'compensation must restore the captured predecessor host receipt bytes instead of projecting a new generation',
+);
+assert.ok(
   remote.indexOf('restore_runtime_predecessor || recovery_safe=0')
-    < remote.indexOf('restore_blob_view_predecessor || recovery_safe=0')
+    < remote.indexOf('restore_host_predecessor_receipt || recovery_safe=0')
+    && remote.indexOf('restore_host_predecessor_receipt || recovery_safe=0')
+      < remote.indexOf('restore_blob_view_predecessor || recovery_safe=0')
     && remote.indexOf('restore_blob_view_predecessor || recovery_safe=0')
       < remote.lastIndexOf('deploy_runtime_cutover_app'),
-  'compensation must restore lifecycle, then the predecessor view, then redeploy',
+  'host receipt bytes must be restored after lifecycle compensation and before blob-view select',
 );
 assert.match(
   remote,
