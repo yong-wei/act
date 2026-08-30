@@ -774,6 +774,7 @@ export function UNIT_5_5StudentActivityForm({
   answerVisible,
   revealProgress,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_5_5StepDefinition;
   manifest: InteractiveRuntimeManifest | null | undefined;
@@ -783,6 +784,7 @@ export function UNIT_5_5StudentActivityForm({
   answerVisible: boolean;
   revealProgress: number;
   onSubmit: (response: ManifestStepResponse) => void;
+  readOnly?: boolean;
 }) {
   const activeManifest = requireUnit55Manifest(manifest);
   const stepManifest = getUNIT_5_5ManifestStepFromManifest(activeManifest, step.id);
@@ -796,6 +798,7 @@ export function UNIT_5_5StudentActivityForm({
     answerVisible,
     revealProgress,
     onSubmit,
+    readOnly,
   });
 }
 

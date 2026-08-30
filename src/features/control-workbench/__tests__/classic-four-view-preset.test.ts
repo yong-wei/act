@@ -96,6 +96,7 @@ describe('classic four-view control workbench preset', () => {
     const routeSource = readRepoFile('src/app/interactive-learning/multi-representation-linkage/page.tsx');
 
     expect(routeSource).toContain('MultiRepresentationLinkageClient');
+    expect(routeSource).toContain('<InteractiveLearningShell');
     expect(routeSource).toContain('arenaTaskId: firstValue(searchParams?.arenaTask)');
     expect(routeSource).toContain('publicationId: firstValue(searchParams?.publicationId)');
   });

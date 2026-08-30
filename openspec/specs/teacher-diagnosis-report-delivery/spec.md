@@ -130,6 +130,8 @@ The teacher report disposition area SHALL link to the existing smart preparation
 
 The teacher diagnosis history projection SHALL mark a report attribution-limited only when a finding that requires knowledge-node attribution is missing `knowledgeNodeId`. A finding requires knowledge-node attribution when it cites at least one `knowledge-progress:` evidence reference. Findings about overall risk, score distribution, or class coverage SHALL NOT by themselves mark the report as coverage-limited.
 
+When attribution limitation is the only confidence reason — the report's data coverage is complete and no other evidence boundary applies — the availability state and recovery advice SHALL describe the knowledge-node attribution problem explicitly and SHALL NOT describe it as data coverage limitation. Reports with genuine student, assignment, assessment, or behavior coverage gaps SHALL keep the existing data coverage limitation wording.
+
 #### Scenario: Knowledge-progress finding lacks a node
 
 - **WHEN** a persisted finding cites `knowledge-progress:` evidence and has no `knowledgeNodeId`
@@ -149,6 +151,13 @@ The teacher diagnosis history projection SHALL mark a report attribution-limited
 - **AND** only non-knowledge-node findings omit `knowledgeNodeId`
 - **THEN** the history projection SHALL display an availability state consistent with the persisted complete coverage
 - **AND** it SHALL NOT show coverage-limited solely because of those findings
+
+#### Scenario: Attribution limitation is the only confidence reason
+
+- **WHEN** a report's data coverage is complete with no declared data limitations
+- **AND** the only confidence reason is a knowledge finding without a node
+- **THEN** the availability state SHALL be described as knowledge-node attribution limitation
+- **AND** it SHALL NOT use the data coverage-limited wording.
 
 ### Requirement: Browser print outputs only the report deliverable
 
@@ -170,4 +179,14 @@ The teacher delivery surface SHALL scope browser print output to the report deli
 - **WHEN** the teacher browses the delivery page without printing
 - **THEN** the platform shell navigation, header, and workspace tabs SHALL render exactly as before
 - **AND** no new export entry point SHALL be introduced.
+
+### Requirement: Teacher delivery surface copy is Simplified Chinese
+
+The teacher delivery surface SHALL present its fixed interface copy, including the governed-report eyebrow above the report title, in Simplified Chinese. Technical values such as report version identifiers, enum-derived labels that already have Chinese label mappings, and browser-generated print headers remain exempt.
+
+#### Scenario: Teacher opens a fixed report
+
+- **WHEN** an authorized teacher opens the teacher delivery page
+- **THEN** the eyebrow above the report title SHALL read Simplified Chinese governed-report copy
+- **AND** the page SHALL NOT render the previous English "Fixed governed report" eyebrow.
 

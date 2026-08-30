@@ -1,3 +1,4 @@
+import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import {
   CRUISE_COURSE_MODE,
   type CruiseControllerMode,
@@ -42,5 +43,18 @@ export default async function MultiRepresentationLinkageRoute(
   }
 ) {
   const searchParams = await props.searchParams;
-  return <MultiRepresentationLinkageClient initialParams={parseInitialParams(searchParams)} />;
+  return (
+    <InteractiveLearningShell
+      activeHref="/interactive-learning/multi-representation-linkage"
+      title="多表征联动"
+      subtitle="开环极点零点、闭环时域、伯德图、根轨迹与奈奎斯特图同步刷新。"
+    >
+      <div
+        data-interactive-atlas-workspace="multi-representation-linkage"
+        data-commercial-student-entry-route="/interactive-learning/multi-representation-linkage"
+      >
+        <MultiRepresentationLinkageClient initialParams={parseInitialParams(searchParams)} />
+      </div>
+    </InteractiveLearningShell>
+  );
 }

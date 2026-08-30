@@ -5,6 +5,7 @@ import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 import { KnowledgeCard } from '@/resources/interactive-learning/shared/knowledge-card';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import type { LessonKnowledgeCard } from '@/resources/interactive-learning/shared/knowledge-cards-data';
 
 export interface KnowledgeDeckVisitState {
@@ -51,6 +52,18 @@ export function KnowledgeDeck({
     visitedIndices: cards.length > 0 ? [0] : [],
   });
   const publishedVisitedCountRef = useRef(0);
+  const allCardsVisited = cards.length > 0 && visitState.visitedIndices.length === cards.length;
+  const completionResult = useMemo<WidgetResult>(() => ({
+    success: true,
+    score: 100,
+    data: {
+      visited: visitState.visitedIndices
+        .map((index) => cards[index]?.id)
+        .filter((id): id is string => !!id),
+      visitedIndices: visitState.visitedIndices,
+      total: cards.length,
+    },
+  }), [cards, visitState.visitedIndices]);
 
   const activeCard = useMemo(
     () => cards[visitState.activeIndex] ?? cards[0],
@@ -69,9 +82,6 @@ export function KnowledgeDeck({
     const latestVisitedIndex = visitState.visitedIndices[visitedCount - 1] ?? 0;
     const latestVisitedCard = cards[latestVisitedIndex] ?? cards[0];
     const progressValue = Math.round((visitedCount / cards.length) * 100);
-    const visitedKnowledgeNodeIds = visitState.visitedIndices
-      .map((index) => cards[index]?.id)
-      .filter((id): id is string => !!id);
 
     const snapshot = {
       progress: progressValue,
@@ -87,24 +97,10 @@ export function KnowledgeDeck({
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
     interactive?.tracking.emit('interact', snapshot.data);
-
-    if (visitedCount === cards.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: {
-          visited: visitedKnowledgeNodeIds,
-          visitedIndices: visitState.visitedIndices,
-          total: cards.length,
-        },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [cards, interactive, onComplete, onStateChange, visitState.visitedIndices]);
+  }, [cards, interactive, onStateChange, visitState.visitedIndices]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl text-slate-900 dark:text-slate-100">
+    <div className="mx-auto w-full max-w-6xl text-slate-900 dark:text-slate-100" data-knowledge-deck-root="">
       <div className="mb-6 text-center">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{title}</h2>
         <p className="text-slate-600 dark:text-slate-300">{description}</p>
@@ -135,6 +131,11 @@ export function KnowledgeDeck({
           <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
             已浏览 {visitState.visitedIndices.length}/{cards.length}
           </div>
+          <PathResourceContinueAction
+            enabled={allCardsVisited}
+            result={completionResult}
+            onComplete={onComplete}
+          />
           <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Layers className="h-4 w-4" />
             {footer}

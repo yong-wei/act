@@ -10,7 +10,6 @@ import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
   activeAuthorityEdgeEndpoints,
   activeAuthorityNodeBoundaryPoint,
-  layoutActiveAuthorityNodes,
   selectActiveAuthorityMembership,
 } from '../active-authority-graph';
 import {
@@ -927,6 +926,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-knowledge-layout-control="fit-view"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
 
     await act(async () => {
@@ -1056,21 +1057,15 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
     expect(rootCanvas).not.toBeNull();
+    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('force-graph');
+    expect(rootCanvas?.querySelector('[data-knowledge-runtime-canvas]')).not.toBeNull();
     expect(container.querySelectorAll('[data-authority-domain-entry]')).toHaveLength(3);
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
-    expect(rootCanvas?.querySelectorAll('line, polyline, [data-authority-root-edge]')).toHaveLength(0);
+    expect(rootCanvas?.querySelectorAll('svg, line, polyline, [data-authority-root-edge]')).toHaveLength(0);
     expect(container.textContent).not.toContain('state-space');
     expect(container.textContent).not.toContain('internal-release');
     const modelingButton = container.querySelector('[data-authority-domain-entry="modeling"]');
-    const modelingGroup = modelingButton?.closest('g');
-    const modelingCircle = modelingGroup?.querySelector('circle');
     expect(modelingButton?.getAttribute('aria-label')).toBe('系统建模');
-    expect(modelingCircle?.closest('[pointer-events="none"]')).not.toBeNull();
-    expect(
-      modelingCircle && modelingButton
-        ? Boolean(modelingCircle.compareDocumentPosition(modelingButton) & Node.DOCUMENT_POSITION_FOLLOWING)
-        : false,
-    ).toBe(true);
     expect(container.querySelector('[data-authority-domain-entry="state-space"]')?.getAttribute('aria-label')).toBe('该领域暂不可用');
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested).toEqual(['/api/knowledge/shards/active']);
@@ -1679,36 +1674,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
     expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
     expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
-    const forceCanvasSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-force-canvas.tsx'), 'utf8');
-    expect(forceCanvasSource).toContain('labelPriority: compactLabelPriority');
-  });
-
-  it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
-    for (let nodeCount = 1; nodeCount <= 24; nodeCount += 1) {
-      const nodes = Array.from({ length: nodeCount }, (_, index) => ({ key: `node-${index}` }));
-      const layout = layoutActiveAuthorityNodes(nodes);
-      const repeatLayout = layoutActiveAuthorityNodes(nodes);
-      const points = [...layout.values()];
-      const repeatPoints = [...repeatLayout.values()];
-      const columns = new Set(points.map((point) => point.x)).size;
-      const rows = new Set(points.map((point) => point.y)).size;
-      const expectedColumns = Math.min(6, Math.max(Math.ceil(Math.sqrt(nodeCount)), Math.ceil(nodeCount / 4)));
-      expect(columns).toBe(expectedColumns);
-      expect(rows).toBe(Math.ceil(nodeCount / expectedColumns));
-      expect(rows).toBeLessThanOrEqual(4);
-      expect(points).toEqual(repeatPoints);
-      const maxVisibleLabelHalfWidth = (14 * 12) / 2;
-      expect(points.every((point) => point.x - maxVisibleLabelHalfWidth >= 0
-        && point.x + maxVisibleLabelHalfWidth <= 960)).toBe(true);
-      expect(points.every((point) => point.y - 30 >= 0 && point.y + 30 <= 520)).toBe(true);
-      if (nodeCount === 24) {
-        expect(points).toHaveLength(24);
-        expect(columns).toBe(6);
-        expect(rows).toBe(4);
-        expect(Math.min(...points.map((point) => point.x))).toBe(88);
-        expect(Math.max(...points.map((point) => point.x))).toBe(868);
-      }
-    }
+    const runtimeViewSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-runtime-view.tsx'), 'utf8');
+    expect(runtimeViewSource).toContain('labelPriority: compactLabelPriority');
   });
 
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {

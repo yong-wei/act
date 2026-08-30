@@ -365,6 +365,10 @@ export function UNIT_1_1StudentActivityForm({
   readOnly?: boolean;
   onSubmit: (response: UNIT_1_1StepResponse) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
   const [matchingDraft, setMatchingDraft] = useState<Record<string, string>>(() => {
@@ -434,6 +438,7 @@ export function UNIT_1_1StudentActivityForm({
                       type="radio"
                       name={question.key}
                       checked={draft[question.key] === option.value}
+                      disabled={Boolean(readOnly)}
                       onChange={() => setDraft((prev) => ({ ...prev, [question.key]: option.value }))}
                     />
                     <span className="text-sm leading-6">{option.label}</span>
@@ -466,6 +471,7 @@ export function UNIT_1_1StudentActivityForm({
                         name={field.key}
                         aria-label={`${field.label}：${option.label}`}
                         checked={draft[field.key] === option.value}
+                        disabled={Boolean(readOnly)}
                         onChange={() => setDraft((prev) => ({ ...prev, [field.key]: option.value }))}
                       />
                       <span className="text-sm leading-6">{option.label}</span>
@@ -478,6 +484,7 @@ export function UNIT_1_1StudentActivityForm({
                   name={field.key}
                   aria-label={field.label}
                   value={draft[field.key] ?? ''}
+                  disabled={Boolean(readOnly)}
                   onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
                   placeholder={field.placeholder}
                   className="premium-lesson-input mt-3 min-h-[120px]"
@@ -493,9 +500,9 @@ export function UNIT_1_1StudentActivityForm({
         </div>
 
         <button
-          type="button"
+          type="button" disabled={Boolean(readOnly)}
           onClick={() =>
-            onSubmit({
+            commitStudentResponse({
               stepId: step.id,
               submittedAt: Date.now(),
               answers: draft,
@@ -528,6 +535,7 @@ export function UNIT_1_1StudentActivityForm({
               <select
                 aria-label={`配对：${pair.left}`}
                 value={matchingDraft[pair.key] ?? ''}
+                disabled={Boolean(readOnly)}
                 onChange={(event) =>
                   setMatchingDraft((prev) => ({ ...prev, [pair.key]: event.target.value }))
                 }
@@ -552,9 +560,9 @@ export function UNIT_1_1StudentActivityForm({
         </div>
 
         <button
-          type="button"
+          type="button" disabled={Boolean(readOnly)}
           onClick={() =>
-            onSubmit({
+            commitStudentResponse({
               stepId: step.id,
               submittedAt: Date.now(),
               answers: matchingDraft,

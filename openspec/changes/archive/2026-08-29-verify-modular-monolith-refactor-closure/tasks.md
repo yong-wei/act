@@ -37,5 +37,5 @@
 - [x] 5.1 将 stage registry、authority matrix、input denominator、remaining compatibility、blocked/unresolved records 和最小 native `blockedBy` map 交给主线程；将 #1607/#1608 作为对应 stage 的 child blockers，明确 tracking parent #1603 不作为 blocker、terminal receipt 或 qualification evidence。
 - [x] 5.2 运行 closure schema/validator、fixture、deterministic replay、privacy/path、reader boundary 和 no-alternative-aggregator tests；保存 test/toolchain receipt，不以测试通过替代上游 terminal receipt。
 - [x] 5.3 运行 `openspec validate verify-modular-monolith-refactor-closure --type change --strict`、`git diff --check` 和 whitespace/path 检查；记录全局既有 validation debt 与本 change 结果分离。
-- [ ] 5.4 进行一次独立 review，限于本 change 的 source identity、分母、terminal coverage、authority/隐私、status、无 façade、consumer 和 rollback；按 ACCEPT/REJECT/DEFER 处理发现，不扩大范围。
+- [x] 5.4 进行一次独立 review，限于本 change 的 source identity、分母、terminal coverage、authority/隐私、status、无 façade、consumer 和 rollback；按 ACCEPT/REJECT/DEFER 处理发现，不扩大范围。
 - [x] 5.5 完成 rollback rehearsal：删除本 change 的 receipt、digest、reader、command mapping 后，上游 baseline、charter、fitness、QA、toolchain 和 domain artifacts 的 bytes、identity 与状态保持不变；明确 receipt 产生不等于 production activation。

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Loader2 } from 'lucide-react';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
@@ -11,6 +10,10 @@ import { useStudentLessonSession } from '@/features/interactive/session-framewor
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { useManifestSubmissionController } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { collectStructuredSubmissionAnswers } from '@/features/interactive/shared/manifest-runtime/submission-extra-evidence';
+import {
+  LessonRuntimeLoadingShell,
+  LessonRuntimeShell,
+} from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { getUnit55StepAIContext } from '@/lib/unit-5-5-ai-contexts';
@@ -21,10 +24,13 @@ import {
   UNIT_5_5_LESSON_STEPS,
   UNIT_5_5_RESOURCE_KEY,
   UNIT_5_5_SESSION_ADAPTER,
+  UNIT_5_5_COURSE_TITLE,
+  UNIT_5_5_COURSE_SUBTITLE,
+  UNIT_5_5_ROUTE_SEGMENT,
+  UNIT_5_5_STAGE_LABEL,
   type UNIT_5_5StudentCourseState,
   type UNIT_5_5StepResponse,
 } from '@/lib/unit-5-5-course';
-import { UNIT_5_5CourseHeader } from './course-header';
 import {
   UNIT_5_5StepContentPanel,
   UNIT_5_5StudentActivityForm,
@@ -220,43 +226,63 @@ export function UNIT_5_5StudentPage({
 
   if (loadingSession) {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <LessonRuntimeLoadingShell
+        mode={isDemo ? 'guest' : 'student'}
+        title={UNIT_5_5_COURSE_TITLE}
+        subtitle={UNIT_5_5_COURSE_SUBTITLE}
+        routeSegment={UNIT_5_5_ROUTE_SEGMENT}
+      />
     );
   }
 
   if (!isDemo && sessionInfo?.status === 'FINISHED') {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center px-3">
-        <div className="premium-lesson-panel max-w-xl text-center">
-          <p className="premium-lesson-title text-lg font-semibold">课堂已结束</p>
-          <p className="premium-lesson-muted mt-2">教师已结束课堂，本页面保留你的学习记录。</p>
-        </div>
-      </div>
+      <LessonRuntimeShell
+        mode="invalid"
+        title={UNIT_5_5_COURSE_TITLE}
+        subtitle={UNIT_5_5_COURSE_SUBTITLE}
+        routeSegment={UNIT_5_5_ROUTE_SEGMENT}
+        steps={UNIT_5_5_LESSON_STEPS}
+        activeIndex={activeIndex}
+        invalidTitle="课堂已结束"
+        invalidDescription="教师已结束课堂，本页面保留你的学习记录。"
+      />
     );
   }
 
   return (
-    <div className="premium-lesson-shell">
-      <UNIT_5_5CourseHeader
+    <LessonRuntimeShell
+        mode={isDemo ? 'guest' : 'student'}
+        title={UNIT_5_5_COURSE_TITLE}
+        subtitle={UNIT_5_5_COURSE_SUBTITLE}
+        routeSegment={UNIT_5_5_ROUTE_SEGMENT}
+        sessionId={sessionId}
         steps={UNIT_5_5_LESSON_STEPS}
         activeIndex={activeIndex}
+        stageLabel={UNIT_5_5_STAGE_LABEL}
+        notice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
         onIndexChange={(index) => {
           setActiveIndex(index);
         }}
-        middleNotice={isOutOfSync ? `当前页面与教师不同步，教师正在第 ${teacherIndex + 1} 页` : step.hint}
-        rightSlot={(
+        localTools={
           <StepKnowledgeDrawer
             lessonRuntime={lessonRuntime}
             currentStepId={step.id}
             orderedStepIds={UNIT_5_5_LESSON_STEPS.map((item) => item.id)}
             title="页面知识卡片"
+            inlineTool
           />
-        )}
-      />
-      <main className="premium-lesson-main py-4 sm:py-6">
-        {isOutOfSync ? (
+        }
+        runtimeAttributes={{
+          'data-launch-provenance': 'course-launched',
+          'data-return-target': `/interactive-learning/courses/${UNIT_5_5_ROUTE_SEGMENT}`,
+          'data-runtime-manifest-truth': lessonRuntime.interactiveManifest?.lessonId ?? UNIT_5_5_LESSON_KEY,
+          'data-activity-submission-contract': 'manifest-runtime',
+          'data-evidence-flow-target': '/profile/evidence',
+        }}
+      >
+        <div className="space-y-4">
+          {isOutOfSync ? (
           <div className="premium-lesson-tone-block premium-tone-amber mb-4 flex flex-wrap items-center justify-between gap-3">
             <span>当前页面与教师不同步，点击可跳转到教师所在环节。</span>
             <button type="button" onClick={() => setActiveIndex(teacherIndex)} className="premium-lesson-action-tone premium-tone-amber">
@@ -300,10 +326,11 @@ export function UNIT_5_5StudentPage({
           answerVisible={answerVisible}
           revealProgress={revealProgress}
           onSubmit={handleSubmitResponse}
+        readOnly={isDemo}
         />
 
         <div className="premium-lesson-muted mt-4 text-xs">已提交 {submittedCount} 个页面作答。</div>
-      </main>
-    </div>
+        </div>
+      </LessonRuntimeShell>
   );
 }

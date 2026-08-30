@@ -1,12 +1,12 @@
 {
-  "sourceRevision": "f9fdea1e9f14842e7e44fcc50216ae04c080eb8d",
-  "sourceTree": "306975bb68ed34e7f037a23ca42075d9a112d51a",
+  "sourceRevision": "53bd200653f6543776c44039c9b3025258f94ba8",
+  "sourceTree": "541d61559d150bf57764c2e58aa1113131f7c138",
   "counts": {
     "migration-repair": 3,
-    "historical-backfill": 76,
+    "historical-backfill": 78,
     "competition-material": 8
   },
-  "commandCount": 87,
+  "commandCount": 89,
   "commands": [
     {
       "path": "scripts/migrations/001-seed-event-dictionary.ts",
@@ -222,7 +222,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "da4f8b70ade8160137c906f547a3378877e4832c24b2ee7b38a6da9aed036075"
+      "contentHash": "59bc79f7805eac6a738efb4f8fc5442ddcf82c21660aeb18cb07052666fac34f"
     },
     {
       "path": "scripts/db/generate-longform-textbook-reference-resource-semantics.ts",
@@ -254,7 +254,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "8d7e96cb859030a457f3186419e91e70a83c8220f1c3118b5cc6af6387b9a634"
+      "contentHash": "22a7f26556d93f3203b0d63f88a3c3d624ef1e0d935eef6731c37f31db0e4c85"
     },
     {
       "path": "scripts/db/generate-runtime-lesson-media-resource-semantics.ts",
@@ -262,7 +262,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "53976e108976a8e2f304acafdf6e85478f6829677e8df90c63d8f2a627a07861"
+      "contentHash": "93dfe3b51ddcf20553e6f67ebfaa905fd67dafc5867e3398701b72519fcce6fb"
     },
     {
       "path": "scripts/db/generate-runtime-lesson-planning-unit-review.ts",
@@ -441,6 +441,14 @@
       "contentHash": "2c839381f4ac0b042f4b9ebdba278ab8a2e973bdd42a3ae2cd042b7431f6ab15"
     },
     {
+      "path": "scripts/db/report-course-bundle-revision-quality.ts",
+      "commandId": "oneoff:historical-backfill:scripts/db/report-course-bundle-revision-quality.ts",
+      "owner": "learning-record",
+      "oneOffClass": "historical-backfill",
+      "safetyMode": "dry-run-default",
+      "contentHash": "c010992566603641a71a45f3839d1518b9502a2e3538c67f5751d06bfc50d923"
+    },
+    {
       "path": "scripts/db/report-data-completeness-audit.ts",
       "commandId": "oneoff:historical-backfill:scripts/db/report-data-completeness-audit.ts",
       "owner": "learning-record",
@@ -518,7 +526,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "ad44ca84f4f9098bc1a57e4cb8e8e245492a5afcdc678c6058265fef779438e3"
+      "contentHash": "9be40fbcc5cb463896e371c95e64223e85928f1e523577fbfd1509a34d066377"
     },
     {
       "path": "scripts/db/seed-demo-resources.mjs",
@@ -526,7 +534,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "c03b858cad21470eb7c2ab36c9810dd39fb2324b3f8fb71bdeef4317b2915091"
+      "contentHash": "4169692fdf7b9ade5ec251aa40f1c0e5315c374109e4250786f613a7d0aa2dfd"
     },
     {
       "path": "scripts/db/seed-demo-user.mjs",
@@ -607,6 +615,14 @@
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
       "contentHash": "08efa2f9b15b0950ed842bb17a6fe297606c100706ad4d6e2a8637e240c7f8ec"
+    },
+    {
+      "path": "scripts/db/sync-micro-tutoring-v2-teaching-resources.ts",
+      "commandId": "oneoff:historical-backfill:scripts/db/sync-micro-tutoring-v2-teaching-resources.ts",
+      "owner": "learning-record",
+      "oneOffClass": "historical-backfill",
+      "safetyMode": "apply-gated",
+      "contentHash": "689fd6eacc108788a7a05b3f7418f8d3f7872d0ea9ef2d1e7f68431b25f0b142"
     },
     {
       "path": "scripts/db/sync-remote-db-to-local.sh",

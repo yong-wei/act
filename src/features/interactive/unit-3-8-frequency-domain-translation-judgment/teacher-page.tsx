@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  LessonRuntimeLoadingShell,
+  LessonRuntimeShell,
+} from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
@@ -23,10 +27,13 @@ import {
   UNIT_3_8_RESOURCE_KEY,
   UNIT_3_8_SESSION_ADAPTER,
   UNIT_3_8_STAGE_MAP,
+  UNIT_3_8_COURSE_TITLE,
+  UNIT_3_8_COURSE_SUBTITLE,
+  UNIT_3_8_ROUTE_SEGMENT,
+  UNIT_3_8_STAGE_LABEL,
   type UNIT_3_8StudentCourseState,
   type UNIT_3_8TeacherCourseSyncState,
 } from '@/lib/unit-3-8-course';
-import { UNIT_3_8CourseHeader } from './course-header';
 import {
   UNIT_3_8StepContentPanel,
   UNIT_3_8TeacherActivitySummary,
@@ -191,32 +198,31 @@ export function UNIT_3_8TeacherPage({
 
   if (loadingSession) {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <LessonRuntimeLoadingShell
+        mode="teacher"
+        title={UNIT_3_8_COURSE_TITLE}
+        subtitle={UNIT_3_8_COURSE_SUBTITLE}
+        routeSegment={UNIT_3_8_ROUTE_SEGMENT}
+      />
     );
   }
 
   return (
-    <div className="premium-lesson-shell">
-      <UNIT_3_8CourseHeader
+    <LessonRuntimeShell
+        mode="teacher"
+        title={UNIT_3_8_COURSE_TITLE}
+        subtitle={UNIT_3_8_COURSE_SUBTITLE}
+        routeSegment={UNIT_3_8_ROUTE_SEGMENT}
+        sessionId={sessionId}
         steps={runtimeSteps}
         activeIndex={activeIndex}
+        stageLabel={UNIT_3_8_STAGE_LABEL}
+        notice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
-        middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
-        rightSlot={
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={runtimeSteps.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        }
-      />
-
-      <main className="premium-lesson-main py-4 sm:py-6">
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        toolsDefaultState="collapsed"
+        localTools={
+          <>
+          <div className="premium-lesson-panel-soft px-4 py-4" data-teacher-projection-runtime="local-tools">
             <div>
               <div className="premium-lesson-kicker">教师课堂台</div>
               <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
@@ -260,9 +266,22 @@ export function UNIT_3_8TeacherPage({
               </div>
             ) : null}
           </div>
-        </div>
-
-        {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
+            <StepKnowledgeDrawer
+            lessonRuntime={lessonRuntime}
+            currentStepId={step.id}
+            orderedStepIds={runtimeSteps.map((item) => item.id)}
+            title="页面知识卡片"
+            inlineTool
+          />
+          </>
+        }
+        runtimeAttributes={{
+          'data-teacher-projection-runtime': 'compact-navigation',
+          'data-runtime-manifest-truth': lessonRuntime.interactiveManifest?.lessonId ?? UNIT_3_8_LESSON_KEY,
+        }}
+      >
+        <div className="space-y-4">
+          {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <UNIT_3_8StepContentPanel
           step={step}
@@ -314,7 +333,7 @@ export function UNIT_3_8TeacherPage({
             />
           </div>
         ) : null}
-      </main>
-    </div>
+        </div>
+      </LessonRuntimeShell>
   );
 }

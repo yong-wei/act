@@ -53,7 +53,17 @@ describe('active Authority root packing adapter', () => {
 
   it('keeps packing metadata free of Authority identities', () => {
     const keys = new Set(activeAuthorityRootPackingMetadataKeys(catalog(3)));
-    expect([...keys].sort()).toEqual(['isCollapsedRoot', 'nodeCount', 'presentationKind', 'presentationRadius']);
+    expect([...keys].sort()).toEqual([
+      'canonicalObjectId',
+      'isCollapsedRoot',
+      'nodeCount',
+      'presentationKind',
+      'presentationRadius',
+      'unavailable',
+      'visualRole',
+    ]);
+    expect(toActiveAuthorityRootPackingNodes(catalog(3)).every((node) => node.metadata?.canonicalObjectId == null)).toBe(true);
+    expect([...keys].some((key) => /snapshot|release|hash|ctc:/i.test(key))).toBe(false);
     expect(toActiveAuthorityRootPackingNodes(catalog(3)).map((node) => node.id)).toEqual([
       'root-entry-00',
       'root-entry-01',

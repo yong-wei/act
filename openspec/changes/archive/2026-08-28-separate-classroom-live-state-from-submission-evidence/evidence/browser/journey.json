@@ -1,0 +1,34 @@
+{
+  "sessionId": "cmtfcru1a000fakyfh0fghqaq",
+  "joinCode": "406811",
+  "durableAttemptIds": [
+    "cmtfcrwp8000oakyf4uh1btsl",
+    "cmtfcrwr6000takyf42wmdl1m"
+  ],
+  "reportPhases": {
+    "cached": {
+      "note": "no staged closure ledger for this session yet",
+      "status": "NOT_APPLICABLE"
+    },
+    "captured": {
+      "status": "SUCCEEDED",
+      "interactionLogs": 3,
+      "acceptedSubmissions": 2,
+      "postSessionReviewIncluded": 0
+    },
+    "summarized": {
+      "status": "SUCCEEDED",
+      "generatedAt": "2026-08-30T05:12:29.504Z",
+      "reportTypes": [
+        "class-summary",
+        "student-summary"
+      ]
+    },
+    "materialized": {
+      "note": "no staged closure ledger for this session yet",
+      "status": "NOT_APPLICABLE",
+      "learningFacts": 2
+    }
+  },
+  "watermark": "2"
+}

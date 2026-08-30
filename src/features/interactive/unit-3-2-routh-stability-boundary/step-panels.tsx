@@ -939,10 +939,12 @@ function ChoiceGroup({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid gap-2">
@@ -950,7 +952,11 @@ function ChoiceGroup({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-control justify-start text-left ${value === option.value ? 'ring-2 ring-cyan-400' : ''}`}
         >
           {option.label}
@@ -965,16 +971,19 @@ function TextInput({
   onChange,
   placeholder,
   multiline = false,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
   multiline?: boolean;
 }) {
   if (multiline) {
     return (
       <textarea aria-label={placeholder ?? '劳斯稳定边界学习记录'}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         className="premium-lesson-input min-h-[112px] w-full resize-y"
@@ -984,6 +993,7 @@ function TextInput({
   return (
     <input aria-label={placeholder ?? '劳斯稳定边界输入'}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input w-full"
@@ -1220,6 +1230,7 @@ export function UNIT_3_2StudentActivityForm({
   answerVisible,
   revealProgress = 0,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_3_2StepDefinition;
   savedResponse?: UNIT_3_2StepResponse;
@@ -1228,7 +1239,13 @@ export function UNIT_3_2StudentActivityForm({
   answerVisible: boolean;
   revealProgress?: number;
   onSubmit: (response: UNIT_3_2StepResponse) => void;
+  readOnly?: boolean;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
+
   const activity = getActivitySpec(step);
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
 
@@ -1253,7 +1270,7 @@ export function UNIT_3_2StudentActivityForm({
   }
 
   const submit = (answers: Record<string, string>) => {
-    onSubmit({
+    commitStudentResponse({
       stepId: step.id,
       submittedAt: Date.now(),
       answers,
@@ -1303,14 +1320,14 @@ export function UNIT_3_2StudentActivityForm({
               ) : null}
               <div className="mt-3">
                 {question.type === 'text' ? (
-                  <TextInput
+                  <TextInput disabled={Boolean(readOnly)}
                     value={draft[question.key] ?? ''}
                     onChange={(value) => updateDraft(question.key, value)}
                     placeholder="用 1-2 句话说明理由"
                     multiline
                   />
                 ) : (
-                  <ChoiceGroup
+                  <ChoiceGroup disabled={Boolean(readOnly)}
                     options={question.options ?? []}
                     value={draft[question.key] ?? ''}
                     onChange={(value) => updateDraft(question.key, value)}
@@ -1332,13 +1349,13 @@ export function UNIT_3_2StudentActivityForm({
               ) : null}
               <div className="mt-3">
                 {field.type === 'radio' ? (
-                  <ChoiceGroup
+                  <ChoiceGroup disabled={Boolean(readOnly)}
                     options={field.options ?? []}
                     value={draft[field.key] ?? ''}
                     onChange={(value) => updateDraft(field.key, value)}
                   />
                 ) : (
-                  <TextInput
+                  <TextInput disabled={Boolean(readOnly)}
                     value={draft[field.key] ?? ''}
                     onChange={(value) => updateDraft(field.key, value)}
                     placeholder={field.placeholder}
@@ -1375,13 +1392,13 @@ export function UNIT_3_2StudentActivityForm({
                             </div>
                           ) : null}
                           {field.type === 'radio' ? (
-                            <ChoiceGroup
+                            <ChoiceGroup disabled={Boolean(readOnly)}
                               options={field.options ?? []}
                               value={draft[field.key] ?? ''}
                               onChange={(value) => updateDraft(field.key, value)}
                             />
                           ) : (
-                            <TextInput
+                            <TextInput disabled={Boolean(readOnly)}
                               value={draft[field.key] ?? ''}
                               onChange={(value) => updateDraft(field.key, value)}
                               placeholder={field.placeholder}
@@ -1391,7 +1408,7 @@ export function UNIT_3_2StudentActivityForm({
                         </div>
                       ))}
                     </div>
-                    <button type="button" onClick={() => submitCard(card)} className="premium-lesson-action-primary mt-4 w-full">
+                    <button type="button" disabled={Boolean(readOnly)} onClick={() => submitCard(card)} className="premium-lesson-action-primary mt-4 w-full">
                       {cardSubmitted ? '重新提交答案' : '提交答案'}
                     </button>
                   </div>
@@ -1402,7 +1419,7 @@ export function UNIT_3_2StudentActivityForm({
 
           {activity.kind === 'form' || activity.kind === 'quiz' ? (
             <button
-              type="button"
+              type="button" disabled={Boolean(readOnly)}
               onClick={() => submit(draft)}
               className="premium-lesson-action-primary"
             >
@@ -1415,7 +1432,7 @@ export function UNIT_3_2StudentActivityForm({
       <SubmissionStatus
         submitted={submitted}
         submittedText="已提交当前作答，教师端会看到你的最新答案。"
-        idleText="尚未提交当前页面作答。"
+        idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '尚未提交当前页面作答。'}
       />
 
       {answerVisible && revealContent ? (

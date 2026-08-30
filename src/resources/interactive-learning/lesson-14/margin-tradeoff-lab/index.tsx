@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Sliders, ShieldAlert, Gauge } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface MarginRange {
   min: number;
@@ -77,18 +78,7 @@ export default function MarginTradeoffLab({ onComplete, onStateChange }: MarginT
     };
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
-
-    if (completedIds.length === SCENARIOS.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { completed: completedIds, total: SCENARIOS.length },
-      };
-      interactive?.progress.markComplete(result);
-      interactive?.tracking.emit('complete', result.data);
-      onComplete?.(result);
-    }
-  }, [completedIds, interactive, onComplete, onStateChange, progressValue]);
+  }, [completedIds, interactive, onStateChange, progressValue]);
 
   const updateConfig = useCallback(
     (field: 'phase' | 'gain', value: number) => {
@@ -269,6 +259,12 @@ export default function MarginTradeoffLab({ onComplete, onStateChange }: MarginT
           </div>
         </div>
       </div>
+          <PathResourceContinueAction
+            enabled={completedIds.length === SCENARIOS.length}
+            result={{ success: true, score: 100, data: { completed: completedIds, total: SCENARIOS.length } }}
+            onComplete={onComplete}
+          />
+
     </div>
   );
 }

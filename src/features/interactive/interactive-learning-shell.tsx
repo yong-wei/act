@@ -25,6 +25,12 @@ const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbIte
     { label: '互动学习', href: '/interactive-learning' },
     { label: '跨域探索' },
   ],
+  '/interactive-learning/multi-representation-linkage': [
+    { label: '首页', href: '/' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: '跨域探索', href: '/interactive-learning/cross-domain-exploration' },
+    { label: '多表征联动' },
+  ],
 };
 
 export function InteractiveLearningShell({

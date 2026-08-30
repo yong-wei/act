@@ -66,7 +66,7 @@ export function isUnavailableRootCatalogAggregate(aggregate: ActiveRootCatalog['
 export function toActiveAuthorityRootPackingNodes(
   catalog: ActiveRootCatalog,
 ): KnowledgeNodeData[] {
-  const domainNodes = catalog.domains.map((domain, index) => {
+  const domainNodes: KnowledgeNodeData[] = catalog.domains.map((domain, index) => {
     const unavailable = isUnavailableRootCatalogDomain(domain);
     const name = unavailable ? ACTIVE_AUTHORITY_ROOT_UNAVAILABLE_LABEL : domain.displayName.trim();
     const summary = unavailable ? '' : domain.summary.trim();
@@ -74,17 +74,20 @@ export function toActiveAuthorityRootPackingNodes(
       id: packingIdForRootEntry(index),
       name,
       nodeType: 'THEORY' as const,
-      description: '',
+      description: summary,
       positionX: 0,
       positionY: 0,
       positionZ: 0,
       metadata: {
         isCollapsedRoot: true,
         presentationKind: 'domain',
+        visualRole: domain.visualRole,
+        unavailable,
+        canonicalObjectId: null,
         nodeCount: unavailable ? 16 : Math.max(16, domain.memberCount),
         presentationRadius: getActiveAuthorityRootLabelBounds(name, summary).collisionRadius,
       },
-    } satisfies KnowledgeNodeData;
+    };
   });
 
   const aggregateUnavailable = isUnavailableRootCatalogAggregate(catalog.aggregate);
@@ -103,6 +106,9 @@ export function toActiveAuthorityRootPackingNodes(
     metadata: {
       isCollapsedRoot: true,
       presentationKind: 'aggregate',
+      visualRole: null,
+      unavailable: aggregateUnavailable,
+      canonicalObjectId: null,
       nodeCount: 96,
       presentationRadius: getActiveAuthorityRootLabelBounds(aggregateName, aggregateSummary).collisionRadius,
     },

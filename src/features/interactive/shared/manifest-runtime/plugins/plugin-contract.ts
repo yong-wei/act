@@ -36,11 +36,19 @@ export interface ManifestMissingRendererContract {
   reason: string;
 }
 
+export type ManifestComputePanelSubmission = {
+  stepId: string;
+  submittedAt: number;
+  answers: Record<string, string>;
+};
+
 export interface ManifestModuleRendererInput {
   manifest: InteractiveRuntimeManifest;
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
   role: ManifestPluginRole;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
+  showFrequencyReadings?: boolean;
 }
 
 export interface ManifestEvidenceBehavior {

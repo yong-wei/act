@@ -12,7 +12,7 @@ async function main() {
   });
 
   if (!admin) {
-    console.error('❌ Admin user not found. Please run "npm run seed:admin" first.');
+    console.error('❌ Admin user not found. Please run "node scripts/db/seed-admin.mjs" first.');
     process.exit(1);
   }
 

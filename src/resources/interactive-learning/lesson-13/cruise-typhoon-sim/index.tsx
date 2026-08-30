@@ -35,6 +35,7 @@ import { EthicalTrigger, type EthicalTriggerConfig } from '@/components/classroo
 import { SimulationClock } from '@/lib/simulation';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import {
   preloadInteractiveSimulationRuntime,
   stepCruiseTyphoonScenario,
@@ -108,6 +109,7 @@ export function CruiseTyphoonSim({
     speed: 20, // 邮轮巡航速度 (节)
     lateralAccel: 0,
   });
+  const [pathContinueResult, setPathContinueResult] = useState<WidgetResult | null>(null);
   const simStateRef = useRef(simState);
 
   // 任务状态
@@ -218,8 +220,7 @@ export function CruiseTyphoonSim({
         score,
         data: { mission: missionResult },
       };
-      interactive?.progress.markComplete(completion);
-      onComplete?.(completion);
+      setPathContinueResult(completion);
       return;
     }
 
@@ -230,8 +231,6 @@ export function CruiseTyphoonSim({
   }, [
     champagneTower.fallCount,
     champagneTower.hasFallen,
-    interactive,
-    onComplete,
     scenario.constraints.ethicalThreshold,
     scenario.constraints.maxLateralAccel,
     scenario.constraints.maxTime,
@@ -382,6 +381,7 @@ export function CruiseTyphoonSim({
     ethicalTriggeredRef.current = false;
     setEthicalTriggered(false);
     setShowEthicalOverlay(false);
+    setPathContinueResult(null);
     lastTimeRef.current = 0;
     interactive?.progress.reset();
     interactive?.tracking.emit('interact', { action: 'reset' });
@@ -641,6 +641,13 @@ export function CruiseTyphoonSim({
               </div>
             </div>
 
+            {pathContinueResult ? (
+              <PathResourceContinueAction
+                enabled
+                result={pathContinueResult}
+                onComplete={onComplete}
+              />
+            ) : null}
             <button type="button"
               onClick={handleReset}
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-white hover:bg-white/20 transition-colors"

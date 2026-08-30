@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, ChevronRight, RotateCcw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface StrategyOption {
   id: string;
@@ -99,16 +100,7 @@ export default function SeriesStrategyLab({ onComplete, onStateChange }: SeriesS
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
 
-    if (isLast) {
-      const result: WidgetResult = {
-        success: true,
-        score: Math.round((nextScore / SCENARIOS.length) * 100),
-        data: { correct: nextScore, total: SCENARIOS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [checked, selected, current.answerId, current.id, isLast, onComplete, onStateChange, score, progress, interactive]);
+  }, [checked, selected, current.answerId, current.id, onStateChange, score, progress, interactive]);
 
   const handleNext = useCallback(() => {
     if (!checked || isLast) return;
@@ -215,6 +207,17 @@ export default function SeriesStrategyLab({ onComplete, onStateChange }: SeriesS
               下一场景
               <ChevronRight className="h-4 w-4" />
             </button>
+            {checked && isLast ? (
+              <PathResourceContinueAction
+                enabled
+                result={{
+                  success: true,
+                  score: Math.round((score / SCENARIOS.length) * 100),
+                  data: { correct: score, total: SCENARIOS.length },
+                }}
+                onComplete={onComplete}
+              />
+            ) : null}
           </div>
         </div>
       </div>

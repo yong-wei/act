@@ -636,6 +636,7 @@ export function UNIT_4_2StudentActivityForm({
   answerVisible,
   revealProgress,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_4_2StepDefinition;
   manifest?: InteractiveRuntimeManifest | null;
@@ -646,6 +647,7 @@ export function UNIT_4_2StudentActivityForm({
   revealProgress: number;
   onSubmit: (response: UNIT_4_2StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  readOnly?: boolean;
 }) {
   const stepManifest = getManifestStep(manifest, step);
   return (
@@ -660,6 +662,7 @@ export function UNIT_4_2StudentActivityForm({
         answerVisible,
         revealProgress,
         onSubmit,
+        readOnly,
       })}
     </>
   );

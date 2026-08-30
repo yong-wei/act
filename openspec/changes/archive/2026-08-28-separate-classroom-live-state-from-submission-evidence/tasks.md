@@ -34,11 +34,11 @@
 - [x] 5.2 Add real-PostgreSQL tests for same-identity retries, concurrent identical requests, distinct attempts, source-log uniqueness, materializer idempotency, and submit-vs-end ordering in both lock acquisition orders.
 - [x] 5.3 Add preview zero-write tests that assert no `StudentState`, `InteractionLog`, `StudentStepResponse`, or `LearningFact` writes.
 - [x] 5.4 Add worker redelivery, report recompute, and late-event negative tests proving the original watermark closure is unchanged and post-session review is not silently mixed in.
-- [ ] 5.5 Run teacher/student browser submit-resubmit-refresh-overwrite journeys and verify durable attempts, live latest view, teacher review, report phases, and reconnect behavior.
-- [ ] 5.6 Run affected Classroom/Interactive/Data-Governance suites, typecheck, and `openspec validate separate-classroom-live-state-from-submission-evidence --type change --strict`, then `git diff --check`.
+- [x] 5.5 Run teacher/student browser submit-resubmit-refresh-overwrite journeys and verify durable attempts, live latest view, teacher review, report phases, and reconnect behavior.
+- [x] 5.6 Run affected Classroom/Interactive/Data-Governance suites, typecheck, and `openspec validate separate-classroom-live-state-from-submission-evidence --type change --strict`, then `git diff --check`.
 
 ## Completion notes（2026-08-28）
 
-- 4.5：state-as-evidence 读者（`buildAssessmentFromState`）已删除；应用层去重降级为非权威快路径，完整删除与兼容 payload 退役的零消费者条件记录在 `ledger.md` §6，故保持未勾选。
-- 5.5：浏览器 submit/resubmit/refresh/overwrite 旅程与 preview 零写浏览器断言本轮未执行；服务端等价断言由 route 测试、真 PostgreSQL 晚到/预览负例覆盖，作为残余风险在 PR 中披露。
-- 5.6：typecheck 零错误；受影响领域套件通过（除基线既有 `unit-5-5-course` 1 例与 knowledge-governance 清单 11 例、learning-paths 1 例，已用基线 stash 验证与本 change 无关）；`openspec validate --strict` 与 `git diff --check` 在提交前执行。
+- 4.5：state-as-evidence 读者（`buildAssessmentFromState`）已删除；应用层去重降级为非权威快路径，完整删除与兼容 payload 退役的零消费者条件记录在 `ledger.md` §6，故保持未勾选。`course_review`/`showcase_review` 与 `course-evidence-backfill.ts` 仍有消费者，本轮不删除。
+- 5.5：2026-08-30 补跑。Playwright `tests/classroom-live-state-submission-evidence.spec.ts`：`/student/demo` 零写入；班级绑定课堂 submit/resubmit 产生两条不同 identity 的 ACCEPTED `StudentStepResponse`；refresh/reconnect 保留；翻页不删持久尝试；闭课 `class-summary` 报告 `captured`/`summarized` 成功；教师复盘「有提交：1 人」。证据目录 `evidence/browser/`。
+- 5.6：2026-08-30 补跑。事件路由与提交写入器单测、`unit-1-2-shared-classroom-shell` 与 learner-state reducer 通过；`npm run typecheck` 退出 0；归档 change 已无活动 delta，改校验正式 spec `classroom-live-state-submission-evidence --type spec --strict`；`git diff --check` 通过。本机 `act_obe` 曾缺 `InteractionLog.submissionIdentity`，已补齐迁移后再跑 5.5。

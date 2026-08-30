@@ -232,6 +232,175 @@ describe('teacher diagnosis report history projection', () => {
     ]));
   });
 
+  it('describes attribution-only reports as knowledge-node attribution limitation instead of coverage limitation', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '班级数据覆盖完整，但知识点发现缺少可核验的知识节点映射。',
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 1,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.confidenceReasons).toEqual([
+      expect.objectContaining({
+        reason: '部分发现没有可核验的知识节点映射，不能作为精准知识薄弱点。',
+      }),
+    ]);
+    expect(projection.availability.label).toBe('知识节点归因受限');
+    expect(projection.availability.recoveryAction).toBe('补全题目、错因与知识节点映射后，重新生成诊断。');
+    expect(projection.availability.label).not.toBe('证据可用，但覆盖受限');
+  });
+
+  it('keeps the attribution-specific state out when the report declares an unmapped limitation text', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '班级数据覆盖完整，但存在声明限制且知识点发现缺少知识节点映射。',
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 1,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: ['特定教材章节证据暂时缺失。'],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.availability.label).not.toBe('知识节点归因受限');
+    expect(projection.availability.label).toBe('证据可用，但覆盖受限');
+  });
+
+  it('keeps the attribution-specific state out when learning-behavior coverage is partial', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '学习行为覆盖比例未满，知识点发现缺少知识节点映射。',
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 0.9,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.evidenceGroups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'learning-behavior', state: 'partial' }),
+    ]));
+    expect(projection.availability.label).not.toBe('知识节点归因受限');
+    expect(projection.availability.label).toBe('证据可用，但覆盖受限');
+  });
+
+  it('keeps the coverage-limited wording when attribution limitation coexists with real coverage gaps', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '班级仍有学生证据未纳入，且知识点发现缺少知识节点映射。',
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 90,
+          coverage: 0.9,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.confidenceReasons.length).toBeGreaterThan(1);
+    expect(projection.availability.label).toBe('证据可用，但覆盖受限');
+  });
+
   it('does not treat generated prose changes as learning changes when governed structure is unchanged', () => {
     const current: DiagnosisReportApiItem = {
       ...baseline,

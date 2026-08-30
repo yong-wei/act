@@ -637,10 +637,12 @@ function DragMatchAnswerInput({
   card,
   value,
   onChange,
+  disabled = false,
 }: {
   card: InteractiveRuntimeActivityCardManifest;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const items = useMemo(() => dragMatchItems(card), [card]);
   const options = useMemo(() => dragMatchOptions(card), [card]);
@@ -660,9 +662,11 @@ function DragMatchAnswerInput({
   const sourceLabelFor = (label: string) => explicitPairs ? label : splitMatchLabel(label).source;
   const targetLabelFor = (optionValue: string) => explicitPairs ? labelFor(optionValue) : splitMatchLabel(labelFor(optionValue)).target;
   const commitAssignments = (next: string[]) => {
+    if (disabled) return;
     onChange(next.join('|'));
   };
   const assignToSlot = (slotIndex: number, optionValue: string | null) => {
+    if (disabled) return;
     if (!optionValue || !optionValues.includes(optionValue)) return;
     const next = assignments.map((item) => (item === optionValue ? '' : item));
     next[slotIndex] = optionValue;
@@ -696,23 +700,32 @@ function DragMatchAnswerInput({
               </div>
               <button
                 type="button"
-                onDragOver={(event) => event.preventDefault()}
+                disabled={disabled}
+                onDragOver={(event) => {
+                  if (disabled) return;
+                  event.preventDefault();
+                }}
                 onDragEnter={(event) => {
+                  if (disabled) return;
                   event.preventDefault();
                 }}
                 onDrop={(event) => {
+                  if (disabled) return;
                   event.preventDefault();
                   const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
                   assignToSlot(index, droppedValue);
                 }}
-                onMouseUp={() => assignToSlot(index, draggedValueRef.current || draggedValue)}
+                onMouseUp={() => {
+                  if (disabled) return;
+                  assignToSlot(index, draggedValueRef.current || draggedValue);
+                }}
                 onClick={() => {
-                  if (!assigned) return;
+                  if (disabled || !assigned) return;
                   const next = [...assignments];
                   next[index] = '';
                   commitAssignments(next);
                 }}
-                className={`flex min-h-[64px] w-full items-center rounded-2xl border px-4 py-3 text-left text-sm leading-6 ${
+                className={`flex min-h-[64px] w-full items-center rounded-2xl border px-4 py-3 text-left text-sm leading-6 disabled:cursor-not-allowed disabled:opacity-60 ${
                   assigned ? 'border-platform-action-primary/60 bg-platform-action-primary/10' : 'premium-lesson-muted border-dashed border-border/60 bg-background/40'
                 }`}
                 aria-label={`${sourceLabelFor(item.label)} 的配对空槽`}
@@ -729,12 +742,15 @@ function DragMatchAnswerInput({
           <button
             key={option.value}
             type="button"
-            draggable
+            draggable={!disabled}
+            disabled={disabled}
             onMouseDown={() => {
+              if (disabled) return;
               draggedValueRef.current = option.value;
               setDraggedValue(option.value);
             }}
             onDragStart={(event) => {
+              if (disabled) return;
               draggedValueRef.current = option.value;
               setDraggedValue(option.value);
               event.dataTransfer.setData('text/plain', option.value);
@@ -745,13 +761,14 @@ function DragMatchAnswerInput({
               setDraggedValue(null);
             }}
             onClick={() => {
+              if (disabled) return;
               const firstEmptyIndex = assignments.findIndex((item) => !item);
               if (firstEmptyIndex < 0) return;
               const next = [...assignments];
               next[firstEmptyIndex] = option.value;
               commitAssignments(next);
             }}
-            className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing"
+            className="premium-lesson-surface-elevated flex min-h-[64px] w-full cursor-grab items-center px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-60"
           >
             {renderActivityInlineContent(explicitPairs ? option.label : splitMatchLabel(option.label).target)}
           </button>
@@ -770,10 +787,12 @@ function DragSortAnswerInput({
   card,
   value,
   onChange,
+  disabled = false,
 }: {
   card: InteractiveRuntimeActivityCardManifest;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const optionValues = useMemo(() => card.options.map((option) => option.value), [card.options]);
   const [draggedValue, setDraggedValue] = useState<string | null>(null);
@@ -784,7 +803,10 @@ function DragSortAnswerInput({
     return [...ordered, ...rest];
   }, [optionValues, value]);
 
-  const commitOrder = (order: string[]) => onChange(order.join('|'));
+  const commitOrder = (order: string[]) => {
+    if (disabled) return;
+    onChange(order.join('|'));
+  };
   const labelFor = (optionValue: string) =>
     card.options.find((option) => option.value === optionValue)?.label ?? optionValue;
 
@@ -805,17 +827,25 @@ function DragSortAnswerInput({
         <button
           key={optionValue}
           type="button"
-          draggable
-          onDragStart={() => setDraggedValue(optionValue)}
-          onDragOver={(event) => event.preventDefault()}
+          draggable={!disabled}
+          disabled={disabled}
+          onDragStart={() => {
+            if (disabled) return;
+            setDraggedValue(optionValue);
+          }}
+          onDragOver={(event) => {
+            if (disabled) return;
+            event.preventDefault();
+          }}
           onDrop={() => {
-            if (!draggedValue || draggedValue === optionValue) return;
+            if (disabled || !draggedValue || draggedValue === optionValue) return;
             const next = currentOrder.filter((item) => item !== draggedValue);
             next.splice(index, 0, draggedValue);
             commitOrder(next);
             setDraggedValue(null);
           }}
           onKeyDown={(event) => {
+            if (disabled) return;
             if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
             event.preventDefault();
             const nextIndex = event.key === 'ArrowUp' ? Math.max(0, index - 1) : Math.min(currentOrder.length - 1, index + 1);
@@ -825,7 +855,7 @@ function DragSortAnswerInput({
             next.splice(nextIndex, 0, moved);
             commitOrder(next);
           }}
-          className="premium-lesson-surface-elevated flex w-full cursor-grab items-start gap-3 px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing"
+          className="premium-lesson-surface-elevated flex w-full cursor-grab items-start gap-3 px-4 py-3 text-left interactive-courseware-body active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-60"
           aria-label={`排序项 ${index + 1}，可拖拽或用方向键调整`}
         >
           <span className="interactive-courseware-caption min-w-8 rounded-full bg-background/80 px-2 py-0.5 text-center">
@@ -843,14 +873,17 @@ function ParameterSetAnswerInput({
   card,
   value,
   onChange,
+  disabled = false,
 }: {
   card: InteractiveRuntimeActivityCardManifest;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const fields = card.parameterFields ?? [];
   const parsed = parseParameterAnswer(value);
   const commit = (key: string, nextValue: string) => {
+    if (disabled) return;
     onChange(JSON.stringify({ ...parsed, [key]: nextValue }));
   };
 
@@ -863,8 +896,9 @@ function ParameterSetAnswerInput({
           <input
             type="text"
             value={parsed[field.key] ?? ''}
+            disabled={disabled}
             onChange={(event) => commit(field.key, event.target.value)}
-            className="premium-lesson-input mt-2 w-full"
+            className="premium-lesson-input mt-2 w-full disabled:cursor-not-allowed disabled:opacity-60"
           />
         </label>
       ))}
@@ -889,25 +923,27 @@ function StudentCardAnswerInput({
   card,
   value,
   onChange,
+  disabled = false,
 }: {
   card: InteractiveRuntimeActivityCardManifest;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   if (card.responseKind === 'table.builder') {
-    return <TableBuilderAnswerInput card={card} value={value} onChange={onChange} />;
+    return <TableBuilderAnswerInput card={card} value={value} onChange={onChange} disabled={disabled} />;
   }
 
   if (isDragSortCard(card)) {
-    return <DragSortAnswerInput card={card} value={value} onChange={onChange} />;
+    return <DragSortAnswerInput card={card} value={value} onChange={onChange} disabled={disabled} />;
   }
 
   if (isDragMatchCard(card)) {
-    return <DragMatchAnswerInput card={card} value={value} onChange={onChange} />;
+    return <DragMatchAnswerInput card={card} value={value} onChange={onChange} disabled={disabled} />;
   }
 
   if (isParameterSetCard(card)) {
-    return <ParameterSetAnswerInput card={card} value={value} onChange={onChange} />;
+    return <ParameterSetAnswerInput card={card} value={value} onChange={onChange} disabled={disabled} />;
   }
 
   if (isMultiSelectCard(card)) {
@@ -924,7 +960,7 @@ function StudentCardAnswerInput({
 
     const selectedValues = new Set(value.split('|').filter(Boolean));
     return (
-      <fieldset className="mt-3 space-y-2">
+      <fieldset className="mt-3 space-y-2" disabled={disabled}>
         <legend className="sr-only">选择答案</legend>
         {card.options.map((option) => {
           const selected = selectedValues.has(option.value);
@@ -938,7 +974,9 @@ function StudentCardAnswerInput({
                 name={card.id}
                 value={option.value}
                 checked={selected}
+                disabled={disabled}
                 onChange={() => {
+                  if (disabled) return;
                   const next = new Set(selectedValues);
                   if (selected) {
                     next.delete(option.value);
@@ -970,7 +1008,7 @@ function StudentCardAnswerInput({
     }
 
     return (
-      <fieldset className="mt-3 space-y-2">
+      <fieldset className="mt-3 space-y-2" disabled={disabled}>
         <legend className="sr-only">选择答案</legend>
         {card.options.map((option) => (
           <label
@@ -982,7 +1020,11 @@ function StudentCardAnswerInput({
               name={card.id}
               value={option.value}
               checked={value === option.value}
-              onChange={() => onChange(option.value)}
+              disabled={disabled}
+              onChange={() => {
+                if (disabled) return;
+                onChange(option.value);
+              }}
               className="mt-1"
             />
             <span>{renderActivityInlineContent(option.label)}</span>
@@ -996,9 +1038,13 @@ function StudentCardAnswerInput({
     <textarea aria-label="写出判断依据。"
       name={card.id}
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      disabled={disabled}
+      onChange={(event) => {
+        if (disabled) return;
+        onChange(event.target.value);
+      }}
       placeholder="写出判断依据。"
-      className="premium-lesson-input mt-3 min-h-[120px] w-full"
+      className="premium-lesson-input mt-3 min-h-[120px] w-full disabled:cursor-not-allowed disabled:opacity-60"
     />
   );
 }
@@ -1037,10 +1083,12 @@ function TableBuilderAnswerInput({
   card,
   value,
   onChange,
+  disabled = false,
 }: {
   card: InteractiveRuntimeActivityCardManifest;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const parsed = parseTableAnswer(value);
   const rows = parsed.rows;
@@ -1049,12 +1097,14 @@ function TableBuilderAnswerInput({
   const fields = card.tableFields ?? [];
   const columns = card.tableColumns ?? fields;
   const commit = (rowKey: string, field: string, nextValue: string) => {
+    if (disabled) return;
     onChange(JSON.stringify({
       rows: { ...rows, [rowKey]: { ...(rows[rowKey] ?? {}), [field]: nextValue } },
       supplemental: parsed.supplemental,
     }));
   };
   const commitSupplemental = (field: string, nextValue: string) => {
+    if (disabled) return;
     onChange(JSON.stringify({
       rows,
       supplemental: { ...parsed.supplemental, [field]: nextValue },
@@ -1086,8 +1136,9 @@ function TableBuilderAnswerInput({
                   <input
                     aria-label={`${rowKey} ${columns[fieldIndex] ?? field}`}
                     value={rows[rowKey]?.[field] ?? ''}
+                    disabled={disabled}
                     onChange={(event) => commit(rowKey, field, event.currentTarget.value)}
-                    className="premium-lesson-input w-full min-w-24"
+                    className="premium-lesson-input w-full min-w-24 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </td>
               ))}
@@ -1104,8 +1155,9 @@ function TableBuilderAnswerInput({
               <input
                 aria-label={field.label}
                 value={parsed.supplemental[field.key] ?? ''}
+                disabled={disabled}
                 onChange={(event) => commitSupplemental(field.key, event.currentTarget.value)}
-                className="premium-lesson-input mt-2 w-full"
+                className="premium-lesson-input mt-2 w-full disabled:cursor-not-allowed disabled:opacity-60"
               />
             </label>
           ))}
@@ -1222,7 +1274,9 @@ function StudentCards({
             <StudentCardAnswerInput
               card={card}
               value={draftValueForCard(card)}
+              disabled={readOnly}
                 onChange={(value) => {
+                if (readOnly) return;
                 setDraftEnvelope((previous) => ({
                   ...previous,
                   draftAnswers: { ...previous.draftAnswers, [card.id]: value },
@@ -1234,7 +1288,7 @@ function StudentCards({
               <button
                 type="button"
                 onClick={async () => {
-                  if (pendingKeysRef.current.has(card.id)) return;
+                  if (readOnly || pendingKeysRef.current.has(card.id)) return;
                   pendingKeysRef.current.add(card.id);
                   const currentDraft = {
                     ...mergedDraftAnswers,
@@ -1276,8 +1330,9 @@ function StudentCards({
                     });
                   }
                 }}
-                disabled={!draftValueForCard(card).trim() || pendingKeys.has(card.id)}
+                disabled={readOnly || !draftValueForCard(card).trim() || pendingKeys.has(card.id)}
                 className="premium-lesson-action-primary interactive-courseware-control disabled:opacity-40"
+                data-demo-readonly={readOnly ? 'true' : undefined}
               >
                 {pendingKeys.has(card.id) ? '提交中...' : '提交答案'}
               </button>

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { ResourceRendererLaunchContext } from '@/features/lesson-engine/resource-renderer-config';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import {
   buildSimulationCourseEvidencePayload,
   buildSimulationCourseLaunchHref,
@@ -97,18 +98,15 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
     }
   };
 
-  const recordCompletion = () => {
-    if (persistedRunRequired && !simulationRunId) return;
-    interactive?.progress.markComplete({
-      success: true,
+  const completionResult = {
+    success: true,
+    score: 100,
+    data: {
+      eventType: getSimulationCourseCompletionEventType(config),
+      ...evidencePayload,
+      simulationRunId,
       score: 100,
-      data: {
-        eventType: getSimulationCourseCompletionEventType(config),
-        ...evidencePayload,
-        simulationRunId,
-        score: 100,
-      },
-    });
+    },
   };
 
   return (
@@ -159,17 +157,14 @@ export function SimulationCourseResource(props: SimulationCourseResourceProps) {
               </Link>
             </Button>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={recordCompletion}
-            disabled={persistedRunRequired && !simulationRunId}
-          >
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-            {persistedRunRequired && !simulationRunId
-              ? '完成仿真后记录'
-              : '标记完成'}
-          </Button>
+          {persistedRunRequired && !simulationRunId ? (
+            <Button type="button" variant="outline" disabled>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              完成仿真后记录
+            </Button>
+          ) : (
+            <PathResourceContinueAction enabled result={completionResult} />
+          )}
         </div>
       </div>
     </section>

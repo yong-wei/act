@@ -425,10 +425,12 @@ function renderChoiceButtons({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: readonly ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -436,7 +438,11 @@ function renderChoiceButtons({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-control ${value === option.value ? 'ring-2 ring-cyan-400' : ''}`}
         >
           {option.label}
@@ -451,16 +457,19 @@ function TextInput({
   onChange,
   placeholder,
   multiline = false,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
   multiline?: boolean;
 }) {
   if (multiline) {
     return (
       <textarea aria-label={placeholder ?? '零点动态改善学习记录'}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={4}
@@ -472,6 +481,7 @@ function TextInput({
   return (
     <input aria-label={placeholder ?? '零点动态改善输入'}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input w-full"
@@ -483,13 +493,15 @@ function SelectField({
   value,
   onChange,
   options,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: readonly ChoiceOption[];
+  disabled?: boolean;
 }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
+    <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
       <option value="">请选择</option>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -888,6 +900,7 @@ export function UNIT_3_5StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_3_5StepDefinition;
@@ -895,8 +908,13 @@ export function UNIT_3_5StudentActivityForm({
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_5StepResponse) => void;
+  readOnly?: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
 
   useEffect(() => {
@@ -912,7 +930,7 @@ export function UNIT_3_5StudentActivityForm({
   };
 
   const submit = (answers: Record<string, string>) => {
-    onSubmit({
+    commitStudentResponse({
       stepId: step.id,
       submittedAt: Date.now(),
       answers,
@@ -926,7 +944,7 @@ export function UNIT_3_5StudentActivityForm({
           <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
           <div className="mt-3">
             {question.type === 'text' ? (
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft[question.key] ?? ''}
                 onChange={(value) => updateDraft(question.key, value)}
                 placeholder="写下你的判断与改正"
@@ -934,6 +952,7 @@ export function UNIT_3_5StudentActivityForm({
               />
             ) : (
               renderChoiceButtons({
+                disabled: Boolean(readOnly),
                 options: question.options ?? [],
                 value: draft[question.key] ?? '',
                 onChange: (value) => updateDraft(question.key, value, 'button'),
@@ -942,7 +961,7 @@ export function UNIT_3_5StudentActivityForm({
           </div>
         </div>
       ))}
-      <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+      <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
         {submitted ? '重新提交' : '提交'}
       </button>
     </div>
@@ -958,6 +977,7 @@ export function UNIT_3_5StudentActivityForm({
               <div className="premium-lesson-muted mt-2 text-sm">先看上方结构图与公式，再提交“是 / 否”的判断，并补一句结构理由。</div>
             </div>
             {renderChoiceButtons({
+              disabled: Boolean(readOnly),
               options: [
                 { value: 'yes', label: '是，测速反馈在前向通道显式增加零点' },
                 { value: 'no', label: '不是，测速反馈不显式增加前向零点' },
@@ -965,13 +985,13 @@ export function UNIT_3_5StudentActivityForm({
               value: draft.choice ?? '',
               onChange: (value) => updateDraft('choice', value, 'button'),
             })}
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.reason ?? ''}
               onChange={(value) => updateDraft('reason', value)}
               placeholder="补一句结构辨认理由"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交判断' : '提交判断'}
             </button>
           </div>
@@ -986,6 +1006,7 @@ export function UNIT_3_5StudentActivityForm({
               <div className="premium-lesson-title text-sm font-medium">先标记哪条分支被零点拉走</div>
               <div className="mt-3">
                 {renderChoiceButtons({
+                  disabled: Boolean(readOnly),
                   options: BRANCH_REGION_OPTIONS,
                   value: draft.branch ?? '',
                   onChange: (value) => updateDraft('branch', value, 'button'),
@@ -1014,13 +1035,13 @@ export function UNIT_3_5StudentActivityForm({
                 })}
               </div>
             </div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.note ?? ''}
               onChange={(value) => updateDraft('note', value)}
               placeholder="一句补充说明：你为什么这么判断？"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交判断' : '提交判断'}
             </button>
           </div>
@@ -1039,13 +1060,13 @@ export function UNIT_3_5StudentActivityForm({
                 ))}
               </div>
             </div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.compare_note ?? ''}
               onChange={(value) => updateDraft('compare_note', value)}
               placeholder="例如：零点放在更靠左的位置时，中间主导分支被更明显地拉走，终点分配随之改变。"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交比较句' : '提交比较句'}
             </button>
           </div>
@@ -1057,19 +1078,20 @@ export function UNIT_3_5StudentActivityForm({
               <div className="premium-lesson-title text-sm font-medium">你现在对右半平面零点的第一判断是？</div>
               <div className="mt-3">
                 {renderChoiceButtons({
+                  disabled: Boolean(readOnly),
                   options: RISK_TAG_OPTIONS,
                   value: draft.risk_tag ?? '',
                   onChange: (value) => updateDraft('risk_tag', value, 'button'),
                 })}
               </div>
             </div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.risk_reason ?? ''}
               onChange={(value) => updateDraft('risk_reason', value)}
               placeholder="写一句当前预测：为什么你先留下问号？"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交预测' : '提交预测'}
             </button>
           </div>
@@ -1081,7 +1103,7 @@ export function UNIT_3_5StudentActivityForm({
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                 <div className="mt-3">
-                  <TextInput
+                  <TextInput disabled={Boolean(readOnly)}
                     value={draft[field.key] ?? ''}
                     onChange={(value) => updateDraft(field.key, value)}
                     placeholder={field.label}
@@ -1090,7 +1112,7 @@ export function UNIT_3_5StudentActivityForm({
                 </div>
               </div>
             ))}
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交推导' : '提交推导'}
             </button>
           </div>
@@ -1102,7 +1124,7 @@ export function UNIT_3_5StudentActivityForm({
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                 <div className="mt-3">
-                  <TextInput
+                  <TextInput disabled={Boolean(readOnly)}
                     value={draft[field.key] ?? ''}
                     onChange={(value) => updateDraft(field.key, value)}
                     placeholder={field.label}
@@ -1111,7 +1133,7 @@ export function UNIT_3_5StudentActivityForm({
                 </div>
               </div>
             ))}
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交三域对照' : '提交三域对照'}
             </button>
           </div>
@@ -1127,7 +1149,7 @@ export function UNIT_3_5StudentActivityForm({
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.title}</div>
                 <div className="mt-3">
-                  <SelectField
+                  <SelectField disabled={Boolean(readOnly)}
                     value={draft[field.key] ?? ''}
                     onChange={(value) => updateDraft(field.key, value, 'select')}
                     options={BAND_LABEL_OPTIONS}
@@ -1135,13 +1157,13 @@ export function UNIT_3_5StudentActivityForm({
                 </div>
               </div>
             ))}
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.noise_risk ?? ''}
               onChange={(value) => updateDraft('noise_risk', value)}
               placeholder="一句话写出为什么高频代价不能被省略"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交频带标签' : '提交频带标签'}
             </button>
           </div>
@@ -1153,6 +1175,7 @@ export function UNIT_3_5StudentActivityForm({
               <div className="premium-lesson-title text-sm font-medium">相位峰应该落在哪里？</div>
               <div className="mt-3">
                 {renderChoiceButtons({
+                  disabled: Boolean(readOnly),
                   options: PHASE_PEAK_OPTIONS,
                   value: draft.peak_band ?? '',
                   onChange: (value) => updateDraft('peak_band', value, 'button'),
@@ -1163,13 +1186,14 @@ export function UNIT_3_5StudentActivityForm({
               <div className="premium-lesson-title text-sm font-medium">这一步主要改善哪个指标？</div>
               <div className="mt-3">
                 {renderChoiceButtons({
+                  disabled: Boolean(readOnly),
                   options: IMPROVED_METRIC_OPTIONS,
                   value: draft.metric ?? '',
                   onChange: (value) => updateDraft('metric', value, 'button'),
                 })}
               </div>
             </div>
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交定位' : '提交定位'}
             </button>
           </div>
@@ -1218,7 +1242,7 @@ export function UNIT_3_5StudentActivityForm({
               ))}
             </div>
             <button
-              type="button"
+              type="button" disabled={Boolean(readOnly)}
               onClick={() => submit({ scenarioPlacements: draft.scenarioPlacements ?? serializeScenarioPlacements(mapping) })}
               className="premium-lesson-action-primary"
             >
@@ -1240,13 +1264,13 @@ export function UNIT_3_5StudentActivityForm({
                 ))}
               </div>
             </div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.explainer ?? ''}
               onChange={(value) => updateDraft('explainer', value)}
               placeholder="非最小相这个名字的来源是 ________"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交解释' : '提交解释'}
             </button>
           </div>
@@ -1271,7 +1295,7 @@ export function UNIT_3_5StudentActivityForm({
               <div key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{item.statement}</div>
                 <div className="mt-3">
-                  <SelectField
+                  <SelectField disabled={Boolean(readOnly)}
                     value={draft[item.key] ?? ''}
                     onChange={(value) => updateDraft(item.key, value, 'select')}
                     options={RULE_CHECK_OPTIONS}
@@ -1279,13 +1303,13 @@ export function UNIT_3_5StudentActivityForm({
                 </div>
               </div>
             ))}
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.rule_reason ?? ''}
               onChange={(value) => updateDraft('rule_reason', value)}
               placeholder="补一句：为什么右半平面零点会限制带宽"
               multiline
             />
-            <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">
               {submitted ? '重新提交规则判断' : '提交规则判断'}
             </button>
           </div>
@@ -1299,7 +1323,7 @@ export function UNIT_3_5StudentActivityForm({
     return (
       <section className="premium-lesson-panel-soft px-4 py-4">
         <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以静态阅读、教师推进和路径建立为主，不需要学生提交作答。" />
+        <SubmissionStatus submitted={false} idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '本页以静态阅读、教师推进和路径建立为主，不需要学生提交作答。'} />
       </section>
     );
   }

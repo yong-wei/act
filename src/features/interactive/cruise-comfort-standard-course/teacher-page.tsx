@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  LessonRuntimeLoadingShell,
+  LessonRuntimeShell,
+} from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
@@ -23,10 +27,13 @@ import {
   isCruiseTeacherSyncState,
   resolveCruiseTeacherSyncDraft,
   shouldPostCruiseTeacherSync,
+  CRUISE_COURSE_TITLE,
+  CRUISE_COURSE_SUBTITLE,
+  CRUISE_ROUTE_SEGMENT,
+  CRUISE_STAGE_LABEL,
   type CruiseStudentCourseState,
   type CruiseTeacherCourseSyncState,
 } from '@/lib/cruise-course';
-import { CruiseStandardCourseHeader } from './course-header';
 import { CruiseStepContentPanel, CruiseTeacherActivitySummary } from './step-panels';
 
 export function CruiseStandardTeacherPage({
@@ -193,32 +200,31 @@ export function CruiseStandardTeacherPage({
 
   if (loadingSession) {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <LessonRuntimeLoadingShell
+        mode="teacher"
+        title={CRUISE_COURSE_TITLE}
+        subtitle={CRUISE_COURSE_SUBTITLE}
+        routeSegment={CRUISE_ROUTE_SEGMENT}
+      />
     );
   }
 
   return (
-    <div className="premium-lesson-shell">
-      <CruiseStandardCourseHeader
+    <LessonRuntimeShell
+        mode="teacher"
+        title={CRUISE_COURSE_TITLE}
+        subtitle={CRUISE_COURSE_SUBTITLE}
+        routeSegment={CRUISE_ROUTE_SEGMENT}
+        sessionId={sessionId}
         steps={CRUISE_STANDARD_LESSON_STEPS}
         activeIndex={activeIndex}
+        stageLabel={CRUISE_STAGE_LABEL}
+        notice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
-        middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
-        rightSlot={(
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={CRUISE_STANDARD_LESSON_STEPS.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        )}
-      />
-
-      <main className="premium-lesson-main py-4 sm:py-6">
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        toolsDefaultState="collapsed"
+        localTools={
+          <>
+          <div className="premium-lesson-panel-soft px-4 py-4" data-teacher-projection-runtime="local-tools">
             <div>
               <div className="premium-lesson-kicker">教师课堂台</div>
               <div className="premium-lesson-title mt-2 text-lg font-semibold">
@@ -226,10 +232,12 @@ export function CruiseStandardTeacherPage({
               </div>
               <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、发放作答并显示参考解释。</div>
             </div>
-            <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
-            <button type="button" onClick={() => void handleEndSession()} disabled={endingSession} className="premium-lesson-action-tone premium-tone-rose">
-              {endingSession ? '结束中...' : '结束课堂'}
-            </button>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
+              <button type="button" onClick={() => void handleEndSession()} disabled={endingSession} className="premium-lesson-action-tone premium-tone-rose">
+                {endingSession ? '结束中...' : '结束课堂'}
+              </button>
+            </div>
           </div>
 
           <div className="premium-lesson-panel-soft px-4 py-4">
@@ -257,9 +265,22 @@ export function CruiseStandardTeacherPage({
               </div>
             ) : null}
           </div>
-        </div>
-
-        {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
+            <StepKnowledgeDrawer
+            lessonRuntime={lessonRuntime}
+            currentStepId={step.id}
+            orderedStepIds={CRUISE_STANDARD_LESSON_STEPS.map((item) => item.id)}
+            title="页面知识卡片"
+            inlineTool
+          />
+          </>
+        }
+        runtimeAttributes={{
+          'data-teacher-projection-runtime': 'compact-navigation',
+          'data-runtime-manifest-truth': lessonRuntime.interactiveManifest?.lessonId ?? CRUISE_LESSON_KEY,
+        }}
+      >
+        <div className="space-y-4">
+          {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <CruiseStepContentPanel
           step={step}
@@ -313,7 +334,7 @@ export function CruiseStandardTeacherPage({
         <div className="premium-lesson-muted mt-4 text-xs">
           已加入 {joinedStudents.length} 人，累计提交 {totalResponses} 条 manifest 证据。
         </div>
-      </main>
-    </div>
+        </div>
+      </LessonRuntimeShell>
   );
 }

@@ -247,6 +247,9 @@ export function LessonRuntimeShell({
                       </option>
                     ))}
                   </select>
+                  {!onIndexChange ? (
+                    <span className="hidden text-[10px] text-platform-fg-tertiary sm:inline">教师开放浏览后可切换环节</span>
+                  ) : null}
                 </label>
                 <button
                   type="button"

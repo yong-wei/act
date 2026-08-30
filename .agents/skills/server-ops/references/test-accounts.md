@@ -10,11 +10,13 @@
 | 教师 | `test_teacher` | `TestTeacher@Just2026!` | `test_teacher@example.com` |
 | 管理员 | `admin` | `admin@Just` | `admin` |
 
-本地写入：
+本地写入（直接跑脚本。`npm run seed:*` 走 apply 门禁，默认不执行写库）：
 
 ```bash
-npm run seed:test-accounts
-# 或 npm run seed:demo / npm run seed:admin / npm run seed:fixed-passwords
+node scripts/db/ensure-verified-test-accounts.mjs
+# 或 node scripts/db/seed-demo-user.mjs
+#    node scripts/db/seed-admin.mjs
+#    node scripts/db/update-fixed-account-passwords.mjs
 ```
 
 生产写入并做 HTTP 登录验收：

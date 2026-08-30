@@ -39,11 +39,11 @@ describe('unit 1-5 three-domain gain sweep course', () => {
   it('ships the manifest-first course shell and all required routes', () => {
     for (const path of [
       'entry-page.tsx',
-      'course-header.tsx',
       'step-panels.tsx',
       'student-page.tsx',
       'teacher-page.tsx',
     ]) expect(existsSync(join(courseDir, path)), path).toBe(true);
+    expect(existsSync(join(courseDir, 'course-header.tsx'))).toBe(false);
 
     for (const path of [
       'entry.tsx',

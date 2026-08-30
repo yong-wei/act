@@ -29,6 +29,10 @@ import {
   type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
+  attachActiveNodeDecorations3d,
+  readActiveNodeDecoration,
+} from './active-node-decoration';
+import {
   getKnowledgeNodeLabelPresentation,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
@@ -1690,6 +1694,15 @@ export function KnowledgeGraphCanvas({
     group.userData.knowledgeNaturalRadius = naturalRadius;
     group.userData.knowledgeIsRootBubble = isRootBubble;
     group.userData.knowledgeRootLabelComplete = isRootBubble;
+
+    const decoration = readActiveNodeDecoration(node.metadata);
+    if (!isRootBubble && decoration) {
+      attachActiveNodeDecorations3d(group, THREE, {
+        radius: presentationRadius,
+        decoration,
+        opacity: presentationOpacity,
+      });
+    }
 
     // 3. 创建辉光层（如果有 bloomLevel）
     if (isRootBubble || glowColor) {
