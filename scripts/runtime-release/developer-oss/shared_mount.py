@@ -419,20 +419,34 @@ def mount_source(path: Path) -> str:
 
 def verify_mount_process_provenance(mountpoint: Path, config_path: Path, proc_root: str = "/proc") -> None:
     """进程级挂载归属（Issue #1713 P1）：FUSE 的 SOURCE 字符串可被相似名称伪造，
-    不可作为归属证据。唯一可信判据是实际 ossfs2 进程的 cmdline 同时绑定本
-    mountpoint 与本 mount 的私有 ossfs.conf；找不到即为所有权不确定。"""
-    needle_point = str(mountpoint).encode()
-    needle_conf = str(config_path).encode()
+    不可作为归属证据。可信判据是实际 ossfs2 进程按 NUL 分隔的 argv 同时满足：
+    可执行文件为 ossfs2、`-c` 参数精确等于本 mount 的私有 ossfs.conf、
+    挂载位置参数精确等于规范 mountpoint（无子串/前缀混淆）；找不到即为
+    所有权不确定。"""
+    argv_point = str(mountpoint)
+    argv_conf = str(config_path)
     root = Path(proc_root)
     for proc in root.iterdir():
         if not proc.name.isdigit():
             continue
         try:
-            cmdline = (proc / "cmdline").read_bytes()
+            argv = [arg.decode("utf-8", "replace") for arg in (proc / "cmdline").read_bytes().split(b"\x00") if arg]
         except OSError:
             continue
-        if needle_point in cmdline and needle_conf in cmdline:
-            return
+        if not argv:
+            continue
+        executable = Path(argv[0]).name
+        if executable != "ossfs2":
+            continue
+        if argv_point not in argv:
+            continue
+        config_ok = False
+        for index, argument in enumerate(argv):
+            if argument == "-c" and index + 1 < len(argv) and argv[index + 1] == argv_conf:
+                config_ok = True
+        if not config_ok:
+            continue
+        return
     fail("shared mount process does not bind this checkout's ossfs config")
 
 

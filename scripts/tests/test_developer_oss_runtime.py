@@ -1610,3 +1610,21 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 verify_mount_process_provenance(mountpoint, conf, proc_root=no_conf)
+            # 进程 103：非 ossfs2 可执行文件（任意 Python 进程伪造子串）→ 拒绝
+            not_ossfs = proc_root_with(
+                b"/usr/bin/python3\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"\x00",
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=not_ossfs)
+            # 进程 104：conf 前缀混淆（ossfs.conf.backup）→ 拒绝
+            conf_prefix = proc_root_with(
+                b"ossfs2\x00-c\x00" + str(conf).encode() + b".backup\x00" + str(mountpoint).encode() + b"\x00",
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=conf_prefix)
+            # 进程 105：mountpoint 前缀混淆（blobs-other）→ 拒绝
+            point_prefix = proc_root_with(
+                b"ossfs2\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"-other\x00",
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=point_prefix)
