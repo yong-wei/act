@@ -29,6 +29,8 @@ MATERIALIZATION_CACHE_SCHEMA = "runtime-blob-materialization.v2"
 AUDIT_SCHEMA = "runtime-blob-audit.v1"
 LOCAL_MANIFEST = ".act-runtime-release.v2.json"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+LOCAL_RELEASE_RECEIPT = ".act-runtime-release-receipt.v2.json"
+VIEW_CONTROL_REGULAR_FILES = frozenset({LOCAL_MANIFEST, LOCAL_RECEIPT, LOCAL_RELEASE_RECEIPT})
 RUNTIME_BLOB_HELPER_NAME = ".act-runtime-blobs"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
@@ -627,6 +629,30 @@ def write_regular(path: Path, value: bytes) -> None:
     os.chmod(path, 0o444)
 
 
+def persist_canonical_release_receipt(
+    view: Path,
+    receipt_path: Path,
+    manifest: Dict[str, Any],
+    manifest_wire: bytes,
+) -> None:
+    parse_receipt(receipt_path, manifest, manifest_wire)
+    payload = receipt_path.read_bytes()
+    dest = view / LOCAL_RELEASE_RECEIPT
+    if dest.is_file() and not dest.is_symlink():
+        parse_receipt(dest, manifest, manifest_wire)
+        if dest.read_bytes() != payload:
+            fail("canonical release receipt drifted")
+        return
+    if dest.exists() or dest.is_symlink():
+        fail("canonical release receipt must be a regular file")
+    mode = stat.S_IMODE(os.lstat(view).st_mode)
+    os.chmod(view, 0o755)
+    try:
+        write_regular(dest, payload)
+    finally:
+        os.chmod(view, mode)
+
+
 def verify_view(
     view: Path,
     release_id: str,
@@ -680,6 +706,8 @@ def verify_view_structure(
     require_regular(receipt_path, "materialization receipt")
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
+    require_regular(view / LOCAL_RELEASE_RECEIPT, "release receipt")
+    parse_receipt(view / LOCAL_RELEASE_RECEIPT, manifest, wire)
     cached_paths = set(cached_logical_paths(expected_receipt))
     expected_paths = set(item["path"] for item in manifest["files"])
     allowed_extra = set(allowed_extra_regular_paths or ())
@@ -696,7 +724,7 @@ def verify_view_structure(
         for filename in filenames:
             absolute = current_path / filename
             relative = absolute.relative_to(view).as_posix()
-            if relative in {LOCAL_MANIFEST, LOCAL_RECEIPT}:
+            if relative in VIEW_CONTROL_REGULAR_FILES:
                 continue
             if relative in cached_paths:
                 details = os.lstat(absolute)
@@ -812,6 +840,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         final = views / manifest["releaseId"]
         replace_existing = bool(getattr(args, "replace_existing", False))
         if final.exists() and not replace_existing:
+            persist_canonical_release_receipt(final, Path(args.receipt), manifest, manifest_wire)
             result = verify_view(final, manifest["releaseId"], require_helper_contents=False)
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
@@ -866,6 +895,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         write_regular(temporary / LOCAL_MANIFEST, manifest_wire)
         materialization = materialization_payload(manifest, receipt, cache_enabled=cache_enabled)
         write_regular(temporary / LOCAL_RECEIPT, canonical(materialization) + b"\n")
+        persist_canonical_release_receipt(temporary, Path(args.receipt), manifest, manifest_wire)
         for current, directories, _ in os.walk(str(temporary), topdown=False, followlinks=False):
             for directory in directories:
                 os.chmod(str(Path(current) / directory), 0o555)

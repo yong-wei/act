@@ -19,11 +19,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from common import SHA256, fail  # noqa: E402
+from common import SHA256, TRANSFER_SCHEMA, cache_size_gib, fail  # noqa: E402
 from gateway_client import GatewayClient  # noqa: E402
 from gateway_service import GatewayError  # noqa: E402
 
 DIGEST_PATH = re.compile(r"^/?([a-f0-9]{64})$")
+BODY_TRANSFER = "gateway-body-transfer"
+CACHE_HIT = "cache-hit"
 
 
 def write_cached_bytes(path: Path, payload: bytes) -> None:
@@ -38,6 +40,68 @@ def write_cached_bytes(path: Path, payload: bytes) -> None:
         os.close(descriptor)
     os.replace(temporary, path)
     os.chmod(path, 0o644)
+
+
+def cache_operations_path(cache_dir: Path) -> Path:
+    return cache_dir.parent / "operations.jsonl"
+
+
+def record_blob_operation(cache_dir: Path, op_class: str, digest: str, size_bytes: int) -> None:
+    if op_class not in (BODY_TRANSFER, CACHE_HIT):
+        fail("unsupported transfer operation class")
+    if not SHA256.fullmatch(digest):
+        fail("transfer digest is invalid")
+    if not isinstance(size_bytes, int) or size_bytes < 0:
+        fail("transfer size is invalid")
+    row = {
+        "schemaVersion": TRANSFER_SCHEMA,
+        "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "opClass": op_class,
+        "sha256": digest,
+        "sizeBytes": size_bytes,
+    }
+    path = cache_operations_path(cache_dir)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(path.parent, 0o700)
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.write(descriptor, (json.dumps(row, sort_keys=True) + "\n").encode("utf-8"))
+        os.fchmod(descriptor, 0o600)
+    finally:
+        os.close(descriptor)
+
+
+def object_cache_usage(cache_dir: Path) -> int:
+    objects = cache_dir / "objects"
+    if not objects.is_dir():
+        return 0
+    total = 0
+    for path in objects.iterdir():
+        if path.is_file() and not path.is_symlink() and SHA256.fullmatch(path.name):
+            total += path.stat().st_size
+    return total
+
+
+def enforce_object_cache_quota(
+    cache_dir: Path,
+    incoming: int,
+    keep: set[str],
+    limit_bytes: int | None = None,
+) -> None:
+    limit = cache_size_gib() * 1024 * 1024 * 1024 if limit_bytes is None else limit_bytes
+    if incoming > limit:
+        fail("blob exceeds the configured cache quota")
+    objects = cache_dir / "objects"
+    while object_cache_usage(cache_dir) + incoming > limit:
+        candidates = []
+        if objects.is_dir():
+            for path in objects.iterdir():
+                if path.is_file() and not path.is_symlink() and SHA256.fullmatch(path.name) and path.name not in keep:
+                    candidates.append(path)
+        if not candidates:
+            fail("shared cache exceeds the configured quota")
+        oldest = min(candidates, key=lambda item: item.stat().st_mtime)
+        oldest.unlink()
 
 
 def cached_blob_path(cache_dir: Path, digest: str) -> Path:
@@ -173,21 +237,24 @@ def _fetch_blob(session_path: Path, digest: str) -> bytes:
     return b""
 
 
-def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str) -> Path:
+def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str, loader=None) -> Path:
     if not SHA256.fullmatch(digest):
         fail("blob digest is invalid")
     cached = cached_blob_path(cache_dir, digest)
     if cached.is_file() and not cached.is_symlink():
         if hash_file(cached) == digest:
+            record_blob_operation(cache_dir, CACHE_HIT, digest, cached.stat().st_size)
             return cached
         quarantine_cached_blob(cached)
-    data = _fetch_blob(session_path, digest)
+    data = loader(digest) if loader is not None else _fetch_blob(session_path, digest)
     if hashlib.sha256(data).hexdigest() != digest:
         fail("developer runtime gateway returned a mismatched blob")
+    enforce_object_cache_quota(cache_dir, len(data), {digest})
     write_cached_bytes(cached, data)
     if hash_file(cached) != digest:
         quarantine_cached_blob(cached)
         fail("cached blob failed SHA-256 verification")
+    record_blob_operation(cache_dir, BODY_TRANSFER, digest, len(data))
     return cached
 
 

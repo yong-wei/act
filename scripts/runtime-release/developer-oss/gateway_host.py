@@ -99,12 +99,10 @@ class DiskHost:
         return path.read_bytes()
 
     def receipt_bytes(self, identity: Mapping[str, str]) -> bytes | None:
-        view = self._view_dir(identity)
-        for name in (".act-runtime-release-receipt.v2.json", ".act-runtime-release-materialization.v1.json"):
-            path = view / name
-            if path.is_file() and not path.is_symlink():
-                return path.read_bytes()
-        return None
+        path = self._view_dir(identity) / ".act-runtime-release-receipt.v2.json"
+        if not path.is_file() or path.is_symlink():
+            return None
+        return path.read_bytes()
 
     def blob_bytes(self, digest: str) -> bytes | None:
         if not SHA256.fullmatch(digest):

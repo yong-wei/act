@@ -24,7 +24,6 @@ from common import (
     SHARED_MOUNT_SCHEMA,
     TOPOLOGY_CHECKOUT,
     TOPOLOGY_SHARED,
-    TRANSFER_SCHEMA,
     assert_portable,
     authority_id,
     authority_identity,
@@ -639,29 +638,8 @@ def refuse_live_shared_for_checkout_topology(gateway_origin: str) -> None:
 
 
 def record_operation(mount_id: str, op_class: str, digest: str, size_bytes: int) -> None:
-    if op_class not in (BODY_TRANSFER, CACHE_HIT):
-        fail("unsupported transfer operation class")
-    if not SHA256.fullmatch(digest):
-        fail("transfer digest is invalid")
-    if not isinstance(size_bytes, int) or size_bytes < 0:
-        fail("transfer size is invalid")
-    row = {
-        "schemaVersion": TRANSFER_SCHEMA,
-        "at": utcnow(),
-        "opClass": op_class,
-        "sha256": digest,
-        "sizeBytes": size_bytes,
-    }
-    assert_portable(row, "transfer operation")
-    path = operations_path(mount_id)
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(path.parent, 0o700)
-    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
-    try:
-        os.write(descriptor, (json.dumps(row, sort_keys=True) + "\n").encode("utf-8"))
-        os.fchmod(descriptor, 0o600)
-    finally:
-        os.close(descriptor)
+    from gateway_fuse import record_blob_operation
+    record_blob_operation(ossfs_cache_dir(mount_id), op_class, digest, size_bytes)
 
 
 def load_operations(mount_id: str) -> list[dict[str, Any]]:
@@ -707,24 +685,14 @@ def fixture_cache_object(mount_id: str, digest: str) -> Path:
 
 
 def read_blob_with_evidence(mount_id: str, digest: str, source: Path, fetch=None) -> bytes:
-    if not SHA256.fullmatch(digest):
-        fail("blob digest is invalid")
-    cached = fixture_cache_object(mount_id, digest)
-    if cached.is_file() and not cached.is_symlink():
-        data = cached.read_bytes()
-        verify_blob_bytes(data, digest)
-        record_operation(mount_id, CACHE_HIT, digest, len(data))
-        return data
-    if fetch is not None:
-        data = fetch(digest)
-    else:
-        data = source.read_bytes()
-    verify_blob_bytes(data, digest)
-    record_operation(mount_id, BODY_TRANSFER, digest, len(data))
-    cached.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(cached.parent, 0o700)
-    write_private_bytes(cached, data, 0o644)
-    return data
+    from gateway_fuse import ensure_cached_blob
+    cache_dir = ossfs_cache_dir(mount_id)
+    def loader(_digest: str) -> bytes:
+        if fetch is not None:
+            return fetch(_digest)
+        return source.read_bytes()
+    cached = ensure_cached_blob(source, cache_dir, digest, loader=loader)
+    return cached.read_bytes()
 
 
 def verify_blob_bytes(data: bytes, digest: str, size_bytes: int | None = None) -> None:

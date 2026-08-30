@@ -195,6 +195,14 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 self.assertEqual(first.read_bytes(), b"a-only")
                 self.assertEqual(second, first)
                 self.assertEqual(host.blob_reads.count(a_only), 1)
+                operations = [
+                    json.loads(line)
+                    for line in (Path(raw) / "operations.jsonl").read_text(encoding="utf-8").splitlines()
+                    if line.strip()
+                ]
+                self.assertEqual([row["opClass"] for row in operations], ["gateway-body-transfer", "cache-hit"])
+                dumped = json.dumps(operations)
+                self.assertNotIn(TOKEN, dumped)
                 before = list(host.blob_reads)
                 with self.assertRaises(DeveloperRuntimeError):
                     ensure_cached_blob(session_path, cache_dir, extra)
@@ -203,6 +211,17 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             httpd.shutdown()
             httpd.server_close()
             os.environ.pop("ACT_RUNTIME_DEV_ALLOW_HTTP", None)
+
+    def test_cache_quota_evicts_oldest_unrelated_blob(self):
+        from gateway_fuse import cached_blob_path, enforce_object_cache_quota, write_cached_bytes
+        with tempfile.TemporaryDirectory() as raw:
+            cache_dir = Path(raw) / "cache"
+            first = hashlib.sha256(b"old-blob").hexdigest()
+            incoming = hashlib.sha256(b"new-blob").hexdigest()
+            write_cached_bytes(cached_blob_path(cache_dir, first), b"old-blob")
+            os.utime(cached_blob_path(cache_dir, first), (1, 1))
+            enforce_object_cache_quota(cache_dir, len(b"new-blob"), {incoming}, limit_bytes=10)
+            self.assertFalse(cached_blob_path(cache_dir, first).exists())
 
     def test_getattr_uses_declared_size_without_blob_fetch(self):
         host, identity_a, _, _, a_only, _, _, extra = bind_host(b"shared", b"a-only", b"b-only", b"extra")
@@ -529,11 +548,57 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             disk = DiskHost(receipt_path, root, blobs)
             service = GatewayService(TOKEN, disk)
             issued = service.issue_lease(identity_a, "disk-a")
+            served = service.get_receipt(issued["leaseId"], issued["transport"]["token"])
+            self.assertEqual(json.loads(served.decode("utf-8"))["schemaVersion"], "act-runtime-release-receipt.v2")
+            self.assertEqual(served, host_mem.receipt_bytes(identity_a))
             body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
             self.assertEqual(body, b"a-only")
             with self.assertRaises(GatewayError) as denied:
                 service.get_blob(issued["leaseId"], issued["transport"]["token"], extra)
             self.assertEqual(denied.exception.status, 404)
+
+
+    def test_disk_host_refuses_materialization_receipt_as_release_contract(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            host_mem, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+            view = root / "views" / identity_a["releaseId"]
+            view.mkdir(parents=True)
+            (view / ".act-runtime-release.v2.json").write_bytes(host_mem.manifest_bytes(identity_a) or b"")
+            (view / ".act-runtime-release-materialization.v1.json").write_text(
+                json.dumps({"schemaVersion": "runtime-blob-materialization.v1", "releaseId": identity_a["releaseId"]}),
+                encoding="utf-8",
+            )
+            blobs = root / "blobs"
+            blobs.mkdir()
+            receipt = {
+                "schemaVersion": "runtime-release-active-receipt.v1",
+                "healthCheck": "readyz",
+                "selection": {
+                    "schemaVersion": "runtime-release-selection.v1",
+                    "generation": 1,
+                    "releaseId": identity_a["releaseId"],
+                    "manifestSha256": identity_a["manifestSha256"],
+                    "treeSha256": identity_a["treeSha256"],
+                },
+            }
+            receipt_path = root / "act-runtime-active-receipt.json"
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            service = GatewayService(TOKEN, DiskHost(receipt_path, root, blobs))
+            with self.assertRaises(GatewayError) as denied:
+                service.issue_lease(identity_a, "disk-materialization")
+            self.assertEqual(denied.exception.status, 409)
+
+    def test_issue_lease_rejects_non_v2_receipt_bytes(self):
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        host.put_receipt(identity_a, canonical({
+            "schemaVersion": "runtime-blob-materialization.v1",
+            "releaseId": identity_a["releaseId"],
+        }) + b"\n")
+        service = GatewayService(TOKEN, host)
+        with self.assertRaises(GatewayError) as denied:
+            service.issue_lease(identity_a, "wrong-receipt")
+        self.assertEqual(denied.exception.status, 409)
 
 
     def test_live_lease_survives_gateway_reload_after_activation(self):
