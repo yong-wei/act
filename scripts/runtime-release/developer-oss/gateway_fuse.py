@@ -10,8 +10,10 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import stat
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -26,12 +28,14 @@ from gateway_service import GatewayError  # noqa: E402
 DIGEST_PATH = re.compile(r"^/?([a-f0-9]{64})$")
 BODY_TRANSFER = "gateway-body-transfer"
 CACHE_HIT = "cache-hit"
+_BLOB_LOCKS_GUARD = threading.Lock()
+_BLOB_LOCKS: dict[str, threading.Lock] = {}
 
 
 def write_cached_bytes(path: Path, payload: bytes) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(path.parent, 0o700)
-    temporary = path.with_name(".%s.%s.tmp" % (path.name, os.getpid()))
+    temporary = path.with_name(".%s.%s.%s.tmp" % (path.name, os.getpid(), secrets.token_hex(8)))
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
     try:
         os.write(descriptor, payload)
@@ -102,6 +106,15 @@ def enforce_object_cache_quota(
             fail("shared cache exceeds the configured quota")
         oldest = min(candidates, key=lambda item: item.stat().st_mtime)
         oldest.unlink()
+
+
+def _blob_lock(digest: str) -> threading.Lock:
+    with _BLOB_LOCKS_GUARD:
+        lock = _BLOB_LOCKS.get(digest)
+        if lock is None:
+            lock = threading.Lock()
+            _BLOB_LOCKS[digest] = lock
+        return lock
 
 
 def cached_blob_path(cache_dir: Path, digest: str) -> Path:
@@ -240,22 +253,23 @@ def _fetch_blob(session_path: Path, digest: str) -> bytes:
 def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str, loader=None) -> Path:
     if not SHA256.fullmatch(digest):
         fail("blob digest is invalid")
-    cached = cached_blob_path(cache_dir, digest)
-    if cached.is_file() and not cached.is_symlink():
-        if hash_file(cached) == digest:
-            record_blob_operation(cache_dir, CACHE_HIT, digest, cached.stat().st_size)
-            return cached
-        quarantine_cached_blob(cached)
-    data = loader(digest) if loader is not None else _fetch_blob(session_path, digest)
-    if hashlib.sha256(data).hexdigest() != digest:
-        fail("developer runtime gateway returned a mismatched blob")
-    enforce_object_cache_quota(cache_dir, len(data), {digest})
-    write_cached_bytes(cached, data)
-    if hash_file(cached) != digest:
-        quarantine_cached_blob(cached)
-        fail("cached blob failed SHA-256 verification")
-    record_blob_operation(cache_dir, BODY_TRANSFER, digest, len(data))
-    return cached
+    with _blob_lock(digest):
+        cached = cached_blob_path(cache_dir, digest)
+        if cached.is_file() and not cached.is_symlink():
+            if hash_file(cached) == digest:
+                record_blob_operation(cache_dir, CACHE_HIT, digest, cached.stat().st_size)
+                return cached
+            quarantine_cached_blob(cached)
+        data = loader(digest) if loader is not None else _fetch_blob(session_path, digest)
+        if hashlib.sha256(data).hexdigest() != digest:
+            fail("developer runtime gateway returned a mismatched blob")
+        enforce_object_cache_quota(cache_dir, len(data), {digest})
+        write_cached_bytes(cached, data)
+        if hash_file(cached) != digest:
+            quarantine_cached_blob(cached)
+            fail("cached blob failed SHA-256 verification")
+        record_blob_operation(cache_dir, BODY_TRANSFER, digest, len(data))
+        return cached
 
 
 def main() -> int:

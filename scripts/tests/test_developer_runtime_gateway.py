@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
@@ -207,6 +208,40 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 with self.assertRaises(DeveloperRuntimeError):
                     ensure_cached_blob(session_path, cache_dir, extra)
                 self.assertEqual(host.blob_reads, before)
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            os.environ.pop("ACT_RUNTIME_DEV_ALLOW_HTTP", None)
+
+    def test_concurrent_cache_writes_reuse_one_blob_fetch(self):
+        os.environ["ACT_RUNTIME_DEV_ALLOW_HTTP"] = "1"
+        host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host)
+        issued = service.issue_lease(identity_a, "fuse-concurrent")
+        httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(service, RateLimiter(limit=1000)))
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            from gateway_fuse import ensure_cached_blob
+            port = httpd.server_address[1]
+            with tempfile.TemporaryDirectory() as raw:
+                session_path = Path(raw) / "gateway-session.json"
+                cache_dir = Path(raw) / "cache"
+                session_path.write_text(json.dumps({
+                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
+                    "gatewayUrl": "http://127.0.0.1:%d" % port,
+                    "token": TOKEN,
+                    "leases": {
+                        "fuse-concurrent": {
+                            "leaseId": issued["leaseId"],
+                            "transport": issued["transport"]["token"],
+                        }
+                    },
+                }), encoding="utf-8")
+                with ThreadPoolExecutor(max_workers=8) as pool:
+                    paths = list(pool.map(lambda _: ensure_cached_blob(session_path, cache_dir, a_only), range(8)))
+                self.assertEqual({path.read_bytes() for path in paths}, {b"a-only"})
+                self.assertEqual(host.blob_reads.count(a_only), 1)
         finally:
             httpd.shutdown()
             httpd.server_close()
