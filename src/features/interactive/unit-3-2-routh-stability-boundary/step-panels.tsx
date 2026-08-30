@@ -1220,6 +1220,7 @@ export function UNIT_3_2StudentActivityForm({
   answerVisible,
   revealProgress = 0,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_3_2StepDefinition;
   savedResponse?: UNIT_3_2StepResponse;
@@ -1228,7 +1229,10 @@ export function UNIT_3_2StudentActivityForm({
   answerVisible: boolean;
   revealProgress?: number;
   onSubmit: (response: UNIT_3_2StepResponse) => void;
+  readOnly?: boolean;
 }) {
+
+  void readOnly;
   const activity = getActivitySpec(step);
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
 

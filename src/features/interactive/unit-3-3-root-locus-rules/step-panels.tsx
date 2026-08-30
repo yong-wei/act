@@ -1176,6 +1176,7 @@ export function UNIT_3_3StudentActivityForm({
   answerVisible,
   revealProgress,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_3_3StepDefinition;
   savedResponse?: UNIT_3_3StepResponse;
@@ -1184,7 +1185,10 @@ export function UNIT_3_3StudentActivityForm({
   answerVisible: boolean;
   revealProgress: number;
   onSubmit: (response: UNIT_3_3StepResponse) => void;
+  readOnly?: boolean;
 }) {
+
+  void readOnly;
   const activity = useMemo(() => getActivitySpec(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [sequence, setSequence] = useState(WORKFLOW_SEQUENCE.map((item) => item.id));

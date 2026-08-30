@@ -411,13 +411,16 @@ function BaselineMetricForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: UNIT_3_9StepResponse;
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
+  readOnly?: boolean;
 }) {
+  void readOnly;
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
 
@@ -653,6 +656,7 @@ export function UNIT_3_9StudentActivityForm({
   revealProgress,
   onSubmit,
   onWorkspaceParameterChange,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   step: UNIT_3_9StepDefinition;
@@ -663,10 +667,11 @@ export function UNIT_3_9StudentActivityForm({
   revealProgress: number;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  readOnly?: boolean;
 }) {
   if (!isUNIT_3_9InteractivePageType(step.pageType)) return null;
   if (step.pageType === 'structured_compare') {
-    return <BaselineMetricForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} answerVisible={answerVisible} onSubmit={onSubmit} />;
+    return <BaselineMetricForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} answerVisible={answerVisible} onSubmit={onSubmit} readOnly={readOnly} />;
   }
   if (step.pageType === 'parameter_slider') {
     return <ParameterSliderSubmission stepManifest={stepManifest} savedResponse={savedResponse} released={released} onSubmit={onSubmit} onWorkspaceParameterChange={onWorkspaceParameterChange} />;
@@ -684,6 +689,7 @@ export function UNIT_3_9StudentActivityForm({
     answerVisible,
     revealProgress,
     onSubmit,
+    readOnly,
   });
 }
 

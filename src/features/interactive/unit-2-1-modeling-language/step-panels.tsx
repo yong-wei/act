@@ -1508,13 +1508,17 @@ export function UNIT_2_1StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_2_1StepDefinition;
   savedResponse?: UNIT_2_1StepResponse;
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_2_1StepResponse) => void;
+  readOnly?: boolean;
 }) {
+
+  void readOnly;
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, unknown>>(() => getDefaultDraft(activity, savedResponse));
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);

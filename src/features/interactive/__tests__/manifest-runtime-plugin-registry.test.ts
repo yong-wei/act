@@ -256,20 +256,28 @@ describe('composeManifestPluginRegistry', () => {
   });
 });
 
-describe('central renderer shrink proof (pilot)', () => {
+describe('central renderer shrink proof', () => {
   const source = readFileSync(
     join(process.cwd(), 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
     'utf8',
   );
 
-  it('no longer imports the pilot renderer implementation', () => {
+  it('no longer imports the migrated renderer implementations', () => {
     expect(source).not.toContain("from './static-surface-3d-panel'");
     expect(source).not.toContain('StaticSurface3DPanel');
+    expect(source).not.toContain('SharedControlWorkbenchComputePanel');
+    expect(source).not.toContain('InteractiveFigureComputePanel');
   });
 
-  it('no longer compares capability strings for the pilot inside the center', () => {
-    expect(source).not.toContain("'static-surface-3d'");
-    expect(source).not.toContain('"static-surface-3d"');
+  it('no longer compares capability strings for migrated compute panels inside the center', () => {
+    const computePanelStart = source.indexOf("'compute.panel'");
+    const computePanelEnd = source.indexOf("'analytics.summary'");
+    const computePanel = source.slice(computePanelStart, computePanelEnd);
+    expect(computePanel).not.toContain("'static-surface-3d'");
+    expect(computePanel).not.toContain('"static-surface-3d"');
+    expect(computePanel).not.toContain("'interactive-figure'");
+    expect(computePanel).not.toContain('"interactive-figure"');
+    expect(computePanel).not.toContain('isControlWorkbenchComputeCapabilityRef');
   });
 
   it('passes the unparsed capability reference into registry lookup', () => {

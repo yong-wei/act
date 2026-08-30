@@ -1291,21 +1291,14 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    desktopNavigation: 'fixed',
+    desktopNavigation: 'collapsible',
     mobileNavigation: 'workspace-command-surface',
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     screenshotProfile: 'representative-covered',
-    owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
+    owningChange: 'standardize-lesson-runtime-shell',
     shellRemovalCondition:
-      'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
-    exception: {
-      owner: 'legacy-interactive-runtime-route-ledger-coverage',
-      affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-      reason:
-        'Unmigrated course runtime pages still exist under the shared student route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
-      expiresOn: '2026-09-30',
-    },
+      'standardize-lesson-runtime-shell covers remaining manifest courses after LessonRuntimeShell migration.',
   }),
   primaryRoute({
     href: '/interactive-learning/courses/[course]/teacher/[sessionId]',
@@ -1316,21 +1309,14 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher', 'admin'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    desktopNavigation: 'fixed',
+    desktopNavigation: 'collapsible',
     mobileNavigation: 'workspace-command-surface',
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     screenshotProfile: 'representative-covered',
-    owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
+    owningChange: 'standardize-lesson-runtime-shell',
     shellRemovalCondition:
-      'Legacy premium lesson runtime pages remain covered by the route ledger until each course migrates to LessonRuntimeShell.',
-    exception: {
-      owner: 'legacy-interactive-runtime-route-ledger-coverage',
-      affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-      reason:
-        'Unmigrated course runtime pages still exist under the shared teacher route family and need navigation, dock, and QA metadata coverage without being marked as LessonRuntimeShell migrations.',
-      expiresOn: '2026-09-30',
-    },
+      'standardize-lesson-runtime-shell covers remaining manifest courses after LessonRuntimeShell migration.',
   }),
   primaryRoute({
     href: '/playlists',

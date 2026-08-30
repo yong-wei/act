@@ -1016,11 +1016,16 @@ describe('platform UI contracts', () => {
     expect(runtimeShellSource).not.toContain('premium-lesson-topbar');
     expect(runtimeShellSource).not.toContain('max-w-[1180px]');
 
-    for (const source of [unit11StudentSource, unit11TeacherSource, unit12StudentSource, unit12TeacherSource, unit41StudentSource, unit41TeacherSource]) {
-      expect(source).toContain('LessonRuntimeShell');
-      expect(source).not.toContain('CourseHeader');
-      expect(source).not.toContain('premium-lesson-topbar');
-      expect(source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
+    for (const source of listSourceFiles('src/features/interactive').filter((relativePath) =>
+      /\/(student|teacher)-page\.tsx$/.test(relativePath)
+      && !relativePath.includes('/__tests__/')
+      && !relativePath.includes('/multi-representation-linkage/'),
+    )) {
+      const pageSource = readSource(source);
+      expect(pageSource, source).toContain('LessonRuntimeShell');
+      expect(pageSource, source).not.toContain('CourseHeader');
+      expect(pageSource, source).not.toContain('premium-lesson-topbar');
+      expect(pageSource, source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
     }
 
     for (const source of [unit11StudentSource, unit12StudentSource, unit41StudentSource]) {

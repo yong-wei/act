@@ -15,6 +15,10 @@ vi.mock('next/link', () => ({
 }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+vi.mock('@/features/adaptive/adaptive-path-journey-control', () => ({
+  AdaptivePathJourneyControlFromRoute: () => null,
 }));
 vi.mock('@/components/platform/app-shell', () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -25,7 +29,7 @@ vi.mock('qrcode/lib/browser', () => ({
 }));
 
 import { TeacherClassroomWaitingPage } from '@/features/interactive/shared/teacher-classroom-waiting-page';
-import { UNIT_1_4CourseHeader } from '@/features/interactive/unit-1-4-time-frequency-views/course-header';
+import { LessonRuntimeShell } from '@/features/interactive/shared/lesson-runtime-shell';
 import { UNIT_1_4_LESSON_STEPS } from '@/lib/unit-1-4-course';
 
 describe('shared classroom UI recovery', () => {
@@ -48,11 +52,12 @@ describe('shared classroom UI recovery', () => {
 
   it('disables all student header navigation while browse is locked', async () => {
     await act(async () => root.render(
-      <UNIT_1_4CourseHeader
+      <LessonRuntimeShell
+        mode="student"
+        title="时域与频域对照"
+        routeSegment="unit-1-4-time-frequency-views"
         steps={UNIT_1_4_LESSON_STEPS}
         activeIndex={2}
-        navigationEnabled={false}
-        onIndexChange={() => undefined}
       />,
     ));
 

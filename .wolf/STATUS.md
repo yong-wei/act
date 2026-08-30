@@ -10,6 +10,8 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-08-30：按 #1574/#1575 共性合同把剩余互动课迁到 `LessonRuntimeShell`，并收口 `compute.panel` 中心分支。28 门 unit + cruise 去掉课级 `CourseHeader`；`LEGACY_LESSON_RUNTIME_ROUTE_SLUGS` 清空；catch-all 学生/教师路由改挂 `standardize-lesson-runtime-shell`。控制工作台与 interactive-figure 改为插件查找。#1573 live/evidence 不再按课复制；#1569 control-correction 映射不扩散。未开新 Issue，未重开 #1573，未认领 #1683。
+
 - 2026-08-30：补完已归档 #1573（`separate-classroom-live-state-from-submission-evidence`）任务 5.5/5.6。Playwright 班级绑定课堂走通 submit/resubmit/refresh/reconnect/闭课复盘；preview 零写。4.5 仍未勾选（`course_review` 与 backfill 仍有消费者）。本机 `act_obe` 补齐 `InteractionLog.submissionIdentity`。学生页 Prisma 泄漏改为 control-correction evidence port 延迟绑定。未开新 Issue，未认领 #1683。
 
 - 2026-08-26：知识工作区产品 QA 已具备受管三角色本地 fixture。`scripts/tests/run-knowledge-workspace-product-qa.mjs` 仅在 loopback 目标和 loopback 数据库下幂等确保学生、教师、管理员测试身份；非本地目标或数据库拒绝写入并要求显式完整凭据。OpenSpec 任务 10.8 和 `commercial-ui-governance-gates` delta 已写入，4 项边界测试、typecheck 与 strict validation 通过；测试工件未发现 credential 字段。
