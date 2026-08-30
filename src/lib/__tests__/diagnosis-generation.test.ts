@@ -34,8 +34,11 @@ import {
 } from '@/lib/diagnosis-generation';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
+  DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
+  buildKnowledgeNodeByEvidenceRef,
+  enforceDiagnosisFindingNodeAttribution,
   generateGovernedDiagnosisReport,
   isSimplifiedChineseNaturalLanguageText,
   validateDiagnosisReportBodyLanguage,
@@ -1125,6 +1128,246 @@ describe('diagnosis report language contract', () => {
         state: 'FAILED',
         failureCode: 'diagnosis-provider-language-mismatch',
         failureMessage: '诊断模型返回的报告内容不是简体中文。',
+        retryable: true,
+      }),
+    }));
+  });
+});
+
+describe('diagnosis finding knowledge-node attribution contract', () => {
+  const attributionInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+    classId: 'class-1',
+    studentIds: ['student-1'],
+    riskFlags: [],
+    competencySnapshots: [],
+    knowledgeProgress: [
+      {
+        id: 'progress-1',
+        userId: 'student-1',
+        nodeId: 'node-1',
+        status: 'IN_PROGRESS',
+        progress: 50,
+        timeSpent: 120,
+        lastVisited: now.toISOString(),
+      },
+      {
+        id: 'progress-2',
+        userId: 'student-1',
+        nodeId: 'node-2',
+        status: 'IN_PROGRESS',
+        progress: 30,
+        timeSpent: 80,
+        lastVisited: now.toISOString(),
+      },
+    ],
+  };
+
+  const attributionRequest = {
+    jobId: 'job-1',
+    teacherId: 'teacher-1',
+    classId: 'class-1',
+    targetStudentId: null,
+    evidenceCutoff: now,
+    generatorVersion: 'teacher-diagnosis.v1',
+    governedInput: attributionInput,
+    inputDigest: digestDiagnosisGovernedInput(attributionInput),
+  } as const;
+
+  function attributionOutput(findings: unknown[], reportRefs: string[] = ['knowledge-progress:progress-1']) {
+    return {
+      output: {
+        summary: '知识点掌握情况需要巩固。',
+        findings,
+        evidenceRefs: reportRefs,
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 1 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-attribution',
+    };
+  }
+
+  it('backfills a knowledge finding whose cited rows resolve to one governed node', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '单知识点掌握薄弱',
+        evidenceRefs: ['knowledge-progress:progress-1'],
+      },
+    ]));
+
+    const result = await generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-backfill',
+    });
+
+    expect(result.reportBody.findings[0]?.knowledgeNodeId).toBe('node-1');
+  });
+
+  it('rejects a knowledge finding that omits a node across ambiguous cited rows', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '跨知识点表现波动',
+        evidenceRefs: ['knowledge-progress:progress-1', 'knowledge-progress:progress-2'],
+      },
+    ], ['knowledge-progress:progress-1', 'knowledge-progress:progress-2']));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-ambiguous',
+    })).rejects.toMatchObject({
+      name: 'DiagnosisGenerationFindingAttributionError',
+      violations: ['findings[0].knowledgeNodeId'],
+    });
+  });
+
+  it('rejects a knowledge finding that cherry-picks one node while citing rows across multiple nodes', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '单知识点掌握薄弱',
+        knowledgeNodeId: 'node-1',
+        evidenceRefs: ['knowledge-progress:progress-1', 'knowledge-progress:progress-2'],
+      },
+    ], ['knowledge-progress:progress-1', 'knowledge-progress:progress-2']));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-mixed-filled',
+    })).rejects.toMatchObject({
+      name: 'DiagnosisGenerationFindingAttributionError',
+      violations: ['findings[0].knowledgeNodeId'],
+    });
+  });
+
+  it('rejects a knowledge finding whose node is outside the governed universe', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '单知识点掌握薄弱',
+        knowledgeNodeId: 'node-not-in-input',
+        evidenceRefs: ['knowledge-progress:progress-1'],
+      },
+    ]));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-unknown',
+    })).rejects.toBeInstanceOf(DiagnosisGenerationFindingAttributionError);
+  });
+
+  it('rejects a knowledge finding whose node disagrees with its cited rows', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '单知识点掌握薄弱',
+        knowledgeNodeId: 'node-2',
+        evidenceRefs: ['knowledge-progress:progress-1'],
+      },
+    ]));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-inconsistent',
+    })).rejects.toMatchObject({
+      name: 'DiagnosisGenerationFindingAttributionError',
+      violations: ['findings[0].knowledgeNodeId'],
+    });
+  });
+
+  it('keeps non-knowledge findings free of attribution requirements', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '整体风险水平提示',
+        riskType: 'constraint',
+        evidenceRefs: [],
+      },
+    ]));
+
+    const result = await generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-non-knowledge',
+    });
+
+    expect(result.reportBody.findings[0]?.knowledgeNodeId).toBeUndefined();
+  });
+
+  it('does not node-check non-knowledge findings even when they carry an id outside the governed universe', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '低分段学生比例需关注',
+        knowledgeNodeId: 'node-not-in-input',
+        evidenceRefs: [],
+      },
+    ]));
+
+    const result = await generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-non-knowledge-with-node',
+    });
+
+    expect(result.reportBody.findings[0]?.knowledgeNodeId).toBe('node-not-in-input');
+  });
+
+  it('keeps findings unattributed when cited rows carry no governed node', () => {
+    const nodeByEvidenceRef = buildKnowledgeNodeByEvidenceRef([{ id: 'progress-9', nodeId: '' }]);
+    const findings = [{ evidenceRefs: ['knowledge-progress:progress-9'] }];
+
+    expect(enforceDiagnosisFindingNodeAttribution(findings, nodeByEvidenceRef)).toEqual([]);
+    expect(findings[0]?.knowledgeNodeId).toBeUndefined();
+  });
+
+  it('rejects filling a node from other rows when the cited rows have no governed node', () => {
+    const nodeByEvidenceRef = buildKnowledgeNodeByEvidenceRef([
+      { id: 'progress-9', nodeId: '' },
+      { id: 'progress-10', nodeId: 'node-1' },
+    ]);
+    const findings = [{
+      knowledgeNodeId: 'node-1',
+      evidenceRefs: ['knowledge-progress:progress-9'],
+    }];
+
+    expect(enforceDiagnosisFindingNodeAttribution(findings, nodeByEvidenceRef))
+      .toEqual(['findings[0].knowledgeNodeId']);
+  });
+
+  it('records attribution-invalid provider output as retryable instead of non-retryable validation', async () => {
+    const attributionError = new DiagnosisGenerationFindingAttributionError(['findings[0].knowledgeNodeId']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw attributionError; },
+    )).rejects.toBe(attributionError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-finding-attribution-invalid',
+        errorMessage: '诊断模型返回的知识点发现缺少与受治理证据一致的知识节点归因。',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('fails the job after attribution retries are exhausted with an explicit Chinese reason', async () => {
+    const attributionError = new DiagnosisGenerationFindingAttributionError(['findings[0].knowledgeNodeId']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 2, opts: { attempts: 3 } } as never,
+      async () => { throw attributionError; },
+    )).rejects.toBe(attributionError);
+
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'diagnosis-finding-attribution-invalid',
+        failureMessage: '诊断模型返回的知识点发现缺少与受治理证据一致的知识节点归因。',
         retryable: true,
       }),
     }));

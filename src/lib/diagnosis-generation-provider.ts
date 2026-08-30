@@ -118,6 +118,69 @@ export class DiagnosisGenerationProviderLanguageError extends Error {
   }
 }
 
+export class DiagnosisGenerationFindingAttributionError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型返回的知识点发现缺少与受治理证据一致的知识节点归因。');
+    this.name = 'DiagnosisGenerationFindingAttributionError';
+    this.violations = violations;
+  }
+}
+
+export function buildKnowledgeNodeByEvidenceRef(
+  knowledgeProgress: ReadonlyArray<{ id: string; nodeId: string }>,
+) {
+  const nodeByEvidenceRef = new Map<string, string>();
+  for (const row of knowledgeProgress) {
+    if (row.nodeId.length > 0) {
+      nodeByEvidenceRef.set(`knowledge-progress:${row.id}`, row.nodeId);
+    }
+  }
+  return nodeByEvidenceRef;
+}
+
+/**
+ * 知识节点归因契约（Issue #1712）：归因义务仅适用于引用 knowledge-progress 证据的发现
+ * （与投影层 findingRequiresKnowledgeNodeAttribution 语义一致，非知识发现整体豁免）。
+ * 引用行横跨多个节点时发现本身归因歧义，无论是否已填节点一律拒绝；
+ * 能唯一解析的漏填就地回填；未知节点、与唯一引用证据不一致则拒绝。
+ * 由 worker 按模型行为缺陷重试。返回违例字段列表，回填直接修改 findings。
+ */
+export function enforceDiagnosisFindingNodeAttribution(
+  findings: Array<{ knowledgeNodeId?: string; evidenceRefs: ReadonlyArray<string> }>,
+  nodeByEvidenceRef: ReadonlyMap<string, string>,
+) {
+  const governedNodes = new Set(nodeByEvidenceRef.values());
+  const violations: string[] = [];
+  findings.forEach((finding, index) => {
+    const citesKnowledgeProgress = finding.evidenceRefs.some((ref) => ref.startsWith('knowledge-progress:'));
+    if (!citesKnowledgeProgress) return;
+    const citedNodes = new Set<string>();
+    for (const reference of finding.evidenceRefs) {
+      const node = nodeByEvidenceRef.get(reference);
+      if (node) citedNodes.add(node);
+    }
+    if (citedNodes.size > 1) {
+      violations.push(`findings[${index}].knowledgeNodeId`);
+      return;
+    }
+    if (finding.knowledgeNodeId) {
+      const singleCitedNode = citedNodes.size === 1 ? [...citedNodes][0] : null;
+      if (citedNodes.size === 0
+        || (singleCitedNode !== null && singleCitedNode !== finding.knowledgeNodeId)
+        || !governedNodes.has(finding.knowledgeNodeId)) {
+        violations.push(`findings[${index}].knowledgeNodeId`);
+      }
+      return;
+    }
+    if (citedNodes.size === 1) {
+      finding.knowledgeNodeId = [...citedNodes][0];
+    }
+  });
+  return violations;
+}
+
 export type DiagnosisReportLanguageSurface = {
   summary: string;
   findings: ReadonlyArray<{ title: string; summary?: string }>;
@@ -306,6 +369,7 @@ export async function generateGovernedDiagnosisReport(
       system: [
         '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
         '所有面向教师的自然语言内容（summary、findings 标题与说明、limitations 说明）必须使用简体中文；不得输出英文分析段落。',
+        'findings 中引用 knowledge-progress 证据的知识点发现必须携带与引用证据一致的有效 knowledgeNodeId；总体风险、成绩分布等非知识点发现不需要 knowledgeNodeId。',
         '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
         '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
         '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
@@ -371,6 +435,13 @@ export async function generateGovernedDiagnosisReport(
   ];
   if (citedRefs.some((ref) => !observedRefs.has(ref))) {
     throw new DiagnosisGenerationValidationError('diagnosis-unobserved-evidence-reference');
+  }
+  // 知识节点归因契约（Issue #1712）：可唯一解析的漏填就地回填，
+  // 歧义/未知/不一致节点按模型行为缺陷拒绝重试，不得持久化。
+  const knowledgeNodeByEvidenceRef = buildKnowledgeNodeByEvidenceRef(governedInput.data.knowledgeProgress);
+  const attributionViolations = enforceDiagnosisFindingNodeAttribution(reportBody.findings, knowledgeNodeByEvidenceRef);
+  if (attributionViolations.length > 0) {
+    throw new DiagnosisGenerationFindingAttributionError(attributionViolations);
   }
   return {
     reportBody,

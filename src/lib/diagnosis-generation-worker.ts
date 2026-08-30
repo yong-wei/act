@@ -12,6 +12,7 @@ import {
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
+  DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
@@ -48,6 +49,14 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-provider-language-mismatch',
+      message: error.message,
+    };
+  }
+  // 知识节点归因缺失与空输出同类（模型行为缺陷），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisGenerationFindingAttributionError) {
+    return {
+      validation: false,
+      code: 'diagnosis-finding-attribution-invalid',
       message: error.message,
     };
   }
