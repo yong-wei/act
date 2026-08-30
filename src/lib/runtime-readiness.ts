@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { open, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -12,6 +12,13 @@ import { readActiveRuntimeReleaseManifest, RuntimeActiveReleaseError } from '@/l
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 export const RUNTIME_READINESS_BLOB_VIEW_MODE = 'ossfs-blob-view';
+export const RUNTIME_CONSUMER_VERIFICATION_FILENAME = '.act-runtime-consumer-verification.json';
+// 与 scripts/runtime-release/developer-oss/runtime_requirements.json 呼应的有界探测文件；
+// 一致性由 runtime-readiness 测试守护（生产代码不得跨界读取 scripts/）。
+export const RUNTIME_FILESYSTEM_PROBE_PATH = 'resource-governance/micro-tutoring-resource-projection-v2.json';
+export const RUNTIME_CONSUMER_VERIFICATION_SCHEMA = 'act-runtime-consumer-verification.v1';
+
+export type RuntimeFilesystemReadiness = { ready: true } | { ready: false; failureClass: string };
 
 export type RuntimeReadinessIdentity = {
   schemaVersion: typeof ACT_RUNTIME_BLOB_RELEASE_SCHEMA_VERSION;
@@ -24,6 +31,7 @@ export type RuntimeReadinessProjection = {
   required: boolean;
   ready: boolean;
   identity: RuntimeReadinessIdentity | null;
+  filesystem: RuntimeFilesystemReadiness;
 };
 
 export function isBlobViewRuntimeRequired(
@@ -167,31 +175,105 @@ export async function projectRuntimeReadiness(
   activeReceiptPath?: string,
   coordinatedActiveReceiptPath?: string,
   authorityCurrentPath?: string,
+  verificationReceiptPath?: string,
+  consumerUid?: number | null,
+  probePath?: string,
 ): Promise<RuntimeReadinessProjection> {
   const required = isBlobViewRuntimeRequired();
   if (!required) {
-    return { required: false, ready: true, identity: null };
+    return { required: false, ready: true, identity: null, filesystem: { ready: true } };
   }
 
   try {
     const manifest = await readActiveRuntimeReleaseManifest(runtimeRoot, activeReceiptPath);
     if (!manifest || manifest.schemaVersion !== ACT_RUNTIME_BLOB_RELEASE_SCHEMA_VERSION) {
-      return { required: true, ready: false, identity: null };
+      return { required: true, ready: false, identity: null, filesystem: { ready: false, failureClass: 'manifest-unavailable' } };
     }
     const identity = projectRuntimeIdentity(manifest);
     if (isCoordinatedCutoverRequired()
       && !await hasMatchingCoordinatedActiveReceipt(identity, coordinatedActiveReceiptPath, authorityCurrentPath)) {
-      return { required: true, ready: false, identity: null };
+      return { required: true, ready: false, identity: null, filesystem: { ready: false, failureClass: 'coordinated-receipt-missing' } };
     }
+    const filesystem = await verifyConsumerFilesystem(identity, runtimeRoot, verificationReceiptPath, consumerUid, probePath);
     return {
       required: true,
-      ready: true,
+      ready: filesystem.ready,
       identity,
+      filesystem,
     };
   } catch (error) {
     if (error instanceof RuntimeActiveReleaseError) {
-      return { required: true, ready: false, identity: null };
+      return { required: true, ready: false, identity: null, filesystem: { ready: false, failureClass: 'manifest-unavailable' } };
     }
     throw error;
   }
+}
+
+async function readConsumerVerificationReceipt(
+  receiptPath: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const payload = JSON.parse(await readFile(receiptPath, 'utf8')) as unknown;
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+    const receipt = payload as Record<string, unknown>;
+    if (receipt.schemaVersion !== RUNTIME_CONSUMER_VERIFICATION_SCHEMA) return null;
+    return receipt;
+  } catch {
+    return null;
+  }
+}
+
+async function probeReadableFile(target: string): Promise<boolean> {
+  try {
+    const handle = await open(target, 'r');
+    try {
+      const buffer = Buffer.alloc(1);
+      const read = await handle.read(buffer, 0, 1, 0);
+      return read.bytesRead === 1;
+    } finally {
+      await handle.close();
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready。核对 bootstrap 写出的
+ * credential-free 消费者验证回执（Release 身份 + 消费者 UID + checkout bind 路径），
+ * 并以当前进程身份对关键治理工件做有界读取探测；任一失败保持 fail-closed。
+ */
+export async function verifyConsumerFilesystem(
+  identity: RuntimeReadinessIdentity,
+  runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime'),
+  receiptPath = path.join(process.cwd(), 'course-content', RUNTIME_CONSUMER_VERIFICATION_FILENAME),
+  consumerUid: number | null = typeof process.getuid === 'function' ? process.getuid() : null,
+  probePath?: string,
+): Promise<RuntimeFilesystemReadiness> {
+  const receipt = await readConsumerVerificationReceipt(receiptPath);
+  if (!receipt) return { ready: false, failureClass: 'consumer-verification-missing' };
+  const fields = [
+    receipt.releaseId, receipt.manifestSha256, receipt.treeSha256,
+    receipt.consumerUid, receipt.runtimeRoot, receipt.verifierVersion,
+  ];
+  if (fields.some((value) => typeof value !== 'string' && typeof value !== 'number')) {
+    return { ready: false, failureClass: 'consumer-verification-invalid' };
+  }
+  if (receipt.releaseId !== identity.releaseId
+    || receipt.manifestSha256 !== identity.manifestSha256
+    || receipt.treeSha256 !== identity.treeSha256) {
+    return { ready: false, failureClass: 'consumer-verification-identity-drift' };
+  }
+  if (receipt.runtimeRoot !== runtimeRoot
+    || receipt.verifierVersion !== 'consumer-verification.v1') {
+    return { ready: false, failureClass: 'consumer-verification-invalid' };
+  }
+  if (consumerUid !== null && receipt.consumerUid !== consumerUid) {
+    return { ready: false, failureClass: 'consumer-identity-mismatch' };
+  }
+  const probe = probePath ?? path.join(runtimeRoot, RUNTIME_FILESYSTEM_PROBE_PATH);
+  if (!await probeReadableFile(probe)) {
+    return { ready: false, failureClass: 'required-artifact-unreadable' };
+  }
+  return { ready: true };
 }

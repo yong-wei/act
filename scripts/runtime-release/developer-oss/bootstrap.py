@@ -42,6 +42,15 @@ from common import (
     topology_mode,
     use_real_fuse,
 )
+from consumer_readiness import (
+    ConsumerVerificationError,
+    RECEIPT_FILENAME,
+    load_runtime_requirements,
+    read_verification_receipt,
+    receipt_matches_binding,
+    verify_consumer_view,
+    write_verification_receipt,
+)
 from credential import assert_developer_principal, load_credential
 from policy import load_and_validate
 from shared_mount import (
@@ -125,9 +134,25 @@ def parse_readyz_identity(payload: Any) -> dict[str, str]:
     }
     if extra:
         fail("readiness response has unknown fields")
-    runtime = require_exact_keys(payload.get("runtime"), READYZ_RUNTIME_KEYS, "readiness.runtime")
+    runtime = payload.get("runtime")
+    if (
+        not isinstance(runtime, dict)
+        or not {"required", "ready", "identity"} <= set(runtime)
+        or set(runtime) - set(READYZ_RUNTIME_KEYS)
+    ):
+        fail("readiness runtime projection is invalid")
     if runtime.get("required") is not True or runtime.get("ready") is not True:
         fail("readiness does not prove an active runtime")
+    # filesystem 为可选：identity 真源可能是尚未升级的旧版生产 readyz；
+    # 一旦出现则严格校验，防止半可用状态伪装为就绪。
+    filesystem = runtime.get("filesystem")
+    if filesystem is not None:
+        if not isinstance(filesystem, dict) or set(filesystem) - {"ready", "failureClass"}:
+            fail("readiness runtime filesystem projection is invalid")
+        if filesystem.get("ready") is not True:
+            if not isinstance(filesystem.get("failureClass"), str) or not filesystem.get("failureClass"):
+                fail("readiness filesystem failure requires a credential-safe failure class")
+            fail("readiness runtime filesystem verification is not ready")
     identity = require_exact_keys(runtime.get("identity"), IDENTITY_KEYS, "readiness.runtime.identity")
     schema = identity["schemaVersion"]
     release_id = identity["releaseId"]
@@ -329,6 +354,31 @@ def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, v
     return helper
 
 
+def consumer_gate(selected: Path, readiness: dict[str, str]) -> dict[str, Any]:
+    """Issue #1713 门禁：以消费者身份验证完整 manifest 叶节点与必需治理工件。
+
+    物化器的 verify 只证明链接形状与大小；这里以与 frontend/worker 相同的
+    UID/GID 实际打开每个叶节点内容并核对 registry 治理工件，任何失败都以
+    credential-safe 分类阻止启动。
+    """
+    materializer_module = load_materializer()
+    manifest, _wire = materializer_module.parse_manifest(selected / materializer_module.LOCAL_MANIFEST)
+    if (
+        manifest["releaseId"] != readiness["releaseId"]
+        or manifest["manifestSha256"] != readiness["manifestSha256"]
+        or manifest["treeSha256"] != readiness["treeSha256"]
+    ):
+        fail("consumer verification view does not match the pinned readiness identity")
+    try:
+        return verify_consumer_view(selected, manifest, load_runtime_requirements())
+    except ConsumerVerificationError as error:
+        fail("consumer runtime verification failed (%s): %s" % (error.failure_class, redact(error.detail)))
+
+
+def verification_receipt_path(checkout: Path) -> Path:
+    return checkout / "course-content" / RECEIPT_FILENAME
+
+
 def start_services(checkout: Path) -> None:
     npm = which("npm")
     run([npm, "run", "startup"], cwd=checkout)
@@ -391,10 +441,18 @@ def recover_live_checkout(
             fail("shared lease exists but the runtime bind is not read-only; unmount only %s" % runtime_root)
         helper = Path(str(lease.get("helperMount") or view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"))
         selected = Path(str(lease.get("viewRoot") or view_root / "current"))
+        # 复用前重跑消费者门禁（Issue #1713）：复用不豁免可读性与工件完整性。
+        verified = consumer_gate(selected, readiness)
         payload = _selection_payload(
             checkout, readiness, blob_root, helper, selected, runtime_root, topology, mount_id,
         )
         write_selection_receipt(receipt_path, payload)
+        write_verification_receipt(verification_receipt_path(checkout), {
+            **verified,
+            "viewRoot": str(selected),
+            "runtimeRoot": str(runtime_root),
+            "blobMount": str(blob_root),
+        })
         heartbeat_lease(checkout, mount_id, payload)
         return payload
     if use_real_fuse() and is_mounted(runtime_root):
@@ -489,6 +547,7 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             os.chmod(view_root, 0o700)
             helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
             selected = view_root / "current"
+            verified = consumer_gate(selected, readiness)
             payload = _selection_payload(
                 checkout, readiness, blob_root, helper_mount, selected, runtime_root, topology, mount_id,
             )
@@ -498,10 +557,17 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             refuse_stacked_bind(runtime_root, "runtime")
             bind_runtime(selected, runtime_root)
             write_selection_receipt(receipt_path, payload)
+            write_verification_receipt(verification_receipt_path(checkout), {
+                **verified,
+                "viewRoot": str(selected),
+                "runtimeRoot": str(runtime_root),
+                "blobMount": str(blob_root),
+            })
             return payload
         except Exception:
             unmount_best_effort(runtime_root)
             unmount_best_effort(helper)
+            verification_receipt_path(checkout).unlink(missing_ok=True)
             if acquired and mount_id:
                 release_lease(checkout, mount_id, unmount_best_effort)
             elif topology == TOPOLOGY_CHECKOUT:
@@ -521,6 +587,39 @@ def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any
         heartbeat_lease(checkout, mount_id, payload)
     sys.stdout.write(json.dumps(portable_start_payload(payload), sort_keys=True) + "\n")
     return payload
+
+
+def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
+    """Issue #1713：checkout 限域重建事务。
+
+    顺序：校验回执所有权 → best-effort 停消费者 → 按回执卸载 bind → 全新
+    prepare（重跑物化、消费者门禁与回执）→ 重启。共享 mount 仅在确认无其他
+    live lease 时由 stop 语义释放；所有权不确定即停止且不删除现场。
+    """
+    receipt = read_selection_receipt(checkout_state(checkout) / "selection.json")
+    if not receipt:
+        raise DeveloperRuntimeError(
+            "repair requires an existing checkout-owned selection receipt; refusing to touch uncertain state",
+        )
+    runtime_root = checkout / "course-content" / "runtime"
+    if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
+        raise DeveloperRuntimeError("repair receipt does not own this checkout runtime path")
+    try:
+        stop_services(checkout)
+    except DeveloperRuntimeError:
+        # 消费者可能已因 runtime 不可读而不可停止；重建不依赖停止成功，
+        # 后续 bind 卸载仍由回执所有权证明。
+        pass
+    unmount(Path(receipt["runtimeRoot"]))
+    helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
+    unmount(Path(helper_mount))
+    if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
+        release_lease(checkout, str(receipt["sharedMountId"]), unmount)
+    else:
+        unmount(Path(receipt["blobMount"]))
+    remove_ossfs_config(checkout_state(checkout))
+    verification_receipt_path(checkout).unlink(missing_ok=True)
+    return start(checkout, readyz_url)
 
 
 def stop(checkout: Path) -> None:

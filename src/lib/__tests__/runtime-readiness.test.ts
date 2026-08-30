@@ -10,6 +10,8 @@ vi.mock('server-only', () => ({}));
 import { readActiveRuntimeReleaseManifest } from '../runtime-active-release';
 import { projectionDigest } from '../teaching-projection/hash';
 import {
+  RUNTIME_CONSUMER_VERIFICATION_FILENAME,
+  RUNTIME_FILESYSTEM_PROBE_PATH,
   isBlobViewRuntimeRequired,
   projectRuntimeIdentity,
   projectRuntimeReadiness,
@@ -47,6 +49,30 @@ async function blobView(options?: { extraReceiptField?: boolean; mismatch?: bool
   if (options?.extraReceiptField) receipt.desiredReleaseId = 'runtime-candidate';
   await writeFile(path.join(root, 'act-runtime-active-receipt.json'), JSON.stringify(receipt));
   return { root, manifest };
+}
+
+async function writeConsumerVerification(
+  root: string,
+  manifest: Awaited<ReturnType<typeof buildRuntimeBlobReleaseManifest>>,
+  overrides: Record<string, unknown> = {},
+) {
+  await mkdir(path.join(root, 'resource-governance'), { recursive: true });
+  await writeFile(path.join(root, RUNTIME_FILESYSTEM_PROBE_PATH), JSON.stringify({ schemaVersion: 'micro-tutoring-resource-projection.v2' }));
+  const receiptPath = path.join(root, RUNTIME_CONSUMER_VERIFICATION_FILENAME);
+  await writeFile(receiptPath, JSON.stringify({
+    schemaVersion: 'act-runtime-consumer-verification.v1',
+    verifierVersion: 'consumer-verification.v1',
+    releaseId: manifest.releaseId,
+    manifestSha256: manifest.manifestSha256,
+    treeSha256: manifest.treeSha256,
+    consumerUid: process.getuid?.() ?? 0,
+    runtimeRoot: root,
+    leafCount: 2,
+    requiredArtifactSetDigest: 'e'.repeat(64),
+    verifiedAt: '2026-08-30T00:00:00Z',
+    ...overrides,
+  }));
+  return receiptPath;
 }
 
 async function writeCoordinatedActiveReceipt(
@@ -105,13 +131,15 @@ describe('runtime readiness projector', () => {
       required: false,
       ready: true,
       identity: null,
+      filesystem: { ready: true },
     });
   });
 
   it('projects only the allowlisted active identity when blob-view binding is valid', async () => {
     vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
     const { root, manifest } = await blobView();
-    const projection = await projectRuntimeReadiness(root);
+    const verificationReceiptPath = await writeConsumerVerification(root, manifest);
+    const projection = await projectRuntimeReadiness(root, undefined, undefined, undefined, verificationReceiptPath);
     expect(projection).toEqual({
       required: true,
       ready: true,
@@ -121,6 +149,7 @@ describe('runtime readiness projector', () => {
         manifestSha256: manifest.manifestSha256,
         treeSha256: manifest.treeSha256,
       },
+      filesystem: { ready: true },
     });
     expect(Object.keys(projection.identity ?? {})).toEqual([
       'schemaVersion',
@@ -139,6 +168,7 @@ describe('runtime readiness projector', () => {
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'manifest-unavailable' },
     });
 
     const extra = await blobView({ extraReceiptField: true });
@@ -146,6 +176,7 @@ describe('runtime readiness projector', () => {
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'manifest-unavailable' },
     });
 
     const missing = await blobView();
@@ -154,6 +185,7 @@ describe('runtime readiness projector', () => {
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'manifest-unavailable' },
     });
   });
 
@@ -180,29 +212,105 @@ describe('runtime readiness projector', () => {
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'coordinated-receipt-missing' },
     });
     const authorityCurrentPath = await writeAuthorityCurrent(root);
     const matching = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath);
-    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toMatchObject({
+    const verificationReceiptPath = await writeConsumerVerification(root, manifest);
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath, verificationReceiptPath)).resolves.toMatchObject({
       required: true,
       ready: true,
       identity: { releaseId: manifest.releaseId },
+      filesystem: { ready: true },
     });
     await writeFile(authorityCurrentPath, JSON.stringify({
       contract: 'actkg-engineering-authority-current/v1',
       snapshotId: 'snap-foreign',
     }));
-    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath)).resolves.toEqual({
+    await expect(projectRuntimeReadiness(root, undefined, matching, authorityCurrentPath, verificationReceiptPath)).resolves.toEqual({
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'coordinated-receipt-missing' },
     });
     const mismatched = await writeCoordinatedActiveReceipt(root, manifest, authorityCurrentPath, 'runtime-foreign');
-    await expect(projectRuntimeReadiness(root, undefined, mismatched, authorityCurrentPath)).resolves.toEqual({
+    await expect(projectRuntimeReadiness(root, undefined, mismatched, authorityCurrentPath, verificationReceiptPath)).resolves.toEqual({
       required: true,
       ready: false,
       identity: null,
+      filesystem: { ready: false, failureClass: 'coordinated-receipt-missing' },
     });
+  });
+
+  it('keeps pinned identity while failing closed when consumer filesystem verification degrades', async () => {
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+    const { root, manifest } = await blobView();
+    const verificationReceiptPath = await writeConsumerVerification(root, manifest);
+    const readyz = (receiptOverrides: Record<string, unknown> = {}) => projectRuntimeReadiness(
+      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined,
+    );
+
+    const healthy = await readyz();
+    expect(healthy.ready).toBe(true);
+    expect(healthy.filesystem).toEqual({ ready: true });
+    expect(healthy.identity?.releaseId).toBe(manifest.releaseId);
+
+    await writeConsumerVerification(root, manifest, { consumerUid: (process.getuid?.() ?? 0) + 137 });
+    const drifted = await readyz();
+    expect(drifted.ready).toBe(false);
+    expect(drifted.filesystem).toEqual({ ready: false, failureClass: 'consumer-identity-mismatch' });
+    expect(drifted.identity?.releaseId).toBe(manifest.releaseId);
+
+    await writeConsumerVerification(root, manifest, { releaseId: 'runtime-foreign' });
+    const foreign = await readyz();
+    expect(foreign.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-identity-drift' });
+    expect(foreign.identity?.releaseId).toBe(manifest.releaseId);
+
+    await rm(path.join(root, RUNTIME_FILESYSTEM_PROBE_PATH));
+    await writeFile(verificationReceiptPath, JSON.stringify({
+      schemaVersion: 'act-runtime-consumer-verification.v1',
+      verifierVersion: 'consumer-verification.v1',
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+      treeSha256: manifest.treeSha256,
+      consumerUid: process.getuid?.() ?? 0,
+      runtimeRoot: root,
+      leafCount: 2,
+      requiredArtifactSetDigest: 'e'.repeat(64),
+      verifiedAt: '2026-08-30T00:00:00Z',
+    }));
+    const unreadable = await readyz();
+    expect(unreadable.filesystem).toEqual({ ready: false, failureClass: 'required-artifact-unreadable' });
+
+    await rm(verificationReceiptPath);
+    const missing = await readyz();
+    expect(missing.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-missing' });
+    expect(missing.identity?.releaseId).toBe(manifest.releaseId);
+    expect(missing.ready).toBe(false);
+  });
+
+  it('rejects consumer receipts with invalid schema or fields', async () => {
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+    const { root, manifest } = await blobView();
+    const receiptPath = await writeConsumerVerification(root, manifest, { schemaVersion: 'unknown-schema' });
+    const projection = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);
+    expect(projection.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-missing' });
+
+    await writeConsumerVerification(root, manifest, { runtimeRoot: '/somewhere/else' });
+    const misplaced = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);
+    expect(misplaced.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-invalid' });
+  });
+
+  it('keeps the readyz probe path aligned with the python requirement registry', async () => {
+    const { readFile: readFileSync } = await import('node:fs/promises');
+    const registryPath = path.join(process.cwd(), 'scripts', 'runtime-release', 'developer-oss', 'runtime_requirements.json');
+    const registry = JSON.parse(await readFileSync(registryPath, 'utf8')) as {
+      capabilities: Record<string, { artifacts: { path: string }[] }>;
+    };
+    const registered = Object.values(registry.capabilities)
+      .flatMap((capability) => capability.artifacts.map((artifact) => artifact.path));
+    expect(registered).toContain(RUNTIME_FILESYSTEM_PROBE_PATH);
+    expect(registered).toContain('resource-governance/micro-tutoring-validation-registry-v2.json');
   });
 
   it('copies only allowlisted identity fields from the mounted v2 manifest', async () => {
