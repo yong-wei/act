@@ -72,6 +72,7 @@ from shared_mount import (
     live_lease_ids,
     read_leases,
     read_shared_record,
+    shared_mount_dir,
     verify_shared_identity,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
@@ -708,6 +709,14 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                     "repair refused: shared mount record is missing; uncertain mount state",
                 )
             verify_shared_identity(record, credential["accountId"])
+            # mountpoint 不在 verify_shared_identity 覆盖内：必须等于该 mount 的
+            # 规范 blob 路径，防止记录被改指其他工作树/未知只读挂载后误卸载。
+            expected_mountpoint = shared_mount_dir(claimed_mount) / "blobs"
+            record_mountpoint = Path(str(record.get("mountpoint") or ""))
+            if record_mountpoint.resolve() != expected_mountpoint.resolve():
+                raise DeveloperRuntimeError(
+                    "repair refused: shared mount record mountpoint drifted from its canonical path",
+                )
             release_lease(checkout, claimed_mount, unmount)
         else:
             blob_mount = Path(receipt["blobMount"])

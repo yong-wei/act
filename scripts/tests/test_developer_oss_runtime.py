@@ -1513,7 +1513,8 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
     def test_repair_refuses_drifted_shared_mount_record(self):
         """Issue #1713 P1：identity 与 lease 均匹配但共享 mount.json 记录漂移时，release 前必须拒绝。"""
         from bootstrap import repair
-        from common import DeveloperRuntimeError, authority_id, checkout_state
+        from common import DeveloperRuntimeError, authority_id, authority_identity, checkout_id, checkout_state
+        from shared_mount import options_digest
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"
             checkout.mkdir()
@@ -1548,11 +1549,13 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 "topology": "shared",
                 "startedAt": "2026-08-30T00:00:00Z",
             })
+            # identity/options/principal 全部合法，仅 mountpoint 漂移到未知挂载——
+            # 专测 mountpoint 校验（verify_shared_identity 不覆盖该字段）。
             drifted_record = {
                 "schemaVersion": "act-runtime-dev-shared-mount.v1",
-                "identity": {"schemaVersion": "act-runtime-dev-shared-mount.v1", "accountId": "123456789012"},
+                "identity": authority_identity("123456789012"),
                 "mountpoint": str(Path(raw) / "somewhere-else" / "blobs"),
-                "optionsDigest": "drifted",
+                "optionsDigest": options_digest(),
                 "principal": "act-runtime-dev-read",
             }
             with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
