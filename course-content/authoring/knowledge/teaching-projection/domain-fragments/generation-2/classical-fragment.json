@@ -1,35 +1,35 @@
 {
   "contract": "act-domain-teaching-fragment/v1",
   "builderVersion": "act-domain-teaching-fragment-builder/v1",
-  "fragmentId": "dtf-a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
+  "fragmentId": "dtf-9c3682541e726d21fb52511fb5d9646256df0c9dd20abd2b3958886bce8bd075",
   "fragmentKey": "classical-control-published-v1",
   "fragmentVersion": "1",
-  "fragmentDigest": "a69f4cad60b550093856adc6913439af8ecd7c0be0083e7ae48e14320ef1867f",
+  "fragmentDigest": "9c3682541e726d21fb52511fb5d9646256df0c9dd20abd2b3958886bce8bd075",
   "domainKeys": [
     "classical-control-design",
     "frequency-domain-analysis",
     "root-locus"
   ],
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "nodeIndexDigest": "76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5"
   },
-  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
   "sourceInventoryDigest": "0b713eb20d5376ea12eec2367490cf87e7f6d751dd8efa270fc96f270d44d732",
-  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "authorityDigest": "c15b740eb21b036cd36e059b2fda2f57cba3776609f5297f34593cd3179a2530",
   "evidenceRefs": [
     "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
     "course-content/authoring/lessons/4-7/design/4-7-handout.md",
@@ -38,7 +38,9 @@
   "coreNodes": [
     {
       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
-      "domainKeys": ["classical-control-design"],
+      "domainKeys": [
+        "classical-control-design"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-6-classical-design",
@@ -52,7 +54,9 @@
     },
     {
       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
-      "domainKeys": ["frequency-domain-analysis"],
+      "domainKeys": [
+        "frequency-domain-analysis"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-4-frequency",
@@ -66,7 +70,9 @@
     },
     {
       "canonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
-      "domainKeys": ["root-locus"],
+      "domainKeys": [
+        "root-locus"
+      ],
       "pathEligible": true,
       "cardPolicy": "REQUIRED",
       "moduleId": "module-5-root-locus",
@@ -87,7 +93,10 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "RECOMMENDED",
-      "domainKeys": ["classical-control-design", "root-locus"],
+      "domainKeys": [
+        "classical-control-design",
+        "root-locus"
+      ],
       "evidenceRefs": [
         "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
         "course-content/authoring/lessons/4-7/design/4-7-teacher-handout.md"
@@ -105,7 +114,10 @@
       "layer": "ACT_TEACHING",
       "relationType": "PREREQUISITE",
       "strength": "RECOMMENDED",
-      "domainKeys": ["classical-control-design", "frequency-domain-analysis"],
+      "domainKeys": [
+        "classical-control-design",
+        "frequency-domain-analysis"
+      ],
       "evidenceRefs": [
         "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
         "course-content/authoring/lessons/4-7/design/4-7-handout.md"

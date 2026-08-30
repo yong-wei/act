@@ -34,7 +34,8 @@ const ROOT = process.cwd();
 const LEGACY_BASELINE_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4';
 const DEFAULT_SELECTOR_ROOT = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
 const DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST = 'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae/manifest.json';
-const COMPOSED_DOMAIN_FRAGMENT_MANIFEST = 'course-content/authoring/knowledge/teaching-projection/domain-fragments/composed-manifest.json';
+const COMPOSED_DOMAIN_FRAGMENT_MANIFEST =
+  'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-3/composed-manifest.json';
 
 type RuntimeLifecycleIdentity = {
   readonly schemaVersion: 'runtime-blob-release-identity.v1';
@@ -156,6 +157,14 @@ function main(): void {
   const successorAuthorityManifestPath = optionOr(
     '--successor-authority-manifest',
     DEFAULT_SUCCESSOR_AUTHORITY_MANIFEST,
+  );
+  const composedManifestPath = optionOr(
+    '--composed-manifest',
+    COMPOSED_DOMAIN_FRAGMENT_MANIFEST,
+  );
+  const domainFragmentSearchRoot = optionOr(
+    '--domain-fragment-search-root',
+    DEFAULT_DOMAIN_FRAGMENT_SEARCH_ROOT,
   );
   const predecessor = readJson<{
     contract: string;
@@ -302,12 +311,14 @@ function main(): void {
     presentationLabels.qualificationHash]) {
     requireDigest(value, 'frozen r4 identity');
   }
-  const composedDomainFragments = readJson<DomainTeachingComposedManifest>(COMPOSED_DOMAIN_FRAGMENT_MANIFEST);
+  const composedDomainFragments = readJson<DomainTeachingComposedManifest>(composedManifestPath);
   requireDigest(composedDomainFragments.projectionHash, 'composed domain-fragment manifest');
   requireDigest(composedDomainFragments.sourceHashes.fragments, 'domain-fragment set');
   const publishedFragments = loadReferencedDomainFragments(
     composedDomainFragments,
-    path.join(ROOT, DEFAULT_DOMAIN_FRAGMENT_SEARCH_ROOT),
+    path.isAbsolute(domainFragmentSearchRoot)
+      ? domainFragmentSearchRoot
+      : path.join(ROOT, domainFragmentSearchRoot),
   );
   if (presentationLabels.status !== 'PASS' || presentationLabels.reviewRequired !== 0) {
     fail('r4 presentation-label qualification requires review or did not pass');

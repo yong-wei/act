@@ -291,16 +291,36 @@ try {
       `prepare must persist referenced domain fragment ${ref.fragmentId} for remote reopen`,
     );
   }
-  const mixedIdentityQualify = spawnSync(
+  const successorQualify = spawnSync(
     path.join(root, 'node_modules/.bin/tsx'),
     [qualificationArtifacts, '--candidate-dir', out],
     { cwd: root, encoding: 'utf8' },
   );
-  assert.notEqual(mixedIdentityQualify.status, 0, 'a v0.9 composed-manifest must not qualify against the v0.37 successor');
+  assert.equal(
+    successorQualify.status,
+    0,
+    `prepared successor composed-manifest must qualify\n${successorQualify.stdout}${successorQualify.stderr}`,
+  );
+  const authorityPath = path.join(out, 'authority-current.json');
+  const successorAuthority = JSON.parse(fs.readFileSync(authorityPath, 'utf8'));
+  fs.writeFileSync(authorityPath, `${JSON.stringify({
+    ...successorAuthority,
+    releaseId: 'ctr:release:control-theory-engineering-v0.9',
+    releaseSetId: 'actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6',
+    snapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+    snapshotHash: '7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+  })}\n`);
+  const mixedAuthorityQualify = spawnSync(
+    path.join(root, 'node_modules/.bin/tsx'),
+    [qualificationArtifacts, '--candidate-dir', out],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.notEqual(mixedAuthorityQualify.status, 0, 'a v0.9 Authority pointer must not qualify against the v0.37 composed-manifest');
   assert.match(
-    `${mixedIdentityQualify.stdout}${mixedIdentityQualify.stderr}`,
+    `${mixedAuthorityQualify.stdout}${mixedAuthorityQualify.stderr}`,
     /composed domain-fragment manifest does not bind the successor Authority/,
   );
+  fs.writeFileSync(authorityPath, `${JSON.stringify(successorAuthority)}\n`);
   const tamperedRuntimeRelease = { ...runtimeRelease, manifestWireSha256: 'f'.repeat(64) };
   fs.writeFileSync(stagePath, `${JSON.stringify({
     contract: 'coordinated-runtime-stage/v1',

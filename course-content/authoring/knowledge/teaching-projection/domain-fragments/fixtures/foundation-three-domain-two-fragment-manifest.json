@@ -2,32 +2,32 @@
   "contract": "act-domain-teaching-composed-manifest/v1",
   "builderVersion": "act-domain-teaching-composition-builder/v1",
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
     "nodeIndexDigest": "bf6c2cccf0ee1adc1601d2bb2fe9d1f831d40f3f108fa9733ee8b38bf89630e9"
   },
-  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-  "sourceInventoryDigest": "eb1c8bbc26166fc1b0048bf8a66f833b1a787ae29f575cb49b17874eba63d01f",
-  "authorityDigest": "aceacc10350f11c2f17c9ff0ad4141c9ea6cb7e974dcff690ffacde19c1eec1b",
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+  "sourceInventoryDigest": "0b25f9dd1cfaffd102d815e06bccb788ffc24d59ba80116b53dc2d4553667157",
+  "authorityDigest": "33115331a28ea726a6515efc06dfd4a4047bfa5980820b8f6294425ff08aa4b7",
   "fragments": [
     {
       "order": 0,
-      "fragmentId": "dtf-9966a485498eaaa304b7b28023ce9494207a1f8cb735be837405a34a524b0154",
+      "fragmentId": "dtf-ede4f02b9608c86e70f454fb4959d95187681296cab689daa2824ce261bf7383",
       "fragmentKey": "foundation-published-v1",
       "fragmentVersion": "1",
-      "fragmentDigest": "9966a485498eaaa304b7b28023ce9494207a1f8cb735be837405a34a524b0154",
+      "fragmentDigest": "ede4f02b9608c86e70f454fb4959d95187681296cab689daa2824ce261bf7383",
       "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
       "domainKeys": [
         "stability-analysis",
@@ -36,10 +36,10 @@
     },
     {
       "order": 1,
-      "fragmentId": "dtf-edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
+      "fragmentId": "dtf-9e4d66bc8c533ce2e67d66be4414ad6ae637564a194538d83c27d3f0fd290bf2",
       "fragmentKey": "foundation-three-domain-v1",
       "fragmentVersion": "1",
-      "fragmentDigest": "edcb43e618e8f0934b6b884044cda82db38acb19fa30d8ff72b60f2de5e4caf1",
+      "fragmentDigest": "9e4d66bc8c533ce2e67d66be4414ad6ae637564a194538d83c27d3f0fd290bf2",
       "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
       "domainKeys": [
         "stability-analysis",
@@ -119,10 +119,10 @@
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
   "sourceHashes": {
-    "fragments": "b77494405904e3ed9124cf37d1f37d7cf236a4319e1b813ca6a17a7368ac8109",
-    "sourceInventory": "eb1c8bbc26166fc1b0048bf8a66f833b1a787ae29f575cb49b17874eba63d01f",
-    "body": "3d8b2919a7825bfe728f86ec1d9b3927b7782ab5a79d3b7e39d0f0654aceb380"
+    "fragments": "cf4feb4fcf224b19c7a65eeee14f08dd3b98d8ddb933b8dbf2635a9bf103b38d",
+    "sourceInventory": "0b25f9dd1cfaffd102d815e06bccb788ffc24d59ba80116b53dc2d4553667157",
+    "body": "9e49f336a8ad678c18f2469828523807386ee41518ac6331786558698a804c7a"
   },
-  "projectionId": "proj-ff710bffdd08b99d991383d930e6820df1ff542e132c358ed3c0ecf8b412c6f3",
-  "projectionHash": "ff710bffdd08b99d991383d930e6820df1ff542e132c358ed3c0ecf8b412c6f3"
+  "projectionId": "proj-59d111d58eb282a06ef9a1e5be87d4526d512cd7400c56fd0fe5840e0c98747a",
+  "projectionHash": "59d111d58eb282a06ef9a1e5be87d4526d512cd7400c56fd0fe5840e0c98747a"
 }

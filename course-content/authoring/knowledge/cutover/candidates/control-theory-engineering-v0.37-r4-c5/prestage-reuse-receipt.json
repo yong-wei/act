@@ -1,0 +1,12 @@
+{
+  "contract": "r4-c5-prestage-incremental-reuse/v1",
+  "allocationHash": "1d46215ebef09b3706cf1edb4c463fd68f24003ab3f2efc4337819a1f4eaffb0",
+  "c4SemanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "predecessorObservationHash": "a7d65773332bbe96ec097173e8bd2b264430ae161fa2e417fffdfb9b4987d4cf",
+  "formalResourceEnvelopeHash": "fb770a47333330abf12216133c48134099e680780e7d6324c66f176920b12cd7",
+  "derivationReceiptHash": "0915003e50d8e464afc4eeb9af95d5dd7c76d4797ca665f883e72e8b18a32b3e",
+  "reusedBaselineEntries": 14303,
+  "reusedContinuityObligations": 2296,
+  "reusedTeachingDispositions": 22428,
+  "recomputedAuthorityEntries": 0
+}

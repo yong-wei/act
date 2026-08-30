@@ -54,63 +54,63 @@ export const DOMAIN_TEACHING_GENERATION_V3_RELATIVE =
 
 export const PINNED_PUBLISHED_BYTE_DIGESTS = {
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/first-fragment.authoring.json':
-    'b38ee2a36c39004d78d0bfb3d769b6ca15b2d8d1437d3f97617c687d0c548582',
+    'c1fec14e9791e3c7453eb75bf71966d99468fb63d60912510b9d30a1de0df909',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/first-fragment.json':
-    'a09bd4109efc017674d6334e85eab86e07fe2ce96fc0c7207ffbc7bb1ca22daf',
+    '173c0974f0d7cdc01df7a4aa41403f74d0402d86ff33af2cee782a3b733e8dfb',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/composed-manifest.json':
-    '08bbf9d1e8b07de21bb2bf2f939c642f7bfcc8ad0f463c2ae13fa416a9d511ff',
+    '2d003bb4106cd6b6547722cf5f58a88b6a07f2c224a191f222b2c9554c086188',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.authoring.json':
-    'd82699acf1b4d0dd3aa74e927bf6d968eaa61c3a55b5dca5ef7f1fd113f5edf1',
+    'fbce25dba51d94764f8ac569039bb10b34ebe137c5cd63e8ac27b79d3ed131e3',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.json':
-    '61b50e0f196da843db3e07ed63dedf3c7c0bb84f71c85dfa015d278b9b7318ee',
+    'b790e540480a3b478db03b648d4ed38a7fcce9b52f67d346cd644e09d272e653',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.source.json':
-    'c88b54385ece52c9fd959070fa6bded1ef0aa114246f8ecabb2c9e791f4cba9f',
+    'f55cab541a6c9add1a4eae0a3aa18e4e6ec8c0575de6eb0d0e5de74d0e1d36fd',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.worklist.json':
-    '5787d0a21bf491b826775aad4d7bc244b0cdb49bbb7a3ca813ca28255e201e96',
+    '47b87d1e208a2bc78fca6cb1ffd9fd6d47a9cd664e62809a5c6e34ab99e74970',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/foundation-three-domain-v1.coverage.json':
-    '2f742be9006e883b880421ff6ff8aaa125dae3e7281b2493e56a9df9d50e2fe9',
+    'db55bb4e6c083659f9b166c728d7efbee12ec098bdcaae49b6b2f066cba14add',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/authority-source.json':
-    '466512935215480f25479f7b7d167e677b2ab082d336cef7264a7661d5eb6f17',
+    '98c39c9fc234c2b3cf20f3ea9e073cc4bf775fb31c07b7a04df67b47c01e4312',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-fragment.authoring.json':
-    'c7fa6b97a0775622c065a6d71e4530b439ba1501f239be466aac8eb927e7e344',
+    '9618b21f21113fa5d04ddd4416d9af21605844c87c047377832599666840f134',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-fragment.json':
-    '57fe7ce15a8b49fd0c581a8b39e35166fc8023b4304f8216f4ea5a09fe67bb77',
+    '20831faed7ab0a18dd0225930540440383ad5a37f88beaf9a64ecc3791069791',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-three-domain-fragment.authoring.json':
-    '74840d444d202d10d97486e2f57846d13e4390c536c02513f6aaeb5638ac04fb',
+    '087510458a1f4a737985f25f14473dd7c927ffcc75de9c93731e4cbd814f5df9',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/foundation-three-domain-fragment.json':
-    '60c81c5747956b52f3d0d9ee52502b4f4d7554cf6ae6942d6a9fe5e2876ed9ed',
+    '74297a098e940a0575a4010e64b047848ec39cc1b02f06d7957705b2403a1908',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-fragment.authoring.json':
-    '9b837d224adf0d50210e9c6b3d7d27f16084cc688dcaebea2b4e7f1164900a55',
+    'f8948d8c8ebc9f7bef127da6d3ca5be22bc2cb7e49c32a78d1155f23d23dcd6c',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-fragment.json':
-    'e17f142c8a87455ad9f4c31773a7406bf03e47b7be365c78a800c0252a0b559a',
+    '0316f2377cbe84007e4ffd625ec3cb72974d0eb2f0af0af9fd6df3357a86893e',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/classical-worklist.json':
     '67debc20a29898795aaa7e5f623debf63818d406a59498a6c266b7cf2dc8aba4',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-2/composed-manifest.json':
-    '2900ae58fa4d4f7dd1975296ae0682bef002c9a4badb700e2a9196f05b4938a5',
+    'e1e10b128779e8bfca86fe70b068ffe991e51bc002f52d894afe7eee54003ae5',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.authoring.json':
-    '3b97490284c934e6ebe058ca8207e89ecf8a053a0c4c5d1a40dce1c1175a541e',
+    '352c506dbc610c33ecb08e66512b8bcf2cb3487d3cee903ea1213decfc054517',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.json':
-    'a995fd09d08b5a814c95751988094b3d1d2ef48424bbab13c394740422e4972e',
+    'ea1e446905b9e353890216588113045e141b9e4d3645b8525236c3990becee03',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.source.json':
-    '974c7e9184c15f9d4d0c3a6766cdcf85d536029d986a7ecff8c0ee92a715a61d',
+    'c4f9256635385925e6040227a03418a341e201707b068d6a1307dc60ccb824e1',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.worklist.json':
-    '4372e18470ebb9dd47427d4b38113bde3b7673667744c41249fee6d4dd32e06f',
+    '046e9acee15767a4ac84f7b7a78c21382884db95a8794615e988796ab6cb4372',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-discrete-time-v1.coverage.json':
-    'c8edebcb809afe5e0fd4520c731a9e5c58cc4a88ece50f5cc3bdc574cc7d51d6',
+    '0b4c0d04c970ebc80cc79a78c96643ad261449098fb6a2f732a30d3fc00579d5',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.authoring.json':
-    'a09af7291b9c93056fc8272aecc3e52b320af23ae9b648f23a6336c66946196a',
+    '3be780f86023ef917eadec26409dddf925bdaf31a2fcaf75b506bf227116db16',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.json':
-    '8dc92ed1351142533042e835410fcb9685756cb50b02cbf868e7c620776b7e93',
+    '2961ae6a6136f5cf3178571a796bb24c2b77faf8004b00a400a7ded2f5ab0549',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.source.json':
-    '25bfdedd6ba27eedb931cd45c07273d797da716755409c4b5281a897b55f70f4',
+    'c09148e5ce2ba27c96c73a93ac8cafee5f65dcc579ed3f6cb07c66944e0cc768',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.worklist.json':
-    '376a06b7dbb2f531b99cf65dc6e8a59f9a68288d3b7a6e51e773cb1c74093f8b',
+    '21ce5ac8dafb07a93dfe09bd6824db669a6dcb0e4159b221df25c5abe1c8f93d',
   'course-content/authoring/knowledge/teaching-projection/domain-fragments/modern-state-space-v1.coverage.json':
-    '50608294d8b1950b77f0cf2941844135b3a3e65d98df2feecf9b0486a04e5030',
+    '96acd0c4bed254fededcaca8a3b1fc306b4256bc89f4977c9921b9f10d1f1569',
   [PINNED_AUTHORITY_ENGINEERING_RELATIVE]:
-    'bf25630617d97ffd1b3353b23c51f0e8e7227546d346818f7f1abc6019e4ea57',
+    '7046b105b2e1f8660b5cb168be2300680e90813db805bd0477a801f4da6ed657',
   [PINNED_AUTHORITY_MANIFEST_RELATIVE]:
-    'f4d745a0b65130b6deecc58eb8a7d1cf5dbbea331e2b77e7846f7a5e9ee06420',
+    '7c2f2792797c1ba607e2f408c6d3ace12147e344cf2191703f2cd8929baa2f76',
 } as const;
 
 export const PINNED_REVIEWER_WORKLIST_SEMANTIC_DIGESTS = {

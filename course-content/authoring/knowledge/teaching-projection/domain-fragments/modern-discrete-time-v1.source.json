@@ -4,20 +4,20 @@
   "fragmentVersion": "1",
   "domainId": "discrete-time-control-analysis",
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
     "nodeIndexDigest": "4e33e24f49efe5f89822373b92a4f8cbba4730486037fb0e6c125c4040030426"
   },
   "authorityNodeIds": [
@@ -55,5 +55,5 @@
       "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。"
     }
   ],
-  "sourceDigest": "5ade4eea2ea751e2c72daf3036c2499659ebed95dab2f9dde8ba102f61ef3835"
+  "sourceDigest": "06b47885376e73b042e0db02171622d53d01a5a27d48a20bba52c373c0adde69"
 }

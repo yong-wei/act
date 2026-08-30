@@ -13,3 +13,5 @@ export * from './baseline-continuity-obligation';
 export * from './active-course-binding-rebinding';
 export * from './authority-semantic-cache';
 export * from './latest-complete-capture';
+export * from './domain-fragment-files';
+export * from './successor-domain-fragments';

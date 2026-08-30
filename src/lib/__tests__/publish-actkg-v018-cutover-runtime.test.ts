@@ -116,7 +116,10 @@ describe('v0.18 runtime publication', () => {
     });
     expect(result.imageBuilt).toBe(false);
     expect(result.status).toBe('BLOCKED');
-    expect(result.blockers).toContain('provenance-missing');
+    // Live runtime selectors are the v0.37 coordinated candidate; Git
+    // authority/current.json remains v0.9. The sealed v0.18 publisher therefore
+    // fail-closes on pointer identity before it can reach provenance checks.
+    expect(result.blockers).toContain('production-projection-not-v09');
     expect(result.blockers).toContain('host-shadow-verification-incomplete');
     expect(result.blockers).not.toContain('qualification-not-ready');
     expect(existsSync(path.join(outputRoot, 'runtime-release-receipt.json'))).toBe(true);

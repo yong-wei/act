@@ -1,33 +1,33 @@
 {
   "contract": "act-domain-teaching-fragment/v1",
   "builderVersion": "act-domain-teaching-fragment-builder/v1",
-  "fragmentId": "dtf-ff619de5fd67142da3bcc4452b8a8e1395ca43176aacc3dc88616b41d33cefe4",
+  "fragmentId": "dtf-0b56e0466f5ee381d862aa7e1ca513f33cc6b907208ea2eb13c5852d7bcd9df2",
   "fragmentKey": "modern-state-space-v1",
   "fragmentVersion": "1",
-  "fragmentDigest": "ff619de5fd67142da3bcc4452b8a8e1395ca43176aacc3dc88616b41d33cefe4",
+  "fragmentDigest": "0b56e0466f5ee381d862aa7e1ca513f33cc6b907208ea2eb13c5852d7bcd9df2",
   "domainKeys": [
     "state-space-control-analysis-and-design"
   ],
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
     "nodeIndexDigest": "4e33e24f49efe5f89822373b92a4f8cbba4730486037fb0e6c125c4040030426"
   },
-  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
   "sourceInventoryDigest": "3e15353f1af379e4291ef79a4a2ed581dc523d39ce385a0d05d89b70e4993368",
-  "authorityDigest": "f7789fdc8e3437f8685e4c08bc4c631d1b8af3c79a8b812ff9640f2a90997212",
+  "authorityDigest": "d93a8f644b7b8e2ee9a9dbba9ece8cd11fd0b0244e8d1a2dc286ad4a4f568ac9",
   "evidenceRefs": [],
   "coreNodes": [],
   "relations": [],

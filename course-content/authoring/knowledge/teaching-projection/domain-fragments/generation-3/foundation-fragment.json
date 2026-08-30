@@ -1,34 +1,34 @@
 {
   "contract": "act-domain-teaching-fragment/v1",
   "builderVersion": "act-domain-teaching-fragment-builder/v1",
-  "fragmentId": "dtf-155166bbdd92c6038a9a923ee65756c91325afa26b926fb792399c7ce5f4213c",
+  "fragmentId": "dtf-1feb424907b21a14ed679a8a2a5a3b65286fdad5a75cd39ddc0a3a73be8786b0",
   "fragmentKey": "foundation-published-v3",
   "fragmentVersion": "1",
-  "fragmentDigest": "155166bbdd92c6038a9a923ee65756c91325afa26b926fb792399c7ce5f4213c",
+  "fragmentDigest": "1feb424907b21a14ed679a8a2a5a3b65286fdad5a75cd39ddc0a3a73be8786b0",
   "domainKeys": [
     "stability-analysis",
     "system-modeling"
   ],
   "authorityBinding": {
-    "releaseId": "ctr:release:control-theory-engineering-v0.9",
-    "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-    "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
   },
   "authoritySelection": {
     "authorityBinding": {
-      "releaseId": "ctr:release:control-theory-engineering-v0.9",
-      "releaseSetId": "actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6",
-      "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7",
-      "snapshotHash": "7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
     },
-    "sourceDatasetHash": "0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a",
-    "captureRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
-    "nodeIndexDigest": "3f7f46b24bf689b873aaabbfbc509257d3c7d1ae867b78be295632ec03646f40"
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "nodeIndexDigest": "76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5"
   },
-  "authoringRevision": "1a56317aa44e46322be0b0d1ac73948c03c5c2c0",
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
   "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
-  "authorityDigest": "bc5e41d86cd12ae44948a7dba8ab364370de7bdc92c91bf6e2be6fa0705c8ba9",
+  "authorityDigest": "c15b740eb21b036cd36e059b2fda2f57cba3776609f5297f34593cd3179a2530",
   "evidenceRefs": [
     "course-content/authoring/lessons/1-1/design/1-1-boppps.md",
     "course-content/authoring/lessons/1-2/design/1-2-boppps.md",

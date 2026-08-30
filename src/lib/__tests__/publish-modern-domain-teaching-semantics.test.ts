@@ -95,7 +95,7 @@ describe('publish-modern-domain-teaching-semantics', () => {
     }
     expect(envelope.nodes.every((node) => node.lifecycleStatus === 'active')).toBe(true);
     expect(envelope.binding.snapshotId).toBe(
-      'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+      'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
     );
   });
 
