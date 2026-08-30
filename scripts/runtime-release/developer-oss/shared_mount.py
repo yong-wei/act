@@ -302,22 +302,22 @@ def owning_checkout_process_is_live(lease: dict[str, Any]) -> bool:
 
 
 def lease_is_live(lease: dict[str, Any], checkout: Path | None = None) -> bool:
-    runtime = lease.get("runtimeRoot")
-    if bind_is_present(runtime):
-        return True
     pids = list(lease.get("pids") or [])
     if checkout is not None:
         pids.extend(checkout_service_pids(checkout))
-    if any(isinstance(pid, int) and pid_is_alive(pid) for pid in pids):
+    recorded = [pid for pid in pids if isinstance(pid, int)]
+    if any(pid_is_alive(pid) for pid in recorded):
         return True
-    if not use_real_fuse():
-        return bool(runtime) and Path(str(runtime)).exists()
-    return False
+    if recorded:
+        return bind_is_present(lease.get("runtimeRoot"))
+    return True
 
 
 def live_shared_session_lease_rows(mount_id: str, session_leases: dict[str, Any]) -> tuple[list[dict[str, Any]], list[tuple[str, str]]]:
     """Split shared session rows into live checkout leases and proven-dead ones."""
+    store_path = leases_path(mount_id)
     local = read_leases(mount_id).get("leases") or {}
+    store_exists = store_path.is_file()
     live: list[dict[str, Any]] = []
     dead: list[tuple[str, str]] = []
     for checkout_key, row in session_leases.items():
@@ -325,7 +325,10 @@ def live_shared_session_lease_rows(mount_id: str, session_leases: dict[str, Any]
             continue
         local_lease = local.get(checkout_key) if isinstance(local, dict) else None
         if not isinstance(local_lease, dict):
-            live.append(row)
+            if store_exists:
+                dead.append((str(checkout_key), str(row["leaseId"])))
+            else:
+                live.append(row)
             continue
         if owning_checkout_process_is_live(local_lease):
             live.append(row)

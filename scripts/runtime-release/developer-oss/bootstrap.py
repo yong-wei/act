@@ -553,13 +553,21 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
     if recovered:
         return recovered
     session = attach_gateway(credential, readiness, checkout)
+    acquired = False
+    if topology == TOPOLOGY_SHARED and mount_id:
+        acquire_lease(checkout, mount_id, {
+            "releaseId": readiness["releaseId"],
+            "runtimeRoot": str(runtime_root),
+            "viewRoot": str(state / "materialized"),
+            "helperMount": str(state / "materialized" / "views" / readiness["releaseId"] / ".act-runtime-blobs"),
+        })
+        acquired = True
     register_checkout_gateway_lease(checkout, credential, session["lease"], mount_id)
     documents = state / "documents" / readiness["releaseId"]
     manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, session)
     verify_release_documents(readiness, manifest_path, oss_receipt)
     view_root = state / "materialized"
     helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
-    acquired = False
     try:
         if topology == TOPOLOGY_SHARED:
             shared = ensure_shared_mount(credential)

@@ -751,14 +751,6 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 session.parent.mkdir(parents=True)
                 live_runtime = Path(raw) / "live-runtime"
                 live_runtime.mkdir()
-                session.write_text(json.dumps({
-                    "gatewayUrl": "https://runtime-dev.adapt-learn.online",
-                    "token": TOKEN,
-                    "leases": {
-                        "dead": {"leaseId": "dead-lease"},
-                        "live": {"leaseId": "live-lease"},
-                    },
-                }), encoding="utf-8")
                 write_leases(mount_id, {
                     "schemaVersion": LEASE_SCHEMA,
                     "leases": {
@@ -766,10 +758,20 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                         "live": {"pids": [os.getpid()], "runtimeRoot": str(live_runtime)},
                     },
                 })
+                session.write_text(json.dumps({
+                    "gatewayUrl": "https://runtime-dev.adapt-learn.online",
+                    "token": TOKEN,
+                    "leases": {
+                        "dead": {"leaseId": "dead-lease"},
+                        "live": {"leaseId": "live-lease"},
+                        "ghost": {"leaseId": "ghost-lease"},
+                    },
+                }), encoding="utf-8")
                 with mock.patch("gateway_fuse.GatewayClient") as client_cls:
                     heartbeat_session_leases(session)
                 client_cls.return_value.heartbeat.assert_called_once_with("live-lease")
-                client_cls.return_value.stop_lease.assert_called_once_with("dead-lease")
+                stopped = [call.args[0] for call in client_cls.return_value.stop_lease.call_args_list]
+                self.assertCountEqual(stopped, ["dead-lease", "ghost-lease"])
                 remaining = json.loads(session.read_text(encoding="utf-8"))["leases"]
                 self.assertEqual(list(remaining), ["live"])
             finally:

@@ -62,7 +62,7 @@ After a lease is issued, Blob GET SHALL use that lease's frozen allowlist rather
 
 #### Scenario: A crashed checkout does not stay live through another worktree's shared adapter
 - **WHEN** one checkout on a shared Blob mount stops without DELETE while another checkout still uses that mount
-- **THEN** the adapter SHALL heartbeat and fetch Blobs only with leases whose owning checkout process is still live, and SHALL release the crashed checkout's gateway lease
+- **THEN** the adapter SHALL heartbeat and fetch Blobs only for session leases that still have a local checkout record whose owning process is live. A session row whose local lease was reclaimed or never recorded SHALL be treated as dead and released.
 
 ### Requirement: Gateway isolation does not weaken production serving
 The gateway process, reverse-proxy path and rate limits SHALL be isolated from student runtime serving. Gateway faults SHALL NOT unmount production ossfs, SHALL NOT change selectors, and SHALL NOT disable student media signing.
