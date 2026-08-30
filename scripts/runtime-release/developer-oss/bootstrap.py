@@ -385,19 +385,17 @@ def dev_delivery_marker_path(checkout: Path) -> Path:
 
 
 def _path_owned_by_checkout(path: Path, state: Path, receipt: dict[str, Any]) -> bool:
-    """repair 卸载的归属证明（Issue #1713 P1）：路径必须位于本 checkout 的私有
-    state 目录或其 selection 回执声明的 viewRoot 之下；否则视为所有权不确定，
-    停止而不卸载，防止陈旧回执指向其他工作树仍在使用的视图。"""
+    """repair 卸载的归属证明（Issue #1713 P1）：可信根只有本 checkout 的私有
+    state 目录。selection 回执自身字段（viewRoot 等）未经独立验证，不得作为
+    可信根——陈旧/损坏回执可能把 viewRoot 与 helperMount 同时指到其他工作树
+    的视图。归属无法证明时停止而不卸载。"""
+    del receipt  # 明确不采信回执字段作为归属证据
     resolved = path.resolve()
-    for root in (state, Path(receipt.get("viewRoot") or "")):
-        if not str(root):
-            continue
-        try:
-            resolved.relative_to(Path(root).resolve())
-        except ValueError:
-            continue
-        return True
-    return False
+    try:
+        resolved.relative_to(state.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def write_dev_delivery_marker(checkout: Path, readiness: dict[str, str]) -> None:
