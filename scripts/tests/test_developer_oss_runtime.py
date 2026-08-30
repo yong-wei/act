@@ -1577,54 +1577,70 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             released.assert_not_called()
 
     def test_mount_process_provenance_requires_exact_point_and_config_binding(self):
-        """Issue #1713 P1：仅 SOURCE 含 bucket 子串不足以证明归属；实际 ossfs2 进程
-        必须同时绑定规范 mountpoint 与本 mount 的私有 ossfs.conf。"""
+        """Issue #1713 P1：归属证据链 = 持有 mountinfo 报告的 fuse fd + /proc/exe
+        为真实 ossfs2 + argv 精确绑定本 conf 与 mountpoint；任一缺失即拒绝。"""
         from shared_mount import verify_mount_process_provenance
-        from common import fail
         with tempfile.TemporaryDirectory() as raw:
             mountpoint = Path(raw) / "shared" / "mount-1" / "blobs"
             conf = Path(raw) / "shared" / "mount-1" / "ossfs.conf"
+            fake_ossfs2 = Path(raw) / "bin" / "ossfs2"
+            fake_ossfs2.parent.mkdir(parents=True)
+            fake_ossfs2.write_text("#!/bin/sh\n")
+            fake_python = Path(raw) / "bin" / "python3"
+            fake_python.write_text("#!/bin/sh\n")
+            argv_ok = ("-c", str(conf), str(mountpoint))
 
-            def proc_root_with(*cmdlines: bytes) -> str:
+            def proc_root_with(*entries, with_fuse_fd=None) -> str:
                 root = Path(tempfile.mkdtemp(dir=raw))
-                for pid, cmdline in enumerate(cmdlines, start=100):
+                for pid, exe_target, cmdline in entries:
                     proc = root / str(pid)
                     proc.mkdir()
-                    (proc / "cmdline").write_bytes(cmdline)
+                    os.symlink(str(exe_target), str(proc / "exe"))
+                    (proc / "cmdline").write_bytes(b"\x00".join(arg.encode() for arg in cmdline) + b"\x00")
+                    if with_fuse_fd is not None:
+                        (proc / "fd").mkdir()
+                        os.symlink("/dev/fuse", str(proc / "fd" / str(with_fuse_fd)))
                 return str(root)
 
-            # 进程 100：cmdline 同时含 mountpoint 与 conf → 通过
+            def entry(exe_target, *argv):
+                return (100, exe_target, argv)
+
             good = proc_root_with(
-                b"/usr/local/bin/ossfs2\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"\x00",
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
+                with_fuse_fd=3,
             )
-            verify_mount_process_provenance(mountpoint, conf, proc_root=good)
-            # 进程 101：cmdline 含相似 bucket 名但未绑定本 conf → 拒绝
-            other_conf = proc_root_with(
-                b"ossfs2\x00-c\x00/elsewhere/ossfs.conf\x00" + str(mountpoint).encode() + b"\x00",
-            )
-            with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=other_conf)
-            # 进程 102：仅含 mountpoint、无 conf 绑定 → 拒绝
-            no_conf = proc_root_with(
-                b"ossfs2\x00" + str(mountpoint).encode() + b"\x00",
+            verify_mount_process_provenance(mountpoint, conf, proc_root=good, fuse_fd=3)
+
+            argv0_spoof = proc_root_with(
+                entry(fake_python, "ossfs2", *argv_ok),
+                with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=no_conf)
-            # 进程 103：非 ossfs2 可执行文件（任意 Python 进程伪造子串）→ 拒绝
-            not_ossfs = proc_root_with(
-                b"/usr/bin/python3\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"\x00",
+                verify_mount_process_provenance(mountpoint, conf, proc_root=argv0_spoof, fuse_fd=3)
+
+            no_fd = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=not_ossfs)
-            # 进程 104：conf 前缀混淆（ossfs.conf.backup）→ 拒绝
+                verify_mount_process_provenance(mountpoint, conf, proc_root=no_fd, fuse_fd=3)
+
             conf_prefix = proc_root_with(
-                b"ossfs2\x00-c\x00" + str(conf).encode() + b".backup\x00" + str(mountpoint).encode() + b"\x00",
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf) + ".backup", str(mountpoint)),
+                with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=conf_prefix)
-            # 进程 105：mountpoint 前缀混淆（blobs-other）→ 拒绝
+                verify_mount_process_provenance(mountpoint, conf, proc_root=conf_prefix, fuse_fd=3)
+
             point_prefix = proc_root_with(
-                b"ossfs2\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"-other\x00",
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), str(mountpoint) + "-other"),
+                with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=point_prefix)
+                verify_mount_process_provenance(mountpoint, conf, proc_root=point_prefix, fuse_fd=3)
+
+            other_point = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), "/elsewhere/blobs"),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=other_point, fuse_fd=3)

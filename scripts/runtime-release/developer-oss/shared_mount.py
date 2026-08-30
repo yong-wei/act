@@ -417,26 +417,64 @@ def mount_source(path: Path) -> str:
     return (completed.stdout or "").strip()
 
 
-def verify_mount_process_provenance(mountpoint: Path, config_path: Path, proc_root: str = "/proc") -> None:
-    """进程级挂载归属（Issue #1713 P1）：FUSE 的 SOURCE 字符串可被相似名称伪造，
-    不可作为归属证据。可信判据是实际 ossfs2 进程按 NUL 分隔的 argv 同时满足：
-    可执行文件为 ossfs2、`-c` 参数精确等于本 mount 的私有 ossfs.conf、
-    挂载位置参数精确等于规范 mountpoint（无子串/前缀混淆）；找不到即为
-    所有权不确定。"""
+def mount_fuse_fd(mountpoint: Path, mountinfo_path: str = "/proc/self/mountinfo") -> int | None:
+    """从内核 mountinfo 提取该挂载点的 FUSE connection fd 号（内核记录，
+    进程不可事后伪造）；无对应挂载或缺字段时返回 None。"""
+    try:
+        lines = Path(mountinfo_path).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    wanted = str(mountpoint)
+    for line in lines:
+        parts = line.split(" ")
+        if len(parts) < 7 or parts[4] != wanted:
+            continue
+        for field in parts[5:parts.index("-")] if "-" in parts else ():
+            if field.startswith("fd="):
+                try:
+                    return int(field[3:])
+                except ValueError:
+                    return None
+    return None
+
+
+def verify_mount_process_provenance(
+    mountpoint: Path,
+    config_path: Path,
+    proc_root: str = "/proc",
+    fuse_fd: int | None = None,
+) -> None:
+    """进程级挂载归属（Issue #1713 P1）。三层证据缺一不可：
+
+    1. 进程持有该 FUSE connection 的 fd（`/proc/<pid>/fd/<fuse_fd>` → /dev/fuse，
+       fuse_fd 来自内核 mountinfo 的 fd= 字段，进程不可伪造）；
+    2. `/proc/<pid>/exe`（内核维护的真实可执行链接）basename 为 ossfs2——
+       argv[0] 由进程自行控制，不作为身份证据；
+    3. argv 精确绑定：`-c` 参数精确等于本 mount 的私有 ossfs.conf，
+       挂载位置参数精确等于规范 mountpoint（无子串/前缀混淆）。
+    """
     argv_point = str(mountpoint)
     argv_conf = str(config_path)
     root = Path(proc_root)
     for proc in root.iterdir():
         if not proc.name.isdigit():
             continue
+        if fuse_fd is not None:
+            try:
+                link = os.readlink(str(proc / "fd" / str(fuse_fd)))
+            except OSError:
+                continue
+            if "/dev/fuse" not in link:
+                continue
+        try:
+            executable = os.readlink(str(proc / "exe"))
+        except OSError:
+            continue
+        if Path(executable).name != "ossfs2":
+            continue
         try:
             argv = [arg.decode("utf-8", "replace") for arg in (proc / "cmdline").read_bytes().split(b"\x00") if arg]
         except OSError:
-            continue
-        if not argv:
-            continue
-        executable = Path(argv[0]).name
-        if executable != "ossfs2":
             continue
         if argv_point not in argv:
             continue
@@ -447,7 +485,7 @@ def verify_mount_process_provenance(mountpoint: Path, config_path: Path, proc_ro
         if not config_ok:
             continue
         return
-    fail("shared mount process does not bind this checkout's ossfs config")
+    fail("no live ossfs2 process owns this mount with this checkout's ossfs config")
 
 
 def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
