@@ -159,16 +159,29 @@ def iter_lease_entries(session: dict) -> list[dict]:
         for item in leases.values():
             if isinstance(item, dict):
                 entries.append(item)
-    if isinstance(session.get("leaseId"), str):
+    elif isinstance(session.get("leaseId"), str):
         entries.append(session)
     return entries
 
 
-def heartbeat_session_leases(session_path: Path) -> None:
-    """Prove checkout liveness from the live FUSE process.
+def iter_live_lease_entries(session_path: Path, session: dict) -> list[dict]:
+    leases = session.get("leases")
+    if isinstance(leases, dict) and leases:
+        from shared_mount import live_shared_session_lease_rows
+        live, _dead = live_shared_session_lease_rows(session_path.parent.name, leases)
+        return live
+    if isinstance(session.get("leaseId"), str):
+        return [session]
+    return []
 
-    Wall-clock grace on the gateway expires leases that stop heartbeating.
-    The adapter process is that proof: crash/kill-9 stops this loop.
+
+def heartbeat_session_leases(session_path: Path) -> None:
+    """Prove each gateway lease from its owning checkout, not the shared FUSE.
+
+    Shared topology: heartbeat only checkouts whose recorded service pids are
+    still alive; proven-dead checkouts are DELETE'd and dropped from the
+    session so a surviving worktree cannot keep a crashed checkout's A-only
+    lease live. Checkout topology: this FUSE process is the checkout.
     """
     try:
         session = json.loads(session_path.read_text(encoding="utf-8"))
@@ -181,16 +194,39 @@ def heartbeat_session_leases(session_path: Path) -> None:
     if not isinstance(url, str) or not isinstance(token, str):
         return
     client = GatewayClient(url, token)
-    seen: set[str] = set()
-    for entry in iter_lease_entries(session):
-        lease_id = entry.get("leaseId")
-        if not isinstance(lease_id, str) or lease_id in seen:
-            continue
-        seen.add(lease_id)
+    leases_map = session.get("leases")
+    if isinstance(leases_map, dict) and leases_map:
+        from shared_mount import live_shared_session_lease_rows
+        live_rows, dead = live_shared_session_lease_rows(session_path.parent.name, leases_map)
+        seen: set[str] = set()
+        for entry in live_rows:
+            lease_id = entry.get("leaseId")
+            if not isinstance(lease_id, str) or lease_id in seen:
+                continue
+            seen.add(lease_id)
+            try:
+                client.heartbeat(lease_id)
+            except GatewayError:
+                continue
+        remaining = dict(leases_map)
+        changed = False
+        for checkout_key, lease_id in dead:
+            try:
+                client.stop_lease(lease_id)
+            except GatewayError:
+                pass
+            remaining.pop(checkout_key, None)
+            changed = True
+        if changed:
+            session["leases"] = remaining
+            persist_session_payload(session_path, session)
+        return
+    lease_id = session.get("leaseId")
+    if isinstance(lease_id, str):
         try:
             client.heartbeat(lease_id)
         except GatewayError:
-            continue
+            return
 
 
 def _session_heartbeat_loop(
@@ -211,7 +247,7 @@ def declared_blob_size(session_path: Path, digest: str) -> int | None:
     if not SHA256.fullmatch(digest):
         return None
     session = read_session(session_path)
-    for lease in iter_lease_entries(session):
+    for lease in iter_live_lease_entries(session_path, session):
         sizes = lease.get("blobSizes")
         if not isinstance(sizes, dict):
             continue
@@ -219,6 +255,19 @@ def declared_blob_size(session_path: Path, digest: str) -> int | None:
         if isinstance(size, int) and size >= 0:
             return size
     return None
+
+
+def persist_session_payload(session_path: Path, session: dict) -> None:
+    descriptor = os.open(session_path, os.O_RDWR)
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        encoded = (json.dumps(session, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        os.ftruncate(descriptor, 0)
+        os.write(descriptor, encoded)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 def persist_transport(session_path: Path, lease_id: str, token: str) -> None:
@@ -260,7 +309,7 @@ def _client_from_session(session: dict) -> GatewayClient:
 def _fetch_blob(session_path: Path, digest: str) -> bytes:
     session = read_session(session_path)
     client = _client_from_session(session)
-    leases = iter_lease_entries(session)
+    leases = iter_live_lease_entries(session_path, session)
     if not leases:
         fail("gateway session has no live lease")
     last_error: GatewayError | None = None

@@ -60,6 +60,10 @@ After a lease is issued, Blob GET SHALL use that lease's frozen allowlist rather
 - **WHEN** heartbeats stop beyond the grace interval after a crash or kill, and the checkout did not DELETE the lease
 - **THEN** the gateway SHALL treat the lease as not live, SHALL NOT restore it from the lease store, and SHALL reject transport renewal and Blob GET
 
+#### Scenario: A crashed checkout does not stay live through another worktree's shared adapter
+- **WHEN** one checkout on a shared Blob mount stops without DELETE while another checkout still uses that mount
+- **THEN** the adapter SHALL heartbeat and fetch Blobs only with leases whose owning checkout process is still live, and SHALL release the crashed checkout's gateway lease
+
 ### Requirement: Gateway isolation does not weaken production serving
 The gateway process, reverse-proxy path and rate limits SHALL be isolated from student runtime serving. Gateway faults SHALL NOT unmount production ossfs, SHALL NOT change selectors, and SHALL NOT disable student media signing.
 

@@ -283,6 +283,24 @@ def bind_is_present(runtime_root: str | None) -> bool:
     return is_mounted(Path(runtime_root))
 
 
+def owning_checkout_process_is_live(lease: dict[str, Any]) -> bool:
+    """Gateway-lease liveness for one checkout, independent of the shared FUSE.
+
+    Recorded service pids are authoritative after start: kill -9 leaves a bind
+    but the owning checkout is gone. Empty pids cover the prepare window before
+    services write pid files.
+    """
+    pids = [pid for pid in (lease.get("pids") or []) if isinstance(pid, int)]
+    if pids:
+        return any(pid_is_alive(pid) for pid in pids)
+    if bind_is_present(lease.get("runtimeRoot")):
+        return True
+    if not use_real_fuse():
+        runtime = lease.get("runtimeRoot")
+        return bool(runtime) and Path(str(runtime)).exists()
+    return True
+
+
 def lease_is_live(lease: dict[str, Any], checkout: Path | None = None) -> bool:
     runtime = lease.get("runtimeRoot")
     if bind_is_present(runtime):
@@ -295,6 +313,25 @@ def lease_is_live(lease: dict[str, Any], checkout: Path | None = None) -> bool:
     if not use_real_fuse():
         return bool(runtime) and Path(str(runtime)).exists()
     return False
+
+
+def live_shared_session_lease_rows(mount_id: str, session_leases: dict[str, Any]) -> tuple[list[dict[str, Any]], list[tuple[str, str]]]:
+    """Split shared session rows into live checkout leases and proven-dead ones."""
+    local = read_leases(mount_id).get("leases") or {}
+    live: list[dict[str, Any]] = []
+    dead: list[tuple[str, str]] = []
+    for checkout_key, row in session_leases.items():
+        if not isinstance(row, dict) or not isinstance(row.get("leaseId"), str):
+            continue
+        local_lease = local.get(checkout_key) if isinstance(local, dict) else None
+        if not isinstance(local_lease, dict):
+            live.append(row)
+            continue
+        if owning_checkout_process_is_live(local_lease):
+            live.append(row)
+        else:
+            dead.append((str(checkout_key), str(row["leaseId"])))
+    return live, dead
 
 
 def record_path(mount_id: str) -> Path:

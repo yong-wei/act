@@ -724,7 +724,7 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
         body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
         self.assertEqual(body, b"a-only")
 
-    def test_fuse_heartbeat_posts_every_session_lease(self):
+    def test_checkout_fuse_heartbeats_its_own_lease(self):
         from gateway_fuse import heartbeat_session_leases
         with tempfile.TemporaryDirectory() as raw:
             session = Path(raw) / "gateway-session.json"
@@ -732,12 +732,51 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 "gatewayUrl": "https://runtime-dev.adapt-learn.online",
                 "token": TOKEN,
                 "leaseId": "checkout-lease",
-                "leases": {"a": {"leaseId": "shared-lease"}},
             }), encoding="utf-8")
             with mock.patch("gateway_fuse.GatewayClient") as client_cls:
                 heartbeat_session_leases(session)
-            heartbeats = [call.args[0] for call in client_cls.return_value.heartbeat.call_args_list]
-            self.assertCountEqual(heartbeats, ["checkout-lease", "shared-lease"])
+            client_cls.return_value.heartbeat.assert_called_once_with("checkout-lease")
+            client_cls.return_value.stop_lease.assert_not_called()
+
+    def test_shared_fuse_does_not_heartbeat_dead_checkout_leases(self):
+        from common import LEASE_SCHEMA, STATE_DIR_NAME
+        from gateway_fuse import heartbeat_session_leases
+        from shared_mount import write_leases
+        previous = os.environ.get("ACT_RUNTIME_DEV_STATE_HOME")
+        with tempfile.TemporaryDirectory() as raw:
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = raw
+            try:
+                mount_id = "mid"
+                session = Path(raw) / STATE_DIR_NAME / "shared" / "mounts" / mount_id / "gateway-session.json"
+                session.parent.mkdir(parents=True)
+                live_runtime = Path(raw) / "live-runtime"
+                live_runtime.mkdir()
+                session.write_text(json.dumps({
+                    "gatewayUrl": "https://runtime-dev.adapt-learn.online",
+                    "token": TOKEN,
+                    "leases": {
+                        "dead": {"leaseId": "dead-lease"},
+                        "live": {"leaseId": "live-lease"},
+                    },
+                }), encoding="utf-8")
+                write_leases(mount_id, {
+                    "schemaVersion": LEASE_SCHEMA,
+                    "leases": {
+                        "dead": {"pids": [99999999], "runtimeRoot": str(Path(raw) / "missing")},
+                        "live": {"pids": [os.getpid()], "runtimeRoot": str(live_runtime)},
+                    },
+                })
+                with mock.patch("gateway_fuse.GatewayClient") as client_cls:
+                    heartbeat_session_leases(session)
+                client_cls.return_value.heartbeat.assert_called_once_with("live-lease")
+                client_cls.return_value.stop_lease.assert_called_once_with("dead-lease")
+                remaining = json.loads(session.read_text(encoding="utf-8"))["leases"]
+                self.assertEqual(list(remaining), ["live"])
+            finally:
+                if previous is None:
+                    os.environ.pop("ACT_RUNTIME_DEV_STATE_HOME", None)
+                else:
+                    os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = previous
 
     def test_default_rate_limiter_matches_nginx_contract(self):
         limiter = RateLimiter()
