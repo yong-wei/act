@@ -162,13 +162,22 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
             得分 {score}
           </span>
         </div>
-          <PathResourceContinueAction
-            enabled={pass}
-            result={{ success: true, score, data: { zeta, omega, duration } }}
-            onComplete={onComplete}
-          />
-
       </div>
+      <PathResourceContinueAction
+        enabled={pass}
+        result={{
+          success: true,
+          score,
+          data: {
+            zeta,
+            omega,
+            duration,
+            pass,
+            metrics: result.metrics,
+          },
+        }}
+        onComplete={onComplete}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
         <aside className="space-y-4">

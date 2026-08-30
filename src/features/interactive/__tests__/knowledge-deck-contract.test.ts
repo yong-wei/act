@@ -122,4 +122,15 @@ describe('browse-complete resource path continue', () => {
       expect(source, file).not.toContain('!interactive?.progress.isComplete');
     }
   });
+
+  it('keeps judge-bench completion metrics in the continue payload', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/resources/interactive-learning/lesson-06/judge-bench-sim/index.tsx'),
+      'utf8'
+    );
+
+    expect(source).toContain('metrics: result.metrics');
+    expect(source).toContain('pass,');
+    expect(source).not.toContain('data: { zeta, omega, duration }');
+  });
 });
