@@ -2,13 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-29
+> Last updated: 2026-08-30
 
 ---
 
 ## ✅ Done
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
+
+- 2026-08-30：补完已归档 #1573（`separate-classroom-live-state-from-submission-evidence`）任务 5.5/5.6。Playwright 班级绑定课堂走通 submit/resubmit/refresh/reconnect/闭课复盘；preview 零写。4.5 仍未勾选（`course_review` 与 backfill 仍有消费者）。本机 `act_obe` 补齐 `InteractionLog.submissionIdentity`。学生页 Prisma 泄漏改为 control-correction evidence port 延迟绑定。未开新 Issue，未认领 #1683。
 
 - 2026-08-26：知识工作区产品 QA 已具备受管三角色本地 fixture。`scripts/tests/run-knowledge-workspace-product-qa.mjs` 仅在 loopback 目标和 loopback 数据库下幂等确保学生、教师、管理员测试身份；非本地目标或数据库拒绝写入并要求显式完整凭据。OpenSpec 任务 10.8 和 `commercial-ui-governance-gates` delta 已写入，4 项边界测试、typecheck 与 strict validation 通过；测试工件未发现 credential 字段。
 - 2026-08-25：通过 Buddy propose 建立受治理图谱数学呈现变更 `render-governed-math-across-knowledge-surfaces`，提交并推送 `integration@f1e2db5ac`，登记 Issue #1536。提案保留 ActKG rich-text/math span，使用只读适配器与共享严格 KaTeX 能力覆盖 2D/3D、预览、搜索/筛选、抽屉、知识卡、讲义和教材；只有 ActKG Authority sidecar 缺陷可进入离线审核账本，ACT 自有 Markdown 公式必须修复后发布。change strict validation、typecheck、managed push 门禁、独立终审、Issue 唯一映射与空原生关系均通过；未 claim、实现、切换选择器或发布生产。

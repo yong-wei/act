@@ -54,7 +54,7 @@ Local Review 披露（2026-08-28，均不阻断）：遗留 legacy 分支不区�
 - 事件路由编排（写入器打桩）：`src/app/api/interactive/events/__tests__/route.test.ts`（21 通过）。
 - 真 PostgreSQL 并发（`CLASSROOM_SUBMISSION_EVIDENCE_REAL_DB_TEST=1`，per-run schema + `prisma db push`）：`src/lib/__tests__/classroom-submission-evidence.real-db.integration.test.ts`（4 通过：同身份并发幂等、新尝试单调、submit-vs-end 双锁序、水位绑定、重复 end 幂等、报告水位限定与显式重算、outbox 重投幂等）。
 - 报告/attribution/lifecycle/state 既有测试适配后通过；受影响领域套件（classroom/data-governance/interactive）与 API 契约套件、`tsc` 全量类型检查通过。
-- 浏览器验收（任务 5.5：submit/resubmit/refresh/overwrite 旅程 + preview 零写断言）：本轮未执行，作为残余风险在 PR 中披露；其服务端等价断言由 route 零写测试与真 PG 预览/晚到负例覆盖。
+- 浏览器验收（任务 5.5，2026-08-30 补跑）：`tests/classroom-live-state-submission-evidence.spec.ts`；证据 `evidence/browser/preview-zero-write.json` 与 `evidence/browser/journey.json`。班级绑定 1-2 课堂：两条 ACCEPTED 持久尝试、watermark `2`、`captured`/`summarized` SUCCEEDED；preview 零写入。本机库曾缺 `InteractionLog.submissionIdentity`，补迁移后才写入成功。
 
 ## 8. Codex Review feedback 修复（2026-08-28，PR #1668）
 
