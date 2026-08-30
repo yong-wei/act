@@ -73,6 +73,7 @@ from shared_mount import (
     read_leases,
     read_shared_record,
     shared_mount_dir,
+    mount_fuse_fd,
     verify_shared_identity,
     verify_shared_record,
     refuse_legacy_checkout_mount,
@@ -724,11 +725,18 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                 )
             verify_shared_record(record, credential["accountId"])
             if use_real_fuse():
-                # 进程级归属：实际 ossfs2 进程必须同时绑定规范 mountpoint 与本 mount
-                # 的私有 ossfs.conf。SOURCE 字符串可被相似名称伪造，不作为归属证据。
+                # 进程级归属（Issue #1713 P1）：先取内核 mountinfo 记录的 FUSE
+                # connection fd，再要求实际 ossfs2 进程持有该 fd 并精确绑定规范
+                # mountpoint 与本 mount 的私有 ossfs.conf。
+                fuse_fd = mount_fuse_fd(record_mountpoint)
+                if fuse_fd is None:
+                    raise DeveloperRuntimeError(
+                        "repair refused: kernel mountinfo has no fuse connection for the canonical mount",
+                    )
                 verify_mount_process_provenance(
                     record_mountpoint,
                     shared_mount_dir(claimed_mount) / "ossfs.conf",
+                    fuse_fd=fuse_fd,
                 )
             release_lease(checkout, claimed_mount, unmount)
         else:
