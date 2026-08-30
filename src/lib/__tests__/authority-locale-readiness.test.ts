@@ -536,7 +536,7 @@ describe('production selector byte identity', () => {
     const gitAuthority = JSON.parse(
       readFileSync(path.join(process.cwd(), PRODUCTION_SELECTORS[5]!), 'utf8'),
     ) as { releaseId: string };
-    expect(gitAuthority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(gitAuthority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
     expect(FUTURE_RELEASE_BOUNDARY).toBe(FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC);
   });
 });

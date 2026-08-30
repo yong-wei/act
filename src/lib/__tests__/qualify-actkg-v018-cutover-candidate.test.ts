@@ -85,7 +85,7 @@ describe('v0.18 cutover qualification', () => {
     const after = snapshotCurrentPointers(REPO_ROOT);
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   }, 180_000);
 
   it('binds the authority receipt body hash without trusting the file self-hash', () => {

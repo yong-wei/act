@@ -116,9 +116,9 @@ describe('v0.18 runtime publication', () => {
     });
     expect(result.imageBuilt).toBe(false);
     expect(result.status).toBe('BLOCKED');
-    // Live runtime selectors are the v0.37 coordinated candidate; Git
-    // authority/current.json remains v0.9. The sealed v0.18 publisher therefore
-    // fail-closes on pointer identity before it can reach provenance checks.
+    // Live runtime selectors and Git authority/current.json are the v0.37
+    // coordinated successor. The sealed v0.18 publisher therefore fail-closes
+    // on pointer identity before it can reach provenance checks.
     expect(result.blockers).toContain('production-projection-not-v09');
     expect(result.blockers).toContain('host-shadow-verification-incomplete');
     expect(result.blockers).not.toContain('qualification-not-ready');
@@ -138,7 +138,7 @@ describe('v0.18 runtime publication', () => {
     const after = snapshotCurrentPointers(REPO_ROOT);
     expect(() => assertV018ProductionPointersUnchanged(before, after)).not.toThrow();
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   });
 
   it('rejects a frozen application revision that is not an ancestor of HEAD', async () => {

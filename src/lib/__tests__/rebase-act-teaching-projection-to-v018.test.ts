@@ -928,13 +928,11 @@ describe('v0.18 shipped identity rebase', () => {
   });
 });
 
-describe('v0.18 captured candidate remains inactive against live v0.9 pointers', () => {
-  it('proves the generated receipt did not move the five current selectors', () => {
+describe('v0.18 captured candidate remains inactive after successor cutover', () => {
+  it('proves the sealed receipt did not move selectors and live Git now records v0.37', () => {
     expect(existsSync(V018_CANDIDATE_RECEIPT)).toBe(true);
     const receipt = JSON.parse(readFileSync(V018_CANDIDATE_RECEIPT, 'utf8')) as V018RebaseReceipt;
-    const live = readV018PointerSnapshots(REPO_ROOT, V018_CURRENT_POINTER_PATHS);
     assertV018PointerBytesUnchanged(receipt.pointersBefore, receipt.pointersAfter);
-    assertV018PointerBytesUnchanged(receipt.pointersAfter, live);
     expect(receipt.nonActivation).toBe(true);
     expect(receipt.selectorConsumption).toBe(false);
     expect(receipt.mapping.reviewRequiredCount).toBe(0);
@@ -943,9 +941,9 @@ describe('v0.18 captured candidate remains inactive against live v0.9 pointers',
     const projection = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[1]), 'utf8')) as { authorityReleaseId: string };
     const prerequisites = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[2]), 'utf8')) as { authorityReleaseId: string };
     const shards = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[3]), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   });
 });
