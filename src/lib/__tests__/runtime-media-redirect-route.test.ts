@@ -34,9 +34,9 @@ import { GET } from '@/app/api/course-runtime/assets/[...assetPath]/route';
 
 const originalEnvironment = { ...process.env };
 
-function invoke(assetPath: string[]) {
+function invoke(assetPath: string[], search = '') {
   return GET(
-    new Request(`https://act.example/api/course-runtime/assets/${assetPath.map(encodeURIComponent).join('/')}`),
+    new Request(`https://act.example/api/course-runtime/assets/${assetPath.map(encodeURIComponent).join('/')}${search}`),
     { params: Promise.resolve({ assetPath }) },
   );
 }
@@ -159,5 +159,16 @@ describe('runtime media signed redirect route', () => {
     expect(local.headers.get('location')).not.toMatch(/oss-cn-hangzhou/);
     expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
     expect(mocks.asyncSignatureUrl).not.toHaveBeenCalled();
+  });
+
+  it('does not serve a mismatched pinned release from the local view', async () => {
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
+    delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
+    const mismatched = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-old');
+    expect(mismatched.status).toBe(404);
+    const matched = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-1');
+    expect(matched.status).toBe(307);
+    expect(matched.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
+    expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
   });
 });

@@ -55,6 +55,12 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
   const pinnedReleaseId = new URL(request.url).searchParams.get('releaseId')?.trim() || '';
   const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
   if (!ramRole) {
+    if (pinnedReleaseId && pinnedReleaseId !== 'unreleased-worktree') {
+      const manifest = await readActiveRuntimeReleaseManifest();
+      if (!manifest || manifest.releaseId !== pinnedReleaseId) {
+        return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
+      }
+    }
     return localMediaRedirect(request, assetPath);
   }
 

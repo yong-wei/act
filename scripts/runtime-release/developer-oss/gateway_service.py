@@ -297,22 +297,25 @@ class GatewayService:
             raise GatewayError(409, "denied", DENIED_BODY)
         allowlist, blob_sizes = validate_v2_manifest(manifest, requested)
         now = self._time()
-        lease = Lease(
-            lease_id=secrets.token_urlsafe(24),
-            checkout_id=checkout_id,
-            identity=dict(requested),
-            allowlist=allowlist,
-            blob_sizes=blob_sizes,
-            token_fingerprint=token_fingerprint(self.current_token()),
-            live=True,
-            created_at=now,
-            heartbeat_at=now,
-        )
-        lease.transport = self._mint_transport(now)
         with self._lock:
+            still_active = require_identity(self._host.active_identity())
+            if not identities_match(requested, still_active):
+                raise GatewayError(409, "denied", DENIED_BODY)
+            lease = Lease(
+                lease_id=secrets.token_urlsafe(24),
+                checkout_id=checkout_id,
+                identity=dict(requested),
+                allowlist=allowlist,
+                blob_sizes=blob_sizes,
+                token_fingerprint=token_fingerprint(self.current_token()),
+                live=True,
+                created_at=now,
+                heartbeat_at=now,
+            )
+            lease.transport = self._mint_transport(now)
             self._leases[lease.lease_id] = lease
             self._persist_leases()
-        return self._lease_payload(lease)
+            return self._lease_payload(lease)
 
     def renew_transport(self, lease_id: str) -> dict[str, Any]:
         with self._lock:

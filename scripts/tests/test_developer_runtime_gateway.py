@@ -324,6 +324,31 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             service.issue_lease(identity_a, "tamper-a")
         self.assertEqual(denied.exception.status, 409)
 
+    def test_issue_lease_refuses_if_active_switches_during_validation(self):
+        host, identity_a, identity_b, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+
+        class FlipHost:
+            def __init__(self) -> None:
+                self.n = 0
+
+            def active_identity(self):
+                self.n += 1
+                return identity_a if self.n == 1 else identity_b
+
+            def manifest_bytes(self, identity):
+                return host.manifest_bytes(identity)
+
+            def receipt_bytes(self, identity):
+                return host.receipt_bytes(identity)
+
+            def blob_bytes(self, digest):
+                return host.blob_bytes(digest)
+
+        service = GatewayService(TOKEN, FlipHost())
+        with self.assertRaises(GatewayError) as denied:
+            service.issue_lease(identity_a, "race-active")
+        self.assertEqual(denied.exception.status, 409)
+
     def test_ssh_or_oss_headers_are_not_credentials(self):
         host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
         service = GatewayService(TOKEN, host)
