@@ -260,6 +260,10 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 self.assertEqual(restored.read_bytes(), b"a-only")
                 self.assertEqual(host.blob_reads.count(a_only), 1)
                 self.assertTrue(cached.with_name("%s.quarantine" % cached.name).exists())
+                cached.write_bytes(b"tampered-after-verify")
+                restored_again = ensure_cached_blob(session_path, cache_dir, a_only)
+                self.assertEqual(restored_again.read_bytes(), b"a-only")
+                self.assertEqual(host.blob_reads.count(a_only), 2)
         finally:
             httpd.shutdown()
             httpd.server_close()

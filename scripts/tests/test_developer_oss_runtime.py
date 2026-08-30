@@ -736,6 +736,9 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(blob_root.name, "blobs")
             self.assertEqual(session_path.name, "gateway-session.json")
             self.assertEqual(cache_dir.name, "cache")
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+            self.assertEqual(session.get("token"), GATEWAY_CREDENTIAL["token"])
+            self.assertEqual(session.get("gatewayUrl"), GATEWAY_CREDENTIAL["gatewayUrl"])
 
     def test_portable_start_output_omits_paths_and_secrets(self):
         with tempfile.TemporaryDirectory() as raw:

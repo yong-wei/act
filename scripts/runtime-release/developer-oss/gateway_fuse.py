@@ -24,7 +24,6 @@ from gateway_client import GatewayClient  # noqa: E402
 from gateway_service import GatewayError  # noqa: E402
 
 DIGEST_PATH = re.compile(r"^/?([a-f0-9]{64})$")
-_verified_cache: set[str] = set()
 
 
 def write_cached_bytes(path: Path, payload: bytes) -> None:
@@ -54,7 +53,6 @@ def hash_file(path: Path) -> str:
 
 
 def quarantine_cached_blob(path: Path) -> None:
-    _verified_cache.discard(str(path))
     target = path.with_name("%s.quarantine" % path.name)
     try:
         os.replace(path, target)
@@ -180,8 +178,7 @@ def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str) -> Path
         fail("blob digest is invalid")
     cached = cached_blob_path(cache_dir, digest)
     if cached.is_file() and not cached.is_symlink():
-        if str(cached) in _verified_cache or hash_file(cached) == digest:
-            _verified_cache.add(str(cached))
+        if hash_file(cached) == digest:
             return cached
         quarantine_cached_blob(cached)
     data = _fetch_blob(session_path, digest)
@@ -191,7 +188,6 @@ def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str) -> Path
     if hash_file(cached) != digest:
         quarantine_cached_blob(cached)
         fail("cached blob failed SHA-256 verification")
-    _verified_cache.add(str(cached))
     return cached
 
 
@@ -268,10 +264,12 @@ def main() -> int:
             digest = self._digest(path)
             if digest is None:
                 raise FuseOSError(errno.ENOENT)
-            try:
-                cached = ensure_cached_blob(session_path, cache_dir, digest)
-            except Exception:
-                raise FuseOSError(errno.ENOENT) from None
+            cached = cached_blob_path(cache_dir, digest)
+            if not cached.is_file() or cached.is_symlink():
+                try:
+                    cached = ensure_cached_blob(session_path, cache_dir, digest)
+                except Exception:
+                    raise FuseOSError(errno.ENOENT) from None
             with cached.open("rb") as handle:
                 handle.seek(offset)
                 return handle.read(size)

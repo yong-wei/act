@@ -437,6 +437,7 @@ def register_checkout_gateway_lease(
         "gatewayUrl": credential["gatewayUrl"],
         "leaseId": lease["leaseId"],
         "releaseId": lease.get("releaseId"),
+        "token": credential["token"],
         "transport": token,
         "blobSizes": blob_sizes,
     }
