@@ -43,8 +43,10 @@ describe('shared graph presentation contract', () => {
     expect(workspace).toContain('knowledgeGraphProductVersionLabel');
     expect(workspace).toContain("knowledgeGraphProductVersionLabel('active')");
     expect(workspace).toContain("knowledgeGraphProductVersionLabel('legacy')");
-    expect(activeGraph).toContain('layoutKnowledgeNodeLabel');
+    expect(activeGraph).toContain('ActiveAuthorityRuntimeView');
     expect(activeGraph).not.toMatch(/from ['"]\.\/knowledge-graph-system['"]/);
     expect(activeGraph).not.toContain('KnowledgeGraphSystem');
+    expect(activeGraph).not.toContain('ActiveAuthorityForceCanvas');
+    expect(activeGraph).not.toContain('ActiveAuthorityRootCanvas');
   });
 });

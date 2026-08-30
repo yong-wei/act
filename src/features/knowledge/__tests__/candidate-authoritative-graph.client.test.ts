@@ -430,7 +430,8 @@ describe('candidate authoritative graph client isolation', () => {
     await act(async () => Promise.resolve());
     expect(container.textContent).toContain('证据发生漂移');
     expect(container.textContent).toContain('未请求 Legacy API');
-    expect(container.querySelector('[data-legacy="true"]')).toBeNull();
+    expect(container.querySelector('[data-knowledge-session="legacy"]')?.hasAttribute('hidden')).toBe(true);
+    expect(container.querySelector('[data-knowledge-session="candidate"]')).not.toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

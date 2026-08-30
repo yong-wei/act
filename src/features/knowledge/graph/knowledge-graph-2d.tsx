@@ -32,6 +32,10 @@ import {
   type KnowledgeConceptNodeShape,
 } from './visual-config';
 import {
+  paintActiveNodeDecorations2d,
+  readActiveNodeDecoration,
+} from './active-node-decoration';
+import {
   getKnowledgeNodeLabelPresentation,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
@@ -1162,6 +1166,17 @@ export function KnowledgeGraph2D({
       ctx.beginPath();
       traceNodeShapeOutline(ctx, isRootBubble ? 'circle' : nodeShape, node.x, node.y, baseRadius + 4);
       ctx.stroke();
+    }
+
+    const decoration = readActiveNodeDecoration(node.metadata);
+    if (!isRootBubble && decoration) {
+      paintActiveNodeDecorations2d(ctx, {
+        x: node.x,
+        y: node.y,
+        radius: baseRadius,
+        globalScale,
+        decoration,
+      });
     }
 
     const labelPresentation = getFrameLabelPlacements(globalScale).get(node.id)!;
