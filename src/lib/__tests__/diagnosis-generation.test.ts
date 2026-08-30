@@ -979,6 +979,13 @@ describe('diagnosis report language contract', () => {
     expect(isSimplifiedChineseNaturalLanguageText('')).toBe(false);
   });
 
+  it('rejects traditional Chinese and kana instead of treating every CJK char as Simplified Chinese', () => {
+    expect(isSimplifiedChineseNaturalLanguageText('課程學習進度良好，學生們表現優異。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('班级學習狀況良好。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('学習が順調に進んでいます。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('学习进度良好，学生表现优异。')).toBe(true);
+  });
+
   it('reports per-field violations for a structured report body', () => {
     const violations = validateDiagnosisReportBodyLanguage({
       summary: '班级整体证据覆盖完整。',

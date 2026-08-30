@@ -126,10 +126,25 @@ export type DiagnosisReportLanguageSurface = {
 
 const DIAGNOSIS_CJK_PATTERN = /[\u4e00-\u9fff]/;
 const DIAGNOSIS_LATIN_PATTERN = /[A-Za-z]/;
+// 假名（ひらがな/カタカナ）出现即判定非简体中文。
+const DIAGNOSIS_KANA_PATTERN = /[\u3040-\u30ff]/;
+// 高频繁体专用字黑名单（简化字对应不同码点）：U+4E00–U+9FFF 同时覆盖繁体与日文汉字，
+// 仅凭 CJK 计数无法区分简体；该黑名单在不引入映射库的前提下确定性拒绝
+// 明显的繁体/日文回归（例如"課程學習進度良好"）。生僻繁体字混排存在理论绕过空间，
+// 见 change design 残余披露。
+const DIAGNOSIS_TRADITIONAL_ONLY_CHARS = [
+  '們個來對時會點於從說話學習課業進語讀寫開關門東樂體無為後發經過還這麼',
+  '風險標誌見聽認識質氣醫藥題請謝論議訊資費買賣務動極構樣機權歷歸當複補',
+  '覺觀親聯腦舊國圖壓縮優眾傳傷參雙誤誰護讓變靈顯響頻顧飛養餘驗驚龍專練',
+  '總織續紅純級紀統網維線遠適選遲錯鍵鎮難電頁頂願類飯館鬧麥賽據證擔擊齣',
+].join('');
+const DIAGNOSIS_TRADITIONAL_ONLY_PATTERN = new RegExp(`[${DIAGNOSIS_TRADITIONAL_ONLY_CHARS}]`);
 
 export function isSimplifiedChineseNaturalLanguageText(value: string) {
   const cjkCount = value.match(new RegExp(DIAGNOSIS_CJK_PATTERN.source, 'gu'))?.length ?? 0;
   if (cjkCount === 0) return false;
+  if (DIAGNOSIS_KANA_PATTERN.test(value)) return false;
+  if (DIAGNOSIS_TRADITIONAL_ONLY_PATTERN.test(value)) return false;
   const latinCount = value.match(new RegExp(DIAGNOSIS_LATIN_PATTERN.source, 'g'))?.length ?? 0;
   return cjkCount >= latinCount;
 }
