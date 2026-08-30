@@ -282,11 +282,12 @@ describe('runtime readiness projector', () => {
     const unreadable = await readyz();
     expect(unreadable.filesystem).toEqual({ ready: false, failureClass: 'required-artifact-unreadable' });
 
+    // 回执缺失 = 非 Developer OSS 交付（生产形态）：保持生产既有语义，不因缺 Developer 证据 503。
     await rm(verificationReceiptPath);
     const missing = await readyz();
-    expect(missing.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-missing' });
+    expect(missing.filesystem).toEqual({ ready: true });
     expect(missing.identity?.releaseId).toBe(manifest.releaseId);
-    expect(missing.ready).toBe(false);
+    expect(missing.ready).toBe(true);
   });
 
   it('rejects consumer receipts with invalid schema or fields', async () => {
@@ -294,7 +295,7 @@ describe('runtime readiness projector', () => {
     const { root, manifest } = await blobView();
     const receiptPath = await writeConsumerVerification(root, manifest, { schemaVersion: 'unknown-schema' });
     const projection = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);
-    expect(projection.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-missing' });
+    expect(projection.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-invalid' });
 
     await writeConsumerVerification(root, manifest, { runtimeRoot: '/somewhere/else' });
     const misplaced = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);

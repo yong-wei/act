@@ -523,8 +523,23 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
             if topology == TOPOLOGY_SHARED and existing.get("sharedMountId") not in (None, mount_id):
                 fail("checkout selection does not match the shared mount identity")
             if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
+                # 复用不豁免消费者门禁（Issue #1713）：升级代码后的常见路径正是这里，
+                # 不可读或缺工件的旧视图必须被拒绝并提示 repair，而不是照常启动。
+                # 失败同时清除旧回执，防止 readyz 凭同 Release 旧回执误判 ready。
+                reused_view = Path(existing["viewRoot"])
+                try:
+                    verified = consumer_gate(reused_view, readiness)
+                except Exception:
+                    verification_receipt_path(checkout).unlink(missing_ok=True)
+                    raise
                 if topology == TOPOLOGY_SHARED and mount_id:
                     heartbeat_lease(checkout, mount_id, existing)
+                write_verification_receipt(verification_receipt_path(checkout), {
+                    **verified,
+                    "viewRoot": str(reused_view),
+                    "runtimeRoot": str(runtime_root),
+                    "blobMount": str(blob_mount),
+                })
                 return existing
         recovered = recover_live_checkout(
             checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,

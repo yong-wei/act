@@ -990,7 +990,7 @@ def write_release_with_governance(root: Path):
     lesson_sha = hashlib.sha256(lesson_body).hexdigest()
     (blob_root / lesson_sha).write_bytes(lesson_body)
     projection_body = json.dumps({
-        "schemaVersion": "micro-tutoring-resource-projection.v2",
+        "version": "micro-tutoring-resource-projection.v2",
         "resources": [{"optionId": "opt-b"}],
     }, sort_keys=True).encode("utf-8")
     projection_sha = hashlib.sha256(projection_body).hexdigest()
@@ -1057,7 +1057,7 @@ GOVERNANCE_REGISTRY = {
             "artifacts": [
                 {
                     "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
-                    "requireSchemaVersion": True,
+                    "requireVersion": True,
                 },
             ],
         },
@@ -1247,3 +1247,83 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
         invalid["runtime"]["filesystem"] = {"ready": False}
         with self.assertRaises(DeveloperRuntimeError):
             parse_readyz_identity(invalid)
+
+    def test_prepare_reuse_reruns_consumer_gate_and_fails_closed_on_broken_view(self):
+        """Issue #1713 P1：升级代码后走 selection 复用分支时，不可读/缺工件的旧视图必须被拒绝。"""
+        import consumer_readiness
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            checkout = root / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(root / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(root / "xdg-state")
+            os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+            os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            from consumer_readiness import load_runtime_requirements
+            runtime_root = checkout / "course-content" / "runtime"
+            runtime_root.mkdir(parents=True)
+            identity = {
+                "AccountId": "123456789012",
+                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                "UserId": "1",
+            }
+            selection = {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+                "blobMount": str(root / "release" / "blobs"),
+                "helperMount": str(selected / ".act-runtime-blobs"),
+                "viewRoot": str(selected),
+                "runtimeRoot": str(runtime_root),
+                "startedAt": "2026-08-30T00:00:00Z",
+            }
+            from common import checkout_state
+            write_selection_receipt(checkout_state(checkout) / "selection.json", selection)
+
+            def run_prepare():
+                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                        mock.patch("bootstrap.caller_identity", return_value=identity), \
+                        mock.patch("bootstrap.fetch_readyz_identity", return_value={
+                            "schemaVersion": "act-runtime-release.v2",
+                            "releaseId": manifest["releaseId"],
+                            "manifestSha256": manifest["manifestSha256"],
+                            "treeSha256": manifest["treeSha256"],
+                        }), \
+                        mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
+                        mock.patch("bootstrap.is_readonly_mount", return_value=True), \
+                        mock.patch(
+                            "bootstrap.load_runtime_requirements",
+                            return_value=load_runtime_requirements(registry_path),
+                        ):
+                    return prepare(checkout)
+
+            reused = run_prepare()
+            self.assertEqual(reused["releaseId"], manifest["releaseId"])
+            receipt = json.loads((checkout / "course-content" / consumer_readiness.RECEIPT_FILENAME).read_text())
+            self.assertEqual(receipt["releaseId"], manifest["releaseId"])
+            self.assertEqual(receipt["consumerUid"], os.geteuid())
+
+            projection_sha = manifest["files"][1]["sha256"]
+            helper_blob = selected / ".act-runtime-blobs" / projection_sha
+            os.chmod(helper_blob, 0o000)
+            try:
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    run_prepare()
+                self.assertIn("permission-denied", str(raised.exception))
+                self.assertFalse(
+                    (checkout / "course-content" / consumer_readiness.RECEIPT_FILENAME).exists(),
+                )
+            finally:
+                os.chmod(helper_blob, 0o644)

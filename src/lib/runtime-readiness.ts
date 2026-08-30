@@ -211,15 +211,21 @@ export async function projectRuntimeReadiness(
 
 async function readConsumerVerificationReceipt(
   receiptPath: string,
-): Promise<Record<string, unknown> | null> {
+): Promise<{ receipt: Record<string, unknown> | null; exists: boolean }> {
+  let raw: string;
   try {
-    const payload = JSON.parse(await readFile(receiptPath, 'utf8')) as unknown;
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
-    const receipt = payload as Record<string, unknown>;
-    if (receipt.schemaVersion !== RUNTIME_CONSUMER_VERIFICATION_SCHEMA) return null;
-    return receipt;
+    raw = await readFile(receiptPath, 'utf8');
   } catch {
-    return null;
+    return { receipt: null, exists: false };
+  }
+  try {
+    const payload = JSON.parse(raw) as unknown;
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return { receipt: null, exists: true };
+    const receipt = payload as Record<string, unknown>;
+    if (receipt.schemaVersion !== RUNTIME_CONSUMER_VERIFICATION_SCHEMA) return { receipt: null, exists: true };
+    return { receipt, exists: true };
+  } catch {
+    return { receipt: null, exists: true };
   }
 }
 
@@ -239,9 +245,10 @@ async function probeReadableFile(target: string): Promise<boolean> {
 }
 
 /**
- * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready。核对 bootstrap 写出的
- * credential-free 消费者验证回执（Release 身份 + 消费者 UID + checkout bind 路径），
- * 并以当前进程身份对关键治理工件做有界读取探测；任一失败保持 fail-closed。
+ * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready——但该回执门禁仅限
+ * Developer OSS 交付：回执由 Developer bootstrap 写出，生产容器没有该文件，
+ * 缺失时保持生产既有语义（不因缺 Developer 证据而 503）。回执一旦存在则严格
+ * 校验：Release 身份、消费者 UID、bind 路径与关键工件的有界读取探测。
  */
 export async function verifyConsumerFilesystem(
   identity: RuntimeReadinessIdentity,
@@ -250,8 +257,9 @@ export async function verifyConsumerFilesystem(
   consumerUid: number | null = typeof process.getuid === 'function' ? process.getuid() : null,
   probePath?: string,
 ): Promise<RuntimeFilesystemReadiness> {
-  const receipt = await readConsumerVerificationReceipt(receiptPath);
-  if (!receipt) return { ready: false, failureClass: 'consumer-verification-missing' };
+  const { receipt, exists } = await readConsumerVerificationReceipt(receiptPath);
+  if (!exists) return { ready: true };
+  if (!receipt) return { ready: false, failureClass: 'consumer-verification-invalid' };
   const fields = [
     receipt.releaseId, receipt.manifestSha256, receipt.treeSha256,
     receipt.consumerUid, receipt.runtimeRoot, receipt.verifierVersion,

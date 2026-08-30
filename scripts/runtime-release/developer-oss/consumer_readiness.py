@@ -113,15 +113,19 @@ def verify_required_artifacts(view: Path, requirements: Dict[str, Any]) -> List[
                 payload = json.loads(raw.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError):
                 raise ConsumerVerificationError("artifact-invalid", "required artifact %s is not JSON" % relative)
-            if artifact.get("requireSchemaVersion") and not isinstance(payload, dict):
+            if artifact.get("requireVersion") and not isinstance(payload, dict):
                 raise ConsumerVerificationError(
                     "artifact-invalid",
-                    "required artifact %s must be an object with schemaVersion" % relative,
+                    "required artifact %s must be an object with a version field" % relative,
                 )
-            if artifact.get("requireSchemaVersion") and not isinstance(payload.get("schemaVersion"), str):
+            # 正式治理工件使用 version 字段（如 micro-tutoring-assessment-baseline.v2）；
+            # 同时接受 schemaVersion 以兼容对象形态的目录类工件。
+            if artifact.get("requireVersion") and not isinstance(
+                payload.get("version") or payload.get("schemaVersion"), str,
+            ):
                 raise ConsumerVerificationError(
                     "artifact-invalid",
-                    "required artifact %s does not declare schemaVersion" % relative,
+                    "required artifact %s does not declare a version" % relative,
                 )
             verified.append({
                 "capability": name,

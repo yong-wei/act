@@ -5,19 +5,19 @@
       "artifacts": [
         {
           "path": "resource-governance/micro-tutoring-assessment-baseline-v2.json",
-          "requireSchemaVersion": true
+          "requireVersion": true
         },
         {
           "path": "resource-governance/micro-tutoring-option-attributions-v2.json",
-          "requireSchemaVersion": true
+          "requireVersion": true
         },
         {
           "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
-          "requireSchemaVersion": true
+          "requireVersion": true
         },
         {
           "path": "resource-governance/micro-tutoring-validation-registry-v2.json",
-          "requireSchemaVersion": true
+          "requireVersion": true
         }
       ]
     }
