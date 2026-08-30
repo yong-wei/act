@@ -77,9 +77,7 @@ describe('knowledge deck interaction state', () => {
     expect(source).toContain('visitedIndices');
     expect(source).toContain('dark:bg-slate');
     expect(source).toContain('dark:text-slate');
-    expect(source).toContain('await onComplete(result)');
-    expect(source).toContain('路径进度未能确认，请重试。');
-    expect(source).toContain('继续下一步');
+    expect(source).toContain('PathResourceContinueAction');
     expect(source).not.toContain('onComplete?.(result)');
   });
 
@@ -92,5 +90,36 @@ describe('knowledge deck interaction state', () => {
     expect(source).toContain('text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200');
     expect(source).toContain('text-blue-700 dark:bg-blue-500/15 dark:text-blue-200');
     expect(source).toContain('hover:bg-slate-100 dark:hover:bg-slate-700');
+  });
+});
+
+const browseCompleteResourceFiles = [
+  'src/resources/interactive-learning/lesson-03/modeling-workflow-puzzle/index.tsx',
+  'src/resources/interactive-learning/lesson-05/block-diagram-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-06/judge-bench-sim/index.tsx',
+  'src/resources/interactive-learning/lesson-06/metric-handbook/index.tsx',
+  'src/resources/interactive-learning/lesson-07/theory-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-08/routh-guide/index.tsx',
+  'src/resources/interactive-learning/lesson-08/steady-error-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-09/correction-strategy/index.tsx',
+  'src/resources/interactive-learning/lesson-09/time-domain-synthesis/index.tsx',
+  'src/resources/interactive-learning/lesson-10/root-locus-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-11/graphical-thinking-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-11/parameter-root-locus-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-13/iso2631-mapping/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-tradeoff-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-14/three-band-studio/index.tsx',
+  'src/resources/interactive-learning/lesson-15/lag-lead-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-16/harmonic-linearization-guide/index.tsx',
+  'src/resources/interactive-learning/lesson-17/negative-inverse-workshop/index.tsx',
+];
+
+describe('browse-complete resource path continue', () => {
+  it('requires an explicit continue action instead of completing from a visit effect', () => {
+    for (const file of browseCompleteResourceFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('!interactive?.progress.isComplete');
+    }
   });
 });

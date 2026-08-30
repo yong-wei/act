@@ -26,7 +26,8 @@ import {
 } from 'lucide-react';
 import { ISO_2631_MAPPINGS, type ComfortMapping } from '../types';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface MappingCardProps {
   mapping: ComfortMapping;
@@ -178,17 +179,7 @@ export function ISO2631MappingCard({
     };
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
-
-    if (visitedIndices.length === ISO_2631_MAPPINGS.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: snapshot.data,
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [visitedIndices, onComplete, onStateChange, interactive]);
+  }, [visitedIndices, onStateChange, interactive]);
 
   return (
     <div className={`w-full ${compact ? 'max-w-2xl' : 'max-w-4xl'} mx-auto`}>
@@ -237,6 +228,11 @@ export function ISO2631MappingCard({
       <div className="mt-6">
         <MappingVisualization />
       </div>
+      <PathResourceContinueAction
+        enabled={visitedIndices.length === ISO_2631_MAPPINGS.length}
+        result={{ success: true, score: 100, data: { visitedCount: visitedIndices.length, total: ISO_2631_MAPPINGS.length } }}
+        onComplete={onComplete}
+      />
     </div>
   );
 }

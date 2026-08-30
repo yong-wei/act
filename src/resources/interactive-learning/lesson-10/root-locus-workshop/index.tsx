@@ -10,7 +10,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 type WorkshopVariant = 'overview' | 'challenge';
 
@@ -210,18 +211,7 @@ export default function RootLocusWorkshop({
     };
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
-
-    if (completedIds.length === sections.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { completed: completedIds, total: sections.length, variant },
-      };
-      interactive?.progress.markComplete(result);
-      interactive?.tracking.emit('complete', { variant, total: sections.length });
-      onComplete?.(result);
-    }
-  }, [completedIds, interactive, onComplete, onStateChange, progressValue, sections.length, variant]);
+  }, [completedIds, interactive, onStateChange, progressValue, sections.length, variant]);
 
   const toggleOption = useCallback(
     (sectionId: string, optionId: string, multiSelect?: boolean) => {
@@ -280,6 +270,12 @@ export default function RootLocusWorkshop({
           <GitBranch className="h-4 w-4 text-violet-500" />
           已完成 {completedIds.length}/{sections.length}
         </div>
+          <PathResourceContinueAction
+            enabled={completedIds.length === sections.length}
+            result={{ success: true, score: 100, data: { completed: completedIds, total: sections.length, variant } }}
+            onComplete={onComplete}
+          />
+
       </div>
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">

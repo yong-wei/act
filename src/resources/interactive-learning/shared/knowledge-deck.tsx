@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BookOpen, ChevronRight, Layers, Loader2, Target } from 'lucide-react';
+import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
 import { KnowledgeCard } from '@/resources/interactive-learning/shared/knowledge-card';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import type { LessonKnowledgeCard } from '@/resources/interactive-learning/shared/knowledge-cards-data';
 
 export interface KnowledgeDeckVisitState {
@@ -50,11 +51,19 @@ export function KnowledgeDeck({
     activeIndex: 0,
     visitedIndices: cards.length > 0 ? [0] : [],
   });
-  const [completionStatus, setCompletionStatus] = useState<'idle' | 'pending' | 'error' | 'success'>('idle');
-  const [completionError, setCompletionError] = useState<string | null>(null);
   const publishedVisitedCountRef = useRef(0);
-  const completionInFlightRef = useRef(false);
   const allCardsVisited = cards.length > 0 && visitState.visitedIndices.length === cards.length;
+  const completionResult = useMemo<WidgetResult>(() => ({
+    success: true,
+    score: 100,
+    data: {
+      visited: visitState.visitedIndices
+        .map((index) => cards[index]?.id)
+        .filter((id): id is string => !!id),
+      visitedIndices: visitState.visitedIndices,
+      total: cards.length,
+    },
+  }), [cards, visitState.visitedIndices]);
 
   const activeCard = useMemo(
     () => cards[visitState.activeIndex] ?? cards[0],
@@ -90,37 +99,6 @@ export function KnowledgeDeck({
     interactive?.tracking.emit('interact', snapshot.data);
   }, [cards, interactive, onStateChange, visitState.visitedIndices]);
 
-  const handleContinue = useCallback(async () => {
-    if (!allCardsVisited || completionInFlightRef.current) return;
-    completionInFlightRef.current = true;
-    setCompletionStatus('pending');
-    setCompletionError(null);
-    const visitedKnowledgeNodeIds = visitState.visitedIndices
-      .map((index) => cards[index]?.id)
-      .filter((id): id is string => !!id);
-    const result: WidgetResult = {
-      success: true,
-      score: 100,
-      data: {
-        visited: visitedKnowledgeNodeIds,
-        visitedIndices: visitState.visitedIndices,
-        total: cards.length,
-      },
-    };
-    try {
-      if (onComplete) {
-        await onComplete(result);
-      } else {
-        await interactive?.progress.markComplete(result);
-      }
-      setCompletionStatus('success');
-    } catch {
-      completionInFlightRef.current = false;
-      setCompletionStatus('error');
-      setCompletionError('路径进度未能确认，请重试。');
-    }
-  }, [allCardsVisited, cards, interactive, onComplete, visitState.visitedIndices]);
-
   return (
     <div className="mx-auto w-full max-w-6xl text-slate-900 dark:text-slate-100" data-knowledge-deck-root="">
       <div className="mb-6 text-center">
@@ -153,37 +131,11 @@ export function KnowledgeDeck({
           <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400">
             已浏览 {visitState.visitedIndices.length}/{cards.length}
           </div>
-          {allCardsVisited ? (
-            <div className="mt-4 flex flex-col gap-2" data-knowledge-deck-complete={completionStatus}>
-              {completionError ? (
-                <p role="alert" className="text-xs text-rose-600 dark:text-rose-300">
-                  {completionError}
-                </p>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  void handleContinue();
-                }}
-                disabled={completionStatus === 'pending' || completionStatus === 'success'}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {completionStatus === 'pending' ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    正在提交
-                  </>
-                ) : completionStatus === 'error' ? (
-                  '重试'
-                ) : (
-                  <>
-                    继续下一步
-                    <ChevronRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          ) : null}
+          <PathResourceContinueAction
+            enabled={allCardsVisited}
+            result={completionResult}
+            onComplete={onComplete}
+          />
           <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Layers className="h-4 w-4" />
             {footer}
