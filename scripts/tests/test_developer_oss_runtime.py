@@ -1570,7 +1570,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                         "schemaVersion": "act-runtime-dev-shared-lease.v1",
                         "leases": {checkout_id(checkout): {"releaseId": readiness["releaseId"]}},
                     }), \
-                    mock.patch("bootstrap.read_shared_record", return_value=drifted_record), \
+                    mock.patch("shared_mount.read_shared_record", return_value=drifted_record), \
                     mock.patch("bootstrap.release_lease") as released:
                 with self.assertRaises(DeveloperRuntimeError):
                     repair(checkout)

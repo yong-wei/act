@@ -71,21 +71,17 @@ from shared_mount import (
     privileged_mount,
     live_lease_ids,
     read_leases,
-    read_shared_record,
     shared_mount_dir,
-    mount_fuse_fd,
-    verify_shared_identity,
-    verify_shared_record,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
     release_lease,
     remove_ossfs_config as remove_config_file,
     require_ossfs2_version,
-    shared_mount_dir,
     unmount,
     unmount_best_effort,
     which,
     write_ossfs_config,
+    verify_shared_release,
 )
 
 REQUIRED_ARCH = {"x86_64", "amd64", "aarch64", "arm64"}
@@ -692,53 +688,17 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
             )
         unmount(helper_mount)
         if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
-            # 共享拓扑释放前双重证明（Issue #1713 P1）：sharedMountId 必须归属当前
-            # credential 的共享 mount，且其上存在本 checkout 的 live lease；否则视为
-            # 所有权不确定，保留全部现场。
-            claimed_mount = str(receipt["sharedMountId"])
-            if claimed_mount != authority_id(credential["accountId"]):
-                raise DeveloperRuntimeError(
-                    "repair refused: selection sharedMountId does not belong to this credential",
-                )
-            lease = read_leases(claimed_mount).get("leases", {}).get(checkout_id(checkout))
-            if not isinstance(lease, dict) or lease.get("releaseId") != receipt.get("releaseId"):
-                raise DeveloperRuntimeError(
-                    "repair refused: no live lease bound to this checkout on the claimed shared mount",
-                )
-            record = read_shared_record(claimed_mount)
-            if not isinstance(record, dict):
-                raise DeveloperRuntimeError(
-                    "repair refused: shared mount record is missing; uncertain mount state",
-                )
-            verify_shared_identity(record, credential["accountId"])
-            # mountpoint 不在 verify_shared_identity 覆盖内：必须等于该 mount 的
-            # 规范 blob 路径，防止记录被改指其他工作树/未知只读挂载后误卸载。
-            expected_mountpoint = shared_mount_dir(claimed_mount) / "blobs"
-            record_mountpoint = Path(str(record.get("mountpoint") or ""))
-            if record_mountpoint.resolve() != expected_mountpoint.resolve():
-                raise DeveloperRuntimeError(
-                    "repair refused: shared mount record mountpoint drifted from its canonical path",
-                )
-            if use_real_fuse() and not is_mounted(record_mountpoint):
-                raise DeveloperRuntimeError(
-                    "repair refused: record and lease are live but the canonical mount is absent",
-                )
-            verify_shared_record(record, credential["accountId"])
-            if use_real_fuse():
-                # 进程级归属（Issue #1713 P1）：先取内核 mountinfo 记录的 FUSE
-                # connection fd，再要求实际 ossfs2 进程持有该 fd 并精确绑定规范
-                # mountpoint 与本 mount 的私有 ossfs.conf。
-                fuse_fd = mount_fuse_fd(record_mountpoint)
-                if fuse_fd is None:
-                    raise DeveloperRuntimeError(
-                        "repair refused: kernel mountinfo has no fuse connection for the canonical mount",
-                    )
-                verify_mount_process_provenance(
-                    record_mountpoint,
-                    shared_mount_dir(claimed_mount) / "ossfs.conf",
-                    fuse_fd=fuse_fd,
-                )
-            release_lease(checkout, claimed_mount, unmount)
+            # 共享拓扑释放前走**单一归属证明入口**（Issue #1713 全链收敛）：
+            # identity 归属、记录完整性、规范 mountpoint、live 挂载健康与 source、
+            # 内核 fd + ossfs2 进程绑定、本 checkout 的 lease 全部在
+            # verify_shared_release 内；任一失败不释放、不清现场。
+            verify_shared_release(
+                str(receipt["sharedMountId"]),
+                credential["accountId"],
+                checkout_id(checkout),
+                receipt.get("releaseId") or "",
+            )
+            release_lease(checkout, str(receipt["sharedMountId"]), unmount)
         else:
             blob_mount = Path(receipt["blobMount"])
             if not _path_owned_by_checkout(blob_mount, state, receipt):

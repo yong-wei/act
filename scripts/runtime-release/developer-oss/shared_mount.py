@@ -495,6 +495,54 @@ def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
         verify_live_mount(mountpoint)
 
 
+def verify_shared_release(
+    claimed_mount: str,
+    account_id: str,
+    checkout_id: str,
+    release_id: str,
+) -> None:
+    """共享 mount 释放前的**单一**归属证明入口（Issue #1713 全链收敛）。
+
+    整条证据链在同一函数体内，调用方（repair）不允许自行拆分或部分跳过：
+    1. 记录存在且 identity/options/principal 未漂移（verify_shared_identity）；
+    2. mountpoint 等于该 mount 的规范 blob 路径（防记录改指其他挂载）；
+    3. 真实 FUSE 下：规范路径上有挂载且为只读 fuse、source 归属本 bucket
+       （verify_shared_record + mount_source）；
+    4. 内核 mountinfo 报告的 FUSE connection fd 被实际 ossfs2 进程持有，
+       且该进程 argv 精确绑定规范 mountpoint 与本 mount 的私有 ossfs.conf
+       （mount_fuse_fd + verify_mount_process_provenance）；
+    5. 该 mount 上存在本 checkout、绑定同一 Release 的 live lease。
+
+    任一失败抛 DeveloperRuntimeError，调用方不得释放、不得清理现场。
+    """
+    record = read_shared_record(claimed_mount)
+    if not isinstance(record, dict):
+        fail("release refused: shared mount record is missing; uncertain mount state")
+    verify_shared_identity(record, account_id)
+    mountpoint = Path(str(record.get("mountpoint") or ""))
+    expected_mountpoint = shared_mount_dir(claimed_mount) / "blobs"
+    if mountpoint.resolve() != expected_mountpoint.resolve():
+        fail("release refused: shared mount record mountpoint drifted from its canonical path")
+    if use_real_fuse() and not is_mounted(mountpoint):
+        fail("release refused: record and lease are live but the canonical mount is absent")
+    verify_shared_record(record, account_id)
+    if use_real_fuse():
+        source = mount_source(mountpoint)
+        if OSS_BUCKET not in source:
+            fail("release refused: live shared mount source does not belong to this credential's bucket")
+        fuse_fd = mount_fuse_fd(mountpoint)
+        if fuse_fd is None:
+            fail("release refused: kernel mountinfo has no fuse connection for the canonical mount")
+        verify_mount_process_provenance(
+            mountpoint,
+            shared_mount_dir(claimed_mount) / "ossfs.conf",
+            fuse_fd=fuse_fd,
+        )
+    lease = read_leases(claimed_mount).get("leases", {}).get(checkout_id)
+    if not isinstance(lease, dict) or lease.get("releaseId") != release_id:
+        fail("release refused: no live lease bound to this checkout on the claimed shared mount")
+
+
 def fixture_mount(blob_root: Path) -> None:
     blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
 
