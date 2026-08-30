@@ -1222,6 +1222,24 @@ describe('diagnosis finding knowledge-node attribution contract', () => {
     });
   });
 
+  it('rejects a knowledge finding that cherry-picks one node while citing rows across multiple nodes', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '单知识点掌握薄弱',
+        knowledgeNodeId: 'node-1',
+        evidenceRefs: ['knowledge-progress:progress-1', 'knowledge-progress:progress-2'],
+      },
+    ], ['knowledge-progress:progress-1', 'knowledge-progress:progress-2']));
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-mixed-filled',
+    })).rejects.toMatchObject({
+      name: 'DiagnosisGenerationFindingAttributionError',
+      violations: ['findings[0].knowledgeNodeId'],
+    });
+  });
+
   it('rejects a knowledge finding whose node is outside the governed universe', async () => {
     providerGenerate.mockResolvedValueOnce(attributionOutput([
       {

@@ -142,7 +142,8 @@ export function buildKnowledgeNodeByEvidenceRef(
 
 /**
  * 知识节点归因契约（Issue #1712）：引用 knowledge-progress 证据的发现必须与受治理输入的
- * 节点一致。能唯一解析的漏填就地回填；多节点歧义、未知节点、与引用证据不一致则拒绝，
+ * 节点一致。引用行横跨多个节点时发现本身归因歧义，无论是否已填节点一律拒绝；
+ * 能唯一解析的漏填就地回填；未知节点、与唯一引用证据不一致则拒绝。
  * 由 worker 按模型行为缺陷重试。返回违例字段列表，回填直接修改 findings。
  */
 export function enforceDiagnosisFindingNodeAttribution(
@@ -157,8 +158,12 @@ export function enforceDiagnosisFindingNodeAttribution(
       const node = nodeByEvidenceRef.get(reference);
       if (node) citedNodes.add(node);
     }
+    if (citedNodes.size > 1) {
+      violations.push(`findings[${index}].knowledgeNodeId`);
+      return;
+    }
     if (finding.knowledgeNodeId) {
-      if ((citedNodes.size > 0 && !citedNodes.has(finding.knowledgeNodeId))
+      if ((citedNodes.size === 1 && [...citedNodes][0] !== finding.knowledgeNodeId)
         || !governedNodes.has(finding.knowledgeNodeId)) {
         violations.push(`findings[${index}].knowledgeNodeId`);
       }
@@ -166,10 +171,6 @@ export function enforceDiagnosisFindingNodeAttribution(
     }
     if (citedNodes.size === 1) {
       finding.knowledgeNodeId = [...citedNodes][0];
-      return;
-    }
-    if (citedNodes.size > 1) {
-      violations.push(`findings[${index}].knowledgeNodeId`);
     }
   });
   return violations;

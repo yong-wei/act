@@ -5,8 +5,8 @@
 For every finding that cites at least one `knowledge-progress:` evidence reference, the generation contract SHALL resolve the knowledge node from the governed input projection rows cited by that finding and enforce attribution before persistence:
 
 - When the cited rows resolve to exactly one governed node and the finding omits `knowledgeNodeId`, the system SHALL deterministically backfill that node.
-- When the cited rows resolve to multiple distinct governed nodes and the finding omits `knowledgeNodeId`, the system SHALL reject the output as a retryable model-behavior defect and SHALL NOT persist it.
-- When the finding provides a `knowledgeNodeId` that is absent from the governed input's node universe or disagrees with the nodes resolved from its cited rows, the system SHALL reject the output as a retryable model-behavior defect and SHALL NOT persist it.
+- When the cited rows resolve to multiple distinct governed nodes, the system SHALL reject the output as a retryable model-behavior defect regardless of whether the finding provides `knowledgeNodeId`, and SHALL NOT persist it.
+- When the finding provides a `knowledgeNodeId` that is absent from the governed input's node universe or disagrees with the single node resolved from its cited rows, the system SHALL reject the output as a retryable model-behavior defect and SHALL NOT persist it.
 - When the cited rows carry no governed node at all, the finding SHALL remain unattributed and flow to the projection as attribution-limited.
 
 The retry semantics SHALL follow the existing model-behavior defect budget, and a persistent attribution failure SHALL fail the job with an explicit Chinese reason while keeping the teacher's explicit retry available. Findings about overall risk, score distribution, or class coverage are exempt from this requirement.
