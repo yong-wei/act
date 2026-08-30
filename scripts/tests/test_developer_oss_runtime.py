@@ -975,6 +975,42 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(reused["releaseId"], prepared["releaseId"])
             self.assertEqual(live_lease_ids(mount_id), [checkout_id(checkout)])
 
+    def test_prepare_abort_releases_issued_gateway_lease(self):
+        from shared_mount import gateway_session_path, live_shared_session_lease_rows
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            self._shared_env(raw, checkout)
+            manifest, _, _ = write_release(Path(raw) / "release")
+            (checkout / "course-content" / "runtime").mkdir(parents=True, exist_ok=True)
+            client = mock.Mock()
+            payload = readyz_payload(manifest)
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway", return_value={
+                        "client": client,
+                        "lease": {
+                            "leaseId": "orphan-lease",
+                            "releaseId": manifest["releaseId"],
+                            "transport": {"token": "t"},
+                            "blobSizes": {},
+                        },
+                    }), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
+                    mock.patch("bootstrap.fetch_release_documents", side_effect=DeveloperRuntimeError("documents failed")):
+                with self.assertRaises(DeveloperRuntimeError):
+                    prepare(checkout)
+            client.stop_lease.assert_called_with("orphan-lease")
+            mount_id = authority_id(GATEWAY_ORIGIN)
+            self.assertEqual(live_lease_ids(mount_id), [])
+            session_path = gateway_session_path(mount_id)
+            leases = {}
+            if session_path.exists():
+                loaded = json.loads(session_path.read_text(encoding="utf-8"))
+                leases = loaded.get("leases") or {}
+            live, dead = live_shared_session_lease_rows(mount_id, leases)
+            self.assertEqual(live, [])
+            self.assertEqual(dead, [])
+
     def test_prove_read_rejects_digest_mismatch(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"

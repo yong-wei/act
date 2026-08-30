@@ -277,6 +277,22 @@ def checkout_service_pids(checkout: Path) -> list[int]:
     return pids
 
 
+def checkout_owner_pids(checkout: Path) -> list[int]:
+    """Recorded processes that prove this checkout still owns a gateway lease.
+
+    Prepare records the adapter pid immediately. After start, service pid files
+    are included as well. An empty list is death, never a live window.
+    """
+    pids: list[int] = []
+    seen: set[int] = set()
+    for pid in checkout_service_pids(checkout) + [os.getpid()]:
+        if not isinstance(pid, int) or pid <= 1 or pid in seen:
+            continue
+        seen.add(pid)
+        pids.append(pid)
+    return pids
+
+
 def bind_is_present(runtime_root: str | None) -> bool:
     if not runtime_root:
         return False
@@ -286,54 +302,38 @@ def bind_is_present(runtime_root: str | None) -> bool:
 def owning_checkout_process_is_live(lease: dict[str, Any]) -> bool:
     """Gateway-lease liveness for one checkout, independent of the shared FUSE.
 
-    Recorded service pids are authoritative after start: kill -9 leaves a bind
-    but the owning checkout is gone. Empty pids cover the prepare window before
-    services write pid files.
+    A lease is live only while a recorded owning process is still alive.
+    Bind leftover after kill -9, empty pids, and missing local records are dead.
     """
-    pids = [pid for pid in (lease.get("pids") or []) if isinstance(pid, int)]
-    if pids:
-        return any(pid_is_alive(pid) for pid in pids)
-    if bind_is_present(lease.get("runtimeRoot")):
-        return True
-    if not use_real_fuse():
-        runtime = lease.get("runtimeRoot")
-        return bool(runtime) and Path(str(runtime)).exists()
-    return True
+    pids = [pid for pid in (lease.get("pids") or []) if isinstance(pid, int) and pid > 1]
+    return any(pid_is_alive(pid) for pid in pids)
 
 
 def lease_is_live(lease: dict[str, Any], checkout: Path | None = None) -> bool:
     pids = list(lease.get("pids") or [])
     if checkout is not None:
         pids.extend(checkout_service_pids(checkout))
-    recorded = [pid for pid in pids if isinstance(pid, int)]
+    recorded = [pid for pid in pids if isinstance(pid, int) and pid > 1]
     if any(pid_is_alive(pid) for pid in recorded):
         return True
     if recorded:
         return bind_is_present(lease.get("runtimeRoot"))
-    return True
+    return False
 
 
 def live_shared_session_lease_rows(mount_id: str, session_leases: dict[str, Any]) -> tuple[list[dict[str, Any]], list[tuple[str, str]]]:
     """Split shared session rows into live checkout leases and proven-dead ones."""
-    store_path = leases_path(mount_id)
     local = read_leases(mount_id).get("leases") or {}
-    store_exists = store_path.is_file()
     live: list[dict[str, Any]] = []
     dead: list[tuple[str, str]] = []
     for checkout_key, row in session_leases.items():
         if not isinstance(row, dict) or not isinstance(row.get("leaseId"), str):
             continue
         local_lease = local.get(checkout_key) if isinstance(local, dict) else None
-        if not isinstance(local_lease, dict):
-            if store_exists:
-                dead.append((str(checkout_key), str(row["leaseId"])))
-            else:
-                live.append(row)
-            continue
-        if owning_checkout_process_is_live(local_lease):
-            live.append(row)
-        else:
+        if not isinstance(local_lease, dict) or not owning_checkout_process_is_live(local_lease):
             dead.append((str(checkout_key), str(row["leaseId"])))
+            continue
+        live.append(row)
     return live, dead
 
 
@@ -802,7 +802,7 @@ def acquire_lease(checkout: Path, mount_id: str, selection: dict[str, Any]) -> N
         "checkoutId": key,
         "helperMount": selection.get("helperMount"),
         "heartbeatAt": utcnow(),
-        "pids": checkout_service_pids(checkout),
+        "pids": checkout_owner_pids(checkout),
         "releaseId": selection.get("releaseId"),
         "runtimeRoot": selection.get("runtimeRoot"),
         "startedAt": selection.get("startedAt") or utcnow(),
@@ -821,7 +821,7 @@ def heartbeat_lease(checkout: Path, mount_id: str, selection: dict[str, Any] | N
         acquire_lease(checkout, mount_id, selection)
         return
     lease["heartbeatAt"] = utcnow()
-    lease["pids"] = checkout_service_pids(checkout)
+    lease["pids"] = checkout_owner_pids(checkout)
     if selection:
         lease["helperMount"] = selection.get("helperMount") or lease.get("helperMount")
         lease["releaseId"] = selection.get("releaseId") or lease.get("releaseId")

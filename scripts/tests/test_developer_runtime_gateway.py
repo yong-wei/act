@@ -26,6 +26,19 @@ TOKEN = "a" * 32
 OTHER = "b" * 32
 
 
+def checkout_session(lease_id, transport, blob_sizes=None, gateway_url="http://127.0.0.1:1"):
+    payload = {
+        "schemaVersion": "act-runtime-dev-gateway-session.v1",
+        "gatewayUrl": gateway_url,
+        "token": TOKEN,
+        "leaseId": lease_id,
+        "transport": transport,
+    }
+    if blob_sizes is not None:
+        payload["blobSizes"] = blob_sizes
+    return payload
+
+
 def canonical(value):
     return json.dumps(value, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8")
 
@@ -181,17 +194,11 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as raw:
                 session_path = Path(raw) / "gateway-session.json"
                 cache_dir = Path(raw) / "cache"
-                session_path.write_text(json.dumps({
-                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
-                    "gatewayUrl": "http://127.0.0.1:%d" % port,
-                    "token": TOKEN,
-                    "leases": {
-                        "fuse-a": {
-                            "leaseId": issued["leaseId"],
-                            "transport": issued["transport"]["token"],
-                        }
-                    },
-                }), encoding="utf-8")
+                session_path.write_text(json.dumps(checkout_session(
+                    issued["leaseId"],
+                    issued["transport"]["token"],
+                    gateway_url="http://127.0.0.1:%d" % port,
+                )), encoding="utf-8")
                 first = ensure_cached_blob(session_path, cache_dir, a_only)
                 second = ensure_cached_blob(session_path, cache_dir, a_only)
                 self.assertEqual(first.read_bytes(), b"a-only")
@@ -228,17 +235,11 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as raw:
                 session_path = Path(raw) / "gateway-session.json"
                 cache_dir = Path(raw) / "cache"
-                session_path.write_text(json.dumps({
-                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
-                    "gatewayUrl": "http://127.0.0.1:%d" % port,
-                    "token": TOKEN,
-                    "leases": {
-                        "fuse-concurrent": {
-                            "leaseId": issued["leaseId"],
-                            "transport": issued["transport"]["token"],
-                        }
-                    },
-                }), encoding="utf-8")
+                session_path.write_text(json.dumps(checkout_session(
+                    issued["leaseId"],
+                    issued["transport"]["token"],
+                    gateway_url="http://127.0.0.1:%d" % port,
+                )), encoding="utf-8")
                 with ThreadPoolExecutor(max_workers=8) as pool:
                     paths = list(pool.map(lambda _: ensure_cached_blob(session_path, cache_dir, a_only), range(8)))
                 self.assertEqual({path.read_bytes() for path in paths}, {b"a-only"})
@@ -266,18 +267,11 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
         from gateway_fuse import declared_blob_size
         with tempfile.TemporaryDirectory() as raw:
             session_path = Path(raw) / "gateway-session.json"
-            session_path.write_text(json.dumps({
-                "schemaVersion": "act-runtime-dev-gateway-session.v1",
-                "gatewayUrl": "http://127.0.0.1:1",
-                "token": TOKEN,
-                "leases": {
-                    "stat-a": {
-                        "leaseId": issued["leaseId"],
-                        "transport": issued["transport"]["token"],
-                        "blobSizes": issued["blobSizes"],
-                    }
-                },
-            }), encoding="utf-8")
+            session_path.write_text(json.dumps(checkout_session(
+                issued["leaseId"],
+                issued["transport"]["token"],
+                blob_sizes=issued["blobSizes"],
+            )), encoding="utf-8")
             self.assertEqual(declared_blob_size(session_path, a_only), 6)
             self.assertIsNone(declared_blob_size(session_path, extra))
             self.assertEqual(host.blob_reads, [])
@@ -296,18 +290,12 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as raw:
                 session_path = Path(raw) / "gateway-session.json"
                 cache_dir = Path(raw) / "cache"
-                session_path.write_text(json.dumps({
-                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
-                    "gatewayUrl": "http://127.0.0.1:%d" % port,
-                    "token": TOKEN,
-                    "leases": {
-                        "corrupt-a": {
-                            "leaseId": issued["leaseId"],
-                            "transport": issued["transport"]["token"],
-                            "blobSizes": issued["blobSizes"],
-                        }
-                    },
-                }), encoding="utf-8")
+                session_path.write_text(json.dumps(checkout_session(
+                    issued["leaseId"],
+                    issued["transport"]["token"],
+                    blob_sizes=issued["blobSizes"],
+                    gateway_url="http://127.0.0.1:%d" % port,
+                )), encoding="utf-8")
                 cached = cached_blob_path(cache_dir, a_only)
                 cached.parent.mkdir(parents=True)
                 cached.write_bytes(b"bad-bytes")
@@ -342,22 +330,16 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                 session_path = Path(raw) / "gateway-session.json"
                 cache_dir = Path(raw) / "cache"
                 original = issued["transport"]["token"]
-                session_path.write_text(json.dumps({
-                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
-                    "gatewayUrl": "http://127.0.0.1:%d" % port,
-                    "token": TOKEN,
-                    "leases": {
-                        "renew-a": {
-                            "leaseId": issued["leaseId"],
-                            "transport": original,
-                            "blobSizes": issued["blobSizes"],
-                        }
-                    },
-                }), encoding="utf-8")
+                session_path.write_text(json.dumps(checkout_session(
+                    issued["leaseId"],
+                    original,
+                    blob_sizes=issued["blobSizes"],
+                    gateway_url="http://127.0.0.1:%d" % port,
+                )), encoding="utf-8")
                 cached = ensure_cached_blob(session_path, cache_dir, a_only)
                 self.assertEqual(cached.read_bytes(), b"a-only")
                 session = json.loads(session_path.read_text(encoding="utf-8"))
-                self.assertNotEqual(session["leases"]["renew-a"]["transport"], original)
+                self.assertNotEqual(session["transport"], original)
                 self.assertEqual(host.blob_reads.count(a_only), 1)
         finally:
             httpd.shutdown()
@@ -755,6 +737,7 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                     "schemaVersion": LEASE_SCHEMA,
                     "leases": {
                         "dead": {"pids": [99999999], "runtimeRoot": str(Path(raw) / "missing")},
+                        "empty": {"pids": [], "runtimeRoot": str(Path(raw) / "missing")},
                         "live": {"pids": [os.getpid()], "runtimeRoot": str(live_runtime)},
                     },
                 })
@@ -763,6 +746,7 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                     "token": TOKEN,
                     "leases": {
                         "dead": {"leaseId": "dead-lease"},
+                        "empty": {"leaseId": "empty-lease"},
                         "live": {"leaseId": "live-lease"},
                         "ghost": {"leaseId": "ghost-lease"},
                     },
@@ -771,7 +755,7 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
                     heartbeat_session_leases(session)
                 client_cls.return_value.heartbeat.assert_called_once_with("live-lease")
                 stopped = [call.args[0] for call in client_cls.return_value.stop_lease.call_args_list]
-                self.assertCountEqual(stopped, ["dead-lease", "ghost-lease"])
+                self.assertCountEqual(stopped, ["dead-lease", "empty-lease", "ghost-lease"])
                 remaining = json.loads(session.read_text(encoding="utf-8"))["leases"]
                 self.assertEqual(list(remaining), ["live"])
             finally:

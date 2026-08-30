@@ -552,23 +552,24 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
         raise
     if recovered:
         return recovered
-    session = attach_gateway(credential, readiness, checkout)
+    session: dict[str, Any] | None = None
     acquired = False
-    if topology == TOPOLOGY_SHARED and mount_id:
-        acquire_lease(checkout, mount_id, {
-            "releaseId": readiness["releaseId"],
-            "runtimeRoot": str(runtime_root),
-            "viewRoot": str(state / "materialized"),
-            "helperMount": str(state / "materialized" / "views" / readiness["releaseId"] / ".act-runtime-blobs"),
-        })
-        acquired = True
-    register_checkout_gateway_lease(checkout, credential, session["lease"], mount_id)
-    documents = state / "documents" / readiness["releaseId"]
-    manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, session)
-    verify_release_documents(readiness, manifest_path, oss_receipt)
     view_root = state / "materialized"
     helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
     try:
+        session = attach_gateway(credential, readiness, checkout)
+        if topology == TOPOLOGY_SHARED and mount_id:
+            acquire_lease(checkout, mount_id, {
+                "releaseId": readiness["releaseId"],
+                "runtimeRoot": str(runtime_root),
+                "viewRoot": str(state / "materialized"),
+                "helperMount": str(helper),
+            })
+            acquired = True
+        register_checkout_gateway_lease(checkout, credential, session["lease"], mount_id)
+        documents = state / "documents" / readiness["releaseId"]
+        manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, session)
+        verify_release_documents(readiness, manifest_path, oss_receipt)
         if topology == TOPOLOGY_SHARED:
             shared = ensure_shared_mount(credential)
             blob_root = Path(shared["mountpoint"])
@@ -605,6 +606,18 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
         unmount_best_effort(runtime_root)
         unmount_best_effort(helper)
         verification_receipt_path(checkout).unlink(missing_ok=True)
+        if session:
+            client = session.get("client")
+            lease = session.get("lease") if isinstance(session.get("lease"), dict) else {}
+            lease_id = lease.get("leaseId")
+            if client is not None and isinstance(lease_id, str):
+                try:
+                    client.stop_lease(lease_id)
+                except Exception:
+                    pass
+        notify_gateway_stop(checkout)
+        if mount_id:
+            unregister_checkout_gateway_lease(checkout, mount_id)
         if acquired and mount_id:
             release_lease(checkout, mount_id, unmount_best_effort)
         elif topology == TOPOLOGY_CHECKOUT:

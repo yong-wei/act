@@ -178,10 +178,11 @@ def iter_live_lease_entries(session_path: Path, session: dict) -> list[dict]:
 def heartbeat_session_leases(session_path: Path) -> None:
     """Prove each gateway lease from its owning checkout, not the shared FUSE.
 
-    Shared topology: heartbeat only checkouts whose recorded service pids are
-    still alive; proven-dead checkouts are DELETE'd and dropped from the
+    Shared topology: heartbeat only checkouts whose recorded owning processes
+    are still alive; proven-dead checkouts are DELETE'd and dropped from the
     session so a surviving worktree cannot keep a crashed checkout's A-only
-    lease live. Checkout topology: this FUSE process is the checkout.
+    lease live. Empty pids and missing local records are dead. Checkout
+    topology: this FUSE process is the checkout.
     """
     try:
         session = json.loads(session_path.read_text(encoding="utf-8"))
