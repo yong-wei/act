@@ -1,0 +1,34 @@
+{
+  "contract": "r4-c5-activation-transaction-result/v1",
+  "recordedAt": "2026-08-30T09:31:40.133Z",
+  "candidateId": "cand-d4e722dc-607d-4aaf-9142-75a0734cd64e",
+  "candidateReceiptHash": "bd0abb0d578357a719599a345bbd68c709ecd13d30703626f5224354db0a37bf",
+  "transactionId": "tx-7cf89677-b091-4508-80ce-c8d9fa132c8a",
+  "status": "COMMITTED",
+  "authority": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "currentSha256": "45ac968d86c191d45aeab88ab862e49250d9a041e8e596dcda41830f1b958af6"
+  },
+  "runtime": {
+    "lifecycleGeneration": 44,
+    "activeReleaseId": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde",
+    "desired": null,
+    "manifestSha256": "27d0add1a4f600b8233fecd50737009ec656f33b2663049be6fa0e0413e7a66a",
+    "treeSha256": "16fddf5a457864bf9fa5c36bddbcf63296b9159861972f94fe146e445a9daa06",
+    "blobView": "views/runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde"
+  },
+  "readyz": {
+    "publicHttp": 200,
+    "runtimeReady": true,
+    "releaseId": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde"
+  },
+  "gitAuthorityCurrentUnchanged": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.9",
+    "snapshotId": "snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7"
+  },
+  "priorFailedTransactions": [
+    "tx-f8e8d18c-dab0-42b3-984a-f87b8ff59f6f",
+    "tx-0435bb91-2f23-4bfb-bc29-2f7aaadefef5"
+  ]
+}
