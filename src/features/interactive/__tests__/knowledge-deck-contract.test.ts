@@ -77,6 +77,10 @@ describe('knowledge deck interaction state', () => {
     expect(source).toContain('visitedIndices');
     expect(source).toContain('dark:bg-slate');
     expect(source).toContain('dark:text-slate');
+    expect(source).toContain('await onComplete(result)');
+    expect(source).toContain('路径进度未能确认，请重试。');
+    expect(source).toContain('继续下一步');
+    expect(source).not.toContain('onComplete?.(result)');
   });
 
   it('keeps knowledge card taxonomy badges readable in light and dark themes', () => {
