@@ -1397,21 +1397,44 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             checkout.mkdir()
             foreign = Path(raw) / "other-worktree" / "views" / "runtime-x" / ".act-runtime-blobs"
             foreign.mkdir(parents=True)
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
             from common import checkout_state
-            write_selection_receipt(checkout_state(checkout) / "selection.json", {
+            state = checkout_state(checkout)
+            write_selection_receipt(state / "selection.json", {
                 "schemaVersion": "act-runtime-dev-selection.v1",
                 "releaseId": "runtime-" + ("a" * 55),
                 "manifestSha256": "b" * 64,
                 "treeSha256": "c" * 64,
-                "blobMount": str(checkout_state(checkout) / "blobs"),
+                "blobMount": str(state / "blobs"),
                 "helperMount": str(foreign),
-                "viewRoot": str(foreign.parent),
+                "viewRoot": str(state / "materialized" / "current"),
                 "runtimeRoot": str(checkout / "course-content" / "runtime"),
                 "startedAt": "2026-08-30T00:00:00Z",
             })
-            with self.assertRaises(DeveloperRuntimeError) as raised:
-                repair(checkout)
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+            }
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                    mock.patch("bootstrap.caller_identity", return_value={
+                        "AccountId": "123456789012",
+                        "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                        "UserId": "1",
+                    }), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
+                    mock.patch("bootstrap.stop_services"):
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    repair(checkout)
             self.assertIn("uncertain ownership", str(raised.exception))
             # 他人视图未被破坏：目录仍然存在
             self.assertTrue(foreign.exists())
