@@ -20,7 +20,7 @@ npm run test:runtime-knowledge
 
 1. 暂停知识图谱 seed 写入。
 2. 部署完整 migration chain，包括本迁移。
-3. 在同一发布窗口立即运行 `npm run seed:knowledge`，以 canonical `relations.jsonl` 恢复全部 relation ID。
+3. 在同一发布窗口运行 `npm run seed:knowledge`。该入口走 apply 门禁，当前不会写入目标库，也不能恢复 canonical relation ID。本地确认目标身份后如需真正写入，使用 `node scripts/db/seed-all-knowledge.mjs`。生产写入仍须待 apply 真正执行后再接回发布入口。
 4. 运行 runtime knowledge 与 DB fallback 校验后恢复写入。
 
 迁移不会根据端点或节点 metadata 猜测历史关系 ownership。历史行保持 external/unowned；canonical seed 仅按 canonical relation ID 精确 upsert 并写入当前 `runtimeSource`。首次 seed 会恢复当前 canonical 多关系，但不会删除任何未带当前 ownership 标记的历史或外部关系。
