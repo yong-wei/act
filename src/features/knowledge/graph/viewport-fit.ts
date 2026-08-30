@@ -6,6 +6,12 @@ import {
 import { getKnowledgeNodeLabelPresentation, type KnowledgeGraphLabelMode } from './label-policy';
 
 export const KNOWLEDGE_GRAPH_VIEWPORT_PADDING = 48;
+export const KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH = 639;
+export const KNOWLEDGE_GRAPH_SUPPORTED_VIEWPORTS = {
+  desktop: { width: 1440, height: 900 },
+  mobileNarrow: { width: 320, height: 720 },
+  mobile: { width: 390, height: 844 },
+} as const;
 
 export interface KnowledgeViewportSafeInsets {
   top: number;

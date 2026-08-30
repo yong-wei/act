@@ -26,6 +26,7 @@ import {
 } from '@/lib/authority-domain-shards/envelope';
 import type { AdmittedLocale, PublicLocaleCapability } from '@/lib/authority-locale-readiness/contracts';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
+import type { KnowledgeSurfaceLatestCutover } from '@/lib/knowledge-surface';
 
 export type AuthorityShardKind =
   | 'root'
@@ -67,14 +68,20 @@ export interface AuthorityShardWorkspaceState {
    * shard may replace labels.
    */
   localeRefreshPending: boolean;
+  latestCutover: KnowledgeSurfaceLatestCutover | null;
 }
 
-export type IncomingAuthorityShard =
+export type IncomingAuthorityShard = (
   | PublicAuthorityRootShard
   | PublicAuthorityDomainDefaultShard
   | PublicAuthorityRelationFamilyShard
   | PublicAuthorityNodeNeighborhoodShard
-  | PublicAuthorityNodeDetailShard;
+  | PublicAuthorityNodeDetailShard
+) & {
+  knowledgeSurface?: {
+    latestCutover: KnowledgeSurfaceLatestCutover;
+  };
+};
 
 export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceState {
   return {
@@ -98,6 +105,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     boundaryRefsByCanonicalId: {},
     domainRevision: 0,
     localeRefreshPending: false,
+    latestCutover: null,
   };
 }
 
@@ -255,6 +263,7 @@ export function mergeAuthorityShard(
       || current.localeRefreshPending
     ),
   );
+  const latestCutover = shard.knowledgeSurface?.latestCutover ?? current.latestCutover;
   const envelope = decision === 'establish' || localeChanged ? shard.envelope : current.envelope;
   if (!envelope) return current;
 
@@ -283,6 +292,7 @@ export function mergeAuthorityShard(
       loadedDisplayKeys,
       localeCapability: capability ?? current.localeCapability,
       localeRefreshPending: localeChanged || current.localeRefreshPending,
+      latestCutover,
     };
   }
 
@@ -312,6 +322,7 @@ export function mergeAuthorityShard(
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
       localeRefreshPending: current.localeRefreshPending || localeChanged,
+      latestCutover,
     };
   }
 
@@ -341,6 +352,7 @@ export function mergeAuthorityShard(
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
       localeRefreshPending: current.localeRefreshPending || localeChanged,
+      latestCutover,
     };
   }
 
@@ -355,6 +367,7 @@ export function mergeAuthorityShard(
     inspectorOpen: current.inspectorOpen,
     positionsByCanonicalId: current.positionsByCanonicalId,
     localeRefreshPending: current.localeRefreshPending || localeChanged,
+    latestCutover,
   };
 }
 

@@ -217,6 +217,29 @@ async function mockActiveShards(page: Page) {
   });
 }
 
+async function activateSharedRuntimeControl(page: Page, selector: string) {
+  const locator = page.locator(selector);
+  await expect(locator).toHaveCount(1);
+  await locator.evaluate((element) => {
+    if (!(element instanceof HTMLElement)) {
+      throw new Error('Expected an HTMLElement');
+    }
+    element.click();
+  });
+}
+
+async function assertSharedRuntimeCanvasGestures(page: Page) {
+  const canvas = page.locator('[data-knowledge-runtime-canvas]').first();
+  const box = await canvas.boundingBox();
+  expect(box?.width ?? 0).toBeGreaterThan(480);
+  expect(box?.height ?? 0).toBeGreaterThan(280);
+  await page.mouse.move((box!.x + box!.width / 2), (box!.y + box!.height / 2));
+  await page.mouse.wheel(0, -240);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width / 2 + 72, box!.y + box!.height / 2 + 36);
+  await page.mouse.up();
+}
+
 test.describe('issue 1493 active graph presentation', () => {
   test.beforeAll(() => {
     mkdirSync(evidenceDir, { recursive: true });
@@ -254,7 +277,8 @@ test.describe('issue 1493 active graph presentation', () => {
     await page.screenshot({ path: join(evidenceDir, 'root-mobile-light.png'), fullPage: false });
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.locator('[data-authority-domain-entry="modeling"]').click();
+    await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
+    await expect(page.locator('[data-active-authority-main="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('[data-active-graph-stage="authority"]')).toBeVisible();
     await expect(page.locator('[data-active-authority-relation]')).toHaveCount(1);
     await expect(page.locator('[data-active-authority-node-type-label]')).toHaveCount(0);
@@ -268,7 +292,7 @@ test.describe('issue 1493 active graph presentation', () => {
     await expect(page.locator('[data-active-authority-relation]')).toHaveCount(2);
     await page.screenshot({ path: join(evidenceDir, 'domain-engineering-filter-desktop-light.png'), fullPage: false });
 
-    await page.locator('[data-active-authority-node="node-concept"]').click();
+    await activateSharedRuntimeControl(page, '[data-active-authority-node="node-concept"]');
     await expect(page.locator('[data-active-inspector-surface="desktop-overlay"]')).toBeVisible();
     await expect(page.locator('[data-active-inspector-math="true"]')).toBeVisible();
     await expect(page.locator('[data-active-inspector-resources="true"]')).toBeVisible();
@@ -277,7 +301,7 @@ test.describe('issue 1493 active graph presentation', () => {
 
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.setViewportSize({ width: 320, height: 800 });
-    await page.locator('[data-active-authority-node="node-concept"]').click();
+    await activateSharedRuntimeControl(page, '[data-active-authority-node="node-concept"]');
     await expect(page.locator('[data-active-inspector-surface="mobile-drawer"]')).toBeVisible();
     await page.screenshot({ path: join(evidenceDir, 'inspector-mobile-dark.png'), fullPage: false });
 
@@ -307,10 +331,11 @@ test.describe('issue 1493 active graph presentation', () => {
     await page.goto('/knowledge', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-authority-root-canvas="true"]')).toBeVisible({ timeout: 20_000 });
 
-    await page.locator('[data-authority-domain-entry="modeling"]').click();
-    await expect(page.locator('[data-active-graph-stage="authority"]')).toBeVisible();
+    await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
+    await expect(page.locator('[data-active-authority-main="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).toBeVisible();
     await expect(page.locator('[data-knowledge-layout-control="relayout"]')).toBeVisible();
+    await assertSharedRuntimeCanvasGestures(page);
 
     const toolbar = page.locator('[data-knowledge-workspace-toolbar="true"]');
     const title = page.locator('[data-active-authority-title="true"]');

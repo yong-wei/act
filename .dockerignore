@@ -93,6 +93,12 @@ course-content/authoring/knowledge/cutover/*
 !course-content/authoring/knowledge/cutover/envelopes
 course-content/authoring/knowledge/cutover/envelopes/*
 !course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
+# latest-cutover verifier image fallback (#1683). Production still bind-mounts
+# the host candidate via ACT_LATEST_CUTOVER_CANDIDATE_ROOT.
+!course-content/authoring/knowledge/cutover/candidates
+course-content/authoring/knowledge/cutover/candidates/*
+!course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5
+!course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/**
 course-content/.codex
 course-content/docs
 course-content/notes
