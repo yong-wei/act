@@ -856,11 +856,21 @@ describe('platform UI contracts', () => {
       readSource('src/app/interactive-learning/chapter-components/_components/chapter-components-client.tsx'),
     ].join('\n');
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
+    const multiRepresentationSource = readSource('src/app/interactive-learning/multi-representation-linkage/page.tsx');
+    const multiRepresentationClientSource = readSource(
+      'src/features/interactive/multi-representation-linkage/page-client.tsx',
+    );
     const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
     const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
     const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
 
-    for (const source of [interactiveEntrySource, courseCatalogSource, chapterComponentsSource, crossDomainSource]) {
+    for (const source of [
+      interactiveEntrySource,
+      courseCatalogSource,
+      chapterComponentsSource,
+      crossDomainSource,
+      multiRepresentationSource,
+    ]) {
       expect(source).toContain('<InteractiveLearningShell');
       expect(source).toContain('data-interactive-atlas-workspace');
       expect(source).not.toContain('UnifiedTopBar');
@@ -897,6 +907,13 @@ describe('platform UI contracts', () => {
     expect(crossDomainSource).toContain(
       'data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"',
     );
+    expect(multiRepresentationSource).toContain(
+      'data-commercial-student-entry-route="/interactive-learning/multi-representation-linkage"',
+    );
+    expect(multiRepresentationSource).toContain('<InteractiveLearningShell');
+    expect(multiRepresentationClientSource).not.toContain('<InteractiveLearningShell');
+    expect(multiRepresentationClientSource).not.toContain('premium-lesson-shell min-h-screen');
+    expect(shellSource).toContain("'/interactive-learning/multi-representation-linkage'");
   });
 
   it('keeps concrete interactive course entry pages on the unified course entry shell', () => {
@@ -1016,11 +1033,16 @@ describe('platform UI contracts', () => {
     expect(runtimeShellSource).not.toContain('premium-lesson-topbar');
     expect(runtimeShellSource).not.toContain('max-w-[1180px]');
 
-    for (const source of [unit11StudentSource, unit11TeacherSource, unit12StudentSource, unit12TeacherSource, unit41StudentSource, unit41TeacherSource]) {
-      expect(source).toContain('LessonRuntimeShell');
-      expect(source).not.toContain('CourseHeader');
-      expect(source).not.toContain('premium-lesson-topbar');
-      expect(source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
+    for (const source of listSourceFiles('src/features/interactive').filter((relativePath) =>
+      /\/(student|teacher)-page\.tsx$/.test(relativePath)
+      && !relativePath.includes('/__tests__/')
+      && !relativePath.includes('/multi-representation-linkage/'),
+    )) {
+      const pageSource = readSource(source);
+      expect(pageSource, source).toContain('LessonRuntimeShell');
+      expect(pageSource, source).not.toContain('CourseHeader');
+      expect(pageSource, source).not.toContain('premium-lesson-topbar');
+      expect(pageSource, source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
     }
 
     for (const source of [unit11StudentSource, unit12StudentSource, unit41StudentSource]) {
@@ -1040,9 +1062,36 @@ describe('platform UI contracts', () => {
 
     expect(manifestActivitySource).toContain('readOnly?: boolean');
     expect(manifestActivitySource).toContain('演示模式会展示作答流程，但不会写入课堂汇总。');
+    expect(manifestActivitySource).toContain(
+      'disabled={readOnly || !draftValueForCard(card).trim() || pendingKeys.has(card.id)}',
+    );
+    expect(manifestActivitySource).toContain('if (readOnly || pendingKeysRef.current.has(card.id)) return;');
     expect(unit11StepPanelsSource).toContain('演示模式仅本机预览，不会同步到教师端汇总。');
+    expect(unit11StepPanelsSource).toContain('disabled={Boolean(readOnly)}');
     expect(unit41StepPanelsSource).toContain('readOnly?: boolean');
     expect(unit12StepPanelsSource).toContain('readOnly?: boolean');
+
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => /\/student-page\.tsx$/.test(item) && !item.includes('/__tests__/') && !item.includes('/multi-representation-linkage/'),
+    )) {
+      expect(readSource(relativePath), relativePath).toContain('readOnly={isDemo}');
+    }
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => item.endsWith('/step-panels.tsx') && !item.includes('/__tests__/'),
+    )) {
+      expect(readSource(relativePath), relativePath).not.toContain('void readOnly');
+      expect(readSource(relativePath), relativePath).not.toContain("\\'演示模式");
+      expect(readSource(relativePath), relativePath).not.toContain('onChange={() = ');
+      expect(readSource(relativePath), relativePath).not.toContain('onChange={(event) = ');
+    }
+
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => item.endsWith('/step-panels.tsx') && !item.includes('/__tests__/'),
+    )) {
+      const source = readSource(relativePath);
+      if (!source.includes('commitStudentResponse')) continue;
+      expect(source, relativePath).toContain('disabled={Boolean(readOnly)}');
+    }
 
     for (const source of [unit11TeacherSource, unit12TeacherSource, unit41TeacherSource]) {
       expect(source).toContain('mode="teacher"');

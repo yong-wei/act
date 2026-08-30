@@ -1,3 +1,5 @@
+import { bindControlCorrectionEvidencePortFactory } from '@/features/personalization/plugins/control-correction/plugin';
+import { createControlCorrectionEvidencePort } from '@/features/personalization/plugins/control-correction/db-evidence';
 import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
 import type { GoalPluginEvidencePort } from '@/features/personalization/plugins/types';
 import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
@@ -17,6 +19,8 @@ import type {
   LearningRecordReadPort,
   PathReadPort,
 } from '../ports';
+
+bindControlCorrectionEvidencePortFactory(createControlCorrectionEvidencePort);
 
 const PATH_SELECT = {
   id: true,

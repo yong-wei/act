@@ -557,6 +557,7 @@ export function UNIT_4_3StudentActivityForm({
   workspaceParameters,
   onSubmit,
   onWorkspaceParameterChange: _onWorkspaceParameterChange,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   step: UNIT_4_3RuntimeStepDefinition;
@@ -568,6 +569,7 @@ export function UNIT_4_3StudentActivityForm({
   workspaceParameters?: Record<string, string | number | boolean>;
   onSubmit: (response: UNIT_4_3StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  readOnly?: boolean;
 }) {
   if (!isUNIT_4_3InteractivePageType(step.pageType)) {
     return null;
@@ -586,6 +588,7 @@ export function UNIT_4_3StudentActivityForm({
         revealProgress,
         workspaceParameters,
         onSubmit,
+        readOnly,
       })}
     </>
   );

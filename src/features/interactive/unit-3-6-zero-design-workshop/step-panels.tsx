@@ -485,10 +485,12 @@ function renderChoiceButtons({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: readonly ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -496,7 +498,11 @@ function renderChoiceButtons({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-control ${value === option.value ? 'ring-2 ring-cyan-400' : ''}`}
         >
           {option.label}
@@ -510,10 +516,12 @@ function renderMultiChoiceButtons({
   options,
   values,
   onToggle,
+  disabled = false,
 }: {
   options: readonly ChoiceOption[];
   values: string[];
   onToggle: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -523,7 +531,11 @@ function renderMultiChoiceButtons({
           <button
             key={option.value}
             type="button"
-            onClick={() => onToggle(option.value)}
+            disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onToggle(option.value);
+          }}
             className={`premium-lesson-control ${active ? 'ring-2 ring-cyan-400' : ''}`}
           >
             {option.label}
@@ -539,16 +551,19 @@ function TextInput({
   onChange,
   placeholder,
   multiline = false,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
   multiline?: boolean;
 }) {
   if (multiline) {
     return (
       <textarea aria-label={placeholder ?? '零点设计工作坊学习记录'}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={4}
@@ -560,6 +575,7 @@ function TextInput({
   return (
     <input aria-label={placeholder ?? '零点设计工作坊输入'}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input w-full"
@@ -571,13 +587,15 @@ function SelectField({
   value,
   onChange,
   options,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: readonly ChoiceOption[];
+  disabled?: boolean;
 }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
+    <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
       <option value="">请选择</option>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -974,6 +992,7 @@ export function UNIT_3_6StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_3_6StepDefinition;
@@ -981,8 +1000,13 @@ export function UNIT_3_6StudentActivityForm({
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_6StepResponse) => void;
+  readOnly?: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
 
   useEffect(() => {
@@ -998,7 +1022,7 @@ export function UNIT_3_6StudentActivityForm({
   };
 
   const submit = (answers: Record<string, string>) => {
-    onSubmit({
+    commitStudentResponse({
       stepId: step.id,
       submittedAt: Date.now(),
       answers,
@@ -1012,7 +1036,7 @@ export function UNIT_3_6StudentActivityForm({
           <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
           <div className="mt-3">
             {question.type === 'text' ? (
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft[question.key] ?? ''}
                 onChange={(value) => updateDraft(question.key, value)}
                 placeholder="写一句你的判断或解释"
@@ -1020,6 +1044,7 @@ export function UNIT_3_6StudentActivityForm({
               />
             ) : (
               renderChoiceButtons({
+                disabled: Boolean(readOnly),
                 options: question.options,
                 value: draft[question.key] ?? '',
                 onChange: (value) => updateDraft(question.key, value, 'button'),
@@ -1048,6 +1073,7 @@ export function UNIT_3_6StudentActivityForm({
       break;
     case 'single_choice':
       formBody = renderChoiceButtons({
+        disabled: Boolean(readOnly),
         options: [
           { value: 'A', label: 'A：先看根轨迹' },
           { value: 'B', label: 'B：先看 Bode 图' },
@@ -1071,7 +1097,7 @@ export function UNIT_3_6StudentActivityForm({
                 <div className="premium-lesson-title text-sm font-medium">{task.label}</div>
                 <div className="premium-lesson-muted mt-1 text-xs">{task.summary}</div>
                 <div className="mt-3">
-                  <SelectField
+                  <SelectField disabled={Boolean(readOnly)}
                     value={draft[task.id] ?? ''}
                     onChange={(value) => updateDraft(task.id, value, 'select')}
                     options={ENTRY_BUCKETS.map((bucket) => ({ value: bucket.key, label: bucket.title }))}
@@ -1080,7 +1106,7 @@ export function UNIT_3_6StudentActivityForm({
               </div>
             ))}
           </div>
-          <TextInput
+          <TextInput disabled={Boolean(readOnly)}
             value={draft.bucketReason ?? ''}
             onChange={(value) => updateDraft('bucketReason', value)}
             placeholder="补一句：哪一个任务最容易被分错，为什么？"
@@ -1095,7 +1121,7 @@ export function UNIT_3_6StudentActivityForm({
           {CONSTRAINT_TRANSLATION_FIELDS.map((field) => (
             <div key={field.key}>
               <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft[field.key] ?? ''}
                 onChange={(value) => updateDraft(field.key, value)}
                 placeholder="填写你的翻译或解释"
@@ -1113,7 +1139,7 @@ export function UNIT_3_6StudentActivityForm({
             <div key={order}>
               <div className="premium-lesson-title text-sm font-medium">第 {order} 步</div>
               <div className="mt-2">
-                <SelectField
+                <SelectField disabled={Boolean(readOnly)}
                   value={draft[`sequence-${order}`] ?? ''}
                   onChange={(value) => updateDraft(`sequence-${order}`, value, 'select')}
                   options={SEQUENCE_REVEAL_OPTIONS.map((item) => ({ value: item.value, label: item.label }))}
@@ -1131,7 +1157,7 @@ export function UNIT_3_6StudentActivityForm({
           {PARAMETER_WORKSPACE_FIELDS.map((field) => (
             <div key={field.key}>
               <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft[field.key] ?? ''}
                 onChange={(value) => updateDraft(field.key, value)}
                 placeholder="填写关键记录"
@@ -1142,7 +1168,7 @@ export function UNIT_3_6StudentActivityForm({
           {step.id === 'step-09' ? (
             <div>
               <div className="premium-lesson-title text-sm font-medium">调整顺序</div>
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.adjustmentOrder ?? ''}
                 onChange={(value) => updateDraft('adjustmentOrder', value)}
                 placeholder="例如：等效极点 -> Kt -> K -> 验收"
@@ -1159,12 +1185,13 @@ export function UNIT_3_6StudentActivityForm({
             <div>
               <div className="premium-lesson-title text-sm font-medium">理由标签</div>
               {renderMultiChoiceButtons({
+                disabled: Boolean(readOnly),
                 options: REASON_TAG_OPTIONS,
                 values: parseList(draft.reasonTags),
                 onToggle: (value) => toggleDelimitedValue('reasonTags', value),
               })}
             </div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.compareIntent ?? ''}
               onChange={(value) => updateDraft('compareIntent', value)}
               placeholder="补一句：为什么这里必须沿用相同频域目标？"
@@ -1175,7 +1202,7 @@ export function UNIT_3_6StudentActivityForm({
           <div className="grid gap-4">
             <div>
               <div className="premium-lesson-title text-sm font-medium">理由说明</div>
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.responseText ?? ''}
                 onChange={(value) => updateDraft('responseText', value)}
                 placeholder="写一句：为什么频域设计必须先看只调增益会怎样？"
@@ -1185,6 +1212,7 @@ export function UNIT_3_6StudentActivityForm({
             <div>
               <div className="premium-lesson-title text-sm font-medium">关键词命中</div>
               {renderMultiChoiceButtons({
+                disabled: Boolean(readOnly),
                 options: STRUCTURED_RESPONSE_KEYWORD_OPTIONS,
                 values: parseList(draft.keywordCoverage),
                 onToggle: (value) => toggleDelimitedValue('keywordCoverage', value),
@@ -1199,7 +1227,7 @@ export function UNIT_3_6StudentActivityForm({
         <div className="grid gap-4">
           <div>
             <div className="premium-lesson-title text-sm font-medium">共同目标与差异结论</div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.compareSummary ?? ''}
               onChange={(value) => updateDraft('compareSummary', value)}
               placeholder="写出共同目标与主要差异"
@@ -1209,6 +1237,7 @@ export function UNIT_3_6StudentActivityForm({
           <div>
             <div className="premium-lesson-title text-sm font-medium">差异标签</div>
             {renderMultiChoiceButtons({
+              disabled: Boolean(readOnly),
               options: DIFFERENCE_TAG_OPTIONS,
               values: parseList(draft.differenceTags),
               onToggle: (value) => toggleDelimitedValue('differenceTags', value),
@@ -1222,7 +1251,7 @@ export function UNIT_3_6StudentActivityForm({
         <div className="grid gap-4">
           <div>
             <div className="premium-lesson-title text-sm font-medium">当前目标是否仍可原样保持</div>
-            <SelectField
+            <SelectField disabled={Boolean(readOnly)}
               value={draft.feasibilityChoice ?? ''}
               onChange={(value) => updateDraft('feasibilityChoice', value, 'select')}
               options={[
@@ -1234,6 +1263,7 @@ export function UNIT_3_6StudentActivityForm({
           <div>
             <div className="premium-lesson-title text-sm font-medium">结构选择</div>
             {renderMultiChoiceButtons({
+              disabled: Boolean(readOnly),
               options: BOUNDARY_STRUCTURE_OPTIONS,
               values: parseList(draft.structureChoice),
               onToggle: (value) => toggleDelimitedValue('structureChoice', value),
@@ -1241,7 +1271,7 @@ export function UNIT_3_6StudentActivityForm({
           </div>
           <div>
             <div className="premium-lesson-title text-sm font-medium">理由</div>
-            <TextInput
+            <TextInput disabled={Boolean(readOnly)}
               value={draft.reasonSubmitted ?? ''}
               onChange={(value) => updateDraft('reasonSubmitted', value)}
               placeholder="说明你为什么做这个判断"
@@ -1258,7 +1288,7 @@ export function UNIT_3_6StudentActivityForm({
           <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
             <div className="premium-lesson-title text-sm font-medium">一句反思</div>
             <div className="mt-3">
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.reflectionSubmitted ?? ''}
                 onChange={(value) => updateDraft('reflectionSubmitted', value)}
                 placeholder="写一句你要带走的设计判断"
@@ -1318,21 +1348,21 @@ export function UNIT_3_6StudentActivityForm({
           <SubmissionStatus
             submitted={submitted}
             submittedText="提交成功，已同步到教师端汇总。"
-            idleText="提交后会同步到教师端汇总；如教师允许，也可再次修改。"
+            idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '提交后会同步到教师端汇总；如教师允许，也可再次修改。'}
           />
 
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={locked}
+              disabled={locked || Boolean(readOnly)}
               className="premium-lesson-action-primary"
             >
               {submitLabel}
             </button>
             {savedResponse ? (
               <button
-                type="button"
+                type="button" disabled={Boolean(readOnly)}
                 onClick={() => setDraft(savedResponse.answers)}
                 className="premium-lesson-action-secondary"
               >

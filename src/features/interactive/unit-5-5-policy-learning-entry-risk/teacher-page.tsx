@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Loader2, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, Users } from 'lucide-react';
 
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
+import {
+  LessonRuntimeLoadingShell,
+  LessonRuntimeShell,
+} from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
@@ -33,10 +37,13 @@ import {
   UNIT_5_5_RESOURCE_KEY,
   UNIT_5_5_SESSION_ADAPTER,
   UNIT_5_5_STAGE_MAP,
+  UNIT_5_5_COURSE_TITLE,
+  UNIT_5_5_COURSE_SUBTITLE,
+  UNIT_5_5_ROUTE_SEGMENT,
+  UNIT_5_5_STAGE_LABEL,
   type UNIT_5_5StudentCourseState,
   type UNIT_5_5TeacherCourseSyncState,
 } from '@/lib/unit-5-5-course';
-import { UNIT_5_5CourseHeader } from './course-header';
 import {
   UNIT_5_5StepContentPanel,
   UNIT_5_5TeacherActivitySummary,
@@ -342,32 +349,31 @@ export function UNIT_5_5TeacherPage({
 
   if (loadingSession) {
     return (
-      <div className="premium-lesson-shell flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
+      <LessonRuntimeLoadingShell
+        mode="teacher"
+        title={UNIT_5_5_COURSE_TITLE}
+        subtitle={UNIT_5_5_COURSE_SUBTITLE}
+        routeSegment={UNIT_5_5_ROUTE_SEGMENT}
+      />
     );
   }
 
   return (
-    <div className="premium-lesson-shell">
-      <UNIT_5_5CourseHeader
+    <LessonRuntimeShell
+        mode="teacher"
+        title={UNIT_5_5_COURSE_TITLE}
+        subtitle={UNIT_5_5_COURSE_SUBTITLE}
+        routeSegment={UNIT_5_5_ROUTE_SEGMENT}
+        sessionId={sessionId}
         steps={UNIT_5_5_LESSON_STEPS}
         activeIndex={activeIndex}
+        stageLabel={UNIT_5_5_STAGE_LABEL}
+        notice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
         onIndexChange={(index) => void handlePatchCurrentStep(index)}
-        middleNotice={`课堂码 ${sessionInfo?.joinCode ?? '------'} · ${step.hint}`}
-        rightSlot={
-          <StepKnowledgeDrawer
-            lessonRuntime={lessonRuntime}
-            currentStepId={step.id}
-            orderedStepIds={UNIT_5_5_LESSON_STEPS.map((item) => item.id)}
-            title="页面知识卡片"
-          />
-        }
-      />
-
-      <main className="premium-lesson-main py-4 sm:py-6">
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
+        toolsDefaultState="collapsed"
+        localTools={
+          <>
+          <div className="premium-lesson-panel-soft px-4 py-4" data-teacher-projection-runtime="local-tools">
             <div>
               <div className="premium-lesson-kicker">教师课堂台</div>
               <div className="premium-lesson-title mt-2 text-lg font-semibold">
@@ -375,10 +381,12 @@ export function UNIT_5_5TeacherPage({
               </div>
               <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、发放作答、推进显影并显示参考解释。</div>
             </div>
-            <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
-            <button type="button" onClick={() => void handleEndSession()} disabled={endingSession} className="premium-lesson-action-tone premium-tone-rose">
-              {endingSession ? '结束中...' : '结束课堂'}
-            </button>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <TeacherJoinQrDialog joinCode={sessionInfo?.joinCode} />
+              <button type="button" onClick={() => void handleEndSession()} disabled={endingSession} className="premium-lesson-action-tone premium-tone-rose">
+                {endingSession ? '结束中...' : '结束课堂'}
+              </button>
+            </div>
           </div>
 
           <div className="premium-lesson-panel-soft px-4 py-4">
@@ -406,9 +414,22 @@ export function UNIT_5_5TeacherPage({
               </div>
             ) : null}
           </div>
-        </div>
-
-        {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
+            <StepKnowledgeDrawer
+            lessonRuntime={lessonRuntime}
+            currentStepId={step.id}
+            orderedStepIds={UNIT_5_5_LESSON_STEPS.map((item) => item.id)}
+            title="页面知识卡片"
+            inlineTool
+          />
+          </>
+        }
+        runtimeAttributes={{
+          'data-teacher-projection-runtime': 'compact-navigation',
+          'data-runtime-manifest-truth': lessonRuntime.interactiveManifest?.lessonId ?? UNIT_5_5_LESSON_KEY,
+        }}
+      >
+        <div className="space-y-4">
+          {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <UNIT_5_5StepContentPanel
           step={step}
@@ -460,7 +481,7 @@ export function UNIT_5_5TeacherPage({
             }
           />
         </div>
-      </main>
-    </div>
+        </div>
+      </LessonRuntimeShell>
   );
 }

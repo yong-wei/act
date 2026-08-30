@@ -664,7 +664,7 @@ export function MultiRepresentationLinkageClient({
 
   if (model.arenaContextIncompatible) {
     return (
-      <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
+      <div className="premium-lesson-theme-scope flex min-h-[50vh] items-center justify-center">
         <main className="premium-lesson-main py-12 text-center">
           <div className="premium-lesson-panel px-6 py-8 border-l-4 border-amber-500">
             <div className="premium-lesson-kicker text-amber-600">工作台模式不匹配</div>
@@ -693,7 +693,7 @@ export function MultiRepresentationLinkageClient({
 
   if (model.arenaContextMissing) {
     return (
-      <div className="premium-lesson-shell flex min-h-screen items-center justify-center">
+      <div className="premium-lesson-theme-scope flex min-h-[50vh] items-center justify-center">
         <main className="premium-lesson-main py-12 text-center">
           <div className="premium-lesson-panel px-6 py-8 border-l-4 border-destructive">
             <div className="premium-lesson-kicker text-destructive">竞技场挑战错误</div>
@@ -719,7 +719,7 @@ export function MultiRepresentationLinkageClient({
   }
 
   return (
-    <div className="premium-lesson-shell min-h-screen">
+    <div className="premium-lesson-theme-scope">
       <main className="premium-lesson-main py-4 sm:py-6">
         {!model.isEmbedded ? (
           <header className="premium-lesson-panel px-5 py-5">

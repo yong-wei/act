@@ -144,6 +144,7 @@ export function UNIT_4_4StudentActivityForm({
   answerVisible,
   revealProgress,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_4_4StepDefinition;
   manifest?: InteractiveRuntimeManifest | null;
@@ -153,7 +154,9 @@ export function UNIT_4_4StudentActivityForm({
   answerVisible: boolean;
   revealProgress: number;
   onSubmit: (response: UNIT_4_4StepResponse) => void;
+  readOnly?: boolean;
 }) {
+
   const stepManifest = getUNIT_4_4ManifestStepFromManifest(manifest, step.id);
   return (
     <>
@@ -166,6 +169,7 @@ export function UNIT_4_4StudentActivityForm({
         browseEnabled,
         answerVisible,
         revealProgress,
+        readOnly,
         onSubmit,
       })}
     </>

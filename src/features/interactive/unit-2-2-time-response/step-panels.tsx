@@ -1670,13 +1670,20 @@ export function UNIT_2_2StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_2_2StepDefinition;
   savedResponse?: UNIT_2_2StepResponse;
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_2_2StepResponse) => void;
+  readOnly?: boolean;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
+
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
 
@@ -1711,7 +1718,7 @@ export function UNIT_2_2StudentActivityForm({
             <div className="mt-3 grid gap-2">
               {question.options.map((option) => (
                 <label key={option.value} className="premium-lesson-control flex items-start gap-2">
-                  <input
+                  <input disabled={Boolean(readOnly)}
                     type="radio"
                     name={question.key}
                     checked={draft[question.key] === option.value}
@@ -1739,7 +1746,7 @@ export function UNIT_2_2StudentActivityForm({
               {field.label}
             </label>
             {field.type === 'textarea' ? (
-              <textarea
+              <textarea disabled={Boolean(readOnly)}
                 id={buildStudentFieldId(step.id, field.key)}
                 name={field.key}
                 aria-label={field.label}
@@ -1752,7 +1759,7 @@ export function UNIT_2_2StudentActivityForm({
               <div className="mt-3 grid gap-2">
                 {field.options?.map((option) => (
                   <label key={option.value} className="premium-lesson-control flex items-start gap-2">
-                    <input
+                    <input disabled={Boolean(readOnly)}
                       type="radio"
                       name={field.key}
                       aria-label={`${field.label}：${option.label}`}
@@ -1764,7 +1771,7 @@ export function UNIT_2_2StudentActivityForm({
                 ))}
               </div>
             ) : (
-              <input
+              <input disabled={Boolean(readOnly)}
                 type="text"
                 id={buildStudentFieldId(step.id, field.key)}
                 name={field.key}
@@ -1785,9 +1792,9 @@ export function UNIT_2_2StudentActivityForm({
       </div>
 
       <button
-        type="button"
+        type="button" disabled={Boolean(readOnly)}
         onClick={() =>
-          onSubmit({
+          commitStudentResponse({
             stepId: step.id,
             submittedAt: Date.now(),
             answers: draft,
@@ -1798,7 +1805,8 @@ export function UNIT_2_2StudentActivityForm({
         {activity.submitLabel ?? '提交作答'}
       </button>
 
-      <SubmissionStatus submitted={Boolean(savedResponse)} />
+      <SubmissionStatus submitted={Boolean(savedResponse)}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined} />
 
       {answerVisible && answerFields.length ? (
         <div className="premium-lesson-panel mt-4 px-4 py-4">

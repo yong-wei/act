@@ -1,0 +1,15 @@
+{
+  "before": {
+    "states": 5,
+    "logs": 7,
+    "responses": 2,
+    "facts": 2
+  },
+  "after": {
+    "states": 5,
+    "logs": 7,
+    "responses": 2,
+    "facts": 2
+  },
+  "writePosts": []
+}

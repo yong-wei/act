@@ -89,37 +89,7 @@ export const UNIVERSAL_APP_SHELL_CHANGE_ID = 'define-universal-appshell-frame-co
 export const DEEP_PRODUCT_APP_SHELL_CHANGE_ID = 'migrate-deep-product-routes-appshell-chrome';
 export const APP_SHELL_GOVERNANCE_CHANGE_ID = 'enforce-appshell-route-coverage-governance';
 
-export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [
-  'cruise-comfort-boppps',
-  'unit-1-3-parameter-pole-migration',
-  'unit-1-4-time-frequency-views',
-  'unit-1-5-three-domain-gain-sweep',
-  'unit-2-1-modeling-language',
-  'unit-2-2-time-domain-response',
-  'unit-2-3-frequency-response-bode-intro',
-  'unit-2-4-nyquist-margin-entry',
-  'unit-3-1-pure-pole-stability-and-dynamics',
-  'unit-3-2-routh-stability-boundary',
-  'unit-3-3-root-locus-rules',
-  'unit-3-4-root-locus-reading-validation',
-  'unit-3-5-zero-dynamic-improvement',
-  'unit-3-6-zero-design-workshop',
-  'unit-3-7-steady-error-low-frequency-compensation',
-  'unit-3-8-frequency-domain-translation-judgment',
-  'unit-3-9-cross-domain-mapping-lab',
-  'unit-4-2-controller-selection-first-start',
-  'unit-4-3-initial-scheme-practice-first-validation',
-  'unit-4-4-fixed-structure-optimization-modeling',
-  'unit-4-5-constraint-aware-parameter-optimization',
-  'unit-4-6-fixed-structure-boundary-structural-encoding',
-  'unit-4-7-destroyer-hifi-design-closure',
-  'unit-5-1-linear-backbone-boundaries',
-  'unit-5-2-nonlinear-analysis-entry',
-  'unit-5-3-mass-coordination-chain',
-  'unit-5-4-data-driven-mpc-transition',
-  'unit-5-5-policy-learning-entry-risk',
-  'unit-5-6-method-comparison-cold-chain',
-] as const;
+export const LEGACY_LESSON_RUNTIME_ROUTE_SLUGS = [] as const;
 
 export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER = [
   '首页',
@@ -527,6 +497,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
       '/interactive-learning/chapter-components',
       '/interactive-learning/chapter-components/*',
       '/interactive-learning/cross-domain-exploration',
+      '/interactive-learning/multi-representation-linkage',
       '/interactive-learning/resources/*',
     ],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
@@ -717,15 +688,6 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   ...LEGACY_LESSON_RUNTIME_ROUTE_EXCEPTIONS,
   {
-    routePattern: '/interactive-learning/courses/unit-1-5-three-domain-gain-sweep/demo',
-    category: 'legacy-lesson-runtime',
-    type: 'migration-temporary',
-    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
-    reason: 'This lesson demo still renders the course-specific student runtime before LessonRuntimeShell migration.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'This demo adopts LessonRuntimeShell or is retired after the canonical lesson runtime is registered.',
-  },
-  {
     routePattern: '/interactive-learning/resources/control-odyssey-v1/ship',
     category: 'embed-surface',
     type: 'embed-only',
@@ -754,15 +716,6 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/control-odyssey',
-    category: 'legacy-interactive-demo',
-    type: 'legacy-demo-only',
-    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
-    reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
-  },
-  {
-    routePattern: '/interactive-learning/multi-representation-linkage',
     category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,

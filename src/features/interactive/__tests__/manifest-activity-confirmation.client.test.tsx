@@ -69,11 +69,13 @@ function ActivityHarness({
   stepManifest,
   browseEnabled = true,
   answerVisible = false,
+  readOnly = false,
   onSubmit,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   browseEnabled?: boolean;
   answerVisible?: boolean;
+  readOnly?: boolean;
   onSubmit: (response: ManifestStepResponse) => void | Promise<void>;
 }) {
   return renderStudentInteractiveActivity({
@@ -84,6 +86,7 @@ function ActivityHarness({
     browseEnabled,
     answerVisible,
     revealProgress: 0,
+    readOnly,
     onSubmit,
   });
 }
@@ -224,5 +227,27 @@ describe('manifest StudentCards confirmation behavior', () => {
 
     expect(container.textContent).not.toContain('教师尚未开放浏览');
     expect(container.querySelector('button')).not.toBeNull();
+  });
+
+  it('disables submit and card inputs in demo read-only mode', async () => {
+    const onSubmit = vi.fn();
+    const stepManifest = manifestStep({
+      cards: [{ id: 'card-a', prompt: '演示作答。', referenceAnswer: '参考' }],
+    });
+
+    await act(async () => root.render(
+      <ActivityHarness stepManifest={stepManifest} readOnly onSubmit={onSubmit} />,
+    ));
+
+    const option = container.querySelector<HTMLInputElement>('input[value="A"]')!;
+    const submit = container.querySelector<HTMLButtonElement>('button')!;
+    expect(option.disabled).toBe(true);
+    expect(submit.disabled).toBe(true);
+    expect(submit.getAttribute('data-demo-readonly')).toBe('true');
+    expect(container.textContent).toContain('演示模式仅本机预览，不会同步到教师端汇总。');
+
+    await act(async () => option.click());
+    await act(async () => submit.click());
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

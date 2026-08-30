@@ -823,20 +823,14 @@ describe('platform role navigation', () => {
         resolvePlatformRouteInventory(`/interactive-learning/courses/${course}/student/demo-session`),
       ).toMatchObject({
         href: '/interactive-learning/courses/[course]/student/[sessionId]',
-        owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
-        exception: expect.objectContaining({
-          affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-        }),
+        owningChange: 'standardize-lesson-runtime-shell',
       });
       expect(
         resolvePlatformRouteInventory(`/interactive-learning/courses/${course}/teacher/demo-session`),
       ).toMatchObject({
         href: '/interactive-learning/courses/[course]/teacher/[sessionId]',
-        owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
+        owningChange: 'standardize-lesson-runtime-shell',
         authState: 'mixed',
-        exception: expect.objectContaining({
-          affectedCapability: 'interactive-lesson-runtime-legacy-pages',
-        }),
       });
     }
     expect(
@@ -1010,8 +1004,6 @@ describe('platform role navigation', () => {
     expect(exceptions.map((route) => route.href)).toEqual([
       '/classroom/student/[sessionId]',
       '/classroom/teacher/[sessionId]',
-      '/interactive-learning/courses/[course]/student/[sessionId]',
-      '/interactive-learning/courses/[course]/teacher/[sessionId]',
       '/teacher/classes/new',
       '/teacher/lesson-plans/new',
       '/teacher/lesson-plans/[id]/edit',

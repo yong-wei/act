@@ -1255,11 +1255,13 @@ function renderQuestionCard({
   draft,
   setDraft,
   showAnswers,
+  disabled = false,
 }: {
   card: ActivityCard;
   draft: Record<string, string>;
   setDraft: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   showAnswers: boolean;
+  disabled?: boolean;
 }) {
   const question = card.question!;
   return (
@@ -1272,7 +1274,11 @@ function renderQuestionCard({
               type="radio"
               name={question.key}
               checked={draft[question.key] === option.value}
-              onChange={() => setDraft((prev) => ({ ...prev, [question.key]: option.value }))}
+              disabled={disabled}
+              onChange={() => {
+                if (disabled) return;
+                setDraft((prev) => ({ ...prev, [question.key]: option.value }));
+              }}
             />
             <span className="text-sm leading-6">{renderInlineMathText(option.label)}</span>
           </label>
@@ -1297,12 +1303,14 @@ function renderFieldCard({
   draft,
   setDraft,
   showAnswers,
+  disabled = false,
 }: {
   stepId: string;
   card: ActivityCard;
   draft: Record<string, string>;
   setDraft: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   showAnswers: boolean;
+  disabled?: boolean;
 }) {
   const field = card.field!;
   return (
@@ -1319,7 +1327,11 @@ function renderFieldCard({
           name={field.key}
           aria-label={field.label}
           value={draft[field.key] ?? ''}
-          onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
+          disabled={disabled}
+          onChange={(event) => {
+            if (disabled) return;
+            setDraft((prev) => ({ ...prev, [field.key]: event.target.value }));
+          }}
           placeholder={field.placeholder}
           className="premium-lesson-input mt-3 min-h-[120px]"
         />
@@ -1332,7 +1344,11 @@ function renderFieldCard({
                 name={field.key}
                 aria-label={`${field.label}：${option.label}`}
                 checked={draft[field.key] === option.value}
-                onChange={() => setDraft((prev) => ({ ...prev, [field.key]: option.value }))}
+                disabled={disabled}
+                onChange={() => {
+                  if (disabled) return;
+                  setDraft((prev) => ({ ...prev, [field.key]: option.value }));
+                }}
               />
               <span className="text-sm leading-6">{renderInlineMathText(option.label)}</span>
             </label>
@@ -1345,7 +1361,11 @@ function renderFieldCard({
           name={field.key}
           aria-label={field.label}
           value={draft[field.key] ?? ''}
-          onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
+          disabled={disabled}
+          onChange={(event) => {
+            if (disabled) return;
+            setDraft((prev) => ({ ...prev, [field.key]: event.target.value }));
+          }}
           placeholder={field.placeholder}
           className="premium-lesson-input mt-3"
         />
@@ -1365,13 +1385,20 @@ export function UNIT_3_1StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
 }: {
   step: UNIT_3_1StepDefinition;
   savedResponse?: UNIT_3_1StepResponse;
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_1StepResponse) => void;
+  readOnly?: boolean;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
+
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(activity, savedResponse));
 
@@ -1408,13 +1435,13 @@ export function UNIT_3_1StudentActivityForm({
           return (
             <div key={card.id} className="premium-lesson-surface-elevated px-4 py-4">
               {card.kind === 'question'
-                ? renderQuestionCard({ card, draft, setDraft, showAnswers })
-                : renderFieldCard({ stepId: step.id, card, draft, setDraft, showAnswers })}
+                ? renderQuestionCard({ card, draft, setDraft, showAnswers, disabled: Boolean(readOnly) })
+                : renderFieldCard({ stepId: step.id, card, draft, setDraft, showAnswers, disabled: Boolean(readOnly) })}
               <button
-                type="button"
+                type="button" disabled={Boolean(readOnly)}
                 onClick={() => {
                   const key = answerKey;
-                  onSubmit({
+                  commitStudentResponse({
                     stepId: step.id,
                     submittedAt: Date.now(),
                     answers: {
@@ -1427,7 +1454,8 @@ export function UNIT_3_1StudentActivityForm({
               >
                 提交答案
               </button>
-              <SubmissionStatus submitted={isCardSubmitted} />
+              <SubmissionStatus submitted={isCardSubmitted}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined} />
             </div>
           );
         })}
