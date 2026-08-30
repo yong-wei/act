@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableRefObject } from 'react';
 import Image from 'next/image';
 import {
   AlertTriangle,
   ChevronDown,
   CircleHelp,
-  Crosshair,
   Loader2,
   Network,
   RotateCcw,
@@ -56,7 +55,9 @@ import {
   type AuthorityShardWorkspaceState,
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
-import { ActiveAuthorityForceCanvas } from './active-authority-force-canvas';
+import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
+import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
+import { useKnowledgeGraphRuntimeLayout } from './graph/use-knowledge-graph-runtime-layout';
 import {
   createAuthorityGraphViewModel,
   defaultEnabledTeachingFamilies,
@@ -86,21 +87,21 @@ import {
   formatLoadMoreAria,
   formatSearchShownCount,
   graphCopy,
-  reviewedDomainHeaderCopy,
   shardUrl,
   totalCoverageCopy,
   visibleCoverageCopy,
 } from './active-authority-graph-i18n';
-import { ActiveAuthorityRootCanvas } from './active-authority-root-canvas';
-import {
-  KNOWLEDGE_NODE_LABEL_POLICY,
-  layoutKnowledgeNodeLabel,
-} from './graph/graph-presentation-contract';
-
 interface ActiveAuthorityGraphProps {
   viewerRole: 'student' | 'teacher' | 'admin' | 'audit';
   dimension?: GraphDimension;
   onDimensionChange?: (dimension: GraphDimension) => void;
+  onActiveDomainChange?: (domainId: string | null) => void;
+  returnToRootRef?: MutableRefObject<(() => void) | null>;
+  chromeHostRef?: { current: HTMLElement | null };
+  runtimeControlsRef?: { current: {
+    requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
+    requestRelayout: () => void;
+  } | null };
 }
 
 type WorkspaceLoadState =
@@ -842,180 +843,6 @@ export function activeAuthorityEdgeEndpoints(
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
 const SEARCH_RESULT_PAGE_SIZE = 12;
-const ACTIVE_MOBILE_VIEWBOX = '0 0 320 520';
-const ACTIVE_DESKTOP_VIEWBOX = '0 0 960 520';
-
-export function layoutActiveAuthorityNodes(
-  nodes: readonly Pick<ActiveNodePresentation, 'key'>[],
-  compact = false,
-): ReadonlyMap<string, Point> {
-  const columns = compact
-    ? Math.max(1, Math.min(2, nodes.length))
-    : Math.max(1, Math.min(6, Math.max(Math.ceil(Math.sqrt(nodes.length)), Math.ceil(nodes.length / 4))));
-  const columnGap = compact
-    ? 164
-    : columns === 6 ? 156 : columns === 5 ? 180 : 220;
-  const rowGap = compact ? 112 : 120;
-  const startX = compact
-    ? (columns === 1 ? 160 : 78)
-    : columns === 6 ? 88 : columns === 5 ? 120 : 130;
-  const startY = compact ? 72 : 84;
-  return new Map(nodes.map((node, index) => [node.key, {
-    x: startX + (index % columns) * columnGap,
-    y: startY + Math.floor(index / columns) * rowGap,
-  }]));
-}
-
-function nodePolygon(shape: ActiveNodePresentation['type']['shape'], x: number, y: number): string | null {
-  if (shape === 'diamond') return `${x},${y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x + ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y} ${x},${y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT} ${x - ACTIVE_NODE_DIAMOND_HALF_WIDTH},${y}`;
-  if (shape === 'hexagon') return `${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y - ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y} ${x + ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_SLOPE_X},${y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT} ${x - ACTIVE_NODE_HEXAGON_HALF_WIDTH},${y + ACTIVE_NODE_HEXAGON_SLOPE_Y}`;
-  return null;
-}
-
-function glyphHalfHeight(shape: ActiveNodeShape): number {
-  if (shape === 'circle') return ACTIVE_NODE_CIRCLE_RADIUS;
-  if (shape === 'diamond') return ACTIVE_NODE_DIAMOND_HALF_HEIGHT;
-  if (shape === 'hexagon') return ACTIVE_NODE_HEXAGON_HALF_HEIGHT;
-  return ACTIVE_NODE_RECT_HALF_HEIGHT;
-}
-
-function GraphNode({
-  node,
-  point,
-  selected,
-  onSelect,
-  compact,
-}: {
-  node: ActiveNodePresentation;
-  point: Point;
-  selected: boolean;
-  onSelect: (key: string, target: SVGGElement) => void;
-  compact: boolean;
-}) {
-  const polygon = nodePolygon(node.type.shape, point.x, point.y);
-  const accessibleName = `${node.label}，${node.type.label}`;
-  const labelLayout = layoutKnowledgeNodeLabel(node.label);
-  const labelY = point.y + glyphHalfHeight(node.type.shape) + 14;
-  return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={accessibleName}
-      aria-pressed={selected}
-      data-active-authority-node={node.key}
-      data-active-authority-node-shape={node.type.shape}
-      onClick={(event) => onSelect(node.key, event.currentTarget)}
-      onKeyDown={(event: KeyboardEvent<SVGGElement>) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onSelect(node.key, event.currentTarget);
-        }
-      }}
-      className="cursor-pointer outline-none focus-visible:ring-2"
-    >
-      <title>{accessibleName}</title>
-      {polygon ? (
-        <polygon points={polygon} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
-      ) : node.type.shape === 'circle' ? (
-        <circle cx={point.x} cy={point.y} r={ACTIVE_NODE_CIRCLE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
-      ) : (
-        <rect x={point.x - ACTIVE_NODE_RECT_HALF_WIDTH} y={point.y - ACTIVE_NODE_RECT_HALF_HEIGHT} width={ACTIVE_NODE_RECT_HALF_WIDTH * 2} height={ACTIVE_NODE_RECT_HALF_HEIGHT * 2} rx={node.type.shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS} fill={nodeFill(node, selected)} stroke={nodeStroke(node, selected)} strokeWidth={selected ? 3 : 2} />
-      )}
-      <text
-        data-active-authority-node-label="true"
-        data-active-authority-node-label-placement="below"
-        x={point.x}
-        y={labelY}
-        textAnchor="middle"
-        fill="#e2e8f0"
-        fontSize={compact ? 13 : 13}
-        fontWeight="600"
-      >
-        {labelLayout.lines.map((line, index) => (
-          <tspan
-            key={`${line.text}-${index}`}
-            x={point.x}
-            dy={index === 0 ? 0 : KNOWLEDGE_NODE_LABEL_POLICY.lineHeight}
-          >
-            {line.text}
-          </tspan>
-        ))}
-      </text>
-    </g>
-  );
-}
-
-function GraphEdge({
-  relation,
-  source,
-  target,
-  sourceShape,
-  targetShape,
-  sourceLabel,
-  targetLabel,
-  compact,
-  selected,
-}: {
-  relation: ActiveAuthorityGraphModel['relations'][number];
-  source: Point;
-  target: Point;
-  sourceShape: ActiveNodeShape;
-  targetShape: ActiveNodeShape;
-  sourceLabel: string;
-  targetLabel: string;
-  compact: boolean;
-  selected: boolean;
-}) {
-  const label = `${sourceLabel}，${relation.semantic.label}，${targetLabel}，${relation.semantic.directionLabel}`;
-  const endpoints = activeAuthorityEdgeEndpoints(sourceShape, targetShape, source, target);
-  const teachingRelation = relation.sourceRelation.layer === 'ACT_TEACHING';
-  const edgeStroke = selected ? '#e2e8f0' : teachingRelation ? '#38bdf8' : '#64748b';
-  return (
-    <g
-      data-active-authority-relation={relation.key}
-      data-active-authority-relation-source={relation.sourceKey}
-      data-active-authority-relation-target={relation.targetKey}
-      data-active-authority-relation-selected={selected ? 'true' : 'false'}
-      aria-label={label}
-    >
-      <title>{label}</title>
-      {source.x === target.x && source.y === target.y ? (
-        <path
-          d={`M ${endpoints.source.x} ${endpoints.source.y} C ${source.x + 50} ${source.y - 72}, ${source.x + 72} ${source.y + 24}, ${endpoints.target.x} ${endpoints.target.y}`}
-          fill="none"
-          stroke={edgeStroke}
-          strokeWidth={selected ? 3 : 2}
-          strokeLinecap="round"
-          strokeDasharray={teachingRelation ? undefined : '5 3'}
-          markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
-        />
-      ) : (
-        <line
-          x1={endpoints.source.x}
-          y1={endpoints.source.y}
-          x2={endpoints.target.x}
-          y2={endpoints.target.y}
-          stroke={edgeStroke}
-          strokeWidth={selected ? 3 : 2}
-          strokeLinecap="round"
-          strokeDasharray={teachingRelation ? undefined : '5 3'}
-          markerEnd={relation.semantic.kind === 'directed' ? 'url(#active-authority-arrow)' : undefined}
-        />
-      )}
-      <text
-        data-active-authority-relation-label="true"
-        x={(source.x + target.x) / 2}
-        y={(source.y + target.y) / 2 - 6}
-        textAnchor="middle"
-        fill="#94a3b8"
-        fontSize={compact ? 11 : 10}
-      >
-        {relation.semantic.label}
-      </text>
-    </g>
-  );
-}
-
 function trapInspectorFocus(event: KeyboardEvent<HTMLElement>, root: HTMLElement | null) {
   if (event.key !== 'Tab' || !root) return;
   const focusable = [...root.querySelectorAll<HTMLElement>(
@@ -1345,14 +1172,16 @@ function SearchResults({
 export function ActiveAuthorityGraph({
   viewerRole: _viewerRole,
   dimension: dimensionProp,
-  onDimensionChange,
+  onActiveDomainChange,
+  returnToRootRef,
+  chromeHostRef,
+  runtimeControlsRef,
 }: ActiveAuthorityGraphProps) {
+  const runtimeLayout = useKnowledgeGraphRuntimeLayout();
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
-  const [internalDimension, setInternalDimension] = useState<GraphDimension>('2d');
-  const dimension = dimensionProp ?? internalDimension;
-  const setDimension = onDimensionChange ?? setInternalDimension;
+  const dimension = dimensionProp ?? '2d';
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
     state,
@@ -1377,16 +1206,16 @@ export function ActiveAuthorityGraph({
   const [typeFilter, setTypeFilter] = useState('');
   const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
   const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const triggerRef = useRef<SVGGElement | null>(null);
   const graphMainRef = useRef<HTMLElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
-  const draggingRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
   const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
+
+  useEffect(() => {
+    onActiveDomainChange?.(workspace.activeDomainId);
+  }, [onActiveDomainChange, workspace.activeDomainId]);
 
   useEffect(() => {
     const updateViewportWidth = () => setViewportWidth(window.innerWidth);
@@ -1476,10 +1305,8 @@ export function ActiveAuthorityGraph({
     }
     setQuery('');
     setTypeFilter('');
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
     // modelReady gates the first composed graph; later model identity changes
-    // (family/neighborhood merges) must not reset selection, pan, or zoom.
+    // (family/neighborhood merges) must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -1590,7 +1417,6 @@ export function ActiveAuthorityGraph({
     if (mode === 'search') {
       // The result button is removed when the query is cleared; restore focus
       // to the newly materialized semantic node or the canvas instead.
-      triggerRef.current = null;
       setQuery('');
       setTypeFilter('');
     }
@@ -1629,20 +1455,6 @@ export function ActiveAuthorityGraph({
     });
   }
 
-  function selectNode(key: string, target?: SVGGElement) {
-    triggerRef.current = target ?? null;
-    resolveNodeSelection(key, 'canvas');
-  }
-
-  function focusSearchResult(key: string) {
-    resolveNodeSelection(key, 'search');
-  }
-
-  function followBoundary(nodeId: string) {
-    triggerRef.current = null;
-    resolveNodeSelection(nodeId, 'canvas');
-  }
-
   function resetOverview() {
     selectionIntentRef.current += 1;
     pendingCrossDomainSelectionRef.current = null;
@@ -1650,7 +1462,21 @@ export function ActiveAuthorityGraph({
     setSelectedNodeKey(null);
     setQuery('');
     setTypeFilter('');
-    triggerRef.current = null;
+  }
+  if (returnToRootRef) returnToRootRef.current = resetOverview;
+  if (runtimeControlsRef) {
+    runtimeControlsRef.current = {
+      requestFitView: runtimeLayout.requestFitView,
+      requestRelayout: runtimeLayout.requestRelayout,
+    };
+  }
+
+  function focusSearchResult(key: string) {
+    resolveNodeSelection(key, 'search');
+  }
+
+  function followBoundary(nodeId: string) {
+    resolveNodeSelection(nodeId, 'canvas');
   }
 
   function closeDetail() {
@@ -1660,99 +1486,60 @@ export function ActiveAuthorityGraph({
   }
 
   function restoreFocus(nodeKey: string | null) {
-    if (triggerRef.current?.isConnected) {
-      triggerRef.current.focus();
-      return;
-    }
     if (nodeKey) {
-      for (const node of document.querySelectorAll<SVGGElement>('[data-active-authority-node]')) {
+      for (const node of document.querySelectorAll<HTMLElement>('[data-active-authority-node]')) {
         if (node.dataset.activeAuthorityNode === nodeKey) {
           node.focus();
           return;
         }
       }
     }
-    document.querySelector<HTMLElement>('[data-active-graph-stage]')?.focus();
-  }
-
-  function onStagePointerDown(event: PointerEvent<SVGSVGElement>) {
-    if (event.target instanceof Element && event.target.closest('[data-active-authority-node]')) {
-      draggingRef.current = null;
-      return;
-    }
-    draggingRef.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-  }
-
-  function onStagePointerMove(event: PointerEvent<SVGSVGElement>) {
-    const drag = draggingRef.current;
-    if (!drag) return;
-    setPan({ x: drag.panX + (event.clientX - drag.x), y: drag.panY + (event.clientY - drag.y) });
-  }
-
-  function onStagePointerUp() {
-    draggingRef.current = null;
+    document.querySelector<HTMLElement>('[data-knowledge-runtime-canvas]')?.focus();
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-graph-locale={locale}>
-      <header
-        className="border-b border-platform-border bg-platform-surface/95 px-4 py-3 max-[639px]:pt-14 max-[639px]:pb-2"
+      <div
+        className="pointer-events-none absolute left-3 top-3 z-40 max-[639px]:top-14"
         data-active-authority-header="true"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3 max-[639px]:flex-nowrap max-[639px]:gap-2">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold max-[639px]:whitespace-nowrap" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</h2>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[11px] text-emerald-100 max-[639px]:sr-only">{graphCopy(locale, 'badge.engineering')}</span>
-            </div>
-            <p className="mt-1 text-xs text-platform-fg-secondary max-[639px]:line-clamp-1">{graphCopy(locale, 'subtitle.graph')}</p>
-          </div>
-          <div className="flex flex-col items-end gap-2 max-[639px]:shrink-0 max-[639px]:gap-0">
-            <div
-              role="group"
-              aria-label={graphCopy(locale, 'language.group')}
-              data-graph-language-switch="true"
-              className="flex rounded-md border border-platform-border p-0.5"
+        <div className="pointer-events-auto flex flex-col items-start gap-1">
+          <span className="sr-only" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</span>
+          <div
+            role="group"
+            aria-label={graphCopy(locale, 'language.group')}
+            data-graph-language-switch="true"
+            className="flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5 shadow-lg backdrop-blur"
+          >
+            <button
+              type="button"
+              data-graph-language="zh-CN"
+              aria-pressed={locale === 'zh-CN'}
+              onClick={() => setLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
+              className={`rounded px-2 py-1 text-xs ${locale === 'zh-CN' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'}`}
             >
-              <button
-                type="button"
-                data-graph-language="zh-CN"
-                aria-pressed={locale === 'zh-CN'}
-                onClick={() => setLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
-                className={`rounded px-2 py-1 text-xs ${locale === 'zh-CN' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'}`}
-              >
-                {graphCopy(locale, 'language.zh')}
-              </button>
-              <button
-                type="button"
-                data-graph-language="en"
-                aria-pressed={locale === 'en'}
-                aria-disabled={!languageState.englishAvailable}
-                disabled={!languageState.englishAvailable}
-                title={languageState.englishUnavailableReason ?? undefined}
-                onClick={() => setLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
-                className={`rounded px-2 py-1 text-xs ${locale === 'en' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'} disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                {graphCopy(locale, 'language.en')}
-              </button>
-            </div>
-            {languageState.englishAvailable ? null : (
-              <p data-graph-language-unavailable="en" className="max-w-56 text-right text-[11px] text-platform-fg-muted max-[639px]:sr-only">
-                {languageState.englishUnavailableReason}
-              </p>
-            )}
-          {workspace.root ? (
-            <div className="text-right text-xs text-platform-fg-secondary max-[639px]:sr-only">
-              <div>{reviewedDomainHeaderCopy(locale, workspace.root.domains.length)}</div>
-              <div className="mt-1 text-emerald-200">
-                {teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnpublished')}
-              </div>
-            </div>
-          ) : null}
+              {graphCopy(locale, 'language.zh')}
+            </button>
+            <button
+              type="button"
+              data-graph-language="en"
+              aria-pressed={locale === 'en'}
+              aria-disabled={!languageState.englishAvailable}
+              disabled={!languageState.englishAvailable}
+              title={languageState.englishUnavailableReason ?? undefined}
+              onClick={() => setLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
+              className={`rounded px-2 py-1 text-xs ${locale === 'en' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {graphCopy(locale, 'language.en')}
+            </button>
           </div>
+          {languageState.englishAvailable ? null : (
+            <p data-graph-language-unavailable="en" className="max-w-56 text-[11px] text-platform-fg-muted max-[639px]:sr-only">
+              {languageState.englishUnavailableReason}
+            </p>
+          )}
         </div>
-      </header>
+      </div>
 
       {state.status === 'loading' ? (
         <div className="flex flex-1 items-center justify-center" role="status">
@@ -1768,13 +1555,21 @@ export function ActiveAuthorityGraph({
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <p className="px-4 pt-3 text-sm text-platform-fg-secondary">{graphCopy(locale, 'root.chooseDomain')}</p>
-          <ActiveAuthorityRootCanvas
+        <div className="flex min-h-0 flex-1 flex-col pt-12 max-[639px]:pt-14">
+          <p className="sr-only">{graphCopy(locale, 'root.chooseDomain')}</p>
+          <ActiveAuthorityRuntimeView
+            kind="root"
             catalog={workspace.root}
+            dimension={dimension}
+            selectedNodeId={null}
+            onSelectNode={() => undefined}
+            onHoverNode={() => undefined}
             onEnterDomain={(visualRole) => {
               void enterDomain(visualRole);
             }}
+            canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+            layout={runtimeLayout}
+            sessionKey="active-root"
           />
         </div>
       ) : !model || !scopedGraph ? (
@@ -1783,8 +1578,9 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="min-h-0 h-full overflow-y-auto p-4 max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
-            <div className="mb-3 max-[639px]:mb-1" data-active-authority-toolbar="true">
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden pt-12 max-[639px]:p-2 max-[639px]:pt-14" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+            <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
+            <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
               <button
                 type="button"
                 data-active-authority-mobile-tools-toggle="true"
@@ -1872,9 +1668,6 @@ export function ActiveAuthorityGraph({
                     </div>
                   );
                 })}
-                <button type="button" onClick={resetOverview} className="inline-flex items-center gap-1 rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0" data-active-authority-domain-return="true"><Crosshair className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'controls.returnDomain')}</button>
-                <button type="button" aria-pressed={dimension === '2d'} data-active-authority-dimension="2d" onClick={() => setDimension('2d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '2d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>2D</button>
-                <button type="button" aria-pressed={dimension === '3d'} data-active-authority-dimension="3d" onClick={() => setDimension('3d')} className={`rounded-md border px-2.5 py-2 text-xs ${dimension === '3d' ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary'}`}>3D</button>
               </div>
               </div>
               ) : null}
@@ -1887,8 +1680,9 @@ export function ActiveAuthorityGraph({
               <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable')}</span>
             </div>
             ) : null}
+            </KnowledgeWorkspaceChromePortal>
             {boundaryCues.length > 0 ? (
-              <section className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-3 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
+              <section className="pointer-events-auto absolute left-3 right-3 top-14 z-20 rounded-lg border border-platform-border bg-platform-canvas-muted/95 p-3 max-[639px]:top-16 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
                 <div className="flex items-center justify-between gap-2">
                   <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary max-[639px]:sr-only">{graphCopy(locale, 'boundary.title')}</h3>
                   <button
@@ -1921,12 +1715,12 @@ export function ActiveAuthorityGraph({
               </section>
             ) : null}
 
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
+            <div className="pointer-events-none absolute bottom-2 left-3 right-3 z-10 mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
               <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
             </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
-              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+              <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
                 <span>{neighborhoodFailures[selectedNodeKey]}</span>
                 <button
                   type="button"
@@ -1937,16 +1731,22 @@ export function ActiveAuthorityGraph({
               </div>
             ) : null}
             {authorityView ? (
-              <div className="h-[min(70vh,40rem)] min-h-[23rem]" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
-                <ActiveAuthorityForceCanvas
+              <div className="relative min-h-0 flex-1" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <ActiveAuthorityRuntimeView
+                  kind="domain"
                   view={authorityView}
                   dimension={dimension}
                   selectedNodeId={selectedNodeKey}
-                  onSelect={(key) => resolveNodeSelection(key, 'canvas')}
-                  onHover={setHoveredNodeId}
+                  onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
+                  onHoverNode={setHoveredNodeId}
+                  onEnterDomain={(visualRole) => {
+                    void enterDomain(visualRole);
+                  }}
                   hoverPreview={hoverPreview}
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
                   showUnavailableTeachingDirectory={teachingCoverage?.note === '教学关系暂不可用'}
+                  layout={runtimeLayout}
+                  sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />
               </div>
             ) : null}

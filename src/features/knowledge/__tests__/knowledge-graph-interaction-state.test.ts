@@ -303,8 +303,10 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
     expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");
     expect(systemSource).toContain("dispatchInspection({ type: 'toggle-explicit-focus', nodeId: visibleSelectedNode.id })");
-    expect(systemSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
-    expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
+    expect(systemSource).toContain('useKnowledgeGraphRuntimeLayout');
+    const layoutHookSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/graph/use-knowledge-graph-runtime-layout.ts'), 'utf8');
+    expect(layoutHookSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
+    expect(layoutHookSource).toContain('setRelayoutVersion((current) => current + 1);');
     expect(systemSource).toContain('selectKnowledgeNavigationSnapshot(graphCache, navigation.view)');
     expect(systemSource).toContain('const expandedDirectLinks = useMemo<KnowledgeLinkData[]>(() => [], []);');
     expect(systemSource).not.toContain('expansionCommitQueueRef');
