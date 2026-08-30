@@ -108,6 +108,53 @@ export class DiagnosisGenerationProviderEmptyOutputError extends Error {
   }
 }
 
+export class DiagnosisGenerationProviderLanguageError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型返回的报告内容不是简体中文。');
+    this.name = 'DiagnosisGenerationProviderLanguageError';
+    this.violations = violations;
+  }
+}
+
+export type DiagnosisReportLanguageSurface = {
+  summary: string;
+  findings: ReadonlyArray<{ title: string; summary?: string }>;
+  limitations: ReadonlyArray<string>;
+};
+
+const DIAGNOSIS_CJK_PATTERN = /[\u4e00-\u9fff]/;
+const DIAGNOSIS_LATIN_PATTERN = /[A-Za-z]/;
+
+export function isSimplifiedChineseNaturalLanguageText(value: string) {
+  const cjkCount = value.match(new RegExp(DIAGNOSIS_CJK_PATTERN.source, 'gu'))?.length ?? 0;
+  if (cjkCount === 0) return false;
+  const latinCount = value.match(new RegExp(DIAGNOSIS_LATIN_PATTERN.source, 'g'))?.length ?? 0;
+  return cjkCount >= latinCount;
+}
+
+export function validateDiagnosisReportBodyLanguage(reportBody: DiagnosisReportLanguageSurface) {
+  const violations: string[] = [];
+  if (!isSimplifiedChineseNaturalLanguageText(reportBody.summary)) {
+    violations.push('summary');
+  }
+  reportBody.findings.forEach((finding, index) => {
+    if (!isSimplifiedChineseNaturalLanguageText(finding.title)) {
+      violations.push(`findings[${index}].title`);
+    }
+    if (finding.summary && !isSimplifiedChineseNaturalLanguageText(finding.summary)) {
+      violations.push(`findings[${index}].summary`);
+    }
+  });
+  reportBody.limitations.forEach((limitation, index) => {
+    if (!isSimplifiedChineseNaturalLanguageText(limitation)) {
+      violations.push(`limitations[${index}]`);
+    }
+  });
+  return violations;
+}
+
 const diagnosisProviderEvidenceRefSchema = z.string()
   .trim()
   .min(1)
@@ -243,6 +290,7 @@ export async function generateGovernedDiagnosisReport(
       promptVersion: input.generatorVersion,
       system: [
         '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
+        '所有面向教师的自然语言内容（summary、findings 标题与说明、limitations 说明）必须使用简体中文；不得输出英文分析段落。',
         '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
         '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
         '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
@@ -295,6 +343,12 @@ export async function generateGovernedDiagnosisReport(
   } as DiagnosisReportBody;
   if (reportBody.evidenceCutoff !== input.evidenceCutoff.toISOString()) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-cutoff-mismatch');
+  }
+  // 语言契约：英文等非中文输出按"模型行为缺陷"处理，交给既有重试预算，
+  // 不得作为成功报告持久化（Issue #1711）。
+  const languageViolations = validateDiagnosisReportBodyLanguage(reportBody);
+  if (languageViolations.length > 0) {
+    throw new DiagnosisGenerationProviderLanguageError(languageViolations);
   }
   const citedRefs = [
     ...reportBody.evidenceRefs,

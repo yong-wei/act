@@ -171,3 +171,13 @@ The teacher delivery surface SHALL scope browser print output to the report deli
 - **THEN** the platform shell navigation, header, and workspace tabs SHALL render exactly as before
 - **AND** no new export entry point SHALL be introduced.
 
+### Requirement: Teacher delivery surface copy is Simplified Chinese
+
+The teacher delivery surface SHALL present its fixed interface copy, including the governed-report eyebrow above the report title, in Simplified Chinese. Technical values such as report version identifiers, enum-derived labels that already have Chinese label mappings, and browser-generated print headers remain exempt.
+
+#### Scenario: Teacher opens a fixed report
+
+- **WHEN** an authorized teacher opens the teacher delivery page
+- **THEN** the eyebrow above the report title SHALL read Simplified Chinese governed-report copy
+- **AND** the page SHALL NOT render the previous English "Fixed governed report" eyebrow.
+
