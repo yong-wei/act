@@ -140,16 +140,24 @@ describe('runtime media signed redirect route', () => {
     );
   });
 
-  it('fails closed for traversal, inactive objects, and missing runtime role configuration', async () => {
+  it('fails closed for traversal and inactive objects', async () => {
     mocks.isRuntimeMediaPath.mockReturnValueOnce(false);
     expect((await invoke(['..', 'secret.mp4'])).status).toBe(404);
 
     mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
     mocks.findRuntimeMediaReleaseObject.mockReturnValue(null);
     expect((await invoke(['lessons', '1-1', 'media', 'missing.mp4'])).status).toBe(404);
+  });
 
+  it('serves local materialized media when the workstation has no RAM role', async () => {
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
     mocks.findRuntimeMediaReleaseObject.mockReturnValue({ objectKey: 'runtime/releases/runtime-1/lessons/1-1/media/intro.mp4' });
     delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
-    expect((await invoke(['lessons', '1-1', 'media', 'intro.mp4'])).status).toBe(503);
+    const local = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+    expect(local.status).toBe(307);
+    expect(local.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
+    expect(local.headers.get('location')).not.toMatch(/oss-cn-hangzhou/);
+    expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
+    expect(mocks.asyncSignatureUrl).not.toHaveBeenCalled();
   });
 });

@@ -51,9 +51,11 @@ describe('runtime blob assets route', () => {
     expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
   });
 
-  it('fails closed when blob delivery is not configured', async () => {
+  it('does not emit a public OSS URL when the workstation has no RAM role', async () => {
     delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
     const response = await invoke('b'.repeat(64));
-    expect(response.status).toBe(503);
+    expect(response.status).toBe(404);
+    expect(response.headers.get('location')).toBeNull();
+    expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
   });
 });

@@ -77,7 +77,7 @@
 
 **Task-aware simulation control debrief (2026-08-20):** #1011 / `add-task-aware-simulation-control-debrief` 已为 `status:ready`，尚未 claim。实现必须先 claim，再完成 Cruise 完成事件门禁、纯 debrief projector、权威阈值 provenance、五类确定性验收及评价/证据边界回归；不得扩展到其他船型、重写指标算法或使用自由探索目标生成任务结论。
 
-**Developer OSS runtime access (2026-08-20):** #1469 / `enable-read-only-oss-runtime-for-developer-workstations` 已为 `status:ready`，尚未 claim。RAM 用户、仓库外凭据和真实只读 OSS 边界已验证；后续仍必须先 claim，再实现 readiness active identity、受管凭据安装器、Linux 挂载与物化生命周期、三平台 smoke 和合作者文档。当前凭据不得在实现前分发。
+**Developer OSS runtime gateway (2026-08-30):** #1721 / `route-developer-runtime-through-ecs-active-gateway` 已实现并归档。开发默认数据面改为 ECS 激活网关 + 按需缓存；生产学生签名 307 不变。下一步：integration PR 与当前 HEAD 的 `@codex review` 清场。合入前不得 `server-ops` 部署网关。不要认领 #1683，不要重开 #1573。
 
 **ActKG v0.22 composite cutover series (2026-08-17):** #1441 跟踪 #1442–#1446。20260817-pm 访谈收束：首页圆形领域入口间不画连接线（依据 20260812-am ADR 与 Legacy 先例）；入口数量以激活复合发布的领域目录为准。执行顺序 #1442 → #1443 → #1444 →（#1445 UI 恢复可并行）→ #1446；候选导入与生产激活保持独立发布动作，激活原子移动五选择器至同一 v0.22 包络。五项 change strict validation、typecheck、push 门禁与 GitHub 父子/blockedBy 关系已通过（integration@93d88e802），全部 `status:ready` 未 claim。
 

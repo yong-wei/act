@@ -17,11 +17,9 @@ from typing import Any, Callable, Iterator
 from common import (
     BLOB_PREFIX,
     DEFAULT_CACHE_SIZE_GIB,
-    EXPECTED_RAM_USER,
+    GATEWAY_PRINCIPAL,
+    GATEWAY_SESSION_SCHEMA,
     LEASE_SCHEMA,
-    MIN_OSSFS2_VERSION,
-    OSS_BUCKET,
-    PUBLIC_OSS_ENDPOINT,
     SHA256,
     SHARED_MOUNT_SCHEMA,
     TOPOLOGY_CHECKOUT,
@@ -48,7 +46,7 @@ from common import (
 )
 
 MOUNT_HELPER = Path(__file__).with_name("privileged-mount.py")
-BODY_TRANSFER = "oss-body-transfer"
+BODY_TRANSFER = "gateway-body-transfer"
 CACHE_HIT = "cache-hit"
 OSSFS_GETOBJECT = re.compile(r"GetObject|\"GET\"\s+/\S+", re.IGNORECASE)
 OSSFS_CACHE_HIT = re.compile(r"cache hit|disk_data_cache.*hit", re.IGNORECASE)
@@ -206,35 +204,13 @@ def parse_ossfs2_version(text: str) -> tuple[int, int, int]:
 
 
 def require_ossfs2_version() -> str:
-    if not use_real_fuse():
-        return "fixture"
-    raw = run([which("ossfs2"), "--version"])
-    version = parse_ossfs2_version(raw or "0.0.0")
-    if version < MIN_OSSFS2_VERSION:
-        fail("ossfs2 2.0.8 or later is required for persistent data cache")
-    return "%d.%d.%d" % version
+    fail("ossfs2 is not the developer Blob data plane")
+    return ""
 
 
 def ossfs_config_lines(credential: dict[str, str], cache_dir: Path | None, log_dir: Path | None) -> list[str]:
-    lines = [
-        "--oss_endpoint=%s" % PUBLIC_OSS_ENDPOINT,
-        "--oss_bucket=%s" % OSS_BUCKET,
-        "--oss_region=cn-hangzhou",
-        "--oss_access_key_id=%s" % credential["accessKeyId"],
-        "--oss_access_key_secret=%s" % credential["accessKeySecret"],
-        "--oss_bucket_prefix=%s" % BLOB_PREFIX,
-        "--ro=true",
-        "--allow_other=true",
-        "--file_mode=0644",
-        "--dir_mode=0755",
-    ]
-    if cache_dir is not None:
-        lines.append("--disk_data_cache_dir=%s" % cache_dir)
-        lines.append("--disk_data_cache_size=%sG" % cache_size_gib())
-    if log_dir is not None:
-        lines.append("--log_dir=%s" % log_dir)
-        lines.append("--log_level=info")
-    return lines
+    fail("public ossfs2 is not the developer data plane")
+    return []
 
 
 def write_ossfs_config(
@@ -253,11 +229,7 @@ def remove_ossfs_config(path: Path) -> None:
 
 
 def mount_blobs(blob_root: Path, config_path: Path) -> None:
-    blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
-    ossfs = which("ossfs2")
-    run([ossfs, "-c", str(config_path), str(blob_root)])
-    if not is_fuse_readonly(blob_root):
-        fail("blob mount must be a read-only FUSE filesystem")
+    fail("public ossfs2 is not the developer data plane")
 
 
 def unmount(path: Path) -> None:
@@ -382,8 +354,8 @@ def reclaim_stale_leases(mount_id: str) -> list[str]:
     return reclaimed
 
 
-def verify_shared_identity(record: dict[str, Any], account_id: str) -> None:
-    expected = authority_identity(account_id)
+def verify_shared_identity(record: dict[str, Any], gateway_origin: str) -> None:
+    expected = authority_identity(gateway_origin)
     identity = record.get("identity")
     if not isinstance(identity, dict):
         fail("shared mount identity is missing")
@@ -392,7 +364,7 @@ def verify_shared_identity(record: dict[str, Any], account_id: str) -> None:
             fail("shared mount identity drifted")
     if record.get("optionsDigest") != options_digest():
         fail("shared mount options drifted")
-    if record.get("principal") not in (None, EXPECTED_RAM_USER) and record.get("principal") != EXPECTED_RAM_USER:
+    if record.get("principal") not in (None, GATEWAY_PRINCIPAL):
         fail("shared mount principal drifted")
 
 
@@ -406,8 +378,8 @@ def verify_live_mount(mountpoint: Path) -> None:
         fail("shared Blob mount source drifted")
 
 
-def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
-    verify_shared_identity(record, account_id)
+def verify_shared_record(record: dict[str, Any], gateway_origin: str) -> None:
+    verify_shared_identity(record, gateway_origin)
     mountpoint = Path(str(record.get("mountpoint") or ""))
     if use_real_fuse() and is_mounted(mountpoint):
         verify_live_mount(mountpoint)
@@ -417,8 +389,123 @@ def fixture_mount(blob_root: Path) -> None:
     blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
 
 
-def ensure_shared_mount(credential: dict[str, str], account_id: str) -> dict[str, Any]:
-    mount_id = authority_id(account_id)
+def gateway_session_path(mount_id: str) -> Path:
+    return shared_mount_dir(mount_id) / "gateway-session.json"
+
+
+def checkout_gateway_session_path(checkout: Path) -> Path:
+    return checkout_state(checkout) / "gateway-session.json"
+
+
+def write_shared_gateway_session(
+    mount_id: str,
+    credential: dict[str, str],
+    leases: dict[str, Any] | None = None,
+) -> None:
+    path = gateway_session_path(mount_id)
+    existing: dict[str, Any] = {}
+    if path.exists():
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                existing = loaded
+        except (OSError, json.JSONDecodeError):
+            existing = {}
+    payload = {
+        "schemaVersion": GATEWAY_SESSION_SCHEMA,
+        "gatewayUrl": credential["gatewayUrl"],
+        "leases": leases if leases is not None else existing.get("leases") or {},
+        "token": credential["token"],
+    }
+    write_private_bytes(path, (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+
+
+def register_checkout_gateway_lease(
+    checkout: Path,
+    credential: dict[str, str],
+    lease: dict[str, Any],
+    mount_id: str | None,
+) -> None:
+    transport = lease.get("transport")
+    token = transport.get("token") if isinstance(transport, dict) else None
+    if not isinstance(token, str) or not isinstance(lease.get("leaseId"), str):
+        fail("gateway lease is invalid")
+    checkout_payload = {
+        "schemaVersion": GATEWAY_SESSION_SCHEMA,
+        "checkoutId": checkout_id(checkout),
+        "gatewayUrl": credential["gatewayUrl"],
+        "leaseId": lease["leaseId"],
+        "releaseId": lease.get("releaseId"),
+        "transport": token,
+    }
+    write_private_bytes(
+        checkout_gateway_session_path(checkout),
+        (json.dumps(checkout_payload, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    )
+    if not mount_id:
+        return
+    path = gateway_session_path(mount_id)
+    leases: dict[str, Any] = {}
+    if path.exists():
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict) and isinstance(loaded.get("leases"), dict):
+                leases = dict(loaded["leases"])
+        except (OSError, json.JSONDecodeError):
+            leases = {}
+    leases[checkout_id(checkout)] = {
+        "leaseId": lease["leaseId"],
+        "releaseId": lease.get("releaseId"),
+        "transport": token,
+    }
+    write_shared_gateway_session(mount_id, credential, leases)
+
+
+def unregister_checkout_gateway_lease(checkout: Path, mount_id: str | None) -> None:
+    path = checkout_gateway_session_path(checkout)
+    if path.exists() and path.is_file() and not path.is_symlink():
+        os.remove(path)
+    if not mount_id:
+        return
+    shared = gateway_session_path(mount_id)
+    if not shared.exists():
+        return
+    try:
+        loaded = json.loads(shared.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    leases = loaded.get("leases")
+    if isinstance(leases, dict):
+        leases.pop(checkout_id(checkout), None)
+        loaded["leases"] = leases
+        write_private_bytes(shared, (json.dumps(loaded, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+
+
+def mount_gateway_blobs(blob_root: Path, session_path: Path | None = None, cache_dir: Path | None = None) -> None:
+    blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
+    if not use_real_fuse():
+        return
+    helper = Path(__file__).with_name("gateway_fuse.py")
+    if not helper.is_file():
+        fail("gateway FUSE adapter is missing")
+    if session_path is None or cache_dir is None:
+        fail("gateway FUSE session and cache directory are required")
+    run([
+        sys.executable,
+        str(helper),
+        "--mount", str(blob_root),
+        "--session", str(session_path),
+        "--cache-dir", str(cache_dir),
+    ])
+    if not is_fuse_readonly(blob_root):
+        fail("blob mount must be a read-only FUSE filesystem")
+
+
+def ensure_shared_mount(credential: dict[str, str], _legacy: str | None = None) -> dict[str, Any]:
+    origin = credential.get("origin")
+    if not origin:
+        fail("gateway origin is missing")
+    mount_id = authority_id(origin)
     root = shared_mount_dir(mount_id)
     cache = ossfs_cache_dir(mount_id)
     logs = persistent_cache_dir(mount_id) / "logs"
@@ -429,51 +516,49 @@ def ensure_shared_mount(credential: dict[str, str], account_id: str) -> dict[str
     os.chmod(cache, 0o700)
     logs.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(logs, 0o700)
+    write_shared_gateway_session(mount_id, credential)
     record = read_shared_record(mount_id)
-    expected_identity = authority_identity(account_id)
-    config_path = root / "ossfs.conf"
+    expected_identity = authority_identity(origin)
     if record:
-        verify_shared_identity(record, account_id)
+        verify_shared_identity(record, origin)
         if use_real_fuse():
             if is_mounted(blob_root):
                 verify_live_mount(blob_root)
             else:
-                write_ossfs_config(config_path, credential, cache, logs)
-                mount_blobs(blob_root, config_path)
+                if shutil.disk_usage(str(cache)).free < cache_size_gib() * 1024 * 1024 * 1024:
+                    fail("shared cache disk is smaller than the configured quota")
+                mount_gateway_blobs(blob_root, gateway_session_path(mount_id), cache)
                 verify_live_mount(blob_root)
         else:
             fixture_mount(blob_root)
     else:
-        write_ossfs_config(config_path, credential, cache, logs)
         if use_real_fuse():
             usage = shutil.disk_usage(str(cache))
             required = cache_size_gib() * 1024 * 1024 * 1024
             if usage.free < required:
                 fail("shared cache disk is smaller than the configured quota")
-            mount_blobs(blob_root, config_path)
+            mount_gateway_blobs(blob_root, gateway_session_path(mount_id), cache)
         else:
             fixture_mount(blob_root)
         record = {
             "schemaVersion": SHARED_MOUNT_SCHEMA,
+            "adapter": "ecs-gateway",
             "cachePolicy": "on-demand",
             "cacheSizeGiB": cache_size_gib(),
             "createdAt": utcnow(),
             "identity": expected_identity,
             "identityId": mount_id,
             "optionsDigest": options_digest(),
-            "ossfs2Version": require_ossfs2_version(),
-            "principal": EXPECTED_RAM_USER,
+            "principal": GATEWAY_PRINCIPAL,
             "status": "mounted",
         }
     record["mountpoint"] = str(blob_root)
     record["cacheDir"] = str(cache)
-    record["configPath"] = str(config_path)
     record["logDir"] = str(logs)
     record["updatedAt"] = utcnow()
     record["status"] = "mounted"
-    write_private_json(record_path(mount_id), {
-        key: value for key, value in record.items() if key not in ("configPath",)
-    } | {"configPath": str(config_path)})
+    portable = {key: value for key, value in record.items() if key not in ("configPath",)}
+    write_private_json(record_path(mount_id), portable)
     reclaim_stale_leases(mount_id)
     if not operations_path(mount_id).exists():
         write_private_bytes(operations_path(mount_id), b"")
@@ -540,8 +625,8 @@ def refuse_legacy_checkout_mount(checkout: Path) -> None:
         fail("stop the leftover checkout-owned Blob mount before shared mode")
 
 
-def refuse_live_shared_for_checkout_topology(account_id: str) -> None:
-    mount_id = authority_id(account_id)
+def refuse_live_shared_for_checkout_topology(gateway_origin: str) -> None:
+    mount_id = authority_id(gateway_origin)
     record = read_shared_record(mount_id)
     if not record:
         return
@@ -617,32 +702,19 @@ def fixture_cache_object(mount_id: str, digest: str) -> Path:
     return ossfs_cache_dir(mount_id) / "objects" / digest
 
 
-def read_blob_with_evidence(mount_id: str, digest: str, source: Path) -> bytes:
+def read_blob_with_evidence(mount_id: str, digest: str, source: Path, fetch=None) -> bytes:
     if not SHA256.fullmatch(digest):
         fail("blob digest is invalid")
-    record = read_shared_record(mount_id)
-    if use_real_fuse() and record:
-        mountpoint = Path(str(record.get("mountpoint") or ""))
-        target = mountpoint / digest
-        if not target.is_file() or target.is_symlink():
-            fail("shared Blob path is missing from the verified mount")
-        before = count_log_body_transfers(ossfs_log_text(mount_id))
-        data = target.read_bytes()
-        verify_blob_bytes(data, digest)
-        after = count_log_body_transfers(ossfs_log_text(mount_id))
-        if after < before:
-            fail("ossfs2 transfer evidence moved backwards")
-        if after == before == 0:
-            fail("ossfs2 transfer evidence is unavailable")
-        record_operation(mount_id, BODY_TRANSFER if after > before else CACHE_HIT, digest, len(data))
-        return data
     cached = fixture_cache_object(mount_id, digest)
     if cached.is_file() and not cached.is_symlink():
         data = cached.read_bytes()
         verify_blob_bytes(data, digest)
         record_operation(mount_id, CACHE_HIT, digest, len(data))
         return data
-    data = source.read_bytes()
+    if fetch is not None:
+        data = fetch(digest)
+    else:
+        data = source.read_bytes()
     verify_blob_bytes(data, digest)
     record_operation(mount_id, BODY_TRANSFER, digest, len(data))
     cached.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -714,17 +786,18 @@ def portable_start_payload(selection: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def shared_status(account_id: str | None = None) -> dict[str, Any]:
+def shared_status(gateway_origin: str | None = None) -> dict[str, Any]:
     topology = topology_mode()
     payload: dict[str, Any] = {
         "cachePolicy": "on-demand" if topology == TOPOLOGY_SHARED else "none",
         "cacheSizeGiB": cache_size_gib() if topology == TOPOLOGY_SHARED else 0,
         "defaultCacheSizeGiB": DEFAULT_CACHE_SIZE_GIB,
-        "minOssfs2": "%d.%d.%d" % MIN_OSSFS2_VERSION,
+        "minOssfs2": None,
+        "adapter": "ecs-gateway",
         "topology": topology,
     }
-    if account_id:
-        mount_id = authority_id(account_id)
+    if gateway_origin:
+        mount_id = authority_id(gateway_origin)
         record = read_shared_record(mount_id)
         payload["sharedMountId"] = mount_id
         payload["leaseCount"] = len(live_lease_ids(mount_id)) if record else 0

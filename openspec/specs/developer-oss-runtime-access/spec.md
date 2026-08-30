@@ -19,53 +19,57 @@ The developer runtime bootstrap SHALL obtain the production active blob-backed r
 - **THEN** bootstrap SHALL fail before mounting runtime content and SHALL NOT infer the newest Release from OSS object order
 
 ### Requirement: Shared workstation credentials are repository-external and read-only
-The project SHALL use a dedicated `act-runtime-dev-read` RAM user whose effective permissions are limited to the object reads and prefix-scoped listing required for v2 runtime manifests, receipts and SHA-addressed blobs. The credential SHALL NOT possess runtime publication, mutation, deletion, Bucket administration, RAM, STS, production host or Publisher permissions. All collaborators MAY share the one project-lifetime credential only under the accepted short-term trust boundary.
+The project SHALL use one project-lifetime shared gateway token whose effective permission is limited to authenticated GET of the current host-active v2 runtime through the ECS developer gateway. The token SHALL NOT possess SSH, IMDS, ECS RAM, OSS AccessKey, runtime publication, mutation, deletion, Bucket administration or Publisher permissions. All collaborators MAY share that one token only under the accepted short-term trust boundary.
 
-#### Scenario: Bootstrap receives the expected developer principal
-- **WHEN** the configured credential resolves to the expected account and `act-runtime-dev-read` RAM user
-- **THEN** bootstrap SHALL continue only after confirming the read-only identity without printing any credential value
+#### Scenario: Bootstrap receives the expected gateway credential
+- **WHEN** the configured credential resolves to the expected gateway URL and shared token schema
+- **THEN** bootstrap SHALL continue only after confirming the credential shape without printing the token value
 
-#### Scenario: Publisher or unexpected principal is configured
-- **WHEN** caller identity is a Publisher, ECS operator, unknown account or any principal other than the declared developer reader
-- **THEN** bootstrap SHALL fail before any OSS mount or object request
+#### Scenario: Publisher, RAM or host credential is configured
+- **WHEN** caller identity is an OSS AccessKey, Publisher principal, ECS operator, SSH key or any credential other than the declared gateway token
+- **THEN** bootstrap SHALL fail before any Blob fetch or runtime bind
 
 #### Scenario: Developer credential attempts OSS mutation
-- **WHEN** the credential is used to upload, overwrite, copy, multipart-write, change ACLs or delete an OSS object
-- **THEN** OSS SHALL deny the operation and the access verification SHALL treat any successful mutation as a blocking least-privilege failure
+- **WHEN** the gateway token is used to upload, overwrite, copy, multipart-write, change ACLs or delete an OSS object, or to call a non-GET gateway method
+- **THEN** the operation SHALL be denied and access verification SHALL treat any successful mutation as a blocking least-privilege failure
 
 #### Scenario: Credential storage is unsafe
 - **WHEN** a credential path is inside the repository, is a symlink, has unknown fields, or is readable or writable by group/other users
 - **THEN** setup and startup SHALL refuse the credential and SHALL NOT copy it to `.env`, logs or another fallback path
 
 ### Requirement: Mixed workstations use one Linux runtime contract
-The supported developer execution environments SHALL be native Linux, Windows WSL2 and a Linux virtual machine on macOS. ossfs2, the runtime materializer and all development service processes SHALL run in that same Linux environment with a supported architecture, FUSE device and required tools. The workstation SHALL use the public OSS regional endpoint rather than the ECS-only internal endpoint.
+The supported developer execution environments SHALL be native Linux, Windows WSL2 and a Linux virtual machine on macOS. The gateway-backed Blob adapter, the runtime materializer and all development service processes SHALL run in that same Linux environment with a supported architecture, FUSE device and required tools. The workstation SHALL fetch Blob bytes from the ECS active-runtime developer gateway and SHALL NOT use the ECS-only OSS internal endpoint or the public OSS regional endpoint as the default data plane.
 
 #### Scenario: Supported Linux execution layer passes preflight
-- **WHEN** Linux, WSL2 or the macOS Linux VM provides the required architecture, `/dev/fuse`, ossfs2, ossutil, mount inspection, Python and Node tools
+- **WHEN** Linux, WSL2 or the macOS Linux VM provides the required architecture, `/dev/fuse`, mount inspection, Python and Node tools, and can open HTTPS to the configured gateway
 - **THEN** bootstrap SHALL allow the runtime preparation transaction to begin
 
 #### Scenario: Native macOS, native Windows or incomplete FUSE environment is used
-- **WHEN** the application and OSS mount do not share the supported Linux environment or any required preflight check fails
-- **THEN** bootstrap SHALL stop with a credential-safe diagnostic and SHALL NOT fall back to a platform-specific unverified mount adapter
+- **WHEN** the application and Blob adapter do not share the supported Linux environment or any required preflight check fails
+- **THEN** bootstrap SHALL stop with a credential-safe diagnostic and SHALL NOT fall back to public ossfs2, macFUSE, WinFSP or another unverified mount adapter
 
 ### Requirement: Active runtime is verified and materialized without copying the logical tree
-Bootstrap SHALL fetch the exact immutable v2 manifest and receipt named by readiness, validate their Release ID, schema, canonical digest, receipt/wire binding, logical tree digest, normalized path set and SHA-derived Blob keys, and mount only `runtime/blobs/sha256/` through ossfs2 with read-only options. It SHALL use the repository materializer to prepare, attach, verify and select a logical view, then expose that view read-only at the checkout's `course-content/runtime` path without deleting or overwriting the checkout directory.
+Bootstrap SHALL fetch the exact immutable v2 manifest and receipt named by readiness through the authenticated gateway, validate their Release ID, schema, canonical digest, receipt/wire binding, logical tree digest, normalized path set and SHA-derived Blob keys, obtain a pin-time read lease for that identity, and expose only `runtime/blobs/sha256/` through a read-only gateway-backed adapter bound to that lease. It SHALL use the repository materializer to prepare, attach, verify and select a logical view, then expose that view read-only at the checkout's `course-content/runtime` path without deleting or overwriting the checkout directory.
 
-#### Scenario: Active manifest and Blob mount are valid
+#### Scenario: Active manifest and Blob adapter are valid
 - **WHEN** the immutable manifest/receipt match readiness and every required mount, materialization and read-only check passes
 - **THEN** bootstrap SHALL expose one manifest-bound filesystem view and start the existing development services against it
 
 #### Scenario: Manifest identity or Blob content drifts
 - **WHEN** the fetched manifest/receipt differs from readiness, a Blob is absent or mismatched, a materialized link escapes the Blob root, or the selected view receipt differs
-- **THEN** bootstrap SHALL fail closed, leave development services stopped, and SHALL NOT select a candidate, previous package or checkout residue
+- **THEN** bootstrap SHALL fail closed, leave development services stopped, and SHALL NOT select a candidate, previous package, checkout residue or public OSS fallback
 
 #### Scenario: Mounted runtime is modified through the application path
 - **WHEN** a process attempts to create, replace or delete content below the exposed `course-content/runtime`
-- **THEN** the filesystem SHALL reject the write and preserve both the immutable OSS objects and hidden checkout directory
+- **THEN** the filesystem SHALL reject the write and preserve both the gateway-served objects and hidden checkout directory
 
 #### Scenario: Matching startup is repeated
-- **WHEN** the fixed readiness identity, manifest receipt, FUSE source, read-only options, selected view and checkout bind all match a prior completed startup
+- **WHEN** the fixed readiness identity, lease, manifest receipt, adapter source, read-only options, selected view and checkout bind all match a prior completed startup
 - **THEN** bootstrap SHALL reuse the verified state without rebuilding or downloading the complete logical runtime
+
+#### Scenario: Production switches while a leased checkout is running
+- **WHEN** a checkout holds a valid gateway lease for its pinned Release and production later activates a different Release
+- **THEN** that checkout SHALL keep fetching uncached Blobs from the leased allowlist and SHALL NOT be rewritten to the new active identity until the next startup
 
 ### Requirement: Runtime mount lifecycle is checkout-owned and recoverable
 The developer adapter SHALL serialize machine-global Blob-mount state and
@@ -94,55 +98,37 @@ unknown paths and other worktrees.
 - **THEN** the adapter MAY unmount the shared Blob mount while preserving the persistent cache and unknown data
 
 ### Requirement: Onboarding and revocation separate documentation from Secret delivery
-The repository SHALL provide a collaborator guide containing platform preparation, credential installation, identity verification, startup, shutdown, diagnostics and revocation cleanup without any real AccessKey, Secret, signed URL or credential-bearing command history. The user SHALL distribute the actual credential through a repository-external password manager or end-to-end encrypted channel only after one controlled real-environment smoke succeeds.
+The repository SHALL provide a collaborator guide containing platform preparation, credential installation, identity verification, startup, shutdown, diagnostics and revocation cleanup without any real gateway token, AccessKey, Secret, signed URL, SSH key or credential-bearing command history. The user SHALL distribute the actual gateway token through a repository-external password manager or end-to-end encrypted channel only after one controlled real-environment smoke succeeds.
 
 #### Scenario: Collaborator receives access
-- **WHEN** the implementation and controlled RAM smoke have passed
-- **THEN** the collaborator SHALL receive the credential-free guide through normal project channels and the Secret through a separate controlled channel
+- **WHEN** the implementation and controlled gateway smoke have passed
+- **THEN** the collaborator SHALL receive the credential-free guide through normal project channels and the gateway token through a separate controlled channel
 
 #### Scenario: Project ends or credential is suspected leaked
 - **WHEN** access must end
-- **THEN** the operator SHALL delete the AccessKey first, verify that new mounts are denied, remove the RAM user or policy binding, and direct collaborators to remove local credential and mount state
-
-### Requirement: Public OSS use is bounded and observable
-The developer runtime adapter SHALL read objects on demand through the public regional OSS endpoint and SHALL avoid a complete eager runtime copy. It SHALL report credential-free Release identity, cache/mount state, transferred operation class and actionable latency failures without logging object URLs containing authorization data or any credential value.
-
-#### Scenario: A lesson opens after successful startup
-- **WHEN** the application reads a runtime file that is not present in the local FUSE cache
-- **THEN** ossfs2 SHALL retrieve that Blob on demand and the application SHALL observe the manifest-declared bytes through the filesystem path
-
-#### Scenario: Public endpoint latency is unacceptable
-- **WHEN** recorded course, media or textbook retrieval smoke exceeds the accepted development threshold
-- **THEN** the implementation MAY enable only a manifest-digest-bound local cache and SHALL NOT copy or publish a second OSS runtime namespace
+- **THEN** the operator SHALL rotate or delete the gateway token first, verify that new startups are denied, and direct collaborators to remove local credential and adapter state without distributing SSH or OSS AccessKey material
 
 ### Requirement: Immutable Blob mount and data cache are workstation-shared
-All ACT worktrees in the same supported Linux execution layer SHALL share one
-read-only ossfs2 mount and one repository-external persistent data cache for an
-identical verified account, region, endpoint class, Bucket, RAM principal, Blob
-prefix, adapter schema, and mount-options identity. A mismatch SHALL create a
-separate qualified identity or fail before reuse.
+All ACT worktrees in the same supported Linux execution layer SHALL share one read-only gateway-backed Blob adapter and one repository-external persistent data cache for an identical verified gateway authority, adapter schema, active-manifest digest class and mount-options identity. A mismatch SHALL create a separate qualified identity or fail before reuse.
 
 #### Scenario: Two worktrees use the same Blob authority
-- **WHEN** both worktrees pass principal and mount preflight for the same immutable Blob namespace
-- **THEN** they SHALL acquire leases on one verified read-only mount and data-cache identity
+- **WHEN** both worktrees pass token and adapter preflight for the same gateway authority
+- **THEN** they SHALL acquire leases on one verified read-only adapter and data-cache identity
 
 #### Scenario: Existing global mount identity drifts
-- **WHEN** source, endpoint, principal, prefix, options, process, or writability differs from the expected shared identity
+- **WHEN** source, gateway authority, token principal, prefix, options, process, or writability differs from the expected shared identity
 - **THEN** startup SHALL fail before binding Runtime content or starting services
 
 ### Requirement: Shared caching remains on-demand and transfer-verifiable
-The shared data cache SHALL retrieve a SHA-addressed Blob only when a consumer
-reads it, SHALL use a bounded cache policy, and SHALL expose credential-safe
-operation evidence sufficient to distinguish an OSS body transfer from a local
-cache read. It SHALL NOT eagerly mirror the complete Runtime namespace.
+The shared data cache SHALL retrieve a SHA-addressed Blob only when a consumer reads it, SHALL use a bounded cache policy, and SHALL expose credential-safe operation evidence sufficient to distinguish a gateway body transfer from a local cache read. It SHALL NOT eagerly mirror the complete Runtime namespace and SHALL NOT perform that transfer against public OSS.
 
 #### Scenario: First worktree reads an uncached Blob
 - **WHEN** the Blob is absent from the qualified persistent cache
-- **THEN** ossfs2 SHALL fetch it on demand and record one body-transfer operation class without exposing authorization data
+- **THEN** the adapter SHALL fetch it on demand from the ECS gateway and record one body-transfer operation class without exposing authorization data
 
 #### Scenario: Second worktree reads the same cached Blob
 - **WHEN** the identical verified Blob remains in the shared cache
-- **THEN** the read SHALL return the manifest-declared bytes without another OSS body transfer
+- **THEN** the read SHALL return the manifest-declared bytes without another gateway body transfer
 
 ### Requirement: Checkout Release selection remains independent
 Each checkout SHALL continue to resolve, pin, validate, materialize, select, and
@@ -173,3 +159,24 @@ worktree's state.
 - **WHEN** an affected Blob cannot produce the manifest-declared size and SHA-256
 - **THEN** the adapter SHALL fail the consumer read, invalidate or quarantine only the proven cache entry, and require a verified refetch before reuse
 
+### Requirement: Developer startup defaults to the ECS gateway data plane
+`startup:oss-runtime` SHALL use the ECS active-runtime developer gateway as the default Blob transport after readiness pins an active identity. It SHALL refuse to start if it would need the public OSS endpoint, an OSS AccessKey or an ECS internal endpoint on the workstation.
+
+#### Scenario: Default startup uses the gateway
+- **WHEN** a collaborator with a valid gateway token runs the existing OSS-aware startup command
+- **THEN** Blob fetches SHALL go to the gateway and development services SHALL start against the materialized active view
+
+#### Scenario: Public OSS fallback is requested
+- **WHEN** bootstrap detects a public OSS endpoint, ossfs2 public mount or `act-runtime-dev-read` AccessKey as the intended data plane
+- **THEN** it SHALL fail closed before binding `course-content/runtime`
+
+### Requirement: Developer media bodies stay on the gateway path
+Development services SHALL serve lesson media from the materialized active view whose Blob bytes arrived through the gateway cache. They SHALL NOT generate public OSS signed URLs and SHALL NOT require `ACT_RUNTIME_OSS_RAM_ROLE` on the workstation.
+
+#### Scenario: A lesson video plays after startup
+- **WHEN** the local application reads a media file that is not yet in the shared cache
+- **THEN** the adapter SHALL retrieve that Blob through the gateway and the browser SHALL receive the manifest-declared bytes from the local development origin
+
+#### Scenario: Signed public OSS redirect is attempted in development
+- **WHEN** development media resolution would redirect the browser to a public OSS URL
+- **THEN** the service SHALL serve or fail from the local materialized view instead of issuing that redirect

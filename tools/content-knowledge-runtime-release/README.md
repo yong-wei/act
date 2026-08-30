@@ -2,7 +2,7 @@
 
 Isolated command boundary for captured `course-content/scripts` (41),
 `scripts/knowledge` (7), `scripts/knowledge-cutover` (75),
-`scripts/runtime-release` (33), and `scripts/release` (5). Design-time counts
+`scripts/runtime-release` (42), and `scripts/release` (5). Design-time counts
 52/32 are historical; the live denominator is `git ls-files`.
 
 Three registry entries own publication:

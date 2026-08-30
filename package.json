@@ -132,7 +132,7 @@
     "runtime:dev-install-credential": "python3 scripts/runtime-release/developer-oss/cli.py install-credential",
     "runtime:dev-preflight": "python3 scripts/runtime-release/developer-oss/cli.py preflight",
     "runtime:dev-validate-policy": "python3 scripts/runtime-release/developer-oss/cli.py validate-policy",
-    "test:developer-oss-runtime": "python3 scripts/tests/test_developer_oss_runtime.py",
+    "test:developer-oss-runtime": "python3 scripts/tests/test_developer_oss_runtime.py && python3 scripts/tests/test_developer_runtime_gateway.py",
     "logs": "tail -f .logs/frontend.log",
     "logs:error": "tail -f .logs/frontend-error.log",
     "logs:background-error": "tail -f .logs/error.log",
