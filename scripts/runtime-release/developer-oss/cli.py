@@ -10,7 +10,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from bootstrap import DEFAULT_READYZ_URL, linux_preflight, start, stop
+from bootstrap import DEFAULT_READYZ_URL, linux_preflight, repair, start, stop
 from common import DeveloperRuntimeError, authority_id, redact
 from credential import install_credential, load_credential
 from policy import POLICY_PATH, load_and_validate
@@ -32,6 +32,8 @@ def main() -> int:
     start_parser = commands.add_parser("start")
     start_parser.add_argument("--readyz-url", default=DEFAULT_READYZ_URL)
     commands.add_parser("stop")
+    repair_parser = commands.add_parser("repair")
+    repair_parser.add_argument("--readyz-url", default=DEFAULT_READYZ_URL)
     commands.add_parser("status")
     prove = commands.add_parser("prove-read")
     prove.add_argument("--digest", required=True)
@@ -53,6 +55,9 @@ def main() -> int:
         elif args.command == "stop":
             stop(checkout)
             print(json.dumps({"ok": True, "stopped": True}, sort_keys=True))
+        elif args.command == "repair":
+            repair(checkout, args.readyz_url)
+            print(json.dumps({"ok": True, "repaired": True}, sort_keys=True))
         elif args.command == "status":
             credential = load_credential(checkout)
             print(json.dumps(shared_status(credential["accountId"]), sort_keys=True))

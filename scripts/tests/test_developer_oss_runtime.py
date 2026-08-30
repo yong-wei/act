@@ -115,6 +115,7 @@ def readyz_payload(manifest):
                 "manifestSha256": manifest["manifestSha256"],
                 "treeSha256": manifest["treeSha256"],
             },
+            "filesystem": {"ready": True},
         },
         "timestamp": "2026-08-20T00:00:00.000Z",
         "version": "test",
@@ -265,6 +266,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_release_documents") as fetch, \
                     mock.patch("bootstrap.mount_blobs") as mount_blobs, \
                     mock.patch("bootstrap.materialize_view") as materialize, \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
                     mock.patch("bootstrap.bind_runtime") as bind:
                 from common import checkout_state
                 write_selection_receipt(checkout_state(checkout) / "selection.json", selection)
@@ -575,6 +585,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
                 mock.patch("bootstrap.mount_blobs") as mount_blobs, \
                 mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
+                mock.patch(
+                    "bootstrap.consumer_gate",
+                    return_value={
+                        "schemaVersion": "act-runtime-consumer-verification.v1",
+                        "verifierVersion": "consumer-verification.v1",
+                        "leafCount": 1,
+                        "requiredArtifactSetDigest": "0" * 64,
+                    },
+                ), \
                 mock.patch("bootstrap.bind_runtime"):
             (checkout / "helper").mkdir(exist_ok=True)
             prepared = prepare(checkout)
@@ -739,6 +758,24 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
                     mock.patch("bootstrap.mount_blobs"), \
                     mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
+                mock.patch(
+                    "bootstrap.consumer_gate",
+                    return_value={
+                        "schemaVersion": "act-runtime-consumer-verification.v1",
+                        "verifierVersion": "consumer-verification.v1",
+                        "leafCount": 1,
+                        "requiredArtifactSetDigest": "0" * 64,
+                    },
+                ), \
                     mock.patch("bootstrap.bind_runtime"):
                 rolled = prepare(checkout)
             self.assertEqual(rolled["schemaVersion"], "act-runtime-dev-selection.v1")
@@ -762,6 +799,24 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                         mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
                         mock.patch("bootstrap.mount_blobs"), \
                         mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
+                mock.patch(
+                    "bootstrap.consumer_gate",
+                    return_value={
+                        "schemaVersion": "act-runtime-consumer-verification.v1",
+                        "verifierVersion": "consumer-verification.v1",
+                        "leafCount": 1,
+                        "requiredArtifactSetDigest": "0" * 64,
+                    },
+                ), \
                         mock.patch("bootstrap.bind_runtime"):
                     (checkout / "course-content" / "runtime").mkdir(parents=True)
                     (checkout / "helper").mkdir()
@@ -823,6 +878,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                     mock.patch("bootstrap.fetch_release_documents") as fetch, \
                     mock.patch("bootstrap.materialize_view") as materialize, \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
                     mock.patch("bootstrap.bind_runtime") as bind:
                 reused = prepare(checkout)
             fetch.assert_not_called()
@@ -855,6 +919,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                     mock.patch("bootstrap.fetch_release_documents") as fetch, \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
                     mock.patch("bootstrap.bind_runtime") as bind:
                 reused = prepare(checkout)
             fetch.assert_not_called()
@@ -903,6 +976,718 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         dumped = json.dumps(operations)
         self.assertNotIn("super-secret", dumped)
         self.assertEqual([row["opClass"] for row in operations], ["oss-body-transfer", "cache-hit"])
+
+
+
+
+def write_release_with_governance(root: Path):
+    """Issue #1713 fixture：普通 lesson 叶节点 + registry 要求的治理工件。"""
+    blob_root = root / "blobs"
+    blob_root.mkdir(parents=True)
+    lesson_body = b'{"lesson":"1-1"}\n'
+    lesson_sha = hashlib.sha256(lesson_body).hexdigest()
+    (blob_root / lesson_sha).write_bytes(lesson_body)
+    projection_body = json.dumps({
+        "version": "micro-tutoring-resource-projection.v2",
+        "resources": [{"optionId": "opt-b"}],
+    }, sort_keys=True).encode("utf-8")
+    projection_sha = hashlib.sha256(projection_body).hexdigest()
+    (blob_root / projection_sha).write_bytes(projection_body)
+    files = [
+        {
+            "path": "lessons/1-1/lesson.json",
+            "objectKey": "runtime/blobs/sha256/" + lesson_sha,
+            "sizeBytes": len(lesson_body),
+            "sha256": lesson_sha,
+        },
+        {
+            "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
+            "objectKey": "runtime/blobs/sha256/" + projection_sha,
+            "sizeBytes": len(projection_body),
+            "sha256": projection_sha,
+        },
+    ]
+    tree = digest([{"path": item["path"], "sizeBytes": item["sizeBytes"], "sha256": item["sha256"]} for item in files])
+    source_revision = "b" * 40
+    release_id = "runtime-" + digest({"sourceRevision": source_revision, "treeSha256": tree})[:55]
+    manifest = {
+        "schemaVersion": "act-runtime-release.v2",
+        "releaseId": release_id,
+        "sourceRevision": source_revision,
+        "fileCount": len(files),
+        "totalBytes": sum(item["sizeBytes"] for item in files),
+        "treeSha256": tree,
+        "files": files,
+    }
+    manifest["manifestSha256"] = digest(manifest)
+    wire = canonical(manifest) + b"\n"
+    receipt = {
+        "schemaVersion": "act-runtime-release-receipt.v2",
+        "releaseId": release_id,
+        "manifestVersion": "act-runtime-release.v2",
+        "manifestObjectKey": "runtime/blob-releases/%s/manifest.json" % release_id,
+        "manifestSha256": manifest["manifestSha256"],
+        "manifestWireSha256": hashlib.sha256(wire).hexdigest(),
+        "manifestWireSizeBytes": len(wire),
+        "treeSha256": tree,
+        "fileCount": len(files),
+        "totalBytes": sum(item["sizeBytes"] for item in files),
+        "blobs": sorted(
+            (
+                {"objectKey": item["objectKey"], "sizeBytes": item["sizeBytes"], "sha256": item["sha256"]}
+                for item in files
+            ),
+            key=lambda item: (item["objectKey"], item["sizeBytes"], item["sha256"]),
+        ),
+    }
+    receipt["receiptSha256"] = digest(receipt)
+    manifest_path = root / "manifest.json"
+    receipt_path = root / "receipt.json"
+    manifest_path.write_bytes(wire)
+    receipt_path.write_bytes(canonical(receipt) + b"\n")
+    return manifest, manifest_path, receipt_path
+
+
+GOVERNANCE_REGISTRY = {
+    "schemaVersion": "act-runtime-requirements.v1",
+    "capabilities": {
+        "micro-tutoring-v2": {
+            "artifacts": [
+                {
+                    "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
+                    "requireVersion": True,
+                    "exactVersion": "micro-tutoring-resource-projection.v2",
+                    "references": [],
+                },
+            ],
+        },
+    },
+}
+
+
+def materialize_fixture_view(root, manifest, manifest_path, receipt_path):
+    script = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+    view_root = root / "materialized"
+    view_root.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [sys.executable, str(script), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path),
+         "--blob-root", str(root / "blobs"), "--view-root", str(view_root), "--skip-blob-hash"],
+        check=True, capture_output=True,
+    )
+    subprocess.run(
+        [sys.executable, str(script), "attach-helper", "--release-id", manifest["releaseId"],
+         "--view-root", str(view_root), "--blob-root", str(root / "blobs"), "--test-fixture"],
+        check=True, capture_output=True,
+    )
+    subprocess.run(
+        [sys.executable, str(script), "verify", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
+        check=True, capture_output=True,
+    )
+    subprocess.run(
+        [sys.executable, str(script), "select", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
+        check=True, capture_output=True,
+    )
+    return view_root / "current"
+
+
+class DeveloperOssConsumerGateTests(unittest.TestCase):
+    def setUp(self):
+        self._env = os.environ.copy()
+        os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self._env)
+
+    def _run_gate(self, selected, manifest, registry_path):
+        from consumer_readiness import load_runtime_requirements, verify_consumer_view
+        requirements = load_runtime_requirements(registry_path)
+        return verify_consumer_view(selected, manifest, requirements)
+
+    def test_consumer_gate_accepts_complete_view_and_writes_credential_free_receipt(self):
+        import consumer_readiness
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+            }
+            verified = self._run_gate(selected, manifest, registry_path)
+            self.assertEqual(verified["releaseId"], manifest["releaseId"])
+            self.assertEqual(verified["leafCount"], 2)
+            self.assertEqual(verified["consumerUid"], os.geteuid())
+            self.assertEqual(len(verified["requiredArtifacts"]), 1)
+            receipt_path_target = root / "course-content" / consumer_readiness.RECEIPT_FILENAME
+            consumer_readiness.write_verification_receipt(receipt_path_target, {
+                **verified, "viewRoot": str(selected), "runtimeRoot": str(root / "course-content" / "runtime"),
+            })
+            receipt = json.loads(receipt_path_target.read_text())
+            self.assertNotIn("accessKeyId", receipt)
+            self.assertNotIn("Secret", json.dumps(receipt))
+            self.assertTrue(consumer_readiness.receipt_matches_binding(
+                receipt,
+                release_id=manifest["releaseId"],
+                manifest_sha256=manifest["manifestSha256"],
+                tree_sha256=manifest["treeSha256"],
+                runtime_root=root / "course-content" / "runtime",
+                consumer_uid=os.geteuid(),
+            ))
+            self.assertFalse(consumer_readiness.receipt_matches_binding(
+                receipt,
+                release_id=manifest["releaseId"],
+                manifest_sha256=manifest["manifestSha256"],
+                tree_sha256=manifest["treeSha256"],
+                runtime_root=root / "course-content" / "runtime",
+                consumer_uid=os.geteuid() + 1,
+            ))
+
+    def test_consumer_gate_rejects_unreadable_blob_as_permission_denied(self):
+        from bootstrap import consumer_gate
+        from consumer_readiness import ConsumerVerificationError
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            lesson_sha = manifest["files"][0]["sha256"]
+            helper_blob = root / "release" / "materialized" / "views" / manifest["releaseId"] / ".act-runtime-blobs" / lesson_sha
+            os.chmod(helper_blob, 0o000)
+            try:
+                readiness = {
+                    "schemaVersion": "act-runtime-release.v2",
+                    "releaseId": manifest["releaseId"],
+                    "manifestSha256": manifest["manifestSha256"],
+                    "treeSha256": manifest["treeSha256"],
+                }
+                with self.assertRaises(ConsumerVerificationError) as raised:
+                    self._run_gate(selected, manifest, registry_path)
+                self.assertEqual(raised.exception.failure_class, "permission-denied")
+            finally:
+                os.chmod(helper_blob, 0o644)
+
+    def test_consumer_gate_requires_registered_artifact(self):
+        from bootstrap import consumer_gate
+        from consumer_readiness import ConsumerVerificationError
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps({
+                "schemaVersion": "act-runtime-requirements.v1",
+                "capabilities": {"micro-tutoring-v2": {"artifacts": [
+                    {"path": "resource-governance/micro-tutoring-validation-registry-v2.json"},
+                ]}},
+            }))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+            }
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                self._run_gate(selected, manifest, registry_path)
+            self.assertEqual(raised.exception.failure_class, "artifact-missing")
+
+    def test_consumer_gate_rejects_blob_target_replacement_escape(self):
+        from bootstrap import consumer_gate
+        from consumer_readiness import ConsumerVerificationError
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            outside = root / "outside-body.json"
+            outside.write_bytes(b'{"evil":true}\n')
+            view_root = root / "release" / "materialized" / "views" / manifest["releaseId"]
+            os.chmod(view_root / "lessons" / "1-1", 0o755)
+            link = selected / "lessons" / "1-1" / "lesson.json"
+            link.unlink()
+            link.symlink_to(outside)
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+            }
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                self._run_gate(selected, manifest, registry_path)
+            self.assertEqual(raised.exception.failure_class, "link-escape")
+
+    def test_consumer_gate_rejects_version_drift(self):
+        from consumer_readiness import ConsumerVerificationError, load_runtime_requirements, verify_consumer_view
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            # 篡改视图内治理工件版本（内容与 manifest hash 由 fixture attach-helper 复制，
+            # 需同步改 blob 与 manifest 不可行——直接改视图副本并接受 hash 差异，
+            # version 校验先于 leaf digest 前提是 leaf 校验已通过；改为独立调用工件校验器）
+            requirements = load_runtime_requirements(registry_path)
+            artifact_path = selected / "resource-governance" / "micro-tutoring-resource-projection-v2.json"
+            drifted = json.loads(artifact_path.read_text())
+            drifted["version"] = "micro-tutoring-resource-projection.v1"
+            artifact_path.write_text(json.dumps(drifted, sort_keys=True))
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                from consumer_readiness import verify_required_artifacts
+                verify_required_artifacts(selected, requirements)
+            self.assertEqual(raised.exception.failure_class, "version-drift")
+
+    def test_consumer_gate_rejects_reference_drift(self):
+        from consumer_readiness import ConsumerVerificationError, load_runtime_requirements, verify_required_artifacts
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps({
+                "schemaVersion": "act-runtime-requirements.v1",
+                "capabilities": {"micro-tutoring-v2": {"artifacts": [
+                    {
+                        "path": "resource-governance/micro-tutoring-assessment-baseline-v2.json",
+                        "requireVersion": True,
+                        "exactVersion": "micro-tutoring-assessment-baseline.v2",
+                    },
+                    {
+                        "path": "resource-governance/micro-tutoring-option-attributions-v2.json",
+                        "requireVersion": True,
+                        "exactVersion": "micro-tutoring-option-attributions.v3",
+                        "references": [
+                            {"field": "baselineVersion", "artifact": "resource-governance/micro-tutoring-assessment-baseline-v2.json"},
+                        ],
+                    },
+                ]}},
+            }))
+            view = root / "view"
+            (view / "resource-governance").mkdir(parents=True)
+            (view / "resource-governance" / "micro-tutoring-assessment-baseline-v2.json").write_text(json.dumps({
+                "version": "micro-tutoring-assessment-baseline.v2",
+            }))
+            (view / "resource-governance" / "micro-tutoring-option-attributions-v2.json").write_text(json.dumps({
+                "version": "micro-tutoring-option-attributions.v3",
+                "baselineVersion": "micro-tutoring-assessment-baseline.v0",
+            }))
+            requirements = load_runtime_requirements(registry_path)
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                verify_required_artifacts(view, requirements)
+            self.assertEqual(raised.exception.failure_class, "reference-drift")
+
+    def test_repair_requires_owned_selection_receipt(self):
+        from bootstrap import repair
+        from common import DeveloperRuntimeError
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            with self.assertRaises(DeveloperRuntimeError):
+                repair(checkout)
+
+    def test_readyz_identity_accepts_legacy_runtime_without_filesystem_and_rejects_not_ready(self):
+        manifest, _manifest_path, _receipt_path = write_release(Path(tempfile.mkdtemp()))
+        legacy = readyz_payload(manifest)
+        legacy["runtime"].pop("filesystem")
+        self.assertEqual(parse_readyz_identity(legacy)["releaseId"], manifest["releaseId"])
+
+        not_ready = readyz_payload(manifest)
+        not_ready["runtime"]["filesystem"] = {"ready": False, "failureClass": "permission-denied"}
+        with self.assertRaises(DeveloperRuntimeError):
+            parse_readyz_identity(not_ready)
+
+        invalid = readyz_payload(manifest)
+        invalid["runtime"]["filesystem"] = {"ready": False}
+        with self.assertRaises(DeveloperRuntimeError):
+            parse_readyz_identity(invalid)
+
+    def test_prepare_reuse_reruns_consumer_gate_and_fails_closed_on_broken_view(self):
+        """Issue #1713 P1：升级代码后走 selection 复用分支时，不可读/缺工件的旧视图必须被拒绝。"""
+        import consumer_readiness
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            checkout = root / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(root / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(root / "xdg-state")
+            os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+            os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            from consumer_readiness import load_runtime_requirements
+            runtime_root = checkout / "course-content" / "runtime"
+            runtime_root.mkdir(parents=True)
+            identity = {
+                "AccountId": "123456789012",
+                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                "UserId": "1",
+            }
+            selection = {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": manifest["releaseId"],
+                "manifestSha256": manifest["manifestSha256"],
+                "treeSha256": manifest["treeSha256"],
+                "blobMount": str(root / "release" / "blobs"),
+                "helperMount": str(selected / ".act-runtime-blobs"),
+                "viewRoot": str(selected),
+                "runtimeRoot": str(runtime_root),
+                "startedAt": "2026-08-30T00:00:00Z",
+            }
+            from common import checkout_state
+            write_selection_receipt(checkout_state(checkout) / "selection.json", selection)
+
+            def run_prepare():
+                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                        mock.patch("bootstrap.caller_identity", return_value=identity), \
+                        mock.patch("bootstrap.fetch_readyz_identity", return_value={
+                            "schemaVersion": "act-runtime-release.v2",
+                            "releaseId": manifest["releaseId"],
+                            "manifestSha256": manifest["manifestSha256"],
+                            "treeSha256": manifest["treeSha256"],
+                        }), \
+                        mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
+                        mock.patch("bootstrap.is_readonly_mount", return_value=True), \
+                        mock.patch(
+                            "bootstrap.load_runtime_requirements",
+                            return_value=load_runtime_requirements(registry_path),
+                        ):
+                    return prepare(checkout)
+
+            reused = run_prepare()
+            self.assertEqual(reused["releaseId"], manifest["releaseId"])
+            receipt = json.loads((checkout / "course-content" / consumer_readiness.RECEIPT_FILENAME).read_text())
+            self.assertEqual(receipt["releaseId"], manifest["releaseId"])
+            self.assertEqual(receipt["consumerUid"], os.geteuid())
+
+            projection_sha = manifest["files"][1]["sha256"]
+            helper_blob = selected / ".act-runtime-blobs" / projection_sha
+            os.chmod(helper_blob, 0o000)
+            try:
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    run_prepare()
+                self.assertIn("permission-denied", str(raised.exception))
+                self.assertFalse(
+                    (checkout / "course-content" / consumer_readiness.RECEIPT_FILENAME).exists(),
+                )
+            finally:
+                os.chmod(helper_blob, 0o644)
+
+    def test_repair_refuses_helper_mount_outside_owned_state(self):
+        """Issue #1713 P1：陈旧回执的 helperMount 指向他人视图时，repair 必须拒绝卸载。"""
+        from bootstrap import repair
+        from common import DeveloperRuntimeError
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            foreign = Path(raw) / "other-worktree" / "views" / "runtime-x" / ".act-runtime-blobs"
+            foreign.mkdir(parents=True)
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            from common import checkout_state
+            state = checkout_state(checkout)
+            write_selection_receipt(state / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+                "blobMount": str(state / "blobs"),
+                "helperMount": str(foreign),
+                "viewRoot": str(state / "materialized" / "current"),
+                "runtimeRoot": str(checkout / "course-content" / "runtime"),
+                "startedAt": "2026-08-30T00:00:00Z",
+            })
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+            }
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                    mock.patch("bootstrap.caller_identity", return_value={
+                        "AccountId": "123456789012",
+                        "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                        "UserId": "1",
+                    }), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
+                    mock.patch("bootstrap.stop_services"):
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    repair(checkout)
+            self.assertIn("uncertain ownership", str(raised.exception))
+            # 他人视图未被破坏：目录仍然存在
+            self.assertTrue(foreign.exists())
+
+    def test_shared_release_rejects_noncanonical_mount_id_even_with_valid_record_and_lease(self):
+        """Issue #1713 P1 回归：非规范 sharedMountId 即使 record/lease 其余证据均合法也必须拒绝。"""
+        from common import authority_id
+        from common import authority_identity
+        from shared_mount import options_digest, verify_shared_release
+        with tempfile.TemporaryDirectory() as raw:
+            foreign_mount = "deadbeef00deadbeef00deadbeef"
+            state = Path(raw) / "shared" / "mounts" / foreign_mount
+            state.mkdir(parents=True)
+            (state / "mount.json").write_text(json.dumps({
+                "schemaVersion": "act-runtime-dev-shared-mount.v1",
+                "identity": authority_identity("123456789012"),
+                "mountpoint": str(Path(raw) / "shared" / "mounts" / foreign_mount / "blobs"),
+                "optionsDigest": options_digest(),
+                "principal": "act-runtime-dev-read",
+            }))
+            (state / "leases.json").write_text(json.dumps({
+                "schemaVersion": "act-runtime-dev-shared-lease.v1",
+                "leases": {"checkout-abc": {"releaseId": "runtime-" + ("a" * 55)}},
+            }))
+            canonical = authority_id("123456789012")
+            with mock.patch("shared_mount.read_shared_record", return_value=json.loads(
+                (state / "mount.json").read_text(),
+            )), mock.patch("shared_mount.read_leases", return_value=json.loads(
+                (state / "leases.json").read_text(),
+            )), mock.patch("shared_mount.use_real_fuse", return_value=False):
+                with self.assertRaises(ValueError) as raised:
+                    verify_shared_release(
+                        foreign_mount,
+                        "123456789012",
+                        "checkout-abc",
+                        "runtime-" + ("a" * 55),
+                    )
+            self.assertIn("canonical mount", str(raised.exception))
+            # 规范 ID 走同一路径即可通过（首检之后才轮到其余证据）
+            with mock.patch("shared_mount.read_shared_record", return_value=None):
+                with self.assertRaises(ValueError) as raised_canonical:
+                    verify_shared_release(
+                        canonical,
+                        "123456789012",
+                        "checkout-abc",
+                        "runtime-" + ("a" * 55),
+                    )
+            self.assertIn("record is missing", str(raised_canonical.exception))
+
+    def test_repair_refuses_shared_release_without_proven_identity_and_lease(self):
+        """Issue #1713 P1：repair 释放共享 mount 前必须证明 identity 归属与本 checkout lease。"""
+        from bootstrap import repair
+        from common import DeveloperRuntimeError, authority_id, checkout_state
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            state = checkout_state(checkout)
+            own_mount = authority_id("123456789012")
+            runtime_root = checkout / "course-content" / "runtime"
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+            }
+            identity = {
+                "AccountId": "123456789012",
+                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                "UserId": "1",
+            }
+            base = {
+                "schemaVersion": "act-runtime-dev-selection.v2",
+                "releaseId": readiness["releaseId"],
+                "manifestSha256": readiness["manifestSha256"],
+                "treeSha256": readiness["treeSha256"],
+                "blobMount": str(state / "blobs"),
+                "helperMount": str(state / "materialized" / "current" / ".act-runtime-blobs"),
+                "viewRoot": str(state / "materialized" / "current"),
+                "runtimeRoot": str(runtime_root),
+                "checkoutId": checkout_id(checkout),
+                "sharedMountId": "",
+                "topology": "shared",
+                "startedAt": "2026-08-30T00:00:00Z",
+            }
+
+            def run_repair_with(shared_mount_id, leases):
+                selection = {**base, "sharedMountId": shared_mount_id}
+                from common import checkout_id as _cid
+                del _cid
+                write_selection_receipt(state / "selection.json", selection)
+                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                        mock.patch("bootstrap.caller_identity", return_value=identity), \
+                        mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
+                        mock.patch("bootstrap.stop_services"), \
+                        mock.patch("bootstrap.read_leases", return_value=leases), \
+                        mock.patch("bootstrap.release_lease") as released:
+                    with self.assertRaises(DeveloperRuntimeError) as raised:
+                        repair(checkout)
+                self.assertIn("refused", str(raised.exception))
+                released.assert_not_called()
+
+            # 场景 1：sharedMountId 指向其他 credential 的共享 mount
+            run_repair_with(authority_id("999999999999"), {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            # 场景 2：identity 正确但无本 checkout 的 live lease（空/仅 stale 记录）
+            run_repair_with(own_mount, {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            # 场景 3：lease 存在但绑定不同 Release
+            run_repair_with(own_mount, {
+                "schemaVersion": "act-runtime-dev-shared-lease.v1",
+                "leases": {checkout_id(checkout): {"releaseId": "runtime-" + ("f" * 55)}},
+            })
+
+    def test_repair_refuses_drifted_shared_mount_record(self):
+        """Issue #1713 P1：identity 与 lease 均匹配但共享 mount.json 记录漂移时，release 前必须拒绝。"""
+        from bootstrap import repair
+        from common import DeveloperRuntimeError, authority_id, authority_identity, checkout_id, checkout_state
+        from shared_mount import options_digest
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            state = checkout_state(checkout)
+            own_mount = authority_id("123456789012")
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+            }
+            write_selection_receipt(state / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v2",
+                "releaseId": readiness["releaseId"],
+                "manifestSha256": readiness["manifestSha256"],
+                "treeSha256": readiness["treeSha256"],
+                "blobMount": str(state / "blobs"),
+                "helperMount": str(state / "materialized" / "current" / ".act-runtime-blobs"),
+                "viewRoot": str(state / "materialized" / "current"),
+                "runtimeRoot": str(checkout / "course-content" / "runtime"),
+                "checkoutId": checkout_id(checkout),
+                "sharedMountId": own_mount,
+                "topology": "shared",
+                "startedAt": "2026-08-30T00:00:00Z",
+            })
+            # identity/options/principal 全部合法，仅 mountpoint 漂移到未知挂载——
+            # 专测 mountpoint 校验（verify_shared_identity 不覆盖该字段）。
+            drifted_record = {
+                "schemaVersion": "act-runtime-dev-shared-mount.v1",
+                "identity": authority_identity("123456789012"),
+                "mountpoint": str(Path(raw) / "somewhere-else" / "blobs"),
+                "optionsDigest": options_digest(),
+                "principal": "act-runtime-dev-read",
+            }
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                    mock.patch("bootstrap.caller_identity", return_value={
+                        "AccountId": "123456789012",
+                        "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                        "UserId": "1",
+                    }), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
+                    mock.patch("bootstrap.stop_services"), \
+                    mock.patch("bootstrap.read_leases", return_value={
+                        "schemaVersion": "act-runtime-dev-shared-lease.v1",
+                        "leases": {checkout_id(checkout): {"releaseId": readiness["releaseId"]}},
+                    }), \
+                    mock.patch("shared_mount.read_shared_record", return_value=drifted_record), \
+                    mock.patch("bootstrap.release_lease") as released:
+                with self.assertRaises(DeveloperRuntimeError):
+                    repair(checkout)
+            released.assert_not_called()
+
+    def test_mount_process_provenance_requires_exact_point_and_config_binding(self):
+        """Issue #1713 P1：归属证据链 = 持有 mountinfo 报告的 fuse fd + /proc/exe
+        为真实 ossfs2 + argv 精确绑定本 conf 与 mountpoint；任一缺失即拒绝。"""
+        from shared_mount import verify_mount_process_provenance
+        with tempfile.TemporaryDirectory() as raw:
+            mountpoint = Path(raw) / "shared" / "mount-1" / "blobs"
+            conf = Path(raw) / "shared" / "mount-1" / "ossfs.conf"
+            fake_ossfs2 = Path(raw) / "bin" / "ossfs2"
+            fake_ossfs2.parent.mkdir(parents=True)
+            fake_ossfs2.write_text("#!/bin/sh\n")
+            fake_python = Path(raw) / "bin" / "python3"
+            fake_python.write_text("#!/bin/sh\n")
+            argv_ok = ("-c", str(conf), str(mountpoint))
+
+            def proc_root_with(*entries, with_fuse_fd=None) -> str:
+                root = Path(tempfile.mkdtemp(dir=raw))
+                for pid, exe_target, cmdline in entries:
+                    proc = root / str(pid)
+                    proc.mkdir()
+                    os.symlink(str(exe_target), str(proc / "exe"))
+                    (proc / "cmdline").write_bytes(b"\x00".join(arg.encode() for arg in cmdline) + b"\x00")
+                    if with_fuse_fd is not None:
+                        (proc / "fd").mkdir()
+                        os.symlink("/dev/fuse", str(proc / "fd" / str(with_fuse_fd)))
+                return str(root)
+
+            def entry(exe_target, *argv):
+                return (100, exe_target, argv)
+
+            good = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
+                with_fuse_fd=3,
+            )
+            verify_mount_process_provenance(mountpoint, conf, proc_root=good, fuse_fd=3)
+
+            argv0_spoof = proc_root_with(
+                entry(fake_python, "ossfs2", *argv_ok),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=argv0_spoof, fuse_fd=3)
+
+            no_fd = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=no_fd, fuse_fd=3)
+
+            conf_prefix = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf) + ".backup", str(mountpoint)),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=conf_prefix, fuse_fd=3)
+
+            point_prefix = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), str(mountpoint) + "-other"),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=point_prefix, fuse_fd=3)
+
+            other_point = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), "/elsewhere/blobs"),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=other_point, fuse_fd=3)
+
 
 
 if __name__ == "__main__":
