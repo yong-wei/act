@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, ChevronRight, RotateCcw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface PracticeOption {
   id: string;
@@ -121,16 +122,7 @@ export default function RouthPractice({ onComplete, onStateChange }: RouthPracti
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
 
-    if (isLast) {
-      const result: WidgetResult = {
-        success: true,
-        score: Math.round((nextScore / PRACTICE_ITEMS.length) * 100),
-        data: { correct: nextScore, total: PRACTICE_ITEMS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [checked, selected, current.answerId, current.id, isLast, onComplete, onStateChange, score, progress, interactive]);
+  }, [checked, selected, current.answerId, current.id, onStateChange, score, progress, interactive]);
 
   const handleNext = useCallback(() => {
     if (!checked || isLast) return;
@@ -232,6 +224,17 @@ export default function RouthPractice({ onComplete, onStateChange }: RouthPracti
               下一题
               <ChevronRight className="h-4 w-4" />
             </button>
+            {checked && isLast ? (
+              <PathResourceContinueAction
+                enabled
+                result={{
+                  success: true,
+                  score: Math.round((score / PRACTICE_ITEMS.length) * 100),
+                  data: { correct: score, total: PRACTICE_ITEMS.length },
+                }}
+                onComplete={onComplete}
+              />
+            ) : null}
           </div>
         </div>
 

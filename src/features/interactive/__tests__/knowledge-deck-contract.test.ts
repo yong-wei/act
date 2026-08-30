@@ -134,3 +134,53 @@ describe('browse-complete resource path continue', () => {
     expect(source).not.toContain('data: { zeta, omega, duration }');
   });
 });
+
+const lastQuestionQuizFiles = [
+  'src/resources/interactive-learning/lesson-01/feedback-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-01/feedback-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-01/loop-scenario-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-inverse-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-03/diff-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-03/diff-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-03/modeling-scenario-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-derivation-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-element-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-05/block-diagram-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-05/mason-loop-challenge/index.tsx',
+  'src/resources/interactive-learning/lesson-05/signal-flow-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-05/structure-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-06/metric-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-07/damping-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-08/post-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-08/routh-practice/index.tsx',
+  'src/resources/interactive-learning/lesson-08/stability-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-09/correction-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-plot-recognition/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-post-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-12/frequency-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-13/nyquist-stability-scenario/index.tsx',
+  'src/resources/interactive-learning/lesson-13/phase-concept-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-13/phase-stability-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-15/series-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-15/series-strategy-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-17/df-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-17/df-precheck/index.tsx',
+];
+
+describe('last-question quiz path continue', () => {
+  it('does not complete from the last check, and requires an explicit continue action', () => {
+    for (const file of lastQuestionQuizFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('interactive?.progress.markComplete(result)');
+    }
+  });
+});
