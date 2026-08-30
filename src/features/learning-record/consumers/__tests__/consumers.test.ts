@@ -408,5 +408,10 @@ describe('learning-record consumers', () => {
     expect(copilot).toContain("from '@/features/personalization/learner-state/public-api'");
     expect(copilot).not.toContain('readCurrentCumulativePortrait');
     expect(copilot).not.toContain('interactionLog');
+    const governedCopilot = readFileSync('src/lib/governed-copilot-profile-context.ts', 'utf8');
+    expect(governedCopilot).toContain("from '@/features/personalization/learner-state/public-api'");
+    expect(governedCopilot).not.toContain('readCurrentCumulativePortrait');
+    expect(governedCopilot).not.toContain('prisma.learningFact');
+    expect(governedCopilot).not.toContain('interactionLog');
   });
 });

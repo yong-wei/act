@@ -21,6 +21,7 @@ import { useSearchParams } from 'next/navigation';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import type { EvidenceCopilotProjection } from '@/lib/evidence-copilot-context';
+import type { GovernedCopilotProfileProjection } from '@/lib/governed-copilot-profile-context';
 import {
   buildAiAuditTaskState,
   buildPortfolioReflectionDraft,
@@ -40,6 +41,8 @@ export default function CopilotPage() {
   const viewerRole = resolveCopilotViewerRole(sessionData.data?.user?.role);
   const [evidenceProjection, setEvidenceProjection] = useState<EvidenceCopilotProjection | null>(null);
   const [evidenceProjectionError, setEvidenceProjectionError] = useState(false);
+  const [copilotProfile, setCopilotProfile] = useState<GovernedCopilotProfileProjection | null>(null);
+  const [copilotProfileError, setCopilotProfileError] = useState(false);
   const reflectionDraft = useMemo(
     () =>
       context === 'portfolio-reflection'
@@ -108,7 +111,7 @@ export default function CopilotPage() {
   );
 
   // 获取页面上下文和用户画像
-  const { pageContext, userProfile } = usePageAIContext({
+  const { pageContext } = usePageAIContext({
     courseId: 'general',
     courseTitle: 'AI-OBE智能学习平台',
     topic: '通用学习辅助',
@@ -161,12 +164,40 @@ export default function CopilotPage() {
     };
   }, [assignment, context, source, taskIntent]);
 
+  useEffect(() => {
+    if (!sessionData.data?.user?.id) {
+      setCopilotProfile(null);
+      setCopilotProfileError(false);
+      return;
+    }
+    let cancelled = false;
+    fetch('/api/ai/copilot-profile')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('profile unavailable');
+        return response.json() as Promise<GovernedCopilotProfileProjection>;
+      })
+      .then((projection) => {
+        if (!cancelled) {
+          setCopilotProfile(projection);
+          setCopilotProfileError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCopilotProfile(null);
+          setCopilotProfileError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionData.data?.user?.id]);
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, reload, stop, append, setMessages } =
     useChat({
       api: '/api/ai/chat',
       body: {
         pageContext,
-        userProfile,
         auditTaskContext: portfolioReflectionTaskContext ?? evidenceTaskContext,
       },
     });
@@ -264,6 +295,41 @@ export default function CopilotPage() {
             {/* 消息列表 */}
             <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
               {taskState ? <ActionStatusPanel state={taskState} className="mb-4" /> : null}
+              {sessionData.data?.user?.id ? (
+                <div
+                  className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
+                  data-copilot-profile-status={
+                    copilotProfileError ? 'unavailable' : copilotProfile?.status ?? 'pending'
+                  }
+                >
+                  <div className="font-medium">
+                    {copilotProfileError || copilotProfile?.status === 'unavailable'
+                      ? '个性化画像不可用'
+                      : copilotProfile?.status === 'missing'
+                        ? '暂无受治理学习画像'
+                        : copilotProfile?.status === 'stale'
+                          ? '学习画像已过期'
+                          : copilotProfile?.status === 'low-confidence'
+                            ? '学习画像置信度较低'
+                            : copilotProfile
+                              ? '已核对的学习画像'
+                              : '正在核对学习画像'}
+                  </div>
+                  {(copilotProfile?.limitations ?? []).map((limitation) => (
+                    <p key={limitation} className="mt-1 text-amber-100/80">{limitation}</p>
+                  ))}
+                  {copilotProfileError ? (
+                    <p className="mt-1 text-amber-100/80">学习画像服务当前不可用，仅提供通用课程辅导。</p>
+                  ) : null}
+                  <Link
+                    href={copilotProfile?.nextAction.href ?? '/assessment/adaptive-practice?intent=practice'}
+                    className="mt-2 inline-flex text-xs text-amber-100/90 underline"
+                    data-copilot-profile-next-action
+                  >
+                    {copilotProfile?.nextAction.label ?? '去做一次自适应练习，补充学习证据'}
+                  </Link>
+                </div>
+              ) : null}
               {taskContract ? (
                 <div className="mb-4 rounded-lg border border-slate-700 bg-slate-950/70 px-4 py-3 text-xs text-slate-300">
                   <span>任务类型：{taskContract.taskType}</span>

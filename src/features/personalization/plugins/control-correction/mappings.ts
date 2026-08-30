@@ -24,3 +24,10 @@ export const CONTROL_CORRECTION_LESSON_IDS = new Set<string>(CONTROL_CORRECTION_
 export const CONTROL_CORRECTION_ARENA_TASK_IDS = new Set<string>(
   CONTROL_CORRECTION_ARENA_TASK_ID_VALUES,
 );
+
+export const CONTROL_CORRECTION_ARENA_OFFICIAL_TARGET = {
+  learningGoalId: CONTROL_CORRECTION_GOAL_ID,
+  objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
+  graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
+  targetLabel: '控制校正 Arena 官方迁移验证',
+} as const;

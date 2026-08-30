@@ -47,6 +47,7 @@ import {
   resolveTeacherOperationsNavHref,
 } from '@/features/teacher/teacher-operations-nav';
 import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
+import { MANIFEST_COURSE_ROUTE_SEGMENTS } from '@/features/interactive/shared/manifest-course-app-loaders';
 import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS,
@@ -905,8 +906,8 @@ describe('platform UI contracts', () => {
     const entryPages = listSourceFiles('src/features/interactive').filter((relativePath) =>
       relativePath.endsWith('/entry-page.tsx'),
     );
-    const waitingPages = listSourceFiles('src/app/interactive-learning/courses').filter((relativePath) =>
-      relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'),
+    const waitingPages = listSourceFiles('src/features/interactive/course-app-routes').filter((relativePath) =>
+      relativePath.endsWith('/waiting.tsx'),
     );
 
     expect(courseEntryShellSource).toContain('<AppShell');
@@ -1053,21 +1054,12 @@ describe('platform UI contracts', () => {
   });
 
   it('derives concrete course entry route metadata from the canonical route inventory', () => {
-    const courseEntryPageRoutes = listSourceFiles('src/app/interactive-learning/courses')
-      .filter((relativePath) => relativePath.endsWith('/page.tsx'))
-      .filter((relativePath) => relativePath.split(path.sep).length === 6)
-      .map((relativePath) => `/${path.dirname(relativePath).replace(/^src\/app\//, '')}`)
-      .sort();
-    const teacherWaitingRoutes = listSourceFiles('src/app/interactive-learning/courses')
-      .filter((relativePath) => relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'))
-      .map(
-        (relativePath) =>
-          `/${path
-            .dirname(relativePath)
-            .replace(/^src\/app\//, '')
-            .replace('/teacher/[sessionId]/waiting', '/teacher/session-1/waiting')}`,
-      )
-      .sort();
+    const courseEntryPageRoutes = MANIFEST_COURSE_ROUTE_SEGMENTS.map(
+      (segment) => `/interactive-learning/courses/${segment}`,
+    );
+    const teacherWaitingRoutes = MANIFEST_COURSE_ROUTE_SEGMENTS.map(
+      (segment) => `/interactive-learning/courses/${segment}/teacher/session-1/waiting`,
+    );
     const courseHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
     const waitingHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/session-1/waiting';
     const inventoryEntry = resolvePlatformRouteInventory(courseHref);

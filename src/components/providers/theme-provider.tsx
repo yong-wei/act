@@ -20,6 +20,15 @@ function applyTheme(theme: ThemeMode) {
   root.style.colorScheme = theme;
 }
 
+function readResolvedTheme(defaultTheme: ThemeMode): ThemeMode {
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const systemPrefersDark =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : undefined;
+  return resolveInitialTheme(storedTheme, systemPrefersDark, defaultTheme);
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = DEFAULT_THEME,
@@ -29,36 +38,32 @@ export function ThemeProvider({
 }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
-      const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return resolveInitialTheme(storedTheme, systemPrefersDark, defaultTheme);
-    }
-    if (typeof document !== 'undefined') {
-      if (document.documentElement.classList.contains('light')) {
-        return 'light';
-      }
-      if (document.documentElement.classList.contains('dark')) {
-        return 'dark';
-      }
+      return readResolvedTheme(defaultTheme);
     }
     return defaultTheme;
   });
   const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
+    const resolved = readResolvedTheme(defaultTheme);
+    applyTheme(resolved);
+    setThemeState(resolved);
     setMounted(true);
-  }, []);
+  }, [defaultTheme]);
+
+  useLayoutEffect(() => {
+    if (!mounted) {
+      return;
+    }
+    applyTheme(theme);
+  }, [mounted, theme]);
 
   useEffect(() => {
     if (!mounted) {
       return;
     }
 
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [mounted, theme]);
 
   const setTheme = useCallback((nextTheme: ThemeMode) => {

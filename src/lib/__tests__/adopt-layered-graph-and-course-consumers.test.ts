@@ -1351,14 +1351,14 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
     const studentRoute = readFileSync(
       path.join(
         repoRoot,
-        'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+        'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
       ),
       'utf8',
     );
     const teacherRoute = readFileSync(
       path.join(
         repoRoot,
-        'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+        'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/teacher.tsx',
       ),
       'utf8',
     );
@@ -1380,7 +1380,7 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
       expect(route).toContain('layeredResourceRegistryIds=');
     }
     expect(studentRoute).toContain('UNIT_1_1StudentPage');
-    expect(studentRoute).toContain("loadLessonRuntimeEntry('1-1')");
+    expect(studentRoute).toContain("loadSessionBoundLessonRuntime");
     expect(teacherRoute).toContain('UNIT_1_1TeacherPage');
   });
 

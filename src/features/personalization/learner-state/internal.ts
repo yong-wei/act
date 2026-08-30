@@ -48,11 +48,6 @@ import {
 } from '@/lib/data-governance/evidence-timeline';
 import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
 import {
-  isControlCorrectionArenaFact,
-  isControlCorrectionArenaTaskId,
-  isControlCorrectionFact,
-} from '@/features/personalization/plugins/control-correction/evidence-match';
-import {
   CONTROL_CORRECTION_GOAL_DIMENSIONS as CONTROL_CORRECTION_GOAL_DIMENSION_IDS,
   CONTROL_CORRECTION_GOAL_ID as CONTROL_CORRECTION_GOAL_ID_VALUE,
   CONTROL_CORRECTION_GOAL_SLICE_FIELD_CONTRACT,
@@ -2319,10 +2314,19 @@ interface ControlCorrectionScopedFactSummary {
   counts: ControlCorrectionFactCounts;
 }
 
+function isOfficialArenaLearningFact(fact: Record<string, unknown>): boolean {
+  const arena = getObject(getObject(fact.contextJson).arena);
+  return arena.official === true || arena.evaluationMode === 'official';
+}
+
+function hasArenaTaskContext(fact: Record<string, unknown>): boolean {
+  const arena = getObject(getObject(fact.contextJson).arena);
+  return Boolean(readString(arena.taskId));
+}
+
 function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>): ControlCorrectionScopedFactSummary {
-  const scopedFacts = facts.filter(isControlCorrectionFact);
-  const counts = scopedFacts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
-    if (isControlCorrectionArenaFact(fact)) {
+  const counts = facts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
+    if (isOfficialArenaLearningFact(fact) || hasArenaTaskContext(fact)) {
       counts.arena += 1;
       counts.previewArena += 1;
       return counts;
@@ -2378,7 +2382,7 @@ function isOfficialControlCorrectionArenaSubmission(submission: Record<string, u
   const controllerArtifact = getObject(submission.controllerArtifact);
   const artifactPayload = getObject(controllerArtifact.payload);
   const taskId = readString(submission.taskId);
-  if (!isControlCorrectionArenaTaskId(taskId)) return false;
+  if (!taskId) return false;
   const method = readString(submission.method) ?? readString(artifactPayload.method);
   return readString(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion({
     taskId,

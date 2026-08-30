@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const search = new URL(request.url).searchParams.get('search')?.trim().slice(0, SEARCH_MAX_LENGTH);
+    const searchParams = new URL(request.url).searchParams;
+    const search = searchParams.get('search')?.trim().slice(0, SEARCH_MAX_LENGTH);
+    const courseId = searchParams.get('courseId')?.trim().slice(0, SEARCH_MAX_LENGTH);
+    const pageId = searchParams.get('pageId')?.trim().slice(0, 256);
     const conversations = await prisma.konlingSession.findMany({
       where: {
         userId: session.user.id,
@@ -35,6 +38,7 @@ export async function GET(request: NextRequest) {
             mode: 'insensitive',
           },
         } : {}),
+        ...(courseId && pageId ? { courseId, pageId } : {}),
       },
       select: {
         id: true,

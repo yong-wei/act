@@ -89,6 +89,8 @@ export interface InteractiveAIContextValue {
   messages: AIMessage[];
   isLoading: boolean;
   error: Error | null;
+  recoveryStatus: 'idle' | 'loading' | 'ready' | 'unavailable' | 'ephemeral';
+  retryRecovery: () => void;
 }
 
 /** AI 消息 */

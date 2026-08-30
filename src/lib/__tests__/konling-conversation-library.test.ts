@@ -769,6 +769,15 @@ describe('Konling conversation library', () => {
     await expect(resolveKonlingContextEventScope({} as never, {
       authenticatedUserId: 'user-1',
       role: 'student',
+      courseId: 'interactive',
+      pageId: '/interactive-learning/resources/pid-tuner',
+    })).resolves.toMatchObject({
+      courseId: 'interactive',
+      pageId: '/interactive-learning/resources/pid-tuner',
+    });
+    await expect(resolveKonlingContextEventScope({} as never, {
+      authenticatedUserId: 'user-1',
+      role: 'student',
       courseId: 'forged-page',
       pageId: '/forged-page',
     })).resolves.toBeNull();

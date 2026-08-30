@@ -147,7 +147,7 @@ describe('POST /api/interactive/events', () => {
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
-    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'SUCCEEDED' });
+    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'applied' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
       classReports: 1,
       studentReports: 1,
@@ -410,6 +410,49 @@ describe('POST /api/interactive/events', () => {
     );
   });
 
+  it('surfaces Learning Record ingest failures as dropped routing instead of a silent PostgreSQL success', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.ingestLearningFact.mockResolvedValue({
+      factsCreated: 0,
+      status: 'terminal_failed',
+      failure: { code: 'missing-canonical-identity' },
+      adapter: { status: 'rejected', reason: 'missing-canonical-identity' },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-failed-ingest',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:42.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            score: 100,
+            answerDigest: { 'weight-preference': 'C' },
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.degraded).toBeGreaterThan(0);
+    expect(body.routing).toMatchObject({ dropped: 1 });
+    expect(body.routing.postgresql).toBeUndefined();
+    expect(body.routingFailures).toEqual([
+      expect.objectContaining({
+        reason: 'missing-canonical-identity',
+        clientEventId: 'client-submit-failed-ingest',
+      }),
+    ]);
+  });
+
   it('deduplicates repeated classroom submissions through the shared evidence writer receipts', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
@@ -494,9 +537,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(2);
     // #1583 统一摄取：lesson_submit 属 core 事件走 ingestLearningFact，不经 routeEvent
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
-    // 重件 DUPLICATE 回执重放持久化证据 1 次（persistCoreLearningFact 兼容路径，幂等）
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(2);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('returns the durable receipt when the same submission identity already exists', async () => {
@@ -543,8 +585,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    // DUPLICATE 回执幂等重放事实物化（崩溃恢复边界），路由级事件路由不重跑
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('degrades identity-less submissions instead of persisting evidence that bypasses the closure boundary', async () => {
@@ -628,7 +670,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
     expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
   it('rejects the batch atomically when the shared evidence writer fails, without partial evidence', async () => {

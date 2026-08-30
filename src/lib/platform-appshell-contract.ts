@@ -262,7 +262,7 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
   {
     category: 'course',
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
-    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
+    sourceFile: 'src/app/interactive-learning/courses/[routeSegment]/page.tsx',
     viewerRole: 'student',
     shellEvidence: 'compatible-wrapper',
     acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
@@ -272,7 +272,7 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
   {
     category: 'course-student-session',
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
-    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
+    sourceFile: 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/:sessionId',
     viewerRole: 'student',
     shellEvidence: 'compatible-wrapper',
@@ -283,7 +283,7 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
   {
     category: 'course-teacher-session',
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo',
-    sourceFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
+    sourceFile: 'src/app/interactive-learning/courses/[routeSegment]/teacher/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/:sessionId',
     viewerRole: 'teacher',
     shellEvidence: 'compatible-wrapper',
@@ -367,28 +367,28 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
 export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/*',
-    sourceFile: 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/[sessionId]/page.tsx',
+    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/student.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/*',
-    sourceFile: 'src/app/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/[sessionId]/page.tsx',
+    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/teacher.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/*',
-    sourceFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',
+    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/student.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/*',
-    sourceFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]/page.tsx',
+    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/teacher.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
@@ -403,7 +403,7 @@ export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRo
   {
     routePattern: '/interactive-learning/courses/*/teacher/*/waiting',
     sourceFile:
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/waiting/page.tsx',
+      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/waiting.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],

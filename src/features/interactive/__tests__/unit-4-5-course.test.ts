@@ -13,7 +13,7 @@ vi.mock('@/lib/unit-3-4-ai-contexts', () => ({
 const repoRoot = process.cwd();
 const routeBase = join(
   repoRoot,
-  'src/app/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization',
+  'src/features/interactive/course-app-routes/unit-4-5-constraint-aware-parameter-optimization',
 );
 const featureBase = join(
   repoRoot,
@@ -124,9 +124,9 @@ describe('unit 4-5 interactive course', () => {
   });
 
   it('exposes the dedicated route files for entry, student and teacher pages', () => {
-    expect(existsSync(join(routeBase, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
   });
 
   it('keeps the runtime lesson slice on runtime media only and without inline AI entry', () => {

@@ -13,14 +13,13 @@ import { KonlingAvatar } from './konling-avatar';
 import { KonlingChatMessageList, konlingPromptInputClassName } from './konling-chat-renderer';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
 import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
-import type { PageContext, UserProfile } from '@/types/ai-context';
+import type { PageContext } from '@/types/ai-context';
 import { Button } from '@/components/ui/button';
 
 interface KonlingSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   pageContext?: PageContext;
-  userProfile?: UserProfile | null;
   sessionId?: string;
   className?: string;
 }
@@ -29,7 +28,6 @@ export function KonlingSidebar({
   isOpen,
   onClose,
   pageContext,
-  userProfile,
   sessionId,
   className = '',
 }: KonlingSidebarProps) {
@@ -56,7 +54,6 @@ export function KonlingSidebar({
     api: '/api/ai/chat',
     body: {
       pageContext,
-      userProfile,
       sessionId,
       courseId: pageContext?.courseId,
       pageId: pageContext?.stepId,

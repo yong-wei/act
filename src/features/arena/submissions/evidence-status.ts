@@ -3,13 +3,27 @@ import type {
   ArenaSubmissionEvidenceWriteback,
   ArenaSubmissionRecord,
 } from './types';
+import {
+  getRegisteredPersonalizationGoalPlugin,
+  resolvePersonalizationGoalContext,
+  type PersonalizationArenaOfficialTarget,
+} from '@/features/personalization/plugins/public-api';
 
-export const ARENA_OFFICIAL_TARGET = {
-  learningGoalId: 'control-correction',
-  objectiveId: 'capability:autocontrol:transfer-to-ship-ocean-mission',
-  graphNodeId: 'cap:autocontrol:transfer-to-ship-ocean-mission',
-  targetLabel: '控制校正 Arena 官方迁移验证',
-};
+export const GENERIC_ARENA_OFFICIAL_TARGET_LABEL = 'Arena 官方提交';
+
+export function resolveArenaOfficialTarget(
+  taskId: string,
+): PersonalizationArenaOfficialTarget | null {
+  const resolution = resolvePersonalizationGoalContext({ taskId });
+  if (resolution.status !== 'resolved') return null;
+  const plugin = getRegisteredPersonalizationGoalPlugin(resolution.context.goalId);
+  if (!plugin || plugin.status !== 'active') return null;
+  return plugin.arenaOfficialTarget ?? null;
+}
+
+export function arenaOfficialTargetLabel(taskId: string): string {
+  return resolveArenaOfficialTarget(taskId)?.targetLabel ?? GENERIC_ARENA_OFFICIAL_TARGET_LABEL;
+}
 
 export function getArenaAttemptStatus(submission: ArenaSubmissionRecord): ArenaAttemptStatus {
   if (!submission.evaluation.valid) return 'invalid';
@@ -31,7 +45,7 @@ export function buildMissingArenaSubmissionEvidenceWriteback(
     sourceRef: { kind: 'ArenaSubmission', id: submission.id },
     attemptStatus: getArenaAttemptStatus(submission),
     visibilityState: 'unavailable',
-    targetLabel: ARENA_OFFICIAL_TARGET.targetLabel,
+    targetLabel: arenaOfficialTargetLabel(submission.taskId),
     summary: '官方提交尚未读取到持久化证据回流结果，保留原有排名资格但暂不作为掌握证据。',
     recoveryAction: '等待证据回流完成；若持续缺失，请由教师或管理员复核写回任务。',
     limitationCodes: exposeLimitationCodes ? ['missing-persisted-writeback'] : [],

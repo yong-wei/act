@@ -103,6 +103,16 @@ export interface CandidateGraphPageContext {
 }
 
 /**
+ * Copilot 画像可用性。未知值不得填充为默认个人能力。
+ */
+export type CopilotProfileAvailability =
+  | 'available'
+  | 'missing'
+  | 'low-confidence'
+  | 'stale'
+  | 'unavailable';
+
+/**
  * 用户画像
  */
 export interface UserProfile {
@@ -110,14 +120,18 @@ export interface UserProfile {
   id: string;
   /** 姓名 */
   name: string;
-  /** 学习风格 */
-  learningStyle: LearningStyle;
-  /** 认知水平 (1-5) */
-  cognitiveLevel: 1 | 2 | 3 | 4 | 5;
-  /** 能力向量；PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER，仅作无 portrait v2 时的兼容字段 */
-  abilityVector: AbilityVector;
+  /** 学习风格；仅在服务端受治理证据支持时出现 */
+  learningStyle?: LearningStyle;
+  /** 认知水平 (1-5)；仅在服务端受治理证据支持时出现 */
+  cognitiveLevel?: 1 | 2 | 3 | 4 | 5;
+  /** 能力向量；仅在服务端受治理证据支持时出现，不得用 0.5 填补 */
+  abilityVector?: AbilityVector; // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: non-authoritative compatibility field.
   /** 七维 portrait v2 主画像；abilityVector 仅保留为兼容字段 */
   portraitV2?: PortraitV2ConsumerSummary;
+  /** 服务端画像可用性 */
+  profileAvailability?: CopilotProfileAvailability;
+  /** 学生安全限制说明 */
+  profileLimitations?: string[];
   /** 舰队/班组 */
   fleetGroup?: string;
   /** 班级 */

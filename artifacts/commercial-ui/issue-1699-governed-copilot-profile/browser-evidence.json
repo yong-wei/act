@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "issue": 1699,
+  "route": "/ai/copilot",
+  "relatedRoutes": [
+    "/ai"
+  ],
+  "routeFile": "src/app/ai/copilot/page.tsx",
+  "routeArchetype": "ai-local-task",
+  "dockState": "hidden",
+  "captureTime": "2026-08-29T15:06:00.000Z",
+  "generator": "tests/governed-copilot-profile.spec.ts",
+  "baseUrl": "http://127.0.0.1:3200",
+  "runtime": {
+    "runtimeRevisionSource": "Playwright webServer on claim branch bind-copilot-profile-to-governed-evidence after implementation tests passed",
+    "session": "authenticated student fixture: demo",
+    "expectedState": "governed copilot profile is missing; no fabricated VISUAL/L3/0.5 personal facts"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "copilot-desktop.png",
+      "sha256": "8a85fc6477d5c591928a828c872a4c91060d4019a88d3d597448dafba6ca1946"
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 900,
+      "screenshot": "copilot-mobile.png",
+      "sha256": "d4569f6048bc2e6982735640fb8a06ff9fd55884b64f3704378c71202cf11571"
+    },
+    {
+      "name": "workshop-desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "workshop-desktop.png",
+      "sha256": "fd9ef619d619b15097af622684dc33086addfe22e0b110c8fd243dfc61ee47a1"
+    },
+    {
+      "name": "workshop-mobile",
+      "width": 320,
+      "height": 900,
+      "screenshot": "workshop-mobile.png",
+      "sha256": "240aea2f4420b6f279750116f22a6cceda2abd3f4bac771b2d65c5a3fe468237"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/app/ai/copilot/page.tsx",
+      "sha256": "1a4209709c3fb93eaf2572d0af2027fff3c2941e81306e454e6223e681d35e32"
+    },
+    {
+      "path": "src/app/api/ai/chat/route.ts",
+      "sha256": "b9631d21116e8de0ad1269ecf67f208727a408bb9c7377fc31bbebedf3ed3ff8"
+    },
+    {
+      "path": "src/app/api/ai/copilot-profile/route.ts",
+      "sha256": "c51b21216f407585f2b29dd62f4b04206a28cd4bbca30ea2987783622210b562"
+    },
+    {
+      "path": "src/lib/governed-copilot-profile-context.ts",
+      "sha256": "e94706a1d75699eeaf6fd2ca542ca7bab94752ce5ba62bc7982cde67e231b6a0"
+    },
+    {
+      "path": "src/lib/ai-prompt-builder.ts",
+      "sha256": "d4b004bb96fcfbd7176d379c77a21cccfed4985f86264bb39e6f7c0064fa7ef8"
+    },
+    {
+      "path": "src/lib/konling-agent-runtime.ts",
+      "sha256": "f2c864fe0c0070539a5a4d7c9e2ed85d4359b25cc06dd13880a0a3603b727d95"
+    },
+    {
+      "path": "src/hooks/usePageAIContext.ts",
+      "sha256": "dc2ea999859f58c8774865e7192d877db3151d1e6015eb7f056a2024127cf69d"
+    },
+    {
+      "path": "src/hooks/useInteractiveAI.ts",
+      "sha256": "79a754d759539d25c0845fc41319446984089b3594682048f19b9c6ec3d386ff"
+    },
+    {
+      "path": "src/features/ai/copilot-panel.tsx",
+      "sha256": "3858eefb85d27263c31784e44183dbe40c0a6c33639a1b815270272aff92bd38"
+    },
+    {
+      "path": "src/components/ai/global-ai-sidebar.tsx",
+      "sha256": "0de9affaa94f308b71128658e71c1646fa2c76f74d0c3e92cc55e1828c622d34"
+    },
+    {
+      "path": "src/components/ai/konling-sidebar.tsx",
+      "sha256": "10e4f3794ade99f0b0ca7430b18daa423cd56c4eb77e6682b6d951fca4b6bb4c"
+    },
+    {
+      "path": "src/components/providers/global-ai-provider.tsx",
+      "sha256": "769d02df357e907f80b445b7457406debb4b6a27381947c003cdaae853b0cd7f"
+    },
+    {
+      "path": "src/types/ai-context.ts",
+      "sha256": "cccc1fa2777d947178d78e04f74c7476e6fb5cfede3d0f176a8c5ac3efe4b0ff"
+    },
+    {
+      "path": "tests/governed-copilot-profile.spec.ts",
+      "sha256": "5779db36c95bac5ee705139fba07e99e17a5aa703330846f3cbadfad946cb0d1"
+    }
+  ],
+  "assertions": {
+    "httpStatus": 200,
+    "copilotMissingProfileBannerVisible": true,
+    "sampleVisualStyleAbsent": true,
+    "sampleBalancedAbilityClaimAbsent": true,
+    "sampleL3ClaimAbsent": true,
+    "sample120MinutesAbsent": true,
+    "sample85PercentAbsent": true,
+    "desktopBodyAndDocumentWidthWithinViewport": true,
+    "mobileBodyAndDocumentWidthWithinViewport": true,
+    "playwrightResult": "4 passed",
+    "authenticatedStudentSession": true
+  },
+  "verification": {
+    "commands": [
+      "npx vitest run src/lib/__tests__/governed-copilot-profile-context.test.ts src/app/__tests__/copilot-profile-route.test.ts src/app/__tests__/ai-chat-route-runtime-guard.test.ts src/lib/__tests__/ai-task-boundary-ui-source.test.ts src/lib/__tests__/konling-agent-runtime.test.ts",
+      "npm run typecheck",
+      "NEXTAUTH_URL=http://127.0.0.1:3200 PLAYWRIGHT_PORT=3200 npx playwright test tests/governed-copilot-profile.spec.ts --workers=1",
+      "openspec validate bind-copilot-profile-to-governed-evidence --type change --strict",
+      "git diff --check"
+    ],
+    "result": "passed"
+  }
+}

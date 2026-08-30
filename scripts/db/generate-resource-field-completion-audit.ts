@@ -4340,7 +4340,7 @@ async function collectRuntimeManifestCandidates() {
 }
 
 async function collectInteractiveCourseRouteIndex(): Promise<InteractiveCourseRouteIndex> {
-  const routesDir = path.join(process.cwd(), 'src/app/interactive-learning/courses');
+  const routesDir = path.join(process.cwd(), 'src/features/interactive/course-app-routes');
   const entries = await safeReadDir(routesDir);
   const baseSegments: string[] = [];
   const studentSegments: string[] = [];
@@ -4348,9 +4348,9 @@ async function collectInteractiveCourseRouteIndex(): Promise<InteractiveCourseRo
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const courseDir = path.join(routesDir, entry.name);
-    if (await fileExists(path.join(courseDir, 'page.tsx'))) baseSegments.push(entry.name);
-    if (await fileExists(path.join(courseDir, 'student/[sessionId]/page.tsx'))) studentSegments.push(entry.name);
-    if (await fileExists(path.join(courseDir, 'teacher/[sessionId]/page.tsx'))) teacherSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'entry.tsx'))) baseSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'student.tsx'))) studentSegments.push(entry.name);
+    if (await fileExists(path.join(courseDir, 'teacher.tsx'))) teacherSegments.push(entry.name);
   }
   return {
     baseSegments: sortedSet(baseSegments),

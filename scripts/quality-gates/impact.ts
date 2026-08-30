@@ -58,6 +58,7 @@ export function classifyImpactPath(path: string): readonly ImpactDomain[] {
     || normalized.startsWith('src/lib/architecture-charter/')
     || normalized.startsWith('src/lib/architecture-fitness/')
     || normalized.startsWith('src/lib/architecture-test-commands/')
+    || normalized.startsWith('src/lib/architecture-closure/')
   ) return ['shared'];
   if (normalized.startsWith('prisma/')) return ['database'];
   if (normalized.startsWith('docs/architecture/') || normalized.startsWith('openspec/')) return ['release', 'shared'];

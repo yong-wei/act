@@ -429,7 +429,7 @@ export function AppHeader({
     </Link>
   );
   return (
-    <header className={cn('border-b border-platform-border bg-platform-surface-raised', className)}>
+    <header className={cn('border-b border-platform-border bg-platform-surface-raised print:hidden', className)}>
       <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="min-w-0 space-y-1">
           <AppBreadcrumb items={breadcrumbs} />
@@ -520,7 +520,7 @@ export function AppSidebar({ navigation, activeHref, collapsed = false, classNam
     <aside
       data-shell-navigation-state={collapsed ? 'collapsed' : 'expanded'}
       className={cn(
-        'border-r border-platform-border bg-platform-canvas-muted px-3 py-4',
+        'border-r border-platform-border bg-platform-canvas-muted px-3 py-4 print:hidden',
         collapsed && 'px-2',
         className,
       )}
@@ -547,7 +547,7 @@ function CollapsibleAppSidebar({
 }) {
   return (
     <div
-      className={cn('border-r border-platform-border bg-platform-canvas-muted', className)}
+      className={cn('border-r border-platform-border bg-platform-canvas-muted print:hidden', className)}
       data-shell-navigation-state={navigationCollapsed ? 'collapsed' : 'expanded'}
     >
       <div className="border-b border-platform-border px-3 py-3">
@@ -638,7 +638,11 @@ function AppShellDesktopLayout({
 
   return (
     <div
-      className={getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed })}
+      className={cn(
+        getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed }),
+        // 打印媒体可能达到桌面断点（如 A4 横向），收起双栏网格避免空侧栏列挤压正文。
+        'print:block',
+      )}
       data-app-shell-layout={allowSidebarCollapse ? 'collapsible' : undefined}
       data-app-shell-navigation-state={
         allowSidebarCollapse ? (navigationCollapsed ? 'collapsed' : 'expanded') : undefined
@@ -684,7 +688,7 @@ function AppShellDesktopLayout({
             <nav
               aria-label="平台导航"
               className={cn(
-                'border-b border-platform-border bg-platform-surface px-4 py-2',
+                'border-b border-platform-border bg-platform-surface px-4 py-2 print:hidden',
                 sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden',
               )}
             >
@@ -817,7 +821,7 @@ function AppMobileNavigation({
     return (
       <nav
         aria-label="平台导航"
-        className={cn('border-b border-platform-border bg-platform-surface px-4 py-2', hiddenAtBreakpoint)}
+        className={cn('border-b border-platform-border bg-platform-surface px-4 py-2 print:hidden', hiddenAtBreakpoint)}
       >
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {navigation.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
@@ -828,7 +832,7 @@ function AppMobileNavigation({
 
   return (
     <>
-      <div className={cn('border-b border-platform-border bg-platform-surface px-4 py-2', hiddenAtBreakpoint)}>
+      <div className={cn('border-b border-platform-border bg-platform-surface px-4 py-2 print:hidden', hiddenAtBreakpoint)}>
         <button
           ref={openButtonRef}
           type="button"
@@ -845,7 +849,7 @@ function AppMobileNavigation({
       {drawerOpen ? (
         <div
           ref={drawerOverlayRef}
-          className={cn('fixed inset-0 z-50', hiddenAtBreakpoint)}
+          className={cn('fixed inset-0 z-50 print:hidden', hiddenAtBreakpoint)}
           role="dialog"
           aria-modal="true"
           aria-label="平台导航"
@@ -936,7 +940,7 @@ function AppShellWorkspace({ slots, children }: { slots?: AppShellWorkspaceSlots
         })}
         {renderAppShellWorkspaceZone({
           id: 'command-bar',
-          className: 'rounded-lg border border-platform-border bg-platform-surface px-4 py-3',
+          className: 'rounded-lg border border-platform-border bg-platform-surface px-4 py-3 print:hidden',
           children: slots?.commandBar,
         })}
         {renderAppShellWorkspaceZone({

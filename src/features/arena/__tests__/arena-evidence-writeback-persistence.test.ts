@@ -88,26 +88,49 @@ describe('Arena evidence writeback persistence', () => {
         moduleId: 'arena:task-second-order-lead-pid',
         sourceLogId: 'arena-submission:submission-arena-writeback',
         competencyContribution: {},
+        contextJson: expect.objectContaining({
+          goalId: 'control-correction',
+          adapter: expect.objectContaining({
+            decoderVersion: expect.any(String),
+            materializerVersion: expect.any(String),
+            revision: expect.any(String),
+            canonicalActivityId: 'task-second-order-lead-pid',
+          }),
+        }),
       }),
       expect.objectContaining({
         userId: 'student-a',
         factType: 'design',
         moduleId: 'task-second-order-lead-pid',
+        courseId: 'control-correction',
         sourceEventId: expect.stringMatching(/^arena-official:.*submission-arena-writeback/),
         sourceLogId: 'submission-arena-writeback',
         outcome: 'success',
         score: 88,
         contextJson: expect.objectContaining({
+          goalId: 'control-correction',
           evidenceGovernance: {
             evidenceQuality: 'rich',
             profileWeight: 1,
             skipProfileContribution: false,
             policyReason: 'official_arena_evaluation',
           },
+          adapter: expect.objectContaining({
+            contributionKind: 'auxiliary-learning-evidence',
+            decoderVersion: expect.any(String),
+            materializerVersion: expect.any(String),
+            revision: expect.any(String),
+            canonicalActivityId: 'task-second-order-lead-pid',
+            officialAuthority: expect.objectContaining({
+              owner: 'arena-submission-result',
+              score: 88,
+            }),
+          }),
           arena: expect.objectContaining({
             official: true,
             evaluationMode: 'official',
             evaluationVisibility: 'official',
+            score: 88,
           }),
         }),
       }),
@@ -155,6 +178,7 @@ describe('Arena evidence writeback persistence', () => {
       status: 'degraded',
       attemptStatus: 'effective',
       terminalValidationAccepted: false,
+      targetLabel: 'Arena 官方提交',
     });
     expect(outcome.learningFactCreated).toBe(true);
     expect(db.learningFact.createMany).toHaveBeenCalledWith({
@@ -163,6 +187,7 @@ describe('Arena evidence writeback persistence', () => {
           factType: 'simulation_task_evidence',
           moduleId: `arena:${taskId}`,
           sourceLogId: 'arena-submission:submission-arena-writeback',
+          courseId: null,
           competencyContribution: {},
         }),
       ],
