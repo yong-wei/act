@@ -1290,6 +1290,23 @@ describe('diagnosis finding knowledge-node attribution contract', () => {
     expect(result.reportBody.findings[0]?.knowledgeNodeId).toBeUndefined();
   });
 
+  it('does not node-check non-knowledge findings even when they carry an id outside the governed universe', async () => {
+    providerGenerate.mockResolvedValueOnce(attributionOutput([
+      {
+        title: '低分段学生比例需关注',
+        knowledgeNodeId: 'node-not-in-input',
+        evidenceRefs: [],
+      },
+    ]));
+
+    const result = await generateGovernedDiagnosisReport({} as never, {
+      ...attributionRequest,
+      attemptId: 'attempt-attribution-non-knowledge-with-node',
+    });
+
+    expect(result.reportBody.findings[0]?.knowledgeNodeId).toBe('node-not-in-input');
+  });
+
   it('keeps findings unattributed when cited rows carry no governed node', () => {
     const nodeByEvidenceRef = buildKnowledgeNodeByEvidenceRef([{ id: 'progress-9', nodeId: '' }]);
     const findings = [{ evidenceRefs: ['knowledge-progress:progress-9'] }];

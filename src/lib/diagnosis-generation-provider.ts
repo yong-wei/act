@@ -141,8 +141,9 @@ export function buildKnowledgeNodeByEvidenceRef(
 }
 
 /**
- * 知识节点归因契约（Issue #1712）：引用 knowledge-progress 证据的发现必须与受治理输入的
- * 节点一致。引用行横跨多个节点时发现本身归因歧义，无论是否已填节点一律拒绝；
+ * 知识节点归因契约（Issue #1712）：归因义务仅适用于引用 knowledge-progress 证据的发现
+ * （与投影层 findingRequiresKnowledgeNodeAttribution 语义一致，非知识发现整体豁免）。
+ * 引用行横跨多个节点时发现本身归因歧义，无论是否已填节点一律拒绝；
  * 能唯一解析的漏填就地回填；未知节点、与唯一引用证据不一致则拒绝。
  * 由 worker 按模型行为缺陷重试。返回违例字段列表，回填直接修改 findings。
  */
@@ -153,6 +154,8 @@ export function enforceDiagnosisFindingNodeAttribution(
   const governedNodes = new Set(nodeByEvidenceRef.values());
   const violations: string[] = [];
   findings.forEach((finding, index) => {
+    const citesKnowledgeProgress = finding.evidenceRefs.some((ref) => ref.startsWith('knowledge-progress:'));
+    if (!citesKnowledgeProgress) return;
     const citedNodes = new Set<string>();
     for (const reference of finding.evidenceRefs) {
       const node = nodeByEvidenceRef.get(reference);
