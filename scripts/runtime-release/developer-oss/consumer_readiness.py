@@ -3,11 +3,14 @@
 Issue #1713: the materializer's ``verify`` proves link shape and sizes but
 never opens content as the user that will run the app, and the release
 manifest can legitimately omit a governance artifact the app requires, so a
-broken delivery used to surface as a business "resource missing" error.  This
-module verifies every manifest leaf from the consumer process identity
-(same UID/GID as frontend/worker, because bootstrap launches them), checks the
-versioned required-artifact registry, and emits a credential-free receipt that
-``/api/readyz`` keeps validating after startup.
+broken delivery used to surface as a business "resource missing" error.
+
+On the gateway FUSE data plane, opening a leaf prefetches the Blob body.
+This module therefore proves every manifest leaf from the consumer process
+identity by link shape, traversability, read-mode bits and declared size
+(``stat``/``getattr`` only). SHA-256 of Blob bodies is the unique cache
+write path on first consumer read. Required governance artifacts remain a
+bounded JSON set that this gate does open.
 """
 from __future__ import annotations
 
@@ -23,9 +26,8 @@ VERIFICATION_SCHEMA = "act-runtime-consumer-verification.v1"
 VERIFIER_VERSION = "consumer-verification.v1"
 RECEIPT_FILENAME = ".act-runtime-consumer-verification.json"
 DEV_DELIVERY_FILENAME = ".act-runtime-dev-delivery.json"
-# 分层验证阈值（设计决议）：低于该大小的叶节点启动前做全量 SHA-256；
-# 更大的媒体文件以「发布时哈希 + 运行时可读打开 + 大小比对」证明。
-# 该阈值由单元测试固定，调整必须同步测试。
+# Receipt compatibility only. Startup no longer hashes Blob bodies; the cache
+# write path proves SHA-256 on first consumer read.
 MEDIA_FULL_HASH_LIMIT_BYTES = 8 * 1024 * 1024
 DEFAULT_REQUIREMENTS_PATH = Path(__file__).resolve().parent / "runtime_requirements.json"
 SECRET_FIELD_NAMES = ("accessKeyId", "accessKeySecret", "AccessKeyId", "AccessKeySecret", "Secret")
@@ -38,14 +40,6 @@ class ConsumerVerificationError(RuntimeError):
         super().__init__("%s: %s" % (failure_class, detail))
         self.failure_class = failure_class
         self.detail = detail
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def load_runtime_requirements(path: Optional[Path] = None) -> Dict[str, Any]:
@@ -183,7 +177,6 @@ def verify_consumer_view(
     is a consumer read, not an owner or root read.
     """
     helper = view / ".act-runtime-blobs"
-    hashed_leaves = 0
     for entry in manifest["files"]:
         logical = view / entry["path"]
         expected_blob = helper / entry["sha256"]
@@ -201,21 +194,20 @@ def verify_consumer_view(
         if target != expected_blob.resolve():
             raise ConsumerVerificationError("link-escape", "manifest leaf %s escapes its manifest blob" % entry["path"])
         try:
-            with target.open("rb") as handle:
-                handle.read(1)
-                size = os.fstat(handle.fileno()).st_size
+            info = os.stat(str(target))
         except PermissionError:
             raise ConsumerVerificationError("permission-denied", "blob content %s" % entry["path"])
         except FileNotFoundError:
             raise ConsumerVerificationError("artifact-missing", "blob content %s" % entry["path"])
         except OSError as error:
             raise ConsumerVerificationError("read-failure", "blob content %s (%s)" % (entry["path"], error))
-        if size != entry["sizeBytes"]:
+        if not (info.st_mode & 0o444):
+            raise ConsumerVerificationError("permission-denied", "blob content %s" % entry["path"])
+        if info.st_size != entry["sizeBytes"]:
             raise ConsumerVerificationError("size-mismatch", "manifest leaf %s" % entry["path"])
-        if entry["sizeBytes"] <= media_full_hash_limit:
-            if _sha256_file(target) != entry["sha256"]:
-                raise ConsumerVerificationError("digest-mismatch", "manifest leaf %s" % entry["path"])
-            hashed_leaves += 1
+        # Do not open or hash blob bodies here. On the gateway FUSE data plane,
+        # open() would prefetch the entire runtime. Size is proven by getattr/
+        # stat; SHA-256 is the unique cache write path on first consumer read.
     artifacts = verify_required_artifacts(view, requirements)
     artifact_set_digest = hashlib.sha256(
         json.dumps(artifacts, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -229,7 +221,7 @@ def verify_consumer_view(
         "consumerUid": os.geteuid(),
         "consumerGid": os.getegid(),
         "leafCount": len(manifest["files"]),
-        "hashedLeafCount": hashed_leaves,
+        "hashedLeafCount": 0,
         "mediaFullHashLimitBytes": media_full_hash_limit,
         "requiredArtifacts": artifacts,
         "requiredArtifactSetDigest": artifact_set_digest,

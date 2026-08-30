@@ -8,11 +8,13 @@ import sys
 from getpass import getpass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from common import (
     CREDENTIAL_SCHEMA,
-    EXPECTED_RAM_USER,
-    OSS_REGION,
+    GATEWAY_PRINCIPAL,
+    OSS_PUBLIC_HOST,
+    OSS_INTERNAL_HOST,
     checkout_id,
     config_root,
     credential_path,
@@ -23,32 +25,49 @@ from common import (
     require_mode,
 )
 
-CREDENTIAL_KEYS = ("schemaVersion", "accountId", "accessKeyId", "accessKeySecret", "region")
+CREDENTIAL_KEYS = ("schemaVersion", "gatewayUrl", "token")
+FORBIDDEN_CREDENTIAL_KEYS = {
+    "accessKeyId", "accessKeySecret", "AccessKeyId", "AccessKeySecret",
+    "accountId", "region", "sshKey", "privateKey", "roleArn", "publisher",
+}
+
+
+def gateway_origin(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"https", "http"} or not parsed.netloc:
+        fail("gateway URL is invalid")
+    host = (parsed.hostname or "").lower()
+    if host in {OSS_PUBLIC_HOST, OSS_INTERNAL_HOST} or host.endswith(".aliyuncs.com"):
+        fail("gateway URL must not be an OSS endpoint")
+    if parsed.scheme != "https" and os.environ.get("ACT_RUNTIME_DEV_ALLOW_HTTP") != "1":
+        fail("gateway URL must be HTTPS")
+    return "%s://%s" % (parsed.scheme, parsed.netloc)
 
 
 def parse_credential(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict):
+        fail("credential must be an object")
+    forbidden = set(value) & FORBIDDEN_CREDENTIAL_KEYS
+    if forbidden:
+        fail("credential must not contain OSS, SSH or Publisher fields")
     raw = require_exact_keys(value, CREDENTIAL_KEYS, "credential")
-    schema = raw["schemaVersion"]
-    account_id = raw["accountId"]
-    access_key_id = raw["accessKeyId"]
-    access_key_secret = raw["accessKeySecret"]
-    region = raw["region"]
-    if schema != CREDENTIAL_SCHEMA:
+    if raw["schemaVersion"] != CREDENTIAL_SCHEMA:
         fail("credential schema is unsupported")
-    if not isinstance(account_id, str) or not account_id.isdigit() or len(account_id) < 12:
-        fail("credential accountId is invalid")
-    if not isinstance(access_key_id, str) or not access_key_id or " " in access_key_id:
-        fail("credential accessKeyId is invalid")
-    if not isinstance(access_key_secret, str) or len(access_key_secret) < 16:
-        fail("credential accessKeySecret is invalid")
-    if region != OSS_REGION:
-        fail("credential region must be cn-hangzhou")
+    gateway_url = raw["gatewayUrl"]
+    token = raw["token"]
+    if not isinstance(gateway_url, str) or not gateway_url:
+        fail("credential gatewayUrl is invalid")
+    origin = gateway_origin(gateway_url)
+    if not isinstance(token, str) or len(token) < 32 or " " in token:
+        fail("credential token is invalid")
+    lowered = token.lower()
+    if lowered.startswith("ltai") or "accesskey" in lowered:
+        fail("credential token must not be an OSS AccessKey")
     return {
         "schemaVersion": CREDENTIAL_SCHEMA,
-        "accountId": account_id,
-        "accessKeyId": access_key_id,
-        "accessKeySecret": access_key_secret,
-        "region": region,
+        "gatewayUrl": gateway_url,
+        "token": token,
+        "origin": origin,
     }
 
 
@@ -67,6 +86,9 @@ def load_credential(checkout: Path) -> dict[str, str]:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         fail("credential file is invalid")
+    parsed = parse_credential(raw)
+    parsed.pop("origin", None)
+    # Keep origin derived at use site; stored file has only declared keys.
     return parse_credential(raw)
 
 
@@ -79,20 +101,22 @@ def install_credential(checkout: Path, values: dict[str, str] | None = None) -> 
     os.chmod(parent, 0o700)
     require_dir_mode(parent, 0o700, "credential directory")
     if values is None:
-        account_id = input("RAM account ID: ").strip()
-        access_key_id = input("AccessKey ID: ").strip()
-        access_key_secret = getpass("AccessKey Secret: ")
-        values = parse_credential({
+        gateway_url = input("Gateway URL: ").strip()
+        token = getpass("Gateway token: ")
+        parsed = parse_credential({
             "schemaVersion": CREDENTIAL_SCHEMA,
-            "accountId": account_id,
-            "accessKeyId": access_key_id,
-            "accessKeySecret": access_key_secret,
-            "region": OSS_REGION,
+            "gatewayUrl": gateway_url,
+            "token": token,
         })
     else:
-        values = parse_credential(values)
+        parsed = parse_credential(values)
+    stored = {
+        "schemaVersion": parsed["schemaVersion"],
+        "gatewayUrl": parsed["gatewayUrl"],
+        "token": parsed["token"],
+    }
     temporary = path.with_name(".credentials.%s.tmp" % checkout_id(checkout))
-    payload = json.dumps(values, indent=2, sort_keys=True) + "\n"
+    payload = json.dumps(stored, indent=2, sort_keys=True) + "\n"
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
     descriptor = os.open(temporary, flags, 0o600)
     try:
@@ -103,27 +127,5 @@ def install_credential(checkout: Path, values: dict[str, str] | None = None) -> 
     os.replace(temporary, path)
     os.chmod(path, 0o600)
     require_mode(path, 0o600, "credential file")
-    sys.stderr.write("credential installed for %s\n" % EXPECTED_RAM_USER)
+    sys.stderr.write("credential installed for %s\n" % GATEWAY_PRINCIPAL)
     return path
-
-
-def expected_arn(account_id: str) -> str:
-    return "acs:ram::%s:user/%s" % (account_id, EXPECTED_RAM_USER)
-
-
-def assert_developer_principal(identity: dict[str, Any], credential: dict[str, str]) -> None:
-    if not isinstance(identity, dict):
-        fail("caller identity must be an object")
-    extra = set(identity) - {"AccountId", "Arn", "UserId"}
-    missing = {"AccountId", "Arn", "UserId"} - set(identity)
-    if extra or missing:
-        fail("caller identity has unsupported or missing fields")
-    account_id = identity["AccountId"]
-    arn = identity["Arn"]
-    if account_id != credential["accountId"]:
-        fail("caller identity account does not match the installed credential")
-    if arn != expected_arn(credential["accountId"]):
-        fail("caller identity is not the dedicated developer reader")
-    lowered = str(arn).lower()
-    if "publisher" in lowered or ":role/" in lowered or "operator" in lowered:
-        fail("caller identity is not the dedicated developer reader")

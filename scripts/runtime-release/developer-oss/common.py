@@ -11,22 +11,32 @@ from pathlib import Path
 from typing import Any
 
 EXPECTED_RAM_USER = "act-runtime-dev-read"
-CREDENTIAL_SCHEMA = "act-runtime-dev-read-credential.v1"
+GATEWAY_PRINCIPAL = "act-runtime-developer-gateway"
+CREDENTIAL_SCHEMA = "act-runtime-dev-gateway-credential.v1"
+LEGACY_CREDENTIAL_SCHEMA = "act-runtime-dev-read-credential.v1"
 SELECTION_SCHEMA = "act-runtime-dev-selection.v1"
 SELECTION_SCHEMA_V2 = "act-runtime-dev-selection.v2"
-SHARED_MOUNT_SCHEMA = "act-runtime-dev-shared-mount.v1"
+SHARED_MOUNT_SCHEMA = "act-runtime-dev-shared-mount.v2"
 LEASE_SCHEMA = "act-runtime-dev-shared-lease.v1"
 TRANSFER_SCHEMA = "act-runtime-dev-transfer.v1"
+GATEWAY_SESSION_SCHEMA = "act-runtime-dev-gateway-session.v1"
+GATEWAY_ADAPTER_SCHEMA = "act-runtime-dev-gateway-adapter.v1"
 PUBLIC_OSS_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com"
+OSS_PUBLIC_HOST = "oss-cn-hangzhou.aliyuncs.com"
+OSS_INTERNAL_HOST = "oss-cn-hangzhou-internal.aliyuncs.com"
 OSS_BUCKET = "act-course-assets"
 OSS_REGION = "cn-hangzhou"
-ENDPOINT_CLASS_PUBLIC = "public"
+ENDPOINT_CLASS_GATEWAY = "ecs-gateway"
 DEFAULT_READYZ_URL = "https://act.adapt-learn.online/api/readyz"
 BLOB_PREFIX = "runtime/blobs/sha256/"
 RELEASE_PREFIX = "runtime/blob-releases/"
 IDENTITY_KEYS = ("schemaVersion", "releaseId", "manifestSha256", "treeSha256")
 READYZ_RUNTIME_KEYS = ("required", "ready", "identity", "filesystem")
-SECRET_FIELD_NAMES = ("accessKeyId", "accessKeySecret", "AccessKeyId", "AccessKeySecret", "Secret")
+SECRET_FIELD_NAMES = (
+    "accessKeyId", "accessKeySecret", "AccessKeyId", "AccessKeySecret", "Secret",
+    "token", "Bearer", "transportToken",
+)
+STATE_DIR_NAME = "act-runtime-dev-gateway"
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 RELEASE_ID = re.compile(r"^runtime-[a-z0-9]{55}$")
 TOPOLOGY_SHARED = "shared"
@@ -54,6 +64,8 @@ def redact(value: str) -> str:
     for field in SECRET_FIELD_NAMES:
         redacted = re.sub(r"(?i)%s\s*[:=]\s*\S+" % re.escape(field), "%s=<redacted>" % field, redacted)
     redacted = re.sub(r"(?i)(LTAI)[A-Za-z0-9]+", r"\1<redacted>", redacted)
+    redacted = re.sub(r"(?i)(Bearer\s+)\S+", r"\1<redacted>", redacted)
+    redacted = re.sub(r"(?i)(token\s*[:=]\s*)\S+", r"\1<redacted>", redacted)
     return redacted
 
 
@@ -78,8 +90,8 @@ def xdg_home(kind: str, default: Path) -> Path:
     env_name = {"config": "XDG_CONFIG_HOME", "state": "XDG_STATE_HOME", "cache": "XDG_CACHE_HOME"}[kind]
     configured = os.environ.get(env_name)
     if configured:
-        return Path(configured) / "act-runtime-dev-read"
-    return default / "act-runtime-dev-read"
+        return Path(configured) / STATE_DIR_NAME
+    return default / STATE_DIR_NAME
 
 
 def config_root() -> Path:
@@ -140,37 +152,33 @@ def shared_lock_path() -> Path:
     return shared_state_root() / "mount.lock"
 
 
-def authority_identity(account_id: str) -> dict[str, str]:
-    if not isinstance(account_id, str) or not account_id.isdigit():
-        fail("shared mount accountId is invalid")
+def authority_identity(gateway_origin: str) -> dict[str, str]:
+    if not isinstance(gateway_origin, str) or "://" not in gateway_origin:
+        fail("shared mount gateway origin is invalid")
     return {
         "schemaVersion": SHARED_MOUNT_SCHEMA,
-        "accountId": account_id,
-        "adapterSchema": SHARED_MOUNT_SCHEMA,
+        "adapterSchema": GATEWAY_ADAPTER_SCHEMA,
         "blobPrefix": BLOB_PREFIX,
-        "bucket": OSS_BUCKET,
-        "endpointClass": ENDPOINT_CLASS_PUBLIC,
-        "principal": EXPECTED_RAM_USER,
-        "region": OSS_REGION,
+        "endpointClass": ENDPOINT_CLASS_GATEWAY,
+        "gatewayOrigin": gateway_origin,
+        "principal": GATEWAY_PRINCIPAL,
     }
 
 
 def options_digest() -> str:
     return digest_hex({
+        "adapter": GATEWAY_ADAPTER_SCHEMA,
         "allow_other": True,
         "blobPrefix": BLOB_PREFIX,
-        "bucket": OSS_BUCKET,
         "cacheSizeGiB": cache_size_gib(),
         "dir_mode": "0755",
-        "endpoint": PUBLIC_OSS_ENDPOINT,
         "file_mode": "0644",
         "ro": True,
-        "region": OSS_REGION,
     })
 
 
-def authority_id(account_id: str) -> str:
-    return digest_hex(authority_identity(account_id))[:16]
+def authority_id(gateway_origin: str) -> str:
+    return digest_hex(authority_identity(gateway_origin))[:16]
 
 
 def shared_mount_dir(mount_id: str) -> Path:
