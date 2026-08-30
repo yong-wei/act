@@ -57,7 +57,7 @@ def run(command):
 def main():
     parser = argparse.ArgumentParser()
     commands = parser.add_subparsers(dest="command")
-    for name in ("recover", "activate", "rollback"):
+    for name in ("recover", "activate", "requalify", "rollback"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--lifecycle-script")
@@ -67,6 +67,9 @@ def main():
     commands.choices["activate"].add_argument("--compatibility-proof-sha256")
     commands.choices["activate"].add_argument("--coordinated-runtime-authorization")
     commands.choices["activate"].add_argument("--coordinated-runtime-binding")
+    commands.choices["requalify"].add_argument("--expected-generation", required=True, type=int)
+    commands.choices["requalify"].add_argument("--identity", required=True)
+    commands.choices["requalify"].add_argument("--compatibility-proof-sha256", required=True)
     commands.choices["rollback"].add_argument("--expected-generation", required=True, type=int)
     args = parser.parse_args()
     if args.command is None:
@@ -80,12 +83,12 @@ def main():
             "--state-dir", args.state_dir,
             "--host-state-script", host_script,
         ])
-    elif args.command == "activate":
+    elif args.command in {"activate", "requalify"}:
         if not args.compatibility_proof_sha256 and not args.coordinated_runtime_authorization:
             raise ValueError("daily Runtime activation requires a compatibility proof")
         activate_command = [
             lifecycle_script,
-            "activate-and-project",
+            "requalify-and-project" if args.command == "requalify" else "activate-and-project",
             "--state-dir", args.state_dir,
             "--expected-generation", args.expected_generation,
             "--identity", args.identity,
@@ -93,9 +96,9 @@ def main():
         ]
         if args.compatibility_proof_sha256:
             activate_command.extend(["--compatibility-proof-sha256", args.compatibility_proof_sha256])
-        if args.coordinated_runtime_authorization:
+        if args.command == "activate" and args.coordinated_runtime_authorization:
             activate_command.extend(["--coordinated-runtime-authorization", args.coordinated_runtime_authorization])
-        if getattr(args, "coordinated_runtime_binding", None):
+        if args.command == "activate" and getattr(args, "coordinated_runtime_binding", None):
             activate_command.extend(["--coordinated-runtime-binding", args.coordinated_runtime_binding])
         result = run(activate_command)
     else:

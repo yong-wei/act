@@ -629,6 +629,9 @@ assert.match(compatibilityProof, /proof body, rather than\n    just the Runtime 
 assert.match(activation, /ACT_RUNTIME_LEGACY_MIGRATION/, 'the coordinated activation exception must require explicit migration intent');
 assert.match(coordinatedCutover, /ACT_RUNTIME_LEGACY_MIGRATION=1/, 'the historical outer transaction must declare its migration intent');
 assert.match(activation, /--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'daily Runtime selection must pass its exact compatibility proof into the lifecycle projection');
+assert.match(activation, /if \[\[ "\$release_id" == "\$old_active" \]\]; then[\s\S]*ACTIVATION_TRANSACTION" requalify[\s\S]*--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'same-identity requalification must journal the exact newly verified compatibility proof');
+assert.match(activationTransaction, /requalify-and-project/, 'the activation transaction must expose a same-identity proof projection command');
+assert.match(lifecycle, /only the exact active Runtime identity may be requalified/, 'the lifecycle must fence same-identity proof projection to the active Runtime identity');
 assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
