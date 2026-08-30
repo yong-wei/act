@@ -1,8 +1,8 @@
 {
   "schemaVersion": "act-migration-backfill-competition-toolchains/v1",
   "commandId": "oneoff:migration-repair:scripts/migrations/001-seed-event-dictionary.ts",
-  "sourceRevision": "f9fdea1e9f14842e7e44fcc50216ae04c080eb8d",
-  "sourceTree": "306975bb68ed34e7f037a23ca42075d9a112d51a",
+  "sourceRevision": "53bd200653f6543776c44039c9b3025258f94ba8",
+  "sourceTree": "541d61559d150bf57764c2e58aa1113131f7c138",
   "planHash": "4153316e7bacc77b656683f738be784f306cfb622ae6799ed3cdb300a00ea150",
   "inputHash": "4153316e7bacc77b656683f738be784f306cfb622ae6799ed3cdb300a00ea150",
   "targetIdentity": "fixture:local",
