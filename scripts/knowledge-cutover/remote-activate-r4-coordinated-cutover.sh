@@ -102,7 +102,7 @@ else:
   fd, temp = tempfile.mkstemp(prefix='.r4-c5-', dir=directory)
   with os.fdopen(fd, 'wb') as handle: handle.write(wire); handle.flush(); os.fsync(handle.fileno())
   os.replace(temp, output_path); os.chmod(output_path, 0o600)
-status_record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(output_path), 'journalHash': journal['journalHash'], 'status': status, 'updatedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+status_record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(output_path), 'journalHash': journal['journalHash'], 'status': status, 'updatedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
 status_wire = json.dumps(status_record, sort_keys=True, separators=(',', ':')).encode() + b'\n'
 fd, temp = tempfile.mkstemp(prefix='.r4-c5-status-', dir=directory)
 with os.fdopen(fd, 'wb') as handle: handle.write(status_wire); handle.flush(); os.fsync(handle.fileno())
@@ -203,7 +203,7 @@ if candidate.get('successorRuntimeManifestHash') != runtime_extension_hash:
 before = open(authority_path, 'rb').read()
 if candidate['predecessor'] != [{'selectorId':'authority:current','identity':sha(before)}]:
   raise SystemExit('Authority predecessor drifted from candidate')
-live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
+live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], universal_newlines=True))
 runtime = observed['runtime']
 runtime_before=runtime_identity({key: runtime.get(key) for key in identity_keys}, 'observed predecessor Runtime')
 if observed.get('lifecycle') != predecessor_lifecycle:
@@ -336,7 +336,7 @@ digest = lambda value: hashlib.sha256(canonical(value)).hexdigest()
 candidate = json.load(open(candidate_path, encoding='utf-8')); stage = json.load(open(stage_path, encoding='utf-8')); journal = json.load(open(journal_path, encoding='utf-8'))
 binding = {'contract':'coordinated-runtime-active-receipt-binding/v1','transactionId':journal['transactionId'],'candidateReceiptHash':candidate['receiptHash'],'runtimeRelease':stage['runtimeRelease'],'materializationReceiptHash':stage['materializationReceiptSha256'],'bindingHash':''}
 binding['bindingHash'] = digest({key: binding[key] for key in ('transactionId','candidateReceiptHash','runtimeRelease','materializationReceiptHash')})
-now = datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00','Z')
+now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
 before = journal['predecessor'][0]['identity']; after = journal['orderedMutations'][0]['successorIdentity']
 mutation = {'contract':'cutover-selector-mutation-receipt/v1','transactionId':journal['transactionId'],'candidateReceiptHash':candidate['receiptHash'],'selectorId':'authority:current','appliedAt':now,'beforeIdentity':before,'afterIdentity':after}
 mutation_hash = digest(mutation); mutation['receiptHash'] = mutation_hash; mutation['receiptId'] = 'mut-' + mutation_hash[:24]
@@ -354,11 +354,11 @@ candidate_path, stage_path, journal_path, binding_path, output_path, lifecycle, 
 canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
 digest = lambda value: hashlib.sha256(canonical(value)).hexdigest()
 candidate=json.load(open(candidate_path)); stage=json.load(open(stage_path)); journal=json.load(open(journal_path)); binding=json.load(open(binding_path))
-live=json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
+live=json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], universal_newlines=True))
 if live['active'] != stage['runtimeRelease'] or live['desired'] is not None: raise SystemExit('Runtime lifecycle did not activate the staged identity')
 mutation=json.load(open(binding_path + '.mutation.json'))
 after = journal['orderedMutations'][0]['successorIdentity']
-receipt={'contract':'coordinated-active-receipt/v1','receiptId':'','sealedAt':datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00','Z'),'transactionId':journal['transactionId'],'journalHash':journal['journalHash'],'candidateReceiptHash':candidate['receiptHash'],'committedSelectors':[{'selectorId':'authority:current','identity':after}],'mutationReceiptHashes':[mutation['receiptHash']],'runtimeActiveReceiptHash':binding['bindingHash'],'runtimeActiveIdentity':stage['runtimeRelease'],'receiptHash':''}
+receipt={'contract':'coordinated-active-receipt/v1','receiptId':'','sealedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),'transactionId':journal['transactionId'],'journalHash':journal['journalHash'],'candidateReceiptHash':candidate['receiptHash'],'committedSelectors':[{'selectorId':'authority:current','identity':after}],'mutationReceiptHashes':[mutation['receiptHash']],'runtimeActiveReceiptHash':binding['bindingHash'],'runtimeActiveIdentity':stage['runtimeRelease'],'receiptHash':''}
 receipt['receiptHash']=digest({key: receipt[key] for key in ('transactionId','journalHash','candidateReceiptHash','committedSelectors','mutationReceiptHashes','runtimeActiveReceiptHash','runtimeActiveIdentity')}); receipt['receiptId']='act-'+receipt['receiptHash'][:24]
 fd,temp=tempfile.mkstemp(prefix='.coordinated-active-',dir=os.path.dirname(output_path))
 with os.fdopen(fd,'w',encoding='utf-8') as handle: json.dump(receipt,handle,sort_keys=True,separators=(',',':'));handle.write('\n');handle.flush();os.fsync(handle.fileno())
@@ -443,7 +443,7 @@ canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'
 journal_hash = hashlib.sha256(canonical({key: journal[key] for key in body_keys})).hexdigest()
 if journal.get('transactionId') != transaction_id or journal.get('journalHash') != journal_hash:
     raise SystemExit('immutable transaction journal does not match recovery context')
-record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(journal_path), 'journalHash': journal_hash, 'status': status, 'updatedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+record = {'contract': 'r4-coordinated-production-transaction-status/v1', 'transactionId': transaction_id, 'journalPath': os.path.basename(journal_path), 'journalHash': journal_hash, 'status': status, 'updatedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
 directory = os.path.dirname(status_path)
 fd, temp = tempfile.mkstemp(prefix='.r4-c5-status-', dir=directory)
 with os.fdopen(fd, 'w', encoding='utf-8') as handle:
@@ -461,7 +461,7 @@ output_path, status_path, message = sys.argv[1:]
 status_hash = None
 if os.path.exists(status_path) and stat.S_ISREG(os.lstat(status_path).st_mode) and not os.path.islink(status_path):
     status_hash = hashlib.sha256(open(status_path, 'rb').read()).hexdigest()
-record = {'contract': 'r4-coordinated-production-recovery-block/v1', 'status': 'BLOCKED_RECOVERY', 'reason': message, 'statusPointerSha256': status_hash, 'recordedAt': datetime.datetime.now(datetime.UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
+record = {'contract': 'r4-coordinated-production-recovery-block/v1', 'status': 'BLOCKED_RECOVERY', 'reason': message, 'statusPointerSha256': status_hash, 'recordedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}
 directory = os.path.dirname(output_path)
 fd, temp = tempfile.mkstemp(prefix='.r4-c5-blocked-', dir=directory)
 with os.fdopen(fd, 'w', encoding='utf-8') as handle:
@@ -623,7 +623,7 @@ recover_incomplete_transaction() {
     if ! python3 - "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/lifecycle-predecessor.json" <<'PY'
 import json, subprocess, sys
 lifecycle, state_dir, predecessor_path = sys.argv[1:]
-live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], text=True))
+live = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], universal_newlines=True))
 predecessor = json.load(open(predecessor_path, encoding='utf-8'))
 if live != predecessor:
     raise SystemExit('Runtime lifecycle is not the captured predecessor while Authority is unchanged')
@@ -706,7 +706,7 @@ fi
 cp -- "$AUTHORITY_ROOT/current.json" "$previous_pointer"
 transaction_id="tx-$(python3 -c 'import uuid; print(uuid.uuid4())')"
 journal_path="$journal_dir/${transaction_id}.json"
-opened_at="$(python3 -c 'import datetime; print(datetime.datetime.now(datetime.UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"))')"
+opened_at="$(python3 -c 'import datetime; print(datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"))')"
 write_journal PREPARED
 stop_consumers
 preflight_and_prepare
