@@ -384,6 +384,22 @@ def dev_delivery_marker_path(checkout: Path) -> Path:
     return checkout / "course-content" / DEV_DELIVERY_FILENAME
 
 
+def _path_owned_by_checkout(path: Path, state: Path, receipt: dict[str, Any]) -> bool:
+    """repair 卸载的归属证明（Issue #1713 P1）：路径必须位于本 checkout 的私有
+    state 目录或其 selection 回执声明的 viewRoot 之下；否则视为所有权不确定，
+    停止而不卸载，防止陈旧回执指向其他工作树仍在使用的视图。"""
+    resolved = path.resolve()
+    for root in (state, Path(receipt.get("viewRoot") or "")):
+        if not str(root):
+            continue
+        try:
+            resolved.relative_to(Path(root).resolve())
+        except ValueError:
+            continue
+        return True
+    return False
+
+
 def write_dev_delivery_marker(checkout: Path, readiness: dict[str, str]) -> None:
     """Developer OSS 交付的显式标记（Issue #1713 P1）：readyz 据此区分生产形态与
     Developer 交付；标记一经写入持久存在，失败清理只删验证回执，因此"服务运行中
@@ -564,9 +580,15 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
             })
             write_dev_delivery_marker(checkout, readiness)
             return existing
-    recovered = recover_live_checkout(
-        checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
-    )
+    try:
+        recovered = recover_live_checkout(
+            checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
+        )
+    except Exception:
+        # crash-recovery 复用路径的门禁失败同样清除旧回执：旧服务仍在运行且失败为
+        # digest/version 等读取类漂移时，readyz 有界探测仍可能成功，残留回执会误报就绪。
+        verification_receipt_path(checkout).unlink(missing_ok=True)
+        raise
     if recovered:
         return recovered
     documents = state / "documents" / readiness["releaseId"]
@@ -658,12 +680,22 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
             # 后续 bind 卸载仍由回执所有权证明。
             pass
         unmount(Path(receipt["runtimeRoot"]))
-        helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
-        unmount(Path(helper_mount))
+        state = checkout_state(checkout)
+        helper_mount = Path(receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs"))
+        if not _path_owned_by_checkout(helper_mount, state, receipt):
+            raise DeveloperRuntimeError(
+                "repair refused to unmount helper mount outside this checkout's owned state; uncertain ownership",
+            )
+        unmount(helper_mount)
         if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
             release_lease(checkout, str(receipt["sharedMountId"]), unmount)
         else:
-            unmount(Path(receipt["blobMount"]))
+            blob_mount = Path(receipt["blobMount"])
+            if not _path_owned_by_checkout(blob_mount, state, receipt):
+                raise DeveloperRuntimeError(
+                    "repair refused to unmount blob mount outside this checkout's owned state; uncertain ownership",
+                )
+            unmount(blob_mount)
         remove_ossfs_config(checkout_state(checkout))
         verification_receipt_path(checkout).unlink(missing_ok=True)
         payload = _prepare_locked(checkout, readiness, credential)

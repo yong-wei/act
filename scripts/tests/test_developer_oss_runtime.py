@@ -1387,3 +1387,31 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 )
             finally:
                 os.chmod(helper_blob, 0o644)
+
+    def test_repair_refuses_helper_mount_outside_owned_state(self):
+        """Issue #1713 P1：陈旧回执的 helperMount 指向他人视图时，repair 必须拒绝卸载。"""
+        from bootstrap import repair
+        from common import DeveloperRuntimeError
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            foreign = Path(raw) / "other-worktree" / "views" / "runtime-x" / ".act-runtime-blobs"
+            foreign.mkdir(parents=True)
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            from common import checkout_state
+            write_selection_receipt(checkout_state(checkout) / "selection.json", {
+                "schemaVersion": "act-runtime-dev-selection.v1",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+                "blobMount": str(checkout_state(checkout) / "blobs"),
+                "helperMount": str(foreign),
+                "viewRoot": str(foreign.parent),
+                "runtimeRoot": str(checkout / "course-content" / "runtime"),
+                "startedAt": "2026-08-30T00:00:00Z",
+            })
+            with self.assertRaises(DeveloperRuntimeError) as raised:
+                repair(checkout)
+            self.assertIn("uncertain ownership", str(raised.exception))
+            # 他人视图未被破坏：目录仍然存在
+            self.assertTrue(foreign.exists())

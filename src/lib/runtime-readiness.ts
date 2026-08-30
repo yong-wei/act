@@ -248,6 +248,29 @@ async function probeReadableFile(target: string): Promise<boolean> {
   }
 }
 
+type MarkerState = 'absent' | 'readable' | 'unreadable';
+
+/**
+ * 标志判定必须区分"不存在"（生产形态）与"存在但读取失败"（Developer 交付但
+ * 权限/遍历故障）：后者按 fail-closed 处理，绝不退化为生产语义报 ready。
+ */
+async function readDevDeliveryMarker(markerPath: string): Promise<MarkerState> {
+  try {
+    const handle = await open(markerPath, 'r');
+    try {
+      const buffer = Buffer.alloc(1);
+      const read = await handle.read(buffer, 0, 1, 0);
+      return read.bytesRead === 1 ? 'readable' : 'unreadable';
+    } finally {
+      await handle.close();
+    }
+  } catch (error) {
+    const code = (error as { code?: unknown }).code;
+    if (code === 'ENOENT') return 'absent';
+    return 'unreadable';
+  }
+}
+
 /**
  * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready——该回执门禁以
  * Developer OSS 交付标志（`.act-runtime-dev-delivery.json`，由 Developer
@@ -264,9 +287,9 @@ export async function verifyConsumerFilesystem(
   probePath?: string,
   devDeliveryMarkerPath = path.join(process.cwd(), 'course-content', RUNTIME_DEV_DELIVERY_FILENAME),
 ): Promise<RuntimeFilesystemReadiness> {
-  if (!await probeReadableFile(devDeliveryMarkerPath)) {
-    return { ready: true };
-  }
+  const marker = await readDevDeliveryMarker(devDeliveryMarkerPath);
+  if (marker === 'absent') return { ready: true };
+  if (marker === 'unreadable') return { ready: false, failureClass: 'dev-delivery-unreadable' };
   const { receipt, exists } = await readConsumerVerificationReceipt(receiptPath);
   if (!exists) return { ready: false, failureClass: 'consumer-verification-missing' };
   if (!receipt) return { ready: false, failureClass: 'consumer-verification-invalid' };
