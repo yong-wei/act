@@ -72,6 +72,7 @@ import {
   sanitizePublicLaunchHref,
   withKnowledgeSurface,
 } from '@/lib/knowledge-surface';
+import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 
@@ -476,6 +477,7 @@ export function activeProjectionResponse<T extends { provenance?: Parameters<typ
         kind: context.kind,
         role: context.role,
         surfaceKey: context.surfaceKey,
+        latestCutover: readLiveLatestKnowledgeCutover(),
       });
       if (surface.status === 'ok') {
         return NextResponse.json(withKnowledgeSurface(
@@ -605,6 +607,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       localeCapability: capability,
     });
     const surfaceRole = role ?? 'NONE';
+    const latestCutover = readLiveLatestKnowledgeCutover();
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
@@ -630,6 +633,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
         resourceBindings,
         registryIndex: closedResources.registryIndex,
         teachingCaptureRevision,
+        latestCutover,
       });
       return NextResponse.json(
         surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,
@@ -639,6 +643,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       shard: withMath,
       role: surfaceRole,
       locale: resolved.locale,
+      latestCutover,
     });
     return NextResponse.json(
       surface.status === 'ok' ? withKnowledgeSurface(shard, surface.knowledgeSurface) : shard,

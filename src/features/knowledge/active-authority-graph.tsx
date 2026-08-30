@@ -58,6 +58,7 @@ import {
 import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
 import { useKnowledgeGraphRuntimeLayout } from './graph/use-knowledge-graph-runtime-layout';
+import { KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH } from './graph/viewport-fit';
 import {
   createAuthorityGraphViewModel,
   defaultEnabledTeachingFamilies,
@@ -1209,7 +1210,8 @@ export function ActiveAuthorityGraph({
   const graphMainRef = useRef<HTMLElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
-  const isCompactViewport = viewportWidth !== null && viewportWidth < 640;
+  const isCompactViewport = viewportWidth !== null
+    && viewportWidth <= KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH;
   const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
 
@@ -1252,6 +1254,8 @@ export function ActiveAuthorityGraph({
   const teachingCoverage = workspace.activeDomainId
     ? workspace.teachingCoverageByDomain[workspace.activeDomainId]
     : null;
+  const latestCutoverReady = workspace.latestCutover?.ready === true
+    && teachingCoverage?.note !== '教学关系暂不可用';
   const boundaryCues = useMemo(() => {
     if (!workspace.activeDomainId || !workspace.root) return [];
     const root = workspace.root;
@@ -1498,18 +1502,18 @@ export function ActiveAuthorityGraph({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-graph-locale={locale}>
+    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale}>
       <div
         className="pointer-events-none absolute left-3 top-3 z-40 max-[639px]:top-14"
         data-active-authority-header="true"
       >
-        <div className="pointer-events-auto flex flex-col items-start gap-1">
+        <div className="flex flex-col items-start gap-1">
           <span className="sr-only" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</span>
           <div
             role="group"
             aria-label={graphCopy(locale, 'language.group')}
             data-graph-language-switch="true"
-            className="flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5 shadow-lg backdrop-blur"
+            className="pointer-events-auto flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5 shadow-lg backdrop-blur"
           >
             <button
               type="button"
@@ -1677,7 +1681,7 @@ export function ActiveAuthorityGraph({
             <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />{graphCopy(locale, 'legend.teachingOrder')}</span>
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />{graphCopy(locale, 'legend.engineering')}</span>
-              <span data-authority-teaching-coverage="true">{teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable')}</span>
+              <span data-authority-teaching-coverage="true">{latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用' ? null : (teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable'))}</span>
             </div>
             ) : null}
             </KnowledgeWorkspaceChromePortal>
@@ -1744,7 +1748,7 @@ export function ActiveAuthorityGraph({
                   }}
                   hoverPreview={hoverPreview}
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
-                  showUnavailableTeachingDirectory={teachingCoverage?.note === '教学关系暂不可用'}
+                  showUnavailableTeachingDirectory={!latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用'}
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />

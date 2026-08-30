@@ -14,6 +14,14 @@ export type {
   KnowledgeSurfaceRole,
   KnowledgeSurfaceTeachingIdentity,
 } from './types';
+export type {
+  KnowledgeSurfaceLatestCutover,
+  LatestCutoverArtifactPointer,
+  LatestCutoverCombination,
+  LatestCutoverIO,
+  LatestCutoverRuntimeIdentity,
+  LatestCutoverVerifierInput,
+} from './latest-cutover';
 
 export {
   KNOWLEDGE_SURFACE_IDENTITY_SELECTOR_KEYS,
@@ -28,6 +36,11 @@ export {
   buildKnowledgeSurfaceCacheKey,
   buildKnowledgeSurfaceCacheKeyFromRequest,
 } from './cache';
+
+export {
+  unavailableLatestKnowledgeCutover,
+  verifyLatestKnowledgeCutover,
+} from './latest-cutover';
 
 export {
   classifyLearningContentManifest,

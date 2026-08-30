@@ -7,6 +7,7 @@ import {
   classifyLearningContentManifest,
   closeResourceBlockWithRegistryIndex,
   knowledgeSurfaceFromCandidateProjection,
+  knowledgeSurfaceFromLegacyGraph,
   knowledgeSurfaceFromLearnerShard,
   projectSourceOwnedLaunchDescriptor,
   readKnowledgeSurface,
@@ -34,6 +35,31 @@ const registryIndex = {
   identity: 'd'.repeat(64),
   digest: 'e'.repeat(64),
 } as const;
+const verifiedLatestCutover = {
+  ready: true,
+  combination: 'successor' as const,
+  identities: {
+    activeReceiptSha256: '1'.repeat(64),
+    authorityCurrentSha256: '2'.repeat(64),
+    runtime: {
+      releaseId: 'runtime-1',
+      manifestSha256: '3'.repeat(64),
+      treeSha256: '4'.repeat(64),
+      generation: 44,
+    },
+    extensionSha256: '5'.repeat(64),
+    domainCatalogSha256: '6'.repeat(64),
+    domainShardSetSha256: '7'.repeat(64),
+    teachingProjectionSha256: '8'.repeat(64),
+    teachingClosureSha256: '9'.repeat(64),
+    composedDomainFragmentManifestSha256: 'a'.repeat(64),
+    domainFragmentSetSha256: 'b'.repeat(64),
+    prerequisitePublicationSha256: 'c'.repeat(64),
+    consumerActivationSha256: 'd'.repeat(64),
+    formalResourceEnvelopeSha256: 'e'.repeat(64),
+  },
+  reasons: [],
+};
 
 function envelope(matchTeaching: boolean | null = null): AuthorityRootShard['envelope'] {
   return {
@@ -70,6 +96,10 @@ describe('readKnowledgeSurface contract', () => {
     expect(result.knowledgeSurface.blocks.engineering.status).toBe('available');
     expect(result.knowledgeSurface.blocks.teaching.status).toBe('not-applicable');
     expect(result.knowledgeSurface.mode).toBe('active');
+    expect(result.knowledgeSurface.latestCutover).toMatchObject({
+      ready: false,
+      combination: 'unknown',
+    });
   });
 
   it('requires matching Teaching Projection, scope, and RegistryIndex when teaching content is included', () => {
@@ -92,6 +122,24 @@ describe('readKnowledgeSurface contract', () => {
     expect(result.knowledgeSurface.registryIndex).toEqual(registryIndex);
     expect(result.knowledgeSurface.blocks.teaching.status).toBe('available');
     expect(result.knowledgeSurface.blocks.resources.status).toBe('available');
+  });
+
+  it('attaches an injected read-only latest-cutover proof without selecting a release', () => {
+    const result = readKnowledgeSurface({
+      mode: 'active',
+      kind: 'domain',
+      role: 'STUDENT',
+      surfaceKey: 'system-modeling',
+      authority,
+      latestCutover: verifiedLatestCutover,
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.latestCutover).toEqual(verifiedLatestCutover);
+    expect(result.cacheKey).toContain('act-knowledge-surface/v1');
+    expect(JSON.stringify(result.knowledgeSurface.latestCutover)).not.toMatch(
+      /\/Users|credential|signedUrl|X-Amz/iu,
+    );
   });
 
   it('omits mismatched teaching/resource blocks while keeping engineering readable', () => {
@@ -147,7 +195,10 @@ describe('readKnowledgeSurface contract', () => {
     const registryKey = buildKnowledgeSurfaceCacheKey({
       mode: 'active', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority, teaching, registryIndex,
     });
-    expect(new Set([activeKey, legacyKey, candidateKey, teachingKey, registryKey]).size).toBe(5);
+    const cutoverKey = buildKnowledgeSurfaceCacheKey({
+      mode: 'active', role: 'STUDENT', locale: 'zh-CN', kind: 'detail', surfaceKey: 'n1', authority, latestCutover: verifiedLatestCutover,
+    });
+    expect(new Set([activeKey, legacyKey, candidateKey, teachingKey, registryKey, cutoverKey]).size).toBe(6);
     cache.set(activeKey, { mode: 'active' });
     cache.set(legacyKey, { mode: 'legacy' });
     expect(cache.get(activeKey)).toEqual({ mode: 'active' });
@@ -432,6 +483,24 @@ describe('candidate knowledge-surface identity', () => {
     expect(result.knowledgeSurface.authority.snapshotId).not.toBe(dataset);
     expect(result.knowledgeSurface.authority.snapshotHash).not.toBe(releaseHash);
     expect(result.knowledgeSurface.mode).toBe('candidate');
+    expect(result.knowledgeSurface.latestCutover).toMatchObject({
+      ready: false,
+      combination: 'unknown',
+    });
+  });
+
+  it('never reports a legacy graph as a successful latest cutover', () => {
+    const result = knowledgeSurfaceFromLegacyGraph({
+      source: 'file',
+      kind: 'root',
+      surfaceKey: 'root',
+    });
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') return;
+    expect(result.knowledgeSurface.latestCutover).toMatchObject({
+      ready: false,
+      combination: 'unknown',
+    });
   });
 
   it('fails closed when an incomplete Authority snapshot overlay is supplied', () => {

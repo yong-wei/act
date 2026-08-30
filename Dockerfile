@@ -99,6 +99,11 @@ RUN test -f src/features/knowledge/active-authority-graph.tsx \
   && test -f src/app/api/knowledge/shards/active/route.ts \
   && test -f course-content/runtime/knowledge/authority-learning-content-manifest.json \
   && test -f course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json \
+  && test -f course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/successor-runtime-manifest-extension.json \
+  && test -f course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/candidate-receipt.json \
+  && test -f course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/teaching-closure-receipt.json \
+  && test -f course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/composed-domain-fragment-manifest.json \
+  && test -f course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/formal-resource-envelope.json \
   && grep -q '/api/knowledge/shards/active' src/features/knowledge/active-authority-graph.tsx \
   && printf '%s\n' "${APP_REVISION}" > /app/.active-authority-shards-product
 
@@ -182,6 +187,10 @@ COPY --from=builder /app/course-content/runtime/resource-governance/runtime-reso
 # packaging of current.json + releases make Konling teaching context reachable.
 COPY --from=builder /app/course-content/authoring/knowledge/authority ./course-content/authoring/knowledge/authority
 COPY --from=builder /app/course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json ./course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
+# Image fallback for latest-cutover Teaching artifacts. Production bind-mounts
+# the same path via ACT_LATEST_CUTOVER_CANDIDATE_ROOT; a future provider switch
+# must change this candidate identity or the verifier fails closed.
+COPY --from=builder /app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5 ./course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5
 COPY --from=builder /app/course-content/runtime/knowledge/authority-domain-shards ./course-content/runtime/knowledge/authority-domain-shards
 COPY --from=builder /app/course-content/runtime/knowledge/authority-learning-content-manifest.json ./course-content/runtime/knowledge/authority-learning-content-manifest.json
 COPY --from=builder /app/course-content/runtime/knowledge/cards/authority ./course-content/runtime/knowledge/cards/authority

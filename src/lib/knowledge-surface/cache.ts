@@ -10,6 +10,7 @@ import type {
   KnowledgeSurfaceRegistryIndexIdentity,
   KnowledgeSurfaceTeachingIdentity,
 } from './types';
+import type { KnowledgeSurfaceLatestCutover } from './latest-cutover';
 
 function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -50,6 +51,16 @@ function mathKey(math: KnowledgeSurfaceMathIdentity | null | undefined): string 
   return [math.owner, math.releaseId, math.releaseHash, math.locale].join(':');
 }
 
+function latestCutoverKey(latestCutover: KnowledgeSurfaceLatestCutover | undefined): string {
+  if (!latestCutover) return '';
+  return digest({
+    ready: latestCutover.ready,
+    combination: latestCutover.combination,
+    identities: latestCutover.identities,
+    reasons: latestCutover.reasons,
+  });
+}
+
 export function buildKnowledgeSurfaceCacheKey(input: {
   mode: KnowledgeSurfaceMode;
   role: string;
@@ -60,6 +71,7 @@ export function buildKnowledgeSurfaceCacheKey(input: {
   teaching?: KnowledgeSurfaceTeachingIdentity | null;
   registryIndex?: KnowledgeSurfaceRegistryIndexIdentity | null;
   math?: KnowledgeSurfaceMathIdentity | null;
+  latestCutover?: KnowledgeSurfaceLatestCutover;
 }): string {
   return [
     'act-knowledge-surface/v1',
@@ -72,6 +84,7 @@ export function buildKnowledgeSurfaceCacheKey(input: {
     teachingKey(input.teaching),
     registryKey(input.registryIndex),
     mathKey(input.math),
+    latestCutoverKey(input.latestCutover),
   ].join('|');
 }
 
@@ -89,6 +102,7 @@ export function buildKnowledgeSurfaceCacheKeyFromRequest(
     teaching: request.teaching,
     registryIndex: request.registryIndex,
     math: request.math,
+    latestCutover: request.latestCutover,
   });
 }
 
@@ -120,12 +134,13 @@ export class KnowledgeSurfaceCache {
 }
 
 export function knowledgeSurfaceIdentityDigest(
-  input: Pick<KnowledgeSurfaceReadRequest, 'mode' | 'authority' | 'teaching' | 'registryIndex'>,
+  input: Pick<KnowledgeSurfaceReadRequest, 'mode' | 'authority' | 'teaching' | 'registryIndex' | 'latestCutover'>,
 ): string {
   return digest({
     mode: input.mode,
     authority: input.authority,
     teaching: input.teaching ?? null,
     registryIndex: input.registryIndex ?? null,
+    latestCutover: input.latestCutover ?? null,
   });
 }

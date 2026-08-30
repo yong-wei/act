@@ -14,6 +14,7 @@ import type {
   KnowledgeSurfaceTeachingIdentity,
 } from './types';
 import { KNOWLEDGE_SURFACE_CONTRACT } from './types';
+import { unavailableLatestKnowledgeCutover } from './latest-cutover';
 
 function teachingIsClosed(
   teaching: KnowledgeSurfaceTeachingIdentity | null | undefined,
@@ -126,6 +127,7 @@ export function readKnowledgeSurface(request: KnowledgeSurfaceReadRequest): Know
     teaching: blocks.teaching.status === 'available' ? teaching : null,
     registryIndex: blocks.resources.status === 'available' ? registryIndex : null,
     math: blocks.math.status === 'available' ? math : null,
+    latestCutover: request.latestCutover ?? unavailableLatestKnowledgeCutover(),
     blocks,
   };
 
@@ -137,6 +139,7 @@ export function readKnowledgeSurface(request: KnowledgeSurfaceReadRequest): Know
       teaching: knowledgeSurface.teaching,
       registryIndex: knowledgeSurface.registryIndex,
       math: knowledgeSurface.math,
+      latestCutover: knowledgeSurface.latestCutover,
     }, locale),
   };
 }

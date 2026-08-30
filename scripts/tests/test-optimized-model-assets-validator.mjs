@@ -35,9 +35,9 @@ try {
   fs.mkdirSync(targetRoot);
   fs.mkdirSync(optimizedRoot);
   const sourceContent = 'source model\n';
-  const optimizedContent = 'optimized model\n';
+  const outputContent = 'optimized model\n';
   const sourceSha256 = createHash('sha256').update(sourceContent).digest('hex');
-  const outputSha256 = createHash('sha256').update(optimizedContent).digest('hex');
+  const outputSha256 = createHash('sha256').update(outputContent).digest('hex');
   const optimizerScript = fs.readFileSync(
     path.join(root, 'tools/glb-model-optimizer/optimize-models.mjs'),
   );
@@ -46,7 +46,7 @@ try {
     .digest('hex');
   fs.writeFileSync(path.join(sourceRoot, 'demo.glb'), sourceContent);
   fs.writeFileSync(path.join(targetRoot, 'demo.glb'), sourceContent);
-  fs.writeFileSync(path.join(optimizedRoot, 'demo.glb'), optimizedContent);
+  fs.writeFileSync(path.join(optimizedRoot, 'demo.glb'), outputContent);
   fs.writeFileSync(
     path.join(optimizedRoot, 'manifest.json'),
     JSON.stringify({
@@ -89,6 +89,11 @@ try {
     dockerignore,
     /!scripts\/assets\/validate-optimized-models\.mjs/,
     'Docker build context must include the optimized-model validator',
+  );
+  assert.match(
+    dockerignore,
+    /!tools\/glb-model-optimizer\/\*\*/,
+    'Docker build context must include the optimizer source used by the validator',
   );
   assert.match(
     buildScript,

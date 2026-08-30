@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "act-runtime-requirements.v1",
+  "capabilities": {
+    "micro-tutoring-v2": {
+      "artifacts": [
+        {
+          "path": "resource-governance/micro-tutoring-assessment-baseline-v2.json",
+          "requireVersion": true,
+          "exactVersion": "micro-tutoring-assessment-baseline.v2",
+          "references": []
+        },
+        {
+          "path": "resource-governance/micro-tutoring-option-attributions-v2.json",
+          "requireVersion": true,
+          "exactVersion": "micro-tutoring-option-attributions.v3",
+          "references": [
+            {
+              "field": "baselineVersion",
+              "artifact": "resource-governance/micro-tutoring-assessment-baseline-v2.json"
+            }
+          ]
+        },
+        {
+          "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
+          "requireVersion": true,
+          "exactVersion": "micro-tutoring-resource-projection.v2",
+          "references": []
+        },
+        {
+          "path": "resource-governance/micro-tutoring-validation-registry-v2.json",
+          "requireVersion": true,
+          "exactVersion": "micro-tutoring-validation-registry.v2",
+          "references": []
+        }
+      ]
+    }
+  }
+}

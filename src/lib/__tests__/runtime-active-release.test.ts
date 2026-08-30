@@ -47,8 +47,13 @@ async function blobFixture() {
   return { root, manifest };
 }
 
-async function writeActiveReceipt(root: string, manifest: { releaseId: string; manifestSha256: string; treeSha256: string }, receiptRoot = root) {
-  await writeFile(path.join(receiptRoot, 'act-runtime-active-receipt.json'), JSON.stringify({
+async function writeActiveReceipt(
+  root: string,
+  manifest: { releaseId: string; manifestSha256: string; treeSha256: string },
+  receiptRoot = root,
+  compatibility?: Record<string, unknown>,
+) {
+  const receipt: Record<string, unknown> = {
     schemaVersion: 'runtime-release-active-receipt.v1',
     selection: {
       schemaVersion: 'runtime-release-selection.v1',
@@ -58,7 +63,9 @@ async function writeActiveReceipt(root: string, manifest: { releaseId: string; m
       treeSha256: manifest.treeSha256,
     },
     healthCheck: 'readyz',
-  }));
+  };
+  if (compatibility) receipt.compatibility = compatibility;
+  await writeFile(path.join(receiptRoot, 'act-runtime-active-receipt.json'), JSON.stringify(receipt));
 }
 
 afterEach(async () => {
@@ -142,6 +149,26 @@ describe('active runtime release manifest', () => {
     await writeActiveReceipt(root, manifest, receiptRoot);
     await expect(readActiveRuntimeReleaseManifest(root, path.join(receiptRoot, 'act-runtime-active-receipt.json'))).resolves.toMatchObject({
       releaseId: manifest.releaseId,
+    });
+  });
+
+  it('accepts only the canonical compatibility projection for a blob-backed receipt', async () => {
+    const { root, manifest } = await blobFixture();
+    const compatibility = {
+      schemaVersion: 'runtime-app-compatibility.v1',
+      proofSha256: 'a'.repeat(64),
+      runtimeSourceRevision: 'b'.repeat(40),
+      appRevision: 'c'.repeat(40),
+      imageDigest: `sha256:${'d'.repeat(64)}`,
+      migrationSetSha256: 'e'.repeat(64),
+      consumerContract: 'runtime-app-candidate-consumers.v1',
+    };
+    await writeActiveReceipt(root, manifest, root, compatibility);
+    await expect(readActiveRuntimeReleaseManifest(root)).resolves.toEqual(manifest);
+
+    await writeActiveReceipt(root, manifest, root, { ...compatibility, unexpected: 'field' });
+    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({
+      code: 'runtime-active-release-receipt-invalid',
     });
   });
 });

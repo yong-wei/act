@@ -18,6 +18,7 @@ from common import (
     BLOB_PREFIX,
     DEFAULT_CACHE_SIZE_GIB,
     GATEWAY_PRINCIPAL,
+    OSS_BUCKET,
     GATEWAY_SESSION_SCHEMA,
     LEASE_SCHEMA,
     SHA256,
@@ -377,11 +378,164 @@ def verify_live_mount(mountpoint: Path) -> None:
         fail("shared Blob mount source drifted")
 
 
+def mount_source(path: Path) -> str:
+    helper = os.environ.get("ACT_RUNTIME_DEV_FINDMNT")
+    binary = helper or shutil.which("findmnt")
+    if not binary:
+        if not use_real_fuse():
+            return ""
+        fail("required tool is missing: findmnt")
+    completed = subprocess.run([binary, "-n", "-o", "SOURCE", str(path)], capture_output=True, text=True)
+    return (completed.stdout or "").strip()
+
+
+def mount_fuse_fd(mountpoint: Path, mountinfo_path: str = "/proc/self/mountinfo") -> int | None:
+    """从内核 mountinfo 提取该挂载点的 FUSE connection fd 号（内核记录，
+    进程不可事后伪造）；无对应挂载或缺字段时返回 None。"""
+    try:
+        lines = Path(mountinfo_path).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    wanted = str(mountpoint)
+    for line in lines:
+        parts = line.split(" ")
+        if len(parts) < 7 or parts[4] != wanted:
+            continue
+        for field in parts[5:parts.index("-")] if "-" in parts else ():
+            if field.startswith("fd="):
+                try:
+                    return int(field[3:])
+                except ValueError:
+                    return None
+    return None
+
+
+def _is_python_interpreter(name: str) -> bool:
+    return name == "python" or name.startswith("python3")
+
+
+def _argv_flag_value(argv: list[str], flag: str) -> str | None:
+    for index, argument in enumerate(argv):
+        if argument == flag and index + 1 < len(argv):
+            return argv[index + 1]
+    return None
+
+
+def verify_mount_process_provenance(
+    mountpoint: Path,
+    session_path: Path,
+    proc_root: str = "/proc",
+    fuse_fd: int | None = None,
+) -> None:
+    """进程级挂载归属。三层证据缺一不可，且活数据面必须是网关 FUSE：
+
+    1. 进程持有该 FUSE connection 的 fd（`/proc/<pid>/fd/<fuse_fd>` → /dev/fuse，
+       fuse_fd 来自内核 mountinfo 的 fd= 字段，进程不可伪造）；
+    2. `/proc/<pid>/exe` 是 Python 解释器——argv[0] 由进程自行控制，不作为身份证据；
+    3. argv 精确绑定：脚本为 `gateway_fuse.py`，`--session` 等于本 mount 的私有
+       会话文件，`--mount` 精确等于规范 mountpoint（无子串/前缀混淆）。
+
+    若同一 connection 由 ossfs2 持有，立即失败关闭：公网 ossfs2 不是开发数据面。
+    """
+    argv_point = str(mountpoint)
+    argv_session = str(session_path)
+    helper_name = "gateway_fuse.py"
+    root = Path(proc_root)
+    ossfs_owner = False
+    for proc in root.iterdir():
+        if not proc.name.isdigit():
+            continue
+        holds_fuse = True
+        if fuse_fd is not None:
+            try:
+                link = os.readlink(str(proc / "fd" / str(fuse_fd)))
+            except OSError:
+                continue
+            if "/dev/fuse" not in link:
+                continue
+            holds_fuse = True
+        try:
+            executable = os.readlink(str(proc / "exe"))
+        except OSError:
+            continue
+        exe_name = Path(executable).name
+        if exe_name == "ossfs2" and holds_fuse:
+            ossfs_owner = True
+            continue
+        if not _is_python_interpreter(exe_name):
+            continue
+        try:
+            argv = [arg.decode("utf-8", "replace") for arg in (proc / "cmdline").read_bytes().split(b"\x00") if arg]
+        except OSError:
+            continue
+        if not any(Path(argument).name == helper_name for argument in argv):
+            continue
+        if _argv_flag_value(argv, "--mount") != argv_point:
+            continue
+        if _argv_flag_value(argv, "--session") != argv_session:
+            continue
+        if ossfs_owner:
+            fail("ossfs2 is not the developer Blob data plane")
+        return
+    if ossfs_owner:
+        fail("ossfs2 is not the developer Blob data plane")
+    fail("no live gateway FUSE process owns this mount with this checkout's gateway session")
+
+
 def verify_shared_record(record: dict[str, Any], gateway_origin: str) -> None:
     verify_shared_identity(record, gateway_origin)
     mountpoint = Path(str(record.get("mountpoint") or ""))
     if use_real_fuse() and is_mounted(mountpoint):
         verify_live_mount(mountpoint)
+
+
+def verify_shared_release(
+    claimed_mount: str,
+    gateway_origin: str,
+    checkout_id: str,
+    release_id: str,
+) -> None:
+    """共享 mount 释放前的**单一**归属证明入口。
+
+    整条证据链在同一函数体内，调用方（repair）不允许自行拆分或部分跳过：
+    1. 记录存在且 identity/options/principal 未漂移（verify_shared_identity）；
+    2. mountpoint 等于该 mount 的规范 blob 路径（防记录改指其他挂载）；
+    3. 真实 FUSE 下：规范路径上有只读 fuse，且 source 不是公网 ossfs2/bucket；
+    4. 内核 mountinfo 报告的 FUSE connection fd 被网关 FUSE 进程持有，
+       且该进程 argv 精确绑定规范 mountpoint 与本 mount 的私有 gateway session；
+    5. 该 mount 上存在本 checkout、绑定同一 Release 的 live lease。
+
+    任一失败抛 DeveloperRuntimeError，调用方不得释放、不得清理现场。
+    """
+    if claimed_mount != authority_id(gateway_origin):
+        fail("release refused: sharedMountId is not the canonical mount derived from this credential")
+    record = read_shared_record(claimed_mount)
+    if not isinstance(record, dict):
+        fail("release refused: shared mount record is missing; uncertain mount state")
+    verify_shared_identity(record, gateway_origin)
+    mountpoint = Path(str(record.get("mountpoint") or ""))
+    expected_mountpoint = shared_mount_dir(claimed_mount) / "blobs"
+    if mountpoint.resolve() != expected_mountpoint.resolve():
+        fail("release refused: shared mount record mountpoint drifted from its canonical path")
+    if use_real_fuse() and not is_mounted(mountpoint):
+        fail("release refused: record and lease are live but the canonical mount is absent")
+    verify_shared_record(record, gateway_origin)
+    if use_real_fuse():
+        source = mount_source(mountpoint)
+        lowered = source.lower()
+        if "ossfs" in lowered or OSS_BUCKET in source:
+            fail("release refused: live shared mount is still public ossfs2")
+        fuse_fd = mount_fuse_fd(mountpoint)
+        if fuse_fd is None:
+            fail("release refused: kernel mountinfo has no fuse connection for the canonical mount")
+        verify_mount_process_provenance(
+            mountpoint,
+            gateway_session_path(claimed_mount),
+            fuse_fd=fuse_fd,
+        )
+    lease = read_leases(claimed_mount).get("leases", {}).get(checkout_id)
+    if not isinstance(lease, dict) or lease.get("releaseId") != release_id:
+        fail("release refused: no live lease bound to this checkout on the claimed shared mount")
 
 
 def fixture_mount(blob_root: Path) -> None:

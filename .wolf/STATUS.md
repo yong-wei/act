@@ -10,6 +10,8 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-08-30：#1683 本地实现与 7.6 已闭合。Git `authority/current.json` 已是生产 v0.37；latest-cutover 绑定 candidate receipt、独立 `runtime-release-active-receipt.v1`、无三文件 memo，前任 generation 三方一致。下一步是开 PR 到 integration。
+
 - 2026-08-30：修全课迁移残余。共享 `StudentCards` 与自定义作答表单在演示模式禁用提交和作答控件（频域/奈奎斯特滑动条仍可预览）；批量脚本残留的 JSX `\'` 已清除；独立 `/interactive-learning/multi-representation-linkage` 包进 `InteractiveLearningShell`，工作台嵌入路径不叠壳。未给 `rust-analysis` 伪造中心插件。未开新 Issue，未重开 #1573，未认领 #1683。
 
 - 2026-08-30：按 #1574/#1575 共性合同把剩余互动课迁到 `LessonRuntimeShell`，并收口 `compute.panel` 中心分支。28 门 unit + cruise 去掉课级 `CourseHeader`；`LEGACY_LESSON_RUNTIME_ROUTE_SLUGS` 清空；catch-all 学生/教师路由改挂 `standardize-lesson-runtime-shell`。控制工作台与 interactive-figure 改为插件查找。#1573 live/evidence 不再按课复制；#1569 control-correction 映射不扩散。未开新 Issue，未重开 #1573，未认领 #1683。
@@ -65,7 +67,7 @@
 
 ## 🚀 Next phase
 
-**Coordinated v0.37-r4 cutover (2026-08-30):** #1509 10.5 已完成。有父 `--stage-only` 物化 `runtime-150a505a…`（NON_SELECTABLE）；lifecycle `set-desired` 到 generation 42（active 仍是生产 `runtime-bb309e6a…`）。已 qualify 不可选候选 `cand-d4e722dc-607d-4aaf-9142-75a0734cd64e`，receipt `bd0abb0d…`。Git/生产 `authority/current.json` 未改（Git v0.9，生产 v0.22）。下一步：10.6 换镜像证明不改 selector、不停 coordinated 事务；再 10.7 独立停服激活。不要关 #1509，不要认领 #1683。
+- 2026-08-30：#1683 本地 7.6 已清场。下一步：开 PR 到 `integration`，用用户身份 `@codex review`；清场后合 `integration` → `main`、打新版本、`scripts/build.sh`、`deploy:app --skip-build`，再勾 6.4–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要写生产 selector。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 
