@@ -406,6 +406,17 @@ def verify_live_mount(mountpoint: Path) -> None:
         fail("shared Blob mount source drifted")
 
 
+def mount_source(path: Path) -> str:
+    helper = os.environ.get("ACT_RUNTIME_DEV_FINDMNT")
+    binary = helper or shutil.which("findmnt")
+    if not binary:
+        if not use_real_fuse():
+            return ""
+        fail("required tool is missing: findmnt")
+    completed = subprocess.run([binary, "-n", "-o", "SOURCE", str(path)], capture_output=True, text=True)
+    return (completed.stdout or "").strip()
+
+
 def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
     verify_shared_identity(record, account_id)
     mountpoint = Path(str(record.get("mountpoint") or ""))

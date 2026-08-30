@@ -73,7 +73,9 @@ from shared_mount import (
     read_leases,
     read_shared_record,
     shared_mount_dir,
+    mount_source,
     verify_shared_identity,
+    verify_shared_record,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
     release_lease,
@@ -717,6 +719,19 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                 raise DeveloperRuntimeError(
                     "repair refused: shared mount record mountpoint drifted from its canonical path",
                 )
+            if use_real_fuse() and not is_mounted(record_mountpoint):
+                raise DeveloperRuntimeError(
+                    "repair refused: record and lease are live but the canonical mount is absent",
+                )
+            verify_shared_record(record, credential["accountId"])
+            if use_real_fuse():
+                # 规范路径上实际挂载的 source 必须仍归属本 credential 的 bucket——
+                # 防止同一规范目录被其他 FUSE/未知挂载占用后误卸载未知现场。
+                source = mount_source(record_mountpoint)
+                if OSS_BUCKET not in source:
+                    raise DeveloperRuntimeError(
+                        "repair refused: live shared mount source does not belong to this credential's bucket",
+                    )
             release_lease(checkout, claimed_mount, unmount)
         else:
             blob_mount = Path(receipt["blobMount"])
