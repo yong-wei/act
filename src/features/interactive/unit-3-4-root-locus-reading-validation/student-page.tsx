@@ -314,6 +314,7 @@ export function UNIT_3_4StudentPage({
             browseEnabled={browseEnabled}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            readOnly={isDemo}
           />
         </div>
 

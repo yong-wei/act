@@ -504,6 +504,7 @@ describe('universal AppShell frame contract', () => {
       expect.arrayContaining([
         '/interactive-learning/courses/*/student/*',
         '/interactive-learning/courses/*/teacher/*',
+        '/interactive-learning/multi-representation-linkage',
       ]),
     );
     expect(

@@ -10,6 +10,8 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-08-30：修全课迁移残余。共享 `StudentCards` 与自定义作答表单在演示模式禁用提交和作答控件（频域/奈奎斯特滑动条仍可预览）；批量脚本残留的 JSX `\'` 已清除；独立 `/interactive-learning/multi-representation-linkage` 包进 `InteractiveLearningShell`，工作台嵌入路径不叠壳。未给 `rust-analysis` 伪造中心插件。未开新 Issue，未重开 #1573，未认领 #1683。
+
 - 2026-08-30：按 #1574/#1575 共性合同把剩余互动课迁到 `LessonRuntimeShell`，并收口 `compute.panel` 中心分支。28 门 unit + cruise 去掉课级 `CourseHeader`；`LEGACY_LESSON_RUNTIME_ROUTE_SLUGS` 清空；catch-all 学生/教师路由改挂 `standardize-lesson-runtime-shell`。控制工作台与 interactive-figure 改为插件查找。#1573 live/evidence 不再按课复制；#1569 control-correction 映射不扩散。未开新 Issue，未重开 #1573，未认领 #1683。
 
 - 2026-08-30：补完已归档 #1573（`separate-classroom-live-state-from-submission-evidence`）任务 5.5/5.6。Playwright 班级绑定课堂走通 submit/resubmit/refresh/reconnect/闭课复盘；preview 零写。4.5 仍未勾选（`course_review` 与 backfill 仍有消费者）。本机 `act_obe` 补齐 `InteractionLog.submissionIdentity`。学生页 Prisma 泄漏改为 control-correction evidence port 延迟绑定。未开新 Issue，未认领 #1683。

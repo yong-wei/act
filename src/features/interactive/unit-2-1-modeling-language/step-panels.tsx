@@ -1517,8 +1517,11 @@ export function UNIT_2_1StudentActivityForm({
   onSubmit: (response: UNIT_2_1StepResponse) => void;
   readOnly?: boolean;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
 
-  void readOnly;
   const activity = useMemo(() => getStepActivity(step), [step]);
   const [draft, setDraft] = useState<Record<string, unknown>>(() => getDefaultDraft(activity, savedResponse));
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
@@ -1543,6 +1546,7 @@ export function UNIT_2_1StudentActivityForm({
   const selectedHighlightIds = getStringArray(draft.selectedHighlightIds);
 
   const moveCardIntoSlot = (slotId: string, cardId: string) => {
+    if (readOnly) return;
     setDraft((prev) => {
       const previousPlacements = getRecordValue(prev.placements);
       const nextPlacements = Object.fromEntries(
@@ -1557,6 +1561,7 @@ export function UNIT_2_1StudentActivityForm({
   };
 
   const moveCardIntoBucket = (bucketId: string, cardId: string) => {
+    if (readOnly) return;
     setDraft((prev) => {
       const previousAssignments = getRecordValue(prev.assignments);
       const nextAssignments = Object.fromEntries(
@@ -1691,8 +1696,12 @@ export function UNIT_2_1StudentActivityForm({
               <button
                 key={card.id}
                 type="button"
-                draggable
-                onDragStart={() => setDraggingCardId(card.id)}
+                draggable={!readOnly}
+                disabled={Boolean(readOnly)}
+                onDragStart={() => {
+                  if (readOnly) return;
+                  setDraggingCardId(card.id);
+                }}
                 className={`premium-lesson-tone-pill ${getToneClass(card.tone ?? 'slate')}`}
               >
                 {card.label}
@@ -1708,6 +1717,7 @@ export function UNIT_2_1StudentActivityForm({
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
+                if (readOnly) return;
                 if (draggingCardId) {
                   moveCardIntoSlot(slot.id, draggingCardId);
                   setDraggingCardId(null);
@@ -1723,7 +1733,9 @@ export function UNIT_2_1StudentActivityForm({
                     <button
                       key={cardId}
                       type="button"
-                      onClick={() =>
+                      disabled={Boolean(readOnly)}
+                      onClick={() => {
+                        if (readOnly) return;
                         setDraft((prev) => {
                           const placements = getRecordValue(prev.placements);
                           return {
@@ -1733,8 +1745,8 @@ export function UNIT_2_1StudentActivityForm({
                               [slot.id]: getStringArray(placements[slot.id]).filter((item) => item !== cardId),
                             },
                           };
-                        })
-                      }
+                        });
+                      }}
                       className={`premium-lesson-tone-pill ${getToneClass(card?.tone ?? 'slate')}`}
                     >
                       {card?.label ?? cardId}
@@ -1759,7 +1771,11 @@ export function UNIT_2_1StudentActivityForm({
             <button
               key={target.id}
               type="button"
-              onClick={() => setDraft((prev) => ({ ...prev, selectedHotspotId: target.id }))}
+              disabled={Boolean(readOnly)}
+              onClick={() => {
+                if (readOnly) return;
+                setDraft((prev) => ({ ...prev, selectedHotspotId: target.id }));
+              }}
               className={`absolute rounded-full border px-3 py-1 text-xs ${
                 selectedHotspotId === target.id ? 'border-cyan-500 bg-cyan-500/10 text-cyan-700' : 'border-border bg-background'
               }`}
@@ -1788,8 +1804,12 @@ export function UNIT_2_1StudentActivityForm({
               <button
                 key={card.id}
                 type="button"
-                draggable
-                onDragStart={() => setDraggingCardId(card.id)}
+                draggable={!readOnly}
+                disabled={Boolean(readOnly)}
+                onDragStart={() => {
+                  if (readOnly) return;
+                  setDraggingCardId(card.id);
+                }}
                 className="premium-lesson-tone-pill premium-tone-slate"
               >
                 {card.label}
@@ -1805,6 +1825,7 @@ export function UNIT_2_1StudentActivityForm({
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
+                if (readOnly) return;
                 if (draggingCardId) {
                   moveCardIntoBucket(bucket.id, draggingCardId);
                   setDraggingCardId(null);
@@ -1820,7 +1841,9 @@ export function UNIT_2_1StudentActivityForm({
                     <button
                       key={cardId}
                       type="button"
-                      onClick={() =>
+                      disabled={Boolean(readOnly)}
+                      onClick={() => {
+                        if (readOnly) return;
                         setDraft((prev) => {
                           const assignments = getRecordValue(prev.assignments);
                           return {
@@ -1830,8 +1853,8 @@ export function UNIT_2_1StudentActivityForm({
                               [bucket.id]: getStringArray(assignments[bucket.id]).filter((item) => item !== cardId),
                             },
                           };
-                        })
-                      }
+                        });
+                      }}
                       className="premium-lesson-tone-pill premium-tone-cyan"
                     >
                       {card?.label ?? cardId}
@@ -1856,7 +1879,9 @@ export function UNIT_2_1StudentActivityForm({
             <button
               key={target.id}
               type="button"
-              onClick={() =>
+              disabled={Boolean(readOnly)}
+              onClick={() => {
+                if (readOnly) return;
                 setDraft((prev) => {
                   const current = getStringArray(prev.selectedHighlightIds);
                   return {
@@ -1865,8 +1890,8 @@ export function UNIT_2_1StudentActivityForm({
                       ? current.filter((item) => item !== target.id)
                       : [...current, target.id],
                   };
-                })
-              }
+                });
+              }}
               className={`absolute rounded-full border px-3 py-1 text-xs ${
                 selected ? 'border-rose-500 bg-rose-500/10 text-rose-700' : 'border-border bg-background'
               }`}
@@ -1892,7 +1917,7 @@ export function UNIT_2_1StudentActivityForm({
             <div className="mt-3 grid gap-2">
               {question.options.map((option) => (
                 <label key={option.value} className="premium-lesson-control flex items-start gap-2">
-                  <input
+                  <input disabled={Boolean(readOnly)}
                     type="radio"
                     name={question.key}
                     checked={draft[question.key] === option.value}
@@ -1914,7 +1939,7 @@ export function UNIT_2_1StudentActivityForm({
           <label key={field.key} className="premium-lesson-caption block text-xs">
             {field.label}
             {field.type === 'textarea' ? (
-              <textarea
+              <textarea disabled={Boolean(readOnly)}
                 value={typeof draft[field.key] === 'string' ? (draft[field.key] as string) : ''}
                 onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
                 placeholder={field.placeholder}
@@ -1924,7 +1949,7 @@ export function UNIT_2_1StudentActivityForm({
               <div className="mt-2 grid gap-2">
                 {field.options?.map((option) => (
                   <label key={option.value} className="premium-lesson-control flex items-center gap-2">
-                    <input
+                    <input disabled={Boolean(readOnly)}
                       type="checkbox"
                       checked={getStringArray(draft[field.key]).includes(option.value)}
                       onChange={(event) =>
@@ -1947,7 +1972,7 @@ export function UNIT_2_1StudentActivityForm({
               <div className="mt-2 grid gap-2">
                 {field.options?.map((option) => (
                   <label key={option.value} className="premium-lesson-control flex items-center gap-2">
-                    <input
+                    <input disabled={Boolean(readOnly)}
                       type="radio"
                       name={field.key}
                       checked={draft[field.key] === option.value}
@@ -1958,7 +1983,7 @@ export function UNIT_2_1StudentActivityForm({
                 ))}
               </div>
             ) : (
-              <input
+              <input disabled={Boolean(readOnly)}
                 type={field.type}
                 value={typeof draft[field.key] === 'string' ? (draft[field.key] as string) : ''}
                 onChange={(event) => setDraft((prev) => ({ ...prev, [field.key]: event.target.value }))}
@@ -1971,8 +1996,8 @@ export function UNIT_2_1StudentActivityForm({
       </div>
 
       <button
-        type="button"
-        onClick={() => onSubmit(buildResponse())}
+        type="button" disabled={Boolean(readOnly)}
+        onClick={() => commitStudentResponse(buildResponse())}
         className="premium-lesson-action-primary mt-5"
       >
         {activity.submitLabel ?? '提交'}
@@ -1981,7 +2006,7 @@ export function UNIT_2_1StudentActivityForm({
       <SubmissionStatus
         submitted={Boolean(savedResponse)}
         submittedText="提交成功，教师端已收到你的作答。"
-        idleText="提交后会同步到教师端汇总。"
+        idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '提交后会同步到教师端汇总。'}
       />
 
       {savedResponse?.summary?.resultState ? (

@@ -292,6 +292,7 @@ export function UNIT_3_9StudentPage({
             revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            readOnly={isDemo}
           />
         </div>
 

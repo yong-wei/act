@@ -340,6 +340,7 @@ export function UNIT_4_2StudentPage({
             revealProgress={revealProgress}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            readOnly={isDemo}
           />
         </div>
 

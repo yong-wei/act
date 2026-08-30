@@ -1791,7 +1791,6 @@ export function UNIT_5_2StudentActivityForm({
   readOnly?: boolean;
 }) {
 
-  void readOnly;
   const activeManifest = requireUnit52Manifest(manifest);
   const stepManifest = getUNIT_5_2ManifestStepFromManifest(activeManifest, step.id);
   return (
@@ -1805,6 +1804,7 @@ export function UNIT_5_2StudentActivityForm({
         browseEnabled,
         answerVisible,
         revealProgress,
+        readOnly,
         onSubmit,
       })}
     </>

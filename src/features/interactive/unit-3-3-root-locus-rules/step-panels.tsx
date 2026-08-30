@@ -222,14 +222,18 @@ function getStepBlueprint(step: UNIT_3_3StepDefinition): StepBlueprint {
   }
 }
 
-function ChoiceGroup({ options, value, onChange }: { options: ChoiceOption[]; value: string; onChange: (value: string) => void }) {
+function ChoiceGroup({ options, value, onChange, disabled = false }: { options: ChoiceOption[]; value: string; onChange: (value: string) => void; disabled?: boolean }) {
   return (
     <div className="grid gap-2">
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-control justify-start text-left ${value === option.value ? 'ring-2 ring-cyan-400' : ''}`}
         >
           {option.label}
@@ -239,10 +243,11 @@ function ChoiceGroup({ options, value, onChange }: { options: ChoiceOption[]; va
   );
 }
 
-function TextInput({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
+function TextInput({ value, onChange, placeholder, disabled = false }: { value: string; onChange: (value: string) => void; placeholder: string; disabled?: boolean }) {
   return (
     <textarea aria-label={placeholder}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input min-h-[120px] w-full resize-y"
@@ -1187,8 +1192,11 @@ export function UNIT_3_3StudentActivityForm({
   onSubmit: (response: UNIT_3_3StepResponse) => void;
   readOnly?: boolean;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
 
-  void readOnly;
   const activity = useMemo(() => getActivitySpec(step), [step]);
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [sequence, setSequence] = useState(WORKFLOW_SEQUENCE.map((item) => item.id));
@@ -1200,7 +1208,7 @@ export function UNIT_3_3StudentActivityForm({
 
   const submitted = Boolean(savedResponse);
   const locked = !released && activity.kind !== 'none';
-  const submit = (answers: Record<string, string>) => onSubmit({ stepId: step.id, submittedAt: Date.now(), answers });
+  const submit = (answers: Record<string, string>) => commitStudentResponse({ stepId: step.id, submittedAt: Date.now(), answers });
   const browseHint =
     step.id === 'step-07' || step.id === 'step-09' || step.id === 'step-11'
       ? browseEnabled || revealProgress > 0
@@ -1216,9 +1224,9 @@ export function UNIT_3_3StudentActivityForm({
       <div className="grid gap-4">
         <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
           <div className="premium-lesson-title text-sm font-medium">你的判断</div>
-          <div className="mt-3"><ChoiceGroup options={activity.options} value={draft.choice ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, choice: value }))} /></div>
+          <div className="mt-3"><ChoiceGroup disabled={Boolean(readOnly)} options={activity.options} value={draft.choice ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, choice: value }))} /></div>
         </div>
-        <button type="button" onClick={() => submit({ choice: draft.choice ?? '' })} className="premium-lesson-action-primary">{submitted ? '重新提交判断' : '提交判断'}</button>
+        <button type="button" disabled={Boolean(readOnly)} onClick={() => submit({ choice: draft.choice ?? '' })} className="premium-lesson-action-primary">{submitted ? '重新提交判断' : '提交判断'}</button>
       </div>
     );
   } else if (activity.kind === 'worked_example' || activity.kind === 'activity_cards') {
@@ -1229,11 +1237,11 @@ export function UNIT_3_3StudentActivityForm({
             <div key={card.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
               <div className="premium-lesson-title text-sm font-medium">{card.title}</div>
               <div className="premium-lesson-muted mt-2 text-sm">{card.prompt}</div>
-              <div className="mt-3"><TextInput value={draft[card.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [card.key]: value }))} placeholder={card.placeholder} /></div>
+              <div className="mt-3"><TextInput disabled={Boolean(readOnly)} value={draft[card.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [card.key]: value }))} placeholder={card.placeholder} /></div>
             </div>
           ))}
         </div>
-        <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交作答卡' : '提交作答卡'}</button>
+        <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交作答卡' : '提交作答卡'}</button>
       </div>
     );
   } else if (activity.kind === 'sequence_sort') {
@@ -1250,8 +1258,8 @@ export function UNIT_3_3StudentActivityForm({
                   <div className="flex items-center justify-between gap-3">
                     <div><div className="font-medium">{index + 1}. {item.label}</div><div className="premium-lesson-muted mt-1 text-sm">{item.explanation}</div></div>
                     <div className="flex gap-2">
-                      <button type="button" disabled={index === 0} onClick={() => setSequence((prev) => { const next = [...prev]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })} className="premium-lesson-control disabled:opacity-40"><ArrowUp className="h-4 w-4" /></button>
-                      <button type="button" disabled={index === sequence.length - 1} onClick={() => setSequence((prev) => { const next = [...prev]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next; })} className="premium-lesson-control disabled:opacity-40"><ArrowDown className="h-4 w-4" /></button>
+                      <button type="button" disabled={Boolean(readOnly) || index === 0} onClick={() => { if (readOnly) return; setSequence((prev) => { const next = [...prev]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; }); }} className="premium-lesson-control disabled:opacity-40"><ArrowUp className="h-4 w-4" /></button>
+                      <button type="button" disabled={Boolean(readOnly) || index === sequence.length - 1} onClick={() => { if (readOnly) return; setSequence((prev) => { const next = [...prev]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; return next; }); }} className="premium-lesson-control disabled:opacity-40"><ArrowDown className="h-4 w-4" /></button>
                     </div>
                   </div>
                 </div>
@@ -1259,7 +1267,7 @@ export function UNIT_3_3StudentActivityForm({
             })}
           </div>
         </div>
-        <button type="button" onClick={() => submit({ order: sequence.join('||') })} className="premium-lesson-action-primary">{submitted ? '重新提交排序' : '提交排序'}</button>
+        <button type="button" disabled={Boolean(readOnly)} onClick={() => submit({ order: sequence.join('||') })} className="premium-lesson-action-primary">{submitted ? '重新提交排序' : '提交排序'}</button>
       </div>
     );
   } else if (activity.kind === 'classification_cards') {
@@ -1269,11 +1277,11 @@ export function UNIT_3_3StudentActivityForm({
           {CLASSIFICATION_CARDS.map((card) => (
             <div key={card.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
               <div className="premium-lesson-title text-sm font-medium">{card.prompt}</div>
-              <div className="mt-3"><ChoiceGroup options={CLASSIFICATION_OPTIONS} value={draft[card.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [card.key]: value }))} /></div>
+              <div className="mt-3"><ChoiceGroup disabled={Boolean(readOnly)} options={CLASSIFICATION_OPTIONS} value={draft[card.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [card.key]: value }))} /></div>
             </div>
           ))}
         </div>
-        <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交分类' : '提交分类'}</button>
+        <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交分类' : '提交分类'}</button>
       </div>
     );
   } else if (activity.kind === 'quiz_group') {
@@ -1284,14 +1292,14 @@ export function UNIT_3_3StudentActivityForm({
             <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
             <div className="mt-3">
               {question.type === 'text' ? (
-                <TextInput value={draft[question.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))} placeholder="请用 1-2 句话作答。" />
+                <TextInput disabled={Boolean(readOnly)} value={draft[question.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))} placeholder="请用 1-2 句话作答。" />
               ) : (
-                <ChoiceGroup options={question.options ?? []} value={draft[question.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))} />
+                <ChoiceGroup disabled={Boolean(readOnly)} options={question.options ?? []} value={draft[question.key] ?? ''} onChange={(value) => setDraft((prev) => ({ ...prev, [question.key]: value }))} />
               )}
             </div>
           </div>
         ))}
-        <button type="button" onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交后测' : '提交后测'}</button>
+        <button type="button" disabled={Boolean(readOnly)} onClick={() => submit(draft)} className="premium-lesson-action-primary">{submitted ? '重新提交后测' : '提交后测'}</button>
       </div>
     );
   }
@@ -1301,7 +1309,8 @@ export function UNIT_3_3StudentActivityForm({
       <div className="premium-lesson-title text-sm font-medium">学生作答区</div>
       <p className="premium-lesson-muted mt-2 text-sm">{locked ? '教师尚未释放本页互动，请先阅读上方静态内容。' : browseHint}</p>
       {locked ? <div className="premium-lesson-tone-block premium-tone-amber mt-4 text-sm">当前互动尚未释放。</div> : <div className="mt-4">{body}</div>}
-      <SubmissionStatus submitted={submitted} />
+      <SubmissionStatus submitted={submitted}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined} />
       {answerVisible && getRevealContent(step) ? <div className="premium-lesson-tone-block premium-tone-emerald mt-4 text-sm leading-7">{getRevealContent(step)}</div> : null}
     </section>
   );

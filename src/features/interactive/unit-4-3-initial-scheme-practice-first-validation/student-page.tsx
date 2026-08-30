@@ -350,6 +350,7 @@ export function UNIT_4_3StudentPage({
             workspaceParameters={workspaceParametersByStep[step.id]}
             onSubmit={handleSubmitResponse}
             onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            readOnly={isDemo}
           />
         </div>
 

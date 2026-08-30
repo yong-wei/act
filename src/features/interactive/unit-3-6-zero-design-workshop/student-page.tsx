@@ -324,6 +324,7 @@ export function UNIT_3_6StudentPage({
               answerVisible={answerVisible}
               onSubmit={handleSubmitResponse}
               onWorkspaceParameterChange={handleWorkspaceParameterChange}
+            readOnly={isDemo}
             />
           </div>
         ) : (

@@ -497,6 +497,7 @@ export const APP_SHELL_COMPATIBLE_WRAPPERS: readonly AppShellCompatibleWrapperCo
       '/interactive-learning/chapter-components',
       '/interactive-learning/chapter-components/*',
       '/interactive-learning/cross-domain-exploration',
+      '/interactive-learning/multi-representation-linkage',
       '/interactive-learning/resources/*',
     ],
     requiredDomContracts: ['canonical-navigation', 'breadcrumb', 'theme-switch-then-personal-center'],
@@ -715,15 +716,6 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
   },
   {
     routePattern: '/interactive-learning/control-odyssey',
-    category: 'legacy-interactive-demo',
-    type: 'legacy-demo-only',
-    owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
-    reason: 'Legacy standalone interactive demo pending migration into the Interactive Learning shell.',
-    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
-    removalCondition: 'The demo is migrated into InteractiveLearningShell or removed from app routes.',
-  },
-  {
-    routePattern: '/interactive-learning/multi-representation-linkage',
     category: 'legacy-interactive-demo',
     type: 'legacy-demo-only',
     owner: DEEP_PRODUCT_APP_SHELL_CHANGE_ID,
