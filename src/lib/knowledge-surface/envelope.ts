@@ -22,6 +22,7 @@ import type {
   KnowledgeSurfaceRole,
   KnowledgeSurfaceTeachingIdentity,
 } from './types';
+import type { KnowledgeSurfaceLatestCutover } from './latest-cutover';
 
 const SHARD_KIND: Record<AuthorityShardClass, KnowledgeSurfaceKind> = {
   root: 'root',
@@ -83,6 +84,7 @@ export function knowledgeSurfaceFromLearnerShard(input: {
   registryIndex?: KnowledgeSurfaceRegistryIndexIdentity | null;
   teachingCaptureRevision?: string | null;
   classifyLearningContent?: boolean;
+  latestCutover?: KnowledgeSurfaceLatestCutover;
 }): KnowledgeSurfaceReadResult {
   const { teaching, teachingMatch } = teachingFromShard(
     input.shard,
@@ -136,6 +138,7 @@ export function knowledgeSurfaceFromLearnerShard(input: {
         releaseHash: GOVERNED_MATH_PRESENTATION_BUNDLE.releaseHash,
         locale: input.locale,
       },
+    latestCutover: input.latestCutover,
   });
 }
 
@@ -145,6 +148,7 @@ export function knowledgeSurfaceFromActiveProvenance(input: {
   role: KnowledgeSurfaceRole;
   surfaceKey: string;
   locale?: string;
+  latestCutover?: KnowledgeSurfaceLatestCutover;
 }): KnowledgeSurfaceReadResult {
   return readKnowledgeSurface({
     mode: 'active',
@@ -162,6 +166,7 @@ export function knowledgeSurfaceFromActiveProvenance(input: {
     },
     includeTeachingContent: false,
     includeResourceContent: false,
+    latestCutover: input.latestCutover,
   });
 }
 

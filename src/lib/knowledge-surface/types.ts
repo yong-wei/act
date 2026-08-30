@@ -1,4 +1,5 @@
 import type { KnowledgeRole } from '@/lib/authoritative-knowledge/contracts';
+import type { KnowledgeSurfaceLatestCutover } from './latest-cutover';
 
 export const KNOWLEDGE_SURFACE_CONTRACT = 'act-knowledge-surface/v1' as const;
 
@@ -89,6 +90,7 @@ export interface KnowledgeSurfaceResponse {
   teaching: KnowledgeSurfaceTeachingIdentity | null;
   registryIndex: KnowledgeSurfaceRegistryIndexIdentity | null;
   math: KnowledgeSurfaceMathIdentity | null;
+  latestCutover: KnowledgeSurfaceLatestCutover;
   blocks: KnowledgeSurfaceBlocks;
 }
 
@@ -104,6 +106,7 @@ export interface KnowledgeSurfaceReadRequest {
   teachingMatch?: boolean | null;
   registryIndex?: KnowledgeSurfaceRegistryIndexIdentity | null;
   math?: KnowledgeSurfaceMathIdentity | null;
+  latestCutover?: KnowledgeSurfaceLatestCutover;
   includeTeachingContent?: boolean;
   includeResourceContent?: boolean;
   learningContentStatus?: KnowledgeSurfaceBlockStatus;
