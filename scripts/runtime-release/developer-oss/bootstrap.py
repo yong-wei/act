@@ -21,6 +21,7 @@ from common import (
     DEFAULT_READYZ_URL,
     DeveloperRuntimeError,
     IDENTITY_KEYS,
+    authority_id,
     OSS_BUCKET,
     PUBLIC_OSS_ENDPOINT,
     READYZ_RUNTIME_KEYS,
@@ -686,7 +687,20 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
             )
         unmount(helper_mount)
         if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
-            release_lease(checkout, str(receipt["sharedMountId"]), unmount)
+            # 共享拓扑释放前双重证明（Issue #1713 P1）：sharedMountId 必须归属当前
+            # credential 的共享 mount，且其上存在本 checkout 的 live lease；否则视为
+            # 所有权不确定，保留全部现场。
+            claimed_mount = str(receipt["sharedMountId"])
+            if claimed_mount != authority_id(credential["accountId"]):
+                raise DeveloperRuntimeError(
+                    "repair refused: selection sharedMountId does not belong to this credential",
+                )
+            lease = read_leases(claimed_mount).get("leases", {}).get(checkout_id(checkout))
+            if not isinstance(lease, dict) or lease.get("releaseId") != receipt.get("releaseId"):
+                raise DeveloperRuntimeError(
+                    "repair refused: no live lease bound to this checkout on the claimed shared mount",
+                )
+            release_lease(checkout, claimed_mount, unmount)
         else:
             blob_mount = Path(receipt["blobMount"])
             if not _path_owned_by_checkout(blob_mount, state, receipt):

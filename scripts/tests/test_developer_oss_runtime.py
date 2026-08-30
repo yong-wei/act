@@ -1438,3 +1438,74 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             self.assertIn("uncertain ownership", str(raised.exception))
             # 他人视图未被破坏：目录仍然存在
             self.assertTrue(foreign.exists())
+
+    def test_repair_refuses_shared_release_without_proven_identity_and_lease(self):
+        """Issue #1713 P1：repair 释放共享 mount 前必须证明 identity 归属与本 checkout lease。"""
+        from bootstrap import repair
+        from common import DeveloperRuntimeError, authority_id, checkout_state
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            install_credential(checkout, {
+                "schemaVersion": "act-runtime-dev-read-credential.v1",
+                "accountId": "123456789012",
+                "accessKeyId": "LTAIexamplekeyid01",
+                "accessKeySecret": "super-secret-value-1234",
+                "region": "cn-hangzhou",
+            })
+            state = checkout_state(checkout)
+            own_mount = authority_id("123456789012")
+            runtime_root = checkout / "course-content" / "runtime"
+            readiness = {
+                "schemaVersion": "act-runtime-release.v2",
+                "releaseId": "runtime-" + ("a" * 55),
+                "manifestSha256": "b" * 64,
+                "treeSha256": "c" * 64,
+            }
+            identity = {
+                "AccountId": "123456789012",
+                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
+                "UserId": "1",
+            }
+            base = {
+                "schemaVersion": "act-runtime-dev-selection.v2",
+                "releaseId": readiness["releaseId"],
+                "manifestSha256": readiness["manifestSha256"],
+                "treeSha256": readiness["treeSha256"],
+                "blobMount": str(state / "blobs"),
+                "helperMount": str(state / "materialized" / "current" / ".act-runtime-blobs"),
+                "viewRoot": str(state / "materialized" / "current"),
+                "runtimeRoot": str(runtime_root),
+                "checkoutId": checkout_id(checkout),
+                "sharedMountId": "",
+                "topology": "shared",
+                "startedAt": "2026-08-30T00:00:00Z",
+            }
+
+            def run_repair_with(shared_mount_id, leases):
+                selection = {**base, "sharedMountId": shared_mount_id}
+                from common import checkout_id as _cid
+                del _cid
+                write_selection_receipt(state / "selection.json", selection)
+                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
+                        mock.patch("bootstrap.caller_identity", return_value=identity), \
+                        mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
+                        mock.patch("bootstrap.stop_services"), \
+                        mock.patch("bootstrap.read_leases", return_value=leases), \
+                        mock.patch("bootstrap.release_lease") as released:
+                    with self.assertRaises(DeveloperRuntimeError) as raised:
+                        repair(checkout)
+                self.assertIn("refused", str(raised.exception))
+                released.assert_not_called()
+
+            # 场景 1：sharedMountId 指向其他 credential 的共享 mount
+            run_repair_with(authority_id("999999999999"), {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            # 场景 2：identity 正确但无本 checkout 的 live lease（空/仅 stale 记录）
+            run_repair_with(own_mount, {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            # 场景 3：lease 存在但绑定不同 Release
+            run_repair_with(own_mount, {
+                "schemaVersion": "act-runtime-dev-shared-lease.v1",
+                "leases": {checkout_id(checkout): {"releaseId": "runtime-" + ("f" * 55)}},
+            })
