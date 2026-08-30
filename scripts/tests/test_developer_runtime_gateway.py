@@ -11,6 +11,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 DEV = ROOT / "scripts/runtime-release/developer-oss"
@@ -681,6 +682,72 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
         self.assertEqual(len(results), 8)
         tokens = {row["transport"]["token"] for row in results}
         self.assertEqual(len(tokens), 1)
+
+    def test_stale_heartbeat_expires_lease_even_after_restart(self):
+        clock = Clock()
+        host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            store = Path(raw) / "leases.json"
+            service = GatewayService(
+                TOKEN,
+                host,
+                time_fn=clock,
+                heartbeat_grace_seconds=30,
+                lease_store=store,
+            )
+            issued = service.issue_lease(identity_a, "checkout-a")
+            body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
+            self.assertEqual(body, b"a-only")
+            clock.now += 31
+            with self.assertRaises(GatewayError):
+                service.renew_transport(issued["leaseId"])
+            restarted = GatewayService(
+                TOKEN,
+                host,
+                time_fn=clock,
+                heartbeat_grace_seconds=30,
+                lease_store=store,
+            )
+            with self.assertRaises(GatewayError):
+                restarted.renew_transport(issued["leaseId"])
+            with self.assertRaises(GatewayError):
+                restarted.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
+
+    def test_heartbeat_keeps_lease_live_across_grace_boundary(self):
+        clock = Clock()
+        host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host, time_fn=clock, heartbeat_grace_seconds=30)
+        issued = service.issue_lease(identity_a, "checkout-a")
+        clock.now += 29
+        service.heartbeat(issued["leaseId"])
+        clock.now += 29
+        body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
+        self.assertEqual(body, b"a-only")
+
+    def test_fuse_heartbeat_posts_every_session_lease(self):
+        from gateway_fuse import heartbeat_session_leases
+        with tempfile.TemporaryDirectory() as raw:
+            session = Path(raw) / "gateway-session.json"
+            session.write_text(json.dumps({
+                "gatewayUrl": "https://runtime-dev.adapt-learn.online",
+                "token": TOKEN,
+                "leaseId": "checkout-lease",
+                "leases": {"a": {"leaseId": "shared-lease"}},
+            }), encoding="utf-8")
+            with mock.patch("gateway_fuse.GatewayClient") as client_cls:
+                heartbeat_session_leases(session)
+            heartbeats = [call.args[0] for call in client_cls.return_value.heartbeat.call_args_list]
+            self.assertCountEqual(heartbeats, ["checkout-lease", "shared-lease"])
+
+    def test_default_rate_limiter_matches_nginx_contract(self):
+        limiter = RateLimiter()
+        now = 1000.0
+        for _ in range(30):
+            limiter.check("client", now)
+        with self.assertRaises(GatewayError) as raised:
+            limiter.check("client", now)
+        self.assertEqual(raised.exception.status, 429)
+        limiter.check("client", now + 1.0)
 
 
 if __name__ == "__main__":

@@ -489,6 +489,28 @@ def verify_shared_record(record: dict[str, Any], gateway_origin: str) -> None:
         verify_live_mount(mountpoint)
 
 
+def observe_shared_mount(credential: dict[str, str]) -> dict[str, Any]:
+    """Read-only shared-mount observation used on every prepare path, including reuse.
+
+    Identity, options and live FUSE provenance are proven here. This function
+    MUST NOT write a gateway session or mount Blobs; those happen only after a
+    successful lease attach.
+    """
+    origin = credential.get("origin")
+    if not origin:
+        fail("gateway origin is missing")
+    mount_id = authority_id(origin)
+    blob_root = shared_mount_dir(mount_id) / "blobs"
+    record = read_shared_record(mount_id)
+    if record:
+        verify_shared_record(record, origin)
+    return {
+        "identityId": mount_id,
+        "mountpoint": str(blob_root),
+        "record": record,
+    }
+
+
 def verify_shared_release(
     claimed_mount: str,
     gateway_origin: str,
@@ -564,11 +586,23 @@ def write_shared_gateway_session(
                 existing = loaded
         except (OSError, json.JSONDecodeError):
             existing = {}
+    blob_root = shared_mount_dir(mount_id) / "blobs"
+    live_token = existing.get("token")
+    if (
+        use_real_fuse()
+        and is_mounted(blob_root)
+        and isinstance(live_token, str)
+        and live_token
+        and live_token != credential["token"]
+    ):
+        fail("live shared gateway session token must not be replaced")
     payload = {
         "schemaVersion": GATEWAY_SESSION_SCHEMA,
         "gatewayUrl": credential["gatewayUrl"],
         "leases": leases if leases is not None else existing.get("leases") or {},
-        "token": credential["token"],
+        "token": live_token if (
+            use_real_fuse() and is_mounted(blob_root) and isinstance(live_token, str) and live_token
+        ) else credential["token"],
     }
     write_private_bytes(path, (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"))
 
@@ -659,14 +693,13 @@ def mount_gateway_blobs(blob_root: Path, session_path: Path | None = None, cache
 
 
 def ensure_shared_mount(credential: dict[str, str], _legacy: str | None = None) -> dict[str, Any]:
-    origin = credential.get("origin")
-    if not origin:
-        fail("gateway origin is missing")
-    mount_id = authority_id(origin)
+    observed = observe_shared_mount(credential)
+    origin = credential["origin"]
+    mount_id = str(observed["identityId"])
     root = shared_mount_dir(mount_id)
     cache = ossfs_cache_dir(mount_id)
     logs = persistent_cache_dir(mount_id) / "logs"
-    blob_root = root / "blobs"
+    blob_root = Path(observed["mountpoint"])
     ensure_private_dir(root)
     ensure_private_dir(persistent_cache_dir(mount_id))
     cache.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -674,10 +707,9 @@ def ensure_shared_mount(credential: dict[str, str], _legacy: str | None = None) 
     logs.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(logs, 0o700)
     write_shared_gateway_session(mount_id, credential)
-    record = read_shared_record(mount_id)
+    record = observed["record"]
     expected_identity = authority_identity(origin)
     if record:
-        verify_shared_identity(record, origin)
         if use_real_fuse():
             if is_mounted(blob_root):
                 verify_live_mount(blob_root)
@@ -757,6 +789,28 @@ def heartbeat_lease(checkout: Path, mount_id: str, selection: dict[str, Any] | N
         lease["viewRoot"] = selection.get("viewRoot") or lease.get("viewRoot")
     payload["leases"][key] = lease
     write_leases(mount_id, payload)
+    _heartbeat_gateway_checkout(checkout)
+
+
+def _heartbeat_gateway_checkout(checkout: Path) -> None:
+    path = checkout_gateway_session_path(checkout)
+    contact = os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") != "1" or os.environ.get("ACT_RUNTIME_DEV_GATEWAY_HTTP")
+    if not contact or not path.is_file() or path.is_symlink():
+        return
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        lease_id = payload.get("leaseId")
+        gateway_url = payload.get("gatewayUrl")
+        token = payload.get("token")
+        if isinstance(lease_id, str) and isinstance(gateway_url, str) and isinstance(token, str):
+            from gateway_client import GatewayClient
+            from gateway_service import GatewayError
+            try:
+                GatewayClient(gateway_url, token).heartbeat(lease_id)
+            except GatewayError:
+                fail("developer runtime gateway refused the checkout heartbeat")
+    except (OSError, json.JSONDecodeError, KeyError):
+        return
 
 
 def release_lease(checkout: Path, mount_id: str, unmount_blob: UnmountFn) -> None:

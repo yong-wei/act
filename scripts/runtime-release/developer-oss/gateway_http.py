@@ -26,12 +26,15 @@ MAX_BODY = 64 * 1024
 
 
 class RateLimiter:
-    def __init__(self, limit: int = 60) -> None:
+    """Match nginx `rate=30r/s` for the developer gateway loopback surface."""
+
+    def __init__(self, limit: int = 30, window_seconds: float = 1.0) -> None:
         self.limit = limit
+        self.window_seconds = window_seconds
         self._hits: dict[str, list[float]] = {}
 
     def check(self, key: str, now: float) -> None:
-        window = [stamp for stamp in self._hits.get(key, []) if now - stamp < 60]
+        window = [stamp for stamp in self._hits.get(key, []) if now - stamp < self.window_seconds]
         if len(window) >= self.limit:
             raise GatewayError(429, "denied", DENIED_BODY)
         window.append(now)

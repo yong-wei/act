@@ -31,6 +31,10 @@ MANIFEST_KEYS = (
 FILE_KEYS = ("path", "objectKey", "sizeBytes", "sha256")
 BLOB_PREFIX = "runtime/blobs/sha256/"
 TRANSPORT_TTL_SECONDS = 900
+# Checkout liveness is heartbeat, not an immortal live flag. Grace is longer than
+# transport TTL so a running checkout that is not fetching bodies stays valid,
+# and shorter than an unbounded window after kill -9 / crash without DELETE.
+HEARTBEAT_GRACE_SECONDS = 3600
 DENIED_BODY = b'{"error":"denied"}'
 NOT_FOUND_BODY = b'{"error":"not found"}'
 UNAVAILABLE_BODY = b'{"error":"unavailable"}'
@@ -293,6 +297,7 @@ class GatewayService:
         *,
         time_fn: Callable[[], float] | None = None,
         transport_ttl_seconds: int = TRANSPORT_TTL_SECONDS,
+        heartbeat_grace_seconds: int = HEARTBEAT_GRACE_SECONDS,
         token_fn: Callable[[], str] | None = None,
         lease_store: Path | None = None,
     ) -> None:
@@ -303,6 +308,7 @@ class GatewayService:
         self._host = host
         self._time = time_fn or time.time
         self._transport_ttl = transport_ttl_seconds
+        self._heartbeat_grace = heartbeat_grace_seconds
         self._lease_store = lease_store
         self._lock = threading.Lock()
         self._leases: dict[str, Lease] = {}
@@ -494,6 +500,12 @@ class GatewayService:
             raise GatewayError(401, "denied", DENIED_BODY)
         if lease.token_fingerprint != token_fingerprint(self.current_token()):
             raise GatewayError(401, "denied", DENIED_BODY)
+        now = self._time()
+        if now - lease.heartbeat_at > self._heartbeat_grace:
+            lease.live = False
+            lease.transport = None
+            self._persist_leases()
+            raise GatewayError(401, "denied", DENIED_BODY)
         return lease
 
     def _authorized_lease(self, lease_id: str, transport_token: str | None) -> Lease:
@@ -579,6 +591,8 @@ class GatewayService:
                 continue
             lease = self._lease_from_record(item)
             if lease is None or not lease.live or lease.token_fingerprint != current:
+                continue
+            if self._time() - lease.heartbeat_at > self._heartbeat_grace:
                 continue
             restored[lease.lease_id] = lease
         self._leases = restored

@@ -97,6 +97,11 @@ class GatewayClient:
             _raise_http(status, body)
         return json.loads(body.decode("utf-8"))
 
+    def heartbeat(self, lease_id: str) -> None:
+        status, body, _ = self._request("POST", "v1/leases/%s/heartbeat" % lease_id)
+        if status not in (200, 204):
+            _raise_http(status, body)
+
     def stop_lease(self, lease_id: str) -> None:
         self._request("DELETE", "v1/leases/%s" % lease_id)
 

@@ -182,11 +182,11 @@ Development services SHALL serve lesson media from the materialized active view 
 - **THEN** the service SHALL serve or fail from the local materialized view instead of issuing that redirect
 
 ### Requirement: Materialized developer runtime is readable and complete before services start
-The developer runtime bootstrap SHALL validate the selected manifest's complete logical path set from the same Linux user context that will run the application. Every logical leaf MUST resolve through a relative link to the qualified Blob root, remain below that root, be traversable and readable by the consumer user, and produce the manifest-declared size and SHA-256. Bootstrap SHALL also verify the required runtime governance artifact set for enabled application capabilities. It MUST NOT start consumers or report runtime ready when any path, Blob, permission, digest or required artifact check fails.
+The developer runtime bootstrap SHALL validate the selected manifest's complete logical path set from the same Linux user context that will run the application. Every logical leaf MUST resolve through a relative link to the qualified Blob root, remain below that root, be traversable by the consumer user, and match the manifest-declared size from metadata (`stat`/`getattr`). Bootstrap SHALL also verify the required runtime governance artifact set for enabled application capabilities by opening that bounded JSON set. It MUST NOT open or hash the complete Blob body set during startup, because that would prefetch the runtime through the gateway FUSE data plane. Blob SHA-256 SHALL be proven on the unique cache write path when a consumer first reads the Blob. It MUST NOT start consumers or report runtime ready when any path, permission, size or required artifact check fails.
 
 #### Scenario: Complete manifest-bound view is consumer-readable
-- **WHEN** every manifest leaf resolves to a readable Blob with the declared size and digest and all required governance artifacts are present
-- **THEN** bootstrap SHALL start services against that fixed view and readiness SHALL report its Release, manifest digest, tree digest and successful filesystem verification
+- **WHEN** every manifest leaf resolves through a relative Blob link, metadata size matches the manifest, and all required governance artifacts are present
+- **THEN** bootstrap SHALL start services against that fixed view and readiness SHALL report its Release, manifest digest, tree digest and successful filesystem verification. Blob body SHA-256 SHALL be proven later on the first consumer read through the cache write path.
 
 #### Scenario: Blob target exists but consumer cannot read it
 - **WHEN** link traversal or opening the target as the application user returns a permission error

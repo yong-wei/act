@@ -62,6 +62,7 @@ from shared_mount import (
     privileged_mount,
     live_lease_ids,
     mount_gateway_blobs,
+    observe_shared_mount,
     read_leases,
     shared_mount_dir,
     refuse_legacy_checkout_mount,
@@ -507,12 +508,11 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
     existing = read_selection_receipt(receipt_path)
     runtime_root = checkout / "course-content" / "runtime"
     mount_id: str | None = None
-    shared: dict[str, Any] | None = None
     if topology == TOPOLOGY_SHARED:
         refuse_legacy_checkout_mount(checkout)
-        shared = ensure_shared_mount(credential)
-        blob_root = Path(shared["mountpoint"])
-        mount_id = str(shared["identityId"])
+        observed = observe_shared_mount(credential)
+        mount_id = str(observed["identityId"])
+        blob_root = Path(observed["mountpoint"])
     else:
         refuse_live_shared_for_checkout_topology(origin)
         blob_root = state / "blobs"
@@ -561,7 +561,11 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
     helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
     acquired = False
     try:
-        if topology == TOPOLOGY_CHECKOUT:
+        if topology == TOPOLOGY_SHARED:
+            shared = ensure_shared_mount(credential)
+            blob_root = Path(shared["mountpoint"])
+            mount_id = str(shared["identityId"])
+        elif topology == TOPOLOGY_CHECKOUT:
             blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
             cache_dir = checkout_state(checkout) / "cache"
             cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)

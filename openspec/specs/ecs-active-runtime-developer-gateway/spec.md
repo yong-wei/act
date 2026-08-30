@@ -52,6 +52,14 @@ After a lease is issued, Blob GET SHALL use that lease's frozen allowlist rather
 - **WHEN** a checkout still holds a live lease for Release A, production has activated Release B, and the short-lived transport credential expires
 - **THEN** renewal SHALL reissue transport access for the same A allowlist and SHALL NOT require A to be host-active
 
+#### Scenario: Heartbeats prove a checkout is still live
+- **WHEN** the checkout's gateway adapter continues to heartbeat within the grace interval
+- **THEN** the lease SHALL remain live and transport renewal SHALL succeed even after a wall-clock duration longer than the transport TTL
+
+#### Scenario: Lost checkout without DELETE does not keep a perpetual lease
+- **WHEN** heartbeats stop beyond the grace interval after a crash or kill, and the checkout did not DELETE the lease
+- **THEN** the gateway SHALL treat the lease as not live, SHALL NOT restore it from the lease store, and SHALL reject transport renewal and Blob GET
+
 ### Requirement: Gateway isolation does not weaken production serving
 The gateway process, reverse-proxy path and rate limits SHALL be isolated from student runtime serving. Gateway faults SHALL NOT unmount production ossfs, SHALL NOT change selectors, and SHALL NOT disable student media signing.
 

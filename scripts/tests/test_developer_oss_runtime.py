@@ -658,6 +658,26 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             with self.assertRaises(DeveloperRuntimeError):
                 self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
 
+    def test_live_shared_session_token_is_not_replaced(self):
+        from shared_mount import gateway_session_path, write_shared_gateway_session
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            self._shared_env(raw, checkout)
+            credential = parse_credential(GATEWAY_CREDENTIAL)
+            from shared_mount import ensure_shared_mount
+            ensure_shared_mount(credential)
+            mount_id = authority_id(GATEWAY_ORIGIN)
+            path = gateway_session_path(mount_id)
+            live_token = json.loads(path.read_text(encoding="utf-8"))["token"]
+            other = {**credential, "token": "b" * 32}
+            with mock.patch("shared_mount.use_real_fuse", return_value=True), \
+                    mock.patch("shared_mount.is_mounted", return_value=True):
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    write_shared_gateway_session(mount_id, other)
+            self.assertIn("must not be replaced", str(raised.exception))
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["token"], live_token)
+
     def test_stale_lease_is_reclaimed_without_deleting_cache(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"
@@ -1146,6 +1166,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             verified = self._run_gate(selected, manifest, registry_path)
             self.assertEqual(verified["releaseId"], manifest["releaseId"])
             self.assertEqual(verified["leafCount"], 2)
+            self.assertEqual(verified["hashedLeafCount"], 0)
             self.assertEqual(verified["consumerUid"], os.geteuid())
             self.assertEqual(len(verified["requiredArtifacts"]), 1)
             receipt_path_target = root / "course-content" / consumer_readiness.RECEIPT_FILENAME
@@ -1171,6 +1192,33 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 runtime_root=root / "course-content" / "runtime",
                 consumer_uid=os.geteuid() + 1,
             ))
+
+    def test_consumer_gate_does_not_open_manifest_leaf_bodies(self):
+        import builtins
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            lesson = selected / "lessons" / "1-1" / "lesson.json"
+            blob = Path(os.path.realpath(lesson))
+            opened: list[str] = []
+            real_open = builtins.open
+
+            def wrapped(path, *args, **kwargs):
+                try:
+                    resolved = os.path.realpath(os.fspath(path))
+                except (OSError, TypeError):
+                    return real_open(path, *args, **kwargs)
+                if resolved == str(blob.resolve()):
+                    opened.append(resolved)
+                return real_open(path, *args, **kwargs)
+
+            with mock.patch("builtins.open", wrapped):
+                verified = self._run_gate(selected, manifest, registry_path)
+            self.assertEqual(opened, [])
+            self.assertEqual(verified["hashedLeafCount"], 0)
 
     def test_consumer_gate_rejects_unreadable_blob_as_permission_denied(self):
         from bootstrap import consumer_gate

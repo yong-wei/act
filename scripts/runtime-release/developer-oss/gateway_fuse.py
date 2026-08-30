@@ -28,8 +28,10 @@ from gateway_service import GatewayError  # noqa: E402
 DIGEST_PATH = re.compile(r"^/?([a-f0-9]{64})$")
 BODY_TRANSFER = "gateway-body-transfer"
 CACHE_HIT = "cache-hit"
+HEARTBEAT_INTERVAL_SECONDS = 60
 _BLOB_LOCKS_GUARD = threading.Lock()
 _BLOB_LOCKS: dict[str, threading.Lock] = {}
+_CACHE_QUOTA_LOCK = threading.Lock()
 
 
 def write_cached_bytes(path: Path, payload: bytes) -> None:
@@ -162,6 +164,49 @@ def iter_lease_entries(session: dict) -> list[dict]:
     return entries
 
 
+def heartbeat_session_leases(session_path: Path) -> None:
+    """Prove checkout liveness from the live FUSE process.
+
+    Wall-clock grace on the gateway expires leases that stop heartbeating.
+    The adapter process is that proof: crash/kill-9 stops this loop.
+    """
+    try:
+        session = json.loads(session_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(session, dict):
+        return
+    url = session.get("gatewayUrl")
+    token = session.get("token")
+    if not isinstance(url, str) or not isinstance(token, str):
+        return
+    client = GatewayClient(url, token)
+    seen: set[str] = set()
+    for entry in iter_lease_entries(session):
+        lease_id = entry.get("leaseId")
+        if not isinstance(lease_id, str) or lease_id in seen:
+            continue
+        seen.add(lease_id)
+        try:
+            client.heartbeat(lease_id)
+        except GatewayError:
+            continue
+
+
+def _session_heartbeat_loop(
+    session_path: Path,
+    stop: threading.Event,
+    interval: float = HEARTBEAT_INTERVAL_SECONDS,
+) -> None:
+    while True:
+        try:
+            heartbeat_session_leases(session_path)
+        except Exception:
+            pass
+        if stop.wait(interval):
+            return
+
+
 def declared_blob_size(session_path: Path, digest: str) -> int | None:
     if not SHA256.fullmatch(digest):
         return None
@@ -263,13 +308,14 @@ def ensure_cached_blob(session_path: Path, cache_dir: Path, digest: str, loader=
         data = loader(digest) if loader is not None else _fetch_blob(session_path, digest)
         if hashlib.sha256(data).hexdigest() != digest:
             fail("developer runtime gateway returned a mismatched blob")
-        enforce_object_cache_quota(cache_dir, len(data), {digest})
-        write_cached_bytes(cached, data)
-        if hash_file(cached) != digest:
-            quarantine_cached_blob(cached)
-            fail("cached blob failed SHA-256 verification")
-        record_blob_operation(cache_dir, BODY_TRANSFER, digest, len(data))
-        return cached
+        with _CACHE_QUOTA_LOCK:
+            enforce_object_cache_quota(cache_dir, len(data), {digest})
+            write_cached_bytes(cached, data)
+            if hash_file(cached) != digest:
+                quarantine_cached_blob(cached)
+                fail("cached blob failed SHA-256 verification")
+            record_blob_operation(cache_dir, BODY_TRANSFER, digest, len(data))
+            return cached
 
 
 def main() -> int:
@@ -293,6 +339,21 @@ def main() -> int:
         def _digest(self, path: str) -> str | None:
             match = DIGEST_PATH.fullmatch(path)
             return match.group(1) if match else None
+
+        def init(self, *args, **kwargs):
+            self._heartbeat_stop = threading.Event()
+            thread = threading.Thread(
+                target=_session_heartbeat_loop,
+                args=(session_path, self._heartbeat_stop),
+                daemon=True,
+                name="gateway-lease-heartbeat",
+            )
+            thread.start()
+
+        def destroy(self, *args, **kwargs):
+            stop = getattr(self, "_heartbeat_stop", None)
+            if stop is not None:
+                stop.set()
 
         def getattr(self, path, fh=None):
             now = int(time.time())
