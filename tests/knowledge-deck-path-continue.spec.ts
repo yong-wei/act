@@ -77,42 +77,47 @@ async function visitAllKnowledgeCards(page: Page) {
   await expect(page.getByRole('button', { name: '继续下一步' })).toBeVisible();
 }
 
-test('path-launched knowledge deck waits for continue, retries failure, then follows the journey', async ({ context, page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await establishAuthenticatedSession(context);
+for (const viewport of [
+  { name: 'desktop-1440', width: 1440, height: 1000 },
+  { name: 'mobile-320', width: 320, height: 900 },
+] as const) {
+  test(`${viewport.name} path-launched knowledge deck waits for continue, retries failure, then follows the journey`, async ({ context, page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await establishAuthenticatedSession(context);
 
-  let attempt = 0;
-  let releaseSuccess: (() => void) | undefined;
-  await page.route('**/api/learning-paths/**/execute', async (route: Route) => {
-    attempt += 1;
-    if (attempt === 1) {
-      await route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"temporary"}' });
-      return;
-    }
-    await new Promise<void>((resolve) => {
-      releaseSuccess = resolve;
+    let attempt = 0;
+    let releaseSuccess: (() => void) | undefined;
+    await page.route('**/api/learning-paths/**/execute', async (route: Route) => {
+      attempt += 1;
+      if (attempt === 1) {
+        await route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"temporary"}' });
+        return;
+      }
+      await new Promise<void>((resolve) => {
+        releaseSuccess = resolve;
+      });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(successfulJourney),
+      });
     });
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(successfulJourney),
-    });
+
+    await page.goto(launchUrl(), { waitUntil: 'domcontentloaded' });
+    await visitAllKnowledgeCards(page);
+
+    await page.getByRole('button', { name: '继续下一步' }).click();
+    await expect(page.getByText('路径进度未能确认，请重试。')).toBeVisible();
+    await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
+    expect(page.url()).toContain('/interactive-learning/resources/lesson01-feedback-knowledge-deck-v1');
+
+    await page.getByRole('button', { name: '重试' }).click();
+    await expect(page.getByRole('button', { name: '正在提交' })).toBeDisabled();
+    releaseSuccess?.();
+
+    await expect(page).toHaveURL(/lesson01-component-role-match/, { timeout: 10_000 });
   });
-
-  await page.goto(launchUrl(), { waitUntil: 'domcontentloaded' });
-  await visitAllKnowledgeCards(page);
-
-  await page.getByRole('button', { name: '继续下一步' }).click();
-  await expect(page.getByText('路径进度未能确认，请重试。')).toBeVisible();
-  await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
-  expect(page.url()).toContain('/interactive-learning/resources/lesson01-feedback-knowledge-deck-v1');
-
-  await page.getByRole('button', { name: '重试' }).click();
-  await expect(page.getByRole('button', { name: '正在提交' })).toBeDisabled();
-  releaseSuccess?.();
-
-  await expect(page).toHaveURL(/lesson01-component-role-match/, { timeout: 10_000 });
-});
+}
 
 test('ordinary interactive-learning knowledge deck entry does not call path execute', async ({ context, page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
