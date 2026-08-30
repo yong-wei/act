@@ -764,6 +764,77 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(verified["releaseId"], candidate["release_id"])
 
+    def test_restore_overlays_replaces_git_catalog_symlink_with_parent_payload(self):
+        catalog_path = "knowledge/authority-domain-catalog/current.json"
+        catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
+        catalog_pointer = {
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("c" * 64),
+            "catalogHash": "d" * 64,
+            "snapshotId": "snap-" + ("e" * 64),
+            "snapshotHash": "f" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.22",
+            "activatedAt": "2026-08-16T00:00:00.000Z",
+        }
+        catalog_runtime = {
+            "catalogId": catalog_pointer["catalogId"],
+            "catalogHash": catalog_pointer["catalogHash"],
+            "authorityBinding": {
+                "snapshotId": catalog_pointer["snapshotId"],
+                "snapshotHash": catalog_pointer["snapshotHash"],
+                "releaseId": catalog_pointer["releaseId"],
+            },
+        }
+        git_current = json.dumps({
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("1" * 64),
+            "catalogHash": "2" * 64,
+            "snapshotId": "snap-" + ("3" * 64),
+            "snapshotHash": "4" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        }) + "\n"
+        git_catalog = json.dumps({
+            "catalogId": "adc-" + ("1" * 64),
+            "catalogHash": "b" * 64,
+            "authorityBinding": {
+                "snapshotId": "snap-" + ("3" * 64),
+                "snapshotHash": "4" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+            },
+        }) + "\n"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", {
+                **TEXTBOOK_CACHE_CONTENTS,
+                catalog_path: git_current.encode("utf-8"),
+                catalog_payload: git_catalog.encode("utf-8"),
+            }, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            catalog = parent["view"] / catalog_path
+            catalog.parent.mkdir(parents=True, exist_ok=True)
+            catalog.write_text(json.dumps(catalog_pointer) + "\n", encoding="utf-8")
+            (parent["view"] / catalog_payload).write_text(json.dumps(catalog_runtime) + "\n", encoding="utf-8")
+            self.make_view_writable(candidate["view"])
+            self.assertTrue((candidate["view"] / catalog_payload).is_symlink())
+            restored = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+            )
+            self.assertEqual(sorted(restored["copied"]), sorted([catalog_path, catalog_payload]))
+            self.assertFalse((candidate["view"] / catalog_payload).is_symlink())
+            self.assertEqual(
+                json.loads((candidate["view"] / catalog_payload).read_text(encoding="utf-8")),
+                catalog_runtime,
+            )
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], candidate["release_id"])
+
     def test_post_overlay_verification_rejects_authority_catalog_pointer_mismatch(self):
         catalog_path = "knowledge/authority-domain-catalog/current.json"
         catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
