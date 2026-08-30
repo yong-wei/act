@@ -322,6 +322,33 @@ describe('latest knowledge cutover verifier', () => {
     expect(result.ready).toBe(false);
   });
 
+  it('rejects a successor whose candidate receipt does not seal the reopened members', () => {
+    const subject = fixture();
+    const candidate = subject.values.get('candidate-receipt') as Record<string, unknown>;
+    const nextHash = digestCandidate({
+      ...candidate,
+      teachingProjectionHash: 'e'.repeat(64),
+    });
+    subject.values.set('candidate-receipt', {
+      ...candidate,
+      teachingProjectionHash: 'e'.repeat(64),
+      receiptHash: nextHash,
+    });
+    subject.input.candidateReceipt = { id: 'candidate-receipt', sha256: nextHash };
+    const receipt = subject.values.get('active-receipt') as Record<string, unknown>;
+    const nextReceipt = {
+      ...receipt,
+      candidateReceiptHash: nextHash,
+    };
+    subject.values.set('active-receipt', nextReceipt);
+    subject.input.receipt = { id: 'active-receipt', sha256: projectionDigest(nextReceipt) };
+    expect(verifyLatestKnowledgeCutover(subject.input)).toMatchObject({
+      ready: false,
+      combination: 'failed',
+      reasons: expect.arrayContaining(['mixed-identity']),
+    });
+  });
+
   it('rejects a successor whose candidate receipt hash does not reopen', () => {
     const subject = fixture();
     const receipt = subject.values.get('active-receipt') as Record<string, unknown>;

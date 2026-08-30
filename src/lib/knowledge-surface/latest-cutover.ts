@@ -483,6 +483,32 @@ export function verifyLatestKnowledgeCutover(
   const candidateReceiptHash = stringAt(receipt, 'candidateReceiptHash');
   if (!candidateReceiptHash || candidateReceiptHash !== input.candidateReceipt.sha256 || !candidateReceipt) {
     reasons.add('mixed-identity');
+  } else if (isRecord(candidateReceipt)) {
+    if (
+      stringAt(candidateReceipt, 'teachingProjectionHash') !== input.teachingProjection.sha256
+      || stringAt(candidateReceipt, 'teachingClosureReceiptHash') !== input.teachingClosure.sha256
+      || stringAt(candidateReceipt, 'composedDomainFragmentManifestHash') !== input.composedDomainFragments.sha256
+      || stringAt(candidateReceipt, 'prerequisitePublicationHash') !== input.prerequisites.sha256
+      || stringAt(candidateReceipt, 'consumerActivationHash') !== input.consumerActivation.sha256
+      || stringAt(candidateReceipt, 'domainShardCatalogHash') !== input.domainCatalog.sha256
+      || !setMatches(stringAt(candidateReceipt, 'domainShardSetHash'), input.domainShards)
+    ) {
+      reasons.add('mixed-identity');
+    }
+    const candidateFragmentSet = stringAt(candidateReceipt, 'domainFragmentSetHash');
+    if (
+      !setMatches(candidateFragmentSet, input.domainFragments)
+      && stringAt(composed, 'sourceHashes', 'fragments') !== candidateFragmentSet
+    ) {
+      reasons.add('mixed-identity');
+    }
+    if (input.formalResource) {
+      if (stringAt(candidateReceipt, 'formalResourceEnvelopeHash') !== input.formalResource.sha256) {
+        reasons.add('mixed-identity');
+      }
+    } else if (stringAt(candidateReceipt, 'formalResourceEnvelopeHash')) {
+      reasons.add('missing-member');
+    }
   }
   if (
     stringAt(receipt, 'contract') !== 'coordinated-active-receipt/v1'
