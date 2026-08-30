@@ -1315,6 +1315,20 @@ describe('diagnosis finding knowledge-node attribution contract', () => {
     expect(findings[0]?.knowledgeNodeId).toBeUndefined();
   });
 
+  it('rejects filling a node from other rows when the cited rows have no governed node', () => {
+    const nodeByEvidenceRef = buildKnowledgeNodeByEvidenceRef([
+      { id: 'progress-9', nodeId: '' },
+      { id: 'progress-10', nodeId: 'node-1' },
+    ]);
+    const findings = [{
+      knowledgeNodeId: 'node-1',
+      evidenceRefs: ['knowledge-progress:progress-9'],
+    }];
+
+    expect(enforceDiagnosisFindingNodeAttribution(findings, nodeByEvidenceRef))
+      .toEqual(['findings[0].knowledgeNodeId']);
+  });
+
   it('records attribution-invalid provider output as retryable instead of non-retryable validation', async () => {
     const attributionError = new DiagnosisGenerationFindingAttributionError(['findings[0].knowledgeNodeId']);
     const { db, tx } = workerDbFixture();

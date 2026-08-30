@@ -318,6 +318,49 @@ describe('teacher diagnosis report history projection', () => {
     expect(projection.availability.label).toBe('证据可用，但覆盖受限');
   });
 
+  it('keeps the attribution-specific state out when learning-behavior coverage is partial', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        summary: '学习行为覆盖比例未满，知识点发现缺少知识节点映射。',
+        findings: [{
+          title: '多数学生知识节点掌握停滞',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: baseline.reportBody.evidenceCutoff,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 0.9,
+          assignment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available',
+            includedStudents: 100,
+            missingStudents: 0,
+            evidenceCount: 100,
+            scoredCount: 100,
+          },
+        },
+        confidence: 'high',
+        limitations: [],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.evidenceGroups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'learning-behavior', state: 'partial' }),
+    ]));
+    expect(projection.availability.label).not.toBe('知识节点归因受限');
+    expect(projection.availability.label).toBe('证据可用，但覆盖受限');
+  });
+
   it('keeps the coverage-limited wording when attribution limitation coexists with real coverage gaps', () => {
     const projection = projectReportHistoryCard({
       ...baseline,

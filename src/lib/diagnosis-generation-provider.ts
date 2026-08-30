@@ -166,7 +166,9 @@ export function enforceDiagnosisFindingNodeAttribution(
       return;
     }
     if (finding.knowledgeNodeId) {
-      if ((citedNodes.size === 1 && [...citedNodes][0] !== finding.knowledgeNodeId)
+      const singleCitedNode = citedNodes.size === 1 ? [...citedNodes][0] : null;
+      if (citedNodes.size === 0
+        || (singleCitedNode !== null && singleCitedNode !== finding.knowledgeNodeId)
         || !governedNodes.has(finding.knowledgeNodeId)) {
         violations.push(`findings[${index}].knowledgeNodeId`);
       }

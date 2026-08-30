@@ -84,11 +84,13 @@ export function projectReportHistoryCard(
   );
   const declaredLimitations = report.reportBody.limitations.map(formatLimitation);
   const confidenceReasons = buildConfidenceReasons(report, evidenceGroups, attributionLimited);
-  // 归因受限是唯一置信原因 = 数据覆盖完整且无声明限制，仅知识点发现缺节点归因（Issue #1712）。
-  // LIMITATION_LABELS 之外的自定义限制不进入 confidenceReasons，必须单独排除。
+  // 归因受限是唯一置信原因 = 所有证据组均完整可用且无声明限制，仅知识点发现缺节点归因
+  // （Issue #1712）。行为组 partial（coverage<1）不产生置信原因，必须用证据组状态单独排除；
+  // LIMITATION_LABELS 之外的自定义限制文本不进入 confidenceReasons，同样单独排除。
   const attributionOnly = attributionLimited
     && confidenceReasons.length === 1
-    && report.reportBody.limitations.length === 0;
+    && report.reportBody.limitations.length === 0
+    && evidenceGroups.every((group) => group.state === 'available');
 
   return {
     scopeLabel: report.scopeType === 'student' ? '学生范围' : '班级范围',
