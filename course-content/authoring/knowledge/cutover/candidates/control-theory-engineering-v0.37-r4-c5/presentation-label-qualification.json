@@ -1,0 +1,40 @@
+{
+  "contract": "r4-presentation-label-qualification/v1",
+  "status": "PASS",
+  "reviewRequired": 0,
+  "implementation": {
+    "sourcePath": "scripts/knowledge-cutover/verify-r4-authority-presentation-labels.ts",
+    "sourceSha256": "452913796a2c14494247b91b373df7899f94b6c30e03b73f34e541f59e4b95d4"
+  },
+  "authority": {
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "manifestSha256": "7c2f2792797c1ba607e2f408c6d3ace12147e344cf2191703f2cd8929baa2f76",
+    "engineeringSha256": "7046b105b2e1f8660b5cb168be2300680e90813db805bd0477a801f4da6ed657"
+  },
+  "catalog": {
+    "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+    "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+    "sha256": "8347db0d4fa031f49529bc1aa80670e8e44ca0523e2dcbaa7bf9ab91f5140450"
+  },
+  "shards": {
+    "shardSetId": "ads-c462da19203700966fce21ad5f8d2d6fbc1832844872ca71f019f0a28e670c68",
+    "shardSetHash": "c462da19203700966fce21ad5f8d2d6fbc1832844872ca71f019f0a28e670c68",
+    "stageSha256": "0c9183f4c538f101bf560001a5fd5b1316293dc3648cf1642498cf55de81d77e",
+    "manifestSha256": "e1a1689d6a217424d9d907fbb8881756480d228a1ea7dd325729324262b78944"
+  },
+  "coverage": {
+    "authorityObjects": 7476,
+    "canonicalPreferredLabels": 7476,
+    "materializedDetailLabels": 7476,
+    "unavailableOrPlaceholder": 0,
+    "sourceCounts": {
+      "domain-projection-display-name": 74,
+      "localized-content-name": 5537,
+      "multilingual-label-index": 1865
+    }
+  },
+  "qualificationHash": "eef8ace2b95bd2e4b09e6eb579f23954cbd1e68c6396a36d467a7cf531c450e7"
+}

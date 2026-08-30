@@ -1,0 +1,36 @@
+{
+  "contract": "r4-c5-deployment-authorization-proof/v1",
+  "recordedAt": "2026-08-30T05:35:00.000Z",
+  "candidateId": "cand-d4e722dc-607d-4aaf-9142-75a0734cd64e",
+  "candidateReceiptHash": "bd0abb0d578357a719599a345bbd68c709ecd13d30703626f5224354db0a37bf",
+  "selectable": false,
+  "application": {
+    "source": "origin/main",
+    "appRevision": "bda3c865739566f60bea23c11b808e0ca88e0980",
+    "imageTag": "localhost/act-obe-platform:v037-r5-bda3c8657395",
+    "deploymentMode": "cutover",
+    "consumersRunning": ["act-obe-app", "act-obe-worker"]
+  },
+  "productionUnchanged": {
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.22",
+    "authorityCurrentSha256": "adb287b1e9a8a90ef7a53d856a70fa42a24100006c35715ebd10908660a21cee",
+    "blobView": "views/runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+    "lifecycleGeneration": 42,
+    "lifecycleActive": "runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+    "lifecycleDesired": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde",
+    "productionCutoverMarkerPresent": false
+  },
+  "proof": {
+    "deploymentAuthorization": "serve the already published origin/main application revision without activation",
+    "activationAuthorization": "not granted in this step; 10.7 is a separate stopped-service transaction",
+    "didNotStopCoordinatedConsumers": true,
+    "didNotWriteProductionSelectors": true,
+    "activationPlanWritesNoSelector": true,
+    "appOnlyDeployScriptWritesNoSelector": true,
+    "contractTests": [
+      "scripts/tests/test-r4-c5-cutover-contract.mjs",
+      "scripts/tests/test-runtime-blob-runtime-deploy-contract.mjs",
+      "scripts/tests/test-runtime-cutover-app-only-contract.mjs"
+    ]
+  }
+}

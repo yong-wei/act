@@ -322,13 +322,11 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
             skipped.append(relative)
             return False
         destination = candidate / relative
-        if destination.is_symlink():
-            if not replace_symlink:
-                skipped.append(relative)
-                return False
-            destination.unlink()
         destination.parent.mkdir(parents=True, exist_ok=True)
         os.chmod(destination.parent, 0o755)
+        if destination.is_symlink() and not replace_symlink:
+            skipped.append(relative)
+            return False
         if destination.exists() or destination.is_symlink():
             destination.unlink()
         shutil.copy2(source, destination)
@@ -361,10 +359,14 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
         pointer = materializer.read_control_plane_pointer(pointer_path)
         for kind, relative in materializer.control_plane_payload_targets(pointer_relative, pointer):
             if kind in {"file", "optional_file", "any_file"}:
-                copy_regular(relative)
+                # Git-tree catalog/current payloads materialize as blob
+                # symlinks. Overlay restore must replace those leaves with the
+                # host-owned regular files from the parent view; skipping them
+                # leaves a stale symlink that later fails overlay verification.
+                copy_regular(relative, replace_symlink=True)
             else:
                 for source_relative in sorted(materializer.regular_files_under(parent, relative)):
-                    copy_regular(source_relative)
+                    copy_regular(source_relative, replace_symlink=True)
     materializer.require_control_plane_overlay_payloads(candidate)
     copied_set = set(copied)
     return {

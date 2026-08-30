@@ -1,0 +1,15 @@
+{
+  "contract": "r4-c5-coordinated-production-verification/v1",
+  "semanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "presentationLabelQualificationHash": "eef8ace2b95bd2e4b09e6eb579f23954cbd1e68c6396a36d467a7cf531c450e7",
+  "presentationLabelQualificationSha256": "2f4e12ed89aa7b50eb3d7133810070b78880ea1ceb6007ce68b200b42a79ce71",
+  "projectionScopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+  "projectionScopeAdjustmentSha256": "d6b6813e4df20e358c593893a7143fb5fae3d2b2537c767820d3a4eb97e513fc",
+  "projectionScopeBindingHash": "78141419feb1daaa46f947d98a6e6aaf824631096a98c6df434cc501ec927cbd",
+  "projectionScopeBindingSha256": "c796ecd2bdbe6bcbcde4ae2cbea1201fac39a7f3fd7d517b0c43a9c40ae35dda",
+  "teachingGovernanceReclosureHash": "6eddca2fe2a91b47dc10c20629672d3822722d413d0886e294acf37b6ca15947",
+  "teachingGovernanceReclosureSha256": "da57504af1dc45399e4c4f3b3f5bdee64d2c3435d35eaaa6bae9d9367e084f46",
+  "requireFinalReceiptBeforeConsumerRestart": true,
+  "sourceRevisionMustBeIntegrationAncestor": true,
+  "verificationPolicyHash": "3f66d3a2f3ca40347b76efe451d90f803bbe8aa4117e81a73483dbb54eaa4691"
+}

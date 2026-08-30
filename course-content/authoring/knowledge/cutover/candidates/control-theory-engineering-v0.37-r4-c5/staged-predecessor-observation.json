@@ -1,0 +1,192 @@
+{
+  "contract": "r4-production-predecessor-observation/v1",
+  "capturedAt": "2026-08-30T05:17:48.867Z",
+  "runtime": {
+    "manifestSha256": "11c8185de8d28768ef8b247039907d50228b28475f989619c1c22eb9bf04ea7b",
+    "manifestVersion": "act-runtime-release.v2",
+    "manifestWireSha256": "416b81d678bde43c3571b9df8438e2e89d8d03a9f8e9ca306ace2bae91d9a1b8",
+    "manifestWireSizeBytes": 3606243,
+    "releaseId": "runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+    "schemaVersion": "runtime-blob-release-identity.v1",
+    "treeSha256": "801e99665142e5212850f85a8280a263ac1d9c5ded9fe60fe6ff53216872baf4",
+    "activeReceiptHash": "0067ba3232e564dd36e3d69819ce876b47a650fd734c30e4e4927905fdde95eb",
+    "lifecycleGeneration": 42
+  },
+  "stagedDesired": {
+    "manifestSha256": "27d0add1a4f600b8233fecd50737009ec656f33b2663049be6fa0e0413e7a66a",
+    "manifestVersion": "act-runtime-release.v2",
+    "manifestWireSha256": "fb275be307f8d5c8e99739b894fce2c2f2784faec58398d2d54f3616b7110b7c",
+    "manifestWireSizeBytes": 17594371,
+    "releaseId": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde",
+    "schemaVersion": "runtime-blob-release-identity.v1",
+    "treeSha256": "16fddf5a457864bf9fa5c36bddbcf63296b9159861972f94fe146e445a9daa06"
+  },
+  "lifecycle": {
+    "active": {
+      "manifestSha256": "11c8185de8d28768ef8b247039907d50228b28475f989619c1c22eb9bf04ea7b",
+      "manifestVersion": "act-runtime-release.v2",
+      "manifestWireSha256": "416b81d678bde43c3571b9df8438e2e89d8d03a9f8e9ca306ace2bae91d9a1b8",
+      "manifestWireSizeBytes": 3606243,
+      "releaseId": "runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+      "schemaVersion": "runtime-blob-release-identity.v1",
+      "treeSha256": "801e99665142e5212850f85a8280a263ac1d9c5ded9fe60fe6ff53216872baf4"
+    },
+    "desired": {
+      "manifestSha256": "27d0add1a4f600b8233fecd50737009ec656f33b2663049be6fa0e0413e7a66a",
+      "manifestVersion": "act-runtime-release.v2",
+      "manifestWireSha256": "fb275be307f8d5c8e99739b894fce2c2f2784faec58398d2d54f3616b7110b7c",
+      "manifestWireSizeBytes": 17594371,
+      "releaseId": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde",
+      "schemaVersion": "runtime-blob-release-identity.v1",
+      "treeSha256": "16fddf5a457864bf9fa5c36bddbcf63296b9159861972f94fe146e445a9daa06"
+    },
+    "generation": 42,
+    "publishing": [],
+    "retained": [
+      {
+        "identity": {
+          "manifestSha256": "5a618fc774fbfbc36af981d5f059e18c3b214659d5f701794a9f1d91b33acc31",
+          "manifestVersion": "act-runtime-release.v2",
+          "manifestWireSha256": "699cd5df0fdc063ac5395cb4cac48c25b2deb67481ac8290dc6ab04a36877c47",
+          "manifestWireSizeBytes": 6009824,
+          "releaseId": "runtime-3dcc71669bdbb68e5304adf7925e49f75b1e747da5e9c7ed03ff689",
+          "schemaVersion": "runtime-blob-release-identity.v1",
+          "treeSha256": "cb009def83ef8e8a37117965c37477d84ec758411959876a322b293eacf90b1a"
+        },
+        "notBeforeReleaseAt": "2026-08-18T12:33:24Z",
+        "retainedAt": "2026-08-18T12:28:24Z",
+        "retentionPolicyVersion": "runtime-media-signed-url-retention.v1",
+        "signedUrlMaxSeconds": 300
+      },
+      {
+        "identity": {
+          "manifestSha256": "f328d1f54b5f38a42f435c08e4dfbd3864c9d68eed342b1df772371524076e82",
+          "manifestVersion": "act-runtime-release.v2",
+          "manifestWireSha256": "193fb46297e8163c4e09cb382b3a1acebcd4a0b607dc968f7fdd5ebda58109e8",
+          "manifestWireSizeBytes": 6015403,
+          "releaseId": "runtime-7b907428f004ec593b41a207a06be93db3fcbf1cedd90f56ae27469",
+          "schemaVersion": "runtime-blob-release-identity.v1",
+          "treeSha256": "1a84d3138e913b223d8ceca18c6fdb3f05842b20097bae8359a7af4aea68a282"
+        },
+        "notBeforeReleaseAt": "2026-08-20T09:08:49Z",
+        "retainedAt": "2026-08-20T09:03:49Z",
+        "retentionPolicyVersion": "runtime-media-signed-url-retention.v1",
+        "signedUrlMaxSeconds": 300
+      },
+      {
+        "identity": {
+          "manifestSha256": "ba5aad48eaaf36ced1dc1d4faf695acedaab92a62463f5a2a669ef52a1e57a2e",
+          "manifestVersion": "act-runtime-release.v2",
+          "manifestWireSha256": "12d7d3bd102f2a677c9c34ac01a0da2118fd45fb74f02642408cc696874771be",
+          "manifestWireSizeBytes": 6015403,
+          "releaseId": "runtime-83449946b1384e75abd620e9794b52c81df1d03f0ac45286b6697bc",
+          "schemaVersion": "runtime-blob-release-identity.v1",
+          "treeSha256": "1a84d3138e913b223d8ceca18c6fdb3f05842b20097bae8359a7af4aea68a282"
+        },
+        "notBeforeReleaseAt": "2026-08-25T09:58:00Z",
+        "retainedAt": "2026-08-25T09:53:00Z",
+        "retentionPolicyVersion": "runtime-media-signed-url-retention.v1",
+        "signedUrlMaxSeconds": 300
+      },
+      {
+        "identity": {
+          "manifestSha256": "e675ccd7eab763b1f01dc7ebbb71e655c81ac286b0bd642c7bf1442d3ab3cb23",
+          "manifestVersion": "act-runtime-release.v2",
+          "manifestWireSha256": "e2ab6b10dca8f8aed7944ffad882a708500b2aace6fdf8f50fa3064036b52555",
+          "manifestWireSizeBytes": 2868914,
+          "releaseId": "runtime-e47451bf8f94caec207232e16f822f2ee87cd79fdb5f20b9bcf60c6",
+          "schemaVersion": "runtime-blob-release-identity.v1",
+          "treeSha256": "47facad67e6f232ef3734011700a0311d9b1cb6e1f3dd2fee777d4746346446b"
+        },
+        "notBeforeReleaseAt": "2026-08-18T09:51:03Z",
+        "retainedAt": "2026-08-18T09:46:03Z",
+        "retentionPolicyVersion": "runtime-media-signed-url-retention.v1",
+        "signedUrlMaxSeconds": 300
+      }
+    ],
+    "rollback": {
+      "manifestSha256": "fe3782505674cc10b8da46a35d775dbbbf504e738c633823defa37c46ea11e7b",
+      "manifestVersion": "act-runtime-release.v2",
+      "manifestWireSha256": "07517cce723c3c3b71502b8ddcdc3ae95cb17b1fa038622ac8065b010d224357",
+      "manifestWireSizeBytes": 3604569,
+      "releaseId": "runtime-89fef308a69fc468c1df353bd39f65b75b0faf8770eeeb41e99a328",
+      "schemaVersion": "runtime-blob-release-identity.v1",
+      "treeSha256": "67ce9c766780d51ffd7bcaf6fa8f5f68409d2192397a017b85535af5a263ed7d"
+    },
+    "schemaVersion": "runtime-blob-release-lifecycle.v2",
+    "transactionId": "6a36c86b6ba64eb6bfec93d06eb4c4b6"
+  },
+  "selectors": {
+    "authority": {
+      "sha256": "adb287b1e9a8a90ef7a53d856a70fa42a24100006c35715ebd10908660a21cee",
+      "value": {
+        "contract": "actkg-engineering-authority-current/v1",
+        "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "releaseId": "ctr:release:control-theory-engineering-v0.22",
+        "releaseSetId": "actkg-authority-candidate-v018-98f2d5b183f9c0e632e3e020fe45111140f00b935450189edf0869375ef45854",
+        "activationReceiptId": "v022-cutover-authority",
+        "activatedAt": "2026-08-20T00:00:00.000Z"
+      }
+    },
+    "projection": {
+      "sha256": "66c8dca10ded304bf5746de4a38aa9e2877713b7bf0fdf33b8bffab92af8de07",
+      "value": {
+        "contract": "act-teaching-projection-current/v1",
+        "projectionId": "proj-1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+        "projectionHash": "1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.22",
+        "activatedAt": "2026-08-20T00:00:00.000Z"
+      }
+    },
+    "prerequisite": {
+      "sha256": "766d5f8e8a862531eecb14e84967a6c4e3f095130becec9a3456a1680257b50c",
+      "value": {
+        "contract": "act-teaching-prerequisite-current/v1",
+        "publicationId": "proj-1adcc27f4e0e1b35e7b288da1920242fd4552e60e16a4b0aa7742c32891f9421",
+        "publicationHash": "1adcc27f4e0e1b35e7b288da1920242fd4552e60e16a4b0aa7742c32891f9421",
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.22",
+        "activatedAt": "1970-01-01T00:00:00.000Z"
+      }
+    },
+    "catalog": {
+      "sha256": "6e63502ce521276353455ca072004e7289798327e942e3942737c4b42889d013",
+      "value": {
+        "contract": "act-authority-domain-display-catalog-current/v1",
+        "catalogId": "adc-0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+        "catalogHash": "0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+        "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "releaseId": "ctr:release:control-theory-engineering-v0.22",
+        "activatedAt": "2026-08-20T00:00:00.000Z"
+      }
+    },
+    "shards": {
+      "sha256": "90eac424e34d50feea57edadd7ec996554558be581aa16c7fef206abd2738318",
+      "value": {
+        "contract": "act-authority-domain-shard-current/v1",
+        "shardSetId": "ads-a982e77740f768ca009165208253df8f949761bfb02c9ec9a80050bebf855385",
+        "shardSetHash": "a982e77740f768ca009165208253df8f949761bfb02c9ec9a80050bebf855385",
+        "snapshotId": "snap-9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "snapshotHash": "9c4b2c1c2c976b4903bb979889d8b74a8dd306bc718cd4c9d06ac97b14172151",
+        "releaseId": "ctr:release:control-theory-engineering-v0.22",
+        "catalogId": "adc-0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+        "catalogHash": "0fde05783781e31126f3cc92efc2d53fc3f0a6360f907eca351cc4736faeba26",
+        "teachingProjectionId": "proj-1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+        "teachingProjectionHash": "1ab3029ae058d5b2cbef11106639623782ffa06f9b9edb043e791c480922a457",
+        "activatedAt": "2026-08-20T00:00:00.000Z"
+      }
+    },
+    "consumerActivation": {
+      "sha256": "4f52958aac7e0a70f6d147f5e20e4885146ad56409cac9ccca590e0ba239dba7",
+      "value": {
+        "contract": "act-versioned-knowledge-consumer-activation-current/v1",
+        "activationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
+        "activationHash": "63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129",
+        "activationReceiptId": "v022-cutover-consumers",
+        "activatedAt": "2026-08-20T00:00:00.000Z"
+      }
+    }
+  },
+  "observationHash": "8274c0d9890865ad1b671cb493dddb3bf2e617a21a5262d6f96bdfa32da29973"
+}

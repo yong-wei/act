@@ -65,7 +65,7 @@
 
 ## 🚀 Next phase
 
-**Coordinated v0.37-r4 cutover (2026-08-30):** #1509 活作者态已重绑 v0.37。10.2/10.3 完成。用户已授权提交全部变动后继续 10.5。Git `authority/current.json` 仍为 v0.9。10.5 OSS `--stage-only` 的 source revision 必须是 `origin/integration` 祖先。不要关 #1509，不要认领 #1683。
+**Coordinated v0.37-r4 cutover (2026-08-30):** #1509 10.5 已完成。有父 `--stage-only` 物化 `runtime-150a505a…`（NON_SELECTABLE）；lifecycle `set-desired` 到 generation 42（active 仍是生产 `runtime-bb309e6a…`）。已 qualify 不可选候选 `cand-d4e722dc-607d-4aaf-9142-75a0734cd64e`，receipt `bd0abb0d…`。Git/生产 `authority/current.json` 未改（Git v0.9，生产 v0.22）。下一步：10.6 换镜像证明不改 selector、不停 coordinated 事务；再 10.7 独立停服激活。不要关 #1509，不要认领 #1683。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 
