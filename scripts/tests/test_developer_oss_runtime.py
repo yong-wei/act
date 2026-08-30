@@ -978,8 +978,6 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         self.assertEqual([row["opClass"] for row in operations], ["oss-body-transfer", "cache-hit"])
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 def write_release_with_governance(root: Path):
@@ -1689,3 +1687,8 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 verify_mount_process_provenance(mountpoint, conf, proc_root=other_point, fuse_fd=3)
+
+
+
+if __name__ == "__main__":
+    unittest.main()
