@@ -8,9 +8,10 @@ Wants=network-online.target
 Type=simple
 Restart=on-failure
 RestartSec=2
+StateDirectory=act-runtime-developer-gateway
 WorkingDirectory=/home/projects/act
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 /home/projects/act/scripts/runtime-release/developer-oss/gateway_http.py --listen 127.0.0.1:8787 --token-file /etc/act-runtime-developer-gateway/token --active-receipt /home/projects/act/data/runtime/act-runtime-active-receipt.json --view-root /home/projects/act/data/runtime/blob-views --blob-root /home/projects/act/data/runtime/ossfs/blobs
+ExecStart=/usr/bin/python3 /home/projects/act/scripts/runtime-release/developer-oss/gateway_http.py --listen 127.0.0.1:8787 --token-file /etc/act-runtime-developer-gateway/token --lease-store /var/lib/act-runtime-developer-gateway/leases.json --active-receipt /home/projects/act/data/runtime/act-runtime-active-receipt.json --view-root /home/projects/act/data/runtime/blob-views --blob-root /home/projects/act/data/runtime/ossfs/blobs
 # Read host runtime files; never detach the student Blob mount or rewrite selectors.
 ReadOnlyPaths=/home/projects/act/data/runtime/ossfs/blobs /home/projects/act/data/runtime/blob-views /home/projects/act/data/runtime/act-runtime-active-receipt.json
 ProtectSystem=strict

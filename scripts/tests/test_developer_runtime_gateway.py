@@ -412,6 +412,8 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
         self.assertNotIn("activate-runtime", unit)
         self.assertNotIn("act-runtime-selection.json", unit)
         self.assertIn("127.0.0.1:8787", unit)
+        self.assertIn("StateDirectory=act-runtime-developer-gateway", unit)
+        self.assertIn("--lease-store", unit)
         self.assertIn("127.0.0.1:8787", nginx)
         self.assertIn("limit_req", nginx)
         self.assertIn("developer_gateway_anon", nginx)
@@ -507,6 +509,53 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             with self.assertRaises(GatewayError) as denied:
                 service.get_blob(issued["leaseId"], issued["transport"]["token"], extra)
             self.assertEqual(denied.exception.status, 404)
+
+
+    def test_live_lease_survives_gateway_reload_after_activation(self):
+        clock = Clock()
+        host, identity_a, identity_b, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            store = Path(raw) / "leases.json"
+            first = GatewayService(TOKEN, host, time_fn=clock, transport_ttl_seconds=10, lease_store=store)
+            issued = first.issue_lease(identity_a, "persist-a")
+            self.assertEqual(oct(store.stat().st_mode & 0o777), "0o600")
+            host.set_active(identity_b)
+            reloaded = GatewayService(TOKEN, host, time_fn=clock, transport_ttl_seconds=10, lease_store=store)
+            body, _, _ = reloaded.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
+            self.assertEqual(body, b"a-only")
+            with self.assertRaises(GatewayError):
+                reloaded.issue_lease(identity_a, "persist-new")
+            clock.now += 11
+            with self.assertRaises(GatewayError):
+                reloaded.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
+            renewed = reloaded.renew_transport(issued["leaseId"])
+            body, _, _ = reloaded.get_blob(renewed["leaseId"], renewed["transport"]["token"], a_only)
+            self.assertEqual(body, b"a-only")
+
+    def test_concurrent_renew_returns_the_same_live_transport(self):
+        clock = Clock()
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host, time_fn=clock, transport_ttl_seconds=10)
+        issued = service.issue_lease(identity_a, "race-a")
+        clock.now += 11
+        results: list[dict] = []
+        errors: list[BaseException] = []
+
+        def renew() -> None:
+            try:
+                results.append(service.renew_transport(issued["leaseId"]))
+            except BaseException as error:  # noqa: BLE001
+                errors.append(error)
+
+        workers = [threading.Thread(target=renew) for _ in range(8)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+        self.assertEqual(errors, [])
+        self.assertEqual(len(results), 8)
+        tokens = {row["transport"]["token"] for row in results}
+        self.assertEqual(len(tokens), 1)
 
 
 if __name__ == "__main__":

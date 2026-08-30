@@ -144,6 +144,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog="act-developer-runtime-gateway")
     parser.add_argument("--listen", default="127.0.0.1:8787")
     parser.add_argument("--token-file", required=True)
+    parser.add_argument("--lease-store")
     parser.add_argument("--active-receipt", required=True)
     parser.add_argument("--view-root", required=True)
     parser.add_argument("--blob-root", required=True)
@@ -151,7 +152,13 @@ def main() -> int:
     host, port_text = args.listen.rsplit(":", 1)
     token_path = Path(args.token_file)
     disk = DiskHost(Path(args.active_receipt), Path(args.view_root), Path(args.blob_root))
-    service = GatewayService(read_token_file(token_path), disk, token_fn=lambda: read_token_file(token_path))
+    lease_store = Path(args.lease_store) if args.lease_store else None
+    service = GatewayService(
+        read_token_file(token_path),
+        disk,
+        token_fn=lambda: read_token_file(token_path),
+        lease_store=lease_store,
+    )
     httpd = serve(host, int(port_text), service)
     sys.stderr.write("developer runtime gateway listening on %s\n" % args.listen)
     try:
