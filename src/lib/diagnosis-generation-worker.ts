@@ -13,6 +13,7 @@ import {
 } from '@/lib/diagnosis-generation';
 import {
   DiagnosisGenerationProviderEmptyOutputError,
+  DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
@@ -40,6 +41,14 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
       validation: false,
       code: 'diagnosis-provider-empty-output',
       message: '诊断模型未返回可用的结构化结果。',
+    };
+  }
+  // 语言回归与空输出同类（模型行为缺陷），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisGenerationProviderLanguageError) {
+    return {
+      validation: false,
+      code: 'diagnosis-provider-language-mismatch',
+      message: error.message,
     };
   }
   if (error instanceof DiagnosisGenerationValidationError) {

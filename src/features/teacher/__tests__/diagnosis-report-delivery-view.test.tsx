@@ -74,6 +74,20 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('报告版本：report-1');
   });
 
+  it('presents the governed-report eyebrow in Simplified Chinese', () => {
+    const html = renderToStaticMarkup(
+      <DiagnosisReportDeliveryView
+        projection={projection}
+        actions={[]}
+        dispositionEvents={[]}
+        returnHref="/teacher/classes/class-1"
+        teacherMode
+      />,
+    );
+    expect(html).toContain('固定治理报告');
+    expect(html).not.toContain('Fixed governed report');
+  });
+
   it('keeps the student surface print-only and free of teacher disposition controls', () => {
     const html = renderToStaticMarkup(
       <DiagnosisReportDeliveryView

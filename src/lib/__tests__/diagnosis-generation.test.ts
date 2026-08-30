@@ -35,7 +35,10 @@ import {
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
   DiagnosisGenerationProviderEmptyOutputError,
+  DiagnosisGenerationProviderLanguageError,
   generateGovernedDiagnosisReport,
+  isSimplifiedChineseNaturalLanguageText,
+  validateDiagnosisReportBodyLanguage,
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
 import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
@@ -964,5 +967,166 @@ describe('teacher diagnosis generation contracts', () => {
 
     expect(result.id).toBe('job-new');
     expect(db.diagnosisGenerationJob.findUnique).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('diagnosis report language contract', () => {
+  it('accepts Chinese-dominant text with inline technical terms and rejects English-dominant fields', () => {
+    expect(isSimplifiedChineseNaturalLanguageText('基于受治理工具结果，风险标志（Risk Flags）覆盖完整。')).toBe(true);
+    expect(isSimplifiedChineseNaturalLanguageText('班级证据覆盖完整，建议优先处理低分群体。')).toBe(true);
+    expect(isSimplifiedChineseNaturalLanguageText('The class shows strong overall progress this week.')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('no-current-governed-risk-flags')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('')).toBe(false);
+  });
+
+  it('rejects traditional Chinese and kana instead of treating every CJK char as Simplified Chinese', () => {
+    expect(isSimplifiedChineseNaturalLanguageText('課程學習進度良好，學生們表現優異。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('班级學習狀況良好。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('学習が順調に進んでいます。')).toBe(false);
+    expect(isSimplifiedChineseNaturalLanguageText('学习进度良好，学生表现优异。')).toBe(true);
+  });
+
+  it('reports per-field violations for a structured report body', () => {
+    const violations = validateDiagnosisReportBodyLanguage({
+      summary: '班级整体证据覆盖完整。',
+      findings: [
+        { title: '需要关注的学习表现', summary: '建议巩固基础知识点。' },
+        { title: 'Weak mastery signals detected', summary: '该说明保持中文。' },
+        { title: '缺少中文的发现', summary: 'Mixed content with mostly English sentences here.' },
+      ],
+      limitations: ['no-current-governed-risk-flags'],
+    });
+    expect(violations).toEqual([
+      'findings[1].title',
+      'findings[2].summary',
+      'limitations[0]',
+    ]);
+  });
+
+  it('requires Simplified Chinese output in the provider system prompt', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '作业与测验结果显示班级需要继续巩固。',
+        findings: [],
+        evidenceRefs: ['knowledge-progress:progress-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 1 },
+        confidence: 'medium',
+        limitations: [],
+      },
+      normalizedResponseId: 'provider-response-language-prompt',
+    });
+
+    await generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-language-prompt',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput,
+      inputDigest: governedInputDigest,
+    });
+
+    const system = providerGenerate.mock.calls.at(-1)?.[0]?.system;
+    expect(typeof system).toBe('string');
+    expect(system).toContain('简体中文');
+  });
+
+  it('rejects English provider output as a language failure instead of returning a report', async () => {
+    const providerInput = {
+      schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+      classId: 'class-1',
+      studentIds: ['student-actual-1'],
+      assignmentSubmissions: [{
+        id: 'assignment-submission-1',
+        userId: 'student-actual-1',
+        assignmentRevisionId: 'assignment-revision-1',
+        contentHash: 'assignment-content-sha256',
+        score: 82,
+        totalPoints: 100,
+        reviewedAt: now.toISOString(),
+      }],
+      assessmentSessions: [],
+      riskFlags: [],
+      competencySnapshots: [],
+      knowledgeProgress: [],
+    };
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: 'The governed evidence shows the class needs continued consolidation.',
+        findings: [{
+          title: 'Weak mastery signals detected',
+          summary: 'Several learners show below-threshold performance.',
+          evidenceRefs: ['assignment-submission:assignment-submission-1'],
+        }],
+        evidenceRefs: ['assignment-submission:assignment-submission-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 1 },
+        confidence: 'medium',
+        limitations: ['no-current-governed-risk-flags'],
+      },
+      normalizedResponseId: 'provider-response-language-en',
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-language-en',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: providerInput,
+      inputDigest: digestDiagnosisGovernedInput(providerInput),
+    })).rejects.toMatchObject({
+      name: 'DiagnosisGenerationProviderLanguageError',
+      violations: ['summary', 'findings[0].title', 'findings[0].summary', 'limitations[0]'],
+    });
+  });
+
+  it('records language-invalid provider output as retryable instead of non-retryable validation', async () => {
+    const languageError = new DiagnosisGenerationProviderLanguageError(['summary']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw languageError; },
+    )).rejects.toBe(languageError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-provider-language-mismatch',
+        errorMessage: '诊断模型返回的报告内容不是简体中文。',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('fails the job with an explicit Chinese reason after language retries are exhausted', async () => {
+    const languageError = new DiagnosisGenerationProviderLanguageError(['summary']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 2, opts: { attempts: 3 } } as never,
+      async () => { throw languageError; },
+    )).rejects.toBe(languageError);
+
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        failureCode: 'diagnosis-provider-language-mismatch',
+        failureMessage: '诊断模型返回的报告内容不是简体中文。',
+        retryable: true,
+      }),
+    }));
   });
 });
