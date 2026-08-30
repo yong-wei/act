@@ -580,7 +580,7 @@ describe('committed authority domain display catalog store', () => {
     }
   });
 
-  it('keeps Git authority/current.json on the predecessor and does not mutate snapshot bytes', () => {
+  it('keeps Git authority/current.json on the live successor and does not mutate snapshot bytes', () => {
     const paths = resolveAuthorityDomainCatalogPaths(repoRoot);
     expect(existsSync(paths.authoringCatalogPath)).toBe(true);
     expect(existsSync(paths.runtimeCatalogPath)).toBe(true);
@@ -592,9 +592,9 @@ describe('committed authority domain display catalog store', () => {
         'utf8',
       ),
     ) as { snapshotId: string; snapshotHash: string; releaseId: string };
-    expect(gitCurrent.snapshotId).toBe(SNAPSHOT_ID);
-    expect(gitCurrent.snapshotHash).toBe(SNAPSHOT_HASH);
-    expect(gitCurrent.releaseId).toBe(RELEASE_ID);
+    expect(gitCurrent.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
+    expect(gitCurrent.snapshotHash).toBe(SUCCESSOR_SNAPSHOT_HASH);
+    expect(gitCurrent.releaseId).toBe(SUCCESSOR_RELEASE_ID);
 
     const resolved = resolveActiveEngineeringGraphAuthority(
       resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(repoRoot)),

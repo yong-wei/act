@@ -200,9 +200,8 @@ describe('v0.22 runtime release', () => {
       requireReleaseGates: false,
       readGitStatus: () => '',
     });
-    // Git authority/current.json remains v0.9 so deploy:runtime cannot replay a
-    // production Engineering selector. Runtime knowledge current.json is already
-    // the v0.37 coordinated candidate, so the live composite is mixed and must stay BLOCKED.
+    // Git authority/current.json matches production v0.37. Binding this sealed
+    // v0.22 publisher to the v0.9 envelope therefore remains a mixed composite.
     expect(result.status).toBe('BLOCKED');
     expect(result.blockers).toContain('envelope-mix');
     const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
@@ -214,7 +213,7 @@ describe('v0.22 runtime release', () => {
     expect(receipt.selectorConsumption).toBe(false);
     expect(receipt.boundEnvelopeName).toBe('control-theory-engineering-v0.9');
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   });
 
   it('stays BLOCKED until host shadow verification exists', () => {
