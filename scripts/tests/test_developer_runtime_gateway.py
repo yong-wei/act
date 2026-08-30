@@ -204,6 +204,122 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             httpd.server_close()
             os.environ.pop("ACT_RUNTIME_DEV_ALLOW_HTTP", None)
 
+    def test_getattr_uses_declared_size_without_blob_fetch(self):
+        host, identity_a, _, _, a_only, _, _, extra = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host)
+        issued = service.issue_lease(identity_a, "stat-a")
+        from gateway_fuse import declared_blob_size
+        with tempfile.TemporaryDirectory() as raw:
+            session_path = Path(raw) / "gateway-session.json"
+            session_path.write_text(json.dumps({
+                "schemaVersion": "act-runtime-dev-gateway-session.v1",
+                "gatewayUrl": "http://127.0.0.1:1",
+                "token": TOKEN,
+                "leases": {
+                    "stat-a": {
+                        "leaseId": issued["leaseId"],
+                        "transport": issued["transport"]["token"],
+                        "blobSizes": issued["blobSizes"],
+                    }
+                },
+            }), encoding="utf-8")
+            self.assertEqual(declared_blob_size(session_path, a_only), 6)
+            self.assertIsNone(declared_blob_size(session_path, extra))
+            self.assertEqual(host.blob_reads, [])
+
+    def test_corrupt_cache_is_quarantined_and_refetched(self):
+        os.environ["ACT_RUNTIME_DEV_ALLOW_HTTP"] = "1"
+        host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host)
+        issued = service.issue_lease(identity_a, "corrupt-a")
+        httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(service, RateLimiter(limit=1000)))
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            from gateway_fuse import cached_blob_path, ensure_cached_blob
+            port = httpd.server_address[1]
+            with tempfile.TemporaryDirectory() as raw:
+                session_path = Path(raw) / "gateway-session.json"
+                cache_dir = Path(raw) / "cache"
+                session_path.write_text(json.dumps({
+                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
+                    "gatewayUrl": "http://127.0.0.1:%d" % port,
+                    "token": TOKEN,
+                    "leases": {
+                        "corrupt-a": {
+                            "leaseId": issued["leaseId"],
+                            "transport": issued["transport"]["token"],
+                            "blobSizes": issued["blobSizes"],
+                        }
+                    },
+                }), encoding="utf-8")
+                cached = cached_blob_path(cache_dir, a_only)
+                cached.parent.mkdir(parents=True)
+                cached.write_bytes(b"bad-bytes")
+                restored = ensure_cached_blob(session_path, cache_dir, a_only)
+                self.assertEqual(restored.read_bytes(), b"a-only")
+                self.assertEqual(host.blob_reads.count(a_only), 1)
+                self.assertTrue(cached.with_name("%s.quarantine" % cached.name).exists())
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            os.environ.pop("ACT_RUNTIME_DEV_ALLOW_HTTP", None)
+
+    def test_fuse_client_renews_expired_transport_and_persists_token(self):
+        os.environ["ACT_RUNTIME_DEV_ALLOW_HTTP"] = "1"
+        clock = Clock()
+        host, identity_a, identity_b, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host, time_fn=clock, transport_ttl_seconds=10)
+        issued = service.issue_lease(identity_a, "renew-a")
+        host.set_active(identity_b)
+        clock.now += 11
+        httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(service, RateLimiter(limit=1000)))
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            from gateway_fuse import ensure_cached_blob
+            port = httpd.server_address[1]
+            with tempfile.TemporaryDirectory() as raw:
+                session_path = Path(raw) / "gateway-session.json"
+                cache_dir = Path(raw) / "cache"
+                original = issued["transport"]["token"]
+                session_path.write_text(json.dumps({
+                    "schemaVersion": "act-runtime-dev-gateway-session.v1",
+                    "gatewayUrl": "http://127.0.0.1:%d" % port,
+                    "token": TOKEN,
+                    "leases": {
+                        "renew-a": {
+                            "leaseId": issued["leaseId"],
+                            "transport": original,
+                            "blobSizes": issued["blobSizes"],
+                        }
+                    },
+                }), encoding="utf-8")
+                cached = ensure_cached_blob(session_path, cache_dir, a_only)
+                self.assertEqual(cached.read_bytes(), b"a-only")
+                session = json.loads(session_path.read_text(encoding="utf-8"))
+                self.assertNotEqual(session["leases"]["renew-a"]["transport"], original)
+                self.assertEqual(host.blob_reads.count(a_only), 1)
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            os.environ.pop("ACT_RUNTIME_DEV_ALLOW_HTTP", None)
+
+    def test_tampered_manifest_files_are_not_leased(self):
+        host, identity_a, _, parsed_a, _, _, _, extra = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        tampered = dict(parsed_a)
+        tampered["files"] = list(parsed_a["files"]) + [{
+            "path": "lessons/a/injected.json",
+            "objectKey": "runtime/blobs/sha256/" + extra,
+            "sizeBytes": 5,
+            "sha256": extra,
+        }]
+        host.put_manifest(identity_a, canonical(tampered) + b"\n")
+        service = GatewayService(TOKEN, host)
+        with self.assertRaises(GatewayError) as denied:
+            service.issue_lease(identity_a, "tamper-a")
+        self.assertEqual(denied.exception.status, 409)
+
     def test_ssh_or_oss_headers_are_not_credentials(self):
         host, identity_a, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
         service = GatewayService(TOKEN, host)

@@ -707,6 +707,36 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertNotIn("sharedMountId", rolled)
             self.assertTrue(fixture_cache_object(mount_id, blob_sha).exists())
 
+    def test_checkout_topology_mounts_gateway_adapter(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            os.environ["ACT_RUNTIME_DEV_CACHE_HOME"] = str(Path(raw) / "xdg-cache")
+            os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+            os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
+            install_credential(checkout, GATEWAY_CREDENTIAL)
+            manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway", return_value={"client": object(), "lease": {"leaseId": "lease", "releaseId": manifest["releaseId"], "transport": {"token": "t"}, "blobSizes": {manifest["files"][0]["sha256"]: manifest["files"][0]["sizeBytes"]}}}), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
+                    mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
+                    mock.patch("bootstrap.is_readonly_mount", return_value=True), \
+                    mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
+                    mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                    mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
+                    mock.patch("bootstrap.bind_runtime"), \
+                    mock.patch("bootstrap.mount_gateway_blobs") as mounted:
+                (checkout / "course-content" / "runtime").mkdir(parents=True)
+                (checkout / "helper").mkdir()
+                prepare(checkout)
+            mounted.assert_called_once()
+            blob_root, session_path, cache_dir = mounted.call_args[0]
+            self.assertEqual(blob_root.name, "blobs")
+            self.assertEqual(session_path.name, "gateway-session.json")
+            self.assertEqual(cache_dir.name, "cache")
+
     def test_portable_start_output_omits_paths_and_secrets(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"

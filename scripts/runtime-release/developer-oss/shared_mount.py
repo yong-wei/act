@@ -430,6 +430,7 @@ def register_checkout_gateway_lease(
     token = transport.get("token") if isinstance(transport, dict) else None
     if not isinstance(token, str) or not isinstance(lease.get("leaseId"), str):
         fail("gateway lease is invalid")
+    blob_sizes = lease.get("blobSizes") if isinstance(lease.get("blobSizes"), dict) else {}
     checkout_payload = {
         "schemaVersion": GATEWAY_SESSION_SCHEMA,
         "checkoutId": checkout_id(checkout),
@@ -437,6 +438,7 @@ def register_checkout_gateway_lease(
         "leaseId": lease["leaseId"],
         "releaseId": lease.get("releaseId"),
         "transport": token,
+        "blobSizes": blob_sizes,
     }
     write_private_bytes(
         checkout_gateway_session_path(checkout),
@@ -457,6 +459,7 @@ def register_checkout_gateway_lease(
         "leaseId": lease["leaseId"],
         "releaseId": lease.get("releaseId"),
         "transport": token,
+        "blobSizes": blob_sizes,
     }
     write_shared_gateway_session(mount_id, credential, leases)
 

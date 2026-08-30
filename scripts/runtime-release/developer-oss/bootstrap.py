@@ -53,6 +53,7 @@ from shared_mount import (
     portable_start_payload,
     privileged_mount,
     live_lease_ids,
+    mount_gateway_blobs,
     read_leases,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
@@ -450,10 +451,12 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
         helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
         acquired = False
         try:
-            if topology == TOPOLOGY_CHECKOUT and not use_real_fuse():
+            if topology == TOPOLOGY_CHECKOUT:
                 blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
-            elif topology == TOPOLOGY_CHECKOUT:
-                blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
+                cache_dir = checkout_state(checkout) / "cache"
+                cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+                os.chmod(cache_dir, 0o700)
+                mount_gateway_blobs(blob_root, checkout_gateway_session_path(checkout), cache_dir)
             view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
             os.chmod(view_root, 0o700)
             helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])

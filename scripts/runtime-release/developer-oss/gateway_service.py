@@ -15,6 +15,18 @@ from typing import Any, Callable, Mapping, Protocol
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 RELEASE_ID = re.compile(r"^runtime-[a-z0-9]{55}$")
 IDENTITY_KEYS = ("schemaVersion", "releaseId", "manifestSha256", "treeSha256")
+MANIFEST_KEYS = (
+    "schemaVersion",
+    "releaseId",
+    "sourceRevision",
+    "fileCount",
+    "totalBytes",
+    "treeSha256",
+    "manifestSha256",
+    "files",
+)
+FILE_KEYS = ("path", "objectKey", "sizeBytes", "sha256")
+BLOB_PREFIX = "runtime/blobs/sha256/"
 TRANSPORT_TTL_SECONDS = 900
 DENIED_BODY = b'{"error":"denied"}'
 NOT_FOUND_BODY = b'{"error":"not found"}'
@@ -64,6 +76,7 @@ class Lease:
     checkout_id: str
     identity: dict[str, str]
     allowlist: frozenset[str]
+    blob_sizes: dict[str, int]
     token_fingerprint: str
     live: bool = True
     transport: Transport | None = None
@@ -119,23 +132,68 @@ def identities_match(left: Mapping[str, str], right: Mapping[str, str]) -> bool:
     return all(left.get(key) == right.get(key) for key in IDENTITY_KEYS)
 
 
-def allowlist_from_manifest(payload: bytes) -> frozenset[str]:
+def derive_release_id(source_revision: str, tree_sha256: str) -> str:
+    return "runtime-" + digest_hex({"sourceRevision": source_revision, "treeSha256": tree_sha256})[:55]
+
+
+def validate_v2_manifest(payload: bytes, requested: Mapping[str, str]) -> tuple[frozenset[str], dict[str, int]]:
     try:
         document = json.loads(payload.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise GatewayError(409, "denied", DENIED_BODY) from error
-    files = document.get("files") if isinstance(document, dict) else None
-    if not isinstance(files, list):
+    if not isinstance(document, dict) or set(document) != set(MANIFEST_KEYS):
         raise GatewayError(409, "denied", DENIED_BODY)
-    digests: set[str] = set()
+    if document.get("schemaVersion") != "act-runtime-release.v2":
+        raise GatewayError(409, "denied", DENIED_BODY)
+    if document.get("releaseId") != requested["releaseId"]:
+        raise GatewayError(409, "denied", DENIED_BODY)
+    files = document.get("files")
+    if not isinstance(files, list) or not files:
+        raise GatewayError(409, "denied", DENIED_BODY)
+    sizes: dict[str, int] = {}
+    tree_entries: list[dict[str, Any]] = []
+    previous_path = ""
     for item in files:
         if not isinstance(item, dict):
             raise GatewayError(409, "denied", DENIED_BODY)
+        extra = set(item) - set(FILE_KEYS) - {"source"}
+        missing = set(FILE_KEYS) - set(item)
+        if extra or missing:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        path = item.get("path")
         digest = item.get("sha256")
+        size = item.get("sizeBytes")
+        object_key = item.get("objectKey")
+        if not isinstance(path, str) or not path or path.startswith("/") or "\\" in path:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        if previous_path and path <= previous_path:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        previous_path = path
         if not isinstance(digest, str) or not SHA256.fullmatch(digest):
             raise GatewayError(409, "denied", DENIED_BODY)
-        digests.add(digest)
-    return frozenset(digests)
+        if not isinstance(size, int) or size < 0:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        if object_key != BLOB_PREFIX + digest:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        if digest in sizes and sizes[digest] != size:
+            raise GatewayError(409, "denied", DENIED_BODY)
+        sizes[digest] = size
+        tree_entries.append({"path": path, "sizeBytes": size, "sha256": digest})
+    if document.get("fileCount") != len(files):
+        raise GatewayError(409, "denied", DENIED_BODY)
+    if document.get("totalBytes") != sum(item["sizeBytes"] for item in tree_entries):
+        raise GatewayError(409, "denied", DENIED_BODY)
+    tree = digest_hex(tree_entries)
+    if tree != document.get("treeSha256") or tree != requested["treeSha256"]:
+        raise GatewayError(409, "denied", DENIED_BODY)
+    source_revision = document.get("sourceRevision")
+    if not isinstance(source_revision, str) or derive_release_id(source_revision, tree) != requested["releaseId"]:
+        raise GatewayError(409, "denied", DENIED_BODY)
+    without_digest = {key: value for key, value in document.items() if key != "manifestSha256"}
+    semantic = digest_hex(without_digest)
+    if semantic != document.get("manifestSha256") or semantic != requested["manifestSha256"]:
+        raise GatewayError(409, "denied", DENIED_BODY)
+    return frozenset(sizes), sizes
 
 
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
@@ -227,23 +285,14 @@ class GatewayService:
         manifest = self._host.manifest_bytes(requested)
         if manifest is None:
             raise GatewayError(409, "denied", DENIED_BODY)
-        try:
-            parsed = json.loads(manifest.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise GatewayError(409, "denied", DENIED_BODY) from error
-        if (
-            not isinstance(parsed, dict)
-            or parsed.get("releaseId") != requested["releaseId"]
-            or parsed.get("manifestSha256") != requested["manifestSha256"]
-            or parsed.get("treeSha256") != requested["treeSha256"]
-        ):
-            raise GatewayError(409, "denied", DENIED_BODY)
+        allowlist, blob_sizes = validate_v2_manifest(manifest, requested)
         now = self._time()
         lease = Lease(
             lease_id=secrets.token_urlsafe(24),
             checkout_id=checkout_id,
             identity=dict(requested),
-            allowlist=allowlist_from_manifest(manifest),
+            allowlist=allowlist,
+            blob_sizes=blob_sizes,
             token_fingerprint=token_fingerprint(self.current_token()),
             live=True,
             created_at=now,
@@ -326,6 +375,7 @@ class GatewayService:
             "manifestSha256": lease.identity["manifestSha256"],
             "treeSha256": lease.identity["treeSha256"],
             "allowlistSha256": hashlib.sha256("\n".join(sorted(lease.allowlist)).encode("utf-8")).hexdigest(),
+            "blobSizes": dict(lease.blob_sizes),
             "transport": {
                 "token": lease.transport.token,
                 "expiresAt": int(lease.transport.expires_at),
