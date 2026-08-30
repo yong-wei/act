@@ -21,7 +21,7 @@ for (const invariant of [
   '--coordinated-activate-before-consumers',
   '--verify-active-consumers',
   'coordinated-active-receipt/v1',
-  'ACT_COORDINATED_CUTOVER_REQUIRED=true',
+  'ACT_COORDINATED_CUTOVER_REQUIRED="$required"',
   'BLOCKED_RECOVERY',
   'restore-coordinated-predecessor',
   'lifecycle-predecessor.json',
@@ -34,6 +34,40 @@ for (const invariant of [
   assert.ok(remote.includes(invariant), `coordinated remote transaction must include ${invariant}`);
 }
 assert.ok(
+  remote.includes('--acknowledge-compensated-rollback'),
+  'a compensated BLOCKED_RECOVERY must have an explicit operator acknowledge path to ROLLED_BACK',
+);
+assert.match(
+  remote,
+  /for name in act-obe-submission-scanner act-obe-submission-gc; do\n\s+if podman container exists "\$name" &&/u,
+  'recovery must not require submission scanners that this production stack never created',
+);
+assert.match(
+  remote,
+  /deadline=\$\(\(SECONDS \+ 180\)\)[\s\S]*curl -fsS "http:\/\/127\.0\.0\.1:\$\{app_port\}\/api\/readyz"/u,
+  'recovery readiness must wait for the predecessor app instead of a single curl',
+);
+assert.ok(
+  remote.includes('os.chmod(output_path, 0o644)'),
+  'the coordinated active receipt must be world-readable so the app user can project readiness',
+);
+assert.ok(
+  remote.includes("['python3', materializer, 'select', '--release-id', release_id, '--view-root', view_root]"),
+  'recovery must select the predecessor blob-view before restarting consumers',
+);
+assert.ok(
+  remote.indexOf('restore_runtime_predecessor || recovery_safe=0')
+    < remote.indexOf('restore_blob_view_predecessor || recovery_safe=0')
+    && remote.indexOf('restore_blob_view_predecessor || recovery_safe=0')
+      < remote.lastIndexOf('deploy_runtime_cutover_app'),
+  'compensation must restore lifecycle, then the predecessor view, then redeploy',
+);
+assert.match(
+  remote,
+  /for attempt in 1 2 3 4 5 6; do/u,
+  'cutover app deploy must retry the flaky Wolfram Cloud MCP start gate',
+);
+assert.ok(
   remote.lastIndexOf('--coordinated-activate-before-consumers') < remote.lastIndexOf('seal_final_receipt'),
   'Runtime must activate with consumers stopped before the final active receipt is sealed',
 );
@@ -43,11 +77,15 @@ assert.doesNotMatch(
   'recovery deployment failure must not be reported as a completed rollback',
 );
 assert.ok(
-  remote.lastIndexOf('seal_final_receipt') < remote.lastIndexOf('"$DEPLOY" --runtime-cutover-app-only'),
+  remote.includes('deploy_runtime_cutover_app true'),
+  'successor consumers must start with coordinated cutover required',
+);
+assert.ok(
+  remote.lastIndexOf('seal_final_receipt') < remote.lastIndexOf('deploy_runtime_cutover_app true'),
   'consumer visibility must wait until the final coordinated receipt is durable',
 );
 assert.ok(
-  remote.lastIndexOf('"$DEPLOY" --runtime-cutover-app-only')
+  remote.lastIndexOf('deploy_runtime_cutover_app true')
     < remote.lastIndexOf('--verify-active-consumers')
     && remote.lastIndexOf('--verify-active-consumers') < remote.lastIndexOf('write_journal SUCCESSOR_READY')
     && remote.lastIndexOf('write_journal SUCCESSOR_READY') < remote.lastIndexOf('write_journal COMMITTED'),

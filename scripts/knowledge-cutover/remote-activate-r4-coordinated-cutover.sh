@@ -15,19 +15,22 @@ ACTIVATION="${ACT_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-$PROJECT_DIR/scripts/runt
 HOST_STATE="${ACT_RUNTIME_HOST_STATE_SCRIPT:-$PROJECT_DIR/scripts/runtime-release/runtime-release-host-state.py}"
 ACTIVATOR="${ACT_RUNTIME_BLOB_ACTIVATOR:-$PROJECT_DIR/scripts/activate-runtime-blob-release.sh}"
 DEPLOY="${ACT_RUNTIME_APP_DEPLOY_SCRIPT:-$PROJECT_DIR/scripts/4-deploy.sh}"
+MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-$PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
 RAM_ROLE="${ACT_RUNTIME_OSS_RAM_ROLE:-act-runtime-oss-read}"
 
 candidate_dir=""
+acknowledge_compensated_rollback=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --candidate-dir) candidate_dir="$2"; shift 2 ;;
     --ram-role) RAM_ROLE="$2"; shift 2 ;;
+    --acknowledge-compensated-rollback) acknowledge_compensated_rollback=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 [[ "$candidate_dir" = /* && -d "$candidate_dir" && ! -L "$candidate_dir" ]] || { echo "ERROR: --candidate-dir must be an absolute real directory" >&2; exit 1; }
 [[ "$RAM_ROLE" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || { echo "ERROR: invalid RAM role" >&2; exit 1; }
-for file in "$LIFECYCLE" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$STATE_DIR/act-runtime-active-receipt.json" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/lifecycle-predecessor.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json" "$candidate_dir/materialization-receipt.json"; do
+for file in "$LIFECYCLE" "$HOST_STATE" "$ACTIVATOR" "$DEPLOY" "$MATERIALIZER" "$STATE_DIR/act-runtime-active-receipt.json" "$candidate_dir/candidate-receipt.json" "$candidate_dir/authority-current.json" "$candidate_dir/runtime-stage.json" "$candidate_dir/predecessor-observation.json" "$candidate_dir/lifecycle-predecessor.json" "$candidate_dir/outer-artifacts.json" "$candidate_dir/presentation-label-qualification.json" "$candidate_dir/teaching-reclosure-receipt.json" "$candidate_dir/projection-adjustments.json" "$candidate_dir/projection-scope-binding.json" "$candidate_dir/verification-policy.json" "$candidate_dir/successor-runtime-manifest-extension.json" "$candidate_dir/successor-manifest.json" "$candidate_dir/lifecycle-identity.json" "$candidate_dir/manifest.json" "$candidate_dir/release-receipt.json" "$candidate_dir/publisher-verification.json" "$candidate_dir/materialization-receipt.json"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required regular file is missing: $file" >&2; exit 1; }
 done
 
@@ -74,6 +77,65 @@ stop_consumers() {
       return 1
     fi
   done
+}
+
+wait_for_app_ready() {
+  local app_port deadline
+  app_port="$(awk -F= '$1 == "APP_PORT" { print $2 }' "$PROJECT_DIR/data/runtime/act-obe.env" | tail -n 1)"
+  [[ "$app_port" =~ ^[0-9]{1,5}$ ]] || return 1
+  deadline=$((SECONDS + 180))
+  while (( SECONDS < deadline )); do
+    if curl -fsS "http://127.0.0.1:${app_port}/api/readyz" >/dev/null; then
+      return 0
+    fi
+    sleep 3
+  done
+  return 1
+}
+
+predecessor_consumers_running() {
+  local name
+  for name in act-obe-app act-obe-worker; do
+    if ! podman container exists "$name" || [[ "$(podman inspect --format '{{.State.Running}}' "$name")" != "true" ]]; then
+      return 1
+    fi
+  done
+  for name in act-obe-submission-scanner act-obe-submission-gc; do
+    if podman container exists "$name" && [[ "$(podman inspect --format '{{.State.Running}}' "$name")" != "true" ]]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+deploy_runtime_cutover_app() {
+  local required="$1"
+  local quiet="${2:-0}"
+  local attempt
+  [[ "$required" == "true" || "$required" == "false" ]] || return 1
+  for attempt in 1 2 3 4 5 6; do
+    if [[ "$quiet" == "1" ]]; then
+      if RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" \
+        ACT_COORDINATED_CUTOVER_REQUIRED="$required" \
+        ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
+        "$DEPLOY" --runtime-cutover-app-only >/dev/null 2>&1; then
+        return 0
+      fi
+    else
+      if RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" \
+        ACT_COORDINATED_CUTOVER_REQUIRED="$required" \
+        ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
+        ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
+        "$DEPLOY" --runtime-cutover-app-only; then
+        return 0
+      fi
+    fi
+    sleep 4
+  done
+  return 1
 }
 
 write_journal() {
@@ -362,7 +424,7 @@ receipt={'contract':'coordinated-active-receipt/v1','receiptId':'','sealedAt':da
 receipt['receiptHash']=digest({key: receipt[key] for key in ('transactionId','journalHash','candidateReceiptHash','committedSelectors','mutationReceiptHashes','runtimeActiveReceiptHash','runtimeActiveIdentity')}); receipt['receiptId']='act-'+receipt['receiptHash'][:24]
 fd,temp=tempfile.mkstemp(prefix='.coordinated-active-',dir=os.path.dirname(output_path))
 with os.fdopen(fd,'w',encoding='utf-8') as handle: json.dump(receipt,handle,sort_keys=True,separators=(',',':'));handle.write('\n');handle.flush();os.fsync(handle.fileno())
-os.replace(temp,output_path);os.chmod(output_path,0o600)
+os.replace(temp,output_path);os.chmod(output_path, 0o644)
 PY
 }
 
@@ -374,13 +436,25 @@ restore_runtime_predecessor() {
     --host-state-script "$HOST_STATE" >/dev/null 2>&1
 }
 
+restore_blob_view_predecessor() {
+  python3 - "$MATERIALIZER" "$VIEW_ROOT" "$candidate_dir/lifecycle-predecessor.json" <<'PY'
+import json, subprocess, sys
+materializer, view_root, predecessor_path = sys.argv[1:]
+predecessor = json.load(open(predecessor_path, encoding='utf-8'))
+release_id = (predecessor.get('active') or {}).get('releaseId')
+if not isinstance(release_id, str) or not release_id:
+    raise SystemExit('predecessor Runtime release id is missing')
+subprocess.check_call(['python3', materializer, 'select', '--release-id', release_id, '--view-root', view_root])
+PY
+}
+
 restore_final_receipt() {
   if [[ "$final_receipt_written" != "1" ]]; then return 0; fi
   [[ -f "$final_receipt" && ! -L "$final_receipt" ]] || return 1
   [[ "$(sha256sum "$final_receipt" | awk '{print $1}')" == "$final_receipt_hash" ]] || return 1
   if [[ "$previous_final_receipt_present" == "1" ]]; then
     cp -- "$previous_final_receipt" "$final_receipt"
-    chmod 0600 "$final_receipt"
+    chmod 0644 "$final_receipt"
   else
     rm -f -- "$final_receipt"
   fi
@@ -654,6 +728,9 @@ recover() {
     if [[ "$recovery_safe" == "1" ]]; then
       restore_runtime_predecessor || recovery_safe=0
     fi
+    if [[ "$recovery_safe" == "1" ]]; then
+      restore_blob_view_predecessor || recovery_safe=0
+    fi
   fi
   if [[ "$recovery_safe" == "1" && "$authority_mutated" == "1" && -f "$previous_pointer" ]]; then
     expected_after="$(sha256sum "$candidate_dir/authority-current.json" | awk '{print $1}')"
@@ -668,24 +745,12 @@ recover() {
     restore_final_receipt || recovery_safe=0
   fi
   if [[ "$recovery_safe" == "1" && "$consumers_stop_intent" == "1" && -n "$rollback_image" ]]; then
-    RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED="$([[ "$previous_final_receipt_present" == "1" ]] && printf true || printf false)" \
-      ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
-      ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
-      "$DEPLOY" --runtime-cutover-app-only >/dev/null 2>&1 || recovery_safe=0
+    deploy_runtime_cutover_app "$([[ "$previous_final_receipt_present" == "1" ]] && printf true || printf false)" 1 || recovery_safe=0
     if [[ "$recovery_safe" == "1" ]]; then
-      for name in act-obe-app act-obe-worker act-obe-submission-scanner act-obe-submission-gc; do
-        if ! podman container exists "$name" || [[ "$(podman inspect --format '{{.State.Running}}' "$name")" != "true" ]]; then
-          recovery_safe=0
-          break
-        fi
-      done
+      predecessor_consumers_running || recovery_safe=0
     fi
     if [[ "$recovery_safe" == "1" ]]; then
-      app_port="$(awk -F= '$1 == "APP_PORT" { print $2 }' "$PROJECT_DIR/data/runtime/act-obe.env" | tail -n 1)"
-      [[ "$app_port" =~ ^[0-9]{1,5}$ ]] || recovery_safe=0
-      if [[ "$recovery_safe" == "1" ]]; then
-        curl -fsS "http://127.0.0.1:${app_port}/api/readyz" >/dev/null || recovery_safe=0
-      fi
+      wait_for_app_ready || recovery_safe=0
     fi
   fi
   if [[ -n "$transaction_id" ]]; then
@@ -693,6 +758,70 @@ recover() {
   fi
   exit "$status"
 }
+
+acknowledge_compensated_rollback() {
+  local prior_context prior_status
+  if ! prior_context="$(load_prior_transaction_context)"; then
+    echo "ERROR: current transaction status cannot be verified" >&2
+    exit 1
+  fi
+  [[ -n "$prior_context" ]] || { echo "ERROR: no durable transaction to acknowledge" >&2; exit 1; }
+  IFS=$'\t' read -r transaction_id transaction_journal opened_at prior_status <<<"$prior_context"
+  journal_path="$journal_dir/$transaction_journal"
+  if [[ "$prior_status" != "BLOCKED_RECOVERY" ]]; then
+    echo "ERROR: compensated rollback acknowledge requires BLOCKED_RECOVERY, found ${prior_status}" >&2
+    exit 1
+  fi
+  [[ -f "$previous_pointer" && ! -L "$previous_pointer" ]] || {
+    echo "ERROR: captured predecessor Authority pointer is missing" >&2
+    exit 1
+  }
+  python3 - "$status_path" "$journal_path" "$candidate_dir/candidate-receipt.json" "$previous_pointer" "$candidate_dir/authority-current.json" "$AUTHORITY_ROOT/current.json" "$LIFECYCLE" "$STATE_DIR" "$candidate_dir/lifecycle-predecessor.json" "$final_receipt" "$VIEW_ROOT/current" <<'PY'
+import hashlib, json, os, subprocess, sys
+status_path, journal_path, candidate_path, predecessor_path, successor_path, authority_path, lifecycle, state_dir, predecessor_lifecycle_path, final_path, current_view = sys.argv[1:]
+sha = lambda value: hashlib.sha256(value).hexdigest()
+status = json.load(open(status_path, encoding='utf-8'))
+journal = json.load(open(journal_path, encoding='utf-8'))
+candidate = json.load(open(candidate_path, encoding='utf-8'))
+if status.get('status') != 'BLOCKED_RECOVERY' or status.get('transactionId') != journal.get('transactionId'):
+    raise SystemExit('ERROR: durable status is not this blocked transaction')
+if journal.get('candidateReceiptHash') != candidate.get('receiptHash'):
+    raise SystemExit('ERROR: blocked transaction binds a different candidate')
+predecessor = open(predecessor_path, 'rb').read()
+successor = open(successor_path, 'rb').read()
+live = open(authority_path, 'rb').read()
+if sha(live) != sha(predecessor):
+    raise SystemExit('ERROR: live Authority is not the compensated predecessor')
+if sha(live) == sha(successor):
+    raise SystemExit('ERROR: live Authority is still the successor')
+plan = journal.get('compensationPlan') or []
+if not plan or plan[0].get('restoreIdentity') != sha(predecessor):
+    raise SystemExit('ERROR: compensation plan does not match the captured predecessor')
+if os.path.exists(final_path):
+    raise SystemExit('ERROR: coordinated active receipt is present after failed activation')
+live_lifecycle = json.loads(subprocess.check_output(['python3', lifecycle, 'inspect', '--state-dir', state_dir], universal_newlines=True))
+predecessor_lifecycle = json.load(open(predecessor_lifecycle_path, encoding='utf-8'))
+if live_lifecycle != predecessor_lifecycle:
+    raise SystemExit('ERROR: Runtime lifecycle is not the captured predecessor')
+current = os.path.realpath(current_view) if os.path.lexists(current_view) else ''
+expected = predecessor_lifecycle.get('active') or {}
+release_id = expected.get('releaseId')
+if not isinstance(release_id, str) or release_id not in current:
+    raise SystemExit('ERROR: blob-view current is not the predecessor Runtime')
+print('compensated-predecessor-verified')
+PY
+  predecessor_consumers_running || { echo "ERROR: predecessor app/worker are not running" >&2; exit 1; }
+  wait_for_app_ready || { echo "ERROR: predecessor application readiness failed" >&2; exit 1; }
+  write_journal ROLLED_BACK
+  completed=1
+  printf '{"status":"ROLLED_BACK","transactionId":"%s"}\n' "$transaction_id"
+}
+
+if [[ "$acknowledge_compensated_rollback" == "1" ]]; then
+  acknowledge_compensated_rollback
+  exit 0
+fi
+
 trap recover ERR INT TERM
 
 recover_incomplete_transaction
@@ -731,9 +860,7 @@ seal_final_receipt
 final_receipt_hash="$(sha256sum "$final_receipt" | awk '{print $1}')"
 final_receipt_written=1
 write_journal FINAL_RECEIPT_WRITTEN
-RUNTIME_DELIVERY_MODE=ossfs-blob-view ACT_RUNTIME_OSS_RAM_ROLE="$RAM_ROLE" ACT_COORDINATED_CUTOVER_REQUIRED=true \
-  ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
-  RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" "$DEPLOY" --runtime-cutover-app-only
+deploy_runtime_cutover_app true
 "$ACTIVATOR" --release-id "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtimeRelease"]["releaseId"])' "$candidate_dir/runtime-stage.json")" \
   --expected-active-release "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtime"]["releaseId"])' "$candidate_dir/predecessor-observation.json")" \
   --manifest "$candidate_dir/manifest.json" --release-receipt "$candidate_dir/release-receipt.json" --verification-receipt "$candidate_dir/publisher-verification.json" \
