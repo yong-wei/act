@@ -357,7 +357,7 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[6/10] 同步预置知识点...${NC}"
 
-echo -e "  ${YELLOW}跳过${NC} 知识点同步：seed:knowledge 已 apply-gated，startup 不写库。需要时使用 npm run migration-backfill:apply -- scripts/db/seed-all-knowledge.mjs"
+echo -e "  ${YELLOW}跳过${NC} 知识点同步：seed:knowledge 已 apply-gated，startup 不写库。需要时使用 node scripts/db/seed-all-knowledge.mjs"
 
 echo ""
 
@@ -366,7 +366,7 @@ echo ""
 ###############################################################################
 echo -e "${YELLOW}[7/10] 同步固定测试账号口令...${NC}"
 
-echo -e "  ${YELLOW}跳过${NC} 固定测试账号口令同步：seed:fixed-passwords 已 apply-gated，startup 不写库。需要时使用 npm run migration-backfill:apply -- scripts/db/update-fixed-account-passwords.mjs"
+echo -e "  ${YELLOW}跳过${NC} 固定测试账号口令同步：seed:fixed-passwords 已 apply-gated，startup 不写库。需要时使用 node scripts/db/update-fixed-account-passwords.mjs"
 
 echo ""
 

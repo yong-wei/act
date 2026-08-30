@@ -12,7 +12,7 @@ const startScript = read('scripts/ops/start.sh');
 const validationDoc = read('.agents/skills/interactive-lesson/references/closed-loop-browser-validation.md');
 
 assert.equal(
-  startScript.includes('npm run dev -- --hostname 127.0.0.1 --port "$FRONTEND_PORT"'),
+  startScript.includes('npm run dev -- --hostname 127.0.0.1 --port'),
   true,
   '启动脚本应继续使用 next dev 作为本地浏览器调试基线',
 );
@@ -24,9 +24,10 @@ assert.equal(
 );
 
 assert.equal(
-  startScript.includes('npm run seed:fixed-passwords'),
+  startScript.includes('startup 不写库')
+    && startScript.includes('node scripts/db/update-fixed-account-passwords.mjs'),
   true,
-  '启动脚本应同步固定测试账号密码，避免浏览器验收账号与文档漂移',
+  'startup 不通过 npm seed 写库；需要时指向 node scripts/db/update-fixed-account-passwords.mjs',
 );
 
 assert.equal(

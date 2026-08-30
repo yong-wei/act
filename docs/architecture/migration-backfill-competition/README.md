@@ -10,9 +10,10 @@ explicit parsers, dry-run, report, verify, and compute helpers.
 
 Product TypeScript modules must not import these writers. Apply-gated `db:*`,
 `seed:*`, and `migrate:*` package scripts route through `migration-backfill:apply`
-and do not execute the historical writers. The committed inventory binds
-source revision, captured tree, command set, safety classification, and content
-hashes; drift fails closed.
+and do not execute the historical writers. Local writes use `node` or `npx tsx`
+on the `scripts/db/` file after the target identity is confirmed, matching
+`.cursor/start.sh`. The committed inventory binds source revision, captured tree,
+command set, safety classification, and content hashes; drift fails closed.
 
 Canonical backfill semantics stay in `course-evidence-backfill-reporting`.
 Competition public-material semantics stay in `competition-demo-baseline`.

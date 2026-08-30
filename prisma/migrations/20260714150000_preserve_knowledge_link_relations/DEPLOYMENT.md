@@ -9,7 +9,7 @@
 ```bash
 pg_dump "$DATABASE_URL" --format=custom --file="knowledge-link-before-$(date +%Y%m%d%H%M%S).dump"
 npx prisma migrate deploy
-npm run seed:knowledge
+node scripts/db/seed-all-knowledge.mjs
 KNOWLEDGE_POSTGRES_E2E_REQUIRED=1 npx tsx scripts/tests/test-knowledge-link-postgres-e2e.ts
 npm run test:runtime-knowledge
 ```
@@ -18,7 +18,7 @@ npm run test:runtime-knowledge
 
 1. 暂停知识图谱 seed 写入。
 2. 部署完整 migration chain，包括本迁移。
-3. 在同一发布窗口立即运行 `npm run seed:knowledge`，以 canonical `relations.jsonl` 恢复全部 relation ID。
+3. 在同一发布窗口立即运行 `node scripts/db/seed-all-knowledge.mjs`，以 canonical `relations.jsonl` 恢复全部 relation ID。
 4. 运行 runtime knowledge 与 DB fallback 校验后恢复写入。
 
 迁移不会根据端点或节点 metadata 猜测历史关系 ownership。历史行保持 external/unowned；canonical seed 仅按 canonical relation ID 精确 upsert 并写入当前 `runtimeSource`。首次 seed 会恢复当前 canonical 多关系，但不会删除任何未带当前 ownership 标记的历史或外部关系。

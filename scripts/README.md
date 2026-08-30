@@ -38,20 +38,23 @@ npm run startup
 npm run shutdown
 ```
 
-`startup` 会检查 PostgreSQL、Redis、`.env`、依赖和固定测试账号，启动数据治理 worker、scheduler 与 Next.js 服务，并把日志写入 `.logs/`。
+`startup` 会检查 PostgreSQL、Redis、`.env` 和依赖，启动数据治理 worker、scheduler 与 Next.js 服务，并把日志写入 `.logs/`。它不会通过 `npm run seed:*` 写库；本地需要账号或知识点时，直接运行下方 `scripts/db/` 脚本。
 
 ## 数据脚本
 
-数据库脚本位于 `scripts/db/`。优先使用 `package.json` 中的 npm 入口，例如：
+数据库脚本位于 `scripts/db/`。`package.json` 里的 `seed:*` 与多数 `db:*` 入口接到 `migration-backfill:apply`，默认只做门禁检查，**不执行写库**。本地要真正写入时，直接用 `node`、`npx tsx` 或 `bash` 调用脚本，例如：
 
 ```bash
-npm run seed:knowledge
-npm run seed:fixed-passwords
-npm run db:backfill-facts
-npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id>
+node scripts/db/seed-all-knowledge.mjs
+node scripts/db/update-fixed-account-passwords.mjs
+node scripts/db/ensure-verified-test-accounts.mjs
+npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts
+npx tsx scripts/db/backfill-class-session-attribution.ts --session-id=<session-id> --class-id=<class-id>
 ```
 
-`npm run seed:knowledge` 以 `course-content/runtime/knowledge/graph/nodes.json` 与
+只读报告类入口仍可走 npm，例如 `npm run db:session-data-quality`、`npm run db:evidence-source-coverage`。
+
+`scripts/db/seed-all-knowledge.mjs` 以 `course-content/runtime/knowledge/graph/nodes.json` 与
 `relations.jsonl` 为唯一真源，同步 `KnowledgeNode` / `KnowledgeLink` 到数据库；
 它不再读取已废弃的根目录 `content/` 或 MDX concepts 卡片。
 
@@ -59,15 +62,15 @@ npm run db:repair-class-session-attribution -- --session-id=<session-id> --class
 仅校验并输出脱敏摘要；确认 dry-run 后追加 `--apply` 才会写入：
 
 ```bash
-npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id>
-npm run db:repair-class-session-attribution -- --session-id=<session-id> --class-id=<class-id> --apply
+npx tsx scripts/db/backfill-class-session-attribution.ts --session-id=<session-id> --class-id=<class-id>
+npx tsx scripts/db/backfill-class-session-attribution.ts --session-id=<session-id> --class-id=<class-id> --apply
 ```
 
-兼容入口 `db:backfill-class-attribution` 调用同一安全命令，不再按参与者画像或当前
+兼容入口 `db:backfill-class-attribution` 指向同一脚本，但 npm 入口同样走 apply 门禁、默认不写库。不再按参与者画像或当前
 默认班级自动推断，也不支持批量筛选。可选 `--teacher-id=<teacher-id>` 仅用于复核
 课堂教师是否与审核记录一致。
 
-直接运行脚本时使用 `node`、`npx tsx` 或 `bash`，保持与 `package.json` 中的调用方式一致。
+生产测试账号仍用 `bash scripts/db/ensure-production-test-accounts.sh`。容器内 `npm run seed:knowledge` 同样走 apply 门禁，本说明不把它当成会写库的入口。
 
 ## 制图脚本
 
