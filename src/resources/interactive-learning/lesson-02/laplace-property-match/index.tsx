@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, Link2 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface MatchItem {
   id: string;
@@ -84,17 +85,7 @@ export default function LaplacePropertyMatch({ onComplete, onStateChange }: Lapl
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
-
-    if (correctCount === MATCH_ITEMS.length) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: snapshot.data,
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [answers, correctCount, interactive, onComplete, onStateChange, progress]);
+  }, [answers, correctCount, interactive, onStateChange, progress]);
 
   const handleReset = useCallback(() => {
     setAnswers({});
@@ -185,6 +176,13 @@ export default function LaplacePropertyMatch({ onComplete, onStateChange }: Lapl
           >
             检查匹配
           </button>
+          {checked && correctCount === MATCH_ITEMS.length ? (
+            <PathResourceContinueAction
+              enabled
+              result={{ success: true, score: 100, data: { answers, correctCount, total: MATCH_ITEMS.length } }}
+              onComplete={onComplete}
+            />
+          ) : null}
         </div>
       </div>
     </div>

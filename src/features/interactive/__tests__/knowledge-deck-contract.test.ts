@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -77,6 +77,8 @@ describe('knowledge deck interaction state', () => {
     expect(source).toContain('visitedIndices');
     expect(source).toContain('dark:bg-slate');
     expect(source).toContain('dark:text-slate');
+    expect(source).toContain('PathResourceContinueAction');
+    expect(source).not.toContain('onComplete?.(result)');
   });
 
   it('keeps knowledge card taxonomy badges readable in light and dark themes', () => {
@@ -88,5 +90,172 @@ describe('knowledge deck interaction state', () => {
     expect(source).toContain('text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200');
     expect(source).toContain('text-blue-700 dark:bg-blue-500/15 dark:text-blue-200');
     expect(source).toContain('hover:bg-slate-100 dark:hover:bg-slate-700');
+  });
+});
+
+const browseCompleteResourceFiles = [
+  'src/resources/interactive-learning/lesson-03/modeling-workflow-puzzle/index.tsx',
+  'src/resources/interactive-learning/lesson-05/block-diagram-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-06/judge-bench-sim/index.tsx',
+  'src/resources/interactive-learning/lesson-06/metric-handbook/index.tsx',
+  'src/resources/interactive-learning/lesson-07/theory-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-08/routh-guide/index.tsx',
+  'src/resources/interactive-learning/lesson-08/steady-error-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-09/correction-strategy/index.tsx',
+  'src/resources/interactive-learning/lesson-09/time-domain-synthesis/index.tsx',
+  'src/resources/interactive-learning/lesson-10/root-locus-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-11/graphical-thinking-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-11/parameter-root-locus-deck/index.tsx',
+  'src/resources/interactive-learning/lesson-13/iso2631-mapping/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-tradeoff-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-14/three-band-studio/index.tsx',
+  'src/resources/interactive-learning/lesson-15/lag-lead-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-16/harmonic-linearization-guide/index.tsx',
+  'src/resources/interactive-learning/lesson-17/negative-inverse-workshop/index.tsx',
+];
+
+describe('browse-complete resource path continue', () => {
+  it('requires an explicit continue action instead of completing from a visit effect', () => {
+    for (const file of browseCompleteResourceFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('!interactive?.progress.isComplete');
+    }
+  });
+
+  it('keeps judge-bench completion metrics in the continue payload', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/resources/interactive-learning/lesson-06/judge-bench-sim/index.tsx'),
+      'utf8'
+    );
+
+    expect(source).toContain('metrics: result.metrics');
+    expect(source).toContain('pass,');
+    expect(source).not.toContain('data: { zeta, omega, duration }');
+  });
+});
+
+const lastQuestionQuizFiles = [
+  'src/resources/interactive-learning/lesson-01/feedback-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-01/feedback-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-01/loop-scenario-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-inverse-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-03/diff-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-03/diff-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-03/modeling-scenario-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-derivation-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-element-workshop/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-04/transfer-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-05/block-diagram-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-05/mason-loop-challenge/index.tsx',
+  'src/resources/interactive-learning/lesson-05/signal-flow-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-05/structure-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-06/metric-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-07/damping-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-08/post-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-08/routh-practice/index.tsx',
+  'src/resources/interactive-learning/lesson-08/stability-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-09/correction-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-plot-recognition/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-post-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-12/frequency-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-13/nyquist-stability-scenario/index.tsx',
+  'src/resources/interactive-learning/lesson-13/phase-concept-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-13/phase-stability-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-14/margin-quick-check/index.tsx',
+  'src/resources/interactive-learning/lesson-15/series-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-15/series-strategy-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-precheck/index.tsx',
+  'src/resources/interactive-learning/lesson-17/df-exit-quiz/index.tsx',
+  'src/resources/interactive-learning/lesson-17/df-precheck/index.tsx',
+];
+
+describe('last-question quiz path continue', () => {
+  it('does not complete from the last check, and requires an explicit continue action', () => {
+    for (const file of lastQuestionQuizFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('interactive?.progress.markComplete(result)');
+    }
+  });
+});
+
+const remainingDirectCompleteResourceFiles = [
+  'src/resources/interactive-learning/lesson-01/bridge-intro/index.tsx',
+  'src/resources/interactive-learning/lesson-01/component-role-match/index.tsx',
+  'src/resources/interactive-learning/lesson-01/objective-card/index.tsx',
+  'src/resources/interactive-learning/lesson-01/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-02/bridge-intro/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-property-match/index.tsx',
+  'src/resources/interactive-learning/lesson-02/objective-card/index.tsx',
+  'src/resources/interactive-learning/lesson-02/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-03/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-04/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-05/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-07/parameter-challenge/index.tsx',
+  'src/resources/interactive-learning/lesson-07/pole-manipulator/index.tsx',
+  'src/resources/interactive-learning/lesson-07/response-explorer/index.tsx',
+  'src/resources/interactive-learning/lesson-07/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-08/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-09/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-11/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-slope-puzzle/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-step-sorter/index.tsx',
+  'src/resources/interactive-learning/lesson-12/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx',
+  'src/resources/interactive-learning/lesson-13/physics-builder-simple/index.tsx',
+  'src/resources/interactive-learning/lesson-13/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-14/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-15/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-feature-match/index.tsx',
+  'src/resources/interactive-learning/lesson-16/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-17/limit-cycle-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-17/summary-card/index.tsx',
+  'src/resources/simulations/course-resource.tsx',
+];
+
+function collectTsxFiles(dir: string): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const fullPath = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      files.push(...collectTsxFiles(fullPath));
+    } else if (entry.name.endsWith('.tsx')) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+describe('remaining auto-complete resource path continue', () => {
+  it('requires an explicit continue action for the remaining auto-complete resources', () => {
+    for (const file of remainingDirectCompleteResourceFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('interactive?.progress.markComplete(');
+    }
+  });
+
+  it('does not fire-and-forget progress.markComplete in interactive-learning resources', () => {
+    const files = [
+      ...collectTsxFiles('src/resources/interactive-learning'),
+      'src/resources/simulations/course-resource.tsx',
+    ];
+
+    for (const file of files) {
+      if (file.includes('lesson-02-legacy/')) continue;
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      const offenders = source
+        .split('\n')
+        .map((line, lineNumber) => ({ line: line.trim(), lineNumber: lineNumber + 1 }))
+        .filter(({ line }) => /progress\.markComplete\(/.test(line) && !/\bawait\b/.test(line));
+      expect(offenders, file).toEqual([]);
+    }
   });
 });

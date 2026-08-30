@@ -139,18 +139,6 @@ export default function InteractiveResourcePage() {
     return payload;
   };
 
-  const writePathResourceCompletion = async (result?: WidgetResult) => {
-    await completePathResource(result);
-  };
-
-  const handlePathResourceComplete = async (result?: WidgetResult) => {
-    try {
-      await writePathResourceCompletion(result);
-    } catch (completionError) {
-      console.error('Failed to write path resource completion', completionError);
-    }
-  };
-
   const continuePathAfterResourceComplete = async (result?: WidgetResult) => {
     const payload = await completePathResource(result);
     if (!pathLaunchContext) return;
@@ -164,8 +152,6 @@ export default function InteractiveResourcePage() {
 
   const resourceCompletionHandler = selectResourceCompletionHandler(
     resource?.registryId,
-    writePathResourceCompletion,
-    handlePathResourceComplete,
     continuePathAfterResourceComplete,
   );
 

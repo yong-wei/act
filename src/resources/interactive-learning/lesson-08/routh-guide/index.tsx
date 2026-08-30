@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, ListChecks, Sigma, AlertTriangle } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface GuideSection {
   id: string;
@@ -118,17 +119,7 @@ export default function RouthGuide({ onComplete, onStateChange }: RouthGuideProp
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
     interactive?.tracking.emit('interact', snapshot.data);
-
-    if (nextVisited.length === SECTIONS.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { visited: nextVisited, total: SECTIONS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -162,6 +153,12 @@ export default function RouthGuide({ onComplete, onStateChange }: RouthGuideProp
           <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
             已浏览 {visited.length}/{SECTIONS.length}
           </div>
+          <PathResourceContinueAction
+            enabled={visited.length === SECTIONS.length}
+            result={{ success: true, score: 100, data: { visited, total: SECTIONS.length } }}
+            onComplete={onComplete}
+          />
+
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

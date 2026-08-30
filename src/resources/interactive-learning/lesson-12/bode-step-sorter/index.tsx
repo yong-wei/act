@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface StepItem {
   id: string;
@@ -88,17 +89,7 @@ export default function BodeStepSorter({ onComplete, onStateChange }: BodeStepSo
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
-
-    if (isCorrect) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: snapshot.data,
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [progress, correctCount, isCorrect, onComplete, onStateChange, interactive]);
+  }, [progress, correctCount, onStateChange, interactive]);
 
   const handleShuffle = useCallback(() => {
     setOrderedSteps(shuffleArray(STEPS));
@@ -180,6 +171,13 @@ export default function BodeStepSorter({ onComplete, onStateChange }: BodeStepSo
             <CheckCircle2 className="h-4 w-4" />
             检查顺序
           </button>
+          {checked && isCorrect ? (
+            <PathResourceContinueAction
+              enabled
+              result={{ success: true, score: 100, data: { correctCount, total: STEPS.length } }}
+              onComplete={onComplete}
+            />
+          ) : null}
         </div>
 
         {checked && (

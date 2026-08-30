@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface ChallengeOption {
   id: string;
@@ -131,17 +132,8 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
       onStateChange?.(snapshot);
       interactive?.progress.setProgress(progressValue);
       interactive?.tracking.emit('submit', snapshot.data);
-      if (isLast) {
-        const result: WidgetResult = {
-          success: true,
-          score: Math.round((nextScore / CHALLENGE_ITEMS.length) * 100),
-          data: { correct: nextScore, total: CHALLENGE_ITEMS.length },
-        };
-        interactive?.progress.markComplete(result);
-        onComplete?.(result);
-      }
     }
-  }, [selectedIds, checked, current.answerIds, current.id, currentIndex, isLast, onComplete, onStateChange, score, interactive]);
+  }, [selectedIds, checked, current.answerIds, current.id, currentIndex, onStateChange, score, interactive]);
 
   const handleNext = useCallback(() => {
     if (!checked) return;
@@ -233,10 +225,19 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
               >
                 确认答案
               </button>
+            ) : isLast ? (
+              <PathResourceContinueAction
+                enabled
+                result={{
+                  success: true,
+                  score: Math.round((score / CHALLENGE_ITEMS.length) * 100),
+                  data: { correct: score, total: CHALLENGE_ITEMS.length },
+                }}
+                onComplete={onComplete}
+              />
             ) : (
               <button type="button"
                 onClick={handleNext}
-                disabled={isLast}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-40"
               >
                 下一关

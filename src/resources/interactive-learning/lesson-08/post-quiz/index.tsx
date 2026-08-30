@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, ChevronRight, RotateCcw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface QuizOption {
   id: string;
@@ -120,16 +121,7 @@ export default function PostQuiz({ onComplete, onStateChange }: PostQuizProps) {
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
 
-    if (isLast) {
-      const result: WidgetResult = {
-        success: true,
-        score: Math.round((nextScore / QUIZ_ITEMS.length) * 100),
-        data: { correct: nextScore, total: QUIZ_ITEMS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [checked, selected, current.answerId, current.id, isLast, onComplete, onStateChange, score, progress, interactive]);
+  }, [checked, selected, current.answerId, current.id, onStateChange, score, progress, interactive]);
 
   const handleNext = useCallback(() => {
     if (!checked || isLast) return;
@@ -231,6 +223,17 @@ export default function PostQuiz({ onComplete, onStateChange }: PostQuizProps) {
               下一题
               <ChevronRight className="h-4 w-4" />
             </button>
+            {checked && isLast ? (
+              <PathResourceContinueAction
+                enabled
+                result={{
+                  success: true,
+                  score: Math.round((score / QUIZ_ITEMS.length) * 100),
+                  data: { correct: score, total: QUIZ_ITEMS.length },
+                }}
+                onComplete={onComplete}
+              />
+            ) : null}
           </div>
         </div>
 

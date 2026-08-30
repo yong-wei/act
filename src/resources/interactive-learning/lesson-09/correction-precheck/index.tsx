@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, RotateCcw, ChevronRight } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface QuizOption {
   id: string;
@@ -133,16 +134,7 @@ export default function CorrectionPrecheck({ onComplete, onStateChange }: Correc
     interactive?.progress.setProgress(progress);
     interactive?.tracking.emit('submit', snapshot.data);
 
-    if (isLast) {
-      const result: WidgetResult = {
-        success: true,
-        score: Math.round((nextScore / QUIZ_ITEMS.length) * 100),
-        data: { correct: nextScore, total: QUIZ_ITEMS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [checked, selected, current.answerId, current.id, isLast, onComplete, onStateChange, score, progress, interactive]);
+  }, [checked, selected, current.answerId, current.id, onStateChange, score, progress, interactive]);
 
   const handleNext = useCallback(() => {
     if (!checked || isLast) return;
@@ -236,14 +228,23 @@ export default function CorrectionPrecheck({ onComplete, onStateChange }: Correc
               >
                 提交
               </button>
+            ) : isLast ? (
+              <PathResourceContinueAction
+                enabled
+                result={{
+                  success: true,
+                  score: Math.round((score / QUIZ_ITEMS.length) * 100),
+                  data: { correct: score, total: QUIZ_ITEMS.length },
+                }}
+                onComplete={onComplete}
+              />
             ) : (
               <button type="button"
                 onClick={handleNext}
                 className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-xs text-white"
-                disabled={isLast}
               >
-                {isLast ? '已完成' : '下一题'}
-                {!isLast && <ChevronRight className="h-3.5 w-3.5" />}
+                下一题
+                <ChevronRight className="h-3.5 w-3.5" />
               </button>
             )}
           </div>

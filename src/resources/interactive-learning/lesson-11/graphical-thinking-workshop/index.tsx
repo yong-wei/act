@@ -10,7 +10,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface WorkshopSection {
   id: string;
@@ -159,18 +160,7 @@ export default function GraphicalThinkingWorkshop({ onComplete, onStateChange }:
     };
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
-
-    if (completedIds.length === SECTIONS.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { completed: completedIds, total: SECTIONS.length },
-      };
-      interactive?.progress.markComplete(result);
-      interactive?.tracking.emit('complete', { total: SECTIONS.length });
-      onComplete?.(result);
-    }
-  }, [completedIds, interactive, onComplete, onStateChange, progressValue]);
+  }, [completedIds, interactive, onStateChange, progressValue]);
 
   const toggleOption = useCallback(
     (sectionId: string, optionId: string, multiSelect?: boolean) => {
@@ -335,6 +325,12 @@ export default function GraphicalThinkingWorkshop({ onComplete, onStateChange }:
           </div>
         </div>
       </div>
+          <PathResourceContinueAction
+            enabled={completedIds.length === SECTIONS.length}
+            result={{ success: true, score: 100, data: { completed: completedIds, total: SECTIONS.length } }}
+            onComplete={onComplete}
+          />
+
     </div>
   );
 }
