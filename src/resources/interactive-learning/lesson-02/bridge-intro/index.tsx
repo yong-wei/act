@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { Activity, CheckCircle2, Timer, Zap } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Activity, Timer, Zap } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 const OPTIONS = [
   {
@@ -28,34 +29,11 @@ interface LaplaceBridgeIntroProps extends BaseWidgetProps {}
 export default function LaplaceBridgeIntro({ onComplete, onStateChange }: LaplaceBridgeIntroProps) {
   const interactive = useOptionalInteractiveContext();
   const [selected, setSelected] = useState<string | null>(null);
-  const [completed, setCompleted] = useState(false);
 
   const selectedOption = useMemo(
     () => OPTIONS.find((option) => option.id === selected),
     [selected]
   );
-
-  const handleComplete = useCallback(() => {
-    if (!selected || completed) return;
-    setCompleted(true);
-
-    const snapshot = {
-      progress: 100,
-      data: { choice: selected, note: selectedOption?.title },
-      timestamp: Date.now(),
-    };
-    onStateChange?.(snapshot);
-    interactive?.progress.setProgress(100);
-    interactive?.tracking.emit('submit', snapshot.data);
-
-    const result: WidgetResult = {
-      success: true,
-      score: 100,
-      data: snapshot.data,
-    };
-    interactive?.progress.markComplete(result);
-    onComplete?.(result);
-  }, [completed, interactive, onComplete, onStateChange, selected, selectedOption]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -112,18 +90,25 @@ export default function LaplaceBridgeIntro({ onComplete, onStateChange }: Laplac
           <p className="text-xs text-slate-500">
             选择后即可进入拉氏变换的工程直觉。
           </p>
-          <button type="button"
-            onClick={handleComplete}
-            disabled={!selected || completed}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
-              selected && !completed
-                ? 'bg-amber-600 text-white'
-                : 'bg-slate-200 text-slate-500'
-            }`}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            进入主线
-          </button>
+          <PathResourceContinueAction
+            enabled={Boolean(selected)}
+            result={{
+              success: true,
+              score: 100,
+              data: { choice: selected, note: selectedOption?.title },
+            }}
+            onBeforeComplete={() => {
+              const snapshot = {
+                progress: 100,
+                data: { choice: selected, note: selectedOption?.title },
+                timestamp: Date.now(),
+              };
+              onStateChange?.(snapshot);
+              interactive?.progress.setProgress(100);
+              interactive?.tracking.emit('submit', snapshot.data);
+            }}
+            onComplete={onComplete}
+          />
         </div>
       </div>
     </div>

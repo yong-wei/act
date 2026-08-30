@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { Flag, CheckCircle2, Target } from 'lucide-react';
+import { Flag, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 const OBJECTIVES = [
   '说清楚拉普拉斯变换的物理含义，以及 s=σ+jω 与衰减/振荡的关系。',
@@ -16,28 +16,6 @@ interface LaplaceObjectiveCardProps extends BaseWidgetProps {}
 
 export default function LaplaceObjectiveCard({ onComplete, onStateChange }: LaplaceObjectiveCardProps) {
   const interactive = useOptionalInteractiveContext();
-  const [confirmed, setConfirmed] = useState(false);
-
-  const handleConfirm = useCallback(() => {
-    if (confirmed) return;
-    setConfirmed(true);
-    const snapshot = {
-      progress: 100,
-      data: { action: 'objective-confirmed' },
-      timestamp: Date.now(),
-    };
-    onStateChange?.(snapshot);
-    interactive?.progress.setProgress(100);
-    interactive?.tracking.emit('complete', snapshot.data);
-
-    const result: WidgetResult = {
-      success: true,
-      score: 100,
-      data: snapshot.data,
-    };
-    interactive?.progress.markComplete(result);
-    onComplete?.(result);
-  }, [confirmed, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -69,15 +47,21 @@ export default function LaplaceObjectiveCard({ onComplete, onStateChange }: Lapl
             <Target className="h-4 w-4" />
             完成目标确认后进入前测。
           </div>
-          <button type="button"
-            onClick={handleConfirm}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
-              confirmed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-600 text-white'
-            }`}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            {confirmed ? '已确认' : '确认目标'}
-          </button>
+          <PathResourceContinueAction
+            enabled
+            result={{ success: true, score: 100, data: { action: 'objective-confirmed' } }}
+            onBeforeComplete={() => {
+              const snapshot = {
+                progress: 100,
+                data: { action: 'objective-confirmed' },
+                timestamp: Date.now(),
+              };
+              onStateChange?.(snapshot);
+              interactive?.progress.setProgress(100);
+              interactive?.tracking.emit('complete', snapshot.data);
+            }}
+            onComplete={onComplete}
+          />
         </div>
       </div>
     </div>

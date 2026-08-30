@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface PhysicsBuilderSimpleProps extends BaseWidgetProps {
   /** 初始阻尼比 */
@@ -425,6 +426,7 @@ export function PhysicsBuilderSimple({
   const [history, setHistory] = useState<{ t: number; x: number }[]>([]);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [bestScore, setBestScore] = useState(0);
+  const [pathContinueResult, setPathContinueResult] = useState<WidgetResult | null>(null);
 
   const animationRef = useRef<number | undefined>(undefined);
   const startTimeRef = useRef<number>(0);
@@ -469,13 +471,11 @@ export function PhysicsBuilderSimple({
           if (score > bestScore) {
             setBestScore(score);
           }
-          const result: WidgetResult = {
+          setPathContinueResult({
             success: true,
             score,
             data: { dampingRatio, targetRange: targetDampingRange },
-          };
-          interactive?.progress.markComplete(result);
-          onComplete?.(result);
+          });
         }
         return;
       }
@@ -496,8 +496,6 @@ export function PhysicsBuilderSimple({
     bestScore,
     autoGrade,
     targetDampingRange,
-    interactive,
-    onComplete,
   ]);
 
   // 重置
@@ -724,6 +722,14 @@ export function PhysicsBuilderSimple({
                 )}
               </div>
             )}
+
+            {pathContinueResult ? (
+              <PathResourceContinueAction
+                enabled
+                result={pathContinueResult}
+                onComplete={onComplete}
+              />
+            ) : null}
 
             {/* 知识点 */}
             <div className="bg-slate-900 rounded-xl p-4">

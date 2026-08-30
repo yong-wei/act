@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -181,6 +181,81 @@ describe('last-question quiz path continue', () => {
       const source = readFileSync(resolve(process.cwd(), file), 'utf8');
       expect(source, file).toContain('PathResourceContinueAction');
       expect(source, file).not.toContain('interactive?.progress.markComplete(result)');
+    }
+  });
+});
+
+const remainingDirectCompleteResourceFiles = [
+  'src/resources/interactive-learning/lesson-01/bridge-intro/index.tsx',
+  'src/resources/interactive-learning/lesson-01/component-role-match/index.tsx',
+  'src/resources/interactive-learning/lesson-01/objective-card/index.tsx',
+  'src/resources/interactive-learning/lesson-01/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-02/bridge-intro/index.tsx',
+  'src/resources/interactive-learning/lesson-02/laplace-property-match/index.tsx',
+  'src/resources/interactive-learning/lesson-02/objective-card/index.tsx',
+  'src/resources/interactive-learning/lesson-02/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-03/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-04/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-05/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-07/parameter-challenge/index.tsx',
+  'src/resources/interactive-learning/lesson-07/pole-manipulator/index.tsx',
+  'src/resources/interactive-learning/lesson-07/response-explorer/index.tsx',
+  'src/resources/interactive-learning/lesson-07/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-08/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-09/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-11/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-slope-puzzle/index.tsx',
+  'src/resources/interactive-learning/lesson-12/bode-step-sorter/index.tsx',
+  'src/resources/interactive-learning/lesson-12/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx',
+  'src/resources/interactive-learning/lesson-13/physics-builder-simple/index.tsx',
+  'src/resources/interactive-learning/lesson-13/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-14/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-15/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-16/nonlinear-feature-match/index.tsx',
+  'src/resources/interactive-learning/lesson-16/summary-card/index.tsx',
+  'src/resources/interactive-learning/lesson-17/limit-cycle-lab/index.tsx',
+  'src/resources/interactive-learning/lesson-17/summary-card/index.tsx',
+  'src/resources/simulations/course-resource.tsx',
+];
+
+function collectTsxFiles(dir: string): string[] {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const fullPath = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      files.push(...collectTsxFiles(fullPath));
+    } else if (entry.name.endsWith('.tsx')) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+describe('remaining auto-complete resource path continue', () => {
+  it('requires an explicit continue action for the remaining auto-complete resources', () => {
+    for (const file of remainingDirectCompleteResourceFiles) {
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      expect(source, file).toContain('PathResourceContinueAction');
+      expect(source, file).not.toContain('interactive?.progress.markComplete(');
+    }
+  });
+
+  it('does not fire-and-forget progress.markComplete in interactive-learning resources', () => {
+    const files = [
+      ...collectTsxFiles('src/resources/interactive-learning'),
+      'src/resources/simulations/course-resource.tsx',
+    ];
+
+    for (const file of files) {
+      if (file.includes('lesson-02-legacy/')) continue;
+      const source = readFileSync(resolve(process.cwd(), file), 'utf8');
+      const offenders = source
+        .split('\n')
+        .map((line, lineNumber) => ({ line: line.trim(), lineNumber: lineNumber + 1 }))
+        .filter(({ line }) => /progress\.markComplete\(/.test(line) && !/\bawait\b/.test(line));
+      expect(offenders, file).toEqual([]);
     }
   });
 });

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Activity, Gauge, Target, RefreshCw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import {
   isInteractiveSimulationRuntimeReady,
   preloadInteractiveSimulationRuntime,
@@ -96,18 +97,8 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
       onStateChange?.(snapshot);
       interactive?.progress.setProgress(nextProgress);
       interactive?.tracking.emit('complete', snapshot.data);
-
-      if (next.length === CHALLENGES.length) {
-        const result: WidgetResult = {
-          success: true,
-          score: 100,
-          data: { completed: next },
-        };
-        interactive?.progress.markComplete(result);
-        onComplete?.(result);
-      }
     },
-    [completed, interactive, onComplete, onStateChange]
+    [completed, interactive, onStateChange]
   );
 
   const handleReset = useCallback(() => {
@@ -289,6 +280,13 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
               <RefreshCw className="h-4 w-4" />
               重置参数
             </button>
+            {completed.length === CHALLENGES.length ? (
+              <PathResourceContinueAction
+                enabled
+                result={{ success: true, score: 100, data: { completed } }}
+                onComplete={onComplete}
+              />
+            ) : null}
           </div>
         </div>
       </div>

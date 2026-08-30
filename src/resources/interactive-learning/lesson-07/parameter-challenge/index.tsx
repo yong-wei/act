@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Award, CheckCircle2, Sliders, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface ChallengeResult {
   score: number;
@@ -30,6 +31,7 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
   const [zeta, setZeta] = useState(0.4);
   const [wn, setWn] = useState(2.2);
   const [result, setResult] = useState<ChallengeResult | null>(null);
+  const [pathContinueResult, setPathContinueResult] = useState<WidgetResult | null>(null);
   const metrics = useMemo(() => computeMetrics(zeta, wn), [zeta, wn]);
 
   const evaluate = useCallback(() => {
@@ -70,9 +72,8 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
       score,
       data: snapshot.data,
     };
-    interactive?.progress.markComplete(completion);
-    onComplete?.(completion);
-  }, [metrics.overshoot, metrics.settlingTime, zeta, wn, onStateChange, interactive, onComplete]);
+    setPathContinueResult(completion);
+  }, [metrics.overshoot, metrics.settlingTime, zeta, wn, onStateChange, interactive]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -149,13 +150,20 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex flex-col items-end gap-3">
           <button type="button"
             onClick={evaluate}
             className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
           >
             提交参数
           </button>
+          {pathContinueResult ? (
+            <PathResourceContinueAction
+              enabled
+              result={pathContinueResult}
+              onComplete={onComplete}
+            />
+          ) : null}
         </div>
       </div>
     </div>

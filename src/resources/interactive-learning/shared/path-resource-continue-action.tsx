@@ -8,12 +8,14 @@ import type { WidgetResult } from '@/resources/widgets/widget-props';
 interface PathResourceContinueActionProps {
   enabled: boolean;
   result: WidgetResult;
+  onBeforeComplete?: () => void | Promise<void>;
   onComplete?: (result?: WidgetResult) => void | Promise<void>;
 }
 
 export function PathResourceContinueAction({
   enabled,
   result,
+  onBeforeComplete,
   onComplete,
 }: PathResourceContinueActionProps) {
   const interactive = useOptionalInteractiveContext();
@@ -27,6 +29,7 @@ export function PathResourceContinueAction({
     setCompletionStatus('pending');
     setCompletionError(null);
     try {
+      await onBeforeComplete?.();
       if (onComplete) {
         await onComplete(result);
       } else {
@@ -38,7 +41,7 @@ export function PathResourceContinueAction({
       setCompletionStatus('error');
       setCompletionError('路径进度未能确认，请重试。');
     }
-  }, [enabled, interactive, onComplete, result]);
+  }, [enabled, interactive, onBeforeComplete, onComplete, result]);
 
   if (!enabled) return null;
 
