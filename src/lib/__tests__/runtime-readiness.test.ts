@@ -11,6 +11,7 @@ import { readActiveRuntimeReleaseManifest } from '../runtime-active-release';
 import { projectionDigest } from '../teaching-projection/hash';
 import {
   RUNTIME_CONSUMER_VERIFICATION_FILENAME,
+  RUNTIME_DEV_DELIVERY_FILENAME,
   RUNTIME_FILESYSTEM_PROBE_PATH,
   isBlobViewRuntimeRequired,
   projectRuntimeIdentity,
@@ -57,7 +58,12 @@ async function writeConsumerVerification(
   overrides: Record<string, unknown> = {},
 ) {
   await mkdir(path.join(root, 'resource-governance'), { recursive: true });
-  await writeFile(path.join(root, RUNTIME_FILESYSTEM_PROBE_PATH), JSON.stringify({ schemaVersion: 'micro-tutoring-resource-projection.v2' }));
+  await writeFile(path.join(root, RUNTIME_FILESYSTEM_PROBE_PATH), JSON.stringify({ version: 'micro-tutoring-resource-projection.v2' }));
+  await writeFile(path.join(root, RUNTIME_DEV_DELIVERY_FILENAME), JSON.stringify({
+    releaseId: manifest.releaseId,
+    manifestSha256: manifest.manifestSha256,
+    treeSha256: manifest.treeSha256,
+  }));
   const receiptPath = path.join(root, RUNTIME_CONSUMER_VERIFICATION_FILENAME);
   await writeFile(receiptPath, JSON.stringify({
     schemaVersion: 'act-runtime-consumer-verification.v1',
@@ -68,6 +74,7 @@ async function writeConsumerVerification(
     consumerUid: process.getuid?.() ?? 0,
     runtimeRoot: root,
     leafCount: 2,
+    requiredArtifacts: [{ path: RUNTIME_FILESYSTEM_PROBE_PATH }],
     requiredArtifactSetDigest: 'e'.repeat(64),
     verifiedAt: '2026-08-30T00:00:00Z',
     ...overrides,
@@ -246,8 +253,9 @@ describe('runtime readiness projector', () => {
     vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
     const { root, manifest } = await blobView();
     const verificationReceiptPath = await writeConsumerVerification(root, manifest);
-    const readyz = (receiptOverrides: Record<string, unknown> = {}) => projectRuntimeReadiness(
-      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined,
+    const markerPath = path.join(root, RUNTIME_DEV_DELIVERY_FILENAME);
+    const readyz = () => projectRuntimeReadiness(
+      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined, markerPath,
     );
 
     const healthy = await readyz();
@@ -282,23 +290,77 @@ describe('runtime readiness projector', () => {
     const unreadable = await readyz();
     expect(unreadable.filesystem).toEqual({ ready: false, failureClass: 'required-artifact-unreadable' });
 
-    // 回执缺失 = 非 Developer OSS 交付（生产形态）：保持生产既有语义，不因缺 Developer 证据 503。
+    // 服务运行中回执被清理（复用门禁失败）：dev-delivery 标志仍在 → readyz 必须 fail-closed。
     await rm(verificationReceiptPath);
     const missing = await readyz();
-    expect(missing.filesystem).toEqual({ ready: true });
+    expect(missing.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-missing' });
     expect(missing.identity?.releaseId).toBe(manifest.releaseId);
-    expect(missing.ready).toBe(true);
+    expect(missing.ready).toBe(false);
+
+    // 无 Developer 标志 = 生产形态：回执缺失不参与判定，保持生产既有语义。
+    await rm(markerPath);
+    await writeConsumerVerification(root, manifest);
+    const withoutMarker = await projectRuntimeReadiness(
+      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined, markerPath,
+    );
+    expect(withoutMarker.filesystem).toEqual({ ready: true });
+    expect(withoutMarker.ready).toBe(true);
+  });
+
+  it('probes every required artifact registered in the receipt, not just the projection', async () => {
+    vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
+    const { root, manifest } = await blobView();
+    const verificationReceiptPath = await writeConsumerVerification(root, manifest);
+    const markerPath = path.join(root, RUNTIME_DEV_DELIVERY_FILENAME);
+    const registry = JSON.stringify({
+      schemaVersion: 'act-runtime-requirements.v1',
+      capabilities: { 'micro-tutoring-v2': { artifacts: [
+        { path: RUNTIME_FILESYSTEM_PROBE_PATH },
+        { path: 'resource-governance/micro-tutoring-validation-registry-v2.json' },
+      ] } },
+    });
+    await writeFile(verificationReceiptPath, JSON.stringify({
+      schemaVersion: 'act-runtime-consumer-verification.v1',
+      verifierVersion: 'consumer-verification.v1',
+      releaseId: manifest.releaseId,
+      manifestSha256: manifest.manifestSha256,
+      treeSha256: manifest.treeSha256,
+      consumerUid: process.getuid?.() ?? 0,
+      runtimeRoot: root,
+      leafCount: 3,
+      requiredArtifacts: [
+        { path: RUNTIME_FILESYSTEM_PROBE_PATH },
+        { path: 'resource-governance/micro-tutoring-validation-registry-v2.json' },
+      ],
+      requiredArtifactSetDigest: 'e'.repeat(64),
+      verifiedAt: '2026-08-30T00:00:00Z',
+    }));
+    const projection = await projectRuntimeReadiness(
+      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined, markerPath,
+    );
+    expect(projection.filesystem).toEqual({ ready: false, failureClass: 'required-artifact-unreadable' });
+
+    await mkdir(path.join(root, 'resource-governance'), { recursive: true });
+    await writeFile(
+      path.join(root, 'resource-governance', 'micro-tutoring-validation-registry-v2.json'),
+      JSON.stringify({ version: 'micro-tutoring-validation-registry.v2' }),
+    );
+    const healthy = await projectRuntimeReadiness(
+      root, undefined, undefined, undefined, verificationReceiptPath, undefined, undefined, markerPath,
+    );
+    expect(healthy.filesystem).toEqual({ ready: true });
   });
 
   it('rejects consumer receipts with invalid schema or fields', async () => {
     vi.stubEnv('RUNTIME_DELIVERY_MODE', 'ossfs-blob-view');
     const { root, manifest } = await blobView();
+    const markerPath = path.join(root, RUNTIME_DEV_DELIVERY_FILENAME);
     const receiptPath = await writeConsumerVerification(root, manifest, { schemaVersion: 'unknown-schema' });
-    const projection = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);
+    const projection = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath, undefined, undefined, markerPath);
     expect(projection.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-invalid' });
 
     await writeConsumerVerification(root, manifest, { runtimeRoot: '/somewhere/else' });
-    const misplaced = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath);
+    const misplaced = await projectRuntimeReadiness(root, undefined, undefined, undefined, receiptPath, undefined, undefined, markerPath);
     expect(misplaced.filesystem).toEqual({ ready: false, failureClass: 'consumer-verification-invalid' });
   });
 
@@ -310,8 +372,14 @@ describe('runtime readiness projector', () => {
     };
     const registered = Object.values(registry.capabilities)
       .flatMap((capability) => capability.artifacts.map((artifact) => artifact.path));
-    expect(registered).toContain(RUNTIME_FILESYSTEM_PROBE_PATH);
-    expect(registered).toContain('resource-governance/micro-tutoring-validation-registry-v2.json');
+    for (const required of [
+      'resource-governance/micro-tutoring-assessment-baseline-v2.json',
+      'resource-governance/micro-tutoring-option-attributions-v2.json',
+      RUNTIME_FILESYSTEM_PROBE_PATH,
+      'resource-governance/micro-tutoring-validation-registry-v2.json',
+    ]) {
+      expect(registered).toContain(required);
+    }
   });
 
   it('copies only allowlisted identity fields from the mounted v2 manifest', async () => {

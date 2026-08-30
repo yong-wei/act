@@ -22,6 +22,7 @@ REQUIREMENTS_SCHEMA = "act-runtime-requirements.v1"
 VERIFICATION_SCHEMA = "act-runtime-consumer-verification.v1"
 VERIFIER_VERSION = "consumer-verification.v1"
 RECEIPT_FILENAME = ".act-runtime-consumer-verification.json"
+DEV_DELIVERY_FILENAME = ".act-runtime-dev-delivery.json"
 # 分层验证阈值（设计决议）：低于该大小的叶节点启动前做全量 SHA-256；
 # 更大的媒体文件以「发布时哈希 + 运行时可读打开 + 大小比对」证明。
 # 该阈值由单元测试固定，调整必须同步测试。
@@ -92,7 +93,13 @@ def required_artifact_paths(requirements: Dict[str, Any]) -> List[str]:
 
 
 def verify_required_artifacts(view: Path, requirements: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Open and parse every registered artifact as the current (consumer) user."""
+    """Open and parse every registered artifact as the current (consumer) user.
+
+    Issue #1713 P1：除存在与可读外，还校验 registry 声明的精确合同版本，以及
+    工件之间的内部引用关系（如 option attributions 的 baselineVersion 必须等于
+    正式 baseline 的 version），防止版本漂移被当作成功交付持久化。
+    """
+    payloads: Dict[str, Any] = {}
     verified: List[Dict[str, Any]] = []
     for name, capability in sorted(requirements["capabilities"].items()):
         for artifact in capability["artifacts"]:
@@ -127,12 +134,38 @@ def verify_required_artifacts(view: Path, requirements: Dict[str, Any]) -> List[
                     "artifact-invalid",
                     "required artifact %s does not declare a version" % relative,
                 )
+            if artifact.get("requireVersion"):
+                payloads[relative] = payload
             verified.append({
                 "capability": name,
                 "path": relative,
                 "sizeBytes": len(raw),
                 "sha256": hashlib.sha256(raw).hexdigest(),
             })
+    for name, capability in sorted(requirements["capabilities"].items()):
+        for artifact in capability["artifacts"]:
+            relative = artifact["path"]
+            expected_version = artifact.get("exactVersion")
+            if expected_version:
+                actual = payloads.get(relative, {}).get("version") or payloads.get(relative, {}).get("schemaVersion")
+                if actual != expected_version:
+                    raise ConsumerVerificationError(
+                        "version-drift",
+                        "required artifact %s declares %r but the runtime contract requires %r"
+                        % (relative, actual, expected_version),
+                    )
+            for reference in artifact.get("references") or []:
+                field = reference.get("field")
+                referenced_path = reference.get("artifact")
+                referenced = payloads.get(referenced_path, {})
+                referenced_version = referenced.get("version") or referenced.get("schemaVersion")
+                actual = payloads.get(relative, {}).get(field)
+                if referenced_version is None or actual != referenced_version:
+                    raise ConsumerVerificationError(
+                        "reference-drift",
+                        "required artifact %s field %s does not match the governed version of %s"
+                        % (relative, field, referenced_path),
+                    )
     return verified
 
 

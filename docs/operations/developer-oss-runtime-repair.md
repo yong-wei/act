@@ -11,9 +11,20 @@ Issue #1713 之后，Developer OSS/Lima bootstrap 在物化视图 select 之后�
 | `link-escape` | 逻辑链接解析后逃出其声明的 Blob 目标 |
 | `link-invalid` | manifest 叶节点不是相对 Blob 链接 |
 | `size-mismatch` / `digest-mismatch` | 内容与 manifest 声明不一致 |
-| `consumer-verification-missing` / `-invalid` / `-identity-drift` | readyz 侧回执缺失、格式非法或 Release 身份漂移 |
+| `consumer-verification-missing` / `-invalid` / `-identity-drift` | readyz 侧回执缺失、格式非法或 Release 身份漂移（仅 Developer 交付形态参与判定，见下） |
 | `consumer-identity-mismatch` | 回执的消费者 UID 与当前应用进程不一致 |
-| `required-artifact-unreadable` | readyz 运行中有界探测读取失败 |
+| `required-artifact-unreadable` | readyz 运行中对回执登记的**任一**必需治理工件有界读取失败 |
+| `version-drift` | 治理工件声明的 `version` 与 registry 精确合同值不一致 |
+| `reference-drift` | 工件间内部引用漂移（如 option attributions 的 `baselineVersion` ≠ 正式 baseline 的 `version`） |
+
+## Developer 交付标志
+
+Developer bootstrap 成功 prepare 后会在 `<checkout>/course-content/` 写出两个文件：
+
+- `.act-runtime-dev-delivery.json`：**Developer 交付标志**，持久存在，readyz 据此区分交付形态；
+- `.act-runtime-consumer-verification.json`：消费者验证回执，门禁失败时会被清除。
+
+readyz 判定规则：无标志 = 生产形态（回执不参与判定，保持生产既有语义）；有标志则回执必须有效，缺失（例如复用门禁失败清理后、旧服务仍在运行）一律 fail-closed——"回执被清"绝不会退化为生产语义而误报就绪。
 
 ## 诊断步骤
 

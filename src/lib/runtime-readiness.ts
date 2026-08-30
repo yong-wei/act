@@ -13,6 +13,7 @@ import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 export const RUNTIME_READINESS_BLOB_VIEW_MODE = 'ossfs-blob-view';
 export const RUNTIME_CONSUMER_VERIFICATION_FILENAME = '.act-runtime-consumer-verification.json';
+export const RUNTIME_DEV_DELIVERY_FILENAME = '.act-runtime-dev-delivery.json';
 // 与 scripts/runtime-release/developer-oss/runtime_requirements.json 呼应的有界探测文件；
 // 一致性由 runtime-readiness 测试守护（生产代码不得跨界读取 scripts/）。
 export const RUNTIME_FILESYSTEM_PROBE_PATH = 'resource-governance/micro-tutoring-resource-projection-v2.json';
@@ -178,6 +179,7 @@ export async function projectRuntimeReadiness(
   verificationReceiptPath?: string,
   consumerUid?: number | null,
   probePath?: string,
+  devDeliveryMarkerPath?: string,
 ): Promise<RuntimeReadinessProjection> {
   const required = isBlobViewRuntimeRequired();
   if (!required) {
@@ -194,7 +196,9 @@ export async function projectRuntimeReadiness(
       && !await hasMatchingCoordinatedActiveReceipt(identity, coordinatedActiveReceiptPath, authorityCurrentPath)) {
       return { required: true, ready: false, identity: null, filesystem: { ready: false, failureClass: 'coordinated-receipt-missing' } };
     }
-    const filesystem = await verifyConsumerFilesystem(identity, runtimeRoot, verificationReceiptPath, consumerUid, probePath);
+    const filesystem = await verifyConsumerFilesystem(
+      identity, runtimeRoot, verificationReceiptPath, consumerUid, probePath, devDeliveryMarkerPath,
+    );
     return {
       required: true,
       ready: filesystem.ready,
@@ -245,10 +249,12 @@ async function probeReadableFile(target: string): Promise<boolean> {
 }
 
 /**
- * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready——但该回执门禁仅限
- * Developer OSS 交付：回执由 Developer bootstrap 写出，生产容器没有该文件，
- * 缺失时保持生产既有语义（不因缺 Developer 证据而 503）。回执一旦存在则严格
- * 校验：Release 身份、消费者 UID、bind 路径与关键工件的有界读取探测。
+ * Issue #1713：readyz 不得仅凭挂载存在报告 runtime ready——该回执门禁以
+ * Developer OSS 交付标志（`.act-runtime-dev-delivery.json`，由 Developer
+ * bootstrap 成功 prepare 后写入并持久保留）界定作用域：标志不存在 = 生产形态，
+ * 保持生产既有语义；标志存在则验证回执必须有效——Release 身份、消费者 UID、
+ * bind 路径，以及回执登记的全部必需治理工件的有界读取探测（P1：任一先前
+ * 接受的工件不可读都必须让 readiness 为 false，而不是等业务消费时才失败）。
  */
 export async function verifyConsumerFilesystem(
   identity: RuntimeReadinessIdentity,
@@ -256,9 +262,13 @@ export async function verifyConsumerFilesystem(
   receiptPath = path.join(process.cwd(), 'course-content', RUNTIME_CONSUMER_VERIFICATION_FILENAME),
   consumerUid: number | null = typeof process.getuid === 'function' ? process.getuid() : null,
   probePath?: string,
+  devDeliveryMarkerPath = path.join(process.cwd(), 'course-content', RUNTIME_DEV_DELIVERY_FILENAME),
 ): Promise<RuntimeFilesystemReadiness> {
+  if (!await probeReadableFile(devDeliveryMarkerPath)) {
+    return { ready: true };
+  }
   const { receipt, exists } = await readConsumerVerificationReceipt(receiptPath);
-  if (!exists) return { ready: true };
+  if (!exists) return { ready: false, failureClass: 'consumer-verification-missing' };
   if (!receipt) return { ready: false, failureClass: 'consumer-verification-invalid' };
   const fields = [
     receipt.releaseId, receipt.manifestSha256, receipt.treeSha256,
@@ -279,9 +289,20 @@ export async function verifyConsumerFilesystem(
   if (consumerUid !== null && receipt.consumerUid !== consumerUid) {
     return { ready: false, failureClass: 'consumer-identity-mismatch' };
   }
-  const probe = probePath ?? path.join(runtimeRoot, RUNTIME_FILESYSTEM_PROBE_PATH);
-  if (!await probeReadableFile(probe)) {
-    return { ready: false, failureClass: 'required-artifact-unreadable' };
+  const requiredPaths = Array.isArray(receipt.requiredArtifacts)
+    ? receipt.requiredArtifacts
+      .filter((artifact): artifact is { path: string } => (
+        Boolean(artifact) && typeof artifact === 'object' && typeof (artifact as { path?: unknown }).path === 'string'
+      ))
+      .map((artifact) => artifact.path)
+    : [];
+  const probeTargets = requiredPaths.length > 0
+    ? requiredPaths.map((relative) => path.join(runtimeRoot, relative))
+    : [probePath ?? path.join(runtimeRoot, RUNTIME_FILESYSTEM_PROBE_PATH)];
+  for (const target of probeTargets) {
+    if (!await probeReadableFile(target)) {
+      return { ready: false, failureClass: 'required-artifact-unreadable' };
+    }
   }
   return { ready: true };
 }

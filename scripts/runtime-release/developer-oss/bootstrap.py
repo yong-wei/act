@@ -44,6 +44,7 @@ from common import (
 )
 from consumer_readiness import (
     ConsumerVerificationError,
+    DEV_DELIVERY_FILENAME,
     RECEIPT_FILENAME,
     load_runtime_requirements,
     read_verification_receipt,
@@ -379,6 +380,21 @@ def verification_receipt_path(checkout: Path) -> Path:
     return checkout / "course-content" / RECEIPT_FILENAME
 
 
+def dev_delivery_marker_path(checkout: Path) -> Path:
+    return checkout / "course-content" / DEV_DELIVERY_FILENAME
+
+
+def write_dev_delivery_marker(checkout: Path, readiness: dict[str, str]) -> None:
+    """Developer OSS 交付的显式标记（Issue #1713 P1）：readyz 据此区分生产形态与
+    Developer 交付；标记一经写入持久存在，失败清理只删验证回执，因此"服务运行中
+    回执被清"绝不会退化为生产语义而误报就绪。"""
+    write_verification_receipt(dev_delivery_marker_path(checkout), {
+        "releaseId": readiness["releaseId"],
+        "manifestSha256": readiness["manifestSha256"],
+        "treeSha256": readiness["treeSha256"],
+    })
+
+
 def start_services(checkout: Path) -> None:
     npm = which("npm")
     run([npm, "run", "startup"], cwd=checkout)
@@ -453,6 +469,7 @@ def recover_live_checkout(
             "runtimeRoot": str(runtime_root),
             "blobMount": str(blob_root),
         })
+        write_dev_delivery_marker(checkout, readiness)
         heartbeat_lease(checkout, mount_id, payload)
         return payload
     if use_real_fuse() and is_mounted(runtime_root):
@@ -496,102 +513,109 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
     assert_developer_principal(identity, credential)
     readiness = fetch_readyz_identity(readyz_url)
     with adapter_locks(checkout):
-        topology = topology_mode()
-        account_id = credential["accountId"]
-        state = checkout_state(checkout)
-        receipt_path = state / "selection.json"
-        existing = read_selection_receipt(receipt_path)
-        runtime_root = checkout / "course-content" / "runtime"
-        mount_id: str | None = None
-        shared: dict[str, Any] | None = None
-        if topology == TOPOLOGY_SHARED:
-            refuse_legacy_checkout_mount(checkout)
-            shared = ensure_shared_mount(credential, account_id)
-            blob_root = Path(shared["mountpoint"])
-            mount_id = str(shared["identityId"])
-        else:
-            refuse_live_shared_for_checkout_topology(account_id)
-            blob_root = state / "blobs"
-        existing_topology = (existing or {}).get("topology") or TOPOLOGY_CHECKOUT
-        if (
-            existing
-            and existing.get("releaseId") == readiness["releaseId"]
-            and existing.get("manifestSha256") == readiness["manifestSha256"]
-            and existing_topology == topology
-        ):
-            blob_mount = Path(existing["blobMount"])
-            if topology == TOPOLOGY_SHARED and existing.get("sharedMountId") not in (None, mount_id):
-                fail("checkout selection does not match the shared mount identity")
-            if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
-                # 复用不豁免消费者门禁（Issue #1713）：升级代码后的常见路径正是这里，
-                # 不可读或缺工件的旧视图必须被拒绝并提示 repair，而不是照常启动。
-                # 失败同时清除旧回执，防止 readyz 凭同 Release 旧回执误判 ready。
-                reused_view = Path(existing["viewRoot"])
-                try:
-                    verified = consumer_gate(reused_view, readiness)
-                except Exception:
-                    verification_receipt_path(checkout).unlink(missing_ok=True)
-                    raise
-                if topology == TOPOLOGY_SHARED and mount_id:
-                    heartbeat_lease(checkout, mount_id, existing)
-                write_verification_receipt(verification_receipt_path(checkout), {
-                    **verified,
-                    "viewRoot": str(reused_view),
-                    "runtimeRoot": str(runtime_root),
-                    "blobMount": str(blob_mount),
-                })
-                return existing
-        recovered = recover_live_checkout(
-            checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
-        )
-        if recovered:
-            return recovered
-        documents = state / "documents" / readiness["releaseId"]
-        manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
-        verify_release_documents(readiness, manifest_path, oss_receipt)
-        view_root = state / "materialized"
-        helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
-        acquired = False
-        try:
-            if topology == TOPOLOGY_CHECKOUT:
-                config_path = state / "ossfs.conf"
-                write_ossfs_config(config_path, credential)
-                require_mode(config_path, 0o600, "ossfs config")
-                mount_blobs(blob_root, config_path)
-            view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
-            os.chmod(view_root, 0o700)
-            helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
-            selected = view_root / "current"
-            verified = consumer_gate(selected, readiness)
-            payload = _selection_payload(
-                checkout, readiness, blob_root, helper_mount, selected, runtime_root, topology, mount_id,
-            )
+        return _prepare_locked(checkout, readiness, credential)
+
+
+def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[str, str]) -> dict[str, Any]:
+    """prepare 的锁内主体；调用方必须已持有 adapter_locks(checkout)。"""
+    topology = topology_mode()
+    account_id = credential["accountId"]
+    state = checkout_state(checkout)
+    receipt_path = state / "selection.json"
+    existing = read_selection_receipt(receipt_path)
+    runtime_root = checkout / "course-content" / "runtime"
+    mount_id: str | None = None
+    shared: dict[str, Any] | None = None
+    if topology == TOPOLOGY_SHARED:
+        refuse_legacy_checkout_mount(checkout)
+        shared = ensure_shared_mount(credential, account_id)
+        blob_root = Path(shared["mountpoint"])
+        mount_id = str(shared["identityId"])
+    else:
+        refuse_live_shared_for_checkout_topology(account_id)
+        blob_root = state / "blobs"
+    existing_topology = (existing or {}).get("topology") or TOPOLOGY_CHECKOUT
+    if (
+        existing
+        and existing.get("releaseId") == readiness["releaseId"]
+        and existing.get("manifestSha256") == readiness["manifestSha256"]
+        and existing_topology == topology
+    ):
+        blob_mount = Path(existing["blobMount"])
+        if topology == TOPOLOGY_SHARED and existing.get("sharedMountId") not in (None, mount_id):
+            fail("checkout selection does not match the shared mount identity")
+        if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
+            # 复用不豁免消费者门禁（Issue #1713）：升级代码后的常见路径正是这里，
+            # 不可读或缺工件的旧视图必须被拒绝并提示 repair，而不是照常启动。
+            # 失败同时清除旧回执，防止 readyz 凭同 Release 旧回执误判 ready。
+            reused_view = Path(existing["viewRoot"])
+            try:
+                verified = consumer_gate(reused_view, readiness)
+            except Exception:
+                verification_receipt_path(checkout).unlink(missing_ok=True)
+                raise
             if topology == TOPOLOGY_SHARED and mount_id:
-                acquire_lease(checkout, mount_id, payload)
-                acquired = True
-            refuse_stacked_bind(runtime_root, "runtime")
-            bind_runtime(selected, runtime_root)
-            write_selection_receipt(receipt_path, payload)
+                heartbeat_lease(checkout, mount_id, existing)
             write_verification_receipt(verification_receipt_path(checkout), {
                 **verified,
-                "viewRoot": str(selected),
+                "viewRoot": str(reused_view),
                 "runtimeRoot": str(runtime_root),
-                "blobMount": str(blob_root),
+                "blobMount": str(blob_mount),
             })
-            return payload
-        except Exception:
-            unmount_best_effort(runtime_root)
-            unmount_best_effort(helper)
-            verification_receipt_path(checkout).unlink(missing_ok=True)
-            if acquired and mount_id:
-                release_lease(checkout, mount_id, unmount_best_effort)
-            elif topology == TOPOLOGY_CHECKOUT:
-                unmount_best_effort(blob_root)
-                remove_ossfs_config(state)
-            elif mount_id and not live_lease_ids(mount_id):
-                unmount_best_effort(blob_root)
-                remove_config_file(shared_mount_dir(mount_id) / "ossfs.conf")
-            raise
+            write_dev_delivery_marker(checkout, readiness)
+            return existing
+    recovered = recover_live_checkout(
+        checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
+    )
+    if recovered:
+        return recovered
+    documents = state / "documents" / readiness["releaseId"]
+    manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
+    verify_release_documents(readiness, manifest_path, oss_receipt)
+    view_root = state / "materialized"
+    helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
+    acquired = False
+    try:
+        if topology == TOPOLOGY_CHECKOUT:
+            config_path = state / "ossfs.conf"
+            write_ossfs_config(config_path, credential)
+            require_mode(config_path, 0o600, "ossfs config")
+            mount_blobs(blob_root, config_path)
+        view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(view_root, 0o700)
+        helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
+        selected = view_root / "current"
+        verified = consumer_gate(selected, readiness)
+        payload = _selection_payload(
+            checkout, readiness, blob_root, helper_mount, selected, runtime_root, topology, mount_id,
+        )
+        if topology == TOPOLOGY_SHARED and mount_id:
+            acquire_lease(checkout, mount_id, payload)
+            acquired = True
+        refuse_stacked_bind(runtime_root, "runtime")
+        bind_runtime(selected, runtime_root)
+        write_selection_receipt(receipt_path, payload)
+        write_verification_receipt(verification_receipt_path(checkout), {
+            **verified,
+            "viewRoot": str(selected),
+            "runtimeRoot": str(runtime_root),
+            "blobMount": str(blob_root),
+        })
+        write_dev_delivery_marker(checkout, readiness)
+        return payload
+    except Exception:
+        unmount_best_effort(runtime_root)
+        unmount_best_effort(helper)
+        verification_receipt_path(checkout).unlink(missing_ok=True)
+        if acquired and mount_id:
+            release_lease(checkout, mount_id, unmount_best_effort)
+        elif topology == TOPOLOGY_CHECKOUT:
+            unmount_best_effort(blob_root)
+            remove_ossfs_config(state)
+        elif mount_id and not live_lease_ids(mount_id):
+            unmount_best_effort(blob_root)
+            remove_config_file(shared_mount_dir(mount_id) / "ossfs.conf")
+        raise
 
 
 def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
@@ -607,34 +631,48 @@ def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any
 def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
     """Issue #1713：checkout 限域重建事务。
 
-    顺序：校验回执所有权 → best-effort 停消费者 → 按回执卸载 bind → 全新
-    prepare（重跑物化、消费者门禁与回执）→ 重启。共享 mount 仅在确认无其他
-    live lease 时由 stop 语义释放；所有权不确定即停止且不删除现场。
+    整个事务在 adapter_locks 下执行（与 prepare/stop 互斥，防止基于过期 lease
+    覆盖其他工作树的 live 状态）：校验回执所有权 → best-effort 停消费者 → 按回执
+    卸载 bind → 锁内重新执行 _prepare_locked（物化、消费者门禁、回执全量重跑）
+    → 锁外重启。共享 mount 仅在确认无其他 live lease 时释放；所有权不确定即
+    停止且不删除现场。
     """
-    receipt = read_selection_receipt(checkout_state(checkout) / "selection.json")
-    if not receipt:
-        raise DeveloperRuntimeError(
-            "repair requires an existing checkout-owned selection receipt; refusing to touch uncertain state",
-        )
-    runtime_root = checkout / "course-content" / "runtime"
-    if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
-        raise DeveloperRuntimeError("repair receipt does not own this checkout runtime path")
-    try:
-        stop_services(checkout)
-    except DeveloperRuntimeError:
-        # 消费者可能已因 runtime 不可读而不可停止；重建不依赖停止成功，
-        # 后续 bind 卸载仍由回执所有权证明。
-        pass
-    unmount(Path(receipt["runtimeRoot"]))
-    helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
-    unmount(Path(helper_mount))
-    if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
-        release_lease(checkout, str(receipt["sharedMountId"]), unmount)
-    else:
-        unmount(Path(receipt["blobMount"]))
-    remove_ossfs_config(checkout_state(checkout))
-    verification_receipt_path(checkout).unlink(missing_ok=True)
-    return start(checkout, readyz_url)
+    load_and_validate()
+    linux_preflight(checkout)
+    credential = load_credential(checkout)
+    caller_identity(credential)
+    readiness = fetch_readyz_identity(readyz_url)
+    with adapter_locks(checkout):
+        receipt = read_selection_receipt(checkout_state(checkout) / "selection.json")
+        if not receipt:
+            raise DeveloperRuntimeError(
+                "repair requires an existing checkout-owned selection receipt; refusing to touch uncertain state",
+            )
+        runtime_root = checkout / "course-content" / "runtime"
+        if Path(receipt["runtimeRoot"]).resolve() != runtime_root.resolve():
+            raise DeveloperRuntimeError("repair receipt does not own this checkout runtime path")
+        try:
+            stop_services(checkout)
+        except DeveloperRuntimeError:
+            # 消费者可能已因 runtime 不可读而不可停止；重建不依赖停止成功，
+            # 后续 bind 卸载仍由回执所有权证明。
+            pass
+        unmount(Path(receipt["runtimeRoot"]))
+        helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
+        unmount(Path(helper_mount))
+        if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
+            release_lease(checkout, str(receipt["sharedMountId"]), unmount)
+        else:
+            unmount(Path(receipt["blobMount"]))
+        remove_ossfs_config(checkout_state(checkout))
+        verification_receipt_path(checkout).unlink(missing_ok=True)
+        payload = _prepare_locked(checkout, readiness, credential)
+    start_services(checkout)
+    mount_id = payload.get("sharedMountId")
+    if payload.get("topology") == TOPOLOGY_SHARED and isinstance(mount_id, str):
+        heartbeat_lease(checkout, mount_id, payload)
+    sys.stdout.write(json.dumps(portable_start_payload(payload), sort_keys=True) + "\n")
+    return payload
 
 
 def stop(checkout: Path) -> None:

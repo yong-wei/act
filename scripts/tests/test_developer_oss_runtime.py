@@ -1058,6 +1058,8 @@ GOVERNANCE_REGISTRY = {
                 {
                     "path": "resource-governance/micro-tutoring-resource-projection-v2.json",
                     "requireVersion": True,
+                    "exactVersion": "micro-tutoring-resource-projection.v2",
+                    "references": [],
                 },
             ],
         },
@@ -1221,6 +1223,64 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             with self.assertRaises(ConsumerVerificationError) as raised:
                 self._run_gate(selected, manifest, registry_path)
             self.assertEqual(raised.exception.failure_class, "link-escape")
+
+    def test_consumer_gate_rejects_version_drift(self):
+        from consumer_readiness import ConsumerVerificationError, load_runtime_requirements, verify_consumer_view
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            # 篡改视图内治理工件版本（内容与 manifest hash 由 fixture attach-helper 复制，
+            # 需同步改 blob 与 manifest 不可行——直接改视图副本并接受 hash 差异，
+            # version 校验先于 leaf digest 前提是 leaf 校验已通过；改为独立调用工件校验器）
+            requirements = load_runtime_requirements(registry_path)
+            artifact_path = selected / "resource-governance" / "micro-tutoring-resource-projection-v2.json"
+            drifted = json.loads(artifact_path.read_text())
+            drifted["version"] = "micro-tutoring-resource-projection.v1"
+            artifact_path.write_text(json.dumps(drifted, sort_keys=True))
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                from consumer_readiness import verify_required_artifacts
+                verify_required_artifacts(selected, requirements)
+            self.assertEqual(raised.exception.failure_class, "version-drift")
+
+    def test_consumer_gate_rejects_reference_drift(self):
+        from consumer_readiness import ConsumerVerificationError, load_runtime_requirements, verify_required_artifacts
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps({
+                "schemaVersion": "act-runtime-requirements.v1",
+                "capabilities": {"micro-tutoring-v2": {"artifacts": [
+                    {
+                        "path": "resource-governance/micro-tutoring-assessment-baseline-v2.json",
+                        "requireVersion": True,
+                        "exactVersion": "micro-tutoring-assessment-baseline.v2",
+                    },
+                    {
+                        "path": "resource-governance/micro-tutoring-option-attributions-v2.json",
+                        "requireVersion": True,
+                        "exactVersion": "micro-tutoring-option-attributions.v3",
+                        "references": [
+                            {"field": "baselineVersion", "artifact": "resource-governance/micro-tutoring-assessment-baseline-v2.json"},
+                        ],
+                    },
+                ]}},
+            }))
+            view = root / "view"
+            (view / "resource-governance").mkdir(parents=True)
+            (view / "resource-governance" / "micro-tutoring-assessment-baseline-v2.json").write_text(json.dumps({
+                "version": "micro-tutoring-assessment-baseline.v2",
+            }))
+            (view / "resource-governance" / "micro-tutoring-option-attributions-v2.json").write_text(json.dumps({
+                "version": "micro-tutoring-option-attributions.v3",
+                "baselineVersion": "micro-tutoring-assessment-baseline.v0",
+            }))
+            requirements = load_runtime_requirements(registry_path)
+            with self.assertRaises(ConsumerVerificationError) as raised:
+                verify_required_artifacts(view, requirements)
+            self.assertEqual(raised.exception.failure_class, "reference-drift")
 
     def test_repair_requires_owned_selection_receipt(self):
         from bootstrap import repair
