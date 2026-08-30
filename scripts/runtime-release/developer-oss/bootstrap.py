@@ -73,7 +73,6 @@ from shared_mount import (
     read_leases,
     read_shared_record,
     shared_mount_dir,
-    mount_source,
     verify_shared_identity,
     verify_shared_record,
     refuse_legacy_checkout_mount,
@@ -725,13 +724,12 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                 )
             verify_shared_record(record, credential["accountId"])
             if use_real_fuse():
-                # 规范路径上实际挂载的 source 必须仍归属本 credential 的 bucket——
-                # 防止同一规范目录被其他 FUSE/未知挂载占用后误卸载未知现场。
-                source = mount_source(record_mountpoint)
-                if OSS_BUCKET not in source:
-                    raise DeveloperRuntimeError(
-                        "repair refused: live shared mount source does not belong to this credential's bucket",
-                    )
+                # 进程级归属：实际 ossfs2 进程必须同时绑定规范 mountpoint 与本 mount
+                # 的私有 ossfs.conf。SOURCE 字符串可被相似名称伪造，不作为归属证据。
+                verify_mount_process_provenance(
+                    record_mountpoint,
+                    shared_mount_dir(claimed_mount) / "ossfs.conf",
+                )
             release_lease(checkout, claimed_mount, unmount)
         else:
             blob_mount = Path(receipt["blobMount"])

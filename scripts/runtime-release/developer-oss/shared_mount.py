@@ -417,6 +417,25 @@ def mount_source(path: Path) -> str:
     return (completed.stdout or "").strip()
 
 
+def verify_mount_process_provenance(mountpoint: Path, config_path: Path, proc_root: str = "/proc") -> None:
+    """进程级挂载归属（Issue #1713 P1）：FUSE 的 SOURCE 字符串可被相似名称伪造，
+    不可作为归属证据。唯一可信判据是实际 ossfs2 进程的 cmdline 同时绑定本
+    mountpoint 与本 mount 的私有 ossfs.conf；找不到即为所有权不确定。"""
+    needle_point = str(mountpoint).encode()
+    needle_conf = str(config_path).encode()
+    root = Path(proc_root)
+    for proc in root.iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            cmdline = (proc / "cmdline").read_bytes()
+        except OSError:
+            continue
+        if needle_point in cmdline and needle_conf in cmdline:
+            return
+    fail("shared mount process does not bind this checkout's ossfs config")
+
+
 def verify_shared_record(record: dict[str, Any], account_id: str) -> None:
     verify_shared_identity(record, account_id)
     mountpoint = Path(str(record.get("mountpoint") or ""))

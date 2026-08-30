@@ -1575,3 +1575,38 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 with self.assertRaises(DeveloperRuntimeError):
                     repair(checkout)
             released.assert_not_called()
+
+    def test_mount_process_provenance_requires_exact_point_and_config_binding(self):
+        """Issue #1713 P1：仅 SOURCE 含 bucket 子串不足以证明归属；实际 ossfs2 进程
+        必须同时绑定规范 mountpoint 与本 mount 的私有 ossfs.conf。"""
+        from shared_mount import verify_mount_process_provenance
+        from common import fail
+        with tempfile.TemporaryDirectory() as raw:
+            mountpoint = Path(raw) / "shared" / "mount-1" / "blobs"
+            conf = Path(raw) / "shared" / "mount-1" / "ossfs.conf"
+
+            def proc_root_with(*cmdlines: bytes) -> str:
+                root = Path(tempfile.mkdtemp(dir=raw))
+                for pid, cmdline in enumerate(cmdlines, start=100):
+                    proc = root / str(pid)
+                    proc.mkdir()
+                    (proc / "cmdline").write_bytes(cmdline)
+                return str(root)
+
+            # 进程 100：cmdline 同时含 mountpoint 与 conf → 通过
+            good = proc_root_with(
+                b"/usr/local/bin/ossfs2\x00-c\x00" + str(conf).encode() + b"\x00" + str(mountpoint).encode() + b"\x00",
+            )
+            verify_mount_process_provenance(mountpoint, conf, proc_root=good)
+            # 进程 101：cmdline 含相似 bucket 名但未绑定本 conf → 拒绝
+            other_conf = proc_root_with(
+                b"ossfs2\x00-c\x00/elsewhere/ossfs.conf\x00" + str(mountpoint).encode() + b"\x00",
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=other_conf)
+            # 进程 102：仅含 mountpoint、无 conf 绑定 → 拒绝
+            no_conf = proc_root_with(
+                b"ossfs2\x00" + str(mountpoint).encode() + b"\x00",
+            )
+            with self.assertRaises(ValueError):
+                verify_mount_process_provenance(mountpoint, conf, proc_root=no_conf)
