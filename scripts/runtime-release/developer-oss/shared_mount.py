@@ -515,6 +515,10 @@ def verify_shared_release(
 
     任一失败抛 DeveloperRuntimeError，调用方不得释放、不得清理现场。
     """
+    # 首检：claimed_mount 必须精确等于当前 credential 派生的规范 mount ID；
+    # 非规范目录即使 record/lease 其余字段全部合法也不可释放。
+    if claimed_mount != authority_id(account_id):
+        fail("release refused: sharedMountId is not the canonical mount derived from this credential")
     record = read_shared_record(claimed_mount)
     if not isinstance(record, dict):
         fail("release refused: shared mount record is missing; uncertain mount state")

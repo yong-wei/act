@@ -1439,6 +1439,51 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             # 他人视图未被破坏：目录仍然存在
             self.assertTrue(foreign.exists())
 
+    def test_shared_release_rejects_noncanonical_mount_id_even_with_valid_record_and_lease(self):
+        """Issue #1713 P1 回归：非规范 sharedMountId 即使 record/lease 其余证据均合法也必须拒绝。"""
+        from common import authority_id
+        from common import authority_identity
+        from shared_mount import options_digest, verify_shared_release
+        with tempfile.TemporaryDirectory() as raw:
+            foreign_mount = "deadbeef00deadbeef00deadbeef"
+            state = Path(raw) / "shared" / "mounts" / foreign_mount
+            state.mkdir(parents=True)
+            (state / "mount.json").write_text(json.dumps({
+                "schemaVersion": "act-runtime-dev-shared-mount.v1",
+                "identity": authority_identity("123456789012"),
+                "mountpoint": str(Path(raw) / "shared" / "mounts" / foreign_mount / "blobs"),
+                "optionsDigest": options_digest(),
+                "principal": "act-runtime-dev-read",
+            }))
+            (state / "leases.json").write_text(json.dumps({
+                "schemaVersion": "act-runtime-dev-shared-lease.v1",
+                "leases": {"checkout-abc": {"releaseId": "runtime-" + ("a" * 55)}},
+            }))
+            canonical = authority_id("123456789012")
+            with mock.patch("shared_mount.read_shared_record", return_value=json.loads(
+                (state / "mount.json").read_text(),
+            )), mock.patch("shared_mount.read_leases", return_value=json.loads(
+                (state / "leases.json").read_text(),
+            )), mock.patch("shared_mount.use_real_fuse", return_value=False):
+                with self.assertRaises(ValueError) as raised:
+                    verify_shared_release(
+                        foreign_mount,
+                        "123456789012",
+                        "checkout-abc",
+                        "runtime-" + ("a" * 55),
+                    )
+            self.assertIn("canonical mount", str(raised.exception))
+            # 规范 ID 走同一路径即可通过（首检之后才轮到其余证据）
+            with mock.patch("shared_mount.read_shared_record", return_value=None):
+                with self.assertRaises(ValueError) as raised_canonical:
+                    verify_shared_release(
+                        canonical,
+                        "123456789012",
+                        "checkout-abc",
+                        "runtime-" + ("a" * 55),
+                    )
+            self.assertIn("record is missing", str(raised_canonical.exception))
+
     def test_repair_refuses_shared_release_without_proven_identity_and_lease(self):
         """Issue #1713 P1：repair 释放共享 mount 前必须证明 identity 归属与本 checkout lease。"""
         from bootstrap import repair
