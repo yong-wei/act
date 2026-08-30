@@ -71,6 +71,8 @@ from shared_mount import (
     privileged_mount,
     live_lease_ids,
     read_leases,
+    read_shared_record,
+    verify_shared_identity,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
     release_lease,
@@ -700,6 +702,12 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                 raise DeveloperRuntimeError(
                     "repair refused: no live lease bound to this checkout on the claimed shared mount",
                 )
+            record = read_shared_record(claimed_mount)
+            if not isinstance(record, dict):
+                raise DeveloperRuntimeError(
+                    "repair refused: shared mount record is missing; uncertain mount state",
+                )
+            verify_shared_identity(record, credential["accountId"])
             release_lease(checkout, claimed_mount, unmount)
         else:
             blob_mount = Path(receipt["blobMount"])
