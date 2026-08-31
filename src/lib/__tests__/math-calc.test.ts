@@ -85,6 +85,30 @@ describe('math calculate executor', () => {
     await pending;
   });
 
+  it('parses During-evaluation output produced by the Cloud MCP wrapper', async () => {
+    const payload = JSON.stringify({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+      steps: [{
+        step: 1,
+        description: 'identify',
+        operation: 'identify',
+        input: '1',
+        output: '1',
+      }],
+    });
+    const pending = runMathCalculate({ expression: '1', operation: 'laplace', variable: 't' });
+    await Promise.resolve();
+    pendingEvaluations[0]?.resolve(
+      `During evaluation of In[1]:= ${payload}\nGeneral::quit: The kernel quit unexpectedly during evaluation with exit code 0.`,
+    );
+
+    await expect(pending).resolves.toMatchObject({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+    });
+  });
+
   it('projects Cloud MCP failures into the stable unavailable error', async () => {
     const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
     await Promise.resolve();

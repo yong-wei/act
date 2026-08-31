@@ -29,7 +29,7 @@ import {
   resolveActiveShardIdentity,
   type ResolveActiveShardIdentityOptions,
 } from './identity';
-import { teachingCoverageFromState } from './teaching';
+import { createTeachingOverlay, teachingCoverageFromState } from './teaching';
 import {
   AuthorityShardStoreError,
   defaultShardIo,
@@ -133,6 +133,24 @@ function reconcileTeachingEnvelope<T extends {
   const envelope = context.identity.envelope;
   if (shard.shardClass === 'domain-default') {
     const domainShard = shard as unknown as AuthorityDomainDefaultShard;
+    const teachingPointer = context.identity.teachingPointer;
+    const teachingArtifacts = context.identity.teachingArtifacts;
+    if (
+      envelope.teaching.status === 'available'
+      && envelope.match.teaching === true
+      && teachingPointer
+      && teachingArtifacts
+    ) {
+      const overlay = createTeachingOverlay(teachingPointer, {
+        artifacts: teachingArtifacts,
+      });
+      return {
+        ...domainShard,
+        envelope,
+        teachingRelations: overlay.relations(domainShard.domainId),
+        teachingCoverage: overlay.coverage(domainShard.domainId),
+      } as unknown as T;
+    }
     return {
       ...domainShard,
       envelope,

@@ -21,6 +21,10 @@ function runtimeMediaFallbackPath(assetPath: string[]) {
   return `/course-runtime/${assetPath.map((segment) => encodeURIComponent(segment)).join('/')}`;
 }
 
+function localMediaRedirect(request: Request, assetPath: string[]) {
+  return NextResponse.redirect(new URL(runtimeMediaFallbackPath(assetPath), request.url), 307);
+}
+
 /**
  * A pinned release keeps serving the bytes captured by the session bundle even
  * after the active release has switched; the object identity comes from the
@@ -49,6 +53,16 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
     return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
   }
   const pinnedReleaseId = new URL(request.url).searchParams.get('releaseId')?.trim() || '';
+  const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
+  if (!ramRole) {
+    if (pinnedReleaseId && pinnedReleaseId !== 'unreleased-worktree') {
+      const manifest = await readActiveRuntimeReleaseManifest();
+      if (!manifest || manifest.releaseId !== pinnedReleaseId) {
+        return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
+      }
+    }
+    return localMediaRedirect(request, assetPath);
+  }
 
   try {
     if (!pinnedReleaseId || pinnedReleaseId === 'unreleased-worktree') {
@@ -58,17 +72,13 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       // captured without a mounted manifest.
       const manifest = await readActiveRuntimeReleaseManifest();
       if (!pinnedReleaseId && !manifest) {
-        return NextResponse.redirect(new URL(runtimeMediaFallbackPath(assetPath), request.url), 307);
+        return localMediaRedirect(request, assetPath);
       }
       if (pinnedReleaseId === 'unreleased-worktree') {
-        return NextResponse.redirect(new URL(runtimeMediaFallbackPath(assetPath), request.url), 307);
+        return localMediaRedirect(request, assetPath);
       }
       if (!manifest) {
         return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
-      }
-      const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
-      if (!ramRole) {
-        return NextResponse.json({ error: 'Runtime media delivery is unavailable.' }, { status: 503 });
       }
       const client = createEcsRamRoleOssClient({
         bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || DEFAULT_BUCKET,
@@ -85,10 +95,6 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       }), { status: 307, headers: { 'Cache-Control': 'no-store' } });
     }
 
-    const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
-    if (!ramRole) {
-      return NextResponse.json({ error: 'Runtime media delivery is unavailable.' }, { status: 503 });
-    }
     const client = createEcsRamRoleOssClient({
       bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || DEFAULT_BUCKET,
       region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || DEFAULT_REGION,

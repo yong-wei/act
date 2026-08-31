@@ -13,7 +13,7 @@ export const FROZEN_COUNTS = {
   'course-content/scripts': 41,
   'scripts/knowledge': 7,
   'scripts/knowledge-cutover': 76,
-  'scripts/runtime-release': 34,
+  'scripts/runtime-release': 42,
   'scripts/release': 5,
 } as const;
 

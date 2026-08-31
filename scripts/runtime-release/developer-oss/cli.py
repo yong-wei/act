@@ -47,7 +47,7 @@ def main() -> int:
             print(json.dumps({"ok": True, "policy": str(POLICY_PATH)}, sort_keys=True))
         elif args.command == "install-credential":
             install_credential(checkout)
-            print(json.dumps({"ok": True, "principal": "act-runtime-dev-read"}, sort_keys=True))
+            print(json.dumps({"ok": True, "principal": "act-runtime-developer-gateway"}, sort_keys=True))
         elif args.command == "preflight":
             print(json.dumps({"ok": True, **linux_preflight(checkout)}, sort_keys=True))
         elif args.command == "start":
@@ -60,10 +60,10 @@ def main() -> int:
             print(json.dumps({"ok": True, "repaired": True}, sort_keys=True))
         elif args.command == "status":
             credential = load_credential(checkout)
-            print(json.dumps(shared_status(credential["accountId"]), sort_keys=True))
+            print(json.dumps(shared_status(credential["origin"]), sort_keys=True))
         elif args.command == "prove-read":
             credential = load_credential(checkout)
-            mount_id = authority_id(credential["accountId"])
+            mount_id = authority_id(credential["origin"])
             data = read_blob_with_evidence(mount_id, args.digest, Path(args.source))
             summary = summarize_transfers(mount_id)
             print(json.dumps({

@@ -27,7 +27,7 @@ export async function GET(
 
   const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
   if (!ramRole) {
-    return NextResponse.json({ error: 'Runtime blob delivery is unavailable.' }, { status: 503 });
+    return NextResponse.json({ error: 'Runtime blob asset was not found.' }, { status: 404 });
   }
   try {
     const client = createEcsRamRoleOssClient({

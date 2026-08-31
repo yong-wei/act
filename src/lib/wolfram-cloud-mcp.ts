@@ -148,9 +148,17 @@ function extractToolText(result: unknown): string {
  */
 export function unwrapWolframEvaluatorText(output: string): string {
   const trimmed = output.trim();
-  const withoutOut = trimmed.replace(/^Out\[\d+\]=\s*/, '').trim();
+  const withoutOut = trimmed
+    .replace(/^Out\[\d+\]=\s*/, '')
+    .replace(/^During evaluation of In\[\d+\]:=\s*/, '')
+    .trim();
   if (withoutOut.startsWith('"')) {
     return JSON.parse(withoutOut) as string;
+  }
+  const firstBrace = withoutOut.indexOf('{');
+  const lastBrace = withoutOut.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return withoutOut.slice(firstBrace, lastBrace + 1);
   }
   return withoutOut;
 }
@@ -177,47 +185,64 @@ export async function evaluateWolframLanguage(
   );
   const url = getWolframCloudMcpUrl();
 
-  const initialized = await postMcp(url, {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'initialize',
-    params: {
-      protocolVersion: MCP_PROTOCOL_VERSION,
-      capabilities: {},
-      clientInfo: CLIENT_INFO,
-    },
-  }, undefined, remainingMs());
-  if (!initialized.sessionId) {
-    throw new WolframCloudMcpError('Wolfram Cloud MCP 未返回会话');
-  }
-
-  await postMcp(url, {
-    jsonrpc: '2.0',
-    method: 'notifications/initialized',
-  }, initialized.sessionId, remainingMs());
-
-  const callBudgetMs = remainingMs();
-  const evaluated = await postMcp(url, {
-    jsonrpc: '2.0',
-    id: 2,
-    method: 'tools/call',
-    params: {
-      name: WOLFRAM_LANGUAGE_EVALUATOR_TOOL,
-      arguments: {
-        code,
-        timeConstraint: Math.max(1, Math.min(timeConstraintSeconds, Math.ceil(callBudgetMs / 1000))),
+  const evaluateOnce = async (): Promise<string> => {
+    const initialized = await postMcp(url, {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: CLIENT_INFO,
       },
-    },
-  }, initialized.sessionId, callBudgetMs);
+    }, undefined, remainingMs());
+    if (!initialized.sessionId) {
+      throw new WolframCloudMcpError('Wolfram Cloud MCP 未返回会话');
+    }
 
-  if (isJsonRpcFailure(evaluated.json)) {
-    throw new WolframCloudMcpError('Wolfram Cloud MCP 不可用');
+    await postMcp(url, {
+      jsonrpc: '2.0',
+      method: 'notifications/initialized',
+    }, initialized.sessionId, remainingMs());
+
+    const callBudgetMs = remainingMs();
+    const evaluated = await postMcp(url, {
+      jsonrpc: '2.0',
+      id: 2,
+      method: 'tools/call',
+      params: {
+        name: WOLFRAM_LANGUAGE_EVALUATOR_TOOL,
+        arguments: {
+          code,
+          timeConstraint: Math.max(1, Math.min(timeConstraintSeconds, Math.ceil(callBudgetMs / 1000))),
+        },
+      },
+    }, initialized.sessionId, callBudgetMs);
+
+    if (isJsonRpcFailure(evaluated.json)) {
+      throw new WolframCloudMcpError('Wolfram Cloud MCP 不可用');
+    }
+    return extractToolText(evaluated.json.result);
+  };
+
+  try {
+    return await evaluateOnce();
+  } catch (error) {
+    if (error instanceof WolframCloudMcpError && error.message === '公式计算超时') {
+      throw error;
+    }
+    if (remainingMs() <= 0) {
+      throw error instanceof WolframCloudMcpError
+        ? error
+        : new WolframCloudMcpError('Wolfram Cloud MCP 不可用');
+    }
+    // Cloud MCP 偶发连接失败时重试一轮，数学求值只读且幂等。
+    return await evaluateOnce();
   }
-  return extractToolText(evaluated.json.result);
 }
 
 export function buildCalcWlsCloudProgram(scriptSource: string, payloadJson: string): string {
-  let script = scriptSource;
+  let script = scriptSource.replace(/\r\n/g, '\n');
   if (script.startsWith('#!')) {
     const newline = script.indexOf('\n');
     script = newline >= 0 ? script.slice(newline + 1) : '';

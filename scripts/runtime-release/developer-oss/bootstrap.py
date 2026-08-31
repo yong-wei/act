@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import base64
 import hashlib
-import hmac
 import importlib.util
 import json
 import os
 import subprocess
 import sys
 import time
-import uuid
 import urllib.error
-import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -21,12 +17,8 @@ from common import (
     DEFAULT_READYZ_URL,
     DeveloperRuntimeError,
     IDENTITY_KEYS,
-    authority_id,
-    OSS_BUCKET,
-    PUBLIC_OSS_ENDPOINT,
     READYZ_RUNTIME_KEYS,
     RELEASE_ID,
-    RELEASE_PREFIX,
     SELECTION_SCHEMA,
     SELECTION_SCHEMA_V2,
     SELECTION_V1_KEYS,
@@ -48,39 +40,40 @@ from consumer_readiness import (
     DEV_DELIVERY_FILENAME,
     RECEIPT_FILENAME,
     load_runtime_requirements,
-    read_verification_receipt,
-    receipt_matches_binding,
     verify_consumer_view,
     write_verification_receipt,
 )
-from credential import assert_developer_principal, load_credential
-from policy import load_and_validate
+from credential import load_credential
+from gateway_client import GatewayClient
+from gateway_service import GatewayError
 from shared_mount import (
     acquire_lease,
     adapter_locks,
+    checkout_gateway_session_path,
     ensure_shared_mount,
     heartbeat_lease,
     is_fuse_readonly,
     is_mounted,
     is_readonly_mount,
-    mount_blobs,
     write_private_bytes,
     mount_fields,
     mount_helper_path,
     portable_start_payload,
     privileged_mount,
     live_lease_ids,
+    mount_gateway_blobs,
+    observe_shared_mount,
     read_leases,
     shared_mount_dir,
     refuse_legacy_checkout_mount,
     refuse_live_shared_for_checkout_topology,
+    register_checkout_gateway_lease,
     release_lease,
     remove_ossfs_config as remove_config_file,
-    require_ossfs2_version,
     unmount,
     unmount_best_effort,
+    unregister_checkout_gateway_lease,
     which,
-    write_ossfs_config,
     verify_shared_release,
 )
 
@@ -185,73 +178,50 @@ def fetch_readyz_identity(url: str = DEFAULT_READYZ_URL) -> dict[str, str]:
     return parse_readyz_identity(payload)
 
 
+def refuse_public_oss_data_plane(credential: dict[str, str] | None = None) -> None:
+    if os.environ.get("ACT_RUNTIME_OSS_RAM_ROLE", "").strip():
+        fail("workstation must not set ACT_RUNTIME_OSS_RAM_ROLE")
+    if credential:
+        serialized = json.dumps(credential)
+        if "accessKey" in serialized or "LTAI" in serialized:
+            fail("developer startup must not use an OSS AccessKey")
+        url = credential.get("gatewayUrl") or ""
+        if "oss-cn-hangzhou.aliyuncs.com" in url or "oss-cn-hangzhou-internal" in url:
+            fail("developer startup must not use an OSS endpoint")
+
+
 def caller_identity(credential: dict[str, str]) -> dict[str, Any]:
-    helper = os.environ.get("ACT_RUNTIME_DEV_STS_GET")
-    if helper:
-        env = os.environ.copy()
-        env["ALIBABA_CLOUD_ACCESS_KEY_ID"] = credential["accessKeyId"]
-        env["ALIBABA_CLOUD_ACCESS_KEY_SECRET"] = credential["accessKeySecret"]
-        raw = json.loads(subprocess.check_output([helper], env=env).decode("utf-8"))
-        assert_developer_principal(raw, credential)
-        return raw
-    timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    params = {
-        "AccessKeyId": credential["accessKeyId"],
-        "Action": "GetCallerIdentity",
-        "Format": "JSON",
-        "SignatureMethod": "HMAC-SHA1",
-        "SignatureNonce": str(uuid.uuid4()),
-        "SignatureVersion": "1.0",
-        "Timestamp": timestamp,
-        "Version": "2015-04-01",
-    }
-    canonical_query = "&".join(
-        "%s=%s" % (urllib.parse.quote(key, safe=""), urllib.parse.quote(params[key], safe=""))
-        for key in sorted(params)
-    )
-    string_to_sign = "GET&%2F&%s" % urllib.parse.quote(canonical_query, safe="")
-    signature = base64.b64encode(
-        hmac.new((credential["accessKeySecret"] + "&").encode("utf-8"), string_to_sign.encode("utf-8"), hashlib.sha1).digest()
-    ).decode("utf-8")
-    url = "https://sts.aliyuncs.com/?%s&Signature=%s" % (canonical_query, urllib.parse.quote(signature, safe=""))
+    fail("STS caller identity is not used by the developer gateway")
+    return {}
+
+
+def attach_gateway(credential: dict[str, str], identity: dict[str, str], checkout: Path) -> dict[str, Any]:
+    refuse_public_oss_data_plane(credential)
+    client = GatewayClient(credential["gatewayUrl"], credential["token"])
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            raw = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError:
-        fail("caller identity request failed")
-    assert_developer_principal({
-        "AccountId": raw.get("AccountId"),
-        "Arn": raw.get("Arn"),
-        "UserId": raw.get("UserId"),
-    }, credential)
-    return {
-        "AccountId": raw["AccountId"],
-        "Arn": raw["Arn"],
-        "UserId": raw["UserId"],
-    }
+        issued = client.issue_lease(identity, checkout_id(checkout))
+    except GatewayError:
+        fail("developer runtime gateway refused the lease")
+    return {"client": client, "lease": issued}
 
 
-def oss_object_key(release_id: str, name: str) -> str:
-    return "%s%s/%s" % (RELEASE_PREFIX, release_id, name)
-
-
-def fetch_release_documents(release_id: str, destination: Path, credential: dict[str, str]) -> tuple[Path, Path]:
-    ossutil = which("ossutil")
+def fetch_release_documents(release_id: str, destination: Path, session: dict[str, Any]) -> tuple[Path, Path]:
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(destination, 0o700)
-    env = os.environ.copy()
-    env["OSS_ACCESS_KEY_ID"] = credential["accessKeyId"]
-    env["OSS_ACCESS_KEY_SECRET"] = credential["accessKeySecret"]
+    client: GatewayClient = session["client"]
+    lease = session["lease"]
+    transport = lease["transport"]["token"]
+    lease_id = lease["leaseId"]
+    if lease.get("releaseId") != release_id:
+        fail("gateway lease does not match readiness identity")
     manifest = destination / "manifest.json"
     receipt = destination / "receipt.json"
+    try:
+        manifest.write_bytes(client.get_manifest(lease_id, transport))
+        receipt.write_bytes(client.get_receipt(lease_id, transport))
+    except GatewayError:
+        fail("developer runtime gateway could not serve release documents")
     for name, target in (("manifest.json", manifest), ("receipt.json", receipt)):
-        uri = "oss://%s/%s" % (OSS_BUCKET, oss_object_key(release_id, name))
-        run([
-            ossutil, "cp", uri, str(target),
-            "--endpoint", PUBLIC_OSS_ENDPOINT,
-            "--region", "cn-hangzhou",
-            "--force",
-        ], env=env)
         if not target.is_file() or target.is_symlink():
             fail("%s must be a regular file" % name)
     return manifest, receipt
@@ -281,13 +251,12 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
         fail("unsupported architecture")
     if sys.platform != "linux" and os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") != "1":
         fail("developer OSS runtime requires the Linux execution layer")
+    refuse_public_oss_data_plane()
     if sys.platform != "linux":
-        return {"architecture": machine or "fixture", "fuse": "fixture", "ossfs2": require_ossfs2_version()}
+        return {"architecture": machine or "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}
     fuse = Path("/dev/fuse")
     if not fuse.exists():
         fail("/dev/fuse is missing")
-    which("ossfs2")
-    which("ossutil")
     which("python3")
     which("node")
     which("mount")
@@ -301,7 +270,7 @@ def linux_preflight(checkout: Path) -> dict[str, str]:
             fail("passwordless sudo is required for /usr/local/sbin/act-runtime-dev-mount")
     if not os.access(checkout, os.W_OK):
         fail("checkout is not writable")
-    return {"architecture": machine, "fuse": str(fuse), "ossfs2": require_ossfs2_version()}
+    return {"architecture": machine, "fuse": str(fuse), "adapter": "ecs-gateway"}
 
 
 def bind_runtime(view: Path, runtime_root: Path) -> None:
@@ -319,7 +288,7 @@ def write_selection_receipt(path: Path, payload: dict[str, Any]) -> None:
     keys = SELECTION_V2_KEYS if schema == SELECTION_SCHEMA_V2 else SELECTION_V1_KEYS
     require_exact_keys(payload, keys, "selection receipt")
     serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    if any(secret in serialized for secret in ("accessKey", "LTAI", "Secret")):
+    if any(secret in serialized for secret in ("accessKey", "LTAI", "Secret", "Bearer")):
         fail("selection receipt must not contain credentials")
     write_private_bytes(path, serialized.encode("utf-8"))
 
@@ -522,11 +491,9 @@ def _selection_payload(
 
 
 def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
-    load_and_validate()
     linux_preflight(checkout)
     credential = load_credential(checkout)
-    identity = caller_identity(credential)
-    assert_developer_principal(identity, credential)
+    refuse_public_oss_data_plane(credential)
     readiness = fetch_readyz_identity(readyz_url)
     with adapter_locks(checkout):
         return _prepare_locked(checkout, readiness, credential)
@@ -535,20 +502,19 @@ def prepare(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, A
 def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[str, str]) -> dict[str, Any]:
     """prepare 的锁内主体；调用方必须已持有 adapter_locks(checkout)。"""
     topology = topology_mode()
-    account_id = credential["accountId"]
+    origin = credential["origin"]
     state = checkout_state(checkout)
     receipt_path = state / "selection.json"
     existing = read_selection_receipt(receipt_path)
     runtime_root = checkout / "course-content" / "runtime"
     mount_id: str | None = None
-    shared: dict[str, Any] | None = None
     if topology == TOPOLOGY_SHARED:
         refuse_legacy_checkout_mount(checkout)
-        shared = ensure_shared_mount(credential, account_id)
-        blob_root = Path(shared["mountpoint"])
-        mount_id = str(shared["identityId"])
+        observed = observe_shared_mount(credential)
+        mount_id = str(observed["identityId"])
+        blob_root = Path(observed["mountpoint"])
     else:
-        refuse_live_shared_for_checkout_topology(account_id)
+        refuse_live_shared_for_checkout_topology(origin)
         blob_root = state / "blobs"
     existing_topology = (existing or {}).get("topology") or TOPOLOGY_CHECKOUT
     if (
@@ -561,9 +527,6 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
         if topology == TOPOLOGY_SHARED and existing.get("sharedMountId") not in (None, mount_id):
             fail("checkout selection does not match the shared mount identity")
         if is_fuse_readonly(blob_mount) and is_readonly_mount(runtime_root):
-            # 复用不豁免消费者门禁（Issue #1713）：升级代码后的常见路径正是这里，
-            # 不可读或缺工件的旧视图必须被拒绝并提示 repair，而不是照常启动。
-            # 失败同时清除旧回执，防止 readyz 凭同 Release 旧回执误判 ready。
             reused_view = Path(existing["viewRoot"])
             try:
                 verified = consumer_gate(reused_view, readiness)
@@ -585,24 +548,38 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
             checkout, readiness, runtime_root, blob_root, state / "materialized", topology, mount_id, receipt_path,
         )
     except Exception:
-        # crash-recovery 复用路径的门禁失败同样清除旧回执：旧服务仍在运行且失败为
-        # digest/version 等读取类漂移时，readyz 有界探测仍可能成功，残留回执会误报就绪。
         verification_receipt_path(checkout).unlink(missing_ok=True)
         raise
     if recovered:
         return recovered
-    documents = state / "documents" / readiness["releaseId"]
-    manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, credential)
-    verify_release_documents(readiness, manifest_path, oss_receipt)
+    session: dict[str, Any] | None = None
+    acquired = False
     view_root = state / "materialized"
     helper = view_root / "views" / readiness["releaseId"] / ".act-runtime-blobs"
-    acquired = False
     try:
-        if topology == TOPOLOGY_CHECKOUT:
-            config_path = state / "ossfs.conf"
-            write_ossfs_config(config_path, credential)
-            require_mode(config_path, 0o600, "ossfs config")
-            mount_blobs(blob_root, config_path)
+        session = attach_gateway(credential, readiness, checkout)
+        if topology == TOPOLOGY_SHARED and mount_id:
+            acquire_lease(checkout, mount_id, {
+                "releaseId": readiness["releaseId"],
+                "runtimeRoot": str(runtime_root),
+                "viewRoot": str(state / "materialized"),
+                "helperMount": str(helper),
+            })
+            acquired = True
+        register_checkout_gateway_lease(checkout, credential, session["lease"], mount_id)
+        documents = state / "documents" / readiness["releaseId"]
+        manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, session)
+        verify_release_documents(readiness, manifest_path, oss_receipt)
+        if topology == TOPOLOGY_SHARED:
+            shared = ensure_shared_mount(credential)
+            blob_root = Path(shared["mountpoint"])
+            mount_id = str(shared["identityId"])
+        elif topology == TOPOLOGY_CHECKOUT:
+            blob_root.mkdir(mode=0o755, parents=True, exist_ok=True)
+            cache_dir = checkout_state(checkout) / "cache"
+            cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+            os.chmod(cache_dir, 0o700)
+            mount_gateway_blobs(blob_root, checkout_gateway_session_path(checkout), cache_dir)
         view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(view_root, 0o700)
         helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
@@ -629,6 +606,18 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
         unmount_best_effort(runtime_root)
         unmount_best_effort(helper)
         verification_receipt_path(checkout).unlink(missing_ok=True)
+        if session:
+            client = session.get("client")
+            lease = session.get("lease") if isinstance(session.get("lease"), dict) else {}
+            lease_id = lease.get("leaseId")
+            if client is not None and isinstance(lease_id, str):
+                try:
+                    client.stop_lease(lease_id)
+                except Exception:
+                    pass
+        notify_gateway_stop(checkout)
+        if mount_id:
+            unregister_checkout_gateway_lease(checkout, mount_id)
         if acquired and mount_id:
             release_lease(checkout, mount_id, unmount_best_effort)
         elif topology == TOPOLOGY_CHECKOUT:
@@ -650,19 +639,35 @@ def start(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any
     return payload
 
 
+def notify_gateway_stop(checkout: Path) -> None:
+    path = checkout_gateway_session_path(checkout)
+    contact = os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") != "1" or os.environ.get("ACT_RUNTIME_DEV_GATEWAY_HTTP")
+    if contact and path.exists() and path.is_file() and not path.is_symlink():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            lease_id = payload.get("leaseId")
+            gateway_url = payload.get("gatewayUrl")
+            if isinstance(lease_id, str) and isinstance(gateway_url, str):
+                credential = load_credential(checkout)
+                GatewayClient(gateway_url, credential["token"]).stop_lease(lease_id)
+        except (OSError, json.JSONDecodeError, KeyError, DeveloperRuntimeError, GatewayError, urllib.error.URLError):
+            pass
+    unregister_checkout_gateway_lease(checkout, None)
+
+
 def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, Any]:
-    """Issue #1713：checkout 限域重建事务。
+    """checkout 限域重建事务。
 
     整个事务在 adapter_locks 下执行（与 prepare/stop 互斥，防止基于过期 lease
     覆盖其他工作树的 live 状态）：校验回执所有权 → best-effort 停消费者 → 按回执
-    卸载 bind → 锁内重新执行 _prepare_locked（物化、消费者门禁、回执全量重跑）
-    → 锁外重启。共享 mount 仅在确认无其他 live lease 时释放；所有权不确定即
-    停止且不删除现场。
+    卸载 bind → 停止网关租约 → 锁内重新执行 _prepare_locked（网关签发、物化、
+    消费者门禁、回执全量重跑）→ 锁外重启。共享 mount 仅在确认无其他 live lease
+    时释放；所有权不确定即停止且不删除现场。活数据面归属证明绑定网关 FUSE，
+    不得把 ossfs2 或 RAM accountId 当作开发机身份。
     """
-    load_and_validate()
     linux_preflight(checkout)
     credential = load_credential(checkout)
-    caller_identity(credential)
+    refuse_public_oss_data_plane(credential)
     readiness = fetch_readyz_identity(readyz_url)
     with adapter_locks(checkout):
         receipt = read_selection_receipt(checkout_state(checkout) / "selection.json")
@@ -676,8 +681,6 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
         try:
             stop_services(checkout)
         except DeveloperRuntimeError:
-            # 消费者可能已因 runtime 不可读而不可停止；重建不依赖停止成功，
-            # 后续 bind 卸载仍由回执所有权证明。
             pass
         unmount(Path(receipt["runtimeRoot"]))
         state = checkout_state(checkout)
@@ -688,16 +691,13 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
             )
         unmount(helper_mount)
         if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
-            # 共享拓扑释放前走**单一归属证明入口**（Issue #1713 全链收敛）：
-            # identity 归属、记录完整性、规范 mountpoint、live 挂载健康与 source、
-            # 内核 fd + ossfs2 进程绑定、本 checkout 的 lease 全部在
-            # verify_shared_release 内；任一失败不释放、不清现场。
             verify_shared_release(
                 str(receipt["sharedMountId"]),
-                credential["accountId"],
+                credential["origin"],
                 checkout_id(checkout),
                 receipt.get("releaseId") or "",
             )
+            notify_gateway_stop(checkout)
             release_lease(checkout, str(receipt["sharedMountId"]), unmount)
         else:
             blob_mount = Path(receipt["blobMount"])
@@ -706,6 +706,7 @@ def repair(checkout: Path, readyz_url: str = DEFAULT_READYZ_URL) -> dict[str, An
                     "repair refused to unmount blob mount outside this checkout's owned state; uncertain ownership",
                 )
             unmount(blob_mount)
+            notify_gateway_stop(checkout)
         remove_ossfs_config(checkout_state(checkout))
         verification_receipt_path(checkout).unlink(missing_ok=True)
         payload = _prepare_locked(checkout, readiness, credential)
@@ -730,11 +731,14 @@ def stop(checkout: Path) -> None:
                 unmount(Path(receipt["runtimeRoot"]))
                 helper_mount = receipt.get("helperMount") or str(Path(receipt["viewRoot"]) / ".act-runtime-blobs")
                 unmount(Path(helper_mount))
+                notify_gateway_stop(checkout)
                 if receipt.get("topology") == TOPOLOGY_SHARED and receipt.get("sharedMountId"):
+                    unregister_checkout_gateway_lease(checkout, str(receipt["sharedMountId"]))
                     release_lease(checkout, str(receipt["sharedMountId"]), unmount)
                 else:
                     unmount(Path(receipt["blobMount"]))
             else:
+                notify_gateway_stop(checkout)
                 sys.stderr.write("no checkout-owned runtime receipt; stopped services only\n")
         finally:
             remove_ossfs_config(state)
