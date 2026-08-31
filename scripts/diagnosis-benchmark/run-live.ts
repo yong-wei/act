@@ -10,10 +10,9 @@
 
 import { execFileSync } from 'node:child_process';
 
-import { resolveSmartLessonStructuredProvider } from '@/lib/smart-lesson-plan/provider-runtime';
 import {
-  buildDiagnosisProviderSystemPrompt,
   buildDiagnosisProviderToolResults,
+  generateDiagnosisProviderOutput,
 } from '@/lib/diagnosis-generation-provider';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
@@ -48,7 +47,6 @@ async function main() {
   if (replicates !== requested) {
     process.stderr.write(`live 评测每场景至少 3 次重复：${requested} 已被钳制为 ${replicates}。\n`);
   }
-  const provider = await resolveSmartLessonStructuredProvider();
   const scenarioMaterializations = DIAGNOSIS_BENCHMARK_SCENARIOS.map((scenario) => ({
     scenario,
     materialized: materializeScenario(scenario),
@@ -59,30 +57,36 @@ async function main() {
       return { ok: false, reason: `unknown scenario ${scenario.id}`, durationMs: 0 };
     }
     const startedAt = Date.now();
-    const attemptId = `diagnosis-benchmark-${scenario.id}-${replicate}`;
-    const { providerToolResults } = buildDiagnosisProviderToolResults(
-      entry.materialized.governedInput,
-      { attemptId, targetStudentId: null },
-    );
+    const attemptId = `diagnosis-benchmark-${scenario.id}-${replicate}-${Date.now()}`;
     try {
-      const generated = await provider.generate({
-        schema: diagnosisReportBodySchema,
-        schemaVersion: 'teacher-diagnosis-report-body.v1',
-        promptVersion: PRODUCTION_PROMPT_VERSION,
-        system: buildDiagnosisProviderSystemPrompt('2026-08-31T08:00:00.000Z'),
-        prompt: JSON.stringify({
-          scope: { type: 'class', classId: entry.materialized.governedInput.classId },
-          evidenceCutoff: '2026-08-31T08:00:00.000Z',
-          governedToolResults: providerToolResults,
-        }),
-        idempotencyKey: `${attemptId}-${Date.now()}`,
-        maxOutputTokens: 2_400,
-        timeoutMs: 120_000,
+      // 完整复用生产 provider 调用协议（Issue #1729 review）：生产 provider
+      // schema、deferValidation/fallbackToTextJson、text-JSON 回退校验与
+      // 空/超时转换；再按生产方式用持久化 schema 复核报告体。
+      const { providerToolResults, learnerAliasFor } = buildDiagnosisProviderToolResults(
+        entry.materialized.governedInput,
+        { attemptId, targetStudentId: null },
+      );
+      const generated = await generateDiagnosisProviderOutput({
+        attemptId,
+        classId: entry.materialized.governedInput.classId,
+        targetStudentId: null,
+        evidenceCutoffIso: '2026-08-31T08:00:00.000Z',
+        generatorVersion: PRODUCTION_PROMPT_VERSION,
+        governedToolResults: providerToolResults,
+        learnerAliasFor,
       });
+      const parsed = diagnosisReportBodySchema.safeParse(generated.output);
+      if (!parsed.success) {
+        return {
+          ok: false,
+          durationMs: Date.now() - startedAt,
+          reason: `report-body-invalid: ${parsed.error.issues.map((issue) => issue.path.join('.')).join(',')}`,
+        };
+      }
       return {
         ok: true,
         durationMs: Date.now() - startedAt,
-        report: generated.output as DiagnosisBenchmarkCandidateReport,
+        report: parsed.data as DiagnosisBenchmarkCandidateReport,
       };
     } catch (error) {
       return {

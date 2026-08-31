@@ -469,42 +469,15 @@ export async function generateGovernedDiagnosisReport(
     learnerAliasFor, assignments, assessments, observedRefs,
   } = projected;
 
-  const provider = await resolveSmartLessonStructuredProvider();
-  let generated;
-  try {
-    generated = await provider.generate({
-      schema: diagnosisProviderReportBodySchema,
-      schemaVersion: 'teacher-diagnosis-report-body.v1',
-      promptVersion: input.generatorVersion,
-      system: buildDiagnosisProviderSystemPrompt(input.evidenceCutoff.toISOString()),
-      prompt: JSON.stringify({
-        scope: input.targetStudentId
-          ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
-          : { type: 'class', classId: input.classId },
-        evidenceCutoff: input.evidenceCutoff.toISOString(),
-        governedToolResults: providerToolResults,
-      }),
-      idempotencyKey: input.attemptId,
-      maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
-      deferValidation: true,
-      fallbackToTextJson: true,
-      timeoutMs: DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
-    });
-  } catch (error) {
-    if (
-      error instanceof TextJsonFallbackOutputError
-      || (error instanceof SmartLessonPlanError && error.code === 'advisory-provider-timeout')
-    ) {
-      throw new DiagnosisGenerationProviderEmptyOutputError();
-    }
-    throw error;
-  }
-  if (generated.usedTextJsonFallback) {
-    const parsedFallback = diagnosisProviderReportBodySchema.safeParse(generated.output);
-    if (!parsedFallback.success) {
-      throw new DiagnosisGenerationProviderEmptyOutputError();
-    }
-  }
+  const generated = await generateDiagnosisProviderOutput({
+    attemptId: input.attemptId,
+    classId: input.classId,
+    targetStudentId: input.targetStudentId,
+    evidenceCutoffIso: input.evidenceCutoff.toISOString(),
+    generatorVersion: input.generatorVersion,
+    governedToolResults: providerToolResults,
+    learnerAliasFor,
+  });
   const parsedReportBody = diagnosisReportBodySchema.safeParse(generated.output);
   if (!parsedReportBody.success) {
     if (generated.usedTextJsonFallback) {
@@ -589,6 +562,59 @@ const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
  */
 export function buildDiagnosisProviderSystemPrompt(evidenceCutoffIso: string): string {
   return `${DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES.join('\n')}\nevidenceCutoff 必须严格等于 ${evidenceCutoffIso}。`;
+}
+
+/**
+ * 生产 provider 调用封装（Issue #1729 review：live 评测复用同一调用协议——
+ * 生产 provider schema、deferValidation/fallbackToTextJson 选项、text-JSON
+ * 回退校验与超时/空输出转换，保证"评测通过"与"生产生成成功"同构）。
+ */
+export async function generateDiagnosisProviderOutput(options: {
+  attemptId: string;
+  classId: string;
+  targetStudentId?: string | null;
+  evidenceCutoffIso: string;
+  generatorVersion: string;
+  governedToolResults: ReturnType<typeof buildDiagnosisProviderToolResults>['providerToolResults'];
+  learnerAliasFor: (userId: string) => string;
+}) {
+  const provider = await resolveSmartLessonStructuredProvider();
+  let generated;
+  try {
+    generated = await provider.generate({
+      schema: diagnosisProviderReportBodySchema,
+      schemaVersion: 'teacher-diagnosis-report-body.v1',
+      promptVersion: options.generatorVersion,
+      system: buildDiagnosisProviderSystemPrompt(options.evidenceCutoffIso),
+      prompt: JSON.stringify({
+        scope: options.targetStudentId
+          ? { type: 'student', classId: options.classId, learnerAlias: options.learnerAliasFor(options.targetStudentId) }
+          : { type: 'class', classId: options.classId },
+        evidenceCutoff: options.evidenceCutoffIso,
+        governedToolResults: options.governedToolResults,
+      }),
+      idempotencyKey: options.attemptId,
+      maxOutputTokens: DIAGNOSIS_PROVIDER_MAX_OUTPUT_TOKENS,
+      deferValidation: true,
+      fallbackToTextJson: true,
+      timeoutMs: DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS,
+    });
+  } catch (error) {
+    if (
+      error instanceof TextJsonFallbackOutputError
+      || (error instanceof SmartLessonPlanError && error.code === 'advisory-provider-timeout')
+    ) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
+    throw error;
+  }
+  if (generated.usedTextJsonFallback) {
+    const parsedFallback = diagnosisProviderReportBodySchema.safeParse(generated.output);
+    if (!parsedFallback.success) {
+      throw new DiagnosisGenerationProviderEmptyOutputError();
+    }
+  }
+  return generated;
 }
 
 /**
