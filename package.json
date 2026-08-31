@@ -271,7 +271,9 @@
     "wasm:build:control-engine": "node ./scripts/wasm/build-control-engine.mjs",
     "deploy:runtime": "bash ./scripts/deploy-runtime-blob-release.sh",
     "deploy:app": "bash ./scripts/remote-deploy.sh --app-only",
-    "deploy:all": "bash ./scripts/deploy-all-with-runtime-blobs.sh"
+    "deploy:all": "bash ./scripts/deploy-all-with-runtime-blobs.sh",
+    "diagnosis:benchmark:fixture": "tsx --import ./scripts/diagnosis-benchmark/server-only-shim.mjs scripts/diagnosis-benchmark/run-fixture.ts",
+    "diagnosis:benchmark:live": "tsx --import ./scripts/diagnosis-benchmark/server-only-shim.mjs scripts/diagnosis-benchmark/run-live.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",
