@@ -416,7 +416,7 @@ function includedStudentsLabel(report: DiagnosisReportApiItem) {
 }
 
 function mainWeaknessLabel(report: DiagnosisReportApiItem) {
-  return report.reportBody.findings[0]?.title ?? '未形成可稳定识别的主要薄弱点';
+  return report.reportBody.findings[0]?.title ?? '未发现明确薄弱节点';
 }
 
 function formatLimitation(value: string) {

@@ -23,7 +23,7 @@
 
 ## Decisions
 
-1. **薄弱判定锚定绝对弱势进度行**。弱势行定义为 `status === 'NOT_STARTED' || (progress < 40 && status !== 'COMPLETED')`。班级诊断要求节点弱势行数 ≥ `max(3, ceil(0.2 × 该节点有进度记录的学生数))`；学生诊断要求目标学生该节点行为弱势行。阈值 40 与 20% 源自实验中正常/薄弱分布的经验分界，作为常量进入 spec 场景。
+1. **薄弱判定锚定绝对弱势进度行**。弱势行定义为 `status === 'NOT_STARTED' || (progress < 40 && status !== 'COMPLETED')`。班级诊断要求节点弱势行数 ≥ `max(3, ceil(0.2 × 该节点有进度记录的学生数))`；学生诊断要求目标学生该节点行为弱势行。阈值 40 与 20% 源自实验中正常/薄弱分布的经验分界，作为常量进入 spec 场景。知识点发现的判定范围与既有归因门语义一致（引用 `knowledge-progress` 证据的发现）；只填 `knowledgeNodeId` 而不引用进度证据的发现沿用归因门的非知识发现豁免，不重复扩大两道门的边界。
 2. **确定性校准门禁作为模型行为缺陷处理**。新增 `DiagnosisFindingCalibrationError`，worker 分类为 `validation:false, code: 'diagnosis-finding-calibration-invalid'`，走既有 3 次重试预算；重试耗尽即作业失败，不持久化过度诊断报告。与语言门（#1711）、归因门（#1712）同层。
 3. **"学完但测评差"保留为非知识类发现通道**。assessment/assignment 无节点粒度，若允许其单独支撑知识点薄弱，健康场景的相对低分仍可经该路径误报。整体性问题由不带 knowledgeNodeId 的发现表达（既有 schema 与提示词已支持），召回不丢失，精确率获得结构性下界。
 4. **覆盖降级为确定性双约束**。任一知识点 finding 引用节点的进度行覆盖学生数 < 全体学生数时：报告 `confidence` 必须不是 `high`，且 `limitations` 非空（由提示词指示写明缺失影响，校验只强制"存在说明"）。取 `ceil` 与 `<` 全体比较避免浮点边界歧义。
