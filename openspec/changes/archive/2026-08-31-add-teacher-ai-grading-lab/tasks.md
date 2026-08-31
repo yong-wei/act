@@ -82,7 +82,7 @@
 - [x] 10.1 已运行评测模块、文档批改数据治理、实验室授权/API 与 CLI 测试：受影响回归 23 文件/400 项、阶段 B 专属 11 文件/160 项、实验室 API/页面 4 文件/24 项均通过。真实外部基础设施集成与仓库克隆合成 E2E 仍由 10.3 单列。
 - [x] 10.2 已运行 `npm run typecheck`、`npm run lint`、`npx prisma validate`、OpenSpec strict validate、直接影响文件 `git diff --check` 以及实验室 API/页面测试，全部通过；中断开发服务留下的 `.next` 缓存已清除后复验 typecheck/lint 通过。未在本轮运行完整生产构建或全仓测试门禁，原因是尚无最终预期提交且工作区含大量既有未提交改动。
 - [ ] 10.3 使用合成数据验证仓库克隆后可复现导入、三次运行、指标报告和 PDF 生成，且不依赖实验机器上的未声明接口。
-- [ ] 10.4 审查 Fork 相对 `upstream/integration` 的变更，确认没有平行应用、AI Provider、业务模型或真实评测数据，再准备回合并 PR。
+- [x] 10.4 审查 Fork 相对 `upstream/integration` 的变更，确认没有平行应用、AI Provider、业务模型或真实评测数据，再准备回合并 PR。（2026-08-31 reconciliation 完成：并行批改状态机已按 `assignment-review-feedback-authority` spec 移除并接到 canonical 管线；敏感文件检查 0 staged paths 证实无真实评测数据；PR #1731 已合并。）
 
 ## T2(max) 40 份正式实验交接任务（2026-08-13）
 

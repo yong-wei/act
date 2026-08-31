@@ -1,4 +1,9 @@
-## ADDED Requirements
+# assignment-grading-orchestration Specification
+
+## Purpose
+TBD - created by archiving change add-assignment-ai-grading-loop. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Teachers grade published assignment submissions only after the original deadline
 The system SHALL permit an authorized assignment teacher to create AI or manual grading only after the original deadline stored for each submission's frozen audience has passed. Student submission and passage of time SHALL NOT independently trigger grading.
@@ -22,12 +27,12 @@ The system SHALL let an authorized teacher start an idempotent assignment-level 
 #### Scenario: Teacher starts the default range
 - **WHEN** a teacher starts one-click AI grading without exclusions after the deadline
 - **THEN** the operation SHALL include each student with at least one valid submitted question attempt that still requires grading
-- **AND** it SHALL exclude students with no submitted attempts and students whose current result is already confirmed and released.
+- **AND** it SHALL exclude students with no submitted attempts and students whose current result is already fully teacher-approved and explicitly released.
 
 #### Scenario: Snapshot combines prior and resubmitted question attempts
 - **WHEN** a student has a later authorized attempt for one question and earlier current attempts for other questions
 - **THEN** the system SHALL create a new immutable assignment submission snapshot containing the ordered current attempt identity or explicit missing state for every frozen question
-- **AND** the snapshot's stable attempt-vector hash SHALL be referenced by subsequent grading, confirmation, and release records.
+- **AND** the snapshot's stable attempt-vector hash SHALL be referenced by subsequent grading, confirmation, and release audits.
 
 #### Scenario: Teacher excludes a student
 - **WHEN** a teacher supplies an authorized student exclusion before operation creation
