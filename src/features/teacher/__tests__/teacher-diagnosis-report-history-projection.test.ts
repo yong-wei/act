@@ -38,6 +38,19 @@ const baseline: DiagnosisReportApiItem = {
 };
 
 describe('teacher diagnosis report history projection', () => {
+  it('labels a findings-free healthy report as having no clear weakness', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      riskSummary: { total: 0, byType: {}, bySeverity: {} },
+      reportBody: {
+        ...baseline.reportBody,
+        findings: [],
+      },
+    });
+
+    expect(projection.mainWeaknessLabel).toBe('未发现明确薄弱节点');
+  });
+
   it('keeps unsupported top-level sources unavailable instead of fabricating zero coverage', () => {
     const projection = projectReportHistoryCard(baseline);
 

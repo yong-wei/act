@@ -39,6 +39,10 @@ const DIAGNOSIS_PROVIDER_MAX_SUMMARY_LENGTH = 1_000;
 const DIAGNOSIS_PROVIDER_MAX_FINDINGS = 6;
 const DIAGNOSIS_PROVIDER_MAX_FINDING_SUMMARY_LENGTH = 280;
 const DIAGNOSIS_PROVIDER_MAX_EVIDENCE_REFS = 16;
+// 薄弱判定校准（Issue #1728）：弱势行的绝对分界与最小证据规模。
+const DIAGNOSIS_WEAK_PROGRESS_THRESHOLD = 40;
+const DIAGNOSIS_WEAK_MIN_STUDENTS = 3;
+const DIAGNOSIS_WEAK_MIN_STUDENT_RATIO = 0.2;
 
 const governedInputSchema = z.object({
   schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
@@ -128,6 +132,16 @@ export class DiagnosisGenerationFindingAttributionError extends Error {
   }
 }
 
+export class DiagnosisFindingCalibrationError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型返回的知识点薄弱判定未满足最小绝对弱势证据或覆盖降级约束。');
+    this.name = 'DiagnosisFindingCalibrationError';
+    this.violations = violations;
+  }
+}
+
 export function buildKnowledgeNodeByEvidenceRef(
   knowledgeProgress: ReadonlyArray<{ id: string; nodeId: string }>,
 ) {
@@ -178,6 +192,115 @@ export function enforceDiagnosisFindingNodeAttribution(
       finding.knowledgeNodeId = [...citedNodes][0];
     }
   });
+  return violations;
+}
+
+export type DiagnosisNodeWeaknessStats = ReadonlyMap<string, {
+  coveredStudents: ReadonlySet<string>;
+  weakStudents: ReadonlySet<string>;
+}>;
+
+function isWeakProgressRow(row: { status: string; progress: number }): boolean {
+  return row.status === 'NOT_STARTED'
+    || (row.progress < DIAGNOSIS_WEAK_PROGRESS_THRESHOLD && row.status !== 'COMPLETED');
+}
+
+/**
+ * 节点薄弱资格的唯一判定真源（Issue #1728）：按诊断 scope 类型选择规则——
+ * 学生诊断（targetStudentId 存在）要求目标学生该节点行本身弱势；班级诊断
+ * 要求弱势学生数达到班级门槛，与班级实际人数无关（单人班级的班级级诊断
+ * 同样受 max(3, 20%) 约束，fail-closed 而非降级为单学生规则）。
+ */
+function weaknessEligibility(
+  stat: { coveredStudents: ReadonlySet<string>; weakStudents: ReadonlySet<string> },
+  targetStudentId: string | null | undefined,
+) {
+  const minimumWeakStudents = Math.max(
+    DIAGNOSIS_WEAK_MIN_STUDENTS,
+    Math.ceil(DIAGNOSIS_WEAK_MIN_STUDENT_RATIO * stat.coveredStudents.size),
+  );
+  const eligible = targetStudentId
+    ? stat.weakStudents.has(targetStudentId)
+    : stat.weakStudents.size >= minimumWeakStudents;
+  return { minimumWeakStudents, eligible };
+}
+
+export function buildKnowledgeNodeWeaknessStats(
+  knowledgeProgress: ReadonlyArray<{ userId: string; nodeId: string; status: string; progress: number }>,
+): DiagnosisNodeWeaknessStats {
+  const stats = new Map<string, { coveredStudents: Set<string>; weakStudents: Set<string> }>();
+  for (const row of knowledgeProgress) {
+    if (row.nodeId.length === 0) continue;
+    const entry = stats.get(row.nodeId) ?? { coveredStudents: new Set<string>(), weakStudents: new Set<string>() };
+    entry.coveredStudents.add(row.userId);
+    if (isWeakProgressRow(row)) {
+      entry.weakStudents.add(row.userId);
+    }
+    stats.set(row.nodeId, entry);
+  }
+  return stats;
+}
+
+/**
+ * 薄弱判定校准契约（Issue #1728）：知识点发现（引用 knowledge-progress 证据，
+ * 与归因门同语义）必须锚定满足最小绝对弱势证据的节点——弱势行为
+ * NOT_STARTED 或进度低于阈值且未完成；班级诊断按节点弱势学生数
+ * ≥ max(下限, 有进度记录学生的比例阈值) 判定，学生诊断要求目标学生
+ * 该节点行本身弱势。锚定节点的进度覆盖不足全体被诊断学生时，报告
+ * 不得给出 high 置信且必须携带 limitations。违例按模型行为缺陷交由
+ * worker 重试，返回违例字段列表。
+ */
+export function enforceDiagnosisFindingCalibration(
+  findings: ReadonlyArray<{
+    knowledgeNodeId?: string;
+    evidenceRefs: ReadonlyArray<string>;
+  }>,
+  reportConfidence: string,
+  reportLimitations: ReadonlyArray<string>,
+  nodeByEvidenceRef: ReadonlyMap<string, string>,
+  weaknessStats: DiagnosisNodeWeaknessStats,
+  diagnosedStudentIds: ReadonlyArray<string>,
+  targetStudentId?: string | null,
+) {
+  const violations: string[] = [];
+  let coverageGap = false;
+  const diagnosedStudentSet = new Set(diagnosedStudentIds);
+  findings.forEach((finding, index) => {
+    const citesKnowledgeProgress = finding.evidenceRefs.some((ref) => ref.startsWith('knowledge-progress:'));
+    if (!citesKnowledgeProgress) return;
+    const anchorCandidates = new Set<string>();
+    if (finding.knowledgeNodeId) {
+      anchorCandidates.add(finding.knowledgeNodeId);
+    }
+    for (const reference of finding.evidenceRefs) {
+      const node = nodeByEvidenceRef.get(reference);
+      if (node) anchorCandidates.add(node);
+    }
+    if (anchorCandidates.size !== 1) {
+      // 归因门已拒绝跨节点/不可解析归因；此处不重复归因裁决。
+      return;
+    }
+    const nodeId = [...anchorCandidates][0];
+    const stat = weaknessStats.get(nodeId);
+    if (!stat) {
+      violations.push(`findings[${index}]`);
+      return;
+    }
+    if (stat.coveredStudents.size < diagnosedStudentSet.size) {
+      coverageGap = true;
+    }
+    if (!weaknessEligibility(stat, targetStudentId).eligible) {
+      violations.push(`findings[${index}]`);
+    }
+  });
+  if (coverageGap) {
+    if (reportConfidence === 'high') {
+      violations.push('confidence');
+    }
+    if (reportLimitations.length === 0) {
+      violations.push('limitations');
+    }
+  }
   return violations;
 }
 
@@ -340,6 +463,7 @@ export async function generateGovernedDiagnosisReport(
   const riskFlags = projectFrozenRiskFlags(governedInput.data, learnerAliasFor);
   const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
   const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data, learnerAliasFor);
+  const weaknessStats = buildKnowledgeNodeWeaknessStats(governedInput.data.knowledgeProgress);
   const toolAudit = [
     auditToolResult('get_class_assignment_outcomes', assignments),
     auditToolResult('get_class_assessment_outcomes', assessments),
@@ -356,7 +480,7 @@ export async function generateGovernedDiagnosisReport(
     assessments: compactAssessmentsForProvider(assessments),
     riskFlags: compactRiskFlagsForProvider(riskFlags),
     competency: competency ? compactCompetencyForProvider(competency) : null,
-    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress),
+    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress, weaknessStats, input.targetStudentId),
   };
 
   const provider = await resolveSmartLessonStructuredProvider();
@@ -372,6 +496,10 @@ export async function generateGovernedDiagnosisReport(
         'findings 中引用 knowledge-progress 证据的知识点发现必须携带与引用证据一致的有效 knowledgeNodeId；总体风险、成绩分布等非知识点发现不需要 knowledgeNodeId。',
         '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
         '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
+        '知识点薄弱判定必须锚定绝对弱势证据：绝对弱势指长期未开始（NOT_STARTED）或进度低于 40 且未完成。governedToolResults.knowledgeProgress.nodeWeakness 已按节点给出 weakStudentCount、coveredStudentCount、minimumWeakStudents 与 eligibleForWeaknessFinding 判定结果；知识点薄弱判定只应锚定 eligibleForWeaknessFinding 为 true 的节点，不得自行按聚合进度估算弱势人数。',
+        '仅凭班级内相对较低、但仍处于正常范围（已完成或进度不低于 40）的排序位置，不得把节点判为薄弱；"学完但整体测评不理想"等班级整体问题用不带 knowledgeNodeId 的总体发现表达。',
+        '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
+        '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
         '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
         '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
         'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
@@ -442,6 +570,20 @@ export async function generateGovernedDiagnosisReport(
   const attributionViolations = enforceDiagnosisFindingNodeAttribution(reportBody.findings, knowledgeNodeByEvidenceRef);
   if (attributionViolations.length > 0) {
     throw new DiagnosisGenerationFindingAttributionError(attributionViolations);
+  }
+  // 薄弱判定校准契约（Issue #1728）：不满足最小绝对弱势证据的知识点
+  // 薄弱判定与覆盖不足未降级的报告按模型行为缺陷拒绝重试，不得持久化。
+  const calibrationViolations = enforceDiagnosisFindingCalibration(
+    reportBody.findings,
+    reportBody.confidence,
+    reportBody.limitations,
+    knowledgeNodeByEvidenceRef,
+    weaknessStats,
+    governedInput.data.studentIds,
+    input.targetStudentId,
+  );
+  if (calibrationViolations.length > 0) {
+    throw new DiagnosisFindingCalibrationError(calibrationViolations);
   }
   return {
     reportBody,
@@ -687,7 +829,11 @@ function compactCompetencyForProvider(projection: ReturnType<typeof projectFroze
   };
 }
 
-function compactKnowledgeProgressForProvider(projection: ReturnType<typeof projectFrozenKnowledgeProgress>) {
+function compactKnowledgeProgressForProvider(
+  projection: ReturnType<typeof projectFrozenKnowledgeProgress>,
+  weaknessStats: DiagnosisNodeWeaknessStats,
+  targetStudentId?: string | null,
+) {
   const grouped = new Map<string, typeof projection.progress>();
   for (const row of projection.progress) {
     const key = `${row.knowledgeNodeId}\u0000${row.status}`;
@@ -695,6 +841,21 @@ function compactKnowledgeProgressForProvider(projection: ReturnType<typeof proje
     rows.push(row);
     grouped.set(key, rows);
   }
+  // 逐节点确定性弱势统计（Issue #1728 review）：进度分组只有聚合值，
+  // 模型无法自行数出弱势人数；把资格判定结果一并投影，保证提示词
+  // 指令与确定性校准门使用同一输入语义。
+  const nodeWeakness = [...weaknessStats.entries()]
+    .map(([nodeId, stat]) => {
+      const { minimumWeakStudents, eligible } = weaknessEligibility(stat, targetStudentId);
+      return {
+        knowledgeNodeId: nodeId,
+        weakStudentCount: stat.weakStudents.size,
+        coveredStudentCount: stat.coveredStudents.size,
+        minimumWeakStudents,
+        eligibleForWeaknessFinding: eligible,
+      };
+    })
+    .sort((left, right) => left.knowledgeNodeId.localeCompare(right.knowledgeNodeId));
   const progress = [...grouped.values()]
     .map((rows) => {
       const representative = takeEvenlyDistributed(
@@ -720,6 +881,7 @@ function compactKnowledgeProgressForProvider(projection: ReturnType<typeof proje
   return {
     classId: projection.classId,
     progress,
+    nodeWeakness,
     evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
     sourceCoverage: projection.sourceCoverage,
     confidence: projection.confidence,

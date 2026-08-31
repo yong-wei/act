@@ -12,6 +12,7 @@ import {
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
+  DiagnosisFindingCalibrationError,
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
@@ -57,6 +58,15 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-finding-attribution-invalid',
+      message: error.message,
+    };
+  }
+  // 薄弱判定未满足最小绝对弱势证据或覆盖降级约束，与空输出同类
+  // （模型行为缺陷，Issue #1728），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisFindingCalibrationError) {
+    return {
+      validation: false,
+      code: 'diagnosis-finding-calibration-invalid',
       message: error.message,
     };
   }

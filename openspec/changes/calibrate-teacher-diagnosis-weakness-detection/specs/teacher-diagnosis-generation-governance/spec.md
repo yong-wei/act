@@ -2,7 +2,7 @@
 
 ### Requirement: Knowledge-node weakness findings require minimum absolute-weakness evidence
 
-The diagnosis generation contract SHALL require every knowledge-node weakness finding (a finding carrying a `knowledgeNodeId` or citing `knowledge-progress` evidence) to be anchored to a node with minimum absolute-weakness evidence in the governed input, and SHALL enforce this with a deterministic post-generation validation that rejects the output as a retryable model-behavior defect instead of persisting it. An absolute-weakness progress row is a row whose status is `NOT_STARTED`, or whose progress is below 40 and whose status is not `COMPLETED`. For class-level diagnosis a node qualifies only when its weak rows cover at least `max(3, ceil(20% of the students having progress rows for that node))` students; for single-student diagnosis the target student's row for that node must itself be weak.
+The diagnosis generation contract SHALL require every knowledge-node weakness finding (a finding citing `knowledge-progress` evidence, with or without an explicit `knowledgeNodeId`, consistent with the attribution-gate scope) to be anchored to a node with minimum absolute-weakness evidence in the governed input, and SHALL enforce this with a deterministic post-generation validation that rejects the output as a retryable model-behavior defect instead of persisting it. An absolute-weakness progress row is a row whose status is `NOT_STARTED`, or whose progress is below 40 and whose status is not `COMPLETED`. The rule selection SHALL depend on the diagnosis scope type, not on class size: class-level diagnosis qualifies a node only when its weak rows cover at least `max(3, ceil(20% of the students having progress rows for that node))` students — including a class with a single enrolled student, which fails closed — while single-student diagnosis (a request with an explicit target student) qualifies a node only when the target student's row for that node is itself weak. The provider tool results SHALL include a per-node deterministic weakness projection (`weakStudentCount`, `coveredStudentCount`, `minimumWeakStudents`, `eligibleForWeaknessFinding`) so the provider can follow the same judgment the deterministic gate enforces, instead of estimating weak-student counts from aggregated progress.
 
 #### Scenario: Healthy class produces no knowledge-node findings
 
@@ -25,6 +25,17 @@ The diagnosis generation contract SHALL require every knowledge-node weakness fi
 
 - **WHEN** a node's weak-row count equals the threshold minus one, or a single-student diagnosis targets a student whose row for the node is completed or at progress >= 40
 - **THEN** a knowledge-node weakness finding for that node SHALL be rejected by the calibration validation.
+
+#### Scenario: One-student class-level diagnosis fails closed
+
+- **WHEN** a teacher launches a class-level diagnosis for a class with exactly one enrolled student whose row for a node is weak, and the provider returns a knowledge-node weakness finding for that node
+- **THEN** the class-level threshold of at least three weak students SHALL apply and the finding SHALL be rejected
+- **AND** the single-student rule SHALL NOT be selected merely because the diagnosed student set has size one.
+
+#### Scenario: Provider receives the deterministic weakness projection
+
+- **WHEN** the governed tool results are projected for the provider
+- **THEN** the knowledge-progress tool result SHALL carry per-node `weakStudentCount`, `coveredStudentCount`, `minimumWeakStudents`, and `eligibleForWeaknessFinding` computed from the same weak-row definition and threshold the deterministic gate enforces.
 
 ### Requirement: Evidence coverage gaps downgrade report confidence and force limitations
 
