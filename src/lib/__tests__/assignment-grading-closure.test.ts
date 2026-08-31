@@ -216,6 +216,28 @@ describe('assignment grading closure', () => {
     }));
   });
 
+  it('release preserves the structured-only fallback flag when lifting the assignment gate', async () => {
+    const snapshot = snapshotFixture();
+    snapshot.submission.questionExemptions = [{ questionId: 'question-2', scoreEffect: 2, reason: '[EXEMPT] 缺席' }];
+    snapshot.submission.reviewState = 'APPROVED_PENDING_RELEASE';
+    snapshot.items[0].attempt.approvalSnapshots = [approvalFixture({
+      outboxCommands: [{ id: 'command-1', command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED', payload: { assignmentResultReleaseGate: true, structuredOnlyFallback: true, fallbackApproval: { actorId: 'teacher-1' } } }],
+      feedbackRelease: null,
+    })];
+    const db = dbFor(snapshot);
+    await releaseAssignmentSubmissionGrade(db, baseInput);
+    expect(db.teacherAssignmentReviewOutbox.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'command-1' },
+      data: expect.objectContaining({
+        payload: expect.objectContaining({
+          structuredOnlyFallback: true,
+          fallbackApproval: { actorId: 'teacher-1' },
+          assignmentResultReleaseGate: false,
+        }),
+      }),
+    }));
+  });
+
   it('release lifts the assignment-level gate and wakes pending publication commands', async () => {
     const snapshot = snapshotFixture();
     snapshot.submission.questionExemptions = [{ questionId: 'question-2', scoreEffect: 2, reason: '[EXEMPT] 缺席' }];

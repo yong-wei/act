@@ -444,7 +444,7 @@ async function loadSnapshot(db: any, snapshotId: string) {
                 include: {
                   gradingRun: { select: { source: true } },
                   reviewedDerivatives: { where: { state: 'READY', outputKind: 'REVIEWED_PDF' }, select: { id: true, state: true, outputKind: true } },
-                  outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' }, select: { id: true, command: true, state: true } },
+                  outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' }, select: { id: true, command: true, state: true, payload: true } },
                   feedbackRelease: { select: { id: true, ownerStudentId: true, releasedAt: true } },
                 },
               },
