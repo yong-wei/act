@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-30
+> Last updated: 2026-08-31
 
 ---
 
@@ -10,7 +10,9 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
-- 2026-08-30：#1683 本地实现与 7.6 已闭合。Git `authority/current.json` 已是生产 v0.37；latest-cutover 绑定 candidate receipt、独立 `runtime-release-active-receipt.v1`、无三文件 memo，前任 generation 三方一致。下一步是开 PR 到 integration。
+- 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。PR #1727 已落地 live overlay loader。旧三条 P1 已修并 resolve；第二轮 P1（领域投影哈希、失败不发布 success receipt）已修，待新 HEAD Codex 清场。未合入带 overlay 的应用前不得在现网 apply domain-fragments。6.5–6.7 未勾，未 archive，未关 #1683。
+
+- 2026-08-30：#1683 应用已发布 `v0.6.0`（`6e492afbeb98c118ed0ad24689b96be319eb31f9`），GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.0，生产 `deploy:app --skip-build` 已换到该镜像。
 
 - 2026-08-30：修全课迁移残余。共享 `StudentCards` 与自定义作答表单在演示模式禁用提交和作答控件（频域/奈奎斯特滑动条仍可预览）；批量脚本残留的 JSX `\'` 已清除；独立 `/interactive-learning/multi-representation-linkage` 包进 `InteractiveLearningShell`，工作台嵌入路径不叠壳。未给 `rust-analysis` 伪造中心插件。未开新 Issue，未重开 #1573，未认领 #1683。
 
@@ -67,7 +69,7 @@
 
 ## 🚀 Next phase
 
-- 2026-08-30：#1683 本地 7.6 已清场。下一步：开 PR 到 `integration`，用用户身份 `@codex review`；清场后合 `integration` → `main`、打新版本、`scripts/build.sh`、`deploy:app --skip-build`，再勾 6.4–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要写生产 selector。
+- 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：PR #1727 新 HEAD 清场后合入 `origin/integration`，再合 main、发 `v0.6.1`、`deploy:app --skip-build`，停服只 overlay（含必填 domain-fragments 且校验领域投影哈希），再验 6.5–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 
