@@ -63,7 +63,20 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     expect(providerRegistrySource).toContain('requires a native adapter before runtime use');
   });
 
-  it('sends generic SiliconFlow chat requests without stream_options', async () => {
+  it('passes DeepSeek request bodies to curl through a short-lived file instead of command-line arguments', () => {
+    expect(siliconflowSource).toContain("mkdtemp(join(tmpdir(), 'grading-lab-siliconflow-'))");
+    expect(siliconflowSource).toContain("'--data-binary', `@${requestFile}`");
+    expect(siliconflowSource).toContain("await rm(requestDirectory, { recursive: true, force: true });");
+    expect(siliconflowSource).not.toContain("'--data-binary',\n          providerBody");
+  });
+
+  it('keeps the DeepSeek request budget below the five-minute grading lease', () => {
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_TIMEOUT_SECONDS = 210;');
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 270;');
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 30;');
+  });
+
+  it.each(['Qwen/Qwen3.6-35B-A3B', 'Qwen/Qwen3.5-35B-A3B'])('sends %s chat requests without stream_options', async (model) => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('{}'));
@@ -77,7 +90,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
       apiKey: 'test-key',
       authMode: 'bearer-api-key',
       secretRef: 'env:SILICONFLOW_API_KEY',
-      model: 'Qwen/Qwen3.5-35B-A3B',
+      model,
       enabled: true,
       priority: 100,
       health: 'unknown',
@@ -91,7 +104,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     await providerFetch?.('https://api.siliconflow.cn/v1/chat/completions', {
       method: 'POST',
       body: JSON.stringify({
-        model: 'Qwen/Qwen3.5-35B-A3B',
+        model,
         messages: [{ role: 'user', content: 'hello' }],
         stream: true,
         stream_options: { include_usage: true },
@@ -103,13 +116,13 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     ) as Record<string, unknown>;
     expect(forwardedBody).not.toHaveProperty('stream_options');
     expect(forwardedBody).toMatchObject({
-      model: 'Qwen/Qwen3.5-35B-A3B',
+      model,
       stream: true,
       enable_thinking: false,
     });
   });
 
-  it('also disables thinking for Qwen3.6 requests', async () => {
+  it('forces Qwen3.5 thinking off and preserves its JSON Schema as a system instruction', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('{}'));
@@ -123,11 +136,12 @@ describe('SiliconFlow AI SDK provider adapter', () => {
       apiKey: 'test-key',
       authMode: 'bearer-api-key',
       secretRef: 'env:SILICONFLOW_API_KEY',
-      model: 'Qwen/Qwen3.6-35B-A3B',
+      model: 'Qwen/Qwen3.5-35B-A3B',
       enabled: true,
       priority: 100,
       health: 'unknown',
-      capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+      capabilities: { tools: true, reasoning: false, vision: true, jsonSchema: true, streaming: true, citationNormalization: true },
+      modelOptions: { enableThinking: true },
     };
 
     createSiliconFlowAdapter(config);
@@ -136,20 +150,123 @@ describe('SiliconFlow AI SDK provider adapter', () => {
       {
         method: 'POST',
         body: JSON.stringify({
-          model: 'Qwen/Qwen3.6-35B-A3B',
+          model: 'Qwen/Qwen3.5-35B-A3B',
           messages: [{ role: 'user', content: 'hello' }],
-          stream: true,
+          response_format: {
+            type: 'json_schema',
+            json_schema: { name: 'draft', schema: { type: 'object' } },
+          },
         }),
       },
     );
 
     const forwardedBody = JSON.parse(
-      fetchMock.mock.calls[0]?.[1]?.body as string
+      fetchMock.mock.calls[0]?.[1]?.body as string,
     ) as Record<string, unknown>;
-    expect(forwardedBody).toMatchObject({
-      model: 'Qwen/Qwen3.6-35B-A3B',
-      enable_thinking: false,
-    });
+    expect(forwardedBody.response_format).toEqual({ type: 'json_object' });
+    expect(forwardedBody.enable_thinking).toBe(false);
+    expect(forwardedBody.messages).toEqual([
+      expect.objectContaining({
+        role: 'system',
+        content: expect.stringContaining('"type":"object"'),
+      }),
+      { role: 'user', content: 'hello' },
+    ]);
+  });
+
+  it('converts Qwen3-VL JSON Schema requests to JSON Object with the schema preserved', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: true, jsonSchema: true, streaming: true, citationNormalization: true },
+    };
+
+    createSiliconFlowAdapter(config);
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'Qwen/Qwen3-VL-30B-A3B-Instruct',
+          messages: [{ role: 'user', content: 'hello' }],
+          response_format: {
+            type: 'json_schema',
+            json_schema: { name: 'visual', schema: { type: 'object' } },
+          },
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string,
+    ) as Record<string, unknown>;
+    expect(forwardedBody.response_format).toEqual({ type: 'json_object' });
+    expect(forwardedBody.messages).toEqual([
+      expect.objectContaining({
+        role: 'system',
+        content: expect.stringContaining('"type":"object"'),
+      }),
+      { role: 'user', content: 'hello' },
+    ]);
+  });
+
+  it.each(['Qwen/Qwen3.6-35B-A3B', 'Vendor/Model'])('preserves JSON Schema requests for %s', async (model) => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model,
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+    };
+
+    createSiliconFlowAdapter(config);
+    const responseFormat = {
+      type: 'json_schema',
+      json_schema: { name: 'draft', schema: { type: 'object' } },
+    };
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: 'hello' }],
+          response_format: responseFormat,
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string,
+    ) as Record<string, unknown>;
+    expect(forwardedBody.response_format).toEqual(responseFormat);
+    expect(forwardedBody.messages).toEqual([{ role: 'user', content: 'hello' }]);
   });
 
   it('does not add Qwen thinking defaults to non-Qwen generic SiliconFlow requests', async () => {
@@ -194,7 +311,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     expect(forwardedBody).not.toHaveProperty('enable_thinking');
   });
 
-  it('terminates the DeepSeek curl process when the request signal aborts', async () => {
+  it.skipIf(process.platform === 'win32')('terminates the DeepSeek curl process when the request signal aborts', async () => {
     const fakeBin = mkdtempSync(join(tmpdir(), 'siliconflow-curl-abort-'));
     const fakeCurl = join(fakeBin, 'curl');
     const startedFile = join(fakeBin, 'started');

@@ -9,10 +9,12 @@ import {
   FileText,
   RefreshCw,
   Users,
+  WandSparkles,
 } from "lucide-react";
 
 import {
   buildDeterministicReviewQueue,
+  buildTeacherAssignmentGradingHref,
   buildTeacherReviewHref,
   buildTeacherSubmissionQueueUrl,
   filterTeacherReviewQueue,
@@ -121,7 +123,15 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
             </h1>
             <p className="mt-1 text-sm text-slate-400">提交与批阅队列</p>
           </div>
-          {firstReviewable ? (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={buildTeacherAssignmentGradingHref(assignmentId)}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-cyan-500/60 px-4 font-medium text-cyan-100 hover:border-cyan-300 hover:text-white"
+            >
+              <WandSparkles className="h-4 w-4" />
+              进入截止后批改
+            </Link>
+            {firstReviewable ? (
             <Link
               href={buildTeacherReviewHref(
                 assignmentId,
@@ -134,7 +144,8 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
               进入批阅
               <ChevronRight className="h-4 w-4" />
             </Link>
-          ) : null}
+            ) : null}
+          </div>
         </header>
 
         <section

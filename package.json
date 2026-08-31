@@ -8,7 +8,7 @@
     "npm": ">=10 <12"
   },
   "scripts": {
-    "dev": "node ./scripts/ops/clear-logs.mjs && next dev",
+    "dev": "node ./scripts/ops/clear-logs.mjs && node ./scripts/dev/run-local-dev.mjs",
     "build": "export PRISMA_GENERATE_SKIP_AUTOINSTALL=1; export NODE_OPTIONS=\"${NODE_OPTIONS:-} --disable-warning=DEP0205 --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE:-4096}\"; node ./scripts/wasm/build-control-engine.mjs && prisma generate && npm run models:validate && node ./scripts/build-next-with-trace-check.mjs",
     "models:produce": "npm --prefix ./tools/glb-model-optimizer ci && npm --prefix ./tools/glb-model-optimizer run produce",
     "models:validate": "node ./scripts/assets/validate-optimized-models.mjs --source-root ./public/assets --optimized-root ./public/assets/models-opt",
@@ -59,6 +59,7 @@
     "browser-delivery:apply": "tsx ./scripts/browser-delivery.ts apply",
     "test:contracts:write": "tsx ./scripts/test-command-contracts.ts --write",
     "verify:commit": "npm run typecheck && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
+    "verify:commit": "npm run typecheck && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
     "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
     "lint": "eslint . --max-warnings=0",
     "test": "tsx ./scripts/test-command-contracts.ts --command test --execute",
@@ -80,6 +81,7 @@
     "test:arena-official-followup-postgres": "ARENA_OFFICIAL_FOLLOWUP_POSTGRES_REQUIRED=1 npx tsx ./scripts/tests/test-arena-official-followup-postgres.ts",
     "verify:new-resource-semantics": "tsx ./scripts/data-governance/check-new-resource-semantic-completeness.ts",
     "verify:portrait-v2-primary": "tsx ./scripts/data-governance/check-portrait-v2-primary-usage.ts",
+    "verify:teacher-ai-grading-sensitive-files": "tsx ./scripts/data-governance/check-teacher-ai-grading-sensitive-files.ts",
     "generate:micro-tutoring-option-attributions": "tsx ./scripts/data-governance/generate-micro-tutoring-option-attributions.ts",
     "generate:micro-tutoring-v2-option-attributions": "tsx ./scripts/data-governance/generate-micro-tutoring-v2-option-attributions.ts",
     "generate:micro-tutoring-resource-projection": "tsx ./scripts/data-governance/generate-micro-tutoring-resource-projection.ts",
@@ -179,6 +181,7 @@
     "test:competition-baseline": "npx --yes tsx ./scripts/tests/competition-baseline-acceptance.ts",
     "test:provider-runtime-smoke": "npx --yes tsx ./scripts/tests/provider-runtime-smoke.ts",
     "source:pack": "tsx ./scripts/source-pack/source-pack-cli.ts",
+    "teacher-ai-grading-lab": "tsx ./scripts/data-governance/teacher-ai-grading-lab-cli.ts",
     "inventory:course-knowledge-inputs": "tsx ./scripts/knowledge-governance/input-inventory/cli.ts",
     "inventory:export-course-knowledge-db": "tsx ./scripts/knowledge-governance/input-inventory/database-export-cli.ts",
     "test:course-knowledge-input-inventory": "vitest run --config scripts/knowledge-governance/input-inventory/vitest.config.ts",

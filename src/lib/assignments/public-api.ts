@@ -32,6 +32,19 @@ import {
   signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
 } from './assignment-review';
+import { createAssignmentAiGradingBatches, createManualQuestionGradingReview } from '@/lib/data-governance/assignment-grading-orchestration';
+import { retryQuestionGradingBatchItem } from '@/lib/data-governance/math-document-grading-batch';
+import { retryDocumentConversion } from '@/lib/data-governance/math-document-grading-persistence';
+import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';
+import {
+  AssignmentSubmissionGradeError,
+  confirmAssignmentSubmissionGrade,
+  getAssignmentSubmissionGrade,
+  recordAssignmentQuestionConclusion,
+  refreshAssignmentSubmissionGrade,
+  releaseAssignmentSubmissionGrade,
+  returnAssignmentQuestionForResubmission,
+} from './assignment-grading-closure';
 import {
   consumeSubmissionAssetRead,
   finalizeQuestionAsset,
@@ -352,6 +365,112 @@ export async function teacherReadOriginalAsset(
     displayName: asset.displayName,
     sizeBytes: bytes.byteLength,
   };
+}
+
+// ---- 教师批改编排与作业级收口的 public API 入口 ----
+// Assignment-scoped 批改操作统一从这里进入；路由层保持薄壳，不直接触 Prisma。
+
+export async function teacherStartAssignmentAiGrading(input: Omit<Parameters<typeof createAssignmentAiGradingBatches>[0], 'db'>) {
+  return createAssignmentAiGradingBatches({ ...input, db: prisma });
+}
+
+export async function teacherCreateManualQuestionGrading(input: {
+  assignmentId: string;
+  submissionId: string;
+  questionId: string;
+  actor: { id: string; role: 'TEACHER' | 'ADMIN' };
+  idempotencyKey: string;
+  now?: Date;
+}) {
+  const result = await createManualQuestionGradingReview({ db: prisma, ...input });
+  return {
+    run: { id: result.run.id, source: result.run.source, state: result.run.state },
+    review: buildTeacherAssignmentReviewApiProjection(result.review),
+    replay: result.replay,
+  };
+}
+
+export async function teacherRetryAssignmentGradingBatchItem(input: {
+  actor: { id: string; role: 'TEACHER' | 'ADMIN' };
+  assignmentId: string;
+  batchId: string;
+  itemId: string;
+  idempotencyKey: string;
+  reason: string;
+}): Promise<
+  | { kind: 'not-found' }
+  | { kind: 'conversion'; job: unknown; replay: boolean }
+  | { kind: 'question'; job: unknown; replay: boolean }
+> {
+  const batch = await prisma.gradingBatch.findUnique({
+    where: { id: input.batchId },
+    select: {
+      revision: { select: { assignmentId: true } },
+      items: {
+        where: { id: input.itemId },
+        select: { conversionId: true, conversion: { select: { state: true } } },
+      },
+    },
+  });
+  if (!batch || batch.revision?.assignmentId !== input.assignmentId) return { kind: 'not-found' };
+  const conversion = batch.items[0]?.conversion;
+  const conversionId = batch.items[0]?.conversionId;
+  if (conversionId && conversion && ['FAILED', 'RETRYABLE', 'BLOCKED'].includes(conversion.state)) {
+    const result = await retryDocumentConversion({ db: prisma, conversionId, actor: input.actor, idempotencyKey: input.idempotencyKey, reason: input.reason });
+    const queue = result.job
+      ? await enqueueMathDocumentGradingJob({ kind: 'conversion', jobId: result.job.id, conversionId: result.conversion.id }, prisma)
+      : { queued: true };
+    if (!queue.queued) throw new Error('conversion-retry-queue-unavailable');
+    return { kind: 'conversion', job: result.job, replay: result.replay };
+  }
+  const result = await retryQuestionGradingBatchItem({ db: prisma, batchId: input.batchId, itemId: input.itemId, actor: input.actor, idempotencyKey: input.idempotencyKey, reason: input.reason });
+  return { kind: 'question', job: result.job, replay: result.replay };
+}
+
+export { AssignmentSubmissionGradeError } from './assignment-grading-closure';
+
+export async function teacherGetAssignmentGradingClosure(input: Parameters<typeof getAssignmentSubmissionGrade>[1]) {
+  return getAssignmentSubmissionGrade(prisma, input);
+}
+
+export async function teacherRefreshAssignmentGradingClosure(input: Parameters<typeof refreshAssignmentSubmissionGrade>[1]) {
+  return refreshAssignmentSubmissionGrade(prisma, input);
+}
+
+export async function teacherConfirmAssignmentResult(input: Parameters<typeof confirmAssignmentSubmissionGrade>[1]) {
+  return confirmAssignmentSubmissionGrade(prisma, input);
+}
+
+export async function teacherReleaseAssignmentResult(input: Parameters<typeof releaseAssignmentSubmissionGrade>[1]) {
+  return releaseAssignmentSubmissionGrade(prisma, input);
+}
+
+export async function teacherConcludeAssignmentQuestion(input: Parameters<typeof recordAssignmentQuestionConclusion>[1]) {
+  return recordAssignmentQuestionConclusion(prisma, input);
+}
+
+export async function teacherReturnAssignmentQuestion(input: Parameters<typeof returnAssignmentQuestionForResubmission>[1]) {
+  return returnAssignmentQuestionForResubmission(prisma, input);
+}
+
+export async function teacherReadReviewedAssignmentAsset(input: {
+  actor: { id: string; role: 'TEACHER' | 'ADMIN' };
+  assignmentId: string;
+  submissionId: string;
+  approvalId: string;
+  snapshotId: string;
+}): Promise<{ bytes: Uint8Array; mimeType: string; filename: string } | null> {
+  await getAssignmentSubmissionGrade(prisma, { actor: input.actor, assignmentId: input.assignmentId, submissionId: input.submissionId, snapshotId: input.snapshotId });
+  const approval = await prisma.teacherAssignmentApprovalSnapshot.findFirst({
+    where: { id: input.approvalId, assignmentId: input.assignmentId, submissionId: input.submissionId },
+    include: { reviewedDerivatives: { where: { state: 'READY', outputKind: 'REVIEWED_PDF' }, orderBy: { readyAt: 'desc' }, take: 1 } },
+  });
+  const derivative = approval?.reviewedDerivatives[0];
+  if (!approval || !derivative?.outputObjectKey || !derivative.outputChecksum) return null;
+  const bytes = await readReviewedDerivativeObject(derivative.outputObjectKey);
+  const checksum = `sha256:${Buffer.from(await crypto.subtle.digest('SHA-256', bytes)).toString('hex')}`;
+  if (checksum !== derivative.outputChecksum) throw new AssignmentSubmissionGradeError('reviewed-asset-integrity-failed', 409);
+  return { bytes, mimeType: derivative.outputMimeType, filename: `reviewed-assignment-${approval.questionId}.pdf` };
 }
 
 export const STUDENT_DTO_FORBIDDEN_FIELDS = [

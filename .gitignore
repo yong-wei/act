@@ -108,4 +108,29 @@ unit41-step*.png
 
 # GLB meshopt 压缩产物：由独立 npm run models:produce 流程生成，应用构建仅消费现有产物
 public/assets/models-opt/
+
+# Teacher AI grading lab local data and runtime artifacts
+/teacher-ai-grading-lab-data/
+/grading-lab-data/
+/.teacher-ai-grading-lab/
+**/*.grading-lab.zip
+**/.grading-lab-staging/
+**/grading-lab-identity-mapping.*
+**/grading-lab-run-artifacts/
+
+# Local phase-A grading runtime; may contain generated certificates, logs,
+# Redis state, evaluation payloads, and other non-source artifacts.
+/.runtime/
+/artifacts/phase7-local-redis/
+/artifacts/teacher-ai-grading-lab/
+/.runtime-*.json
+/.runtime-*.jsonl
+/.tmp-*.json
+
+# Repository-owned synthetic fixtures are explicitly allowed.
+!src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic.ts
+!src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/
+!src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/
+!src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.docx
+!src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.doc
 .tmp-review-evidence-gh/

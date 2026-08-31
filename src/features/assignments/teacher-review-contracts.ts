@@ -153,6 +153,10 @@ export function buildTeacherSubmissionQueueUrl(
   return `/api/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions?${params.toString()}`;
 }
 
+export function buildTeacherAssignmentGradingHref(assignmentId: string): string {
+  return `/teacher/assignments/${encodeURIComponent(assignmentId)}/grading`;
+}
+
 export function buildTeacherReviewApiUrl(
   assignmentId: string,
   submissionId: string,

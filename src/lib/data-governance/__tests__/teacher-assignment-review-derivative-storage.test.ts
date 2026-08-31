@@ -1,59 +1,57 @@
 import { createHash } from 'node:crypto';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { DOMParser } from '@xmldom/xmldom';
 import JSZip from 'jszip';
 import { degrees, PDFDocument, PDFName } from 'pdf-lib';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildReviewedDerivativePlan } from '../teacher-assignment-review-derivative';
-import { S3AnnotatedMarkdownDerivativeRenderer } from '../teacher-assignment-review-derivative-storage';
+import { renderFrozenPdfDerivative, S3AnnotatedMarkdownDerivativeRenderer } from '../teacher-assignment-review-derivative-storage';
 import { createMathpixClient, mathpixToConversionResult, toAnswerEvidence } from '../math-document-conversion';
 import { buildPersistedAnswerEvidenceBlocks } from '../math-document-grading-persistence';
 
 const options = { generatorId: 'native-s3', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] as const };
 
 describe('reviewed derivative native storage', () => {
-  it('reads and verifies the source DOCX, preserves its content, and writes native Word comments to a new key', async () => {
-    const source = await makeDocx('x = -1, then verify');
-    const snapshot = makeSnapshot(source, 'private/source.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', {
+  it('uses the converted canonical PDF for a Word submission and appends its feedback summary', async () => {
+    const word = await makeDocx('x = -1, then verify');
+    const canonical = await PDFDocument.create(); canonical.addPage([300, 400]);
+    const canonicalPdf = new Uint8Array(await canonical.save());
+    const snapshot: any = makeSnapshot(word, 'private/source.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', {
       precision: 'SPAN', spanStart: 4, spanEnd: 6,
     });
-    const { renderer, put, send } = rendererFor(source);
+    snapshot.answerEvidence.conversion = canonicalConversion(canonicalPdf);
+    const { renderer, put, send } = rendererFor({ 'grading-rendered/conversion-1.pdf': canonicalPdf });
 
     const result = await renderer.render(buildReviewedDerivativePlan(snapshot, options));
 
-    expect(result.objectKey).not.toBe('private/source.docx');
-    expect(result.objectKey).toMatch(/\.docx$/);
-    expect((send.mock.calls[0][0] as GetObjectCommand).input).toMatchObject({ Bucket: 'private-submissions', Key: 'private/source.docx' });
-    const output = putBody(put);
-    const zip = await JSZip.loadAsync(output);
-    const documentXml = await zip.file('word/document.xml')!.async('string');
-    const commentsXml = await zip.file('word/comments.xml')!.async('string');
-    const document = new DOMParser().parseFromString(documentXml, 'application/xml');
-    expect(Array.from(document.getElementsByTagName('w:t')).map((node) => node.textContent).join('')).toBe('x = -1, then verify');
-    expect(documentXml).toContain('w:commentRangeStart');
-    expect(documentXml).toContain('w:commentReference');
-    const comments = new DOMParser().parseFromString(commentsXml, 'application/xml');
-    expect(comments.getElementsByTagName('w:comment')).toHaveLength(1);
-    expect(commentsXml).toContain('Check sign');
+    expect(result).toMatchObject({ outputKind: 'REVIEWED_PDF', outputMimeType: 'application/pdf', nativeCapable: false });
+    expect((send.mock.calls[0][0] as GetObjectCommand).input).toMatchObject({ Bucket: 'private-submissions', Key: 'grading-rendered/conversion-1.pdf' });
+    const output = await PDFDocument.load(putBody(put));
+    expect(output.getPageCount()).toBe(2);
+    expect((put.mock.calls[0][0] as PutObjectCommand).input.ContentType).toBe('application/pdf');
   });
 
-  it('maps normalized multi-paragraph canonical offsets back to preserved DOCX runs', async () => {
-    const source = await makeDocxParagraphs(['  First   line  ', 'Second line']);
-    const snapshot = makeSnapshot(source, 'private/multi.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', {
-      precision: 'SPAN', spanStart: 12, spanEnd: 18,
+  it('adds a same-page sidebar for a reliable block anchor from a Word conversion', async () => {
+    const word = await makeDocx('x = -1, then verify');
+    const canonical = await PDFDocument.create(); canonical.addPage([300, 400]);
+    const canonicalPdf = new Uint8Array(await canonical.save());
+    const snapshot: any = makeSnapshot(word, 'private/source.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', {
+      precision: 'BLOCK', blockId: 'block-1', pageNumber: 1,
     });
-    snapshot.answerEvidence.canonicalMarkdown = 'First line\n\nSecond line';
-    const { renderer, put } = rendererFor(source);
+    snapshot.answerEvidence.precision = 'BLOCK';
+    snapshot.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1 }];
+    snapshot.answerEvidence.conversion = canonicalConversion(canonicalPdf);
+    const { renderer, put } = rendererFor({ 'grading-rendered/conversion-1.pdf': canonicalPdf });
+
     await renderer.render(buildReviewedDerivativePlan(snapshot, options));
-    const zip = await JSZip.loadAsync(putBody(put));
-    const xml = await zip.file('word/document.xml')!.async('string');
-    const document = new DOMParser().parseFromString(xml, 'application/xml');
-    expect(Array.from(document.getElementsByTagName('w:t')).map((node) => node.textContent).join('')).toBe('  First   line  Second line');
-    expect(xml).toContain('w:commentRangeStart');
+
+    const output = await PDFDocument.load(putBody(put));
+    expect(output.getPage(0).getWidth()).toBeGreaterThan(300);
+    const annotations = output.getPage(0).node.lookup(PDFName.of('Annots')) as any;
+    expect(annotations?.size() ?? 0).toBe(0);
   });
 
-  it('reads and verifies a source PDF and emits a real page annotation with the reliable bbox', async () => {
+  it('renders deduction feedback visually without native PDF comment icons', async () => {
     const sourcePdf = await PDFDocument.create();
     sourcePdf.addPage([300, 400]);
     const source = new Uint8Array(await sourcePdf.save());
@@ -70,11 +68,74 @@ describe('reviewed derivative native storage', () => {
     const output = putBody(put);
     const parsed = await PDFDocument.load(output);
     const annots = parsed.getPage(0).node.lookup(PDFName.of('Annots')) as any;
-    expect(annots?.size()).toBe(1);
-    const annotation = parsed.context.lookup(annots.get(0)) as any;
-    expect(annotation.get(PDFName.of('Subtype')).toString()).toBe('/Text');
-    expect(annotation.get(PDFName.of('Contents')).decodeText()).toBe('Check sign');
-    expect(annotation.get(PDFName.of('Rect')).asArray().map((value: any) => value.asNumber())).toEqual([10, 20, 100, 50]);
+    expect(annots?.size() ?? 0).toBe(0);
+  });
+
+  it('preserves Chinese text on the generated summary page', async () => {
+    const sourcePdf = await PDFDocument.create();
+    sourcePdf.addPage([300, 400]);
+    const source = new Uint8Array(await sourcePdf.save());
+    const rendered = await renderFrozenPdfDerivative({
+      source,
+      annotations: [],
+      summaryLines: ['总体评价：过程清晰，结论正确。'],
+      identity: 'summary-cjk-test',
+    });
+
+    const text = (await pdfText(rendered.bytes, rendered.summaryPageNumber ?? 2)).replace(/\s+/g, '');
+    expect(text).toContain('过程清晰');
+    expect(text).toContain('结论正确');
+  });
+
+  it('wraps long overall feedback inside the generated summary page', async () => {
+    const sourcePdf = await PDFDocument.create();
+    sourcePdf.addPage([300, 400]);
+    const source = new Uint8Array(await sourcePdf.save());
+    const rendered = await renderFrozenPdfDerivative({
+      source,
+      annotations: [],
+      summaryLines: ['总体评价：学生在参数计算和理论解释方面表现良好，能够准确推导自然频率和阻尼比，并清晰阐述时域与频域的对应关系。'],
+      identity: 'summary-wrap-test',
+    });
+
+    const text = (await pdfText(rendered.bytes, rendered.summaryPageNumber ?? 2)).replace(/\s+/g, '');
+    expect(text).toContain('对应关系。');
+  });
+
+  it('uses overall-evaluation pages and continues long feedback without truncation', async () => {
+    const sourcePdf = await PDFDocument.create();
+    sourcePdf.addPage([300, 400]);
+    const source = new Uint8Array(await sourcePdf.save());
+    const tail = 'SUMMARY-TAIL-MUST-BE-VISIBLE';
+    const rendered = await renderFrozenPdfDerivative({
+      source,
+      annotations: [],
+      summaryLines: [`总体评价：${'All feedback remains visible. '.repeat(180)}${tail}`],
+      identity: 'summary-continuation-test',
+    });
+
+    const output = await PDFDocument.load(rendered.bytes);
+    expect(rendered.summaryPageNumber).toBe(2);
+    expect(output.getPageCount()).toBeGreaterThan(2);
+    const summaryText = (await Promise.all(output.getPages().slice(1).map((_, index) => pdfText(rendered.bytes, index + 2)))).join('').replace(/\s+/g, '');
+    expect(summaryText).toContain('总体评价');
+    expect(summaryText).toContain(tail);
+    expect(summaryText).not.toContain('复核校验值');
+  });
+
+  it('keeps internal checksums and inline annotations out of the student summary page', async () => {
+    const sourcePdf = await PDFDocument.create(); sourcePdf.addPage([300, 400]);
+    const source = new Uint8Array(await sourcePdf.save());
+    const snapshot: any = makeSnapshot(source, 'private/summary.pdf', 'application/pdf', { precision: 'GENERAL' });
+    const { renderer, put } = rendererFor(source);
+
+    const plan = buildReviewedDerivativePlan(snapshot, options);
+    await renderer.render(plan);
+
+    const rendered = await pdfText(putBody(put), 2);
+    expect(rendered).toContain('总体完成情况良好');
+    expect(rendered).not.toContain('复核校验值');
+    expect(rendered).not.toContain('检查符号');
   });
 
   it('carries official Mathpix PDF geometry through normalization, persistence, planning, and isolated rendering', async () => {
@@ -99,24 +160,29 @@ describe('reviewed derivative native storage', () => {
     const persisted = buildPersistedAnswerEvidenceBlocks({ normalized, conversionId: 'conversion-real', evidenceId: 'evidence-real', sourceHash: sourceChecksum, now: new Date('2026-07-17T00:00:00Z') });
     expect(persisted[0].coordinateProvenance).toEqual({ origin: 'TOP_LEFT', unit: 'PIXEL', pageWidth: 600, pageHeight: 800, rotation: 0 });
     const snapshot: any = {
-      id: 'snapshot-real', reviewId: 'review-real', reviewVersion: 1, machineSnapshotHash: 'sha256:machine', criterionSnapshot: [], overallComment: null,
-      annotationSnapshot: [{ id: 'annotation-real', status: 'ACTIVE', comment: 'Provider grounded', anchor: { precision: 'BLOCK', blockId: persisted[0].id, pageNumber: 1, bbox: [20, 40, 200, 100] } }],
+      id: 'snapshot-real', reviewId: 'review-real', reviewVersion: 1, machineSnapshotHash: 'sha256:machine', criterionSnapshot: [{ criterionId: 'criterion-1', score: 0 }], overallComment: null,
+      gradingRun: { question: { rubricSnapshot: { criteria: [{ id: 'criterion-1', maxPoints: 1 }] } } },
+      annotationSnapshot: [{ id: 'annotation-real', criterionId: 'criterion-1', status: 'ACTIVE', comment: '证据明确', anchor: { precision: 'BLOCK', blockId: persisted[0].id, pageNumber: 1, bbox: [20, 40, 200, 100] } }],
       answerEvidence: { sourceHash: sourceChecksum, anchorVersion: normalized.anchorVersion, precision: 'BLOCK', canonicalMarkdown: normalized.canonicalMarkdown, blocks: persisted, sourceAsset: { id: 'asset-real', objectKey: 'private/real.pdf', checksum: sourceChecksum, mimeType: 'application/pdf', sizeBytes: source.byteLength } },
     };
     const plan = buildReviewedDerivativePlan(snapshot, { generatorId: 'native', generatorVersion: '1', nativeFormats: ['PDF'], anchorCapabilities: [{ anchorVersion: normalized.anchorVersion, nativeFormats: ['PDF'] }] });
     expect(plan).toMatchObject({ nativeCapable: true, outputKind: 'REVIEWED_PDF' });
-    const { renderer, put } = rendererFor(source); const rendered = await renderer.render(plan);
-    expect(rendered).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: true });
-    expect(await firstPdfAnnotationRect(putBody(put))).toEqual([10, 350, 100, 380]);
+    const rendered = await renderFrozenPdfDerivative({
+      source,
+      annotations: [{ id: 'annotation-real', pageNumber: 1, bbox: [20, 40, 200, 100], coordinateProvenance: { origin: 'TOP_LEFT', unit: 'PIXEL', pageWidth: 600, pageHeight: 800, rotation: 0 }, marker: '', contents: '证据明确', allowPageFallback: true }],
+      identity: 'mathpix-geometry-test',
+    });
+    expect(rendered.placements[0]?.rect).toEqual([10, 350, 100, 380]);
 
   });
 
   it('blocks before writing when downloaded source bytes do not match the frozen checksum', async () => {
-    const actual = await makeDocx('tampered');
-    const expected = await makeDocx('x = -1, then verify');
-    const snapshot = makeSnapshot(expected, 'private/source.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', {
-      precision: 'SPAN', spanStart: 4, spanEnd: 6,
-    });
+    const expectedDocument = await PDFDocument.create(); expectedDocument.addPage([100, 100]);
+    const actualDocument = await PDFDocument.create(); actualDocument.addPage([200, 100]);
+    const expected = new Uint8Array(await expectedDocument.save());
+    const actual = new Uint8Array(await actualDocument.save());
+    const snapshot: any = makeSnapshot(expected, 'private/source.pdf', 'application/pdf', { precision: 'GENERAL' });
+    snapshot.answerEvidence.precision = 'GENERAL';
     snapshot.answerEvidence.sourceAsset.sizeBytes = actual.byteLength;
     const { renderer, put } = rendererFor(actual);
     await expect(renderer.render(buildReviewedDerivativePlan(snapshot, options))).rejects.toMatchObject({
@@ -134,12 +200,12 @@ describe('reviewed derivative native storage', () => {
     const page = sourcePdf.addPage([300, 400]);
     if (rotation) page.setRotation(degrees(rotation));
     const source = new Uint8Array(await sourcePdf.save());
-    const snapshot: any = makeSnapshot(source, 'private/coordinates.pdf', 'application/pdf', { precision: 'BLOCK', blockId: 'block-1', pageNumber: 1, bbox, coordinateProvenance: provenance });
-    snapshot.answerEvidence.precision = 'BLOCK';
-    snapshot.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1, bbox, precision: 'BLOCK', coordinateProvenance: provenance }];
-    const { renderer, put } = rendererFor(source);
-    await renderer.render(buildReviewedDerivativePlan(snapshot, options));
-    expect(await firstPdfAnnotationRect(putBody(put))).toEqual(expected);
+    const rendered = await renderFrozenPdfDerivative({
+      source,
+      annotations: [{ id: 'coordinate-test', pageNumber: 1, bbox: bbox as [number, number, number, number], coordinateProvenance: provenance as any, marker: '', contents: '扣分说明', allowPageFallback: true }],
+      identity: `coordinate-${rotation}`,
+    });
+    expect(rendered.placements[0]?.rect).toEqual(expected);
   });
 
   it('falls back honestly when frozen PDF coordinate provenance is absent', async () => {
@@ -152,72 +218,17 @@ describe('reviewed derivative native storage', () => {
     expect(plan.limitations).toContain('pdf-coordinate-provenance-missing');
   });
 
-  it('preserves existing Word comments and allocates non-conflicting IDs', async () => {
-    const source = await makeDocxWithExistingComment('x = -1, then verify', 7);
-    const snapshot = makeSnapshot(source, 'private/commented.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 4, spanEnd: 6 });
-    const { renderer, put } = rendererFor(source);
-    await renderer.render(buildReviewedDerivativePlan(snapshot, options));
-    const zip = await JSZip.loadAsync(putBody(put));
-    const commentsXml = await zip.file('word/comments.xml')!.async('string');
-    expect(commentsXml).toContain('Existing comment');
-    expect(commentsXml).toContain('w:id="7"');
-    expect(commentsXml).toContain('w:id="8"');
-  });
-
-  it('uses Markdown fallback for an unsafe existing comments relationship', async () => {
-    const source = await makeDocxWithExistingComment('x = -1, then verify', 7, true);
-    const snapshot = makeSnapshot(source, 'private/external-comment.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 4, spanEnd: 6 });
-    const { renderer, put } = rendererFor(source);
-    const result = await renderer.render(buildReviewedDerivativePlan(snapshot, options));
-    expect(result).toMatchObject({ outputKind: 'ANNOTATED_MARKDOWN', nativeCapable: false });
-    expect(result.limitations).toContain('docx-comments-relationship-unsupported');
-    expect((put.mock.calls[0][0] as PutObjectCommand).input.ContentType).toBe('text/markdown');
-  });
-
-  it('falls back with explicit content for DOCX anchor-map and PDF geometry uncertainty', async () => {
-    const docx = await makeDocx('actual text');
-    const docxSnapshot = makeSnapshot(docx, 'private/mismatch.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 0, spanEnd: 6 });
-    docxSnapshot.answerEvidence.canonicalMarkdown = 'different text';
-    const docxIo = rendererFor(docx); const docxResult = await docxIo.renderer.render(buildReviewedDerivativePlan(docxSnapshot, options));
-    expect(docxResult).toMatchObject({ outputKind: 'ANNOTATED_MARKDOWN', nativeCapable: false, anchorPrecision: 'GENERAL' });
-    expect(docxResult.limitations).toContain('reviewed-derivative-docx-anchor-map-mismatch');
-    expect(new TextDecoder().decode(putBody(docxIo.put))).toContain('reviewed-derivative-docx-anchor-map-mismatch');
-
-    const complexZip = await JSZip.loadAsync(await makeDocx('ignored'));
-    complexZip.file('word/document.xml', '<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>actual</w:t><w:t> text</w:t></w:r></w:p></w:body></w:document>');
-    const complex = await complexZip.generateAsync({ type: 'uint8array' });
-    const complexSnapshot = makeSnapshot(complex, 'private/complex.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 1, spanEnd: 4 });
-    complexSnapshot.answerEvidence.canonicalMarkdown = 'actual text';
-    const complexIo = rendererFor(complex); const complexResult = await complexIo.renderer.render(buildReviewedDerivativePlan(complexSnapshot, options));
-    expect(complexResult.limitations).toContain('reviewed-derivative-docx-run-unsupported');
-
+  it('keeps the final PDF when PDF geometry is uncertain by moving the note to the summary page', async () => {
     const sourcePdf = await PDFDocument.create(); sourcePdf.addPage([100, 100]); const pdf = new Uint8Array(await sourcePdf.save());
     const provenance = { origin: 'BOTTOM_LEFT', unit: 'PDF_POINT', pageWidth: 100, pageHeight: 100, rotation: 0 };
     const pdfSnapshot: any = makeSnapshot(pdf, 'private/geometry.pdf', 'application/pdf', { precision: 'BLOCK', blockId: 'block-1', pageNumber: 1, bbox: [10, 10, 200, 50], coordinateProvenance: provenance });
     pdfSnapshot.answerEvidence.precision = 'BLOCK'; pdfSnapshot.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1, bbox: [10, 10, 200, 50], precision: 'BLOCK', coordinateProvenance: provenance }];
     const pdfIo = rendererFor(pdf); const pdfResult = await pdfIo.renderer.render(buildReviewedDerivativePlan(pdfSnapshot, options));
-    expect(pdfResult).toMatchObject({ outputKind: 'ANNOTATED_MARKDOWN', nativeCapable: false });
-    expect(pdfResult.limitations).toContain('reviewed-derivative-pdf-geometry-mismatch');
+    expect(pdfResult).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false });
+    expect((await PDFDocument.load(putBody(pdfIo.put))).getPageCount()).toBe(2);
   });
 
   it('blocks frozen size mismatch, excessive ZIP entries, XML entities, and excessive PDF pages', async () => {
-    const ordinary = await makeDocx('x = -1, then verify');
-    const sizeMismatch = makeSnapshot(ordinary, 'private/size.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 4, spanEnd: 6 });
-    sizeMismatch.answerEvidence.sourceAsset.sizeBytes += 1;
-    await expect(rendererFor(ordinary).renderer.render(buildReviewedDerivativePlan(sizeMismatch, options))).rejects.toMatchObject({ code: 'reviewed-derivative-source-size-mismatch', blocked: true });
-
-    const zip = await JSZip.loadAsync(ordinary);
-    for (let index = 0; index < 2_049; index += 1) zip.file(`extra/${index}.txt`, 'x');
-    const tooManyEntries = await zip.generateAsync({ type: 'uint8array' });
-    await expect(rendererFor(tooManyEntries).renderer.render(buildReviewedDerivativePlan(makeSnapshot(tooManyEntries, 'private/entries.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 4, spanEnd: 6 }), options))).rejects.toMatchObject({ code: 'reviewed-derivative-docx-entry-limit', blocked: true });
-
-    await expect(rendererFor(ordinary, { maxZipExpandedBytes: 100 }).renderer.render(buildReviewedDerivativePlan(makeSnapshot(ordinary, 'private/expanded.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 4, spanEnd: 6 }), options))).rejects.toMatchObject({ code: 'reviewed-derivative-docx-expanded-size-limit', blocked: true });
-
-    const entityZip = await JSZip.loadAsync(ordinary);
-    entityZip.file('word/document.xml', '<!DOCTYPE x [<!ENTITY y "boom">]><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body/></w:document>');
-    const entityDocx = await entityZip.generateAsync({ type: 'uint8array' });
-    await expect(rendererFor(entityDocx).renderer.render(buildReviewedDerivativePlan(makeSnapshot(entityDocx, 'private/entity.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 0, spanEnd: 1 }), options))).rejects.toMatchObject({ code: 'reviewed-derivative-xml-complexity-limit', blocked: true });
-
     const hugePdf = await PDFDocument.create(); for (let index = 0; index < 501; index += 1) hugePdf.addPage([100, 100]);
     const pdfBytes = new Uint8Array(await hugePdf.save());
     const pdfSnapshot: any = makeSnapshot(pdfBytes, 'private/pages.pdf', 'application/pdf', { precision: 'GENERAL' });
@@ -231,8 +242,9 @@ describe('reviewed derivative native storage', () => {
   });
 
   it('stops an async S3 body as soon as the source byte limit is crossed', async () => {
-    const source = new TextEncoder().encode('12345678');
-    const snapshot = makeSnapshot(source, 'private/stream.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', { precision: 'SPAN', spanStart: 0, spanEnd: 1 });
+    const source = new TextEncoder().encode('%PDF-1.7 12345678');
+    const snapshot: any = makeSnapshot(source, 'private/stream.pdf', 'application/pdf', { precision: 'GENERAL' });
+    snapshot.answerEvidence.precision = 'GENERAL';
     const put = vi.fn();
     const send = vi.fn(async (command: unknown) => command instanceof GetObjectCommand
       ? { Body: { async *[Symbol.asyncIterator]() { yield source.slice(0, 3); yield source.slice(3, 6); yield source.slice(6); } } }
@@ -243,10 +255,15 @@ describe('reviewed derivative native storage', () => {
   });
 });
 
-function rendererFor(source: Uint8Array, limits?: Record<string, number>) {
+function rendererFor(source: Uint8Array | Record<string, Uint8Array>, limits?: Record<string, number>) {
   const put = vi.fn();
   const send = vi.fn(async (command: unknown) => {
-    if (command instanceof GetObjectCommand) return { Body: { transformToByteArray: async () => source } };
+    if (command instanceof GetObjectCommand) {
+      const key = String(command.input.Key ?? '');
+      const bytes = source instanceof Uint8Array ? source : source[key];
+      if (!bytes) throw new Error(`missing source ${key}`);
+      return { Body: { transformToByteArray: async () => bytes } };
+    }
     if (command instanceof PutObjectCommand) { put(command); return {}; }
     throw new Error('unexpected command');
   });
@@ -262,8 +279,10 @@ function makeSnapshot(source: Uint8Array, objectKey: string, mimeType: string, a
   const sourceChecksum = `sha256:${createHash('sha256').update(source).digest('hex')}`;
   return {
     id: 'snapshot-native', reviewId: 'review-1', reviewVersion: 1, machineSnapshotHash: 'sha256:machine',
-    annotationSnapshot: [{ id: 'annotation-1', status: 'ACTIVE', comment: 'Check sign', anchor }],
-    criterionSnapshot: [], overallComment: 'Review complete.',
+    annotationSnapshot: [{ id: 'annotation-1', criterionId: 'criterion-1', status: 'ACTIVE', comment: '检查符号', anchor }],
+    criterionSnapshot: [{ criterionId: 'criterion-1', score: 0, comment: '需要修正' }],
+    gradingRun: { question: { rubricSnapshot: { criteria: [{ id: 'criterion-1', maxPoints: 1 }] } } },
+    overallComment: '总体完成情况良好。',
     answerEvidence: {
       sourceHash: sourceChecksum, anchorVersion: 'anchors-v2', precision: 'SPAN', canonicalMarkdown: 'x = -1, then verify', blocks: [],
       sourceAsset: { id: 'asset-1', objectKey, checksum: sourceChecksum, mimeType, sizeBytes: source.byteLength },
@@ -271,18 +290,13 @@ function makeSnapshot(source: Uint8Array, objectKey: string, mimeType: string, a
   };
 }
 
-async function firstPdfAnnotationRect(bytes: Uint8Array) {
-  const parsed = await PDFDocument.load(bytes);
-  const annots = parsed.getPage(0).node.lookup(PDFName.of('Annots')) as any;
-  const annotation = parsed.context.lookup(annots.get(0)) as any;
-  return annotation.get(PDFName.of('Rect')).asArray().map((value: any) => value.asNumber());
-}
-
-async function makeDocxWithExistingComment(text: string, id: number, external = false) {
-  const bytes = await makeDocx(text); const zip = await JSZip.loadAsync(bytes);
-  zip.file('word/comments.xml', `<w:comments xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:comment w:id="${id}"><w:p><w:r><w:t>Existing comment</w:t></w:r></w:p></w:comment></w:comments>`);
-  zip.file('word/_rels/document.xml.rels', `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId9" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="${external ? 'https://example.invalid/comments.xml' : 'comments.xml'}"${external ? ' TargetMode="External"' : ''}/></Relationships>`);
-  return zip.generateAsync({ type: 'uint8array' });
+function canonicalConversion(bytes: Uint8Array) {
+  return {
+    state: 'SUCCEEDED',
+    renderedObjectKey: 'grading-rendered/conversion-1.pdf',
+    renderedChecksum: `sha256:${createHash('sha256').update(bytes).digest('hex')}`,
+    renderedSizeBytes: bytes.byteLength,
+  };
 }
 
 function mathpixPolicy(endpoint = 'https://api.mathpix.com/v3/text'): any {
@@ -290,14 +304,23 @@ function mathpixPolicy(endpoint = 'https://api.mathpix.com/v3/text'): any {
 }
 
 async function makeDocx(text: string) {
-  return makeDocxParagraphs([text]);
-}
-
-async function makeDocxParagraphs(paragraphs: string[]) {
   const zip = new JSZip();
   zip.file('[Content_Types].xml', '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
   zip.file('_rels/.rels', '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
   zip.file('word/_rels/document.xml.rels', '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>');
-  zip.file('word/document.xml', `<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${paragraphs.map((text) => `<w:p><w:r><w:t xml:space="preserve">${text}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`);
+  zip.file('word/document.xml', `<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t xml:space="preserve">${text}</w:t></w:r></w:p></w:body></w:document>`);
   return zip.generateAsync({ type: 'uint8array' });
+}
+
+async function pdfText(bytes: Uint8Array, pageNumber: number) {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const task = pdfjs.getDocument({ data: bytes.slice(), isEvalSupported: false, useWorkerFetch: false });
+  const document = await task.promise;
+  try {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    return content.items.map((item: any) => ('str' in item ? item.str : '')).join(' ');
+  } finally {
+    await document.destroy();
+  }
 }

@@ -84,6 +84,50 @@ describe('teacher assignment review outbox', () => {
     expect(db.teacherAssignmentFeedbackRelease.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ mode: 'STRUCTURED_ONLY' }) }));
   });
 
+  it('requires REVIEWED_PDF before releasing a Word submission', async () => {
+    const row = { id: 'release-word', snapshotId: 'snapshot-word', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
+    const db: any = memoryOutbox(row);
+    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({
+      id: 'snapshot-word', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {},
+      answerEvidence: {
+        sourceHash: 'sha256:cccccccc',
+        sourceAsset: { checksum: 'sha256:aaaaaaaa', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+        sourceManifest: { version: 'assignment-answer-evidence.v2' },
+      },
+    }) };
+    db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn().mockResolvedValue(null) };
+    db.teacherAssignmentFeedbackRelease = { upsert: vi.fn() };
+    db.assignmentSubmission = { findUnique: vi.fn().mockResolvedValue({ id: 'submission-1', answers: [] }), updateMany: vi.fn() };
+    db.teacherAssignmentApprovalSnapshot.findMany = vi.fn().mockResolvedValue([]);
+
+    await expect(processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now }))
+      .rejects.toMatchObject({ code: 'reviewed-derivative-not-ready', retryable: true });
+
+    expect(db.teacherAssignmentReviewedDerivative.findFirst).toHaveBeenCalledWith({
+      where: { snapshotId: 'snapshot-word', state: 'READY', outputKind: 'REVIEWED_PDF' },
+      orderBy: { readyAt: 'desc' },
+    });
+  });
+
+  it('only prepares a derived artifact for teacher-confirmed result revisions', async () => {
+    const row = { id: 'release-gated', snapshotId: 'snapshot-gated', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: { assignmentResultReleaseGate: true } };
+    const db: any = memoryOutbox(row);
+    db.teacherAssignmentApprovalSnapshot = {
+      findUnique: vi.fn().mockResolvedValue({ id: 'snapshot-gated', submissionId: 'submission-1', submission: { frozenStudentId: 'student-1', reviewState: 'APPROVED_PENDING_RELEASE' }, authorizationSnapshot: {}, answerEvidence: { sourceHash: 'sha256:aaaaaaaa', sourceAsset: { checksum: 'sha256:aaaaaaaa' } } }),
+      findMany: vi.fn().mockResolvedValue([]),
+    };
+    db.teacherAssignmentReviewedDerivative = { findFirst: vi.fn().mockResolvedValue({ id: 'derivative-gated', state: 'READY' }) };
+    db.teacherAssignmentFeedbackRelease = { upsert: vi.fn() };
+    db.assignmentSubmission = { findUnique: vi.fn().mockResolvedValue({ id: 'submission-1', reviewState: 'APPROVED_PENDING_RELEASE', answers: [] }), updateMany: vi.fn() };
+
+    await expect(processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now }))
+      .resolves.toMatchObject({ mode: 'ASSIGNMENT_RELEASE_GATED', derivativeId: 'derivative-gated' });
+
+    expect(db.teacherAssignmentFeedbackRelease.upsert).not.toHaveBeenCalled();
+    expect(db.assignmentSubmission.updateMany).not.toHaveBeenCalled();
+    expect(row.state).toBe('SUCCEEDED');
+  });
+
   it('releases a ready source-free TEXT_NATIVE Markdown derivative without requiring a source asset', async () => {
     const row = { id: 'release-text-native', snapshotId: 'snapshot-text-native', command: 'RELEASE_STUDENT_FEEDBACK', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);
@@ -260,6 +304,24 @@ describe('teacher assignment review outbox', () => {
     await processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now });
     expect(row).toMatchObject({ state: 'BLOCKED', limitationCode: 'governed-evidence-mapping-missing', claimToken: null });
     expect(db.evidenceOutbox.upsert).not.toHaveBeenCalled();
+  });
+
+  it('derives governed evidence mapping from frozen rubric dimensions when explicit mapping is absent', async () => {
+    const row = { id: 'evidence-rubric-mapping', snapshotId: 'snapshot-rubric-mapping', command: 'PROCESS_GOVERNED_EVIDENCE', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
+    const db: any = memoryOutbox(row);
+    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({
+      id: 'snapshot-rubric-mapping', reviewVersion: 1, assignmentId: 'assignment-1', submissionId: 'submission-1', questionId: 'question-1', attemptId: 'attempt-1', answerEvidenceId: 'evidence-source',
+      reviewerId: 'teacher-1', rubricVersion: 'rubric-v1', evaluatorVersion: 'eval-v1', lifecyclePolicyVersion: 'lifecycle-v1', machineSnapshotHash: 'sha256:machine',
+      criterionSnapshot: [], annotationSnapshot: [], authorizationSnapshot: { mode: 'current-class' }, submission: { frozenStudentId: 'student-1' },
+      answerEvidence: { sourceHash: 'sha256:aaaaaaaa', canonicalMarkdown: 'answer', blocks: [], sourceAsset: { checksum: 'sha256:aaaaaaaa' } },
+      gradingRun: { assessments: [], questionSnapshot: { rubric: { criteria: [{ id: 'criterion-1', goalDimension: 'controlModeling' }] } } },
+    }) };
+    db.evidenceOutbox = { upsert: vi.fn().mockResolvedValue({ id: 'governed-rubric-mapping' }) };
+    await processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now });
+    expect(db.evidenceOutbox.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({ payload: expect.objectContaining({ mapping: { 'criterion-1': { capability: 'controlModeling' } } }) }),
+    }));
+    expect(row.state).toBe('SUCCEEDED');
   });
 
   it('writes only an idempotent governed evidence candidate with complete lineage', async () => {

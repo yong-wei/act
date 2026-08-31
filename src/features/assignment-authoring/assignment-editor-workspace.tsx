@@ -106,6 +106,7 @@ export function AssignmentEditorWorkspace({
     assignmentId ? 'loading' : 'ready',
   );
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveFailure, setSaveFailure] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -215,6 +216,7 @@ export function AssignmentEditorWorkspace({
       const snapshot = documentRef.current;
       const draftFingerprint = canonicalFingerprint(snapshot.draft);
       setSaveState('saving');
+      setSaveFailure('');
       try {
         const existing = snapshot.assignmentId && snapshot.revisionId;
         const response = await fetch(
@@ -240,6 +242,10 @@ export function AssignmentEditorWorkspace({
           return null;
         }
         if (!response.ok) {
+          const payload = await response.json().catch(() => ({})) as {
+            error?: string;
+          };
+          setSaveFailure(saveFailureMessage(payload.error));
           setSaveState('error');
           return null;
         }
@@ -257,6 +263,7 @@ export function AssignmentEditorWorkspace({
         );
         return { document: saved, draftFingerprint };
       } catch {
+        setSaveFailure('保存请求未完成，请检查网络后重试。');
         setSaveState('error');
         return null;
       }
@@ -753,9 +760,7 @@ export function AssignmentEditorWorkspace({
             <h1 className="mt-2 text-2xl font-semibold text-white">编辑作业</h1>
             <p className="mt-1 text-xs text-slate-500">
               版本 v{document.version}·解答发布策略{' '}
-              {document.draft.solutionReleasePolicy.mode === 'PRIVATE'
-                ? '仅教师可见'
-                : '按时发布'}
+              教师确认后发布
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -801,11 +806,15 @@ export function AssignmentEditorWorkspace({
         <p id="assignment-publication-state" className="sr-only">
           {saveState === 'saved'
             ? '当前内容已保存，可以发布'
-            : publicationRecoveryMessage(saveState)}
+            : saveState === 'error' && saveFailure
+              ? saveFailure
+              : publicationRecoveryMessage(saveState)}
         </p>
         {saveState !== 'saved' && (
           <p className="mb-4 text-sm text-amber-200">
-            {publicationRecoveryMessage(saveState)}
+            {saveState === 'error' && saveFailure
+              ? saveFailure
+              : publicationRecoveryMessage(saveState)}
           </p>
         )}
         {saveState === 'conflict' && (
@@ -1126,17 +1135,6 @@ export function AssignmentEditorWorkspace({
                   onChange={(event) => {
                     const value = event.target.value;
                     setClassId(value);
-                    updateDraft((draft) =>
-                      draft.solutionReleasePolicy.mode === 'AT_TIME'
-                        ? {
-                            ...draft,
-                            solutionReleasePolicy: {
-                              ...draft.solutionReleasePolicy,
-                              audienceClassIds: value ? [value] : [],
-                            },
-                          }
-                        : draft,
-                    );
                   }}
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 >
@@ -1287,112 +1285,9 @@ export function AssignmentEditorWorkspace({
               />
               仅截止前允许重交
             </label>
-            <label className="block text-xs text-slate-400">
-              参考答案发布
-              <select
-                value={document.draft.solutionReleasePolicy.mode}
-                onChange={(event) =>
-                  updateDraft((draft) => ({
-                    ...draft,
-                    solutionReleasePolicy:
-                      event.target.value === 'PRIVATE'
-                        ? { version: 1, mode: 'PRIVATE' }
-                        : {
-                            version: 1,
-                            mode: 'AT_TIME',
-                            releaseAt: new Date(
-                              Date.now() + 86_400_000,
-                            ).toISOString(),
-                            audienceClassIds: classId ? [classId] : [],
-                            includeReferenceAnswer: true,
-                            includeStudentVisibleGuidance: true,
-                          },
-                  }))
-                }
-                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-              >
-                <option value="PRIVATE">仅教师可见</option>
-                <option value="AT_TIME">按时发布</option>
-              </select>
-            </label>
-            {document.draft.solutionReleasePolicy.mode === 'AT_TIME' && (
-              <>
-                <label className="block text-xs text-slate-400">
-                  解答发布时间
-                  <input
-                    aria-label="解答发布时间"
-                    type="datetime-local"
-                    value={toLocalDateTime(
-                      document.draft.solutionReleasePolicy.releaseAt,
-                    )}
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                releaseAt: new Date(
-                                  event.target.value,
-                                ).toISOString(),
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    aria-label="发布参考答案"
-                    type="checkbox"
-                    checked={
-                      document.draft.solutionReleasePolicy
-                        .includeReferenceAnswer
-                    }
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                includeReferenceAnswer: event.target.checked,
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                  发布参考答案
-                </label>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    aria-label="发布学生指导"
-                    type="checkbox"
-                    checked={
-                      document.draft.solutionReleasePolicy
-                        .includeStudentVisibleGuidance
-                    }
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                includeStudentVisibleGuidance:
-                                  event.target.checked,
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                  发布学生指导
-                </label>
-              </>
-            )}
+            <div className="rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
+              截止后可选择 AI 或人工批改。教师确认并逐份发布结果时，学生将同时看到分数、批注、参考答案和评分标准。
+            </div>
             <div
               id="assignment-validation-errors"
               ref={blockerRef}
@@ -2531,11 +2426,6 @@ function embeddedSaveState(state: SaveState): AssignmentEmbeddedSaveState {
   if (state === 'conflict') return 'conflict';
   return 'editing';
 }
-function toLocalDateTime(value: string) {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
 function blockerLabel(value: string, draft: AssignmentDraftInput) {
   if (value.startsWith('validation:')) {
     const path = validationPath(value) ?? '';
@@ -2753,6 +2643,22 @@ function publicationRecoveryMessage(state: SaveState): string {
   if (state === 'conflict') return '存在版本冲突，请重新加载并解决冲突后再发布。';
   if (state === 'dirty') return '当前修改尚未保存，请先保存后再发布。';
   return '请先保存当前作业，再执行发布。';
+}
+
+function saveFailureMessage(error: string | undefined): string {
+  if (error === 'invalid-origin') {
+    return '当前页面的保存来源未获确认。请刷新页面后重试。';
+  }
+  if (error === 'invalid-payload') {
+    return '作业内容未通过保存校验，请检查题目和评分标准后重试。';
+  }
+  if (error === 'payload-too-large') {
+    return '作业内容过长，请精简后重试保存。';
+  }
+  if (error === '请求过于频繁') {
+    return '保存请求过于频繁，请稍后重试。';
+  }
+  return '保存服务暂时不可用，请稍后重试。';
 }
 
 function publicationErrorMessage(error: string | undefined, details: string[] | undefined): string {

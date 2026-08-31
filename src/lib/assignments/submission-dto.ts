@@ -1,5 +1,5 @@
 export type StudentQuestionResponseType = 'SUBJECTIVE_TEXT' | 'SUBJECTIVE_FILE';
-export type StudentAssignmentState = 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED' | 'PARSING' | 'AWAITING_REVIEW' | 'IN_REVIEW' | 'AWAITING_TEACHER_CONFIRMATION' | 'REVIEWED' | 'RESUBMISSION_REQUIRED' | 'OVERDUE';
+export type StudentAssignmentState = 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED' | 'PARSING' | 'AWAITING_REVIEW' | 'IN_REVIEW' | 'PARTIAL_GRADING_FAILURE' | 'AWAITING_TEACHER_CONFIRMATION' | 'REVIEWED' | 'RESUBMISSION_REQUIRED' | 'OVERDUE';
 export type StudentAssignmentNextAction = 'start-answering' | 'continue-answering' | 'view-history' | 'wait-for-processing' | 'wait-for-review' | 'view-feedback' | 'resubmit-question' | 'contact-teacher';
 export interface StudentQuestionDto {
   id: string; stableQuestionId: string; orderIndex: number; responseType: StudentQuestionResponseType; points: number; promptText: string;
@@ -18,6 +18,15 @@ export interface StudentAssignmentDto {
   feedbackStatus?: 'HIDDEN' | 'PUBLISHING' | 'BLOCKED' | 'PUBLISHED';
   policyReason?: string;
   feedback?: StudentAssignmentFeedbackDto[];
+  resultPackage?: StudentAssignmentResultDto | null;
+}
+
+export interface StudentAssignmentResultDto {
+  version: 'assignment-student-result.v1';
+  totalScore: number;
+  overallComment?: string | null;
+  releasedAt: string;
+  questions: Array<{ questionId: string; score: number; comment: string; criteria: unknown[]; annotations: unknown[]; referenceAnswer: string | null; scoringStandard: string | null }>;
 }
 
 export interface StudentAssignmentFeedbackDto {

@@ -196,9 +196,23 @@ async function processRelease(db: any, claim: any, now: Date) {
   if (!['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(snapshot.submission.reviewState)) {
     throw new TeacherAssignmentReviewOutboxError('teacher-review-submission-incomplete', { retryable: true });
   }
-  const derivative = await db.teacherAssignmentReviewedDerivative.findFirst({ where: { snapshotId: snapshot.id, state: 'READY' }, orderBy: { readyAt: 'desc' } });
+  const derivative = await db.teacherAssignmentReviewedDerivative.findFirst({
+    where: {
+      snapshotId: snapshot.id,
+      state: 'READY',
+      ...(requiresReviewedPdf(snapshot) ? { outputKind: 'REVIEWED_PDF' } : {}),
+    },
+    orderBy: { readyAt: 'desc' },
+  });
   const structuredOnly = readBoolean(claim.payload, 'structuredOnlyFallback');
   if (!derivative && !structuredOnly) throw new TeacherAssignmentReviewOutboxError('reviewed-derivative-not-ready', { retryable: true });
+  if (readBoolean(claim.payload, 'assignmentResultReleaseGate')) {
+    return {
+      mode: 'ASSIGNMENT_RELEASE_GATED',
+      snapshotId: snapshot.id,
+      derivativeId: derivative?.id ?? null,
+    };
+  }
   const mode = derivative ? 'DERIVATIVE' : 'STRUCTURED_ONLY';
   return runTransaction(db, async (tx) => {
     const release = await tx.teacherAssignmentFeedbackRelease.upsert({
@@ -325,7 +339,9 @@ function assertSnapshotSourceLineage(snapshot: any, invalidCode: string) {
     throw new TeacherAssignmentReviewOutboxError(invalidCode, { blocked: true });
   }
   const assetChecksum = snapshot.answerEvidence?.sourceAsset?.checksum;
-  if (assetChecksum != null && assetChecksum !== sourceChecksum) {
+  const aggregateAttachmentEvidence = snapshot.answerEvidence?.sourceAssetId == null
+    && snapshot.answerEvidence?.sourceManifest?.version === 'assignment-answer-evidence.v2';
+  if (assetChecksum != null && assetChecksum !== sourceChecksum && !aggregateAttachmentEvidence) {
     throw new TeacherAssignmentReviewOutboxError('reviewed-derivative-source-checksum-mismatch', { blocked: true });
   }
   return sourceChecksum;
@@ -336,19 +352,59 @@ async function loadSnapshot(db: any, snapshotId: string) {
     where: { id: snapshotId },
     include: {
       submission: true,
-      answerEvidence: { include: { sourceAsset: true, blocks: true } },
+      answerEvidence: { include: { sourceAsset: true, conversion: true, blocks: true } },
       gradingRun: { include: { question: true, assessments: true } },
     },
   });
   if (!snapshot) throw new TeacherAssignmentReviewOutboxError('teacher-review-approval-snapshot-missing', { blocked: true });
+  await hydrateAggregateAttachmentEvidence(db, snapshot);
   return snapshot;
+}
+
+function requiresReviewedPdf(snapshot: any): boolean {
+  const mimeType = String(snapshot?.answerEvidence?.sourceAsset?.mimeType ?? '').toLowerCase();
+  return mimeType === 'application/msword'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+}
+
+async function hydrateAggregateAttachmentEvidence(db: any, snapshot: any) {
+  const evidence = snapshot?.answerEvidence;
+  if (!evidence || evidence.sourceAsset || evidence.conversion || evidence.sourceAssetId != null) return;
+  const sources = Array.isArray(evidence.sourceManifest?.sources) ? evidence.sourceManifest.sources : [];
+  const attachments = sources.filter((source: any) => source?.kind === 'ATTACHMENT' && source?.state === 'READY' && typeof source?.assetId === 'string');
+  if (attachments.length !== 1) return;
+  const assetId = attachments[0].assetId;
+  const sourceAsset = await db.submissionAsset.findFirst({
+    where: { id: assetId, attemptId: snapshot.attemptId, state: 'FINALIZED' },
+    select: { id: true, objectKey: true, checksum: true, sizeBytes: true, mimeType: true },
+  });
+  if (!sourceAsset) return;
+  const conversion = await db.documentConversion.findFirst({
+    where: {
+      assetId,
+      attemptId: snapshot.attemptId,
+      state: { in: ['SUCCEEDED', 'FALLBACK'] },
+      renderedObjectKey: { not: null },
+      renderedChecksum: { not: null },
+    },
+    orderBy: { version: 'desc' },
+    select: { state: true, adapter: true, renderedObjectKey: true, renderedChecksum: true },
+  });
+  evidence.sourceAsset = sourceAsset;
+  evidence.conversion = conversion;
 }
 
 function defaultEvidenceMapping(snapshot: any): Record<string, unknown> | null {
   const mapping = snapshot?.gradingRun?.questionSnapshot?.evidenceMapping
     ?? snapshot?.gradingRun?.questionSnapshot?.competencyMapping
     ?? snapshot?.gradingRun?.question?.sourceLineage?.evidenceMapping;
-  return mapping && typeof mapping === 'object' && !Array.isArray(mapping) ? mapping : null;
+  if (mapping && typeof mapping === 'object' && !Array.isArray(mapping)) return mapping;
+  const criteria = snapshot?.gradingRun?.questionSnapshot?.rubric?.criteria;
+  if (!Array.isArray(criteria)) return null;
+  const derived = Object.fromEntries(criteria
+    .filter((criterion: any) => typeof criterion?.id === 'string' && criterion.id.trim() && typeof criterion?.goalDimension === 'string' && criterion.goalDimension.trim())
+    .map((criterion: any) => [criterion.id, { capability: criterion.goalDimension }]));
+  return Object.keys(derived).length > 0 ? derived : null;
 }
 
 function hasCompleteAnchorIntegrity(snapshot: any) {

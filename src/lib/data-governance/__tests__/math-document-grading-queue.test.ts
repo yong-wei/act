@@ -106,6 +106,17 @@ describe('math-document grading queue durability', () => {
     expect(mocks.queue.add).toHaveBeenCalledWith('batch', expect.objectContaining({ jobId: 'job-recover-1', batchId: 'batch-1' }), expect.objectContaining({ jobId: expect.stringMatching(/^delivery-batch-/) }));
   });
 
+  it('limits recovery to explicitly selected durable jobs when requested', async () => {
+    const findMany = vi.fn(async () => []);
+    const now = new Date('2026-07-13T08:00:00.000Z');
+
+    await recoverMathDocumentGradingQueue({ db: { gradingJob: { findMany } }, jobIds: ['job-selected-1'], now });
+
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ AND: expect.arrayContaining([expect.objectContaining({ id: { in: ['job-selected-1'] } })]) }),
+    }));
+  });
+
   it('uses a fresh BullMQ delivery id when a durable retryable job is re-enqueued', async () => {
     const input = { kind: 'grading' as const, jobId: 'job-delivery-identity', gradingRunId: 'run-delivery-identity' };
     await enqueueMathDocumentGradingJob(input);
@@ -132,6 +143,44 @@ describe('math-document grading queue durability', () => {
     expect(result).toEqual(expect.objectContaining({ scanned: 1, queued: 1, failed: 0 }));
     expect(updates[0]).toEqual(expect.objectContaining({ table: 'job', where: expect.objectContaining({ workerClaimToken: 'expired-token', workerLeaseExpiresAt: { lte: now } }), data: expect.objectContaining({ state: 'RETRYABLE', workerClaimToken: null }) }));
     expect(updates[1]).toEqual(expect.objectContaining({ table: 'conversion', data: expect.objectContaining({ state: 'RETRYABLE' }) }));
+  });
+
+  it('resets the claimed batch item when recovering an expired rerun lease', async () => {
+    const now = new Date('2026-07-13T08:00:00.000Z');
+    const updates: any[] = [];
+    const db: any = {
+      gradingJob: {
+        findMany: vi.fn(async () => [{ id: 'job-expired-rerun', kind: 'RERUN', state: 'RUNNING', workerClaimToken: 'expired-token', workerLeaseExpiresAt: new Date(now.getTime() - 1), gradingRunId: 'run-expired-rerun', batchItemId: 'item-expired-rerun', batchId: 'batch-expired-rerun' }]),
+        updateMany: vi.fn(async ({ where, data }: any) => { updates.push({ table: 'job', where, data }); return { count: 1 }; }),
+      },
+      gradingRun: { updateMany: vi.fn(async ({ data }: any) => { updates.push({ table: 'run', data }); return { count: 1 }; }) },
+      gradingBatchItem: { updateMany: vi.fn(async ({ where, data }: any) => { updates.push({ table: 'item', where, data }); return { count: 1 }; }) },
+    };
+
+    const result = await recoverMathDocumentGradingQueue({ db, now, limit: 10 });
+
+    expect(result).toEqual(expect.objectContaining({ scanned: 1, queued: 1, failed: 0 }));
+    expect(updates).toEqual(expect.arrayContaining([
+      expect.objectContaining({ table: 'run', data: expect.objectContaining({ state: 'RETRYABLE' }) }),
+      expect.objectContaining({ table: 'item', where: expect.objectContaining({ id: 'item-expired-rerun' }), data: expect.objectContaining({ state: 'RETRYABLE', workerClaimToken: null }) }),
+    ]));
+  });
+
+  it('clears a stale claimed item when recovering an already queued rerun', async () => {
+    const now = new Date('2026-07-13T08:00:00.000Z');
+    const itemUpdates: any[] = [];
+    const db: any = {
+      gradingJob: {
+        findMany: vi.fn(async () => [{ id: 'job-queued-rerun', kind: 'RERUN', state: 'QUEUED', batchId: 'batch-queued-rerun', batchItemId: 'item-queued-rerun', gradingRunId: 'run-queued-rerun', nextRunAt: null }]),
+        updateMany: vi.fn(async () => ({ count: 1 })),
+      },
+      gradingBatchItem: { updateMany: vi.fn(async ({ where, data }: any) => { itemUpdates.push({ where, data }); return { count: 1 }; }) },
+    };
+
+    const result = await recoverMathDocumentGradingQueue({ db, now, limit: 10 });
+
+    expect(result).toEqual(expect.objectContaining({ scanned: 1, queued: 1, failed: 0 }));
+    expect(itemUpdates).toEqual([expect.objectContaining({ where: expect.objectContaining({ id: 'item-queued-rerun' }), data: expect.objectContaining({ state: 'RETRYABLE', workerClaimToken: null }) })]);
   });
 
   it('does not re-enqueue a durable terminal job when BullMQ delivery is duplicated', async () => {

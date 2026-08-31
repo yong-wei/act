@@ -58,15 +58,18 @@ export async function enqueueMathDocumentGradingJob(input: MathDocumentGradingJo
   }
 }
 
-export async function recoverMathDocumentGradingQueue(input: { db: MathGradingDb; limit?: number; now?: Date; queue?: Queue<MathDocumentGradingJobData> }): Promise<{ scanned: number; queued: number; failed: number }> {
+export async function recoverMathDocumentGradingQueue(input: { db: MathGradingDb; jobIds?: string[]; limit?: number; now?: Date; queue?: Queue<MathDocumentGradingJobData> }): Promise<{ scanned: number; queued: number; failed: number }> {
   const now = input.now ?? new Date();
+  const recoverableState = {
+    OR: [
+      { state: { in: ['QUEUED', 'RETRYABLE'] }, OR: [{ nextRunAt: null }, { nextRunAt: { lte: now } }] },
+      { state: 'RUNNING', workerLeaseExpiresAt: { lte: now } },
+    ],
+  };
   const jobs = await input.db.gradingJob.findMany({
-    where: {
-      OR: [
-        { state: { in: ['QUEUED', 'RETRYABLE'] }, OR: [{ nextRunAt: null }, { nextRunAt: { lte: now } }] },
-        { state: 'RUNNING', workerLeaseExpiresAt: { lte: now } },
-      ],
-    },
+    where: input.jobIds && input.jobIds.length > 0
+      ? { AND: [recoverableState, { id: { in: input.jobIds } }] }
+      : recoverableState,
     orderBy: { createdAt: 'asc' },
     take: input.limit ?? 100,
   });
@@ -79,6 +82,12 @@ export async function recoverMathDocumentGradingQueue(input: { db: MathGradingDb
         failed += 1;
         continue;
       }
+    }
+    if (job.kind === 'RERUN' && job.batchItemId) {
+      await input.db.gradingBatchItem?.updateMany?.({
+        where: { id: job.batchItemId, state: { in: ['CONVERTING', 'GRADING'] } },
+        data: { state: 'RETRYABLE', failureCode: 'worker-lease-expired', workerClaimToken: null, workerClaimedAt: null, updatedAt: now },
+      });
     }
     const payload = durableJobPayload(job);
     if (!payload) {
@@ -106,7 +115,10 @@ async function recoverExpiredJobOwnership(db: MathGradingDb, job: any, now: Date
     const batchReset = { state: 'RETRYABLE', lastErrorCode: 'worker-lease-expired', nextRunAt: now, updatedAt: now };
     const itemReset = { state: 'RETRYABLE', failureCode: 'worker-lease-expired', workerClaimToken: null, workerClaimedAt: null, updatedAt: now };
     if (job.kind === 'CONVERSION') await tx.documentConversion?.updateMany?.({ where: { id: job.conversionId, state: 'RUNNING' }, data: conversionReset });
-    if (job.kind === 'GRADING' || job.kind === 'RERUN') await tx.gradingRun?.updateMany?.({ where: { id: job.gradingRunId, state: 'RUNNING' }, data: runReset });
+    if (job.kind === 'GRADING' || job.kind === 'RERUN') {
+      await tx.gradingRun?.updateMany?.({ where: { id: job.gradingRunId, state: 'RUNNING' }, data: runReset });
+      if (job.batchItemId) await tx.gradingBatchItem?.updateMany?.({ where: { id: job.batchItemId, state: { in: ['CONVERTING', 'GRADING'] } }, data: itemReset });
+    }
     if (job.kind === 'BATCH') {
       await tx.gradingBatch?.updateMany?.({ where: { id: job.batchId, state: 'RUNNING' }, data: batchReset });
       await tx.gradingBatchItem?.updateMany?.({ where: { batchId: job.batchId, state: { in: ['CONVERTING', 'GRADING'] } }, data: itemReset });

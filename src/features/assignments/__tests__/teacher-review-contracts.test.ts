@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeTeacherReviewDetail } from "../teacher-review-contracts";
+import { buildTeacherAssignmentGradingHref, normalizeTeacherReviewDetail } from "../teacher-review-contracts";
 
 describe("teacher review contracts", () => {
+  it("builds the formal grading-console link from the submission queue", () => {
+    expect(buildTeacherAssignmentGradingHref("assignment / 1")).toBe("/teacher/assignments/assignment%20%2F%201/grading");
+  });
+
   it("projects incomplete evidence and omitted attachment names", () => {
     const detail = normalizeTeacherReviewDetail({
       review: {

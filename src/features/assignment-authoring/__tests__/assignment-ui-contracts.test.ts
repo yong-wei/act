@@ -18,7 +18,7 @@ describe('teacher assignment workspace contracts', () => {
     const item = { id: 'a1', state: 'DRAFT' as const, updatedAt: '2026-07-11T00:00:00.000Z', latestRevision: null };
     expect(assignmentNextAction(item)).toBe('继续编辑');
     expect(assignmentNextAction({ ...item, state: 'PUBLISHED' })).toBe('查看完成情况');
-    expect(EMPTY_ASSIGNMENT_DRAFT.solutionReleasePolicy).toEqual({ version: 1, mode: 'PRIVATE' });
+    expect(EMPTY_ASSIGNMENT_DRAFT.solutionReleasePolicy).toEqual({ version: 1, mode: 'TEACHER_CONFIRMED_RESULT' });
   });
 
   it('keeps loading, empty, filtered-empty, and recoverable-error semantics distinct', () => {
@@ -60,7 +60,7 @@ describe('teacher assignment workspace contracts', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain("method: 'POST'");
     expect(editor).not.toContain('prompt: item.stemPreview');
-    for (const label of ['作业说明', '统一作答', '迟交策略', '最多提交次数', '解答发布时间', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
+    for (const label of ['作业说明', '统一作答', '迟交策略', '最多提交次数', '教师确认并逐份发布结果', '添加评分项', '学生可见指导']) expect(editor).toContain(label);
     expect(editor).toContain('所有分值保留一位小数');
     expect(editor).toContain('启用详细评分细则');
     expect(editor).toContain('五级制');

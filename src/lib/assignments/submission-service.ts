@@ -24,6 +24,9 @@ import {
   resolveGradingLineage,
   writeLifecycleAudit,
 } from '@/lib/data-governance/math-document-grading-lifecycle';
+import { materializeTextAnswerEvidence } from '@/lib/data-governance/math-document-grading-persistence';
+import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
+import type { StudentAssignmentResultDto } from './submission-dto';
 
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
@@ -80,13 +83,13 @@ export async function listStudentAssignments(prisma: PrismaClient, studentId: st
   const currentClassId = profile?.classId ?? null;
   const publishedRevisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
-    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: true, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
+    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' } }, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
     orderBy: [{ publishedAt: 'desc' }, { revisionNumber: 'desc' }, { id: 'desc' }],
   }) : [];
   const revisions = selectCurrentPublishedRevisions(publishedRevisions);
   const historical = await prisma.assignmentSubmission.findMany({
     where: { studentId, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
-    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: true },
+    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' } }, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } } },
   });
   return [...revisions.map((revision) => presentRevision(revision, revision.audiences[0], revision.submissions[0], true, now)), ...historical.map((item) => presentRevision(item.revision, item.audience, item, false, now))];
 }
@@ -103,7 +106,7 @@ export function selectCurrentPublishedRevisions<T extends { assignmentId: string
 
 export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date(), revisionId?: string) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
-  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
+  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
   if (!revision) {
     const historical = await prisma.assignmentSubmission.findFirst({
       where: {
@@ -139,6 +142,8 @@ export async function getStudentAssignment(prisma: PrismaClient, studentId: stri
           },
           orderBy: { approvedAt: 'asc' },
         },
+        questionExemptions: true,
+        gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } },
         resubmissionGrants: { orderBy: { grantedAt: 'desc' } },
       },
     });
@@ -1110,7 +1115,7 @@ export async function consumeSubmissionAssetRead(prisma: PrismaClient, input: { 
 }
 
 export async function submitQuestionAnswer(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string; answerVersion: number; idempotencyKey: string; now?: Date }) {
-  return withSerializableRetry(() => prisma.$transaction(async (tx) => {
+  const result = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
     const now = input.now ?? new Date();
     const requestHash = submissionHash({ answerVersion: input.answerVersion });
     const replayCandidates = await tx.submissionIdempotency.findMany({
@@ -1212,6 +1217,18 @@ export async function submitQuestionAnswer(prisma: PrismaClient, input: { studen
     await tx.submissionIdempotency.create({ data: { studentId: input.studentId, scope, idempotencyKey: input.idempotencyKey, requestHash, attemptId: attempt.id } });
     return { attempt, aggregate: await aggregateAndUpdate(tx as never, context.submission.id) };
   }, { isolationLevel: 'Serializable' }));
+  const attempt = result.attempt;
+  if (attempt?.textSnapshot?.trim()) {
+    await materializeTextAnswerEvidence({
+      db: prisma,
+      attemptId: attempt.id,
+      actor: { id: input.studentId, role: 'STUDENT' },
+      operation: 'assignment-submit',
+      idempotencyKey: input.idempotencyKey,
+      now: input.now,
+    });
+  }
+  return result;
 }
 
 async function requireMutableQuestion(prisma: PrismaClient, input: { studentId: string; assignmentId: string; questionId: string }, now: Date) {
@@ -1227,7 +1244,7 @@ async function requireMutableQuestion(prisma: PrismaClient, input: { studentId: 
     orderBy: { grantedAt: 'desc' },
   }) : null;
   if (!resubmissionGrant) assertDeliveryWindow({ now, availableAt: audience.availableAt, dueAt: audience.dueAt, latePolicy: revision.latePolicy as never });
-  const submission = await prisma.assignmentSubmission.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, audienceId: audience.id, studentId: input.studentId, frozenStudentId: input.studentId, frozenAudienceClassId: audience.classId, requiredQuestionCount: await prisma.assignmentQuestion.count({ where: { assignmentRevisionId: revision.id } }) }, update: {} });
+  const submission = await prisma.assignmentSubmission.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, audienceId: audience.id, studentId: input.studentId, frozenStudentId: input.studentId, frozenAudienceClassId: audience.classId, frozenAudienceDueAt: audience.dueAt, requiredQuestionCount: await prisma.assignmentQuestion.count({ where: { assignmentRevisionId: revision.id } }) }, update: {} });
   await prisma.assignmentHistoricalOwnership.upsert({ where: { assignmentRevisionId_studentId: { assignmentRevisionId: revision.id, studentId: input.studentId } }, create: { assignmentRevisionId: revision.id, studentId: input.studentId, audienceClassId: audience.classId, assignedAt: now }, update: {} });
   const answer = await prisma.submissionAnswer.findUnique({ where: { submissionId_assignmentQuestionId: { submissionId: submission.id, assignmentQuestionId: input.questionId } } });
   return { revision, audience, submission, question: revision.questions[0], answer, resubmissionGrant };
@@ -1245,14 +1262,21 @@ export function presentRevision(revision: any, audience: any, submission: any, c
   const answers = new Map((submission?.answers ?? []).map((answer: any) => [answer.assignmentQuestionId, answer]));
   const historicalOnly = !currentContext;
   const persistedState = submission?.state ?? 'NOT_STARTED';
-  const feedback = presentStudentAssignmentFeedback(submission, revision.questions, now);
+  const resultReleasePolicy = revision.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
+  const resultPackage = resultReleasePolicy ? presentStudentAssignmentResult(submission, revision.questions) : null;
+  const feedback = resultReleasePolicy && !resultPackage
+    ? []
+    : presentStudentAssignmentFeedback(submission, revision.questions, now);
   const activeGrants = (submission?.resubmissionGrants ?? []).filter((row: any) => row.state === 'ACTIVE' && (!row.expiresAt || new Date(row.expiresAt) > now));
   const activeResubmission = activeGrants.length > 0;
-  const downstreamState = submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
+  const gradingState = presentStudentAssignmentGradingState(submission);
+  const downstreamState = resultPackage ? 'REVIEWED'
+    : submission?.reviewState === 'REVIEWED' ? 'REVIEWED'
     : activeResubmission ? 'RESUBMISSION_REQUIRED'
-      : ['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
-      : submission?.reviewState === 'REVIEWING' ? 'IN_REVIEW'
-        : null;
+      : gradingState
+        ?? (['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(submission?.reviewState) ? 'AWAITING_TEACHER_CONFIRMATION'
+          : submission?.reviewState === 'REVIEWING' ? 'IN_REVIEW'
+            : null);
   const presentation = deriveStudentAssignmentPresentation({ persistedState, dueAt: audience.dueAt, now, lateClosed: (revision.latePolicy as { mode?: string })?.mode === 'CLOSED', downstreamState });
   return {
     id: revision.assignmentId,
@@ -1267,14 +1291,16 @@ export function presentRevision(revision: any, audience: any, submission: any, c
     canMutate: !historicalOnly && (persistedState !== 'SUBMITTED' || activeResubmission) && presentation.state !== 'OVERDUE',
     submittedRequiredCount: submission?.submittedRequiredCount ?? 0,
     requiredQuestionCount: revision.questions.length,
-    approvedTotal: submission?.reviewState === 'REVIEWED' && submission.approvedTotal != null ? Number(submission.approvedTotal) : null,
-    feedbackStatus: submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? 'PUBLISHING'
+    approvedTotal: resultReleasePolicy ? resultPackage?.totalScore ?? null : submission?.reviewState === 'REVIEWED' && submission.approvedTotal != null ? Number(submission.approvedTotal) : null,
+    feedbackStatus: resultReleasePolicy ? resultPackage ? 'PUBLISHED' : 'HIDDEN' : submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? 'PUBLISHING'
       : submission?.reviewState === 'RELEASE_BLOCKED' ? 'BLOCKED'
         : submission?.reviewState === 'REVIEWED' ? 'PUBLISHED' : 'HIDDEN',
-    policyReason: submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? '评分已批准，批阅文档与反馈正在安全发布。'
+    policyReason: resultReleasePolicy && !resultPackage ? '成绩、批注、参考答案和评分标准将在教师确认并发布后显示。'
+      : submission?.reviewState === 'APPROVED_PENDING_RELEASE' ? '评分已批准，批阅文档与反馈正在安全发布。'
       : submission?.reviewState === 'RELEASE_BLOCKED' ? '反馈发布暂时受阻，教师可重试派生文件或选择带限制的结构化反馈。'
         : undefined,
     feedback,
+    resultPackage,
     questions: revision.questions.map((question: any) => {
       const answer: any = answers.get(question.id);
       const grant = activeGrants.find((row: any) => row.questionId === question.id);
@@ -1379,6 +1405,143 @@ export function presentStudentAssignmentFeedback(submission: any, questions: any
       limitations: derivative?.limitations ?? (snapshot.feedbackRelease.mode === 'STRUCTURED_ONLY' ? ['structured-only-fallback'] : []),
       resubmission: grant ? { state: grant.state, reason: grant.reason, allowedResponseType: grant.allowedResponseType, deadlineAt: grant.newDeadlineAt } : null,
     };
+  });
+}
+
+function presentStudentAssignmentGradingState(submission: any): 'AWAITING_REVIEW' | 'IN_REVIEW' | 'PARTIAL_GRADING_FAILURE' | 'AWAITING_TEACHER_CONFIRMATION' | null {
+  // 从编排 operation 状态与题级 canonical 审批覆盖度派生批改进度，不读作业级物化状态。
+  const currentAttemptByQuestion = new Map((submission?.answers ?? []).map((answer: any) => [
+    answer.assignmentQuestionId,
+    answer.attempts?.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber)?.id ?? null,
+  ]));
+  const snapshot = [...(submission?.gradingSnapshots ?? [])]
+    .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
+  if (!snapshot) return null;
+  const settled = new Set([
+    ...(submission?.questionExemptions ?? []).map((row: any) => row.questionId),
+    ...(submission?.approvalSnapshots ?? [])
+      .filter((row: any) => {
+        const attemptId = currentAttemptByQuestion.get(row.questionId) ?? null;
+        return attemptId == null || row.attemptId === attemptId;
+      })
+      .map((row: any) => row.questionId),
+  ]);
+  const items = snapshot.items ?? [];
+  if (items.length > 0 && items.every((item: any) => settled.has(item.questionId))) return 'AWAITING_TEACHER_CONFIRMATION';
+  if (['PARTIAL', 'FAILED'].includes(snapshot.operation?.state)) return 'PARTIAL_GRADING_FAILURE';
+  return snapshot.operation?.state === 'RUNNING' ? 'IN_REVIEW' : 'AWAITING_REVIEW';
+}
+
+export function presentStudentAssignmentResult(submission: any, questions?: any[]): StudentAssignmentResultDto | null {
+  // 作业级结果包从题级 canonical 审批快照派生：全部题目当前 attempt 的
+  // RELEASE_STUDENT_FEEDBACK 均已 SUCCEEDED 且 feedbackRelease 归属本人时才对
+  // 学生可见；总分恒为题级教师审批分数之和，未发布题目存在时整体不可见。
+  if (!submission || submission.studentId !== submission.frozenStudentId) return null;
+  // TEACHER_CONFIRMED_RESULT 下的显式发布门禁：approve 创建的发布命令带作业级 gate，
+  // worker 在 gate 下不授予可见性；只有教师显式 RELEASE 后作业才进入 REVIEWED。
+  if (submission.reviewState !== 'REVIEWED' || !submission.reviewedAt) return null;
+  const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
+    const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
+    return [[answer.assignmentQuestionId, attempt?.id ?? null] as const];
+  }));
+  const snapshot = [...(submission.gradingSnapshots ?? [])]
+    .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
+  if (!snapshot) return null;
+  const questionRows = questions ?? [];
+  const questionById = new Map(questionRows.map((question: any) => [question.id, question]));
+  const latestReleasedByQuestion = new Map<string, any>();
+  for (const approval of submission.approvalSnapshots ?? []) {
+    const attemptId = currentAttemptByQuestion.get(approval.questionId) ?? null;
+    if (attemptId != null && approval.attemptId !== attemptId) continue;
+    const release = (approval.outboxCommands ?? []).find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
+    if (!release || release.state !== 'SUCCEEDED'
+      || !approval.feedbackRelease
+      || approval.feedbackRelease.ownerStudentId !== submission.frozenStudentId) return null;
+    const previous = latestReleasedByQuestion.get(approval.questionId);
+    const previousAt = previous?.approvedAt ? new Date(previous.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    const approvalAt = approval.approvedAt ? new Date(approval.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    if (!previous || approvalAt >= previousAt) latestReleasedByQuestion.set(approval.questionId, approval);
+  }
+  const exemptions = submission.questionExemptions ?? [];
+  const resultQuestions: Array<{ questionId: string; score: number; comment: string; criteria: unknown[]; annotations: unknown[]; referenceAnswer: string | null; scoringStandard: string | null }> = [];
+  let total = 0;
+  let releasedAt: Date | null = null;
+  for (const item of snapshot.items ?? []) {
+    const exemption = exemptions.find((row: any) => row.questionId === item.questionId);
+    const question = questionById.get(item.questionId);
+    if (exemption) {
+      total += Number(exemption.scoreEffect);
+      resultQuestions.push({
+        questionId: item.questionId,
+        score: Number(exemption.scoreEffect),
+        comment: exemption.reason ?? '',
+        criteria: [],
+        annotations: [],
+        referenceAnswer: presentStudentReferenceAnswer(question?.answerSnapshot),
+        scoringStandard: presentStudentScoringStandard(question?.rubricSnapshot),
+      });
+      continue;
+    }
+    const approval = latestReleasedByQuestion.get(item.questionId);
+    if (!approval) return null;
+    total += Number(approval.questionTotal);
+    const releasedAtCandidate = approval.feedbackRelease?.releasedAt ? new Date(approval.feedbackRelease.releasedAt) : null;
+    if (releasedAtCandidate && (!releasedAt || releasedAtCandidate > releasedAt)) releasedAt = releasedAtCandidate;
+    resultQuestions.push({
+      questionId: item.questionId,
+      score: Number(approval.questionTotal),
+      comment: typeof approval.overallComment === 'string' ? approval.overallComment : '',
+      criteria: presentStudentResultCriteria(approval.criterionSnapshot),
+      annotations: presentStudentResultAnnotations(approval.annotationSnapshot),
+      referenceAnswer: presentStudentReferenceAnswer(question?.answerSnapshot),
+      scoringStandard: presentStudentScoringStandard(question?.rubricSnapshot),
+    });
+  }
+  const overallComment = resultQuestions
+    .map((question, index) => typeof question.comment === 'string' && question.comment.trim() ? `第 ${index + 1} 题：${question.comment.trim()}` : null)
+    .filter((comment: string | null): comment is string => comment !== null)
+    .join('\n');
+  return {
+    version: 'assignment-student-result.v1',
+    totalScore: Number(total.toFixed(4)),
+    overallComment: overallComment || null,
+    releasedAt: (releasedAt ?? new Date()).toISOString(),
+    questions: resultQuestions,
+  };
+}
+
+function presentStudentResultCriteria(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((value) => {
+    const criterion = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : null;
+    if (!criterion) return [];
+    const score = typeof criterion.score === 'number' && Number.isFinite(criterion.score)
+      ? criterion.score
+      : undefined;
+    return [{
+      ...(typeof criterion.criterionId === 'string' ? { criterionId: criterion.criterionId } : {}),
+      ...(typeof criterion.levelId === 'string' ? { levelId: criterion.levelId } : {}),
+      ...(score === undefined ? {} : { score }),
+      ...(typeof criterion.comment === 'string' ? { comment: criterion.comment } : {}),
+    }];
+  });
+}
+
+function presentStudentResultAnnotations(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((value) => {
+    const annotation = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : null;
+    if (!annotation || typeof annotation.comment !== 'string') return [];
+    return [{
+      ...(typeof annotation.criterionId === 'string' ? { criterionId: annotation.criterionId } : {}),
+      comment: annotation.comment,
+    }];
   });
 }
 

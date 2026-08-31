@@ -1,8 +1,9 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { assertSubmissionObjectIntegrity } from '@/lib/assignments/submission-integrity';
@@ -22,6 +23,12 @@ import {
   type MathGradingProvider,
   type NormalizedAnswerEvidence,
 } from './math-document-grading-contracts';
+import {
+  createWordDualRepresentation,
+  WordRepresentationError,
+  type WordDualRepresentation,
+  type WordRepresentationAdapter,
+} from './math-document-word-representation';
 
 const execFileAsync = promisify(execFile);
 
@@ -55,6 +62,7 @@ export interface ConversionResult {
   providerProcessedAt: Date | null;
   renderedBytes: Uint8Array | null;
   renderedMimeType: string | null;
+  wordRepresentation?: WordDualRepresentation | null;
 }
 
 export interface MathpixResponse {
@@ -127,6 +135,8 @@ export interface LocalDocumentConverter {
     fileName: string;
     mimeType: string;
     idempotencyKey?: string;
+    expectedQuestionIds?: readonly string[];
+    crossModalSignals?: ReadonlyArray<{ questionId: string; consistent: boolean }>;
     signal?: AbortSignal;
   }): Promise<{
     markdown: string;
@@ -135,6 +145,8 @@ export interface LocalDocumentConverter {
     limitations?: string[];
     renderedBytes?: Uint8Array | null;
     renderedMimeType?: string | null;
+    state?: ConversionResult['state'];
+    wordRepresentation?: WordDualRepresentation | null;
   }>;
 }
 
@@ -349,26 +361,53 @@ function quarterRotation(value: unknown): 0 | 90 | 180 | 270 | null {
 export function createLocalDocumentConverter(input: {
   markItDownCommand?: string;
   exec?: typeof execFileAsync;
+  wordPdfPageExtractor?: WordRepresentationAdapter['extractPdfPages'];
 } = {}): LocalDocumentConverter {
   const run = input.exec ?? execFileAsync;
+  let cachedWordProcessorVersion: string | null = null;
+  const resolveWordProcessorVersion = async (signal?: AbortSignal) => {
+    if (cachedWordProcessorVersion) return cachedWordProcessorVersion;
+    cachedWordProcessorVersion = await resolveLibreOfficeRuntimeVersion({ exec: run, signal });
+    return cachedWordProcessorVersion;
+  };
   return {
     async convert(request) {
+      if (isWordLike(request.mimeType, request.fileName)) {
+        const wordRepresentation = await createWordDualRepresentation({
+          sourceBytes: request.bytes,
+          fileName: request.fileName,
+          mimeType: request.mimeType,
+          expectedQuestionIds: request.expectedQuestionIds,
+          crossModalSignals: request.crossModalSignals,
+          signal: request.signal,
+          adapter: {
+            resolveWordProcessorVersion,
+            normalizeLegacyDoc: (bytes, signal) => normalizeLegacyDocToDocx(bytes, run, signal),
+            renderPdf: async (bytes, signal) => {
+              const rendered = await renderDocxToPdf(bytes, run, signal);
+              if (!rendered.bytes) throw new WordRepresentationError('word-pdf-render-failed');
+              return rendered.bytes;
+            },
+            extractPdfPages: input.wordPdfPageExtractor,
+          },
+        });
+        const limitationCodes = wordRepresentation.integrity.issues.map((issue) => issue.code);
+        return {
+          markdown: wordRepresentation.markdown,
+          blocks: wordRepresentation.blocks,
+          warnings: [],
+          limitations: limitationCodes,
+          renderedBytes: wordRepresentation.renderedPdfBytes,
+          renderedMimeType: 'application/pdf',
+          state: wordRepresentation.integrity.verdict === 'blocked'
+            ? 'blocked'
+            : wordRepresentation.integrity.verdict === 'review' ? 'fallback' : 'succeeded',
+          wordRepresentation,
+        };
+      }
       const decodedText = decodeUtf8(request.bytes);
       if (isTextMime(request.mimeType, request.fileName) && decodedText !== null) {
         return textToLocalResult(decodedText);
-      }
-      if (isDocx(request.mimeType, request.fileName)) {
-        const extracted = await extractDocxText(request.bytes, run, request.signal);
-        if (extracted.markdown) {
-          const rendered = await renderDocxToPdf(request.bytes, run, request.signal);
-          return {
-            ...extracted,
-            warnings: [...extracted.warnings, ...rendered.warnings],
-            limitations: [...extracted.limitations, ...rendered.limitations],
-            renderedBytes: rendered.bytes,
-            renderedMimeType: rendered.bytes ? 'application/pdf' : null,
-          };
-        }
       }
       const workdir = await mkdtemp(join(tmpdir(), 'act-grading-conversion-'));
       const inputPath = join(workdir, safeFileName(request.fileName));
@@ -397,6 +436,10 @@ export function createLocalDocumentConverter(input: {
 export async function convertProtectedSubmission(input: {
   source: ProtectedSubmissionSource;
   store: SubmissionObjectStore;
+  trustedRedactedSource?: {
+    provenance: 'teacher-ai-grading-confirmed-redaction';
+    bytes: Uint8Array;
+  };
   policy?: ExternalProcessingPolicy | null;
   mathpix?: MathpixClient;
   local?: LocalDocumentConverter;
@@ -406,6 +449,9 @@ export async function convertProtectedSubmission(input: {
   isCancellationRequested?: () => Promise<boolean> | boolean;
   isLeaseLost?: () => Promise<boolean> | boolean;
   idempotencyKey?: string;
+  requireWordDualRepresentation?: boolean;
+  expectedQuestionIds?: readonly string[];
+  crossModalSignals?: ReadonlyArray<{ questionId: string; consistent: boolean }>;
   signal?: AbortSignal;
 }): Promise<ConversionResult> {
   const ensureNotCancelled = async () => {
@@ -414,23 +460,34 @@ export async function convertProtectedSubmission(input: {
     if (input.isCancellationRequested && await input.isCancellationRequested()) throw new ConversionCancelledError();
   };
   await ensureNotCancelled();
-  const object = await input.store.head(input.source.objectKey);
-  assertSourceMetadata(input.source, object);
-  const bytes = await input.store.readObject(input.source.objectKey);
+  let bytes: Uint8Array;
+  if (input.trustedRedactedSource) {
+    if (input.trustedRedactedSource.provenance !== 'teacher-ai-grading-confirmed-redaction') {
+      throw new ConversionBlockedError('conversion-trusted-source-invalid');
+    }
+    bytes = input.trustedRedactedSource.bytes;
+  } else {
+    const object = await input.store.head(input.source.objectKey);
+    assertSourceMetadata(input.source, object);
+    bytes = await input.store.readObject(input.source.objectKey);
+  }
   assertSubmissionObjectIntegrity(bytes, input.source.sizeBytes, input.source.checksum);
-  if (input.assignmentResponse) {
+  const local = input.local ?? createLocalDocumentConverter();
+  if (input.assignmentResponse && !isWordLike(input.source.mimeType, input.source.originalName)) {
     return convertAssignmentResponseAttachment({
       ...input,
       bytes,
       ensureNotCancelled,
     });
   }
-  const local = input.local ?? createLocalDocumentConverter();
   const mathHeavy = await isMathOrImageHeavy(input.source, bytes);
   const warnings: string[] = [];
   const limitations: string[] = [];
 
-  if (mathHeavy && input.mathpix && input.forceExternal !== false) {
+  const requireWordDualRepresentation = input.requireWordDualRepresentation === true
+    || (input.expectedQuestionIds?.length ?? 0) > 0
+    || isWordLike(input.source.mimeType, input.source.originalName);
+  if (mathHeavy && input.mathpix && input.forceExternal !== false && !requireWordDualRepresentation) {
     await ensureNotCancelled();
     const decision = evaluateExternalProcessingPolicy({
       policy: input.policy,
@@ -468,19 +525,30 @@ export async function convertProtectedSubmission(input: {
 
   await ensureNotCancelled();
   try {
-    const localResult = await local.convert({ bytes, fileName: input.source.originalName, mimeType: input.source.mimeType, idempotencyKey: input.idempotencyKey, signal: input.signal });
+    const localResult = await local.convert({
+      bytes,
+      fileName: input.source.originalName,
+      mimeType: input.source.mimeType,
+      idempotencyKey: input.idempotencyKey,
+      expectedQuestionIds: input.expectedQuestionIds,
+      crossModalSignals: input.crossModalSignals,
+      signal: input.signal,
+    });
     await ensureNotCancelled();
-    if (localResult.markdown && localResult.blocks.length > 0) {
+    if (localResult.wordRepresentation || (localResult.markdown && localResult.blocks.length > 0)) {
+      const visualEvidenceLimitations = localResult.wordRepresentation?.images.length
+        ? ['visual-evidence-not-delivered']
+        : [];
       const normalized = normalizeDocumentEvidence({
         sourceHash: input.source.checksum,
         markdown: localResult.markdown,
         blocks: localResult.blocks,
-        limitations: [...limitations, ...(localResult.limitations ?? [])],
+        limitations: [...limitations, ...(localResult.limitations ?? []), ...visualEvidenceLimitations],
       });
       return {
         adapter: mathHeavy ? 'local-fallback' : 'local-markitdown',
         adapterVersion: process.env.MARKITDOWN_VERSION ?? 'local.v1',
-        state: warnings.length > 0 || limitations.length > 0 ? 'fallback' : 'succeeded',
+        state: localResult.state ?? (warnings.length > 0 || limitations.length > 0 ? 'fallback' : 'succeeded'),
         sourceChecksum: input.source.checksum,
         outputChecksum: sha256(normalized.canonicalMarkdown),
         markdown: normalized.canonicalMarkdown,
@@ -494,19 +562,21 @@ export async function convertProtectedSubmission(input: {
         providerProcessedAt: null,
         renderedBytes: localResult.renderedBytes ?? null,
         renderedMimeType: localResult.renderedMimeType ?? null,
+        wordRepresentation: localResult.wordRepresentation ?? null,
       };
     }
     warnings.push(...(localResult.warnings ?? []));
     limitations.push(...(localResult.limitations ?? []));
   } catch (error) {
     if (error instanceof ConversionCancelledError || error instanceof ConversionLeaseLostError || input.signal?.aborted) throw error;
-    warnings.push(`local-conversion-failed:${safeErrorCode(error)}`);
+    if (error instanceof WordRepresentationError) limitations.push(error.code);
+    else warnings.push(`local-conversion-failed:${safeErrorCode(error)}`);
   }
 
   return {
     adapter: mathHeavy ? 'mathpix-blocked' : 'local-blocked',
     adapterVersion: 'blocked.v1',
-    state: limitations.some((reason) => reason.includes('policy')) ? 'blocked' : 'failed',
+    state: limitations.some((reason) => reason.includes('policy') || reason.startsWith('word-') || reason.startsWith('legacy-doc-')) ? 'blocked' : 'failed',
     sourceChecksum: input.source.checksum,
     outputChecksum: null,
     markdown: '',
@@ -715,44 +785,6 @@ export function toAnswerEvidence(result: ConversionResult): NormalizedAnswerEvid
   });
 }
 
-async function extractDocxText(bytes: Uint8Array, run: typeof execFileAsync, signal?: AbortSignal): Promise<{
-  markdown: string;
-  blocks: EvidenceBlockInput[];
-  warnings: string[];
-  limitations: string[];
-}> {
-  try {
-    const xml = await readDocxXml(bytes, run, signal);
-    if (!xml) return { markdown: '', blocks: [], warnings: ['ooxml-extraction-unavailable'], limitations: ['docx-structure-unavailable'] };
-    const paragraphs = [...xml.matchAll(/<w:p\b[^>]*>([\s\S]*?)<\/w:p>/g)]
-      .map((match) => decodeXml(match[1].replace(/<w:tab\s*\/?>(?:<\/w:tab>)?/g, '\t').replace(/<[^>]+>/g, '')))
-      .map((text) => text.replace(/\s+/g, ' ').trim())
-      .filter(Boolean);
-    const markdown = paragraphs.join('\n\n');
-    let spanStart = 0;
-    const blocks = paragraphs.map((text, index) => {
-      const block = {
-        id: `docx-block-${index + 1}`,
-        blockIndex: index,
-        pageNumber: null,
-        text,
-        markdown: text,
-        spanStart,
-        spanEnd: spanStart + text.length,
-        confidence: 0.82,
-        precision: 'span' as const,
-      };
-      spanStart = block.spanEnd + 2;
-      return block;
-    });
-    const limitations = /<m:oMath|<w:drawing|<pic:pic/.test(xml) ? ['ooxml-formula-or-image-geometry-not-proven'] : [];
-    return { markdown, blocks, warnings: limitations.length > 0 ? ['formula-or-image-region-coordinates-unavailable'] : [], limitations };
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    return { markdown: '', blocks: [], warnings: ['ooxml-extraction-unavailable'], limitations: ['docx-structure-unavailable'] };
-  }
-}
-
 async function readDocxXml(bytes: Uint8Array, run: typeof execFileAsync, signal?: AbortSignal): Promise<string> {
   const workdir = await mkdtemp(join(tmpdir(), 'act-docx-ooxml-'));
   const inputPath = join(workdir, 'answer.docx');
@@ -767,12 +799,61 @@ async function readDocxXml(bytes: Uint8Array, run: typeof execFileAsync, signal?
   }
 }
 
+async function normalizeLegacyDocToDocx(
+  bytes: Uint8Array,
+  run: typeof execFileAsync,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  const workdir = await mkdtemp(join(tmpdir(), 'act-doc-normalize-'));
+  const inputPath = join(workdir, 'answer.doc');
+  try {
+    await writeFile(inputPath, bytes);
+    const profileDirectory = join(workdir, 'libreoffice-profile');
+    await mkdir(profileDirectory);
+    await run(process.env.LIBREOFFICE_COMMAND ?? 'soffice', [libreOfficeProfileArgument(profileDirectory), '--headless', '--convert-to', 'docx', '--outdir', workdir, inputPath], {
+      timeout: 120_000,
+      maxBuffer: 2 * 1024 * 1024,
+      signal,
+    });
+    return await readFile(join(workdir, 'answer.docx'));
+  } finally {
+    await rm(workdir, { recursive: true, force: true });
+  }
+}
+
+export async function resolveLibreOfficeRuntimeVersion(input: {
+  command?: string;
+  exec?: typeof execFileAsync;
+  signal?: AbortSignal;
+} = {}): Promise<string> {
+  const run = input.exec ?? execFileAsync;
+  const command = input.command ?? process.env.LIBREOFFICE_COMMAND ?? 'soffice';
+  try {
+    const result = await run(command, ['--version'], {
+      timeout: 10_000,
+      maxBuffer: 256 * 1024,
+      signal: input.signal,
+    });
+    const version = `${String(result.stdout ?? '')} ${String(result.stderr ?? '')}`.trim().replace(/\s+/gu, ' ');
+    if (!/^LibreOffice\b/iu.test(version) || version.length > 200) {
+      throw new WordRepresentationError('word-processor-version-unavailable');
+    }
+    return version;
+  } catch (error) {
+    if (input.signal?.aborted) throw error;
+    if (error instanceof WordRepresentationError) throw error;
+    throw new WordRepresentationError('word-processor-version-unavailable');
+  }
+}
+
 async function renderDocxToPdf(bytes: Uint8Array, run: typeof execFileAsync, signal?: AbortSignal): Promise<{ bytes: Uint8Array | null; warnings: string[]; limitations: string[] }> {
   const workdir = await mkdtemp(join(tmpdir(), 'act-docx-render-'));
   const inputPath = join(workdir, 'answer.docx');
   try {
     await writeFile(inputPath, bytes);
-    await run(process.env.LIBREOFFICE_COMMAND ?? 'soffice', ['--headless', '--convert-to', 'pdf', '--outdir', workdir, inputPath], { timeout: 120_000, maxBuffer: 2 * 1024 * 1024, signal });
+    const profileDirectory = join(workdir, 'libreoffice-profile');
+    await mkdir(profileDirectory);
+    await run(process.env.LIBREOFFICE_COMMAND ?? 'soffice', [libreOfficeProfileArgument(profileDirectory), '--headless', '--convert-to', 'pdf', '--outdir', workdir, inputPath], { timeout: 120_000, maxBuffer: 2 * 1024 * 1024, signal });
     const renderedPath = join(workdir, 'answer.pdf');
     const rendered = await readFile(renderedPath);
     return { bytes: rendered, warnings: [], limitations: [] };
@@ -782,6 +863,67 @@ async function renderDocxToPdf(bytes: Uint8Array, run: typeof execFileAsync, sig
   } finally {
     await rm(workdir, { recursive: true, force: true });
   }
+}
+
+export async function renderPdfPagesToPng(input: {
+  pdfBytes: Uint8Array;
+  pageNumbers?: readonly number[];
+  run?: typeof execFileAsync;
+  signal?: AbortSignal;
+}): Promise<Array<{ pageNumber: number; bytes: Buffer }>> {
+  if (!Buffer.from(input.pdfBytes).subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+    throw new Error('visual-evidence-pdf-invalid');
+  }
+  const pageNumbers = normalizeRequestedPdfPages(input.pageNumbers);
+  const workdir = await mkdtemp(join(tmpdir(), 'act-pdf-pages-'));
+  const inputPath = join(workdir, 'source.pdf');
+  const outputPrefix = join(workdir, 'page');
+  try {
+    await writeFile(inputPath, input.pdfBytes);
+    if (pageNumbers) {
+      const pages = await Promise.all(pageNumbers.map(async (pageNumber) => {
+        const selectedOutputPrefix = join(workdir, `page-${pageNumber}`);
+        await (input.run ?? execFileAsync)(process.env.PDFTOPPM_COMMAND ?? 'pdftoppm', [
+          '-f', String(pageNumber), '-l', String(pageNumber), '-singlefile', '-png', '-r', '144', inputPath, selectedOutputPrefix,
+        ], { timeout: 120_000, maxBuffer: 2 * 1024 * 1024, signal: input.signal });
+        try {
+          return { pageNumber, bytes: await readFile(`${selectedOutputPrefix}.png`) };
+        } catch {
+          throw new Error('visual-evidence-pdf-render-selected-page-missing');
+        }
+      }));
+      return pages;
+    }
+    await (input.run ?? execFileAsync)(process.env.PDFTOPPM_COMMAND ?? 'pdftoppm', [
+      '-png', '-r', '144', inputPath, outputPrefix,
+    ], { timeout: 120_000, maxBuffer: 2 * 1024 * 1024, signal: input.signal });
+    const names = (await readdir(workdir))
+      .flatMap((name) => /^page-(\d+)\.png$/u.exec(name) ? [{ name, pageNumber: Number(/^page-(\d+)\.png$/u.exec(name)![1]) }] : [])
+      .sort((left, right) => left.pageNumber - right.pageNumber);
+    if (names.length === 0) throw new Error('visual-evidence-pdf-render-empty');
+    return Promise.all(names.map(async ({ name, pageNumber }) => ({ pageNumber, bytes: await readFile(join(workdir, name)) })));
+  } catch (error) {
+    if (input.signal?.aborted) throw error;
+    throw new Error('visual-evidence-pdf-render-failed');
+  } finally {
+    await rm(workdir, { recursive: true, force: true });
+  }
+}
+
+function normalizeRequestedPdfPages(pageNumbers: readonly number[] | undefined): number[] | null {
+  if (pageNumbers === undefined) return null;
+  if (pageNumbers.length === 0 || pageNumbers.some((pageNumber) => !Number.isInteger(pageNumber) || pageNumber < 1)) {
+    throw new Error('visual-evidence-pdf-page-selection-invalid');
+  }
+  const sorted = [...pageNumbers].sort((left, right) => left - right);
+  if (sorted.some((pageNumber, index) => index > 0 && pageNumber === sorted[index - 1])) {
+    throw new Error('visual-evidence-pdf-page-selection-invalid');
+  }
+  return sorted;
+}
+
+function libreOfficeProfileArgument(profileDirectory: string): string {
+  return `-env:UserInstallation=${pathToFileURL(profileDirectory).href}`;
 }
 
 function textToLocalResult(markdown: string, warnings: string[] = []) {
@@ -832,22 +974,20 @@ function isDocx(mimeType: string, fileName: string): boolean {
   return mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || extname(fileName).toLowerCase() === '.docx';
 }
 
+function isWordLike(mimeType: string, fileName: string): boolean {
+  const extension = extname(fileName).toLowerCase();
+  return ['.docx', '.doc', '.wps'].includes(extension)
+    || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    || mimeType === 'application/msword'
+    || /wps|ms-works/i.test(mimeType);
+}
+
 function isPdf(mimeType: string, fileName: string): boolean {
   return mimeType === 'application/pdf' || extname(fileName).toLowerCase() === '.pdf';
 }
 
 function safeFileName(fileName: string): string {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, '_') || 'submission.bin';
-}
-
-function decodeXml(value: string): string {
-  return value
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)));
 }
 
 function averageConfidence(evidence: NormalizedAnswerEvidence): number {
