@@ -10,7 +10,7 @@ import { buildGraphCenterPayload } from '../data-governance/graph-center';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   isPathBlockingFallbackReason,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   buildLearningGoalResourceBaselineArtifacts,
   LEARNING_GOAL_RESOURCE_BASELINE_VERSION,
@@ -835,7 +835,7 @@ describe('resource field completion audit', () => {
       ...input,
       frozenRows: legacyRows,
       materializationPhase: 'materialized',
-    })).toThrow('Frozen core semantic formal row mismatch');
+    })).toThrow('Frozen core semantic formal blocker projection mismatch');
     expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
       ...input,
       reviewItems: [
@@ -1909,7 +1909,7 @@ describe('resource field completion audit', () => {
       expect(routeSegment).toBeTruthy();
       expect(existsSync(join(
         process.cwd(),
-        `src/app/interactive-learning/courses/${routeSegment}/student/[sessionId]/page.tsx`,
+        `src/features/interactive/course-app-routes/${routeSegment}/student.tsx`,
       ))).toBe(true);
     }
     const manifestModuleRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:3-5:step-01:boundary-card');
@@ -3727,7 +3727,7 @@ describe('resource field completion audit', () => {
           id: 'planner-selected-frequency',
           title: 'Planner selected frequency card',
           sourceRef: 'kn:autocontrol:frequency-response',
-          renderTarget: '/resources/knowledge-card:planner-selected-frequency',
+          renderTarget: '/knowledge',
           knowledgeNodeIds: ['kn:autocontrol:frequency-response'],
           planningOverride: { estimatedTimeMinutes: 5 },
         }],

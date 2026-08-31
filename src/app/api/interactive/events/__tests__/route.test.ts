@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     studentStepResponse: {
       createMany: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     simulationRun: {
       findFirst: vi.fn(),
@@ -22,11 +23,16 @@ const mocks = vi.hoisted(() => ({
       createMany: vi.fn(),
     },
   },
+  // 分类提交共享写入器在路由测试中打桩；写入器本体由专属单测与真 PG 集成测试覆盖
+  submissionEvidenceRuntime: {
+    acceptClassifiedSubmission: vi.fn(),
+  },
   eventRateLimiter: {
     check: vi.fn(),
   },
   routeEvent: vi.fn(),
   persistCoreLearningFact: vi.fn(),
+  ingestLearningFact: vi.fn(),
   generateSessionSummaryReports: vi.fn(),
   enqueueSessionSummaryReportRefresh: vi.fn(),
   resolveTrustedControlWorkbenchContext: vi.fn(),
@@ -46,6 +52,10 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
+vi.mock('@/features/classroom/session/adapters/submission-evidence-commands', () => ({
+  createPrismaSubmissionEvidenceRuntime: () => mocks.submissionEvidenceRuntime,
+}));
+
 vi.mock('@/lib/rate-limiter', () => ({
   eventRateLimiter: mocks.eventRateLimiter,
 }));
@@ -54,8 +64,17 @@ vi.mock('@/lib/data-governance/event-buffer', () => ({
   routeEvent: mocks.routeEvent,
 }));
 
-vi.mock('@/lib/data-governance/learning-fact-materialization', () => ({
-  persistCoreLearningFact: mocks.persistCoreLearningFact,
+vi.mock('@/lib/data-governance/learning-fact-materialization', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/data-governance/learning-fact-materialization')>();
+  return {
+    ...actual,
+    persistCoreLearningFact: mocks.persistCoreLearningFact,
+  };
+});
+
+vi.mock('@/features/learning-record/ingestion/public-api', () => ({
+  ingestLearningFact: mocks.ingestLearningFact,
+  currentCaptureRevision: () => 'test-capture-revision',
 }));
 
 vi.mock('@/lib/data-governance/session-reports', () => ({
@@ -113,11 +132,22 @@ describe('POST /api/interactive/events', () => {
     ]);
     mocks.prisma.studentStepResponse.createMany.mockResolvedValue({ count: 0 });
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+    // DUPLICATE 回执重放按回执 ID 读取持久化证据行
+    mocks.prisma.studentStepResponse.findUnique.mockResolvedValue({
+      userId: 'student-1',
+      sessionId: 'cmoxloe52000uq5bcojma7r78',
+      clientEventId: 'client-existing-duplicate',
+      sourceLogId: 'source-existing-duplicate',
+      submittedAt: new Date('2026-05-12T01:46:42.900Z'),
+      responseData: { eventType: 'lesson_submit', score: 100 },
+      evidenceStatus: 'ACCEPTED',
+    });
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
+    mocks.ingestLearningFact.mockResolvedValue({ factsCreated: 1, status: 'applied' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
       classReports: 1,
       studentReports: 1,
@@ -139,6 +169,24 @@ describe('POST /api/interactive/events', () => {
       registryId: 'classroom-objective',
     });
     mocks.persistedControlWorkbenchRunMatchesContext.mockReturnValue(true);
+    // 默认回执：ACTIVE 会话接受，单调序列 1；血缘回执绑定 clientEventId
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockImplementation(
+      async (input: {
+        userId: string;
+        submissionIdentity: string;
+        identityVersion: string;
+        sourceEvent: { clientEventId: string | null; sessionId: string };
+      }) => ({
+        status: 'ACCEPTED' as const,
+        evidenceStatus: 'ACCEPTED',
+        evidenceId: `evidence-${input.sourceEvent.clientEventId ?? 'unknown'}`,
+        sourceLogId: `source-${input.sourceEvent.clientEventId ?? 'unknown'}`,
+        submissionIdentity: input.submissionIdentity,
+        identityVersion: input.identityVersion,
+        submissionSequence: 1n,
+        sessionStatus: 'ACTIVE',
+      }),
+    );
   });
 
   it('deduplicates client events and removes invalid session ids before writing logs', async () => {
@@ -252,8 +300,7 @@ describe('POST /api/interactive/events', () => {
       invalidContextReason: 'forbidden_session',
     });
     expect(createArg.data[0].eventData).not.toHaveProperty('sessionId');
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(mocks.routeEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         sessionId: null,
         payload: expect.not.objectContaining({
@@ -291,11 +338,8 @@ describe('POST /api/interactive/events', () => {
     expect(mocks.enqueueSessionSummaryReportRefresh).toHaveBeenCalledWith('cmoxloe52000uq5bcojma7r78');
   });
 
-  it('persists immutable student step responses for lesson submissions', async () => {
+  it('persists immutable student step responses for lesson submissions through the shared evidence writer', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-submit', clientEventId: 'client-submit', eventData: { clientEventId: 'client-submit' } },
-    ]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
 
     const response = await POST(createPostRequest({
@@ -328,31 +372,122 @@ describe('POST /api/interactive/events', () => {
       }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          userId: 'student-1',
-          sessionId: 'cmoxloe52000uq5bcojma7r78',
-          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
-          stepId: 'step-08',
-          attemptKey: 'step-08:response:1778550421493',
-          sourceLogId: 'log-submit',
-          submittedAt: new Date('2026-05-12T01:46:42.900Z'),
-          responseData: expect.objectContaining({
-            answerDigest: { 'weight-preference': 'C' },
+    // 分类提交不再走批量 createManyAndReturn / createMany，而走会话事务写入器
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    expect(writerInput).toMatchObject({
+      userId: 'student-1',
+      identityVersion: 'classroom-submission-identity-v1',
+      sourceEvent: {
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+        stepId: 'step-08',
+        eventType: 'submit',
+        clientEventId: 'client-submit',
+      },
+      response: {
+        stepId: 'step-08',
+        attemptKey: 'step-08:response:1778550421493',
+        clientEventId: 'client-submit',
+      },
+    });
+    expect(writerInput.submissionIdentity).toBeTruthy();
+    expect(writerInput.response.buildResponseData('source-client-submit')).toMatchObject({
+      eventType: 'lesson_submit',
+      answerDigest: { 'weight-preference': 'C' },
+    });
+    // 事实物化经 #1583 统一摄取，血缘使用写入器回执的持久化 sourceLogId
+    expect(mocks.ingestLearningFact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({
+          payload: expect.objectContaining({
+            sourceLogId: 'source-client-submit',
           }),
         }),
-      ],
-      skipDuplicates: true,
-    });
+      }),
+    );
   });
 
-  it('deduplicates repeated classroom submissions by session step and attempt identity before writing evidence', async () => {
+  it('surfaces Learning Record ingest failures as dropped routing instead of a silent PostgreSQL success', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-submit-a', clientEventId: 'client-submit-a', eventData: { clientEventId: 'client-submit-a' } },
+    mocks.ingestLearningFact.mockResolvedValue({
+      factsCreated: 0,
+      status: 'terminal_failed',
+      failure: { code: 'missing-canonical-identity' },
+      adapter: { status: 'rejected', reason: 'missing-canonical-identity' },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-failed-ingest',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:42.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            score: 100,
+            answerDigest: { 'weight-preference': 'C' },
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.degraded).toBeGreaterThan(0);
+    expect(body.routing).toMatchObject({ dropped: 1 });
+    expect(body.routing.postgresql).toBeUndefined();
+    expect(body.routingFailures).toEqual([
+      expect.objectContaining({
+        reason: 'missing-canonical-identity',
+        clientEventId: 'client-submit-failed-ingest',
+      }),
     ]);
+  });
+
+  it('deduplicates repeated classroom submissions through the shared evidence writer receipts', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
+    // 同批次同身份：首件 ACCEPTED，重件由写入器回执判 DUPLICATE
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission
+      .mockImplementationOnce(async (input: {
+        userId: string;
+        submissionIdentity: string;
+        identityVersion: string;
+        sourceEvent: { clientEventId: string | null; sessionId: string };
+      }) => ({
+        status: 'ACCEPTED' as const,
+        evidenceStatus: 'ACCEPTED',
+        evidenceId: 'evidence-a',
+        sourceLogId: 'source-client-submit-a',
+        submissionIdentity: input.submissionIdentity,
+        identityVersion: input.identityVersion,
+        submissionSequence: 1n,
+        sessionStatus: 'ACTIVE',
+      }))
+      .mockImplementationOnce(async (input: {
+        userId: string;
+        submissionIdentity: string;
+        identityVersion: string;
+        sourceEvent: { clientEventId: string | null; sessionId: string };
+      }) => ({
+        status: 'DUPLICATE' as const,
+        evidenceStatus: 'ACCEPTED',
+        evidenceId: 'evidence-a',
+        sourceLogId: 'source-client-submit-a',
+        submissionIdentity: input.submissionIdentity,
+        identityVersion: input.identityVersion,
+        submissionSequence: 1n,
+        sessionStatus: 'ACTIVE',
+      }));
 
     const response = await POST(createPostRequest({
       events: [
@@ -392,42 +527,32 @@ describe('POST /api/interactive/events', () => {
 
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
-      count: 1,
+      count: 2,
       duplicates: 1,
       submissionDuplicates: 1,
     });
-    expect(mocks.prisma.interactionLog.createManyAndReturn).toHaveBeenCalledWith(expect.objectContaining({
-      data: [
-        expect.objectContaining({ clientEventId: 'client-submit-a' }),
-      ],
-    }));
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith(expect.objectContaining({
-      data: [
-        expect.objectContaining({
-          clientEventId: 'client-submit-a',
-          attemptKey: 'step-08:response:1778550421493',
-        }),
-      ],
-    }));
-    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+    // 同身份证据只写一行；重件仅返回原回执并重放持久化证据
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(2);
+    // #1583 统一摄取：lesson_submit 属 core 事件走 ingestLearningFact，不经 routeEvent
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(2);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
-  it('skips new classroom evidence when the same session step and attempt identity already exists', async () => {
+  it('returns the durable receipt when the same submission identity already exists', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
-      {
-        userId: 'student-1',
-        sessionId: 'cmoxloe52000uq5bcojma7r78',
-        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
-        stepId: 'step-08',
-        attemptKey: 'step-08:response:1778550421493',
-        responseData: {
-          eventType: 'lesson_submit',
-          cardId: 'weight-preference',
-        },
-      },
-    ]);
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockResolvedValue({
+      status: 'DUPLICATE',
+      evidenceStatus: 'ACCEPTED',
+      evidenceId: 'evidence-existing',
+      sourceLogId: 'source-existing',
+      submissionIdentity: 'identity',
+      identityVersion: 'classroom-submission-identity-v1',
+      submissionSequence: 1n,
+      sessionStatus: 'ACTIVE',
+    });
 
     const response = await POST(createPostRequest({
       events: [
@@ -452,23 +577,109 @@ describe('POST /api/interactive/events', () => {
 
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
-      count: 0,
       duplicates: 1,
       submissionDuplicates: 1,
+      acceptedSubmissions: 0,
     });
     expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
     expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.routeEvent).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
     expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
   });
 
-  it('does not block fact materialization when immutable step response persistence fails', async () => {
+  it('degrades identity-less submissions instead of persisting evidence that bypasses the closure boundary', async () => {
+    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:44.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          data: {
+            eventType: 'lesson_submit',
+            score: 100,
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      count: 0,
+      degraded: 1,
+      acceptedSubmissions: 0,
+    });
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).not.toHaveBeenCalled();
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
+
+    consoleWarn.mockRestore();
+  });
+
+  it('skips new classroom evidence when the same session step and attempt identity already exists', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockResolvedValue({
+      status: 'DUPLICATE',
+      evidenceStatus: 'ACCEPTED',
+      evidenceId: 'evidence-existing',
+      sourceLogId: 'source-existing',
+      submissionIdentity: 'identity',
+      identityVersion: 'classroom-submission-identity-v1',
+      submissionSequence: 1n,
+      sessionStatus: 'ACTIVE',
+    });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-later',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:44.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            cardId: 'weight-preference',
+            score: 100,
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      count: 1,
+      duplicates: 1,
+      submissionDuplicates: 1,
+      acceptedSubmissions: 0,
+    });
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('rejects the batch atomically when the shared evidence writer fails, without partial evidence', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-submit', clientEventId: 'client-submit', eventData: { clientEventId: 'client-submit' } },
-    ]);
-    mocks.prisma.studentStepResponse.createMany.mockRejectedValue(new Error('step response write failed'));
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockRejectedValue(
+      new Error('submission transaction failed'),
+    );
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
 
     const response = await POST(createPostRequest({
@@ -489,23 +700,17 @@ describe('POST /api/interactive/events', () => {
         ],
       }));
 
-    expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalled();
-    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
-    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
-    expect(consoleError).toHaveBeenCalledWith(
-      '[Interactive Events API] Failed to persist immutable student step responses:',
-      expect.any(Error),
-    );
+    // 写入器失败即整体失败：不落证据、不物化事实；客户端重试队列可安全重发（同身份幂等）
+    expect(response.status).toBe(500);
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).not.toHaveBeenCalled();
 
     consoleError.mockRestore();
   });
 
   it('marks legacy lesson submissions as lower-quality evidence instead of full diagnostics', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-legacy-submit', clientEventId: 'client-legacy-submit', eventData: { clientEventId: 'client-legacy-submit' } },
-    ]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
 
     const response = await POST(createPostRequest({
@@ -527,29 +732,20 @@ describe('POST /api/interactive/events', () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          responseData: expect.objectContaining({
-            eventType: 'lesson_submit',
-            evidenceQuality: 'legacy-envelope',
-            evidenceQualityReason: 'unsupported_legacy_envelope',
-            evidenceSourceState: 'legacy-envelope',
-          }),
-        }),
-      ],
-      skipDuplicates: true,
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    expect(writerInput.response.buildResponseData('source-legacy')).toMatchObject({
+      eventType: 'lesson_submit',
+      evidenceQuality: 'legacy-envelope',
+      evidenceQualityReason: 'unsupported_legacy_envelope',
+      evidenceSourceState: 'legacy-envelope',
     });
-    expect(mocks.persistCoreLearningFact.mock.calls[0][1].payload).toMatchObject({
+    expect(mocks.ingestLearningFact.mock.calls[0][0].event.payload).toMatchObject({
       evidenceQuality: 'legacy-envelope',
     });
   });
 
   it('preserves v2 evidence quality for immutable student step responses', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-v2-submit', clientEventId: 'client-v2-submit', eventData: { clientEventId: 'client-v2-submit' } },
-    ]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
 
     const response = await POST(createPostRequest({
@@ -581,27 +777,18 @@ describe('POST /api/interactive/events', () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          responseData: expect.objectContaining({
-            schemaVersion: 'manifest-submission-v2',
-            evidenceQuality: 'rich',
-            evidenceQualityReason: 'scoreable_objective_evidence',
-            evidenceSourceState: 'manifest-submission-v2',
-            answers: { boundary: 'A' },
-          }),
-        }),
-      ],
-      skipDuplicates: true,
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    expect(writerInput.response.buildResponseData('source-v2')).toMatchObject({
+      schemaVersion: 'manifest-submission-v2',
+      evidenceQuality: 'rich',
+      evidenceQualityReason: 'scoreable_objective_evidence',
+      evidenceSourceState: 'manifest-submission-v2',
+      answers: { boundary: 'A' },
     });
   });
 
   it('persists lesson resubmissions when the client event id is carried in the payload', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'log-resubmit', clientEventId: 'client-resubmit', eventData: { clientEventId: 'client-resubmit' } },
-    ]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_resubmit' });
 
     const response = await POST(createPostRequest({
@@ -624,31 +811,31 @@ describe('POST /api/interactive/events', () => {
       }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          userId: 'student-1',
-          sessionId: 'cmoxloe52000uq5bcojma7r78',
-          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
-          stepId: 'step-10',
-          attemptKey: 'step-10:response:1778550642900',
-          sourceLogId: 'log-resubmit',
-          clientEventId: 'client-resubmit',
-          responseData: expect.objectContaining({
-            eventType: 'lesson_resubmit',
-            answerDigest: { 'constraint-priority': 'B' },
-          }),
-        }),
-      ],
-      skipDuplicates: true,
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    expect(writerInput).toMatchObject({
+      userId: 'student-1',
+      sourceEvent: {
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+        stepId: 'step-10',
+        eventType: 'submit',
+        clientEventId: 'client-resubmit',
+      },
+      response: {
+        stepId: 'step-10',
+        attemptKey: 'step-10:response:1778550642900',
+        clientEventId: 'client-resubmit',
+      },
+    });
+    expect(writerInput.response.buildResponseData('source-resubmit')).toMatchObject({
+      eventType: 'lesson_resubmit',
+      answerDigest: { 'constraint-priority': 'B' },
     });
   });
 
   it('ignores forged client sourceLogId and uses the persisted interaction log id', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'actual-log-id', clientEventId: 'client-forged-source', eventData: { clientEventId: 'client-forged-source' } },
-    ]);
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
 
     const response = await POST(createPostRequest({
@@ -672,38 +859,29 @@ describe('POST /api/interactive/events', () => {
         ],
       }));
 
-    const learningEvent = mocks.persistCoreLearningFact.mock.calls[0][1];
-    const persistedInteractionLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
+    const learningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
 
     expect(response.status).toBe(200);
-    expect(persistedInteractionLogData.eventData).toEqual(expect.objectContaining({
+    // 客户端伪造的 sourceLogId 不进入源事件载荷，也不进入响应证据
+    expect(writerInput.sourceEvent.eventData).toEqual(expect.objectContaining({
       clientEventId: 'client-forged-source',
       eventType: 'lesson_submit',
       dedupeIdentity: 'cmoxloe52000uq5bcojma7r78:lesson_submit:student:step-08:client-forged-source',
     }));
-    expect(persistedInteractionLogData.eventData).not.toHaveProperty('sourceLogId');
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          sourceLogId: 'actual-log-id',
-          responseData: expect.objectContaining({
-            sourceLogId: 'actual-log-id',
-          }),
-        }),
-      ],
-      skipDuplicates: true,
+    expect(writerInput.sourceEvent.eventData).not.toHaveProperty('sourceLogId');
+    expect(writerInput.response.buildResponseData('source-client-forged-source')).toMatchObject({
+      sourceLogId: 'source-client-forged-source',
     });
+    // 事实物化使用写入器回执的持久化 sourceLogId
     expect(learningEvent.payload).toMatchObject({
-      sourceLogId: 'actual-log-id',
+      sourceLogId: 'source-client-forged-source',
     });
     expect(learningEvent.payload.sourceLogId).not.toBe('forged-log-id');
   });
 
   it('derives actorRole from the authenticated user before persisting interaction events', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'actual-role-log-id', clientEventId: 'client-forged-role', eventData: { clientEventId: 'client-forged-role' } },
-    ]);
 
     const response = await POST(createPostRequest({
         events: [
@@ -728,11 +906,11 @@ describe('POST /api/interactive/events', () => {
         ],
       }));
 
-    const persistedInteractionLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
+    const writerInput = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
 
     expect(response.status).toBe(200);
-    expect(persistedInteractionLogData.actorRole).toBe('student');
-    expect(persistedInteractionLogData.eventData).toEqual(expect.objectContaining({
+    expect(writerInput.sourceEvent.actorRole).toBe('student');
+    expect(writerInput.sourceEvent.eventData).toEqual(expect.objectContaining({
       actorRole: 'student',
       dedupeIdentity: 'cmoxloe52000uq5bcojma7r78:lesson_submit:student:step-08:client-forged-role',
     }));
@@ -743,9 +921,24 @@ describe('POST /api/interactive/events', () => {
     vi.setSystemTime(new Date('2026-06-18T01:00:00.000Z'));
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 0 });
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'actual-workbench-log-id', clientEventId: 'client-workbench', eventData: { clientEventId: 'client-workbench' } },
-    ]);
+    // 该分类提交的持久化血缘由写入器回执提供
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockImplementation(
+      async (input: {
+        userId: string;
+        submissionIdentity: string;
+        identityVersion: string;
+        sourceEvent: { clientEventId: string | null; sessionId: string };
+      }) => ({
+        status: 'ACCEPTED' as const,
+        evidenceStatus: 'ACCEPTED',
+        evidenceId: 'evidence-workbench',
+        sourceLogId: 'actual-workbench-log-id',
+        submissionIdentity: input.submissionIdentity,
+        identityVersion: input.identityVersion,
+        submissionSequence: 1n,
+        sessionStatus: 'ACTIVE',
+      }),
+    );
     mocks.prisma.simulationRun.findFirst.mockImplementation(
       async (args: { where?: { id?: string } }) => ({
         id: args.where?.id ?? 'workbench-simulation-run',
@@ -822,9 +1015,10 @@ describe('POST /api/interactive/events', () => {
       ],
     }));
 
-    const createArg = mocks.prisma.studentStepResponse.createMany.mock.calls[0][0];
+    const writerCall = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    const persistedRowResponseData = writerCall.response.buildResponseData('actual-workbench-log-id') as Record<string, unknown>;
     expect(response.status).toBe(200);
-    expect(createArg.data[0].responseData.controlWorkbenchEvidence).toMatchObject({
+    expect(persistedRowResponseData.controlWorkbenchEvidence).toMatchObject({
       sourceLogId: 'actual-workbench-log-id',
       lessonKey: 'unit-4-2-controller-selection-first-start-v1',
       actorRole: 'student',
@@ -870,24 +1064,18 @@ describe('POST /api/interactive/events', () => {
       requireActive: false,
     });
     expect(mocks.persistedControlWorkbenchRunMatchesContext).toHaveBeenCalledTimes(3);
-    const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
-    const persistedDraft = JSON.parse(persistedLogData.eventData.answerDigest['parameter.set']);
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const writerSourceEventData = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0]
+      .sourceEvent.eventData as Record<string, unknown>;
+    // #1583 统一摄取：事实物化经 ingestLearningFact，事件对象为其输入的 event
+    const routedLearningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
     const routedDraft = JSON.parse(routedLearningEvent.payload.answerDigest['parameter.set']);
-    expect(persistedDraft.actorRole).toBe('student');
+    expect(writerSourceEventData.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
   });
 
   it('does not promote a control workbench submission with a client-invented result reference', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      {
-        id: 'design-only-workbench-log',
-        clientEventId: 'design-only-workbench',
-        eventData: { clientEventId: 'design-only-workbench' },
-      },
-    ]);
 
     const response = await POST(createPostRequest({
       events: [
@@ -935,7 +1123,7 @@ describe('POST /api/interactive/events', () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).toHaveBeenCalledTimes(1);
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
   });
 
@@ -1156,9 +1344,24 @@ describe('POST /api/interactive/events', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-18T01:00:00.000Z'));
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
-    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
-      { id: 'actual-annotated-media-log-id', clientEventId: 'client-annotated-media', eventData: { clientEventId: 'client-annotated-media' } },
-    ]);
+    // 该分类提交的持久化血缘由写入器回执提供
+    mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mockImplementation(
+      async (input: {
+        userId: string;
+        submissionIdentity: string;
+        identityVersion: string;
+        sourceEvent: { clientEventId: string | null; sessionId: string };
+      }) => ({
+        status: 'ACCEPTED' as const,
+        evidenceStatus: 'ACCEPTED',
+        evidenceId: 'evidence-annotated-media',
+        sourceLogId: 'actual-annotated-media-log-id',
+        submissionIdentity: input.submissionIdentity,
+        identityVersion: input.identityVersion,
+        submissionSequence: 1n,
+        sessionStatus: 'ACTIVE',
+      }),
+    );
 
     const annotatedMediaDraft = {
       eventType: 'media_submit',
@@ -1230,9 +1433,10 @@ describe('POST /api/interactive/events', () => {
       ],
     }));
 
-    const createArg = mocks.prisma.studentStepResponse.createMany.mock.calls[0][0];
+    const writerCall = mocks.submissionEvidenceRuntime.acceptClassifiedSubmission.mock.calls[0][0];
+    const persistedRowResponseData = writerCall.response.buildResponseData('actual-annotated-media-log-id') as Record<string, unknown>;
     expect(response.status).toBe(200);
-    expect(createArg.data[0].responseData.annotatedMediaEvidence).toMatchObject({
+    expect(persistedRowResponseData.annotatedMediaEvidence).toMatchObject({
       sourceLogId: 'actual-annotated-media-log-id',
       lessonKey: 'annotated-media-activity-fixture',
       actorRole: 'student',
@@ -1246,10 +1450,10 @@ describe('POST /api/interactive/events', () => {
         serverRecordedAt: '2026-06-18T01:00:00.000Z',
       },
     });
-    const persistedLogData = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0];
-    const persistedDraft = JSON.parse(persistedLogData.eventData.answers.annotatedMediaEvidenceDraft);
-    const routedLearningEvent = mocks.routeEvent.mock.calls[0][0];
+    const writerSourceEventData = writerCall.sourceEvent.eventData as Record<string, unknown>;
+    const routedLearningEvent = mocks.ingestLearningFact.mock.calls[0][0].event;
     const routedDraft = JSON.parse(routedLearningEvent.payload.answers.annotatedMediaEvidenceDraft);
+    const persistedDraft = JSON.parse(writerSourceEventData.answers.annotatedMediaEvidenceDraft);
     expect(persistedDraft.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();

@@ -200,6 +200,7 @@ export function ArenaSubmissionPanel({
       setStatus('当前任务没有可由白箱工作台预览的控制器方法。');
       return;
     }
+    setPreview(null);
     try {
       const nextPreview = await buildArenaWorkbenchPreview({
         task,
@@ -215,6 +216,7 @@ export function ArenaSubmissionPanel({
         previewMode: 'whitebox-workbench',
       });
     } catch (error) {
+      setPreview(null);
       setStatus(error instanceof Error ? error.message : '工作台仿真失败');
     }
   };
@@ -316,7 +318,10 @@ export function ArenaSubmissionPanel({
           <button
             key={allowedMethod}
             type="button"
-            onClick={() => setControllerMethod(allowedMethod)}
+            onClick={() => {
+              setControllerMethod(allowedMethod);
+              setPreview(null);
+            }}
             className={`rounded-lg border px-3 py-1.5 text-xs transition ${
               controllerMethod === allowedMethod
                 ? 'border-primary bg-primary/10 text-primary'

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "act-content-knowledge-runtime-release-toolchains/v1",
+  "commandId": "release:content-compiler:course-content/scripts/export-runtime.sh",
+  "sourceRevision": "ca394e872a457aa646bac64061e0a320bac155ae",
+  "sourceTree": "68167a73f69e88f88de0891bb3ea8025658b0015",
+  "toolchain": "content-compiler",
+  "inputDigest": "722a40500f1a8b97a596ef519c592e2c96ad05d15440e66a71c08167e909741b",
+  "outputDigest": "c1648973e51308f09237f5b528057ff874546c8a0c47c17d5a1f5fe99c0c24b2",
+  "artifactDigest": null,
+  "executed": false,
+  "productionActivation": false,
+  "selectorMutation": false,
+  "planHash": "722a40500f1a8b97a596ef519c592e2c96ad05d15440e66a71c08167e909741b",
+  "inputHash": "722a40500f1a8b97a596ef519c592e2c96ad05d15440e66a71c08167e909741b",
+  "targetIdentity": "fixture:unspecified",
+  "approvalState": "not-required",
+  "status": "dry-run",
+  "projectionHandoff": null
+}

@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server';
 
 import { buildArenaClassEvidenceSummary } from '@/features/arena/evidence-summary';
 import { prismaArenaSubmissionStore } from '@/features/arena/submissions/prisma-store';
+import {
+  isConsumerUnauthorized,
+  readTeacherClassEvidencePort,
+  viewerFromSession,
+} from '@/features/learning-record/consumers/public-api';
 import { summarizeGovernanceState } from '@/features/teacher/teacher-insights';
 import { getServerAuthSession } from '@/lib/auth';
 import { COMPETENCY_LEVELS } from '@/lib/data-governance/competency-model';
-import {
-  readCurrentCumulativeClassPortrait,
-  readCurrentCumulativePortrait,
-  type CumulativeClassPortraitReadModel,
-  type CumulativePortraitReadModel,
+import type {
+  CumulativeClassPortraitReadModel,
+  CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   PORTRAIT_V2_DIMENSIONS,
@@ -30,7 +33,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 type LevelDistribution = Record<keyof typeof COMPETENCY_LEVELS, number>;
-type StudentPortrait = Awaited<ReturnType<typeof readCurrentCumulativePortrait>>;
+type StudentPortrait = CumulativePortraitReadModel;
 
 interface TeacherClassInsightStudent {
   id: string;
@@ -49,7 +52,7 @@ interface TeacherClassInsightStudent {
   factCount: number;
   lastSnapshotAt: string | null;
   portraitV2: StudentPortrait['payload'];
-  availabilityReason: StudentPortrait['availabilityReason'];
+  availabilityReason: StudentPortrait['availabilityReason'] | string;
   evidenceStatus: {
     state: 'ready' | 'missing';
     refreshedAt: string | null;
@@ -69,7 +72,7 @@ export interface TeacherClassInsightsPayload {
   scopeLabel: typeof CUMULATIVE_ATTAINMENT_LABEL;
   availability: {
     state: CumulativeClassPortraitReadModel['stateKind'];
-    reason: CumulativeClassPortraitReadModel['availabilityReason'];
+    reason: CumulativeClassPortraitReadModel['availabilityReason'] | string;
   };
   classInfo: {
     id: string;
@@ -156,13 +159,15 @@ export async function GET(
       return NextResponse.json(unsupportedScopeError, { status: 400 });
     }
 
-    const classPortrait = await readCurrentCumulativeClassPortrait(prisma, classId);
-    const portraitEntries = await Promise.all(classData.students.map(async (profile) => [
-      profile.userId,
-      await readCurrentCumulativePortrait(prisma, profile.userId),
-    ] as const));
-    const portraits = new Map(portraitEntries);
-    const studentIds = classData.students.map((profile) => profile.userId);
+    const memberUserIds = classData.students.map((profile) => profile.userId);
+    const teacherPort = await readTeacherClassEvidencePort({
+      db: prisma,
+      viewer: viewerFromSession(session, [classId]),
+      classId,
+      memberUserIds,
+    });
+    const classPortrait = teacherPort.classPortrait;
+    const portraits = teacherPort.learnerPortraits;
     const [classSessionIds, classArenaSubmissions] = await Promise.all([
       prisma.classSession.findMany({
         where: { classId },
@@ -171,11 +176,11 @@ export async function GET(
       prismaArenaSubmissionStore.listSubmissions({ classId }),
     ]);
     const arenaSubmissions = classArenaSubmissions.filter(({ userId }) =>
-      typeof userId === 'string' && studentIds.includes(userId));
-    const arenaLearningFacts = studentIds.length
+      typeof userId === 'string' && memberUserIds.includes(userId));
+    const arenaLearningFacts = memberUserIds.length
       ? await prisma.learningFact.findMany({
           where: {
-            userId: { in: studentIds },
+            userId: { in: memberUserIds },
             factType: 'design',
             OR: buildTeacherScopedLearningFactScopeFilters(classId, classSessionIds),
           },
@@ -191,9 +196,13 @@ export async function GET(
         })
       : [];
     const students = classData.students.map((profile) =>
-      buildStudent(profile, portraits.get(profile.userId)!));
+      buildStudent(
+        profile,
+        portraits.get(profile.userId)!,
+        teacherPort.studentReads.get(profile.userId),
+      ));
     const coveredStudents = students.filter((student) =>
-      student.availabilityReason === 'available').length;
+      student.evidenceStatus.state === 'ready').length;
     const latestStudentSnapshotAt = students
       .flatMap((student) => student.lastSnapshotAt ? [student.lastSnapshotAt] : [])
       .sort()
@@ -216,8 +225,8 @@ export async function GET(
       return {
         dimension: id,
         label,
-        mean: aggregate?.mean ?? null,
-        meanConfidence: aggregate?.meanConfidence ?? null,
+        mean: teacherPort.classRead.suppressed ? null : (aggregate?.mean ?? null),
+        meanConfidence: teacherPort.classRead.suppressed ? null : (aggregate?.meanConfidence ?? null),
         includedCount: aggregate?.includedCount ?? 0,
         missingCount: aggregate?.missingCount ?? students.length,
       };
@@ -228,7 +237,9 @@ export async function GET(
       scopeLabel: CUMULATIVE_ATTAINMENT_LABEL,
       availability: {
         state: classPortrait.stateKind,
-        reason: classPortrait.availabilityReason,
+        reason: teacherPort.classRead.status === 'stale'
+          ? (teacherPort.classRead.reason ?? 'stale')
+          : classPortrait.availabilityReason,
       },
       classInfo: {
         id: classData.id,
@@ -248,7 +259,7 @@ export async function GET(
         latestStudentSnapshotAt,
       },
       overview: {
-        overallIndex: classPortrait.aggregate?.overall.mean ?? null,
+        overallIndex: teacherPort.classRead.aggregates?.averageScore ?? null,
         highRiskStudents,
         mediumRiskStudents,
         attentionStudents,
@@ -263,7 +274,9 @@ export async function GET(
           ? 'unavailable'
           : classPortrait.activeStudentCount > 0 ? 'ready' : 'no-evidence',
         dimensions: abilityDimensions,
-        taskAttainment: classPortrait.aggregate?.taskAttainment ?? null,
+        taskAttainment: teacherPort.classRead.suppressed
+          ? null
+          : classPortrait.aggregate?.taskAttainment ?? null,
         levelDistribution: students.reduce<LevelDistribution>((distribution, student) => {
           if (student.overallScore !== null) {
             distribution[getCompetencyLevelKey(student.overallScore)] += 1;
@@ -289,6 +302,9 @@ export async function GET(
     return NextResponse.json(payload);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('[TeacherClassInsights] Error:', error);
     if (isDatabaseConnectivityError(error)) {
       return createDatabaseUnavailableResponse();
@@ -304,6 +320,7 @@ function buildStudent(
     user: { id: string; name: string | null; email: string | null };
   },
   portrait: CumulativePortraitReadModel,
+  read?: { status: string; reason: string | null },
 ): TeacherClassInsightStudent {
   const dimensions = portrait.payload?.dimensions.filter((dimension) =>
     dimension.evidenceSummary.totalCount > 0) ?? [];
@@ -312,18 +329,17 @@ function buildStudent(
     total + dimension.evidenceSummary.totalCount, 0);
   const riskLevel = highestRisk(portrait.lastRisk.map((risk) => risk.severity));
   const confidenceScore = portrait.confidence ?? 0;
+  const current = read?.status === 'qualified' && portrait.availabilityReason === 'available';
   return {
     id: profile.user.id,
     name: profile.user.name || '未命名学生',
     email: profile.user.email,
     studentNumber: profile.studentNumber,
-    overallScore: portrait.availabilityReason === 'available' ? portrait.overallScore : null,
-    overallLevel: portrait.overallScore === null
+    overallScore: current ? portrait.overallScore : null,
+    overallLevel: !current || portrait.overallScore === null
       ? null
       : COMPETENCY_LEVELS[getCompetencyLevelKey(portrait.overallScore)].label,
-    overallScoreSource: portrait.availabilityReason === 'available'
-      ? 'native-portrait-v2'
-      : null,
+    overallScoreSource: current ? 'native-portrait-v2' : null,
     riskLevel,
     riskLabel: getRiskLabel(riskLevel),
     trendDirection: portrait.lastTrend ?? 'not-comparable',
@@ -333,9 +349,9 @@ function buildStudent(
     factCount: evidenceCount,
     lastSnapshotAt: portrait.generatedAt,
     portraitV2: portrait.payload,
-    availabilityReason: portrait.availabilityReason,
+    availabilityReason: read?.reason ?? portrait.availabilityReason,
     evidenceStatus: {
-      state: portrait.availabilityReason === 'available' ? 'ready' : 'missing',
+      state: current ? 'ready' : 'missing',
       refreshedAt: portrait.generatedAt,
       lastEvidenceAt: portrait.evidenceAsOf,
       confidence: {

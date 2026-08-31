@@ -18,7 +18,7 @@ import {
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import { prisma } from '@/lib/prisma';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import { getAdaptivePracticeGoalOption } from '@/lib/adaptive-path-goal-options';
 import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
 import { authorizeAdaptivePathComparisonIdentity } from '@/lib/adaptive-path-comparison';

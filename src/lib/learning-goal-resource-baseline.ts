@@ -7,7 +7,7 @@ import {
 import type {
   AdaptiveLearningPathRegisteredGoalDefinition,
   LearningGoalDefinition,
-} from './adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import type {
   ResourceFieldCompletionAuditRow,
   ResourceFieldSourceWindow,

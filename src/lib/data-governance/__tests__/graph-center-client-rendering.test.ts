@@ -18,7 +18,7 @@ import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
-import type { AdaptiveLearnerState } from '../adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import { RESOURCE_FIELD_COMPLETION_AUDIT_VERSION } from '../../resource-field-completion-audit';

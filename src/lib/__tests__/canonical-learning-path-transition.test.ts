@@ -32,7 +32,7 @@ import { assertPathMutableForWrite } from '@/app/api/learning-paths/route-helper
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
   type AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeType,
@@ -283,6 +283,7 @@ function portraitFor(
     lastRisk: [],
     availabilityReason: 'available',
     generatedAt,
+    publication: null,
   };
 }
 
@@ -1174,6 +1175,7 @@ describe('canonical learning path transition — replan', () => {
         lastRisk: [],
         availabilityReason: 'no-eligible-evidence',
         generatedAt: null,
+        publication: null,
       },
       teachingRelations: relations,
     });
@@ -1199,6 +1201,7 @@ describe('canonical learning path transition — replan', () => {
         lastRisk: [],
         availabilityReason: 'available',
         generatedAt: '2026-07-30T00:00:00.000Z',
+        publication: null,
       },
       teachingRelations: relations,
     });

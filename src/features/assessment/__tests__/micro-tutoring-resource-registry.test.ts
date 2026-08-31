@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import optionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
-import projectionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection.json';
+import optionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
+import v1OptionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions.json';
+import v1ProjectionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection.json';
+import projectionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection-v2.json';
 import { parseMicroTutoringLearningAction } from '../micro-tutoring-learning-actions';
 import {
   listMicroTutoringGovernedResources,
@@ -86,6 +88,11 @@ describe('micro tutoring resource projection', () => {
       entries: [unknownRegistry],
     });
     expect(unknown.issues.map((issue) => issue.code)).toContain('REGISTRY_UNKNOWN');
+
+    const v1 = loadMicroTutoringResourceProjection(v1ProjectionSource, v1OptionAttributionSource);
+    expect(v1.issues).toEqual([]);
+    expect(v1.projection?.version).toBe('micro-tutoring-resource-projection.v1');
+    expect(v1.projection?.entries).toHaveLength(9);
 
     const passive = parseMicroTutoringLearningAction({
       id: 'action-1',

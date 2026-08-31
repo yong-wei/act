@@ -98,6 +98,16 @@ function cumulativeState() {
     }],
     availabilityReason: 'available',
     generatedAt: '2026-07-23T08:00:00.000Z',
+    publication: {
+      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      generation: '4',
+      queueGeneration: '9',
+      cutoverFence: '7',
+      stateWatermark: '12',
+      processingWatermark: '9',
+      captureRevision: 'state-1',
+      inputDigest: 'task-input-1',
+    },
   };
 }
 
@@ -133,6 +143,7 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(mocks.readCurrentCumulativePortrait).toHaveBeenCalledWith(
       mocks.prisma,
       'student-1',
+      'student',
     );
     expect(body).toMatchObject({
       derivationState: 'current',
@@ -232,5 +243,38 @@ describe('GET /api/student/competency-snapshot', () => {
 
     expect(response.status).toBe(401);
     expect(mocks.readCurrentCumulativePortrait).not.toHaveBeenCalled();
+  });
+
+  it('ignores client subject identifiers and only reads the authenticated student', async () => {
+    await GET(new NextRequest(
+      'http://localhost/api/student/competency-snapshot?userId=other-student',
+    ));
+
+    expect(mocks.readCurrentCumulativePortrait).toHaveBeenCalledWith(
+      mocks.prisma,
+      'student-1',
+      'student',
+    );
+  });
+
+  it('does not label a stale SNAPSHOT as current evidence', async () => {
+    Object.assign(mocks.prisma, {
+      learningFact: {
+        findFirst: vi.fn().mockResolvedValue({ startedAt: '2026-08-21T00:00:00.000Z' }),
+      },
+    });
+
+    const body = await (await GET(new NextRequest(
+      'http://localhost/api/student/competency-snapshot',
+    ))).json();
+
+    expect(body).toMatchObject({
+      derivationState: 'newer-learning-fact',
+      evidenceState: 'stale',
+      projectionStatus: 'stale',
+      currentSnapshot: {
+        overallScore: 72.5,
+      },
+    });
   });
 });

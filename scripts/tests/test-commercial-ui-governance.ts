@@ -90,7 +90,15 @@ function git(args: string[]) {
 
 function gitRequired(args: string[], message: string) {
   try {
-    return execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      // A generated Runtime candidate can legitimately add tens of thousands
+      // of content-addressed files. Governance must inspect that complete
+      // diff rather than fail at Node's one-megabyte child-process default.
+      maxBuffer: 64 * 1024 * 1024,
+    });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(`${message}: ${detail}`);
@@ -518,6 +526,14 @@ function hasNonAccessibilityOnlyDiff(file: string) {
   ));
 }
 
+function canAffectCommercialUiBehavior(file: string) {
+  return (
+    (/^src\/(?:app|components|features|resources)\//.test(file) && /\.(?:css|tsx?)$/.test(file))
+    || file === 'src/lib/platform-role-navigation.ts'
+    || /^course-content\/runtime\/lessons\/[^/]+\/interactive-manifest\.json$/.test(file)
+  );
+}
+
 function someLineMatches(lines: string[], pattern: RegExp) {
   return lines.some((line) => {
     const matched = pattern.test(line);
@@ -785,6 +801,9 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
       add('/admin/data-governance');
     }
     for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      if (route.screenshotProfile === 'temporary-exception' || route.screenshotProfile === 'representative-covered') {
+        continue;
+      }
       if (matchesRouteFile(file, route.routeFile) || matchesCoveredGlob(file, route.coveredRouteGlob)) add(route.href);
     }
     for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {
@@ -1412,7 +1431,7 @@ const ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES = [
   'src/app/assessment/adaptive-practice/',
   'src/app/api/learning-paths/',
   'src/features/adaptive/',
-  'src/lib/adaptive-learning-path-planner.ts',
+  'src/features/personalization/path-planning/internal/assemble-plan.ts',
   'src/lib/adaptive-path-option-display.ts',
   'src/lib/control-correction-path-rounds.ts',
   'src/lib/konling-agent-runtime.ts',
@@ -2415,6 +2434,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
+  const activeAuthorityForceCanvasSourcePath = 'src/features/knowledge/active-authority-force-canvas.tsx';
+  const activeAuthorityRootCanvasSourcePath = 'src/features/knowledge/active-authority-root-canvas.tsx';
   const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
@@ -2443,11 +2464,15 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
+  const qaAccountsSourcePath = 'scripts/tests/knowledge-workspace-product-qa-accounts.mjs';
+  const qaRunnerSourcePath = 'scripts/tests/run-knowledge-workspace-product-qa.mjs';
   const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
+    activeAuthorityForceCanvasSourcePath,
+    activeAuthorityRootCanvasSourcePath,
     activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
@@ -2476,6 +2501,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     globalsSourcePath,
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
+    qaAccountsSourcePath,
+    qaRunnerSourcePath,
     governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
@@ -2486,6 +2513,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     : '';
   const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
+    : '';
+  const activeAuthorityForceCanvasSource = existsSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath), 'utf8')
     : '';
   const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
@@ -2564,10 +2594,18 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const viewport = objectRecord(state?.viewport);
     const markers = objectRecord(state?.markers);
     const activeMarkers = objectRecord(markers.activeAuthority);
+    const activeFirstViewport = objectRecord(activeMarkers.firstViewport);
+    const nodeLabelReadability = objectRecord(activeMarkers.nodeLabelReadability);
     const api = parseSafeApiEvidenceV1(state?.api);
     const apiSequence = api?.sequence ?? [];
     const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
-    const teachingRelationsUnavailable = activeMarkers.teachingCoverageNote === '教学关系暂不可用';
+    const relationCount = numberFromEvidence(activeMarkers.relationCount);
+    const forceGraphReady = activeMarkers.renderer === 'force-graph'
+      && activeMarkers.rendererGeometryRectValid === true
+      && activeMarkers.rendererVisibleInViewport === true
+      && numberFromEvidence(activeMarkers.forceGraphCanvasCount) === 1
+      && numberFromEvidence(activeMarkers.forceGraphEdgeLaneCount) === relationCount
+      && numberFromEvidence(activeMarkers.forceGraphLabelMaxLines)! > 0;
     const interactionEvidence = objectRecord(state?.interactionEvidence);
     const forbiddenAutomaticRequests = apiSequence.some((entry) => (
       entry.endpointClass === 'legacy' || entry.endpointClass === 'candidate'
@@ -2596,24 +2634,37 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         : `${name}:responsive-active-node-must-be-unobserved`,
       forbiddenAutomaticRequests ? `${name}:automatic-legacy-or-candidate-request` : null,
       numberFromEvidence(activeMarkers.visibleNodeCount)! > 0 ? null : `${name}:dom-empty`,
-      teachingRelationsUnavailable
-        ? (numberFromEvidence(activeMarkers.relationCount) === 0 ? null : `${name}:unavailable-teaching-must-not-draw-edges`)
-        : (numberFromEvidence(activeMarkers.relationCount)! > 0 ? null : `${name}:dom-no-real-edges`),
-      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === numberFromEvidence(activeMarkers.relationCount)
+      relationCount! > 0 ? null : `${name}:dom-no-real-edges`,
+      numberFromEvidence(activeMarkers.resolvedEdgeEndpointCount) === relationCount
         ? null
         : `${name}:dom-edge-endpoint-mismatch`,
-      numberFromEvidence(activeMarkers.visibleSvgGeometryCount) === numberFromEvidence(activeMarkers.relationCount)
+      numberFromEvidence(activeMarkers.renderedRelationCount) === relationCount
         ? null
-        : `${name}:dom-edge-geometry-missing`,
+        : `${name}:renderer-edge-geometry-missing`,
+      forceGraphReady ? null : `${name}:force-graph-renderer-not-ready`,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererViewportVisibleHeight)! < 160
+        ? `${name}:initial-canvas-visible-height`
+        : null,
+      name === 'active-mobile'
+        && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
+        ? `${name}:initial-canvas-content-missing`
+        : null,
+      name === 'active-mobile' && nodeLabelReadability.readable !== true
+        ? `${name}:node-label-unreadable`
+        : null,
+      name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
+        ? `${name}:initial-controls-not-collapsed`
+        : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,
       safeActiveSurfaceScanPassed(state?.surfaceScan) ? null : `${name}:surface-scan-failed`,
       name === 'active-desktop-dark'
         ? (interactionEvidence.semanticNodeFocusedBeforeClick === true
           && interactionEvidence.detailPanelFocusedAfterOpen === true
           && interactionEvidence.semanticDetailVisible === true
-          && (teachingRelationsUnavailable
-            ? interactionEvidence.adjacencyInteraction === false && numberFromEvidence(interactionEvidence.renderedEdgeCount) === 0
-            : interactionEvidence.adjacencyInteraction === true)
+          && interactionEvidence.visibleNodeControl === true
+          && interactionEvidence.adjacencyInteraction === true
+          && numberFromEvidence(interactionEvidence.renderedEdgeCount)! > 0
           && (interactionEvidence.focusReturnedToOriginNode === true
             || interactionEvidence.focusReturnedToSemanticCanvas === true)
           && safeActiveSurfaceScanPassed(interactionEvidence.detailSurfaceScan)
@@ -2686,9 +2737,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       defaultInteraction.semanticDetailVisible === true
         ? null
         : `${role}:active-detail-evidence-missing`,
-      (teachingRelationsUnavailable
-        ? defaultInteraction.adjacencyInteraction === false && numberFromEvidence(defaultInteraction.renderedEdgeCount) === 0
-        : defaultInteraction.adjacencyInteraction === true)
+      ((teachingRelationsUnavailable ? defaultInteraction.visibleNodeControl === true : true)
+        && defaultInteraction.adjacencyInteraction === true
+        && numberFromEvidence(defaultInteraction.renderedEdgeCount)! > 0)
         ? null
         : `${role}:active-adjacency-evidence-missing`,
       safeActiveSurfaceScanPassed(defaultInteraction.detailSurfaceScan)
@@ -3123,7 +3174,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? null
       : 'active-workspace:mode-controls-missing',
     activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
-      && activeAuthorityGraphSource.includes('data-active-graph-stage="authority"')
+      && activeAuthorityForceCanvasSource.includes('data-active-graph-stage="authority"')
       ? null
       : 'active-graph:stable-dom-contract-missing',
     activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')
@@ -3891,7 +3942,13 @@ function readInteractiveVisualComponentAcceptanceArtifacts(
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
   assertPureClientBoundaryRefactorGuard(files);
-  const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+  // A generated knowledge/runtime candidate can contain thousands of JSON
+  // shards. They cannot change commercial UI behavior; filtering before the
+  // per-file Git diff prevents quadratic process spawning while preserving
+  // every UI, route-ledger, and interactive-manifest gate.
+  const commercialUiBehaviorFiles = files
+    .filter(canAffectCommercialUiBehavior)
+    .filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
   const interactiveVisualComponentArtifacts = readInteractiveVisualComponentAcceptanceArtifacts(files);
@@ -3973,7 +4030,9 @@ function changedPrimaryRouteInventoryBlocks() {
   if (inPrimaryRouteBlock) finishBlock();
   return [...blocks.values()];
 }
-const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
+const changedPrimaryRouteBlocks = files.includes('src/lib/platform-role-navigation.ts')
+  ? changedPrimaryRouteInventoryBlocks()
+  : [];
 const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
 assertCoveredRouteGlobDoesNotHideStaticPages();
@@ -3987,6 +4046,7 @@ const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolatio
     evidence: ['missing-current-inventory-entry'],
   }));
 const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] = files
+  .filter((file) => /^src\/app\/.+\/page\.tsx$/.test(file))
   .filter(hasNonAccessibilityOnlyDiff)
   .map(appPageRouteHref)
   .filter((href): href is string => Boolean(href))

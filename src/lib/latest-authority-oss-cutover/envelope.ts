@@ -211,6 +211,8 @@ export interface SealCandidateReceiptInput {
   readonly localeQualificationHash: string;
   readonly teachingProjectionHash: string;
   readonly teachingClosureReceiptHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
   readonly formalResourceEnvelopeHash: string;
   readonly continuityReceiptHash: string;
   readonly derivationReceiptHash: string;
@@ -248,6 +250,8 @@ export function sealCoordinatedCandidateReceipt(
     'localeQualificationHash',
     'teachingProjectionHash',
     'teachingClosureReceiptHash',
+    'composedDomainFragmentManifestHash',
+    'domainFragmentSetHash',
     'formalResourceEnvelopeHash',
     'continuityReceiptHash',
     'derivationReceiptHash',
@@ -317,6 +321,8 @@ export function sealCoordinatedCandidateReceipt(
     localeQualificationHash: input.localeQualificationHash,
     teachingProjectionHash: input.teachingProjectionHash,
     teachingClosureReceiptHash: input.teachingClosureReceiptHash,
+    composedDomainFragmentManifestHash: input.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: input.domainFragmentSetHash,
     formalResourceEnvelopeHash: input.formalResourceEnvelopeHash,
     continuityReceiptHash: input.continuityReceiptHash,
     derivationReceiptHash: input.derivationReceiptHash,
@@ -344,6 +350,8 @@ interface CandidateReceiptHashFields {
   readonly localeQualificationHash: string;
   readonly teachingProjectionHash: string;
   readonly teachingClosureReceiptHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
   readonly formalResourceEnvelopeHash: string;
   readonly continuityReceiptHash: string;
   readonly derivationReceiptHash: string;
@@ -388,6 +396,8 @@ function candidateReceiptFromInput(
     localeQualificationHash: input.localeQualificationHash,
     teachingProjectionHash: input.teachingProjectionHash,
     teachingClosureReceiptHash: input.teachingClosureReceiptHash,
+    composedDomainFragmentManifestHash: input.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: input.domainFragmentSetHash,
     formalResourceEnvelopeHash: input.formalResourceEnvelopeHash,
     continuityReceiptHash: input.continuityReceiptHash,
     derivationReceiptHash: input.derivationReceiptHash,
@@ -429,6 +439,8 @@ export function assertCandidateReceiptSelfHash(
     localeQualificationHash: receipt.localeQualificationHash,
     teachingProjectionHash: receipt.teachingProjectionHash,
     teachingClosureReceiptHash: receipt.teachingClosureReceiptHash,
+    composedDomainFragmentManifestHash: receipt.composedDomainFragmentManifestHash,
+    domainFragmentSetHash: receipt.domainFragmentSetHash,
     formalResourceEnvelopeHash: receipt.formalResourceEnvelopeHash,
     continuityReceiptHash: receipt.continuityReceiptHash,
     derivationReceiptHash: receipt.derivationReceiptHash,
@@ -472,6 +484,8 @@ export async function reopenAndVerifyCandidate(
     { artifactId: 'locale-qualification', artifactHash: receipt.localeQualificationHash },
     { artifactId: 'teaching-projection', artifactHash: receipt.teachingProjectionHash },
     { artifactId: 'teaching-closure-receipt', artifactHash: receipt.teachingClosureReceiptHash },
+    { artifactId: 'composed-domain-fragment-manifest', artifactHash: receipt.composedDomainFragmentManifestHash },
+    { artifactId: 'domain-fragment-set', artifactHash: receipt.domainFragmentSetHash },
     { artifactId: 'formal-resource-envelope', artifactHash: receipt.formalResourceEnvelopeHash },
     { artifactId: 'continuity-receipt', artifactHash: receipt.continuityReceiptHash },
     { artifactId: 'derivation-receipt', artifactHash: receipt.derivationReceiptHash },

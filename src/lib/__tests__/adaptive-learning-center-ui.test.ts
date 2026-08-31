@@ -24,14 +24,14 @@ import {
   getAdaptiveLearningCenterCompatibilityRoutes,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
 import {
   derivePortraitV2Compatibility,
   projectPortraitV2ForConsumer,
 } from '@/lib/data-governance/portrait-v2-model';
-import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/features/personalization/path-planning/public-api';
+import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
@@ -653,6 +653,53 @@ describe('adaptive learning center UI contracts', () => {
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
   });
 
+  it('translates candidate diversity limitation codes into student-facing risk notes', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '唯一可执行路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: ['title-or-score-only-duplicates-removed'],
+    }]);
+
+    expect(display.riskNote).toBe('只保留实质不同的学习路径，相近文案方案已合并');
+    expect(display.riskNote).not.toContain('title-or-score-only-duplicates-removed');
+
+    const displaySource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-option-display.ts'), 'utf8');
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const contractSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-learning-center-contracts.ts'), 'utf8');
+    expect(displaySource).toContain("from '@/lib/adaptive-path-candidate-limitation-copy'");
+    expect(displaySource).toContain("from '@/lib/cold-start-evidence-collection-copy'");
+    expect(displaySource).not.toContain('adaptive-path-candidate-batches');
+    expect(pageSource).not.toContain('adaptive-path-candidate-batches');
+    expect(contractSource).not.toContain('adaptive-path-candidate-batches');
+  });
+
+  it('translates cold-start dimension limitation codes into student-facing risk notes', () => {
+    const [display] = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '入门路径',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      terminalValidationStrategy: {},
+      limitations: ['cold-start-preference-insufficient'],
+    }]);
+
+    expect(display.riskNote).toBe('目前还不能判断你更适合视频、讲义还是仿真。');
+    expect(display.riskNote).not.toContain('cold-start-preference-insufficient');
+  });
+
   it('translates low-confidence path evidence into user-facing copy', () => {
     const [display] = buildAdaptivePathOptionDisplays([{
       optionId: 'low-confidence-route',
@@ -1014,7 +1061,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
-    expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain('openPathAdjustment(optionForWrite)');
+    expect(pageSource).toContain("submitPathGeneration('revise', adjustmentSourceOption)");
+    expect(pageSource).toContain('data-adaptive-path-adjustment-source="selected"');
     expect(pageSource).toContain("payload.result?.generationStatus === 'blocked'");
     expect(pageSource).toContain('setPathChoiceMessage(blockedMessage)');
     expect(pageSource).toContain('selectedOptionId');
@@ -1092,6 +1141,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(runtimeSource).toContain("'insufficient-data'");
     expect(runtimeSource).toContain("'no-material-difference'");
     expect(runtimeSource).not.toContain('路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。');
+  });
+
+  it('places candidate comparison before the active route module', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('className="order-[15]"');
+    expect(pageSource).toContain('data-adaptive-path-module-order="candidate-comparison-before-active-route"');
+    expect(pageSource).toContain('className="order-20 grid min-w-0 w-full gap-4" data-adaptive-path-module-order="active-route-after-candidate-comparison"');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {

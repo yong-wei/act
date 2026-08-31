@@ -626,11 +626,25 @@ export function resolveConceptMacroCategory(node: {
   return 'neutral';
 }
 
+const RUNTIME_PRESENTATION_SHAPES = new Set<KnowledgeConceptNodeShape>([
+  'circle',
+  'square',
+  'hexagon',
+  'triangle',
+  'diamond',
+  'pentagon',
+]);
+
 export function getKnowledgeConceptNodeShape(node: {
   conceptKind?: string | null;
   knowledgeDim?: string | null;
   nodeType?: string | null;
+  metadata?: Record<string, unknown> | null;
 }): KnowledgeConceptNodeShape {
+  const presentationShape = node.metadata?.presentationShape;
+  if (typeof presentationShape === 'string' && RUNTIME_PRESENTATION_SHAPES.has(presentationShape as KnowledgeConceptNodeShape)) {
+    return presentationShape as KnowledgeConceptNodeShape;
+  }
   const category = resolveConceptMacroCategory(node);
   if (category === 'neutral') return getNodeTypeConfig(node.nodeType).shape;
   return CONCEPT_MACRO_CATEGORY_SHAPES[category];
@@ -721,9 +735,20 @@ export function getKnowledgeNodeScale({
   );
   const baseRadius = KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius
     + (KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius - KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius) * score;
-  const radius = focused
-    ? Math.min(KNOWLEDGE_NODE_SCALE_CONTRACT.focusMaxRadius, baseRadius * KNOWLEDGE_NODE_SCALE_CONTRACT.focusRadiusGain)
-    : baseRadius;
+  const decoration = safeMetadata.decoration;
+  const glyphRadius = decoration && typeof decoration === 'object'
+    ? (decoration as { glyphRadius?: unknown }).glyphRadius
+    : null;
+  const explicitRadius = typeof glyphRadius === 'number' && Number.isFinite(glyphRadius)
+    ? glyphRadius
+    : null;
+  const radius = explicitRadius !== null
+    ? (focused
+      ? Math.min(KNOWLEDGE_NODE_SCALE_CONTRACT.focusMaxRadius, explicitRadius * KNOWLEDGE_NODE_SCALE_CONTRACT.focusRadiusGain)
+      : explicitRadius)
+    : (focused
+      ? Math.min(KNOWLEDGE_NODE_SCALE_CONTRACT.focusMaxRadius, baseRadius * KNOWLEDGE_NODE_SCALE_CONTRACT.focusRadiusGain)
+      : baseRadius);
   const scaleClass = score >= 0.76
     ? 'knowledge-node-scale-core'
     : score >= 0.54

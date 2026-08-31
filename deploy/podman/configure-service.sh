@@ -98,6 +98,23 @@ DATABASE_URL="$(printf '%s' "$DATABASE_URL" | sed "s#@localhost:#@${DB_HOST_ALIA
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "connection_limit" "10")"
 DATABASE_URL="$(ensure_database_url_param "$DATABASE_URL" "pool_timeout" "20")"
 
+# systemd does not inherit the operator shell.  Preserve the already verified
+# deployment image and knowledge mode so a restart cannot fall back to the
+# legacy default image.
+if [[ ! "$APP_IMAGE" =~ ^[A-Za-z0-9][A-Za-z0-9._/@:+-]*$ ]]; then
+  echo "ERROR: APP_IMAGE 含有 systemd unit 不允许的字符: $APP_IMAGE" >&2
+  exit 1
+fi
+
+case "${ACT_KNOWLEDGE_DEPLOYMENT_MODE:-legacy}" in
+  legacy|cutover)
+    ;;
+  *)
+    echo "ERROR: ACT_KNOWLEDGE_DEPLOYMENT_MODE 必须为 legacy 或 cutover。" >&2
+    exit 1
+    ;;
+esac
+
 if ! command -v systemctl >/dev/null 2>&1; then
   echo "ERROR: systemctl 不可用，无法配置开机自启服务。" >&2
   exit 1
@@ -205,7 +222,7 @@ KillMode=none
 Delegate=yes
 ExecStart=/usr/bin/podman start ${DB_CONTAINER}
 ExecStart=/bin/sh -lc 'until /usr/bin/podman exec -e PGPASSWORD="${DB_PASSWORD}" ${DB_CONTAINER} pg_isready -U "${DB_USER}" -d "${DB_NAME}" >/dev/null 2>&1; do sleep 2; done'
-ExecStart=/bin/sh -lc '"${APP_DEPLOY_SCRIPT}" --app-only'
+ExecStart=/bin/sh -lc 'APP_IMAGE=${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=${ACT_KNOWLEDGE_DEPLOYMENT_MODE} "${APP_DEPLOY_SCRIPT}" --app-only'
 ${SUBMISSION_EXEC_STOP_LINES}
 ExecStop=/usr/bin/podman stop -t 20 ${WORKER_CONTAINER}
 ExecStop=/usr/bin/podman stop -t 20 ${APP_CONTAINER}

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Award, Clock, Gauge, Sparkles, TrendingUp } from 'lucide-react';
 import { JUDGE_THRESHOLDS } from '../types';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 import {
   preloadInteractiveSimulationRuntime,
   runSecondOrderStepResponse,
@@ -144,17 +145,7 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
     };
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(score);
-
-    if (pass && !interactive?.progress.isComplete) {
-      const completion: WidgetResult = {
-        success: true,
-        score,
-        data: snapshot.data,
-      };
-      interactive?.progress.markComplete(completion);
-      onComplete?.(completion);
-    }
-  }, [result, score, pass, zeta, omega, duration, interactive, onComplete, onStateChange]);
+  }, [result, score, pass, zeta, omega, duration, interactive, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -172,6 +163,21 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
           </span>
         </div>
       </div>
+      <PathResourceContinueAction
+        enabled={pass}
+        result={{
+          success: true,
+          score,
+          data: {
+            zeta,
+            omega,
+            duration,
+            pass,
+            metrics: result.metrics,
+          },
+        }}
+        onComplete={onComplete}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
         <aside className="space-y-4">

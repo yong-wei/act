@@ -270,10 +270,11 @@ describe('unit 4-3 interactive course', () => {
       'utf8',
     );
 
-    expect(runtimeMediaIndex).toBe(authoringMediaIndex);
+    expect(authoringMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=1a50c1d16508fe1d4bc869b994589a83');
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=1a50c1d16508fe1d4bc869b994589a83');
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=2613b2f360c95d3501065357cca826a8');
     expect(runtimeMediaIndex).toContain('/preview/v2/objectshowpreview.html?objectid=72807c2c1b065890244844904f59977b');
+    expect(runtimeMediaIndex).not.toContain('本地成品已发布');
   });
 
   it('routes migrated compute.panel compound panels through the native 4-3 renderer', async () => {

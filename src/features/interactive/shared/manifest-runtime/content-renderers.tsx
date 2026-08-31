@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -12,20 +12,22 @@ import type {
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
 import { buildAnnotatedMediaClientEvidenceDraft } from './annotated-media-evidence';
-import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
 import { buildStructureDiagramClientEvidenceDraft } from './structure-diagram-evidence';
-import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
-import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
-import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
-import { persistControlWorkbenchRun } from '@/resources/simulations/persisted-run-client';
-import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
-import { ControlWorkbenchComparisonPanel } from './control-workbench-comparison-panel';
+import { computeCapabilityRef } from './compute-capability-ref';
 import {
-  buildControlWorkbenchComparisonRequests,
-  buildControlWorkbenchValidationSnapshot,
-  isControlWorkbenchSubmissionReady,
-  type ControlWorkbenchComparisonSnapshot,
-} from './control-workbench-comparison';
+  asRecord,
+  blockByKey,
+  blockByModuleId,
+  blockFor,
+  numericArray,
+  runtimeMediaPath,
+  stringField,
+  titleFromModule,
+} from './manifest-payload-fields';
+import { composeManifestPluginRegistry, type ManifestPluginRegistry } from './plugins/plugin-contract';
+import { staticSurface3DPluginSet } from './plugins/static-surface-3d-module';
+import { controlWorkbenchPluginSet } from './plugins/control-workbench-module';
+import { interactiveFigurePluginSet } from './plugins/interactive-figure-module';
 
 type ContentRecord = Record<string, unknown>;
 type ManifestComputePanelSubmission = {
@@ -33,24 +35,12 @@ type ManifestComputePanelSubmission = {
   submittedAt: number;
   answers: Record<string, string>;
 };
-type ControlWorkbenchSubmissionField = {
-  key: string;
-  label: string;
-  input: 'text' | 'number' | 'slider' | 'select' | 'toggle';
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: string[];
-  presets?: number[];
-  defaultValue?: string | number | boolean;
-};
 type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
 type RevealItem = { body: string; formula?: string; title?: string };
 type FormulaSymbol = { symbol: string; meaning: string };
 type CodeTokenKind = 'keyword' | 'function' | 'number' | 'string' | 'comment' | 'operator' | 'plain';
 type CodeToken = { value: string; kind: CodeTokenKind };
-type InteractiveFigureKind = 'drag_pole_s_plane' | 'three_ships_case';
 type VisualStageAspectRatio = '16:9' | '4:3' | 'fluid';
 type VisualStageLayerKind = 'diagram' | 'formula' | 'annotation' | 'media' | 'activity' | 'control';
 type VisualStageLayerAppearance = 'card' | 'flowNode' | 'note' | 'objective';
@@ -318,10 +308,6 @@ const MATLAB_CONTROL_FUNCTIONS = new Set([
   'title',
 ]);
 
-function asRecord(value: unknown): ContentRecord {
-  return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
-}
-
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -402,63 +388,6 @@ function renderFormulaContent(formula: string) {
   }
 
   return <p className="interactive-courseware-body">{renderInlineContent(value)}</p>;
-}
-
-const MODULE_KIND_TITLE: Record<string, string> = {
-  'bullet-list-card': '要点',
-  'comparison-graphic': '图示',
-  'content.code': '代码',
-  'formula-card': '公式',
-  'formula-card-row': '公式',
-  'goal-card-row': '本次课程目标',
-  'image-panel': '图示',
-  'interactive-figure-panel': '互动图形',
-  'learning-stat-panel': '课堂表现统计',
-  'performance-summary': '课堂表现统计',
-  'native-formula-table': '公式表',
-  'native-table': '表格',
-  'problem-statement': '题面',
-  'reveal-chain': '推导步骤',
-  'stat-panel': '课堂表现统计',
-  'step-reveal': '推导步骤',
-  'step-reveal-chain': '推导步骤',
-  'summary-card': '要点',
-  'summary-card-grid': '要点',
-};
-
-function isInternalTitleCandidate(value: string, module: InteractiveRuntimeModuleManifest) {
-  const title = value.trim();
-  if (!title) return true;
-  if (/[\u4e00-\u9fff]/.test(title)) return false;
-  if (title === module.id || title === module.id.replace(/-/g, '_')) return true;
-  const payloadKeys = [
-    module.payload.block_key,
-    module.payload.blockKey,
-    module.payload.image_key,
-    module.payload.imageKey,
-    module.payload.panel_id,
-    module.payload.panelId,
-    module.payload.spec_key,
-    module.payload.specKey,
-  ].filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
-  if (payloadKeys.includes(title)) return true;
-  return false;
-}
-
-function titleFromBlock(value: unknown) {
-  const record = asRecord(value);
-  return [record.title, record.caption, record.alt, record.name, record.label]
-    .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
-}
-
-function titleFromModule(module: InteractiveRuntimeModuleManifest, step?: InteractiveRuntimeStepManifest) {
-  const title = module.title ?? module.payload.title ?? module.payload.caption;
-  if (typeof title === 'string' && title.trim() && !isInternalTitleCandidate(title, module)) return title;
-  if (step) {
-    const blockTitle = titleFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module));
-    if (blockTitle && !isInternalTitleCandidate(blockTitle, module)) return blockTitle;
-  }
-  return MODULE_KIND_TITLE[module.kind] ?? '学习内容';
 }
 
 function uniqueStrings(items: string[]) {
@@ -1956,57 +1885,6 @@ function ManifestSubsectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-function blockFor(step: InteractiveRuntimeStepManifest, payload: ContentRecord) {
-  const key = payload.block_key ?? payload.blockKey ?? payload.formula_key ?? payload.formulaKey ?? payload.image_key ?? payload.imageKey;
-  return typeof key === 'string' && key ? step.contentBlocks[key] : undefined;
-}
-
-function stringField(source: ContentRecord, keys: string[]) {
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'string' && value.trim()) return value;
-  }
-  return '';
-}
-
-function blockByKey(step: InteractiveRuntimeStepManifest, key: string) {
-  return step.contentBlocks[key];
-}
-
-function blockByModuleId(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const normalizedId = module.id.replace(/-/g, '_');
-  const candidates = [
-    normalizedId,
-    normalizedId.replace(/_card$/, ''),
-    normalizedId.replace(/_cards$/, ''),
-    normalizedId.replace(/_list$/, '_list'),
-    normalizedId.replace(/_figure$/, '_figure'),
-    normalizedId.replace(/_reading$/, '_reading'),
-  ];
-  const parts = normalizedId.split('_').filter(Boolean);
-  if (parts.length > 1) {
-    candidates.push(parts.slice(-2).join('_'));
-    candidates.push(parts[parts.length - 1]);
-  }
-  if (normalizedId.includes('conclusion')) {
-    candidates.push('conclusion', 'structure_conclusion', 'delivery_judgment');
-  }
-  if (normalizedId.includes('reading') && normalizedId.includes('prompt')) candidates.push('reading_prompt');
-  if (normalizedId.includes('prompt')) candidates.push('prompt');
-  if (normalizedId.includes('criteria')) candidates.push('criteria');
-  if (normalizedId.includes('setting')) candidates.push('search_settings');
-  if (normalizedId.includes('family') || normalizedId.includes('structure')) candidates.push('structures', 'structure_code_fields');
-  if (normalizedId.includes('frontier') || normalizedId.includes('method')) candidates.push('frontier_methods');
-  if (normalizedId.includes('limitation')) candidates.push('limitations');
-  if (normalizedId.includes('header')) candidates.push('header');
-  if (normalizedId.includes('explanation')) candidates.push('figure_explanation', 'formula_explanation');
-  for (const key of candidates) {
-    const block = blockByKey(step, key);
-    if (block !== undefined) return block;
-  }
-  return undefined;
-}
-
 function codePayload(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
   const payload = module.payload;
   const block = asRecord(blockFor(step, payload));
@@ -2213,11 +2091,6 @@ function formulaSymbols(step: InteractiveRuntimeStepManifest, module: Interactiv
   return [];
 }
 
-function runtimeMediaPath(manifest: InteractiveRuntimeManifest, path: string) {
-  if (path.startsWith('/')) return path;
-  return `/course-runtime/lessons/${manifest.lessonId}/media/${path}`;
-}
-
 function mediaPathFromBlock(value: unknown, imageIndex: number, imageCount: number) {
   const record = asRecord(value);
   const direct = record.runtime_media ?? record.runtimeMedia ?? record.path ?? record.src ?? record.asset;
@@ -2306,708 +2179,8 @@ function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: Co
     .filter((item): item is { src: string; caption: string } => Boolean(item));
 }
 
-function staticSurfacePanelProps(
-  manifest: InteractiveRuntimeManifest,
-  step: InteractiveRuntimeStepManifest,
-  module: InteractiveRuntimeModuleManifest,
-): StaticSurface3DPanelProps {
-  const payload = module.payload;
-  const block = asRecord(blockFor(step, payload));
-  const data = asRecord(payload.data ?? payload.dataSource ?? payload.surfaceData);
-  const axes = asRecord(payload.axes);
-  const colorScale = asRecord(payload.colorScale ?? payload.color_scale);
-  const defaultCamera = asRecord(payload.defaultCamera ?? payload.default_camera);
-  const fallback = asRecord(payload.fallback);
-  const fallbackImage = stringField(fallback, ['image', 'src', 'path'])
-    || stringField(payload, ['fallback_image', 'fallbackImage']);
-  const dataUrl = stringField(data, ['url', 'src', 'path']);
-
-  return {
-    moduleId: module.id,
-    title: titleFromModule(module, step),
-    caption: stringField(payload, ['caption', 'description', 'text'])
-      || stringField(block, ['description', 'body', 'text']),
-    dataUrl: dataUrl ? runtimeMediaPath(manifest, dataUrl) : undefined,
-    dataset: staticSurfaceDataset(data),
-    axes: {
-      x: { label: axisLabel(axes.x, '实部 σ') },
-      y: { label: axisLabel(axes.y, '虚部 jω') },
-      z: { label: axisLabel(axes.z, '幅值') },
-    },
-    colorScale: {
-      label: stringField(colorScale, ['label', 'title']) || '幅值',
-      min: numberField(colorScale, ['min']),
-      max: numberField(colorScale, ['max']),
-    },
-    defaultCamera: {
-      position: numberTuple3(defaultCamera.position, [3, 3, 2]),
-      target: numberTuple3(defaultCamera.target, [0, 0, 0]),
-      zoom: numberField(defaultCamera, ['zoom']) ?? 1,
-    },
-    fallback: {
-      image: runtimeMediaPath(manifest, fallbackImage),
-      alt: stringField(fallback, ['alt', 'description'])
-        || stringField(block, ['description', 'body', 'text'])
-        || `${titleFromModule(module, step)}静态图`,
-      note: stringField(fallback, ['note']),
-    },
-    markers: markerConfigs(payload.markers ?? block.markers),
-  };
-}
-
-function axisLabel(value: unknown, fallback: string) {
-  const axis = asRecord(value);
-  return stringField(axis, ['label', 'title', 'name']) || fallback;
-}
-
-function numberField(source: ContentRecord, keys: string[]) {
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
-  }
-  return undefined;
-}
-
-function numberTuple3(value: unknown, fallback: [number, number, number]): [number, number, number] {
-  if (!Array.isArray(value) || value.length < 3) return fallback;
-  const tuple = value.slice(0, 3).map((item) => Number(item));
-  return tuple.every((item) => Number.isFinite(item))
-    ? tuple as [number, number, number]
-    : fallback;
-}
-
-function markerConfigs(value: unknown): StaticSurface3DPanelProps['markers'] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      const marker = asRecord(item);
-      const label = stringField(marker, ['label', 'title']);
-      if (!label) return null;
-      return {
-        label,
-        position: numberTuple3(marker.position, [0, 0, 0]),
-      };
-    })
-    .filter((item): item is NonNullable<StaticSurface3DPanelProps['markers']>[number] => Boolean(item));
-}
-
-function staticSurfaceDataset(data: ContentRecord): StaticSurfaceDataset | undefined {
-  const regularGrid = asRecord(data.regularGrid);
-  if (regularGrid.x || regularGrid.y || regularGrid.values) {
-    return {
-      regularGrid: {
-        x: numericArray(regularGrid.x),
-        y: numericArray(regularGrid.y),
-        values: numericRows(regularGrid.values),
-      },
-      markers: markerConfigs(data.markers),
-    };
-  }
-
-  if (Array.isArray(data.vertices)) {
-    return {
-      vertices: pointRows(data.vertices),
-      indices: triangleRows(data.indices) ?? numericArray(data.indices),
-      markers: markerConfigs(data.markers),
-    };
-  }
-
-  return undefined;
-}
-
-function interactiveFigureSpecKey(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
-  const block = asRecord(blockFor(step, module.payload));
-  return stringField(module.payload, ['spec_key', 'specKey'])
-    || stringField(block, ['spec_key', 'specKey']);
-}
-
-function isInteractiveFigureKind(value: string): value is InteractiveFigureKind {
-  return value === 'drag_pole_s_plane' || value === 'three_ships_case';
-}
-
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
-}
-
-function svgPath(points: Array<{ x: number; y: number }>) {
-  return points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
-    .join(' ');
-}
-
-function responsePoints({
-  sigma,
-  omega,
-  mode,
-  width,
-  height,
-  timeScale = 1,
-}: {
-  sigma: number;
-  omega: number;
-  mode: 'conjugate_pair' | 'single_real';
-  width: number;
-  height: number;
-  timeScale?: number;
-}) {
-  const points: Array<{ x: number; raw: number }> = [];
-  const horizon = 8 / Math.max(1, timeScale);
-  for (let index = 0; index <= 96; index += 1) {
-    const t = (index / 96) * horizon;
-    const envelope = Math.exp(sigma * t);
-    const raw = mode === 'single_real'
-      ? 1 - envelope
-      : 1 - envelope * Math.cos(Math.max(0.05, omega) * t);
-    points.push({ x: (index / 96) * width, raw });
-  }
-  const rawValues = points.map((point) => point.raw);
-  const minY = Math.min(-1.5, ...rawValues);
-  const maxY = Math.max(2.5, ...rawValues);
-  return points.map((point) => ({
-    x: point.x,
-    y: height - ((point.raw - minY) / Math.max(1e-6, maxY - minY)) * height,
-  }));
-}
-
-function PoleResponseComputePanel({
-  step,
-  module,
-  onPanelSubmit,
-}: {
-  step: InteractiveRuntimeStepManifest;
-  module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
-}) {
-  const [sigma, setSigma] = useState(-1);
-  const [omega, setOmega] = useState(2);
-  const [mode, setMode] = useState<'conjugate_pair' | 'single_real'>('conjugate_pair');
-  const [observationText, setObservationText] = useState('左半平面对应收敛，虚部越大摆动越密。');
-  const plotWidth = 320;
-  const plotHeight = 180;
-  const planeX = ((clamp(sigma, -5, 2) + 5) / 7) * plotWidth;
-  const planeY = plotHeight - (clamp(omega, 0, 5) / 5) * plotHeight;
-  const curve = responsePoints({ sigma, omega, mode, width: plotWidth, height: plotHeight });
-  const cardId = step.interactionSpec.activityCards?.[0]?.id ?? 'drag-pole-submit';
-
-  const submitCurrent = () => {
-    if (!onPanelSubmit) return;
-    onPanelSubmit?.({
-      stepId: step.id,
-      submittedAt: Date.now(),
-      answers: {
-        [cardId]: JSON.stringify({
-          sigma: sigma.toFixed(2),
-          omega: mode === 'single_real' ? '0.00' : omega.toFixed(2),
-          observation_text: observationText,
-        }),
-      },
-    });
-  };
-
-  return (
-    <section className="premium-lesson-panel interactive-courseware-panel" data-interactive-figure-panel="drag_pole_s_plane" data-module-id={module.id}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="premium-lesson-kicker">极点行为地图</div>
-          <h3 className="interactive-courseware-title-level-3">拖动极点看响应</h3>
-          <p className="interactive-courseware-body">左侧记录极点坐标，右侧实时显示对应的响应走势。</p>
-        </div>
-        <button
-          type="button"
-          onClick={submitCurrent}
-          disabled={!onPanelSubmit}
-          className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {onPanelSubmit ? '提交当前参数' : '等待教师发放'}
-        </button>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="premium-lesson-surface-elevated p-3">
-          <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[220px] w-full" role="img" aria-label="极点复平面">
-            <rect x="0" y="0" width={plotWidth / 7 * 5} height={plotHeight} fill="hsl(var(--platform-action-primary) / 0.10)" />
-            <rect x={plotWidth / 7 * 5} y="0" width={plotWidth / 7 * 2} height={plotHeight} fill="hsl(var(--platform-evidence-unsupported) / 0.10)" />
-            <line x1={plotWidth / 7 * 5} y1="0" x2={plotWidth / 7 * 5} y2={plotHeight} stroke="hsl(var(--platform-fg-secondary))" strokeWidth="2" />
-            <line x1="0" y1={plotHeight} x2={plotWidth} y2={plotHeight} stroke="hsl(var(--platform-border-strong))" />
-            <line x1="0" y1={plotHeight} x2="0" y2="0" stroke="hsl(var(--platform-border-strong))" />
-            <text x="10" y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">稳定区</text>
-            <text x={plotWidth - 60} y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">不稳定区</text>
-            <text x={plotWidth / 7 * 5 + 6} y={plotHeight - 8} fill="hsl(var(--platform-fg-muted))" className="text-[10px]">虚轴</text>
-            <circle cx={planeX} cy={planeY} r="8" fill="hsl(var(--platform-action-primary))" />
-            <line x1={planeX - 12} y1={planeY} x2={planeX + 12} y2={planeY} stroke="hsl(var(--platform-fg-inverse))" strokeWidth="2" />
-            <line x1={planeX} y1={planeY - 12} x2={planeX} y2={planeY + 12} stroke="hsl(var(--platform-fg-inverse))" strokeWidth="2" />
-          </svg>
-        </div>
-        <div className="premium-lesson-surface-elevated p-3">
-          <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[220px] w-full" role="img" aria-label="极点对应的时域响应">
-            <line x1="0" y1={plotHeight * 0.58} x2={plotWidth} y2={plotHeight * 0.58} stroke="hsl(var(--platform-border))" strokeDasharray="4 4" />
-            <path d={svgPath(curve)} fill="none" stroke="hsl(var(--platform-action-primary))" strokeWidth="3" />
-            <text x="10" y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">响应曲线</text>
-          </svg>
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-4">
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
-          <span>σ（实部）</span>
-          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="-5" max="2" step="0.1" value={sigma} onChange={(event) => setSigma(Number(event.target.value))} />
-          <span className="premium-lesson-caption">{sigma.toFixed(1)}</span>
-        </label>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
-          <span>ω（虚部）</span>
-          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="0" max="5" step="0.1" value={omega} disabled={mode === 'single_real'} onChange={(event) => setOmega(Number(event.target.value))} />
-          <span className="premium-lesson-caption">{mode === 'single_real' ? '0.0' : omega.toFixed(1)}</span>
-        </label>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
-          <span>极点模式</span>
-          <select className="premium-lesson-select" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>
-            <option value="conjugate_pair">共轭极点</option>
-            <option value="single_real">单实极点</option>
-          </select>
-        </label>
-        <button type="button" className="premium-lesson-action-tone interactive-courseware-control premium-tone-slate self-end px-4 py-2" onClick={() => { setSigma(-1); setOmega(2); setMode('conjugate_pair'); }}>
-          复位
-        </button>
-      </div>
-
-      <label className="premium-lesson-control block px-3 py-2 interactive-courseware-control">
-        <span className="premium-lesson-title font-medium">行为特征</span>
-        <textarea value={observationText} onChange={(event) => setObservationText(event.target.value)} className="premium-lesson-input mt-2 min-h-[76px] w-full" />
-      </label>
-    </section>
-  );
-}
-
-function ThreeShipsCaseComputePanel({
-  step,
-  module,
-  onPanelSubmit,
-}: {
-  step: InteractiveRuntimeStepManifest;
-  module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
-}) {
-  const [selectedShip, setSelectedShip] = useState<'A' | 'B' | 'C' | 'all'>('all');
-  const [timeScale, setTimeScale] = useState(1.5);
-  const [interactionCount, setInteractionCount] = useState(0);
-  const plotWidth = 360;
-  const plotHeight = 190;
-  const shipSeries = [
-    { id: 'A', label: 'A：边摆边收', sigma: -1.5, omega: 2.2, stroke: 'hsl(var(--platform-action-primary))' },
-    { id: 'B', label: 'B：单调收敛', sigma: -0.8, omega: 0, stroke: 'hsl(var(--platform-evidence-eligible))' },
-    { id: 'C', label: 'C：摆动发散', sigma: 0.3, omega: 1.4, stroke: 'hsl(var(--platform-evidence-unsupported))' },
-  ] as const;
-  const visible = shipSeries.filter((ship) => selectedShip === 'all' || ship.id === selectedShip);
-  const updateSelectedShip = (ship: 'A' | 'B' | 'C' | 'all') => {
-    setSelectedShip(ship);
-    setInteractionCount((value) => value + 1);
-  };
-  const updateTimeScale = (value: number) => {
-    setTimeScale(value);
-    setInteractionCount((current) => current + 1);
-  };
-  const submitSimulationRecord = () => {
-    if (!onPanelSubmit) return;
-    onPanelSubmit({
-      stepId: step.id,
-      submittedAt: Date.now(),
-      answers: {
-        [module.id]: JSON.stringify({
-          selected_ship: selectedShip,
-          time_scale: timeScale.toFixed(1),
-          simulation_interaction_count: interactionCount,
-          compared_ships: selectedShip === 'all' ? ['A', 'B', 'C'] : [selectedShip],
-        }),
-      },
-    });
-  };
-
-  return (
-    <section className="premium-lesson-panel interactive-courseware-panel" data-interactive-figure-panel="three_ships_case" data-module-id={module.id}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="premium-lesson-kicker">三艘船响应仿真</div>
-          <h3 className="interactive-courseware-title-level-3">同样指令下的三种极点行为</h3>
-          <p className="interactive-courseware-body">切换船型，观察“边摆边收、单调收敛、摆动发散”与极点位置的对应关系。</p>
-        </div>
-        <button
-          type="button"
-          onClick={submitSimulationRecord}
-          disabled={!onPanelSubmit}
-          className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {onPanelSubmit ? '记录比较' : '等待教师发放'}
-        </button>
-      </div>
-      <div className="premium-lesson-surface-elevated p-3">
-        <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[240px] w-full" role="img" aria-label="三艘船航向响应曲线">
-          <line x1="0" y1={plotHeight * 0.55} x2={plotWidth} y2={plotHeight * 0.55} stroke="hsl(var(--platform-border))" strokeDasharray="4 4" />
-          {visible.map((ship) => (
-            <path
-              key={ship.id}
-              d={svgPath(responsePoints({
-                sigma: ship.sigma,
-                omega: ship.omega,
-                mode: ship.omega === 0 ? 'single_real' : 'conjugate_pair',
-                width: plotWidth,
-                height: plotHeight,
-                timeScale,
-              }))}
-              fill="none"
-              stroke={ship.stroke}
-              strokeWidth="3"
-            />
-          ))}
-          {visible.map((ship, index) => (
-            <g key={ship.id} transform={`translate(18, ${22 + index * 20})`}>
-              <line x1="0" y1="0" x2="24" y2="0" stroke={ship.stroke} strokeWidth="3" />
-              <text x="32" y="4" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">{ship.label}</text>
-            </g>
-          ))}
-        </svg>
-      </div>
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
-        <div className="flex flex-wrap gap-2">
-          {(['all', 'A', 'B', 'C'] as const).map((ship) => (
-            <button
-              key={ship}
-              type="button"
-              onClick={() => updateSelectedShip(ship)}
-              className={`premium-lesson-action-tone interactive-courseware-control ${selectedShip === ship ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
-            >
-              {ship === 'all' ? '全部' : `船 ${ship}`}
-            </button>
-          ))}
-        </div>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
-          <span>时间轴缩放</span>
-          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="1" max="5" step="0.5" value={timeScale} onChange={(event) => updateTimeScale(Number(event.target.value))} />
-        </label>
-      </div>
-    </section>
-  );
-}
-
-function InteractiveFigureComputePanel({
-  step,
-  module,
-  onPanelSubmit,
-}: {
-  step: InteractiveRuntimeStepManifest;
-  module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
-}) {
-  const specKey = interactiveFigureSpecKey(step, module);
-  if (isInteractiveFigureKind(specKey)) {
-    return specKey === 'drag_pole_s_plane'
-      ? <PoleResponseComputePanel step={step} module={module} onPanelSubmit={onPanelSubmit} />
-      : <ThreeShipsCaseComputePanel step={step} module={module} onPanelSubmit={onPanelSubmit} />;
-  }
-  const content = summaryContent(step, module);
-  return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-}
-
-export function tryBeginControlWorkbenchSubmission(lock: { current: boolean }) {
-  if (lock.current) return false;
-  lock.current = true;
-  return true;
-}
-
-function SharedControlWorkbenchComputePanel({
-  manifest,
-  step,
-  module,
-  onPanelSubmit,
-  showFrequencyReadings = true,
-}: {
-  manifest: InteractiveRuntimeManifest;
-  step: InteractiveRuntimeStepManifest;
-  module: InteractiveRuntimeModuleManifest;
-  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void | Promise<void>;
-  showFrequencyReadings?: boolean;
-}) {
-  const capabilityRef = computeCapabilityRef(module.payload);
-  const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
-  const responseContractId = stringField(module.payload, ['responseContractId', 'response_contract_id', 'responseKind', 'response_kind']);
-  const releaseState = stringField(module.payload, ['releaseState', 'release_state']) || 'course-controlled';
-  const fallbackState = stringField(module.payload, ['fallbackState', 'fallback_state']) || 'supported';
-  const request = controlAnalysisRequestFromPayload(module.payload);
-  const fallbackResult = controlAnalysisResultFromPayload(module.payload);
-  const layout = controlWorkbenchLayoutFromPayload(module.payload);
-  const hidePerformanceMetricsMeta = module.payload.hidePerformanceMetricsMeta === true
-    || module.payload.hide_performance_metrics_meta === true;
-  const submissionFields = controlWorkbenchSubmissionFieldsFromPayload(module.payload);
-  const [submissionValues, setSubmissionValues] = useState<Record<string, string | number | boolean>>(() =>
-    initialControlWorkbenchSubmissionValues(module.payload, request),
-  );
-  const dynamicRequest = useMemo(
-    () => buildControlWorkbenchRequestForSubmission(module.payload, submissionValues),
-    [module.payload, submissionValues],
-  );
-  const comparisonRequests = useMemo(
-    () => dynamicRequest ? buildControlWorkbenchComparisonRequests({
-      baseRequest: dynamicRequest,
-      payload: module.payload,
-      values: submissionValues,
-    }) : [],
-    [dynamicRequest, module.payload, submissionValues],
-  );
-  const dynamicRequestKey = useMemo(() => JSON.stringify(dynamicRequest), [dynamicRequest]);
-  const comparisonRequestKey = useMemo(
-    () => JSON.stringify(comparisonRequests.map((comparison) => ({ id: comparison.id, request: comparison.request }))),
-    [comparisonRequests],
-  );
-  const [currentResultEntry, setCurrentResultEntry] = useState<{ requestKey: string; result: ControlAnalysisResult | null } | null>(null);
-  const [comparisonState, setComparisonState] = useState<{ requestKey: string; snapshots: ControlWorkbenchComparisonSnapshot[]; ready: boolean }>({
-    requestKey: '',
-    snapshots: [],
-    ready: false,
-  });
-  const [submitPending, setSubmitPending] = useState(false);
-  const submitPendingRef = useRef(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const handleCurrentResult = useCallback((result: ControlAnalysisResult | null, requestKey: string) => {
-    setCurrentResultEntry({ requestKey, result });
-  }, []);
-  const handleComparisonSnapshots = useCallback((snapshots: ControlWorkbenchComparisonSnapshot[], ready: boolean) => {
-    setComparisonState({ requestKey: comparisonRequestKey, snapshots, ready });
-  }, [comparisonRequestKey]);
-  const currentResult = currentResultEntry?.requestKey === dynamicRequestKey ? currentResultEntry.result : null;
-  const comparisonSnapshots = comparisonState.requestKey === comparisonRequestKey ? comparisonState.snapshots : [];
-  const comparisonsReady = comparisonRequests.length === 0
-    || (comparisonState.requestKey === comparisonRequestKey
-      && comparisonState.ready
-      && comparisonSnapshots.length === comparisonRequests.length);
-  const resultReady = Boolean(currentResult && !currentResult.isFallback);
-  const submissionReady = isControlWorkbenchSubmissionReady({
-    currentRequestKey: dynamicRequestKey,
-    currentResultEntry,
-    comparisonRequestKey,
-    comparisonState,
-    comparisonCount: comparisonRequests.length,
-    submitPending,
-  });
-  const canSubmit = Boolean(
-    onPanelSubmit
-    && capabilityRef
-    && submissionReady
-    && controlWorkbenchSubmissionFieldsComplete(submissionFields, submissionValues),
-  );
-  const currentPanelIds = comparisonRequests.length
-    ? visiblePanelIds.filter((panelId) => !['step-response', 'time-domain', 'bode', 'magnitude', 'phase'].includes(panelId))
-    : visiblePanelIds;
-  const content = summaryContent(step, module);
-  const bullets = [
-    visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
-    responseContractId ? '提交会保存当前参数、图形状态和判断。' : '提交方式由课程活动设置提供。',
-    fallbackState === 'unsupported' ? '当前状态仅提供替代说明。' : '本次参数探索可用于课后复盘。',
-    ...content.bullets,
-  ];
-  const submitCurrent = async () => {
-    if (!onPanelSubmit || !capabilityRef || !canSubmit || !currentResult || !dynamicRequest
-      || !tryBeginControlWorkbenchSubmission(submitPendingRef)) return;
-    setSubmitPending(true);
-    setSubmitError(null);
-    const submittedAt = Date.now();
-    try {
-      const clientRunId = `${step.id}:${module.id}:${submittedAt}`;
-      const { simulationRunId } = await persistControlWorkbenchRun({
-        clientRunId,
-        capabilityId: capabilityRef,
-        request: dynamicRequest,
-        launchContext: {
-          lessonId: manifest.lessonId,
-          stepId: step.id,
-          moduleId: module.id,
-          resourceId: module.id,
-        },
-      });
-      const eventDraft = buildSharedControlWorkbenchEvidenceDraft({
-        manifest,
-        step,
-        module,
-        submittedAt,
-        submissionValues,
-        validationSnapshot: buildControlWorkbenchValidationSnapshot(currentResult),
-        comparisonSnapshots,
-        derivedResultRefs: [{ kind: 'SimulationRun', id: simulationRunId }],
-      });
-      if (!eventDraft) return;
-      await onPanelSubmit({
-        stepId: step.id,
-        submittedAt,
-        answers: {
-          [responseContractId ?? `${module.id}:control-workbench`]: JSON.stringify(eventDraft),
-        },
-      });
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : '提交失败，请重试。');
-    } finally {
-      submitPendingRef.current = false;
-      setSubmitPending(false);
-    }
-  };
-
-  return (
-    <section
-      className="premium-lesson-panel interactive-courseware-panel"
-      data-control-workbench-capability={capabilityRef}
-      data-control-workbench-module-id={module.id}
-      data-control-workbench-release-state={releaseState}
-      data-control-workbench-fallback-state={fallbackState}
-    >
-      <SummaryCard
-        title={titleFromModule(module, step)}
-        text={content.text || '本页使用控制分析工具观察参数变化、曲线响应和设计判断。'}
-        bullets={bullets}
-      />
-      {dynamicRequest ? (
-        <>
-          <ControlFigureWorkspace
-            request={dynamicRequest}
-            fallbackResult={fallbackResult}
-            layout={layout}
-            allowedPanelIds={currentPanelIds}
-            hidePerformanceMetricsMeta={hidePerformanceMetricsMeta}
-            showFrequencyReadings={showFrequencyReadings}
-            onResult={handleCurrentResult}
-          />
-          {comparisonRequests.length ? (
-            <ControlWorkbenchComparisonPanel
-              comparisons={comparisonRequests}
-              showTimeDomain={visiblePanelIds.some((panelId) => ['step-response', 'time-domain'].includes(panelId))}
-              showBode={visiblePanelIds.some((panelId) => ['bode', 'magnitude', 'phase'].includes(panelId))}
-              onSnapshotsChange={handleComparisonSnapshots}
-            />
-          ) : null}
-          {submissionFields.length > 0 ? (
-            <div className="premium-lesson-panel-soft grid gap-3 p-4 sm:grid-cols-2">
-              {submissionFields.map((field) => (
-                <div key={field.key} className="grid gap-1 interactive-courseware-control">
-                  <label
-                    className="premium-lesson-muted block"
-                    htmlFor={`control-workbench-${module.id}-${field.key}`}
-                  >
-                    {field.label}
-                  </label>
-                  {field.input === 'select' || field.input === 'toggle' ? (
-                    <select
-                      id={`control-workbench-${module.id}-${field.key}`}
-                      name={field.key}
-                      className="premium-lesson-select w-full"
-                      value={String(submissionValues[field.key] ?? '')}
-                      onChange={(event) => {
-                        const nextValue = event.currentTarget.value;
-                        setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
-                      }}
-                    >
-                      {submissionValues[field.key] === undefined || submissionValues[field.key] === '' ? (
-                        <option value="" disabled>请选择</option>
-                      ) : null}
-                      {(field.options ?? []).map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                  ) : field.input === 'slider' ? (
-                    <div className="grid gap-2">
-                      <output
-                        htmlFor={`control-workbench-${module.id}-${field.key}`}
-                        className="text-sm font-semibold text-platform-fg-primary"
-                        aria-live="polite"
-                      >
-                        当前值：{String(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
-                      </output>
-                      <input
-                        id={`control-workbench-${module.id}-${field.key}`}
-                        name={field.key}
-                        className="w-full accent-current"
-                        type="range"
-                        min={field.min}
-                        max={field.max}
-                        step={field.step ?? 0.1}
-                        value={Number(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
-                        onChange={(event) => {
-                          const nextValue = Number(event.currentTarget.value);
-                          setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
-                        }}
-                      />
-                      {field.presets?.length ? (
-                        <div className="flex flex-wrap gap-2" aria-label={`${field.label}代表点`}>
-                          {field.presets.map((preset) => (
-                            <button
-                              key={preset}
-                              type="button"
-                              className="premium-lesson-action-tone interactive-courseware-control px-3 py-1.5 text-xs"
-                              onClick={() => setSubmissionValues((prev) => ({ ...prev, [field.key]: preset }))}
-                            >
-                              {preset}
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <input
-                      id={`control-workbench-${module.id}-${field.key}`}
-                      name={field.key}
-                      className="premium-lesson-input w-full"
-                      type={field.input === 'number' ? 'number' : 'text'}
-                      min={field.min}
-                      max={field.max}
-                      step={field.step}
-                      value={String(submissionValues[field.key] ?? '')}
-                      onChange={(event) => {
-                        const rawValue = event.currentTarget.value;
-                        const value = field.input === 'number' && rawValue !== '' ? Number(rawValue) : rawValue;
-                        setSubmissionValues((prev) => ({ ...prev, [field.key]: value }));
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => void submitCurrent()}
-            disabled={!canSubmit}
-            className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {!onPanelSubmit ? '等待教师发放' : submitPending ? '提交中...' : resultReady && comparisonsReady ? '提交当前观察' : '等待当前计算完成'}
-          </button>
-          {submitError ? (
-            <div className="premium-lesson-tone-block premium-tone-rose mt-3" role="alert">
-              {submitError} 当前结果仍保留，可再次提交。
-            </div>
-          ) : null}
-        </>
-      ) : null}
-    </section>
-  );
-}
-
-function numericArray(value: unknown): number[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => Number(item)).filter((item) => Number.isFinite(item));
-}
-
-function numericRows(value: unknown): number[][] {
-  if (!Array.isArray(value)) return [];
-  return value.map(numericArray);
-}
-
-function pointRows(value: unknown): Array<[number, number, number]> {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => numericArray(item).slice(0, 3))
-    .filter((item): item is [number, number, number] => item.length === 3);
-}
-
-function triangleRows(value: unknown): Array<[number, number, number]> | undefined {
-  if (!Array.isArray(value) || !Array.isArray(value[0])) return undefined;
-  return value
-    .map((item) => numericArray(item).slice(0, 3))
-    .filter((item): item is [number, number, number] => item.length === 3);
 }
 
 function textFromRecord(value: unknown) {
@@ -5172,6 +4345,15 @@ function stepRevealIdentityKey(
   return `${step.id}:${module.id}:${revealProgress}`;
 }
 
+const defaultManifestPluginRegistrySingleton: { registry?: ManifestPluginRegistry } = {};
+
+function defaultManifestPluginRegistry(): ManifestPluginRegistry {
+  if (!defaultManifestPluginRegistrySingleton.registry) {
+    defaultManifestPluginRegistrySingleton.registry = composeManifestPluginRegistry([staticSurface3DPluginSet, controlWorkbenchPluginSet, interactiveFigurePluginSet]);
+  }
+  return defaultManifestPluginRegistrySingleton.registry;
+}
+
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
@@ -5181,6 +4363,11 @@ export function createManifestContentModuleRegistry(extra: {
   showFrequencyReadings?: boolean;
   analyticsSummary?: string[];
   interactionMode?: 'active' | 'readonly';
+  /**
+   * Viewer role used for plugin role projection; student is the safe default
+   * so an omitted role can never leak teacher-only projections.
+   */
+  viewerRole?: 'student' | 'teacher';
 }): InteractiveModuleRegistry<typeof extra> {
   const annotatedMediaSharedState: AnnotatedMediaSharedStateStore = new Map();
   return {
@@ -5272,23 +4459,39 @@ export function createManifestContentModuleRegistry(extra: {
     'visual.signalFlowGraph': ({ manifest, step, module }) => <SignalFlowGraphPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
     'visual.annotatedMedia': ({ manifest, step, module }) => <AnnotatedMediaPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
     'visual.embedded-activity': ({ manifest, step, module }) => <EmbeddedActivityPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
-    'compute.panel': ({ manifest, step, module }) => {
-      if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
-        return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
+    'compute.panel': ({ manifest, step, module, extra: renderExtra }) => {
+      const pluginLookup = defaultManifestPluginRegistry().lookupModule({
+        moduleKind: module.kind,
+        capabilityRef: computeCapabilityRef(module.payload),
+        contractVersion: typeof module.payload.contractVersion === 'string'
+          ? module.payload.contractVersion
+          : typeof module.payload.contract_version === 'string'
+            ? module.payload.contract_version
+            : null,
+      });
+      if (pluginLookup.status === 'rendered') {
+        const plugin = pluginLookup.plugin;
+        const role = renderExtra.viewerRole ?? 'student';
+        return plugin.render({
+          manifest,
+          step,
+          module,
+          role,
+          onPanelSubmit: extra.onPanelSubmit,
+          showFrequencyReadings: extra.showFrequencyReadings,
+          payload: plugin.projectRole(plugin.schema({ manifest, step, module, role }), role),
+        });
       }
-      if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
+      if (pluginLookup.status === 'missing') {
         return (
-          <SharedControlWorkbenchComputePanel
-            manifest={manifest}
-            step={step}
-            module={module}
-            onPanelSubmit={extra.onPanelSubmit}
-            showFrequencyReadings={extra.showFrequencyReadings}
-          />
+          <div
+            data-manifest-plugin-missing={pluginLookup.contract.marker}
+            className="rounded-lg border border-platform-danger bg-platform-danger/5 p-4 text-sm text-platform-fg-primary"
+            role="alert"
+          >
+            {pluginLookup.contract.reason}
+          </div>
         );
-      }
-      if (computeCapabilityRef(module.payload) === 'interactive-figure') {
-        return <InteractiveFigureComputePanel step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
       }
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
@@ -5684,396 +4887,9 @@ export function createManifestContentModuleRegistry(extra: {
   };
 }
 
-function computeCapabilityRef(payload: ContentRecord) {
-  return stringField(payload, ['capabilityRef', 'capability_ref', 'capability']);
-}
 
-function stringArrayField(payload: ContentRecord, keys: string[]) {
-  for (const key of keys) {
-    const value = payload[key];
-    if (Array.isArray(value)) {
-      return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
-    }
-  }
-  return [];
-}
-
-function controlAnalysisRequestFromPayload(payload: ContentRecord): ControlAnalysisRequest | undefined {
-  const request = asRecord(payload.request ?? payload.analysisRequest ?? payload.analysis_request);
-  return isControlAnalysisRequest(request) ? request as unknown as ControlAnalysisRequest : undefined;
-}
-
-function controlAnalysisResultFromPayload(payload: ContentRecord): ControlAnalysisResult | undefined {
-  const fallback = asRecord(payload.fallbackResult ?? payload.fallback_result);
-  return isControlAnalysisResult(fallback) ? fallback as unknown as ControlAnalysisResult : undefined;
-}
-
-function controlWorkbenchLayoutFromPayload(payload: ContentRecord): 'quad' | 'platform' | 'standard-quad' {
-  const layout = stringField(payload, ['layout', 'workbenchLayout', 'workbench_layout']);
-  return layout === 'platform' || layout === 'standard-quad' ? layout : 'quad';
-}
-
-function controlWorkbenchSubmissionFieldsFromPayload(payload: ContentRecord): ControlWorkbenchSubmissionField[] {
-  const fields = payload.submissionFields ?? payload.submission_fields;
-  if (!Array.isArray(fields)) return [];
-  return fields
-    .map((item): ControlWorkbenchSubmissionField | null => {
-      const record = asRecord(item);
-      const key = typeof record.key === 'string' ? record.key.trim() : '';
-      const label = typeof record.label === 'string' ? record.label.trim() : key;
-      if (!key || !label) return null;
-      const input = typeof record.input === 'string' ? record.input : typeof record.type === 'string' ? record.type : 'text';
-      const normalizedInput = ['text', 'number', 'slider', 'select', 'toggle'].includes(input) ? input as ControlWorkbenchSubmissionField['input'] : 'text';
-      return {
-        key,
-        label,
-        input: normalizedInput,
-        min: Number.isFinite(Number(record.min)) ? Number(record.min) : undefined,
-        max: Number.isFinite(Number(record.max)) ? Number(record.max) : undefined,
-        step: Number.isFinite(Number(record.step)) ? Number(record.step) : undefined,
-        options: stringArrayField(record, ['options']),
-        presets: Array.isArray(record.presets)
-          ? record.presets.map(Number).filter((value) => Number.isFinite(value))
-          : undefined,
-        defaultValue: scalarSubmissionValue(record.defaultValue ?? record.default_value),
-      };
-    })
-    .filter((item): item is ControlWorkbenchSubmissionField => Boolean(item));
-}
-
-function scalarSubmissionValue(value: unknown): string | number | boolean | undefined {
-  if (typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  return undefined;
-}
-
-function submissionDefaultsFromPayload(payload: ContentRecord) {
-  return asRecord(payload.submissionDefaults ?? payload.submission_defaults ?? payload.defaultSubmission ?? payload.default_submission);
-}
-
-function initialControlWorkbenchSubmissionValues(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest | undefined,
-): Record<string, string | number | boolean> {
-  const fields = controlWorkbenchSubmissionFieldsFromPayload(payload);
-  const defaults = submissionDefaultsFromPayload(payload);
-  if (fields.length === 0) {
-    return parameterSnapshotFromRequest(request) as Record<string, string | number | boolean>;
-  }
-  return Object.fromEntries(fields.map((field) => {
-    const direct = scalarSubmissionValue(defaults[field.key]);
-    if (direct !== undefined) return [field.key, direct];
-    if (field.defaultValue !== undefined) return [field.key, field.defaultValue];
-    if (field.input === 'slider') return [field.key, field.min ?? 0];
-    return [field.key, ''];
-  }));
-}
-
-function controlWorkbenchSubmissionFieldsComplete(
-  fields: ControlWorkbenchSubmissionField[],
-  values: Record<string, string | number | boolean>,
-) {
-  return fields.every((field) => {
-    const value = values[field.key];
-    return value !== undefined && value !== null && String(value).trim() !== '';
-  });
-}
-
-export function buildControlWorkbenchRequestForSubmission(
-  payload: Record<string, unknown>,
-  values?: Record<string, string | number | boolean>,
-): ControlAnalysisRequest | undefined {
-  const contentPayload = payload as ContentRecord;
-  const request = controlAnalysisRequestFromPayload(contentPayload);
-  if (!request) return undefined;
-  const currentValues = values ?? initialControlWorkbenchSubmissionValues(contentPayload, request);
-  const dynamicRequest = poleControlWorkbenchRequest(contentPayload, request, currentValues)
-    ?? shipComparisonControlWorkbenchRequest(contentPayload, request, currentValues)
-    ?? parameterizedControlWorkbenchRequest(contentPayload, request, currentValues);
-  return controlWorkbenchRequestWithFocusFrequency(contentPayload, dynamicRequest, currentValues);
-}
-
-function controlWorkbenchRequestWithFocusFrequency(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest,
-  values: Record<string, string | number | boolean>,
-): ControlAnalysisRequest {
-  const focusFrequencyField = stringField(payload, ['focusFrequencyField', 'focus_frequency_field']);
-  if (!focusFrequencyField) return request;
-  const frequency = Number(values[focusFrequencyField]);
-  const isValid = Number.isFinite(frequency)
-    && frequency > 0
-    && frequency >= request.frequencyRange.min
-    && frequency <= request.frequencyRange.max;
-  if (isValid) {
-    return { ...request, frequencyProbesRadPerSec: [frequency] };
-  }
-  const { frequencyProbesRadPerSec: _ignored, ...requestWithoutFrequencyProbes } = request;
-  return requestWithoutFrequencyProbes;
-}
-
-function poleControlWorkbenchRequest(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest,
-  values: Record<string, string | number | boolean>,
-): ControlAnalysisRequest | undefined {
-  const fieldKeys = new Set(controlWorkbenchSubmissionFieldsFromPayload(payload).map((field) => field.key));
-  if (!fieldKeys.has('sigma') || !fieldKeys.has('omega')) return undefined;
-
-  const sigma = finiteSubmissionNumber(values.sigma, -1);
-  const poleMode = String(values.pole_mode ?? values.mode ?? '');
-  const isSingleRealPole = poleMode.includes('单') || poleMode.toLowerCase().includes('single');
-  const omega = isSingleRealPole ? 0 : Math.abs(finiteSubmissionNumber(values.omega, 2));
-  const numerator = isSingleRealPole
-    ? [Math.abs(sigma) < 0.001 ? 0.001 : -sigma]
-    : [roundControlRequestNumber(Math.max(0.0001, sigma * sigma + omega * omega))];
-  const denominator = isSingleRealPole
-    ? [1, 0]
-    : [1, roundControlRequestNumber(-2 * sigma), 0];
-
-  return {
-    ...request,
-    caseId: `${request.caseId ?? 'control-workbench'}:sigma-${sigma.toFixed(2)}:omega-${omega.toFixed(2)}`,
-    plant: {
-      ...request.plant,
-      numerator,
-      denominator,
-    },
-    structures: request.structures.length > 0
-      ? request.structures.map((structure, index) => index === 0
-        ? { ...structure, kind: 'gain', enabled: true, params: { ...structure.params, k: 1 }, label: structure.label ?? 'K' }
-        : structure)
-      : [{ kind: 'gain', enabled: true, params: { k: 1 }, label: 'K' }],
-    rootLocus: {
-      ...request.rootLocus,
-      currentGain: 1,
-    },
-  };
-}
-
-function parameterizedControlWorkbenchRequest(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest,
-  values: Record<string, string | number | boolean>,
-): ControlAnalysisRequest {
-  const numericFieldKeys = new Set(
-    controlWorkbenchSubmissionFieldsFromPayload(payload)
-      .filter((field) => field.input === 'slider' || field.input === 'number')
-      .map((field) => field.key),
-  );
-  const numericSelectFieldKeys = new Set(
-    controlWorkbenchSubmissionFieldsFromPayload(payload)
-      .filter((field) => field.input === 'select'
-        && (field.options?.length ?? 0) > 0
-        && field.options?.every((option) => Number.isFinite(Number(option))))
-      .map((field) => field.key),
-  );
-  const enabledGainTargets = request.structures
-    .map((structure, index) => ({ structure, index }))
-    .filter(({ structure }) => structure.kind === 'gain' && structure.enabled);
-  const soleEnabledGainTarget = enabledGainTargets.length === 1 ? enabledGainTargets[0] : undefined;
-  if (numericFieldKeys.size === 0 && numericSelectFieldKeys.size === 0) return request;
-  let changed = false;
-  let selectedGain: number | undefined;
-  const structures = request.structures.map((structure, structureIndex) => {
-    let structureChanged = false;
-    const params = Object.fromEntries(Object.entries(structure.params).map(([key, value]) => {
-      const isGainField = key === 'k'
-        && (numericFieldKeys.has(key) || numericSelectFieldKeys.has(key));
-      const isSoleEnabledGainTarget = isGainField
-        && soleEnabledGainTarget?.index === structureIndex;
-      if (isGainField && !isSoleEnabledGainTarget) return [key, value];
-      if (!numericFieldKeys.has(key) && !isSoleEnabledGainTarget) return [key, value];
-      const nextValue = finiteSubmissionNumber(values[key], value);
-      if (nextValue !== value) {
-        changed = true;
-        structureChanged = true;
-      }
-      if (isSoleEnabledGainTarget) selectedGain = nextValue;
-      return [key, nextValue];
-    }));
-    return structureChanged ? { ...structure, params } : structure;
-  });
-  const rootLocusChanged = selectedGain !== undefined
-    && request.rootLocus.currentGain !== selectedGain;
-  if (!changed && !rootLocusChanged) return request;
-  return {
-    ...request,
-    structures: changed ? structures : request.structures,
-    rootLocus: selectedGain === undefined
-      ? request.rootLocus
-      : { ...request.rootLocus, currentGain: selectedGain },
-  };
-}
-
-function shipComparisonControlWorkbenchRequest(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest,
-  values: Record<string, string | number | boolean>,
-): ControlAnalysisRequest | undefined {
-  const fieldKeys = new Set(controlWorkbenchSubmissionFieldsFromPayload(payload).map((field) => field.key));
-  if (!fieldKeys.has('selected_ship') || !fieldKeys.has('time_scale')) return undefined;
-
-  const selectedShip = normalizeSelectedShip(values.selected_ship);
-  const timeScale = clamp(finiteSubmissionNumber(values.time_scale, 1), 1, 5);
-  const baseTimeEnd = request.timeRange.end > request.timeRange.start ? request.timeRange.end : 12;
-  const scaledTimeRange = {
-    ...request.timeRange,
-    end: roundControlRequestNumber(Math.max(request.timeRange.start + 1, baseTimeEnd / timeScale)),
-  };
-  if (selectedShip === 'all') {
-    return {
-      ...request,
-      caseId: `${request.caseId ?? 'control-workbench'}:ship-all:time-${timeScale.toFixed(1)}`,
-      timeRange: scaledTimeRange,
-    };
-  }
-
-  const pole = shipPolePreset(selectedShip);
-  if (!pole) return {
-    ...request,
-    timeRange: scaledTimeRange,
-  };
-
-  const numerator = pole.omega === 0
-    ? [roundControlRequestNumber(Math.max(0.0001, -pole.sigma))]
-    : [roundControlRequestNumber(Math.max(0.0001, pole.sigma * pole.sigma + pole.omega * pole.omega))];
-  const denominator = pole.omega === 0
-    ? [1, 0]
-    : [1, roundControlRequestNumber(-2 * pole.sigma), 0];
-
-  return {
-    ...request,
-    caseId: `${request.caseId ?? 'control-workbench'}:ship-${selectedShip}:time-${timeScale.toFixed(1)}`,
-    plant: {
-      ...request.plant,
-      numerator,
-      denominator,
-      label: `船 ${selectedShip}`,
-    },
-    structures: request.structures.length > 0
-      ? request.structures.map((structure, index) => index === 0
-        ? { ...structure, kind: 'gain', enabled: true, params: { ...structure.params, k: 1 }, label: structure.label ?? 'K' }
-        : structure)
-      : [{ kind: 'gain', enabled: true, params: { k: 1 }, label: 'K' }],
-    timeRange: scaledTimeRange,
-    rootLocus: {
-      ...request.rootLocus,
-      currentGain: 1,
-    },
-  };
-}
-
-function normalizeSelectedShip(value: string | number | boolean | undefined): 'A' | 'B' | 'C' | 'all' {
-  const normalized = String(value ?? '全部').trim().toUpperCase();
-  if (normalized === 'A' || normalized === 'B' || normalized === 'C') return normalized;
-  return 'all';
-}
-
-function shipPolePreset(ship: 'A' | 'B' | 'C') {
-  if (ship === 'A') return { sigma: -1.5, omega: 2.2 };
-  if (ship === 'B') return { sigma: -0.8, omega: 0 };
-  return { sigma: 0.3, omega: 1.4 };
-}
-
-function finiteSubmissionNumber(value: string | number | boolean | undefined, fallback: number) {
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? numericValue : fallback;
-}
-
-function roundControlRequestNumber(value: number) {
-  return Math.round(value * 1_000_000) / 1_000_000;
-}
-
-function parameterSnapshotFromSubmissionValues(
-  payload: ContentRecord,
-  request: ControlAnalysisRequest | undefined,
-  values?: Record<string, string | number | boolean>,
-) {
-  const fields = controlWorkbenchSubmissionFieldsFromPayload(payload);
-  if (fields.length === 0) return parameterSnapshotFromRequest(request);
-  const currentValues = values ?? initialControlWorkbenchSubmissionValues(payload, request);
-  return Object.fromEntries(
-    fields
-      .map((field) => [field.key, currentValues[field.key]] as const)
-      .filter(([, value]) => value !== undefined && value !== null && value !== ''),
-  );
-}
-
-export function buildSharedControlWorkbenchEvidenceDraft({
-  manifest,
-  step,
-  module,
-  submittedAt,
-  submissionValues,
-  validationSnapshot,
-  comparisonSnapshots,
-  derivedResultRefs,
-}: {
-  manifest: InteractiveRuntimeManifest;
-  step: InteractiveRuntimeStepManifest;
-  module: InteractiveRuntimeModuleManifest;
-  submittedAt: number;
-  submissionValues?: Record<string, string | number | boolean>;
-  validationSnapshot?: Record<string, unknown>;
-  comparisonSnapshots?: ControlWorkbenchComparisonSnapshot[];
-  derivedResultRefs?: Array<{ kind: string; id: string }>;
-}) {
-  const capabilityRef = computeCapabilityRef(module.payload);
-  if (!capabilityRef) return null;
-  const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
-  const responseContractId = stringField(module.payload, ['responseContractId', 'response_contract_id', 'responseKind', 'response_kind']);
-  const releaseState = stringField(module.payload, ['releaseState', 'release_state']) || 'course-controlled';
-  const fallbackState = stringField(module.payload, ['fallbackState', 'fallback_state']) || 'supported';
-  const request = controlAnalysisRequestFromPayload(module.payload);
-  return buildControlWorkbenchClientEvidenceDraft({
-    eventType: 'lesson_submit',
-    clientEventId: `${step.id}:${module.id}:${submittedAt}`,
-    attemptKey: `${step.id}:response:${submittedAt}`,
-    lessonKey: manifest.lessonId,
-    stepId: step.id,
-    moduleId: module.id,
-    componentId: module.id,
-    actorRole: 'student',
-    clientEventAt: new Date(submittedAt).toISOString(),
-    capabilityId: capabilityRef,
-    visiblePanelIds,
-    parameterSnapshot: parameterSnapshotFromSubmissionValues(module.payload, request, submissionValues),
-    selectedDesignState: { releaseState, fallbackState },
-    derivedResultRefs,
-    answerPayload: {
-      responseContractId: responseContractId ?? 'parameter.set',
-      submissionFieldKeys: controlWorkbenchSubmissionFieldsFromPayload(module.payload).map((field) => field.key),
-      ...(validationSnapshot ? { validationSnapshot } : {}),
-      ...(comparisonSnapshots?.length ? { comparisonSnapshots } : {}),
-    },
-    releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
-    fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',
-  });
-}
-
-function isControlAnalysisRequest(value: ContentRecord): boolean {
-  return value.runtimeMode === 'analysis'
-    && typeof value.plant === 'object'
-    && Array.isArray(value.structures)
-    && Array.isArray(value.outputs)
-    && typeof value.timeRange === 'object'
-    && typeof value.frequencyRange === 'object'
-    && typeof value.rootLocus === 'object';
-}
-
-function isControlAnalysisResult(value: ContentRecord): boolean {
-  return typeof value.metrics === 'object'
-    && typeof value.stepResponse === 'object'
-    && typeof value.rootLocus === 'object'
-    && typeof value.magnitude === 'object'
-    && typeof value.phase === 'object'
-    && typeof value.nyquist === 'object';
-}
-
-function parameterSnapshotFromRequest(request: ControlAnalysisRequest | undefined): Record<string, unknown> {
-  if (!request) return {};
-  return Object.fromEntries(
-    request.structures.flatMap((structure) => Object.entries(structure.params).map(([key, value]) => [`${structure.kind}.${key}`, value])),
-  );
-}
+export {
+  tryBeginControlWorkbenchSubmission,
+  buildControlWorkbenchRequestForSubmission,
+  buildSharedControlWorkbenchEvidenceDraft,
+} from './control-workbench-compute-support';

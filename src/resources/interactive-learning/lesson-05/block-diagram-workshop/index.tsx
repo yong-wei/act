@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, AlertTriangle, RotateCcw, Flag } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface WorkflowStep {
   id: string;
@@ -81,18 +82,8 @@ export default function BlockDiagramWorkshop({ onComplete, onStateChange }: Bloc
       onStateChange?.(snapshot);
       interactive?.progress.setProgress(snapshot.progress);
       interactive?.tracking.emit('interact', snapshot.data);
-
-      if (nextSteps.length === WORKFLOW_STEPS.length && !interactive?.progress.isComplete) {
-        const result: WidgetResult = {
-          success: true,
-          score: 100,
-          data: { steps: nextSteps.map((item) => item.id) },
-        };
-        interactive?.progress.markComplete(result);
-        onComplete?.(result);
-      }
     },
-    [currentIndex, selectedSteps, interactive, onComplete, onStateChange]
+    [currentIndex, selectedSteps, interactive, onStateChange]
   );
 
   const handleReset = useCallback(() => {
@@ -196,6 +187,11 @@ export default function BlockDiagramWorkshop({ onComplete, onStateChange }: Bloc
           </button>
           <div className="text-xs text-slate-500">当前完成度 {progress}%</div>
         </div>
+        <PathResourceContinueAction
+          enabled={selectedSteps.length === WORKFLOW_STEPS.length}
+          result={{ success: true, score: 100, data: { steps: selectedSteps.map((item) => item.id) } }}
+          onComplete={onComplete}
+        />
       </div>
     </div>
   );

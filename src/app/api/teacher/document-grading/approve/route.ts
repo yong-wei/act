@@ -8,14 +8,9 @@ import {
   writeKnowledgeScopedLearningFacts,
   type LearningFactWriteRow,
 } from '@/lib/canonical-learning-fact-identity';
-import {
-  approveGradingRun,
-  editCriterionGrade,
-  parsePersistedDocumentRubricGradingDraft,
-  validateDocumentRubricGradingDraftInvariants,
-  writeApprovedGradingEvidence,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { legacyDocumentRubricDraftRetiredResponse } from '@/lib/data-governance/math-document-grading-api';
 import {
   GradingMutationError,
   validateGradingMutationOrigin,
@@ -34,9 +29,13 @@ import {
 import { writeGradingAudit } from '@/lib/data-governance/math-document-grading-persistence';
 import { gradingRequestScope, pseudonymousAuditId, sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
 import { createSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
-import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import {
+  buildProjectionTrigger,
+  currentCaptureRevision,
+  recordProjectionTriggerIntent,
+} from '@/features/learning-record/ingestion/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,170 +98,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const draft = await prisma.learningEvidenceDraft.findFirst({
-      where: {
-        id: body.gradingRunId,
-        sourceType: 'document_rubric_grading',
-      },
-    });
-    if (!draft) {
-      return NextResponse.json({ error: '评分草稿不存在' }, { status: 404 });
-    }
-
-    const parsed = parsePersistedDocumentRubricGradingDraft(draft);
-    if (!parsed) {
-      return NextResponse.json({ error: '评分草稿结构不可用' }, { status: 422 });
-    }
-    const invariants = validateDocumentRubricGradingDraftInvariants({ draft, parsed });
-    if (!invariants.valid) {
-      return NextResponse.json({
-        error: '评分草稿归属不一致',
-        reasons: invariants.reasons,
-      }, { status: 422 });
-    }
-
-    const classData = await prisma.class.findUnique({
-      where: { id: parsed.goalContext.classId },
-      select: { id: true, teacherId: true },
-    });
-    if (!classData) {
-      return NextResponse.json({ error: '班级不存在' }, { status: 404 });
-    }
-    if (session.user.role !== UserRole.ADMIN && classData.teacherId !== session.user.id) {
-      return NextResponse.json({ error: '权限不足' }, { status: 403 });
-    }
-
-    const studentProfile = await prisma.studentProfile.findFirst({
-      where: {
-        classId: parsed.goalContext.classId,
-        userId: draft.ownerUserId,
-      },
-      select: { id: true },
-    });
-    if (!studentProfile) {
-      return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
-    }
-    const alreadyApproved = parsed.run.status === 'approved' || draft.reviewerState === 'approved';
-    if (alreadyApproved) {
-      if ((body.edits ?? []).length > 0) {
-        return NextResponse.json({ error: '已批准评分不能直接编辑' }, { status: 409 });
-      }
-      return NextResponse.json({ error: 'grading-review-already-approved' }, { status: 409 });
-    }
-    if (parsed.run.status === 'blocked' || parsed.run.evaluator.status === 'blocked') {
-      return NextResponse.json({
-        error: '评分草稿存在阻塞的评估器输出，需要重新转换或重新评估后再审批',
-        reasons: parsed.run.evaluator.blockedReasons,
-      }, { status: 409 });
-    }
-    const editValidationError = validateDocumentGradingEditsAgainstRubric(
-      body.edits ?? [],
-      parsed.rubric,
-    );
-    if (editValidationError) {
-      return NextResponse.json({ error: editValidationError }, { status: 400 });
-    }
-
-    const decision = body.decision ?? 'approved';
-    const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
-      criterionId: edit.criterionId,
-      levelId: edit.levelId,
-      score: edit.score,
-      comment: edit.comment,
-      reviewerId: session.user.id,
-      rubric: parsed.rubric,
-    }), parsed.run);
-    const approved = approveGradingRun(editedRun, {
-      reviewerId: session.user.id,
-      decision,
-      notes,
-    });
-    const existingSummary = typeof draft.summary === 'object' && draft.summary !== null && !Array.isArray(draft.summary)
-      ? draft.summary as Record<string, unknown>
-      : {};
-    const existingProvenance = typeof draft.provenance === 'object' && draft.provenance !== null && !Array.isArray(draft.provenance)
-      ? draft.provenance as Record<string, unknown>
-      : {};
-
-    const updatedSummary = toPrismaJsonObject({
-      ...existingSummary,
-      run: approved,
-    });
-    const updatedProvenance = toPrismaJsonObject({
-      ...existingProvenance,
-      reviewerId: session.user.id,
-      reviewedAt: approved.teacherReview.reviewedAt,
-      decision,
-    });
-
-    const writeback = await prisma.$transaction(async (tx) => {
-      const [currentDraft, currentClass, currentMembership] = await Promise.all([
-        tx.learningEvidenceDraft.findFirst({ where: { id: draft.id, sourceType: 'document_rubric_grading' } }),
-        tx.class.findUnique({ where: { id: parsed.goalContext.classId }, select: { id: true, teacherId: true } }),
-        tx.studentProfile.findFirst({ where: { userId: draft.ownerUserId, classId: parsed.goalContext.classId }, select: { id: true } }),
-      ]);
-      if (!currentDraft || new Date(currentDraft.updatedAt).getTime() !== new Date(draft.updatedAt).getTime() || currentDraft.ownerUserId !== draft.ownerUserId) throw new GradingMutationError('grading-review-conflict', 409);
-      if (!currentClass || (session.user.role !== UserRole.ADMIN && currentClass.teacherId !== session.user.id)) throw new GradingMutationError('grading-review-forbidden', 403);
-      if (!currentMembership) throw new GradingMutationError('grading-review-membership-changed', 409);
-      const reviewUpdate = await tx.learningEvidenceDraft.updateMany({
-        where: {
-          id: draft.id,
-          reviewerState: draft.reviewerState,
-          updatedAt: draft.updatedAt,
-        },
-        data: {
-          reviewerState: decision,
-          summary: updatedSummary,
-          provenance: updatedProvenance,
-        },
-      });
-      if (reviewUpdate.count !== 1) {
-        throw new GradingMutationError('grading-review-conflict', 409);
-      }
-      if (decision !== 'approved') {
-        return {
-          status: 'blocked-unapproved' as const,
-          created: 0,
-          skipped: 0,
-          blocked: approved.draftGrades.length,
-          facts: [],
-        };
-      }
-
-      const result = await writeApprovedGradingEvidence({
-        db: {
-          learningFact: {
-            createMany: async (input) => tx.learningFact.createMany({
-              data: input.data as NonNullable<Parameters<typeof prisma.learningFact.createMany>[0]>['data'],
-              skipDuplicates: input.skipDuplicates,
-            }),
-          },
-          studentEvidenceFeatureCache: {
-            deleteMany: async (input) => tx.studentEvidenceFeatureCache.deleteMany(input),
-          },
-        },
-        run: approved,
-        rubric: parsed.rubric,
-        studentId: draft.ownerUserId,
-        goalContext: parsed.goalContext,
-        sourceLogId: currentDraft.id,
-      });
-      await requestCumulativeLearnerReconciliation(tx, {
-        userId: draft.ownerUserId,
-        classIds: parsed.goalContext.classId ? [parsed.goalContext.classId] : [],
-        reason: 'document-grading-approved',
-      });
-      return result;
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-
-    return NextResponse.json({
-      status: decision,
-      gradingRunId: approved.id,
-      createdFacts: writeback.created,
-      skippedFacts: writeback.skipped,
-      blockedFacts: writeback.blocked,
-      evidenceSourceEventIds: writeback.facts.map((fact) => fact.sourceEventId),
-    });
+    return legacyDocumentRubricDraftRetiredResponse();
   } catch (error) {
     rethrowIfNextDynamicError(error);
     if (error instanceof PipelineReviewContractError) {
@@ -459,6 +295,16 @@ async function approvePipelineRun(input: {
         reason: 'document-rubric-grading-approved',
         now: reviewedAt,
       });
+      await recordProjectionTriggerIntent(tx as never, buildProjectionTrigger({
+        subjectUserId: scope.studentId,
+        inputDigest: sha256(stableStringify({
+          runId: input.run.id,
+          studentId: scope.studentId,
+          reviewedAt: reviewedAt.toISOString(),
+        })),
+        captureRevision: currentCaptureRevision(),
+        classId: scope.classId,
+      }));
     }
     return { facts, written: written.count };
   });
@@ -519,10 +365,6 @@ function textLengthBucket(value: string | null | undefined): 'none' | 'short' | 
   return 'long';
 }
 
-function toPrismaJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonObject;
-}
-
 function isDocumentGradingDecision(value: unknown): value is 'approved' | 'returned' | 'rejected' {
   return value === 'approved' || value === 'returned' || value === 'rejected';
 }
@@ -542,48 +384,4 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     Number.isFinite(item.score) &&
     typeof item.comment === 'string' &&
     item.comment.length <= 4000);
-}
-
-function validateDocumentGradingEditsAgainstRubric(
-  edits: Array<{
-    criterionId: string;
-    levelId: string | null;
-    score: number;
-    comment: string;
-  }>,
-  rubric: {
-    maxScore: number;
-    schemaVersion?: string;
-    criteria: Array<{
-      id: string;
-      maxPoints?: number;
-      detailedRubricEnabled?: boolean;
-      levels: Array<{ id: string; score: number }>;
-    }>;
-  },
-): string | null {
-  for (const edit of edits) {
-    const criterion = rubric.criteria.find((item) => item.id === edit.criterionId);
-    if (!criterion) {
-      return '评分编辑指标不存在';
-    }
-    const detailed = rubric.schemaVersion === 'assignment-scoring-rubric.v2'
-      ? criterion.detailedRubricEnabled === true
-      : true;
-    const level = edit.levelId ? criterion.levels.find((item) => item.id === edit.levelId) : null;
-    if (detailed && !level) {
-      return '评分编辑等级不存在';
-    }
-    if (!detailed && edit.levelId !== null) {
-      return '标准评分项不得指定评价级别';
-    }
-    if (rubric.schemaVersion === 'assignment-scoring-rubric.v2'
-      && !hasAtMostOneDecimal(edit.score)) {
-      return '评分编辑分数必须保留一位小数';
-    }
-    if (edit.score < 0 || edit.score > (criterion.maxPoints ?? rubric.maxScore)) {
-      return '评分编辑分数超出量规范围';
-    }
-  }
-  return null;
 }

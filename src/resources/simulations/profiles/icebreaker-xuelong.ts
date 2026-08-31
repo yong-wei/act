@@ -7,6 +7,7 @@
  * 知识点映射: Ch4 根轨迹鲁棒性, Ch6 非线性控制
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import {
   XUELONG_ICEBREAKER_PARAMS,
@@ -137,7 +138,7 @@ export const icebreakerXuelongProfile: IcebreakerProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/icebreaker.glb',
+    modelPath: resolveRegisteredSimulationModel('icebreaker').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#06b6d4',     // 青色

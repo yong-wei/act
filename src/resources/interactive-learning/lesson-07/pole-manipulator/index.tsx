@@ -17,6 +17,7 @@ import {
   preloadInteractiveSimulationRuntime,
   runTransferFunctionResponse,
 } from '@/resources/interactive-learning/rust/interactive-simulation-runtime';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 const PLANE_BOUNDS = {
   minRe: -6,
@@ -563,6 +564,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
   const [challengeStart, setChallengeStart] = useState<number | null>(null);
   const [challengeSubmitted, setChallengeSubmitted] = useState(false);
   const [challengeScores, setChallengeScores] = useState<number[] | null>(null);
+  const [pathContinueResult, setPathContinueResult] = useState<WidgetResult | null>(null);
   const [runtimeReady, setRuntimeReady] = useState(isInteractiveSimulationRuntimeReady());
 
   useEffect(() => {
@@ -1209,6 +1211,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     setChallengeStart(Date.now());
     setChallengeSubmitted(false);
     setChallengeScores(null);
+    setPathContinueResult(null);
     setSelectedChallengeId(targets[0]?.id ?? null);
     setPlaneView(DEFAULT_PLANE_VIEW);
     setChallengeViewMode('auto');
@@ -1227,6 +1230,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       setSelectedChallengeId(null);
       setChallengeSubmitted(false);
       setChallengeScores(null);
+      setPathContinueResult(null);
       setResponseViewMode('auto');
       setPlaneView(DEFAULT_PLANE_VIEW);
       setChallengeTargets([]);
@@ -1273,8 +1277,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
       duration,
     });
     interactive?.progress.setProgress(100);
-    interactive?.progress.markComplete(result);
-    onComplete?.(result);
+    setPathContinueResult(result);
     setChallengeSubmitted(true);
     setChallengeScores(scores);
 
@@ -1318,7 +1321,6 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
     interactive?.config.resourceId,
     interactive?.progress,
     interactive?.tracking,
-    onComplete,
     sessionId,
   ]);
 
@@ -2173,6 +2175,13 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 ))}
               </div>
             )}
+            {pathContinueResult ? (
+              <PathResourceContinueAction
+                enabled
+                result={pathContinueResult}
+                onComplete={onComplete}
+              />
+            ) : null}
           </section>
         ) : (
           <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">

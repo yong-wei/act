@@ -4,29 +4,26 @@ const mocks = vi.hoisted(() => ({
   requireAssignmentActor: vi.fn(),
   requireAssignmentMutation: vi.fn(),
   signRead: vi.fn(),
-  consumeRead: vi.fn(),
-  readObject: vi.fn(),
+  readAsset: vi.fn(),
 }));
 
-vi.mock('@/lib/assignments/assignment-route-guards', () => ({
-  requireAssignmentActor: mocks.requireAssignmentActor,
-  requireAssignmentMutation: mocks.requireAssignmentMutation,
-}));
-vi.mock('@/lib/data-governance/teacher-assignment-review', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/data-governance/teacher-assignment-review')>();
+vi.mock('@/lib/assignments/assignment-route-guards', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/assignments/assignment-route-guards')>();
   return {
     ...actual,
-    signTeacherAssignmentOriginalAssetRead: mocks.signRead,
-    consumeTeacherAssignmentOriginalAssetRead: mocks.consumeRead,
+    requireAssignmentActor: mocks.requireAssignmentActor,
+    requireAssignmentMutation: mocks.requireAssignmentMutation,
   };
 });
-vi.mock('@/lib/assignments/submission-object-store', () => ({
-  createSubmissionObjectStore: () => ({ readObject: mocks.readObject }),
+vi.mock('@/lib/assignments/public-api', () => ({
+  teacherSignOriginalAssetRead: mocks.signRead,
+  teacherReadOriginalAsset: mocks.readAsset,
 }));
-vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 
 import { GET, POST } from '../route';
+import { SubmissionError } from '@/lib/assignments/submission-domain';
 
+const actor = { id: 'teacher-1', role: 'TEACHER' } as const;
 const context = {
   params: Promise.resolve({
     assignmentId: 'assignment-1',
@@ -38,9 +35,7 @@ const context = {
 describe('teacher original assignment asset read route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.requireAssignmentActor.mockResolvedValue({
-      actor: { id: 'teacher-1', role: 'TEACHER' },
-    });
+    mocks.requireAssignmentActor.mockResolvedValue({ actor });
     mocks.requireAssignmentMutation.mockReturnValue(null);
   });
 
@@ -60,9 +55,8 @@ describe('teacher original assignment asset read route', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.signRead).toHaveBeenCalledWith(
-      {},
+      actor,
       expect.objectContaining({
-        actor: { id: 'teacher-1', role: 'TEACHER' },
         reviewId: 'review-1',
         assetId: 'asset-1',
       }),
@@ -76,16 +70,12 @@ describe('teacher original assignment asset read route', () => {
   });
 
   it('serves checksum-verified bytes with private nosniff headers and a safe filename', async () => {
-    const bytes = new TextEncoder().encode('original bytes');
-    const checksum = `sha256:${Buffer.from(await crypto.subtle.digest('SHA-256', bytes)).toString('hex')}`;
-    mocks.consumeRead.mockResolvedValue({
-      objectKey: 'private/object-key',
+    mocks.readAsset.mockResolvedValue({
+      bytes: new TextEncoder().encode('original bytes'),
       displayName: 'report.pdf',
       mimeType: 'application/pdf',
-      sizeBytes: bytes.byteLength,
-      checksum,
+      sizeBytes: 14,
     });
-    mocks.readObject.mockResolvedValue(bytes);
 
     const response = (await GET(
       new Request('https://act.example/api/read?reviewId=review-1&token=one-time'),
@@ -100,14 +90,7 @@ describe('teacher original assignment asset read route', () => {
   });
 
   it('fails closed when persisted size or checksum does not match the object', async () => {
-    mocks.consumeRead.mockResolvedValue({
-      objectKey: 'private/object-key',
-      displayName: 'report.pdf',
-      mimeType: 'application/pdf',
-      sizeBytes: 99,
-      checksum: `sha256:${'0'.repeat(64)}`,
-    });
-    mocks.readObject.mockResolvedValue(new TextEncoder().encode('tampered'));
+    mocks.readAsset.mockRejectedValue(new SubmissionError('asset-integrity-mismatch', 502));
 
     const response = (await GET(
       new Request('https://act.example/api/read?reviewId=review-1&token=one-time'),

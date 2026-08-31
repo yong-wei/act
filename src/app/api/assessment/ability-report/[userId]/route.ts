@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAbilityReportWithPersistenceFallback } from '@/features/assessment/adaptive-persistence';
+import { readAbilityReport } from '@/features/assessment/public-api';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
@@ -29,7 +29,7 @@ export async function GET(_: Request, context: RouteContext) {
       );
     }
 
-    const report = await getAbilityReportWithPersistenceFallback((await context.params).userId);
+    const report = await readAbilityReport((await context.params).userId);
     return NextResponse.json(report);
   } catch (error) {
     rethrowIfNextDynamicError(error);

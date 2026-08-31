@@ -8,6 +8,11 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  isAuthoritativeConsumerRead,
+  isConsumerUnauthorized,
+  readStudentEvidencePort,
+} from '@/features/learning-record/consumers/public-api';
 import { requestCumulativeLearnerReconciliation } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { prisma } from '@/lib/prisma';
 import {
@@ -22,15 +27,14 @@ import {
   type ProfileActivityItem,
 } from '@/lib/data-governance/profile-center';
 import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
-import {
-  readCurrentCumulativePortrait,
-  type CumulativePortraitAvailabilityReason,
-  type CumulativePortraitReadModel,
+import type {
+  CumulativePortraitAvailabilityReason,
+  CumulativePortraitReadModel,
 } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
-  getAbilityReportWithPersistenceFallback,
-  getDiagnosticWithPersistenceFallback,
-} from '@/features/assessment/adaptive-persistence';
+  readAbilityReport,
+  readDiagnostic,
+} from '@/features/assessment/public-api';
 import {
   ARENA_PORTFOLIO_RECENT_LIMIT,
   buildArenaStudentPortfolio,
@@ -75,7 +79,7 @@ export interface UserProfileResponse {
     model: 'portrait-v2-cumulative';
     availability: {
       state: CumulativePortraitReadModel['stateKind'];
-      reason: CumulativePortraitAvailabilityReason;
+      reason: CumulativePortraitAvailabilityReason | string;
     };
     limitations: string[];
     overallScore: number | null;
@@ -391,7 +395,7 @@ export async function GET() {
 
     const [
       profile,
-      cumulativePortrait,
+      evidencePort,
       simulationLogs,
       simulationStats,
       ethicalLogs,
@@ -412,7 +416,11 @@ export async function GET() {
           ethicsScore: true,
         },
       }),
-      readCurrentCumulativePortrait(prisma, userId, 'student'),
+      readStudentEvidencePort({
+        db: prisma,
+        viewer: { role: 'student', subjectUserId: userId },
+        targetUserId: userId,
+      }),
       prisma.simulationLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -528,6 +536,8 @@ export async function GET() {
         : [];
 
     const sessionMap = new Map(classSessions.map((item) => [item.id, item]));
+    const cumulativePortrait = evidencePort.portrait;
+    const labeledCurrent = isAuthoritativeConsumerRead(evidencePort);
     const portraitPayload = cumulativePortrait.stateKind === 'SNAPSHOT'
       ? cumulativePortrait.payload
       : null;
@@ -637,8 +647,8 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = await getAbilityReportWithPersistenceFallback(userId);
-    const adaptiveDiagnostic = await getDiagnosticWithPersistenceFallback(userId);
+    const adaptiveReport = await readAbilityReport(userId);
+    const adaptiveDiagnostic = await readDiagnostic(userId);
 
     const response: UserProfileResponse = {
       user: {
@@ -666,10 +676,19 @@ export async function GET() {
       competency: {
         model: 'portrait-v2-cumulative',
         availability: {
-          state: cumulativePortrait.stateKind,
-          reason: cumulativePortrait.availabilityReason,
+          state: labeledCurrent
+            ? cumulativePortrait.stateKind
+            : evidencePort.knownZero || cumulativePortrait.stateKind === 'NO_EVIDENCE'
+              ? 'NO_EVIDENCE'
+              : 'UNAVAILABLE',
+          reason: labeledCurrent
+            ? cumulativePortrait.availabilityReason
+            : (evidencePort.reason ?? cumulativePortrait.availabilityReason),
         },
-        limitations: portraitSummary?.limitations ?? [],
+        limitations: [
+          ...(portraitSummary?.limitations ?? []),
+          ...(!labeledCurrent && evidencePort.status === 'stale' ? ['stale-projection'] : []),
+        ],
         overallScore,
         level,
         confidence: cumulativePortrait.confidence,
@@ -714,6 +733,9 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (isConsumerUnauthorized(error)) {
+      return NextResponse.json({ error: '权限不足' }, { status: 403 });
+    }
     console.error('获取用户画像失败:', error);
     return NextResponse.json({ error: '服务器错误' }, { status: 500 });
   }

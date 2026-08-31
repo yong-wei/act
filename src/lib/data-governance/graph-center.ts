@@ -35,10 +35,10 @@ import type {
   AdaptiveLearnerStateRole,
   MasteryEvidenceReference,
   MasteryTraceabilityEntry,
-} from './adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import type { KaqGraphEdge, KaqGraphNode } from './kaq-graph-schema';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
-import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '../adaptive-learning-path-planner';
+import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
 import { buildResourceNodeRegistry, type ResourceNode, type ResourceNodeRegistry } from '../resource-node-registry';
 import {
   summarizeResourceFieldCompletionCoverageSummaries,

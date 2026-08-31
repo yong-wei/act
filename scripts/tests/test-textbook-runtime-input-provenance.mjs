@@ -160,6 +160,23 @@ assert.ok(fs.existsSync(path.join(driftDir, 'keep.txt')));
     runtimeRoot,
   });
   assert.deepEqual(verified.bookIds, [bookId]);
+  fs.writeFileSync(path.join(indexRoot, 'manifest.json'), JSON.stringify({
+    recordType: 'index-manifest',
+    formatVersion: 'textbook-hybrid-retrieval.v1',
+    sourceRevision: revision,
+    books: [{
+      bookId,
+      edition: '2015',
+      manifestHash: actualHash,
+      sourceHashes: { 'textbooks/control-encyclopedia/chapter-01/textbook.md': `sha256:${'1'.repeat(64)}` },
+    }],
+  }));
+  const legacy = inspectTextbookRetrievalIndex(indexRoot, {
+    expectedSourceRevision: revision,
+    expectedBookIds: [bookId],
+    runtimeRoot,
+  });
+  assert.equal(legacy.resourceSetId, undefined);
 }
 
 console.log('textbook-runtime-input-provenance validation: PASS');

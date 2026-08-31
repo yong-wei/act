@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-3174142acdc31a4a3897115f",
+    "canonicalType": "KnowledgeStatement",
+    "label": "给定由任意 (A, B) 描述的 n 阶系统及期望的 n 阶首一特征多项式 α_c(s)：(1) 通过状态变换 x = Tz 将 (A, B) 变换为控制规范型 (A_c, B_c)；(2) 利用式 (7.87) 观察求解控制增益，给出控制律 u = -K_c z；(3) 将增益变换回原状态以得到 K = K_c T^{-1}。",
+    "aliases": [],
+    "description": "Given a system of order n described by an arbitrary (A, B) and a desired nth-order monic characteristic polynomial α_c(s): (1) transform (A, B) to control canonical form (A_c, B_c) by changing the state x = Tz; (2) solve for the control gains by inspection using Eq. (7.87) to give the control law u = -K_c z; (3) transform the gain back to the original state to get K = K_c T^{-1}.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

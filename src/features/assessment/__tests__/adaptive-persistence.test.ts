@@ -18,11 +18,11 @@ import {
   selectNextQuestionFromAnswers,
 } from '../adaptive-engine';
 import {
-  getAbilityReportWithPersistenceFallback,
-  getDiagnosticWithPersistenceFallback,
-  selectNextQuestionWithPersistenceFallback,
+  getAbilityReportDurably,
+  getDiagnosticDurably,
+  selectNextQuestionDurably,
   submitAnswerDurably,
-  submitAnswerWithPersistenceFallback,
+  RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK,
 } from '../adaptive-persistence';
 
 interface CoverageMatrix {
@@ -110,14 +110,16 @@ function metadataForPublicQuestion(question: { id: string }) {
   return buildKaqQuizQuestionMetadata(runtimeQuestion!);
 }
 
-function createMockDb() {
+function createMockDb(selectedQuestionIds: string[] = []) {
   const answeredAt = new Date('2026-05-26T02:30:00.000Z');
   const sessionState = {
     id: 'durable-session-1',
     userId: 'student-1',
     sessionKey: 'session-1',
-    selectedQuestionIds: [] as string[],
+    selectedQuestionIds: [...selectedQuestionIds],
+    metadata: {} as Record<string, unknown>,
   };
+  const itemRefStore = new Map<string, Record<string, unknown>>();
   const db = {
     $executeRawUnsafe: vi.fn().mockResolvedValue(1),
     adaptiveAssessmentAlgorithmVersion: {
@@ -129,10 +131,11 @@ function createMockDb() {
       upsert: vi.fn().mockImplementation(async () => ({
         ...sessionState,
         selectedQuestionIds: [...sessionState.selectedQuestionIds],
+        metadata: sessionState.metadata,
       })),
       updateMany: vi.fn().mockImplementation(async (args: {
         where?: { selectedQuestionIds?: { equals?: string[] } };
-        data?: { selectedQuestionIds?: string[] };
+        data?: { selectedQuestionIds?: string[]; metadata?: Record<string, unknown> };
       }) => {
         const expectedQuestionIds = args.where?.selectedQuestionIds?.equals;
         if (
@@ -145,13 +148,26 @@ function createMockDb() {
         if (Array.isArray(args.data?.selectedQuestionIds)) {
           sessionState.selectedQuestionIds = [...args.data.selectedQuestionIds];
         }
+        if (args.data?.metadata) {
+          sessionState.metadata = args.data.metadata;
+        }
         return { count: 1 };
       }),
     },
     adaptiveAssessmentItemRef: {
-      upsert: vi.fn().mockResolvedValue({
-        id: 'item-ref-1',
-        questionId: 'preset-q-01',
+      upsert: vi.fn().mockImplementation(async (args: {
+        where?: { questionId_algorithmVersion_contentHash?: { questionId?: string; contentHash?: string } };
+        create?: Record<string, unknown>;
+      }) => {
+        const key = JSON.stringify(args.where?.questionId_algorithmVersion_contentHash ?? args.where);
+        const existing = itemRefStore.get(key);
+        if (existing) return existing;
+        const created = {
+          id: `item-ref-${itemRefStore.size + 1}`,
+          ...(args.create ?? {}),
+        };
+        itemRefStore.set(key, created);
+        return created;
       }),
     },
     adaptiveAssessmentAnswer: {
@@ -211,8 +227,8 @@ function createMockDb() {
 
 describe('submitAnswerDurably', () => {
   it('persists adaptive submissions with safe references while preserving the response contract', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -327,8 +343,8 @@ describe('submitAnswerDurably', () => {
   });
 
   it('writes path assessment retries to a retry session after a prior answer', async () => {
-    const db = createMockDb();
     const question = approvedReadinessQuestion();
+    const db = createMockDb([question.id]);
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     const failedOptionIndex = question.options.findIndex((option) => !option.isCorrect);
@@ -340,11 +356,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -428,7 +446,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('reuses a passed path retry answer when the original failed submission is replayed', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -436,6 +453,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
     const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
@@ -447,11 +465,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-123',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -562,7 +582,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('reuses a matching failed path retry answer when the same retry selection is replayed', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -570,6 +589,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const failedOptions = question!.options
       .map((option, index) => ({ option, key: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index] }))
       .filter(({ option }) => !option.isCorrect);
@@ -581,11 +601,13 @@ describe('submitAnswerDurably', () => {
         id: 'base-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+        selectedQuestionIds: [question!.id],
       })
       .mockResolvedValueOnce({
         id: 'retry-session',
         userId: 'student-1',
         sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check:retry-456',
+        selectedQuestionIds: [question!.id],
       });
     db.adaptiveAssessmentAnswer.findUnique
       .mockResolvedValueOnce({
@@ -697,7 +719,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('keeps replayed failed path submissions idempotent when the selected option is unchanged', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -705,6 +726,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const failedOptionIndex = question!.options.findIndex((option) => !option.isCorrect);
     const failedOption = question!.options[failedOptionIndex];
     const failedOptionKey = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[failedOptionIndex];
@@ -715,6 +737,7 @@ describe('submitAnswerDurably', () => {
       id: 'base-session',
       userId: 'student-1',
       sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      selectedQuestionIds: [question!.id],
     });
     db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
       id: 'answer-old',
@@ -778,7 +801,6 @@ describe('submitAnswerDurably', () => {
   });
 
   it('keeps duplicate passed path submissions idempotent without creating a retry session', async () => {
-    const db = createMockDb();
     const question = PRESET_QUESTIONS.find((candidate) => {
       const metadata = buildKaqQuizQuestionMetadata(candidate);
       return metadata.learningGoalIds.includes('control-correction') &&
@@ -786,6 +808,7 @@ describe('submitAnswerDurably', () => {
         metadata.purpose === 'readiness-gate';
     });
     expect(question).toBeTruthy();
+    const db = createMockDb([question!.id]);
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
 
@@ -793,6 +816,7 @@ describe('submitAnswerDurably', () => {
       id: 'base-session',
       userId: 'student-1',
       sessionKey: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      selectedQuestionIds: [question!.id],
     });
     db.adaptiveAssessmentAnswer.findUnique.mockResolvedValue({
       id: 'answer-existing',
@@ -951,30 +975,20 @@ describe('submitAnswerDurably', () => {
     }));
   });
 
-  it('falls back to the legacy response shape when persistence is disabled', async () => {
+  it('fails closed when the retired persistence flag is false', async () => {
     const db = createMockDb();
     const question = PRESET_QUESTIONS[1];
     const correctOptionText = question.options.find((option) => option.isCorrect)?.text;
     expect(correctOptionText).toBeTruthy();
+    const disabled = { ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false' };
 
-    const result = await submitAnswerWithPersistenceFallback({
+    await expect(submitAnswerDurably({
       userId: 'student-flag-off',
       sessionId: 'session-flag-off',
       questionId: question.id,
       selectedOption: correctOptionText!,
       timeSpent: 30,
-    }, db, {
-      ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false',
-    });
-
-    expect(result).toMatchObject({
-      isCorrect: true,
-      correctOption: correctOptionText,
-      explanation: expect.any(String),
-      estimatedAbility: expect.any(Number),
-      recommendedFocus: expect.any(Array),
-    });
-    expect(result).not.toHaveProperty('durableSessionId');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
     expect(db.adaptiveAssessmentAnswer.upsert).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
@@ -1016,7 +1030,7 @@ describe('submitAnswerDurably', () => {
       },
     ]);
 
-    const report = await getAbilityReportWithPersistenceFallback('student-restart', db);
+    const report = await getAbilityReportDurably('student-restart', db);
 
     expect(report.timeline).toHaveLength(2);
     expect(report.timeline.map((point) => point.timestamp)).toEqual([
@@ -1032,7 +1046,7 @@ describe('submitAnswerDurably', () => {
 
     const selectedQuestionIds: string[] = [];
     for (let index = 0; index < PRESET_QUESTIONS.length; index += 1) {
-      const next = await selectNextQuestionWithPersistenceFallback({
+      const next = await selectNextQuestionDurably({
         userId: 'student-next',
         sessionId: 'session-next',
       }, db);
@@ -1049,7 +1063,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1060,6 +1074,150 @@ describe('submitAnswerDurably', () => {
     expect(metadata.learningGoalIds).toContain('control-correction');
     expect(metadata.purpose).toBe('readiness-gate');
     expect(metadata.review.state).toBe('reviewed');
+  });
+
+  it('rejects path answers for questions the session never selected', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const other = PRESET_QUESTIONS.find((candidate) => candidate.id !== selected.question.id);
+    expect(other).toBeTruthy();
+    const selectedOption = other!.options.find((option) => option.isCorrect)?.text ?? other!.options[0].text;
+
+    await expect(submitAnswerDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      questionId: other!.id,
+      selectedOption,
+      timeSpent: 20,
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: APPROVED_READINESS_GOAL_ID,
+        routeIntent: 'path-execution',
+        questionScope: 'readiness',
+      },
+    }, db)).rejects.toThrow('路径自适应答案不属于当前会话已选择的题目');
+  });
+
+  it('reuses the selection-time snapshot when the live question later changes', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const selectionHash = db.adaptiveAssessmentItemRef.upsert.mock.calls[0][0]
+      .where.questionId_algorithmVersion_contentHash.contentHash as string;
+    const catalogSnapshot = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(selected.question.id);
+    expect(catalogSnapshot).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(
+      adaptiveAssessmentCatalogSelector,
+      'findAdaptiveAssessmentCatalogSnapshot',
+    ).mockReturnValue({
+      ...catalogSnapshot!,
+      contentHash: `mutated-${catalogSnapshot!.contentHash}`,
+    });
+    const question = getAdaptiveQuestionById(selected.question.id);
+    expect(question).toBeTruthy();
+    const originalOptions = question!.options.map((option) => ({ ...option }));
+    const originalCorrectText = originalOptions.find((option) => option.isCorrect)?.text ?? originalOptions[0].text;
+    question!.options.forEach((option) => {
+      option.isCorrect = !option.isCorrect;
+    });
+
+    let result: Awaited<ReturnType<typeof submitAnswerDurably>>;
+    try {
+      result = await submitAnswerDurably({
+        userId: 'student-owned',
+        sessionId: 'session-owned',
+        questionId: selected.question.id,
+        selectedOption: originalCorrectText,
+        timeSpent: 20,
+        pathContext: {
+          pathId: 'path-1',
+          nodeId: 'adaptive-quiz:control-target-check',
+          goalId: APPROVED_READINESS_GOAL_ID,
+          routeIntent: 'path-execution',
+          questionScope: 'readiness',
+        },
+      }, db);
+    } finally {
+      question!.options.forEach((option, index) => {
+        option.isCorrect = originalOptions[index].isCorrect;
+        option.label = originalOptions[index].label;
+        option.text = originalOptions[index].text;
+        option.explanation = originalOptions[index].explanation;
+      });
+      catalogSnapshotSpy.mockRestore();
+    }
+
+    expect(result.isCorrect).toBe(true);
+    expect(result.correctOption).toBe(originalOptions.find((option) => option.isCorrect)?.label);
+    const submitWhere = db.adaptiveAssessmentItemRef.upsert.mock.calls.at(-1)?.[0]
+      .where.questionId_algorithmVersion_contentHash;
+    expect(submitWhere.questionId).toBe(selected.question.id);
+    expect(submitWhere.contentHash).toBe(selectionHash);
+    expect(db.adaptiveAssessmentAnswer.upsert.mock.calls.at(-1)?.[0].create).toMatchObject({
+      isCorrect: true,
+      correctOptionKey: String.fromCharCode(65 + originalOptions.findIndex((option) => option.isCorrect)),
+    });
+  });
+
+  it('keeps selection-time catalog authority after the live catalog item is withdrawn', async () => {
+    const db = createMockDb();
+    db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
+    const selected = await selectNextQuestionDurably({
+      userId: 'student-owned',
+      sessionId: 'session-owned',
+      goalId: APPROVED_READINESS_GOAL_ID,
+      questionScope: 'readiness',
+    }, db);
+    const selectionCatalog = adaptiveAssessmentCatalogSelector.findAdaptiveAssessmentCatalogSnapshot(selected.question.id);
+    expect(selectionCatalog).toBeTruthy();
+    const catalogSnapshotSpy = vi.spyOn(
+      adaptiveAssessmentCatalogSelector,
+      'findAdaptiveAssessmentCatalogSnapshot',
+    ).mockReturnValue(null);
+    const question = getAdaptiveQuestionById(selected.question.id);
+    expect(question).toBeTruthy();
+    const selectedOption = question!.options.find((option) => option.isCorrect)?.text ?? question!.options[0].text;
+
+    let result: Awaited<ReturnType<typeof submitAnswerDurably>>;
+    try {
+      result = await submitAnswerDurably({
+        userId: 'student-owned',
+        sessionId: 'session-owned',
+        questionId: selected.question.id,
+        selectedOption,
+        timeSpent: 20,
+        pathContext: {
+          pathId: 'path-1',
+          nodeId: 'adaptive-quiz:control-target-check',
+          goalId: APPROVED_READINESS_GOAL_ID,
+          routeIntent: 'path-execution',
+          questionScope: 'readiness',
+        },
+      }, db);
+    } finally {
+      catalogSnapshotSpy.mockRestore();
+    }
+
+    expect(result.adaptiveAssessmentRef).toMatchObject({
+      catalogItemId: selectionCatalog!.catalogItemId,
+      contentHash: selectionCatalog!.contentHash,
+      evidenceAuthority: 'path-assessment',
+      reviewState: 'reviewed',
+    });
+    expect(db.learningFact.createMany).toHaveBeenCalled();
+    expect(db.adaptiveMasteryUpdate.createMany).toHaveBeenCalled();
   });
 
   it('allows generated low-stakes questions during goal practice selection', async () => {
@@ -1090,7 +1248,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-1',
       goalId: 'control-correction',
@@ -1125,7 +1283,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-unscoped',
       goalId: generatedFallbackGoal,
@@ -1154,7 +1312,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'practice-session-2',
       goalId: 'control-correction',
@@ -1241,7 +1399,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const first = await selectNextQuestionWithPersistenceFallback({
+    const first = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'konling-continuity:continuity:retry',
       goalId: continuity.targetKnowledgeId,
@@ -1254,7 +1412,7 @@ describe('submitAnswerDurably', () => {
       metadata: continuity,
     });
 
-    const retried = await selectNextQuestionWithPersistenceFallback({
+    const retried = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'konling-continuity:continuity:retry',
       goalId: continuity.targetKnowledgeId,
@@ -1286,7 +1444,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-owner',
       sessionId: 'practice-other-session',
       goalId: 'control-correction',
@@ -1316,7 +1474,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-other',
       sessionId: 'practice-owner',
       goalId: 'control-correction',
@@ -1330,7 +1488,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    await expect(selectNextQuestionWithPersistenceFallback({
+    await expect(selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'unknown-goal',
@@ -1366,7 +1524,7 @@ describe('submitAnswerDurably', () => {
       });
       db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-      const next = await selectNextQuestionWithPersistenceFallback({
+      const next = await selectNextQuestionDurably({
         userId: 'student-next',
         sessionId: `session-${target.learningGoalId}-${target.scope}`,
         goalId: target.learningGoalId,
@@ -1401,7 +1559,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1446,7 +1604,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1460,7 +1618,7 @@ describe('submitAnswerDurably', () => {
     const db = createMockDb();
     db.adaptiveAssessmentAnswer.findMany.mockResolvedValue([]);
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1514,7 +1672,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1552,21 +1710,21 @@ describe('submitAnswerDurably', () => {
     } as const;
     const disabled = { ADAPTIVE_ASSESSMENT_PERSISTENCE_ENABLED: 'false' };
 
-    await expect(selectNextQuestionWithPersistenceFallback({
+    await expect(selectNextQuestionDurably({
       userId: 'student-1',
       sessionId: 'konling-continuity:continuity:persistence-required',
       goalId: continuity.targetKnowledgeId,
       continuity,
-    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
 
-    await expect(submitAnswerWithPersistenceFallback({
+    await expect(submitAnswerDurably({
       userId: 'student-1',
       sessionId: 'konling-continuity:continuity:persistence-required',
       questionId: question.id,
       selectedOption: selectedOption!,
       timeSpent: 0,
       continuity,
-    }, db, disabled)).rejects.toThrow('requires adaptive-assessment persistence');
+    }, db, disabled)).rejects.toThrow(RETIRED_ADAPTIVE_ASSESSMENT_PERSISTENCE_FALLBACK);
   });
 
   it('does not repeat authored checkpoint runtime ids while unanswered alternatives remain', async () => {
@@ -1586,7 +1744,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1638,7 +1796,7 @@ describe('submitAnswerDurably', () => {
     });
     db.adaptiveAssessmentSession.updateMany.mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
       goalId: 'control-correction',
@@ -1665,7 +1823,7 @@ describe('submitAnswerDurably', () => {
       .mockResolvedValueOnce({ count: 0 })
       .mockResolvedValueOnce({ count: 1 });
 
-    const next = await selectNextQuestionWithPersistenceFallback({
+    const next = await selectNextQuestionDurably({
       userId: 'student-next',
       sessionId: 'session-next',
     }, db);
@@ -1695,7 +1853,7 @@ describe('submitAnswerDurably', () => {
       },
     ]);
 
-    const diagnostic = await getDiagnosticWithPersistenceFallback('student-generated', db);
+    const diagnostic = await getDiagnosticDurably('student-generated', db);
 
     expect(diagnostic.knowledgeDimensions).toMatchObject({
       computational: 55,

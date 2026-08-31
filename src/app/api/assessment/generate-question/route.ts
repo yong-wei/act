@@ -41,7 +41,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       question,
-      source: 'ai_generated',
+      generationKind: 'template',
+      source: 'template-generated',
+      deprecated: {
+        source: 'source is a truthful legacy discriminator; consumers should read generationKind. Template practice is never ai_generated and is not a publication candidate.',
+      },
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

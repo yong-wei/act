@@ -191,4 +191,18 @@ describe('course-runtime asset route', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
     expect(mockedReadFile).not.toHaveBeenCalled();
   });
+
+  it('does not expose media-index source documents through the raw asset route', async () => {
+    const [direct, caseVariant, backslashVariant] = await Promise.all([
+      requestRuntimeAsset(['lessons', '1-1', 'media', '1-1-media.md']),
+      requestRuntimeAsset(['Lessons', '1-1', 'Media', '1-1-MEDIA.MD']),
+      requestRuntimeAsset(['lessons\\1-1\\media\\1-1-media.md']),
+    ]);
+
+    for (const response of [direct, caseVariant, backslashVariant]) {
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({ error: 'Asset not found' });
+    }
+    expect(mockedReadFile).not.toHaveBeenCalled();
+  });
 });

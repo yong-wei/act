@@ -1,79 +1,30 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import {
-  enqueueSessionFinalizationEvidenceFeatureCacheRefresh,
-  enqueueSessionFinalizationEventIngestion,
-  enqueueSessionSummaryReportRefresh,
-} from '@/lib/data-governance/session-finalization-snapshots';
-import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
-import { SessionStatus, BopppsStage } from '@prisma/client';
-import { logClassroomEvent } from '@/lib/classroom-observability';
-import { redisClient } from '@/lib/redis-client';
 import { classroomRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
-  buildClassroomIdentityPayload,
-  buildClassroomLifecycleEvidenceFields,
-  normalizeClassroomLifecycleClientEventAt,
-} from '@/lib/classroom-lifecycle-contract';
-import {
-  canAccessClassroomSession,
-  canManageClassroomSession,
-  normalizeClassroomActorRole,
-} from '@/lib/classroom-session-access';
-import {
-  generatedCoursewareRedisFields,
-  generatedCoursewareRedisIdentityMatches,
-  resolveGeneratedCoursewareSessionBinding,
-} from '@/lib/smart-courseware/classroom-runtime';
+  ClassroomSessionError,
+  advanceClassroomSessionUseCase,
+  classroomSessionErrorBody,
+  classroomSessionHttpStatus,
+  jsonSafeClassroomPayload,
+  readClassroomSessionUseCase,
+} from '@/features/classroom/session';
 
 export const dynamic = 'force-dynamic';
 
-function normalizeClassroomEvent(
-  input: unknown,
-  sessionId: string,
-  fallbackItemId: string | null | undefined,
-  actorRole: 'teacher' | 'student',
-) {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) {
-    return { event: null, error: null };
+function mapError(error: unknown) {
+  if (error instanceof ClassroomSessionError) {
+    if (error.code === 'conflict' && error.message === 'generated-courseware') {
+      return NextResponse.json(jsonSafeClassroomPayload(error.payload), { status: 409 });
+    }
+    return NextResponse.json(
+      classroomSessionErrorBody(error),
+      { status: classroomSessionHttpStatus(error) },
+    );
   }
-
-  const event = input as Record<string, unknown>;
-  if (typeof event.eventType !== 'string' || event.eventType.trim().length === 0) {
-    return { event: null, error: null };
-  }
-
-  const clientEventId = typeof event.clientEventId === 'string' ? event.clientEventId.trim() : '';
-  const clientEventAt = normalizeClassroomLifecycleClientEventAt(event.clientEventAt);
-  if (
-    clientEventId.length === 0
-    || clientEventAt === null
-  ) {
-    return { event: null, error: 'Lifecycle event requires clientEventId and clientEventAt' };
-  }
-
-  return { event: buildClassroomLifecycleEvidenceFields({
-    eventType: event.eventType,
-    actorRole,
-    sessionId,
-    stepId: typeof event.stepId === 'string' ? event.stepId : fallbackItemId ?? null,
-    cardId: typeof event.cardId === 'string' ? event.cardId : null,
-    clientEventId,
-    sourceLogId: typeof event.sourceLogId === 'string' ? event.sourceLogId : null,
-    clientEventAt,
-  }), error: null };
-}
-
-async function generateSessionSummaryReportsSafely(sessionId: string) {
-  try {
-    return await generateSessionSummaryReports(prisma, sessionId);
-  } catch (error) {
-    console.error('[SessionReports] Failed to generate session reports:', error);
-    return { classReports: 0, studentReports: 0, skipped: true };
-  }
+  return null;
 }
 
 export async function PATCH(request: Request, props: { params: Promise<{ sessionId: string }> }) {
@@ -83,152 +34,31 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // 限流检查：防止请求风暴
-    const clientId = session.user.id;
-    const limitCheck = classroomRateLimiter.check(clientId);
-
+    const limitCheck = classroomRateLimiter.check(session.user.id);
     if (!limitCheck.allowed) {
       return NextResponse.json(
         { error: 'Rate limit exceeded', retryAfter: limitCheck.retryAfter },
-        { status: 429 }
+        { status: 429 },
       );
     }
-
-    const { sessionId } = params;
-
-    // 验证课堂存在且属于当前教师
-    const existingSession = await prisma.classSession.findUnique({
-      where: { id: sessionId },
-      select: {
-        id: true,
-        planId: true,
-        teacherId: true,
-        status: true,
-        classId: true,
-        coursewarePublicationRevisionId: true,
-        coursewareDisplayName: true,
-        coursewareRevisionNumber: true,
-        coursewarePlanRevisionNumber: true,
-        manifestHash: true,
-      }
-    });
-
-    if (!existingSession) {
-      return NextResponse.json({ error: '课堂不存在' }, { status: 404 });
-    }
-
-    if (!canManageClassroomSession(existingSession, session.user)) {
-      return NextResponse.json({ error: '无权限修改此课堂' }, { status: 403 });
-    }
-    const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, existingSession);
-    if (!generatedResolution.ok) {
-      return NextResponse.json(generatedResolution.recovery, { status: 409 });
-    }
-
     const body = await request.json();
-    const { currentItemId, currentStage, status } = body;
-    const normalizedClassroomEvent = normalizeClassroomEvent(
-      body.classroomEvent,
-      sessionId,
-      currentItemId,
-      normalizeClassroomActorRole(session.user.role),
-    );
-    if (normalizedClassroomEvent.error) {
-      return NextResponse.json({ error: normalizedClassroomEvent.error }, { status: 400 });
-    }
-    const classroomEvent = normalizedClassroomEvent.event;
-
-    // 构建更新数据 - 始终更新updatedAt以触发版本号递增
-    const updateData: {
-      currentItemId?: string;
-      currentStage?: BopppsStage | null;
-      status?: SessionStatus;
-      endTime?: Date;
-      updatedAt?: Date;
-    } = {
-      updatedAt: new Date(), // 强制更新时间戳作为版本控制依据
-    };
-
-    if (currentItemId !== undefined) updateData.currentItemId = currentItemId;
-    if (currentStage !== undefined) {
-      // 验证阶段值是否有效
-      if (currentStage !== null && !Object.values(BopppsStage).includes(currentStage as BopppsStage)) {
-        return NextResponse.json({ error: 'Invalid stage value' }, { status: 400 });
-      }
-      updateData.currentStage = currentStage as BopppsStage | null;
-    }
-    if (status !== undefined) {
-      // 验证状态值是否有效
-      if (!Object.values(SessionStatus).includes(status as SessionStatus)) {
-        return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
-      }
-      updateData.status = status as SessionStatus;
-      // 当状态变为 FINISHED 时，自动设置结束时间
-      if (status === 'FINISHED') {
-        updateData.endTime = new Date();
-      }
-    }
-
-    let updatedSession = await prisma.classSession.update({
-      where: { id: sessionId },
-      data: updateData,
-      include: {
-        plan: { select: { title: true } },
-        class: { select: { name: true } },
+    const result = await advanceClassroomSessionUseCase({
+      actor: {
+        id: session.user.id,
+        role: session.user.role,
+        profile: session.user.profile ?? null,
       },
+      sessionId: params.sessionId,
+      currentItemId: body.currentItemId,
+      currentStage: body.currentStage,
+      status: body.status,
+      classroomEvent: body.classroomEvent,
     });
-
-    // 同步到 Redis 用于快速读取和 SSE 广播
-    if (redisClient.isReady()) {
-      const redisState = {
-        joinCode: updatedSession.joinCode,
-        classId: updatedSession.classId,
-        className: updatedSession.class?.name ?? null,
-        currentItemId: updatedSession.currentItemId,
-        currentStage: updatedSession.currentStage,
-        status: updatedSession.status,
-        planTitle: updatedSession.plan.title,
-        ...generatedCoursewareRedisFields(generatedResolution.identity),
-        updatedAt: updatedSession.updatedAt?.getTime() || Date.now(),
-      };
-
-      // 写入 Redis
-      await redisClient.setSessionState(sessionId, redisState);
-
-      // 发布状态变更通知
-      await redisClient.publishStateChange(sessionId, {
-        type: 'update',
-        data: redisState,
-        timestamp: Date.now(),
-      });
-    }
-
-    if (currentItemId !== undefined || status !== undefined) {
-      logClassroomEvent('session_patch', {
-        sessionId,
-        actorUserId: session.user.id,
-        currentItemId: currentItemId ?? null,
-        currentStage: currentStage ?? null,
-        status: status ?? null,
-        coursewarePublicationRevisionId: generatedResolution.identity?.publicationRevisionId ?? null,
-        coursewareManifestHash: generatedResolution.identity?.manifestHash ?? null,
-        classroomEvent,
-      });
-    }
-
-    if (status === 'FINISHED') {
-      await Promise.all([
-        enqueueSessionFinalizationEventIngestion(sessionId),
-        enqueueSessionFinalizationEvidenceFeatureCacheRefresh(sessionId),
-        enqueueSessionSummaryReportRefresh(sessionId),
-        generateSessionSummaryReportsSafely(sessionId),
-      ]);
-    }
-
-    return NextResponse.json(updatedSession);
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    const mapped = mapError(error);
+    if (mapped) return mapped;
     console.error('Error updating session:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -237,135 +67,24 @@ export async function PATCH(request: Request, props: { params: Promise<{ session
 export async function GET(request: Request, props: { params: Promise<{ sessionId: string }> }) {
   const params = await props.params;
   try {
-      const { sessionId } = params;
-      const userSession = await getServerSession(authOptions);
-      if (!userSession?.user?.id) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      const [accessUser, sessionAccess] = await Promise.all([
-          prisma.user.findUnique({
-              where: { id: userSession.user.id },
-              select: {
-                  id: true,
-                  role: true,
-                  profile: { select: { classId: true } },
-              },
-          }),
-          prisma.classSession.findUnique({
-              where: { id: sessionId },
-              select: {
-                  id: true,
-                  planId: true,
-                  teacherId: true,
-                  classId: true,
-                  coursewarePublicationRevisionId: true,
-                  coursewareDisplayName: true,
-                  coursewareRevisionNumber: true,
-                  coursewarePlanRevisionNumber: true,
-                  manifestHash: true,
-              },
-          }),
-      ]);
-
-      if (!accessUser) {
-          return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-      if (!sessionAccess) {
-          return NextResponse.json({ error: 'Not found' }, { status: 404 });
-      }
-      if (!canAccessClassroomSession(sessionAccess, {
-          id: accessUser.id,
-          role: accessUser.role,
-          profile: accessUser.profile ?? userSession.user.profile ?? null,
-      })) {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, sessionAccess);
-      if (!generatedResolution.ok) {
-          return NextResponse.json(generatedResolution.recovery, { status: 409 });
-      }
-
-      // 优先从 Redis 读取会话状态（高性能缓存）
-      if (redisClient.isReady()) {
-          const cachedState = await redisClient.getSessionState(sessionId);
-          const cacheHasExactGeneratedIdentity = !generatedResolution.identity
-              || generatedCoursewareRedisIdentityMatches(cachedState ?? {}, generatedResolution.identity);
-          if (cachedState && cacheHasExactGeneratedIdentity) {
-              return NextResponse.json({
-                  id: sessionId,
-                  joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
-                  classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
-                  class: typeof cachedState.className === 'string' ? { name: cachedState.className } : null,
-                  currentItemId: cachedState.currentItemId ?? null,
-                  currentStage: cachedState.currentStage ?? null,
-                  status: cachedState.status ?? 'ACTIVE',
-                  updatedAt: cachedState.updatedAt ?? Date.now(),
-                  planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
-                  ...generatedCoursewareRedisFields(generatedResolution.identity),
-                  classroomIdentity: buildClassroomIdentityPayload({
-                      id: sessionId,
-                      joinCode: typeof cachedState.joinCode === 'string' ? cachedState.joinCode : '',
-                      classId: typeof cachedState.classId === 'string' ? cachedState.classId : null,
-                      class: typeof cachedState.className === 'string' ? { name: cachedState.className } : null,
-                      planTitle: typeof cachedState.planTitle === 'string' ? cachedState.planTitle : '',
-                  }),
-              });
-          }
-      }
-
-      // 回退到数据库查询
-      const session = await prisma.classSession.findUnique({
-          where: { id: sessionId },
-          select: {
-              id: true,
-              joinCode: true,
-              status: true,
-              classId: true,
-              currentItemId: true,
-              currentStage: true,
-              updatedAt: true, // 添加updatedAt用于前端版本控制
-              planId: true,
-              manifestHash: true,
-              coursewarePublicationRevisionId: true,
-              coursewareDisplayName: true,
-              coursewareRevisionNumber: true,
-              coursewarePlanRevisionNumber: true,
-              // Include minimal plan info for student check
-              plan: {
-                  select: { title: true }
-              },
-              class: {
-                  select: { name: true }
-              }
-          }
-      });
-
-      if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-
-      // 写入 Redis 缓存以便后续快速读取
-      if (redisClient.isReady()) {
-          await redisClient.setSessionState(sessionId, {
-              joinCode: session.joinCode,
-              classId: session.classId,
-              className: session.class?.name ?? null,
-              currentItemId: session.currentItemId,
-              currentStage: session.currentStage,
-              status: session.status,
-              planTitle: session.plan.title,
-              ...generatedCoursewareRedisFields(generatedResolution.identity),
-              updatedAt: session.updatedAt?.getTime() || Date.now(),
-          });
-      }
-
-      return NextResponse.json({
-          ...session,
-          planTitle: session.plan.title,
-          classroomIdentity: buildClassroomIdentityPayload(session),
-      });
+    const userSession = await getServerSession(authOptions);
+    if (!userSession?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const result = await readClassroomSessionUseCase({
+      actor: {
+        id: userSession.user.id,
+        role: userSession.user.role,
+        profile: userSession.user.profile ?? null,
+      },
+      sessionId: params.sessionId,
+    });
+    return NextResponse.json(jsonSafeClassroomPayload(result));
   } catch (error) {
-      rethrowIfNextDynamicError(error);
-      console.error('[Session GET] Error:', error);
-      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    rethrowIfNextDynamicError(error);
+    const mapped = mapError(error);
+    if (mapped) return mapped;
+    console.error('[Session GET] Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { createGovernedRehypeKatexOptions } from '@/lib/governed-math';
 import { useMdxContent } from '@/hooks/use-mdx-content';
 
 interface MdxSlideProps {
@@ -207,7 +208,7 @@ export function MdxSlide({ path, theme = 'dark', size = 'adaptive', className }:
               <div className="h-full w-full overflow-auto p-16">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
+                  rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
                   components={markdownComponents}
                 >
                   {content}
@@ -229,7 +230,7 @@ export function MdxSlide({ path, theme = 'dark', size = 'adaptive', className }:
         <div className="p-6">
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
+            rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
             components={markdownComponents}
           >
             {content}

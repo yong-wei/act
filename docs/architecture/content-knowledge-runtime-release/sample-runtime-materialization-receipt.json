@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "act-content-knowledge-runtime-release-toolchains/v1",
+  "commandId": "release:runtime-release:scripts/runtime-release/materialize-runtime-blob-release.py",
+  "sourceRevision": "ca394e872a457aa646bac64061e0a320bac155ae",
+  "sourceTree": "68167a73f69e88f88de0891bb3ea8025658b0015",
+  "toolchain": "runtime-release",
+  "inputDigest": "30e43403786327a34c23307197f08ebeb5476e63aa2323c361a66eb9f6bd3c13",
+  "outputDigest": "8a60558947f3e3cb0b8daa22048ea0f9a2883c9fdc46b22389a456b2da334fdf",
+  "artifactDigest": null,
+  "executed": false,
+  "productionActivation": false,
+  "selectorMutation": false,
+  "planHash": "30e43403786327a34c23307197f08ebeb5476e63aa2323c361a66eb9f6bd3c13",
+  "inputHash": "30e43403786327a34c23307197f08ebeb5476e63aa2323c361a66eb9f6bd3c13",
+  "targetIdentity": "fixture:unspecified",
+  "approvalState": "not-required",
+  "status": "dry-run",
+  "projectionHandoff": null
+}

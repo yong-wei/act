@@ -73,12 +73,24 @@ describe('AI chat route Konling runtime guard', () => {
   it('validates and injects the server-owned portfolio reflection task contract', () => {
     expect(chatRouteSource).toContain('auditTaskContext');
     expect(chatRouteSource).toContain('resolveAiAuditTaskContext');
+    expect(chatRouteSource).toContain('parseEvidenceCopilotRequest');
+    expect(chatRouteSource).toContain('resolveEvidenceCopilotContext');
+    expect(chatRouteSource).toContain('buildEvidenceCopilotPrompt');
+    expect(chatRouteSource).toContain('resolveGovernedCopilotProfile');
+    expect(chatRouteSource).toContain('resolveCopilotPromptUser');
+    expect(chatRouteSource).toContain('buildGovernedCopilotProfilePrompt');
+    expect(chatRouteSource).toContain('X-Governed-Copilot-Profile-Status');
+    expect(chatRouteSource).toContain('clientUserProfile');
+    expect(chatRouteSource).not.toContain('user: userProfile');
+    expect(chatRouteSource).not.toContain('prisma.learningFact');
+    expect(chatRouteSource).not.toContain('LearningFact.create');
     expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
     expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
+    expect(chatRouteSource).toContain('X-Evidence-Copilot-Status');
     expect(chatRouteSource).toContain('buildAiAuditTaskLogEntry');
     expect(chatRouteSource).toContain("console.info('[ai.task-context]'");
     expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
-    expect(chatRouteSource.indexOf('const taskContextResolution = resolveAiAuditTaskContext'))
+    expect(chatRouteSource.indexOf('parseEvidenceCopilotRequest(auditTaskContext)'))
       .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
   });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
@@ -436,6 +448,26 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
     expect(sessionMessagesRouteSource).toContain('error instanceof KonlingAdaptiveAttemptContextError');
     expect(sessionMessagesRouteSource).toContain('return NextResponse.json({ error: error.message }, { status: error.status })');
+  });
+
+  it('isolates interactive course AI history to the authorized resource page', () => {
+    expect(chatRouteSource).toContain("lessonContext?.stage === 'interactive'");
+    expect(chatRouteSource).toContain('INTERACTIVE_AI_RESOURCE_MISMATCH');
+    expect(chatRouteSource).toContain('X-Interactive-AI-Session');
+    expect(chatRouteSource).not.toContain('contextData');
+    const interactiveHook = readFileSync(
+      join(process.cwd(), 'src/features/interactive/hooks/useInteractiveAI.ts'),
+      'utf8',
+    );
+    expect(interactiveHook).toContain('buildInteractiveAiChatBody');
+    expect(interactiveHook).toContain('conversationId');
+    expect(interactiveHook).not.toContain('contextData,');
+    const interactiveProvider = readFileSync(
+      join(process.cwd(), 'src/features/interactive/InteractiveProvider.tsx'),
+      'utf8',
+    );
+    expect(interactiveProvider).toContain('classroomSessionId: sessionId');
+    expect(interactiveProvider).not.toContain('contextData');
   });
 
   it('hides the public simulation AI companion entry when no user is authenticated', () => {

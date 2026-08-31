@@ -1,0 +1,10 @@
+{
+  "contract": "r4-c5-incremental-reuse/v1",
+  "c4SemanticCacheHash": "110ed6faf73043b1a3db6ee40d9c8091f8354035bdef7f17077be9107ffd5b91",
+  "predecessorObservationHash": "8274c0d9890865ad1b671cb493dddb3bf2e617a21a5262d6f96bdfa32da29973",
+  "reusedBaselineEntries": 14303,
+  "reusedContinuityObligations": 2296,
+  "reusedTeachingDispositions": 22428,
+  "recomputedAuthorityEntries": 0,
+  "receiptHash": "cf555c63b70c421964c64ca9aa50384123e830978cc967df50c18aceef615242"
+}

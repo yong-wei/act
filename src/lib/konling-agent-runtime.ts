@@ -26,19 +26,20 @@ import {
   type SimulationTaskSpecInputV1,
   type SimulationTaskSpecV1,
 } from '@/resources/simulations/core/run-contract';
+import { resolvePersonalizationGoalContext } from '@/features/personalization/plugins/public-api';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
-  CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState,
+  readLearnerState,
+  readPathPlannerLearnerStateForSubject,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import {
-  hasAuthoritativePortraitV2Evidence,
-  summarizePortraitV2,
-} from '@/lib/data-governance/portrait-v2-consumer';
+  projectGovernedCopilotProfile,
+  toServerOwnedUserProfile,
+} from '@/lib/governed-copilot-profile-context';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
@@ -68,7 +69,8 @@ import {
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/structured-textbook-runtime';
 import {
-  buildAdaptiveLearningPathPlan,
+  planLearningPath,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathGraphContextInput,
   type AdaptiveLearningPathConfigurationRequest,
@@ -76,7 +78,12 @@ import {
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
+import {
+  collectionEventsFromGovernedFacts,
+  previousPathFactsFromPlanOptions,
+  type ColdStartGovernedFactInput,
+} from '@/lib/cold-start-evidence-collection';
 import {
   buildKonlingGraphGroundingDegradedReasons,
   buildKonlingKaqGraphContext,
@@ -142,10 +149,10 @@ import {
 } from '@/lib/teacher-resource-node-data';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
-import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
+import type { PageContext, UserProfile } from '@/types/ai-context';
 import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
-import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
-import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
+import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
+import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
   analyzeResultTool,
   analyzeResultInputSchema,
@@ -2942,8 +2949,9 @@ function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | un
     if (getRegisteredAdaptiveLearningPathGoal(candidate)) {
       return candidate;
     }
-    if (CONTROL_CORRECTION_COURSE_ID_VALUES.includes(candidate as typeof CONTROL_CORRECTION_COURSE_ID_VALUES[number])) {
-      return 'control-correction';
+    const mapped = resolvePersonalizationGoalContext({ courseId: candidate });
+    if (mapped.status === 'resolved') {
+      return mapped.context.goalId;
     }
   }
   return null;
@@ -2989,7 +2997,7 @@ async function buildKonlingRuntimeClassOverlayInput(
   const learnerStates = await mapWithConcurrency(sampledProfiles, KONLING_CLASS_OVERLAY_READ_CONCURRENCY, async (student) => {
     const userId = getString(student, 'userId');
     if (!userId) return null;
-    return readAdaptiveLearnerState(db, {
+    return readLearnerState({
       userId,
       role: input.scope.role,
       classId: input.scope.classId,
@@ -3123,7 +3131,7 @@ export async function buildKonlingRuntimeContext(
   const learnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
   const learnerStateGoal = resolveAdaptiveLearnerStateGoal(scope.courseId, input.pageContextHint?.courseId);
   const learnerState = learnerStateEnabled
-    ? await readAdaptiveLearnerState(db, {
+    ? await readLearnerState({
         userId: scope.targetUserId,
         role: scope.role,
         classId: scope.classId,
@@ -4222,10 +4230,33 @@ async function buildAdaptivePathToolOutput(
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
-  const plan = buildAdaptiveLearningPathPlan({
+  const plannerLearnerState = operation === 'generated'
+    ? isAdaptiveLearnerStateServiceEnabled()
+      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
+          goal: goalId,
+          classId: input.scope.classId,
+          now: new Date(),
+        }).catch((error) => {
+          console.error('[KonlingRuntime] Planner learner state read failed:', error);
+          return null;
+        })
+      : input.context.learnerState
+    : input.context.learnerState;
+  const learnerStateForPlanning = plannerLearnerState;
+  const governedFacts = await input.db.learningFact?.findMany?.({
+    where: { userId: input.scope.targetUserId },
+    orderBy: [{ finishedAt: 'desc' }, { id: 'desc' }],
+    take: 50,
+  }) ?? [];
+  const collectionEvents = collectionEventsFromGovernedFacts({
+    facts: Array.isArray(governedFacts) ? governedFacts as ColdStartGovernedFactInput[] : [],
+    goalId,
+  });
+  const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
+  const plan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
-    learnerState: normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any)
+    learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
       ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
     graphContext,
@@ -4252,6 +4283,8 @@ async function buildAdaptivePathToolOutput(
     excludedNodeIds: args.excludedNodeIds,
     preferredStyleId: args.preferredStyleId,
     requestedAt: args.requestedAt,
+    collectionEvents,
+    previousPathFacts,
     now: new Date(),
   });
   const timeBudget = resolveAdaptivePathTimeBudget(
@@ -4275,6 +4308,9 @@ async function buildAdaptivePathToolOutput(
     preferredStyleId: args.preferredStyleId ?? null,
     requestedAt: args.requestedAt ?? null,
     candidatePoolDiagnostics,
+    learnerStateSnapshot: buildAdaptiveLearningPathLearnerStateSnapshot(
+      normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any),
+    ),
   });
   const hasPersistablePath = plan.mainPath.length > 0;
   const differenceSummary = adjustmentSource && hasPersistablePath
@@ -4303,7 +4339,7 @@ async function buildAdaptivePathToolOutput(
     plan: persistedPlan,
     pathStatus: 'candidate',
     classId: input.scope.classId ?? null,
-    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    learnerStateRef: learnerStateForPlanning ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
     inputSnapshot: {
       source: 'konling-tool',
       operation,
@@ -4617,7 +4653,7 @@ function normalizeAdaptivePathSelectedGraphNodeIds(
 function buildAdaptivePathRevisionPlannerPreference(
   args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyFamily' | 'policyBundle'> {
   if (!('rejectedStyleIds' in args)) return {};
   const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
   const rejectedFamilies = new Set((args.rejectedStyleIds ?? [])
@@ -4642,7 +4678,7 @@ function buildAdaptivePathRevisionPlannerPreference(
 
 function buildAdaptivePathGenerationPlannerPreference(
   registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
-): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyBundle'> {
+): Pick<Parameters<typeof planLearningPath>[0], 'policyBundle'> {
   return {
     policyBundle: {
       families: registeredGoal.starterPathPolicy.policyFamilies,
@@ -7972,8 +8008,15 @@ export async function createGovernedKonlingIntervention(
     };
   }
 
-  const decision = shouldIntervene(input.studentState, {}, input.arenaContext);
-  const payload = generateIntervention(decision, input.studentState, input.arenaContext);
+  const decided = decideIntervention({
+    actorUserId: input.scope.authenticatedUserId,
+    subjectUserId: input.scope.targetUserId,
+    role: input.scope.role,
+    studentState: input.studentState,
+    arenaContext: input.arenaContext,
+  });
+  const decision = decided.decision;
+  const payload = decided.payload;
   if (!decision.shouldIntervene) {
     return {
       id: '',
@@ -9900,72 +9943,16 @@ function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Part
   };
 }
 
-function hasTrustedPortraitForKonling(state: AdaptiveLearnerState | null): boolean {
-  return Boolean(
-    state
-      && state.primaryPortraitState === 'SNAPSHOT'
-      && state.primaryPortraitAvailability === 'available'
-      && state.primaryPortrait
-      && hasAuthoritativePortraitV2Evidence(state.primaryPortrait),
-  );
-}
-
 function buildServerOwnedUserProfile(input: {
   userId: string;
   name: string;
   learnerState: AdaptiveLearnerState | null;
 }): UserProfile {
-  const trustedPortrait = hasTrustedPortraitForKonling(input.learnerState);
-  const portraitPayload = trustedPortrait ? input.learnerState?.primaryPortrait : null;
-  const portraitV2 = portraitPayload && Array.isArray(portraitPayload.dimensions)
-    ? summarizePortraitV2(portraitPayload)
-    : undefined;
-  return {
-    id: input.userId,
-    name: input.name,
-    learningStyle: 'INTERACTIVE',
-    cognitiveLevel: inferCognitiveLevel(input.learnerState),
-    abilityVector: toLegacyAbilityVector(input.learnerState),
-    ...(portraitV2 ? { portraitV2 } : {}),
-  };
-}
-
-function inferCognitiveLevel(state: AdaptiveLearnerState | null): 1 | 2 | 3 | 4 | 5 {
-  if (!hasTrustedPortraitForKonling(state)) return 3;
-  const portraitDimensions = Array.isArray(state?.primaryPortrait?.dimensions)
-    ? state.primaryPortrait.dimensions
-    : [];
-  const portraitValues = portraitDimensions.length > 0 && portraitDimensions.every((entry) =>
-    entry.evidenceSummary.totalCount > 0
-      && (entry.freshness.state === 'current' || entry.freshness.state === 'partial')
-      && typeof entry.score === 'number'
-      && Number.isFinite(entry.score)
-  )
-    ? portraitDimensions.map((entry) => entry.score)
-    : [];
-  const values = portraitValues;
-  if (values.length === 0) return 3;
-  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
-  if (avg >= 85) return 5;
-  if (avg >= 70) return 4;
-  if (avg >= 50) return 3;
-  if (avg >= 30) return 2;
-  return 1;
-}
-
-function toLegacyAbilityVector(state: AdaptiveLearnerState | null): AbilityVector {
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: AIContext still exposes this legacy field.
-  const trustedState = state && hasTrustedPortraitForKonling(state) ? state : null;
-  const vector = trustedState
-    ? trustedState.primaryCompetencies.vector as unknown as Record<string, { score?: number } | undefined>
-    : {};
-  return {
-    computational: normalizeScore(vector.controlModeling?.score),
-    crossDomain: normalizeScore(vector.crossDomainTransfer?.score),
-    design: normalizeScore(vector.parameterDesign?.score),
-    analysis: normalizeScore(vector.selfDirectedLearning?.score),
-    evaluation: normalizeScore(vector.engineeringDecision?.score),
-  };
+  return toServerOwnedUserProfile(projectGovernedCopilotProfile(input.learnerState, {
+    authenticatedUserId: input.userId,
+    displayName: input.name,
+    unavailable: !input.learnerState,
+  }));
 }
 
 function buildMissingContext(input: {
@@ -10151,10 +10138,6 @@ function summarizeText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, ' ').trim();
   if (normalized.length <= maxLength) return normalized;
   return `${normalized.slice(0, maxLength - 1)}…`;
-}
-
-function normalizeScore(value: unknown): number {
-  return typeof value === 'number' ? Math.max(0, Math.min(1, value / 100)) : 0.5;
 }
 
 function arrayOfStrings(value: unknown): string[] {

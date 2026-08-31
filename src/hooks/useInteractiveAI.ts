@@ -73,23 +73,13 @@ export function useInteractiveAI({
     [courseId, stepId, stepTitle, stepType, aiContext?.learningObjectives, aiContext?.knowledgeType, pathname]
   );
 
-  // 构建用户画像（使用默认值，后续可以从LearningProfile获取）
+  // 仅保留认证身份；学习风格与能力事实由服务端受治理画像提供。
   const userProfile = useMemo<UserProfile | null>(
     () =>
       session?.user
         ? {
             id: session.user.id || 'anonymous',
             name: session.user.name || '同学',
-            learningStyle: 'VISUAL',
-            cognitiveLevel: 3,
-            abilityVector: {
-              computational: 0.5,
-              crossDomain: 0.5,
-              design: 0.5,
-              analysis: 0.5,
-              evaluation: 0.5,
-            },
-            fleetGroup: undefined,
           }
         : null,
     [session]
@@ -142,7 +132,6 @@ export function useInteractiveAI({
           body: JSON.stringify({
             messages: [...messages, userMessage],
             pageContext,
-            userProfile,
             courseId,
             pageId: stepId,
           }),
@@ -176,7 +165,7 @@ export function useInteractiveAI({
         setIsLoading(false);
       }
     },
-    [input, isLoading, messages, pageContext, userProfile, courseId, stepId, addMessage, onAiEvent]
+    [input, isLoading, messages, pageContext, courseId, stepId, addMessage, onAiEvent]
   );
 
   const handleQuickQuestion = useCallback((question: string) => {

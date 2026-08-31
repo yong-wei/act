@@ -5,7 +5,7 @@
  * MSC Tessa 超大型集装箱船 - 变质量 + 风载荷 + 增益调度
  */
 
-import React, { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -19,6 +19,8 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -155,22 +157,7 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 
 // ============ 集装箱船模型组件 ============
 
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/container.glb';
-const ORIGINAL_MODEL_URL = '/assets/container.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('container');
 
 function ContainerShipModel(props: {
   position: Vector2;
@@ -179,9 +166,10 @@ function ContainerShipModel(props: {
   loadRatio: number;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<ContainerShipModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
-      <ContainerShipModelScene url={OPTIMIZED_MODEL_URL} {...props} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <ContainerShipModelScene url={url} {...props} />}
+    />
   );
 }
 
@@ -265,7 +253,7 @@ function ContainerShipModelScene({
 }
 
 // 预加载集装箱船模型（仅压缩件，避免双份下载）
-useGLTF.preload(OPTIMIZED_MODEL_URL);
+useGLTF.preload(MODEL.primary);
 
 // ============ 航迹线组件 ============
 

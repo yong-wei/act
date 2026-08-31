@@ -4,7 +4,7 @@ import {
   getLearningGoal,
   type AdaptiveLearningPathEvidenceType,
   type LearningGoalDefinition,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,

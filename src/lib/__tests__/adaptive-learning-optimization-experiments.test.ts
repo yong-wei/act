@@ -9,14 +9,75 @@ import {
   summarizePathFeedbackMetrics,
 } from '../adaptive-learning-optimization-experiments';
 import {
-  buildAdaptiveLearningPathPlan,
+  PORTRAIT_V2_CALCULATION_VERSION,
+  PORTRAIT_V2_DIMENSION_IDS,
+  createPortraitV2Payload,
+  projectPortraitV2ForConsumer,
+} from '../data-governance/portrait-v2-model';
+import type { PortraitV2DimensionId } from '../data-governance/kaq-objective-taxonomy';
+import {
+  planLearningPath,
   recordLearningPathFeedback,
   type AdaptiveLearningPathPlannerInput,
-} from '../adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
-import { buildResourceNodeRegistry } from '../resource-node-registry';
+import { buildResourceNodeRegistry, type ResourceNodeRegistry } from '../resource-node-registry';
+
+function createPlannerPortrait(
+  now: Date,
+  overrides: Partial<Record<PortraitV2DimensionId, { score?: number; confidence?: number; totalCount?: number }>> = {},
+) {
+  return projectPortraitV2ForConsumer(createPortraitV2Payload({
+    userId: 'student-1',
+    generatedAt: now.toISOString(),
+    now,
+    dimensions: PORTRAIT_V2_DIMENSION_IDS.map((id) => {
+      const override = overrides[id] ?? {};
+      const totalCount = override.totalCount ?? 4;
+      return {
+        id,
+        score: override.score ?? 50,
+        confidence: override.confidence ?? 0.7,
+        trend: 'stable' as const,
+        freshness: {
+          state: 'current' as const,
+          asOf: now.toISOString(),
+          evidenceAgeDays: 0,
+        },
+        evidenceSummary: {
+          totalCount,
+          sourceFamilyCounts: { LearningFact: totalCount },
+        },
+        lastPositiveEvidenceAt: now.toISOString(),
+        lastNegativeEvidenceAt: null,
+        rationale: 'Governed evidence supports the current score.',
+        limitations: [],
+        sourceLineage: [{
+          kind: 'evidence-family' as const,
+          ref: 'LearningFact',
+          privacyScope: 'student-visible' as const,
+        }],
+        calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
+      };
+    }),
+  }), 'planner', { now });
+}
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? {
+          ...node,
+          launchTarget: `/simulations/${node.sourceRef}`,
+        }
+      : node),
+  };
+}
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
+  const now = overrides.now instanceof Date ? overrides.now : new Date('2026-05-28T00:00:00Z');
+  const defaultPortrait = createPlannerPortrait(now);
   const registry = buildResourceNodeRegistry({
     registeredResources: [
       {
@@ -60,6 +121,13 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
       title: '目标',
       knowledgeTargets: ['kn-goal'],
     },
+    registry,
+    constraints: {
+      timeBudgetMinutes: 80,
+      privacyScopes: ['student-visible'],
+    },
+    now,
+    ...overrides,
     learnerState: {
       knowledgeMastery: {
         tags: {
@@ -77,20 +145,19 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
           LearningFact: 'available',
         },
       },
+      ...overrides.learnerState,
+      primaryPortrait: overrides.learnerState && 'primaryPortrait' in overrides.learnerState
+        ? overrides.learnerState.primaryPortrait
+        : defaultPortrait,
+      primaryPortraitState: overrides.learnerState?.primaryPortraitState ?? 'SNAPSHOT',
+      primaryPortraitAvailability: overrides.learnerState?.primaryPortraitAvailability ?? 'available',
     },
-    registry,
-    constraints: {
-      timeBudgetMinutes: 80,
-      privacyScopes: ['student-visible'],
-    },
-    now: new Date('2026-05-28T00:00:00Z'),
-    ...overrides,
   };
 }
 
 describe('adaptive learning optimization experiments', () => {
   it('does not skip a locked prerequisite to make a later ready node current', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         registeredResources: [
           {
@@ -160,7 +227,10 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('keeps Arena locked for a zero-competency learner until preparation evidence is available', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const now = new Date('2026-05-28T00:00:00Z');
+    const plan = planLearningPath(plannerInput({
+      now,
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       goal: {
         id: 'control-correction',
         title: '控制校正',
@@ -173,6 +243,9 @@ describe('adaptive learning optimization experiments', () => {
         competencyTargets: ['controlModeling', 'parameterDesign'],
       },
       learnerState: {
+        primaryPortrait: createPlannerPortrait(now, Object.fromEntries(
+          PORTRAIT_V2_DIMENSION_IDS.map((id) => [id, { score: 10, totalCount: 1 }]),
+        ) as Partial<Record<PortraitV2DimensionId, { score: number; totalCount: number }>>),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
@@ -199,7 +272,6 @@ describe('adaptive learning optimization experiments', () => {
           },
         },
       },
-      registry: buildControlCorrectionResourceNodeRegistry(),
       constraints: {
         timeBudgetMinutes: 90,
         privacyScopes: ['student-visible'],
@@ -252,7 +324,10 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('unlocks dependent readiness nodes after their preparation node is completed', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const now = new Date('2026-05-28T00:00:00Z');
+    const plan = planLearningPath(plannerInput({
+      now,
+      registry: withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry()),
       goal: {
         id: 'control-correction',
         title: '控制校正',
@@ -264,6 +339,9 @@ describe('adaptive learning optimization experiments', () => {
         competencyTargets: ['controlModeling', 'parameterDesign'],
       },
       learnerState: {
+        primaryPortrait: createPlannerPortrait(now, Object.fromEntries(
+          PORTRAIT_V2_DIMENSION_IDS.map((id) => [id, { score: 60, totalCount: 4 }]),
+        ) as Partial<Record<PortraitV2DimensionId, { score: number; totalCount: number }>>),
         knowledgeMastery: {
           tags: {
             'control-correction:time-domain-targets': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
@@ -289,7 +367,6 @@ describe('adaptive learning optimization experiments', () => {
           },
         },
       },
-      registry: buildControlCorrectionResourceNodeRegistry(),
       constraints: {
         timeBudgetMinutes: 70,
         privacyScopes: ['student-visible'],
@@ -315,7 +392,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('keeps high-load nodes without readiness metadata as locked future milestones', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       registry: buildResourceNodeRegistry({
         simulations: [
           {
@@ -348,7 +425,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('reranks only feasible local alternatives after deterministic path generation', () => {
-    const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
+    const basePlan = planLearningPath(plannerInput());
     const plan = {
       ...basePlan,
       alternatives: [
@@ -395,7 +472,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('falls back to deterministic alternatives when no feasible path exists', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+    const plan = planLearningPath(plannerInput({
       constraints: {
         timeBudgetMinutes: 1,
         privacyScopes: ['student-visible'],
@@ -415,7 +492,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('does not mutate scores or reason codes when only one local alternative is rerankable', () => {
-    const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
+    const basePlan = planLearningPath(plannerInput());
     const onlyAlternative = {
       nodeId: 'simulation:alt-sim-a',
       nodeIds: ['simulation:alt-sim-a'],
@@ -574,7 +651,7 @@ describe('adaptive learning optimization experiments', () => {
   });
 
   it('attributes path feedback to optimization metrics', () => {
-    const plan = buildAdaptiveLearningPathPlan(plannerInput());
+    const plan = planLearningPath(plannerInput());
     const updated = recordLearningPathFeedback(recordLearningPathFeedback(plan, {
       id: 'adopt',
       type: 'adoption',

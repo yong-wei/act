@@ -1,4 +1,4 @@
-import type { AssignmentDraftInput } from '@/lib/assignments/assignment-domain';
+import type { AssignmentDraftInput } from '@/lib/assignments/public-api';
 
 export type AssignmentLifecycleState = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED';
 

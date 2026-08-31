@@ -5,16 +5,69 @@
  * Core events bypass this and go directly to PostgreSQL.
  */
 
+import { createHash } from 'node:crypto';
 import { redisClient } from '@/lib/redis-client';
-import type { LearningEvent, EventPriority } from './event-protocol';
+import type { LearningEvent } from './event-protocol';
 import { isCoreEvent, isSecondaryEvent } from './event-types';
 
-// Redis key patterns
+export const SECONDARY_CLAIM_LEASE_MS = 5 * 60 * 1000;
+export const SECONDARY_BUFFER_CAPACITY = 10_000;
+export const SECONDARY_BUFFER_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+const SECONDARY_ENQUEUE_LUA = `
+local buffer = KEYS[1]
+local processing = KEYS[2]
+local capacity = tonumber(ARGV[1])
+local payload = ARGV[2]
+local ttl = tonumber(ARGV[3])
+local occupancy = redis.call('LLEN', buffer) + redis.call('LLEN', processing)
+if occupancy >= capacity then
+  return 0
+end
+redis.call('LPUSH', buffer, payload)
+if ttl > 0 then
+  redis.call('EXPIRE', buffer, ttl)
+end
+return 1
+`;
+
+const SECONDARY_RECOVER_LUA = `
+local processing = KEYS[1]
+local buffer = KEYS[2]
+local lease = KEYS[3]
+local now = tonumber(ARGV[1])
+local leaseMs = tonumber(ARGV[2])
+local items = redis.call('LRANGE', processing, 0, -1)
+local recovered = 0
+for _, raw in ipairs(items) do
+  local claimedAt = tonumber(redis.call('HGET', lease, redis.sha1hex(raw)))
+  if not claimedAt or (now - claimedAt >= leaseMs) then
+    redis.call('LREM', processing, 1, raw)
+    redis.call('RPUSH', buffer, raw)
+    redis.call('HDEL', lease, redis.sha1hex(raw))
+    recovered = recovered + 1
+  end
+end
+return recovered
+`;
+
 const REDIS_KEYS = {
   secondaryBuffer: (date: string) => `event:buffer:secondary:${date}`,
+  secondaryProcessing: (date: string) => `event:processing:secondary:${date}`,
+  secondaryLease: (date: string) => `event:lease:secondary:${date}`,
   dailyStats: (date: string) => `event:stats:daily:${date}`,
   userSequence: (userId: string) => `event:sequence:${userId}`,
 };
+
+function leaseField(raw: string): string {
+  return createHash('sha1').update(raw).digest('hex');
+}
+
+export interface ClaimedSecondaryEvent {
+  raw: string;
+  event: LearningEvent | null;
+  invalid: boolean;
+}
 
 export interface BufferStats {
   buffered: number;
@@ -79,17 +132,22 @@ export async function bufferSecondaryEvent(event: LearningEvent): Promise<boolea
 
   try {
     const date = new Date().toISOString().split('T')[0];
-    const key = REDIS_KEYS.secondaryBuffer(date);
-
-    // Compress event to JSON string
+    const bufferKey = REDIS_KEYS.secondaryBuffer(date);
+    const processingKey = REDIS_KEYS.secondaryProcessing(date);
     const eventJson = JSON.stringify(event);
-
-    // Push to list with max length protection (keep last 10000)
-    await client.lpush(key, eventJson);
-    await client.ltrim(key, 0, 9999);
-
-    // Set expiration (7 days)
-    await client.expire(key, 7 * 24 * 60 * 60);
+    const accepted = await client.eval(
+      SECONDARY_ENQUEUE_LUA,
+      2,
+      bufferKey,
+      processingKey,
+      SECONDARY_BUFFER_CAPACITY,
+      eventJson,
+      SECONDARY_BUFFER_TTL_SECONDS,
+    );
+    if (Number(accepted) !== 1) {
+      stats.dropped++;
+      return false;
+    }
 
     // Update stats
     await client.hincrby(REDIS_KEYS.dailyStats(date), 'buffered', 1);
@@ -105,47 +163,86 @@ export async function bufferSecondaryEvent(event: LearningEvent): Promise<boolea
   }
 }
 
+export async function recoverExpiredSecondaryClaims(
+  date: string,
+  now = Date.now(),
+  leaseMs = SECONDARY_CLAIM_LEASE_MS,
+): Promise<number> {
+  if (!redisClient.isReady()) return 0;
+  const client = redisClient.getClient();
+  if (!client) return 0;
+
+  const processingKey = REDIS_KEYS.secondaryProcessing(date);
+  const bufferKey = REDIS_KEYS.secondaryBuffer(date);
+  const leaseKey = REDIS_KEYS.secondaryLease(date);
+  const recovered = await client.eval(
+    SECONDARY_RECOVER_LUA,
+    3,
+    processingKey,
+    bufferKey,
+    leaseKey,
+    now,
+    leaseMs,
+  );
+  return Number(recovered) || 0;
+}
+
+export async function claimSecondaryEvents(
+  date: string,
+  limit: number = 100,
+  now = Date.now(),
+): Promise<ClaimedSecondaryEvent[]> {
+  if (!redisClient.isReady()) return [];
+  const client = redisClient.getClient();
+  if (!client) return [];
+
+  try {
+    await recoverExpiredSecondaryClaims(date, now);
+    const bufferKey = REDIS_KEYS.secondaryBuffer(date);
+    const processingKey = REDIS_KEYS.secondaryProcessing(date);
+    const leaseKey = REDIS_KEYS.secondaryLease(date);
+    const claims: ClaimedSecondaryEvent[] = [];
+    for (let i = 0; i < limit; i += 1) {
+      const raw = await client.rpoplpush(bufferKey, processingKey);
+      if (!raw) break;
+      await client.hset(leaseKey, leaseField(raw), String(now));
+      await client.expire(leaseKey, 7 * 24 * 60 * 60);
+      await client.expire(processingKey, 7 * 24 * 60 * 60);
+      try {
+        claims.push({ raw, event: JSON.parse(raw) as LearningEvent, invalid: false });
+      } catch {
+        claims.push({ raw, event: null, invalid: true });
+      }
+    }
+    return claims;
+  } catch (error) {
+    console.error('[EventBuffer] Failed to claim events:', error);
+    return [];
+  }
+}
+
+export async function ackSecondaryEvents(date: string, claims: ClaimedSecondaryEvent[]): Promise<void> {
+  if (!redisClient.isReady() || claims.length === 0) return;
+  const client = redisClient.getClient();
+  if (!client) return;
+  const processingKey = REDIS_KEYS.secondaryProcessing(date);
+  const leaseKey = REDIS_KEYS.secondaryLease(date);
+  for (const claim of claims) {
+    await client.lrem(processingKey, 1, claim.raw);
+    await client.hdel(leaseKey, leaseField(claim.raw));
+  }
+}
+
 /**
- * Fetch secondary events from buffer for processing
+ * Claim secondary events without acknowledging them. Callers MUST ack after
+ * fact+trigger commit. Invalid JSON is returned as `invalid` rather than dropped.
  */
 export async function fetchSecondaryEvents(
   date: string,
   limit: number = 100
 ): Promise<LearningEvent[]> {
-  if (!redisClient.isReady()) {
-    return [];
-  }
-
-  const client = redisClient.getClient();
-  if (!client) return [];
-
-  try {
-    const key = REDIS_KEYS.secondaryBuffer(date);
-
-    // Pop events from the end (oldest first)
-    const eventJsons: string[] = [];
-    for (let i = 0; i < limit; i++) {
-      const eventJson = await client.rpop(key);
-      if (!eventJson) break;
-      eventJsons.push(eventJson);
-    }
-
-    // Parse events
-    const events: LearningEvent[] = [];
-    for (const json of eventJsons) {
-      try {
-        const event = JSON.parse(json) as LearningEvent;
-        events.push(event);
-      } catch {
-        // Skip invalid JSON
-      }
-    }
-
-    return events;
-  } catch (error) {
-    console.error('[EventBuffer] Failed to fetch events:', error);
-    return [];
-  }
+  const claims = await claimSecondaryEvents(date, limit);
+  return claims.flatMap((claim) => (claim.event ? [claim.event] : []));
 }
 
 /**
@@ -160,8 +257,9 @@ export async function getBufferedEventCount(date: string): Promise<number> {
   if (!client) return 0;
 
   try {
-    const key = REDIS_KEYS.secondaryBuffer(date);
-    return await client.llen(key);
+    const buffered = await client.llen(REDIS_KEYS.secondaryBuffer(date));
+    const processing = await client.llen(REDIS_KEYS.secondaryProcessing(date));
+    return buffered + processing;
   } catch {
     return 0;
   }

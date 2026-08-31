@@ -12,7 +12,7 @@ import {
 import {
   createTeacherAssignmentReview,
   resolveTeacherAssignmentReviewAuthorization,
-} from './teacher-assignment-review';
+} from '@/lib/assignments/assignment-review';
 
 type GradingDb = Record<string, any>;
 

@@ -24,7 +24,13 @@ export async function downloadLessonHandoutPdf({
   handoutPdfPath?: string | null;
 }) {
   const response = await fetch(handoutPdfPath ?? buildLessonHandoutPdfAssetPath(lessonId));
-  const finalResponse = !response.ok ? await fetch(buildLessonHandoutPdfApiPath(lessonId)) : response;
+  // A session-bound pinned blob is the captured bytes by address: when it is
+  // unavailable, failing closed beats silently regenerating the PDF from the
+  // current (possibly different) runtime release via the unbound API fallback.
+  const isPinnedBlobPath = handoutPdfPath?.startsWith('/api/course-runtime/blob-assets/') ?? false;
+  const finalResponse = !response.ok && !isPinnedBlobPath
+    ? await fetch(buildLessonHandoutPdfApiPath(lessonId))
+    : response;
   if (!finalResponse.ok) {
     let message = '讲义 PDF 导出失败，请稍后重试。';
 

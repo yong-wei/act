@@ -38,8 +38,18 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain("import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';");
-    expect(source).toContain('!feedback.isCorrect && feedback.durableAnswerId');
-    expect(source).toContain('isMicroTutoringEligible(feedback.adaptiveAssessmentRef)');
+    expect(source).toContain('!feedback.isCorrect');
+    expect(source).toContain('feedback.durableAnswerId');
+    expect(source).toContain('microTutoringEligibility?.qualified');
+    expect(source).not.toContain('isMicroTutoringEligible(');
+    expect(source).not.toContain('检查节点练习');
+    expect(source).toContain('studentMicroTutoringStageLabel(practiceStage)');
+    expect(source).toContain('data-adaptive-practice-stage={practiceStage}');
+    expect(source).toContain('data-micro-tutoring-unavailable={microTutoringUnavailableReason}');
+    expect(source).toContain('data-micro-tutoring-retry-attribution="true"');
+    expect(source).toContain("}, [sessionId]);");
+    expect(source).toContain('sessionIdRef.current = sessionId');
+    expect(source).toContain('if (sessionIdRef.current !== requestedSessionId) return;');
     expect(source).toContain('<StudentMicroTutoringPanel');
     expect(source).toContain('onRequestHint={requestAttemptDiagnosis}');
   });
@@ -237,6 +247,10 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
+    expect(source).toContain("from '@/features/adaptive/cold-start-collection-panel'");
+    expect(source).toContain("from '@/lib/cold-start-evidence-collection'");
+    expect(source).toContain('const learnerStateReadyForCollection = isDemoMode || learnerStateLoadState === \'ready\'');
+    expect(source).not.toContain('adaptive-path-candidate-batches');
     expect(source).toContain('data-adaptive-path-landing-state="loading"');
     expect(source).toContain('正在加载学习路径');
     expect(source).toContain('data-adaptive-path-landing-state="failed"');
@@ -430,7 +444,7 @@ describe('adaptive practice page entry states', () => {
 
     expect(source).toContain("const shouldShowCandidateComparison = (showGenerationWorkspace || showSelectionWorkspace) && Boolean(requestedBatchId)");
     expect(source).toContain("const showCandidateBatchRecovery = (shouldShowCandidateComparison || generatedCandidateBatchFailure) &&");
-    expect(source).toContain("const canRenderCandidateComparison = shouldShowCandidateComparison && candidateBatchLoadState === 'ready'");
+    expect(source).toContain("const canRenderCandidateComparison = (\n    shouldShowCandidateComparison && candidateBatchLoadState === 'ready'\n  ) || (");
     expect(source).toContain("workspaceIntent !== 'generation' && workspaceIntent !== 'selection'");
     expect(source).toContain("requestedBatchId ?? 'batch:none'");
     expect(source).toContain("const hasCandidateBatchContext = shouldShowCandidateComparison");

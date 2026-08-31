@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ALLOWED_STATE_MARKER = "/act-runtime-dev-read/"
+ALLOWED_STATE_MARKERS = ("/act-runtime-dev-read/", "/act-runtime-dev-gateway/")
 ALLOWED_RUNTIME_SUFFIX = "/course-content/runtime"
 MOUNT_BINARIES = ("/bin/mount", "/usr/bin/mount")
 UMOUNT_BINARIES = ("/bin/umount", "/usr/bin/umount")
@@ -31,7 +31,7 @@ def first_executable(candidates: tuple[str, ...], label: str) -> str:
 
 def allowed_runtime_or_state(path: Path) -> bool:
     posix = path.as_posix().rstrip("/")
-    return posix.endswith(ALLOWED_RUNTIME_SUFFIX) or ALLOWED_STATE_MARKER in posix + "/"
+    return posix.endswith(ALLOWED_RUNTIME_SUFFIX) or any(marker in posix + "/" for marker in ALLOWED_STATE_MARKERS)
 
 
 def lexical_path(raw: str) -> Path:

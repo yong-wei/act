@@ -20,6 +20,7 @@ import {
   Volume2,
   VolumeX,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -52,7 +53,10 @@ export function CruiseBridgeVideo({
   const [progress, setProgress] = useState(0);
   const [showNarration, setShowNarration] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [completionStatus, setCompletionStatus] = useState<'idle' | 'pending' | 'error' | 'success'>('idle');
+  const [completionError, setCompletionError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const completionInFlightRef = useRef(false);
 
   // 播放进度控制
   useEffect(() => {
@@ -96,14 +100,28 @@ export function CruiseBridgeVideo({
     setIsPlaying(true);
   }, []);
 
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async () => {
+    if (completionInFlightRef.current) return;
+    completionInFlightRef.current = true;
+    setCompletionStatus('pending');
+    setCompletionError(null);
     const result: WidgetResult = {
       success: true,
       score: 100,
       data: { duration, progress: 100 },
     };
-    interactive?.progress.markComplete(result);
-    onComplete?.(result);
+    try {
+      if (onComplete) {
+        await onComplete(result);
+      } else {
+        await interactive?.progress.markComplete(result);
+      }
+      setCompletionStatus('success');
+    } catch {
+      completionInFlightRef.current = false;
+      setCompletionStatus('error');
+      setCompletionError('路径进度未能确认，请重试。');
+    }
   }, [onComplete, duration, interactive]);
 
   const handleToggleMute = useCallback(() => {
@@ -111,7 +129,7 @@ export function CruiseBridgeVideo({
   }, []);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-slate-950">
+    <div className="relative h-full w-full overflow-hidden bg-slate-950" data-cruise-bridge-root>
       {/* 分屏容器 */}
       <div className="flex h-full">
         {/* 左侧：快艇场景 */}
@@ -141,17 +159,20 @@ export function CruiseBridgeVideo({
         </div>
       </div>
 
-      {/* AI 旁白叠加层 */}
-      {showNarration && (
-        <div className="absolute bottom-20 left-1/2 z-30 -translate-x-1/2 max-w-2xl">
-          <div className="animate-fadeIn rounded-xl bg-slate-900/95 p-4 shadow-2xl border border-sky-500/30 backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 rounded-full bg-sky-500/20 p-2">
-                <Volume2 className="h-5 w-5 text-sky-400" />
+      {/* AI 旁白：放在标题下方左上角，避开分屏主体与完成按钮 */}
+      {showNarration && progress < 100 && (
+        <div
+          className="absolute left-3 right-14 top-12 z-30 max-w-md"
+          data-cruise-bridge-narration=""
+        >
+          <div className="animate-fadeIn rounded-lg bg-slate-900/90 px-3 py-1.5 shadow-lg border border-sky-500/30 backdrop-blur-md">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 rounded-full bg-sky-500/20 p-1">
+                <Volume2 className="h-3.5 w-3.5 text-sky-400" />
               </div>
-              <div>
-                <p className="text-sm text-sky-400 font-medium mb-1">AI 旁白</p>
-                <p className="text-white leading-relaxed">{narration}</p>
+              <div className="min-w-0">
+                <p className="text-[11px] text-sky-400 font-medium">AI 旁白</p>
+                <p className="text-xs text-white leading-snug line-clamp-2 sm:line-clamp-3">{narration}</p>
               </div>
             </div>
           </div>
@@ -171,7 +192,7 @@ export function CruiseBridgeVideo({
       )}
 
       {/* 控制栏 */}
-      <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+      <div className="absolute top-3 right-3 z-40 flex items-center gap-2">
         <button type="button"
           onClick={handleToggleMute}
           className="rounded-full bg-slate-800/80 p-2 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors backdrop-blur-sm"
@@ -193,23 +214,46 @@ export function CruiseBridgeVideo({
         </div>
       )}
 
-      {/* 完成按钮 */}
+      {/* 完成按钮：放在标题下方，不遮挡分屏主体 */}
       {showCompleteButton && progress >= 100 && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 animate-fadeIn">
-          <button type="button"
-            onClick={handleComplete}
-            className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-emerald-500 transition-all hover:scale-105"
-          >
-            继续下一步
-            <ChevronRight className="h-5 w-5" />
-          </button>
+        <div className="absolute left-3 right-3 top-12 z-50 flex justify-center animate-fadeIn sm:justify-end">
+          <div className="flex w-full max-w-sm flex-col items-stretch gap-2 rounded-xl border border-emerald-500/30 bg-slate-950/90 px-4 py-3 shadow-xl backdrop-blur-md sm:w-auto sm:items-center">
+            {completionError ? (
+              <p role="alert" className="text-sm text-red-300">
+                {completionError}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void handleComplete();
+              }}
+              disabled={completionStatus === 'pending' || completionStatus === 'success'}
+              data-cruise-bridge-complete={completionStatus}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {completionStatus === 'pending' ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  正在提交
+                </>
+              ) : completionStatus === 'error' ? (
+                '重试'
+              ) : (
+                <>
+                  继续下一步
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
       {/* 标题 */}
-      <div className="absolute top-4 left-1/2 z-30 -translate-x-1/2">
-        <div className="rounded-full bg-slate-900/90 px-6 py-2 backdrop-blur-sm border border-slate-700">
-          <h2 className="text-lg font-bold text-white">
+      <div className="absolute top-3 left-3 right-14 z-40">
+        <div className="rounded-full bg-slate-900/90 px-4 py-1.5 backdrop-blur-sm border border-slate-700">
+          <h2 className="truncate text-sm font-bold text-white sm:text-lg">
             🚤 快艇 vs 🛳️ 邮轮：舒适度的天壤之别
           </h2>
         </div>

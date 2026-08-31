@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons';
-import { canAccessClassroomSession } from '@/lib/classroom-session-access';
+import { canAccessClassroomSession } from '@/features/classroom/session';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 import { prisma } from '@/lib/prisma';

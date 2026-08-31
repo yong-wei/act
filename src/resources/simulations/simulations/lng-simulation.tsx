@@ -5,7 +5,7 @@
  * 长恒系列 LNG 运输船 - 带时滞和液货晃荡的高保真仿真
  */
 
-import React, { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -19,6 +19,8 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -151,22 +153,7 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 
 // ============ LNG 船模型组件 ============
 
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/Lng-carrier.glb';
-const ORIGINAL_MODEL_URL = '/assets/Lng-carrier.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('lng-carrier');
 
 function LNGShipModel(props: {
   position: Vector2;
@@ -174,9 +161,10 @@ function LNGShipModel(props: {
   sloshingAngle: number;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<LNGShipModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
-      <LNGShipModelScene url={OPTIMIZED_MODEL_URL} {...props} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <LNGShipModelScene url={url} {...props} />}
+    />
   );
 }
 
@@ -254,7 +242,7 @@ function LNGShipModelScene({
 }
 
 // 预加载 LNG 船模型（仅压缩件；原始件由回退边界按需加载）
-useGLTF.preload(OPTIMIZED_MODEL_URL, true, true);
+useGLTF.preload(MODEL.primary, true, true);
 
 // ============ 航迹线组件 ============
 

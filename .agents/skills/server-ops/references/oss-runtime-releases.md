@@ -7,6 +7,13 @@
 - 先以只读方式检查 ECS 的磁盘、容器挂载、现有 runtime 体积、RAM Role metadata、`ossfs` 与 `ossutil` 可用性。没有可用 ECS RAM Role 时，停止 OSS 写入、挂载和切换，只提交所需最小 RAM policy；不得改用长期 AccessKey 或把密钥写入仓库、`.env`、脚本或主机配置文件。
 - 需要通过 ECS 控制台投予实例的角色，必须按“云服务 → 云服务器 ECS / ECS”创建，并在信任策略中使用 `ecs.aliyuncs.com`。信任当前云账号的普通 RAM 角色不能由 ECS 扮演；为实例角色创建前应复用已审计的最小 OSS 自定义策略，而不是授予 OSS 全权限。
 - 常规服务 ECS 只持有 `act-runtime-oss-read`，只读 ossfs 与 Podman runtime bind 仍必须只读。日常 v2 发布由本机受限 publisher 身份完成：启动时用 caller identity 校验账户、principal、Bucket、Region、endpoint 与前缀，并以本机 `flock` 串行。凭据只来自本机受管 credential provider；不得写入仓库、`.env`、脚本、release manifest 或日志。ECS 只执行只读物化、应用 smoke 和受锁的本地选择；浏览器不获得永久 OSS URL。
+- 本机 publisher 凭据的固定存放位置（2026-08-25 核实）：
+  - `~/.config/act/runtime-dev-read.env`（mode 0400）：`ALIBABA_CLOUD_ACCESS_KEY_ID` / `ALIBABA_CLOUD_ACCESS_KEY_SECRET` 与 `ACT_RUNTIME_OSS_BUCKET` / `ACT_RUNTIME_OSS_ENDPOINT` / `ACT_RUNTIME_OSS_REGION` / `ACT_RUNTIME_OSS_EXPECTED_RAM_USER`（`act-runtime-dev-read`）/ `ACT_RUNTIME_OSS_EXPECTED_ACCOUNT_ID`。发布前 `source` 该文件；不得回显、复制或移动其内容。
+  - 安装与重置入口：`~/.config/act/install-runtime-dev-read-credentials.zsh`（隐藏输入读取 AK/SK，umask 077 原子写入；目标文件已存在时拒绝覆盖，重置需先手动删除旧文件再运行）。
+  - 发布工件 spool 与 artifact 目录：`~/.local/state/act-runtime-publisher/artifacts/`（`deploy-runtime-blob-release.sh --artifact-dir` 的历史落点，含 manifest / lifecycle-identity / receipt / publisher-verification）。
+  - `scripts/runtime-release/developer-oss/credential.py` 默认读写 `~/.config/act-runtime-dev-read/credentials.json`（developer 工具链的副本路径）；本机实际使用的是上面的 `~/.config/act` 路线，两者不要混用。
+  - 发布会话环境装配入口（2026-08-25 重建并固化）：`source ~/.config/act/publisher-env.zsh`。它依次完成：source 凭据 env；内存桥接 `OSS_ACCESS_KEY_ID/SECRET`、`OSS_REGION`、`OSS_ENDPOINT`（ossutil 2.x 的 env 名，不落盘）；设定 `ACT_RUNTIME_LOCAL_IDENTITY_COMMAND(._SHA256)`（`~/.config/act/publisher-identity.zsh`——固定 region 的 aliyun CLI 包装，满足 bridge 的 `sts GetCallerIdentity → {AccountId, Arn}` 契约）；`ACT_RUNTIME_LOCAL_OSSUTIL(._SHA256)`（`~/.config/act/tools/ossutil`，2.3.0 mac-arm64，官方 `gosspublic.alicdn.com/ossutil/v2/2.3.0/ossutil-2.3.0-mac-arm64.zip`，sha256 `8c84259d886e131646150535935faa94ef7ac5af9c14ce7486fde41c364389f1`）；`ACT_RUNTIME_LOCAL_PYTHON`；`ACT_RUNTIME_OPERATOR_ACCOUNT_ID` / `ACT_RUNTIME_OPERATOR_PRINCIPAL_ARN`（dev-read RAM 用户身份）；`ACT_RUNTIME_PUBLISH_LOCK_DIR` / `ACT_RUNTIME_PUBLISH_SPOOL_DIR`（`~/.local/state/act-runtime-publisher/`）；`ACT_RUNTIME_SSH_KNOWN_HOSTS_FILE`。装配脚本自带 identity preflight 自检，全部就绪后输出 `publisher env ready`。
+  - 网络注意：本机代理（127.0.0.1:7890，Clash fake-ip DNS）对 `*.alicdn.com` 的直连与代理都会失败（域名解析为 198.18.x 假 IP）。下载/访问阿里云 CDN 资源时需先经 DoH 解析真实 IP（如 `curl 'https://dns.alidns.com/resolve?name=<host>&type=A'`），再 `curl --noproxy '*' --resolve <host>:443:<ip>` 直连；正式 ossutil 分发域名是 `gosspublic.alicdn.com`（`gossutil.alicdn.com` 已不存在）。
 - Bucket 保持私有、阻止公共访问和服务器端加密。需要浏览器访问的媒体由服务端根据 allowlist 生成短时下载重定向；不得把 OSS 签名 URL 固化到 runtime 文件或长期配置。
 - 若 Next.js standalone 应用使用 `ali-oss` 与 `@alicloud/credentials` 生成该重定向，二者必须列为 `serverExternalPackages`，避免 Turbopack 进入 `urllib` 的动态 `proxy-agent` 分支并在生产构建失败；以生产所需 Node heap 完成一次 standalone build 验证。
 
@@ -40,7 +47,7 @@
 - `deploy:runtime` 只处理 Git-tree 增量规划、本机发布、ECS view 物化、runtime consumer restart 与 smoke；不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
 - `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
 - `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。`deploy:all` 仅在两者都变化时按顺序组合。不要让 runtime-only 修改进入 image/database 发布链路。
-- 目标 revision 必须可从 `origin/integration` 到达。Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
+- 目标 revision 必须是冻结的 `origin/integration` 完整 commit。Runtime Release 以该 revision 的 `course-content/runtime` Git tree 为来源，并独立记录 Release identity；它不要求与生产应用的 `origin/main` revision 相同。生产选择前必须存在对当前 main 应用的兼容性证明，至少闭合应用 revision、Runtime source revision、消费合同/格式版本、迁移状态和 manifest/tree digest。不得要求或等待 Runtime source 冻结后的 `origin/integration` HEAD；Git tree 中同 OID 的 entry 复用父 manifest 的 SHA/size；没有 stable Git 或显式 external/generated source identity 的文件拒绝发布。运行时未变时返回 parent release 并停止，不创建新 Release。
 - sample/full audit 是独立只读命令。sample 采用稳定样本，full 读取所有唯一 Blob；失败冻结发布和 GC。日常 selection 不得将这两类 audit 重新纳入部署关键路径。
 
 ## 发布与删除顺序

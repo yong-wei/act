@@ -1,0 +1,32 @@
+{
+  "contract": "r4-presentation-evidence-reclosure/v1",
+  "recordedAt": "2026-08-26T07:20:00.000Z",
+  "status": "candidate-pre-selector",
+  "supersedes": {
+    "candidateRoot": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4",
+    "snapshotId": "snap-0d9014eb9041af5b339084c3ceb7a64b007ef852519386e4c2239ed4aee7fd1a",
+    "snapshotManifestSha256": "7add6199a37438a7ba1bdb25551d435fdd8ecfb23962f5e76abc5c26e5763489",
+    "runtimeSelectorSetSha256": "78f88394b2a53d3736d13309ebbf20de094b100ecfe67046b3e80b8795e3416f"
+  },
+  "successor": {
+    "candidateRoot": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotManifestSha256": "7c2f2792797c1ba607e2f408c6d3ace12147e344cf2191703f2cd8929baa2f76",
+    "semanticCacheSha256": "d780bf7aba56bb44956c535fa60891fa56b6180972f9cd6280d31df7ce72175c",
+    "presentationLabelQualificationSha256": "2f4e12ed89aa7b50eb3d7133810070b78880ea1ceb6007ce68b200b42a79ce71"
+  },
+  "reason": {
+    "code": "missing-snapshot-v2-presentation-evidence",
+    "observedEffect": "all-domain-shard labels resolved to unavailable placeholders",
+    "correction": "rebuild snapshot and every snapshot-bound catalog projection prerequisite consumer and shard artifact"
+  },
+  "invariants": {
+    "immutableHistoricArtifacts": true,
+    "semanticDelta": {
+      "recomputedCount": 0,
+      "retiredCount": 0
+    },
+    "automatedReviewRequired": 0
+  },
+  "recordHash": "6b43e0bd0663d22828b412dfd6f8449437e008443bba2676a40b34500b50cecf"
+}

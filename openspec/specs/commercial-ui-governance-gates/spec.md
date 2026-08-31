@@ -416,6 +416,20 @@ Commercial UI governance SHALL validate current source, DOM, runtime graph data,
 - **THEN** the capture SHALL use a hydrated local URL that reflects the active Next dev server
 - **AND** false positives from non-hydrated `127.0.0.1` proxy paths SHALL be avoided or explicitly marked invalid.
 
+### Requirement: Local authenticated knowledge-workspace QA uses managed three-role fixtures
+The knowledge-workspace product-QA harness SHALL exercise authenticated student, teacher, and administrator sessions. When both the capture target and its `DATABASE_URL` are loopback-local, the harness SHALL idempotently provision the canonical three-role test fixtures and pass their credentials only to its capture child process; it SHALL not require credential environment variables from its caller. A non-loopback capture target or database MUST NOT receive managed fixture writes; it SHALL require explicitly supplied credentials for every required role. Neither browser evidence nor generated QA artifacts SHALL contain credential values. The 320px initial Active Authority capture SHALL expose at least 160 CSS pixels of the actual graph canvas and a non-background renderer paint count in the first viewport; a one-pixel intersection, blank canvas area, or later post-selection screenshot SHALL NOT satisfy this requirement.
+
+#### Scenario: Local product QA runs without credential variables
+- **WHEN** the capture target and configured database are both loopback-local and no `KNOWLEDGE_QA_*` credentials are supplied
+- **THEN** the test harness SHALL provision the canonical student, teacher, and administrator fixtures idempotently and inject them only into its capture child process
+- **AND** its capture child SHALL authenticate all three roles before recording product-QA evidence
+- **AND** the initial mobile Active Authority evidence SHALL record visible canvas height and non-background renderer paint before any graph selection
+
+#### Scenario: Non-local product QA is requested
+- **WHEN** the capture target or database is not loopback-local
+- **THEN** the test harness SHALL not create or update any managed fixture account
+- **AND** missing or incomplete explicit credentials SHALL fail the capture before browser evidence is written
+
 ### Requirement: Interactive learning product QA verifies handoff alignment
 Commercial UI governance SHALL verify the interactive learning redesign against the accepted Product Design handoff and concept images.
 
@@ -872,4 +886,39 @@ Commercial UI governance SHALL require browser, coordinate, motion, accessibilit
 - **WHEN** direct-manipulation evidence is submitted for acceptance
 - **THEN** it SHALL cover 2D and 3D modes, light and dark themes, desktop and narrow viewports, inspector and local-tool collision states, and the shared Konling dock
 - **AND** screenshots that only prove the graph rendered SHALL NOT satisfy the interaction acceptance gate.
+
+### Requirement: Commercial UI capture uses the externalized evidence lifecycle
+
+Commercial UI capture SHALL continue to honor the explicit service URL,
+development revision probe, Dock readiness, temporary staging, transactional
+publication, and existing route/theme/viewport/role/browser gate matrix. Its
+accepted source-controlled inputs SHALL be deterministic fixtures and portable
+manifests; run-specific outputs SHALL be external references verified by hash.
+Missing, stale, mismatched, or privacy-unsafe evidence SHALL fail closed. This
+requirement SHALL NOT change product selectors, UI state semantics, or the
+existing commercial gate matrix.
+
+#### Scenario: The stabilized capture runner publishes evidence
+
+- **WHEN** the runner passes its explicit URL, revision, readiness, and capture
+  checks
+- **THEN** it publishes a portable manifest and external references for the
+  run-specific outputs
+- **AND** the existing commercial route/state/theme/viewport/role assertions
+  remain the gate's source of truth
+
+#### Scenario: A run output is missing or stale
+
+- **WHEN** a manifest cannot fetch its external output or its hash/revision does
+  not match
+- **THEN** the commercial UI governance gate fails closed
+- **AND** it does not substitute an arbitrary local screenshot or change the
+  product gate state
+
+#### Scenario: A product review uses stable evidence
+
+- **WHEN** a product review page is built or tested
+- **THEN** it consumes an approved representative fixture or validated manifest
+  package
+- **AND** it does not import a timestamped run-specific artifact
 

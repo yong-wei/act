@@ -3,6 +3,7 @@
  * 旗舰模型 - 全参数、高保真、多自由度耦合
  */
 
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { ShipProfile } from '../core/ship-profile';
 import { DEFAULT_NOMOTO_PARAMS, DEFAULT_PID_GAINS } from '../core/constants';
 
@@ -71,7 +72,7 @@ export const destroyer055Profile: ShipProfile = {
 
   // 视觉配置
   visual: {
-    modelPath: '/assets/destroyer.glb',
+    modelPath: resolveRegisteredSimulationModel('destroyer').originalUrl,
     modelForward: { x: 1, y: 0, z: 0 },
     modelScale: 1,
     trailColor: '#4ade80',

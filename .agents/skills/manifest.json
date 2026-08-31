@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "active",
-  "lastUpdated": "2026-08-13",
+  "lastUpdated": "2026-08-28",
   "root": ".agents/skills",
   "purpose": "Machine-readable index for project-local skills that may not be automatically exposed by devspace or global skill discovery.",
   "usage": {
@@ -171,6 +171,24 @@
       "path": "openspec-propose/SKILL.md",
       "category": "openspec",
       "description": "Generate a complete OpenSpec change proposal with design, specs, and tasks."
+    },
+    {
+      "name": "openspec-sync-specs",
+      "path": "openspec-sync-specs/SKILL.md",
+      "category": "openspec",
+      "description": "Sync implementation back to main OpenSpec specs."
+    },
+    {
+      "name": "openspec-update-change",
+      "path": "openspec-update-change/SKILL.md",
+      "category": "openspec",
+      "description": "Update an existing OpenSpec change before implementation."
+    },
+    {
+      "name": "openwolf",
+      "path": "openwolf/SKILL.md",
+      "category": "context",
+      "description": "Follow OpenWolf session protocol using STATUS, anatomy, cerebrum, and buglog."
     },
     {
       "name": "redesign-existing-projects",

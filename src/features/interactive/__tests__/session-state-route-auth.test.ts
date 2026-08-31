@@ -143,11 +143,11 @@ describe('/api/session/[sessionId]/state auth', () => {
       'clientEventAt',
       'dedupeIdentity',
     ]));
-    expect(body.evidenceWriteback.dedupeRule).toContain('sessionId');
-    expect(body.evidenceWriteback.dedupeRule).toContain('cardId');
-    expect(body.evidenceWriteback.dedupeRule).toContain('提交身份');
-    expect(body.evidenceWriteback.dedupeRule).toContain('应用层串行');
-    expect(body.evidenceWriteback.dedupeRule).toContain('数据库级并发幂等仍未关闭');
+    expect(body.evidenceWriteback.dedupeRule).toContain('classroom-submission-identity-v1');
+    expect(body.evidenceWriteback.dedupeRule).toContain('数据库唯一约束');
+    expect(body.evidenceWriteback.dedupeRule).toContain('POST_SESSION_REVIEW');
+    expect(body.evidenceWriteback.dedupeRule).not.toContain('仍未关闭');
+    expect(body.evidenceWriteback.liveStateNote).toContain('不是提交证据');
     expect(mocks.findMany).toHaveBeenCalledTimes(2);
   });
 

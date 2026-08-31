@@ -1,0 +1,64 @@
+[
+  {
+    "artifactId": "authority-capture",
+    "artifactHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8"
+  },
+  {
+    "artifactId": "locale-qualification",
+    "artifactHash": "24dc2bbcb1e4ad2cf699b8419ad56aaa32f7d5cb6c307da8fc88b0cf21696e63"
+  },
+  {
+    "artifactId": "teaching-projection",
+    "artifactHash": "c9a6f33eb88fff28f8934a25a627e38deffcbf331ee7f34bb4e9ff65b0d02c2e"
+  },
+  {
+    "artifactId": "teaching-closure-receipt",
+    "artifactHash": "f9eb5d70f2980beaa23685430c2baf88a8f95a54c74de2788bfa25a80f646a7e"
+  },
+  {
+    "artifactId": "composed-domain-fragment-manifest",
+    "artifactHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe"
+  },
+  {
+    "artifactId": "domain-fragment-set",
+    "artifactHash": "634543d0daee0bd0abf82ffe6efc12a36e503548990f8a3bef1fca2da46e17cb"
+  },
+  {
+    "artifactId": "formal-resource-envelope",
+    "artifactHash": "fb770a47333330abf12216133c48134099e680780e7d6324c66f176920b12cd7",
+    "allocationHash": "1d46215ebef09b3706cf1edb4c463fd68f24003ab3f2efc4337819a1f4eaffb0"
+  },
+  {
+    "artifactId": "continuity-receipt",
+    "artifactHash": "e2cd42f860779ebe5fe189502461a5959510e86fe94843b867c8a699bfe94221"
+  },
+  {
+    "artifactId": "derivation-receipt",
+    "artifactHash": "0915003e50d8e464afc4eeb9af95d5dd7c76d4797ca665f883e72e8b18a32b3e",
+    "allocationHash": "1d46215ebef09b3706cf1edb4c463fd68f24003ab3f2efc4337819a1f4eaffb0"
+  },
+  {
+    "artifactId": "successor-runtime-manifest",
+    "artifactHash": "cf28d0628305cc466d1115d68db2db653950c85067c4ca52b441fbc89d07ac74"
+  },
+  {
+    "artifactId": "successor-runtime-materialization",
+    "artifactHash": "8581748846d641ae2bceb34b024297f8d206cae4f5bab4ef803e47a53933e090"
+  },
+  {
+    "artifactId": "authority-domain-shard-catalog",
+    "artifactHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c"
+  },
+  {
+    "artifactId": "authority-domain-shard-set",
+    "artifactHash": "c462da19203700966fce21ad5f8d2d6fbc1832844872ca71f019f0a28e670c68"
+  },
+  {
+    "artifactId": "prerequisite-publication",
+    "artifactHash": "d55c3ac4097729bc7e016ecdd810c8153a490166e3283c580897b0b7268845c8"
+  },
+  {
+    "artifactId": "consumer-activation",
+    "artifactHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa"
+  }
+]

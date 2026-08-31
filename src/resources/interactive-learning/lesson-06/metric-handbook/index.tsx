@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Info, Target, Gauge, Clock, TrendingUp } from 'lucide-react';
 import { PERFORMANCE_METRIC_DEFINITIONS } from '../types';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 function MetricCurve({ activeId }: { activeId: string }) {
   const points = [
@@ -120,17 +121,7 @@ export default function MetricHandbookCard({ onComplete, onStateChange }: Metric
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
     interactive?.tracking.emit('interact', snapshot.data);
-
-    if (nextVisited.length === totalMetrics && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { visited: nextVisited, total: totalMetrics },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [initialActiveId, visitedIds, totalMetrics, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visitedIds, totalMetrics, interactive, onStateChange]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -188,6 +179,12 @@ export default function MetricHandbookCard({ onComplete, onStateChange }: Metric
           )}
         </div>
       </div>
+          <PathResourceContinueAction
+            enabled={visitedIds.length === totalMetrics}
+            result={{ success: true, score: 100, data: { visited: visitedIds, total: totalMetrics } }}
+            onComplete={onComplete}
+          />
+
     </div>
   );
 }

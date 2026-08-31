@@ -17,18 +17,27 @@ import path from 'node:path';
 import { Job, Queue, Worker } from 'bullmq';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { Redis } from 'ioredis';
-import { fetchSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
+import { claimSecondaryEvents, ackSecondaryEvents, markEventsProcessed } from '@/lib/data-governance/event-buffer';
+import { applyAllStagedMicroInterventionEvidence } from '@/features/learning-record/personalization-ports/public-api';
 import {
-  eventToLearningFactInput,
-} from '@/lib/data-governance/learning-fact-materialization';
-import {
-  selectLearningFactAuthority,
-  writeKnowledgeScopedLearningFacts,
-  type LearningFactWriteRow,
-} from '@/lib/canonical-learning-fact-identity';
-import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
-import { processPendingMicroInterventionEvidenceProjections } from '@/features/assessment/micro-intervention-learning-evidence';
+  applyStagedLearningFactIngestions,
+  applyStagedProjectionTriggers,
+  currentCaptureRevision,
+  ingestLearningFact,
+} from '@/features/learning-record/ingestion/public-api';
+import { selectAckClaims } from '@/features/learning-record/retirement/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
+import {
+  failSessionClosureOutbox,
+  redispatchPendingSessionClosures,
+} from '@/lib/data-governance/session-closure-outbox';
+import {
+  ensureSessionClosurePhases,
+  incompletePhases,
+  runSessionClosurePhase,
+  settleSessionClosuresIfComplete,
+} from '@/lib/data-governance/session-closure-phases';
+import { materializeEvidenceRow } from '@/lib/data-governance/session-fact-replay';
 import {
   rebuildStudentEvidenceFeatureCache,
   refreshStudentEvidenceFeatureCache,
@@ -54,7 +63,6 @@ import {
 } from '@/lib/data-governance/cumulative-snapshot-jobs';
 import { SimulationTaskInputDriftError } from '@/lib/data-governance/simulation-task-portrait-projection';
 import { scheduleSimulationTaskCatalogRefresh } from '@/lib/data-governance/simulation-task-reconciliation';
-import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import { scanAllStudentRisks, type RiskScannerDb } from '@/lib/risk-scanner';
 import type {
   ClassSnapshotJob,
@@ -492,20 +500,26 @@ async function enqueueClassSnapshotForStudent(
 
 async function listBufferedDates(): Promise<Array<{ date: string; count: number }>> {
   const client = getRedisClient();
-  const keys = await client.keys('event:buffer:secondary:*');
+  const bufferKeys = await client.keys('event:buffer:secondary:*');
+  const processingKeys = await client.keys('event:processing:secondary:*');
+  const dates = new Map<string, number>();
 
-  if (keys.length === 0) {
-    return [];
-  }
+  const addKeys = async (keys: string[], prefix: string) => {
+    if (keys.length === 0) return;
+    const counts = await Promise.all(keys.map((key) => client.llen(key)));
+    keys.forEach((key, index) => {
+      const date = key.replace(prefix, '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+      dates.set(date, (dates.get(date) ?? 0) + counts[index]);
+    });
+  };
 
-  const counts = await Promise.all(keys.map((key) => client.llen(key)));
+  await addKeys(bufferKeys, 'event:buffer:secondary:');
+  await addKeys(processingKeys, 'event:processing:secondary:');
 
-  return keys
-    .map((key, index) => ({
-      date: key.replace('event:buffer:secondary:', ''),
-      count: counts[index],
-    }))
-    .filter((entry) => entry.count > 0)
+  return [...dates.entries()]
+    .filter(([, count]) => count > 0)
+    .map(([date, count]) => ({ date, count }))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -549,10 +563,16 @@ async function getActiveStudentIds(): Promise<string[]> {
 export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   try {
     if (prisma) {
-      await processPendingMicroInterventionEvidenceProjections(prisma as never);
+      const db = prisma;
+      await applyAllStagedMicroInterventionEvidence(db as never);
+      await applyStagedLearningFactIngestions(db as never);
+      await applyStagedProjectionTriggers(db as never, async ({ ownerUserId, triggerKey }) => {
+        const fence = await readActiveCumulativePublicationFence(db);
+        await enqueueStudentSnapshot(ownerUserId, triggerKey, fence);
+      });
     }
   } catch (error) {
-    console.error('[EventIngestion] micro-intervention evidence projection failed:', error);
+    console.error('[EventIngestion] staged ingestion failed:', error);
   }
   if (job.data.coordinator) {
     const bufferedDates = await listBufferedDates();
@@ -587,61 +607,83 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   const batchDate = resolveBatchDate(job.data.batchDate);
   logWithThrottle('event-ingestion:job', 'info', `[EventIngestion] Processing batch for ${batchDate}`);
 
-  const events = await fetchSecondaryEvents(batchDate, EVENT_BATCH_SIZE);
-  if (events.length === 0) {
+  const claims = await claimSecondaryEvents(batchDate, EVENT_BATCH_SIZE);
+  if (claims.length === 0) {
     return { processed: 0, factsCreated: 0 };
+  }
+
+  const captureRevision = currentCaptureRevision();
+  const outcomes: Array<{
+    status: string;
+    inputDigest?: string;
+    factsCreated: number;
+    failure?: { code: string; fingerprint: string };
+  }> = [];
+  let factsCreated = 0;
+  const triggeredUsers = new Set<string>();
+
+  for (const claim of claims) {
+    if (!claim.event) {
+      outcomes.push({
+        status: 'terminal_failed',
+        factsCreated: 0,
+        failure: { code: 'invalid-json', fingerprint: 'invalid-json' },
+      });
+      continue;
+    }
+    try {
+      const result = await ingestLearningFact({
+        db: db as never,
+        transport: 'outbox-apply',
+        event: claim.event,
+        actorUserId: claim.event.userId,
+        captureRevision,
+        classId: claim.event.classId,
+      });
+      outcomes.push({
+        status: result.status,
+        inputDigest: result.inputDigest,
+        factsCreated: result.factsCreated,
+        failure: result.failure,
+      });
+      factsCreated += result.factsCreated;
+      if (result.trigger) {
+        triggeredUsers.add(result.trigger.subjectUserId);
+      }
+    } catch {
+      outcomes.push({
+        status: 'retryable_failed',
+        factsCreated: 0,
+        failure: { code: 'ingest-throw', fingerprint: 'ingest-throw' },
+      });
+    }
   }
 
   await db.learningEventBatch.create({
     data: {
       batchDate: new Date(batchDate),
-      events: events as unknown as Prisma.InputJsonValue,
-      eventCount: events.length,
+      events: outcomes as unknown as Prisma.InputJsonValue,
+      eventCount: claims.length,
       processedAt: new Date(),
     },
   });
 
-  const facts = events
-    .map(eventToLearningFactInput)
-    .filter((fact): fact is Prisma.LearningFactCreateManyInput => Boolean(fact));
-
-  let factsCreated = 0;
-  if (facts.length > 0) {
-    // Realtime knowledge-scoped facts must resolve the active authority selector
-    // and write through the fixed-identity adapter (pre-cutover: LEGACY).
-    const selector = selectLearningFactAuthority('FORMAL_PRODUCTION');
-    const activeRevision = await resolveActiveKnowledgeRevision(db);
-    const result = await writeKnowledgeScopedLearningFacts(
-      {
-        learningFact: {
-          createMany: async (args) => db.learningFact.createMany({
-            data: args.data as Prisma.LearningFactCreateManyInput[],
-            skipDuplicates: args.skipDuplicates,
-          }),
-        },
-      },
-      {
-        rows: facts as LearningFactWriteRow[],
-        knowledgeScoped: true,
-      },
-      {
-        selector,
-        knowledgeRevisionRef: activeRevision.id,
-      },
-    );
-    factsCreated = result.written;
+  if (triggeredUsers.size > 0) {
     const triggerId = String(job.id ?? batchDate);
     const fence = await readActiveCumulativePublicationFence(db);
-    for (const userId of new Set(facts.map((fact) => fact.userId))) {
+    for (const userId of triggeredUsers) {
       await enqueueStudentSnapshot(userId, triggerId, fence);
     }
   }
 
-  await markEventsProcessed(events.length, batchDate);
+  const confirmed = selectAckClaims(claims, outcomes.map((item) => item.status));
+  await ackSecondaryEvents(batchDate, confirmed);
+  await markEventsProcessed(confirmed.length, batchDate);
 
   return {
-    processed: events.length,
+    processed: confirmed.length,
     factsCreated,
+    deferred: claims.length - confirmed.length,
   };
 }
 
@@ -951,12 +993,60 @@ export async function processClassSnapshotJob(job: Job<ClassSnapshotJob>) {
 }
 
 async function processSessionReportJob(job: Job<SessionReportJob>) {
+  // 收敛协调器：对每个未完成闭包确保阶段台账行存在，按台账重放未完成阶段，
+  // 并在全部阶段回执 SUCCEEDED 后才结算。台账是闭包完备性的唯一真源。
+  if (job.data.coordinator) {
+    const db = getPrismaClient();
+    if (!reportQueue || !redis) {
+      throw new Error('worker queues are not initialised');
+    }
+    const queue = reportQueue;
+    const sessionIds = await redispatchPendingSessionClosures(db, async (sessionId) => {
+      const rows = await ensureSessionClosurePhases(db, sessionId);
+      for (const phase of incompletePhases(rows)) {
+        // 唯一 jobId：BullMQ 对已存在（含 failed 集合）的 jobId 重复 add 是 no-op
+        await queue.add(`session-closure-phase-${phase}`, { sessionId, phase }, {
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 5000 },
+          jobId: `session-closure-phase-${sessionId}-${phase}-${Date.now()}`,
+          removeOnComplete: { count: 20 },
+          removeOnFail: { count: 50 },
+        });
+      }
+    });
+    const settled = await settleSessionClosuresIfComplete(db, sessionIds);
+    if (sessionIds.length > 0 || settled > 0) {
+      logWithThrottle('session-report:closure-redispatch', 'info', `[SessionReport] Converged closure finalization for ${sessionIds.length} session(s), settled ${settled}`);
+    }
+    return { redispatchedSessions: sessionIds, settledClosures: settled };
+  }
+
+  // 阶段作业：执行单个闭包阶段并写入台账回执
+  if (job.data.phase && job.data.sessionId) {
+    const db = getPrismaClient();
+    const result = await runSessionClosurePhase(db, job.data.sessionId, job.data.phase, {
+      refreshEvidenceFeatureCache: (userId) => refreshStudentEvidenceFeatureCache(db as any, userId),
+      materializeEvidence: (evidence) => materializeEvidenceRow(db, evidence),
+    });
+    if (result.status === 'FAILED') {
+      throw new Error(`session closure phase ${job.data.phase} failed: ${JSON.stringify(result.detail)}`);
+    }
+    return { sessionId: job.data.sessionId, phase: job.data.phase, ...result };
+  }
+
   if (!job.data.sessionId) {
     throw new Error('session-report job requires sessionId');
   }
 
   const db = getPrismaClient();
-  return generateSessionSummaryReports(db, job.data.sessionId);
+  try {
+    // 水位限定报告写入 summarized 阶段；结算由 coordinator 在全部必需阶段
+    // （summarized + cached）完成后按阶段判定执行
+    return await generateSessionSummaryReports(db, job.data.sessionId);
+  } catch (error) {
+    await failSessionClosureOutbox(db, job.data.sessionId, 'session-report-failed');
+    throw error;
+  }
 }
 
 async function processEvidenceFeatureCacheJob(job: Job<EvidenceFeatureCacheJob>) {

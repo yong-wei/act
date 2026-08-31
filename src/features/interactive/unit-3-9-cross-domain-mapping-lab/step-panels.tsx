@@ -411,12 +411,14 @@ function BaselineMetricForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: UNIT_3_9StepResponse;
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
+  readOnly?: boolean;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
@@ -447,8 +449,9 @@ function BaselineMetricForm({
                 <td className="border-b border-border/40 px-3 py-2">
                   <input aria-label={`填写${metric.label}`}
                     value={draft[metric.key] ?? ''}
+                    disabled={readOnly}
                     onChange={(event) => setDraft((prev) => ({ ...prev, [metric.key]: event.target.value }))}
-                    className="premium-lesson-input w-full"
+                    className="premium-lesson-input w-full disabled:cursor-not-allowed disabled:opacity-60"
                     placeholder={`填写${metric.label}`}
                   />
                 </td>
@@ -460,8 +463,10 @@ function BaselineMetricForm({
       </div>
       <button
         type="button"
-        className="premium-lesson-action-primary"
+        disabled={Boolean(readOnly)}
+        className="premium-lesson-action-primary disabled:opacity-40"
         onClick={() => {
+          if (readOnly) return;
           const timestamp = Date.now();
           setSubmittedAt(timestamp);
           onSubmit({ stepId: stepManifest.id, submittedAt: timestamp, answers: draft });
@@ -472,6 +477,7 @@ function BaselineMetricForm({
       <SubmissionStatus
         submitted={Boolean(submittedAt || savedResponse)}
         submittedText="指标填空已提交，修改后可以再次提交。"
+        idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined}
         showLock={false}
       />
     </SurfaceCard>
@@ -484,12 +490,14 @@ function ParameterSliderSubmission({
   released,
   onSubmit,
   onWorkspaceParameterChange,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: UNIT_3_9StepResponse;
   released: boolean;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  readOnly?: boolean;
 }) {
   const panelId = resolveUnit39PanelId(stepManifest);
   const initial = savedResponse?.answers ?? (PANEL_CONFIG[panelId].defaultParams as Record<string, string | number>);
@@ -516,8 +524,10 @@ function ParameterSliderSubmission({
         <div className="premium-lesson-tone-block premium-tone-cyan text-sm leading-7">{evaluation}</div>
         <button
           type="button"
-          className="premium-lesson-action-primary"
+          disabled={Boolean(readOnly)}
+          className="premium-lesson-action-primary disabled:opacity-40"
           onClick={() => {
+            if (readOnly) return;
             const timestamp = Date.now();
             setSubmittedAt(timestamp);
             onSubmit({
@@ -535,6 +545,7 @@ function ParameterSliderSubmission({
         <SubmissionStatus
           submitted={Boolean(submittedAt || savedResponse)}
           submittedText="当前设计已提交，继续调节后可以再次提交。"
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined}
           showLock={false}
         />
       </SurfaceCard>
@@ -568,11 +579,13 @@ function MappingTableForm({
   savedResponse,
   released,
   onSubmit,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   savedResponse?: UNIT_3_9StepResponse;
   released: boolean;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
+  readOnly?: boolean;
 }) {
   const [draft, setDraft] = useState<Record<string, string>>(savedResponse?.answers ?? {});
   const [statusText, setStatusText] = useState<string | null>(savedResponse ? '表格记录已恢复，可以继续修改后提交。' : null);
@@ -583,10 +596,12 @@ function MappingTableForm({
   }
 
   const save = () => {
+    if (readOnly) return;
     setStatusText('已暂存当前表格，切换页面后可以回来继续填写。');
     onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __draft: 'true' } });
   };
   const submit = () => {
+    if (readOnly) return;
     setStatusText('表格已提交，留空项也已按当前状态记录。');
     onSubmit({ stepId: stepManifest.id, submittedAt: Date.now(), answers: { ...draft, __submitted: 'true' } });
   };
@@ -613,8 +628,9 @@ function MappingTableForm({
                     <td key={key} className="border-b border-border/40 px-2 py-2">
                       <textarea aria-label={`${row.label}${column.label}`}
                         value={draft[key] ?? ''}
+                        disabled={readOnly}
                         onChange={(event) => setDraft((prev) => ({ ...prev, [key]: event.target.value }))}
-                        className="premium-lesson-input min-h-[72px] w-full"
+                        className="premium-lesson-input min-h-[72px] w-full disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </td>
                   );
@@ -625,13 +641,13 @@ function MappingTableForm({
         </table>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button type="button" className="premium-lesson-action-secondary" onClick={save}>暂存</button>
-        <button type="button" className="premium-lesson-action-primary" onClick={submit}>提交</button>
+        <button type="button" disabled={Boolean(readOnly)} className="premium-lesson-action-secondary disabled:opacity-40" onClick={save}>暂存</button>
+        <button type="button" disabled={Boolean(readOnly)} className="premium-lesson-action-primary disabled:opacity-40" onClick={submit}>提交</button>
       </div>
       <SubmissionStatus
         submitted={Boolean(statusText)}
         submittedText={statusText ?? '表格已记录。'}
-        idleText="可以先暂存，也可以直接提交。"
+        idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '可以先暂存，也可以直接提交。'}
         showLock={false}
       />
     </SurfaceCard>
@@ -653,6 +669,7 @@ export function UNIT_3_9StudentActivityForm({
   revealProgress,
   onSubmit,
   onWorkspaceParameterChange,
+  readOnly = false,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
   step: UNIT_3_9StepDefinition;
@@ -663,16 +680,17 @@ export function UNIT_3_9StudentActivityForm({
   revealProgress: number;
   onSubmit: (response: UNIT_3_9StepResponse) => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+  readOnly?: boolean;
 }) {
   if (!isUNIT_3_9InteractivePageType(step.pageType)) return null;
   if (step.pageType === 'structured_compare') {
-    return <BaselineMetricForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} answerVisible={answerVisible} onSubmit={onSubmit} />;
+    return <BaselineMetricForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} answerVisible={answerVisible} onSubmit={onSubmit} readOnly={readOnly} />;
   }
   if (step.pageType === 'parameter_slider') {
-    return <ParameterSliderSubmission stepManifest={stepManifest} savedResponse={savedResponse} released={released} onSubmit={onSubmit} onWorkspaceParameterChange={onWorkspaceParameterChange} />;
+    return <ParameterSliderSubmission stepManifest={stepManifest} savedResponse={savedResponse} released={released} onSubmit={onSubmit} onWorkspaceParameterChange={onWorkspaceParameterChange} readOnly={readOnly} />;
   }
   if (step.pageType === 'table_builder') {
-    return <MappingTableForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} onSubmit={onSubmit} />;
+    return <MappingTableForm stepManifest={stepManifest} savedResponse={savedResponse} released={released} onSubmit={onSubmit} readOnly={readOnly} />;
   }
   return renderStudentInteractiveActivity({
     registry: SHARED_STUDENT_ACTIVITY,
@@ -684,6 +702,7 @@ export function UNIT_3_9StudentActivityForm({
     answerVisible,
     revealProgress,
     onSubmit,
+    readOnly,
   });
 }
 

@@ -15,7 +15,7 @@ import { UserMenu } from '@/components/shared/user-menu';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
-import type { RecommendationRationale } from '@/lib/data-governance/recommendation-engine';
+import type { RecommendationRationale } from '@/features/personalization/recommendations/types';
 import { getCommercialStudentEntryIntentGroups, getPlatformCockpitHref, getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
 
 const learnerDataShell = buildLearnerDataRouteShell('/profile');

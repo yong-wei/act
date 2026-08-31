@@ -94,6 +94,18 @@ if [ "${ACT_RUNTIME_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
   operator_runtime_active_receipt_path_was_set=1
   operator_runtime_active_receipt_path="$ACT_RUNTIME_ACTIVE_RECEIPT_PATH"
 fi
+operator_coordinated_cutover_required_was_set=0
+operator_coordinated_cutover_required=""
+if [ "${ACT_COORDINATED_CUTOVER_REQUIRED+x}" = "x" ]; then
+  operator_coordinated_cutover_required_was_set=1
+  operator_coordinated_cutover_required="$ACT_COORDINATED_CUTOVER_REQUIRED"
+fi
+operator_coordinated_active_receipt_path_was_set=0
+operator_coordinated_active_receipt_path=""
+if [ "${ACT_COORDINATED_ACTIVE_RECEIPT_PATH+x}" = "x" ]; then
+  operator_coordinated_active_receipt_path_was_set=1
+  operator_coordinated_active_receipt_path="$ACT_COORDINATED_ACTIVE_RECEIPT_PATH"
+fi
 file_knowledge_mode_was_set=0
 file_knowledge_mode=""
 if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
@@ -144,6 +156,12 @@ if [ "$operator_runtime_oss_region_was_set" = "1" ]; then
 fi
 if [ "$operator_runtime_active_receipt_path_was_set" = "1" ]; then
   ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$operator_runtime_active_receipt_path"
+fi
+if [ "$operator_coordinated_cutover_required_was_set" = "1" ]; then
+  ACT_COORDINATED_CUTOVER_REQUIRED="$operator_coordinated_cutover_required"
+fi
+if [ "$operator_coordinated_active_receipt_path_was_set" = "1" ]; then
+  ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$operator_coordinated_active_receipt_path"
 fi
 if [ "$runtime_knowledge_mode_was_set" = "1" ]; then
   if [ "$runtime_knowledge_mode" = "cutover" ]; then
@@ -301,6 +319,18 @@ if [ "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" = "$RUNTIME_ACTIVE_RECEIPT_PATH" ]; then
   echo "ERROR: ACT_RUNTIME_ACTIVE_RECEIPT_PATH 必须包含父目录。" >&2
   exit 1
 fi
+ACT_COORDINATED_CUTOVER_REQUIRED="${ACT_COORDINATED_CUTOVER_REQUIRED:-false}"
+case "$ACT_COORDINATED_CUTOVER_REQUIRED" in
+  true|false) ;;
+  *) echo "ERROR: ACT_COORDINATED_CUTOVER_REQUIRED 必须为 true 或 false。" >&2; exit 1 ;;
+esac
+COORDINATED_ACTIVE_RECEIPT_PATH="${ACT_COORDINATED_ACTIVE_RECEIPT_PATH:-${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}/coordinated-active-receipt.json}"
+COORDINATED_ACTIVE_RECEIPT_HOST_DIR="${COORDINATED_ACTIVE_RECEIPT_PATH%/*}"
+if [ "$COORDINATED_ACTIVE_RECEIPT_HOST_DIR" != "$RUNTIME_ACTIVE_RECEIPT_HOST_DIR" ]; then
+  echo "ERROR: coordinated active receipt 必须位于 active runtime receipt 的同一状态目录。" >&2
+  exit 1
+fi
+COORDINATED_ACTIVE_RECEIPT_CONTAINER_PATH="/app/act-runtime-state/${COORDINATED_ACTIVE_RECEIPT_PATH##*/}"
 # Activation-gate Authority / Teaching Projection stores (#1274).
 # Projection lives under the host runtime mount so the whole-runtime volume
 # overlay does not hide image-packaged empty scaffolds.
@@ -308,6 +338,8 @@ AUTHORITY_STORE_DIR="${AUTHORITY_STORE_DIR:-${PROJECT_DIR}/course-content/author
 TEACHING_PROJECTION_STORE_DIR="${TEACHING_PROJECTION_STORE_DIR:-${RUNTIME_CONTENT_DIR}/knowledge/projection}"
 ACT_AUTHORITY_STORE_ROOT="${ACT_AUTHORITY_STORE_ROOT:-/app/course-content/authoring/knowledge/authority}"
 ACT_TEACHING_PROJECTION_STORE_ROOT="${ACT_TEACHING_PROJECTION_STORE_ROOT:-/app/course-content/runtime/knowledge/projection}"
+LATEST_CUTOVER_CANDIDATE_DIR="${LATEST_CUTOVER_CANDIDATE_DIR:-${PROJECT_DIR}/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5}"
+ACT_LATEST_CUTOVER_CANDIDATE_ROOT="${ACT_LATEST_CUTOVER_CANDIDATE_ROOT:-/app/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5}"
 # An ossfs release is the complete runtime source.  A path persisted by the
 # legacy runtime environment would otherwise create a nested bind mount from
 # the retired local tree and mask this release's projection subtree.
@@ -475,6 +507,31 @@ require_actkg_activation_store_pointers() {
         echo "请先运行 activation gate 将 Authority/Projection/consumer/prerequisites 工件同步到部署主机，再重新部署。" >&2
         exit 1
       fi
+      if [ ! -d "$LATEST_CUTOVER_CANDIDATE_DIR" ]; then
+        echo "ERROR: production cutover 缺少 latest-cutover 候选目录: $LATEST_CUTOVER_CANDIDATE_DIR" >&2
+        missing=1
+      fi
+      local latest_cutover_artifact
+      for latest_cutover_artifact in \
+        candidate-receipt.json \
+        successor-runtime-manifest-extension.json \
+        teaching-closure-receipt.json \
+        composed-domain-fragment-manifest.json \
+        formal-resource-envelope.json
+      do
+        if [ ! -f "${LATEST_CUTOVER_CANDIDATE_DIR}/${latest_cutover_artifact}" ]; then
+          echo "ERROR: production cutover 缺少 latest-cutover 候选工件: ${LATEST_CUTOVER_CANDIDATE_DIR}/${latest_cutover_artifact}" >&2
+          missing=1
+        fi
+      done
+      if [ ! -d "${LATEST_CUTOVER_CANDIDATE_DIR}/domain-fragments" ]; then
+        echo "ERROR: production cutover 缺少 latest-cutover 领域分片目录: ${LATEST_CUTOVER_CANDIDATE_DIR}/domain-fragments" >&2
+        missing=1
+      fi
+      if [ "$missing" -ne 0 ]; then
+        echo "请先将 identity-matched latest-cutover 候选同步到部署主机，再重新部署。" >&2
+        exit 1
+      fi
       echo "- Knowledge deployment mode: cutover (all activation current pointers present)"
       ;;
     *)
@@ -484,6 +541,7 @@ require_actkg_activation_store_pointers() {
   esac
   echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
   echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
+  echo "- Latest-cutover candidate: ${LATEST_CUTOVER_CANDIDATE_DIR} -> ${ACT_LATEST_CUTOVER_CANDIDATE_ROOT}"
 }
 
 require_grading_audit_secret() {
@@ -824,7 +882,7 @@ write_runtime_env() {
     fi
     awk -F= '
       BEGIN {
-        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_DELIVERY_MODE RUNTIME_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
+        split("APP_PORT APP_CONTAINER_PORT APP_DOMAIN APP_IMAGE APP_CONTAINER DB_CONTAINER DB_IMAGE REDIS_CONTAINER REDIS_IMAGE REDIS_URL WORKER_CONTAINER WORKER_CONCURRENCY MATH_DOCUMENT_GRADING_WORKER_REQUIRED NETWORK_NAME DB_VOLUME REDIS_VOLUME DB_NAME DB_USER DB_HOST RUNTIME_CONTENT_DIR RUNTIME_DELIVERY_MODE RUNTIME_ACTIVE_RECEIPT_PATH ACT_COORDINATED_CUTOVER_REQUIRED ACT_COORDINATED_ACTIVE_RECEIPT_PATH AUTHORITY_STORE_DIR TEACHING_PROJECTION_STORE_DIR ACT_AUTHORITY_STORE_ROOT ACT_TEACHING_PROJECTION_STORE_ROOT LATEST_CUTOVER_CANDIDATE_DIR ACT_LATEST_CUTOVER_CANDIDATE_ROOT ACT_KNOWLEDGE_DEPLOYMENT_MODE", keys, " ");
         for (key_index in keys) managed[keys[key_index]] = 1;
       }
       !managed[$1] { print }
@@ -858,10 +916,14 @@ ACT_RUNTIME_OSS_RAM_ROLE=$ACT_RUNTIME_OSS_RAM_ROLE
 ACT_RUNTIME_OSS_BUCKET=$ACT_RUNTIME_OSS_BUCKET
 ACT_RUNTIME_OSS_REGION=$ACT_RUNTIME_OSS_REGION
 RUNTIME_ACTIVE_RECEIPT_PATH=$RUNTIME_ACTIVE_RECEIPT_PATH
+ACT_COORDINATED_CUTOVER_REQUIRED=$ACT_COORDINATED_CUTOVER_REQUIRED
+ACT_COORDINATED_ACTIVE_RECEIPT_PATH=$COORDINATED_ACTIVE_RECEIPT_PATH
 AUTHORITY_STORE_DIR=$AUTHORITY_STORE_DIR
 TEACHING_PROJECTION_STORE_DIR=$TEACHING_PROJECTION_STORE_DIR
 ACT_AUTHORITY_STORE_ROOT=$ACT_AUTHORITY_STORE_ROOT
 ACT_TEACHING_PROJECTION_STORE_ROOT=$ACT_TEACHING_PROJECTION_STORE_ROOT
+LATEST_CUTOVER_CANDIDATE_DIR=$LATEST_CUTOVER_CANDIDATE_DIR
+ACT_LATEST_CUTOVER_CANDIDATE_ROOT=$ACT_LATEST_CUTOVER_CANDIDATE_ROOT
 ACT_KNOWLEDGE_DEPLOYMENT_MODE=$ACT_KNOWLEDGE_DEPLOYMENT_MODE
 EOF
   chmod "$runtime_env_mode" "$runtime_env_temp"
@@ -1171,6 +1233,9 @@ APP_ENV_ARGS=(
   -e ACT_RUNTIME_OSS_BUCKET="$ACT_RUNTIME_OSS_BUCKET"
   -e ACT_RUNTIME_OSS_REGION="$ACT_RUNTIME_OSS_REGION"
   -e ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$RUNTIME_ACTIVE_RECEIPT_CONTAINER_PATH"
+  -e ACT_COORDINATED_CUTOVER_REQUIRED="$ACT_COORDINATED_CUTOVER_REQUIRED"
+  -e ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$COORDINATED_ACTIVE_RECEIPT_CONTAINER_PATH"
+  -e ACT_LATEST_CUTOVER_CANDIDATE_ROOT="$ACT_LATEST_CUTOVER_CANDIDATE_ROOT"
   -e SMART_COURSEWARE_ORDERING_SECRET="$SMART_COURSEWARE_ORDERING_SECRET"
   -e GRADING_MATHPIX_ENABLED="${GRADING_MATHPIX_ENABLED:-false}"
   -e GRADING_MATHPIX_POLICY_VERSION="$GRADING_MATHPIX_POLICY_VERSION"
@@ -1246,11 +1311,18 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
-echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
-podman run --rm \
-  --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
-  "${WOLFRAM_ENV_ARGS[@]}" \
-  "$APP_IMAGE"
+if podman run --rm --entrypoint /bin/sh "$APP_IMAGE" -c 'test -x /app/scripts/math-calc/check-wolfram-ready.sh'; then
+  echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
+  podman run --rm \
+    --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \
+    "${WOLFRAM_ENV_ARGS[@]}" \
+    "$APP_IMAGE"
+elif [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
+  echo "WARN: runtime cutover 使用不含 Wolfram smoke 的既有镜像，跳过该兼容性检查" >&2
+else
+  echo "ERROR: production image is missing Wolfram Cloud MCP smoke script" >&2
+  exit 1
+fi
 
 if [ "$RUNTIME_CUTOVER_APP_ONLY" = "1" ]; then
   echo "- runtime cutover 跳过 Prisma 迁移、策略物化和作业存储健康检查"
@@ -1304,6 +1376,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
+  -v "${LATEST_CUTOVER_CANDIDATE_DIR}:${ACT_LATEST_CUTOVER_CANDIDATE_ROOT}:ro" \
   -v "${START_WRAPPER_PATH}:/app-container-start-wrapper.sh:ro" \
   "${DB_HOST_ARGS[@]}" \
   "${REDIS_HOST_ARGS[@]}" \
@@ -1362,5 +1435,6 @@ echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/run
 echo "- Runtime delivery mode: ${RUNTIME_DELIVERY_MODE}"
 echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
 echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
+echo "- Latest-cutover candidate: ${LATEST_CUTOVER_CANDIDATE_DIR} -> ${ACT_LATEST_CUTOVER_CANDIDATE_ROOT}"
 echo
 podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${APP_CONTAINER}|${DB_CONTAINER}|${REDIS_CONTAINER}|${WORKER_CONTAINER}|${SUBMISSION_SCANNER_CONTAINER}|${SUBMISSION_GC_CONTAINER}" || true

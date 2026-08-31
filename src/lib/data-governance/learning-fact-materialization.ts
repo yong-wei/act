@@ -505,9 +505,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
       ? { ...payload, score }
       : payload;
   const evidenceGovernance = resolveLearningFactEvidenceGovernance(actionType, payload);
-  const suppressCompetencyContribution =
-    !authorizedCompetencyContributionEvents.has(event) ||
-    readRecord(evidenceGovernance)?.skipProfileContribution === true;
+  const suppressCompetencyContribution = !authorizedCompetencyContributionEvents.has(event);
   const fact: Prisma.LearningFactCreateManyInput & { contextJson?: Prisma.InputJsonValue } = {
     userId: event.userId,
     factType: mapActionTypeToFactType(actionType),
@@ -537,6 +535,8 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     ...(readRecord(adaptiveAssessmentContext) ?? {}),
     ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
     ...(evidenceGovernance ? { evidenceGovernance } : {}),
+    goalId: readString(payload.goalId),
+    adapter: readRecord(payload.adapter),
   });
   if (Object.keys(contextJson).length > 0) {
     fact.contextJson = contextJson;
@@ -544,6 +544,7 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
   return fact;
 }
 
+/** Production callers must go through `ingestLearningFact`; do not add a second writer. */
 export async function persistCoreLearningFact(
   db: { learningFact: LearningFactCreateManyDelegate },
   event: LearningEvent,

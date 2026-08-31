@@ -85,6 +85,30 @@ describe('math calculate executor', () => {
     await pending;
   });
 
+  it('parses During-evaluation output produced by the Cloud MCP wrapper', async () => {
+    const payload = JSON.stringify({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+      steps: [{
+        step: 1,
+        description: 'identify',
+        operation: 'identify',
+        input: '1',
+        output: '1',
+      }],
+    });
+    const pending = runMathCalculate({ expression: '1', operation: 'laplace', variable: 't' });
+    await Promise.resolve();
+    pendingEvaluations[0]?.resolve(
+      `During evaluation of In[1]:= ${payload}\nGeneral::quit: The kernel quit unexpectedly during evaluation with exit code 0.`,
+    );
+
+    await expect(pending).resolves.toMatchObject({
+      status: 'ok',
+      result: '\\frac{1}{s}',
+    });
+  });
+
   it('projects Cloud MCP failures into the stable unavailable error', async () => {
     const pending = runMathCalculate({ expression: 'x', operation: 'simplify' });
     await Promise.resolve();
@@ -97,6 +121,38 @@ describe('math calculate executor', () => {
       message: '公式计算运行时不可用',
     });
     expect(String(error)).not.toContain('agenttools.wolfram.com');
+  });
+
+  it('forwards the caller abort signal into the shared evaluator', async () => {
+    const controller = new AbortController();
+    const pending = runMathCalculate({ expression: '1' }, { signal: controller.signal });
+    await Promise.resolve();
+
+    const [, options] = mocks.evaluateWolframLanguage.mock.calls[0] as [
+      string,
+      { signal?: AbortSignal },
+    ];
+    expect(options.signal).toBe(controller.signal);
+
+    pendingEvaluations[0]?.resolve(okEvaluatorText());
+    await expect(pending).resolves.toMatchObject({ status: 'ok' });
+  });
+
+  it('stops queueing when the caller cancels while waiting for a slot', async () => {
+    const first = runMathCalculate({ expression: '1' });
+    await Promise.resolve();
+
+    const controller = new AbortController();
+    const queued = runMathCalculate({ expression: '2' }, { signal: controller.signal });
+    const cancelled = expect(queued).rejects.toBeInstanceOf(MathCalculateUnavailableError);
+    await Promise.resolve();
+    controller.abort();
+    await cancelled;
+
+    pendingEvaluations[0]?.resolve(okEvaluatorText());
+    await first;
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(mocks.evaluateWolframLanguage).toHaveBeenCalledTimes(1);
   });
 
   it('limits Cloud MCP concurrency for every caller of the shared executor', async () => {

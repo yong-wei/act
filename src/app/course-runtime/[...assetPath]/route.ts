@@ -29,6 +29,7 @@ function isPrivateRuntimeGovernancePath(relativePath: string) {
   const normalizedPath = relativePath.replace(/\\/g, '/').toLowerCase();
   const textbookAssetPath =
     /^resources\/textbooks\/[a-z0-9][a-z0-9-]{0,95}\/assets\/[^/]+\/[^/]+$/u;
+  const lessonMediaIndexPath = /^lessons\/[^/]+\/media\/[^/]+-media\.md$/u;
   return normalizedPath === 'resource-governance'
     || normalizedPath.startsWith('resource-governance/')
     || normalizedPath === 'resources/textbooks-v2'
@@ -37,6 +38,7 @@ function isPrivateRuntimeGovernancePath(relativePath: string) {
     || normalizedPath.startsWith('resources/textbook-retrieval/')
     || normalizedPath === 'resources/textbook-hybrid-retrieval'
     || normalizedPath.startsWith('resources/textbook-hybrid-retrieval/')
+    || lessonMediaIndexPath.test(normalizedPath)
     || (
       (
         normalizedPath === 'resources/textbooks'

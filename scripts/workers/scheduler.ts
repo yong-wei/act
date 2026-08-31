@@ -12,6 +12,7 @@ import type {
   EventIngestionJob,
   EvidenceFeatureCacheJob,
   RiskFlagScanJob,
+  SessionReportJob,
   StudentSnapshotJob,
 } from './types';
 
@@ -24,6 +25,7 @@ const SCHEDULES = {
   CLASS_SNAPSHOT: '30 3 * * *',
   EVIDENCE_FEATURE_CACHE_REBUILD: '45 4 * * *',
   RISK_FLAG_SCAN_NIGHTLY: '0 3 * * *',
+  SESSION_CLOSURE_REDISPATCH: '*/10 * * * *',
 } as const;
 
 const JOB_HISTORY_OPTIONS = {
@@ -46,18 +48,20 @@ async function scheduleJobs() {
   const classQueue = new Queue<ClassSnapshotJob>('snapshot-class', { connection: redis });
   const evidenceFeatureCacheQueue = new Queue<EvidenceFeatureCacheJob>('evidence-feature-cache', { connection: redis });
   const riskFlagQueue = new Queue<RiskFlagScanJob>('risk-flag-scan', { connection: redis });
+  const sessionReportQueue = new Queue<SessionReportJob>('session-report', { connection: redis });
 
   await clearRepeatableJobs(eventQueue);
   await clearRepeatableJobs(studentQueue);
   await clearRepeatableJobs(classQueue);
   await clearRepeatableJobs(evidenceFeatureCacheQueue);
   await clearRepeatableJobs(riskFlagQueue);
+  await clearRepeatableJobs(sessionReportQueue);
 
   await eventQueue.add(
     'event-ingestion-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.EVENT_INGESTION_NIGHTLY },
+      repeat: { pattern: SCHEDULES.EVENT_INGESTION_NIGHTLY },
       jobId: 'coordinator-event-ingestion',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -67,7 +71,7 @@ async function scheduleJobs() {
     'active-student-snapshot-coordinator',
     { coordinator: true, simulationTaskCatalogRefresh: true },
     {
-      repeat: { cron: SCHEDULES.ACTIVE_STUDENT_SNAPSHOT },
+      repeat: { pattern: SCHEDULES.ACTIVE_STUDENT_SNAPSHOT },
       jobId: 'coordinator-active-student-snapshot',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -77,7 +81,7 @@ async function scheduleJobs() {
     'class-snapshot-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.CLASS_SNAPSHOT },
+      repeat: { pattern: SCHEDULES.CLASS_SNAPSHOT },
       jobId: 'coordinator-class-snapshot',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -87,7 +91,7 @@ async function scheduleJobs() {
     'evidence-feature-cache-rebuild',
     { coordinator: true, rebuildAll: true },
     {
-      repeat: { cron: SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD },
+      repeat: { pattern: SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD },
       jobId: 'coordinator-evidence-feature-cache-rebuild',
       ...JOB_HISTORY_OPTIONS,
     },
@@ -97,8 +101,19 @@ async function scheduleJobs() {
     'risk-flag-scan-coordinator',
     { coordinator: true },
     {
-      repeat: { cron: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
+      repeat: { pattern: SCHEDULES.RISK_FLAG_SCAN_NIGHTLY },
       jobId: 'coordinator-risk-flag-scan',
+      ...JOB_HISTORY_OPTIONS,
+    },
+  );
+
+  // 闭包 outbox 补投：周期扫描 PENDING/FAILED 闭包，Redis 恢复后自动闭合漏投
+  await sessionReportQueue.add(
+    'session-closure-redispatch-coordinator',
+    { coordinator: true },
+    {
+      repeat: { pattern: SCHEDULES.SESSION_CLOSURE_REDISPATCH },
+      jobId: 'coordinator-session-closure-redispatch',
       ...JOB_HISTORY_OPTIONS,
     },
   );
@@ -108,12 +123,14 @@ async function scheduleJobs() {
   console.log(`[Scheduler] Class snapshots scheduled: ${SCHEDULES.CLASS_SNAPSHOT}`);
   console.log(`[Scheduler] Evidence feature cache rebuild scheduled: ${SCHEDULES.EVIDENCE_FEATURE_CACHE_REBUILD}`);
   console.log(`[Scheduler] Risk flag scan scheduled: ${SCHEDULES.RISK_FLAG_SCAN_NIGHTLY}`);
+  console.log(`[Scheduler] Session closure redispatch scheduled: ${SCHEDULES.SESSION_CLOSURE_REDISPATCH}`);
 
   await eventQueue.close();
   await studentQueue.close();
   await classQueue.close();
   await evidenceFeatureCacheQueue.close();
   await riskFlagQueue.close();
+  await sessionReportQueue.close();
   await redis.quit();
 
   console.log('[Scheduler] Recurring coordinator jobs refreshed successfully');

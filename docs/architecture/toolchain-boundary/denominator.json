@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "act-independent-toolchain-execution-boundary/v1",
+  "denominator": {
+    "sourceRevision": "9e0ce1f457ccf019eec034a150cde02601a99825",
+    "sourceTree": "8e1d055f32bf0095e3f1fe4928c62ba05ba640b7",
+    "totalCount": 2861,
+    "digest": "4fdbc81a1f5870fba90125acb88be2c3e7e3d7caa1741f0735faa4bbe0339c4d",
+    "families": [
+      {
+        "id": "tools",
+        "path": "tools",
+        "count": 35,
+        "digest": "91eb454dab79bb4fc7722c2078d183e00002c8bb088b1cfe5ae78adf86f7a38a"
+      },
+      {
+        "id": "scripts-knowledge-cutover",
+        "path": "scripts/knowledge-cutover",
+        "count": 75,
+        "digest": "c8b4f866eb5157f0acfd16dcd01ec110fd52c514892e5599274f06c8d8689785"
+      },
+      {
+        "id": "scripts-knowledge",
+        "path": "scripts/knowledge",
+        "count": 7,
+        "digest": "ed3f6647ebc2cc96ac74a31674f66d0b484aeefeaa2c2b73a7f61a08d4593670"
+      },
+      {
+        "id": "scripts-runtime-release",
+        "path": "scripts/runtime-release",
+        "count": 32,
+        "digest": "c025c2e9b92c781320d0bc1a20783694eb0bd2c8f9cb57b02d61e9afcc1543ed"
+      },
+      {
+        "id": "scripts-release",
+        "path": "scripts/release",
+        "count": 5,
+        "digest": "734574d1b7e8c299e687a3515087f8c6dc31b8d96bf818457876514466cebaec"
+      },
+      {
+        "id": "course-content-scripts",
+        "path": "course-content/scripts",
+        "count": 41,
+        "digest": "3ffaf7f5e75849f813e3eff7bc6c0366532eb5af9cb789152ded13d652a49ad9"
+      },
+      {
+        "id": "scripts-tests",
+        "path": "scripts/tests",
+        "count": 233,
+        "digest": "bbbc10554e2967ed8005fb52661fe46569183d2a57a902e2adbb7ef9cb45151b"
+      },
+      {
+        "id": "scripts-migrations",
+        "path": "scripts/migrations",
+        "count": 3,
+        "digest": "54c162917d9c23d90813fde746ffc3c84cf7d7fd65793048e9085f1b9a0f715c"
+      },
+      {
+        "id": "scripts-db",
+        "path": "scripts/db",
+        "count": 76,
+        "digest": "d69314242a0434cdfe49b7ef00a1a4d4cd676190191f3745abdaff3bb72f6859"
+      },
+      {
+        "id": "evaluate",
+        "path": "evaluate",
+        "count": 7,
+        "digest": "3ad2047de55b49fddbbe0066688d61f002fb58bf346c197c2964d20880267cef"
+      },
+      {
+        "id": "artifacts",
+        "path": "artifacts",
+        "count": 2347,
+        "digest": "934decab2711ff8efee676b21ecfc882b9114c90aeb8c59438701369a1444799"
+      }
+    ],
+    "generatedInputs": []
+  },
+  "registry": {
+    "schemaVersion": "act-toolchain-registry/v1",
+    "recordCount": 9,
+    "records": [
+      {
+        "toolId": "adapter:platform",
+        "toolClass": "adapter",
+        "owner": "platform",
+        "commandId": "toolchain:boundary-check",
+        "pathCount": 13,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "none",
+        "safetyMode": "read-only",
+        "retirementCondition": "keep-as-boundary-contract",
+        "followUpChange": null
+      },
+      {
+        "toolId": "competition-material:arena",
+        "toolClass": "competition-material",
+        "owner": "arena",
+        "commandId": "toolchain:competition-material",
+        "pathCount": 7,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "private-run-evidence",
+        "safetyMode": "dry-run-default",
+        "retirementCondition": "isolate-then-archive-or-delete",
+        "followUpChange": "isolate-migration-backfill-competition-toolchains"
+      },
+      {
+        "toolId": "content-export-review:course",
+        "toolClass": "content-export-review",
+        "owner": "course",
+        "commandId": "toolchain:content-export-review",
+        "pathCount": 41,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "public-bundle",
+        "safetyMode": "read-only",
+        "retirementCondition": "migrate-then-delete-product-caller",
+        "followUpChange": "isolate-content-knowledge-runtime-release-toolchains"
+      },
+      {
+        "toolId": "evidence-visual-qa:assessment",
+        "toolClass": "evidence-visual-qa",
+        "owner": "assessment",
+        "commandId": "toolchain:evidence-visual-qa",
+        "pathCount": 241,
+        "graphId": "test",
+        "testCommand": "typecheck:test",
+        "privacyClass": "private-run-evidence",
+        "safetyMode": "read-only",
+        "retirementCondition": "keep-as-evidence-lifecycle-contract",
+        "followUpChange": null
+      },
+      {
+        "toolId": "existing-unrelated-tool:platform",
+        "toolClass": "existing-unrelated-tool",
+        "owner": "platform",
+        "commandId": "toolchain:existing-unrelated-tool",
+        "pathCount": 7,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "public-bundle",
+        "safetyMode": "read-only",
+        "retirementCondition": "owned-outside-this-series",
+        "followUpChange": null
+      },
+      {
+        "toolId": "historical-evidence:assessment",
+        "toolClass": "historical-evidence",
+        "owner": "assessment",
+        "commandId": "toolchain:historical-evidence",
+        "pathCount": 2347,
+        "graphId": "test",
+        "testCommand": "typecheck:test",
+        "privacyClass": "private-run-evidence",
+        "safetyMode": "none",
+        "retirementCondition": "retain-manifest-and-externalize-bytes",
+        "followUpChange": "externalize-run-specific-qa-evidence-artifacts"
+      },
+      {
+        "toolId": "knowledge-release:knowledge",
+        "toolClass": "knowledge-release",
+        "owner": "knowledge",
+        "commandId": "toolchain:knowledge-release",
+        "pathCount": 82,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "public-bundle",
+        "safetyMode": "read-only",
+        "retirementCondition": "migrate-then-delete-product-caller",
+        "followUpChange": "isolate-content-knowledge-runtime-release-toolchains"
+      },
+      {
+        "toolId": "migration-backfill:learning-record",
+        "toolClass": "migration-backfill",
+        "owner": "learning-record",
+        "commandId": "toolchain:migration-backfill",
+        "pathCount": 86,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "none",
+        "safetyMode": "apply-gated",
+        "retirementCondition": "keep-as-isolated-command-boundary",
+        "followUpChange": null
+      },
+      {
+        "toolId": "runtime-oss-release:platform",
+        "toolClass": "runtime-oss-release",
+        "owner": "platform",
+        "commandId": "toolchain:runtime-oss-release",
+        "pathCount": 37,
+        "graphId": "tools",
+        "testCommand": "typecheck:tools",
+        "privacyClass": "public-bundle",
+        "safetyMode": "read-only",
+        "retirementCondition": "migrate-then-delete-product-caller",
+        "followUpChange": "isolate-content-knowledge-runtime-release-toolchains"
+      }
+    ]
+  },
+  "receipt": {
+    "schemaVersion": "act-toolchain-command-receipt/v1",
+    "commandId": "toolchain:boundary-check",
+    "sourceRevision": "9e0ce1f457ccf019eec034a150cde02601a99825",
+    "sourceTree": "8e1d055f32bf0095e3f1fe4928c62ba05ba640b7",
+    "inputDigest": "4fdbc81a1f5870fba90125acb88be2c3e7e3d7caa1741f0735faa4bbe0339c4d",
+    "outputDigest": "807ad7962dd5b79020d893e1e356c0981f512c36c428cc9420cdca98cfff87aa",
+    "validatorVersion": "act-independent-toolchain-execution-boundary/v1",
+    "exitStatus": 0,
+    "graphId": "tools",
+    "privacyClass": "none",
+    "safetyMode": "read-only"
+  },
+  "preexistingPathReads": [
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/smoke-test.mjs",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/teacher-diagnosis-report-history-evidence.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/test-arena-home-entry.mjs",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/test-arena-routes.mjs",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/test-commercial-ui-governance.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/architecture-test-commands/conventions.ts",
+      "to": "scripts/tests/test-platform-brand-kit-evidence.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+      "to": "scripts/db/backfill-learning-facts-from-event-batches.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+      "to": "scripts/db/backfill-learning-facts-from-interaction-logs.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+      "to": "scripts/db/backfill-unit-4-1-growth-governance.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+      "to": "scripts/migrations/002-migrate-to-learning-facts.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/canonical-resource-binding/capture-revision.ts",
+      "to": "scripts/db/import-canonical-resource-binding-shadow.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/commercial-ui-capture-revision.ts",
+      "to": "scripts/tests/capture-adaptive-path-product-qa.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/commercial-ui-governance.ts",
+      "to": "scripts/tests/capture-simulation-command-deck-qa.ts",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/runtime-external-input-bundle.ts",
+      "to": "course-content/scripts/textbook_hybrid_retrieval.py",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/runtime-external-input-bundle.ts",
+      "to": "course-content/scripts/validate_structured_textbook_runtime_v2.mjs",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/runtime-external-input-bundle.ts",
+      "to": "course-content/scripts/validate_written_textbook_runtime_v2.py",
+      "kind": "path-string"
+    },
+    {
+      "from": "src/lib/runtime-external-input-bundle.ts",
+      "to": "scripts/release/textbook-runtime-v2-provenance.mjs",
+      "kind": "path-string"
+    }
+  ],
+  "failures": []
+}

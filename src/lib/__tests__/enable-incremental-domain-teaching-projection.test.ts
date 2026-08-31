@@ -1018,7 +1018,7 @@ describe('enable-incremental-domain-teaching-projection', () => {
       };
       const built = buildDomainTeachingGenerationV2();
 
-      expect(built.authority.nodes).toHaveLength(4891);
+      expect(built.authority.nodes).toHaveLength(7476);
       expect(authorityNodesFromPinnedSnapshot(reversed as never)).toEqual(
         built.authority.nodes,
       );

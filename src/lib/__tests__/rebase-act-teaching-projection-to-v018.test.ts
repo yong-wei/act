@@ -7,7 +7,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   assertV018AdmittedAuthorityCandidate,
-  prepareActKgV018TeachingProjection,
 } from '../../../scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection';
 import { buildTeachingProjection } from '../teaching-projection/builder';
 import type { TeachingProjectionAuthoringInput } from '../teaching-projection/contracts';
@@ -24,33 +23,33 @@ import {
   expectedV018AdmissionSchemaIdentity,
   validateV018DatabaseObservation,
   V018_DATABASE_QUERY_CONTRACT_HASH,
-} from '../teaching-projection/rebase/v018-capture';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-capture';
 import {
   assertV018IdentityOnlyEvidence,
   buildV018ImpactEvidence,
   classifyV018IdentityMappings,
   resolveV018CanonicalId,
-} from '../teaching-projection/rebase/v018-mapping';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-mapping';
 import {
   buildV018IdentityRebase,
-} from '../teaching-projection/rebase/v018-rebuild';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-rebuild';
 import {
   assertV018CandidateSelectorSafety,
   assertV018PointerBytesUnchanged,
   buildV018DualBuildIdentity,
   buildV018RebaseReceipt,
   readV018PointerSnapshots,
-} from '../teaching-projection/rebase/v018-receipt';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-receipt';
 import type {
   V018AuthorityBinding,
   V018AuthorityNodeRecord,
   V018CaptureManifest,
   V018RebaseReceipt,
-} from '../teaching-projection/rebase/v018-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
 import {
   ACT_V018_AUTHORITY_RELEASE_ID,
   V018_CURRENT_POINTER_PATHS,
-} from '../teaching-projection/rebase/v018-contracts';
+} from '../../../tools/teaching-projection-publishing/rebase/v018-contracts';
 
 const roots: string[] = [];
 
@@ -929,51 +928,11 @@ describe('v0.18 shipped identity rebase', () => {
   });
 });
 
-describe('v0.18 shipped prepare entry', () => {
-  it('replays a sealed observation through the exported CLI without moving selectors', async () => {
-    const outputRoot = path.join(tempRoot(), 'v018-candidate');
-    const observation = path.join(
-      REPO_ROOT,
-      'course-content/authoring/knowledge/teaching-projection/candidates/control-theory-engineering-v0.18/database-observation.json',
-    );
-    const result = await prepareActKgV018TeachingProjection([
-      '--repo-root',
-      REPO_ROOT,
-      '--output-root',
-      outputRoot,
-      '--database-observation',
-      observation,
-    ]);
-    expect(result.status).toBe('READY');
-    expect(result.blockers).toEqual([]);
-    const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'candidate-receipt.json'), 'utf8')) as V018RebaseReceipt;
-    expect(receipt.unqualified).toBe(true);
-    expect(receipt.nonActivation).toBe(true);
-    expect(receipt.selectorConsumption).toBe(false);
-    expect(receipt.pointerBytesUnchanged).toBe(true);
-    expect(receipt.dualBuild?.byteEquivalent).toBe(true);
-    const live = readV018PointerSnapshots(REPO_ROOT, V018_CURRENT_POINTER_PATHS);
-    assertV018PointerBytesUnchanged(receipt.pointersAfter, live);
-    const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[0]), 'utf8')) as { releaseId: string };
-    const projection = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[1]), 'utf8')) as { authorityReleaseId: string };
-    const prerequisites = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[2]), 'utf8')) as { authorityReleaseId: string };
-    const shards = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[3]), 'utf8')) as { releaseId: string };
-    const activation = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[4]), 'utf8')) as { activationId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(activation.activationId).toBe('first-cutover-7f4cdd1084af-769b1a832622');
-  }, 180_000);
-});
-
-describe('v0.18 captured candidate remains inactive against live v0.9 pointers', () => {
-  it('proves the generated receipt did not move the five current selectors', () => {
+describe('v0.18 captured candidate remains inactive after successor cutover', () => {
+  it('proves the sealed receipt did not move selectors and live Git now records v0.37', () => {
     expect(existsSync(V018_CANDIDATE_RECEIPT)).toBe(true);
     const receipt = JSON.parse(readFileSync(V018_CANDIDATE_RECEIPT, 'utf8')) as V018RebaseReceipt;
-    const live = readV018PointerSnapshots(REPO_ROOT, V018_CURRENT_POINTER_PATHS);
     assertV018PointerBytesUnchanged(receipt.pointersBefore, receipt.pointersAfter);
-    assertV018PointerBytesUnchanged(receipt.pointersAfter, live);
     expect(receipt.nonActivation).toBe(true);
     expect(receipt.selectorConsumption).toBe(false);
     expect(receipt.mapping.reviewRequiredCount).toBe(0);
@@ -982,9 +941,9 @@ describe('v0.18 captured candidate remains inactive against live v0.9 pointers',
     const projection = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[1]), 'utf8')) as { authorityReleaseId: string };
     const prerequisites = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[2]), 'utf8')) as { authorityReleaseId: string };
     const shards = JSON.parse(readFileSync(path.join(REPO_ROOT, V018_CURRENT_POINTER_PATHS[3]), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.9');
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(projection.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(prerequisites.authorityReleaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   });
 });

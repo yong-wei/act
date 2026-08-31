@@ -5,6 +5,7 @@ import type {
   CoordinationAllocationRecord,
   JournaledMutationPlan,
 } from '@/lib/latest-authority-oss-cutover/contracts';
+import { SELECTOR_ABSENT } from '@/lib/latest-authority-oss-cutover/contracts';
 import {
   assertAllocationRecordSealed,
   assertCandidateNonSelectable,
@@ -23,12 +24,14 @@ import {
   journalProtectedReleaseIdentities,
   openCutoverTransaction,
   projectCoordinatedReadiness,
+  coordinatedRuntimeAuthorizationHash,
+  sealCoordinatedRuntimeAuthorization,
   sealCoordinatedActiveReceipt,
   type CutoverJournalStore,
   type CutoverSelectorStore,
 } from '@/lib/latest-authority-oss-cutover/transaction';
 import {
-  assertRuntimeSuccessorAuthorizedByGraphReceipt,
+  assertRuntimeSuccessorAuthorizedByAuthorization,
   buildCoordinatedRuntimeActiveReceiptBinding,
   buildCoordinatedRuntimeManifestExtension,
   projectCoordinatedRuntimeReadiness,
@@ -38,6 +41,8 @@ const HASH_A = 'a'.repeat(64);
 const HASH_B = 'b'.repeat(64);
 const HASH_C = 'c'.repeat(64);
 const HASH_D = 'd'.repeat(64);
+const HASH_E = 'e'.repeat(64);
+const HASH_F = 'f'.repeat(64);
 
 function allocation(): CoordinationAllocationRecord {
   return sealCoordinationAllocationRecord({
@@ -77,6 +82,20 @@ function candidateInput(allocationRecord: CoordinationAllocationRecord) {
     }),
     bindInnerArtifact({
       allocation: allocationRecord,
+      artifactId: 'composed-domain-fragment-manifest',
+      artifactKind: 'composed-domain-fragment-manifest',
+      dependsOn: [{ artifactId: 'teaching-projection', artifactHash: HASH_A }],
+      artifactHash: HASH_E,
+    }),
+    bindInnerArtifact({
+      allocation: allocationRecord,
+      artifactId: 'domain-fragment-set',
+      artifactKind: 'domain-fragment-set',
+      dependsOn: [{ artifactId: 'composed-domain-fragment-manifest', artifactHash: HASH_E }],
+      artifactHash: HASH_F,
+    }),
+    bindInnerArtifact({
+      allocation: allocationRecord,
       artifactId: 'successor-runtime-binding',
       artifactKind: 'coordinated-runtime-manifest-extension',
       dependsOn: [{ artifactId: 'allocation', artifactHash: allocationRecord.allocationHash }],
@@ -90,6 +109,8 @@ function candidateInput(allocationRecord: CoordinationAllocationRecord) {
     localeQualificationHash: HASH_D,
     teachingProjectionHash: HASH_A,
     teachingClosureReceiptHash: HASH_D,
+    composedDomainFragmentManifestHash: HASH_E,
+    domainFragmentSetHash: HASH_F,
     formalResourceEnvelopeHash: HASH_C,
     continuityReceiptHash: HASH_B,
     derivationReceiptHash: HASH_D,
@@ -139,6 +160,8 @@ describe('coordinated candidate envelope', () => {
     const allocationRecord = allocation();
     const receipt = sealCoordinatedCandidateReceipt(candidateInput(allocationRecord));
     expect(receipt.selectable).toBe(false);
+    expect(receipt.composedDomainFragmentManifestHash).toBe(HASH_E);
+    expect(receipt.domainFragmentSetHash).toBe(HASH_F);
     expect(receipt.receiptHash).toMatch(/^[a-f0-9]{64}$/);
     expect(() => assertCandidateNonSelectable(receipt)).not.toThrow();
     // Deterministic construction: same inputs produce the same body hash.
@@ -203,6 +226,8 @@ describe('coordinated candidate envelope', () => {
         ['locale-qualification', { artifactHash: receipt.localeQualificationHash }],
         ['teaching-projection', { artifactHash: receipt.teachingProjectionHash, allocationHash: allocationRecord.allocationHash }],
         ['teaching-closure-receipt', { artifactHash: receipt.teachingClosureReceiptHash }],
+        ['composed-domain-fragment-manifest', { artifactHash: receipt.composedDomainFragmentManifestHash }],
+        ['domain-fragment-set', { artifactHash: receipt.domainFragmentSetHash }],
         ['formal-resource-envelope', { artifactHash: receipt.formalResourceEnvelopeHash }],
         ['continuity-receipt', { artifactHash: receipt.continuityReceiptHash }],
         ['derivation-receipt', { artifactHash: receipt.derivationReceiptHash }],
@@ -323,6 +348,15 @@ describe('stopped-service coordinated transaction', () => {
       expect(receipt.candidateReceiptHash).toBe(candidate.receiptHash);
       expect(Object.hasOwn(receipt, 'activeReceiptHash')).toBe(false);
     }
+    const authorization = sealCoordinatedRuntimeAuthorization({
+      journal: opened.journal,
+      candidateReceipt: candidate,
+      observedSelectors: stores.map((store) => ({ selectorId: store.selectorId, identity: store.identity })),
+      mutationReceipts: receipts,
+      runtimeBindingHash: HASH_D,
+      authorizedAt: '2026-08-23T00:01:30.000Z',
+    });
+    expect(authorization.runtimeBindingHash).toBe(HASH_D);
     const activeReceipt = sealCoordinatedActiveReceipt({
       journal: opened.journal,
       candidateReceipt: candidate,
@@ -357,6 +391,61 @@ describe('stopped-service coordinated transaction', () => {
       journalStore: new MemoryJournalStore(),
       openedAt: '2026-08-23T00:00:00.000Z',
     })).rejects.toThrow(/drifted from the sealed predecessor/);
+  });
+
+  it('commits a mixed v0.22-present / remaining-ABSENT predecessor and rolls back a failed mutation', async () => {
+    const allocationRecord = allocation();
+    const input = candidateInput(allocationRecord);
+    input.predecessor = [
+      { selectorId: 'authority:current', identity: 'v0.22-auth' },
+      { selectorId: 'projection:active', identity: SELECTOR_ABSENT },
+      { selectorId: 'catalog:active', identity: SELECTOR_ABSENT },
+      { selectorId: 'runtime:desired', identity: 'runtime-bb309e6a' },
+    ];
+    input.successorSelectorExpectations = [
+      { selectorId: 'authority:current', expectedSuccessorIdentity: 'v0.37-auth' },
+      { selectorId: 'projection:active', expectedSuccessorIdentity: 'v0.37-proj' },
+      { selectorId: 'catalog:active', expectedSuccessorIdentity: 'v0.37-catalog' },
+      { selectorId: 'runtime:desired', expectedSuccessorIdentity: 'runtime-successor' },
+    ];
+    const candidate = sealCoordinatedCandidateReceipt(input);
+    const stores = [
+      new MemorySelectorStore('authority:current', 'v0.22-auth'),
+      new MemorySelectorStore('projection:active', SELECTOR_ABSENT),
+      new MemorySelectorStore('catalog:active', SELECTOR_ABSENT),
+      new MemorySelectorStore('runtime:desired', 'runtime-bb309e6a', true),
+    ];
+    const plans: JournaledMutationPlan[] = [
+      { selectorId: 'authority:current', expectedPredecessorIdentity: 'v0.22-auth', successorIdentity: 'v0.37-auth' },
+      { selectorId: 'projection:active', expectedPredecessorIdentity: SELECTOR_ABSENT, successorIdentity: 'v0.37-proj' },
+      { selectorId: 'catalog:active', expectedPredecessorIdentity: SELECTOR_ABSENT, successorIdentity: 'v0.37-catalog' },
+      { selectorId: 'runtime:desired', expectedPredecessorIdentity: 'runtime-bb309e6a', successorIdentity: 'runtime-successor' },
+    ];
+    const opened = await openCutoverTransaction({
+      candidateReceipt: candidate,
+      stores,
+      orderedMutationPlans: plans,
+      journalStore: new MemoryJournalStore(),
+      consumers: [
+        { consumerId: 'graph', stopped: true },
+        { consumerId: 'app', stopped: true },
+        { consumerId: 'worker', stopped: true },
+        { consumerId: 'runtime', stopped: true },
+      ],
+      openedAt: '2026-08-25T00:00:00.000Z',
+    });
+    const receipts = [];
+    receipts.push(await applyJournaledMutation(opened.journal, 0, stores[0]!, '2026-08-25T00:01:00.000Z'));
+    receipts.push(await applyJournaledMutation(opened.journal, 1, stores[1]!, '2026-08-25T00:01:01.000Z'));
+    receipts.push(await applyJournaledMutation(opened.journal, 2, stores[2]!, '2026-08-25T00:01:02.000Z'));
+    await expect(applyJournaledMutation(opened.journal, 3, stores[3]!, '2026-08-25T00:01:03.000Z'))
+      .rejects.toThrow(/simulated write failure/);
+    await compensateTransaction(opened.journal, stores);
+    expect(stores[0]!.identity).toBe('v0.22-auth');
+    expect(stores[1]!.identity).toBe(SELECTOR_ABSENT);
+    expect(stores[2]!.identity).toBe(SELECTOR_ABSENT);
+    expect(stores[3]!.identity).toBe('runtime-bb309e6a');
+    expect(receipts).toHaveLength(3);
   });
 
   it('fails closed when a selector identity does not match the journal state', async () => {
@@ -532,6 +621,8 @@ describe('Runtime and readiness integration', () => {
       captureHash: HASH_A,
       teachingProjectionHash: HASH_A,
       teachingClosureReceiptHash: HASH_D,
+      composedDomainFragmentManifestHash: HASH_E,
+      domainFragmentSetHash: HASH_F,
       formalResourceEnvelopeHash: HASH_C,
       continuityReceiptHash: HASH_B,
       domainShardSetHash: HASH_B,
@@ -546,40 +637,68 @@ describe('Runtime and readiness integration', () => {
     const binding = buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'tx-abc',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     });
     expect(() => buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'not-a-tx',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     })).toThrow(/preallocated transaction id/);
     expect(Object.hasOwn(binding, 'finalCoordinatedActiveReceiptHash')).toBe(false);
   });
 
-  it('rejects ordinary runtime activation without the matching committed graph receipt', () => {
+  it('rejects runtime activation without a matching pre-activation authorization', () => {
     const binding = buildCoordinatedRuntimeActiveReceiptBinding({
       transactionId: 'tx-abc',
       candidateReceiptHash: HASH_A,
-      runtimeRelease: { releaseId: 'runtime-new', manifestSha256: HASH_A, treeSha256: HASH_B },
+      runtimeRelease: {
+        schemaVersion: 'runtime-blob-release-identity.v1',
+        releaseId: 'runtime-new',
+        manifestVersion: 'act-runtime-release.v2',
+        manifestSha256: HASH_A,
+        manifestWireSha256: HASH_C,
+        manifestWireSizeBytes: 123,
+        treeSha256: HASH_B,
+      },
       materializationReceiptHash: HASH_C,
     });
-    expect(() => assertRuntimeSuccessorAuthorizedByGraphReceipt(binding, null))
-      .toThrow(/no committed coordinated graph receipt/);
-    const committed = {
-      contract: 'coordinated-active-receipt/v1' as const,
-      receiptId: 'act-x',
-      sealedAt: '2026-08-23T00:00:00.000Z',
+    expect(() => assertRuntimeSuccessorAuthorizedByAuthorization(binding, null))
+      .toThrow(/no coordinated Runtime authorization/);
+    const authorizationPayload = {
       transactionId: 'tx-other',
       journalHash: HASH_B,
       candidateReceiptHash: HASH_A,
       committedSelectors: [{ selectorId: 'authority:current', identity: 'auth-new' }],
-      mutationReceiptHashes: ['mut-x'],
-      runtimeActiveReceiptHash: binding.bindingHash,
-      receiptHash: HASH_D,
+      mutationReceiptHashes: [HASH_C],
+      runtimeBindingHash: binding.bindingHash,
     };
-    expect(() => assertRuntimeSuccessorAuthorizedByGraphReceipt(binding, committed))
+    const authorizationHash = coordinatedRuntimeAuthorizationHash(authorizationPayload);
+    const authorization = {
+      contract: 'coordinated-runtime-authorization/v1' as const,
+      authorizationId: `auth-${authorizationHash.slice(0, 24)}`,
+      authorizedAt: '2026-08-23T00:00:00.000Z',
+      ...authorizationPayload,
+      authorizationHash,
+    };
+    expect(() => assertRuntimeSuccessorAuthorizedByAuthorization(binding, authorization))
       .toThrow(/different transaction/);
   });
 

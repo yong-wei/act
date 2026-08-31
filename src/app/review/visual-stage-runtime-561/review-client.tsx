@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 
-import fixtureManifest from '../../../../artifacts/interactive-learning/visual-stage-runtime-561/visual-stage-fixture.interactive-manifest.json';
+import fixtureManifest from '@/lib/qa-evidence/fixtures/visual-stage-fixture.interactive-manifest.json';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';

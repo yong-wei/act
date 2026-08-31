@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -7,7 +8,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const destroyer055SceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 180,
   designSpeedKnots: 29,
-  modelUrl: '/assets/destroyer.glb',
+  modelUrl: resolveRegisteredSimulationModel('destroyer').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -90],

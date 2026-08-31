@@ -410,7 +410,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     { method: 'GET', path: '/api/adaptive/learner-state?goal=control-correction', asserts: ['goal slice', 'path context'], actorRole: 'student' },
     { method: 'POST', path: '/api/learning-paths/plan', asserts: ['path id returned', 'multi-path context'], actorRole: 'teacher' },
     { method: 'POST', path: '/api/learning-paths/demo-path-demo-ita-student-alpha-control-correction/execute', asserts: ['execution write response', 'resource execution context'], actorRole: 'student' },
-    { method: 'POST', path: '/api/teacher/document-grading/approve', asserts: ['grading approval response', 'document rubric payload'], actorRole: 'teacher' },
+    { method: 'POST', path: '/api/teacher/document-grading/approve', asserts: ['legacy document-rubric draft writes return 410', 'native Assignment review remains the write path'], actorRole: 'teacher' },
     { method: 'POST', path: '/api/ai/chat', asserts: ['mode runtime contract', 'citation guard'], actorRole: 'mode' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/control-correction-report?export=true', asserts: ['redacted export', 'metric methodology'], actorRole: 'teacher' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', asserts: ['effect report metrics', 'synthetic caveats'], actorRole: 'teacher' },

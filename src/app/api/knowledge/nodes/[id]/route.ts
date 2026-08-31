@@ -8,11 +8,18 @@ import {
   loadKnowledgeGraphData,
 } from '@/lib/knowledge-graph-source';
 import { RuntimeKnowledgeRelationCoverageError, toPublicRuntimeKnowledgeDiagnostics } from '@/lib/knowledge-graph-relation-runtime';
+import {
+  knowledgeSurfaceFromLegacyGraph,
+  knowledgeSurfaceSelectorRejection,
+  withKnowledgeSurface,
+} from '@/lib/knowledge-surface';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
   const params = await props.params;
   if (!params.id || params.id.length > 200) {
     return NextResponse.json({ error: 'Invalid canonical knowledge node id' }, { status: 400 });
@@ -21,7 +28,17 @@ export async function GET(_request: Request, props: { params: Promise<{ id: stri
     const graph = await loadKnowledgeGraphData();
     const detail = buildKnowledgeNodeDetailFromGraph(graph, params.id);
     if (detail) {
-      return NextResponse.json(detail);
+      const surface = knowledgeSurfaceFromLegacyGraph({
+        source: graph.source,
+        versionDigest: graph.versionDigest,
+        kind: 'detail',
+        surfaceKey: params.id,
+      });
+      return NextResponse.json(
+        surface.status === 'ok'
+          ? withKnowledgeSurface(detail, surface.knowledgeSurface)
+          : detail,
+      );
     }
     return NextResponse.json({ error: 'Knowledge node not found' }, { status: 404 });
   } catch (error) {

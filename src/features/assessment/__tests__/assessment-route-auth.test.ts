@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
-  submitAnswerWithPersistenceFallback: vi.fn(),
-  selectNextQuestionWithPersistenceFallback: vi.fn(),
-  getDiagnosticWithPersistenceFallback: vi.fn(),
-  getAbilityReportWithPersistenceFallback: vi.fn(),
+  submitAnswerDurably: vi.fn(),
+  selectNextQuestionDurably: vi.fn(),
+  getDiagnosticDurably: vi.fn(),
+  getAbilityReportDurably: vi.fn(),
   verifyCompanionPracticeMetadata: vi.fn(),
   verifyCompanionPracticeSubmissionMetadata: vi.fn(),
   prisma: {
@@ -20,10 +20,10 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('@/features/assessment/adaptive-persistence', () => ({
-  submitAnswerWithPersistenceFallback: mocks.submitAnswerWithPersistenceFallback,
-  selectNextQuestionWithPersistenceFallback: mocks.selectNextQuestionWithPersistenceFallback,
-  getDiagnosticWithPersistenceFallback: mocks.getDiagnosticWithPersistenceFallback,
-  getAbilityReportWithPersistenceFallback: mocks.getAbilityReportWithPersistenceFallback,
+  submitAnswerDurably: mocks.submitAnswerDurably,
+  selectNextQuestionDurably: mocks.selectNextQuestionDurably,
+  getDiagnosticDurably: mocks.getDiagnosticDurably,
+  getAbilityReportDurably: mocks.getAbilityReportDurably,
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -60,19 +60,19 @@ function nextQuestionRequest(body: unknown) {
 describe('assessment API auth boundaries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.submitAnswerWithPersistenceFallback.mockResolvedValue({
+    mocks.submitAnswerDurably.mockResolvedValue({
       isCorrect: true,
       correctOption: 'A',
       explanation: 'ok',
       estimatedAbility: 0.4,
       recommendedFocus: [],
     });
-    mocks.selectNextQuestionWithPersistenceFallback.mockResolvedValue({
+    mocks.selectNextQuestionDurably.mockResolvedValue({
       question: { id: 'preset-q-01', options: [] },
       estimatedAbility: 0.4,
       confidenceInterval: [-0.1, 0.9],
     });
-    mocks.getDiagnosticWithPersistenceFallback.mockResolvedValue({
+    mocks.getDiagnosticDurably.mockResolvedValue({
       knowledgeDimensions: {
         computational: 55,
         crossDomain: 50,
@@ -81,7 +81,7 @@ describe('assessment API auth boundaries', () => {
       weakAreas: [],
       recommendedFocus: [],
     });
-    mocks.getAbilityReportWithPersistenceFallback.mockResolvedValue({
+    mocks.getAbilityReportDurably.mockResolvedValue({
       userId: 'student-1',
       estimatedAbility: 0.4,
       confidenceInterval: [-0.1, 0.9],
@@ -113,7 +113,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(401);
-    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerDurably).not.toHaveBeenCalled();
   });
 
   it('uses the authenticated user id instead of a submitted user id', async () => {
@@ -142,7 +142,15 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+    await expect(response.json()).resolves.toMatchObject({
+      microTutoring: {
+        stage: 'readiness',
+        qualified: false,
+        unavailableReason: null,
+        retryAttribution: false,
+      },
+    });
+    expect(mocks.submitAnswerDurably).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
       pathContext: {
@@ -176,7 +184,7 @@ describe('assessment API auth boundaries', () => {
     await expect(response.json()).resolves.toMatchObject({
       message: '路径自适应答案提交的 sessionId 与 path/node 不匹配',
     });
-    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path-owned submissions with incomplete path fields', async () => {
@@ -198,7 +206,7 @@ describe('assessment API auth boundaries', () => {
       message: '路径自适应答案提交缺少完整 path/node 上下文',
     });
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerDurably).not.toHaveBeenCalled();
   });
 
   it('derives submitted path context goal from the server-owned learning path', async () => {
@@ -225,7 +233,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.submitAnswerDurably).toHaveBeenCalledWith(expect.objectContaining({
       pathContext: {
         pathId: 'path-1',
         nodeId: 'adaptive-quiz:control-target-check',
@@ -260,7 +268,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.submitAnswerDurably).toHaveBeenCalledWith(expect.objectContaining({
       pathContext: {
         pathId: 'path-1',
         nodeId: 'checkpoint:control-correction-review',
@@ -299,7 +307,7 @@ describe('assessment API auth boundaries', () => {
     await expect(response.json()).resolves.toMatchObject({
       message: '路径自适应答案提交的 goalId 与服务端路径目标不匹配',
     });
-    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path submissions when the current path node is not an adaptive quiz', async () => {
@@ -330,7 +338,7 @@ describe('assessment API auth boundaries', () => {
     await expect(response.json()).resolves.toMatchObject({
       message: '路径自适应答案提交的 nodeId 不是自适应测验或检查点节点',
     });
-    expect(mocks.submitAnswerWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerDurably).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated next-question requests before durable session writes', async () => {
@@ -342,7 +350,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(401);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('uses the authenticated user id for next-question requests', async () => {
@@ -357,7 +365,10 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    await expect(response.json()).resolves.toMatchObject({
+      assessmentStage: 'practice',
+    });
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'session-1',
       goalId: 'control-correction',
@@ -386,7 +397,7 @@ describe('assessment API auth boundaries', () => {
       userId: 'student-1',
       continuity: { ...verified, snapshotId: 'client-value-is-revalidated' },
     });
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'konling-continuity:continuity:1',
       goalId: 'root-locus',
@@ -420,7 +431,7 @@ describe('assessment API auth boundaries', () => {
       questionId: 'preset-q-01',
       continuity: verified,
     });
-    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({ continuity: verified }));
+    expect(mocks.submitAnswerDurably).toHaveBeenCalledWith(expect.objectContaining({ continuity: verified }));
   });
 
   it('rejects companion practice when the session is not bound to the verified snapshot', async () => {
@@ -440,7 +451,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(400);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects reserved companion sessions when continuity metadata is omitted', async () => {
@@ -453,7 +464,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(400);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('derives path next-question goal from the server-owned learning path', async () => {
@@ -490,7 +501,7 @@ describe('assessment API auth boundaries', () => {
         pathPayload: true,
       },
     });
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
       goalId: 'control-correction',
@@ -518,7 +529,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:checkpoint:control-correction-review',
       goalId: 'control-correction',
@@ -553,7 +564,7 @@ describe('assessment API auth boundaries', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'adaptive-path:path-1:adaptive-quiz:control-correction-remediation',
       goalId: 'control-correction',
@@ -573,7 +584,7 @@ describe('assessment API auth boundaries', () => {
         planNodes: [{ nodeId: 'adaptive-quiz:unknown-readiness', type: 'adaptive_quiz' }],
       },
     });
-    mocks.selectNextQuestionWithPersistenceFallback.mockRejectedValueOnce(
+    mocks.selectNextQuestionDurably.mockRejectedValueOnce(
       new AdaptiveAssessmentCatalogSelectionError({
         code: 'path-assessment-catalog-coverage-incomplete',
         state: 'limited',
@@ -626,7 +637,7 @@ describe('assessment API auth boundaries', () => {
     await expect(response.json()).resolves.toMatchObject({
       message: '路径自适应题目请求的 goalId 与服务端路径目标不匹配',
     });
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path next-question requests with mismatched session scope', async () => {
@@ -643,7 +654,7 @@ describe('assessment API auth boundaries', () => {
 
     expect(response.status).toBe(400);
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('allows path-selection next-question requests with only a path id', async () => {
@@ -660,7 +671,7 @@ describe('assessment API auth boundaries', () => {
 
     expect(response.status).toBe(200);
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).toHaveBeenCalledWith({
+    expect(mocks.selectNextQuestionDurably).toHaveBeenCalledWith({
       userId: 'student-1',
       sessionId: 'practice-1',
       goalId: 'control-correction',
@@ -684,7 +695,7 @@ describe('assessment API auth boundaries', () => {
       message: '路径自适应题目请求缺少完整 path/node 上下文',
     });
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path-execution next-question requests with only a path id', async () => {
@@ -704,7 +715,7 @@ describe('assessment API auth boundaries', () => {
       message: '路径自适应题目请求缺少完整 path/node 上下文',
     });
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path next-question requests with only a node id', async () => {
@@ -720,7 +731,7 @@ describe('assessment API auth boundaries', () => {
 
     expect(response.status).toBe(400);
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects path-scoped next-question sessions without path fields', async () => {
@@ -735,7 +746,7 @@ describe('assessment API auth boundaries', () => {
 
     expect(response.status).toBe(400);
     expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(mocks.selectNextQuestionWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.selectNextQuestionDurably).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated diagnostic reads', async () => {
@@ -744,7 +755,7 @@ describe('assessment API auth boundaries', () => {
     const response = await getDiagnostic(new Request('http://localhost/api/assessment/diagnostic?userId=victim-user'));
 
     expect(response.status).toBe(401);
-    expect(mocks.getDiagnosticWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.getDiagnosticDurably).not.toHaveBeenCalled();
   });
 
   it('uses the authenticated user id for diagnostic reads', async () => {
@@ -755,7 +766,7 @@ describe('assessment API auth boundaries', () => {
     const response = await getDiagnostic(new Request('http://localhost/api/assessment/diagnostic?userId=victim-user'));
 
     expect(response.status).toBe(200);
-    expect(mocks.getDiagnosticWithPersistenceFallback).toHaveBeenCalledWith('student-1');
+    expect(mocks.getDiagnosticDurably).toHaveBeenCalledWith('student-1');
   });
 
   it('rejects unauthenticated ability report reads', async () => {
@@ -767,7 +778,7 @@ describe('assessment API auth boundaries', () => {
     );
 
     expect(response.status).toBe(401);
-    expect(mocks.getAbilityReportWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.getAbilityReportDurably).not.toHaveBeenCalled();
   });
 
   it('rejects ability report reads for a different student', async () => {
@@ -781,7 +792,7 @@ describe('assessment API auth boundaries', () => {
     );
 
     expect(response.status).toBe(403);
-    expect(mocks.getAbilityReportWithPersistenceFallback).not.toHaveBeenCalled();
+    expect(mocks.getAbilityReportDurably).not.toHaveBeenCalled();
   });
 
   it('allows a student to read their own ability report', async () => {
@@ -797,6 +808,6 @@ describe('assessment API auth boundaries', () => {
 
     expect(response.status).toBe(200);
     expect(body.userId).toBe('student-1');
-    expect(mocks.getAbilityReportWithPersistenceFallback).toHaveBeenCalledWith('student-1');
+    expect(mocks.getAbilityReportDurably).toHaveBeenCalledWith('student-1');
   });
 });

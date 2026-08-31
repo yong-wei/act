@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import {
   buildSerializablePathOptions,
   type AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
+} from '@/features/personalization/path-planning/public-api';
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;
@@ -108,7 +108,8 @@ export async function persistAdaptivePathCandidateBatch(
     const raced = await findByGenerationRequest(tx, input.generationRequestId);
     if (raced) return assertMatchingExisting(raced, input);
     const batchId = stableId('path-candidate-batch', input.generationRequestId);
-    const candidates = buildCandidateSnapshots(input.plan, batchId);
+    const gated = buildGatedCandidateSnapshots(input.plan, batchId);
+    const candidates = gated.candidates;
     const record = await tx.adaptivePathCandidateBatch.create({
       data: {
         id: batchId,
@@ -126,6 +127,8 @@ export async function persistAdaptivePathCandidateBatch(
           policyFamily: input.plan.policyFamily,
           confidence: input.plan.confidence,
           excludedPolicyFamilies: input.plan.excludedPolicyFamilies,
+          decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
+          diversityLimitations: gated.limitations,
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
@@ -163,6 +166,13 @@ export function buildCandidateSnapshots(
   plan: AdaptiveLearningPathPlan,
   batchId: string,
 ): AdaptivePathCandidateSnapshot[] {
+  return buildGatedCandidateSnapshots(plan, batchId).candidates;
+}
+
+export function buildGatedCandidateSnapshots(
+  plan: AdaptiveLearningPathPlan,
+  batchId: string,
+): { candidates: AdaptivePathCandidateSnapshot[]; limitations: string[] } {
   const serializedCandidates = buildSerializablePathOptions(plan)
     .filter((candidate) => candidate.nodeIds.length > 0);
   const executableCandidates = serializedCandidates.length > 0
@@ -178,7 +188,7 @@ export function buildCandidateSnapshots(
   if (candidates.length === 0) {
     throw new AdaptivePathCandidateBatchValidationError('Candidate batch requires at least one executable candidate');
   }
-  return candidates.map((candidate, ordinal) => {
+  const ungated = candidates.map((candidate, ordinal) => {
     const snapshot = candidate.snapshot as Record<string, unknown>;
     return {
       id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
@@ -195,6 +205,54 @@ export function buildCandidateSnapshots(
       }),
     };
   });
+  return gateMateriallyDistinctCandidates(ungated);
+}
+
+export function gateMateriallyDistinctCandidates(
+  candidates: AdaptivePathCandidateSnapshot[],
+): { candidates: AdaptivePathCandidateSnapshot[]; limitations: string[] } {
+  const seen = new Set<string>();
+  const kept: AdaptivePathCandidateSnapshot[] = [];
+  let duplicateCount = 0;
+  for (const candidate of candidates) {
+    if (seen.has(candidate.fingerprint)) {
+      duplicateCount += 1;
+      continue;
+    }
+    seen.add(candidate.fingerprint);
+    kept.push({
+      ...candidate,
+      ordinal: kept.length,
+    });
+  }
+  const limitations = limitationsForReduction(duplicateCount, candidates.length, kept.length);
+  return {
+    candidates: kept.map((candidate) => ({
+      ...candidate,
+      snapshot: {
+        ...candidate.snapshot,
+        limitations: uniqueStrings([
+          ...stringArray(candidate.snapshot.limitations),
+          ...limitations,
+        ]),
+      },
+    })),
+    limitations,
+  };
+}
+
+function limitationsForReduction(duplicateCount: number, originalCount: number, keptCount: number): string[] {
+  const limitations: string[] = [];
+  if (duplicateCount > 0) limitations.push('title-or-score-only-duplicates-removed');
+  if (keptCount < 2) limitations.push('insufficient-distinct-resources');
+  if (originalCount > 0 && keptCount < originalCount && !limitations.includes('title-or-score-only-duplicates-removed')) {
+    limitations.push('insufficient-distinct-resources');
+  }
+  return limitations;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
 }
 
 export function toBatchView(record: CandidateBatchRecord): AdaptivePathCandidateBatchView {

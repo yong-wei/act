@@ -157,26 +157,37 @@ export interface DomainFragmentAuthoritySelection {
 }
 
 /**
- * Live Engineering Authority selection currently activated in-repo.
+ * Live authoring teaching-projection Authority selection.
  * First published domain fragment must bind exactly these facts.
+ * Git production selectors remain on the predecessor until the activation
+ * transaction; do not treat this constant as a production current.json write.
  */
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING = {
-  releaseId: 'ctr:release:control-theory-engineering-v0.9',
+  releaseId: 'ctr:release:control-theory-engineering-v0.37',
   releaseSetId:
-    'actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6',
-  snapshotId: 'snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
-  snapshotHash: '7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7',
+    'actkg-authoritative-candidate-control-theory-engineering-v0.37-r4',
+  snapshotId: 'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
+  snapshotHash: 'e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
 } as const satisfies DomainFragmentAuthorityBindingComplete;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_AUTHORING_REVISION =
-  '1a56317aa44e46322be0b0d1ac73948c03c5c2c0' as const;
+  '87d2e5df2a097051e35e02ead0b2cfec74bf7c77' as const;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_CAPTURE_REVISION =
   LIVE_AUTHORITY_DOMAIN_TEACHING_AUTHORING_REVISION;
 
 /** Pinned live Authority source dataset hash — not loaded from a live store. */
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_SOURCE_DATASET_HASH =
-  '0e95d1e683c31ba503293c6a67f7446efcb36f101ffcc9b64c088f28d70ebd0a' as const;
+  '2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e' as const;
+
+export const LIVE_AUTHORITY_DOMAIN_TEACHING_SNAPSHOT_RELATIVE =
+  'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae' as const;
+
+export const LIVE_AUTHORITY_DOMAIN_TEACHING_MANIFEST_RELATIVE =
+  `${LIVE_AUTHORITY_DOMAIN_TEACHING_SNAPSHOT_RELATIVE}/manifest.json` as const;
+
+export const LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE =
+  `${LIVE_AUTHORITY_DOMAIN_TEACHING_SNAPSHOT_RELATIVE}/engineering.json` as const;
 
 /**
  * Canonical Authority envelope used as the only build-time endpoint source.

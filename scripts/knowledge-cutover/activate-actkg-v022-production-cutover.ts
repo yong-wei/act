@@ -5,11 +5,11 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import path from 'node:path';
 
 import { envelopeByName } from '../../src/lib/actkg-envelope/composite-envelope-registry';
-import { createV022MapPointerBackend } from '../../src/lib/teaching-projection/publish/v022-production-cutover-backend';
+import { createV022MapPointerBackend } from '../../tools/teaching-projection-publishing/publish/v022-production-cutover-backend';
 import {
   createV022LivePointerBackend,
   materializeV022CutoverTrees,
-} from '../../src/lib/teaching-projection/publish/v022-production-cutover-live';
+} from '../../tools/teaching-projection-publishing/publish/v022-production-cutover-live';
 import {
   V022_CUTOVER_COMPONENTS,
   V022_PRODUCTION_ACTIVATION_ID,
@@ -28,10 +28,10 @@ import {
   type CutoverJournal,
   type PointerIdentity,
   type V022CutoverComponent,
-} from '../../src/lib/teaching-projection/publish/v022-production-cutover';
-import { runLiveNamedConsumerShadowReads } from '../../src/lib/teaching-projection/qualify/v022-consumers';
-import { V022_NAMED_CONSUMERS } from '../../src/lib/teaching-projection/qualify/v022-qualify-contract';
-import { asRecord } from '../../src/lib/teaching-projection/qualify/v022-shared';
+} from '../../tools/teaching-projection-publishing/publish/v022-production-cutover';
+import { runLiveNamedConsumerShadowReads } from '../../tools/teaching-projection-publishing/qualify/v022-consumers';
+import { V022_NAMED_CONSUMERS } from '../../tools/teaching-projection-publishing/qualify/v022-qualify-contract';
+import { asRecord } from '../../tools/teaching-projection-publishing/qualify/v022-shared';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);

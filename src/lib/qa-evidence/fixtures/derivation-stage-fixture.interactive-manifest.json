@@ -1,0 +1,122 @@
+{
+  "lesson_id": "derivation-stage-runtime-fixture",
+  "course_title": "Derivation Stage Runtime Fixture",
+  "course_route_segment": "derivation-stage-runtime-fixture",
+  "steps": {
+    "step-03": {
+      "title": "非线性推导舞台",
+      "layout": {
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "derivation-stage",
+          "kind": "visual.derivationStage",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "stageId": "nonlinear-derivation-stage",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealStepId": "step-middle-block",
+            "formulas": [
+              {
+                "id": "definition-formula",
+                "title": "闭环定义",
+                "latex": "T(s)=\\\\frac{G(s)}{1+G(s)H(s)}",
+                "region": { "x": 0.05, "y": 0.08, "width": 0.42, "height": 0.32 },
+                "blocks": [
+                  {
+                    "id": "known-g",
+                    "title": "对象项",
+                    "latex": "G(s)",
+                    "colorRole": "known"
+                  },
+                  {
+                    "id": "cancel-term",
+                    "title": "分母项",
+                    "latex": "1+G(s)H(s)",
+                    "colorRole": "cancel"
+                  }
+                ]
+              },
+              {
+                "id": "result-formula",
+                "title": "目标表达",
+                "latex": "\\\\Phi(s)=\\\\frac{C(s)}{R(s)}",
+                "region": { "x": 0.52, "y": 0.48, "width": 0.38, "height": 0.28 },
+                "blocks": [
+                  {
+                    "id": "result-block",
+                    "title": "结论项",
+                    "latex": "\\\\Phi(s)",
+                    "colorRole": "result"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "upper-right-note",
+                "title": "教师提示",
+                "body": "先保留定义，再跳到右上角解释目标，最后回到中部公式块。",
+                "region": { "x": 0.56, "y": 0.08, "width": 0.35, "height": 0.2 }
+              }
+            ],
+            "connectors": [
+              {
+                "id": "definition-to-target",
+                "kind": "arrow",
+                "from": "known-g",
+                "to": "result-block",
+                "revealStepIds": ["step-middle-block"]
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "step-lower-left",
+                "title": "下方定义",
+                "targetIds": ["definition-formula", "known-g"],
+                "reasoning": "先定位对象关系。"
+              },
+              {
+                "id": "step-upper-right",
+                "title": "右上提示",
+                "targetIds": ["upper-right-note"],
+                "reasoning": "再说明本轮推导目标。"
+              },
+              {
+                "id": "step-middle-block",
+                "title": "中部公式块",
+                "targetIds": ["cancel-term", "result-formula", "result-block"],
+                "reasoning": "最后显影变换项和结论项。"
+              }
+            ],
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 2,
+              "maxSimultaneousColorRoles": 2,
+              "longFormulaSplitStrategy": "block-by-term",
+              "defaultTeacherReleasePace": "teacher-paced",
+              "studentSelfStudyVisibleRange": "released-through-active"
+            },
+            "teacherControls": {
+              "enabled": ["next", "previous", "jump", "highlight", "answerReveal", "reset"]
+            },
+            "answerVisible": false
+          }
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "display",
+        "activity_cards": [],
+        "submit_fields": []
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
 const routeSegment = 'unit-5-5-policy-learning-entry-risk';
-const routeBase = join(repoRoot, 'src/app/interactive-learning/courses', routeSegment);
+const routeBase = join(repoRoot, 'src/features/interactive/course-app-routes', routeSegment);
 const featureBase = join(repoRoot, 'src/features/interactive', routeSegment);
 const manifestPath = join(repoRoot, 'course-content/runtime/lessons/5-5/interactive-manifest.json');
 
@@ -62,9 +62,9 @@ describe('unit 5-5 interactive course', () => {
   });
 
   it('exposes route files and keeps step-panels as a thin manifest runtime adapter', () => {
-    expect(existsSync(join(routeBase, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
 
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
@@ -89,7 +89,7 @@ describe('unit 5-5 interactive course', () => {
     const manifest = readManifest();
     const step08 = manifest.steps.find((step) => step.id === 'step-08');
     const step15 = manifest.steps.find((step) => step.id === 'step-15');
-    const runtimeSource = readFileSync(join(featureBase, 'rl-training-runtime.ts'), 'utf8');
+    const runtimeSource = readFileSync(join(featureBase, 'rl-training.ts'), 'utf8');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
 
     expect(step08?.interactionSpec.interactionKind).toBe('rust_toy_training_panel');
@@ -103,7 +103,7 @@ describe('unit 5-5 interactive course', () => {
       kind: 'content.cardSet',
       payload: { legacyKind: 'summary-card' },
     });
-    expect(runtimeSource).toContain('compute_rl_training');
+    expect(runtimeSource).toContain('computeRlTrainingBrowser');
     expect(stepPanelsSource).toContain('rl_result:${activeTab}');
     expect(stepPanelsSource).toContain('collectTrainingResults');
     expect(stepPanelsSource).toContain('pendingResults');
@@ -140,7 +140,7 @@ describe('unit 5-5 interactive course', () => {
     const step10 = manifest.steps.find((step) => step.id === 'step-10');
     const step13 = manifest.steps.find((step) => step.id === 'step-13');
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
-    const runtimeSource = readFileSync(join(featureBase, 'rl-training-runtime.ts'), 'utf8');
+    const runtimeSource = readFileSync(join(featureBase, 'rl-training.ts'), 'utf8');
 
     expect(step10?.modules.find((module) => module.id === 'risk-matrix-figure')).toBeUndefined();
     expect(step10?.modules.find((module) => module.id === 'risk-matrix-table')).toMatchObject({

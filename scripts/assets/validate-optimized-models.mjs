@@ -29,6 +29,10 @@ function sha256(filePath) {
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 
+function sha256Buffer(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
 const sourceRoot = readPathArgument('--source-root');
 const optimizedRoot = readPathArgument('--optimized-root');
 const targetSourceRoot = readPathArgument('--target-source-root', false);
@@ -96,6 +100,23 @@ for (const name of expected) {
   }
   if (!existsSync(outputPath) || !statSync(outputPath).isFile() || statSync(outputPath).size === 0) {
     fail(`${name} is missing or empty`);
+  }
+  const outputSha256 = sha256(outputPath);
+  if (typeof record.outputSha256 !== 'string' || record.outputSha256 !== outputSha256) {
+    fail(`${name} output digest does not match`);
+  }
+  if (record.optimizerName !== '@act/glb-model-optimizer') {
+    fail(`${name} optimizer identity does not match`);
+  }
+  if (record.optimizerVersion !== '1.0.0' || record.optimizerLevel !== 'medium') {
+    fail(`${name} optimizer configuration does not match`);
+  }
+  const optimizerScript = readFileSync(path.join(process.cwd(), 'tools/glb-model-optimizer/optimize-models.mjs'));
+  const optimizerConfigDigest = createHash('sha256')
+    .update(`${sha256Buffer(optimizerScript)}\nmedium\n`)
+    .digest('hex');
+  if (record.optimizerConfigDigest !== optimizerConfigDigest) {
+    fail(`${name} optimizer configuration digest does not match`);
   }
 }
 

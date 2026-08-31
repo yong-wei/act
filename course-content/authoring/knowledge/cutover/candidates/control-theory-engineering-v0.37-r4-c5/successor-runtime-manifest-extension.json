@@ -1,0 +1,18 @@
+{
+  "contract": "coordinated-runtime-manifest-extension/v1",
+  "allocationHash": "1d46215ebef09b3706cf1edb4c463fd68f24003ab3f2efc4337819a1f4eaffb0",
+  "denominatorHash": "02345fd1414aa15252812add533ae7e858191adf5b1d5eb1cb267fedc8741d8c",
+  "captureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "teachingProjectionHash": "c9a6f33eb88fff28f8934a25a627e38deffcbf331ee7f34bb4e9ff65b0d02c2e",
+  "teachingClosureReceiptHash": "f9eb5d70f2980beaa23685430c2baf88a8f95a54c74de2788bfa25a80f646a7e",
+  "composedDomainFragmentManifestHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+  "domainFragmentSetHash": "634543d0daee0bd0abf82ffe6efc12a36e503548990f8a3bef1fca2da46e17cb",
+  "formalResourceEnvelopeHash": "fb770a47333330abf12216133c48134099e680780e7d6324c66f176920b12cd7",
+  "continuityReceiptHash": "e2cd42f860779ebe5fe189502461a5959510e86fe94843b867c8a699bfe94221",
+  "domainShardSetHash": "c462da19203700966fce21ad5f8d2d6fbc1832844872ca71f019f0a28e670c68",
+  "prerequisitePublicationHash": "d55c3ac4097729bc7e016ecdd810c8153a490166e3283c580897b0b7268845c8",
+  "consumerActivationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+  "predecessorRuntimeReleaseId": "runtime-bb309e6a7e1ded281038c4689c98d24e78e5f46db29f7cd2ee50057",
+  "predecessorRuntimeManifestSha256": "11c8185de8d28768ef8b247039907d50228b28475f989619c1c22eb9bf04ea7b",
+  "predecessorLifecycleGeneration": 42
+}

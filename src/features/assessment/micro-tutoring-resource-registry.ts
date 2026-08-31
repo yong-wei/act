@@ -10,7 +10,11 @@ import {
 import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';
 
 export const MICRO_TUTORING_RESOURCE_PROJECTION_VERSION = 'micro-tutoring-resource-projection.v1';
-export const MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE = 'micro-tutoring-option-attributions.v2';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_V2_VERSION = 'micro-tutoring-resource-projection.v2';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_V1_SOURCE = 'micro-tutoring-option-attributions.v2';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE = 'micro-tutoring-option-attributions.v3';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_V1_FILE = 'micro-tutoring-resource-projection.json';
+export const MICRO_TUTORING_RESOURCE_PROJECTION_V2_FILE = 'micro-tutoring-resource-projection-v2.json';
 
 export type MicroTutoringResourceProjectionIssueCode =
   | 'PROJECTION_MALFORMED'
@@ -149,11 +153,12 @@ export function microTutoringResourceRevision(input: {
 export function microTutoringResourceRelationSourceRef(input: {
   knowledgeNodeId: string;
   misconceptionTag: string;
+  source?: string;
 }): string {
   const digest = createHash('sha256')
     .update(`${input.knowledgeNodeId}\0${input.misconceptionTag}`)
     .digest('hex');
-  return `${MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE}#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
+  return `${input.source ?? MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE}#node:${input.knowledgeNodeId}#tag:${input.misconceptionTag}#sha256:${digest}`;
 }
 
 function optionAttributionPairs(source: unknown): Set<string> {
@@ -198,9 +203,19 @@ function parseRelations(value: unknown, ref: string): {
   return { relations, issues };
 }
 
+function resourceProjectionContract(version: string): { source: string } | null {
+  if (version === MICRO_TUTORING_RESOURCE_PROJECTION_VERSION) {
+    return { source: MICRO_TUTORING_RESOURCE_PROJECTION_V1_SOURCE };
+  }
+  if (version === MICRO_TUTORING_RESOURCE_PROJECTION_V2_VERSION) {
+    return { source: MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE };
+  }
+  return null;
+}
+
 export function loadMicroTutoringResourceProjection(
-  source: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-resource-projection.json'),
-  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions.json'),
+  source: unknown = loadMicroTutoringRuntimeSource(MICRO_TUTORING_RESOURCE_PROJECTION_V2_FILE),
+  optionAttributions: unknown = loadMicroTutoringRuntimeSource('micro-tutoring-option-attributions-v2.json'),
 ): LoadedMicroTutoringResourceProjection {
   const value = record(source);
   const issues: MicroTutoringResourceProjectionIssue[] = [];
@@ -213,10 +228,10 @@ export function loadMicroTutoringResourceProjection(
   ) {
     return { projection: null, issues: [{ code: 'PROJECTION_MALFORMED', ref: 'projection' }] };
   }
-  if (value.version !== MICRO_TUTORING_RESOURCE_PROJECTION_VERSION) {
+  const contract = resourceProjectionContract(value.version);
+  if (!contract) {
     issues.push({ code: 'VERSION_DRIFT', ref: 'projection-version' });
-  }
-  if (value.source !== MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE) {
+  } else if (value.source !== contract.source) {
     issues.push({ code: 'SOURCE_DRIFT', ref: 'projection-source' });
   }
   if (value.actionVersion !== MICRO_TUTORING_LEARNING_ACTION_VERSION) {
@@ -324,6 +339,7 @@ export function loadMicroTutoringResourceProjection(
       parsedRelations.relations.map((relation) => microTutoringResourceRelationSourceRef({
         knowledgeNodeId,
         misconceptionTag: relation.misconceptionTag,
+        source: String(value.source).trim(),
       })),
     );
     const declaredRefs = Array.isArray(row.sourceRefs) && row.sourceRefs.every(nonEmptyString)
@@ -372,8 +388,8 @@ export function loadMicroTutoringResourceProjection(
   }
   return {
     projection: {
-      version: MICRO_TUTORING_RESOURCE_PROJECTION_VERSION,
-      source: MICRO_TUTORING_RESOURCE_PROJECTION_SOURCE,
+      version: value.version.trim(),
+      source: value.source.trim(),
       actionVersion: MICRO_TUTORING_LEARNING_ACTION_VERSION,
       entries,
     },

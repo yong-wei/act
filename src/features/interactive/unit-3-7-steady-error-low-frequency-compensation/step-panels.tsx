@@ -1040,14 +1040,17 @@ function TextInput({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  disabled?: boolean;
 }) {
   return (
     <textarea aria-label="稳态误差补偿学习记录"
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input min-h-[96px] w-full resize-y"
@@ -1059,10 +1062,12 @@ function ChoiceGroup({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: readonly ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid gap-2">
@@ -1070,7 +1075,11 @@ function ChoiceGroup({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm transition ${
             value === option.value ? 'ring-2 ring-cyan-400' : ''
           }`}
@@ -1086,13 +1095,15 @@ function SelectField({
   value,
   onChange,
   options,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: readonly ChoiceOption[];
+  disabled?: boolean;
 }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
+    <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
       <option value="">请选择</option>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -1203,14 +1214,15 @@ function renderActivityCard(
   field: ActivityCardField,
   value: string,
   onChange: (value: string) => void,
+  disabled = false,
 ) {
   if (field.inputKind === 'single_choice' && field.options) {
-    return <ChoiceGroup options={field.options} value={value} onChange={onChange} />;
+    return <ChoiceGroup options={field.options} value={value} onChange={onChange} disabled={disabled} />;
   }
   if (field.inputKind === 'match' && field.options) {
-    return <SelectField value={value} onChange={onChange} options={field.options} />;
+    return <SelectField value={value} onChange={onChange} options={field.options} disabled={disabled} />;
   }
-  return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} />;
+  return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} disabled={disabled} />;
 }
 
 export function UNIT_3_7KnowledgeMapVisual() {
@@ -1566,6 +1578,7 @@ export function UNIT_3_7StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_3_7StepDefinition;
@@ -1573,8 +1586,13 @@ export function UNIT_3_7StudentActivityForm({
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_3_7StepResponse) => void;
+  readOnly?: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(step, savedResponse));
 
   useEffect(() => {
@@ -1591,7 +1609,7 @@ export function UNIT_3_7StudentActivityForm({
   };
 
   const submit = (answers: Record<string, string> = draft) => {
-    onSubmit({
+    commitStudentResponse({
       stepId: step.id,
       submittedAt: Date.now(),
       answers,
@@ -1608,7 +1626,7 @@ export function UNIT_3_7StudentActivityForm({
       ) : (
         <div className="mt-4 grid gap-4">
           {step.pageType === 'binary_choice' ? (
-            <ChoiceGroup
+            <ChoiceGroup disabled={Boolean(readOnly)}
               options={[
                 { value: 'A', label: '只要把增益调大，I 型系统的斜坡误差总能变成 0' },
                 { value: 'B', label: '若型别不变，斜坡误差最多被压小，不能结构性归零' },
@@ -1623,7 +1641,7 @@ export function UNIT_3_7StudentActivityForm({
               <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
                 <div className="mt-3">
-                  <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
+                  <ChoiceGroup disabled={Boolean(readOnly)} options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
                 </div>
               </div>
             ))
@@ -1635,9 +1653,9 @@ export function UNIT_3_7StudentActivityForm({
                 <div key={question.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
                   <div className="mt-3">
-                    <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
+                    <ChoiceGroup disabled={Boolean(readOnly)} options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} />
                   </div>
-                  <button type="button" onClick={() => submit({ ...draft, [question.key]: draft[question.key] ?? '' })} className="premium-lesson-action-secondary mt-4">
+                  <button type="button" disabled={Boolean(readOnly)} onClick={() => submit({ ...draft, [question.key]: draft[question.key] ?? '' })} className="premium-lesson-action-secondary mt-4">
                     提交答案
                   </button>
                 </div>
@@ -1650,7 +1668,7 @@ export function UNIT_3_7StudentActivityForm({
               <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                 <div className="mt-3">
-                  <TextInput value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={`写出图中对应的 ${field.label} 位置说明`} />
+                  <TextInput disabled={Boolean(readOnly)} value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value)} placeholder={`写出图中对应的 ${field.label} 位置说明`} />
                 </div>
               </div>
             ))
@@ -1661,9 +1679,9 @@ export function UNIT_3_7StudentActivityForm({
               {(WORKED_EXAMPLE_FIELDS[step.id] ?? []).map((field) => (
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
+                  <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value), Boolean(readOnly))}</div>
                   <button
-                    type="button"
+                    type="button" disabled={Boolean(readOnly)}
                     onClick={() => submit({ ...draft, [field.key]: draft[field.key] ?? '' })}
                     className="premium-lesson-action-secondary mt-4"
                   >
@@ -1679,9 +1697,9 @@ export function UNIT_3_7StudentActivityForm({
               {(ACTIVITY_CARD_FIELDS[step.id] ?? []).map((field) => (
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
-                  <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
+                  <div className="mt-3">{renderActivityCard(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value), Boolean(readOnly))}</div>
                   <button
-                    type="button"
+                    type="button" disabled={Boolean(readOnly)}
                     onClick={() => submit({ ...draft, [field.key]: draft[field.key] ?? '' })}
                     className="premium-lesson-action-secondary mt-4"
                   >
@@ -1693,7 +1711,7 @@ export function UNIT_3_7StudentActivityForm({
           ) : null}
 
           {step.pageType === 'quiz_group' || step.pageType === 'binary_choice' || step.pageType === 'hotspot_labeling' ? (
-            <button type="button" onClick={() => submit()} className="premium-lesson-action-primary">
+            <button type="button" disabled={Boolean(readOnly)} onClick={() => submit()} className="premium-lesson-action-primary">
               {submitted ? '重新提交本页作答' : '提交本页作答'}
             </button>
           ) : null}
@@ -1704,7 +1722,7 @@ export function UNIT_3_7StudentActivityForm({
         <SubmissionStatus
           submitted={submitted}
           submittedText="已提交本页作答，教师端将看到你的当前答案。"
-          idleText="尚未提交本页作答。"
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '尚未提交本页作答。'}
         />
       </div>
 

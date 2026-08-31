@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import fixtureManifest from '../../../../artifacts/interactive-learning/control-workbench-reuse-560/shared-control-workbench-fixture.interactive-manifest.json';
+import fixtureManifest from '@/lib/qa-evidence/fixtures/shared-control-workbench-fixture.interactive-manifest.json';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';

@@ -18,6 +18,7 @@ import {
 } from '@/lib/authoritative-knowledge/authority-store';
 import {
   projectActiveNodeMathematics,
+  projectGovernedFormulaToActiveMathematics,
   type ActiveAuthorityProvenance,
   type ActiveAuthoritySource,
   type ActiveCanvasResponse,
@@ -54,7 +55,7 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
-import { attachActiveAuthorityResourceBindings } from '@/lib/authority-domain-shards/resource-bindings';
+import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
 import {
@@ -62,6 +63,18 @@ import {
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
+import {
+  closeResourceBlockWithLiveRegistryIndex,
+  knowledgeSurfaceFromActiveProvenance,
+  knowledgeSurfaceFromLearnerShard,
+  knowledgeSurfaceSelectorRejection,
+  sanitizePublicLaunchHref,
+  withKnowledgeSurface,
+} from '@/lib/knowledge-surface';
+import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
+import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
+import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -450,12 +463,31 @@ export function readActiveNode(
   }
 }
 
-export function activeProjectionResponse<T>(
+export function activeProjectionResponse<T extends { provenance?: Parameters<typeof knowledgeSurfaceFromActiveProvenance>[0]['provenance'] }>(
   result:
     | { status: 'available'; projection: T }
     | { status: 'unavailable'; reason?: string },
+  context: { kind: KnowledgeSurfaceKind; role: KnowledgeRole; surfaceKey: string },
 ): NextResponse {
-  if (result.status === 'available') return NextResponse.json(result.projection);
+  if (result.status === 'available') {
+    const projection = result.projection;
+    if (projection.provenance) {
+      const surface = knowledgeSurfaceFromActiveProvenance({
+        provenance: projection.provenance,
+        kind: context.kind,
+        role: context.role,
+        surfaceKey: context.surfaceKey,
+        latestCutover: readLiveLatestKnowledgeCutover(),
+      });
+      if (surface.status === 'ok') {
+        return NextResponse.json(withKnowledgeSurface(
+          projection,
+          surface.knowledgeSurface,
+        ));
+      }
+    }
+    return NextResponse.json(projection);
+  }
   if (result.reason === 'node-not-found') {
     return NextResponse.json(
       { error: 'Active Authority node not found.', code: 'ACTIVE_GRAPH_NODE_NOT_FOUND' },
@@ -503,6 +535,36 @@ export function activeShardResponse<T extends AuthorityLearnerShard>(
   return activeShardResponseForRole(read, role, request);
 }
 
+function sanitizeResourceBindings(
+  bindings: ActiveNodeResourceBindings,
+  nodeId: string,
+  expectedCaptureRevision: string | null,
+): {
+  bindings: ActiveNodeResourceBindings;
+  registryIndex: KnowledgeSurfaceRegistryIndexIdentity | null;
+} {
+  const closed = closeResourceBlockWithLiveRegistryIndex({
+    bindings,
+    expectedCaptureRevision,
+  });
+  if (closed.bindings.state !== 'available') {
+    return { bindings: closed.bindings, registryIndex: null };
+  }
+  const items = closed.bindings.items.map((item) => {
+    const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
+    return {
+      ...item,
+      availability: href ? 'available' as const : 'unavailable' as const,
+      launch: { ...item.launch, href },
+    };
+  });
+  const stillAvailable = items.some((item) => item.availability === 'available');
+  return {
+    bindings: { state: 'available', items },
+    registryIndex: stillAvailable ? closed.registryIndex : null,
+  };
+}
+
 /**
  * Project the immutable shard source at the authenticated API boundary.
  * Student node-detail responses must not carry the teaching-only field even
@@ -514,6 +576,10 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   request?: Request,
 ): NextResponse {
   try {
+    if (request) {
+      const rejected = knowledgeSurfaceSelectorRejection(request);
+      if (rejected) return rejected;
+    }
     const qualification = request ? resolveActiveLocaleQualification() : null;
     const capability = qualification?.capability ?? historicalLocaleCapability();
     const resolved = request
@@ -531,7 +597,8 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
       receipt,
     );
-    const shard = projectAuthorityLearnerShard(localized, {
+    const withMath = attachGovernedMathToLearnerShard(localized, resolved.locale);
+    const shard = projectAuthorityLearnerShard(withMath, {
       localeBinding: localeBindingForCapability(
         resolved.locale,
         capability,
@@ -539,26 +606,48 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       ),
       localeCapability: capability,
     });
+    const surfaceRole = role ?? 'NONE';
+    const latestCutover = readLiveLatestKnowledgeCutover();
     if (shard.shardClass === 'node-detail') {
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
-      const mathematics = projectActiveNodeMathematics(detail.node.teachingFields);
-      const resourceBindings = attachActiveAuthorityResourceBindings(
-        raw as AuthorityNodeDetailShard,
-        role,
+      const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
+        ?? projectActiveNodeMathematics(detail.node.teachingFields);
+      const teachingCaptureRevision = readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
+      const closedResources = sanitizeResourceBindings(
+        attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
+        (raw as AuthorityNodeDetailShard).node.id,
+        teachingCaptureRevision,
       );
-      if (role === 'STUDENT') {
-        const { teachingFields: _teachingFields, ...node } = detail.node;
-        return NextResponse.json({
-          ...detail,
-          node: { ...node, mathematics, resourceBindings },
-        });
-      }
-      return NextResponse.json({
+      const resourceBindings = closedResources.bindings;
+      const { teachingFields: _teachingFields, ...studentNode } = detail.node;
+      const payload = {
         ...detail,
-        node: { ...detail.node, mathematics, resourceBindings },
+        node: role === 'STUDENT'
+          ? { ...studentNode, mathematics, resourceBindings }
+          : { ...detail.node, mathematics, resourceBindings },
+      };
+      const surface = knowledgeSurfaceFromLearnerShard({
+        shard: withMath,
+        role: surfaceRole,
+        locale: resolved.locale,
+        resourceBindings,
+        registryIndex: closedResources.registryIndex,
+        teachingCaptureRevision,
+        latestCutover,
       });
+      return NextResponse.json(
+        surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,
+      );
     }
-    return NextResponse.json(shard);
+    const surface = knowledgeSurfaceFromLearnerShard({
+      shard: withMath,
+      role: surfaceRole,
+      locale: resolved.locale,
+      latestCutover,
+    });
+    return NextResponse.json(
+      surface.status === 'ok' ? withKnowledgeSurface(shard, surface.knowledgeSurface) : shard,
+    );
   } catch (error) {
     const failure = shardFailureCode(error);
     return NextResponse.json(

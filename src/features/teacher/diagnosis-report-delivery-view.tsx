@@ -89,7 +89,7 @@ export function DiagnosisReportDeliveryView({
           <div className="border-b border-border bg-sky-500/5 p-6 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">Fixed governed report</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">固定治理报告</p>
                 <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{projection.title}</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-subtle">{projection.privacyNotice}</p>
               </div>

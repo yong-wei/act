@@ -5,6 +5,7 @@ import {
   persistSceneTraceSimulationRun,
 } from '../simulation-scene-run-persistence';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 import {
   buildCruiseTelemetryBridgeSummary,
   type CruiseTelemetryBridgeInput,
@@ -114,6 +115,60 @@ describe('simulation scene run persistence', () => {
       () => ({ ...result, isFallback: true }),
     )).rejects.toThrow('control-analysis-fallback-result');
     expect(db.simulationRun.upsert).not.toHaveBeenCalled();
+  });
+
+  it('does not write a SimulationRun when the server facade throws unavailable', async () => {
+    const db = createDb();
+    await expect(persistControlWorkbenchSimulationRun(
+      db,
+      'student-1',
+      {
+        clientRunId: 'run-unavailable',
+        capabilityId: 'control-linked-comparison',
+        request,
+        launchContext: {},
+      },
+      () => {
+        throw new ControlEngineFailure({
+          state: 'unavailable',
+          category: 'non-finite-result',
+          message: 'analysis is not a finite numerical result.',
+          retryable: false,
+        });
+      },
+    )).rejects.toBeInstanceOf(ControlEngineFailure);
+    expect(db.simulationRun.upsert).not.toHaveBeenCalled();
+    expect(db.simulationTrace.upsert).not.toHaveBeenCalled();
+  });
+
+  it('changes the task spec identity when the analysis request identity changes', async () => {
+    const db = createDb();
+    const compute = vi.fn().mockReturnValue(result);
+    await persistControlWorkbenchSimulationRun(
+      db,
+      'student-1',
+      {
+        clientRunId: 'run-identity-a',
+        capabilityId: 'control-linked-comparison',
+        request,
+        launchContext: {},
+      },
+      compute,
+    );
+    await persistControlWorkbenchSimulationRun(
+      db,
+      'student-1',
+      {
+        clientRunId: 'run-identity-b',
+        capabilityId: 'control-linked-comparison',
+        request: { ...request, caseId: 'case-2' },
+        launchContext: {},
+      },
+      compute,
+    );
+    const firstSpec = db.simulationTaskSpec.upsert.mock.calls[0]?.[0] as { create: { specHash: string } };
+    const secondSpec = db.simulationTaskSpec.upsert.mock.calls[1]?.[0] as { create: { specHash: string } };
+    expect(firstSpec.create.specHash).not.toBe(secondSpec.create.specHash);
   });
 
   it('persists a completed cruise trace under the current student and registered resource', async () => {

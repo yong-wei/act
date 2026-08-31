@@ -10,12 +10,22 @@ vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }));
 
-vi.mock('@/lib/auth', () => ({
-  authOptions: { providers: [] },
-}));
+vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/course-runtime', () => ({
   loadLessonRuntimeEntry: vi.fn(),
+}));
+
+vi.mock('@/lib/course-bundle/session-reader', () => ({
+  loadSessionBoundLessonRuntime: vi.fn(),
+}));
+
+vi.mock('@/features/lesson-engine/course-bundle-drift-state', () => ({
+  CourseBundleDriftState: vi.fn(() => null),
+}));
+
+vi.mock('@/lib/auth', () => ({
+  authOptions: { providers: [] },
 }));
 
 vi.mock('@/lib/interactive-session-access', () => ({
@@ -35,15 +45,22 @@ function readSource(relativePath: string) {
 }
 
 async function loadRouteMocks() {
-  const [{ getServerSession }, { loadLessonRuntimeEntry }, { redirectInactiveStudentSessionToLessonEntry }] = await Promise.all([
+  const [
+    { getServerSession },
+    { loadLessonRuntimeEntry },
+    { loadSessionBoundLessonRuntime },
+    { redirectInactiveStudentSessionToLessonEntry },
+  ] = await Promise.all([
     import('next-auth'),
     import('@/lib/course-runtime'),
+    import('@/lib/course-bundle/session-reader'),
     import('@/lib/interactive-session-access'),
   ]);
 
   return {
     getServerSession: vi.mocked(getServerSession),
     loadLessonRuntimeEntry: vi.mocked(loadLessonRuntimeEntry),
+    loadSessionBoundLessonRuntime: vi.mocked(loadSessionBoundLessonRuntime),
     redirectInactiveStudentSessionToLessonEntry: vi.mocked(redirectInactiveStudentSessionToLessonEntry),
   };
 }
@@ -53,11 +70,13 @@ describe('interactive student route query boundary', () => {
     const mocks = await loadRouteMocks();
     mocks.getServerSession.mockReset();
     mocks.loadLessonRuntimeEntry.mockReset();
+    mocks.loadSessionBoundLessonRuntime.mockReset();
     mocks.redirectInactiveStudentSessionToLessonEntry.mockReset();
     mocks.redirectInactiveStudentSessionToLessonEntry.mockResolvedValue(undefined);
-    mocks.loadLessonRuntimeEntry.mockResolvedValue(
-      {} as Awaited<ReturnType<typeof mocks.loadLessonRuntimeEntry>>,
-    );
+    mocks.loadSessionBoundLessonRuntime.mockResolvedValue({
+      status: 'legacy',
+      lessonRuntime: {} as never,
+    });
   });
 
   it('resolves the first non-empty step query value at the server route boundary', () => {
@@ -83,8 +102,8 @@ describe('interactive student route query boundary', () => {
 
   it('keeps redirect ordering before auth/runtime awaits while passing demoStepId from the route', () => {
     const routes = [
-      'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
-      'src/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page.tsx',
+      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
+      'src/features/interactive/course-app-routes/unit-2-1-modeling-language/student.tsx',
     ];
 
     for (const routePath of routes) {
@@ -104,11 +123,11 @@ describe('interactive student route query boundary', () => {
   it('passes demoStepId through representative route auth and non-auth branches', async () => {
     const routes = [
       {
-        modulePath: '@/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page',
+        modulePath: '@/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student',
         expectedLessonId: '1-1',
       },
       {
-        modulePath: '@/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page',
+        modulePath: '@/features/interactive/course-app-routes/unit-2-1-modeling-language/student',
         expectedLessonId: '2-1',
       },
     ] as const;
@@ -123,7 +142,11 @@ describe('interactive student route query boundary', () => {
         searchParams: Promise.resolve({ step: 'step-07' }),
       });
       expect(anonymousElement.props).toMatchObject({ sessionId: 'demo', demoStepId: 'step-07' });
-      expect(mocks.loadLessonRuntimeEntry).toHaveBeenLastCalledWith(route.expectedLessonId);
+      expect(mocks.loadSessionBoundLessonRuntime).toHaveBeenLastCalledWith({
+        sessionId: 'demo',
+        expectedCanonicalId: route.expectedLessonId,
+        role: 'student',
+      });
 
       mocks.getServerSession.mockResolvedValueOnce({ user: { id: 'student-1', name: '学生' } });
       const authenticatedElement = await routeModule.default({
@@ -142,7 +165,7 @@ describe('interactive student route query boundary', () => {
     const mocks = await loadRouteMocks();
     mocks.redirectInactiveStudentSessionToLessonEntry.mockRejectedValueOnce(new Error('redirected'));
 
-    const routeModule = await import('@/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page');
+    const routeModule = await import('@/features/interactive/course-app-routes/unit-2-1-modeling-language/student');
 
     await expect(routeModule.default({
       params: Promise.resolve({ sessionId: 'closed-session' }),
@@ -150,6 +173,6 @@ describe('interactive student route query boundary', () => {
     })).rejects.toThrow('redirected');
 
     expect(mocks.getServerSession).not.toHaveBeenCalled();
-    expect(mocks.loadLessonRuntimeEntry).not.toHaveBeenCalled();
+    expect(mocks.loadSessionBoundLessonRuntime).not.toHaveBeenCalled();
   });
 });

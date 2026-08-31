@@ -13,7 +13,7 @@ describe('container scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 399.9');
     expect(source).toContain('designSpeedKnots: 20');
-    expect(source).toContain('/assets/models-opt/container.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('container')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -54,8 +54,8 @@ describe('container pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(CONTAINER);
-    expect(source).toContain('models-opt/container.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('container')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

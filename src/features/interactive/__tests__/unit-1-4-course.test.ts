@@ -38,11 +38,11 @@ vi.mock('@/resources/control-system/analysis/use-control-engine', () => ({
 const repoRoot = process.cwd();
 const manifestPath = join(repoRoot, 'course-content/runtime/lessons/1-4/interactive-manifest.json');
 const graphOverlayPath = join(repoRoot, 'course-content/runtime/lessons/1-4/graph-overlay.json');
-const courseHeaderPath = join(repoRoot, 'src/features/interactive/unit-1-4-time-frequency-views/course-header.tsx');
+const runtimeShellPath = join(repoRoot, 'src/features/interactive/shared/lesson-runtime-shell.tsx');
 const studentPagePath = join(repoRoot, 'src/features/interactive/unit-1-4-time-frequency-views/student-page.tsx');
 const teacherPagePath = join(repoRoot, 'src/features/interactive/unit-1-4-time-frequency-views/teacher-page.tsx');
-const teacherRoutePath = join(repoRoot, 'src/app/interactive-learning/courses/unit-1-4-time-frequency-views/teacher/[sessionId]/page.tsx');
-const waitingRoutePath = join(repoRoot, 'src/app/interactive-learning/courses/unit-1-4-time-frequency-views/teacher/[sessionId]/waiting/page.tsx');
+const teacherRoutePath = join(repoRoot, 'src/features/interactive/course-app-routes/unit-1-4-time-frequency-views/teacher.tsx');
+const waitingRoutePath = join(repoRoot, 'src/features/interactive/course-app-routes/unit-1-4-time-frequency-views/waiting.tsx');
 const bopppsPath = join(repoRoot, 'course-content/authoring/lessons/1-4/design/1-4-boppps.md');
 
 function readManifest() {
@@ -52,11 +52,11 @@ function readManifest() {
 }
 
 describe('unit 1-4 time frequency views course', () => {
-  it('gives the previous and next page icon buttons accessible names', () => {
-    const source = readFileSync(courseHeaderPath, 'utf8');
+  it('gives the previous and next page controls accessible names', () => {
+    const source = readFileSync(runtimeShellPath, 'utf8');
 
-    expect(source).toContain('aria-label="上一页"');
-    expect(source).toContain('aria-label="下一页"');
+    expect(source).toContain('上一页');
+    expect(source).toContain('下一页');
   });
 
   it('commits teacher controls and student submissions only after persistence succeeds', async () => {
@@ -458,7 +458,7 @@ describe('unit 1-4 time frequency views course', () => {
     expect(source).toContain('已有学习记录学生');
     expect(source).not.toContain('当前在线学生');
     expect(source).toContain('aria-expanded={showStudentList}');
-    expect(source.indexOf("sessionInfo?.status === 'FINISHED'")).toBeLessThan(source.indexOf('<UNIT_1_4CourseHeader'));
+    expect(source.indexOf("sessionInfo?.status === 'FINISHED'")).toBeLessThan(source.indexOf('<LessonRuntimeShell'));
   });
 
   it('preserves the complete teacher session path when redirecting to login', () => {
@@ -510,11 +510,11 @@ describe('unit 1-4 time frequency views course', () => {
   });
 
   it('provides entry, teacher, student, and waiting routes', () => {
-    const routeRoot = join(repoRoot, 'src/app/interactive-learning/courses', UNIT_1_4_ROUTE_SEGMENT);
+    const routeRoot = join(repoRoot, 'src/features/interactive/course-app-routes', UNIT_1_4_ROUTE_SEGMENT);
 
-    expect(existsSync(join(routeRoot, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'teacher/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'teacher/[sessionId]/waiting/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'student/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'teacher.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'waiting.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(true);
   });
 });

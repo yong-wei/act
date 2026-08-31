@@ -120,7 +120,7 @@ describe('canonical learning path transition import boundary', () => {
     expect(source).not.toMatch(/write-fence/);
     expect(source).not.toMatch(/@prisma\/client/);
     expect(source).toMatch(
-      /from ['"]@\/lib\/student-visible-path-target['"]/,
+      /from ['"]@\/lib\/adaptive-path-destination-contract['"]/,
     );
   });
 

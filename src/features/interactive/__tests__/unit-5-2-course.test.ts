@@ -15,7 +15,7 @@ vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
 const routeSegment = 'unit-5-2-nonlinear-analysis-entry';
-const routeBase = join(repoRoot, 'src/app/interactive-learning/courses', routeSegment);
+const routeBase = join(repoRoot, 'src/features/interactive/course-app-routes', routeSegment);
 const featureBase = join(repoRoot, 'src/features/interactive', routeSegment);
 const manifestPath = join(repoRoot, 'course-content/runtime/lessons/5-2/interactive-manifest.json');
 
@@ -181,14 +181,17 @@ describe('unit 5-2 interactive course', () => {
   });
 
   it('exposes route files and keeps step-panels as a thin manifest runtime adapter', () => {
-    expect(existsSync(join(routeBase, 'page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student/[sessionId]/page.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher/[sessionId]/page.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
 
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
     const teacherPageSource = readFileSync(join(featureBase, 'teacher-page.tsx'), 'utf8');
-    const headerSource = readFileSync(join(featureBase, 'course-header.tsx'), 'utf8');
+    const runtimeShellSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/lesson-runtime-shell.tsx'),
+      'utf8',
+    );
     const contentRendererSource = readFileSync(
       join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
       'utf8',
@@ -209,9 +212,9 @@ describe('unit 5-2 interactive course', () => {
     expect(stepPanelsSource).not.toContain('switch (step.id)');
     expect(stepPanelsSource).not.toContain('manifest ?? UNIT_5_2_RUNTIME_MANIFEST');
     expect(stepPanelsSource).not.toContain('/course-content/authoring/lessons/5-2/');
-    expect(headerSource).toContain('formatLessonStepMenuLabel');
-    expect(headerSource).toContain('id="unit-5-2-step-select"');
-    expect(headerSource).toContain('ChevronRight');
+    expect(studentPageSource).toContain('LessonRuntimeShell');
+    expect(runtimeShellSource).toContain('formatLessonStepMenuLabel');
+    expect(runtimeShellSource).toContain('ChevronRight');
     expect(studentPageSource).toContain('isOutOfSync');
     expect(studentPageSource).toContain('跳到教师当前页');
     expect(studentPageSource).toContain("sessionInfo?.status === 'FINISHED'");

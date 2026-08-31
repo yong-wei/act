@@ -70,3 +70,8 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 涉及 OSS 运行时迁移时，先读 `references/oss-runtime-releases.md`；只有完成 RAM Role、不可变 Release、远端复核、只读挂载和回滚证据后，才能变更运行时选择记录
 - 当且仅当任务已经满足 Trigger Gate 且服务器部署包含图谱或权威数据变化时，必须先在本地验证迁移、导入与 revision/provenance 闭合；Candidate、Shadow 与 Legacy 可以并存，除非用户明确授权且 cutover gate 通过，不得把服务器部署等同于 authority cutover
 - 已提交的 production cutover marker 存在时，普通 Legacy `remote-deploy.sh` 必须保持禁用；后续更新只能使用 cutover-aware 事务或显式 rollback，不得用常规部署重试覆盖 selector 状态
+- 生产**应用代码**发布与部署的唯一代码基线是一个已经进入 `origin/main` 的完整 Git commit。用户要求“部署”或“发布”时，先 fetch `origin/main`，冻结该 commit 与应用发布版本；如果当次需要把 `integration` 合入 `main`，合并必须在冻结前完成。冻结后不得读取、等待、比较或因 `integration` 的后续变化阻塞该次应用发布。
+- 每次生产应用发布必须有新的、明确的版本号，并同时写入镜像标签、应用工件/provenance 与最终发布回执。完整 `main` SHA 是代码内容身份，不能替代面向运维和回滚的应用发布版本号。
+- Runtime、图谱、索引等运行时发布与应用代码是两条独立版本线：它们可以直接冻结 `origin/integration` 的完整 commit 并使用独立 Runtime Release identity 发布，不要求与已发布应用的 `main` SHA 相同。发布前必须生成并核验一份兼容性证明，显式绑定应用 main revision、Runtime source revision、消费合同/格式版本及所需迁移状态；证明缺失、不兼容或漂移时停止 Runtime 选择。Runtime 发布不得重建、替换或回退应用镜像。
+- Runtime source 一经从 `origin/integration` 冻结，其后的 integration 提交同样不参与该 Runtime 发布；它既不能阻塞已冻结的 main 应用发布，也不能被无证据地追入当前 Runtime candidate。
+- 应用操作以 `origin/main` 的完整 SHA 和新应用发布版本为不可变起点；Runtime 操作则另行冻结 `origin/integration` 完整 SHA 和 Runtime Release identity。两者必须由兼容性证明连接，而不是要求 SHA 相等；任一侧冻结后都不得追逐另一侧后续漂移。

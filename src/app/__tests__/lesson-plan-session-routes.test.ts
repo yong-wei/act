@@ -5,6 +5,10 @@ const mocks = vi.hoisted(() => ({
   generateUniqueJoinCode: vi.fn(),
   loadSessionLessonSnapshot: vi.fn(),
   loadRuntimeLessonManifestSnapshot: vi.fn(),
+  captureRuntimeCourseBundleIdentity: vi.fn(),
+  persistCourseBundleRevision: vi.fn(),
+  generatedCoursewareBundleIdentity: vi.fn(),
+  planProjectionBundleIdentity: vi.fn(),
   logClassroomEvent: vi.fn(),
   enqueueSessionFinalizationEventIngestion: vi.fn(),
   enqueueSessionFinalizationEvidenceFeatureCacheRefresh: vi.fn(),
@@ -38,13 +42,32 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
-    lessonItem: { deleteMany: vi.fn() },
+    lessonItem: { deleteMany: vi.fn(), findMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
 
 vi.mock('next-auth', () => ({
   getServerSession: mocks.getServerSession,
+}));
+
+vi.mock('server-only', () => ({}));
+
+vi.mock('@/lib/course-bundle/capture', () => ({
+  captureRuntimeCourseBundleIdentity: mocks.captureRuntimeCourseBundleIdentity,
+  resolveBoundRuntimeLessonDir: vi.fn(),
+  runtimeLessonAbsolutePath: vi.fn(),
+}));
+
+vi.mock('@/lib/course-bundle/session-binding', () => ({
+  persistCourseBundleRevision: mocks.persistCourseBundleRevision,
+  planProjectionBundleIdentity: mocks.planProjectionBundleIdentity,
+  generatedCoursewareBundleIdentity: mocks.generatedCoursewareBundleIdentity,
+  classifySessionBundleBinding: vi.fn(),
+  sessionBundleBindingFromRevision: vi.fn(),
+  verifySessionCourseBundleBinding: vi.fn(),
+  resolveGeneratedCoursewareBundleRevision: vi.fn(),
+  DB_LESSON_PLAN_RELEASE_ID: 'db-lesson-plan',
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -101,6 +124,58 @@ describe('lesson plan empty-item guards', () => {
     mocks.prisma.classSession.findFirst.mockResolvedValue(null);
     mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue(null);
     mocks.prisma.platformSetting.findUnique.mockResolvedValue(null);
+    mocks.prisma.lessonItem.findMany.mockResolvedValue([]);
+    mocks.captureRuntimeCourseBundleIdentity.mockResolvedValue({
+      bundleId: 'bundle-1',
+      canonicalLessonId: 'bundle-1',
+      runtimeReleaseId: 'release-1',
+      runtimeTreeSha256: 't'.repeat(64),
+      runtimeManifestSha256: null,
+      runtimeSourceRevision: 'worktree',
+      runtimeObjectLocator: null,
+      bundleDigest: 'd'.repeat(64),
+      identityProjectionHash: 'i'.repeat(64),
+      manifestHash: null,
+      resourceHashes: { schemaVersion: 'course-bundle-resource-hashes.v1' },
+    });
+    mocks.generatedCoursewareBundleIdentity.mockImplementation((publication: {
+      id: string; manifestHash: string; contentHash: string; sourceRevision: string;
+    }) => ({
+      bundleId: `generated-courseware:${publication.id}`,
+      canonicalLessonId: `generated-courseware:${publication.id}`,
+      runtimeReleaseId: publication.id,
+      runtimeTreeSha256: publication.contentHash,
+      runtimeManifestSha256: publication.manifestHash,
+      runtimeSourceRevision: publication.sourceRevision,
+      runtimeObjectLocator: null,
+      bundleDigest: publication.contentHash,
+      identityProjectionHash: publication.manifestHash,
+      manifestHash: publication.manifestHash,
+      resourceHashes: { schemaVersion: 'course-bundle-resource-hashes.v1' },
+    }));
+    mocks.planProjectionBundleIdentity.mockReturnValue({
+      bundleId: 'plan:plan-1',
+      canonicalLessonId: 'plan:plan-1',
+      runtimeReleaseId: 'db-lesson-plan',
+      runtimeTreeSha256: 'p'.repeat(64),
+      runtimeManifestSha256: null,
+      runtimeSourceRevision: 'db',
+      runtimeObjectLocator: null,
+      bundleDigest: 'p'.repeat(64),
+      identityProjectionHash: 'q'.repeat(64),
+      manifestHash: null,
+      resourceHashes: { schemaVersion: 'course-bundle-resource-hashes.v1' },
+    });
+    mocks.persistCourseBundleRevision.mockImplementation(async (_tx: unknown, identity: {
+      manifestHash: string | null;
+      runtimeReleaseId: string;
+      bundleDigest: string;
+    }) => ({
+      id: 'bundle-revision-1',
+      manifestHash: identity.manifestHash,
+      runtimeReleaseId: identity.runtimeReleaseId,
+      bundleDigest: identity.bundleDigest,
+    }));
     mocks.redisClient.isReady.mockReturnValue(false);
     mocks.redisClient.getSessionState.mockResolvedValue(null);
     mocks.classroomRateLimiter.check.mockReturnValue({ allowed: true });
@@ -375,6 +450,8 @@ describe('lesson plan empty-item guards', () => {
       displayName: '互动课件第1版（基于教案第2版）',
       revisionNumber: 1,
       planRevisionNumber: 2,
+      contentHash: 'content-v1',
+      sourceRevisionId: 'source-v1',
       projectedLessonPlans: [{ id: 'projection-v1', generatedCoursewareManifestHash: 'manifest-v1' }],
     });
     mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
@@ -422,6 +499,12 @@ describe('lesson plan empty-item guards', () => {
   });
 
   it('automatically binds catalog planId launches to their generated publication', async () => {
+    mocks.prisma.smartCoursewarePublicationRevision.findUnique.mockResolvedValue({
+      id: 'publication-v1',
+      manifestHash: 'manifest-v1',
+      contentHash: 'content-v1',
+      sourceRevisionId: 'source-v1',
+    });
     mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
       title: '互动课件第1版（基于教案第2版）',
       authorId: 'teacher-1',

@@ -8,6 +8,14 @@ const root = process.cwd();
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-blob-release.sh'), 'utf8');
 const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
 const lifecycle = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-release-lifecycle.py'), 'utf8');
+const coordinatedCutover = fs.readFileSync(
+  path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'),
+  'utf8',
+);
+const compatibilityProof = fs.readFileSync(
+  path.join(root, 'scripts/runtime-release/runtime-app-compatibility-proof.py'),
+  'utf8',
+);
 const runtimeDeploy = fs.readFileSync(path.join(root, 'scripts/deploy-runtime-blob-release.sh'), 'utf8');
 const appDeploy = fs.readFileSync(path.join(root, 'scripts/remote-deploy.sh'), 'utf8');
 const deployAll = fs.readFileSync(path.join(root, 'scripts/deploy-all-with-runtime-blobs.sh'), 'utf8');
@@ -30,6 +38,7 @@ for (const invariant of [
   '--verification-receipt',
   '--parent-view',
   '--parent-runtime-root',
+  '--stage-only',
   'verify-mounted --format v2',
   'mount --bind "$BLOB_ROOT" "$helper"',
   'mount -o remount,bind,ro "$helper"',
@@ -45,6 +54,10 @@ for (const invariant of [
   'lifecycle_generation',
   'restore_runtime_consumers()',
   'ACT_RUNTIME_ACTIVE_RECEIPT_PATH',
+  'candidate-readyz-receipt',
+  'write_candidate_readyz_receipt()',
+  'candidate_receipt_path',
+  'candidate_receipt_rebound',
   'run_candidate_consumer_smoke()',
   'run_active_media_resolver_smoke()',
   '/interactive-learning/courses/unit-1-1-see-the-full-picture',
@@ -56,9 +69,18 @@ for (const invariant of [
   'ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT',
   'ACT_RUNTIME_CANDIDATE_INDEX_ROOT',
   'candidate media, knowledge, or textbook consumer smoke failed',
+  'smoke_dir="$(mktemp -d /tmp/act-runtime-blob-candidate-smoke.XXXXXX)"',
+  'smoke_file="$smoke_dir/candidate-smoke.ts"',
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
   'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
+  'ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT',
+  'runtime-app-compatibility',
+  'runtime-app-compatibility-proof.py',
+  'podman container exists "$APP_CONTAINER"',
+  "grep -E '^APP_IMAGE=(sha256:)?[a-f0-9]{64}$' \"$ENV_FILE\"",
+  'persisted runtime environment does not contain a valid app image digest',
+  'podman image exists "$rollback_app_image"',
 ]) {
   assert.ok(activation.includes(invariant), `runtime-only activation must include ${invariant}`);
 }
@@ -68,8 +90,33 @@ assert.match(podmanDeploy, /ACT_RUNTIME_ACTIVE_RECEIPT_PATH/, 'container must re
 assert.match(podmanDeploy, /act-runtime-state:ro/, 'container must receive the host active receipt directory read-only');
 assert.match(podmanDeploy, /RUNTIME_ACTIVE_RECEIPT_HOST_DIR/, 'deployment must bind the receipt parent directory, not an atomic-renamed inode');
 assert.ok(
-  activation.indexOf('stage_lifecycle_desired') < activation.indexOf('python3 "$HOST_STATE_SCRIPT" select'),
-  'v2 desired lifecycle state must be staged before the legacy selector changes',
+  activation.lastIndexOf('write_candidate_readyz_receipt') < activation.lastIndexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'provisional candidate readiness receipt must exist before its view reaches consumers',
+);
+assert.ok(
+  activation.lastIndexOf('run_candidate_consumer_smoke') < activation.lastIndexOf('runtime-app-compatibility-proof.py')
+    || activation.lastIndexOf('run_candidate_consumer_smoke') < activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture'),
+  '兼容性证明只能在候选消费者 smoke 成功后捕获',
+);
+assert.ok(
+  activation.lastIndexOf('inspect-application') < activation.lastIndexOf('run_candidate_consumer_smoke'),
+  'candidate consumers must start from a captured deployed application identity',
+);
+assert.ok(
+  activation.lastIndexOf('verify_qualification_environment') > activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture'),
+  'the captured proof must be compared with the application identity observed before candidate smoke',
+);
+assert.ok(
+  activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture') < activation.lastIndexOf('stage_lifecycle_desired'),
+  '兼容性证明必须在 desired 生命周期状态写入前完成',
+);
+assert.ok(
+  activation.lastIndexOf('stage_lifecycle_desired') < activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" select'),
+  'v2 desired 生命周期状态必须在 legacy selector 改变前写入',
+);
+assert.ok(
+  activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" verify') < activation.lastIndexOf('ACTIVATION_TRANSACTION" activate'),
+  '活跃切换前必须重新核验 runtime-app 兼容性证明',
 );
 assert.ok(
   activation.lastIndexOf('trap restore_runtime_consumers ERR') <
@@ -95,6 +142,39 @@ assert.ok(
   activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" "${verify_args[@]}"') <
     activation.lastIndexOf('candidate_deploy_attempted=1'),
   'failed post-overlay verification must not restart runtime consumers',
+);
+assert.match(
+  activation,
+  /--stage-only requires a successor Runtime release/,
+  'staging must refuse to rematerialize the active Runtime release',
+);
+assert.match(
+  activation,
+  /--coordinated-activate-before-consumers/,
+  'coordinated execution must have an explicit deferred-consumer mode',
+);
+assert.match(
+  activation,
+  /coordinated Runtime activation requires every consumer stopped/,
+  'coordinated execution must reject a running consumer before view selection',
+);
+assert.match(
+  activation,
+  /coordinated activation requires regular declaration, authorization, and binding files/,
+  'coordinated execution must require the declaration, Runtime authorization, and Runtime binding together',
+);
+assert.ok(
+  activation.lastIndexOf('assert_coordinated_consumers_stopped') < activation.indexOf('python3 "$MATERIALIZER" select --release-id "$release_id"'),
+  'coordinated execution must check consumers before selecting the Runtime view',
+);
+assert.match(
+  activation,
+  /coordinated Runtime activation is migration-only/,
+  'the stopped-service coordinated path must be fenced behind explicit migration intent',
+);
+assert.ok(
+  activation.indexOf('materialization_receipt="$candidate_view/.act-runtime-release-materialization.v1.json"') < activation.lastIndexOf('stage_lifecycle_desired'),
+  'non-selectable Runtime staging must stop before lifecycle desired state is written',
 );
 assert.match(
   activation,
@@ -180,7 +260,7 @@ assert.doesNotMatch(
 );
 assert.match(
   activation,
-  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
+  /podman exec -i --workdir \/app "\$APP_CONTAINER" \/bin\/sh -eu -c '[\s\S]*mktemp -d \/tmp\/act-runtime-blob-candidate-smoke\.XXXXXX[\s\S]*candidate-smoke\.ts[\s\S]*\.\/node_modules\/\.bin\/tsx "\$smoke_file"/,
   'candidate consumer smoke must execute a temporary TypeScript file through the deployed application runtime',
 );
 assert.doesNotMatch(
@@ -194,6 +274,11 @@ const activationAttemptIndex = activation.lastIndexOf('activation_attempted=1');
 assert.ok(
   activationCommitIndex < activeMediaSmokeIndex,
   'the normal private media resolver must be verified only after the active receipt is committed',
+);
+const canonicalReceiptRebindIndex = activation.lastIndexOf('ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json"');
+assert.ok(
+  activationCommitIndex < canonicalReceiptRebindIndex && canonicalReceiptRebindIndex < activeMediaSmokeIndex,
+  'a successful lifecycle activation must rebind consumers to the canonical receipt before active media smoke',
 );
 assert.ok(
   activationAttemptIndex < activationCommitIndex,
@@ -225,6 +310,18 @@ assert.ok(consumerModule, 'candidate consumer module must remain extractable for
 const consumerDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-candidate-smoke-'));
 const consumerPath = path.join(consumerDirectory, 'candidate-smoke.ts');
 fs.writeFileSync(consumerPath, consumerModule[1], { encoding: 'utf8', mode: 0o600 });
+const runtimeFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-candidate-runtime-'));
+const fixtureLessonMedia = path.join(runtimeFixture, 'lessons', '1-1', 'media');
+const fixtureKnowledge = path.join(runtimeFixture, 'knowledge', 'graph');
+fs.mkdirSync(fixtureLessonMedia, { recursive: true });
+fs.mkdirSync(fixtureKnowledge, { recursive: true });
+fs.writeFileSync(path.join(runtimeFixture, 'lessons', '1-1', 'lesson.json'), '{}');
+fs.writeFileSync(path.join(fixtureLessonMedia, '1-1-media.md'), '# 1-1-cover.png\n\n- 候选媒体\n');
+fs.writeFileSync(path.join(fixtureLessonMedia, '1-1-cover.png'), 'fixture');
+fs.writeFileSync(path.join(fixtureKnowledge, 'nodes.json'), JSON.stringify([{ id: 'fixture-node-a' }, { id: 'fixture-node-b' }]));
+fs.writeFileSync(path.join(fixtureKnowledge, 'relations.jsonl'), `${JSON.stringify({
+  id: 'fixture-relation', sourceId: 'fixture-node-a', targetId: 'fixture-node-b', relation: 'RELATED',
+})}\n`);
 const textbookFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-runtime-blob-textbook-smoke-'));
 const textbookRoot = path.join(textbookFixture, 'textbooks-v2');
 const indexRoot = path.join(textbookFixture, 'index');
@@ -322,6 +419,7 @@ try {
       encoding: 'utf8',
       env: {
         ...process.env,
+        ACT_RUNTIME_CANDIDATE_RUNTIME_ROOT: runtimeFixture,
         ACT_RUNTIME_CANDIDATE_TEXTBOOK_ROOT: textbookRoot,
         ACT_RUNTIME_CANDIDATE_INDEX_ROOT: indexRoot,
       },
@@ -329,6 +427,7 @@ try {
   ).trim();
 } finally {
   fs.rmSync(consumerDirectory, { recursive: true, force: true });
+  fs.rmSync(runtimeFixture, { recursive: true, force: true });
   fs.rmSync(textbookFixture, { recursive: true, force: true });
 }
 const consumerResult = JSON.parse(consumerOutput);
@@ -408,6 +507,13 @@ for (const invariant of [
   '--external-bundle',
   '--external-bundle-root',
   '--generated-resources-root',
+  '--resume-published-artifact-dir',
+  '--stage-only',
+  '--formal-resource-envelope-hash',
+  'resuming_published_release',
+  'published runtime resume requires the exact release to remain publishing, desired or active',
+  'resumedPublishedRelease',
+  'repairedActiveRelease',
   '--expected-active-release',
   'publisher-verification.json',
   'source-provenance-proof.json',
@@ -437,6 +543,31 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
+  /if resume:[\s\S]*desired == candidate[\s\S]*state\.get\("active"\) == candidate[\s\S]*any\(item == candidate for item in publishing\)[\s\S]*published runtime resume requires the exact release to remain publishing, desired or active/,
+  'published release resume must proceed only when lifecycle still owns that exact publishing, desired, or active release',
+);
+assert.match(
+  runtimeDeploy,
+  /runtimeStage.*NON_SELECTABLE/,
+  'Runtime staging must persist an explicit non-selectable publication state',
+);
+assert.match(
+  runtimeDeploy,
+  /--formal-resource-envelope-hash/,
+  'formal-resource candidates must bind their envelope before runtime publication',
+);
+assert.match(
+  runtimeDeploy,
+  /pre_publish_action" != protected:\* && "\$pre_publish_action" != repair:\*/,
+  'active repair must be accepted as a valid protected release action',
+);
+assert.match(
+  runtimeDeploy,
+  /if \[\[ "\$resuming_published_release" != "1" \]\]; then[\s\S]*publish-streaming/,
+  'published release resume must not invoke the local blob publisher again',
+);
+assert.match(
+  runtimeDeploy,
   /publish_args\+=\(--parent-manifest "\$parent_manifest"\)/,
   'runtime deploy must pass the parent manifest to publish-streaming so inherited Git blobs remain body-read and HEAD free',
 );
@@ -457,8 +588,8 @@ assert.match(
 );
 assert.match(
   runtimeDeploy,
-  /matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
-  'unchanged runtime may bypass publication only when its parent is the expected active release',
+  /-z "\$formal_resource_envelope_hash" && -n "\$matching_parent_release_id" && "\$matching_parent_release_id" == "\$expected_active_release"/,
+  'unchanged runtime may bypass publication only when it has no new formal-resource envelope and its parent is the expected active release',
 );
 assert.match(
   runtimeDeploy,
@@ -488,6 +619,20 @@ assert.match(
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
+assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility proof helper must expose the v1 receipt schema');
+assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
+assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');
+assert.match(compatibilityProof, /_prisma_migrations/, 'compatibility proof must bind the applied Prisma migration set');
+assert.match(compatibilityProof, /def inspect_application/, 'compatibility proof helper must expose deployed consumer identity capture');
+assert.match(activation, /application identity or migration set changed while candidate consumers were qualified/, 'application replacement during qualification must fail before selection');
+assert.match(compatibilityProof, /proof body, rather than\n    just the Runtime identity, therefore owns the filename/, 'each proof filename must bind the qualified application identity');
+assert.match(activation, /ACT_RUNTIME_LEGACY_MIGRATION/, 'the coordinated activation exception must require explicit migration intent');
+assert.match(coordinatedCutover, /ACT_RUNTIME_LEGACY_MIGRATION=1/, 'the historical outer transaction must declare its migration intent');
+assert.match(activation, /--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'daily Runtime selection must pass its exact compatibility proof into the lifecycle projection');
+assert.match(activation, /if \[\[ "\$release_id" == "\$old_active" \]\]; then[\s\S]*ACTIVATION_TRANSACTION" requalify[\s\S]*--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'same-identity requalification must journal the exact newly verified compatibility proof');
+assert.match(activationTransaction, /requalify-and-project/, 'the activation transaction must expose a same-identity proof projection command');
+assert.match(lifecycle, /only the exact active Runtime identity may be requalified/, 'the lifecycle must fence same-identity proof projection to the active Runtime identity');
+assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
 assert.match(deployAll, /deploy-runtime-blob-release\.sh" "\$@"/, 'combined deployment must forward release arguments only to the runtime operation');

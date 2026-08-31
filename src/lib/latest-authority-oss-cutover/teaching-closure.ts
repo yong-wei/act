@@ -228,6 +228,8 @@ export interface CoordinatedProjectionView {
   readonly authoritySnapshotHash: string;
   readonly allocationHash: string;
   readonly formalResourceEnvelopeHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
   readonly projectionHash: string;
 }
 
@@ -237,13 +239,16 @@ export interface ExpectedProjectionIdentity {
   readonly authoritySnapshotHash: string;
   readonly allocationHash: string;
   readonly formalResourceEnvelopeHash: string;
+  readonly composedDomainFragmentManifestHash: string;
+  readonly domainFragmentSetHash: string;
 }
 
 /**
  * A coordinated activation manifest may select only a complete projection
  * bound to the exact captured Authority, scope, formal resource envelope,
- * allocation record, and projection hash. PARTIAL, EMPTY, stale, fabricated,
- * wrong-scope, wrong-Authority, and wrong-envelope projections fail before
+ * allocation record, composed domain-fragment manifest, fragment set, and
+ * projection hash. PARTIAL, EMPTY, stale, fabricated, wrong-scope,
+ * wrong-Authority, wrong-envelope, and wrong-fragment projections fail before
  * consumer selection.
  */
 export function assertProjectionEligibleForCoordinatedSelection(
@@ -263,6 +268,12 @@ export function assertProjectionEligibleForCoordinatedSelection(
   if (projection.allocationHash !== expected.allocationHash) mismatches.push('allocation record');
   if (projection.formalResourceEnvelopeHash !== expected.formalResourceEnvelopeHash) {
     mismatches.push('formal resource envelope');
+  }
+  if (projection.composedDomainFragmentManifestHash !== expected.composedDomainFragmentManifestHash) {
+    mismatches.push('composed domain-fragment manifest');
+  }
+  if (projection.domainFragmentSetHash !== expected.domainFragmentSetHash) {
+    mismatches.push('domain-fragment set');
   }
   if (mismatches.length > 0) {
     throw new LatestAuthorityCutoverError(

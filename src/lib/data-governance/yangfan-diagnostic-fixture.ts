@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '../adaptive-learning-path-planner';
+import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 import type { CompetencyVector } from './competency-model';
 import {
   refreshStudentEvidenceFeatureCache,

@@ -10,6 +10,7 @@
 import { useRef, useCallback, useMemo, useEffect, useLayoutEffect, useState, type PointerEvent } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
+import { GovernedRichText } from '@/components/shared/governed-rich-text';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   getNodeColor,
@@ -27,6 +28,10 @@ import {
   KNOWLEDGE_ROOT_BUBBLE_VITALITY,
   type KnowledgeConceptNodeShape,
 } from './visual-config';
+import {
+  attachActiveNodeDecorations3d,
+  readActiveNodeDecoration,
+} from './active-node-decoration';
 import {
   getKnowledgeNodeLabelPresentation,
   type KnowledgeGraphLabelMode,
@@ -1435,6 +1440,7 @@ export function KnowledgeGraphCanvas({
         bodyRadius: node.__knowledgeRootPacking?.collisionRadius
           ?? getKnowledgeNodeMaximumPresentationRadius(node),
         isRootBubble: Boolean(node.__knowledgeRootPacking),
+        isKeyNode: node.labelPriority,
         importance: node.importance,
         labelBounds: node.__knowledgeRootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name, bodyRadius: getKnowledgeNodeMaximumPresentationRadius(node),
@@ -1688,6 +1694,15 @@ export function KnowledgeGraphCanvas({
     group.userData.knowledgeNaturalRadius = naturalRadius;
     group.userData.knowledgeIsRootBubble = isRootBubble;
     group.userData.knowledgeRootLabelComplete = isRootBubble;
+
+    const decoration = readActiveNodeDecoration(node.metadata);
+    if (!isRootBubble && decoration) {
+      attachActiveNodeDecorations3d(group, THREE, {
+        radius: presentationRadius,
+        decoration,
+        opacity: presentationOpacity,
+      });
+    }
 
     // 3. 创建辉光层（如果有 bloomLevel）
     if (isRootBubble || glowColor) {
@@ -2102,7 +2117,11 @@ export function KnowledgeGraphCanvas({
     link: any,
   ) => updatePresentationLinkObjectRef.current(object, positions, link), []);
   const getAccessibleNodeLabel = useCallback(
-    (node: any) => layoutKnowledgeNodeLabel(node.name).accessibleName,
+    (node: any) => (
+      node.richTitle?.state === 'available'
+        ? node.richTitle.accessibleName
+        : layoutKnowledgeNodeLabel(node.name).accessibleName
+    ),
     [],
   );
 
@@ -2156,6 +2175,7 @@ export function KnowledgeGraphCanvas({
         z: node.z ?? 0,
         bodyRadius,
         isRootBubble: Boolean(rootPacking),
+        isKeyNode: node.labelPriority,
         importance: node.importance,
         labelBounds: rootPacking?.labelBounds ?? getKnowledgeNodeLabelBounds({
           name: node.name,
@@ -2708,6 +2728,7 @@ export function KnowledgeGraphCanvas({
     return [{
       id: node.id,
       lines: layout.lines.map((line) => line.text),
+      richTitle: node.richTitle,
       x: Number(point.x) + (isRootBubble ? 0 : placement.offsetX),
       y: Number(point.y) + (isRootBubble ? 0 : placement.offsetY),
       width: layout.width * placement.fontSize / policyFontSize,
@@ -2890,7 +2911,9 @@ export function KnowledgeGraphCanvas({
               transform: 'translate(-50%, -50%)',
             }}
           >
-            {label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
+            {label.richTitle ? (
+              <GovernedRichText projection={label.richTitle} density="canvas" theme={isLightTheme ? 'light' : 'dark'} />
+            ) : label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
           </div>
         ))}
       </div>

@@ -16,6 +16,7 @@ import {
   LatestAuthorityCutoverError,
   type CombinedDenominator,
   type ContinuityFailureKind,
+  type ResourceContinuityObligationKind,
   type ResourceContinuityReceipt,
   type ResourceSuccessorDisposition,
   type RetirementDecision,
@@ -92,9 +93,10 @@ function ledgerHash(items: readonly string[]): string {
 
 /**
  * Evaluate the continuity gate over the combined denominator. The result is
- * QUALIFIED only when every retained baseline teaching resource has complete
- * atomic dispositions, at least one valid Canonical binding, and a qualified
- * launch contract (or an explicit owner retirement).
+ * QUALIFIED only when every retained baseline resource satisfies its sealed
+ * obligation. Current-path teaching remains fail-closed on complete atomic
+ * dispositions, Canonical binding, and safe launch; explicit-non-teaching and
+ * supporting records remain in the denominator without fabricated bindings.
  */
 export function evaluateContinuityGate(
   input: EvaluateContinuityGateInput,
@@ -159,13 +161,23 @@ export function evaluateContinuityGate(
     atomHash: projectionDigest(
       input.dispositions
         .filter((entry) => included.includes(entry.resourceId))
-        .map((entry) => ({ resourceId: entry.resourceId, atomicDispositionsComplete: entry.atomicDispositionsComplete }))
+        .map((entry) => ({
+          resourceId: entry.resourceId,
+          obligation: obligationFor(entry),
+          atomicDispositionsComplete: entry.atomicDispositionsComplete,
+          obligationEvidenceHash: entry.obligationEvidenceHash ?? null,
+        }))
         .sort((a, b) => a.resourceId.localeCompare(b.resourceId)),
     ),
     bindingHash: projectionDigest(
       input.dispositions
         .filter((entry) => included.includes(entry.resourceId))
-        .map((entry) => ({ resourceId: entry.resourceId, canonicalBindingCount: entry.canonicalBindingCount }))
+        .map((entry) => ({
+          resourceId: entry.resourceId,
+          obligation: obligationFor(entry),
+          canonicalBindingCount: entry.canonicalBindingCount,
+          currentPathEligible: entry.currentPathEligible ?? false,
+        }))
         .sort((a, b) => a.resourceId.localeCompare(b.resourceId)),
     ),
     launcherHash: projectionDigest(
@@ -204,16 +216,45 @@ export function evaluateContinuityGate(
   };
 }
 
+function obligationFor(disposition: ResourceSuccessorDisposition): ResourceContinuityObligationKind {
+  return disposition.obligation ?? 'FORMAL_TEACHING';
+}
+
+function hasObligationEvidence(disposition: ResourceSuccessorDisposition): boolean {
+  return typeof disposition.obligationEvidenceHash === 'string'
+    && /^[a-f0-9]{64}$/u.test(disposition.obligationEvidenceHash);
+}
+
 function collectTechnicalFailures(disposition: ResourceSuccessorDisposition): ContinuityFailureKind[] {
   const failures: ContinuityFailureKind[] = [...disposition.failureKinds];
-  if (!disposition.atomicDispositionsComplete && !failures.includes('incomplete-atomic-dispositions')) {
+  const obligation = obligationFor(disposition);
+  if (obligation === 'FORMAL_TEACHING') {
+    if (!disposition.atomicDispositionsComplete && !failures.includes('incomplete-atomic-dispositions')) {
+      failures.push('incomplete-atomic-dispositions');
+    }
+    if (disposition.canonicalBindingCount < 1 && !failures.includes('no-canonical-binding')) {
+      failures.push('no-canonical-binding');
+    }
+    if (!disposition.launchContractQualified && !failures.includes('unqualified-launch-contract')) {
+      failures.push('unqualified-launch-contract');
+    }
+    return failures;
+  }
+
+  if (!hasObligationEvidence(disposition) && !failures.includes('incomplete-atomic-dispositions')) {
     failures.push('incomplete-atomic-dispositions');
   }
-  if (disposition.canonicalBindingCount < 1 && !failures.includes('no-canonical-binding')) {
+  if (disposition.currentPathEligible === true && !failures.includes('no-canonical-binding')) {
     failures.push('no-canonical-binding');
   }
-  if (!disposition.launchContractQualified && !failures.includes('unqualified-launch-contract')) {
-    failures.push('unqualified-launch-contract');
+  if (obligation === 'FORMAL_EXPLICIT_NONE' && disposition.canonicalBindingCount !== 0
+    && !failures.includes('weak-canonical-mapping')) {
+    failures.push('weak-canonical-mapping');
+  }
+  if ((obligation === 'RUNTIME_SUPPORT' || obligation === 'CATALOG_ONLY')
+    && disposition.canonicalBindingCount !== 0
+    && !failures.includes('weak-canonical-mapping')) {
+    failures.push('weak-canonical-mapping');
   }
   return failures;
 }

@@ -16,13 +16,11 @@
 import type {
   ThrusterConfig,
   ThrusterState,
-  ThrustAllocationResult,
 } from '../../core/types';
 import {
   HYSY981_THRUSTER_LAYOUT,
   DEG_TO_RAD,
   RAD_TO_DEG,
-  clamp,
 } from '../../core/constants';
 
 // ============ 推进器配置 ============
@@ -195,117 +193,6 @@ function invert3x3(M: number[][]): number[][] | null {
       (M[0][0] * M[1][1] - M[0][1] * M[1][0]) * invDet,
     ],
   ];
-}
-
-/**
- * 主推力分配函数
- * 给定期望力/力矩，分配到8台推进器
- *
- * @param tauCmd 期望控制力 [Fx, Fy, Mz] (kN, kN, kN·m)
- * @param currentStates 当前推进器状态
- * @param configs 推进器配置
- * @param dt 时间步长 (s, 用于方位角速率限制)
- * @returns 分配结果
- */
-export function allocateThrust(
-  tauCmd: [number, number, number],
-  currentStates: ThrusterState[],
-  configs: ThrusterConfig[],
-  dt: number
-): ThrustAllocationResult {
-  const n = currentStates.length;
-
-  // Step 1: 计算最优方位角 (指向期望力方向)
-  const desiredAzimuths = computeOptimalAzimuths(tauCmd, currentStates, configs);
-
-  // Step 2: 应用方位角速率限制
-  const constrainedAzimuths = applyAzimuthRateLimit(
-    currentStates.map((s) => s.azimuth),
-    desiredAzimuths,
-    configs,
-    dt
-  );
-
-  // Step 3: 构建配置矩阵并计算伪逆
-  const B = computeThrusterMatrix(configs, constrainedAzimuths);
-  const Bplus = computePseudoInverse(B);
-
-  // Step 4: 计算推力分配 T = B⁺ * τ
-  const thrusts: number[] = new Array(n).fill(0);
-  for (let i = 0; i < n; i++) {
-    if (currentStates[i].failed || !currentStates[i].enabled) {
-      thrusts[i] = 0;
-      continue;
-    }
-    thrusts[i] =
-      Bplus[i][0] * tauCmd[0] +
-      Bplus[i][1] * tauCmd[1] +
-      Bplus[i][2] * tauCmd[2];
-  }
-
-  // Step 5: 应用推力限制
-  let saturated = false;
-  for (let i = 0; i < n; i++) {
-    const maxT = configs[i].maxThrust;
-    if (Math.abs(thrusts[i]) > maxT) {
-      thrusts[i] = Math.sign(thrusts[i]) * maxT;
-      saturated = true;
-    }
-  }
-
-  // Step 6: 计算实际输出力和功率
-  let totalFx = 0;
-  let totalFy = 0;
-  let totalMz = 0;
-  let totalPower = 0;
-
-  const newStates: ThrusterState[] = currentStates.map((s, i) => {
-    const config = configs[i];
-    const thrust = s.failed || !s.enabled ? 0 : thrusts[i];
-    const azimuth = constrainedAzimuths[i];
-    const azRad = azimuth * DEG_TO_RAD;
-
-    const fx = thrust * Math.cos(azRad);
-    const fy = thrust * Math.sin(azRad);
-    const mz = config.positionX * fy - config.positionY * fx;
-
-    totalFx += fx;
-    totalFy += fy;
-    totalMz += mz;
-
-    // 功率估算: P ∝ T^(3/2) (简化)
-    const power = Math.abs(thrust) > 0
-      ? (config.maxPower * (Math.abs(thrust) / config.maxThrust) ** 1.5)
-      : 0;
-    totalPower += power;
-
-    return {
-      id: s.id,
-      thrust: Math.abs(thrust),
-      azimuth,
-      power,
-      enabled: s.enabled,
-      failed: s.failed,
-    };
-  });
-
-  // 判断是否可行 (实际输出是否接近期望)
-  const forceError = Math.sqrt(
-    (totalFx - tauCmd[0]) ** 2 +
-      (totalFy - tauCmd[1]) ** 2 +
-      ((totalMz - tauCmd[2]) / 100) ** 2 // 力矩需要归一化
-  );
-  const feasible = forceError < 0.1 * Math.sqrt(tauCmd[0] ** 2 + tauCmd[1] ** 2 + (tauCmd[2] / 100) ** 2 + 1);
-
-  return {
-    thrusters: newStates,
-    totalForceX: totalFx,
-    totalForceY: totalFy,
-    totalMomentN: totalMz,
-    totalPower,
-    feasible,
-    saturated,
-  };
 }
 
 /**

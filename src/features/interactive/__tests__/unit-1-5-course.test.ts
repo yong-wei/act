@@ -26,7 +26,8 @@ import {
 const root = process.cwd();
 const manifestPath = join(root, 'course-content/runtime/lessons/1-5/interactive-manifest.json');
 const courseDir = join(root, 'src/features/interactive/unit-1-5-three-domain-gain-sweep');
-const routeDir = join(root, 'src/app/interactive-learning/courses/unit-1-5-three-domain-gain-sweep');
+const routeDir = join(root, 'src/features/interactive/course-app-routes/unit-1-5-three-domain-gain-sweep');
+const dispatcherDir = join(root, 'src/app/interactive-learning/courses/[routeSegment]');
 
 function manifest() {
   const parsed = normalizeInteractiveRuntimeManifest(JSON.parse(readFileSync(manifestPath, 'utf8')));
@@ -38,11 +39,19 @@ describe('unit 1-5 three-domain gain sweep course', () => {
   it('ships the manifest-first course shell and all required routes', () => {
     for (const path of [
       'entry-page.tsx',
-      'course-header.tsx',
       'step-panels.tsx',
       'student-page.tsx',
       'teacher-page.tsx',
     ]) expect(existsSync(join(courseDir, path)), path).toBe(true);
+    expect(existsSync(join(courseDir, 'course-header.tsx'))).toBe(false);
+
+    for (const path of [
+      'entry.tsx',
+      'demo.tsx',
+      'student.tsx',
+      'teacher.tsx',
+      'waiting.tsx',
+    ]) expect(existsSync(join(routeDir, path)), path).toBe(true);
 
     for (const path of [
       'page.tsx',
@@ -50,7 +59,7 @@ describe('unit 1-5 three-domain gain sweep course', () => {
       'student/[sessionId]/page.tsx',
       'teacher/[sessionId]/page.tsx',
       'teacher/[sessionId]/waiting/page.tsx',
-    ]) expect(existsSync(join(routeDir, path)), path).toBe(true);
+    ]) expect(existsSync(join(dispatcherDir, path)), path).toBe(true);
   });
 
   it('loads the reviewed 14-step runtime manifest without course-private content maps', () => {

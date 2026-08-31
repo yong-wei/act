@@ -819,9 +819,9 @@ try {
 
 assert.equal(
   buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
-    buildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n'),
+    buildScript.indexOf('PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate'),
   true,
-  'release build 必须在应用构建前执行 resourceSet 教材 v2 preflight',
+  'release build 必须在宿主输入预检前执行 resourceSet 教材 v2 preflight',
 );
 
 assert.equal(
@@ -837,10 +837,10 @@ assert.equal(
 );
 
 assert.equal(
-  packageJson.scripts['db:export-textbook-resources'] ===
-    'node ./scripts/release/export-textbook-runtime-v2.mjs',
+  packageJson.scripts['db:export-textbook-resources'].includes('tools/content-knowledge-runtime-release/cli.ts')
+    && packageJson.scripts['db:export-textbook-resources'].includes('scripts/release/export-textbook-runtime-v2.mjs'),
   true,
-  'package.json 的生产教材导出入口必须只调用 v2 runtime/index/assets 原子导出器',
+  'package.json 的生产教材导出入口必须经独立 apply-gated CLI 指向 v2 runtime/index/assets 原子导出器',
 );
 
 assert.equal(
@@ -852,15 +852,15 @@ assert.equal(
 assert.equal(
   packageJson.scripts['db:textbook-media-grounding'].startsWith('npm run db:validate-textbook-runtime-v2 &&') &&
     packageJson.scripts['db:rag-citation-anchor-coverage'] ===
-      'tsx ./scripts/db/generate-rag-citation-anchor-coverage.ts',
+      'tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-rag-citation-anchor-coverage.ts',
   true,
   'v2 media grounding 必须验证当前 runtime，历史旧 coverage 不得覆盖 v2 unit 产物',
 );
 
 assert.equal(
-  dockerfile.includes('FROM base AS builder') && dockerfile.includes('RUN apk add --no-cache python3'),
+  dockerfile.includes('FROM base AS builder') && dockerfile.includes('python3 python3-pip make g++'),
   true,
-  'Docker builder 阶段必须安装 python3 以执行教材 runtime 导出脚本',
+  'Docker builder 必须继承包含 python3 的基础镜像以执行教材 runtime 导出脚本',
 );
 
 assert.equal(
@@ -952,9 +952,9 @@ assert.equal(
     serviceScript.includes('until') &&
     serviceScript.includes('ExecStart=/usr/bin/podman start ${DB_CONTAINER}') &&
     serviceScript.includes("ExecStart=/bin/sh -lc 'until /usr/bin/podman exec") &&
-    serviceScript.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
-  true,
-  'systemd 配置脚本应先启动数据库并等待 pg_isready，再部署应用与 worker，避免 Prisma 首次启动抢跑',
+    serviceScript.includes('ExecStart=/bin/sh -lc \'APP_IMAGE=${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=${ACT_KNOWLEDGE_DEPLOYMENT_MODE} "${APP_DEPLOY_SCRIPT}" --app-only\''),
+    true,
+  'systemd 配置脚本应先启动数据库并等待 pg_isready，再以冻结镜像部署应用与 worker，避免 Prisma 首次启动抢跑或回退默认镜像',
 );
 
 assert.equal(

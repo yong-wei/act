@@ -52,6 +52,32 @@ function runImageWolframSmoke() {
   }
 }
 
+function runImageKnowledgeDeployContract() {
+  const image = process.env.MATH_CALC_TEST_IMAGE;
+  if (!image) return;
+  try {
+    execFileSync(
+      'docker',
+      [
+        'run',
+        '--rm',
+        '--entrypoint',
+        'sh',
+        image,
+        '-lc',
+        'test -s /app/course-content/contracts/knowledge-relation-coverage-audit.json && test -x /app/node_modules/.bin/tsx',
+      ],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+  } catch (error) {
+    throw new Error(`生产镜像知识同步契约不可执行：${error.message}`);
+  }
+}
+
 function assertMissingWolframImageFailsClosed() {
   const image = process.env.MATH_CALC_TEST_NEGATIVE_IMAGE;
   if (!image) return;
@@ -97,6 +123,11 @@ function main() {
     .map((entry) => read(path.join('prisma', 'migrations', entry.name, 'migration.sql')))
     .join('\n');
 
+  assert.ok(
+    dockerignore.includes('!tools/glb-model-optimizer/optimize-models.mjs'),
+    '.dockerignore 必须放行优化模型校验所需的优化器真源脚本',
+  );
+
   assert.match(
     dockerfile,
     /COPY --from=builder \/app\/prisma \.\/prisma/,
@@ -108,6 +139,7 @@ function main() {
     '/app/scripts/course-coverage ./scripts/course-coverage',
     '/app/course-content/authoring/knowledge/releases ./course-content/authoring/knowledge/releases',
     '/app/course-content/authoring/knowledge/course-coverage ./course-content/authoring/knowledge/course-coverage',
+    '/app/course-content/contracts/knowledge-relation-coverage-audit.json ./course-content/contracts/knowledge-relation-coverage-audit.json',
     '/app/course-content/runtime/resource-governance/runtime-resource-projections.jsonl ./course-content/runtime/resource-governance/runtime-resource-projections.jsonl',
     '/app/.app-revision ./.app-revision',
   ]) {
@@ -117,7 +149,7 @@ function main() {
     );
   }
   const runnerStage = dockerfile.slice(
-    dockerfile.indexOf('FROM node:20-bookworm-slim AS runner'),
+    dockerfile.indexOf('FROM runner-os AS runner'),
   );
   assert.match(
     runnerStage,
@@ -238,7 +270,7 @@ function main() {
   );
   assert.match(
     dockerfile,
-    /FROM node:20-bookworm-slim AS base/,
+    /FROM \$\{NODE_IMAGE\} AS base/,
     'Docker 依赖/构建阶段必须与 runner 使用同一 glibc 发行版，避免 musl 原生模块进入生产镜像',
   );
   assert.doesNotMatch(
@@ -673,6 +705,7 @@ function main() {
   );
 
   runImageWolframSmoke();
+  runImageKnowledgeDeployContract();
   assertMissingWolframImageFailsClosed();
 
   assert.match(
@@ -751,6 +784,16 @@ function main() {
   );
   assert.match(
     deployScript,
+    /if podman run --rm --entrypoint \/bin\/sh "\$APP_IMAGE" -c 'test -x \/app\/scripts\/math-calc\/check-wolfram-ready\.sh'; then/,
+    'deploy.sh 必须先确认镜像包含 Wolfram smoke 脚本',
+  );
+  assert.match(
+    deployScript,
+    /elif \[ "\$RUNTIME_CUTOVER_APP_ONLY" = "1" \]; then/,
+    '仅 runtime cutover 可以兼容既有缺少 Wolfram smoke 的镜像',
+  );
+  assert.match(
+    deployScript,
     /WOLFRAM_CLOUD_MCP_URL="\$WOLFRAM_CLOUD_MCP_URL"/,
     'deploy.sh 必须把 Cloud MCP URL 传入容器',
   );
@@ -761,32 +804,42 @@ function main() {
     '构建脚本不应再向 Docker 构建传入 Rust 下载源；Docker 阶段不负责重复编译 Wasm'
   );
 
-  assert.match(
+  assert.doesNotMatch(
     localImageBuildScript,
-    /rm -rf "\$\{ROOT_DIR\}\/\.next"/,
-    '构建脚本应在本地 Next 构建前清理 .next，避免增量产物导致部署构建卡住'
+    /\n(?:SKIP_WASM_BUILD=1 )?npm run build\n|\nnext build\n|rm -rf "\$\{ROOT_DIR\}\/\.next"/,
+    'release build 宿主预检不得执行完整 Next 构建或生成 .next',
   );
   assert.match(
     localImageBuildScript,
     /import-course-coverage-overlay\.ts --validate-only/,
     'release build 必须在干净 Git HEAD 上预校验 CourseCoverage Overlay',
   );
-  assert.match(
-    localImageBuildScript,
-    /SKIP_WASM_BUILD=1 npm run build/,
-    'release build 宿主 Next 校验必须复用已提交的控制分析 Wasm 包，不得重写 tracked Wasm 输出',
+  for (const requiredHostGate of [
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate',
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma generate',
+    'npm run models:validate',
+    'npm run typecheck',
+  ]) {
+    assert.ok(
+      localImageBuildScript.includes(requiredHostGate),
+      `release build 宿主预检必须执行 ${requiredHostGate}`,
+    );
+  }
+  const hostValidationIndex = localImageBuildScript.indexOf(
+    'PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate',
   );
-  const localNpmBuildIndex = localImageBuildScript.indexOf('\nSKIP_WASM_BUILD=1 npm run build\n');
-  const postLocalNpmBuildCleanCheckIndex = localImageBuildScript.indexOf(
+  const hostTypecheckIndex = localImageBuildScript.indexOf('\nnpm run typecheck\n');
+  const postHostValidationCleanCheckIndex = localImageBuildScript.indexOf(
     'assert_clean_release_worktree',
-    localNpmBuildIndex,
+    hostTypecheckIndex,
   );
   const dockerBuildIndex = localImageBuildScript.indexOf('docker buildx build');
   assert.ok(
-    localNpmBuildIndex >= 0
-      && postLocalNpmBuildCleanCheckIndex > localNpmBuildIndex
-      && dockerBuildIndex > postLocalNpmBuildCleanCheckIndex,
-    'release build 必须在宿主 npm build 后再次 fail-closed 检查可见工作树',
+    hostValidationIndex >= 0
+      && hostTypecheckIndex > hostValidationIndex
+      && postHostValidationCleanCheckIndex > hostTypecheckIndex
+      && dockerBuildIndex > postHostValidationCleanCheckIndex,
+    'release build 必须在宿主输入预检后再次 fail-closed 检查可见工作树',
   );
   assert.match(
     localImageBuildScript,
@@ -835,10 +888,10 @@ function main() {
   );
   assert.ok(
     dockerMemoryCheckIndex >= 0
-      && localNpmBuildIndex >= 0
-      && dockerMemoryCheckIndex < localNpmBuildIndex
+      && hostValidationIndex >= 0
+      && dockerMemoryCheckIndex < hostValidationIndex
       && dockerMemoryCheckIndex < localImageBuildScript.indexOf('docker buildx build'),
-    'Docker VM 内存门禁必须早于本地 npm build 与 Docker build',
+    'Docker VM 内存门禁必须早于宿主输入预检与 Docker build',
   );
 
   assert.match(
@@ -954,9 +1007,27 @@ function main() {
   );
   assert.match(
     remoteDeployScript,
-    /podman exec '\$\{APP_NAME_HINT\}' npm run db:verify-authoritative-knowledge-deployment/,
-    'remote-deploy 最终阶段必须核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
+    /podman exec '\$\{APP_NAME_HINT\}' \.\/node_modules\/\.bin\/tsx scripts\/db\/import-authoritative-actkg-release\.ts --verify-only/,
+    'remote-deploy 最终阶段必须以只读模式核验 Release roundtrip/receipt/count/hash 与 Overlay selector/receipt',
   );
+  assert.ok(
+    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
+    'remote-deploy 必须在受控发布路径中实际同步 runtime 知识图谱，不能调用仅拒绝执行的 package gate',
+  );
+  assert.ok(
+    remoteDeployScript.includes('podman exec \\"${APP_NAME_HINT}\\" test -s course-content/contracts/knowledge-relation-coverage-audit.json'),
+    'remote-deploy 必须在容器内确认关系审计契约可用后再同步知识图谱',
+  );
+  for (const verifier of [
+    'scripts/db/import-authoritative-actkg-release.ts --verify-only',
+    'scripts/db/import-course-coverage-overlay.ts --verify-only',
+    'scripts/db/import-canonical-resource-binding-shadow.ts --verify-only',
+  ]) {
+    assert.ok(
+      remoteDeployScript.includes(`./node_modules/.bin/tsx ${verifier}`),
+      `remote-deploy 必须执行只读部署核验: ${verifier}`,
+    );
+  }
 
   assert.match(
     localImageBuildScript,

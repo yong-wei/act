@@ -12,13 +12,15 @@ import type { CompetencyDimension } from '@/lib/data-governance/competency-model
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 
 const mocks = vi.hoisted(() => ({
-  readAdaptiveLearnerState: vi.fn(),
+  readLearnerState: vi.fn(),
+  readPathPlannerLearnerStateForSubject: vi.fn(),
   getLearningGoalAssessmentCoverageForPlanner: vi.fn(),
   getLearningGoalResourceBaselineForPlanner: vi.fn(),
   loadAllLessonRuntimeResourceCatalogEntries: vi.fn(),
   loadAllTextbookStructureRuntimeCatalogEntries: vi.fn(),
   loadAllTextbookStructureUnitProjections: vi.fn(),
   loadRuntimeResourceProjectionInputs: vi.fn(),
+  buildResourceNodeRegistryFromTeachingResources: vi.fn(),
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
   runMathCalculate: vi.fn(),
   MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
@@ -33,13 +35,14 @@ vi.mock('@/lib/math-calc', async () => {
   };
 });
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
-    '@/lib/data-governance/adaptive-learner-state-service',
+vi.mock('@/features/personalization/learner-state/public-api', async () => {
+  const actual = await vi.importActual<typeof import('@/features/personalization/learner-state/public-api')>(
+    '@/features/personalization/learner-state/public-api',
   );
   return {
     ...actual,
-    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+    readLearnerState: mocks.readLearnerState,
+    readPathPlannerLearnerStateForSubject: mocks.readPathPlannerLearnerStateForSubject,
   };
 });
 
@@ -84,8 +87,11 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
   const actual = await vi.importActual<typeof import('@/lib/teacher-resource-node-data')>(
     '@/lib/teacher-resource-node-data',
   );
+  mocks.buildResourceNodeRegistryFromTeachingResources
+    .mockImplementation(actual.buildResourceNodeRegistryFromTeachingResources);
   return {
     ...actual,
+    buildResourceNodeRegistryFromTeachingResources: mocks.buildResourceNodeRegistryFromTeachingResources,
     loadRuntimeResourceProjectionInputs: mocks.loadRuntimeResourceProjectionInputs,
   };
 });
@@ -96,9 +102,10 @@ import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
   ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION,
-} from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/learner-state/public-api';
 import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
-import { getRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { getRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import { updateTaskSchema } from '@/lib/smart-lesson-plan/task-input-schema';
 import { resolveArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
 import {
@@ -138,7 +145,11 @@ import {
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { clearPendingChanges, getPendingChanges, updateSimulationState } from '@/lib/ai-tools';
-import { buildResourceNodeRegistry, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeRegistry,
+  type ResourceNodeRegistry,
+  type RuntimeResourceProjectionInput,
+} from '@/lib/resource-node-registry';
 import { retrieveSourcePack } from '@/lib/source-pack';
 import { fingerprintAdaptivePathCandidateSnapshot } from '@/lib/adaptive-path-candidate-batches';
 
@@ -153,6 +164,15 @@ function expectStringArray(value: unknown, label: string): asserts value is stri
   if (Array.isArray(value)) {
     expect(value.every((item) => typeof item === 'string'), `${label} should contain only strings`).toBe(true);
   }
+}
+
+function withLegalSimulationDestinations(registry: ResourceNodeRegistry): ResourceNodeRegistry {
+  return {
+    ...registry,
+    nodes: registry.nodes.map((node) => node.type === 'simulation' && node.launchTarget?.startsWith('/interactive-learning/courses/')
+      ? { ...node, launchTarget: `/simulations/${node.sourceRef}` }
+      : node),
+  };
 }
 
 function createScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
@@ -751,7 +771,15 @@ describe('konling agent runtime', () => {
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
     clearPendingChanges();
-    mocks.readAdaptiveLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+    mocks.readLearnerState.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
+      controlModeling: 88,
+      parameterDesign: 72,
+      crossDomainTransfer: 64,
+      engineeringDecision: 50,
+      inquiryReflection: 40,
+      selfDirectedLearning: 66,
+    }));
+    mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue(createGraphLearnerState('student-1', 0.72, {
       controlModeling: 88,
       parameterDesign: 72,
       crossDomainTransfer: 64,
@@ -1195,7 +1223,7 @@ describe('konling agent runtime', () => {
     expect(noToolCitationGuard.status).toBe('low-confidence');
     expect(noToolCitationGuard.fallbackRequired).toBe(true);
     expect(noToolCitationGuard.citations).toEqual([]);
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
     expect(mocks.loadAllLessonRuntimeResourceCatalogEntries).not.toHaveBeenCalled();
     expect(mocks.loadAllTextbookStructureRuntimeCatalogEntries).not.toHaveBeenCalled();
     expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
@@ -3126,7 +3154,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps path-advisor generation available for cold-start students with signed path-center context', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(null);
+    mocks.readLearnerState.mockResolvedValueOnce(null);
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -3151,7 +3179,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'student',
       classId: 'class-1',
@@ -3228,7 +3256,7 @@ describe('konling agent runtime', () => {
         return index === 1 ? invalidate(highPortraitDimension) : highPortraitDimension;
       }),
     };
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+    mocks.readLearnerState.mockResolvedValueOnce(learnerState);
 
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -3244,7 +3272,9 @@ describe('konling agent runtime', () => {
       pageId: 'adaptive-path-center',
     });
 
-    expect(runtime.userProfile.cognitiveLevel).toBe(3);
+    expect(runtime.userProfile.cognitiveLevel).toBeUndefined();
+    expect(runtime.userProfile.profileAvailability).not.toBe('available');
+    expect(runtime.userProfile.learningStyle).toBeUndefined();
   });
 
   it('uses portrait scores when every portrait dimension is usable', async () => {
@@ -3261,7 +3291,7 @@ describe('konling agent runtime', () => {
         evidenceSummary: { totalCount: 1, sourceFamilyCounts: { StudentEvidenceFeatureCache: 1 } },
       })),
     };
-    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(learnerState);
+    mocks.readLearnerState.mockResolvedValueOnce(learnerState);
 
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
@@ -3314,7 +3344,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).not.toHaveBeenCalled();
+    expect(mocks.readLearnerState).not.toHaveBeenCalled();
     expect(runtime.featureFlags.learnerState).toBe(false);
     expect(runtime.missingContext).toEqual(expect.arrayContaining([
       'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED',
@@ -3412,7 +3442,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps textbook retrieval independent from learner-state feature-cache failures', async () => {
-    mocks.readAdaptiveLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
+    mocks.readLearnerState.mockRejectedValueOnce(new Error('feature cache read failed'));
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {
         findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
@@ -3486,7 +3516,7 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'student',
       classId: 'class-1',
@@ -3494,9 +3524,42 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('does not treat Arena task ids as Konling course aliases', async () => {
+    await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'task-second-order-lead-pid',
+      pageId: 'adaptive-path-center',
+      pageContextHint: {
+        courseId: 'task-second-order-lead-pid',
+        stepId: 'adaptive-path-center',
+        pageType: 'practice',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'student-1',
+      goal: null,
+    }));
+  });
+
   it('assembles class overlay for teacher graph-aware class contexts', async () => {
     const classLearnerIds = ['student-1', 'student-2', 'student-3', 'student-4', 'student-5'];
-    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+    mocks.readLearnerState.mockImplementation((args) => {
       if (classLearnerIds.includes(args.userId)) {
         return Promise.resolve(createGraphLearnerState(args.userId, 0.62 + classLearnerIds.indexOf(args.userId) * 0.05));
       }
@@ -3559,7 +3622,7 @@ describe('konling agent runtime', () => {
     });
     expect(contract.graphContext?.classOverlay?.status).toBe('available');
     expect(contract.degradedReasons).not.toContain('missing-graph-grounding:overlay');
-    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    expect(mocks.readLearnerState).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       role: 'teacher',
       classId: 'class-1',
@@ -3603,7 +3666,7 @@ describe('konling agent runtime', () => {
 
   it('caps teacher class overlay learner state reads for large classes', async () => {
     const classLearnerIds = Array.from({ length: 35 }, (_, index) => `student-${index + 1}`);
-    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+    mocks.readLearnerState.mockImplementation((args) => {
       if (classLearnerIds.includes(args.userId)) {
         return Promise.resolve(createGraphLearnerState(args.userId, 0.62));
       }
@@ -3638,8 +3701,8 @@ describe('konling agent runtime', () => {
       },
     });
 
-    const studentStateReadCalls = mocks.readAdaptiveLearnerState.mock.calls
-      .map(([, args]) => args.userId)
+    const studentStateReadCalls = mocks.readLearnerState.mock.calls
+      .map(([args]) => args.userId)
       .filter((userId) => classLearnerIds.includes(userId));
     expect(studentStateReadCalls).toHaveLength(30);
     expect(studentStateReadCalls).not.toContain('student-31');
@@ -4410,7 +4473,7 @@ describe('konling agent runtime', () => {
     });
 
     expect(runtime.learnerState).toMatchObject({ authority: 'server-owned' });
-    expect(runtime.userProfile.abilityVector.computational).toBeCloseTo(0.88);
+    expect(runtime.userProfile.abilityVector?.computational).toBeCloseTo(0.88);
     expect(runtime.planContext.nextNodeIds).toEqual(['node-1', 'node-2']);
 
     const prompt = buildKonlingSystemPrompt({
@@ -6618,7 +6681,7 @@ describe('konling agent runtime', () => {
   });
 
   it('keeps registered content and textbook tool availability when learner personalization is missing', async () => {
-    mocks.readAdaptiveLearnerState.mockResolvedValue(null);
+    mocks.readLearnerState.mockResolvedValue(null);
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -9292,6 +9355,22 @@ describe('konling agent runtime', () => {
       konlingMemory: {
         create: vi.fn(),
       },
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([{
+          factType: 'simulation',
+          moduleId: 'bode-sim',
+          finishedAt: new Date('2026-08-28T01:10:00.000Z'),
+          outcome: 'success',
+          contextJson: {
+            goalId: 'control-correction',
+            evidenceGovernance: {
+              evidenceQuality: 'governed',
+              profileWeight: 1,
+              skipProfileContribution: false,
+            },
+          },
+        }]),
+      },
     };
     const scope = createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' });
     const planContext: KonlingRuntimeContext['planContext'] = {
@@ -9379,6 +9458,17 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: result.pathId },
       create: expect.objectContaining({ id: result.pathId, pathStatus: 'candidate' }),
+    }));
+    expect(mocks.readPathPlannerLearnerStateForSubject).toHaveBeenCalledWith(
+      'student-1',
+      expect.objectContaining({
+        goal: 'control-correction',
+        classId: 'class-1',
+        now: expect.any(Date),
+      }),
+    );
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1' },
     }));
     expect(db.adaptivePathCandidateBatch.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ sourcePathId: result.pathId }),
@@ -9486,7 +9576,7 @@ describe('konling agent runtime', () => {
       idempotencyKey: 'path-gen-low-budget',
       goalId: 'control-correction',
       graphNodeId: 'kn:autocontrol:controller-correction',
-      timeBudgetMinutes: 30,
+      timeBudgetMinutes: 5,
     }) as {
       generationStatus: string;
       request: {
@@ -9496,14 +9586,8 @@ describe('konling agent runtime', () => {
       };
     };
 
-    expect(lowBudgetResult).toMatchObject({
-      generationStatus: 'blocked',
-      request: {
-        effectiveTimeBudgetMinutes: 30,
-        minimumTimeBudgetMinutes: 32,
-        timeBudgetInsufficient: true,
-      },
-    });
+    expect(lowBudgetResult.generationStatus).toBe('blocked');
+    expect(lowBudgetResult.request.effectiveTimeBudgetMinutes).toBe(5);
     expect(JSON.stringify(result)).not.toMatch(/stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -11670,6 +11754,11 @@ describe('konling agent runtime', () => {
   });
 
   it('persists adaptive path revision as a derived batch without switch evidence', async () => {
+    const legalRegistry = withLegalSimulationDestinations(buildControlCorrectionResourceNodeRegistry());
+    mocks.buildResourceNodeRegistryFromTeachingResources
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry)
+      .mockReturnValueOnce(legalRegistry);
     const revisedRun = {
       id: 'tool-run-revise-1',
       ownerUserId: 'student-1',

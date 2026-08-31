@@ -38,7 +38,9 @@ export const diagnosisGenerationRetrySchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(200),
 }).strict();
 
-export const DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS = 2 * 60 * 1_000;
+export const DIAGNOSIS_PROVIDER_GENERATION_WINDOW_MS = 2 * 60 * 1_000;
+export const DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS = 150_000;
+export const DIAGNOSIS_GENERATION_LOCK_DURATION_MS = DIAGNOSIS_GENERATION_ATTEMPT_TIMEOUT_MS + 30_000;
 
 export class DiagnosisGenerationError extends Error {
   constructor(

@@ -1,0 +1,19 @@
+{
+  "contract": "coordination-allocation-record/v1",
+  "coordinationRunId": "coord-c8d28837-040e-4bd3-b796-418cb980af2f",
+  "sealedAt": "2026-08-26T03:35:20.146Z",
+  "captureHash": "928471c69e77c1168e29fd915764a983c433dbae95509e68c1ecf543c06bfcd8",
+  "compatibilityClassification": "COMPATIBLE",
+  "scopeHash": "dda4e749e7191250e4b56c74e37143aff980f59d931d8eed410b5600c28db292",
+  "denominatorHash": "02345fd1414aa15252812add533ae7e858191adf5b1d5eb1cb267fedc8741d8c",
+  "policyVersions": {
+    "continuity": "resource-continuity/v1",
+    "teachingClosure": "coordinated-teaching-closure/v1",
+    "rollback": "coordinated-cutover-rollback/v1"
+  },
+  "implementationIdentities": {
+    "builder": "latest-authority-oss-cutover-builder/v1",
+    "transaction": "746e050c9c31b34633b1af5917e337bb3ec7dabd4f5a4e7f39c5f02ffdf4a0ae"
+  },
+  "allocationHash": "8806c51009a5fcc747d96aa89c5ff799e06eb4b6a0fdfe11c06ed7e2ef230ba9"
+}

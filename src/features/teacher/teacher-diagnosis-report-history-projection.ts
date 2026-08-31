@@ -1,4 +1,4 @@
-import type { DiagnosisReportApiItem } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -68,14 +68,29 @@ const INTERNAL_SOURCE_LABELS: Record<string, string> = {
 
 const SEVERITY_RANK = { low: 1, medium: 2, high: 3 } as const;
 
+export function findingRequiresKnowledgeNodeAttribution(
+  finding: Pick<DiagnosisReportApiItem['reportBody']['findings'][number], 'evidenceRefs'>,
+) {
+  return finding.evidenceRefs.some((reference) => reference.startsWith('knowledge-progress:'));
+}
+
 export function projectReportHistoryCard(
   report: DiagnosisReportApiItem,
   adjacentOlderReport?: DiagnosisReportApiItem,
 ): ReportHistoryCardProjection {
   const evidenceGroups = buildEvidenceGroups(report);
-  const attributionLimited = report.reportBody.findings.some((finding) => !finding.knowledgeNodeId);
+  const attributionLimited = report.reportBody.findings.some(
+    (finding) => findingRequiresKnowledgeNodeAttribution(finding) && !finding.knowledgeNodeId,
+  );
   const declaredLimitations = report.reportBody.limitations.map(formatLimitation);
   const confidenceReasons = buildConfidenceReasons(report, evidenceGroups, attributionLimited);
+  // 归因受限是唯一置信原因 = 所有证据组均完整可用且无声明限制，仅知识点发现缺节点归因
+  // （Issue #1712）。行为组 partial（coverage<1）不产生置信原因，必须用证据组状态单独排除；
+  // LIMITATION_LABELS 之外的自定义限制文本不进入 confidenceReasons，同样单独排除。
+  const attributionOnly = attributionLimited
+    && confidenceReasons.length === 1
+    && report.reportBody.limitations.length === 0
+    && evidenceGroups.every((group) => group.state === 'available');
 
   return {
     scopeLabel: report.scopeType === 'student' ? '学生范围' : '班级范围',
@@ -83,7 +98,7 @@ export function projectReportHistoryCard(
     evidenceCutoffLabel: formatShortDate(report.evidenceCutoff),
     generationReason: formatGenerationReason(report),
     mainWeaknessLabel: mainWeaknessLabel(report),
-    availability: buildAvailability(report, confidenceReasons),
+    availability: buildAvailability(report, confidenceReasons, attributionOnly),
     evidenceGroups,
     confidenceReasons,
     comparison: compareAdjacentReports(report, adjacentOlderReport),
@@ -236,6 +251,7 @@ function buildConfidenceReasons(
 function buildAvailability(
   report: DiagnosisReportApiItem,
   confidenceReasons: ConfidenceReason[],
+  attributionOnly: boolean,
 ): ReportAvailability {
   if (report.reportBody.confidence === 'unavailable') {
     return {
@@ -256,6 +272,14 @@ function buildAvailability(
       label: '证据部分可用',
       description: '已有可用证据，但覆盖或归因仍不完整。',
       recoveryAction: confidenceReasons[0]?.recoveryAction ?? '补充证据后重新生成诊断。',
+    };
+  }
+  // 数据覆盖完整、仅知识节点无法归因：如实表述为归因问题，不再称"覆盖受限"（Issue #1712）。
+  if (attributionOnly) {
+    return {
+      label: '知识节点归因受限',
+      description: '学习数据覆盖完整，但部分知识点发现尚无可核验的知识节点映射。',
+      recoveryAction: '补全题目、错因与知识节点映射后，重新生成诊断。',
     };
   }
   return confidenceReasons.length > 0

@@ -217,6 +217,29 @@ async function mockActiveShards(page: Page) {
   });
 }
 
+async function activateSharedRuntimeControl(page: Page, selector: string) {
+  const locator = page.locator(selector);
+  await expect(locator).toHaveCount(1);
+  await locator.evaluate((element) => {
+    if (!(element instanceof HTMLElement)) {
+      throw new Error('Expected an HTMLElement');
+    }
+    element.click();
+  });
+}
+
+async function assertSharedRuntimeCanvasGestures(page: Page) {
+  const canvas = page.locator('[data-knowledge-runtime-canvas]').first();
+  const box = await canvas.boundingBox();
+  expect(box?.width ?? 0).toBeGreaterThan(480);
+  expect(box?.height ?? 0).toBeGreaterThan(280);
+  await page.mouse.move((box!.x + box!.width / 2), (box!.y + box!.height / 2));
+  await page.mouse.wheel(0, -240);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width / 2 + 72, box!.y + box!.height / 2 + 36);
+  await page.mouse.up();
+}
+
 test.describe('issue 1493 active graph presentation', () => {
   test.beforeAll(() => {
     mkdirSync(evidenceDir, { recursive: true });
@@ -237,6 +260,13 @@ test.describe('issue 1493 active graph presentation', () => {
     await expect(page.locator('[data-authority-root-canvas="true"]')).toBeVisible();
     await expect(page.locator('[data-authority-root-label="name"]')).toHaveCount(2);
     await expect(page.locator('line, [data-authority-root-edge]')).toHaveCount(0);
+    await expect(page.locator('[data-knowledge-workspace-toolbar="true"]')).toBeVisible();
+    await expect(page.locator('[data-knowledge-layout-control="fit-view"]')).toBeVisible();
+    await expect(page.locator('button[data-active-authority-dimension="2d"]')).toBeVisible();
+
+    const workspaceBox = await page.locator('[data-knowledge-session="active"]').boundingBox();
+    const canvasBox = await page.locator('[data-knowledge-runtime-canvas]').first().boundingBox();
+    expect(canvasBox?.height ?? 0).toBeGreaterThan((workspaceBox?.height ?? 0) * 0.55);
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.screenshot({ path: join(evidenceDir, 'root-desktop-light.png'), fullPage: false });
@@ -247,7 +277,8 @@ test.describe('issue 1493 active graph presentation', () => {
     await page.screenshot({ path: join(evidenceDir, 'root-mobile-light.png'), fullPage: false });
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.locator('[data-authority-domain-entry="modeling"]').click();
+    await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
+    await expect(page.locator('[data-active-authority-main="true"]')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('[data-active-graph-stage="authority"]')).toBeVisible();
     await expect(page.locator('[data-active-authority-relation]')).toHaveCount(1);
     await expect(page.locator('[data-active-authority-node-type-label]')).toHaveCount(0);
@@ -261,7 +292,7 @@ test.describe('issue 1493 active graph presentation', () => {
     await expect(page.locator('[data-active-authority-relation]')).toHaveCount(2);
     await page.screenshot({ path: join(evidenceDir, 'domain-engineering-filter-desktop-light.png'), fullPage: false });
 
-    await page.locator('[data-active-authority-node="node-concept"]').click();
+    await activateSharedRuntimeControl(page, '[data-active-authority-node="node-concept"]');
     await expect(page.locator('[data-active-inspector-surface="desktop-overlay"]')).toBeVisible();
     await expect(page.locator('[data-active-inspector-math="true"]')).toBeVisible();
     await expect(page.locator('[data-active-inspector-resources="true"]')).toBeVisible();
@@ -270,7 +301,7 @@ test.describe('issue 1493 active graph presentation', () => {
 
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.setViewportSize({ width: 320, height: 800 });
-    await page.locator('[data-active-authority-node="node-concept"]').click();
+    await activateSharedRuntimeControl(page, '[data-active-authority-node="node-concept"]');
     await expect(page.locator('[data-active-inspector-surface="mobile-drawer"]')).toBeVisible();
     await page.screenshot({ path: join(evidenceDir, 'inspector-mobile-dark.png'), fullPage: false });
 
@@ -291,5 +322,53 @@ test.describe('issue 1493 active graph presentation', () => {
     }, null, 2)}\n`);
 
     expect(errors.filter((item) => !item.includes('favicon'))).toEqual([]);
+  });
+
+  test('keeps shared runtime controls, fills the workspace, and restores isolated sessions', async ({ page, context }) => {
+    await addStudentSession(context);
+    await mockActiveShards(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/knowledge', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-authority-root-canvas="true"]')).toBeVisible({ timeout: 20_000 });
+
+    await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
+    await expect(page.locator('[data-active-authority-main="true"]')).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).toBeVisible();
+    await expect(page.locator('[data-knowledge-layout-control="relayout"]')).toBeVisible();
+    await assertSharedRuntimeCanvasGestures(page);
+
+    const toolbar = page.locator('[data-knowledge-workspace-toolbar="true"]');
+    const title = page.locator('[data-active-authority-title="true"]');
+    const language = page.locator('[data-graph-language-switch="true"]');
+    const toolbarBox = await toolbar.boundingBox();
+    const titleBox = await title.boundingBox();
+    const languageBox = await language.boundingBox();
+    if (toolbarBox && titleBox) {
+      const overlapX = Math.min(toolbarBox.x + toolbarBox.width, titleBox.x + titleBox.width)
+        - Math.max(toolbarBox.x, titleBox.x);
+      const overlapY = Math.min(toolbarBox.y + toolbarBox.height, titleBox.y + titleBox.height)
+        - Math.max(toolbarBox.y, titleBox.y);
+      expect(overlapX <= 0 || overlapY <= 0).toBeTruthy();
+    }
+    expect(languageBox).toBeTruthy();
+    if (toolbarBox && languageBox) {
+      const overlapX = Math.min(toolbarBox.x + toolbarBox.width, languageBox.x + languageBox.width)
+        - Math.max(toolbarBox.x, languageBox.x);
+      const overlapY = Math.min(toolbarBox.y + toolbarBox.height, languageBox.y + languageBox.height)
+        - Math.max(toolbarBox.y, languageBox.y);
+      expect(overlapX <= 0 || overlapY <= 0).toBeTruthy();
+    }
+
+    await page.locator('button[data-active-authority-dimension="3d"]').click();
+    await expect(page.locator('[data-active-authority-runtime="force-graph"]')).toHaveAttribute('data-active-authority-dimension', '3d');
+    await page.locator('button[data-active-authority-dimension="2d"]').click();
+    await expect(page.locator('[data-active-authority-runtime="force-graph"]')).toHaveAttribute('data-active-authority-dimension', '2d');
+    await expect(page.locator('[data-active-authority-relation="teaching-primary"]')).toHaveCount(1);
+
+    await page.getByRole('button', { name: '旧版' }).click();
+    await expect(page.locator('[data-knowledge-session="legacy"]')).toBeVisible();
+    await page.getByRole('button', { name: '新版' }).click();
+    await expect(page.locator('[data-knowledge-session="active"]')).toBeVisible();
+    await expect(page.locator('[data-active-authority-relation="teaching-primary"]')).toHaveCount(1);
   });
 });

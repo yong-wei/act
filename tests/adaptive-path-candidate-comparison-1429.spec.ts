@@ -1,5 +1,5 @@
-import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { mkdir } from 'node:fs/promises';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
@@ -76,7 +76,15 @@ const activePath = {
     currentNodeId: options[0]!.nodeIds[0],
     pathPayload: {
       status: 'ready',
-      planNodes: [],
+      planNodes: [{
+        nodeId: options[0]!.nodeIds[0],
+        title: '当前路径节点',
+        type: 'checkpoint',
+        status: 'current',
+        target: '/assessment/adaptive-practice',
+        estimatedTimeMinutes: 30,
+        terminalConstraints: [],
+      }],
       mainPathNodeIds: options[0]!.nodeIds,
       pathOptions: options,
       feedbackEvents: [],
@@ -189,6 +197,7 @@ async function installRoutes(page: Page, releaseFirstExplain: Promise<void>) {
   }));
   await page.route('**/api/adaptive/learner-state**', (route) => route.fulfill({ json: learnerState }));
   await page.route('**/api/learning-paths/latest?**', (route) => route.fulfill({ json: activePath }));
+  await page.route(`**/api/learning-paths/${activePathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route(`**/api/learning-paths/${pathId}`, (route) => route.fulfill({ json: activePath }));
   await page.route('**/api/learning-paths/candidate-batches/latest?**', (route) => route.fulfill({ json: { batch: candidateBatch } }));
   await page.route(`**/api/learning-paths/candidate-batches/${batchId}**`, (route) => route.fulfill({ json: { batch: candidateBatch } }));
@@ -259,6 +268,39 @@ async function captureCandidateComparisonEvidence(page: Page, viewportName: 'des
   });
 }
 
+async function captureModulePlacementEvidence(page: Page, viewportName: 'desktop' | 'mobile-320') {
+  if (process.env.ISSUE_1530_WRITE_EVIDENCE !== '1') return;
+  const outputDir = path.join(process.cwd(), 'artifacts/commercial-ui/issue-1530-candidate-module-placement');
+  await mkdir(outputDir, { recursive: true });
+  const fileName = viewportName === 'desktop'
+    ? 'candidate-module-placement-1440.png'
+    : 'candidate-module-placement-320.png';
+  await page.screenshot({
+    path: path.join(outputDir, fileName),
+    fullPage: true,
+    animations: 'disabled',
+  });
+}
+
+async function assertCandidateModulePlacement(page: Page) {
+  const generation = page.locator('[data-adaptive-path-generation-panel="editable"]');
+  const comparison = page.locator('[data-adaptive-path-module-order="candidate-comparison-before-active-route"]');
+  const activeRoute = page.locator('[data-adaptive-path-module-order="active-route-after-candidate-comparison"]');
+  await expect(generation).toBeVisible();
+  await expect(comparison).toBeVisible();
+  await expect(activeRoute).toBeVisible();
+  const tops = await page.evaluate(() => [
+    '[data-adaptive-path-generation-panel="editable"]',
+    '[data-adaptive-path-module-order="candidate-comparison-before-active-route"]',
+    '[data-adaptive-path-module-order="active-route-after-candidate-comparison"]',
+  ].map((selector) => document.querySelector<HTMLElement>(selector)?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY));
+  expect(tops[0]).toBeLessThan(tops[1]);
+  expect(tops[1]).toBeLessThan(tops[2]);
+  await expect(comparison.getByRole('button', { name: /选择/ }).first()).toBeVisible();
+  await expect(comparison.getByRole('button', { name: /调整/ }).first()).toBeVisible();
+  await expect(comparison.getByRole('button', { name: /比较/ }).first()).toBeVisible();
+}
+
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 1000 },
   { name: 'mobile-320', width: 320, height: 900 },
@@ -269,12 +311,13 @@ for (const viewport of [
     let releaseFirst!: () => void;
     const firstExplainGate = new Promise<void>((resolve) => { releaseFirst = resolve; });
     await installRoutes(page, firstExplainGate);
-    await page.goto(`/assessment/adaptive-practice?goal=${goalId}&intent=path-selection&batch=${batchId}`, {
+    await page.goto(`/assessment/adaptive-practice?goal=${goalId}&intent=contextual-recommendation&batch=${batchId}`, {
       waitUntil: 'domcontentloaded',
     });
 
     const workspace = page.locator('[data-learning-path-candidate-comparison]');
     await expect(workspace).toBeVisible();
+    await assertCandidateModulePlacement(page);
     await expect(workspace.getByRole('heading', { name: '方案 A', exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '方案 B', exact: true })).toBeVisible();
     await expect(workspace.getByRole('heading', { name: '方案 C', exact: true })).toBeVisible();
@@ -321,5 +364,6 @@ for (const viewport of [
     }));
     expect(geometry.scrollWidth).toBe(geometry.clientWidth);
     await captureCandidateComparisonEvidence(page, viewport.name);
+    await captureModulePlacementEvidence(page, viewport.name);
   });
 }

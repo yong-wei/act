@@ -1,4 +1,5 @@
 import { evaluateWhiteBoxSubmission } from '../evaluation/whitebox-evaluator';
+import type { ControlAnalysisService } from '../evaluation/control-analysis-service';
 import type { ArenaEvaluationResult } from '../evaluation/types';
 import type { ChallengeTask, ControllerArtifact } from '../types';
 import type { ArenaSubmissionRecord } from './submission-service';
@@ -6,6 +7,8 @@ import {
   buildControllerArtifactFromParams,
   type EvaluableControllerMethod,
 } from './controller-artifact-builder';
+import { assertSupportedArenaPreviewMethod } from '@/lib/control-engine';
+import { computeAnalysisBrowser } from '@/lib/control-engine/client';
 
 export interface ArenaWorkbenchMetricDelta {
   metricId: string;
@@ -23,6 +26,21 @@ export interface ArenaWorkbenchPreview {
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;
   comparison?: ArenaWorkbenchPreviewComparison;
+  persisted: false;
+  evaluationVisibility: 'preview';
+  officialEligible: false;
+}
+
+function createBrowserPreviewAnalysisService(): ControlAnalysisService {
+  return {
+    async compute(request) {
+      const envelope = await computeAnalysisBrowser(request);
+      return {
+        ...envelope.result,
+        runtimeIdentity: envelope.runtimeIdentity,
+      };
+    },
+  };
 }
 
 function finiteMetric(value: unknown): number | null {
@@ -57,23 +75,43 @@ export async function buildArenaWorkbenchPreview({
   values,
   previousSubmission,
   now,
+  analysisService,
 }: {
   task: ChallengeTask;
   method: EvaluableControllerMethod;
   values: Record<string, string>;
   previousSubmission?: ArenaSubmissionRecord;
   now?: string;
+  analysisService?: ControlAnalysisService;
 }): Promise<ArenaWorkbenchPreview> {
+  assertSupportedArenaPreviewMethod(method);
   const artifact = buildControllerArtifactFromParams({ task, method, values, now });
   const evaluation = await evaluateWhiteBoxSubmission({
     taskId: task.id,
     artifact,
-    metricProviderMode: 'template-preview',
+    metricProviderMode: 'control-engine-preview',
+    controlAnalysisService: analysisService ?? createBrowserPreviewAnalysisService(),
   });
 
   return {
     artifact,
-    evaluation,
+    evaluation: {
+      ...evaluation,
+      explanation: [
+        ...evaluation.explanation,
+        '工作台预览不是官方评测，不写入提交、榜单或正式能力达成。',
+      ],
+      metadata: {
+        ...evaluation.metadata,
+        evaluationVisibility: 'preview',
+        officialEligible: false,
+        persisted: false,
+        authoritySource: analysisService ? 'control-engine-server-facade' : 'control-engine-browser-facade',
+      },
+    },
     comparison: buildComparison(task, evaluation, previousSubmission),
+    persisted: false,
+    evaluationVisibility: 'preview',
+    officialEligible: false,
   };
 }

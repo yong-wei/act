@@ -5,9 +5,18 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
+pub mod analysis;
+pub mod arena_preview;
+pub mod practice_cruise_live;
+pub mod practice_live;
+pub mod practice_live_platform;
+pub mod constraints;
+pub mod controllers;
 pub mod control_odyssey_runtime;
 pub mod destroyer_hifi;
 pub mod destroyer_hifi_runtime;
+pub mod metrics;
+pub mod simulation;
 pub mod virtual_simulation_runtime;
 
 #[derive(Debug, Deserialize)]
@@ -5416,11 +5425,8 @@ fn compute_rl_training_inner(request: &RlTrainingRequest) -> RlTrainingResult {
 pub fn compute_analysis(request_json: &str) -> Result<String, JsValue> {
     let request: ControlAnalysisRequest = serde_json::from_str(request_json)
         .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    if request.runtime_mode != "analysis" {
-        return Err(JsValue::from_str("只支持 analysis 模式请求。"));
-    }
-    if request.outputs.is_empty() {
-        return Err(JsValue::from_str("outputs 不能为空。"));
+    if let Some(message) = analysis::analysis_request_errors(&request.runtime_mode, request.outputs.is_empty()) {
+        return Err(JsValue::from_str(message));
     }
     let result = compute_analysis_inner(&request);
     serde_json::to_string(&result).map_err(|error| JsValue::from_str(&error.to_string()))
@@ -7025,5 +7031,45 @@ mod tests {
         assert_eq!(&continued.reward_curve[..], &one_shot.reward_curve[4..]);
         assert_eq!(final_result.reward_chunk.len(), 0);
         assert_eq!(final_result.reward_curve.len(), 8);
+    }
+
+    fn relative_close(left: f64, right: f64, abs_tol: f64, rel_tol: f64) -> bool {
+        let diff = (left - right).abs();
+        diff <= abs_tol || diff <= rel_tol * left.abs().max(right.abs())
+    }
+
+    #[test]
+    fn analysis_metrics_stay_finite_within_declared_tolerance() {
+        let baseline = compute_analysis_inner(&unit_1_5_gain_request(3.0));
+        let nearby = compute_analysis_inner(&unit_1_5_gain_request(3.0001));
+        assert!(baseline.metrics.final_value.is_finite());
+        assert!(nearby.metrics.final_value.is_finite());
+        assert!(relative_close(
+            baseline.metrics.final_value,
+            nearby.metrics.final_value,
+            1e-6,
+            1e-3,
+        ));
+        if let (Some(left), Some(right)) = (
+            baseline.metrics.overshoot_pct,
+            nearby.metrics.overshoot_pct,
+        ) {
+            assert!(left.is_finite());
+            assert!(right.is_finite());
+            assert!(relative_close(left, right, 1e-4, 5e-3));
+        }
+    }
+
+    #[test]
+    fn analysis_request_errors_remain_fail_closed() {
+        assert_eq!(
+            analysis::analysis_request_errors("simulation", false),
+            Some("只支持 analysis 模式请求。")
+        );
+        assert_eq!(
+            analysis::analysis_request_errors("analysis", true),
+            Some("outputs 不能为空。")
+        );
+        assert_eq!(analysis::analysis_request_errors("analysis", false), None);
     }
 }

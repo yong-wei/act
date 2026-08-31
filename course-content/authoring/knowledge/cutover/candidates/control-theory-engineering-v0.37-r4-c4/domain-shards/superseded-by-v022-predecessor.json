@@ -1,0 +1,19 @@
+{
+  "contract": "r4-c4-superseded-domain-shard-stage/v1",
+  "supersededAt": "2026-08-26T08:06:00.000Z",
+  "reason": "missing-captured-production-v022-activation-predecessor",
+  "previous": {
+    "directory": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/domain-shards",
+    "stageSha256": "3edd8320792b0017c438189a53a295f7998a7e469b0e24cb335f1072cc8f8ea0",
+    "shardSetId": "ads-08c1febb42ef6857f072b192fa9fcaeb0c0e8f056b5c965b85dd6613327de7a7",
+    "shardSetHash": "08c1febb42ef6857f072b192fa9fcaeb0c0e8f056b5c965b85dd6613327de7a7",
+    "activationHash": "f6b851cccf9c11f004941aa8d58d9e14f091fede4124692eb2740c64db098477"
+  },
+  "replacement": {
+    "directory": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c4/domain-shards-v022-predecessor",
+    "shardSetId": "ads-5b45f297a35958916fe02a414c417d628ea7adf5b6cc0fa25a9a23760b2c331e",
+    "shardSetHash": "5b45f297a35958916fe02a414c417d628ea7adf5b6cc0fa25a9a23760b2c331e",
+    "activationHash": "6c51c7e7bc48bd5e461df82b9aa1233d1d0609fd54b0e0999512083e3ce9f76b",
+    "stageHash": "527df970b58260eb63fa27f005d947c86f65ff124e84a4a57bad0751c26f9e1b"
+  }
+}

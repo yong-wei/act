@@ -626,10 +626,12 @@ function ChoiceGroup({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: readonly ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid gap-2">
@@ -637,7 +639,11 @@ function ChoiceGroup({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm ${value === option.value ? 'ring-2 ring-cyan-400' : ''}`}
         >
           {option.label}
@@ -651,14 +657,17 @@ function TextInput({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  disabled?: boolean;
 }) {
   return (
     <textarea aria-label={placeholder}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input min-h-[120px] w-full resize-y"
@@ -670,13 +679,15 @@ function SelectField({
   value,
   onChange,
   options,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: readonly ChoiceOption[];
+  disabled?: boolean;
 }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
+    <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="premium-lesson-select w-full">
       <option value="">请选择</option>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -687,11 +698,11 @@ function SelectField({
   );
 }
 
-function renderActivityInput(field: ActivityCardField, value: string, onChange: (value: string) => void) {
+function renderActivityInput(field: ActivityCardField, value: string, onChange: (value: string) => void, disabled = false) {
   if (field.inputKind === 'single_choice' && field.options) {
-    return <ChoiceGroup options={field.options} value={value} onChange={onChange} />;
+    return <ChoiceGroup options={field.options} value={value} onChange={onChange} disabled={disabled} />;
   }
-  return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} />;
+  return <TextInput value={value} onChange={onChange} placeholder={field.placeholder ?? field.prompt} disabled={disabled} />;
 }
 
 function ProgressiveRevealPanel({
@@ -1234,6 +1245,7 @@ export function UNIT_3_4StudentActivityForm({
   answerVisible,
   browseEnabled = true,
   onSubmit,
+  readOnly = false,
   onWorkspaceParameterChange,
 }: {
   step: UNIT_3_4StepDefinition;
@@ -1242,8 +1254,13 @@ export function UNIT_3_4StudentActivityForm({
   answerVisible: boolean;
   browseEnabled?: boolean;
   onSubmit: (response: UNIT_3_4StepResponse) => void;
+  readOnly?: boolean;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(step, savedResponse));
   const pageContract = getUNIT_3_4PageContract(step.id);
 
@@ -1277,7 +1294,7 @@ export function UNIT_3_4StudentActivityForm({
   };
 
   const submitDraft = (answers: Record<string, string>) => {
-    onSubmit({
+    commitStudentResponse({
       stepId: step.id,
       submittedAt: Date.now(),
       answers,
@@ -1322,9 +1339,9 @@ export function UNIT_3_4StudentActivityForm({
                 <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
                 <div className="mt-3">
                   {'options' in question ? (
-                    <ChoiceGroup options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value, 'button')} />
+                    <ChoiceGroup disabled={Boolean(readOnly)} options={question.options} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value, 'button')} />
                   ) : (
-                    <TextInput value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} placeholder="写出你的解释。" />
+                    <TextInput disabled={Boolean(readOnly)} value={draft[question.key] ?? ''} onChange={(value) => updateDraft(question.key, value)} placeholder="写出你的解释。" />
                   )}
                 </div>
               </div>
@@ -1343,7 +1360,7 @@ export function UNIT_3_4StudentActivityForm({
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        disabled={index === 0}
+                        disabled={Boolean(readOnly) || index === 0}
                         className="premium-lesson-control disabled:opacity-40"
                         onClick={() => {
                           const next = [...order];
@@ -1355,7 +1372,7 @@ export function UNIT_3_4StudentActivityForm({
                       </button>
                       <button
                         type="button"
-                        disabled={index === order.length - 1}
+                        disabled={Boolean(readOnly) || index === order.length - 1}
                         className="premium-lesson-control disabled:opacity-40"
                         onClick={() => {
                           const next = [...order];
@@ -1386,9 +1403,9 @@ export function UNIT_3_4StudentActivityForm({
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                   <div className="premium-lesson-muted mt-2 text-sm">{field.prompt}</div>
-                  <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
+                  <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value), Boolean(readOnly))}</div>
                   <button
-                    type="button"
+                    type="button" disabled={Boolean(readOnly)}
                     onClick={() => submitDraft(draft)}
                     className="premium-lesson-action-primary mt-4"
                   >
@@ -1403,7 +1420,7 @@ export function UNIT_3_4StudentActivityForm({
                 <div key={field.key} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
                   <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                   <div className="premium-lesson-muted mt-2 text-sm">{field.prompt}</div>
-                  <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
+                  <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value), Boolean(readOnly))}</div>
                 </div>
               ))}
             </div>
@@ -1416,7 +1433,7 @@ export function UNIT_3_4StudentActivityForm({
               <div key={field.key} className="premium-lesson-surface-elevated rounded-2xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
                 <div className="premium-lesson-muted mt-2 text-sm">{field.prompt}</div>
-                <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value))}</div>
+                <div className="mt-3">{renderActivityInput(field, draft[field.key] ?? '', (value) => updateDraft(field.key, value), Boolean(readOnly))}</div>
               </div>
             ))}
           </div>
@@ -1428,21 +1445,22 @@ export function UNIT_3_4StudentActivityForm({
               <div className="premium-lesson-title text-sm font-medium">{field.label}</div>
               <div className="premium-lesson-muted mt-2 text-sm">{field.prompt}</div>
               <div className="mt-3">
-                <SelectField value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value, 'select')} options={field.options} />
+                <SelectField disabled={Boolean(readOnly)} value={draft[field.key] ?? ''} onChange={(value) => updateDraft(field.key, value, 'select')} options={field.options} />
               </div>
             </div>
           ))
         ) : null}
 
         {step.id !== 'step-06' ? (
-          <button type="button" onClick={() => submitDraft(draft)} className="premium-lesson-action-primary">
+          <button type="button" disabled={Boolean(readOnly)} onClick={() => submitDraft(draft)} className="premium-lesson-action-primary">
             提交本页作答
           </button>
         ) : null}
       </div>
 
       <div className="mt-4">
-        <SubmissionStatus submitted={submitted} />
+        <SubmissionStatus submitted={submitted}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined} />
       </div>
 
       {answerVisible && getRevealContent(step.id) ? (

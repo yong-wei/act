@@ -1,36 +1,14 @@
 'use client';
 
-import { useCallback, useState } from 'react';
 import { BookOpen, ClipboardList } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface LessonSummaryCardProps extends BaseWidgetProps {}
 
 export default function LessonSummaryCard({ onComplete, onStateChange }: LessonSummaryCardProps) {
   const interactive = useOptionalInteractiveContext();
-  const [done, setDone] = useState(false);
-
-  const handleComplete = useCallback(() => {
-    if (done) return;
-    setDone(true);
-    const snapshot = {
-      progress: 100,
-      data: { action: 'summary-complete' },
-      timestamp: Date.now(),
-    };
-    onStateChange?.(snapshot);
-    interactive?.progress.setProgress(100);
-    interactive?.tracking.emit('complete', snapshot.data);
-
-    const result: WidgetResult = {
-      success: true,
-      score: 100,
-      data: snapshot.data,
-    };
-    interactive?.progress.markComplete(result);
-    onComplete?.(result);
-  }, [done, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -73,12 +51,21 @@ export default function LessonSummaryCard({ onComplete, onStateChange }: LessonS
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button type="button"
-            onClick={handleComplete}
-            className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-xs text-white"
-          >
-            完成复盘
-          </button>
+          <PathResourceContinueAction
+            enabled
+            result={{ success: true, score: 100, data: { action: 'summary-complete' } }}
+            onBeforeComplete={() => {
+              const snapshot = {
+                progress: 100,
+                data: { action: 'summary-complete' },
+                timestamp: Date.now(),
+              };
+              onStateChange?.(snapshot);
+              interactive?.progress.setProgress(100);
+              interactive?.tracking.emit('complete', snapshot.data);
+            }}
+            onComplete={onComplete}
+          />
         </div>
       </div>
     </div>

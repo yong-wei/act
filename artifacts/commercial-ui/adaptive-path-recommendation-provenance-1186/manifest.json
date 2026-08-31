@@ -1,21 +1,22 @@
 {
-  "capturedAt": "2026-08-23T10:58:53.581Z",
-  "commitSha": "e763d443b7fad2f32e7ed1c78afaf6a92fff10ac",
+  "capturedAt": "2026-08-26T05:10:33.138Z",
+  "commitSha": "699ae8b0e3d125ab263dd16d79ddc9c45626df01",
   "generator": {
     "file": "tests/adaptive-path-recommendation-provenance-evidence.spec.ts",
-    "sha256": "6ba84f2bd962f3e7f53baf4645fd2cb68b3095b132016fc1a2c9175fd4a9e746"
+    "sha256": "982282cc12b5597246f16021ff333284f39b5eaea459e15e1a354872316ddb6d"
   },
   "productionSourceSha256": {
-    "src/app/assessment/adaptive-practice/page.tsx": "d01a34de0cf4840e1a6ad7e52e4d17d8cd0d9573a1ccaf62461d4ae9ca17d398",
+    "src/app/assessment/adaptive-practice/page.tsx": "4a056f5fc66d98b3d6ef2bec7ee7a9bc7671533ffd8aa996dc3add69f4ac3f20",
     "src/features/adaptive/adaptive-learning-center-contracts.ts": "770d11d9bf70d819dab6c31f785e071baa79cd75919afe8f47dd84f4c0bd6682",
-    "src/lib/adaptive-learning-path-planner.ts": "25f8608b58f730bc34122eec6cf24d96917c76c054b266024c92310840b2483d",
+    "src/lib/adaptive-learning-path-planner.ts": "db85b90c6f015a16ce2359ca2ae2205cd28fe1e10ec2133093f10a454d33d93c",
     "src/lib/adaptive-path-round-restore.ts": "fa0982dd2bc939351246d18b6ec3d9f8d5e651b755cd2902c1d73567c2e225e8",
     "src/lib/adaptive-path-option-display.ts": "e474d3f29e3f0fb4e793f2db2a9b6582c796d76ad36223619bf2e7bfb938e97d"
   },
   "routes": [
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=sufficient",
     "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=low",
-    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=legacy"
+    "/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection&provenanceFixture=legacy",
+    "/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation"
   ],
   "assertions": [
     {
@@ -28,6 +29,7 @@
         "evidence link keyboard focus",
         "governed learning-record href",
         "affected resources visible",
+        "learner modality preference is readable",
         "no horizontal overflow"
       ]
     },
@@ -64,6 +66,7 @@
         "evidence link keyboard focus",
         "governed learning-record href",
         "affected resources visible",
+        "learner modality preference is readable",
         "no horizontal overflow"
       ]
     },
@@ -89,6 +92,28 @@
         "no synthesized provenance",
         "no horizontal overflow"
       ]
+    },
+    {
+      "viewport": "desktop-1440",
+      "fixture": "continue-existing-path",
+      "passed": true,
+      "checks": [
+        "continue action is clicked from the loaded persisted path",
+        "path-execution restore uses the original planning snapshot",
+        "candidate comparison stays hidden",
+        "path generation endpoint is not invoked"
+      ]
+    },
+    {
+      "viewport": "mobile-320",
+      "fixture": "continue-existing-path",
+      "passed": true,
+      "checks": [
+        "continue action is clicked from the loaded persisted path",
+        "path-execution restore uses the original planning snapshot",
+        "candidate comparison stays hidden",
+        "path generation endpoint is not invoked"
+      ]
     }
   ],
   "screenshots": [
@@ -98,7 +123,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-sufficient.png",
-      "sha256": "b5b62e2e0d8b0a8e257868a883f1d6a79045ebb5c1d3c295f79da77e6fae23fe",
+      "sha256": "c19bea7634b7a8590ba582dd1fd9a3fd3acd32e6c1f04e6f2de5fee1ed348520",
       "noHorizontalOverflow": true
     },
     {
@@ -107,7 +132,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-low.png",
-      "sha256": "447f0d6710657db9a34c4265a2893d415f78134ed8e5b34b7317d56a39d628b1",
+      "sha256": "b9ccbb5db2165d55b71d8eb816e6bf7f62e6ce0ce883bf97f32f7c9af408680a",
       "noHorizontalOverflow": true
     },
     {
@@ -116,7 +141,7 @@
       "width": 1440,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-legacy.png",
-      "sha256": "e212845db33c29e05c7eee8ae5f253e077338a5c88d82d1334049659fd86f7b2",
+      "sha256": "c63ff810042873adfb3437243388d4496fd7be297072b6804e9d699356a80749",
       "noHorizontalOverflow": true
     },
     {
@@ -125,7 +150,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-sufficient.png",
-      "sha256": "8a221bc28c30ab60a8e36bd20132dd1aa2a4ea81595a6c7dc8d23cfbc68f1089",
+      "sha256": "e0c71df20768b4dd154190e8df22a3ed46d1543a3f6a0034e3795dbf8cbe0de7",
       "noHorizontalOverflow": true
     },
     {
@@ -134,7 +159,7 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-low.png",
-      "sha256": "0dfb599111b6a303dc69daede63d271e03bb9388762c5e5db4572218630e19e7",
+      "sha256": "56912b131041a886c812977793e9f813457f700a79d9acb30d7de3d604d07fdc",
       "noHorizontalOverflow": true
     },
     {
@@ -143,7 +168,25 @@
       "width": 320,
       "height": 1100,
       "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-legacy.png",
-      "sha256": "a1d939865d8ff58d9bd42bfedc86b7e037a9c4f19d4e79aa599c700914f331b4",
+      "sha256": "aa60ef7d2347dc287716e15ff3dfaf8deb9e7164831132226795398d70a87d0f",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "continue-existing-path",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/desktop-1440-continue-existing-path.png",
+      "sha256": "aca22b4d2113aca4d53e1bb81837275ed8a3bbdd80f1ea8976dad5e69b1b44aa",
+      "noHorizontalOverflow": true
+    },
+    {
+      "fixture": "continue-existing-path",
+      "viewport": "mobile-320",
+      "width": 320,
+      "height": 1100,
+      "file": "artifacts/commercial-ui/adaptive-path-recommendation-provenance-1186/mobile-320-continue-existing-path.png",
+      "sha256": "33646519ba4f07c54e58571dd6696280f972543230bc039564989fb38bb654ef",
       "noHorizontalOverflow": true
     }
   ]

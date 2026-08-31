@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, RotateCcw } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface SlopeTile {
   id: string;
@@ -130,17 +131,7 @@ export default function BodeSlopePuzzle({ onComplete, onStateChange }: BodeSlope
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(snapshot.progress);
     interactive?.tracking.emit('submit', snapshot.data);
-
-    if (isCorrect) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: snapshot.data,
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [correctCount, isCorrect, onComplete, onStateChange, interactive]);
+  }, [correctCount, onStateChange, interactive]);
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -244,6 +235,13 @@ export default function BodeSlopePuzzle({ onComplete, onStateChange }: BodeSlope
             {isCorrect ? '叠加正确！你已经掌握斜率累加的方法。' : '有频段斜率不匹配，再调整一下。'}
           </div>
         )}
+        {checked && isCorrect ? (
+          <PathResourceContinueAction
+            enabled
+            result={{ success: true, score: 100, data: { correctCount, total: SLOTS.length } }}
+            onComplete={onComplete}
+          />
+        ) : null}
       </div>
     </div>
   );

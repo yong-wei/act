@@ -1,0 +1,57 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "types/next-env.d.ts",
+    "types/r3f-custom-elements.d.ts",
+    "src/app/**/*.ts",
+    "src/app/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx",
+    "src/features/**/*.ts",
+    "src/features/**/*.tsx",
+    "src/hooks/**/*.ts",
+    "src/hooks/**/*.tsx",
+    "src/lib/**/*.ts",
+    "src/lib/**/*.tsx",
+    "src/resources/**/*.ts",
+    "src/resources/**/*.tsx",
+    "src/types/**/*.ts",
+    "src/types/**/*.tsx",
+    "typescript-graph-fixtures/web.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next/cache",
+    ".next/server",
+    "scripts",
+    ".next",
+    "tests",
+    "openspec",
+    "docs",
+    "artifacts",
+    ".logs",
+    "evaluate",
+    "data",
+    "deploy",
+    "course-content",
+    "generated-images",
+    "dist",
+    "build",
+    "out",
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "src/**/*.spec.*",
+    "src/**/fixtures/**",
+    "src/lib/architecture-census/**",
+    "src/lib/architecture-charter/**",
+    "src/lib/architecture-fitness/**",
+    "src/lib/architecture-test-commands/**"
+  ]
+}

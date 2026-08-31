@@ -1,11 +1,16 @@
 import type { WidgetResult } from '@/resources/widgets/widget-props';
 
+type PathResourceCompletionHandler = (result?: WidgetResult) => Promise<void>;
+
+/**
+ * Path-launched resources share the #1694 continue contract: write completion,
+ * propagate failures, and navigate from the server journey. Registry allowlists
+ * are not a completion policy. Widgets that complete by browsing must not call
+ * this handler until a visible next action exists.
+ */
 export function selectResourceCompletionHandler(
-  registryId: string | null | undefined,
-  completePathResource: (result?: WidgetResult) => Promise<void>,
-  handlePathResourceComplete: (result?: WidgetResult) => Promise<void>,
-) {
-  return registryId === 'lesson15-series-precheck'
-    ? completePathResource
-    : handlePathResourceComplete;
+  _registryId: string | null | undefined,
+  continuePathAfterResourceComplete: PathResourceCompletionHandler,
+): PathResourceCompletionHandler {
+  return continuePathAfterResourceComplete;
 }

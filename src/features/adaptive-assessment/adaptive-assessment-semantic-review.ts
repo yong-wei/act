@@ -396,11 +396,17 @@ function decisionFieldIssues(
     ...reviewDecisionAuditIssues(decision),
     ...staleIssues,
   ]);
+  // Generated candidates prove content through the publication pipeline (deterministic
+  // precheck, item-by-item human review, publication receipt) and bind learning goals,
+  // graph nodes and knowledge tags. Kaq objectives, misconception and remediation
+  // bindings belong to the bank-family semantic contract and are not part of the
+  // generation governance evidence set, so they are not required for that family.
+  const isGeneratedFamily = item.sourceFamily === 'generated-adaptive-question';
   const missing = [
     ...reviewDecisionAuditIssues(decision),
     ...staleIssues,
     selectedLearningGoalIds.length ? '' : 'missing-learning-goal-binding',
-    selectedKaqObjectiveIds.length ? '' : 'missing-kaq-objective-ids',
+    selectedKaqObjectiveIds.length || isGeneratedFamily ? '' : 'missing-kaq-objective-ids',
     selectedGraphNodeIds.length ? '' : 'missing-graph-node-refs',
     decision.selectedStagePurpose ? '' : 'missing-assessment-stage',
     !decision.selectedStagePurpose || item.allowedStages.includes(reviewDecisionStage(item, decision) as AdaptiveAssessmentCatalogStage)
@@ -408,8 +414,8 @@ function decisionFieldIssues(
       : `invalid-assessment-stage:${decision.selectedStagePurpose}`,
     typeof decision.difficulty === 'number' ? '' : 'missing-difficulty',
     decision.cognitiveLevel ? '' : 'missing-cognitive-level',
-    misconceptionRefs.length ? '' : 'missing-misconception-refs',
-    remediationRefs.length ? '' : 'missing-remediation-refs',
+    misconceptionRefs.length || isGeneratedFamily ? '' : 'missing-misconception-refs',
+    remediationRefs.length || isGeneratedFamily ? '' : 'missing-remediation-refs',
     Object.keys(metadataVersionRefs).length ? '' : 'missing-metadata-version-refs',
     ...selectedLearningGoalIds
       .filter((id) => knownLearningGoals.size > 0 && !knownLearningGoals.has(id))

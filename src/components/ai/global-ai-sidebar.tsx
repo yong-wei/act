@@ -50,6 +50,8 @@ import type { KonlingContinuitySnapshot } from '@/lib/konling-learning-continuit
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const MOBILE_HISTORY_QUERY = '(max-width: 767px)';
 const presentedContinuitySnapshotIds = new Set<string>();
+const handledPathSelectionKeys = new Set<string>();
+const inflightPathSelectionKeys = new Set<string>();
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
@@ -89,7 +91,6 @@ export function GlobalAISidebar() {
   const openerElementRef = useRef<HTMLElement | null>(null);
   const wasOpenRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const handledPathSelectionToolCallsRef = useRef(new Set<string>());
   const [mounted, setMounted] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
@@ -106,7 +107,6 @@ export function GlobalAISidebar() {
 
   const {
     pageContext,
-    userProfile,
     enabled,
     isOpen,
     closeSidebar,
@@ -292,7 +292,6 @@ export function GlobalAISidebar() {
     : activeAssistantBinding;
   const chatBody = useMemo(() => ({
     pageContext,
-    userProfile,
     conversationId: activeConversationId ?? undefined,
     courseId: pageContext?.courseId,
     pageId: conversationPageId,
@@ -304,7 +303,7 @@ export function GlobalAISidebar() {
     agentSessionId: agentSessionId ?? undefined,
     modeClientContextHints: sendAssistantBinding?.modeClientContextHints,
     knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? sendAssistantBinding?.modeClientContextHints,
-  }), [pageContext, userProfile, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
+  }), [pageContext, activeConversationId, conversationPageId, tools, systemPromptExtension, sendAssistantBinding, knowledgeWorkspaceHint, agentSessionId]);
 
   const {
     messages,
@@ -357,8 +356,8 @@ export function GlobalAISidebar() {
         const toolRunId = stringValue(result.toolRunId);
         if (!pathId || !batchId || !candidateId || !selectedOptionId || !selectedStyleId || !idempotencyKey || !toolRunId) continue;
         const key = `${message.id}:${batchId}:${candidateId}:${idempotencyKey}`;
-        if (handledPathSelectionToolCallsRef.current.has(key)) continue;
-        handledPathSelectionToolCallsRef.current.add(key);
+        if (handledPathSelectionKeys.has(key) || inflightPathSelectionKeys.has(key)) continue;
+        inflightPathSelectionKeys.add(key);
         void fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -373,12 +372,16 @@ export function GlobalAISidebar() {
           }),
         }).then(async (response) => {
           if (!response.ok) throw new Error('路径选择同步失败');
+          handledPathSelectionKeys.add(key);
           window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
             detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' },
           }));
           setActionStatus('路径选择已同步，等待你开始学习。');
         }).catch(() => {
+          handledPathSelectionKeys.delete(key);
           setActionStatus('路径选择未能同步，请重试。');
+        }).finally(() => {
+          inflightPathSelectionKeys.delete(key);
         });
       }
     }

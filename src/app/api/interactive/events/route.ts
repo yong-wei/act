@@ -7,10 +7,18 @@ import { eventRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import type { ClassroomInteractionEventInput } from '@/lib/classroom-analytics/types';
 import { toLearningEvent } from '@/lib/data-governance/event-protocol';
+import {
+  LearningRecordContractError,
+  MIGRATED_INTERACTIVE_PRODUCER_ACTION,
+  acceptLearningRecordEvent,
+  createMemoryAcceptanceStore,
+} from '@/features/learning-record/event-contract';
 import { routeEvent } from '@/lib/data-governance/event-buffer';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveCanonicalEventType } from '@/lib/data-governance/event-normalization';
-import { persistCoreLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { shouldMaterializeLearningFact } from '@/lib/data-governance/learning-fact-materialization';
+import { currentCaptureRevision, ingestLearningFact } from '@/features/learning-record/ingestion/public-api';
+import { INGESTION_STATUS } from '@/features/learning-record/ingestion/types';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import { enqueueSessionSummaryReportRefresh } from '@/lib/data-governance/session-finalization-snapshots';
 import {
@@ -50,8 +58,19 @@ import {
   persistedControlWorkbenchRunMatchesContext,
   resolveTrustedControlWorkbenchContext,
 } from '@/lib/data-governance/control-workbench-run-context';
+import {
+  buildCanonicalSubmissionIdentity,
+  acceptClassroomSubmissionEvidence,
+  type ClassroomSubmissionEvidenceReceipt,
+  type ClassifiedSubmissionWriteInput,
+} from '@/features/classroom/session/submission-evidence';
+import { createPrismaSubmissionEvidenceRuntime } from '@/features/classroom/session/adapters/submission-evidence-commands';
+import { materializePersistedEvidenceById } from '@/lib/data-governance/session-fact-replay';
 
 export const dynamic = 'force-dynamic';
+
+// 共享提交证据写入器：分类提交经会话级事务边界写入（锁/幂等/单调序列/晚到分类）
+const submissionEvidenceRuntime = createPrismaSubmissionEvidenceRuntime();
 
 function toDateTime(value: number | string | null | undefined): Date | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -245,75 +264,6 @@ function readFirstQuestionCardId(payload: Record<string, unknown>): string | nul
   return null;
 }
 
-function resolveSubmissionIdentity(payload: Record<string, unknown>, attemptKey: string | null | undefined): string | null {
-  return attemptKey
-    ?? readPayloadString(payload, 'submissionIdentity')
-    ?? readPayloadString(payload, 'submissionId')
-    ?? readPayloadString(payload, 'attemptId');
-}
-
-function buildClassroomSubmissionDedupeKey(input: {
-  userId: string;
-  sessionId: string | null | undefined;
-  lessonKey: string | null | undefined;
-  stepId: string | null | undefined;
-  attemptKey: string | null | undefined;
-  payload: Record<string, unknown>;
-}): string | null {
-  if (!input.sessionId || !input.stepId) return null;
-  const submissionIdentity = resolveSubmissionIdentity(input.payload, input.attemptKey);
-  if (!submissionIdentity) return null;
-  const cardId = readPayloadString(input.payload, 'cardId')
-    ?? readPayloadString(input.payload, 'questionId')
-    ?? readFirstQuestionCardId(input.payload)
-    ?? 'step';
-  return [
-    input.userId,
-    input.sessionId,
-    input.lessonKey ?? '',
-    input.stepId,
-    cardId,
-    submissionIdentity,
-  ].join('|');
-}
-
-function buildClassroomSubmissionDedupeKeyForEvent(eventData: NormalizedInteractionEvent, userId: string): string | null {
-  const payload =
-    eventData.event.data && typeof eventData.event.data === 'object'
-      ? eventData.event.data
-      : {};
-  const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
-    return null;
-  }
-  return buildClassroomSubmissionDedupeKey({
-    userId,
-    sessionId: eventData.sessionId,
-    lessonKey: eventData.event.lessonKey ?? null,
-    stepId: eventData.event.stepId ?? readPayloadString(payload, 'stepId'),
-    attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-    payload,
-  });
-}
-
-function buildClassroomSubmissionDedupeKeyForResponse(response: {
-  userId: string;
-  sessionId: string;
-  lessonKey: string | null;
-  stepId: string;
-  attemptKey: string | null;
-  responseData: Prisma.JsonValue;
-}): string | null {
-  return buildClassroomSubmissionDedupeKey({
-    userId: response.userId,
-    sessionId: response.sessionId,
-    lessonKey: response.lessonKey,
-    stepId: response.stepId,
-    attemptKey: response.attemptKey,
-    payload: readRecord(response.responseData),
-  });
-}
-
 function withSubmissionEvidenceQuality(
   payload: Record<string, unknown>,
   canonicalEventType: string,
@@ -329,132 +279,209 @@ function withSubmissionEvidenceQuality(
   };
 }
 
-async function dedupeClassroomSubmissionEvents(
-  events: NormalizedInteractionEvent[],
-  userId: string,
-): Promise<{ events: NormalizedInteractionEvent[]; duplicateSubmissionEvents: number }> {
-  const candidateKeys = events
-    .map((event) => buildClassroomSubmissionDedupeKeyForEvent(event, userId))
-    .filter((key): key is string => Boolean(key));
-  if (candidateKeys.length === 0) {
-    return { events, duplicateSubmissionEvents: 0 };
-  }
-
-  const sessionIds = Array.from(new Set(events.map((event) => event.sessionId).filter((value): value is string => Boolean(value))));
-  const stepIds = Array.from(new Set(events.map((event) => (
-    event.event.stepId ?? readPayloadString(readRecord(event.event.data), 'stepId')
-  )).filter((value): value is string => Boolean(value))));
-  const existingResponses = sessionIds.length > 0 && stepIds.length > 0
-    ? await prisma.studentStepResponse.findMany({
-      where: {
-        userId,
-        sessionId: { in: sessionIds },
-        stepId: { in: stepIds },
-      },
-      select: {
-        userId: true,
-        sessionId: true,
-        lessonKey: true,
-        stepId: true,
-        attemptKey: true,
-        responseData: true,
-      },
-    })
-    : [];
-  const seenKeys = new Set(
-    existingResponses
-      .map(buildClassroomSubmissionDedupeKeyForResponse)
-      .filter((key): key is string => Boolean(key)),
-  );
-  const dedupedEvents: NormalizedInteractionEvent[] = [];
-  let duplicateSubmissionEvents = 0;
-
-  for (const event of events) {
-    const key = buildClassroomSubmissionDedupeKeyForEvent(event, userId);
-    if (key && seenKeys.has(key)) {
-      duplicateSubmissionEvents += 1;
-      continue;
-    }
-    if (key) seenKeys.add(key);
-    dedupedEvents.push(event);
-  }
-
-  return { events: dedupedEvents, duplicateSubmissionEvents };
+function resolveCanonicalSubmissionCardId(payload: Record<string, unknown>): string {
+  return readPayloadString(payload, 'cardId')
+    ?? readPayloadString(payload, 'questionId')
+    ?? readFirstQuestionCardId(payload)
+    ?? 'step';
 }
 
-function buildStudentStepResponseRows(
+function resolveClassifiedSubmissionStepId(item: NormalizedInteractionEvent): string | null {
+  return item.event.stepId ?? readPayloadString(readRecord(item.event.data), 'stepId');
+}
+
+function isClassifiedSubmissionEvent(item: NormalizedInteractionEvent, userId: string): boolean {
+  const payload = readRecord(item.event.data);
+  const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
+  const isSubmission = canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit';
+  const stepId = resolveClassifiedSubmissionStepId(item);
+  return Boolean(
+    isSubmission
+    && item.sessionId
+    && stepId
+    && buildCanonicalSubmissionIdentity({
+      userId,
+      sessionId: item.sessionId,
+      lessonKey: item.event.lessonKey ?? null,
+      stepId,
+      cardId: resolveCanonicalSubmissionCardId(payload),
+      attemptKey: item.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+      clientEventId: resolveClientEventId(item.event),
+    }),
+  );
+}
+
+/**
+ * 分类提交（lesson_submit/lesson_resubmit）与被动事件的分区：
+ * 分类提交走共享写入器（会话锁 + 幂等 + 单调序列 + 晚到复盘分类）；
+ * 无法建立规范身份的提交视为契约违约事件降级（不入库），确保不存在
+ * 绕过水位边界的证据写入路径。
+ */
+function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[], userId: string): {
+  submissions: NormalizedInteractionEvent[];
+  identityLessSubmissions: NormalizedInteractionEvent[];
+  legacy: NormalizedInteractionEvent[];
+} {
+  const submissions: NormalizedInteractionEvent[] = [];
+  const identityLessSubmissions: NormalizedInteractionEvent[] = [];
+  const legacy: NormalizedInteractionEvent[] = [];
+  for (const item of events) {
+    const payload = readRecord(item.event.data);
+    const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
+    const isSubmission = canonicalEventType === 'lesson_submit' || canonicalEventType === 'lesson_resubmit';
+    if (!isSubmission) {
+      legacy.push(item);
+    } else if (isClassifiedSubmissionEvent(item, userId)) {
+      submissions.push(item);
+    } else {
+      identityLessSubmissions.push(item);
+    }
+  }
+  return { submissions, identityLessSubmissions, legacy };
+}
+
+function buildClassifiedSubmissionInput(
+  item: NormalizedInteractionEvent,
+  userId: string,
+  serverRecordedAt: Date,
+): ClassifiedSubmissionWriteInput | null {
+  const payload = readRecord(item.event.data);
+  const stepId = resolveClassifiedSubmissionStepId(item);
+  const submittedAt = toDateTime(item.event.clientEventAt ?? item.event.timestamp);
+  if (!item.sessionId || !stepId || !submittedAt) return null;
+
+  const identity = buildCanonicalSubmissionIdentity({
+    userId,
+    sessionId: item.sessionId,
+    lessonKey: item.event.lessonKey ?? null,
+    stepId,
+    cardId: resolveCanonicalSubmissionCardId(payload),
+    attemptKey: item.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+    clientEventId: resolveClientEventId(item.event),
+  });
+  if (!identity) return null;
+
+  const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
+  const trustedActorRole = item.event.actorRole ?? 'student';
+  // 先剥离不可信 sourceLogId 再做证据规范化，防止伪造血缘进入响应证据
+  const { sourceLogId: _untrustedSourceLogId, ...trustedPayload } = payload;
+  const normalizedPayload = trustNestedEvidenceActorRoles(
+    withSubmissionEvidenceQuality(trustedPayload, canonicalEventType),
+    trustedActorRole,
+  );
+  const clientEventId = resolveClientEventId(item.event);
+  const attemptKey = item.event.attemptKey ?? readPayloadString(payload, 'attemptKey');
+  const lessonKey = item.event.lessonKey ?? null;
+  // 证据草稿在事务前只做结构物化；真实 sourceLogId 由写入器在事务内回填
+  const controlWorkbenchEvidenceDraft = materializeControlWorkbenchEvidenceFromSubmissionPayload(
+    normalizedPayload,
+    {
+      trustedSourceLogId: 'pending-submission-transaction',
+      serverRecordedAt: serverRecordedAt.toISOString(),
+    },
+  );
+  const annotatedMediaEvidenceDraft = materializeAnnotatedMediaEvidenceFromSubmissionPayload(
+    normalizedPayload,
+    {
+      trustedSourceLogId: 'pending-submission-transaction',
+      serverRecordedAt: serverRecordedAt.toISOString(),
+    },
+  );
+
+  // trustedPayload 已剥离不可信 sourceLogId，可直接作为源事件载荷
+  const trustedEventData = trustedPayload;
+
+  return {
+    userId,
+    submissionIdentity: identity.identity,
+    identityVersion: identity.identityVersion,
+    sourceEvent: {
+      resourceId: item.resourceId,
+      resourceKey: item.event.resourceKey ?? null,
+      sessionId: item.sessionId,
+      lessonKey,
+      stepId,
+      actorRole: item.event.actorRole ?? null,
+      eventType: item.event.type,
+      clientEventId,
+      learningContext: item.learningContext,
+      invalidContextReason: item.invalidContextReason,
+      eventData: trustedEventData as Prisma.InputJsonValue,
+      clientEventAt: submittedAt,
+    },
+    response: {
+      lessonKey,
+      stepId,
+      attemptKey,
+      clientEventId,
+      submittedAt,
+      buildResponseData: (sourceLogId: string): Prisma.InputJsonObject => ({
+        ...normalizedPayload,
+        sourceLogId,
+        ...(controlWorkbenchEvidenceDraft
+          ? { controlWorkbenchEvidence: { ...controlWorkbenchEvidenceDraft, sourceLogId } }
+          : {}),
+        ...(annotatedMediaEvidenceDraft
+          ? { annotatedMediaEvidence: { ...annotatedMediaEvidenceDraft, sourceLogId } }
+          : {}),
+        eventType: canonicalEventType,
+        resourceKey: item.event.resourceKey,
+        lessonKey,
+        stepId,
+        attemptKey,
+        clientEventId,
+        learningContext: item.learningContext,
+      } as Prisma.InputJsonObject),
+    },
+  };
+}
+
+async function acceptClassifiedSubmissions(
   events: NormalizedInteractionEvent[],
   userId: string,
   serverRecordedAt: Date,
-): Prisma.StudentStepResponseCreateManyInput[] {
-  const rows: Prisma.StudentStepResponseCreateManyInput[] = [];
+): Promise<{
+  receipts: Array<{ item: NormalizedInteractionEvent; receipt: ClassroomSubmissionEvidenceReceipt }>;
+  acceptedInputs: Array<{ input: ClassifiedSubmissionWriteInput; receipt: ClassroomSubmissionEvidenceReceipt }>;
+  acceptedCount: number;
+  postSessionReviewCount: number;
+  duplicateCount: number;
+}> {
+  const receipts: Array<{ item: NormalizedInteractionEvent; receipt: ClassroomSubmissionEvidenceReceipt }> = [];
+  const acceptedInputs: Array<{ input: ClassifiedSubmissionWriteInput; receipt: ClassroomSubmissionEvidenceReceipt }> = [];
+  let acceptedCount = 0;
+  let postSessionReviewCount = 0;
+  let duplicateCount = 0;
 
-  for (const eventData of events) {
-    const payload =
-      eventData.event.data && typeof eventData.event.data === 'object'
-        ? eventData.event.data
-        : {};
-    const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
-    const trustedActorRole = eventData.event.actorRole ?? 'student';
-    const normalizedPayload = trustNestedEvidenceActorRoles(
-      withSubmissionEvidenceQuality(payload, canonicalEventType),
-      trustedActorRole,
-    );
-
-    if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
+  for (const item of events) {
+    const input = buildClassifiedSubmissionInput(item, userId, serverRecordedAt);
+    if (!input) {
+      duplicateCount += 1;
       continue;
     }
-
-    const sessionId = eventData.sessionId;
-    const stepId = eventData.event.stepId ?? readPayloadString(payload, 'stepId');
-    const sourceLogId = readPayloadString(payload, 'sourceLogId');
-    const submittedAt = toDateTime(eventData.event.clientEventAt ?? eventData.event.timestamp);
-
-    if (!sessionId || !stepId || !sourceLogId || !submittedAt) {
-      continue;
+    const receipt = await acceptClassroomSubmissionEvidence(submissionEvidenceRuntime, input);
+    receipts.push({ item, receipt });
+    if (receipt.status === 'ACCEPTED') {
+      acceptedCount += 1;
+      acceptedInputs.push({ input, receipt });
+    } else if (receipt.status === 'POST_SESSION_REVIEW') {
+      postSessionReviewCount += 1;
+    } else {
+      duplicateCount += 1;
+      // 仅 ACCEPTED 回执重放事实物化：POST_SESSION_REVIEW 的重复回执不得
+      // 把晚到复盘事实写进原闭包的报告读法；权威输入是回执 ID 对应的
+      // 持久化证据行（sourceEventId 唯一约束保证不双计）
+      if (receipt.evidenceStatus === 'ACCEPTED') {
+        try {
+          await materializePersistedEvidenceById(prisma, receipt.evidenceId);
+        } catch (error) {
+          console.error('[Interactive Events API] Duplicate-receipt fact replay failed (closure phase will recover):', error);
+        }
+      }
     }
-
-    const clientEventId = resolveClientEventId(eventData.event);
-    const controlWorkbenchEvidence = materializeControlWorkbenchEvidenceFromSubmissionPayload(
-      normalizedPayload,
-      {
-        trustedSourceLogId: sourceLogId,
-        serverRecordedAt: serverRecordedAt.toISOString(),
-      },
-    );
-    const annotatedMediaEvidence = materializeAnnotatedMediaEvidenceFromSubmissionPayload(
-      normalizedPayload,
-      {
-        trustedSourceLogId: sourceLogId,
-        serverRecordedAt: serverRecordedAt.toISOString(),
-      },
-    );
-
-    rows.push({
-      userId,
-      sessionId,
-      lessonKey: eventData.event.lessonKey ?? null,
-      stepId,
-      attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-      sourceLogId,
-      clientEventId,
-      submittedAt,
-      responseData: {
-        ...normalizedPayload,
-        ...(controlWorkbenchEvidence ? { controlWorkbenchEvidence } : {}),
-        ...(annotatedMediaEvidence ? { annotatedMediaEvidence } : {}),
-        eventType: canonicalEventType,
-        resourceKey: eventData.event.resourceKey,
-        lessonKey: eventData.event.lessonKey ?? null,
-        stepId,
-        attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
-        clientEventId,
-        learningContext: eventData.learningContext,
-      } as Prisma.InputJsonValue,
-    });
   }
 
-  return rows;
+  return { receipts, acceptedInputs, acceptedCount, postSessionReviewCount, duplicateCount };
 }
 
 async function persistControlWorkbenchTaskEvidenceRows(
@@ -827,9 +854,21 @@ export async function POST(request: NextRequest) {
       role: session.user.role,
       profile: session.user.profile ?? null,
     });
+
+    // 先分区：分类提交的幂等权威在写入器事务内（唯一锚点 + 回执重放），
+    // 绝不被通用 clientEventId 预过滤拦截——同 clientEventId 的重试必须
+    // 到达写入器以取得 DUPLICATE 回执并重放持久化证据。
+    const prePartition = partitionClassifiedSubmissionEvents(enrichedValidEvents, session.user.id);
+    let degradedSubmissionEvents = 0;
+    for (const item of prePartition.identityLessSubmissions) {
+      logDegradedEvent(session.user.id, item.event, 'submission_without_canonical_identity');
+      degradedSubmissionEvents += 1;
+    }
+
+    // clientEventId 预去重只作用于被动/遗留事件（它们的写路径无事务幂等）
     const clientEventIds = Array.from(
       new Set(
-        enrichedValidEvents
+        prePartition.legacy
           .map((item) => item.clientEventId)
           .filter((value): value is string => typeof value === 'string' && value.length > 0),
       ),
@@ -853,7 +892,7 @@ export async function POST(request: NextRequest) {
     );
     const seenClientEventIds = new Set<string>();
     let duplicateEvents = 0;
-    const dedupedEvents = enrichedValidEvents.filter((item) => {
+    const dedupedLegacyEvents = prePartition.legacy.filter((item) => {
       if (!item.clientEventId) {
         return true;
       }
@@ -865,11 +904,7 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
-    const {
-      events: evidenceDedupedEvents,
-      duplicateSubmissionEvents,
-    } = await dedupeClassroomSubmissionEvents(dedupedEvents, session.user.id);
-    const trustedEvidenceEvents = evidenceDedupedEvents.map((item) => {
+    const trustPayload = (item: NormalizedInteractionEvent) => {
       const payload = item.event.data && typeof item.event.data === 'object' ? item.event.data : {};
       const canonicalEventType = resolveCanonicalEventType(item.event.type, payload);
       const trustedPayload = trustNestedEvidenceActorRoles(
@@ -883,11 +918,13 @@ export async function POST(request: NextRequest) {
           data: trustedPayload,
         },
       };
-    });
+    };
+    const legacyEvidenceEvents = dedupedLegacyEvents.map(trustPayload);
+    const classifiedSubmissions = prePartition.submissions.map(trustPayload);
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = trustedEvidenceEvents.map((item) => {
+    const interactionLogEvents = legacyEvidenceEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
       return {
         userId: session.user.id,
@@ -935,7 +972,7 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      trustedEvidenceEvents,
+      legacyEvidenceEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
@@ -944,6 +981,8 @@ export async function POST(request: NextRequest) {
     const retrySourceLinkedEvents = attachSourceLogIds(
       enrichedValidEvents.filter((item) =>
         Boolean(item.clientEventId && persistedClientEventIds.has(item.clientEventId))
+        // 已由写入器事务持久化的分类提交不再重复构建响应行
+        && !isClassifiedSubmissionEvent(item, session.user.id)
       ),
       existingLogs
         .filter((log): log is typeof log & { id: string } => typeof log.id === 'string')
@@ -958,35 +997,44 @@ export async function POST(request: NextRequest) {
     ];
 
     const serverRecordedAt = new Date();
+    // 分类提交：会话锁内幂等写入；ACTIVE/PAUSED 分配单调序列，FINISHED 之后保留为 POST_SESSION_REVIEW
+    const submissionOutcome = await acceptClassifiedSubmissions(
+      classifiedSubmissions,
+      session.user.id,
+      serverRecordedAt,
+    );
+    const acceptedSubmissionMaterializationEvents = submissionOutcome.receipts
+      .filter(({ receipt }) => receipt.status === 'ACCEPTED')
+      .map(({ item, receipt }) => ({
+        ...item,
+        event: {
+          ...item.event,
+          data: {
+            ...readRecord(item.event.data),
+            sourceLogId: receipt.sourceLogId,
+          } as Record<string, unknown>,
+        },
+      }));
+    const acceptedSubmissionEvidenceRows = submissionOutcome.acceptedInputs.map(({ input, receipt }) => ({
+      userId: input.userId,
+      sessionId: input.sourceEvent.sessionId,
+      lessonKey: input.response.lessonKey,
+      stepId: input.response.stepId,
+      sourceLogId: receipt.sourceLogId,
+      responseData: input.response.buildResponseData(receipt.sourceLogId) as Prisma.InputJsonValue,
+    }));
     await persistVirtualSimulationTaskEvidenceEvents(
       taskMaterializationEvents,
       session.user.id,
       serverActorRole,
       serverRecordedAt,
     );
-    const studentStepResponseRows = buildStudentStepResponseRows(
-      taskMaterializationEvents,
-      session.user.id,
-      serverRecordedAt,
-    );
-    if (studentStepResponseRows.length > 0) {
-      let stepResponsesPersisted = false;
-      try {
-        await prisma.studentStepResponse.createMany({
-          data: studentStepResponseRows,
-          skipDuplicates: true,
-        });
-        stepResponsesPersisted = true;
-      } catch (error) {
-        console.error('[Interactive Events API] Failed to persist immutable student step responses:', error);
-      }
-      if (stepResponsesPersisted) {
-        await persistControlWorkbenchTaskEvidenceRows(
-          studentStepResponseRows,
-          session.user.id,
-          serverActorRole,
-        );
-      }
+    if (acceptedSubmissionEvidenceRows.length > 0) {
+      await persistControlWorkbenchTaskEvidenceRows(
+        acceptedSubmissionEvidenceRows as Prisma.StudentStepResponseCreateManyInput[],
+        session.user.id,
+        serverActorRole,
+      );
     }
 
     // Route events based on priority
@@ -996,15 +1044,55 @@ export async function POST(request: NextRequest) {
       reason?: string;
       factsCreated: number;
       factActionType: string;
+      clientEventId?: string | null;
     }> = [];
     const sessionsNeedingReportRefresh = new Set<string>();
+    const learningRecordStore = createMemoryAcceptanceStore();
+    let ingestDegraded = 0;
 
-    for (const eventData of sourceLinkedEvents) {
+    for (const eventData of [...sourceLinkedEvents, ...acceptedSubmissionMaterializationEvents]) {
       const payload =
         eventData.event.data && typeof eventData.event.data === 'object'
           ? eventData.event.data
           : {};
       const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+      const clientEventId = resolveClientEventId(eventData.event);
+      if (canonicalEventType === MIGRATED_INTERACTIVE_PRODUCER_ACTION && clientEventId) {
+        try {
+          await acceptLearningRecordEvent(learningRecordStore, {
+            subjectId: session.user.id,
+            role: (session.user.role?.toLowerCase() as 'student' | 'teacher' | 'admin') || 'student',
+            producerAuthority: 'assessment-producer',
+            receivedAt: new Date(),
+            sessionId: eventData.sessionId ?? undefined,
+            captureRevision: process.env.APP_REVISION || process.env.GIT_SHA || 'working-tree',
+            revision: process.env.APP_REVISION || process.env.GIT_SHA || 'working-tree',
+          }, {
+            action: canonicalEventType,
+            eventId: clientEventId,
+            sourceEventId: clientEventId,
+            sessionId: eventData.sessionId ?? undefined,
+            payload: {
+              eventType: canonicalEventType,
+              learningContext: eventData.learningContext,
+              stepId: typeof payload.stepId === 'string' ? payload.stepId : undefined,
+            },
+          });
+        } catch (error) {
+          if (error instanceof LearningRecordContractError) {
+            routingResults.push({
+              eventType: canonicalEventType,
+              destination: 'dropped',
+              reason: error.code,
+              factsCreated: 0,
+              factActionType: canonicalEventType,
+              clientEventId,
+            });
+            continue;
+          }
+          throw error;
+        }
+      }
       const learningEvent = toLearningEvent(
         {
           ...eventData.event,
@@ -1027,14 +1115,42 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      const result = await routeEvent(learningEvent);
-      const factResult = await persistCoreLearningFact(prisma, learningEvent);
-      routingResults.push({
-        eventType: learningEvent.actionType,
-        ...result,
-        factsCreated: factResult.created,
-        factActionType: factResult.actionType,
-      });
+      const materializesFact = shouldMaterializeLearningFact(
+        canonicalEventType,
+        payload && typeof payload === 'object' ? payload : {},
+      );
+      if (materializesFact) {
+        const ingestResult = await ingestLearningFact({
+          db: prisma as never,
+          transport: 'direct',
+          event: learningEvent,
+          actorUserId: session.user.id,
+          captureRevision: currentCaptureRevision(),
+          classId: learningEvent.classId,
+        });
+        const ingestFailed = ingestResult.status === INGESTION_STATUS.terminalFailed
+          || ingestResult.status === INGESTION_STATUS.retryableFailed;
+        if (ingestFailed) ingestDegraded += 1;
+        routingResults.push({
+          eventType: learningEvent.actionType,
+          destination: ingestFailed ? 'dropped' : 'postgresql',
+          reason: ingestFailed
+            ? (ingestResult.failure?.code ?? ingestResult.adapter?.reason ?? ingestResult.status)
+            : undefined,
+          factsCreated: ingestFailed ? 0 : ingestResult.factsCreated,
+          factActionType: canonicalEventType,
+          clientEventId,
+        });
+      } else {
+        const result = await routeEvent(learningEvent);
+        routingResults.push({
+          eventType: learningEvent.actionType,
+          ...result,
+          factsCreated: 0,
+          factActionType: canonicalEventType,
+          clientEventId,
+        });
+      }
 
       if (learningEvent.actionType === 'session_finalize' && learningEvent.sessionId) {
         sessionsNeedingReportRefresh.add(learningEvent.sessionId);
@@ -1057,14 +1173,25 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: evidenceDedupedEvents.length,
-      degraded: degradedEvents.length,
-      duplicates: duplicateEvents + duplicateSubmissionEvents,
-      submissionDuplicates: duplicateSubmissionEvents,
+      count: dedupedLegacyEvents.length + submissionOutcome.acceptedCount
+        + submissionOutcome.postSessionReviewCount + submissionOutcome.duplicateCount,
+      degraded: degradedEvents.length + degradedSubmissionEvents + ingestDegraded,
+      duplicates: duplicateEvents + submissionOutcome.duplicateCount,
+      submissionDuplicates: submissionOutcome.duplicateCount,
+      postSessionReviewSubmissions: submissionOutcome.postSessionReviewCount,
+      acceptedSubmissions: submissionOutcome.acceptedCount,
       routing: routingResults.reduce((acc, r) => {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
+      routingFailures: routingResults
+        .filter((result) => result.destination === 'dropped')
+        .map((result) => ({
+          eventType: result.eventType,
+          factActionType: result.factActionType,
+          reason: result.reason ?? 'dropped',
+          clientEventId: result.clientEventId ?? null,
+        })),
       pending: 0,
     });
   } catch (error) {

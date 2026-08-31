@@ -1,0 +1,11 @@
+{
+  "sourceRevision": "611e35e7a47b3b136fade70e5bace34909433315",
+  "sourceTree": "089e976601b0ecfa8229726d294a7962b90c3083",
+  "total": 2347,
+  "counts": {
+    "portable-manifest": 2157,
+    "audit-closure-document": 161,
+    "representative-fixture": 29
+  },
+  "digest": "8d37d70a629998492a17531fafc2847f9080c41f77327a24f95021df97e81b62"
+}

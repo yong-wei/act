@@ -1,0 +1,322 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "unavailable",
+      "projectionId": null,
+      "projectionHash": null,
+      "teachingCacheFamily": null
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": null
+    }
+  },
+  "nodeId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在特征方程的所有系数为正的条件下，若所有奇次顺序赫尔维茨行列式为正，则所有偶次顺序赫尔维茨行列式亦必为正；反之亦然。这就是所谓李纳德－戚帕特稳定判据。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+      "canonicalType": "Formula",
+      "label": "\\Delta_{1}=a_{1}>0, \\quad \\Delta_{2}=\\left|\\begin{array}{ll}\na_{1} & a_{3} \\\\\na_{0} & a_{2}\n\\end{array}\\right|>0, \\quad \\Delta_{3}=\\left|\\begin{array}{ccc}\na_{1} & a_{3} & a_{5} \\\\\na_{0} & a_{2} & a_{4} \\\\\n0 & a_{1} & a_{3}\n\\end{array}\\right|>0, \\quad \\cdots, \\quad \\Delta_{n}>0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9103ed62af432260b2436f00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设某单位反馈系统的开环传递函数为 G（s）=K（s+1）/[s（Ts+1）（2s+1）]，试用赫尔维茨稳定判据确定使闭环系统稳定的 K 及 T 的取值范围。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于 n ≤ 4 的线性系统，其稳定的充分必要条件还可以表示为如下简单形式：n=2：特征方程的各项系数为正。n=3：特征方程的各项系数为正，且 a1 a2 - a0 a3 > 0。n=4：特征方程的各项系数为正，且 Δ2 = a1 a2 - a0 a3 > 0，以及 Δ2 > a1^2 a4 / a3。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据赫尔维茨稳定判据，线性系统稳定的充分且必要条件应是：由系统特征方程（3－68）各项系数所构成的主行列式及其顺序主子式全部为正。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+      "canonicalType": "Formula",
+      "label": "D(s)=a_{0} s^{n}+a_{1} s^{n-1}+\\cdots+a_{n-1} s+a_{n}=0, \\quad a_{0}>0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d936710484645940b76063d6",
+      "canonicalType": "Formula",
+      "label": "\\Delta_{n}=\\left|\\begin{array}{cccccc}\na_{1} & a_{3} & a_{5} & \\cdots & 0 & 0 \\\\\na_{0} & a_{2} & a_{4} & \\cdots & 0 & 0 \\\\\n0 & a_{1} & a_{3} & \\cdots & 0 & 0 \\\\\n0 & a_{0} & a_{2} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{1} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{0} & \\cdots & 0 & 0 \\\\\n\\vdots & \\vdots & \\vdots & & \\vdots & \\vdots \\\\\n0 & 0 & 0 & \\cdots & a_{n} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-1} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-2} & a_{n}\n\\end{array}\\right|",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1g-480eee86c5e630e5aacc2912",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+      "targetId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-7cdd9480442af1d826eec8b7",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "targetId": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-a018d3cb11de795b6c566199",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+      "targetId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-a1af9bda140fea009aaf0abf",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-9103ed62af432260b2436f00",
+      "targetId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-a87abd3f8cf793329165938f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "targetId": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-b0b34b6dac91c490b20f4ccd",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "targetId": "ctkg:v3e-object-d936710484645940b76063d6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

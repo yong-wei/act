@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { computeVirtualSimulationServerStep } from '@/resources/simulations/rust/control-engine-server-runtime';
+import { ControlEngineFailure, controlEngineHttpStatus } from '@/lib/control-engine';
+import { computeVirtualSimulationServerStep } from '@/lib/control-engine/server';
 
 interface RobustAnalysisRequest {
   uncertaintyRange: {
@@ -26,6 +27,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof ControlEngineFailure) {
+      return NextResponse.json(
+        { error: '破冰船鲁棒分析失败', message: error.message, state: error.state },
+        { status: controlEngineHttpStatus(error) },
+      );
+    }
     return NextResponse.json(
       {
         error: '破冰船鲁棒分析失败',

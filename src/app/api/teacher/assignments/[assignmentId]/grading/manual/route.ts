@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
 import { createManualQuestionGradingReview } from '@/lib/data-governance/assignment-grading-orchestration';
-import { buildTeacherAssignmentReviewApiProjection } from '@/lib/data-governance/teacher-assignment-review';
+import { buildTeacherAssignmentReviewApiProjection } from '@/lib/assignments/assignment-review';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';

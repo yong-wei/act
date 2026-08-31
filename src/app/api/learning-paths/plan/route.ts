@@ -8,7 +8,7 @@ import {
   persistLearningPathRound,
   persistControlCorrectionPathRound,
 } from '@/lib/control-correction-path-rounds';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import {
   assertPathRoundIdAvailable,
   ensureControlCorrectionPathRoutesEnabled,

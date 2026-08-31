@@ -6,6 +6,12 @@ import {
 import { getKnowledgeNodeLabelPresentation, type KnowledgeGraphLabelMode } from './label-policy';
 
 export const KNOWLEDGE_GRAPH_VIEWPORT_PADDING = 48;
+export const KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH = 639;
+export const KNOWLEDGE_GRAPH_SUPPORTED_VIEWPORTS = {
+  desktop: { width: 1440, height: 900 },
+  mobileNarrow: { width: 320, height: 720 },
+  mobile: { width: 390, height: 844 },
+} as const;
 
 export interface KnowledgeViewportSafeInsets {
   top: number;
@@ -293,7 +299,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       : collisionFree.find((rect) => (!input.enforceViewport
       || (rect.left >= safeInsets.left && rect.right <= input.width - safeInsets.right
         && rect.top >= safeInsets.top && rect.bottom <= input.height - safeInsets.bottom)));
-    if (!candidate && input.enforceViewport && priority(node) <= 1) {
+    if (!candidate && input.enforceViewport && (priority(node) <= 1 || node.isKeyNode)) {
       const point = center(node);
       const safeLeft = safeInsets.left;
       const safeRight = input.width - safeInsets.right;

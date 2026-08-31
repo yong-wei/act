@@ -26,6 +26,7 @@ vi.mock('@/features/arena/adapters/registry', () => ({
 
 import { POST } from '../route';
 import type { ControllerArtifact } from '@/features/arena/types';
+import { ControlEngineFailure } from '@/lib/control-engine';
 
 const artifact: ControllerArtifact = {
   id: 'artifact-preview',
@@ -104,6 +105,23 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
     expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
   });
 
+  it('rejects client trace/summary/checksum before adapter execution', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    const response = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      trace: [{ t: 0, output: 1 }],
+      summary: { trackingError: 0 },
+      checksum: 'sha256:deadbeef',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('trace');
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
+  });
+
   it('creates a preview run through the production registry adapter for the session student', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
@@ -173,6 +191,27 @@ describe('POST /api/arena/virtual-simulation-runs', () => {
 
     expect(response.status).toBe(503);
     expect(payload.error).toBe('竞技场评测数据表尚未完成迁移，请先完成数据库迁移后重试。');
+  });
+
+  it('maps control-engine unavailable to 503 without adapter execution after a client hidden field', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    const hidden = await postJson({
+      taskId: artifact.taskId,
+      artifact,
+      hiddenInputs: { plant: [1, 2, 3] },
+    });
+    expect(hidden.status).toBe(400);
+    expect(mocks.runVirtualPreview).not.toHaveBeenCalled();
+
+    mocks.runVirtualPreview.mockRejectedValueOnce(new ControlEngineFailure({
+      state: 'unavailable',
+      category: 'wasm-not-ready',
+      message: 'Arena preview WASM is not ready.',
+      retryable: true,
+    }));
+    const unavailable = await postJson({ taskId: artifact.taskId, artifact });
+    expect(unavailable.status).toBe(503);
   });
 
   it('maps unsupported adapter selection to 400 without storing a preview run', async () => {

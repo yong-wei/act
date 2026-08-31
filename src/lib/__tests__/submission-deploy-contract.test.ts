@@ -17,7 +17,7 @@ describe('submission object production deployment contract', () => {
   it('runs scanner continuously and GC periodically without replacing data governance worker', () => {
     const wrapper = read('deploy/podman/container-start-wrapper.sh'); const deploy = read('deploy/podman/deploy.sh');
     expect(wrapper).toContain('ROLE" = "submission-scanner"'); expect(wrapper).toContain('scan-submission-objects.ts'); expect(wrapper).toContain('SUBMISSION_SCAN_INTERVAL_SECONDS');
-    expect(wrapper).toContain('if ! ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/scan-submission-objects.ts');
+    expect(wrapper).toContain('if ! SKIP_WOLFRAM_READY_CHECK=1 ./docker-entrypoint.sh ./node_modules/.bin/tsx scripts/assignments/scan-submission-objects.ts');
     expect(wrapper).toContain('扫描批次失败，将在间隔后重试');
     expect(wrapper).toContain('ROLE" = "submission-gc"'); expect(wrapper).toContain('gc-submission-objects.ts'); expect(wrapper).toContain('SUBMISSION_GC_INTERVAL_SECONDS');
     expect(wrapper).toContain('scripts/workers/data-governance-worker.ts');

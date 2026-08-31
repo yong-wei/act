@@ -47,6 +47,7 @@ import {
   resolveTeacherOperationsNavHref,
 } from '@/features/teacher/teacher-operations-nav';
 import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
+import { MANIFEST_COURSE_ROUTE_SEGMENTS } from '@/features/interactive/shared/manifest-course-app-loaders';
 import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS,
@@ -855,11 +856,21 @@ describe('platform UI contracts', () => {
       readSource('src/app/interactive-learning/chapter-components/_components/chapter-components-client.tsx'),
     ].join('\n');
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
+    const multiRepresentationSource = readSource('src/app/interactive-learning/multi-representation-linkage/page.tsx');
+    const multiRepresentationClientSource = readSource(
+      'src/features/interactive/multi-representation-linkage/page-client.tsx',
+    );
     const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
     const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
     const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
 
-    for (const source of [interactiveEntrySource, courseCatalogSource, chapterComponentsSource, crossDomainSource]) {
+    for (const source of [
+      interactiveEntrySource,
+      courseCatalogSource,
+      chapterComponentsSource,
+      crossDomainSource,
+      multiRepresentationSource,
+    ]) {
       expect(source).toContain('<InteractiveLearningShell');
       expect(source).toContain('data-interactive-atlas-workspace');
       expect(source).not.toContain('UnifiedTopBar');
@@ -896,6 +907,13 @@ describe('platform UI contracts', () => {
     expect(crossDomainSource).toContain(
       'data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"',
     );
+    expect(multiRepresentationSource).toContain(
+      'data-commercial-student-entry-route="/interactive-learning/multi-representation-linkage"',
+    );
+    expect(multiRepresentationSource).toContain('<InteractiveLearningShell');
+    expect(multiRepresentationClientSource).not.toContain('<InteractiveLearningShell');
+    expect(multiRepresentationClientSource).not.toContain('premium-lesson-shell min-h-screen');
+    expect(shellSource).toContain("'/interactive-learning/multi-representation-linkage'");
   });
 
   it('keeps concrete interactive course entry pages on the unified course entry shell', () => {
@@ -905,8 +923,8 @@ describe('platform UI contracts', () => {
     const entryPages = listSourceFiles('src/features/interactive').filter((relativePath) =>
       relativePath.endsWith('/entry-page.tsx'),
     );
-    const waitingPages = listSourceFiles('src/app/interactive-learning/courses').filter((relativePath) =>
-      relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'),
+    const waitingPages = listSourceFiles('src/features/interactive/course-app-routes').filter((relativePath) =>
+      relativePath.endsWith('/waiting.tsx'),
     );
 
     expect(courseEntryShellSource).toContain('<AppShell');
@@ -989,6 +1007,9 @@ describe('platform UI contracts', () => {
     const unit11StudentSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx');
     const unit11StepPanelsSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx');
     const unit11TeacherSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx');
+    const unit12StudentSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx');
+    const unit12StepPanelsSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx');
+    const unit12TeacherSource = readSource('src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx');
     const unit41StudentSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const unit41StepPanelsSource = readSource(
       'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx',
@@ -1012,14 +1033,19 @@ describe('platform UI contracts', () => {
     expect(runtimeShellSource).not.toContain('premium-lesson-topbar');
     expect(runtimeShellSource).not.toContain('max-w-[1180px]');
 
-    for (const source of [unit11StudentSource, unit11TeacherSource, unit41StudentSource, unit41TeacherSource]) {
-      expect(source).toContain('LessonRuntimeShell');
-      expect(source).not.toContain('CourseHeader');
-      expect(source).not.toContain('premium-lesson-topbar');
-      expect(source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
+    for (const source of listSourceFiles('src/features/interactive').filter((relativePath) =>
+      /\/(student|teacher)-page\.tsx$/.test(relativePath)
+      && !relativePath.includes('/__tests__/')
+      && !relativePath.includes('/multi-representation-linkage/'),
+    )) {
+      const pageSource = readSource(source);
+      expect(pageSource, source).toContain('LessonRuntimeShell');
+      expect(pageSource, source).not.toContain('CourseHeader');
+      expect(pageSource, source).not.toContain('premium-lesson-topbar');
+      expect(pageSource, source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
     }
 
-    for (const source of [unit11StudentSource, unit41StudentSource]) {
+    for (const source of [unit11StudentSource, unit12StudentSource, unit41StudentSource]) {
       expect(source).toContain("mode={isDemo ? 'guest' : 'student'}");
       expect(source).toContain('readOnly={isDemo}');
       expect(source).toContain('inlineTool');
@@ -1036,10 +1062,38 @@ describe('platform UI contracts', () => {
 
     expect(manifestActivitySource).toContain('readOnly?: boolean');
     expect(manifestActivitySource).toContain('演示模式会展示作答流程，但不会写入课堂汇总。');
+    expect(manifestActivitySource).toContain(
+      'disabled={readOnly || !draftValueForCard(card).trim() || pendingKeys.has(card.id)}',
+    );
+    expect(manifestActivitySource).toContain('if (readOnly || pendingKeysRef.current.has(card.id)) return;');
     expect(unit11StepPanelsSource).toContain('演示模式仅本机预览，不会同步到教师端汇总。');
+    expect(unit11StepPanelsSource).toContain('disabled={Boolean(readOnly)}');
     expect(unit41StepPanelsSource).toContain('readOnly?: boolean');
+    expect(unit12StepPanelsSource).toContain('readOnly?: boolean');
 
-    for (const source of [unit11TeacherSource, unit41TeacherSource]) {
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => /\/student-page\.tsx$/.test(item) && !item.includes('/__tests__/') && !item.includes('/multi-representation-linkage/'),
+    )) {
+      expect(readSource(relativePath), relativePath).toContain('readOnly={isDemo}');
+    }
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => item.endsWith('/step-panels.tsx') && !item.includes('/__tests__/'),
+    )) {
+      expect(readSource(relativePath), relativePath).not.toContain('void readOnly');
+      expect(readSource(relativePath), relativePath).not.toContain("\\'演示模式");
+      expect(readSource(relativePath), relativePath).not.toContain('onChange={() = ');
+      expect(readSource(relativePath), relativePath).not.toContain('onChange={(event) = ');
+    }
+
+    for (const relativePath of listSourceFiles('src/features/interactive').filter(
+      (item) => item.endsWith('/step-panels.tsx') && !item.includes('/__tests__/'),
+    )) {
+      const source = readSource(relativePath);
+      if (!source.includes('commitStudentResponse')) continue;
+      expect(source, relativePath).toContain('disabled={Boolean(readOnly)}');
+    }
+
+    for (const source of [unit11TeacherSource, unit12TeacherSource, unit41TeacherSource]) {
       expect(source).toContain('mode="teacher"');
       expect(source).toContain('data-teacher-projection-runtime');
       expect(source).toContain('toolsDefaultState="collapsed"');
@@ -1049,21 +1103,12 @@ describe('platform UI contracts', () => {
   });
 
   it('derives concrete course entry route metadata from the canonical route inventory', () => {
-    const courseEntryPageRoutes = listSourceFiles('src/app/interactive-learning/courses')
-      .filter((relativePath) => relativePath.endsWith('/page.tsx'))
-      .filter((relativePath) => relativePath.split(path.sep).length === 6)
-      .map((relativePath) => `/${path.dirname(relativePath).replace(/^src\/app\//, '')}`)
-      .sort();
-    const teacherWaitingRoutes = listSourceFiles('src/app/interactive-learning/courses')
-      .filter((relativePath) => relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'))
-      .map(
-        (relativePath) =>
-          `/${path
-            .dirname(relativePath)
-            .replace(/^src\/app\//, '')
-            .replace('/teacher/[sessionId]/waiting', '/teacher/session-1/waiting')}`,
-      )
-      .sort();
+    const courseEntryPageRoutes = MANIFEST_COURSE_ROUTE_SEGMENTS.map(
+      (segment) => `/interactive-learning/courses/${segment}`,
+    );
+    const teacherWaitingRoutes = MANIFEST_COURSE_ROUTE_SEGMENTS.map(
+      (segment) => `/interactive-learning/courses/${segment}/teacher/session-1/waiting`,
+    );
     const courseHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
     const waitingHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/session-1/waiting';
     const inventoryEntry = resolvePlatformRouteInventory(courseHref);
@@ -1177,7 +1222,7 @@ describe('platform UI contracts', () => {
       ...listSourceFiles('src/components/platform'),
     ];
     const invalidLiteralBusinessRole =
-      /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
+      /(?<![\w-])role\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
     const businessRoleForwardedToDom =
       /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
 
@@ -1364,7 +1409,7 @@ describe('platform UI contracts', () => {
   });
 
   it('keeps student primary navigation in canonical order across AppShell states', () => {
-    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '个人中心'];
+    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '提示词复盘', '个人中心'];
     const representativeRoutes = [
       '/knowledge',
       '/interactive-learning',

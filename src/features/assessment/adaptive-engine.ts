@@ -8,6 +8,7 @@ import {
 import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
+  findGeneratedRuntimeQuestionById,
   selectCatalogBackedAssessmentItem,
 } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
 import {
@@ -73,14 +74,7 @@ export interface SubmittedAnswerDetails {
   continuity?: CompanionPracticeMetadata;
 }
 
-interface SessionState {
-  userId: string;
-  askedQuestionIds: Set<string>;
-}
-
 interface AdaptiveStore {
-  sessions: Map<string, SessionState>;
-  answersByUser: Map<string, AdaptiveAnswerRecord[]>;
   generatedQuestions: Map<string, CrossDomainQuestion>;
 }
 
@@ -120,8 +114,6 @@ declare global {
 function createStore(): AdaptiveStore {
   if (!globalThis.__adaptiveAssessmentStore) {
     globalThis.__adaptiveAssessmentStore = {
-      sessions: new Map<string, SessionState>(),
-      answersByUser: new Map<string, AdaptiveAnswerRecord[]>(),
       generatedQuestions: new Map<string, CrossDomainQuestion>(),
     };
   }
@@ -167,43 +159,13 @@ export function getAdaptiveQuestionById(questionId: string): CrossDomainQuestion
   if (authored) {
     return checkpointAuthoredQuestionToRuntimeQuestion(authored);
   }
-  return store.generatedQuestions.get(questionId) ?? null;
+  return store.generatedQuestions.get(questionId) ?? findGeneratedRuntimeQuestionById(questionId);
 }
 
 function getQuestionForSession(questionId: string, params: { userId: string; sessionId: string }): CrossDomainQuestion | null {
   const question = getAdaptiveQuestionById(questionId);
   if (!question || !question.generatedMetadata) return question;
   return isGeneratedQuestionVisible(question, params) ? question : null;
-}
-
-function getSession(sessionId: string, userId: string): SessionState {
-  const store = createStore();
-  const safeSessionId = sessionId || `session-${userId}-default`;
-  const existing = store.sessions.get(safeSessionId);
-  if (existing) {
-    return existing;
-  }
-  const created: SessionState = {
-    userId,
-    askedQuestionIds: new Set<string>(),
-  };
-  store.sessions.set(safeSessionId, created);
-  return created;
-}
-
-function getAnswers(userId: string): AdaptiveAnswerRecord[] {
-  const store = createStore();
-  return store.answersByUser.get(userId) ?? [];
-}
-
-function pushAnswer(record: AdaptiveAnswerRecord): void {
-  const store = createStore();
-  const answers = store.answersByUser.get(record.userId) ?? [];
-  answers.push(record);
-  store.answersByUser.set(record.userId, answers);
-
-  const session = getSession(record.sessionId, record.userId);
-  session.askedQuestionIds.add(record.questionId);
 }
 
 export function estimateAdaptiveAbility(answers: AdaptiveAnswerRecord[]): number {
@@ -349,11 +311,6 @@ function isGeneratedQuestionVisible(question: CrossDomainQuestion, params?: { us
     question.generatedMetadata.sessionId === params?.sessionId;
 }
 
-export function getDiagnostic(userId: string): DiagnosticResult {
-  const answers = getAnswers(userId);
-  return getDiagnosticFromAnswers(answers);
-}
-
 export function getDiagnosticFromAnswers(answers: AdaptiveAnswerRecord[]): DiagnosticResult {
   const knowledgeDimensions = classifyDimensions(answers);
   const weakAreas = buildAdaptiveWeakAreas(answers);
@@ -364,23 +321,6 @@ export function getDiagnosticFromAnswers(answers: AdaptiveAnswerRecord[]): Diagn
     weakAreas,
     recommendedFocus,
   };
-}
-
-export function selectNextQuestion(params: {
-  userId: string;
-  sessionId: string;
-  goalId?: string | null;
-  questionScope?: AdaptiveQuestionScope;
-}): {
-  question: PublicQuestion;
-  estimatedAbility: number;
-  confidenceInterval: [number, number];
-} {
-  const answers = getAnswers(params.userId);
-  const session = getSession(params.sessionId, params.userId);
-  const result = selectNextQuestionFromAnswers(params, answers, session.askedQuestionIds);
-  session.askedQuestionIds.add(result.question.id);
-  return result;
 }
 
 export function selectNextQuestionFromAnswers(
@@ -595,55 +535,6 @@ function findCorrectOption(question: CrossDomainQuestion) {
   };
 }
 
-export function submitAnswerWithDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getQuestionForSession(params.questionId, params);
-  if (!question) {
-    throw new Error('题目不存在');
-  }
-
-  const selected = findSelectedOption(question, params.selectedOption);
-  const correct = findCorrectOption(question);
-  const answer = selected.option;
-  const isCorrect = Boolean(answer?.isCorrect);
-  const record: AdaptiveAnswerRecord = {
-    sessionId: params.sessionId,
-    userId: params.userId,
-    questionId: question.id,
-    isCorrect,
-    timeSpent: Math.max(1, Math.round(params.timeSpent || 1)),
-    selectedOption: params.selectedOption,
-    difficulty: question.difficulty,
-    knowledgeTags: question.knowledgeTags,
-    questionType: question.type,
-    domains: question.domains,
-    createdAt: Date.now(),
-  };
-
-  pushAnswer(record);
-
-  const answers = getAnswers(params.userId);
-  const details = {
-    result: {
-      isCorrect,
-      correctOption: correct.option?.label ?? '',
-      explanation: answer?.explanation ?? '请关注题干中的“域间映射”和“约束优先级”。',
-      estimatedAbility: 0,
-      recommendedFocus: [],
-    },
-    record,
-    question,
-    selectedOptionKey: selected.optionKey,
-    correctOptionKey: correct.optionKey,
-    pathContext: params.pathContext,
-    continuity: params.continuity,
-  };
-
-  return {
-    ...details,
-    result: buildSubmitAnswerResult(details, answers),
-  };
-}
-
 export function buildSubmitAnswerResult(
   details: Omit<SubmittedAnswerDetails, 'result'>,
   answers: AdaptiveAnswerRecord[],
@@ -663,12 +554,10 @@ export function buildSubmitAnswerResult(
   };
 }
 
-export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
-  const question = getQuestionForSession(params.questionId, params);
-  if (!question) {
-    throw new Error('题目不存在');
-  }
-
+export function createSubmitAnswerDetailsForQuestion(
+  question: CrossDomainQuestion,
+  params: SubmitAnswerParams,
+): SubmittedAnswerDetails {
   const selected = findSelectedOption(question, params.selectedOption);
   const correct = findCorrectOption(question);
   const answer = selected.option;
@@ -708,13 +597,13 @@ export function createSubmitAnswerDetails(params: SubmitAnswerParams): Submitted
   };
 }
 
-export function submitAnswer(params: SubmitAnswerParams): SubmitAnswerResult {
-  return submitAnswerWithDetails(params).result;
-}
+export function createSubmitAnswerDetails(params: SubmitAnswerParams): SubmittedAnswerDetails {
+  const question = getQuestionForSession(params.questionId, params);
+  if (!question) {
+    throw new Error('题目不存在');
+  }
 
-export function getAbilityReport(userId: string): AbilityReport {
-  const answers = getAnswers(userId);
-  return getAbilityReportFromAnswers(userId, answers);
+  return createSubmitAnswerDetailsForQuestion(question, params);
 }
 
 export function getAbilityReportFromAnswers(userId: string, answers: AdaptiveAnswerRecord[]): AbilityReport {

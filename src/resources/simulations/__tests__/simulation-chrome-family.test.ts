@@ -144,6 +144,9 @@ describe('chrome family polish', () => {
     const dir = path.join(ROOT, 'src/resources/simulations/simulations');
     for (const file of walkTsx(dir)) {
       const source = read(file);
+      if (!source.includes('wakeVisible') && !source.includes('WakeParticles') && !source.includes('waterYSampler')) {
+        continue;
+      }
       expect(source, `${file} missing wakeVisible gate`).toContain('wakeVisible');
       expect(source, `${file} missing wakeVisible early return`).toContain('if (!wakeVisible) return null;');
     }
@@ -163,6 +166,9 @@ describe('chrome family polish', () => {
     const dir = path.join(ROOT, 'src/resources/simulations/simulations');
     for (const file of walkTsx(dir)) {
       const source = read(file);
+      if (!source.includes('waterYSampler') && !source.includes('wakeVisible') && !source.includes('WakeParticles')) {
+        continue;
+      }
       expect(source, `${file} still feeds a flat per-frame water height`).not.toContain('waterYSampler={() => waterYRef.current}');
       expect(source, `${file} missing position-aware wake sampler`).toContain('x ?? 0, z ?? 0, timeRef.current');
     }

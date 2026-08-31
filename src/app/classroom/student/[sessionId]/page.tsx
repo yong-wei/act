@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { StudentPlayer } from '@/features/lesson-engine/student-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
-import { canAccessClassroomSession } from '@/lib/classroom-session-access';
+import { authorizeClassroomSessionAccess } from '@/features/classroom/session';
 import { resolveGeneratedCoursewareSessionBinding } from '@/lib/smart-courseware/classroom-runtime';
 import { GeneratedCoursewareRecoveryState } from '@/features/lesson-engine/generated-courseware-recovery';
 
@@ -34,11 +34,18 @@ export default async function StudentSessionPage(props: PageProps) {
       class: {
         select: { name: true },
       },
+      courseBundleRevision: {
+        select: { canonicalLessonId: true },
+      },
     }
   });
 
   if (!session) notFound();
-  if (!canAccessClassroomSession(session, userSession.user)) {
+  if (!authorizeClassroomSessionAccess({
+    session,
+    actor: userSession.user,
+    operation: 'read',
+  }).allowed) {
     notFound();
   }
   const generatedResolution = await resolveGeneratedCoursewareSessionBinding(prisma, session);
@@ -50,6 +57,8 @@ export default async function StudentSessionPage(props: PageProps) {
     role: 'student',
     sessionId: session.id,
     planTitle: session.plan.title,
+    bundleCanonicalLessonId: session.courseBundleRevision?.canonicalLessonId ?? null,
+    bundleBound: session.courseBundleRevisionId !== null,
   });
   if (studentHref !== `/classroom/student/${session.id}`) {
     redirect(studentHref);

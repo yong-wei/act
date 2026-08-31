@@ -10,7 +10,6 @@ import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
   activeAuthorityEdgeEndpoints,
   activeAuthorityNodeBoundaryPoint,
-  layoutActiveAuthorityNodes,
   selectActiveAuthorityMembership,
 } from '../active-authority-graph';
 import {
@@ -403,10 +402,18 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => button!.click());
     await act(async () => Promise.resolve());
     if (options.families === false) return;
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    const restoreMobileTools = mobileToolsToggle?.getAttribute('aria-expanded') === 'false';
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
+    }
     for (const family of ['association', 'application-and-analysis'] as const) {
       const familyButton = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
       expect(familyButton).not.toBeNull();
       await act(async () => familyButton!.click());
+    }
+    if (restoreMobileTools) {
+      await act(async () => mobileToolsToggle!.click());
     }
     await act(async () => Promise.resolve());
   }
@@ -919,6 +926,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-knowledge-layout-control="fit-view"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
 
     await act(async () => {
@@ -1048,21 +1057,15 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
     expect(rootCanvas).not.toBeNull();
+    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('force-graph');
+    expect(rootCanvas?.querySelector('[data-knowledge-runtime-canvas]')).not.toBeNull();
     expect(container.querySelectorAll('[data-authority-domain-entry]')).toHaveLength(3);
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
-    expect(rootCanvas?.querySelectorAll('line, polyline, [data-authority-root-edge]')).toHaveLength(0);
+    expect(rootCanvas?.querySelectorAll('svg, line, polyline, [data-authority-root-edge]')).toHaveLength(0);
     expect(container.textContent).not.toContain('state-space');
     expect(container.textContent).not.toContain('internal-release');
     const modelingButton = container.querySelector('[data-authority-domain-entry="modeling"]');
-    const modelingGroup = modelingButton?.closest('g');
-    const modelingCircle = modelingGroup?.querySelector('circle');
     expect(modelingButton?.getAttribute('aria-label')).toBe('系统建模');
-    expect(modelingCircle?.closest('[pointer-events="none"]')).not.toBeNull();
-    expect(
-      modelingCircle && modelingButton
-        ? Boolean(modelingCircle.compareDocumentPosition(modelingButton) & Node.DOCUMENT_POSITION_FOLLOWING)
-        : false,
-    ).toBe(true);
     expect(container.querySelector('[data-authority-domain-entry="state-space"]')?.getAttribute('aria-label')).toBe('该领域暂不可用');
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
     expect(requested).toEqual(['/api/knowledge/shards/active']);
@@ -1197,6 +1200,30 @@ describe('active Authority knowledge workspace client boundary', () => {
       filter.dispatchEvent(new Event('change', { bubbles: true }));
     });
     expect(container.textContent).toContain('公式');
+  });
+
+  it('keeps a visible, focusable node directory when relations are unavailable', async () => {
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: true });
+
+    const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="visible"]');
+    const node = container.querySelector<HTMLButtonElement>('[data-active-authority-visible-node="true"][data-active-authority-node="node-concept"]');
+    expect(directory).not.toBeNull();
+    expect(node).not.toBeNull();
+    expect(node?.textContent).toContain('稳定性');
+
+    await act(async () => node!.click());
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(node?.dataset.activeAuthorityNodeSelected).toBe('true');
+
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await new Promise((resolve) => window.setTimeout(resolve, 5));
+    });
+    expect(document.activeElement).toBe(node);
   });
 
   it('enters a boundary node owning domain before selecting it and loading its neighborhood', async () => {
@@ -1615,49 +1642,40 @@ describe('active Authority knowledge workspace client boundary', () => {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
     })));
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
-    await enterModelingDomain();
+    await enterModelingDomain({ families: false });
 
     const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
     expect(canvas).not.toBeNull();
     expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
-    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-active-authority-node]')).toHaveLength(2);
     expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('false');
+    expect(container.querySelector('#active-authority-mobile-tools')).toBeNull();
+
+    await act(async () => mobileToolsToggle!.click());
+    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('true');
+    expect(container.querySelector('#active-authority-mobile-tools')).not.toBeNull();
+
+    const association = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(association).not.toBeNull();
+    await act(async () => association!.click());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-authority-relation]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
 
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     expect(graphSource).toContain('max-[639px]:pt-14');
     expect(graphSource).toContain('max-[639px]:flex-nowrap');
     expect(graphSource).toContain('max-[639px]:overflow-x-auto');
-  });
-
-  it('keeps the desktop layout deterministic and inside the 960x520 viewBox for one to 24 nodes', () => {
-    for (let nodeCount = 1; nodeCount <= 24; nodeCount += 1) {
-      const nodes = Array.from({ length: nodeCount }, (_, index) => ({ key: `node-${index}` }));
-      const layout = layoutActiveAuthorityNodes(nodes);
-      const repeatLayout = layoutActiveAuthorityNodes(nodes);
-      const points = [...layout.values()];
-      const repeatPoints = [...repeatLayout.values()];
-      const columns = new Set(points.map((point) => point.x)).size;
-      const rows = new Set(points.map((point) => point.y)).size;
-      const expectedColumns = Math.min(6, Math.max(Math.ceil(Math.sqrt(nodeCount)), Math.ceil(nodeCount / 4)));
-      expect(columns).toBe(expectedColumns);
-      expect(rows).toBe(Math.ceil(nodeCount / expectedColumns));
-      expect(rows).toBeLessThanOrEqual(4);
-      expect(points).toEqual(repeatPoints);
-      const maxVisibleLabelHalfWidth = (14 * 12) / 2;
-      expect(points.every((point) => point.x - maxVisibleLabelHalfWidth >= 0
-        && point.x + maxVisibleLabelHalfWidth <= 960)).toBe(true);
-      expect(points.every((point) => point.y - 30 >= 0 && point.y + 30 <= 520)).toBe(true);
-      if (nodeCount === 24) {
-        expect(points).toHaveLength(24);
-        expect(columns).toBe(6);
-        expect(rows).toBe(4);
-        expect(Math.min(...points.map((point) => point.x))).toBe(88);
-        expect(Math.max(...points.map((point) => point.x))).toBe(868);
-      }
-    }
+    expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
+    expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
+    expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
+    const runtimeViewSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-runtime-view.tsx'), 'utf8');
+    expect(runtimeViewSource).toContain('labelPriority: compactLabelPriority');
   });
 
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {
@@ -1763,6 +1781,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('if (!pathName.startsWith(prefix)) return null;');
     expect(captureSource).toContain('detailPanelFocusedAfterOpen');
     expect(captureSource).toContain('nodeLabelReadability');
+    expect(captureSource).toContain('data-knowledge-2d-dom-label-layer');
     expect(captureSource).toContain('minPixelSize');
     expect(captureSource).toContain('activeNodeLabelGeometryValid');
     expect(captureSource).toContain('nodeGeometryWithinSvgCount');
@@ -1772,6 +1791,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain("state.name === 'active-mobile'");
     expect(captureSource).toContain('titleControlsOverlap');
     expect(captureSource).toContain('nodeGeometryWithinViewportCount');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT');
+    expect(captureSource).toContain('MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS');
+    expect(captureSource).toContain('rendererViewportVisibleHeight');
+    expect(captureSource).toContain('rendererVisiblePaintPixelCount');
+    expect(captureSource).toContain('nodeLabelsReadable');
+    expect(captureSource).toContain('mobileToolsExpanded');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed');
     expect(captureSource).toContain('active mobile first-viewport geometry contract failed in role:${role}');
     expect(captureSource).toContain('firstViewport: {');
@@ -1780,6 +1805,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
+    const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
+    expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
+    expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
+    expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
+    expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
+    expect(governanceSource).toContain('initial-controls-not-collapsed');
   });
 
   it('fails closed before slicing unrelated Knowledge API paths', () => {

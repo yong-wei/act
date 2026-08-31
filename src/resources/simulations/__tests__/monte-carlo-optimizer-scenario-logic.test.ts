@@ -9,7 +9,7 @@ import {
 } from '@/resources/simulations/lib/monte-carlo-optimizer';
 import type { SimpleSimConfig } from '@/resources/simulations/lib/monte-carlo-optimizer';
 
-vi.mock('@/resources/simulations/rust/control-engine-server-runtime', () => {
+vi.mock('@/lib/control-engine/server', () => {
   const mockNomotoRequests: unknown[] = [];
   return {
     mockNomotoRequests,
@@ -171,7 +171,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
 
   it('legacy v1 runtime request does NOT include maxRudderRateDegPerSec', async () => {
     const { mockNomotoRequests } = await import(
-      '@/resources/simulations/rust/control-engine-server-runtime'
+      '@/lib/control-engine/server'
     ) as unknown as { mockNomotoRequests: unknown[] };
     const legacyScenario = getLegacySceneLogic('turn90', DEFAULT_TARGET.targetHeading);
 
@@ -197,7 +197,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
 
   it('keeps scene-trace legacy scoring and guide-path semantics unchanged', async () => {
     const runtime = await import(
-      '@/resources/simulations/rust/control-engine-server-runtime'
+      '@/lib/control-engine/server'
     ) as unknown as { mockNomotoRequests: unknown[] };
     runtime.mockNomotoRequests.length = 0;
 
@@ -217,7 +217,7 @@ describe('PID optimizer scenario rudder rate isolation', () => {
 
   it('calibrated v2 runtime request DOES include maxRudderRateDegPerSec: 5', async () => {
     const { mockNomotoRequests } = await import(
-      '@/resources/simulations/rust/control-engine-server-runtime'
+      '@/lib/control-engine/server'
     ) as unknown as { mockNomotoRequests: unknown[] };
     mockNomotoRequests.length = 0;
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { canAccessClassroomSession } from '@/lib/classroom-session-access';
+import { canAccessClassroomSession } from '@/features/classroom/session';
 import { resolveTrustedControlWorkbenchContext } from '@/lib/data-governance/control-workbench-run-context';
 import {
   persistControlWorkbenchSimulationRun,
@@ -10,8 +10,9 @@ import {
   type SimulationRunLaunchContext,
 } from '@/lib/data-governance/simulation-scene-run-persistence';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { ControlEngineFailure, controlEngineHttpStatus } from '@/lib/control-engine';
+import { computeControlAnalysisServer } from '@/lib/control-engine/server';
 import { prisma } from '@/lib/prisma';
-import { computeControlAnalysisServer } from '@/resources/control-system/analysis/control-engine-server-runtime';
 import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 import {
   evaluatePIDParams,
@@ -225,6 +226,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unsupported run kind' }, { status: 400 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof ControlEngineFailure) {
+      return NextResponse.json(
+        { error: error.message, state: error.state },
+        { status: controlEngineHttpStatus(error) },
+      );
+    }
     console.error('[Simulation Runs API] Failed to persist run:', error);
     return NextResponse.json({ error: 'Failed to persist simulation run' }, { status: 500 });
   }

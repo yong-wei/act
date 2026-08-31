@@ -27,6 +27,8 @@ type ReportPrisma = Pick<PrismaClient,
   | 'studentCompetencySnapshot'
   | 'classSessionReport'
   | 'studentSessionReport'
+  | 'sessionClosureOutbox'
+  | 'sessionClosurePhase'
   | 'user'
 >;
 
@@ -455,10 +457,25 @@ export function buildSyncErrorIncidentSummary(logs: InteractionLogSummaryItem[])
   };
 }
 
+/**
+ * 显式重算选项：只有授权操作命名新 revision、输入水位与晚到证据输入界后，
+ * POST_SESSION_REVIEW 证据才可进入重算报告。重算结果写入独立的
+ * 'class-summary-recompute' 报告行，原 'class-summary' 闭包报告保持不变、
+ * 可独立查询。
+ */
+export interface SessionReportRecomputeOptions {
+  recomputeRevision: number;
+  recomputeInputWatermark: bigint;
+  /** 命名的晚到证据输入界：仅纳入 submittedAt 早于该时点的 POST_SESSION_REVIEW 行 */
+  includeReviewSubmittedBefore: Date;
+}
+
 export async function generateSessionSummaryReports(
   db: ReportPrisma,
   sessionId: string,
+  options?: { recompute?: SessionReportRecomputeOptions },
 ): Promise<{ classReports: number; studentReports: number; skipped: boolean }> {
+  const recompute = options?.recompute ?? null;
   const session = await db.classSession.findUnique({
     where: { id: sessionId },
     select: {
@@ -467,6 +484,8 @@ export async function generateSessionSummaryReports(
       status: true,
       startTime: true,
       endTime: true,
+      closureRevision: true,
+      acceptedSubmissionWatermark: true,
       plan: {
         select: { title: true },
       },
@@ -476,6 +495,44 @@ export async function generateSessionSummaryReports(
   if (!session) {
     return { classReports: 0, studentReports: 0, skipped: true };
   }
+
+  // 默认闭包读法：仅接受水位以内的 ACCEPTED 证据；POST_SESSION_REVIEW 一律排除。
+  // 历史 ACCEPTED 行（submissionSequence 为 null，水位前写入）保持纳入。
+  // 重算读法：水位以内 ACCEPTED + 调用方以 includeReviewSubmittedBefore 命名的晚到证据输入界。
+  const acceptedSubmissionWatermark = session.acceptedSubmissionWatermark;
+  const submissionEvidenceWhere: Prisma.StudentStepResponseWhereInput = recompute
+    ? {
+      sessionId,
+      OR: [
+        {
+          evidenceStatus: 'ACCEPTED',
+          ...(acceptedSubmissionWatermark != null
+            ? {
+              OR: [
+                { submissionSequence: { lte: acceptedSubmissionWatermark } },
+                { submissionSequence: null },
+              ],
+            }
+            : {}),
+        },
+        {
+          evidenceStatus: 'POST_SESSION_REVIEW',
+          submittedAt: { lt: recompute.includeReviewSubmittedBefore },
+        },
+      ],
+    }
+    : {
+      sessionId,
+      evidenceStatus: 'ACCEPTED',
+      ...(acceptedSubmissionWatermark != null
+        ? {
+          OR: [
+            { submissionSequence: { lte: acceptedSubmissionWatermark } },
+            { submissionSequence: null },
+          ],
+        }
+        : {}),
+    };
 
   const [studentStates, logs, facts, submissions] = await Promise.all([
     db.studentState.findMany({
@@ -510,7 +567,7 @@ export async function generateSessionSummaryReports(
       },
     }) as Promise<LearningFactSummaryItem[]>,
     db.studentStepResponse.findMany({
-      where: { sessionId },
+      where: submissionEvidenceWhere,
       select: {
         userId: true,
         stepId: true,
@@ -519,9 +576,45 @@ export async function generateSessionSummaryReports(
       },
     }) as Promise<StudentStepResponseSummaryItem[]>,
   ]);
+  const postSessionReviewTotal = await db.studentStepResponse.count({
+    where: { sessionId, evidenceStatus: 'POST_SESSION_REVIEW' },
+  });
+
+  // 结构性闭包谓词：原闭包消费者一律使用 closureLogs；晚到（afterSessionEnd）
+  // 事件单独留存，仅作为披露计数。任何新的统计口径都不得直接读取原始 logs。
+  const afterSessionEndLogs = logs.filter((log) => readObject(log.eventData).afterSessionEnd === true);
+  const closureLogs = logs.filter((log) => readObject(log.eventData).afterSessionEnd !== true);
+  const includedReviewCount = recompute
+    ? await db.studentStepResponse.count({
+      where: {
+        sessionId,
+        evidenceStatus: 'POST_SESSION_REVIEW',
+        submittedAt: { lt: recompute.includeReviewSubmittedBefore },
+      },
+    })
+    : 0;
+  // 默认闭包读法排除全部 POST_SESSION_REVIEW；显式重算修订仅纳入命名输入界以内的部分
+  const excludedPostSessionReviewSubmissions = recompute
+    ? postSessionReviewTotal - includedReviewCount
+    : postSessionReviewTotal;
+
+  // 阶段台账投影源：最近一次闭包的阶段回执（无闭包则为空，报告显示 NOT_APPLICABLE）
+  const closureLedger = await db.sessionClosureOutbox.findFirst({
+    where: { sessionId },
+    orderBy: { availableAt: 'desc' },
+    select: { id: true },
+  });
+  const closureLedgerPhases = closureLedger
+    ? await db.sessionClosurePhase.findMany({
+      where: { closureOutboxId: closureLedger.id },
+      select: { phase: true, status: true, total: true, done: true, detail: true },
+    })
+    : [];
+  const materializeLedgerRow = closureLedgerPhases.find((entry) => entry.phase === 'materialize') ?? null;
+  const cacheLedgerRow = closureLedgerPhases.find((entry) => entry.phase === 'cache') ?? null;
 
   const roleUserIds = Array.from(new Set([
-    ...logs.map((log) => log.userId),
+    ...closureLogs.map((log) => log.userId),
     ...facts.map((fact) => fact.userId),
     ...submissions.map((submission) => submission.userId),
   ])).sort();
@@ -532,7 +625,7 @@ export async function generateSessionSummaryReports(
     }) as UserRoleSummaryItem[]
     : [];
   const roleByUserId = new Map(userRoles.map((user) => [user.id, user.role]));
-  const logsWithRoles = logs.map((log) => ({
+  const logsWithRoles = closureLogs.map((log) => ({
     ...log,
     userRole: resolveQueriedUserRole(roleByUserId, log.userId),
   }));
@@ -562,7 +655,7 @@ export async function generateSessionSummaryReports(
     ...studentSubmissions.map((submission) => submission.userId),
   ])).sort();
   const lessonKey = firstNonEmpty([
-    logs.find((log) => log.lessonKey)?.lessonKey,
+    closureLogs.find((log) => log.lessonKey)?.lessonKey,
     studentFacts.find((fact) => fact.lessonId)?.lessonId,
     studentStates.find((state) => state.lessonKey)?.lessonKey,
   ]);
@@ -572,9 +665,10 @@ export async function generateSessionSummaryReports(
   const invalidContextReasons: Record<string, number> = {};
   const submittedUserIds = new Set<string>();
   const syncErrorUserIds = new Set<string>();
-  let afterSessionEndEvents = 0;
+  // 晚到事件不计入任何闭包统计，仅作为披露计数保留
+  const afterSessionEndEvents = afterSessionEndLogs.length;
 
-  for (const log of logs) {
+  for (const log of closureLogs) {
     const canonicalEventType = resolveReportEventType(log);
     increment(eventTypes, log.eventType);
     increment(canonicalEventTypes, canonicalEventType);
@@ -582,9 +676,6 @@ export async function generateSessionSummaryReports(
     increment(invalidContextReasons, log.invalidContextReason);
     if (canonicalEventType === 'sync_error') {
       syncErrorUserIds.add(log.userId);
-    }
-    if (readObject(log.eventData).afterSessionEnd === true) {
-      afterSessionEndEvents += 1;
     }
   }
   for (const log of studentLogs) {
@@ -594,7 +685,7 @@ export async function generateSessionSummaryReports(
     }
   }
 
-  const syncHealth = buildSyncErrorIncidentSummary(logs);
+  const syncHealth = buildSyncErrorIncidentSummary(closureLogs);
   const qualitySyncHealth = buildSyncErrorIncidentSummary(studentLogs);
   const syncErrorIncidents = syncHealth.incidentCount;
   const evidenceSummary = summarizeSubmissionEvidence(studentSubmissions);
@@ -668,7 +759,7 @@ export async function generateSessionSummaryReports(
     startTime: session.startTime.toISOString(),
     endTime: session.endTime?.toISOString() ?? null,
     participants: sessionParticipantUserIds.length,
-    interactionLogs: logs.length,
+    interactionLogs: closureLogs.length,
     learningFacts: studentFacts.length,
     durableSubmissions: studentSubmissions.length,
     submittedParticipantsFromDurableResponses: durableSubmittedUserIds.size,
@@ -684,6 +775,70 @@ export async function generateSessionSummaryReports(
     syncErrorIncidents,
     syncHealth,
     qualityStatus: qualityStatusData,
+    closure: {
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark: acceptedSubmissionWatermark != null ? acceptedSubmissionWatermark.toString() : null,
+      sessionStatus: session.status,
+      evidenceSelection: recompute
+        ? 'explicit-recompute-revision'
+        : acceptedSubmissionWatermark != null
+          ? 'accepted-submission-watermark'
+          : 'accepted-only',
+      excludedPostSessionReviewSubmissions,
+      postSessionReviewSubmissionsTotal: postSessionReviewTotal,
+    },
+    ...(recompute
+      ? {
+        recompute: {
+          revision: recompute.recomputeRevision,
+          inputWatermark: recompute.recomputeInputWatermark.toString(),
+          includedReviewCutoffAt: recompute.includeReviewSubmittedBefore.toISOString(),
+          includedPostSessionReviewSubmissions: includedReviewCount,
+          generatedAt: new Date().toISOString(),
+        },
+      }
+      : {}),
+    // 阶段状态投影自 SessionClosurePhase 台账（最近一次闭包）：
+    // 教师报告如实暴露每个阶段的真实回执（含 FAILED 与原因），不再写死
+    phases: {
+      captured: {
+        status: 'SUCCEEDED',
+        interactionLogs: closureLogs.length,
+        acceptedSubmissions: studentSubmissions.length,
+        postSessionReviewIncluded: recompute ? postSessionReviewTotal : 0,
+      },
+      materialized: materializeLedgerRow
+        ? {
+          status: materializeLedgerRow.status,
+          examined: materializeLedgerRow.total,
+          factsCreated: materializeLedgerRow.done,
+          source: 'session-closure-phase ledger',
+          learningFacts: studentFacts.length,
+          ...(materializeLedgerRow.status === 'FAILED' ? { detail: materializeLedgerRow.detail } : {}),
+        }
+        : {
+          status: 'NOT_APPLICABLE',
+          note: 'no staged closure ledger for this session yet',
+          learningFacts: studentFacts.length,
+        },
+      summarized: {
+        status: 'SUCCEEDED',
+        generatedAt: new Date().toISOString(),
+        reportTypes: recompute ? ['class-summary-recompute'] : ['class-summary', 'student-summary'],
+      },
+      cached: cacheLedgerRow
+        ? {
+          status: cacheLedgerRow.status,
+          participants: cacheLedgerRow.total,
+          refreshed: cacheLedgerRow.done,
+          source: 'session-closure-phase ledger',
+          ...(cacheLedgerRow.status === 'FAILED' ? { detail: cacheLedgerRow.detail } : {}),
+        }
+        : {
+          status: 'NOT_APPLICABLE',
+          note: 'no staged closure ledger for this session yet',
+        },
+    },
     afterSessionEndEvents,
     sessionGovernanceSummary: {
       qualityStatus: qualityStatusData,
@@ -726,7 +881,7 @@ export async function generateSessionSummaryReports(
       },
     },
     evidenceSources: {
-      interactionLogs: 'InteractionLog rows for this session',
+      interactionLogs: 'InteractionLog rows within the original closure; post-session (afterSessionEnd) events are excluded from statistics and only disclosed via afterSessionEndEvents',
       durableSubmissions: 'StudentStepResponse rows for this session',
       learningFacts: 'LearningFact rows for this session',
       stateParticipants: 'StudentState rows for this session, excluding teacher state',
@@ -756,32 +911,47 @@ export async function generateSessionSummaryReports(
   };
   const classReportJson = classReportData as Prisma.InputJsonValue;
   const summary = `${sessionParticipantUserIds.length} 名学生产生 ${studentLogs.length} 条互动日志，沉淀 ${studentFacts.length} 条学习事实。`;
+  // 重算写入独立报告行：原 'class-summary' 闭包报告保持不变、可独立查询
+  const classReportType = recompute ? 'class-summary-recompute' : 'class-summary';
 
   await db.classSessionReport.upsert({
     where: {
       sessionId_reportType: {
         sessionId,
-        reportType: 'class-summary',
+        reportType: classReportType,
       },
     },
     create: {
       sessionId,
       lessonKey,
-      reportType: 'class-summary',
+      reportType: classReportType,
       status: 'READY',
       summary,
       reportData: classReportJson,
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark,
+      recomputeRevision: recompute?.recomputeRevision ?? null,
+      recomputeInputWatermark: recompute?.recomputeInputWatermark ?? null,
     },
     update: {
       lessonKey,
       status: 'READY',
       summary,
       reportData: classReportJson,
+      closureRevision: session.closureRevision,
+      acceptedSubmissionWatermark,
+      recomputeRevision: recompute?.recomputeRevision ?? null,
+      recomputeInputWatermark: recompute?.recomputeInputWatermark ?? null,
     },
   });
 
+  if (recompute) {
+    return { classReports: 1, studentReports: 0, skipped: false };
+  }
+
   for (const userId of sessionParticipantUserIds) {
-    const studentLogs = logs.filter((log) => log.userId === userId);
+    // 学生报告与班级报告使用同一闭包谓词：晚到事件不进入任何学生统计
+    const studentLogs = closureLogs.filter((log) => log.userId === userId);
     const userFacts = studentFacts.filter((fact) => fact.userId === userId);
     const userSubmissions = studentSubmissions.filter((submission) => submission.userId === userId);
     const studentLessonKey = firstNonEmpty([

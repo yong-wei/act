@@ -1,0 +1,9 @@
+{
+  "manifestSha256": "27d0add1a4f600b8233fecd50737009ec656f33b2663049be6fa0e0413e7a66a",
+  "manifestVersion": "act-runtime-release.v2",
+  "manifestWireSha256": "fb275be307f8d5c8e99739b894fce2c2f2784faec58398d2d54f3616b7110b7c",
+  "manifestWireSizeBytes": 17594371,
+  "releaseId": "runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde",
+  "schemaVersion": "runtime-blob-release-identity.v1",
+  "treeSha256": "16fddf5a457864bf9fa5c36bddbcf63296b9159861972f94fe146e445a9daa06"
+}

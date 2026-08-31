@@ -61,7 +61,7 @@ describe('platform entrypoint smoke contracts', () => {
     expect(source).not.toContain('homepageEntryIntentGroups');
     expect(source).not.toContain('intentGroup.entryIds.includes');
     expect(source).not.toContain('const moduleLinks = [');
-    expect(homepageEntryLabels).toEqual(['知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台']);
+    expect(homepageEntryLabels).toEqual(['知识资源', '互动学习', '学习路径', '提示词复盘', '竞技场', '虚拟仿真', '控制工作台']);
     expect(homepageEntryLabels).not.toContain('个人中心');
   });
 

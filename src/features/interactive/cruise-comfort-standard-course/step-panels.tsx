@@ -58,6 +58,7 @@ export function CruiseStudentActivityForm({
   answerVisible,
   revealProgress,
   onSubmit,
+  readOnly = false,
 }: {
   step: CruiseStandardLessonStep;
   manifest?: InteractiveRuntimeManifest | null;
@@ -67,7 +68,9 @@ export function CruiseStudentActivityForm({
   answerVisible: boolean;
   revealProgress: number;
   onSubmit: (response: ManifestStepResponse) => void;
+  readOnly?: boolean;
 }) {
+
   if (!manifest) {
     throw new Error('Cruise comfort runtime manifest is required for student activity rendering.');
   }
@@ -84,6 +87,7 @@ export function CruiseStudentActivityForm({
         answerVisible,
         revealProgress,
         onSubmit,
+        readOnly,
       })}
     </>
   );

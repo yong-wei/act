@@ -52,13 +52,16 @@ import {
   v022IndependentPresentationInventory,
   FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC,
 } from '@/lib/authority-locale-readiness';
-import { loadActivePresentationInventory } from '@/lib/authority-locale-readiness/active-presentation-inventory';
 import {
   localeManifestQualificationDigest,
   resolveActiveLocaleQualification,
 } from '@/lib/authority-locale-readiness/request';
 import { FUTURE_RELEASE_BOUNDARY, qualifyPublishedLatestComposite } from '@/lib/authority-locale-readiness/published';
 import { activeLocaleCapability, resolveActiveLocaleRequest } from '@/lib/authority-locale-readiness/request';
+import { REGISTERED_PEER_DOMAIN_IDS } from '@/lib/authority-domain-catalog';
+import { loadActiveShardContext, loadDomainDefaultShard } from '@/lib/authority-domain-shards/loader';
+import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
+import { shardRelativePaths } from '@/lib/authority-domain-shards/store';
 
 const PRODUCTION_SELECTORS = [
   'course-content/runtime/knowledge/authority-domain-shards/current.json',
@@ -489,16 +492,19 @@ describe('locale request gate', () => {
     expect(resolved.qualification).toBeNull();
   });
 
-  it('rebuilds a non-empty presentation inventory from the active sealed shards', () => {
-    const inventory = loadActivePresentationInventory();
-    expect(inventory.domains.length).toBeGreaterThan(0);
-    expect(inventory.objectNames.length).toBeGreaterThan(0);
-    expect(inventory.types.length).toBeGreaterThan(0);
-    expect(inventory.relations.length).toBeGreaterThan(0);
-    expect(inventory.directions.length).toBeGreaterThan(0);
-    expect(loadActivePresentationInventory()).toBe(inventory);
-    const expected = expectedDenominatorsFromInventory(inventory);
-    expect(expected.find((row) => row.category === 'object-names')?.recordIds).toEqual([...inventory.objectNames].sort());
+  it('keeps sealed domain-default shards for registered peers of the active successor catalog', () => {
+    const identity = resolveActiveShardIdentity();
+    expect(identity.envelope.authority.releaseId).toBe(
+      'ctr:release:control-theory-engineering-v0.37',
+    );
+    expect(identity.catalog.domains).toHaveLength(15);
+    const context = loadActiveShardContext({ identity });
+    for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
+      const relative = shardRelativePaths({ domainId }).domainDefault;
+      expect(relative).toBeTruthy();
+      expect(context.manifest.files[relative!]).toMatch(/^[a-f0-9]{64}$/u);
+      expect(loadDomainDefaultShard(domainId, { identity }).domainId).toBe(domainId);
+    }
   });
 
   it('rejects unknown locales and English when not bilingual-ready', async () => {
@@ -526,7 +532,11 @@ describe('production selector byte identity', () => {
       expect(createHash('sha256').update(actual).digest('hex')).toHaveLength(64);
     }
     const shards = JSON.parse(readFileSync(PRODUCTION_SELECTORS[0]!, 'utf8')) as { releaseId: string };
-    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(shards.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
+    const gitAuthority = JSON.parse(
+      readFileSync(path.join(process.cwd(), PRODUCTION_SELECTORS[5]!), 'utf8'),
+    ) as { releaseId: string };
+    expect(gitAuthority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
     expect(FUTURE_RELEASE_BOUNDARY).toBe(FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC);
   });
 });

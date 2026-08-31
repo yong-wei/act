@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "act-content-knowledge-runtime-release-toolchains/v1",
+  "commandId": "release:knowledge-release:scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts",
+  "sourceRevision": "ca394e872a457aa646bac64061e0a320bac155ae",
+  "sourceTree": "68167a73f69e88f88de0891bb3ea8025658b0015",
+  "toolchain": "knowledge-release",
+  "inputDigest": "f2bae00c50e1723434de513a2f25ee699332ce09654d6c970e6f7f63238be016",
+  "outputDigest": "5f40cf9f6cd6cdc1c645bac2df378ef9f842aded523abc30bbed3e3e9ab2c373",
+  "artifactDigest": null,
+  "executed": false,
+  "productionActivation": false,
+  "selectorMutation": false,
+  "planHash": "f2bae00c50e1723434de513a2f25ee699332ce09654d6c970e6f7f63238be016",
+  "inputHash": "f2bae00c50e1723434de513a2f25ee699332ce09654d6c970e6f7f63238be016",
+  "targetIdentity": "fixture:unspecified",
+  "approvalState": "not-required",
+  "status": "dry-run",
+  "projectionHandoff": {
+    "owner": "teaching-projection-publishing",
+    "commandIds": [
+      "teaching-projection:qualify",
+      "teaching-projection:rebase",
+      "teaching-projection:publish"
+    ]
+  }
+}

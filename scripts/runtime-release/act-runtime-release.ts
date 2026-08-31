@@ -55,7 +55,7 @@ function usage() {
     '  act-runtime-release plan --runtime-root <path> --source-revision <40-sha> [--format v1] | plan --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] [--external-bundle <bundle.json>] [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>]',
     '  act-runtime-release build-manifest --repo-root <git-repo> --source-revision <git-revision> --format v2 [--parent-manifest <manifest.json>] [--external-bundle <bundle.json>] [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>] --output <manifest.json> [--receipt-output <receipt.json>] [--source-provenance-proof-output <proof.json>] [--daily-report-output <report.json>]',
     '  act-runtime-release verify-media-closure --runtime-root <path> --source-revision <40-sha> --release-id <content-addressed-id> [--format v1|v2] [--output <closure.json>]',
-    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --receipt <receipt.json> --source-provenance-proof <proof.json> --external-bundle <bundle.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>] [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--daily-report-output <report.json>] [--output <receipt.json>]',
+    '  act-runtime-release publish-streaming --repo-root <git-repo> --source-revision <git-revision> --release-id <content-addressed-id> --format v2 --manifest <manifest.json> --receipt <receipt.json> --source-provenance-proof <proof.json> --external-bundle <bundle.json> --bucket <bucket> --local-bridge-path </absolute/bridge.py> --python-binary </absolute/python3> --ossutil-path </absolute/ossutil> --ossutil-sha256 <sha256> --identity-command-path </absolute/aliyun> --identity-command-sha256 <sha256> --operator-account-id <account-id> --operator-principal-arn <acs-ram-arn> --lock-dir </absolute/dir> --spool-dir </absolute/dir> [--read-bridge-ssh-target <user@host> --read-bridge-path </absolute/bridge.py> --read-bridge-known-hosts-file </absolute/known_hosts> [--read-bridge-identity-file </absolute/key>] [--read-bridge-port <port>]] [--external-bundle-root <course-content/runtime>] [--generated-resources-root <resources>] [--parent-manifest <manifest.json>] [--credential-profile <profile>] [--daily-report-output <report.json>] [--output <receipt.json>]',
     '  act-runtime-release import-v1 --source-release-id <immutable-v1-release-id> --source-manifest-sha256 <sha256> --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release verify --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <receipt.json>]',
     '  act-runtime-release inspect --release-id <id> --format v1|v2 --bucket <bucket> --ssh-target <user@host> --remote-bridge-path </absolute/bridge.py> --known-hosts-file </absolute/known_hosts> [--port <port>] [--identity-file </absolute/key>] [--output <manifest.json>]',
@@ -236,6 +236,13 @@ function sshBridgeOptions() {
 }
 
 function localPublisherOptions() {
+  const readBridgeTarget = argument('--read-bridge-ssh-target');
+  const readBridgePath = argument('--read-bridge-path');
+  const readBridgeKnownHostsFile = argument('--read-bridge-known-hosts-file');
+  const readBridgeValues = [readBridgeTarget, readBridgePath, readBridgeKnownHostsFile];
+  if (readBridgeValues.some((value) => value !== undefined) && readBridgeValues.some((value) => value === undefined)) {
+    throw new Error('Read bridge requires --read-bridge-ssh-target, --read-bridge-path, and --read-bridge-known-hosts-file together.');
+  }
   return {
     bucket: required('--bucket'),
     bridgePath: required('--local-bridge-path'),
@@ -249,6 +256,16 @@ function localPublisherOptions() {
     lockDir: required('--lock-dir'),
     spoolDir: required('--spool-dir'),
     credentialProfile: argument('--credential-profile'),
+    ...(readBridgeTarget && readBridgePath && readBridgeKnownHostsFile ? {
+      readBridge: {
+        target: readBridgeTarget,
+        bucket: required('--bucket'),
+        remoteBridgePath: readBridgePath,
+        knownHostsFile: readBridgeKnownHostsFile,
+        identityFile: argument('--read-bridge-identity-file'),
+        port: argument('--read-bridge-port') ? Number(required('--read-bridge-port')) : undefined,
+      },
+    } : {}),
   };
 }
 

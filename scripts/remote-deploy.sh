@@ -51,6 +51,8 @@ LOCAL_START_WRAPPER_SCRIPT="${LOCAL_START_WRAPPER_SCRIPT:-${ROOT_DIR}/deploy/pod
 REMOTE_START_WRAPPER_SCRIPT="${REMOTE_START_WRAPPER_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/container-start-wrapper.sh}"
 LOCAL_PROVENANCE_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs"
 REMOTE_PROVENANCE_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-runtime-v2-provenance.mjs"
+LOCAL_PROVENANCE_INPUT_HELPER="${ROOT_DIR}/scripts/release/textbook-runtime-input-provenance.mjs"
+REMOTE_PROVENANCE_INPUT_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-runtime-input-provenance.mjs"
 REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/1-export-db.sh}"
 REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
 REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
@@ -73,6 +75,7 @@ REMOTE_APP_IMAGE="${REMOTE_APP_IMAGE:-localhost/act-obe-platform:20260301-amd64}
 REMOTE_TMP_TAR="${REMOTE_IMAGE_TAR}.tmp"
 REMOTE_TMP_PROVENANCE_FILE="${REMOTE_PROVENANCE_FILE}.tmp"
 REMOTE_TMP_PROVENANCE_HELPER="${REMOTE_PROVENANCE_HELPER}.tmp"
+REMOTE_TMP_PROVENANCE_INPUT_HELPER="${REMOTE_PROVENANCE_INPUT_HELPER}.tmp"
 REMOTE_TMP_RESOURCE_SET_HELPER="${REMOTE_RESOURCE_SET_HELPER}.tmp"
 REMOTE_TMP_RESOURCE_SET_CONFIG="${REMOTE_RESOURCE_SET_CONFIG}.tmp"
 REMOTE_TMP_APP_DEPLOY_SCRIPT="${REMOTE_APP_DEPLOY_SCRIPT}.tmp"
@@ -529,6 +532,7 @@ fi
 [[ -s "${LOCAL_IMAGE_TAR}" ]] || fail "本地镜像产物不存在或为空: ${LOCAL_IMAGE_TAR}"
 [[ -f "${LOCAL_PROVENANCE_FILE}" ]] || fail "本地镜像缺少 provenance sidecar: ${LOCAL_PROVENANCE_FILE}"
 [[ -f "${LOCAL_PROVENANCE_HELPER}" ]] || fail "本地教材 runtime provenance helper 不存在"
+[[ -f "${LOCAL_PROVENANCE_INPUT_HELPER}" ]] || fail "本地教材 runtime input provenance helper 不存在"
 [[ -f "${LOCAL_RESOURCE_SET_HELPER}" ]] || fail "本地教材 resourceSet helper 不存在"
 [[ -f "${LOCAL_RESOURCE_SET_CONFIG}" ]] || fail "本地教材 resourceSet 配置不存在"
 
@@ -595,6 +599,8 @@ scp -q "${LOCAL_PROVENANCE_FILE}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_FILE}"
 remote "mv '${REMOTE_TMP_PROVENANCE_FILE}' '${REMOTE_PROVENANCE_FILE}'"
 scp -q "${LOCAL_PROVENANCE_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_HELPER}"
 remote "mv '${REMOTE_TMP_PROVENANCE_HELPER}' '${REMOTE_PROVENANCE_HELPER}'"
+scp -q "${LOCAL_PROVENANCE_INPUT_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_PROVENANCE_INPUT_HELPER}"
+remote "mv '${REMOTE_TMP_PROVENANCE_INPUT_HELPER}' '${REMOTE_PROVENANCE_INPUT_HELPER}'"
 scp -q "${LOCAL_RESOURCE_SET_HELPER}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_HELPER}"
 remote "mv '${REMOTE_TMP_RESOURCE_SET_HELPER}' '${REMOTE_RESOURCE_SET_HELPER}'"
 scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"
@@ -718,7 +724,10 @@ remote "bash -lc 'set -euo pipefail
     APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   fi
   echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
-  podman exec \"${APP_NAME_HINT}\" npm run seed:knowledge
+  # seed:knowledge is intentionally apply-gated for ad-hoc use. This is the
+  # controlled deployment execution path after the immutable runtime is mounted.
+  podman exec \"${APP_NAME_HINT}\" test -s course-content/contracts/knowledge-relation-coverage-audit.json
+  podman exec \"${APP_NAME_HINT}\" node scripts/db/seed-all-knowledge.mjs
   echo \"[remote-deploy] Step 7/8: 配置 Nginx 域名反向代理\"
   \"${REMOTE_NGINX_SCRIPT}\"
   echo \"[remote-deploy] Step 8/8: 配置 systemd 开机自启\"
@@ -731,6 +740,7 @@ log "- 校验远端镜像文件"
 remote "test -s '${REMOTE_IMAGE_TAR}'"
 remote "test -f '${REMOTE_PROVENANCE_FILE}'"
 remote "test -f '${REMOTE_PROVENANCE_HELPER}'"
+remote "test -f '${REMOTE_PROVENANCE_INPUT_HELPER}'"
 remote "test -f '${REMOTE_RESOURCE_SET_HELPER}'"
 remote "test -f '${REMOTE_RESOURCE_SET_CONFIG}'"
 
@@ -766,7 +776,7 @@ remote "grep -q '/app-container-start-wrapper.sh worker' '${REMOTE_APP_DEPLOY_SC
 
 log "- 校验远端 systemd 配置脚本已更新数据库/Redis 等待逻辑"
 remote "grep -q 'pg_isready' '${REMOTE_SERVICE_SCRIPT}'"
-remote "grep -q '\"\${APP_DEPLOY_SCRIPT}\" --app-only' '${REMOTE_SERVICE_SCRIPT}'"
+remote "grep -q 'APP_IMAGE=\${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=\${ACT_KNOWLEDGE_DEPLOYMENT_MODE}' '${REMOTE_SERVICE_SCRIPT}'"
 
 log "- 校验系统服务"
 remote "test \"\$(systemctl is-active nginx)\" = active"
@@ -809,7 +819,9 @@ podman exec \"\${DB_CONTAINER_REAL}\" psql -U \"\${DB_USER_REAL}\" -d \"\${DB_NA
 '"
 
 log "- 核验 ActKG Release 与 CourseCoverage Overlay 部署投影"
-remote "podman exec '${APP_NAME_HINT}' npm run db:verify-authoritative-knowledge-deployment"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-authoritative-actkg-release.ts --verify-only"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-course-coverage-overlay.ts --verify-only"
+remote "podman exec '${APP_NAME_HINT}' ./node_modules/.bin/tsx scripts/db/import-canonical-resource-binding-shadow.ts --verify-only"
 
 log "- 校验 runtime 知识图谱已同步到数据库"
 remote "bash -lc '

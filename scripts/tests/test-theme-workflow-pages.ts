@@ -17,7 +17,10 @@ for (const file of targets) {
   const content = fs.readFileSync(fullPath, 'utf8');
 
   const hasThemeBase =
-    content.includes('surface-page') || content.includes('bg-background') || content.includes('text-foreground');
+    content.includes('surface-page')
+    || content.includes('bg-background')
+    || content.includes('text-foreground')
+    || content.includes('<InteractiveLearningShell');
 
   assert.equal(hasThemeBase, true, `${file} should use theme semantic base classes`);
 }

@@ -4199,18 +4199,63 @@ model ClassSession {
   coursewareRevisionNumber        Int?
   coursewarePlanRevisionNumber    Int?
 
+  // 不可变课程包修订绑定：新会话必需（应用边界强制），历史行保持 null（legacy-incomplete）
+  courseBundleRevisionId String?
+  courseBundleRevision   CourseBundleRevision? @relation(fields: [courseBundleRevisionId], references: [id], onDelete: Restrict)
+  // 冗余定位字段仅用于索引读快速比对，必须与所引修订一致，否则按漂移失败关闭
+  bundleRuntimeReleaseId String?
+  bundleDigest           String?
+
   startTime DateTime  @default(now())
   endTime   DateTime?
   updatedAt DateTime? @updatedAt
+
+  // 课堂提交证据边界：单调序列分配器在 ACTIVE/PAUSED 提交事务内递增；
+  // end 事务在同一会话锁上把最终值固化为 acceptedSubmissionWatermark 并递增 closureRevision。
+  submissionSequence          BigInt  @default(0)
+  acceptedSubmissionWatermark BigInt?
+  closureRevision             Int     @default(0)
 
   studentStates         StudentState[]
   studentStepResponses  StudentStepResponse[]
   classSessionReports   ClassSessionReport[]
   studentSessionReports StudentSessionReport[]
   integrityIncidents    ClassSessionIntegrityIncident[]
+  closureOutbox         SessionClosureOutbox[]
 
   @@index([classId])
   @@index([coursewarePublicationRevisionId])
+  @@index([courseBundleRevisionId])
+}
+
+// 不可变课程包修订：append-only。内容或 runtime release 变化必须产生新修订；
+// 已被 ClassSession 引用的修订不得原地变更（应用边界 + 数据质量脚本共同强制）。
+model CourseBundleRevision {
+  id                     String   @id @default(cuid())
+  bundleId               String
+  canonicalLessonId      String
+  bundleRevision         Int
+  // 捕获时的精确 runtime release 定位；未挂载 release 的本地开发态使用
+  // UNRELEASED_WORKTREE 定位器并将树摘要记录在 runtimeTreeSha256
+  runtimeReleaseId       String
+  runtimeTreeSha256      String
+  runtimeManifestSha256  String?
+  runtimeSourceRevision  String
+  runtimeObjectLocator   Json?
+  // 覆盖 lesson、manifest、讲义、graph overlay、知识卡引用与媒体索引正式字节的完整摘要
+  bundleDigest           String
+  identityProjectionHash String
+  manifestHash           String?
+  resourceHashes         Json
+  qualification          String
+  capturedAt             DateTime @default(now())
+
+  sessions ClassSession[]
+
+  @@unique([bundleId, bundleRevision])
+  @@unique([bundleId, bundleDigest, runtimeReleaseId, runtimeTreeSha256])
+  @@index([canonicalLessonId])
+  @@index([runtimeReleaseId])
 }
 
 model ClassSessionIntegrityIncident {
@@ -4299,6 +4344,9 @@ model InteractionLog {
   attemptKey           String?
   eventType            String // view, interact, param_change, submit, ai_query, complete, error
   clientEventId        String?
+  // 分类提交的规范化提交身份（classroom-submission-identity-v1）；被动事件保持 null，
+  // 与 (userId, sessionId) 组成数据库级幂等锚点（PostgreSQL null 语义允许多行 null）。
+  submissionIdentity   String?
   learningContext      String?
   invalidContextReason String?
   eventData            Json      @default("{}")
@@ -4309,6 +4357,7 @@ model InteractionLog {
   resource            TeachingResource?    @relation(fields: [resourceId], references: [id], onDelete: SetNull)
   studentStepResponse StudentStepResponse?
 
+  @@unique([userId, sessionId, submissionIdentity])
   @@index([userId, resourceId])
   @@index([userId, resourceKey])
   @@index([sessionId])
@@ -4321,27 +4370,73 @@ model InteractionLog {
 }
 
 model StudentStepResponse {
-  id            String   @id @default(cuid())
-  userId        String
-  sessionId     String
-  lessonKey     String?
-  stepId        String
-  attemptKey    String?
-  sourceLogId   String?  @unique
-  clientEventId String?
-  submittedAt   DateTime
-  responseData  Json
-  createdAt     DateTime @default(now())
+  id                 String   @id @default(cuid())
+  userId             String
+  sessionId          String
+  lessonKey          String?
+  stepId             String
+  attemptKey         String?
+  sourceLogId        String?  @unique
+  clientEventId      String?
+  // 分类提交身份与版本（classroom-submission-identity-v1）；历史行保持 null
+  submissionIdentity String?
+  identityVersion    String?
+  // ACTIVE 会话内接受时分配的单调提交/证据序列；POST_SESSION_REVIEW 行保持 null
+  submissionSequence BigInt?
+  // ACCEPTED（进入闭课水位内）| POST_SESSION_REVIEW（晚到复盘，默认不入原闭包）
+  evidenceStatus     String   @default("ACCEPTED")
+  submittedAt        DateTime
+  responseData       Json
+  createdAt          DateTime @default(now())
 
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   session   ClassSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   sourceLog InteractionLog? @relation(fields: [sourceLogId], references: [id], onDelete: SetNull)
 
+  @@unique([sessionId, userId, submissionIdentity])
   @@index([sessionId, stepId])
   @@index([userId, submittedAt])
   @@index([lessonKey, stepId])
   @@index([attemptKey])
   @@index([clientEventId])
+  @@index([sessionId, evidenceStatus])
+}
+
+// 闭课 outbox：end 事务内与水位一起 stage，worker 按 (sessionId, closureRevision) 幂等消费
+model SessionClosureOutbox {
+  id                          String       @id @default(cuid())
+  sessionId                   String
+  session                     ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  closureRevision             Int
+  acceptedSubmissionWatermark BigInt
+  status                      String       @default("PENDING") // PENDING | PROCESSING | SUCCEEDED | FAILED
+  attemptCount                Int          @default(0)
+  lastErrorCode               String?
+  availableAt                 DateTime     @default(now())
+  processedAt                 DateTime?
+
+  phases SessionClosurePhase[]
+
+  @@unique([sessionId, closureRevision])
+  @@index([status, availableAt])
+}
+
+// 闭包阶段台账：每个闭包阶段的持久化完成回执。结算 = 全部阶段 SUCCEEDED；
+// 任何阶段可安全重放（幂等），失败保持 FAILED 由周期协调器收敛。
+model SessionClosurePhase {
+  id              String               @id @default(cuid())
+  closure         SessionClosureOutbox @relation(fields: [closureOutboxId], references: [id], onDelete: Cascade)
+  closureOutboxId String
+  sessionId       String
+  phase           String // materialize | summarize | cache
+  status          String               @default("PENDING") // PENDING | SUCCEEDED | FAILED
+  total           Int?
+  done            Int                  @default(0)
+  detail          Json                 @default("{}")
+  updatedAt       DateTime             @updatedAt
+
+  @@unique([closureOutboxId, phase])
+  @@index([sessionId, status])
 }
 
 model ClassSessionReport {
@@ -4354,6 +4449,12 @@ model ClassSessionReport {
   summary    String?
   reportData Json         @default("{}")
   aiSummary  String?
+  // 闭包身份：报告生成绑定的闭课修订与提交水位；重算不得更改它们
+  closureRevision             Int     @default(0)
+  acceptedSubmissionWatermark BigInt?
+  // 显式重算修订：仅授权操作命名新 revision 与输入水位后才能纳入 POST_SESSION_REVIEW 证据
+  recomputeRevision           Int?
+  recomputeInputWatermark     BigInt?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 
@@ -4900,6 +5001,97 @@ model AdaptiveMasteryUpdate {
   @@index([sessionId])
   @@index([questionId])
   @@index([algorithmVersion])
+}
+
+model AdaptiveAssessmentGeneratedCandidate {
+  id                String   @id
+  generationKind    String
+  status            String
+  currentRevisionId String
+  createdByUserId   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  revisions AdaptiveAssessmentGeneratedCandidateRevision[]
+  events    AdaptiveAssessmentGeneratedCandidateEvent[]
+  reviews   AdaptiveAssessmentGeneratedCandidateReview[]
+  receipts  AdaptiveAssessmentGeneratedPublicationReceipt[]
+
+  @@index([status, createdAt])
+  @@index([generationKind, status])
+  @@index([createdByUserId, createdAt])
+}
+
+model AdaptiveAssessmentGeneratedCandidateRevision {
+  id                 String   @id
+  candidateId        String
+  parentRevisionId   String?
+  contentHash        String
+  envelopePublicJson  Json
+  envelopePrivateJson Json     @default("{}")
+  contentJson         Json
+  promptHash          String?
+  modelResponseHash   String?
+  createdAt          DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+  @@index([contentHash])
+}
+
+model AdaptiveAssessmentGeneratedCandidateEvent {
+  id          String   @id
+  candidateId String
+  revisionId  String
+  status      String
+  actorUserId String?
+  reason      String
+  createdAt   DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+}
+
+model AdaptiveAssessmentGeneratedCandidateReview {
+  id               String   @id
+  candidateId      String
+  revisionId       String
+  reviewerUserId   String
+  reviewerRole     String
+  outcome          String
+  rationale        String
+  itemDecisions    Json
+  contentHash      String
+  reviewSourceHash String
+  stale            Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, revisionId, createdAt])
+  @@index([reviewSourceHash])
+}
+
+model AdaptiveAssessmentGeneratedPublicationReceipt {
+  id               String    @id
+  candidateId      String
+  revisionId       String
+  reviewId         String
+  catalogItemId    String
+  contentHash      String
+  catalogReleaseId String
+  receiptHash      String    @unique
+  generationKind   String
+  status           String
+  createdAt        DateTime  @default(now())
+  retiredAt        DateTime?
+
+  candidate AdaptiveAssessmentGeneratedCandidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@index([candidateId, status])
+  @@index([catalogItemId])
 }
 
 model AIIntervention {

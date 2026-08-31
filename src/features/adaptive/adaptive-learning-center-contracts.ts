@@ -11,8 +11,10 @@ import type {
 import type {
   AdaptiveLearningPathDeficit,
   AdaptiveLearningPathPlan,
-} from '@/lib/adaptive-learning-path-planner';
-import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+} from '@/features/personalization/path-planning/public-api';
+import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
+import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
+import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 
 export type AdaptiveLearningCenterRegion =
   | 'overview'
@@ -1380,13 +1382,20 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
       terminalValidationNodeIds,
       terminalValidationStrategy: {
         nodeIds: terminalValidationNodeIds,
-        summary: terminalValidationNodeIds.length > 0
-          ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-          : '阶段检查点用于学习反馈',
+        summary: terminalValidationIsIncludedButUnverifiable(pathPlan.mainPath, terminalValidationNodeIds)
+          ? '终点已纳入但当前不可验证'
+          : terminalValidationNodeIds.length > 0
+            ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+            : '阶段检查点用于学习反馈',
       },
-      limitations: pathPlan.status === 'fallback'
-        ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
-        : [],
+      limitations: [
+        ...(pathPlan.status === 'fallback'
+          ? pathPlan.explanations.fallbackReasons.map(toStudentPathReason)
+          : []),
+        ...(terminalValidationIsIncludedButUnverifiable(pathPlan.mainPath, terminalValidationNodeIds)
+          ? ['终点已纳入但当前不可验证']
+          : []),
+      ],
     }];
   }
   if (!actionablePaths.length) {
@@ -1402,6 +1411,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     recommendationProvenance: path.recommendationProvenance,
+    decisionEvidence: path.decisionEvidence,
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
     overlap: path.overlap,
@@ -1577,6 +1587,19 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
   });
 }
 
+function terminalValidationIsIncludedButUnverifiable(
+  path: AdaptiveLearningPathPlan['mainPath'],
+  terminalValidationNodeIds: string[],
+): boolean {
+  if (terminalValidationNodeIds.length === 0) return false;
+  const terminals = path.filter((node) => terminalValidationNodeIds.includes(node.nodeId));
+  if (terminals.length === 0) return true;
+  return terminals.every((node) =>
+    node.status === 'locked'
+    || node.status === 'blocked'
+    || (node.readiness?.state ?? 'ready') !== 'ready');
+}
+
 function toStudentPathReason(reason: string): string {
   const reasons: Record<string, string> = {
     'adaptive-learner-state': '学习证据',
@@ -1598,11 +1621,18 @@ function toStudentPathReason(reason: string): string {
     'path-effort-diversity-insufficient': '学习时长差异不足',
     'terminal-validation-diversity-insufficient': '终点检验差异不足',
     'policy-option-diversity-unavailable': '当前资源只能形成单一推荐方案',
+    'title-or-score-only-duplicates-removed': studentVisibleCandidateLimitation('title-or-score-only-duplicates-removed'),
+    'insufficient-distinct-resources': studentVisibleCandidateLimitation('insufficient-distinct-resources'),
+    'cold-start-mastery-insufficient': studentVisibleColdStartLimitation('cold-start-mastery-insufficient') ?? '目前还不能判断你的知识掌握情况，先按入门路径补概念。',
+    'cold-start-ability-insufficient': studentVisibleColdStartLimitation('cold-start-ability-insufficient') ?? '目前还不能判断你的学习节奏和完成稳定性。',
+    'cold-start-preference-insufficient': studentVisibleColdStartLimitation('cold-start-preference-insufficient') ?? '目前还不能判断你更适合视频、讲义还是仿真。',
+    'cold-start-freshness-insufficient': studentVisibleColdStartLimitation('cold-start-freshness-insufficient') ?? '现有学习证据不足或已经过期，暂时不能据此做精细个性化。',
     'policy-path-resource-missing': '路径资源不足',
     'policy-paths-identical': '路径选项过于接近',
     'terminal-validation-missing': '需要完成终点检验',
     'some-targets-have-no-direct-evidence': '部分目标还缺少直接证据',
     'low-learner-state-confidence': '当前证据较少',
+    '终点已纳入但当前不可验证': '终点已纳入但当前不可验证',
   };
   return reasons[reason] ?? '路径状态待确认';
 }

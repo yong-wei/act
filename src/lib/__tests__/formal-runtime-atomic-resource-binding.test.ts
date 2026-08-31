@@ -696,7 +696,7 @@ describe('formal-runtime-atomic-resource-binding', () => {
       process.cwd(),
       'course-content/runtime/knowledge/authority-domain-shards/current.json',
     ), 'utf8'));
-    expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
     expect(current.teachingProjectionId).toBeNull();
   });
 });

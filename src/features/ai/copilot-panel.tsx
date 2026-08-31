@@ -36,7 +36,7 @@ export function CopilotPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 获取页面上下文和用户画像
-  const { pageContext, userProfile } = usePageAIContext({
+  const { pageContext } = usePageAIContext({
     courseId: 'simulation',
     courseTitle: '船舶控制仿真',
     topic: '航向控制仿真',
@@ -59,7 +59,6 @@ export function CopilotPanel({
     api: '/api/ai/chat',
     body: {
       pageContext,
-      userProfile,
       simulationState: simulationState
         ? {
             isRunning: simulationState.isRunning,

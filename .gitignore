@@ -22,6 +22,7 @@ data/
 .cache/
 .tmp/
 tmp/
+course-content/runtime/resource-governance/generated-assessment-*
 
 # Node/JS
 **/node_modules/
@@ -77,6 +78,16 @@ course-content/slides-ref
 *.mp4
 *.m4a
 *.pdf
+
+# Run-specific QA screenshots and traces. Representative fixtures stay force-added.
+artifacts/**/*.png
+artifacts/**/*.jpg
+artifacts/**/*.jpeg
+artifacts/**/*.webp
+artifacts/**/*.gif
+artifacts/**/*.html
+artifacts/**/*.har
+artifacts/**/*.log
 course-content/runtime/resources/
 
 # Local debugging and Rust build artifacts
@@ -86,6 +97,9 @@ unit41-step*.png
 /octave-workspace
 # Added by code-review-graph
 .code-review-graph/
+
+# Local CodeGraph index
+.codegraph/
 
 # SkillOpt-Sleep local runtime
 /.skillopt-sleep/
@@ -117,3 +131,4 @@ public/assets/models-opt/
 !src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/
 !src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.docx
 !src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.doc
+.tmp-review-evidence-gh/

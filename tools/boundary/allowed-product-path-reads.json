@@ -1,0 +1,97 @@
+[
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/smoke-test.mjs",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/teacher-diagnosis-report-history-evidence.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/test-arena-home-entry.mjs",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/test-arena-routes.mjs",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/test-commercial-ui-governance.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/architecture-test-commands/conventions.ts",
+    "to": "scripts/tests/test-platform-brand-kit-evidence.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+    "to": "scripts/db/backfill-learning-facts-from-event-batches.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+    "to": "scripts/db/backfill-learning-facts-from-interaction-logs.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+    "to": "scripts/db/backfill-unit-4-1-growth-governance.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/canonical-learning-fact-identity/inventory.ts",
+    "to": "scripts/migrations/002-migrate-to-learning-facts.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/canonical-resource-binding/capture-revision.ts",
+    "to": "scripts/db/import-canonical-resource-binding-shadow.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/commercial-ui-capture-revision.ts",
+    "to": "scripts/tests/capture-adaptive-path-product-qa.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/commercial-ui-governance.ts",
+    "to": "scripts/tests/capture-simulation-command-deck-qa.ts",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-external-input-bundle.ts",
+    "to": "course-content/scripts/textbook_hybrid_retrieval.py",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-external-input-bundle.ts",
+    "to": "course-content/scripts/validate_structured_textbook_runtime_v2.mjs",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-external-input-bundle.ts",
+    "to": "course-content/scripts/validate_written_textbook_runtime_v2.py",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-external-input-bundle.ts",
+    "to": "scripts/release/textbook-runtime-v2-provenance.mjs",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-traffic-cost/taxonomy.ts",
+    "to": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
+    "kind": "path-string"
+  }
+]

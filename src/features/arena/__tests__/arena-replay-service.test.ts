@@ -249,7 +249,7 @@ describe('arena replay service', () => {
       sourceRefId: 'preview-row-1',
       evaluationVisibility: 'preview',
       officialEligible: false,
-      modelRelation: 'identified-model-controller',
+      modelRelation: 'surrogate',
       datasetHash: preview.datasetHash,
       controllerHash: preview.controllerHash,
       identificationModelId: 'arena-identification-replay12345',

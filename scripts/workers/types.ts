@@ -39,10 +39,13 @@ export interface ClassSnapshotJob {
 
 export interface SessionReportJob {
   sessionId?: string;
+  coordinator?: boolean;
+  phase?: 'materialize' | 'summarize' | 'cache';
 }
 
 export interface EvidenceFeatureCacheJob {
   userId?: string;
+  sessionId?: string;
   coordinator?: boolean;
   rebuildAll?: boolean;
 }

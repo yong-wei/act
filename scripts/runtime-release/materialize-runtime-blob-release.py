@@ -29,6 +29,8 @@ MATERIALIZATION_CACHE_SCHEMA = "runtime-blob-materialization.v2"
 AUDIT_SCHEMA = "runtime-blob-audit.v1"
 LOCAL_MANIFEST = ".act-runtime-release.v2.json"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+LOCAL_RELEASE_RECEIPT = ".act-runtime-release-receipt.v2.json"
+VIEW_CONTROL_REGULAR_FILES = frozenset({LOCAL_MANIFEST, LOCAL_RECEIPT, LOCAL_RELEASE_RECEIPT})
 RUNTIME_BLOB_HELPER_NAME = ".act-runtime-blobs"
 RELEASE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
@@ -48,6 +50,7 @@ CONTROL_PLANE_OVERLAY_PATHS = (
     "knowledge/authority-domain-shards/current.json",
     "knowledge/consumer-activation/current.json",
     "knowledge/production-cutover-transactions/current.json",
+    "knowledge/teaching-projection/domain-fragments/current.json",
 )
 OVERLAY_IDENTITY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,126}$")
 LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
@@ -103,6 +106,9 @@ def control_plane_payload_targets(pointer_relative: str, pointer: Dict[str, Any]
         targets.append(("file", "knowledge/production-cutover-transactions/%s.json" % identity))
         targets.append(("file", "knowledge/consumer-activation/first-activation-transactions/%s.json" % identity))
         targets.append(("optional_file", "knowledge/production-cutover-transactions/%s.rollback.json" % identity))
+    elif pointer_relative == "knowledge/teaching-projection/domain-fragments/current.json" and pointer.get("projectionId"):
+        identity = require_overlay_identity(pointer["projectionId"], "projectionId")
+        targets.append(("prefix", "knowledge/teaching-projection/domain-fragments/releases/%s" % identity))
     return targets
 
 
@@ -178,6 +184,46 @@ def discover_control_plane_overlay_regular_paths(view: Path) -> Set[str]:
     return extras
 
 
+def require_authority_domain_catalog_overlay_match(view: Path, pointer: Dict[str, Any]) -> None:
+    """Require a host-owned catalog payload to close over its active pointer.
+
+    A regular catalog ``current.json`` is a host control-plane overlay.  Its
+    payload cannot be satisfied by an arbitrary manifest leaf: the runtime
+    loader binds catalog and Authority snapshot/release identities before it
+    serves the active graph.  Validate the same closure before a candidate
+    view is selected so a stale symlinked catalog cannot survive an overlay
+    restore and fail only after consumers switch.
+    """
+    relative = "knowledge/authority-domain-catalog/catalog.json"
+    path = view / relative
+    try:
+        details = os.lstat(path)
+    except OSError as error:
+        fail("control-plane authority catalog payload is unavailable: %s (%s)" % (relative, error))
+    if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
+        fail("control-plane authority catalog payload must be a regular non-symlink file: %s" % relative)
+    runtime = read_control_plane_pointer(path)
+    binding = runtime.get("authorityBinding")
+    if not isinstance(binding, dict):
+        fail("control-plane authority catalog payload has no authority binding")
+    expected = {
+        "catalogId": pointer.get("catalogId"),
+        "catalogHash": pointer.get("catalogHash"),
+        "snapshotId": pointer.get("snapshotId"),
+        "snapshotHash": pointer.get("snapshotHash"),
+        "releaseId": pointer.get("releaseId"),
+    }
+    actual = {
+        "catalogId": runtime.get("catalogId"),
+        "catalogHash": runtime.get("catalogHash"),
+        "snapshotId": binding.get("snapshotId"),
+        "snapshotHash": binding.get("snapshotHash"),
+        "releaseId": binding.get("releaseId"),
+    }
+    if actual != expected:
+        fail("control-plane authority catalog runtime does not match current pointer")
+
+
 def require_control_plane_overlay_payloads(view: Path) -> None:
     for pointer_relative in CONTROL_PLANE_OVERLAY_PATHS:
         pointer_path = view / pointer_relative
@@ -188,6 +234,8 @@ def require_control_plane_overlay_payloads(view: Path) -> None:
         if stat.S_ISLNK(details.st_mode) or not stat.S_ISREG(details.st_mode):
             continue
         pointer = read_control_plane_pointer(pointer_path)
+        if pointer_relative == "knowledge/authority-domain-catalog/current.json":
+            require_authority_domain_catalog_overlay_match(view, pointer)
         any_files = []
         for kind, relative in control_plane_payload_targets(pointer_relative, pointer):
             if kind == "optional_file":
@@ -585,6 +633,30 @@ def write_regular(path: Path, value: bytes) -> None:
     os.chmod(path, 0o444)
 
 
+def persist_canonical_release_receipt(
+    view: Path,
+    receipt_path: Path,
+    manifest: Dict[str, Any],
+    manifest_wire: bytes,
+) -> None:
+    parse_receipt(receipt_path, manifest, manifest_wire)
+    payload = receipt_path.read_bytes()
+    dest = view / LOCAL_RELEASE_RECEIPT
+    if dest.is_file() and not dest.is_symlink():
+        parse_receipt(dest, manifest, manifest_wire)
+        if dest.read_bytes() != payload:
+            fail("canonical release receipt drifted")
+        return
+    if dest.exists() or dest.is_symlink():
+        fail("canonical release receipt must be a regular file")
+    mode = stat.S_IMODE(os.lstat(view).st_mode)
+    os.chmod(view, 0o755)
+    try:
+        write_regular(dest, payload)
+    finally:
+        os.chmod(view, mode)
+
+
 def verify_view(
     view: Path,
     release_id: str,
@@ -638,6 +710,8 @@ def verify_view_structure(
     require_regular(receipt_path, "materialization receipt")
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     expected_receipt = parse_materialization_receipt(receipt, manifest, hashlib.sha256(wire).hexdigest())
+    require_regular(view / LOCAL_RELEASE_RECEIPT, "release receipt")
+    parse_receipt(view / LOCAL_RELEASE_RECEIPT, manifest, wire)
     cached_paths = set(cached_logical_paths(expected_receipt))
     expected_paths = set(item["path"] for item in manifest["files"])
     allowed_extra = set(allowed_extra_regular_paths or ())
@@ -654,7 +728,7 @@ def verify_view_structure(
         for filename in filenames:
             absolute = current_path / filename
             relative = absolute.relative_to(view).as_posix()
-            if relative in {LOCAL_MANIFEST, LOCAL_RECEIPT}:
+            if relative in VIEW_CONTROL_REGULAR_FILES:
                 continue
             if relative in cached_paths:
                 details = os.lstat(absolute)
@@ -770,6 +844,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         final = views / manifest["releaseId"]
         replace_existing = bool(getattr(args, "replace_existing", False))
         if final.exists() and not replace_existing:
+            persist_canonical_release_receipt(final, Path(args.receipt), manifest, manifest_wire)
             result = verify_view(final, manifest["releaseId"], require_helper_contents=False)
             if (result.get("textbookRetrievalCacheEnabled") is True) != cache_enabled:
                 fail("materialization receipt cache binding does not match prepare request")
@@ -824,6 +899,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         write_regular(temporary / LOCAL_MANIFEST, manifest_wire)
         materialization = materialization_payload(manifest, receipt, cache_enabled=cache_enabled)
         write_regular(temporary / LOCAL_RECEIPT, canonical(materialization) + b"\n")
+        persist_canonical_release_receipt(temporary, Path(args.receipt), manifest, manifest_wire)
         for current, directories, _ in os.walk(str(temporary), topdown=False, followlinks=False):
             for directory in directories:
                 os.chmod(str(Path(current) / directory), 0o555)

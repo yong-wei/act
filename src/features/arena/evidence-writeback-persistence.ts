@@ -13,6 +13,9 @@ import {
   type LearningFactWriteRow,
 } from '@/lib/canonical-learning-fact-identity';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { opaqueSubjectRef } from '@/features/learning-record/event-contract/allowlist';
+import { toPersistedAdapterEnvelope } from '@/features/learning-record/course-adapters/persisted-envelope';
+import type { NormalizedCourseEvidenceMapping } from '@/features/personalization/plugins/learning-record-adapter-types';
 
 type ArenaEvidenceWritebackConsumer = 'student' | 'teacher' | 'admin' | 'service';
 
@@ -111,15 +114,60 @@ function buildOutboxPayload(input: {
   };
 }
 
+async function resolveCourseAdapterMapping(input: {
+  submission: ArenaSubmissionRecord;
+  sourceEventId: string;
+}): Promise<NormalizedCourseEvidenceMapping | null> {
+  const { getRegisteredPersonalizationGoalPlugin, resolvePersonalizationGoalContext } = await import(
+    '@/features/personalization/plugins/public-api'
+  );
+  const { mapCourseLearningRecordEvidence } = await import(
+    '@/features/learning-record/course-adapters/public-api'
+  );
+  const resolved = resolvePersonalizationGoalContext({ taskId: input.submission.taskId });
+  if (resolved.status !== 'resolved') return null;
+  const plugin = getRegisteredPersonalizationGoalPlugin(resolved.context.goalId);
+  const adapter = plugin?.createLearningRecordAdapter?.();
+  const mapped = mapCourseLearningRecordEvidence({
+    goalId: resolved.context.goalId,
+    pluginId: resolved.context.pluginId,
+    pluginVersion: resolved.context.pluginVersion,
+    adapterVersion: adapter?.adapterVersion,
+    schemaVersion: adapter?.schemaVersion,
+    releaseRevision: adapter?.releaseRevision,
+    captureRevision: input.submission.publicationId ?? input.submission.id,
+    canonicalActivityId: input.submission.taskId,
+    arenaReference: {
+      taskId: input.submission.taskId,
+      submissionId: input.submission.id,
+    },
+    sourceEventId: input.sourceEventId,
+    sourceLogId: input.submission.id,
+    trustedOccurredAt: input.submission.submittedAt,
+    receivedAt: input.submission.submittedAt,
+    subjectRef: opaqueSubjectRef(input.submission.userId ?? input.submission.id),
+    idempotencyKey: input.sourceEventId,
+    materialization: 'direct',
+    officialArenaResult: {
+      score: input.submission.evaluation.score,
+      valid: input.submission.evaluation.valid,
+      submissionId: input.submission.id,
+    },
+  });
+  return mapped.status === 'mapped' ? mapped.mapping : null;
+}
+
 function buildLearningFact(input: {
   submission: ArenaSubmissionRecord;
   evidenceWriteback: ArenaSubmissionEvidenceWriteback;
   dedupeKey: string;
+  mapping: NormalizedCourseEvidenceMapping | null;
 }) {
   const evidenceWriteback = input.evidenceWriteback;
   const overlayUpdates = evidenceWriteback.projected?.overlayUpdates ?? [];
   const confidence = evidenceWriteback.projected?.audit?.confidence;
   const sourceEventId = input.dedupeKey;
+  const mapping = input.mapping;
   return {
     userId: input.submission.userId,
     factType: 'design',
@@ -139,9 +187,10 @@ function buildLearningFact(input: {
     },
     sourceEventId,
     sourceLogId: input.submission.id,
-    courseId: 'control-correction',
-    lessonId: input.submission.taskId,
+    courseId: mapping?.goalId ?? null,
+    lessonId: mapping?.canonicalActivityId ?? mapping?.canonicalLessonId ?? null,
     contextJson: {
+      ...(mapping ? { goalId: mapping.goalId } : {}),
       evidenceGovernance: {
         evidenceQuality: 'rich',
         profileWeight: 1,
@@ -162,12 +211,18 @@ function buildLearningFact(input: {
         evidenceWriteback,
         writebackDedupeKey: input.dedupeKey,
       },
+      ...(mapping
+        ? {
+            adapter: toPersistedAdapterEnvelope(mapping),
+          }
+        : {}),
     },
   };
 }
 
 function buildArenaTaskLearningFact(
   submission: ArenaSubmissionRecord,
+  mapping: NormalizedCourseEvidenceMapping | null,
 ): Record<string, unknown> | null {
   if (!submission.userId || getArenaAttemptStatus(submission) !== 'effective') return null;
   const task = getArenaChallengeTask(submission.taskId);
@@ -195,14 +250,29 @@ function buildArenaTaskLearningFact(
     capabilityMappingTags: task?.training.capabilityTags,
   });
   if (result.status !== 'accepted' || !result.evidence) return null;
-  return buildSimulationTaskLearningFact({
+  const fact = buildSimulationTaskLearningFact({
     userId: submission.userId,
     evidence: result.evidence,
     sourceLogId: `arena-submission:${submission.id}`,
     sessionId: submission.publicationId ?? submission.seasonId ?? null,
-    courseId: 'control-correction',
-    lessonId: submission.taskId,
-  }) as unknown as Record<string, unknown>;
+    courseId: mapping?.goalId ?? null,
+    lessonId: mapping?.canonicalActivityId ?? mapping?.canonicalLessonId ?? null,
+  });
+  const context = fact.contextJson && typeof fact.contextJson === 'object' && !Array.isArray(fact.contextJson)
+    ? fact.contextJson as Record<string, unknown>
+    : {};
+  return {
+    ...fact,
+    contextJson: {
+      ...context,
+      ...(mapping
+        ? {
+            goalId: mapping.goalId,
+            adapter: toPersistedAdapterEnvelope(mapping),
+          }
+        : {}),
+    },
+  } as unknown as Record<string, unknown>;
 }
 
 function projectPersistedEvidenceWriteback(
@@ -268,7 +338,15 @@ export async function persistArenaSubmissionEvidenceWriteback(
   const outboxStatus = evidenceWriteback.status === 'accepted'
     ? 'processed'
     : evidenceWriteback.status;
-  const taskLearningFact = buildArenaTaskLearningFact(submission);
+  const officialMapping = await resolveCourseAdapterMapping({
+    submission,
+    sourceEventId: dedupeKey,
+  });
+  const taskMapping = await resolveCourseAdapterMapping({
+    submission,
+    sourceEventId: `arena-submission:${submission.id}`,
+  });
+  const taskLearningFact = buildArenaTaskLearningFact(submission, taskMapping);
 
   const writeOutcome = async (tx: ArenaWritebackDb): Promise<boolean> => {
     if (typeof tx.evidenceOutbox?.upsert !== 'function') {
@@ -277,7 +355,7 @@ export async function persistArenaSubmissionEvidenceWriteback(
 
     const learningFacts = [
       ...(evidenceWriteback.status === 'accepted'
-        ? [buildLearningFact({ submission, evidenceWriteback, dedupeKey })]
+        ? [buildLearningFact({ submission, evidenceWriteback, dedupeKey, mapping: officialMapping })]
         : []),
       ...(taskLearningFact ? [taskLearningFact] : []),
     ];

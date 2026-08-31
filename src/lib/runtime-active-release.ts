@@ -13,6 +13,10 @@ import {
 } from '@/lib/runtime-release';
 
 const MEDIA_PATH = /^lessons\/[^/]+\/media\/[^/]+\.(?:mp4|webm|m4a|mp3|wav|pdf|png|jpe?g|webp|svg|gif)$/i;
+const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+const GIT_REVISION_PATTERN = /^[a-f0-9]{40}$/;
+const IMAGE_DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/;
+const CONSUMER_CONTRACT_PATTERN = /^[a-z0-9][a-z0-9.-]{1,127}$/;
 export const ACT_RUNTIME_ACTIVE_RECEIPT_FILENAME = 'act-runtime-active-receipt.json';
 export const ACT_RUNTIME_ACTIVE_RECEIPT_PATH_ENV = 'ACT_RUNTIME_ACTIVE_RECEIPT_PATH';
 
@@ -20,6 +24,41 @@ export class RuntimeActiveReleaseError extends Error {
   constructor(public readonly code: string, message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'RuntimeActiveReleaseError';
+  }
+}
+
+function assertCompatibilityProjection(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new RuntimeActiveReleaseError('runtime-active-release-receipt-invalid', 'Active runtime release receipt is invalid.');
+  }
+  const compatibility = value as Record<string, unknown>;
+  const keys = Object.keys(compatibility);
+  if (
+    compatibility.schemaVersion !== 'runtime-app-compatibility.v1'
+    || keys.some((key) => ![
+      'schemaVersion',
+      'proofSha256',
+      'runtimeSourceRevision',
+      'appRevision',
+      'imageDigest',
+      'migrationSetSha256',
+      'consumerContract',
+    ].includes(key))
+    || keys.length !== 7
+    || typeof compatibility.proofSha256 !== 'string'
+    || !SHA256_PATTERN.test(compatibility.proofSha256)
+    || typeof compatibility.runtimeSourceRevision !== 'string'
+    || !GIT_REVISION_PATTERN.test(compatibility.runtimeSourceRevision)
+    || typeof compatibility.appRevision !== 'string'
+    || !GIT_REVISION_PATTERN.test(compatibility.appRevision)
+    || typeof compatibility.imageDigest !== 'string'
+    || !IMAGE_DIGEST_PATTERN.test(compatibility.imageDigest)
+    || typeof compatibility.migrationSetSha256 !== 'string'
+    || !SHA256_PATTERN.test(compatibility.migrationSetSha256)
+    || typeof compatibility.consumerContract !== 'string'
+    || !CONSUMER_CONTRACT_PATTERN.test(compatibility.consumerContract)
+  ) {
+    throw new RuntimeActiveReleaseError('runtime-active-release-receipt-invalid', 'Active runtime release receipt is invalid.');
   }
 }
 
@@ -54,7 +93,7 @@ async function assertActiveReceiptMatchesManifest(receiptPath: string, manifest:
   if (
     receipt.schemaVersion !== 'runtime-release-active-receipt.v1'
     || receipt.healthCheck !== 'readyz'
-    || receiptKeys.some((key) => !['schemaVersion', 'selection', 'healthCheck', 'deployment'].includes(key))
+    || receiptKeys.some((key) => !['schemaVersion', 'selection', 'healthCheck', 'deployment', 'compatibility'].includes(key))
     || !receipt.selection
     || typeof receipt.selection !== 'object'
     || Array.isArray(receipt.selection)
@@ -75,6 +114,7 @@ async function assertActiveReceiptMatchesManifest(receiptPath: string, manifest:
   ) {
     throw new RuntimeActiveReleaseError('runtime-active-release-receipt-mismatch', 'Active runtime release receipt does not match the mounted manifest.');
   }
+  if ('compatibility' in receipt) assertCompatibilityProjection(receipt.compatibility);
 }
 
 export async function readActiveRuntimeReleaseManifest(

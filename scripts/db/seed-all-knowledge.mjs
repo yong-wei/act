@@ -4,8 +4,6 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createPrismaClient } from '../lib/prisma-client.mjs';
 
-const prisma = createPrismaClient();
-
 const ROOT = process.cwd();
 const RUNTIME_KNOWLEDGE_ROOT = process.env.KNOWLEDGE_RUNTIME_ROOT
   ? path.resolve(process.env.KNOWLEDGE_RUNTIME_ROOT)
@@ -296,19 +294,24 @@ export async function upsertRelations(db, relations, nodeIds) {
 
 async function main() {
   const args = parseArgs();
-  console.log('同步 runtime 知识图谱到数据库...');
+  const prisma = createPrismaClient();
+  try {
+    console.log('同步 runtime 知识图谱到数据库...');
 
-  const nodes = await readJson(RUNTIME_NODES_PATH);
-  validateRuntimeNodes(nodes, args);
-  validateRelationsStrict();
-  const relations = await readJsonl(RUNTIME_RELS_PATH);
-  const result = await prisma.$transaction(async (tx) => {
-    await upsertNodes(tx, nodes);
-    return upsertRelations(tx, relations, new Set(nodes.map((node) => node.id)));
-  }, { timeout: 120_000 });
+    const nodes = await readJson(RUNTIME_NODES_PATH);
+    validateRuntimeNodes(nodes, args);
+    validateRelationsStrict();
+    const relations = await readJsonl(RUNTIME_RELS_PATH);
+    const result = await prisma.$transaction(async (tx) => {
+      await upsertNodes(tx, nodes);
+      return upsertRelations(tx, relations, new Set(nodes.map((node) => node.id)));
+    }, { timeout: 120_000 });
 
-  console.log(`已同步 ${nodes.length} 个知识节点`);
-  console.log(`已同步 ${result.written} 条知识关系，删除 ${result.deleted} 条过期关系`);
+    console.log(`已同步 ${nodes.length} 个知识节点`);
+    console.log(`已同步 ${result.written} 条知识关系，删除 ${result.deleted} 条过期关系`);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -316,8 +319,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     .catch((error) => {
       console.error(error);
       process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
     });
 }

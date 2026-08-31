@@ -9,6 +9,13 @@ import {
   type CheckpointAuthoredQuestionRecord,
 } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import { PRESET_QUESTIONS, type CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
+import {
+  contentHashForGeneratedCandidate,
+  isCurrentPublicationReceipt,
+  type GeneratedCandidateContent,
+  type GeneratedCandidateStore,
+  type GeneratedPublicationReceipt,
+} from './generated-candidate-governance';
 
 export type AdaptiveAssessmentCatalogSourceFamily =
   | 'preset-adaptive-question'
@@ -142,6 +149,8 @@ export interface PrismaQuestionCatalogRow {
 
 export interface GeneratedQuestionCatalogRow {
   question: CrossDomainQuestion;
+  publicationReceipt?: GeneratedPublicationReceipt | null;
+  generationKind?: 'template' | 'ai' | 'human';
 }
 
 type AcqStaticQuestionRecord = {
@@ -216,6 +225,7 @@ export interface AdaptiveAssessmentCatalogInput {
   icourseObjectiveBankIndexTotal?: number | null;
   kaqReviewedItems?: KaqReviewedItemRecord[];
   generatedQuestions?: GeneratedQuestionCatalogRow[];
+  generatedCandidateStore?: GeneratedCandidateStore;
   checkpointQuestions?: CheckpointAuthoredQuestionRecord[];
 }
 
@@ -566,19 +576,31 @@ function buildIcourseItems(records: IcourseObjectiveBankRecord[]): AdaptiveAsses
   });
 }
 
-function buildGeneratedItems(rows: GeneratedQuestionCatalogRow[]): AdaptiveAssessmentCatalogItem[] {
-  return rows.map(({ question }) => {
-    const sourceHash = sha256(question);
+function buildGeneratedItems(
+  rows: GeneratedQuestionCatalogRow[],
+  store?: GeneratedCandidateStore,
+): AdaptiveAssessmentCatalogItem[] {
+  return rows.map((row) => {
+    const question = row.question;
+    const content = generatedContentFromQuestion(question);
+    const sourceHash = contentHashForGeneratedCandidate(content);
+    const receipt = trustedGeneratedReceipt(row, sourceHash, store);
+    const published = Boolean(receipt);
+    const intendedStage: AdaptiveAssessmentCatalogStage[] = published
+      ? allowedStagesFor('path-eligible', receiptStage(receipt, store))
+      : ['low-stakes-practice'];
     return {
-      catalogItemId: catalogItemId('generated-adaptive-question', question.id),
+      catalogItemId: published && receipt
+        ? receipt.catalogItemId
+        : catalogItemId('generated-adaptive-question', question.id),
       sourceFamily: 'generated-adaptive-question',
       sourceId: question.id,
       sourceAnchor: question.id,
       contentHash: sourceHash,
       contentHashAlgorithm: 'sha256',
-      reviewState: 'generated-provisional',
-      eligibilityState: 'generated-provisional',
-      allowedStages: ['low-stakes-practice'],
+      reviewState: published ? 'path-eligible' : 'generated-provisional',
+      eligibilityState: published ? 'path-eligible' : 'generated-provisional',
+      allowedStages: published ? intendedStage : ['low-stakes-practice'],
       questionRefs: {
         stem: question.stem,
         answerKey: question.options.filter((option) => option.isCorrect).map((option) => option.label).sort(),
@@ -593,13 +615,13 @@ function buildGeneratedItems(rows: GeneratedQuestionCatalogRow[]): AdaptiveAsses
       semanticRefs: {
         learningGoalIds: uniqueSorted(question.generatedMetadata?.learningGoalIds ?? []),
         kaqObjectiveIds: [],
-        graphNodeIds: [],
+        graphNodeIds: uniqueSorted(question.generatedMetadata?.graphNodeIds ?? []),
         knowledgeTags: uniqueSorted(question.knowledgeTags),
         misconceptionTags: [],
         remediationResourceNodeIds: [],
         difficulty: question.difficulty,
         cognitiveLevel: null,
-        assessmentStage: 'low-stakes-practice',
+        assessmentStage: receiptStage(receipt, store) ?? 'low-stakes-practice',
       },
       lineage: {
         sourceFamily: 'generated-adaptive-question',
@@ -607,11 +629,60 @@ function buildGeneratedItems(rows: GeneratedQuestionCatalogRow[]): AdaptiveAsses
         sourcePath: null,
         sourceHash,
       },
-      versionRefs: ARTIFACT_VERSION_REFS,
-      limitations: ['generated-provisional-not-path-eligible'],
+      versionRefs: {
+        ...ARTIFACT_VERSION_REFS,
+        ...(published && receipt ? {
+          generatedCandidateRevisionId: receipt.revisionId,
+          generatedPublicationReceiptHash: receipt.receiptHash,
+          generatedCatalogReleaseId: receipt.catalogReleaseId,
+          generatedAssessmentKind: receipt.generationKind,
+        } : {
+          generatedAssessmentKind: row.generationKind ?? 'template',
+        }),
+      },
+      limitations: published
+        ? []
+        : ['generated-provisional-not-path-eligible', 'missing-generated-publication-receipt'],
       adaptiveAssessmentItemRef: snapshotRelationship(),
     };
   });
+}
+
+function generatedContentFromQuestion(question: CrossDomainQuestion): GeneratedCandidateContent {
+  const intendedStage = question.generatedMetadata?.intendedStage
+    ?? 'low-stakes-practice';
+  return {
+    stem: question.stem,
+    options: question.options,
+    knowledgeTags: question.knowledgeTags,
+    learningGoalIds: question.generatedMetadata?.learningGoalIds ?? [],
+    graphNodeIds: question.generatedMetadata?.graphNodeIds ?? [],
+    difficulty: question.difficulty,
+    intendedStage,
+  };
+}
+
+function trustedGeneratedReceipt(
+  row: GeneratedQuestionCatalogRow,
+  sourceHash: string,
+  store?: GeneratedCandidateStore,
+): GeneratedPublicationReceipt | null {
+  if (!store) return null;
+  return store.receipts.find((receipt) => (
+    receipt.status === 'published'
+    && receipt.contentHash === sourceHash
+    && isCurrentPublicationReceipt(store, receipt)
+    && (!row.publicationReceipt || row.publicationReceipt.receiptHash === receipt.receiptHash)
+  )) ?? null;
+}
+
+function receiptStage(
+  receipt: GeneratedPublicationReceipt | null | undefined,
+  store?: GeneratedCandidateStore,
+): AdaptiveAssessmentCatalogStage | undefined {
+  if (!receipt || receipt.status !== 'published') return undefined;
+  const revision = store?.revisions.find((item) => item.revisionId === receipt.revisionId);
+  return revision?.content.intendedStage;
 }
 
 function buildCheckpointAuthoredItems(records: CheckpointAuthoredQuestionRecord[]): AdaptiveAssessmentCatalogItem[] {
@@ -733,7 +804,7 @@ export function buildAdaptiveAssessmentItemCatalog(
     ...buildPrismaQuestionItems(prismaQuestions),
     ...buildAcqStaticItems(acqStaticQuestions),
     ...buildIcourseItems(icourseObjectiveBankItems),
-    ...buildGeneratedItems(generatedQuestions),
+    ...buildGeneratedItems(generatedQuestions, input.generatedCandidateStore),
     ...buildCheckpointAuthoredItems(checkpointQuestions),
   ].sort((left, right) => left.catalogItemId.localeCompare(right.catalogItemId));
 
@@ -793,7 +864,14 @@ export function buildAdaptiveAssessmentItemCatalog(
       appliesToFamily: 'preset-adaptive-question',
       reviewOverlayTotal: presetKaqReviewOverlayTotal,
     }),
-    sourceSummary('generated-adaptive-question', generatedQuestions.length, generatedQuestions.length, ['generated-provisional-not-path-eligible']),
+    sourceSummary(
+      'generated-adaptive-question',
+      generatedQuestions.length,
+      generatedQuestions.length,
+      generatedQuestions.some((row) => row.publicationReceipt?.status === 'published')
+        ? []
+        : ['generated-provisional-not-path-eligible'],
+    ),
     sourceSummary(
       'checkpoint-authored-question',
       checkpointQuestions.length,

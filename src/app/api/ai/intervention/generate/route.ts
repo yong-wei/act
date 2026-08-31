@@ -10,7 +10,7 @@ import {
 import {
   type InterventionDecision,
   type StudentState,
-} from '@/features/ai/companion/intervention-engine';
+} from '@/features/personalization/interventions/public-api';
 import {
   ArenaCompanionContextError,
   resolveArenaCompanionContext,

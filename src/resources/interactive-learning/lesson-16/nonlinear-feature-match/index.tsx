@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, AlertTriangle, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface FeatureScenario {
   id: string;
@@ -100,13 +101,6 @@ export default function NonlinearFeatureMatch({ onComplete, onStateChange }: Non
 
       if (!isComplete && Object.keys(next).length === SCENARIOS.length) {
         setIsComplete(true);
-        const finalResult: WidgetResult = {
-          success: true,
-          score: Math.round((SCENARIOS.filter((item) => next[item.id] === item.answerId).length / SCENARIOS.length) * 100),
-          data: { correct: SCENARIOS.filter((item) => next[item.id] === item.answerId).length, total: SCENARIOS.length },
-        };
-        interactive?.progress.markComplete(finalResult);
-        onComplete?.(finalResult);
       }
       return next;
     });
@@ -122,7 +116,6 @@ export default function NonlinearFeatureMatch({ onComplete, onStateChange }: Non
       <div className="grid gap-4">
         {SCENARIOS.map((scenario, index) => {
           const selected = answers[scenario.id];
-          const isCorrect = selected === scenario.answerId;
           return (
             <div key={scenario.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -179,6 +172,17 @@ export default function NonlinearFeatureMatch({ onComplete, onStateChange }: Non
         <span>当前正确 {correctCount}/{SCENARIOS.length}</span>
         <span>进度 {progress}%</span>
       </div>
+      {isComplete ? (
+        <PathResourceContinueAction
+          enabled
+          result={{
+            success: true,
+            score: Math.round((correctCount / SCENARIOS.length) * 100),
+            data: { correct: correctCount, total: SCENARIOS.length },
+          }}
+          onComplete={onComplete}
+        />
+      ) : null}
     </div>
   );
 }

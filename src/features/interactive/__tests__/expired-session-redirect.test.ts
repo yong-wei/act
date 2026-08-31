@@ -27,7 +27,7 @@ function listStudentSessionRoutes(dir: string): string[] {
     if (entry.isDirectory()) {
       return listStudentSessionRoutes(fullPath);
     }
-    return fullPath.endsWith(join('student', '[sessionId]', 'page.tsx')) ? [fullPath] : [];
+    return entry.name === 'student.tsx' ? [fullPath] : [];
   });
 }
 
@@ -64,7 +64,7 @@ describe('expired interactive student session redirects', () => {
 
   it('guards every interactive student session route before rendering the page component', () => {
     const repoRoot = process.cwd();
-    const routesRoot = join(repoRoot, 'src/app/interactive-learning/courses');
+    const routesRoot = join(repoRoot, 'src/features/interactive/course-app-routes');
     const routeFiles = listStudentSessionRoutes(routesRoot);
 
     expect(routeFiles.length).toBeGreaterThan(0);

@@ -1,3 +1,4 @@
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import type { SceneShipVisualProfile } from '../scene/types';
 
 /**
@@ -7,7 +8,7 @@ import type { SceneShipVisualProfile } from '../scene/types';
 export const cruiseAdoraSceneVisual: SceneShipVisualProfile = {
   shipLengthMeters: 323.6,
   designSpeedKnots: 18,
-  modelUrl: '/assets/models-opt/luxury-liner.glb',
+  modelUrl: resolveRegisteredSimulationModel('luxury-liner').primary,
   waterlineY: 0,
   wakeAnchors: {
     stern: [0, 0, -161.8],

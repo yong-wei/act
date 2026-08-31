@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
 LOCAL_RECEIPT = ".act-runtime-release-materialization.v1.json"
+LOCAL_RELEASE_RECEIPT = ".act-runtime-release-receipt.v2.json"
 HELPER_NAME = ".act-runtime-blobs"
 TEXTBOOK_CACHE_PATHS = (
     "resources/textbook-hybrid-retrieval/bge-m3/bodies.utf8",
@@ -187,10 +188,21 @@ class RuntimeBlobMaterializationTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE((view / ".act-runtime-release.v2.json").stat().st_mode), 0o444)
             local_receipt = json.loads((view / LOCAL_RECEIPT).read_text(encoding="utf-8"))
             self.assertEqual(local_receipt["schemaVersion"], "runtime-blob-materialization.v1")
+            self.assertEqual((view / LOCAL_RELEASE_RECEIPT).read_bytes(), receipt.read_bytes())
+            self.assertEqual(
+                json.loads((view / LOCAL_RELEASE_RECEIPT).read_text(encoding="utf-8"))["schemaVersion"],
+                "act-runtime-release-receipt.v2",
+            )
             self.assertNotIn("textbookRetrievalCacheEnabled", local_receipt)
             self.assertNotIn("cachedLogicalPaths", local_receipt)
             reused = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
             self.assertTrue(reused["reused"])
+            os.chmod(view, 0o755)
+            (view / LOCAL_RELEASE_RECEIPT).unlink()
+            os.chmod(view, 0o555)
+            restored = self.call("prepare", "--manifest", str(manifest), "--receipt", str(receipt), "--blob-root", str(blob_root), "--view-root", str(view_root))
+            self.assertTrue(restored["reused"])
+            self.assertEqual((view / LOCAL_RELEASE_RECEIPT).read_bytes(), receipt.read_bytes())
             missing_helper = self.call("verify", "--release-id", release_id, "--view-root", str(view_root), expect_ok=False)
             self.assertTrue("helper target is missing" in missing_helper.stderr or "blob must be a regular" in missing_helper.stderr)
             fixture_only = self.call(

@@ -86,6 +86,9 @@ function humanizeUnavailable(reason: string): string {
   if (reason === 'ATTRIBUTION_UNCERTAIN') return '当前错因证据不足，暂不能生成可靠的微辅导任务。';
   if (reason === 'ACCESS_REVOKED') return '当前任务的访问条件已变化，无法继续本次微辅导。';
   if (reason === 'REFERENCE_DRIFT') return '任务内容已更新，请返回练习后重新开始。';
+  if (reason === 'VALIDATION_QUESTION_UNAVAILABLE') {
+    return '当前没有可用于本次微辅导的独立验证题快照，暂时不能开始任务。';
+  }
   return '当前没有可安全执行的微辅导任务。';
 }
 

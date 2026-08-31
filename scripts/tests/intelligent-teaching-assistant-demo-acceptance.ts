@@ -338,17 +338,17 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
 
   if (path === '/api/teacher/document-grading/approve') {
     return [
-      readPath(payload, ['status']) === 'approved' ? null : 'document grading approval response must confirm approved status',
-      readPath(payload, ['gradingRunId']) ? null : 'document grading approval response is missing gradingRunId',
-      typeof readPath(payload, ['createdFacts']) === 'number' && Number(readPath(payload, ['createdFacts'])) > 0 ? null : 'document grading approval response must create evidence facts',
-      Array.isArray(readPath(payload, ['evidenceSourceEventIds'])) && (readPath(payload, ['evidenceSourceEventIds']) as unknown[]).length > 0 ? null : 'document grading approval response must include evidenceSourceEventIds',
+      readPath(payload, ['error']) === 'legacy-document-rubric-grading-retired'
+        ? null
+        : 'document grading draft approval must be retired with 410',
     ].filter((error): error is string => Boolean(error));
   }
 
   return [];
 }
 
-export function isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(status: number): boolean {
+export function isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(status: number, path?: string): boolean {
+  if (path === '/api/teacher/document-grading/approve') return status === 410;
   return status >= 200 && status < 300;
 }
 
@@ -498,7 +498,7 @@ async function runHttpChecks(baseUrl: string, options: { requireProductSurface: 
         redirectedToLogin: response.url.includes('/login') || location.includes('/login'),
       });
       const payloadErrors = authBoundaryOk ? [] : validateIntelligentTeachingAssistantDemoApiPayload(example.path, body, response.headers.get('content-type') ?? '');
-      const ok = authBoundaryOk || (isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status) && payloadErrors.length === 0);
+      const ok = authBoundaryOk || (isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status, example.path) && payloadErrors.length === 0);
       const suffix = modeId ? ` mode=${modeId}` : '';
       console.log(`${ok ? 'ok' : 'fail'} http-api:${example.method} ${example.path}${suffix} status=${response.status}`);
       if (!ok) errors.push(`API check failed: ${example.method} ${example.path}${suffix}${payloadErrors.length ? ` (${payloadErrors.join('; ')})` : ''}`);

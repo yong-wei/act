@@ -258,6 +258,11 @@ fall back to a legacy snapshot, feature cache, old
 - **THEN** consumers SHALL NOT read legacy `StudentPortraitV2Snapshot`, `StudentEvidenceFeatureCache`, `StudentCompetencySnapshot`, or legacy competency vector values as portrait input
 - **AND** the learner SHALL be treated as having no trusted evidence for personalization.
 
+#### Scenario: AI Workshop consumes learner state
+- **WHEN** the AI Workshop reads learner state
+- **THEN** it SHALL use the server-owned response and its explicit portrait/evidence state
+- **AND** it SHALL render `NO_EVIDENCE` or `UNAVAILABLE` as a limitation rather than deriving a legacy or sample profile.
+
 ### Requirement: Learner portrait is cumulative and evidence-triggered
 The learner-state service SHALL expose one canonical cumulative portrait v2
 formed from all trusted eligible learning facts for the learner. The portrait
@@ -426,6 +431,11 @@ The learner-state service SHALL expose the task-normalized `simulationValidation
 - **THEN** learner state preserves an explicit no-evidence limitation for that dimension
 - **AND** it SHALL NOT present a synthetic zero-valued simulation capability
 
+#### Scenario: AI Workshop has no eligible simulation evidence
+- **WHEN** no eligible simulation task contribution exists
+- **THEN** the AI Workshop SHALL show no verified simulation record
+- **AND** it SHALL not substitute a hard-coded experiment count, score, duration, or unlocked state.
+
 ### Requirement: Learner-state producers obey the active knowledge authority selector
 Every governed knowledge-scoped producer MUST resolve one active knowledge authority and write through the corresponding fixed-identity adapter.
 
@@ -443,4 +453,36 @@ Learner-state serving and audit paths MUST preserve the original knowledge revis
 #### Scenario: Historical and Canonical facts coexist
 - **WHEN** a cumulative learner view contains facts from both eras
 - **THEN** each fact SHALL remain attributable to its own namespace and revision without rewriting the historical source
+
+### Requirement: Existing learner-state contract is implemented through read ports
+
+The existing `adaptive-learner-state-service` contract SHALL be satisfied by a server-owned application boundary that obtains Learning Record and Assessment inputs through read ports and delegates calculation to the pure Personalization reducer. Direct database assembly inside the public service SHALL not remain authoritative.
+
+#### Scenario: Existing API reads learner state
+
+- **WHEN** the adaptive learner-state route or an authorized consumer requests state
+- **THEN** it SHALL receive the canonical portrait, mastery, path context, confidence, freshness and privacy projection from the new boundary
+- **AND** it SHALL not pass Prisma or client-authored identity into the reducer.
+
+#### Scenario: Old service entry is removed
+
+- **WHEN** every production caller has been migrated and the zero-import gate passes
+- **THEN** the old service authority and any forwarding export SHALL be deleted
+- **AND** historical snapshots and other-domain tables SHALL remain readable through their owning adapters.
+
+### Requirement: Control-correction learner-state slice is supplied by a plugin
+
+The canonical control-correction learner-state slice SHALL resolve dimensions, course context, evidence sources, privacy and confidence rules from the registered Personalization plugin. `adaptive-learner-state-service` MUST NOT be the owner of concrete course, lesson or Arena task identifiers.
+
+#### Scenario: Registered control-correction slice is read
+
+- **WHEN** an authorized consumer requests `goal=control-correction`
+- **THEN** the learner-state public API SHALL use the plugin's versioned contract
+- **AND** it SHALL preserve the existing slice dimensions and role-scoped metadata.
+
+#### Scenario: Control-correction plugin is missing
+
+- **WHEN** the plugin cannot resolve the requested context or evidence policy
+- **THEN** learner state SHALL expose unsupported/limited state
+- **AND** it SHALL not use the old service constants or a generic default slice.
 

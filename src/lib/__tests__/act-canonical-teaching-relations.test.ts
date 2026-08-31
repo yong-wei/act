@@ -372,7 +372,7 @@ describe('act-canonical-teaching-relations', () => {
       'course-content/runtime/knowledge/authority-domain-shards/current.json',
     ), 'utf8'));
     expect(current.teachingProjectionId).toBeNull();
-    expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
     const artifacts = qualifiedArtifacts();
     expect(artifacts.receipt.projectionId).not.toBe(LEGACY_FOUR_PREREQUISITE_PROJECTION_ID);
     expect(artifacts.edges.every((edge) => edge.layer === 'ACT_TEACHING')).toBe(true);

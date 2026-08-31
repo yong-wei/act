@@ -17,12 +17,30 @@ import {
 } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
+import {
+  INTERACTIVE_AI_LEARNING_CONTEXT_NOTE,
+} from '@/lib/interactive-ai-context';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   buildAiAuditTaskLogEntry,
   buildAiAuditTaskPrompt,
   resolveAiAuditTaskContext,
 } from '@/lib/ai-task-boundary-contracts';
+import {
+  buildEvidenceCopilotPrompt,
+  mapEvidenceCopilotRole,
+  parseEvidenceCopilotRequest,
+  resolveEvidenceCopilotContext,
+  type EvidenceCopilotProjection,
+} from '@/lib/evidence-copilot-context';
+import {
+  buildGovernedCopilotProfilePrompt,
+  mapGovernedCopilotRole,
+  projectGovernedCopilotProfile,
+  resolveCopilotPromptUser,
+  resolveGovernedCopilotProfile,
+  type GovernedCopilotProfileProjection,
+} from '@/lib/governed-copilot-profile-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
@@ -217,7 +235,7 @@ export async function POST(request: Request) {
       simulationState,
       lessonContext,
       pageContext,
-      userProfile,
+      userProfile: clientUserProfile,
       courseId,
       pageId,
       classId,
@@ -287,7 +305,16 @@ export async function POST(request: Request) {
       });
     }
 
-    const taskContextResolution = resolveAiAuditTaskContext(auditTaskContext);
+    const evidenceTaskResolution = parseEvidenceCopilotRequest(auditTaskContext);
+    if (evidenceTaskResolution.status === 'invalid') {
+      return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const taskContextResolution = evidenceTaskResolution.status === 'valid'
+      ? { status: 'absent' as const, context: null }
+      : resolveAiAuditTaskContext(auditTaskContext);
     if (taskContextResolution.status === 'invalid') {
       return new Response(JSON.stringify({ error: 'INVALID_AI_TASK_CONTEXT' }), {
         status: 400,
@@ -298,6 +325,22 @@ export async function POST(request: Request) {
       ? taskContextResolution.context
       : null;
     const requestId = request.headers.get('x-request-id') ?? crypto.randomUUID();
+    let evidenceCopilotProjection: EvidenceCopilotProjection | null = null;
+    let governedCopilotProfile: GovernedCopilotProfileProjection | null = null;
+    let skipGovernedProfilePrompt = false;
+    if (evidenceTaskResolution.status === 'valid') {
+      if (!session?.user?.id) {
+        return new Response(JSON.stringify({ error: '未授权' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      evidenceCopilotProjection = await resolveEvidenceCopilotContext({
+        userId: session.user.id,
+        role: mapEvidenceCopilotRole(session.user.role),
+        hints: evidenceTaskResolution.hints,
+      });
+    }
 
     if (serverTaskContext) {
       console.info('[ai.task-context]', JSON.stringify(buildAiAuditTaskLogEntry(serverTaskContext, requestId)));
@@ -321,6 +364,54 @@ export async function POST(request: Request) {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+    if (lessonContext?.stage === 'interactive' && session?.user?.id) {
+      const hintedCourseId = typeof pageContext?.courseId === 'string' ? pageContext.courseId.trim() : '';
+      const hintedPageId = typeof pageContext?.stepId === 'string' ? pageContext.stepId.trim() : '';
+      if (hintedCourseId && hintedPageId) {
+        const interactiveRuntime = await verifyKonlingRuntimeScope(prisma, {
+          authenticatedUserId: session.user.id,
+          role: session.user.role,
+          targetUserId: session.user.id,
+          classId: typeof classId === 'string' ? classId : null,
+          courseId: hintedCourseId,
+          pageId: hintedPageId,
+          resourceId: null,
+          pathNodeId: null,
+          pageContextHint: pageContext,
+        });
+        if (!interactiveRuntime.ok) {
+          return new Response(JSON.stringify({ error: interactiveRuntime.error }), {
+            status: interactiveRuntime.status,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        const authorizedInteractivePage = await resolveKonlingContextEventScope(
+          prisma,
+          interactiveRuntime.scope,
+        );
+        if (!authorizedInteractivePage) {
+          return new Response(JSON.stringify({ error: 'Page context is not registered for Konling.' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (
+          conversation
+          && (
+            conversation.courseId !== authorizedInteractivePage.courseId
+            || conversation.pageId !== authorizedInteractivePage.pageId
+          )
+        ) {
+          return new Response(JSON.stringify({
+            error: 'INTERACTIVE_AI_RESOURCE_MISMATCH',
+            status: 'isolated',
+          }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
     if (conversation && !requestedUserMessage) {
       return new Response(JSON.stringify({ error: 'Conversation turn requires a user message' }), {
@@ -544,6 +635,12 @@ export async function POST(request: Request) {
         ...runtimeInput,
         teachingAssistantServerModeContext: serverModeContext,
       });
+      governedCopilotProfile = projectGovernedCopilotProfile(runtimeContext.learnerState, {
+        authenticatedUserId: session.user.id,
+        displayName: session.user.name ?? '同学',
+        unavailable: !runtimeContext.learnerState,
+      });
+      skipGovernedProfilePrompt = candidateOnly;
       const textbookRuntimeContext = applyTextbookCoachRuntimeContext(runtimeContext, serverModeContext);
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({
         modeId: effectiveModeId,
@@ -761,10 +858,26 @@ export async function POST(request: Request) {
         'X-Konling-Assistant-Mode-Status': modeContract.status,
       };
       tools = buildScopedKonlingAiTools(toolRuntime);
-    } else if (pageContext && userProfile) {
+    } else if (pageContext) {
+      governedCopilotProfile = session?.user?.id
+        ? await resolveGovernedCopilotProfile({
+            userId: session.user.id,
+            role: mapGovernedCopilotRole(session.user.role),
+            displayName: session.user.name,
+          })
+        : projectGovernedCopilotProfile(null, {
+            authenticatedUserId: null,
+            displayName: '同学',
+            unavailable: true,
+          });
       const aiContext: AIContext = {
         page: pageContext,
-        user: userProfile,
+        user: resolveCopilotPromptUser({
+          authenticatedUserId: session?.user?.id,
+          authenticatedDisplayName: session?.user?.name,
+          clientUserProfile,
+          governedProfile: governedCopilotProfile,
+        }),
         sessionHistory: messages.slice(0, -1),
       };
       systemPrompt = buildKonlingSystemPrompt(aiContext);
@@ -773,8 +886,18 @@ export async function POST(request: Request) {
       systemPrompt = buildContextAwarePrompt(SYSTEM_PROMPT, lessonContext);
     }
 
+    if (lessonContext?.stage === 'interactive') {
+      systemPrompt = `${systemPrompt}\n\n${INTERACTIVE_AI_LEARNING_CONTEXT_NOTE}`;
+    }
+
     if (serverTaskContext) {
       systemPrompt = `${systemPrompt}\n\n${buildAiAuditTaskPrompt(serverTaskContext)}`;
+    }
+    if (evidenceCopilotProjection) {
+      systemPrompt = `${systemPrompt}\n\n${buildEvidenceCopilotPrompt(evidenceCopilotProjection)}`;
+    }
+    if (governedCopilotProfile && !skipGovernedProfilePrompt) {
+      systemPrompt = `${systemPrompt}\n\n${buildGovernedCopilotProfilePrompt(governedCopilotProfile)}`;
     }
 
     tools = withoutCalculateTool(tools);
@@ -1287,9 +1410,31 @@ export async function POST(request: Request) {
         : buildStreamingCitationFallbackNotice(citationGuardMetadataPayload),
     );
 
+    const responseHeaders = new Headers(agentSessionResponseHeaders);
+    if (lessonContext?.stage === 'interactive') {
+      responseHeaders.set(
+        'X-Interactive-AI-Session',
+        conversation ? 'recoverable' : 'ephemeral',
+      );
+    }
+    if (evidenceCopilotProjection) {
+      responseHeaders.set('X-Evidence-Copilot-Status', evidenceCopilotProjection.status);
+      responseHeaders.set(
+        'X-Evidence-Copilot-Limitations',
+        encodeURIComponent(evidenceCopilotProjection.limitations.join('|')),
+      );
+    }
+    if (governedCopilotProfile) {
+      responseHeaders.set('X-Governed-Copilot-Profile-Status', governedCopilotProfile.status);
+      responseHeaders.set(
+        'X-Governed-Copilot-Profile-Limitations',
+        encodeURIComponent(governedCopilotProfile.limitations.join('|')),
+      );
+    }
+
     // 返回流式响应
     return createUIMessageStreamResponse({
-      headers: agentSessionResponseHeaders,
+      headers: responseHeaders,
       stream: guardedUiMessageStream,
       consumeSseStream: consumeStream,
     });

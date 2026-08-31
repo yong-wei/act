@@ -45,14 +45,17 @@ beforeEach(() => {
 });
 
 describe('active Authority graph routes', () => {
-  it('ignores client authority selectors and resolves the committed active contract', async () => {
+  it('rejects client authority selectors instead of resolving a supplied release', async () => {
     const response = await getCanvas(new Request(
       'http://localhost/api/knowledge/graph/active?releaseId=attacker&snapshotId=other&manifest=raw',
     ));
-    expect(response.status).toBe(200);
-    expect(mocks.authorizeActiveFullGraphDiagnostics).toHaveBeenCalledTimes(1);
-    expect(mocks.readActiveCanvas).toHaveBeenCalledWith();
-    expect(mocks.activeProjectionResponse).toHaveBeenCalledWith(available);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      code: 'KNOWLEDGE_SURFACE_SELECTOR_FIXED',
+      parameter: 'releaseId',
+    });
+    expect(mocks.authorizeActiveFullGraphDiagnostics).not.toHaveBeenCalled();
+    expect(mocks.readActiveCanvas).not.toHaveBeenCalled();
   });
 
   it('returns authorization responses before touching the active resolver', async () => {
@@ -65,9 +68,18 @@ describe('active Authority graph routes', () => {
     expect(mocks.readActiveCanvas).not.toHaveBeenCalled();
   });
 
-  it('passes only the path node id to the active detail resolver', async () => {
+  it('rejects client snapshot selectors on active node detail', async () => {
     const response = await getNode(
       new Request('http://localhost/api/knowledge/nodes/active/node-1?snapshotId=other'),
+      { params: Promise.resolve({ id: 'node-1' }) },
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.readActiveNode).not.toHaveBeenCalled();
+  });
+
+  it('passes only the path node id to the active detail resolver', async () => {
+    const response = await getNode(
+      new Request('http://localhost/api/knowledge/nodes/active/node-1'),
       { params: Promise.resolve({ id: 'node-1' }) },
     );
     expect(response.status).toBe(200);

@@ -104,12 +104,13 @@ assert.match(bridge, /MAX_FRAME_BYTES\s*=\s*256 \* 1024 \* 1024/, 'ECS bridge mu
 assert.match(bridge, /MIN_FREE_BYTES\s*=\s*1024 \* 1024 \* 1024/, 'ECS bridge must preserve a 1 GiB spool reserve');
 assert.match(bridge, /tempfile\.mkstemp/, 'ECS bridge must exclusively create unpredictable spool files');
 assert.match(bridge, /runtime release spool contains residual files/, 'ECS bridge must reject residual spool files instead of broad cleanup');
-assert.match(bridge, /choices=\("list", "get", "publish", "import-v1", "verify"\)/, 'ECS bridge must expose the fixed v1 import and verification protocols alongside publishing');
+assert.match(bridge, /choices=\("list", "get", "publish", "import-v1", "verify", "blob-publish-read"\)/, 'ECS bridge must expose the bounded ECS readback protocol alongside publishing');
 assert.match(bridge, /BLOB_RELEASE_KEY_PREFIX\s*=\s*["']runtime\/blob-releases\/["']/, 'v2 release documents must use a namespace separate from v1 runtime releases');
 assert.match(bridge, /def import_v1_blob_release\(/, 'ECS bridge must provide the bounded fixed-v1 importer');
 assert.match(bridge, /ECS_ROLE_NAME\s*=\s*["']act-runtime-oss-release-operator-ecs["']/, 'the retained ECS bridge must keep its explicit legacy role identity');
-assert.match(bridge, /EXPECTED_ECS_ROLE_NAME\s*=\s*ECS_ROLE_NAME/, 'ECS bridge operations must use one immutable role allowlist');
-assert.doesNotMatch(bridge, /act-runtime-oss-(?:publisher|read)/, 'bridge must not retain the retired split publisher/read role names');
+assert.match(bridge, /ECS_READ_ROLE_NAME\s*=\s*["']act-runtime-oss-read["']/, 'ECS readback must use the read-only runtime role');
+assert.match(bridge, /"--credential-mode", "ecs-read"/, 'local publishing must request the ECS read-only mode for remote validation');
+assert.match(bridge, /def blob_publish_read_operation\(/, 'ECS readback must expose a dedicated validation-only operation');
 assert.match(bridge, /def verify_operation\(/, 'read-role verification must execute entirely on ECS');
 assert.match(bridge, /READINESS_SAMPLE_MAX_BYTES\s*=\s*4 \* 1024 \* 1024/, 'read-role verification must bound representative content reads');
 assert.match(bridge, /selected_indexes = sorted\(\{0, len\(candidates\) \/\/ 2, len\(candidates\) - 1\}\)/, 'read-role verification must sample deterministic representatives');

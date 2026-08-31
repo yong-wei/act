@@ -18,13 +18,14 @@ import {
 } from './validate';
 import { liveAuthorityEnvelopeForFirstFragment } from './translate';
 import type { AuthorityNodeIndexEntry } from '../contracts';
-import type {
-  DomainFragmentCoreNodeAuthoring,
-  DomainTeachingAuthorityEnvelope,
-  DomainTeachingFragment,
-  DomainTeachingFragmentAuthoring,
-  DomainCoverageReportEntry,
-  RegisteredPeerDomainId,
+import {
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE,
+  type DomainFragmentCoreNodeAuthoring,
+  type DomainTeachingAuthorityEnvelope,
+  type DomainTeachingFragment,
+  type DomainTeachingFragmentAuthoring,
+  type DomainCoverageReportEntry,
+  type RegisteredPeerDomainId,
 } from './contracts';
 export const MODERN_CONTROL_SOURCE_CONTRACT =
   'act-modern-control-domain-source/v1' as const;
@@ -34,7 +35,7 @@ export const MODERN_CONTROL_COVERAGE_CONTRACT =
   'act-modern-control-domain-coverage/v1' as const;
 export const MODERN_CONTROL_FRAGMENT_VERSION = '1' as const;
 export const MODERN_CONTROL_AUTHORITY_RELATIVE =
-  'course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json' as const;
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE;
 export const MODERN_CONTROL_CATALOG_RELATIVE =
   'course-content/authoring/knowledge/authority-domain-catalog/catalog.json' as const;
 export const MODERN_CONTROL_ARTIFACT_ROOT =

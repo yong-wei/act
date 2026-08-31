@@ -20,6 +20,7 @@ import {
   LatestAuthorityCutoverError,
   type CoordinatedActiveReceipt,
   type CoordinatedCandidateReceipt,
+  type CoordinatedRuntimeAuthorization,
   type CutoverCompensationAction,
   type CutoverTransactionJournal,
   type JournaledMutationPlan,
@@ -283,6 +284,11 @@ export interface SealActiveReceiptInput {
   readonly observedSelectors: readonly { selectorId: string; identity: string }[];
   readonly mutationReceipts: readonly SelectorMutationReceipt[];
   readonly runtimeActiveReceiptHash: string | null;
+  readonly runtimeActiveIdentity?: {
+    readonly releaseId: string;
+    readonly manifestSha256: string;
+    readonly treeSha256: string;
+  } | null;
   readonly sealedAt: string;
 }
 
@@ -376,6 +382,7 @@ export function sealCoordinatedActiveReceipt(
     committedSelectors: input.observedSelectors,
     mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptHash),
     runtimeActiveReceiptHash: input.runtimeActiveReceiptHash,
+    runtimeActiveIdentity: input.runtimeActiveIdentity ?? null,
   });
   return {
     contract: 'coordinated-active-receipt/v1',
@@ -387,8 +394,100 @@ export function sealCoordinatedActiveReceipt(
     committedSelectors: [...input.observedSelectors],
     mutationReceiptHashes: input.mutationReceipts.map((receipt) => receipt.receiptHash),
     runtimeActiveReceiptHash: input.runtimeActiveReceiptHash,
+    runtimeActiveIdentity: input.runtimeActiveIdentity ?? null,
     receiptHash,
   };
+}
+
+export interface SealRuntimeAuthorizationInput {
+  readonly journal: CutoverTransactionJournal;
+  readonly candidateReceipt: CoordinatedCandidateReceipt;
+  readonly observedSelectors: readonly { selectorId: string; identity: string }[];
+  readonly mutationReceipts: readonly SelectorMutationReceipt[];
+  readonly runtimeBindingHash: string;
+  readonly authorizedAt: string;
+}
+
+export function coordinatedRuntimeAuthorizationHash(payload: {
+  transactionId: string;
+  journalHash: string;
+  candidateReceiptHash: string;
+  committedSelectors: readonly { selectorId: string; identity: string }[];
+  mutationReceiptHashes: readonly string[];
+  runtimeBindingHash: string;
+}): string {
+  return projectionDigest(payload);
+}
+
+/**
+ * Authorize a Runtime lifecycle transition after the Authority mutation has
+ * been applied and re-read, but before a Runtime active receipt exists.
+ */
+export function sealCoordinatedRuntimeAuthorization(
+  input: SealRuntimeAuthorizationInput,
+): CoordinatedRuntimeAuthorization {
+  if (!/^[a-f0-9]{64}$/u.test(input.runtimeBindingHash)) {
+    throw new LatestAuthorityCutoverError(
+      'runtime-authorization-binding-invalid',
+      'The Runtime authorization must bind a lowercase SHA-256 runtime binding hash.',
+    );
+  }
+  // Reuse the same complete selector and mutation validation as the final
+  // receipt. The temporary receipt is not persisted or exposed; its only
+  // purpose is to keep this pre-activation authorization from drifting.
+  sealCoordinatedActiveReceipt({
+    ...input,
+    runtimeActiveReceiptHash: input.runtimeBindingHash,
+    runtimeActiveIdentity: null,
+    sealedAt: input.authorizedAt,
+  });
+  const mutationReceiptHashes = input.mutationReceipts.map((receipt) => receipt.receiptHash);
+  const authorizationHash = coordinatedRuntimeAuthorizationHash({
+    transactionId: input.journal.transactionId,
+    journalHash: input.journal.journalHash,
+    candidateReceiptHash: input.candidateReceipt.receiptHash,
+    committedSelectors: input.observedSelectors,
+    mutationReceiptHashes,
+    runtimeBindingHash: input.runtimeBindingHash,
+  });
+  return {
+    contract: 'coordinated-runtime-authorization/v1',
+    authorizationId: `auth-${authorizationHash.slice(0, 24)}`,
+    authorizedAt: input.authorizedAt,
+    transactionId: input.journal.transactionId,
+    journalHash: input.journal.journalHash,
+    candidateReceiptHash: input.candidateReceipt.receiptHash,
+    committedSelectors: [...input.observedSelectors],
+    mutationReceiptHashes,
+    runtimeBindingHash: input.runtimeBindingHash,
+    authorizationHash,
+  };
+}
+
+export function assertCoordinatedRuntimeAuthorizationWellFormed(
+  authorization: CoordinatedRuntimeAuthorization,
+): void {
+  if (authorization.contract !== 'coordinated-runtime-authorization/v1') {
+    throw new LatestAuthorityCutoverError(
+      'runtime-authorization-contract-invalid',
+      'The Runtime authorization uses an unsupported contract.',
+    );
+  }
+  const expectedHash = coordinatedRuntimeAuthorizationHash({
+    transactionId: authorization.transactionId,
+    journalHash: authorization.journalHash,
+    candidateReceiptHash: authorization.candidateReceiptHash,
+    committedSelectors: authorization.committedSelectors,
+    mutationReceiptHashes: authorization.mutationReceiptHashes,
+    runtimeBindingHash: authorization.runtimeBindingHash,
+  });
+  if (authorization.authorizationHash !== expectedHash
+    || authorization.authorizationId !== `auth-${expectedHash.slice(0, 24)}`) {
+    throw new LatestAuthorityCutoverError(
+      'runtime-authorization-hash-mismatch',
+      'The Runtime authorization does not match its own content-addressed hash.',
+    );
+  }
 }
 
 /** Readiness is exposed only from a valid outer active receipt. */

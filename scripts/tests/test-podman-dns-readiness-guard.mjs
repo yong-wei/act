@@ -294,9 +294,15 @@ assert.match(
 );
 
 assert.equal(
-  serviceScript.includes('ExecStart=/bin/sh -lc \'"${APP_DEPLOY_SCRIPT}" --app-only\''),
+  serviceScript.includes('ExecStart=/bin/sh -lc \'APP_IMAGE=${APP_IMAGE} ACT_KNOWLEDGE_DEPLOYMENT_MODE=${ACT_KNOWLEDGE_DEPLOYMENT_MODE} "${APP_DEPLOY_SCRIPT}" --app-only\''),
   true,
-  'systemd 配置脚本必须在数据库就绪后重新执行 4-deploy.sh --app-only，重建应用、Redis 与 worker 容器',
+  'systemd 配置脚本必须在数据库就绪后以冻结镜像和知识部署模式重新执行 4-deploy.sh --app-only，重建应用、Redis 与 worker 容器',
+);
+
+assert.match(
+  serviceScript,
+  /APP_IMAGE 含有 systemd unit 不允许的字符/,
+  'systemd 配置脚本必须拒绝不能安全嵌入 ExecStart 的镜像标识',
 );
 
 assert.equal(

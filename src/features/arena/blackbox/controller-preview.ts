@@ -13,6 +13,15 @@ import {
   computeReplayChecksum,
 } from '@/resources/simulations/lib/replay-checksum';
 
+import {
+  ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+  ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+  ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+  ARENA_PREVIEW_TEACHING_SEMANTICS,
+} from '@/lib/control-engine';
+import { computeArenaVirtualPreviewResult } from '@/lib/control-engine/server';
+import { projectArenaPreviewIdentity } from '@/lib/practice-lab-run-contract';
+
 import type { ControllerArtifact } from '../types';
 import { hashControllerArtifact } from '../submissions/artifact-hash';
 import type {
@@ -57,10 +66,15 @@ export interface ArenaPreviewBoundaryMetadata {
   evaluationVisibility: 'preview';
   officialEligible: false;
   modelRelation?: string;
+  teachingSemantics?: string;
+  prohibitsMixedClaims?: true;
+  executor?: 'server';
+  authoritySource?: 'control-engine-server-facade';
   datasetHash: string;
   controllerHash: string;
   identificationModelId?: string;
   sourceExperimentId?: string;
+  runContract?: ReturnType<typeof projectArenaPreviewIdentity>;
 }
 
 export interface StoredArenaVirtualSimulationRun {
@@ -112,11 +126,16 @@ export function getArenaPreviewBoundaryMetadata(
   return {
     evaluationVisibility: 'preview',
     officialEligible: false,
-    modelRelation: existing?.modelRelation ?? stringParam(artifact, 'representation') ?? artifact?.method,
+    modelRelation: existing?.modelRelation ?? 'surrogate',
+    teachingSemantics: existing?.teachingSemantics ?? ARENA_PREVIEW_TEACHING_SEMANTICS,
+    prohibitsMixedClaims: true,
+    executor: 'server',
+    authoritySource: 'control-engine-server-facade',
     datasetHash: existing?.datasetHash ?? preview.datasetHash,
     controllerHash: existing?.controllerHash ?? preview.controllerHash,
     identificationModelId: existing?.identificationModelId ?? stringParam(artifact, 'identificationModelId'),
     sourceExperimentId: existing?.sourceExperimentId ?? preview.replaySource?.experiment.id,
+    runContract: existing?.runContract,
   };
 }
 
@@ -211,41 +230,30 @@ export function buildArenaVirtualSimulationPreview({
   const dampingCompensation = numberParam(artifact, 'dampingCompensation');
   const energyBudget = numberParam(artifact, 'energyBudget');
   const controllerHash = hashControllerArtifact({ ...artifact, taskId });
-  const sampleTime = 0.2;
-  const trace: ArenaVirtualSimulationTracePoint[] = [];
-  let roll = experiment.dataset.summary.finalOutput || 0.2;
-  let rollRate = 0;
-  let previousControl = 0;
-  let controlEnergy = 0;
-  let controlDelta = 0;
-  let safetyViolations = 0;
-
-  for (let index = 0; index <= 60; index += 1) {
-    const t = round(index * sampleTime);
-    const reference = 0;
-    const wave = 0.06 * Math.sin(0.8 * t + 0.5) + 0.025 * Math.sin(2.3 * t);
-    const rawControl = -controllerGain * (roll - reference) - dampingCompensation * rollRate;
-    const limit = Math.max(0.5, Math.min(energyBudget / 3, 6));
-    const control = Math.max(-limit, Math.min(limit, rawControl));
-    const acceleration = -0.72 * rollRate - 1.18 * roll + 0.68 * control + wave;
-    rollRate += acceleration * sampleTime;
-    roll += rollRate * sampleTime;
-    controlEnergy += control * control * sampleTime;
-    controlDelta += Math.abs(control - previousControl);
-    previousControl = control;
-    if (Math.abs(roll) > 0.75) safetyViolations += 1;
-
-    trace.push({
-      t,
-      reference,
-      output: round(roll),
-      control: round(control),
-    });
+  const identificationModelId = stringParam(artifact, 'identificationModelId');
+  if (!identificationModelId) {
+    throw new ArenaVirtualSimulationRunInputError('Black-box preview requires a server registered identification model.');
   }
-
-  const trackingError = trace.reduce((sum, point) => sum + Math.abs(point.output - point.reference), 0) / trace.length;
-  const maxDeviation = Math.max(...trace.map((point) => Math.abs(point.output - point.reference)));
-  const smoothness = Math.max(0, 1 - controlDelta / Math.max(1, trace.length * 2));
+  const rustResult = computeArenaVirtualPreviewResult({
+    modelId: ARENA_CRUISE_ROLL_PREVIEW_MODEL_ID,
+    taskId,
+    datasetHash: experiment.datasetHash,
+    identificationModelId,
+    controllerHash,
+    controllerGain,
+    dampingCompensation,
+    energyBudget,
+    initialRoll: experiment.dataset.summary.finalOutput || 0.2,
+    sampleTime: ARENA_CRUISE_ROLL_PREVIEW_SAMPLE_TIME,
+    steps: ARENA_CRUISE_ROLL_PREVIEW_STEPS,
+    modelRelation: 'surrogate',
+  });
+  const trace = rustResult.trace;
+  const trackingError = rustResult.summary.trackingError;
+  const maxDeviation = rustResult.summary.maxDeviation;
+  const controlEnergy = rustResult.summary.controlEnergy;
+  const safetyViolations = rustResult.summary.safetyViolations;
+  const smoothness = rustResult.summary.smoothness;
 
   const replaySource: ArenaVirtualSimulationReplaySource = {
     version: 'arena-virtual-preview-v1',
@@ -444,6 +452,30 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
         update: {},
       });
       const previewBoundary = getArenaPreviewBoundaryMetadata(input.preview);
+      const runContract = projectArenaPreviewIdentity({
+        sourceId: previewRow.id,
+        ownerUserId: input.userId,
+        taskId: input.taskId,
+        specHash: taskSpec.specHash,
+        artifactHash: input.controllerHash,
+        controllerSnapshotRef: input.preview.replaySource?.artifact.id
+          ? `ArenaControllerArtifact:${input.preview.replaySource.artifact.id}`
+          : `ArenaControllerArtifact:${input.controllerHash}`,
+        protocolVersion: input.preview.replay?.protocolVersion ?? '1.0',
+        runtimeVersion: input.preview.replay?.runtimeVersion ?? 'unknown',
+        modelVersion: input.preview.replay?.modelVersion ?? 'unknown',
+        seed: input.preview.replay?.seed ?? null,
+        checksum: input.preview.replay?.checksum ?? null,
+        summary: {
+          trackingError: input.preview.summary.trackingError,
+          maxDeviation: input.preview.summary.maxDeviation,
+          controlEnergy: input.preview.summary.controlEnergy,
+          safetyViolations: input.preview.summary.safetyViolations,
+          smoothness: input.preview.summary.smoothness,
+        },
+        traceRef: `ArenaVirtualSimulationRun:${previewRow.id}#trace`,
+      });
+      previewBoundary.runContract = runContract;
       const arenaTraining = {
         taskId: input.taskId,
         scenarioId: input.scenarioId,
@@ -519,7 +551,13 @@ export const prismaArenaVirtualSimulationRunStore: ArenaVirtualSimulationRunStor
 
       return tx.arenaVirtualSimulationRun.update({
         where: { id: previewRow.id },
-        data: { simulationRunId: canonicalRun.id },
+        data: {
+          simulationRunId: canonicalRun.id,
+          payload: {
+            ...input.preview,
+            metadata: previewBoundary,
+          } as unknown as Prisma.InputJsonValue,
+        },
       });
     });
 

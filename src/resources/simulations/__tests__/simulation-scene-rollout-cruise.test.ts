@@ -13,7 +13,7 @@ describe('cruise scene visual profile', () => {
     const source = read(PROFILE);
     expect(source).toContain('shipLengthMeters: 323.6');
     expect(source).toContain('designSpeedKnots: 18');
-    expect(source).toContain('/assets/models-opt/luxury-liner.glb');
+    expect(source).toContain("resolveRegisteredSimulationModel('luxury-liner')");
     expect(source).toContain('wakeAnchors');
   });
 });
@@ -54,8 +54,8 @@ describe('cruise pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(CRUISE);
-    expect(source).toContain('models-opt/luxury-liner.glb');
-    expect(source).toContain('ModelAssetErrorBoundary');
+    expect(source).toContain("resolveRegisteredSimulationModel('luxury-liner')");
+    expect(source).toContain('FallbackGltfModel');
     expect(source).toContain('frustumCulled = false');
   });
 

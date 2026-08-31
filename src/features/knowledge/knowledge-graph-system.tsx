@@ -7,7 +7,6 @@
  */
 
 import { Suspense, useState, useCallback, useEffect, useRef, useMemo, useReducer, type CSSProperties, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
-import dynamic from 'next/dynamic';
 import { BookOpen, Filter, LocateFixed, SlidersHorizontal, X } from 'lucide-react';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
@@ -45,7 +44,6 @@ import {
 import { RelationFamilyControl, resolveRelationFamilyControlPlacement } from './graph/relation-family-control';
 import {
   clearKnowledgeGraphLayoutPins,
-  getEmptyKnowledgeGraphLayoutState,
   getKnowledgeGraphRuntimeNodePosition,
   isKnowledgeGraphNodePinned,
   removeKnowledgeGraphNodePin,
@@ -67,10 +65,11 @@ import {
   knowledgeInspectionReducer,
 } from './graph/inspection-state';
 import { KnowledgeDomainReturnAction } from './graph/domain-return-action';
-import type { KnowledgeGraphFitRequest } from './graph/root-layout';
 import { buildKnowledgeTeachingOrderLayout } from './graph/teaching-order-layout';
 import { getKnowledgeNodeSemanticLabel } from './graph/node-label-layout';
 import { selectKnowledgeGraphFocusedPresentationLinks } from './graph/edge-presentation';
+import { KnowledgeGraphRuntimeCanvas } from './graph/knowledge-graph-runtime-canvas';
+import { useKnowledgeGraphRuntimeLayout } from './graph/use-knowledge-graph-runtime-layout';
 import { deriveSelectedKnowledgeGraphCorridor } from './graph/selected-corridor';
 import {
   buildInitialGraphCache,
@@ -85,18 +84,6 @@ import {
   buildKnowledgeGraphRootRequestUrl,
 } from './graph/knowledge-graph-request';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
-
-// 动态导入 3D 图谱组件（客户端专用）
-const KnowledgeGraphCanvas = dynamic(
-  () => import('./graph/knowledge-graph-canvas').then((mod) => mod.KnowledgeGraphCanvas),
-  { ssr: false }
-);
-
-// 动态导入 2D 图谱组件（客户端专用）
-const KnowledgeGraph2D = dynamic(
-  () => import('./graph/knowledge-graph-2d').then((mod) => mod.KnowledgeGraph2D),
-  { ssr: false }
-);
 
 // 知识节点类型
 export type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
@@ -146,6 +133,8 @@ export interface KnowledgeNodeData {
   graphDegree?: number;
   graphImportanceScore?: number;
   importance?: number;
+  /** Renderer-only label visibility priority; it is not learning-domain rank. */
+  labelPriority?: boolean;
   /**
    * Projection-shaped governance attributes (ActKG adapter). Absent means
    * "unknown"; `candidate: true` marks a governance candidate that
@@ -159,6 +148,7 @@ export interface KnowledgeNodeData {
     state: 'expandable' | 'leaf' | 'unknown';
     revealableNeighborCount?: number;
   };
+  richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
 }
 
 // 知识连接接口
@@ -291,14 +281,21 @@ export function KnowledgeGraphSystem({
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
-  const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
-  const [fitViewRequest, setFitViewRequest] = useState<KnowledgeGraphFitRequest>({
-    id: 0,
-    target: 'root',
+  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
+  const {
+    layoutState,
+    setLayoutState,
+    relayoutVersion,
+    fitViewRequest,
+    handleNodeDragEnd,
+    requestFitView,
+    requestRelayout,
+  } = useKnowledgeGraphRuntimeLayout({
+    initialFitTarget: 'root',
+    dimension: viewMode === '3D' ? '3d' : '2d',
   });
   const teachingLayoutFitDomainRef = useRef<string | null>(null);
   const materializedDomainFitSignaturesRef = useRef(new Set<string>());
-  const [relayoutVersion, setRelayoutVersion] = useState(0);
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
   const hoveredNodeIdRef = useRef<string | null>(null);
@@ -313,8 +310,6 @@ export function KnowledgeGraphSystem({
   const loadingShardOwnerByKeyRef = useRef(new Map<string, number>());
   const currentNavigationLoadingRef = useRef<{ shardKey: string; requestId: number } | null>(null);
 
-  // 视图模式：默认 2D
-  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
   const [manipulatedAutoFitScopeKeys, setManipulatedAutoFitScopeKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   );
@@ -611,8 +606,8 @@ export function KnowledgeGraphSystem({
     navigationRequestControllerRef.current = null;
     dispatchInspection({ type: 'return-root' });
     dispatchNavigation({ type: 'return-root' });
-    setFitViewRequest((current) => ({ id: current.id + 1, target: 'root' }));
-  }, [clearOwnedLoadingShard]);
+    requestFitView('root');
+  }, [clearOwnedLoadingShard, requestFitView]);
 
   const resolveRootReturnFocus = useCallback(() => {
     if (navigation.view.kind !== 'domain') return null;
@@ -677,16 +672,6 @@ export function KnowledgeGraphSystem({
     if (hoverAnimationFrameRef.current !== null) {
       window.cancelAnimationFrame(hoverAnimationFrameRef.current);
     }
-  }, []);
-
-  const handleNodeDragEnd = useCallback((node: KnowledgeNodeData) => {
-    const runtimePosition = getKnowledgeGraphRuntimeNodePosition(
-      node as KnowledgeNodeData & { x?: number; y?: number; z?: number }
-    );
-    if (!runtimePosition) return;
-    setLayoutState((current) =>
-      storeKnowledgeGraphNodePosition(current, runtimePosition)
-    );
   }, []);
 
   // 关闭资源面板
@@ -940,7 +925,7 @@ export function KnowledgeGraphSystem({
       settledFrame = window.requestAnimationFrame(() => {
         if (materializedDomainFitSignaturesRef.current.has(signature)) return;
         materializedDomainFitSignaturesRef.current.add(signature);
-        setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
+        requestFitView('current');
       });
     });
     return () => {
@@ -953,6 +938,7 @@ export function KnowledgeGraphSystem({
     lessonContext,
     navigation.status,
     navigation.view,
+    requestFitView,
   ]);
   useEffect(() => {
     if (navigation.view.kind !== 'domain' || !teachingOrderLayout || !lessonContext) return;
@@ -960,9 +946,9 @@ export function KnowledgeGraphSystem({
     if (teachingLayoutFitDomainRef.current === signature) return;
     if (teachingOrderLayout.fitScale < 1) {
       teachingLayoutFitDomainRef.current = signature;
-      setFitViewRequest((current) => ({ id: current.id + 1, target: 'teaching-layout' }));
+      requestFitView('teaching-layout');
     }
-  }, [lessonContext, navigation.view, teachingOrderLayout]);
+  }, [lessonContext, navigation.view, requestFitView, teachingOrderLayout]);
   const rendererLayoutVersion = `${graphCache.graphVersion}:${lessonContext?.overlayRevision ?? 'post-only'}`;
   useEffect(() => {
     if (navigation.view.kind !== 'domain') return;
@@ -1102,17 +1088,9 @@ export function KnowledgeGraphSystem({
   );
 
   const handleFitView = useCallback(() => {
-    setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
-  }, []);
-
-  const handleRelayout = useCallback(() => {
-    setLayoutState((current) => ({
-      version: current.version + 1,
-      positionsByNodeId: {},
-    }));
-    setRelayoutVersion((current) => current + 1);
-    setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
-  }, []);
+    requestFitView('current');
+  }, [requestFitView]);
+  const handleRelayout = requestRelayout;
 
   const handleToggleSelectedNodePin = useCallback(() => {
     if (!visibleSelectedNode) return;
@@ -1124,11 +1102,11 @@ export function KnowledgeGraphSystem({
     setLayoutState((current) =>
       storeKnowledgeGraphNodePosition(current, selectedNodeRuntimePosition)
     );
-  }, [layoutState, selectedNodeRuntimePosition, visibleSelectedNode]);
+  }, [layoutState, selectedNodeRuntimePosition, setLayoutState, visibleSelectedNode]);
 
   const handleClearLayoutPins = useCallback(() => {
     setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
-  }, []);
+  }, [setLayoutState]);
 
   const handleBlankCanvasClick = useCallback(() => {
     dispatchInspection({ type: 'dismiss-selection' });
@@ -2028,73 +2006,46 @@ export function KnowledgeGraphSystem({
                 </div>
             }
             >
-            {viewMode === '2D' ? (
-              <KnowledgeGraph2D
-                nodes={displayNodes}
-                links={renderDisplayLinks}
-                presentationLinks={canonicalPresentationLinks}
-                selectedNode={canvasSelectedNode}
-                hoveredNode={hoveredNode}
-                onNodeClick={activateNode}
-                onNodeHover={handleNodeHover}
-                onNodeDragEnd={handleNodeDragEnd}
-                onBackgroundClick={handleBlankCanvasClick}
-                width={dimensions.width}
-                height={dimensions.height}
-                labelMode={labelMode}
-                layoutState={layoutState}
-                fitViewRequest={fitViewRequest}
-                relayoutVersion={relayoutVersion}
-                expandedNodeIds={[]}
-                expandedDirectLinks={expandedDirectLinks}
-                activationSequenceByCenterId={{}}
-                materializedNodeIds={[]}
-                graphVersion={rendererLayoutVersion}
-                lessonOrderNodeIds={lessonContext?.cardOrderNodeIds ?? []}
-                teachingOrderLinks={teachingOrderLinks}
-                selectedCorridorEmphasis={selectedCorridorEmphasis}
-              />
-            ) : (
-              <KnowledgeGraphCanvas
-                nodes={displayNodes}
-                links={renderDisplayLinks}
-                presentationLinks={canonicalPresentationLinks}
-                selectedNode={canvasSelectedNode}
-                hoveredNode={hoveredNode}
-                onNodeClick={activateNode}
-                onNodeHover={handleNodeHover}
-                onNodeDragEnd={handleNodeDragEnd}
-                onBackgroundClick={handleBlankCanvasClick}
-                labelMode={labelMode}
-                layoutState={layoutState}
-                fitViewRequest={fitViewRequest}
-                autoFitScopeKey={autoFitScopeKey}
-                autoFitReady={autoFitReady}
-                autoFitConsumed={Boolean(
-                  autoFitScopeKey && consumedAutoFitScopeKeys.has(autoFitScopeKey)
-                )}
-                autoFitCameraManipulated={Boolean(
-                  autoFitScopeKey && manipulatedAutoFitScopeKeys.has(autoFitScopeKey)
-                )}
-                restoredCameraPose={autoFitScopeKey
-                  ? cameraPoseByAutoFitScopeRef.current.get(autoFitScopeKey) ?? null
-                  : null}
-                onAutoFitConsumed={handleAutoFitConsumed}
-                onCameraManipulation={handleCameraManipulation}
-                onCameraPoseChange={handleCameraPoseChange}
-                relayoutVersion={relayoutVersion}
-                width={dimensions.width}
-                height={dimensions.height}
-                expandedNodeIds={[]}
-                expandedDirectLinks={expandedDirectLinks}
-                activationSequenceByCenterId={{}}
-                materializedNodeIds={[]}
-                graphVersion={rendererLayoutVersion}
-                lessonOrderNodeIds={lessonContext?.cardOrderNodeIds ?? []}
-                teachingOrderLinks={teachingOrderLinks}
-                selectedCorridorEmphasis={selectedCorridorEmphasis}
-              />
-            )}
+            <KnowledgeGraphRuntimeCanvas
+              dimension={viewMode === '3D' ? '3d' : '2d'}
+              nodes={displayNodes}
+              links={renderDisplayLinks}
+              presentationLinks={canonicalPresentationLinks}
+              selectedNode={canvasSelectedNode}
+              hoveredNode={hoveredNode}
+              onNodeClick={activateNode}
+              onNodeHover={handleNodeHover}
+              onNodeDragEnd={handleNodeDragEnd}
+              onBackgroundClick={handleBlankCanvasClick}
+              labelMode={labelMode}
+              layoutState={layoutState}
+              fitViewRequest={fitViewRequest}
+              autoFitScopeKey={autoFitScopeKey}
+              autoFitReady={autoFitReady}
+              autoFitConsumed={Boolean(
+                autoFitScopeKey && consumedAutoFitScopeKeys.has(autoFitScopeKey)
+              )}
+              autoFitCameraManipulated={Boolean(
+                autoFitScopeKey && manipulatedAutoFitScopeKeys.has(autoFitScopeKey)
+              )}
+              restoredCameraPose={autoFitScopeKey
+                ? cameraPoseByAutoFitScopeRef.current.get(autoFitScopeKey) ?? null
+                : null}
+              onAutoFitConsumed={handleAutoFitConsumed}
+              onCameraManipulation={handleCameraManipulation}
+              onCameraPoseChange={handleCameraPoseChange}
+              relayoutVersion={relayoutVersion}
+              width={dimensions.width}
+              height={dimensions.height}
+              expandedNodeIds={[]}
+              expandedDirectLinks={expandedDirectLinks}
+              activationSequenceByCenterId={{}}
+              materializedNodeIds={[]}
+              graphVersion={rendererLayoutVersion}
+              lessonOrderNodeIds={lessonContext?.cardOrderNodeIds ?? []}
+              teachingOrderLinks={teachingOrderLinks}
+              selectedCorridorEmphasis={selectedCorridorEmphasis}
+            />
             </Suspense>
         )}
 

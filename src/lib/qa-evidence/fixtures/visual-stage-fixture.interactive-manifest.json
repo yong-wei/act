@@ -1,0 +1,78 @@
+{
+  "lesson_id": "visual-stage-runtime-fixture",
+  "course_title": "Visual Stage Runtime Fixture",
+  "course_route_segment": "visual-stage-runtime-fixture",
+  "steps": {
+    "step-02": {
+      "title": "根轨迹阅读舞台",
+      "layout": {
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "root-locus-stage",
+          "kind": "visual.stage",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "stageId": "root-locus-reading-stage",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealState": "intro",
+            "revealStates": ["intro", "answer"],
+            "layers": [
+              {
+                "id": "plant-diagram",
+                "kind": "diagram",
+                "title": "对象关系",
+                "body": "把开环对象、闭环反馈和观察量放在同一坐标中。",
+                "region": { "x": 0.04, "y": 0.08, "width": 0.5, "height": 0.5 },
+                "zIndex": 1,
+                "revealState": "intro"
+              },
+              {
+                "id": "formula-callout",
+                "kind": "formula",
+                "title": "闭环式",
+                "body": "$T=G/(1+GH)$",
+                "region": { "x": 0.58, "y": 0.1, "width": 0.36, "height": 0.32 },
+                "zIndex": 2,
+                "revealState": "intro"
+              },
+              {
+                "id": "answer-layer",
+                "kind": "annotation",
+                "title": "稳定性判断",
+                "body": "闭环极点落在左半平面时，响应收敛。",
+                "region": { "x": 0.1, "y": 0.62, "width": 0.42, "height": 0.25 },
+                "zIndex": 3,
+                "revealState": "answer"
+              },
+              {
+                "id": "activity-anchor-layer",
+                "kind": "activity",
+                "title": "判断锚点",
+                "body": "记录根轨迹与稳定性的对应关系。",
+                "region": { "x": 0.58, "y": 0.62, "width": 0.36, "height": 0.24 },
+                "zIndex": 4,
+                "revealState": "answer",
+                "activityAnchor": "stability-observation"
+              }
+            ]
+          }
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "display",
+        "activity_cards": [],
+        "submit_fields": []
+      }
+    }
+  }
+}

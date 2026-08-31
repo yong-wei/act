@@ -823,7 +823,7 @@ fn roll_coupled_roll_derivatives(
     ]
 }
 
-fn compute_roll_coupled_nomoto(request: &Value) -> Result<String, String> {
+pub(crate) fn compute_roll_coupled_nomoto(request: &Value) -> Result<String, String> {
     let dt = num(request, "dt", 0.0);
     if dt <= 0.0 || dt > 1.0 {
         return Err("dt must be in (0, 1].".to_string());
@@ -1771,12 +1771,17 @@ pub fn compute_virtual_simulation_step_json(request_json: &str) -> Result<String
         "nomoto_variable_mass" => compute_nomoto_variable_mass(&request),
         "container_roll" => compute_container_roll(&request),
         "roll_coupled_nomoto" => compute_roll_coupled_nomoto(&request),
+        "practice_cruise_live_step" => crate::practice_cruise_live::compute_practice_cruise_live_step(&request),
+        model_id if model_id.starts_with("practice_") => {
+            crate::practice_live::compute_practice_capability(model_id, &request)
+        }
         "cruise_comfort_analysis" => compute_cruise_comfort_analysis(&request),
         "icebreaker_robust_analysis" => compute_icebreaker_robust_analysis(&request),
         "nomoto_quick_sim" => compute_nomoto_quick_sim(&request),
         "mmg3dof" => compute_mmg3dof(&request),
         "semisub3dof" => compute_semisub3dof(&request),
         "azipod3dof" => compute_azipod3dof(&request),
+        "arena_cruise_roll_preview" => crate::arena_preview::compute_arena_cruise_roll_preview(&request),
         model_id => Err(format!("不支持的虚拟仿真模型: {model_id}")),
     }
 }

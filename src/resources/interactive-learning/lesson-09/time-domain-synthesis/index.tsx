@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Workflow, Compass, GaugeCircle, Waves, Map, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
-import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
+import type { BaseWidgetProps } from '@/resources/widgets/widget-props';
+import { PathResourceContinueAction } from '@/resources/interactive-learning/shared/path-resource-continue-action';
 
 interface SynthesisStep {
   id: string;
@@ -106,17 +107,7 @@ export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeD
     onStateChange?.(snapshot);
     interactive?.progress.setProgress(progressValue);
     interactive?.tracking.emit('interact', snapshot.data);
-
-    if (nextVisited.length === STEPS.length && !interactive?.progress.isComplete) {
-      const result: WidgetResult = {
-        success: true,
-        score: 100,
-        data: { visited: nextVisited, total: STEPS.length },
-      };
-      interactive?.progress.markComplete(result);
-      onComplete?.(result);
-    }
-  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onStateChange]);
 
   const ActiveIcon = activeStep.icon;
 
@@ -148,6 +139,12 @@ export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeD
           <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
             已完成 {visited.length}/{STEPS.length}
           </div>
+          <PathResourceContinueAction
+            enabled={visited.length === STEPS.length}
+            result={{ success: true, score: 100, data: { visited, total: STEPS.length } }}
+            onComplete={onComplete}
+          />
+
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

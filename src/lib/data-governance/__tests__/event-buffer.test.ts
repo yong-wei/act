@@ -4,8 +4,16 @@ import type { LearningEvent } from '../event-protocol';
 // Define mock functions before importing the module
 const mockLpush = vi.fn();
 const mockRpop = vi.fn();
+const mockRpoplpush = vi.fn();
+const mockLrange = vi.fn();
+const mockLrem = vi.fn();
+const mockRpush = vi.fn();
+const mockHset = vi.fn();
+const mockHget = vi.fn();
+const mockHdel = vi.fn();
 const mockLtrim = vi.fn();
 const mockLlen = vi.fn();
+const mockEval = vi.fn();
 const mockHincrby = vi.fn();
 const mockHgetall = vi.fn();
 const mockExpire = vi.fn();
@@ -14,8 +22,16 @@ const mockIsReady = vi.fn().mockReturnValue(true);
 const mockGetClient = vi.fn().mockReturnValue({
   lpush: mockLpush,
   rpop: mockRpop,
+  rpoplpush: mockRpoplpush,
+  lrange: mockLrange,
+  lrem: mockLrem,
+  rpush: mockRpush,
+  hset: mockHset,
+  hget: mockHget,
+  hdel: mockHdel,
   ltrim: mockLtrim,
   llen: mockLlen,
+  eval: mockEval,
   hincrby: mockHincrby,
   hgetall: mockHgetall,
   expire: mockExpire,
@@ -34,6 +50,9 @@ import {
   routeEvent,
   bufferSecondaryEvent,
   fetchSecondaryEvents,
+  claimSecondaryEvents,
+  ackSecondaryEvents,
+  recoverExpiredSecondaryClaims,
   getBufferedEventCount,
   getBufferStats,
   getDailyStats,
@@ -61,6 +80,7 @@ describe('routeEvent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsReady.mockReturnValue(true);
+    mockEval.mockResolvedValue(1);
   });
 
   it('should route core events to postgresql', async () => {
@@ -72,7 +92,7 @@ describe('routeEvent', () => {
     const result = await routeEvent(event);
 
     expect(result.destination).toBe('postgresql');
-    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockEval).not.toHaveBeenCalled();
   });
 
   it('should route resource_complete to postgresql as a high-value extracurricular event', async () => {
@@ -84,7 +104,7 @@ describe('routeEvent', () => {
     const result = await routeEvent(event);
 
     expect(result.destination).toBe('postgresql');
-    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockEval).not.toHaveBeenCalled();
   });
 
   it('should route secondary events to redis', async () => {
@@ -92,12 +112,12 @@ describe('routeEvent', () => {
       actionType: 'page_view',
       priority: 'secondary',
     });
-    mockLpush.mockResolvedValue(1);
+    mockEval.mockResolvedValue(1);
 
     const result = await routeEvent(event);
 
     expect(result.destination).toBe('redis');
-    expect(mockLpush).toHaveBeenCalled();
+    expect(mockEval).toHaveBeenCalled();
   });
 
   it('should route unknown event types to redis', async () => {
@@ -105,11 +125,11 @@ describe('routeEvent', () => {
       actionType: 'unknown_event_type',
       priority: 'secondary',
     });
-    mockLpush.mockResolvedValue(1);
 
     const result = await routeEvent(event);
 
     expect(result.destination).toBe('redis');
+    expect(mockEval).toHaveBeenCalled();
   });
 
   it('should route core events to postgresql when redis is unavailable', async () => {
@@ -138,7 +158,7 @@ describe('routeEvent', () => {
   });
 
   it('should drop events when buffer is full', async () => {
-    mockLpush.mockRejectedValue(new Error('Buffer full'));
+    mockEval.mockResolvedValue(0);
     const event = createMockEvent({
       actionType: 'page_view',
       priority: 'secondary',
@@ -155,8 +175,7 @@ describe('bufferSecondaryEvent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsReady.mockReturnValue(true);
-    mockLpush.mockResolvedValue(1);
-    mockLtrim.mockResolvedValue('OK');
+    mockEval.mockResolvedValue(1);
     mockExpire.mockResolvedValue(1);
     mockHincrby.mockResolvedValue(1);
   });
@@ -167,9 +186,9 @@ describe('bufferSecondaryEvent', () => {
     const result = await bufferSecondaryEvent(event);
 
     expect(result).toBe(true);
-    expect(mockLpush).toHaveBeenCalled();
-    expect(mockLtrim).toHaveBeenCalled();
-    expect(mockExpire).toHaveBeenCalled();
+    expect(mockEval).toHaveBeenCalled();
+    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockLtrim).not.toHaveBeenCalled();
   });
 
   it('should return false when Redis is not ready', async () => {
@@ -179,7 +198,7 @@ describe('bufferSecondaryEvent', () => {
     const result = await bufferSecondaryEvent(event);
 
     expect(result).toBe(false);
-    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockEval).not.toHaveBeenCalled();
   });
 
   it('should return false when Redis client is null', async () => {
@@ -191,16 +210,24 @@ describe('bufferSecondaryEvent', () => {
     expect(result).toBe(false);
   });
 
-  it('should limit buffer to 10000 events', async () => {
+  it('rejects new writes when buffer plus processing occupancy is at capacity', async () => {
+    mockEval.mockResolvedValue(0);
     const event = createMockEvent({ actionType: 'page_view' });
 
-    await bufferSecondaryEvent(event);
+    const result = await bufferSecondaryEvent(event);
 
-    expect(mockLtrim).toHaveBeenCalledWith(
+    expect(result).toBe(false);
+    expect(mockEval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('LLEN', buffer) + redis.call('LLEN', processing)"),
+      2,
+      expect.stringContaining('event:buffer:secondary:'),
+      expect.stringContaining('event:processing:secondary:'),
+      10000,
       expect.any(String),
-      0,
-      9999
+      7 * 24 * 60 * 60,
     );
+    expect(mockLpush).not.toHaveBeenCalled();
+    expect(mockLtrim).not.toHaveBeenCalled();
   });
 
   it('should set expiration to 7 days', async () => {
@@ -227,7 +254,7 @@ describe('bufferSecondaryEvent', () => {
   });
 
   it('should return false on Redis error', async () => {
-    mockLpush.mockRejectedValue(new Error('Redis error'));
+    mockEval.mockRejectedValue(new Error('Redis error'));
     const event = createMockEvent({ actionType: 'page_view' });
 
     const result = await bufferSecondaryEvent(event);
@@ -236,15 +263,93 @@ describe('bufferSecondaryEvent', () => {
   });
 });
 
+describe('claimSecondaryEvents', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsReady.mockReturnValue(true);
+    mockLrange.mockResolvedValue([]);
+    mockHget.mockResolvedValue(null);
+    mockEval.mockResolvedValue(0);
+  });
+
+  it('moves events with rpoplpush instead of destructive rpop', async () => {
+    const mockEvent = createMockEvent({ actionType: 'page_view' });
+    mockRpoplpush
+      .mockResolvedValueOnce(JSON.stringify(mockEvent))
+      .mockResolvedValueOnce(null);
+
+    const claims = await claimSecondaryEvents('2024-01-01', 10);
+
+    expect(mockRpop).not.toHaveBeenCalled();
+    expect(mockRpoplpush).toHaveBeenCalled();
+    expect(claims).toHaveLength(1);
+    expect(claims[0].event?.eventId).toBe(mockEvent.eventId);
+  });
+
+  it('does not ack until callers remove the processing copy', async () => {
+    const mockEvent = createMockEvent({ actionType: 'page_view' });
+    const raw = JSON.stringify(mockEvent);
+    mockRpoplpush.mockResolvedValueOnce(raw).mockResolvedValueOnce(null);
+
+    const claims = await claimSecondaryEvents('2024-01-01', 10);
+    expect(mockLrem).not.toHaveBeenCalled();
+    await ackSecondaryEvents('2024-01-01', claims);
+    expect(mockLrem).toHaveBeenCalled();
+  });
+
+  it('returns empty array when Redis is not ready', async () => {
+    mockIsReady.mockReturnValue(false);
+    const claims = await claimSecondaryEvents('2024-01-01', 10);
+    expect(claims).toEqual([]);
+  });
+
+  it('respects the limit parameter', async () => {
+    const mockEvent = createMockEvent({ actionType: 'page_view' });
+    mockRpoplpush.mockResolvedValue(JSON.stringify(mockEvent));
+    await claimSecondaryEvents('2024-01-01', 5);
+    expect(mockRpoplpush).toHaveBeenCalledTimes(5);
+  });
+
+  it('keeps invalid JSON recoverable instead of dropping it before ack', async () => {
+    mockRpoplpush
+      .mockResolvedValueOnce('invalid json')
+      .mockResolvedValueOnce(null);
+    const claims = await claimSecondaryEvents('2024-01-01', 10);
+    expect(claims).toHaveLength(1);
+    expect(claims[0].invalid).toBe(true);
+  });
+
+  it('requeues expired processing entries atomically without dropping occupancy', async () => {
+    mockEval.mockResolvedValue(1);
+    const recovered = await recoverExpiredSecondaryClaims('2024-01-01', Date.now());
+    expect(recovered).toBe(1);
+    expect(mockEval).toHaveBeenCalledWith(
+      expect.stringContaining("redis.call('LREM', processing, 1, raw)"),
+      3,
+      expect.stringContaining('event:processing:secondary:'),
+      expect.stringContaining('event:buffer:secondary:'),
+      expect.stringContaining('event:lease:secondary:'),
+      expect.any(Number),
+      5 * 60 * 1000,
+    );
+    const script = String(mockEval.mock.calls[0]?.[0]);
+    expect(script).toContain("redis.call('RPUSH', buffer, raw)");
+    expect(script).toContain('redis.sha1hex(raw)');
+    expect(mockLrem).not.toHaveBeenCalled();
+    expect(mockRpush).not.toHaveBeenCalled();
+  });
+});
+
 describe('fetchSecondaryEvents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsReady.mockReturnValue(true);
+    mockLrange.mockResolvedValue([]);
   });
 
   it('should fetch events from Redis', async () => {
     const mockEvent = createMockEvent({ actionType: 'page_view' });
-    mockRpop
+    mockRpoplpush
       .mockResolvedValueOnce(JSON.stringify(mockEvent))
       .mockResolvedValueOnce(null);
 
@@ -252,6 +357,7 @@ describe('fetchSecondaryEvents', () => {
 
     expect(events).toHaveLength(1);
     expect(events[0].eventId).toBe(mockEvent.eventId);
+    expect(mockRpop).not.toHaveBeenCalled();
   });
 
   it('should return empty array when Redis is not ready', async () => {
@@ -272,24 +378,24 @@ describe('fetchSecondaryEvents', () => {
 
   it('should respect the limit parameter', async () => {
     const mockEvent = createMockEvent({ actionType: 'page_view' });
-    mockRpop.mockResolvedValue(JSON.stringify(mockEvent));
+    mockRpoplpush.mockResolvedValue(JSON.stringify(mockEvent));
 
     await fetchSecondaryEvents('2024-01-01', 5);
 
-    expect(mockRpop).toHaveBeenCalledTimes(5);
+    expect(mockRpoplpush).toHaveBeenCalledTimes(5);
   });
 
   it('should stop when no more events', async () => {
-    mockRpop.mockResolvedValue(null);
+    mockRpoplpush.mockResolvedValue(null);
 
     const events = await fetchSecondaryEvents('2024-01-01', 10);
 
     expect(events).toHaveLength(0);
-    expect(mockRpop).toHaveBeenCalledTimes(1);
+    expect(mockRpoplpush).toHaveBeenCalledTimes(1);
   });
 
   it('should skip invalid JSON events', async () => {
-    mockRpop
+    mockRpoplpush
       .mockResolvedValueOnce('invalid json')
       .mockResolvedValueOnce(JSON.stringify(createMockEvent()))
       .mockResolvedValueOnce(null);
@@ -300,7 +406,7 @@ describe('fetchSecondaryEvents', () => {
   });
 
   it('should return empty array on Redis error', async () => {
-    mockRpop.mockRejectedValue(new Error('Redis error'));
+    mockRpoplpush.mockRejectedValue(new Error('Redis error'));
 
     const events = await fetchSecondaryEvents('2024-01-01', 10);
 
@@ -315,7 +421,7 @@ describe('getBufferedEventCount', () => {
   });
 
   it('should return count from Redis', async () => {
-    mockLlen.mockResolvedValue(42);
+    mockLlen.mockResolvedValueOnce(40).mockResolvedValueOnce(2);
 
     const count = await getBufferedEventCount('2024-01-01');
 

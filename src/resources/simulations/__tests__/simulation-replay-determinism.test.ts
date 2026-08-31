@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
+import { preloadServerControlEngine } from '@/lib/control-engine/wasm-server';
 import {
   createSimulationRng,
   createSimulationRunContext,
@@ -8,12 +9,11 @@ import {
   updateCurrentEnvironment,
   createCurrentEnvironment,
   createWindEnvironment,
-} from '../physics/disturbances/current-model';
-import {
   createDredgingImpactState,
-  computeDredgingDisturbance,
+  computePracticeDredgingDisturbance,
   DredgingImpactModel,
-} from '../physics/disturbances/dredging-impact';
+  preloadVirtualSimulationRuntime,
+} from '../physics/simulation-engine-facade';
 import {
   DEFAULT_CONSTRAINTS,
   DEFAULT_TARGET,
@@ -33,6 +33,11 @@ const context = createSimulationRunContext({
 });
 
 describe('simulation replay determinism', () => {
+  beforeAll(async () => {
+    preloadServerControlEngine();
+    await preloadVirtualSimulationRuntime();
+  });
+
   it('replays environmental disturbance updates with the same seed and input', () => {
     const env = createCurrentEnvironment(0.5, 30, 0.25);
     const first = updateCurrentEnvironment(
@@ -51,14 +56,14 @@ describe('simulation replay determinism', () => {
 
   it('changes stochastic disturbance output when the seed changes', () => {
     const baseState = createDredgingImpactState(createSimulationRng(context, 'dredging').next);
-    const first = computeDredgingDisturbance(
+    const first = computePracticeDredgingDisturbance(
       baseState.nextInterval,
       baseState,
       undefined,
       createSimulationRng(context, 'dredging-step').next,
     );
     const changedSeedContext = { ...context, seed: context.seed + 1 };
-    const second = computeDredgingDisturbance(
+    const second = computePracticeDredgingDisturbance(
       baseState.nextInterval,
       baseState,
       undefined,

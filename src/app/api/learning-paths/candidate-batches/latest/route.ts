@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import { readLatestAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';

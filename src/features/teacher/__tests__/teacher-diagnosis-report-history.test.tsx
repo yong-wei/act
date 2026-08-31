@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { DiagnosisReportApiItem } from '@/app/api/teacher/classes/[classId]/diagnosis-reports/route';
+import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
 import { TeacherDiagnosisReportHistoryView } from '@/features/teacher/teacher-diagnosis-report-history';
 
 vi.mock('next/link', () => ({

@@ -104,9 +104,9 @@ describe('cruise comfort standard course migration', () => {
 
   it('keeps the route while removing the legacy cruise classroom implementation path', () => {
     const routeFiles = [
-      'src/app/interactive-learning/courses/cruise-comfort-boppps/page.tsx',
-      'src/app/interactive-learning/courses/cruise-comfort-boppps/student/[sessionId]/page.tsx',
-      'src/app/interactive-learning/courses/cruise-comfort-boppps/teacher/[sessionId]/page.tsx',
+      'src/features/interactive/course-app-routes/cruise-comfort-boppps/entry.tsx',
+      'src/features/interactive/course-app-routes/cruise-comfort-boppps/student.tsx',
+      'src/features/interactive/course-app-routes/cruise-comfort-boppps/teacher.tsx',
     ];
 
     for (const routeFile of routeFiles) {
@@ -118,11 +118,11 @@ describe('cruise comfort standard course migration', () => {
 
   it('keeps role guards on cruise student and teacher session routes', () => {
     const studentRoute = readFileSync(
-      join(repoRoot, 'src/app/interactive-learning/courses/cruise-comfort-boppps/student/[sessionId]/page.tsx'),
+      join(repoRoot, 'src/features/interactive/course-app-routes/cruise-comfort-boppps/student.tsx'),
       'utf8',
     );
     const teacherRoute = readFileSync(
-      join(repoRoot, 'src/app/interactive-learning/courses/cruise-comfort-boppps/teacher/[sessionId]/page.tsx'),
+      join(repoRoot, 'src/features/interactive/course-app-routes/cruise-comfort-boppps/teacher.tsx'),
       'utf8',
     );
 

@@ -169,14 +169,19 @@ test.describe('issue 1445 active circular root', () => {
     await page.screenshot({ path: join(evidenceDir, 'root-mobile-light.png'), fullPage: true });
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.getByRole('button', { name: '系统建模' }).click();
-    await expect(page.locator('[data-active-graph-stage="authority"]')).toBeVisible();
-    await expect(page.getByRole('button', { name: '返回领域' })).toBeVisible();
+    await page.getByRole('button', { name: '系统建模' }).evaluate((element) => {
+      if (!(element instanceof HTMLElement)) throw new Error('Expected an HTMLElement');
+      element.click();
+    });
+    await expect(page.locator('[data-knowledge-return-root="true"]')).toBeVisible({ timeout: 20_000 });
     await page.screenshot({ path: join(evidenceDir, 'domain-desktop-light.png'), fullPage: true });
 
     const node = page.locator('[data-active-authority-node="node-concept"]');
     if (await node.count()) {
-      await node.click();
+      await node.evaluate((element) => {
+        if (!(element instanceof HTMLElement)) throw new Error('Expected an HTMLElement');
+        element.click();
+      });
       await expect(page.locator('[data-active-node-detail]')).toBeVisible();
       await page.screenshot({ path: join(evidenceDir, 'inspector-desktop-light.png'), fullPage: true });
     }

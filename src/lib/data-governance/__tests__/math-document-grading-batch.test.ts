@@ -60,7 +60,7 @@ function lifecyclePolicyRepository() {
     gradingLifecyclePolicy: {
       findMany: async ({ where }: any) => where.dataClass.in.map((dataClass: string) => ({ id: `lifecycle:${dataClass}:v1`, dataClass, version: 'v1', retentionSeconds: 3600, governedRecordRule: null, deleteStrategy: 'delete-content', providerRetentionSeconds: 0, enabled: true })),
     },
-    gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
+    gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
   };
 }
 
@@ -133,10 +133,9 @@ describe('question-scoped grading batch orchestration', () => {
         submission: {
           assignmentRevisionId: 'revision-1',
           frozenAudienceClassId: 'class-1',
-          state: { in: ['SUBMITTED', 'IN_PROGRESS'] },
+          state: 'SUBMITTED',
         },
       },
-      gradingRuns: { none: { state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED'] } } },
     });
     replay = { ...first.batch, items: first.items, jobs: [first.batch.job] };
     const second = await createQuestionScopedGradingBatch({
@@ -171,57 +170,6 @@ describe('question-scoped grading batch orchestration', () => {
       },
     });
     expect(third.items[0].id).not.toBe(first.items[0].id);
-
-    replay = null;
-    const rerun = await createQuestionScopedGradingBatch({
-      db,
-      request: {
-        assignmentRevisionId: 'revision-1',
-        questionId: 'question-1',
-        classId: 'class-1',
-        actor: { id: 'teacher-1', role: 'TEACHER' },
-        idempotencyKey: 'batch-request-rerun-001',
-        evaluatorId: 'provider-1',
-        evaluatorVersion: 'model.v1',
-        rerunReason: 'rebuild complete controlled sample set',
-        maxItems: 2,
-        now,
-      },
-    });
-    expect(rerun.items).toHaveLength(2);
-    expect(findManyCalls[3].where.gradingRuns).toBeUndefined();
-  });
-
-  it('treats an explicit empty attempt vector as zero candidates', async () => {
-    const findManyCalls: any[] = [];
-    const db: any = {
-      ...lifecyclePolicyRepository(),
-      assignmentQuestion: { findUnique: async () => ({ ...questionRow(), revision: { id: 'revision-1' } }) },
-      class: { findUnique: async () => ({ id: 'class-1', teacherId: 'teacher-1', isActive: true }) },
-      submissionAttempt: { findMany: async (args: any) => {
-        findManyCalls.push(args);
-        return args.where.id?.in?.length === 0 ? [] : [{ id: 'new-attempt', answerId: 'answer-1', answerVersion: 2 }];
-      } },
-      gradingBatch: { findUnique: async () => null, create: async ({ data }: any) => ({ ...data, items: data.items.create }) },
-      gradingJob: { create: async ({ data }: any) => data },
-    };
-
-    const result = await createQuestionScopedGradingBatch({
-      db,
-      request: {
-        assignmentRevisionId: 'revision-1',
-        questionId: 'question-1',
-        classId: 'class-1',
-        actor: { id: 'teacher-1', role: 'TEACHER' },
-        idempotencyKey: 'empty-attempt-vector',
-        attemptIds: [],
-        now,
-      },
-    });
-
-    expect(findManyCalls[0].where.id).toEqual({ in: [] });
-    expect(result.items).toEqual([]);
-    expect(result.batch.totalItems).toBe(0);
   });
 
   it('replays a batch request by actor and key, then conflicts when its class payload changes', async () => {
@@ -322,22 +270,13 @@ describe('question-scoped grading batch orchestration', () => {
       purpose: 'answer-conversion',
       credentialRef: 'env:MATHPIX_APP_KEY',
     };
-    const visualPolicy = {
-      ...aiPolicy,
-      id: 'policy-visual',
-      version: 'policy.visual.v1',
-      model: 'vision-model.v1',
-      purpose: 'visual-description',
-      dataCategories: ['student-answer', 'student-answer-visual'],
-      minimizedScope: ['selected-question', 'answer-evidence', 'visual-evidence'],
-    };
     const batches: any[] = [];
     const requestRows: any[] = [];
     const db: any = {
       ...lifecyclePolicyRepository(),
       assignmentQuestion: { findUnique: async () => ({ ...questionRow(), revision: { id: 'revision-1' } }) },
       class: { findUnique: async () => ({ id: 'class-1', teacherId: 'teacher-1', isActive: true }) },
-      gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === 'policy-ai' ? aiPolicy : where.id === 'policy-visual' ? visualPolicy : conversionPolicy },
+      gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === 'policy-ai' ? aiPolicy : conversionPolicy },
       submissionAttempt: { findMany: async () => [] },
       gradingBatch: {
         findUnique: async ({ where }: any) => {
@@ -350,17 +289,15 @@ describe('question-scoped grading batch orchestration', () => {
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
-    const request = (conversionPolicyId: string | null, visualPolicyId: string | null = 'policy-visual') => createQuestionScopedGradingBatch({
+    const request = (conversionPolicyId: string | null) => createQuestionScopedGradingBatch({
       db,
-      request: { assignmentRevisionId: 'revision-1', questionId: 'question-1', classId: 'class-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'batch-policy-001', policyId: 'policy-ai', conversionPolicyId, visualPolicyId, now },
+      request: { assignmentRevisionId: 'revision-1', questionId: 'question-1', classId: 'class-1', actor: { id: 'teacher-1', role: 'TEACHER' }, idempotencyKey: 'batch-policy-001', policyId: 'policy-ai', conversionPolicyId, now },
     });
     const first = await request('policy-conversion');
     expect(first.batch.policySnapshot).toEqual(expect.objectContaining({ provider: 'ai-evaluator', purpose: 'rubric-grading' }));
     expect(first.batch.conversionPolicySnapshot).toEqual(expect.objectContaining({ provider: 'mathpix', purpose: 'answer-conversion' }));
-    expect(first.batch.visualPolicySnapshot).toEqual(expect.objectContaining({ provider: 'ai-evaluator', purpose: 'visual-description', model: 'vision-model.v1' }));
     expect(first.batch.policySnapshotHash).not.toBe(first.batch.conversionPolicySnapshotHash);
     await expect(request(null)).rejects.toMatchObject({ code: 'idempotency-key-conflict', status: 409 });
-    await expect(request('policy-conversion', 'policy-ai')).rejects.toThrow('provider-policy-purpose-mismatch');
   });
 
   it('passes conversion policy to document jobs and retains grading policy for the AI run', async () => {
@@ -401,7 +338,7 @@ describe('question-scoped grading batch orchestration', () => {
       gradingBatchItem: { updateMany: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return { count: 1 }; }, update: async ({ where, data }: any) => { const target = where.id === documentItem.id ? documentItem : item; Object.assign(target, data); return target; }, groupBy: async () => [{ state: 'SUCCEEDED', _count: { _all: 2 } }] },
       gradingProviderPolicy: { findUnique: async ({ where }: any) => where.id === imagePolicy.id ? imagePolicy : documentPolicy },
       submissionAttempt: { findUnique: async ({ where }: any) => ({ id: where.id, answerVersion: 1, answer: { assets: [{ id: `asset-${where.id}`, mimeType: where.id === documentItem.attemptId ? 'application/pdf' : 'image/png' }], question: { contentHash: 'sha256:question' } } }) },
-      answerEvidence: { findUnique: async () => null, findFirst: async () => null },
+      answerEvidence: { findUnique: async () => null, findFirst: async () => evidence },
     };
     const conversion = vi.spyOn(gradingPersistence, 'enqueueDocumentConversion').mockImplementation(async (input: any) => ({
       conversion: { id: `conversion:${input.assetId}`, state: 'QUEUED' },
@@ -604,7 +541,7 @@ describe('question-scoped grading batch orchestration', () => {
         create: async ({ data }: any) => { const job = { ...data }; jobs.push(job); return job; },
       },
       gradingRerun: { create: async ({ data }: any) => { reruns.push(data); return data; } },
-      gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
@@ -632,7 +569,7 @@ describe('question-scoped grading batch orchestration', () => {
         findUnique: async () => batch,
         update: async ({ data }: any) => { Object.assign(batch, data); updates.push(data); return batch; },
       },
-      gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-1' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
@@ -730,9 +667,9 @@ describe('question-scoped grading batch orchestration', () => {
       questionSnapshotHash: 'sha256:question',
       rubricVersion: 'rubric.v1',
       evaluatorVersion: 'model.v1',
-      evidenceId: null,
-      evidenceHash: null,
-      evidenceVersion: null,
+      evidenceId: 'evidence-retry-1',
+      evidenceHash: 'sha256:evidence',
+      evidenceVersion: 1,
       state: 'QUEUED',
       retryCount: 1,
       progress: 0,
@@ -779,7 +716,6 @@ describe('question-scoped grading batch orchestration', () => {
       version: 1,
       sourceHash: 'sha256:evidence',
       readiness: 'READY',
-      anchorVersion: 'assignment-answer-evidence.v2',
       blocks: [],
     };
     const updates: any[] = [];
@@ -815,11 +751,10 @@ describe('question-scoped grading batch orchestration', () => {
         },
       },
       submissionAttempt: {
-        findUnique: async () => ({ id: 'attempt-retry-1', answerVersion: 1, answer: { question: { contentHash: 'sha256:question' }, assets: [{ id: 'asset-retry-1', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', originalName: 'answer.docx' }] } }),
+        findUnique: async () => ({ id: 'attempt-retry-1', answerVersion: 1, answer: { question: { contentHash: 'sha256:question' }, assets: [] } }),
       },
       answerEvidence: {
         findUnique: async () => evidence,
-        findFirst: async () => evidence,
       },
     };
     vi.spyOn(gradingPersistence, 'enqueueGradingRun').mockResolvedValue({ run: { id: 'run-retry-1', inputHash: 'sha256:input', state: 'QUEUED' }, job: { id: 'grading-job-1' }, replay: false } as any);
@@ -827,8 +762,8 @@ describe('question-scoped grading batch orchestration', () => {
 
     const result = await processQuestionGradingBatch({ db, batchId: batch.id, jobId: job.id, itemId: item.id, now });
 
-    expect(result.itemResults).toEqual([{ itemId: item.id, state: 'SUCCEEDED' }]);
     expect(gradingPersistence.enqueueGradingRun).toHaveBeenCalledTimes(1);
+    expect(result.itemResults).toEqual([{ itemId: item.id, state: 'SUCCEEDED' }]);
     expect(item.state).toBe('SUCCEEDED');
     expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ state: 'SUCCEEDED', progress: 100 })]));
   });

@@ -686,10 +686,12 @@ function ChoiceGroup({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: ChoiceOption[];
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid gap-2">
@@ -697,7 +699,11 @@ function ChoiceGroup({
         <button
           key={option.value}
           type="button"
-          onClick={() => onChange(option.value)}
+          disabled={disabled}
+          onClick={() => {
+            if (disabled) return;
+            onChange(option.value);
+          }}
           className={`premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-left text-sm transition ${
             value === option.value ? 'ring-2 ring-cyan-400' : ''
           }`}
@@ -713,14 +719,17 @@ function TextInput({
   value,
   onChange,
   placeholder,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  disabled?: boolean;
 }) {
   return (
     <textarea aria-label={placeholder}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       className="premium-lesson-input min-h-[110px] w-full resize-y"
@@ -734,6 +743,7 @@ export function UNIT_2_4StudentActivityForm({
   released,
   answerVisible,
   onSubmit,
+  readOnly = false,
   onParameterChange,
 }: {
   step: UNIT_2_4StepDefinition;
@@ -741,8 +751,13 @@ export function UNIT_2_4StudentActivityForm({
   released: boolean;
   answerVisible: boolean;
   onSubmit: (response: UNIT_2_4StepResponse) => void;
+  readOnly?: boolean;
   onParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const commitStudentResponse: typeof onSubmit = (response) => {
+    if (readOnly) return;
+    onSubmit(response);
+  };
   const [draft, setDraft] = useState<Record<string, string>>(() => getDefaultDraft(step, savedResponse));
 
   useEffect(() => {
@@ -762,7 +777,7 @@ export function UNIT_2_4StudentActivityForm({
     return (
       <section className="premium-lesson-panel-soft px-4 py-4">
         <div className="premium-lesson-title text-sm font-medium">本页无需提交</div>
-        <SubmissionStatus submitted={false} idleText="本页以阅读、观察和教师推进为主，不需要学生提交作答。" />
+        <SubmissionStatus submitted={false} idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '本页以阅读、观察和教师推进为主，不需要学生提交作答。'} />
       </section>
     );
   }
@@ -777,7 +792,7 @@ export function UNIT_2_4StudentActivityForm({
       ) : (
         <div className="mt-4 grid gap-4">
           {step.pageType === 'binary_choice' ? (
-            <ChoiceGroup
+            <ChoiceGroup disabled={Boolean(readOnly)}
               options={[
                 { value: 'A', label: '系统应对所有变化都同样敏感' },
                 { value: 'B', label: '系统应对不同节奏有选择' },
@@ -793,7 +808,7 @@ export function UNIT_2_4StudentActivityForm({
                 <div className="premium-lesson-title text-sm font-medium">{question.prompt}</div>
                 {question.type === 'text' ? (
                   <div className="mt-3">
-                    <TextInput
+                    <TextInput disabled={Boolean(readOnly)}
                       value={draft[question.key] ?? ''}
                       onChange={(value) => updateDraft(question.key, value)}
                       placeholder="用 1-2 句话说明理由"
@@ -801,7 +816,7 @@ export function UNIT_2_4StudentActivityForm({
                   </div>
                 ) : (
                   <div className="mt-3">
-                    <ChoiceGroup
+                    <ChoiceGroup disabled={Boolean(readOnly)}
                       options={question.options ?? []}
                       value={draft[question.key] ?? ''}
                       onChange={(value) => updateDraft(question.key, value)}
@@ -952,7 +967,7 @@ export function UNIT_2_4StudentActivityForm({
               ).map((item) => (
                 <label key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{item.label}</span>
-                  <select
+                  <select disabled={Boolean(readOnly)}
                     value={draft[item.key] ?? ''}
                     onChange={(event) => updateDraft(item.key, event.target.value)}
                     className="premium-lesson-select mt-3 w-full"
@@ -979,7 +994,7 @@ export function UNIT_2_4StudentActivityForm({
               ].map(([key, label]) => (
                 <label key={key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{label}</span>
-                  <select
+                  <select disabled={Boolean(readOnly)}
                     value={draft[key] ?? ''}
                     onChange={(event) => updateDraft(key, event.target.value)}
                     className="premium-lesson-select mt-3 w-full"
@@ -1000,7 +1015,7 @@ export function UNIT_2_4StudentActivityForm({
               {CARD_SORT_ITEMS.map((item) => (
                 <label key={item.key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{item.label}</span>
-                  <select
+                  <select disabled={Boolean(readOnly)}
                     value={draft[item.key] ?? ''}
                     onChange={(event) => updateDraft(item.key, event.target.value)}
                     className="premium-lesson-select mt-3 w-full"
@@ -1027,7 +1042,7 @@ export function UNIT_2_4StudentActivityForm({
               ].map(([key, label]) => (
                 <label key={key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{label}</span>
-                  <input
+                  <input disabled={Boolean(readOnly)}
                     value={draft[key] ?? ''}
                     onChange={(event) => updateDraft(key, event.target.value)}
                     className="premium-lesson-input mt-3 w-full"
@@ -1042,7 +1057,7 @@ export function UNIT_2_4StudentActivityForm({
             <div className="grid gap-4 md:grid-cols-2">
               <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                 <span className="premium-lesson-title text-sm font-medium">第 1 步：标准型</span>
-                <input
+                <input disabled={Boolean(readOnly)}
                   value={draft.standard ?? ''}
                   onChange={(event) => updateDraft('standard', event.target.value)}
                   className="premium-lesson-input mt-3 w-full"
@@ -1051,7 +1066,7 @@ export function UNIT_2_4StudentActivityForm({
               </label>
               <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                 <span className="premium-lesson-title text-sm font-medium">第 2 步：转折频率</span>
-                <input
+                <input disabled={Boolean(readOnly)}
                   value={draft.break ?? ''}
                   onChange={(event) => updateDraft('break', event.target.value)}
                   className="premium-lesson-input mt-3 w-full"
@@ -1060,7 +1075,7 @@ export function UNIT_2_4StudentActivityForm({
               </label>
               <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                 <span className="premium-lesson-title text-sm font-medium">第 3 步：最低频段趋势</span>
-                <input
+                <input disabled={Boolean(readOnly)}
                   value={draft.low ?? ''}
                   onChange={(event) => updateDraft('low', event.target.value)}
                   className="premium-lesson-input mt-3 w-full"
@@ -1069,7 +1084,7 @@ export function UNIT_2_4StudentActivityForm({
               </label>
               <label className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                 <span className="premium-lesson-title text-sm font-medium">第 4 步：转折后斜率</span>
-                <input
+                <input disabled={Boolean(readOnly)}
                   value={draft.slope ?? ''}
                   onChange={(event) => updateDraft('slope', event.target.value)}
                   className="premium-lesson-input mt-3 w-full"
@@ -1089,7 +1104,7 @@ export function UNIT_2_4StudentActivityForm({
               ].map(([key, label]) => (
                 <label key={key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{label}</span>
-                  <input
+                  <input disabled={Boolean(readOnly)}
                     value={draft[key] ?? ''}
                     onChange={(event) => updateDraft(key, event.target.value)}
                     className="premium-lesson-input mt-3 w-full"
@@ -1111,7 +1126,7 @@ export function UNIT_2_4StudentActivityForm({
               ].map(([key, label]) => (
                 <label key={key} className="premium-lesson-surface-elevated rounded-3xl px-4 py-4 text-sm">
                   <span className="premium-lesson-title text-sm font-medium">{label}</span>
-                  <input
+                  <input disabled={Boolean(readOnly)}
                     value={draft[key] ?? ''}
                     onChange={(event) => updateDraft(key, event.target.value)}
                     className="premium-lesson-input mt-3 w-full"
@@ -1124,22 +1139,22 @@ export function UNIT_2_4StudentActivityForm({
 
           {step.pageType === 'ai_compare_workspace' ? (
             <div className="grid gap-4">
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.objectType ?? ''}
                 onChange={(value) => updateDraft('objectType', value)}
                 placeholder="先写你判断的对象类型"
               />
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.parameterScale ?? ''}
                 onChange={(value) => updateDraft('parameterScale', value)}
                 placeholder="再写你估计的参数量级"
               />
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.evidence ?? ''}
                 onChange={(value) => updateDraft('evidence', value)}
                 placeholder="最后写支撑你判断的图形证据"
               />
-              <TextInput
+              <TextInput disabled={Boolean(readOnly)}
                 value={draft.revision ?? ''}
                 onChange={(value) => updateDraft('revision', value)}
                 placeholder="AI 对照后，如果你要修正自己的链条，请写在这里"
@@ -1148,9 +1163,9 @@ export function UNIT_2_4StudentActivityForm({
           ) : null}
 
           <button
-            type="button"
+            type="button" disabled={Boolean(readOnly)}
             onClick={() =>
-              onSubmit({
+              commitStudentResponse({
                 stepId: step.id,
                 submittedAt: Date.now(),
                 answers: draft,

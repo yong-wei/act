@@ -22,7 +22,14 @@ export async function readGradingJson(request: Request): Promise<unknown> {
 }
 
 export function legacyDocumentGradingRouteDisabled(): boolean {
-  return process.env.NODE_ENV !== 'test';
+  return true;
+}
+
+export function legacyDocumentRubricDraftRetiredResponse() {
+  return NextResponse.json({
+    error: 'legacy-document-rubric-grading-retired',
+    replacement: '/teacher/assignments',
+  }, { status: 410, headers: { Deprecation: 'true' } });
 }
 
 export function gradingApiError(error: unknown) {

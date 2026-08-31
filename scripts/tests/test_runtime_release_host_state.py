@@ -418,6 +418,72 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(selection["releaseId"], fixture["release_id"])
 
+    def test_v2_active_receipt_projects_the_bound_compatibility_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = self.v2_release(root, {"lessons/1-1/lesson.json": b"ok\n"})
+            manifest = json.loads(fixture["manifest_path"].read_text(encoding="utf-8"))
+            state = root / "state"
+            proof = {
+                "schemaVersion": "runtime-app-compatibility.v1",
+                "runtime": {
+                    "releaseId": fixture["release_id"],
+                    "sourceRevision": manifest["sourceRevision"],
+                    "manifestSha256": manifest["manifestSha256"],
+                    "treeSha256": manifest["treeSha256"],
+                },
+                "application": {
+                    "revision": "b" * 40,
+                    "imageDigest": "sha256:" + "c" * 64,
+                },
+                "consumerContract": "runtime-app-candidate-consumers.v1",
+                "migrationSet": {"count": 3, "sha256": "d" * 64},
+            }
+            proof_dir = state / "runtime-app-compatibility"
+            proof_dir.mkdir(parents=True)
+            wire = json.dumps(proof, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+            proof_sha = hashlib.sha256(wire).hexdigest()
+            proof_path = proof_dir / f"{proof_sha}.json"
+            proof_path.write_bytes(wire)
+            receipt = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", proof_sha,
+            )
+            self.assertEqual(receipt["compatibility"]["proofSha256"], proof_sha)
+            self.assertEqual(receipt["compatibility"]["runtimeSourceRevision"], manifest["sourceRevision"])
+            self.assertEqual(receipt["compatibility"]["appRevision"], "b" * 40)
+            self.assertNotIn("runtime", receipt["compatibility"])
+
+            second = dict(proof)
+            second["application"] = {"revision": "e" * 40, "imageDigest": "sha256:" + "f" * 64}
+            second_wire = json.dumps(second, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+            second_sha = hashlib.sha256(second_wire).hexdigest()
+            (proof_dir / f"{second_sha}.json").write_bytes(second_wire)
+            updated = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", second_sha,
+            )
+            self.assertEqual(updated["compatibility"]["proofSha256"], second_sha)
+            self.assertEqual(updated["compatibility"]["appRevision"], "e" * 40)
+
+            proof_path.unlink()
+            proof_path.symlink_to(root / "missing-proof.json")
+            rejected = self.call(
+                "mark-active-v2", "--state-dir", str(state),
+                "--release-id", fixture["release_id"],
+                "--manifest-sha256", manifest["manifestSha256"],
+                "--tree-sha256", manifest["treeSha256"],
+                "--compatibility-proof-sha256", proof_sha,
+                expect_ok=False,
+            )
+            self.assertIn("proof path is invalid", rejected.stderr)
+
     def test_v2_rejects_blob_escape_and_directory_symlink(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture = self.v2_release(Path(directory), {"lessons/1-1/lesson.json": b"ok\n"})
@@ -650,6 +716,15 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             "releaseId": "ctr:release:control-theory-engineering-v0.18",
             "activatedAt": "2026-08-16T00:00:00.000Z",
         }
+        catalog_runtime = {
+            "catalogId": catalog_pointer["catalogId"],
+            "catalogHash": catalog_pointer["catalogHash"],
+            "authorityBinding": {
+                "snapshotId": catalog_pointer["snapshotId"],
+                "snapshotHash": catalog_pointer["snapshotHash"],
+                "releaseId": catalog_pointer["releaseId"],
+            },
+        }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
@@ -664,7 +739,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             catalog = parent["view"] / catalog_path
             catalog.parent.mkdir(parents=True, exist_ok=True)
             catalog.write_text(json.dumps(catalog_pointer) + "\n", encoding="utf-8")
-            (parent["view"] / catalog_payload).write_text('{"catalog":"v0.18"}\n', encoding="utf-8")
+            (parent["view"] / catalog_payload).write_text(json.dumps(catalog_runtime) + "\n", encoding="utf-8")
             restored = self.call(
                 "restore-overlays",
                 "--parent-runtime-root", str(parent["view"]),
@@ -679,7 +754,7 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
             )
             self.assertEqual(
                 (candidate["view"] / catalog_payload).read_text(encoding="utf-8"),
-                '{"catalog":"v0.18"}\n',
+                json.dumps(catalog_runtime) + "\n",
             )
             self.assertEqual((candidate["view"] / TEXTBOOK_CACHE_PATHS[0]).read_bytes(), b"body-one\n")
             verified = self.call(
@@ -688,6 +763,112 @@ class RuntimeReleaseHostStateTests(unittest.TestCase):
                 "--verification-receipt", str(candidate["verification_receipt"]),
             )
             self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_restore_overlays_replaces_git_catalog_symlink_with_parent_payload(self):
+        catalog_path = "knowledge/authority-domain-catalog/current.json"
+        catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
+        catalog_pointer = {
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("c" * 64),
+            "catalogHash": "d" * 64,
+            "snapshotId": "snap-" + ("e" * 64),
+            "snapshotHash": "f" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.22",
+            "activatedAt": "2026-08-16T00:00:00.000Z",
+        }
+        catalog_runtime = {
+            "catalogId": catalog_pointer["catalogId"],
+            "catalogHash": catalog_pointer["catalogHash"],
+            "authorityBinding": {
+                "snapshotId": catalog_pointer["snapshotId"],
+                "snapshotHash": catalog_pointer["snapshotHash"],
+                "releaseId": catalog_pointer["releaseId"],
+            },
+        }
+        git_current = json.dumps({
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("1" * 64),
+            "catalogHash": "2" * 64,
+            "snapshotId": "snap-" + ("3" * 64),
+            "snapshotHash": "4" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.37",
+        }) + "\n"
+        git_catalog = json.dumps({
+            "catalogId": "adc-" + ("1" * 64),
+            "catalogHash": "b" * 64,
+            "authorityBinding": {
+                "snapshotId": "snap-" + ("3" * 64),
+                "snapshotHash": "4" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+            },
+        }) + "\n"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = self.v2_release(root / "parent", TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            candidate = self.v2_release(root / "candidate", {
+                **TEXTBOOK_CACHE_CONTENTS,
+                catalog_path: git_current.encode("utf-8"),
+                catalog_payload: git_catalog.encode("utf-8"),
+            }, cache_textbook_retrieval=True)
+            self.make_view_writable(parent["view"])
+            catalog = parent["view"] / catalog_path
+            catalog.parent.mkdir(parents=True, exist_ok=True)
+            catalog.write_text(json.dumps(catalog_pointer) + "\n", encoding="utf-8")
+            (parent["view"] / catalog_payload).write_text(json.dumps(catalog_runtime) + "\n", encoding="utf-8")
+            self.make_view_writable(candidate["view"])
+            self.assertTrue((candidate["view"] / catalog_payload).is_symlink())
+            restored = self.call(
+                "restore-overlays",
+                "--parent-runtime-root", str(parent["view"]),
+                "--candidate-runtime-root", str(candidate["view"]),
+            )
+            self.assertEqual(sorted(restored["copied"]), sorted([catalog_path, catalog_payload]))
+            self.assertFalse((candidate["view"] / catalog_payload).is_symlink())
+            self.assertEqual(
+                json.loads((candidate["view"] / catalog_payload).read_text(encoding="utf-8")),
+                catalog_runtime,
+            )
+            verified = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(candidate["view"]),
+                "--release-id", candidate["release_id"],
+                "--verification-receipt", str(candidate["verification_receipt"]),
+            )
+            self.assertEqual(verified["releaseId"], candidate["release_id"])
+
+    def test_post_overlay_verification_rejects_authority_catalog_pointer_mismatch(self):
+        catalog_path = "knowledge/authority-domain-catalog/current.json"
+        catalog_payload = "knowledge/authority-domain-catalog/catalog.json"
+        pointer = {
+            "contract": "act-authority-domain-display-catalog-current/v1",
+            "catalogId": "adc-" + ("c" * 64),
+            "catalogHash": "d" * 64,
+            "snapshotId": "snap-" + ("e" * 64),
+            "snapshotHash": "f" * 64,
+            "releaseId": "ctr:release:control-theory-engineering-v0.18",
+        }
+        stale_runtime = {
+            "catalogId": "adc-" + ("a" * 64),
+            "catalogHash": "b" * 64,
+            "authorityBinding": {
+                "snapshotId": "snap-" + ("1" * 64),
+                "snapshotHash": "2" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.9",
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = self.v2_release(Path(directory), TEXTBOOK_CACHE_CONTENTS, cache_textbook_retrieval=True)
+            self.make_view_writable(fixture["view"])
+            current = fixture["view"] / catalog_path
+            current.parent.mkdir(parents=True, exist_ok=True)
+            current.write_text(json.dumps(pointer) + "\n", encoding="utf-8")
+            payload = fixture["view"] / catalog_payload
+            payload.write_text(json.dumps(stale_runtime) + "\n", encoding="utf-8")
+            rejected = self.call(
+                "verify-mounted", "--format", "v2", "--runtime-root", str(fixture["view"]),
+                "--release-id", fixture["release_id"],
+                "--verification-receipt", str(fixture["verification_receipt"]), expect_ok=False,
+            )
+            self.assertIn("control-plane authority catalog runtime does not match current pointer", rejected.stderr)
 
     def test_restore_overlays_copies_cutover_transaction_closure(self):
         transaction_id = "v018-cutover-aaaaaaaa"

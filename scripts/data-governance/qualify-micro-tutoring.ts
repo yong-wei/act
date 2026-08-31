@@ -15,7 +15,7 @@ import {
 
 const GOVERNANCE_DIR = 'course-content/runtime/resource-governance';
 const DEFAULT_OUTPUT_DIR = path.join(process.cwd(), '.reports/micro-tutoring-qualification');
-const ARTIFACT_PATHS = [
+const V1_ARTIFACT_PATHS = [
   `${GOVERNANCE_DIR}/adaptive-assessment-item-catalog-items.jsonl`,
   `${GOVERNANCE_DIR}/assessment-item-semantic-review-snapshots.jsonl`,
   `${GOVERNANCE_DIR}/micro-tutoring-practice-baseline.json`,
@@ -23,6 +23,16 @@ const ARTIFACT_PATHS = [
   `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-resource-projection.json`,
   `${GOVERNANCE_DIR}/micro-tutoring-validation-registry.json`,
+] as const;
+const V2_ARTIFACT_PATHS = [
+  `${GOVERNANCE_DIR}/adaptive-assessment-item-catalog-items.jsonl`,
+  `${GOVERNANCE_DIR}/assessment-item-semantic-review-snapshots.jsonl`,
+  `${GOVERNANCE_DIR}/micro-tutoring-assessment-baseline-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-option-attributions-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-goal-node-catalog.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-resource-projection-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-registry-v2.json`,
+  `${GOVERNANCE_DIR}/micro-tutoring-validation-purpose-reviews-v1.jsonl`,
 ] as const;
 
 function git(args: string[]): string {
@@ -78,14 +88,20 @@ function parseTestProofs(raw: string | undefined): MicroTutoringQualificationTes
   }
 }
 
-function parseArgs(args: string[]): { outputDir: string; offline: boolean } {
+function parseArgs(args: string[]): { outputDir: string; offline: boolean; profile: 'v1' | 'v2' } {
   const outputIndex = args.indexOf('--output-dir');
+  const profileIndex = args.indexOf('--profile');
   if (outputIndex >= 0 && !args[outputIndex + 1]) {
     throw new Error('--output-dir requires a directory');
+  }
+  const profileArg = profileIndex >= 0 ? args[profileIndex + 1] : 'v1';
+  if (profileArg !== 'v1' && profileArg !== 'v2') {
+    throw new Error('--profile must be v1 or v2');
   }
   return {
     outputDir: outputIndex >= 0 ? path.resolve(args[outputIndex + 1]!) : DEFAULT_OUTPUT_DIR,
     offline: !args.includes('--online'),
+    profile: profileArg,
   };
 }
 
@@ -95,6 +111,8 @@ async function main() {
   const coverageArgs = [
     path.join(process.cwd(), 'scripts/data-governance/check-micro-tutoring-coverage.ts'),
     ...(options.offline ? ['--offline'] : []),
+    '--profile',
+    options.profile,
     '--strict',
     '--output-dir',
     coverageDir,
@@ -112,29 +130,62 @@ async function main() {
     await readFile(path.join(coverageDir, 'micro-tutoring-coverage.json'), 'utf8'),
   ) as MicroTutoringCoverageAuditReport;
   const sourceRevision = git(['rev-parse', '--verify', 'HEAD']).trim();
-  const artifactDigests = ARTIFACT_PATHS.map((filePath) => ({
+  const artifactDigests = (options.profile === 'v2' ? V2_ARTIFACT_PATHS : V1_ARTIFACT_PATHS).map((filePath) => ({
     path: filePath,
     sha256: `sha256:${createHash('sha256').update(git(['show', `${sourceRevision}:${filePath}`])).digest('hex')}`,
   }));
   const extraTests = parseTestProofs(process.env.MICRO_TUTORING_QUALIFICATION_TEST_PROOFS);
+  let postgresProof: MicroTutoringQualificationTestProof | undefined;
+  if (options.profile === 'v2') {
+    const postgres = spawnSync(process.execPath, [
+      path.join(process.cwd(), 'node_modules/tsx/dist/cli.mjs'),
+      path.join(process.cwd(), 'scripts/tests/test-micro-tutoring-qualification-postgres.ts'),
+    ], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        MICRO_TUTORING_QUALIFICATION_POSTGRES_REQUIRED: '1',
+      },
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    postgresProof = {
+      name: 'test:micro-tutoring-qualification-postgres',
+      status: postgres.status === 0 ? 'passed' : 'failed',
+      scope: 'production-like-postgres-write-replay',
+      sourceRevision,
+    };
+  } else {
+    postgresProof = extraTests.find((test) => test.name === 'test:micro-tutoring-qualification-postgres');
+  }
   const tests = [
     {
-      name: 'verify:micro-tutoring-coverage',
+      name: options.profile === 'v2' ? 'verify:micro-tutoring-coverage:v2' : 'verify:micro-tutoring-coverage',
       status: coverage.status === 0 ? 'passed' as const : 'failed' as const,
       scope: options.offline ? 'offline-git-content' : 'online-git-db',
       sourceRevision,
     },
-    ...extraTests.filter((test) => test.name !== 'verify:micro-tutoring-coverage'),
+    ...(postgresProof ? [postgresProof] : []),
+    ...extraTests.filter((test) =>
+      test.name !== 'verify:micro-tutoring-coverage'
+      && test.name !== 'verify:micro-tutoring-coverage:v2'
+      && test.name !== 'test:micro-tutoring-qualification-postgres'),
   ];
   const built = buildMicroTutoringProductionQualificationReceipt({
     report,
     artifactDigests,
     tests,
+    coverageProfile: options.profile,
     browserEvidence: parseBoundDigest(process.env.MICRO_TUTORING_QUALIFICATION_BROWSER_EVIDENCE_PROOF),
     ociImage: parseBoundDigest(process.env.MICRO_TUTORING_QUALIFICATION_OCI_PROOF),
   });
   await mkdir(options.outputDir, { recursive: true });
-  const receiptPath = path.join(options.outputDir, 'micro-tutoring-candidate-receipt.json');
+  const receiptPath = path.join(
+    options.outputDir,
+    options.profile === 'v2'
+      ? 'micro-tutoring-v2-candidate-receipt.json'
+      : 'micro-tutoring-candidate-receipt.json',
+  );
   if (!built.receipt) {
     await unlink(receiptPath).catch(() => undefined);
     console.error(JSON.stringify({ issues: built.issues }, null, 2));

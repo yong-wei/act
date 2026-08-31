@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 
 import {
   qualifyActKgV022CutoverCandidate,
-} from '../../src/lib/teaching-projection/qualify/v022-qualify';
+} from '../../tools/teaching-projection-publishing/qualify/v022-qualify';
 
 function option(argv: readonly string[], name: string): string | undefined {
   const index = argv.indexOf(name);

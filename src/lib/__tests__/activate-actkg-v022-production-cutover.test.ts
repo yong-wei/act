@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { envelopeByName } from '@/lib/actkg-envelope/composite-envelope-registry';
-import { createV022MapPointerBackend } from '../teaching-projection/publish/v022-production-cutover-backend';
+import { createV022MapPointerBackend } from '../../../tools/teaching-projection-publishing/publish/v022-production-cutover-backend';
 import {
   assertNoLearnerVisibleSystemIdentifiers,
   createPreparedJournal,
@@ -19,11 +19,11 @@ import {
   V022_TARGET_IDENTITIES,
   V09_PREDECESSOR_IDENTITIES,
   type V022CutoverComponent,
-} from '../teaching-projection/publish/v022-production-cutover';
+} from '../../../tools/teaching-projection-publishing/publish/v022-production-cutover';
 import {
   executeV022ReleaseGates,
   publishActKgV022CutoverRuntime,
-} from '../teaching-projection/publish/v022-runtime-release';
+} from '../../../tools/teaching-projection-publishing/publish/v022-runtime-release';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const roots: string[] = [];
@@ -200,8 +200,10 @@ describe('v0.22 runtime release', () => {
       requireReleaseGates: false,
       readGitStatus: () => '',
     });
-    expect(result.status).toBe('READY');
-    expect(result.blockers).toEqual([]);
+    // Git authority/current.json matches production v0.37. Binding this sealed
+    // v0.22 publisher to the v0.9 envelope therefore remains a mixed composite.
+    expect(result.status).toBe('BLOCKED');
+    expect(result.blockers).toContain('envelope-mix');
     const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
       productionCutoverAuthorized: boolean;
       boundEnvelopeName: string;
@@ -211,7 +213,7 @@ describe('v0.22 runtime release', () => {
     expect(receipt.selectorConsumption).toBe(false);
     expect(receipt.boundEnvelopeName).toBe('control-theory-engineering-v0.9');
     const authority = JSON.parse(readFileSync(path.join(REPO_ROOT, 'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as { releaseId: string };
-    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.9');
+    expect(authority.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
   });
 
   it('stays BLOCKED until host shadow verification exists', () => {

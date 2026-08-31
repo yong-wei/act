@@ -48,10 +48,11 @@ npx prisma generate      # Generate Prisma client
 npx prisma db push       # Push schema to database
 npx prisma migrate dev   # Run migrations
 
-# Data Seeding
-npm run seed:missions    # Seed 7 learning missions
-npm run seed:demo        # Create demo user (demo@example.com / demo123456)
-npm run seed:admin       # Create admin user
+# Data Seeding（本地写库请直接跑脚本。`npm run seed:*` 走 apply 门禁，默认不执行写库）
+node scripts/db/seed-missions.mjs
+node scripts/db/seed-demo-user.mjs
+node scripts/db/seed-admin.mjs
+node scripts/db/ensure-verified-test-accounts.mjs
 
 # Logs
 npm run logs             # Tail frontend.log

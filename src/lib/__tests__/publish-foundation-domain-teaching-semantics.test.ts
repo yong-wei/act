@@ -40,10 +40,10 @@ const FIRST_FRAGMENT_DIR = path.resolve(
 );
 
 const FIRST_FRAGMENT_SHA256 = {
-  authoring: 'b38ee2a36c39004d78d0bfb3d769b6ca15b2d8d1437d3f97617c687d0c548582',
-  fragment: 'a09bd4109efc017674d6334e85eab86e07fe2ce96fc0c7207ffbc7bb1ca22daf',
+  authoring: 'c1fec14e9791e3c7453eb75bf71966d99468fb63d60912510b9d30a1de0df909',
+  fragment: '173c0974f0d7cdc01df7a4aa41403f74d0402d86ff33af2cee782a3b733e8dfb',
   composedManifest:
-    '08bbf9d1e8b07de21bb2bf2f939c642f7bfcc8ad0f463c2ae13fa416a9d511ff',
+    '2d003bb4106cd6b6547722cf5f58a88b6a07f2c224a191f222b2c9554c086188',
 } as const;
 
 const RETAINED_FIRST_ENDPOINT_IDS = [
@@ -69,7 +69,7 @@ function liveEngineeringRelationsAmong(
 ): Array<{ sourceId: string; targetId: string; relationType: string }> {
   const engineeringPath = path.join(
     REPO_ROOT,
-    'course-content/authoring/knowledge/authority/releases/snap-7f4cdd1084af419a3e83787661e3017662dc253a9ffc864a9bb97a96085cc4c7/engineering.json',
+    'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae/engineering.json',
   );
   const parsed = JSON.parse(readFileSync(engineeringPath, 'utf8')) as {
     relations?: Array<{

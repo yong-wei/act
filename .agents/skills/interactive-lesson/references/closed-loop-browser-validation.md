@@ -40,7 +40,7 @@
 - 登录页字段是"学号/工号"，不是邮箱优先。
 - 学生端应输入 `demo` 登录，不要默认使用 `demo@example.com`。
 - 三角色账号真源是 `scripts/db/verified-test-accounts.mjs`。
-- 若上述账号失效，先运行 `npm run seed:test-accounts` 或生产脚本 `scripts/db/ensure-production-test-accounts.sh`，不要直接假设前端实现有问题。
+- 若上述账号失效，本地先运行 `node scripts/db/ensure-verified-test-accounts.mjs`；生产使用 `bash scripts/db/ensure-production-test-accounts.sh`。不要直接假设前端实现有问题。`npm run seed:test-accounts` 走 apply 门禁，默认不执行写库。
 
 ## 启动方式
 

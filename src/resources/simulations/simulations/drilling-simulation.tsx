@@ -5,7 +5,7 @@
  * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
  */
 
-import { Component, Suspense, useState, useRef, useCallback, useEffect, useMemo, type ReactNode, type RefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
@@ -18,6 +18,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -210,31 +212,17 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 }
 
 /** 钻井平台模型 */
-const OPTIMIZED_MODEL_URL = '/assets/models-opt/drilling-rig.glb';
-const ORIGINAL_MODEL_URL = '/assets/drilling-rig.glb';
-
-/** meshopt 模型加载失败的回退边界：回退到原始 GLB（构建期 fallback 的运行时对偶）。 */
-class ModelAssetErrorBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
+const MODEL = resolveRegisteredSimulationModel('drilling-rig');
 
 function DrillingPlatformModel(props: {
   position: Vector2;
   heading: number;
 }) {
   return (
-    <ModelAssetErrorBoundary fallback={<DrillingPlatformModelScene url={ORIGINAL_MODEL_URL} {...props} />}>
-      <DrillingPlatformModelScene url={OPTIMIZED_MODEL_URL} {...props} />
-    </ModelAssetErrorBoundary>
+    <FallbackGltfModel
+      candidates={MODEL.candidates}
+      render={(url) => <DrillingPlatformModelScene url={url} {...props} />}
+    />
   );
 }
 
@@ -306,7 +294,7 @@ function DrillingPlatformModelScene({
 }
 
 // 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(OPTIMIZED_MODEL_URL);
+useGLTF.preload(MODEL.primary);
 
 /** 目标位置标记 */
 function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {

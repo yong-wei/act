@@ -8,7 +8,8 @@
  */
 
 import { useChat } from '@/hooks/useLegacyChat';
-import { useRef, useEffect, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppShell } from '@/components/platform/app-shell';
 import { KonlingAvatar } from '@/components/ai/konling-avatar';
@@ -19,6 +20,8 @@ import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import type { EvidenceCopilotProjection } from '@/lib/evidence-copilot-context';
+import type { GovernedCopilotProfileProjection } from '@/lib/governed-copilot-profile-context';
 import {
   buildAiAuditTaskState,
   buildPortfolioReflectionDraft,
@@ -36,18 +39,10 @@ export default function CopilotPage() {
   const taskIntent = searchParams.get('intent') ?? context ?? undefined;
   const localTaskMode = context === 'portfolio-reflection' || context === 'evidence';
   const viewerRole = resolveCopilotViewerRole(sessionData.data?.user?.role);
-  const evidenceSummary = useMemo(
-    () =>
-      context === 'evidence'
-        ? {
-            source,
-            focus: '学习证据复盘',
-            weakPoint: '请围绕证据来源、薄弱点和下一步练习给出建议。',
-            nextStep: '先说明证据可见来源，再给出一条可执行的补强练习。',
-          }
-        : null,
-    [context, source],
-  );
+  const [evidenceProjection, setEvidenceProjection] = useState<EvidenceCopilotProjection | null>(null);
+  const [evidenceProjectionError, setEvidenceProjectionError] = useState(false);
+  const [copilotProfile, setCopilotProfile] = useState<GovernedCopilotProfileProjection | null>(null);
+  const [copilotProfileError, setCopilotProfileError] = useState(false);
   const reflectionDraft = useMemo(
     () =>
       context === 'portfolio-reflection'
@@ -79,15 +74,23 @@ export default function CopilotPage() {
       });
     }
     if (context === 'evidence') {
+      const status = evidenceProjection?.status;
+      const unavailable = evidenceProjectionError || status === 'unavailable';
+      const missing = status === 'missing';
       return buildAiAuditTaskState({
         taskType: 'evidence-copilot',
-        status: 'pending',
-        message: '证据上下文已转换为学生可读摘要，内部诊断不会显示在回答中。',
-        nextAction: '围绕证据来源、薄弱点和下一步练习继续提问',
+        status: unavailable ? 'failed' : missing ? 'blocked' : 'pending',
+        message: unavailable
+          ? '学习证据当前不可用。'
+          : missing
+            ? '当前暂无学习证据。'
+            : evidenceProjection?.limitations[0]
+              ?? '已加载服务端核对的学习证据，建议仅作参考。',
+        nextAction: evidenceProjection?.nextAction.label ?? '去做一次自适应练习，补充学习证据',
       });
     }
     return null;
-  }, [context, reflectionDraft?.id]);
+  }, [context, evidenceProjection, evidenceProjectionError, reflectionDraft?.id]);
   const taskContract =
     context === 'portfolio-reflection'
       ? getAiAuditTaskContract('portfolio-reflection')
@@ -108,34 +111,94 @@ export default function CopilotPage() {
   );
 
   // 获取页面上下文和用户画像
-  const { pageContext, userProfile } = usePageAIContext({
+  const { pageContext } = usePageAIContext({
     courseId: 'general',
     courseTitle: 'AI-OBE智能学习平台',
     topic: '通用学习辅助',
     pageType: 'workspace',
   });
-  const copilotPageContext = useMemo(() => {
-    if (!evidenceSummary) return pageContext;
-    return {
-      ...pageContext,
-      topic: `证据 Copilot：${evidenceSummary.source}`,
-      learningObjectives: [
-        ...pageContext.learningObjectives,
-        `证据来源：${evidenceSummary.source}`,
-        evidenceSummary.weakPoint,
-        evidenceSummary.nextStep,
-      ],
+  const evidenceTaskContext = useMemo(
+    () =>
+      context === 'evidence'
+        ? {
+            taskType: 'evidence-copilot' as const,
+            ...(source ? { source } : {}),
+            ...(assignment ? { assignment } : {}),
+            ...(taskIntent ? { intent: taskIntent } : {}),
+          }
+        : undefined,
+    [assignment, context, source, taskIntent],
+  );
+
+  useEffect(() => {
+    if (context !== 'evidence') {
+      setEvidenceProjection(null);
+      setEvidenceProjectionError(false);
+      return;
+    }
+    const params = new URLSearchParams();
+    if (source) params.set('source', source);
+    if (assignment) params.set('assignment', assignment);
+    if (taskIntent) params.set('intent', taskIntent);
+    const query = params.toString();
+    let cancelled = false;
+    fetch(`/api/ai/evidence-copilot${query ? `?${query}` : ''}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error('evidence unavailable');
+        return response.json() as Promise<EvidenceCopilotProjection>;
+      })
+      .then((projection) => {
+        if (!cancelled) {
+          setEvidenceProjection(projection);
+          setEvidenceProjectionError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEvidenceProjection(null);
+          setEvidenceProjectionError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
     };
-  }, [evidenceSummary, pageContext]);
+  }, [assignment, context, source, taskIntent]);
+
+  useEffect(() => {
+    if (!sessionData.data?.user?.id) {
+      setCopilotProfile(null);
+      setCopilotProfileError(false);
+      return;
+    }
+    let cancelled = false;
+    fetch('/api/ai/copilot-profile')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('profile unavailable');
+        return response.json() as Promise<GovernedCopilotProfileProjection>;
+      })
+      .then((projection) => {
+        if (!cancelled) {
+          setCopilotProfile(projection);
+          setCopilotProfileError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCopilotProfile(null);
+          setCopilotProfileError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionData.data?.user?.id]);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, reload, stop, append, setMessages } =
     useChat({
       api: '/api/ai/chat',
       body: {
-        pageContext: copilotPageContext,
-        userProfile,
-        taskContext: evidenceSummary,
-        auditTaskContext: portfolioReflectionTaskContext,
+        pageContext,
+        auditTaskContext: portfolioReflectionTaskContext ?? evidenceTaskContext,
       },
     });
 
@@ -232,6 +295,41 @@ export default function CopilotPage() {
             {/* 消息列表 */}
             <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
               {taskState ? <ActionStatusPanel state={taskState} className="mb-4" /> : null}
+              {sessionData.data?.user?.id ? (
+                <div
+                  className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
+                  data-copilot-profile-status={
+                    copilotProfileError ? 'unavailable' : copilotProfile?.status ?? 'pending'
+                  }
+                >
+                  <div className="font-medium">
+                    {copilotProfileError || copilotProfile?.status === 'unavailable'
+                      ? '个性化画像不可用'
+                      : copilotProfile?.status === 'missing'
+                        ? '暂无受治理学习画像'
+                        : copilotProfile?.status === 'stale'
+                          ? '学习画像已过期'
+                          : copilotProfile?.status === 'low-confidence'
+                            ? '学习画像置信度较低'
+                            : copilotProfile
+                              ? '已核对的学习画像'
+                              : '正在核对学习画像'}
+                  </div>
+                  {(copilotProfile?.limitations ?? []).map((limitation) => (
+                    <p key={limitation} className="mt-1 text-amber-100/80">{limitation}</p>
+                  ))}
+                  {copilotProfileError ? (
+                    <p className="mt-1 text-amber-100/80">学习画像服务当前不可用，仅提供通用课程辅导。</p>
+                  ) : null}
+                  <Link
+                    href={copilotProfile?.nextAction.href ?? '/assessment/adaptive-practice?intent=practice'}
+                    className="mt-2 inline-flex text-xs text-amber-100/90 underline"
+                    data-copilot-profile-next-action
+                  >
+                    {copilotProfile?.nextAction.label ?? '去做一次自适应练习，补充学习证据'}
+                  </Link>
+                </div>
+              ) : null}
               {taskContract ? (
                 <div className="mb-4 rounded-lg border border-slate-700 bg-slate-950/70 px-4 py-3 text-xs text-slate-300">
                   <span>任务类型：{taskContract.taskType}</span>
@@ -239,14 +337,40 @@ export default function CopilotPage() {
                   <span className="ml-3">写回：{taskContract.writebackBehavior}</span>
                 </div>
               ) : null}
-              {evidenceSummary ? (
+              {context === 'evidence' ? (
                 <div
                   className="mb-4 rounded-xl border border-cyan-500/40 bg-cyan-500/10 p-4 text-sm text-cyan-100"
                   data-ai-task-boundary="evidence-copilot-summary"
+                  data-evidence-copilot-status={
+                    evidenceProjectionError ? 'unavailable' : evidenceProjection?.status ?? 'pending'
+                  }
                 >
-                  <div className="font-medium">证据摘要：{evidenceSummary.source}</div>
-                  <p className="mt-1 text-cyan-100/80">{evidenceSummary.weakPoint}</p>
-                  <p className="mt-1 text-xs text-cyan-100/70">下一步：{evidenceSummary.nextStep}</p>
+                  <div className="font-medium">
+                    {evidenceProjectionError || evidenceProjection?.status === 'unavailable'
+                      ? '学习证据不可用'
+                      : evidenceProjection?.status === 'missing'
+                        ? '暂无学习证据'
+                        : evidenceProjection?.status === 'stale'
+                          ? '学习证据已过期'
+                          : evidenceProjection?.status === 'partial'
+                            ? '学习证据不完整'
+                            : evidenceProjection
+                              ? '已核对的学习证据'
+                              : '正在核对学习证据'}
+                  </div>
+                  {(evidenceProjection?.limitations ?? []).map((limitation) => (
+                    <p key={limitation} className="mt-1 text-cyan-100/80">{limitation}</p>
+                  ))}
+                  {evidenceProjectionError ? (
+                    <p className="mt-1 text-cyan-100/80">学习证据服务当前不可用。</p>
+                  ) : null}
+                  <Link
+                    href={evidenceProjection?.nextAction.href ?? '/assessment/adaptive-practice?intent=practice'}
+                    className="mt-2 inline-flex text-xs text-cyan-100/90 underline"
+                    data-evidence-copilot-next-action
+                  >
+                    {evidenceProjection?.nextAction.label ?? '去做一次自适应练习，补充学习证据'}
+                  </Link>
                 </div>
               ) : null}
               {reflectionDraft ? (
