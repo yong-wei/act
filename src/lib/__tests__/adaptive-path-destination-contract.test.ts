@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -59,6 +62,46 @@ describe('adaptive path destination contract', () => {
       'simulation',
       '/interactive-learning/resources/simulation-id',
     ).disposition).toBe('blocked');
+  });
+
+  it('keeps the destination contract off the manifest course app loader graph', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/lib/adaptive-path-destination-contract.ts'),
+      'utf8',
+    );
+    expect(source).toContain("from '@/features/interactive/shared/manifest-course-route-segments'");
+    expect(source).not.toContain('manifest-course-app-loaders');
+  });
+
+  it('permits governed course student demo steps for simulation nodes', () => {
+    expect(resolveAdaptivePathDestinationContract(
+      'simulation',
+      '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+    )).toMatchObject({
+      disposition: 'destination-control',
+      reason: null,
+    });
+  });
+
+  it.each([
+    '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo',
+    '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=',
+    '/interactive-learning/courses/not-a-registered-course/student/demo?step=step-11',
+  ])('blocks incomplete or unregistered simulation course demo %s', (target) => {
+    expect(resolveAdaptivePathDestinationContract('simulation', target)).toMatchObject({
+      disposition: 'blocked',
+      reason: 'unsupported-resource-type',
+    });
+  });
+
+  it('blocks teacher course demo paths as non-student-visible simulation destinations', () => {
+    expect(resolveAdaptivePathDestinationContract(
+      'simulation',
+      '/interactive-learning/courses/unit-3-6-zero-design-workshop/teacher/demo?step=step-11',
+    )).toMatchObject({
+      disposition: 'blocked',
+      reason: 'non-student-visible-target',
+    });
   });
 
   it.each([
