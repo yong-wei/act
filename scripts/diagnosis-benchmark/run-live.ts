@@ -81,6 +81,7 @@ async function main() {
           ok: false,
           durationMs: Date.now() - startedAt,
           reason: `report-body-invalid: ${parsed.error.issues.map((issue) => issue.path.join('.')).join(',')}`,
+          rawOutput: generated.output,
         };
       }
       return {

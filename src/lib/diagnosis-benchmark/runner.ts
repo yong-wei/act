@@ -54,7 +54,7 @@ export type DiagnosisBenchmarkGenerate = (context: {
   replicate: number;
 }) => Promise<
   | { ok: true; report: DiagnosisBenchmarkCandidateReport; rawOutput?: unknown; durationMs: number }
-  | { ok: false; reason: string; durationMs: number }
+  | { ok: false; reason: string; rawOutput?: unknown; durationMs: number }
 >;
 
 export interface DiagnosisBenchmarkVersionInfo {
@@ -331,6 +331,9 @@ export async function runDiagnosisBenchmark(options: {
           attributionValid: false,
           coverageClaimAccurate: false,
           durationMs,
+          // 解析/生成失败路径同样保留原始输出（Issue #1729 review）：
+          // 失败样本最需要审计，不得因失败而丢弃。
+          rawOutput: generated.rawOutput ?? null,
           failureReason: generated.reason,
         });
         continue;
