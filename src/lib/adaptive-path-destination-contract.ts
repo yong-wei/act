@@ -1,4 +1,5 @@
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
+import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
 import { isStudentVisiblePathTarget } from './student-visible-path-target';
 
 export type AdaptivePathDestinationDisposition =
@@ -173,6 +174,20 @@ function validateInteractiveResourceSourceContext(
     : 'resource-source-mismatch';
 }
 
+function isGovernedCourseStudentDemoStep(target: string): boolean {
+  try {
+    const parsed = new URL(target, 'https://act.local');
+    const match = /^\/interactive-learning\/courses\/([^/]+)\/student\/demo$/.exec(parsed.pathname);
+    if (!match || !isManifestCourseRouteSegment(match[1])) {
+      return false;
+    }
+    const step = parsed.searchParams.get('step');
+    return Boolean(step && step.trim());
+  } catch {
+    return false;
+  }
+}
+
 function hasIntegratedJourneyDestination(
   resourceType: string,
   target: string,
@@ -197,7 +212,9 @@ function hasIntegratedJourneyDestination(
     return pathname === '/interactive-learning/control-workbench';
   }
   if (resourceType === 'simulation') {
-    return pathname.startsWith('/simulations/') || hasVerifiedInteractiveResourceContext;
+    return pathname.startsWith('/simulations/')
+      || hasVerifiedInteractiveResourceContext
+      || isGovernedCourseStudentDemoStep(target);
   }
   if (resourceType === 'arena_task') {
     const match = /^\/arena\/challenges\/([^/?#]+)$/.exec(pathname);
