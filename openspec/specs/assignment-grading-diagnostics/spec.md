@@ -1,0 +1,31 @@
+# assignment-grading-diagnostics Specification
+
+## Purpose
+TBD - created by archiving change improve-assignment-grading-visual-evidence. Update Purpose after archive.
+
+## Requirements
+
+### Requirement: 匿名化评分诊断链路
+系统 MUST 为已获授权的实验样本记录资产校验和、转换版本、证据块摘要、模型输入哈希、评分结果、运行版本和受控错误码；诊断记录不得保存身份、原始作答、答题记录正文、本地路径或凭据。
+
+#### Scenario: 生成异常样本诊断
+- **WHEN** 评分结果与人工基准的差异满足预先配置的异常筛选条件
+- **THEN** 系统生成仅含匿名样本标识、链路哈希、状态和统计值的诊断记录
+
+#### Scenario: 诊断数据包含敏感字段
+- **WHEN** 待写入诊断的数据包含原始作答或身份映射
+- **THEN** 系统 MUST 拒绝写入并记录受控的数据治理错误码
+
+### Requirement: 分层质量报告
+系统 MUST 按题号、视觉证据类别和运行版本报告人工差异、三次运行方差、转换成功率和证据完整率，并将 T2-3 作为独立分层。
+
+#### Scenario: 报告视觉样本与非视觉样本
+- **WHEN** 调优集完成三次独立评分
+- **THEN** 系统分别返回视觉样本、非视觉样本和 T2-3 的指标及分母
+
+### Requirement: 隐藏集诊断隔离
+系统 MUST 阻止诊断、分类、调优和回归路径读取密封隐藏集；只有已冻结且被授权的验收操作可以消耗隐藏集。
+
+#### Scenario: 调优请求包含隐藏样本
+- **WHEN** 调优或诊断请求选择密封隐藏样本
+- **THEN** 系统 MUST 拒绝请求且不创建 Provider 调用或结果记录

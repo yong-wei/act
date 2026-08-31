@@ -23,7 +23,7 @@ Assignment delivery contracts SHALL separate student-visible question content fr
 
 #### Scenario: Teacher releases a solution result package
 - **WHEN** an authorized teacher releases a confirmed result for a specific student assignment submission
-- **THEN** only that student's immutable result package SHALL become visible
+- **THEN** only that student's explicitly released result package, derived from immutable question-level approval snapshots, SHALL become visible
 - **AND** reference answers and scoring standards SHALL be visible only as part of the same package.
 
 #### Scenario: Historical revision has a time-based policy
