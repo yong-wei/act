@@ -87,6 +87,9 @@ async function main() {
         ok: true,
         durationMs: Date.now() - startedAt,
         report: parsed.data as DiagnosisBenchmarkCandidateReport,
+        // 审计留解析前原始输出：safeParse 会补默认值并裁剪字符串，
+        // 规范化结果不可还原模型实际返回（Issue #1729 review）。
+        rawOutput: generated.output,
       };
     } catch (error) {
       return {

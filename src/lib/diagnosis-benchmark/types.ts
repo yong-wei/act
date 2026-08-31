@@ -114,8 +114,9 @@ export interface DiagnosisBenchmarkReplicateEvaluation {
   scenarioId: string;
   replicate: number;
   status: DiagnosisBenchmarkReplicateStatus;
-  /** 原始候选报告（审计用：真值、原始输出与解析结果同 run ID 可追溯）。 */
-  rawReport?: DiagnosisBenchmarkCandidateReport | null;
+  /** 解析前的 provider 原始输出（审计用：真值、原始输出与解析结果同 run ID 可追溯；
+   * 未经 schema 规范化（补默认值/裁剪），与参与评测的解析结果分开保留）。 */
+  rawOutput?: unknown;
   /** 报告为薄弱的知识节点集合（带 knowledgeNodeId 的 findings）。 */
   reportedNodes: string[];
   /** 报告的首要薄弱节点（首个知识点 finding）。 */

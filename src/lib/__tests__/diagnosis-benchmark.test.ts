@@ -363,7 +363,7 @@ describe('diagnosis benchmark fixture run', () => {
       expect(summary.scenarios[0].scenarioId).toBe('healthy-class');
       const replicate = JSON.parse(await readFile(path.join(runDir, 'runs', 'healthy-class-1.json'), 'utf8'));
       expect(replicate.groundTruth.trueWeakNodes).toEqual([]);
-      expect(replicate.rawReport).toMatchObject({ confidence: 'high', findings: [] });
+      expect(replicate.rawOutput).toMatchObject({ confidence: 'high', findings: [] });
       expect(replicate.evaluation.scenarioId).toBe('healthy-class');
       const csv = await readFile(path.join(runDir, 'summary.csv'), 'utf8');
       expect(csv).toContain('aggregate,macroF1,1');

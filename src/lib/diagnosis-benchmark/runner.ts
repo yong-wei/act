@@ -53,7 +53,7 @@ export type DiagnosisBenchmarkGenerate = (context: {
   groundTruth: DiagnosisBenchmarkGroundTruth;
   replicate: number;
 }) => Promise<
-  | { ok: true; report: DiagnosisBenchmarkCandidateReport; durationMs: number }
+  | { ok: true; report: DiagnosisBenchmarkCandidateReport; rawOutput?: unknown; durationMs: number }
   | { ok: false; reason: string; durationMs: number }
 >;
 
@@ -340,7 +340,7 @@ export async function runDiagnosisBenchmark(options: {
         scenarioId: scenario.id,
         replicate,
         durationMs,
-        rawReport: generated.report,
+        rawOutput: generated.rawOutput ?? generated.report,
         ...replayed,
       });
     }
@@ -395,7 +395,7 @@ export async function writeBenchmarkRun(root: string, result: DiagnosisBenchmark
     for (const evaluation of run.evaluations) {
       await writeFile(
         path.join(runDir, 'runs', `${run.scenario.id}-${evaluation.replicate}.json`),
-        `${JSON.stringify({ groundTruth: run.groundTruth, rawReport: evaluation.rawReport ?? null, evaluation }, null, 2)}\n`,
+        `${JSON.stringify({ groundTruth: run.groundTruth, rawOutput: evaluation.rawOutput ?? null, evaluation }, null, 2)}\n`,
         'utf8',
       );
     }
