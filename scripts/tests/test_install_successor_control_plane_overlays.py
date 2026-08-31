@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import stat
 import tempfile
 import unittest
@@ -8,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 INSTALLER = ROOT / "scripts/knowledge-cutover/install-successor-control-plane-overlays.py"
+SEALED_DOMAIN_TEACHING = ROOT / "course-content/runtime/knowledge/teaching-projection/domain-fragments"
 
 
 def write(path: Path, value) -> None:
@@ -99,6 +101,16 @@ def catalog_runtime(catalog_id: str, catalog_hash: str, snapshot: str, release_i
             "releaseId": release_id,
         },
     }
+
+
+def seal_successor_domain_teaching(source: Path, successor: dict) -> None:
+    target = source / "knowledge/teaching-projection/domain-fragments"
+    if target.exists() or target.is_symlink():
+        shutil.rmtree(target)
+    shutil.copytree(SEALED_DOMAIN_TEACHING, target)
+    pointer = json.loads((target / "current.json").read_text(encoding="utf-8"))
+    successor["domainProjectionId"] = pointer["projectionId"]
+    successor["domainProjectionHash"] = pointer["projectionHash"]
 
 
 class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
@@ -247,6 +259,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             }
             self.populate_source(view, predecessor)
             self.populate_source(source, successor)
+            seal_successor_domain_teaching(source, successor)
             self.attach_successor_blob_payloads(view, root, successor)
             result = self.run_installer(
                 "--view", str(view),
@@ -443,6 +456,70 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("dtf-" + identities["domainProjectionHash"], completed.stderr)
 
+    def test_refuses_tampered_fragment_body_with_stale_digest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            view = root / "view"
+            source = root / "source"
+            identities = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            self.populate_source(view, identities)
+            self.populate_source(source, identities)
+            seal_successor_domain_teaching(source, identities)
+            fragment_dir = (
+                source / "knowledge/teaching-projection/domain-fragments/releases"
+                / identities["domainProjectionId"] / "fragments"
+            )
+            tampered_path = next(
+                path for path in sorted(fragment_dir.glob("*.json"))
+                if json.loads(path.read_text(encoding="utf-8")).get("relations")
+            )
+            fragment = json.loads(tampered_path.read_text(encoding="utf-8"))
+            stale_digest = fragment["fragmentDigest"]
+            fragment["relations"][0]["strength"] = "OPTIONAL" if fragment["relations"][0].get("strength") != "OPTIONAL" else "REQUIRED"
+            fragment["coreNodes"].append({
+                "canonicalId": "forged-core-node",
+                "domainKeys": ["root-locus"],
+                "pathEligible": True,
+                "cardPolicy": "OPTIONAL",
+                "sourceKind": "fixture",
+                "sourceEvidence": [],
+            })
+            self.assertEqual(fragment["fragmentDigest"], stale_digest)
+            write(tampered_path, fragment)
+            import subprocess
+            completed = subprocess.run(
+                [
+                    "python3", str(INSTALLER),
+                    "--view", str(view),
+                    "--source", str(source),
+                    "--expected-authority-release-id", identities["releaseId"],
+                    "--expected-teaching-projection-hash", identities["projectionHash"],
+                    "--expected-domain-teaching-projection-hash", identities["domainProjectionHash"],
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("body digest drifted", completed.stderr)
+
     def test_snapshot_restore_replaces_applied_overlays(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -485,6 +562,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             }
             self.populate_source(view, predecessor)
             self.populate_source(source, successor)
+            seal_successor_domain_teaching(source, successor)
             self.attach_successor_blob_payloads(view, root, successor)
             self.run_installer("--view", str(view), "--snapshot-to", str(snapshot))
             result = self.run_installer(
@@ -610,6 +688,7 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             }
             installer.populate_source(selected, predecessor)
             installer.populate_source(source, successor)
+            seal_successor_domain_teaching(source, successor)
             installer.attach_successor_blob_payloads(selected, root, successor)
             receipt_path = root / "state" / "successor-teaching-overlay-receipt.json"
             prior_receipt = {
