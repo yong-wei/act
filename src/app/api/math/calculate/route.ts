@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await runMathCalculate(parsed.data);
+    const result = await runMathCalculate(parsed.data, { signal: request.signal });
     if (result.status === 'error') {
       return NextResponse.json(result, { status: 422 });
     }
