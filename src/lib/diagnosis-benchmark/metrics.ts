@@ -132,6 +132,15 @@ export function aggregateBenchmarkMetrics(
 
   const healthyEntries = scored.filter((entry) => entry.healthyFalsePositiveRate !== null);
   const macroF1Values = scored.map((entry) => entry.f1).filter((value): value is number => value !== null);
+  // 重复运行稳定性按逐 replicate F1 事件计算（Issue #1729 review）：
+  // 场景均值的标准差衡量的是场景间差异，会掩盖单次调用的大幅波动。
+  const replicateF1Values: number[] = [];
+  for (const run of runs) {
+    for (const evaluation of run.evaluations) {
+      if (evaluation.status !== 'ok') continue;
+      replicateF1Values.push(nodeLevelSetMetrics(evaluation.reportedNodes, run.groundTruth.trueWeakNodes).f1);
+    }
+  }
   return {
     microPrecision,
     microRecall,
@@ -147,8 +156,8 @@ export function aggregateBenchmarkMetrics(
     generationSuccessRate: rate(scored.map((entry) => entry.generationSuccessRate >= 1)),
     scenarioCount: scored.length,
     replicateDispersion: {
-      macroF1Stdev: stdev(macroF1Values),
-      macroF1Worst: macroF1Values.length === 0 ? null : round4(Math.min(...macroF1Values)),
+      macroF1Stdev: stdev(replicateF1Values),
+      macroF1Worst: replicateF1Values.length === 0 ? null : round4(Math.min(...replicateF1Values)),
     },
   };
 }

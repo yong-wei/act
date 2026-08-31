@@ -28,6 +28,8 @@ import {
   type DiagnosisBenchmarkScenarioRun,
 } from '@/lib/diagnosis-benchmark/metrics';
 import type {
+  DiagnosisBenchmarkCandidateFinding,
+  DiagnosisBenchmarkCandidateReport,
   DiagnosisBenchmarkGovernedInput,
   DiagnosisBenchmarkGroundTruth,
   DiagnosisBenchmarkReplicateEvaluation,
@@ -44,26 +46,6 @@ export const DIAGNOSIS_BENCHMARK_THRESHOLD = {
   complianceRate: 1,
   coverageClaimAccuracyRate: 0.95,
 } as const;
-
-export interface DiagnosisBenchmarkCandidateFinding {
-  title: string;
-  summary?: string;
-  knowledgeNodeId?: string;
-  riskType?: string;
-  severity?: string;
-  confidence?: string;
-  evidenceRefs: string[];
-}
-
-export interface DiagnosisBenchmarkCandidateReport {
-  summary: string;
-  findings: DiagnosisBenchmarkCandidateFinding[];
-  evidenceRefs: string[];
-  evidenceCutoff: string;
-  sourceCoverage: Record<string, number>;
-  confidence: string;
-  limitations: string[];
-}
 
 export type DiagnosisBenchmarkGenerate = (context: {
   scenario: DiagnosisBenchmarkScenario;
@@ -101,9 +83,10 @@ export interface DiagnosisBenchmarkThresholdFailure {
  * 校准门拒绝记为 calibration-rejected（不计入误报，Issue #1729 回归锚点）。
  */
 export function replayBenchmarkGovernance(
+  scenario: DiagnosisBenchmarkScenario,
   governedInput: DiagnosisBenchmarkGovernedInput,
   report: DiagnosisBenchmarkCandidateReport,
-): Omit<DiagnosisBenchmarkReplicateEvaluation, 'scenarioId' | 'replicate' | 'durationMs'> {
+): Omit<DiagnosisBenchmarkReplicateEvaluation, 'scenarioId' | 'replicate' | 'durationMs' | 'rawReport'> {
   const observedRefs = new Set<string>([
     ...governedInput.knowledgeProgress.map((row) => `knowledge-progress:${row.id}`),
     ...(governedInput.assignmentSubmissions ?? []).map((row) => `assignment-submission:${row.id}`),
@@ -150,11 +133,31 @@ export function replayBenchmarkGovernance(
     chineseCompliant: languageViolations.length === 0,
     evidenceRefsValid,
     attributionValid: attributionViolations.length === 0,
-    coverageClaimAccurate: report.sourceCoverage.progressRows === governedInput.knowledgeProgress.length,
+    coverageClaimAccurate: report.sourceCoverage.progressRows === governedInput.knowledgeProgress.length
+      && boundaryRespected(scenario, report),
     failureReason: governanceFailed
       ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'}`
       : undefined,
   };
+}
+
+const CONFIDENCE_ORDER = ['unavailable', 'low', 'medium', 'high'] as const;
+
+/**
+ * 场景结论边界（Issue #1729 review）：证据冲突或覆盖缺失的场景要求
+ * 报告携带 limitations 且置信不超过声明的最高档；违反即覆盖/降级
+ * 主张不准确，计入合规率并在阈值门禁中失败。
+ */
+function boundaryRespected(
+  scenario: DiagnosisBenchmarkScenario,
+  report: DiagnosisBenchmarkCandidateReport,
+): boolean {
+  const boundary = scenario.allowedConclusionBoundary;
+  if (!boundary.requireLimitations) return true;
+  if (report.limitations.length === 0) return false;
+  const observed = CONFIDENCE_ORDER.indexOf(report.confidence as typeof CONFIDENCE_ORDER[number]);
+  const allowed = CONFIDENCE_ORDER.indexOf(boundary.maxConfidence);
+  return observed >= 0 && allowed >= 0 && observed <= allowed;
 }
 
 function evidenceRefFor(governedInput: DiagnosisBenchmarkGovernedInput, nodeId: string, take: number): string[] {
@@ -332,11 +335,12 @@ export async function runDiagnosisBenchmark(options: {
         });
         continue;
       }
-      const replayed = replayBenchmarkGovernance(materialized.governedInput, generated.report);
+      const replayed = replayBenchmarkGovernance(scenario, materialized.governedInput, generated.report);
       evaluations.push({
         scenarioId: scenario.id,
         replicate,
         durationMs,
+        rawReport: generated.report,
         ...replayed,
       });
     }
@@ -391,7 +395,7 @@ export async function writeBenchmarkRun(root: string, result: DiagnosisBenchmark
     for (const evaluation of run.evaluations) {
       await writeFile(
         path.join(runDir, 'runs', `${run.scenario.id}-${evaluation.replicate}.json`),
-        `${JSON.stringify({ groundTruth: run.groundTruth, evaluation }, null, 2)}\n`,
+        `${JSON.stringify({ groundTruth: run.groundTruth, rawReport: evaluation.rawReport ?? null, evaluation }, null, 2)}\n`,
         'utf8',
       );
     }

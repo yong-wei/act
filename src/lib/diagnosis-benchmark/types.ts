@@ -89,11 +89,33 @@ export type DiagnosisBenchmarkReplicateStatus =
   | 'calibration-rejected'
   | 'generation-failed';
 
+export interface DiagnosisBenchmarkCandidateFinding {
+  title: string;
+  summary?: string;
+  knowledgeNodeId?: string;
+  riskType?: string;
+  severity?: string;
+  confidence?: string;
+  evidenceRefs: string[];
+}
+
+export interface DiagnosisBenchmarkCandidateReport {
+  summary: string;
+  findings: DiagnosisBenchmarkCandidateFinding[];
+  evidenceRefs: string[];
+  evidenceCutoff: string;
+  sourceCoverage: Record<string, number>;
+  confidence: string;
+  limitations: string[];
+}
+
 /** 单次重复评测的解析结果（治理重放之后）。 */
 export interface DiagnosisBenchmarkReplicateEvaluation {
   scenarioId: string;
   replicate: number;
   status: DiagnosisBenchmarkReplicateStatus;
+  /** 原始候选报告（审计用：真值、原始输出与解析结果同 run ID 可追溯）。 */
+  rawReport?: DiagnosisBenchmarkCandidateReport | null;
   /** 报告为薄弱的知识节点集合（带 knowledgeNodeId 的 findings）。 */
   reportedNodes: string[];
   /** 报告的首要薄弱节点（首个知识点 finding）。 */

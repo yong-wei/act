@@ -457,31 +457,17 @@ export async function generateGovernedDiagnosisReport(
     },
     permittedTools: [...DIAGNOSIS_TOOLS],
   });
-  const learnerAliasFor = createReportLearnerAliasResolver(input.attemptId);
-  const assignments = projectFrozenAssignments(governedInput.data, learnerAliasFor);
-  const assessments = projectFrozenAssessments(governedInput.data, learnerAliasFor);
-  const riskFlags = projectFrozenRiskFlags(governedInput.data, learnerAliasFor);
-  const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
-  const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data, learnerAliasFor);
-  const weaknessStats = buildKnowledgeNodeWeaknessStats(governedInput.data.knowledgeProgress);
-  const toolAudit = [
-    auditToolResult('get_class_assignment_outcomes', assignments),
-    auditToolResult('get_class_assessment_outcomes', assessments),
-    auditToolResult('get_student_risk_flags', riskFlags),
-    ...(competency ? [auditToolResult('get_class_competency_summary', competency)] : []),
-    auditToolResult('get_student_knowledge_progress', knowledgeProgress),
-  ];
-  const observedRefs = new Set(toolAudit.flatMap((entry) => entry.evidenceRefs));
-  if (observedRefs.size === 0) {
+  const projected = buildDiagnosisProviderToolResults(governedInput.data, {
+    attemptId: input.attemptId,
+    targetStudentId: input.targetStudentId,
+  });
+  if (projected.observedRefs.size === 0) {
     throw new DiagnosisGenerationValidationError('diagnosis-evidence-unavailable');
   }
-  const providerToolResults = {
-    assignments: compactAssignmentsForProvider(assignments),
-    assessments: compactAssessmentsForProvider(assessments),
-    riskFlags: compactRiskFlagsForProvider(riskFlags),
-    competency: competency ? compactCompetencyForProvider(competency) : null,
-    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress, weaknessStats, input.targetStudentId),
-  };
+  const {
+    providerToolResults, toolAudit, weaknessStats,
+    learnerAliasFor, assignments, assessments, observedRefs,
+  } = projected;
 
   const provider = await resolveSmartLessonStructuredProvider();
   let generated;
@@ -490,21 +476,7 @@ export async function generateGovernedDiagnosisReport(
       schema: diagnosisProviderReportBodySchema,
       schemaVersion: 'teacher-diagnosis-report-body.v1',
       promptVersion: input.generatorVersion,
-      system: [
-        '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
-        '所有面向教师的自然语言内容（summary、findings 标题与说明、limitations 说明）必须使用简体中文；不得输出英文分析段落。',
-        'findings 中引用 knowledge-progress 证据的知识点发现必须携带与引用证据一致的有效 knowledgeNodeId；总体风险、成绩分布等非知识点发现不需要 knowledgeNodeId。',
-        '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
-        '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
-        '知识点薄弱判定必须锚定绝对弱势证据：绝对弱势指长期未开始（NOT_STARTED）或进度低于 40 且未完成。governedToolResults.knowledgeProgress.nodeWeakness 已按节点给出 weakStudentCount、coveredStudentCount、minimumWeakStudents 与 eligibleForWeaknessFinding 判定结果；知识点薄弱判定只应锚定 eligibleForWeaknessFinding 为 true 的节点，不得自行按聚合进度估算弱势人数。',
-        '仅凭班级内相对较低、但仍处于正常范围（已完成或进度不低于 40）的排序位置，不得把节点判为薄弱；"学完但整体测评不理想"等班级整体问题用不带 knowledgeNodeId 的总体发现表达。',
-        '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
-        '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
-        '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
-        '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
-        'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
-        `evidenceCutoff 必须严格等于 ${input.evidenceCutoff.toISOString()}。`,
-      ].join('\n'),
+      system: buildDiagnosisProviderSystemPrompt(input.evidenceCutoff.toISOString()),
       prompt: JSON.stringify({
         scope: input.targetStudentId
           ? { type: 'student', classId: input.classId, learnerAlias: learnerAliasFor(input.targetStudentId) }
@@ -594,6 +566,63 @@ export async function generateGovernedDiagnosisReport(
 }
 
 type GovernedInput = z.infer<typeof governedInputSchema>;
+export type GovernedDiagnosisInput = GovernedInput;
+
+const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
+  '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
+  '所有面向教师的自然语言内容（summary、findings 标题与说明、limitations 说明）必须使用简体中文；不得输出英文分析段落。',
+  'findings 中引用 knowledge-progress 证据的知识点发现必须携带与引用证据一致的有效 knowledgeNodeId；总体风险、成绩分布等非知识点发现不需要 knowledgeNodeId。',
+  '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
+  '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
+  '知识点薄弱判定必须锚定绝对弱势证据：绝对弱势指长期未开始（NOT_STARTED）或进度低于 40 且未完成。governedToolResults.knowledgeProgress.nodeWeakness 已按节点给出 weakStudentCount、coveredStudentCount、minimumWeakStudents 与 eligibleForWeaknessFinding 判定结果；知识点薄弱判定只应锚定 eligibleForWeaknessFinding 为 true 的节点，不得自行按聚合进度估算弱势人数。',
+  '仅凭班级内相对较低、但仍处于正常范围（已完成或进度不低于 40）的排序位置，不得把节点判为薄弱；"学完但整体测评不理想"等班级整体问题用不带 knowledgeNodeId 的总体发现表达。',
+  '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
+  '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
+  '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
+  '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
+  'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
+];
+
+/**
+ * 生产诊断 system prompt（Issue #1729 review：live 评测复用同一提示词，
+ * 候选版本对生产提示词的修改直接进入评测面）。
+ */
+export function buildDiagnosisProviderSystemPrompt(evidenceCutoffIso: string): string {
+  return `${DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES.join('\n')}\nevidenceCutoff 必须严格等于 ${evidenceCutoffIso}。`;
+}
+
+/**
+ * 生产 provider 工具投影（Issue #1729 review：live 评测复用同一投影链，
+ * 含 nodeWeakness 判定与 compact 采样，保证评测输入与生产输入同构）。
+ */
+export function buildDiagnosisProviderToolResults(
+  data: GovernedDiagnosisInput,
+  options: { attemptId: string; targetStudentId?: string | null },
+) {
+  const learnerAliasFor = createReportLearnerAliasResolver(options.attemptId);
+  const assignments = projectFrozenAssignments(data, learnerAliasFor);
+  const assessments = projectFrozenAssessments(data, learnerAliasFor);
+  const riskFlags = projectFrozenRiskFlags(data, learnerAliasFor);
+  const competency = options.targetStudentId ? null : projectFrozenCompetency(data);
+  const knowledgeProgress = projectFrozenKnowledgeProgress(data, learnerAliasFor);
+  const weaknessStats = buildKnowledgeNodeWeaknessStats(data.knowledgeProgress);
+  const toolAudit = [
+    auditToolResult('get_class_assignment_outcomes', assignments),
+    auditToolResult('get_class_assessment_outcomes', assessments),
+    auditToolResult('get_student_risk_flags', riskFlags),
+    ...(competency ? [auditToolResult('get_class_competency_summary', competency)] : []),
+    auditToolResult('get_student_knowledge_progress', knowledgeProgress),
+  ];
+  const observedRefs = new Set(toolAudit.flatMap((entry) => entry.evidenceRefs));
+  const providerToolResults = {
+    assignments: compactAssignmentsForProvider(assignments),
+    assessments: compactAssessmentsForProvider(assessments),
+    riskFlags: compactRiskFlagsForProvider(riskFlags),
+    competency: competency ? compactCompetencyForProvider(competency) : null,
+    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress, weaknessStats, options.targetStudentId),
+  };
+  return { providerToolResults, toolAudit, observedRefs, weaknessStats, learnerAliasFor, assignments, assessments };
+}
 
 function projectFrozenAssignments(
   input: GovernedInput,

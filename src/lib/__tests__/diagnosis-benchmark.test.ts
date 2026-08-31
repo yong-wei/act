@@ -188,6 +188,30 @@ describe('diagnosis benchmark metrics', () => {
     expect(aggregate.replicateDispersion.macroF1Worst).not.toBeNull();
   });
 
+  it('computes replicate dispersion from per-replicate F1, not scenario means', () => {
+    const run = {
+      scenario,
+      groundTruth: benchmarkGroundTruth(scenario),
+      evaluations: [1, 2, 3].map((replicate) => ({
+        scenarioId: scenario.id,
+        replicate,
+        status: 'ok' as const,
+        // 偶数 replicate 完整命中（F1=1），奇数 replicate 全漏（F1=0）：
+        // 场景均值恒为 1/3，若按场景均值计算会得到 stdev=0、掩盖波动。
+        reportedNodes: replicate % 2 === 0 ? benchmarkGroundTruth(scenario).trueWeakNodes : [],
+        primaryReportedNode: replicate % 2 === 0 ? 'bench-node-07' : null,
+        chineseCompliant: true,
+        evidenceRefsValid: true,
+        attributionValid: true,
+        coverageClaimAccurate: true,
+        durationMs: 1,
+      })),
+    };
+    const aggregate = aggregateBenchmarkMetrics([run]);
+    expect(aggregate.replicateDispersion.macroF1Stdev).toBeGreaterThan(0);
+    expect(aggregate.replicateDispersion.macroF1Worst).toBe(0);
+  });
+
   it('lists scenario, replicate, expected and actual in threshold failure details', () => {
     const run = {
       scenario,
@@ -234,6 +258,7 @@ describe('diagnosis benchmark fixture run', () => {
     });
     expect(overdiagnosed.ok).toBe(true);
     const replayed = replayBenchmarkGovernance(
+      healthy,
       materialized.governedInput,
       (overdiagnosed as { report: DiagnosisBenchmarkCandidateReport }).report,
     );
@@ -249,10 +274,38 @@ describe('diagnosis benchmark fixture run', () => {
       replicate: 1,
     });
     const idealReplayed = replayBenchmarkGovernance(
+      healthy,
       materialized.governedInput,
       (ideal as { report: DiagnosisBenchmarkCandidateReport }).report,
     );
     expect(idealReplayed.status).toBe('ok');
+  });
+
+  it('enforces the conflict scenario conclusion boundary on coverage claims', async () => {
+    const conflict = scenarioById('assignment-assessment-conflict');
+    const materialized = materializeScenario(conflict);
+    const generate = createFixtureGenerate();
+    const generated = await generate({
+      scenario: conflict,
+      governedInput: materialized.governedInput,
+      groundTruth: materialized.groundTruth,
+      replicate: 1,
+    });
+    expect(generated.ok).toBe(true);
+    const compliant = replayBenchmarkGovernance(
+      conflict,
+      materialized.governedInput,
+      (generated as { report: DiagnosisBenchmarkCandidateReport }).report,
+    );
+    expect(compliant.coverageClaimAccurate).toBe(true);
+
+    const strongConclusion: DiagnosisBenchmarkCandidateReport = {
+      ...(generated as { report: DiagnosisBenchmarkCandidateReport }).report,
+      confidence: 'high',
+      limitations: [],
+    };
+    const violated = replayBenchmarkGovernance(conflict, materialized.governedInput, strongConclusion);
+    expect(violated.coverageClaimAccurate).toBe(false);
   });
 
   it('passes all eight scenarios end to end with the fixture stub', async () => {
@@ -310,6 +363,8 @@ describe('diagnosis benchmark fixture run', () => {
       expect(summary.scenarios[0].scenarioId).toBe('healthy-class');
       const replicate = JSON.parse(await readFile(path.join(runDir, 'runs', 'healthy-class-1.json'), 'utf8'));
       expect(replicate.groundTruth.trueWeakNodes).toEqual([]);
+      expect(replicate.rawReport).toMatchObject({ confidence: 'high', findings: [] });
+      expect(replicate.evaluation.scenarioId).toBe('healthy-class');
       const csv = await readFile(path.join(runDir, 'summary.csv'), 'utf8');
       expect(csv).toContain('aggregate,macroF1,1');
     } finally {

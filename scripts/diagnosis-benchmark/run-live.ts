@@ -2,13 +2,19 @@
  * 诊断基准 live 评测入口（Issue #1729）：真实 provider 重复评测。
  *
  * 显式 opt-in：需设置 DIAGNOSIS_BENCHMARK_LIVE=1，普通验证与普通提
- * 交流程不会触发，避免外部服务波动变成不稳定门禁。默认每场景 3 次
- * 重复，可用 DIAGNOSIS_BENCHMARK_REPLICATES 覆盖。
+ * 交流程不会触发，避免外部服务波动变成不稳定门禁。每场景至少 3 次
+ * 重复（更小的 DIAGNOSIS_BENCHMARK_REPLICATES 会被钳制到 3）；提示词
+ * 与工具投影复用生产诊断构建函数，候选版本对生产提示词或投影的修改
+ * 直接进入评测面。
  */
 
 import { execFileSync } from 'node:child_process';
 
 import { resolveSmartLessonStructuredProvider } from '@/lib/smart-lesson-plan/provider-runtime';
+import {
+  buildDiagnosisProviderSystemPrompt,
+  buildDiagnosisProviderToolResults,
+} from '@/lib/diagnosis-generation-provider';
 import { diagnosisReportBodySchema } from '@/lib/diagnosis-persistence';
 import {
   runDiagnosisBenchmark,
@@ -16,12 +22,10 @@ import {
   type DiagnosisBenchmarkCandidateReport,
   type DiagnosisBenchmarkGenerate,
 } from '@/lib/diagnosis-benchmark/runner';
+import { DIAGNOSIS_BENCHMARK_SCENARIOS } from '@/lib/diagnosis-benchmark/scenarios';
+import { materializeScenario } from '@/lib/diagnosis-benchmark/generate';
 
-const LIVE_SYSTEM_PROMPT = [
-  '你是教师学情诊断评测生成器，只能依据给定的受治理工具结果生成结构化报告。',
-  '所有自然语言内容使用简体中文；知识点薄弱判定只报告有充分绝对弱势证据的节点。',
-  '相对较低但处于正常范围的节点不得判为薄弱；全部正常时 findings 为空。',
-].join('\n');
+const PRODUCTION_PROMPT_VERSION = 'teacher-diagnosis.v1';
 
 function gitRevision(): string {
   try {
@@ -39,25 +43,39 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  const replicates = Number.parseInt(process.env.DIAGNOSIS_BENCHMARK_REPLICATES ?? '3', 10);
+  const requested = Number.parseInt(process.env.DIAGNOSIS_BENCHMARK_REPLICATES ?? '3', 10);
+  const replicates = Number.isFinite(requested) ? Math.max(3, requested) : 3;
+  if (replicates !== requested) {
+    process.stderr.write(`live 评测每场景至少 3 次重复：${requested} 已被钳制为 ${replicates}。\n`);
+  }
   const provider = await resolveSmartLessonStructuredProvider();
-  const generate: DiagnosisBenchmarkGenerate = async ({ governedInput, scenario }) => {
+  const scenarioMaterializations = DIAGNOSIS_BENCHMARK_SCENARIOS.map((scenario) => ({
+    scenario,
+    materialized: materializeScenario(scenario),
+  }));
+  const liveGenerate: DiagnosisBenchmarkGenerate = async ({ scenario, replicate }) => {
+    const entry = scenarioMaterializations.find((item) => item.scenario.id === scenario.id);
+    if (!entry) {
+      return { ok: false, reason: `unknown scenario ${scenario.id}`, durationMs: 0 };
+    }
     const startedAt = Date.now();
+    const attemptId = `diagnosis-benchmark-${scenario.id}-${replicate}`;
+    const { providerToolResults } = buildDiagnosisProviderToolResults(
+      entry.materialized.governedInput,
+      { attemptId, targetStudentId: null },
+    );
     try {
       const generated = await provider.generate({
         schema: diagnosisReportBodySchema,
         schemaVersion: 'teacher-diagnosis-report-body.v1',
-        promptVersion: 'diagnosis-benchmark-live.v1',
-        system: LIVE_SYSTEM_PROMPT,
+        promptVersion: PRODUCTION_PROMPT_VERSION,
+        system: buildDiagnosisProviderSystemPrompt('2026-08-31T08:00:00.000Z'),
         prompt: JSON.stringify({
-          scope: { type: 'class', classId: governedInput.classId, scenario: scenario.id },
-          governedToolResults: {
-            assignments: governedInput.assignmentSubmissions,
-            assessments: governedInput.assessmentSessions,
-            knowledgeProgress: governedInput.knowledgeProgress,
-          },
+          scope: { type: 'class', classId: entry.materialized.governedInput.classId },
+          evidenceCutoff: '2026-08-31T08:00:00.000Z',
+          governedToolResults: providerToolResults,
         }),
-        idempotencyKey: `diagnosis-benchmark-${scenario.id}-${Date.now()}`,
+        idempotencyKey: `${attemptId}-${Date.now()}`,
         maxOutputTokens: 2_400,
         timeoutMs: 120_000,
       });
@@ -76,16 +94,16 @@ async function main() {
   };
 
   const result = await runDiagnosisBenchmark({
-    generate,
-    replicates: Number.isFinite(replicates) && replicates > 0 ? replicates : 3,
+    generate: liveGenerate,
+    replicates,
     versionInfo: {
       mode: 'live',
       provider: process.env.SMART_LESSON_PROVIDER ?? 'default-structured-provider',
       model: process.env.SMART_LESSON_MODEL ?? null,
-      promptVersion: 'diagnosis-benchmark-live.v1',
+      promptVersion: `${PRODUCTION_PROMPT_VERSION} (production replay)`,
       schemaVersion: 'teacher-diagnosis-report-body.v1',
       generatorVersion: 'diagnosis-benchmark.v1',
-      projectionVersion: 'governance-replay.v1',
+      projectionVersion: 'production-provider-projection',
       codeRevision: gitRevision(),
     },
   });
