@@ -25,6 +25,12 @@ describe('Wolfram Cloud MCP helpers', () => {
     expect(unwrapWolframEvaluatorText(text)).toBe(inner);
   });
 
+  it('unwraps quoted JSON followed by trailing kernel messages', () => {
+    const inner = JSON.stringify({ status: 'ok', result: 'x+1' });
+    const text = `Out[1]= ${JSON.stringify(inner)}\nGeneral::quit: The kernel quit unexpectedly during evaluation with exit code 0.`;
+    expect(unwrapWolframEvaluatorText(text)).toBe(inner);
+  });
+
   it('retries evaluate once when the Cloud MCP tools/call connection drops', async () => {
     const initializeResult = {
       jsonrpc: '2.0',
@@ -67,6 +73,53 @@ describe('Wolfram Cloud MCP helpers', () => {
       evaluateWolframLanguage('1+1', { timeoutMs: 30_000, timeConstraintSeconds: 30 }),
     ).resolves.toBe('Out[1]= 2');
     expect(calls).toBe(6);
+  });
+
+  it('stops immediately on a pre-cancelled signal without contacting the evaluator', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      evaluateWolframLanguage('1+1', { timeoutMs: 5_000, signal: controller.signal }),
+    ).rejects.toThrow('公式计算超时');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not retry the evaluator after the caller cancels mid-evaluation', async () => {
+    const initializeResult = {
+      jsonrpc: '2.0',
+      id: 1,
+      result: {
+        protocolVersion: '2025-03-26',
+        capabilities: { tools: { listChanged: true } },
+        serverInfo: { name: 'Wolfram', version: 'test' },
+      },
+    };
+    const controller = new AbortController();
+    let calls = 0;
+
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls += 1;
+      const body = typeof init?.body === 'string' ? JSON.parse(init.body) : null;
+      if (body?.method === 'initialize') {
+        return new Response(JSON.stringify(initializeResult), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'mcp-session-id': `session-${calls}` },
+        });
+      }
+      if (body?.method === 'notifications/initialized') {
+        return new Response('', { status: 202 });
+      }
+      controller.abort();
+      throw new TypeError('fetch failed');
+    }));
+
+    await expect(
+      evaluateWolframLanguage('1+1', { timeoutMs: 30_000, signal: controller.signal }),
+    ).rejects.toThrow('公式计算超时');
+    expect(calls).toBe(3);
   });
 
   it('injects calc.wls and the JSON payload into a Cloud MCP program', () => {
