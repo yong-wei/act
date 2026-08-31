@@ -48,6 +48,7 @@ CONTROL_PLANE_OVERLAY_PATHS = (
     "knowledge/authority-domain-shards/current.json",
     "knowledge/consumer-activation/current.json",
     "knowledge/production-cutover-transactions/current.json",
+    "knowledge/teaching-projection/domain-fragments/current.json",
 )
 OVERLAY_IDENTITY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,126}$")
 LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS = (
@@ -103,6 +104,9 @@ def control_plane_payload_targets(pointer_relative: str, pointer: Dict[str, Any]
         targets.append(("file", "knowledge/production-cutover-transactions/%s.json" % identity))
         targets.append(("file", "knowledge/consumer-activation/first-activation-transactions/%s.json" % identity))
         targets.append(("optional_file", "knowledge/production-cutover-transactions/%s.rollback.json" % identity))
+    elif pointer_relative == "knowledge/teaching-projection/domain-fragments/current.json" and pointer.get("projectionId"):
+        identity = require_overlay_identity(pointer["projectionId"], "projectionId")
+        targets.append(("prefix", "knowledge/teaching-projection/domain-fragments/releases/%s" % identity))
     return targets
 
 

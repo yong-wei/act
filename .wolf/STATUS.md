@@ -10,7 +10,9 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
-- 2026-08-30：#1683 本地实现与 7.6 已闭合。Git `authority/current.json` 已是生产 v0.37；latest-cutover 绑定 candidate receipt、独立 `runtime-release-active-receipt.v1`、无三文件 memo，前任 generation 三方一致。下一步是开 PR 到 integration。
+- 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。本地已实现 live domain-fragments overlay loader、candidate 封装脚本和控制面允许集，未提交、未发新应用镜像。6.5–6.7 未勾，未 archive，未关 #1683。
+
+- 2026-08-30：#1683 应用已发布 `v0.6.0`（`6e492afbeb98c118ed0ad24689b96be319eb31f9`），GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.0，生产 `deploy:app --skip-build` 已换到该镜像。
 
 - 2026-08-30：修全课迁移残余。共享 `StudentCards` 与自定义作答表单在演示模式禁用提交和作答控件（频域/奈奎斯特滑动条仍可预览）；批量脚本残留的 JSX `\'` 已清除；独立 `/interactive-learning/multi-representation-linkage` 包进 `InteractiveLearningShell`，工作台嵌入路径不叠壳。未给 `rust-analysis` 伪造中心插件。未开新 Issue，未重开 #1573，未认领 #1683。
 
@@ -67,7 +69,7 @@
 
 ## 🚀 Next phase
 
-- 2026-08-30：#1683 本地 7.6 已清场。下一步：开 PR 到 `integration`，用用户身份 `@codex review`；清场后合 `integration` → `main`、打新版本、`scripts/build.sh`、`deploy:app --skip-build`，再勾 6.4–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要写生产 selector。
+- 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：提交 loader overlay + 安装器 + staged domain-fragments（runtime 新文件需 `git add -f`），另开 PR 合入后发新应用版本并 overlay 安装 domain-fragments，再验 6.5–6.6。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 

@@ -3,7 +3,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -43,6 +43,7 @@ import {
   stageAuthorityDomainShards,
   teachingCoverageFromState,
   writeAuthorityDomainShards,
+  writeDomainTeachingRuntime,
   type AuthorityShardEnvelope,
 } from '@/lib/authority-domain-shards';
 import {
@@ -446,24 +447,13 @@ function writeShards(
 
 function writeTeachingProjectionFixture(root: string) {
   const published = publishedTeachingArtifacts();
-  const relative = 'teaching-projection';
-  const releaseDir = path.join(root, relative, 'releases', published.pointer.projectionId);
-  mkdirSync(path.join(releaseDir, 'fragments'), { recursive: true });
-  writeFileSync(
-    path.join(root, relative, 'current.json'),
-    `${JSON.stringify(published.pointer, null, 2)}\n`,
-  );
-  writeFileSync(
-    path.join(releaseDir, 'manifest.json'),
-    `${JSON.stringify(published.artifacts.manifest, null, 2)}\n`,
-  );
-  for (const fragment of published.artifacts.fragments) {
-    writeFileSync(
-      path.join(releaseDir, 'fragments', `${fragment.fragmentId}.json`),
-      `${JSON.stringify(fragment, null, 2)}\n`,
-    );
-  }
-  return { ...published, relative };
+  writeDomainTeachingRuntime({
+    repoRoot: root,
+    pointer: published.pointer,
+    artifacts: published.artifacts,
+    relative: 'teaching-projection',
+  });
+  return { ...published, relative: 'teaching-projection' };
 }
 
 describe('authority domain shard delivery', () => {
@@ -1517,6 +1507,39 @@ describe('authority domain shard delivery', () => {
     const matchingDomain = loadDomainDefaultShard('system-modeling', matchingOptions);
     expect(matchingDomain.teachingRelations.length).toBeGreaterThan(0);
     expect(matchingDomain.envelope.match.teaching).toBe(true);
+  });
+
+  it('applies a live Teaching overlay onto shards sealed without teaching', () => {
+    const published = publishedTeachingArtifacts();
+    const sealed = writeShards();
+    const liveEnvelope = envelope({
+      catalog: {
+        catalogId: sealed.catalog.catalogId,
+        catalogHash: sealed.catalog.catalogHash,
+        catalogVersion: sealed.catalog.catalogVersion,
+      },
+      teaching: {
+        status: 'available',
+        projectionId: published.pointer.projectionId,
+        projectionHash: published.pointer.projectionHash,
+        teachingCacheFamily: published.pointer.teachingCacheFamily,
+      },
+      match: { authority: true, catalog: true, teaching: true },
+    });
+    const domain = loadDomainDefaultShard('system-modeling', {
+      shardPaths: sealed.shardPaths,
+      identity: {
+        envelope: liveEnvelope,
+        catalog: sealed.catalog,
+        teachingPointer: published.pointer,
+        teachingArtifacts: published.artifacts,
+      },
+    });
+    expect(domain.envelope.teaching.status).toBe('available');
+    expect(domain.envelope.match.teaching).toBe(true);
+    expect(domain.teachingRelations.length).toBeGreaterThan(0);
+    expect(domain.teachingCoverage.status).not.toBe('unavailable');
+    expect(domain.teachingCoverage.note).not.toBe('教学关系暂不可用');
   });
 
   it('merges canonical objects once and rejects mismatched envelopes', () => {

@@ -8,5 +8,6 @@ export * from './labels';
 export * from './v018-reviewed-neighborhood-labels';
 export * from './loader';
 export * from './materialize';
+export * from './stage-domain-teaching-runtime';
 export * from './store';
 export * from './teaching';
