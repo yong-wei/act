@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { belongsToAssignmentFilter, studentAssignmentHref } from '@/features/assignments/student-assignment-list';
 import { formatAssignmentDeadline } from '@/features/assignments/student-assignment-types';
 import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
+import { presentStudentAssignmentResult } from '@/lib/assignments/submission-service';
 
 describe('student assignment task center view model', () => {
   it('keeps open, submitted pipeline, and reviewed filters semantically distinct', () => {
@@ -44,5 +45,56 @@ describe('student assignment task center view model', () => {
   it('fails closed instead of displaying unknown snapshot structures', () => {
     expect(presentStudentReferenceAnswer({ answer: '不应展示' })).toBeNull();
     expect(presentStudentScoringStandard({ internal: '不应展示' })).toBeNull();
+  });
+
+  it('projects released results through a fixed student-safe field list', () => {
+    const result = presentStudentAssignmentResult({
+      studentId: 'student-1',
+      frozenStudentId: 'student-1',
+      answers: [],
+      gradingSnapshots: [{
+        items: [],
+        grade: {
+          release: {
+            ownerStudentId: 'student-1',
+            releasedAt: new Date('2026-08-31T00:00:00.000Z'),
+            packageSnapshot: {
+              version: 'assignment-student-result.v1',
+              totalScore: 4,
+              overallComment: '总体评价',
+              releasedAt: '2026-08-31T00:00:00.000Z',
+              provider: 'internal-provider',
+              confidence: 0.9,
+              questions: [{
+                questionId: 'question-1',
+                score: 4,
+                comment: '题目评价',
+                evidenceBlock: 'internal-evidence',
+                criteria: [{ criterionId: 'criterion-1', score: 4, comment: '评分说明', reasonCode: 'internal' }],
+                annotations: [{ criterionId: 'criterion-1', comment: '批注', anchor: { excerpt: 'internal' } }],
+                referenceAnswer: { text: '参考答案' },
+                scoringStandard: '评分标准',
+              }],
+            },
+          },
+        },
+      }],
+    });
+
+    expect(result).toEqual({
+      version: 'assignment-student-result.v1',
+      totalScore: 4,
+      overallComment: '总体评价',
+      releasedAt: '2026-08-31T00:00:00.000Z',
+      questions: [{
+        questionId: 'question-1',
+        score: 4,
+        comment: '题目评价',
+        criteria: [{ criterionId: 'criterion-1', score: 4, comment: '评分说明' }],
+        annotations: [{ criterionId: 'criterion-1', comment: '批注' }],
+        referenceAnswer: '参考答案',
+        scoringStandard: '评分标准',
+      }],
+    });
   });
 });

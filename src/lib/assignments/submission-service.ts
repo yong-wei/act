@@ -1435,19 +1435,68 @@ export function presentStudentAssignmentResult(submission: any): StudentAssignme
   const release = releases[0];
   if (!release || !release.packageSnapshot || typeof release.packageSnapshot !== 'object') return null;
   const result = release.packageSnapshot as Record<string, unknown>;
+  if (result.version !== 'assignment-student-result.v1'
+    || typeof result.totalScore !== 'number'
+    || !Number.isFinite(result.totalScore)
+    || typeof result.releasedAt !== 'string') return null;
   const questions = Array.isArray(result.questions)
-    ? result.questions.map((value) => {
+    ? result.questions.flatMap((value) => {
       const question = value && typeof value === 'object' && !Array.isArray(value)
         ? value as Record<string, unknown>
         : {};
-      return {
-        ...question,
+      if (typeof question.questionId !== 'string' || !question.questionId.trim()
+        || typeof question.score !== 'number' || !Number.isFinite(question.score)) return [];
+      return [{
+        questionId: question.questionId,
+        score: question.score,
+        comment: typeof question.comment === 'string' ? question.comment : '',
+        criteria: presentStudentResultCriteria(question.criteria),
+        annotations: presentStudentResultAnnotations(question.annotations),
         referenceAnswer: presentStudentReferenceAnswer(question.referenceAnswer),
         scoringStandard: presentStudentScoringStandard(question.scoringStandard),
-      };
+      }];
     })
     : [];
-  return { ...result, questions } as StudentAssignmentResultDto;
+  return {
+    version: 'assignment-student-result.v1',
+    totalScore: result.totalScore,
+    overallComment: typeof result.overallComment === 'string' ? result.overallComment : null,
+    releasedAt: result.releasedAt,
+    questions,
+  };
+}
+
+function presentStudentResultCriteria(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((value) => {
+    const criterion = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : null;
+    if (!criterion) return [];
+    const score = typeof criterion.score === 'number' && Number.isFinite(criterion.score)
+      ? criterion.score
+      : undefined;
+    return [{
+      ...(typeof criterion.criterionId === 'string' ? { criterionId: criterion.criterionId } : {}),
+      ...(typeof criterion.levelId === 'string' ? { levelId: criterion.levelId } : {}),
+      ...(score === undefined ? {} : { score }),
+      ...(typeof criterion.comment === 'string' ? { comment: criterion.comment } : {}),
+    }];
+  });
+}
+
+function presentStudentResultAnnotations(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((value) => {
+    const annotation = value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : null;
+    if (!annotation || typeof annotation.comment !== 'string') return [];
+    return [{
+      ...(typeof annotation.criterionId === 'string' ? { criterionId: annotation.criterionId } : {}),
+      comment: annotation.comment,
+    }];
+  });
 }
 
 async function withSerializableRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {
