@@ -163,11 +163,28 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 identities["releaseId"],
             ),
         )
+        fragment_id = "dtf-" + identities["domainProjectionHash"]
         write(
             source / "knowledge/teaching-projection/domain-fragments/releases" / identities["domainProjectionId"] / "composed-manifest.json",
             {
                 "projectionId": identities["domainProjectionId"],
                 "projectionHash": identities["domainProjectionHash"],
+                "fragments": [
+                    {
+                        "order": 0,
+                        "fragmentId": fragment_id,
+                        "fragmentKey": "fixture",
+                        "fragmentVersion": "1",
+                        "fragmentDigest": identities["domainProjectionHash"],
+                    },
+                ],
+            },
+        )
+        write(
+            source / "knowledge/teaching-projection/domain-fragments/releases" / identities["domainProjectionId"] / "fragments" / (fragment_id + ".json"),
+            {
+                "fragmentId": fragment_id,
+                "fragmentDigest": identities["domainProjectionHash"],
             },
         )
 
@@ -381,6 +398,50 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             )
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("domain teaching projection hash", completed.stderr)
+
+    def test_refuses_source_missing_declared_domain_fragment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            view = root / "view"
+            source = root / "source"
+            identities = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            self.populate_source(view, identities)
+            self.populate_source(source, identities)
+            fragment = source / "knowledge/teaching-projection/domain-fragments/releases" / identities["domainProjectionId"] / "fragments" / ("dtf-" + identities["domainProjectionHash"] + ".json")
+            fragment.unlink()
+            import subprocess
+            completed = subprocess.run(
+                [
+                    "python3", str(INSTALLER),
+                    "--view", str(view),
+                    "--source", str(source),
+                    "--expected-authority-release-id", identities["releaseId"],
+                    "--expected-teaching-projection-hash", identities["projectionHash"],
+                    "--expected-domain-teaching-projection-hash", identities["domainProjectionHash"],
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("dtf-" + identities["domainProjectionHash"], completed.stderr)
 
     def test_snapshot_restore_replaces_applied_overlays(self):
         with tempfile.TemporaryDirectory() as directory:

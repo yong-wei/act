@@ -202,6 +202,46 @@ def collect_source_overlay_files(source_root, materializer):
     return files
 
 
+def require_domain_teaching_closure(source_root, pointer, expected_hash):
+    # type: (Path, Dict[str, Any], str) -> None
+    projection_id = pointer.get("projectionId")
+    projection_hash = pointer.get("projectionHash")
+    if not isinstance(projection_id, str) or not projection_id:
+        fail("domain teaching projectionId is missing")
+    if projection_hash != expected_hash:
+        fail("successor domain teaching projection hash does not match the expected identity")
+    release = source_root / "knowledge/teaching-projection/domain-fragments/releases" / projection_id
+    manifest_path = release / "composed-manifest.json"
+    require_regular_file(manifest_path, "knowledge/teaching-projection/domain-fragments/releases/%s/composed-manifest.json" % projection_id)
+    manifest = read_json(manifest_path)
+    if manifest.get("projectionId") != projection_id or manifest.get("projectionHash") != expected_hash:
+        fail("composed-manifest identity does not match the expected domain teaching projection")
+    fragments = manifest.get("fragments")
+    if not isinstance(fragments, list) or not fragments:
+        fail("composed-manifest does not declare any domain teaching fragments")
+    ordered = []
+    for item in fragments:
+        if not isinstance(item, dict):
+            fail("composed-manifest fragment ref is invalid")
+        ordered.append(item)
+    ordered.sort(key=lambda item: item["order"] if isinstance(item.get("order"), int) else -1)
+    for ref in ordered:
+        fragment_id = ref.get("fragmentId")
+        fragment_digest = ref.get("fragmentDigest")
+        if not isinstance(fragment_id, str) or not fragment_id:
+            fail("composed-manifest fragmentId is missing")
+        relative = "knowledge/teaching-projection/domain-fragments/releases/%s/fragments/%s.json" % (
+            projection_id,
+            fragment_id,
+        )
+        require_regular_file(source_root / relative, relative)
+        fragment = read_json(source_root / relative)
+        if fragment.get("fragmentId") != fragment_id:
+            fail("domain teaching fragment %s identity drifted" % fragment_id)
+        if isinstance(fragment_digest, str) and fragment.get("fragmentDigest") != fragment_digest:
+            fail("domain teaching fragment %s digest drifted" % fragment_id)
+
+
 def plan_install(
     view,
     source_root,
@@ -227,6 +267,11 @@ def plan_install(
     domain_hash = successor_pointers["knowledge/teaching-projection/domain-fragments/current.json"].get("projectionHash")
     if domain_hash != expected_domain_teaching_projection_hash:
         fail("successor domain teaching projection hash does not match the expected identity")
+    require_domain_teaching_closure(
+        source_root,
+        successor_pointers["knowledge/teaching-projection/domain-fragments/current.json"],
+        expected_domain_teaching_projection_hash,
+    )
     predecessor_regular = set(materializer.discover_control_plane_overlay_regular_paths(view))
     return {
         "successorPointers": successor_pointers,
