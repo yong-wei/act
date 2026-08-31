@@ -14,6 +14,7 @@ MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-$PROJECT_DIR/scripts/materialize-
 source_dir=""
 expected_authority=""
 expected_teaching=""
+expected_domain=""
 release_id=""
 apply=0
 while [[ $# -gt 0 ]]; do
@@ -21,6 +22,7 @@ while [[ $# -gt 0 ]]; do
     --source) source_dir="$2"; shift 2 ;;
     --expected-authority-release-id) expected_authority="$2"; shift 2 ;;
     --expected-teaching-projection-hash) expected_teaching="$2"; shift 2 ;;
+    --expected-domain-teaching-projection-hash) expected_domain="$2"; shift 2 ;;
     --release-id) release_id="$2"; shift 2 ;;
     --apply) apply=1; shift ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
@@ -31,7 +33,7 @@ done
   echo "ERROR: --source must be an absolute real directory" >&2
   exit 1
 }
-[[ -n "$expected_authority" && -n "$expected_teaching" && -n "$release_id" ]] || {
+[[ -n "$expected_authority" && -n "$expected_teaching" && -n "$expected_domain" && -n "$release_id" ]] || {
   echo "ERROR: successor identities are required" >&2
   exit 1
 }
@@ -82,6 +84,7 @@ installer_args=(
   --source "$source_dir"
   --expected-authority-release-id "$expected_authority"
   --expected-teaching-projection-hash "$expected_teaching"
+  --expected-domain-teaching-projection-hash "$expected_domain"
 )
 if [[ "$apply" != "1" ]]; then
   python3 "$INSTALLER" "${installer_args[@]}"
@@ -103,21 +106,26 @@ restart_consumers() {
 }
 
 snapshot="$STATE_DIR/.successor-teaching-overlay-preapply"
+pending_receipt="$STATE_DIR/.successor-teaching-overlay-pending.json"
+receipt="$STATE_DIR/successor-teaching-overlay-receipt.json"
 rm -rf "$snapshot"
+rm -f "$pending_receipt"
 python3 "$INSTALLER" --view "$view" --snapshot-to "$snapshot"
 
 restore_and_restart() {
   trap - ERR
   python3 "$INSTALLER" --view "$view" --restore-from "$snapshot"
+  rm -f "$pending_receipt"
   restart_consumers || true
 }
 trap restore_and_restart ERR
 
 stop_consumers
-python3 "$INSTALLER" "${installer_args[@]}" --apply --receipt "$STATE_DIR/successor-teaching-overlay-receipt.json"
+python3 "$INSTALLER" "${installer_args[@]}" --apply --receipt "$pending_receipt"
 # Overlay installer already require_control_plane_overlay_payloads. Full
 # ossfs blob-view verify is too slow for the stopped-consumer window.
 restart_consumers
+python3 -c 'import os,sys; os.replace(sys.argv[1], sys.argv[2])' "$pending_receipt" "$receipt"
 trap - ERR
 rm -rf "$snapshot"
 echo "successor teaching overlays installed"

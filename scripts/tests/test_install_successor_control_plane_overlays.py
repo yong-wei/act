@@ -236,6 +236,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "--source", str(source),
                 "--expected-authority-release-id", successor["releaseId"],
                 "--expected-teaching-projection-hash", successor["projectionHash"],
+                "--expected-domain-teaching-projection-hash", successor["domainProjectionHash"],
                 "--apply",
             )
             self.assertTrue(result["applied"])
@@ -286,6 +287,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                     "--source", str(source),
                     "--expected-authority-release-id", "ctr:release:control-theory-engineering-v0.37",
                     "--expected-teaching-projection-hash", "a" * 64,
+                    "--expected-domain-teaching-projection-hash", "9" * 64,
                 ],
                 cwd=str(ROOT),
                 capture_output=True,
@@ -328,6 +330,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                     "--source", str(source),
                     "--expected-authority-release-id", identities["releaseId"],
                     "--expected-teaching-projection-hash", identities["projectionHash"],
+                    "--expected-domain-teaching-projection-hash", identities["domainProjectionHash"],
                 ],
                 cwd=str(ROOT),
                 capture_output=True,
@@ -336,6 +339,48 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             )
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("knowledge/teaching-projection/domain-fragments/current.json", completed.stderr)
+
+    def test_refuses_source_with_wrong_domain_teaching_hash(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            view = root / "view"
+            source = root / "source"
+            identities = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            self.populate_source(view, identities)
+            self.populate_source(source, identities)
+            import subprocess
+            completed = subprocess.run(
+                [
+                    "python3", str(INSTALLER),
+                    "--view", str(view),
+                    "--source", str(source),
+                    "--expected-authority-release-id", identities["releaseId"],
+                    "--expected-teaching-projection-hash", identities["projectionHash"],
+                    "--expected-domain-teaching-projection-hash", "c" * 64,
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("domain teaching projection hash", completed.stderr)
 
     def test_snapshot_restore_replaces_applied_overlays(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -386,6 +431,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "--source", str(source),
                 "--expected-authority-release-id", successor["releaseId"],
                 "--expected-teaching-projection-hash", successor["projectionHash"],
+                "--expected-domain-teaching-projection-hash", successor["domainProjectionHash"],
                 "--apply",
             )
             self.assertTrue(result["applied"])
@@ -453,6 +499,7 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "--source", str(source),
                 "--expected-authority-release-id", "ctr:release:control-theory-engineering-v0.37",
                 "--expected-teaching-projection-hash", "a" * 64,
+                "--expected-domain-teaching-projection-hash", "9" * 64,
                 "--release-id", "runtime-other",
             )
             self.assertNotEqual(completed.returncode, 0)
@@ -503,6 +550,12 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             installer.populate_source(selected, predecessor)
             installer.populate_source(source, successor)
             installer.attach_successor_blob_payloads(selected, root, successor)
+            receipt_path = root / "state" / "successor-teaching-overlay-receipt.json"
+            prior_receipt = {
+                "applied": False,
+                "authorityReleaseId": predecessor["releaseId"],
+            }
+            receipt_path.write_text(json.dumps(prior_receipt) + "\n", encoding="utf-8")
             deploy = root / "deploy.sh"
             deploy.write_text("#!/bin/bash\nexit 1\n", encoding="utf-8")
             os.chmod(deploy, 0o755)
@@ -511,6 +564,7 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "--source", str(source),
                 "--expected-authority-release-id", successor["releaseId"],
                 "--expected-teaching-projection-hash", successor["projectionHash"],
+                "--expected-domain-teaching-projection-hash", successor["domainProjectionHash"],
                 "--release-id", "runtime-test1",
                 "--apply",
             )
@@ -520,6 +574,10 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             self.assertFalse(
                 (selected / "knowledge/teaching-projection/domain-fragments/releases" / successor["domainProjectionId"] / "composed-manifest.json").exists(),
             )
+            self.assertFalse((root / "state" / ".successor-teaching-overlay-pending.json").exists())
+            published = json.loads(receipt_path.read_text(encoding="utf-8"))
+            self.assertEqual(published["authorityReleaseId"], predecessor["releaseId"])
+            self.assertFalse(published.get("applied", False))
 
 
 if __name__ == "__main__":

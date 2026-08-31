@@ -202,8 +202,15 @@ def collect_source_overlay_files(source_root, materializer):
     return files
 
 
-def plan_install(view, source_root, expected_authority_release_id, expected_teaching_projection_hash, materializer):
-    # type: (Path, Path, str, str, Any) -> Dict[str, Any]
+def plan_install(
+    view,
+    source_root,
+    expected_authority_release_id,
+    expected_teaching_projection_hash,
+    expected_domain_teaching_projection_hash,
+    materializer,
+):
+    # type: (Path, Path, str, str, str, Any) -> Dict[str, Any]
     source_files = collect_source_overlay_files(source_root, materializer)
     successor_pointers = {}
     for relative in REQUIRED_POINTER_RELATIVES:
@@ -217,6 +224,9 @@ def plan_install(view, source_root, expected_authority_release_id, expected_teac
     teaching_hash = successor_pointers["knowledge/projection/current.json"].get("projectionHash")
     if teaching_hash != expected_teaching_projection_hash:
         fail("successor teaching projection hash does not match the expected identity")
+    domain_hash = successor_pointers["knowledge/teaching-projection/domain-fragments/current.json"].get("projectionHash")
+    if domain_hash != expected_domain_teaching_projection_hash:
+        fail("successor domain teaching projection hash does not match the expected identity")
     predecessor_regular = set(materializer.discover_control_plane_overlay_regular_paths(view))
     return {
         "successorPointers": successor_pointers,
@@ -225,13 +235,21 @@ def plan_install(view, source_root, expected_authority_release_id, expected_teac
     }
 
 
-def apply_install(view, source_root, expected_authority_release_id, expected_teaching_projection_hash, materializer):
-    # type: (Path, Path, str, str, Any) -> Dict[str, Any]
+def apply_install(
+    view,
+    source_root,
+    expected_authority_release_id,
+    expected_teaching_projection_hash,
+    expected_domain_teaching_projection_hash,
+    materializer,
+):
+    # type: (Path, Path, str, str, str, Any) -> Dict[str, Any]
     plan = plan_install(
         view,
         source_root,
         expected_authority_release_id,
         expected_teaching_projection_hash,
+        expected_domain_teaching_projection_hash,
         materializer,
     )
     copied = {}
@@ -263,6 +281,7 @@ def apply_install(view, source_root, expected_authority_release_id, expected_tea
         "removed": removed,
         "successorRegularPaths": sorted(successor_regular),
         "teachingProjectionHash": expected_teaching_projection_hash,
+        "domainTeachingProjectionHash": expected_domain_teaching_projection_hash,
         "authorityReleaseId": expected_authority_release_id,
     }
 
@@ -313,6 +332,7 @@ def parse_args(argv):
     parser.add_argument("--source", help="Git runtime root containing successor overlays")
     parser.add_argument("--expected-authority-release-id")
     parser.add_argument("--expected-teaching-projection-hash")
+    parser.add_argument("--expected-domain-teaching-projection-hash")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--receipt", help="optional JSON receipt path written after --apply")
     parser.add_argument("--snapshot-to", help="copy current overlay regular files to this directory")
@@ -330,7 +350,12 @@ def main(argv=None):
     elif args.restore_from:
         result = restore_overlays(view, Path(args.restore_from), materializer)
     else:
-        if not args.source or not args.expected_authority_release_id or not args.expected_teaching_projection_hash:
+        if (
+            not args.source
+            or not args.expected_authority_release_id
+            or not args.expected_teaching_projection_hash
+            or not args.expected_domain_teaching_projection_hash
+        ):
             fail("source and successor identities are required")
         source = require_real_directory(Path(args.source), "source")
         if args.apply:
@@ -339,6 +364,7 @@ def main(argv=None):
                 source,
                 args.expected_authority_release_id,
                 args.expected_teaching_projection_hash,
+                args.expected_domain_teaching_projection_hash,
                 materializer,
             )
             result["applied"] = True
@@ -353,6 +379,7 @@ def main(argv=None):
                 source,
                 args.expected_authority_release_id,
                 args.expected_teaching_projection_hash,
+                args.expected_domain_teaching_projection_hash,
                 materializer,
             )
             result["applied"] = False
