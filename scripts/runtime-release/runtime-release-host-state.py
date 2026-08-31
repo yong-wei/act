@@ -303,7 +303,7 @@ def restore_control_plane_overlays(parent_runtime_root: Path, candidate_runtime_
     parent = materializer.require_real_directory(Path(parent_runtime_root), "parent overlay view")
     candidate = materializer.require_real_directory(Path(candidate_runtime_root), "candidate overlay view")
     skip_dirs = {materializer.RUNTIME_BLOB_HELPER_NAME}
-    skip_files = {materializer.LOCAL_MANIFEST, materializer.LOCAL_RECEIPT}
+    skip_files = set(materializer.VIEW_CONTROL_REGULAR_FILES)
     cache_paths = set(materializer.TEXTBOOK_RETRIEVAL_CACHE_PATHS) | set(materializer.LEGACY_TEXTBOOK_RETRIEVAL_CACHE_PATHS)
     allowlist = set(materializer.CONTROL_PLANE_OVERLAY_PATHS)
     copied = []
@@ -459,7 +459,7 @@ def verify_mounted_v2(
         for filename in filenames:
             candidate = current_path / filename
             relative = candidate.relative_to(root).as_posix()
-            if relative in {materializer.LOCAL_MANIFEST, materializer.LOCAL_RECEIPT}:
+            if relative in materializer.VIEW_CONTROL_REGULAR_FILES:
                 continue
             actual_paths.add(relative)
     undeclared = actual_paths - expected_paths - overlay_paths

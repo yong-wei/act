@@ -17,18 +17,17 @@ DEV = ROOT / "scripts/runtime-release/developer-oss"
 sys.path.insert(0, str(DEV))
 
 from bootstrap import (  # noqa: E402
+    linux_preflight,
     mount_fields,
     parse_readyz_identity,
     prepare,
+    refuse_public_oss_data_plane,
     start,
     stop,
     unmount,
     verify_release_documents,
     write_selection_receipt,
 )
-from common import DeveloperRuntimeError, authority_id, checkout_id, redact  # noqa: E402
-from credential import assert_developer_principal, install_credential, parse_credential  # noqa: E402
-from policy import load_and_validate, validate_policy  # noqa: E402
 from shared_mount import (  # noqa: E402
     cache_usage_bytes,
     fixture_cache_object,
@@ -40,9 +39,29 @@ from shared_mount import (  # noqa: E402
     read_leases,
     read_shared_record,
     reclaim_stale_leases,
+    require_ossfs2_version,
     summarize_transfers,
     verify_blob_bytes,
+    write_ossfs_config,
 )
+from common import (  # noqa: E402
+    GATEWAY_PRINCIPAL,
+    DeveloperRuntimeError,
+    authority_id,
+    authority_identity,
+    checkout_id,
+    redact,
+)
+from credential import install_credential, parse_credential  # noqa: E402
+from policy import load_and_validate, validate_policy  # noqa: E402
+
+
+GATEWAY_CREDENTIAL = {
+    "schemaVersion": "act-runtime-dev-gateway-credential.v1",
+    "gatewayUrl": "https://runtime-dev.adapt-learn.online",
+    "token": "c" * 32,
+}
+GATEWAY_ORIGIN = "https://runtime-dev.adapt-learn.online"
 
 
 def canonical(value):
@@ -149,51 +168,37 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             checkout.mkdir()
             os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(checkout / "inside")
             with self.assertRaises(DeveloperRuntimeError):
-                install_credential(checkout, {
-                    "schemaVersion": "act-runtime-dev-read-credential.v1",
-                    "accountId": "123456789012",
-                    "accessKeyId": "LTAIexamplekeyid01",
-                    "accessKeySecret": "super-secret-value-1234",
-                    "region": "cn-hangzhou",
-                })
-            with self.assertRaises(ValueError):
+                install_credential(checkout, GATEWAY_CREDENTIAL)
+            with self.assertRaises(DeveloperRuntimeError):
+                parse_credential({**GATEWAY_CREDENTIAL, "extra": "nope"})
+            with self.assertRaises(DeveloperRuntimeError):
                 parse_credential({
                     "schemaVersion": "act-runtime-dev-read-credential.v1",
                     "accountId": "123456789012",
                     "accessKeyId": "LTAIexamplekeyid01",
                     "accessKeySecret": "super-secret-value-1234",
                     "region": "cn-hangzhou",
-                    "extra": "nope",
                 })
-            message = redact("accessKeySecret=super-secret-value-1234 LTAIexamplekeyid01")
+            message = redact("token=super-secret-value-1234 Bearer abc LTAIexamplekeyid01")
             self.assertNotIn("super-secret-value-1234", message)
             self.assertNotIn("LTAIexamplekeyid01", message)
+            self.assertNotIn(" abc", message.replace("Bearer <redacted>", ""))
 
     def test_publisher_principal_is_rejected(self):
-        credential = {
-            "schemaVersion": "act-runtime-dev-read-credential.v1",
-            "accountId": "123456789012",
-            "accessKeyId": "LTAIexamplekeyid01",
-            "accessKeySecret": "super-secret-value-1234",
-            "region": "cn-hangzhou",
-        }
         with self.assertRaises(DeveloperRuntimeError):
-            assert_developer_principal({
-                "AccountId": "123456789012",
-                "Arn": "acs:ram::123456789012:user/act-runtime-publisher-local",
-                "UserId": "1",
-            }, credential)
+            parse_credential({
+                "schemaVersion": "act-runtime-dev-gateway-credential.v1",
+                "gatewayUrl": "https://oss-cn-hangzhou.aliyuncs.com",
+                "token": "c" * 32,
+            })
         with self.assertRaises(DeveloperRuntimeError):
-            assert_developer_principal({
-                "AccountId": "123456789012",
-                "Arn": "acs:ram::123456789012:role/act-runtime-oss-read",
-                "UserId": "1",
-            }, credential)
-        assert_developer_principal({
-            "AccountId": "123456789012",
-            "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-            "UserId": "1",
-        }, credential)
+            parse_credential({
+                "schemaVersion": "act-runtime-dev-gateway-credential.v1",
+                "gatewayUrl": "https://runtime-dev.adapt-learn.online",
+                "token": "LTAI" + ("c" * 28),
+            })
+        parsed = parse_credential(GATEWAY_CREDENTIAL)
+        self.assertEqual(parsed["origin"], "https://runtime-dev.adapt-learn.online")
 
     def test_readyz_unknown_fields_and_http_fail_closed(self):
         manifest, _, _ = write_release(Path(tempfile.mkdtemp()))
@@ -230,19 +235,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             os.environ["ACT_RUNTIME_DEV_CACHE_HOME"] = str(Path(raw) / "xdg-cache")
             os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
             os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
-            install_credential(checkout, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(checkout, GATEWAY_CREDENTIAL)
             manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
-            identity = {
-                "AccountId": "123456789012",
-                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-                "UserId": "1",
-            }
             payload = readyz_payload(manifest)
             selection = {
                 "schemaVersion": "act-runtime-dev-selection.v1",
@@ -259,12 +253,11 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             Path(raw, "blobs").mkdir()
             Path(raw, "view").mkdir()
             with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value=identity), \
+                    mock.patch("bootstrap.attach_gateway") as attach, \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                     mock.patch("bootstrap.fetch_release_documents") as fetch, \
-                    mock.patch("bootstrap.mount_blobs") as mount_blobs, \
                     mock.patch("bootstrap.materialize_view") as materialize, \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -281,7 +274,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 reused = prepare(checkout)
                 self.assertEqual(reused["releaseId"], manifest["releaseId"])
                 fetch.assert_not_called()
-                mount_blobs.assert_not_called()
+                attach.assert_not_called()
                 materialize.assert_not_called()
                 bind.assert_not_called()
 
@@ -560,30 +553,19 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         os.environ["ACT_RUNTIME_DEV_CACHE_HOME"] = str(Path(raw) / "xdg-cache")
         os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
         os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "shared"
-        install_credential(checkout, {
-            "schemaVersion": "act-runtime-dev-read-credential.v1",
-            "accountId": "123456789012",
-            "accessKeyId": "LTAIexamplekeyid01",
-            "accessKeySecret": "super-secret-value-1234",
-            "region": "cn-hangzhou",
-        })
-        return {
-            "AccountId": "123456789012",
-            "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-            "UserId": "1",
-        }
+        install_credential(checkout, GATEWAY_CREDENTIAL)
+        return parse_credential(GATEWAY_CREDENTIAL)
 
     def _prepare_checkout(self, checkout: Path, manifest: dict, identity: dict, documents):
         payload = readyz_payload(manifest)
         (checkout / "course-content" / "runtime").mkdir(parents=True, exist_ok=True)
-        with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
-                mock.patch("bootstrap.caller_identity", return_value=identity), \
+        with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                mock.patch("bootstrap.attach_gateway", return_value={"client": object(), "lease": {"leaseId": "lease", "releaseId": manifest["releaseId"], "transport": {"token": "t"}}}), \
                 mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                 mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                 mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                 mock.patch("bootstrap.fetch_release_documents", return_value=documents), \
                 mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
-                mock.patch("bootstrap.mount_blobs") as mount_blobs, \
                 mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                 mock.patch(
                     "bootstrap.consumer_gate",
@@ -596,9 +578,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 ), \
                 mock.patch("bootstrap.bind_runtime"):
             (checkout / "helper").mkdir(exist_ok=True)
-            prepared = prepare(checkout)
-            mount_blobs.assert_not_called()
-            return prepared
+            return prepare(checkout)
 
     def test_two_worktrees_share_one_mount_and_second_read_has_no_body_transfer(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -607,13 +587,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             first.mkdir()
             second.mkdir()
             identity = self._shared_env(raw, first)
-            install_credential(second, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(second, GATEWAY_CREDENTIAL)
             manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
             blob_sha = manifest["files"][0]["sha256"]
             source = Path(raw) / "release" / "blobs" / blob_sha
@@ -623,10 +597,10 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(prepared_a["releaseId"], prepared_b["releaseId"])
             self.assertEqual(prepared_a["blobMount"], prepared_b["blobMount"])
             self.assertNotEqual(prepared_a["runtimeRoot"], prepared_b["runtimeRoot"])
-            config_text = (Path(prepared_a["blobMount"]).parent / "ossfs.conf").read_text(encoding="utf-8")
-            self.assertIn("disk_data_cache_dir=", config_text)
-            self.assertIn("disk_data_cache_size=", config_text)
-            self.assertNotIn("del_cache", config_text)
+            record = read_shared_record(prepared_a["sharedMountId"])
+            self.assertEqual(record["adapter"], "ecs-gateway")
+            self.assertNotIn("token", json.dumps(record))
+            self.assertNotIn("accessKey", json.dumps(record))
             mount_id = prepared_a["sharedMountId"]
             first_read = read_blob_with_evidence(mount_id, blob_sha, source)
             second_read = read_blob_with_evidence(mount_id, blob_sha, source)
@@ -656,13 +630,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             first.mkdir()
             second.mkdir()
             identity = self._shared_env(raw, first)
-            install_credential(second, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(second, GATEWAY_CREDENTIAL)
             first_manifest, first_docs, first_receipt = write_release(Path(raw) / "release-a")
             second_root = Path(raw) / "release-b"
             second_manifest, second_docs, second_receipt = write_release(second_root)
@@ -682,13 +650,33 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             identity = self._shared_env(raw, checkout)
             manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
             self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
-            mount_id = authority_id("123456789012")
+            mount_id = authority_id(GATEWAY_ORIGIN)
             record = read_shared_record(mount_id)
             record["identity"]["principal"] = "act-runtime-publisher-local"
             from shared_mount import write_private_json, record_path
             write_private_json(record_path(mount_id), record)
             with self.assertRaises(DeveloperRuntimeError):
                 self._prepare_checkout(checkout, manifest, identity, (manifest_path, receipt_path))
+
+    def test_live_shared_session_token_is_not_replaced(self):
+        from shared_mount import gateway_session_path, write_shared_gateway_session
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            self._shared_env(raw, checkout)
+            credential = parse_credential(GATEWAY_CREDENTIAL)
+            from shared_mount import ensure_shared_mount
+            ensure_shared_mount(credential)
+            mount_id = authority_id(GATEWAY_ORIGIN)
+            path = gateway_session_path(mount_id)
+            live_token = json.loads(path.read_text(encoding="utf-8"))["token"]
+            other = {**credential, "token": "b" * 32}
+            with mock.patch("shared_mount.use_real_fuse", return_value=True), \
+                    mock.patch("shared_mount.is_mounted", return_value=True):
+                with self.assertRaises(DeveloperRuntimeError) as raised:
+                    write_shared_gateway_session(mount_id, other)
+            self.assertIn("must not be replaced", str(raised.exception))
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["token"], live_token)
 
     def test_stale_lease_is_reclaimed_without_deleting_cache(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -716,12 +704,9 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             checkout.mkdir()
             self._shared_env(raw, checkout)
             digest_value = "a" * 64
-            mount_id = authority_id("123456789012")
+            mount_id = authority_id("https://runtime-dev.adapt-learn.online")
             from shared_mount import ensure_shared_mount
-            ensure_shared_mount({
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-            }, "123456789012")
+            ensure_shared_mount(parse_credential(GATEWAY_CREDENTIAL))
             cached = fixture_cache_object(mount_id, digest_value)
             cached.parent.mkdir(parents=True, exist_ok=True)
             cached.write_bytes(b"bad")
@@ -749,14 +734,13 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 stop(checkout)
             os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
             self.assertTrue(fixture_cache_object(mount_id, blob_sha).exists())
-            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value=identity), \
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway", return_value={"client": object(), "lease": {"leaseId": "lease", "releaseId": manifest["releaseId"], "transport": {"token": "t"}}}), \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                     mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
                     mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
-                    mock.patch("bootstrap.mount_blobs"), \
                     mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -782,6 +766,48 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertNotIn("sharedMountId", rolled)
             self.assertTrue(fixture_cache_object(mount_id, blob_sha).exists())
 
+    def test_checkout_topology_mounts_gateway_adapter(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            os.environ["ACT_RUNTIME_DEV_CACHE_HOME"] = str(Path(raw) / "xdg-cache")
+            os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+            os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
+            install_credential(checkout, GATEWAY_CREDENTIAL)
+            manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway", return_value={"client": object(), "lease": {"leaseId": "lease", "releaseId": manifest["releaseId"], "transport": {"token": "t"}, "blobSizes": {manifest["files"][0]["sha256"]: manifest["files"][0]["sizeBytes"]}}}), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
+                    mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
+                    mock.patch("bootstrap.is_readonly_mount", return_value=True), \
+                    mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
+                    mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                    mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
+                    mock.patch(
+                        "bootstrap.consumer_gate",
+                        return_value={
+                            "schemaVersion": "act-runtime-consumer-verification.v1",
+                            "verifierVersion": "consumer-verification.v1",
+                            "leafCount": 1,
+                            "requiredArtifactSetDigest": "0" * 64,
+                        },
+                    ), \
+                    mock.patch("bootstrap.bind_runtime"), \
+                    mock.patch("bootstrap.mount_gateway_blobs") as mounted:
+                (checkout / "course-content" / "runtime").mkdir(parents=True)
+                (checkout / "helper").mkdir()
+                prepare(checkout)
+            mounted.assert_called_once()
+            blob_root, session_path, cache_dir = mounted.call_args[0]
+            self.assertEqual(blob_root.name, "blobs")
+            self.assertEqual(session_path.name, "gateway-session.json")
+            self.assertEqual(cache_dir.name, "cache")
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+            self.assertEqual(session.get("token"), GATEWAY_CREDENTIAL["token"])
+            self.assertEqual(session.get("gatewayUrl"), GATEWAY_CREDENTIAL["gatewayUrl"])
+
     def test_portable_start_output_omits_paths_and_secrets(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"
@@ -790,14 +816,13 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             manifest, manifest_path, receipt_path = write_release(Path(raw) / "release")
             with mock.patch("bootstrap.start_services"), \
                     mock.patch("sys.stdout") as stdout:
-                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
-                        mock.patch("bootstrap.caller_identity", return_value=identity), \
+                with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                        mock.patch("bootstrap.attach_gateway", return_value={"client": object(), "lease": {"leaseId": "lease", "releaseId": manifest["releaseId"], "transport": {"token": "t"}}}), \
                         mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
                         mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                         mock.patch("bootstrap.is_readonly_mount", return_value=True), \
                         mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
                         mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
-                        mock.patch("bootstrap.mount_blobs"), \
                         mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -822,8 +847,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     (checkout / "helper").mkdir()
                     start(checkout)
             written = "".join(call.args[0] for call in stdout.write.call_args_list)
-            self.assertNotIn("super-secret-value-1234", written)
-            self.assertNotIn("LTAIexamplekeyid01", written)
+            self.assertNotIn("c" * 32, written)
+            self.assertNotIn("Bearer", written)
             self.assertNotIn(str(checkout), written)
             payload = json.loads(written.strip().splitlines()[-1])
             self.assertEqual(payload["topology"], "shared")
@@ -841,18 +866,15 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 stop(checkout)
             mount_id = prepared["sharedMountId"]
             self.assertEqual(read_shared_record(mount_id)["status"], "unmounted")
-            credential = {
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-            }
             from shared_mount import ensure_shared_mount
             with mock.patch("shared_mount.use_real_fuse", return_value=True), \
                     mock.patch("shared_mount.is_mounted", return_value=False), \
-                    mock.patch("shared_mount.mount_blobs") as mount_blobs, \
+                    mock.patch("shared_mount.mount_gateway_blobs") as mount_gateway, \
                     mock.patch("shared_mount.is_fuse_readonly", return_value=True), \
-                    mock.patch("shared_mount.mount_fields", return_value=("fuse.ossfs2", "ro")):
-                ensure_shared_mount(credential, "123456789012")
-            mount_blobs.assert_called_once()
+                    mock.patch("shared_mount.shutil.disk_usage", return_value=type("U", (), {"free": 10 * 1024 ** 3})()), \
+                    mock.patch("shared_mount.mount_fields", return_value=("fuse.gateway", "ro")):
+                ensure_shared_mount(parse_credential(GATEWAY_CREDENTIAL))
+            mount_gateway.assert_called_once()
             self.assertEqual(read_shared_record(mount_id)["status"], "mounted")
 
     def test_missing_receipt_reuses_live_bind_and_lease(self):
@@ -871,8 +893,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 "treeSha256": manifest["treeSha256"],
             }), encoding="utf-8")
             payload = readyz_payload(manifest)
-            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value=identity), \
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway") as attach, \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
@@ -892,6 +914,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             fetch.assert_not_called()
             materialize.assert_not_called()
             bind.assert_not_called()
+            attach.assert_not_called()
             self.assertEqual(reused["releaseId"], prepared["releaseId"])
             self.assertTrue((checkout_state(checkout) / "selection.json").exists())
 
@@ -913,8 +936,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 "treeSha256": manifest["treeSha256"],
             }), encoding="utf-8")
             payload = readyz_payload(manifest)
-            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "ossfs2": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value=identity), \
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway") as attach, \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
@@ -932,6 +955,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 reused = prepare(checkout)
             fetch.assert_not_called()
             bind.assert_not_called()
+            attach.assert_not_called()
             self.assertEqual(reused["releaseId"], prepared["releaseId"])
             restored = json.loads(broken.read_text(encoding="utf-8"))
             self.assertEqual(restored["releaseId"], prepared["releaseId"])
@@ -951,31 +975,88 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertEqual(reused["releaseId"], prepared["releaseId"])
             self.assertEqual(live_lease_ids(mount_id), [checkout_id(checkout)])
 
+    def test_prepare_abort_releases_issued_gateway_lease(self):
+        from shared_mount import gateway_session_path, live_shared_session_lease_rows
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            self._shared_env(raw, checkout)
+            manifest, _, _ = write_release(Path(raw) / "release")
+            (checkout / "course-content" / "runtime").mkdir(parents=True, exist_ok=True)
+            client = mock.Mock()
+            payload = readyz_payload(manifest)
+            with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture", "adapter": "ecs-gateway"}), \
+                    mock.patch("bootstrap.attach_gateway", return_value={
+                        "client": client,
+                        "lease": {
+                            "leaseId": "orphan-lease",
+                            "releaseId": manifest["releaseId"],
+                            "transport": {"token": "t"},
+                            "blobSizes": {},
+                        },
+                    }), \
+                    mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
+                    mock.patch("bootstrap.fetch_release_documents", side_effect=DeveloperRuntimeError("documents failed")):
+                with self.assertRaises(DeveloperRuntimeError):
+                    prepare(checkout)
+            client.stop_lease.assert_called_with("orphan-lease")
+            mount_id = authority_id(GATEWAY_ORIGIN)
+            self.assertEqual(live_lease_ids(mount_id), [])
+            session_path = gateway_session_path(mount_id)
+            leases = {}
+            if session_path.exists():
+                loaded = json.loads(session_path.read_text(encoding="utf-8"))
+                leases = loaded.get("leases") or {}
+            live, dead = live_shared_session_lease_rows(mount_id, leases)
+            self.assertEqual(live, [])
+            self.assertEqual(dead, [])
+
     def test_prove_read_rejects_digest_mismatch(self):
         with tempfile.TemporaryDirectory() as raw:
             checkout = Path(raw) / "repo"
             checkout.mkdir()
             self._shared_env(raw, checkout)
             from shared_mount import ensure_shared_mount
-            ensure_shared_mount({
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-            }, "123456789012")
+            ensure_shared_mount(parse_credential(GATEWAY_CREDENTIAL))
             source = Path(raw) / "blob"
             source.write_bytes(b"not-the-declared-digest")
             with self.assertRaises(DeveloperRuntimeError):
-                read_blob_with_evidence(authority_id("123456789012"), "a" * 64, source)
+                read_blob_with_evidence(authority_id(GATEWAY_ORIGIN), "a" * 64, source)
 
     def test_ossfs2_version_and_log_parser_are_credential_safe(self):
         self.assertEqual(parse_ossfs2_version("ossfs2 version 2.0.8"), (2, 0, 8))
         with self.assertRaises(DeveloperRuntimeError):
             parse_ossfs2_version("not-a-version")
+        with self.assertRaises(DeveloperRuntimeError):
+            require_ossfs2_version()
         operations = parse_ossfs_log(
             'GetObject runtime/blobs/sha256/abc\ncache hit\nAuthorization: accessKeySecret=super-secret-value-1234\n'
         )
         dumped = json.dumps(operations)
         self.assertNotIn("super-secret", dumped)
-        self.assertEqual([row["opClass"] for row in operations], ["oss-body-transfer", "cache-hit"])
+        self.assertEqual([row["opClass"] for row in operations], ["gateway-body-transfer", "cache-hit"])
+
+    def test_startup_refuses_public_oss_ram_role_and_legacy_reader(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+            os.environ["ACT_RUNTIME_OSS_RAM_ROLE"] = "act-runtime-oss-read"
+            with self.assertRaises(DeveloperRuntimeError):
+                refuse_public_oss_data_plane()
+            with self.assertRaises(DeveloperRuntimeError):
+                linux_preflight(checkout)
+            os.environ.pop("ACT_RUNTIME_OSS_RAM_ROLE")
+            with self.assertRaises(DeveloperRuntimeError):
+                parse_credential({
+                    "schemaVersion": "act-runtime-dev-read-credential.v1",
+                    "accountId": "123456789012",
+                    "accessKeyId": "LTAIexamplekeyid01",
+                    "accessKeySecret": "super-secret-value-1234",
+                    "region": "cn-hangzhou",
+                })
+            with self.assertRaises(DeveloperRuntimeError):
+                write_ossfs_config(Path(raw) / "ossfs.conf", GATEWAY_CREDENTIAL)
 
 
 
@@ -1121,6 +1202,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             verified = self._run_gate(selected, manifest, registry_path)
             self.assertEqual(verified["releaseId"], manifest["releaseId"])
             self.assertEqual(verified["leafCount"], 2)
+            self.assertEqual(verified["hashedLeafCount"], 0)
             self.assertEqual(verified["consumerUid"], os.geteuid())
             self.assertEqual(len(verified["requiredArtifacts"]), 1)
             receipt_path_target = root / "course-content" / consumer_readiness.RECEIPT_FILENAME
@@ -1146,6 +1228,33 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 runtime_root=root / "course-content" / "runtime",
                 consumer_uid=os.geteuid() + 1,
             ))
+
+    def test_consumer_gate_does_not_open_manifest_leaf_bodies(self):
+        import builtins
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            registry_path = root / "requirements.json"
+            registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
+            manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
+            selected = materialize_fixture_view(root / "release", manifest, manifest_path, receipt_path)
+            lesson = selected / "lessons" / "1-1" / "lesson.json"
+            blob = Path(os.path.realpath(lesson))
+            opened: list[str] = []
+            real_open = builtins.open
+
+            def wrapped(path, *args, **kwargs):
+                try:
+                    resolved = os.path.realpath(os.fspath(path))
+                except (OSError, TypeError):
+                    return real_open(path, *args, **kwargs)
+                if resolved == str(blob.resolve()):
+                    opened.append(resolved)
+                return real_open(path, *args, **kwargs)
+
+            with mock.patch("builtins.open", wrapped):
+                verified = self._run_gate(selected, manifest, registry_path)
+            self.assertEqual(opened, [])
+            self.assertEqual(verified["hashedLeafCount"], 0)
 
     def test_consumer_gate_rejects_unreadable_blob_as_permission_denied(self):
         from bootstrap import consumer_gate
@@ -1317,13 +1426,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(root / "xdg-state")
             os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
             os.environ["ACT_RUNTIME_DEV_MOUNT_TOPOLOGY"] = "checkout"
-            install_credential(checkout, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(checkout, GATEWAY_CREDENTIAL)
             registry_path = root / "requirements.json"
             registry_path.write_text(json.dumps(GOVERNANCE_REGISTRY))
             manifest, manifest_path, receipt_path = write_release_with_governance(root / "release")
@@ -1331,11 +1434,6 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             from consumer_readiness import load_runtime_requirements
             runtime_root = checkout / "course-content" / "runtime"
             runtime_root.mkdir(parents=True)
-            identity = {
-                "AccountId": "123456789012",
-                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-                "UserId": "1",
-            }
             selection = {
                 "schemaVersion": "act-runtime-dev-selection.v1",
                 "releaseId": manifest["releaseId"],
@@ -1352,7 +1450,6 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
 
             def run_prepare():
                 with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
-                        mock.patch("bootstrap.caller_identity", return_value=identity), \
                         mock.patch("bootstrap.fetch_readyz_identity", return_value={
                             "schemaVersion": "act-runtime-release.v2",
                             "releaseId": manifest["releaseId"],
@@ -1397,13 +1494,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             foreign.mkdir(parents=True)
             os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
-            install_credential(checkout, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(checkout, GATEWAY_CREDENTIAL)
             from common import checkout_state
             state = checkout_state(checkout)
             write_selection_receipt(state / "selection.json", {
@@ -1424,11 +1515,6 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 "treeSha256": "c" * 64,
             }
             with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value={
-                        "AccountId": "123456789012",
-                        "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-                        "UserId": "1",
-                    }), \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
                     mock.patch("bootstrap.stop_services"):
                 with self.assertRaises(DeveloperRuntimeError) as raised:
@@ -1439,25 +1525,23 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
 
     def test_shared_release_rejects_noncanonical_mount_id_even_with_valid_record_and_lease(self):
         """Issue #1713 P1 回归：非规范 sharedMountId 即使 record/lease 其余证据均合法也必须拒绝。"""
-        from common import authority_id
-        from common import authority_identity
         from shared_mount import options_digest, verify_shared_release
         with tempfile.TemporaryDirectory() as raw:
             foreign_mount = "deadbeef00deadbeef00deadbeef"
             state = Path(raw) / "shared" / "mounts" / foreign_mount
             state.mkdir(parents=True)
             (state / "mount.json").write_text(json.dumps({
-                "schemaVersion": "act-runtime-dev-shared-mount.v1",
-                "identity": authority_identity("123456789012"),
+                "schemaVersion": "act-runtime-dev-shared-mount.v2",
+                "identity": authority_identity(GATEWAY_ORIGIN),
                 "mountpoint": str(Path(raw) / "shared" / "mounts" / foreign_mount / "blobs"),
                 "optionsDigest": options_digest(),
-                "principal": "act-runtime-dev-read",
+                "principal": GATEWAY_PRINCIPAL,
             }))
             (state / "leases.json").write_text(json.dumps({
                 "schemaVersion": "act-runtime-dev-shared-lease.v1",
                 "leases": {"checkout-abc": {"releaseId": "runtime-" + ("a" * 55)}},
             }))
-            canonical = authority_id("123456789012")
+            canonical = authority_id(GATEWAY_ORIGIN)
             with mock.patch("shared_mount.read_shared_record", return_value=json.loads(
                 (state / "mount.json").read_text(),
             )), mock.patch("shared_mount.read_leases", return_value=json.loads(
@@ -1466,17 +1550,16 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 with self.assertRaises(ValueError) as raised:
                     verify_shared_release(
                         foreign_mount,
-                        "123456789012",
+                        GATEWAY_ORIGIN,
                         "checkout-abc",
                         "runtime-" + ("a" * 55),
                     )
             self.assertIn("canonical mount", str(raised.exception))
-            # 规范 ID 走同一路径即可通过（首检之后才轮到其余证据）
             with mock.patch("shared_mount.read_shared_record", return_value=None):
                 with self.assertRaises(ValueError) as raised_canonical:
                     verify_shared_release(
                         canonical,
-                        "123456789012",
+                        GATEWAY_ORIGIN,
                         "checkout-abc",
                         "runtime-" + ("a" * 55),
                     )
@@ -1491,26 +1574,15 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             checkout.mkdir()
             os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
-            install_credential(checkout, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(checkout, GATEWAY_CREDENTIAL)
             state = checkout_state(checkout)
-            own_mount = authority_id("123456789012")
+            own_mount = authority_id(GATEWAY_ORIGIN)
             runtime_root = checkout / "course-content" / "runtime"
             readiness = {
                 "schemaVersion": "act-runtime-release.v2",
                 "releaseId": "runtime-" + ("a" * 55),
                 "manifestSha256": "b" * 64,
                 "treeSha256": "c" * 64,
-            }
-            identity = {
-                "AccountId": "123456789012",
-                "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-                "UserId": "1",
             }
             base = {
                 "schemaVersion": "act-runtime-dev-selection.v2",
@@ -1533,7 +1605,6 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 del _cid
                 write_selection_receipt(state / "selection.json", selection)
                 with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
-                        mock.patch("bootstrap.caller_identity", return_value=identity), \
                         mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
                         mock.patch("bootstrap.stop_services"), \
                         mock.patch("bootstrap.read_leases", return_value=leases), \
@@ -1544,7 +1615,7 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 released.assert_not_called()
 
             # 场景 1：sharedMountId 指向其他 credential 的共享 mount
-            run_repair_with(authority_id("999999999999"), {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
+            run_repair_with(authority_id("https://other-gateway.example"), {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
             # 场景 2：identity 正确但无本 checkout 的 live lease（空/仅 stale 记录）
             run_repair_with(own_mount, {"schemaVersion": "act-runtime-dev-shared-lease.v1", "leases": {}})
             # 场景 3：lease 存在但绑定不同 Release
@@ -1563,15 +1634,9 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             checkout.mkdir()
             os.environ["ACT_RUNTIME_DEV_CONFIG_HOME"] = str(Path(raw) / "xdg-config")
             os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
-            install_credential(checkout, {
-                "schemaVersion": "act-runtime-dev-read-credential.v1",
-                "accountId": "123456789012",
-                "accessKeyId": "LTAIexamplekeyid01",
-                "accessKeySecret": "super-secret-value-1234",
-                "region": "cn-hangzhou",
-            })
+            install_credential(checkout, GATEWAY_CREDENTIAL)
             state = checkout_state(checkout)
-            own_mount = authority_id("123456789012")
+            own_mount = authority_id(GATEWAY_ORIGIN)
             readiness = {
                 "schemaVersion": "act-runtime-release.v2",
                 "releaseId": "runtime-" + ("a" * 55),
@@ -1595,18 +1660,13 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
             # identity/options/principal 全部合法，仅 mountpoint 漂移到未知挂载——
             # 专测 mountpoint 校验（verify_shared_identity 不覆盖该字段）。
             drifted_record = {
-                "schemaVersion": "act-runtime-dev-shared-mount.v1",
-                "identity": authority_identity("123456789012"),
+                "schemaVersion": "act-runtime-dev-shared-mount.v2",
+                "identity": authority_identity(GATEWAY_ORIGIN),
                 "mountpoint": str(Path(raw) / "somewhere-else" / "blobs"),
                 "optionsDigest": options_digest(),
-                "principal": "act-runtime-dev-read",
+                "principal": GATEWAY_PRINCIPAL,
             }
             with mock.patch("bootstrap.linux_preflight", return_value={"architecture": "fixture", "fuse": "fixture"}), \
-                    mock.patch("bootstrap.caller_identity", return_value={
-                        "AccountId": "123456789012",
-                        "Arn": "acs:ram::123456789012:user/act-runtime-dev-read",
-                        "UserId": "1",
-                    }), \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=readiness), \
                     mock.patch("bootstrap.stop_services"), \
                     mock.patch("bootstrap.read_leases", return_value={
@@ -1619,19 +1679,22 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                     repair(checkout)
             released.assert_not_called()
 
-    def test_mount_process_provenance_requires_exact_point_and_config_binding(self):
-        """Issue #1713 P1：归属证据链 = 持有 mountinfo 报告的 fuse fd + /proc/exe
-        为真实 ossfs2 + argv 精确绑定本 conf 与 mountpoint；任一缺失即拒绝。"""
+    def test_mount_process_provenance_requires_exact_gateway_session_binding(self):
+        """活数据面归属 = 持有 mountinfo 报告的 fuse fd + Python 解释器 exe
+        + argv 精确绑定 gateway_fuse.py / --session / --mount。ossfs2 持有同一
+        connection 必须失败关闭。"""
         from shared_mount import verify_mount_process_provenance
         with tempfile.TemporaryDirectory() as raw:
             mountpoint = Path(raw) / "shared" / "mount-1" / "blobs"
-            conf = Path(raw) / "shared" / "mount-1" / "ossfs.conf"
+            session = Path(raw) / "shared" / "mount-1" / "gateway-session.json"
+            helper = Path(raw) / "gateway_fuse.py"
+            helper.write_text("#!/usr/bin/env python3\n")
             fake_ossfs2 = Path(raw) / "bin" / "ossfs2"
             fake_ossfs2.parent.mkdir(parents=True)
             fake_ossfs2.write_text("#!/bin/sh\n")
             fake_python = Path(raw) / "bin" / "python3"
             fake_python.write_text("#!/bin/sh\n")
-            argv_ok = ("-c", str(conf), str(mountpoint))
+            argv_ok = (str(helper), "--mount", str(mountpoint), "--session", str(session), "--cache-dir", "/tmp/cache")
 
             def proc_root_with(*entries, with_fuse_fd=None) -> str:
                 root = Path(tempfile.mkdtemp(dir=raw))
@@ -1649,45 +1712,52 @@ class DeveloperOssConsumerGateTests(unittest.TestCase):
                 return (100, exe_target, argv)
 
             good = proc_root_with(
-                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
+                entry(fake_python, str(fake_python), *argv_ok),
                 with_fuse_fd=3,
             )
-            verify_mount_process_provenance(mountpoint, conf, proc_root=good, fuse_fd=3)
+            verify_mount_process_provenance(mountpoint, session, proc_root=good, fuse_fd=3)
+
+            ossfs_owner = proc_root_with(
+                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", "/tmp/ossfs.conf", str(mountpoint)),
+                with_fuse_fd=3,
+            )
+            with self.assertRaises(ValueError) as raised_ossfs:
+                verify_mount_process_provenance(mountpoint, session, proc_root=ossfs_owner, fuse_fd=3)
+            self.assertIn("ossfs2", str(raised_ossfs.exception))
 
             argv0_spoof = proc_root_with(
-                entry(fake_python, "ossfs2", *argv_ok),
+                entry(fake_python, "ossfs2", "-c", str(session), str(mountpoint)),
                 with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=argv0_spoof, fuse_fd=3)
+                verify_mount_process_provenance(mountpoint, session, proc_root=argv0_spoof, fuse_fd=3)
 
             no_fd = proc_root_with(
-                entry(fake_ossfs2, "/usr/local/bin/ossfs2", *argv_ok),
+                entry(fake_python, str(fake_python), *argv_ok),
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=no_fd, fuse_fd=3)
+                verify_mount_process_provenance(mountpoint, session, proc_root=no_fd, fuse_fd=3)
 
-            conf_prefix = proc_root_with(
-                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf) + ".backup", str(mountpoint)),
+            session_prefix = proc_root_with(
+                entry(fake_python, str(fake_python), str(helper), "--mount", str(mountpoint), "--session", str(session) + ".bak", "--cache-dir", "/tmp/cache"),
                 with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=conf_prefix, fuse_fd=3)
+                verify_mount_process_provenance(mountpoint, session, proc_root=session_prefix, fuse_fd=3)
 
             point_prefix = proc_root_with(
-                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), str(mountpoint) + "-other"),
+                entry(fake_python, str(fake_python), str(helper), "--mount", str(mountpoint) + "-other", "--session", str(session), "--cache-dir", "/tmp/cache"),
                 with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=point_prefix, fuse_fd=3)
+                verify_mount_process_provenance(mountpoint, session, proc_root=point_prefix, fuse_fd=3)
 
             other_point = proc_root_with(
-                entry(fake_ossfs2, "/usr/local/bin/ossfs2", "-c", str(conf), "/elsewhere/blobs"),
+                entry(fake_python, str(fake_python), str(helper), "--mount", "/elsewhere/blobs", "--session", str(session), "--cache-dir", "/tmp/cache"),
                 with_fuse_fd=3,
             )
             with self.assertRaises(ValueError):
-                verify_mount_process_provenance(mountpoint, conf, proc_root=other_point, fuse_fd=3)
-
+                verify_mount_process_provenance(mountpoint, session, proc_root=other_point, fuse_fd=3)
 
 
 if __name__ == "__main__":
