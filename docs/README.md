@@ -11,6 +11,10 @@
 - [interactive-lesson-modularization-status-and-refactor-plan.md](./interactive-lesson-modularization-status-and-refactor-plan.md)：互动课程 manifest 化改造现状与计划。
 - [provider-runtime-compatibility.md](./provider-runtime-compatibility.md)：AI provider 运行时兼容边界。
 - [operations/smart-courseware-p0-runbook.md](./operations/smart-courseware-p0-runbook.md)：智能课件确定性发布、隐私边界与根轨迹 P0 验收口径。
+- [operations/assignment-grading-closure-and-comparison-tasks.md](./operations/assignment-grading-closure-and-comparison-tasks.md)：教师作业批改闭环、阶段 A/G.8、阶段 B 调优与隐藏验收的当前任务状态。
+- [operations/teacher-ai-grading-stage-a-g8-evidence-2026-08-28.md](./operations/teacher-ai-grading-stage-a-g8-evidence-2026-08-28.md)：阶段 A/G.8 的冻结证据与只读重验边界。
+- [operations/teacher-ai-grading-stage-b-tuning-result-2026-08-29.md](./operations/teacher-ai-grading-stage-b-tuning-result-2026-08-29.md)：阶段 B V1/V2/V3 前置与历史失败诊断。
+- [operations/teacher-ai-grading-stage-b-v4-completion-2026-08-29.md](./operations/teacher-ai-grading-stage-b-v4-completion-2026-08-29.md)：V4 调优集强制完成、人工—AI 聚合指标与隐藏集封存边界。
 - [submission-object-operations.md](./submission-object-operations.md)：提交对象的操作合同。
 - [data-completeness-audit.md](./data-completeness-audit.md)：数据完整性审计口径。
 

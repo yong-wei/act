@@ -27,6 +27,9 @@ export function findSensitiveTeacherAiGradingLabPaths(paths: readonly string[]):
     if (/(^|\/)(teacher-ai-grading-lab-data|grading-lab-data|\.grading-lab-staging|grading-lab-run-artifacts)(\/|$)/.test(lower)) {
       return [{ path, reason: 'local evaluation data or runtime directory' }];
     }
+    if (/(^|\/)\.runtime-[^/]+\.(json|jsonl)$/.test(lower) || /(^|\/)\.tmp-[^/]+\.json$/.test(lower)) {
+      return [{ path, reason: 'local evaluation runtime artifact' }];
+    }
     if (/(^|\/)grading-lab-identity-mapping\.(json|csv|tsv|xlsx)$/.test(lower)) {
       return [{ path, reason: 'identity mapping' }];
     }

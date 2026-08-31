@@ -119,6 +119,48 @@ describe('POST /api/teacher/ai-grading-lab/operations', () => {
     expect(core.execute).not.toHaveBeenCalled();
   });
 
+  it('routes controlled visual experiment reports through the shared core', async () => {
+    const { core, handler } = dependencies();
+    const response = await post(handler, {
+      operation: 'build-controlled-visual-experiment-report',
+      input: {
+        baselineConfiguration: { configurationVersion: 'config-baseline' },
+        candidateConfiguration: { configurationVersion: 'config-candidate' },
+        baselineRun: { evaluationRunId: 'run-baseline' },
+        candidateRun: { evaluationRunId: 'run-candidate' },
+      },
+    });
+    expect(response.status).toBe(200);
+    expect(core.execute).toHaveBeenCalledWith({
+      kind: 'build-controlled-visual-experiment-report',
+      input: {
+        baselineConfiguration: { configurationVersion: 'config-baseline' },
+        candidateConfiguration: { configurationVersion: 'config-candidate' },
+        baselineRun: { evaluationRunId: 'run-baseline' },
+        candidateRun: { evaluationRunId: 'run-candidate' },
+      },
+    });
+  });
+
+  it('requires the complete controlled visual experiment quality thresholds', async () => {
+    const { core, handler } = dependencies();
+    const input = {
+      split: { datasetId: 'dataset-t1', datasetVersion: 'v1', splitId: 'split-1', splitVersion: 'v1', contentHash: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' },
+      idempotencyKey: 'key-1', experimentId: 'experiment-1', seed: 1,
+      prompt: { id: 'prompt', version: 'v1', contentHash: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
+      model: { id: 'model', version: 'v1', contentHash: 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', parameters: {} },
+      baselineProcessor: { id: 'processor', version: 'v1', contentHash: 'sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', evidenceChain: 'text-only' },
+      candidateProcessor: { id: 'processor', version: 'v2', contentHash: 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', evidenceChain: 'visual-evidence' },
+      strata: [{ sampleId: 'sample-1', questionId: 'question-1', questionType: 'calculation', hasVisualEvidence: true }],
+      metric: { id: 'metric', version: 'v1', contentHash: 'sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff', thresholds: {} },
+    };
+
+    const response = await post(handler, { operation: 'freeze-controlled-visual-experiment', input });
+
+    expect(response.status).toBe(400);
+    expect(core.execute).not.toHaveBeenCalled();
+  });
+
   it('accepts a visual-evidence blind judgment without exposing an operator override', async () => {
     const { core, handler } = dependencies();
 

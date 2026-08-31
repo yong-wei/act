@@ -14,8 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const operationSchema = z.object({
   operation: z.enum([
-    'validate-package', 'import-package', 'create-split', 'freeze-configuration', 'run-evaluation',
-    'resume-evaluation', 'reveal-hidden-acceptance', 'record-human-judgment', 'build-report', 'export-pdf-verification-checklist',
+    'validate-package', 'import-package', 'create-split', 'freeze-configuration', 'freeze-controlled-visual-experiment', 'run-evaluation',
+    'resume-evaluation', 'reveal-hidden-acceptance', 'record-human-judgment', 'build-report', 'build-controlled-visual-experiment-report', 'export-pdf-verification-checklist',
   ]),
   input: z.unknown(),
 }).strict();
@@ -23,10 +23,35 @@ const operationSchema = z.object({
 const token = z.string().trim().min(1).max(256);
 const checksum = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const component = z.object({ id: token, version: token, contentHash: checksum }).strict();
+const promptSnapshot = z.object({
+  schemaVersion: z.literal('teacher-ai-grading-scoped-prompt.v1'),
+  systemInstructions: z.array(z.string().trim().min(1)).min(1),
+  evidenceReadingRules: z.string().trim().min(1),
+  outputShape: z.record(z.unknown()),
+  outputContract: z.string().trim().min(1),
+}).strict();
+const promptComponent = component.extend({ snapshot: promptSnapshot }).strict();
 const dataset = z.object({ datasetId: token, datasetVersion: token }).strict();
 const split = dataset.extend({ splitId: token, splitVersion: token, contentHash: checksum }).strict();
 const configuration = z.object({ configurationVersion: token }).strict();
 const evaluationRun = z.object({ evaluationRunId: token }).strict();
+const visualProcessor = component.extend({ evidenceChain: z.enum(['text-only', 'visual-evidence']) }).passthrough();
+const controlledVisualExperimentThresholds = z.object({
+  maximumMeanAbsoluteError: z.number().finite().optional(),
+  maximumAbsoluteMeanBias: z.number().finite().optional(),
+  maximumNormalizedMeanAbsoluteError: z.number().finite().optional(),
+  maximumAbsoluteNormalizedMeanBias: z.number().finite().optional(),
+  minimumExactRate: z.number().finite(),
+  minimumWithinTenPercentRate: z.number().finite(),
+  minimumExactStabilityRate: z.number().finite(),
+  minimumToleranceStabilityRate: z.number().finite(),
+  minimumVisualEvidenceCompletenessRate: z.number().finite(),
+  minimumProcessingSuccessRate: z.number().finite(),
+  minimumConversionSuccessRate: z.number().finite().optional(),
+  minimumBlindFaithfulnessRate: z.number().finite(),
+  minimumBlindScoringSufficiencyRate: z.number().finite(),
+  maximumBlindMisattributionRate: z.number().finite(),
+}).strict();
 const packageInput = z.object({ packageBase64: z.string().min(4).max(70_000_000) }).strict();
 
 type Session = { user?: { id?: string; role?: string } } | null;
@@ -96,16 +121,29 @@ function parseOperation(kind: z.infer<typeof operationSchema>['operation'], inpu
     case 'create-split': return { kind, input: z.object({ ...dataset.shape, randomSeed: token, tuningRatio: z.number().gt(0).lt(1) }).strict().parse(input) };
     case 'freeze-configuration': return {
       kind,
-      input: z.object({ split, idempotencyKey: token, seed: z.number().int(), prompt: component, model: component.extend({ parameters: z.record(z.unknown()) }).strict(), processor: component, metric: component }).strict().parse(input),
+      input: z.object({ split, idempotencyKey: token, seed: z.number().int(), prompt: promptComponent, model: component.extend({ parameters: z.record(z.unknown()) }).strict(), processor: component, metric: component }).strict().parse(input),
+    };
+    case 'freeze-controlled-visual-experiment': return {
+      kind,
+      input: z.object({
+        split, idempotencyKey: token, experimentId: token, seed: z.number().int(), maxAttempts: z.number().int().min(1).max(10).optional(),
+        prompt: promptComponent, model: component.extend({ parameters: z.record(z.unknown()) }).strict(), baselineProcessor: visualProcessor,
+        candidateProcessor: visualProcessor, strata: z.array(z.object({ sampleId: token, questionId: token, questionType: token, hasVisualEvidence: z.boolean() }).strict()).min(1).max(500),
+        metric: component.extend({ thresholds: controlledVisualExperimentThresholds }).strict(),
+      }).strict().parse(input),
     };
     case 'run-evaluation': return {
       kind,
-      input: z.object({ configuration, partition: z.enum(['tuning', 'hidden']), idempotencyKey: token, acceptanceId: token.optional(), maxAttempts: z.number().int().min(1).max(10).optional() }).strict().parse(input),
+      input: z.object({ configuration, partition: z.enum(['tuning', 'hidden']), idempotencyKey: token, acceptanceId: token.optional(), maxAttempts: z.number().int().min(1).max(10).optional(), stopOnTerminalFailure: z.boolean().optional() }).strict().parse(input),
     };
     case 'resume-evaluation': return { kind, input: z.object({ run: evaluationRun }).strict().parse(input) };
     case 'reveal-hidden-acceptance': return { kind, input: z.object({ acceptanceId: token, configuration }).strict().parse(input) };
     case 'record-human-judgment': return { kind, input: parseJudgment(input, operatorUserId) };
     case 'build-report': return { kind, input: z.object({ configuration, partition: z.enum(['tuning', 'hidden']) }).strict().parse(input) };
+    case 'build-controlled-visual-experiment-report': return {
+      kind,
+      input: z.object({ baselineConfiguration: configuration, candidateConfiguration: configuration, baselineRun: evaluationRun, candidateRun: evaluationRun }).strict().parse(input),
+    };
     case 'export-pdf-verification-checklist': return {
       kind,
       input: z.object({ acceptanceId: token, items: z.array(z.object({ sampleId: token, sourceConversionId: token, selectedReviewVersionIds: z.array(token).min(1).max(64) }).strict()).min(1).max(50) }).strict().parse(input),

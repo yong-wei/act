@@ -104,6 +104,12 @@ function partitionInput(
 }
 
 describe('teacher AI grading scoring metrics', () => {
+  it('rejects publication-candidate results from independent metrics', () => {
+    const samples = [{ sampleId: 'sample-a', questions: [{ questionId: 'T1-1', maxScore: 10, teacherScore: 8 }] }];
+    const executions = [{ sampleId: 'sample-a', questionId: 'T1-1', repetitionOrdinal: 1 as const, status: 'succeeded' as const, score: 8, sourceKind: 'publication-candidate' as const }];
+    expect(() => calculateTeacherAiGradingScoringMetrics(samples, executions)).toThrow('teacher-ai-grading-publication-candidate-metrics-forbidden');
+  });
+
   it('passes the exact 80% and tolerance 95% boundaries', () => {
     const samples = expectedSamples(20);
     const executions = executionsFor(samples, (sampleIndex) => {

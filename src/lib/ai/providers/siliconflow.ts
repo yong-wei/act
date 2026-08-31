@@ -12,9 +12,11 @@ const DEEPSEEK_V4_FLASH_MODEL = 'deepseek-ai/DeepSeek-V4-Flash';
 const QWEN_3_6_35B_A3B_MODEL = 'Qwen/Qwen3.6-35B-A3B';
 const QWEN_3_5_35B_A3B_MODEL = 'Qwen/Qwen3.5-35B-A3B';
 const QWEN_3_VL_30B_A3B_INSTRUCT_MODEL = 'Qwen/Qwen3-VL-30B-A3B-Instruct';
-const SILICONFLOW_CURL_TIMEOUT_SECONDS = 240;
-const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 300;
-const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 60;
+// Leave time to persist a completed response before the grading worker's
+// five-minute execution lease expires.
+const SILICONFLOW_CURL_TIMEOUT_SECONDS = 210;
+const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 270;
+const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 30;
 const SILICONFLOW_CURL_ATTEMPTS = 3;
 
 function normalizeSiliconFlowCompletion(rawBody: string): string {

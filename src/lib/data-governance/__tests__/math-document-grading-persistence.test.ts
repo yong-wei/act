@@ -26,6 +26,7 @@ import {
   processDocumentConversionJob,
   processGradingRunJob,
   retryDocumentConversion,
+  selectLatestVisualEvidenceRows,
   withGradingRequestIdempotency,
   writeRenderedObjectToSubmissionStore,
 } from '../math-document-grading-persistence';
@@ -128,6 +129,26 @@ function lifecyclePolicyRepository() {
 }
 
 describe('production math-document grading persistence contracts', () => {
+  it('selects visual evidence from the latest conversion per asset', () => {
+    const rows = [
+      { id: 'old-ready', sourceChecksum: 'sha256:asset-a', readiness: 'ready', conversionId: 'conversion:a:1', conversion: { assetId: 'asset-a', version: 1 } },
+      { id: 'old-incomplete', sourceChecksum: 'sha256:asset-a', readiness: 'review-required', conversionId: 'conversion:a:1', conversion: { assetId: 'asset-a', version: 1 } },
+      { id: 'new-ready', sourceChecksum: 'sha256:asset-a', readiness: 'ready', conversionId: 'conversion:a:2', conversion: { assetId: 'asset-a', version: 2 } },
+      { id: 'other-ready', sourceChecksum: 'sha256:asset-b', readiness: 'ready', conversionId: 'conversion:b:4', conversion: { assetId: 'asset-b', version: 4 } },
+    ];
+
+    expect(selectLatestVisualEvidenceRows(rows).map((row) => row.id)).toEqual(['new-ready', 'other-ready']);
+  });
+
+  it('keeps incomplete rows when the latest conversion is incomplete', () => {
+    const rows = [
+      { id: 'old-ready', sourceChecksum: 'sha256:asset-a', readiness: 'ready', conversionId: 'conversion:a:1', conversion: { assetId: 'asset-a', version: 1 } },
+      { id: 'new-incomplete', sourceChecksum: 'sha256:asset-a', readiness: 'review-required', conversionId: 'conversion:a:2', conversion: { assetId: 'asset-a', version: 2 } },
+    ];
+
+    expect(selectLatestVisualEvidenceRows(rows).map((row) => row.id)).toEqual(['new-incomplete']);
+  });
+
   it('persists question-scoped PDF region evidence without discarding coordinate provenance', () => {
     const normalized = normalizeDocumentEvidence({
       sourceHash: 'sha256:layout',
@@ -2223,6 +2244,7 @@ describe('production math-document grading persistence contracts', () => {
     store.put({ key: 'quarantine/word-source', ownerId: 'student-1', answerId: 'answer-1', attemptId: 'attempt-1', sizeBytes: bytes.byteLength, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', checksum, scanState: 'CLEAN' });
     store.payloads.set('quarantine/word-source', bytes);
     const visualRows: any[] = [];
+    let visualWrites = 0;
     const conversionUpdates: any[] = [];
     const conversion: any = {
       id: 'conversion-visual-1', assetId: 'asset-1', attemptId: 'attempt-1', version: 1, state: 'QUEUED', retentionExpiresAt: now,
@@ -2256,6 +2278,7 @@ describe('production math-document grading persistence contracts', () => {
       jobId: 'job-visual-1',
       store,
       writeRendered: async ({ key, bytes: rendered, mimeType, checksum: renderedChecksum, ownerId, answerId, attemptId, workerClaimToken }: any) => {
+        if (mimeType === 'image/png') visualWrites += 1;
         store.put({ key, ownerId, answerId, attemptId, workerClaimFingerprint: sha256(workerClaimToken), sizeBytes: rendered.byteLength, mimeType, checksum: renderedChecksum, scanState: 'PENDING' });
         store.payloads.set(key, rendered);
         return key;
@@ -2284,7 +2307,10 @@ describe('production math-document grading persistence contracts', () => {
             blocks: [],
             paragraphs: [],
             formulas: [],
-            images: [{ id: 'image-1', paragraphId: 'paragraph-1', questionId: null, relationshipId: 'rId1', path: 'word/media/image1.png', mediaType: 'image/png', checksum: sha256(image), bytes: Buffer.from(image) }],
+            images: [
+              { id: 'image-1', paragraphId: 'paragraph-1', questionId: null, relationshipId: 'rId1', path: 'word/media/image1.png', mediaType: 'image/png', checksum: sha256(image), bytes: Buffer.from(image) },
+              { id: 'image-2', paragraphId: 'paragraph-1', questionId: null, relationshipId: 'rId2', path: 'word/media/image2.png', mediaType: 'image/png', checksum: sha256(image), bytes: Buffer.from(image) },
+            ],
             imageAnchors: [],
             anchors: [{ blockId: 'block-1', paragraphId: 'paragraph-1', questionId: null, sourcePart: 'word/document.xml', pdfPageNumber: 1, bbox: null, coordinateProvenance: null, precision: 'page', mappingDecision: 'pdf-page-match', mappingConfidence: 0.92, verified: true }],
             questionStates: [],
@@ -2298,11 +2324,13 @@ describe('production math-document grading persistence contracts', () => {
     expect(visualRows).toEqual([expect.objectContaining({
       questionId: 'question-1', sourceKind: 'word-embedded-image', mediaType: 'image/png', pageNumber: 1, readiness: 'review-required', sizeBytes: image.byteLength,
     })]);
+    expect(visualRows).toHaveLength(1);
+    expect(visualWrites).toBe(1);
     expect(visualRows[0].objectKey).not.toContain('student-1');
     expect(conversionUpdates).toEqual(expect.arrayContaining([
       expect.objectContaining({
         state: 'SUCCEEDED',
-        renderedObjectKey: expect.stringMatching(/^grading-rendered\/conversion-visual-1\/attempt-1\/sha256:[a-f0-9]{25}$/),
+        renderedObjectKey: expect.stringMatching(/^grading-rendered\/conversion-visual-1\/attempt-1\/[a-f0-9]{32}$/),
         renderedChecksum: sha256(renderedPdf),
         renderedPageCount: 1,
         layoutRepresentation: expect.objectContaining({

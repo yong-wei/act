@@ -60,7 +60,7 @@ function lifecyclePolicyRepository() {
     gradingLifecyclePolicy: {
       findMany: async ({ where }: any) => where.dataClass.in.map((dataClass: string) => ({ id: `lifecycle:${dataClass}:v1`, dataClass, version: 'v1', retentionSeconds: 3600, governedRecordRule: null, deleteStrategy: 'delete-content', providerRetentionSeconds: 0, enabled: true })),
     },
-    gradingAuditEvent: { create: async () => undefined },
+    gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
   };
 }
 
@@ -171,6 +171,25 @@ describe('question-scoped grading batch orchestration', () => {
       },
     });
     expect(third.items[0].id).not.toBe(first.items[0].id);
+
+    replay = null;
+    const rerun = await createQuestionScopedGradingBatch({
+      db,
+      request: {
+        assignmentRevisionId: 'revision-1',
+        questionId: 'question-1',
+        classId: 'class-1',
+        actor: { id: 'teacher-1', role: 'TEACHER' },
+        idempotencyKey: 'batch-request-rerun-001',
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        rerunReason: 'rebuild complete controlled sample set',
+        maxItems: 2,
+        now,
+      },
+    });
+    expect(rerun.items).toHaveLength(2);
+    expect(findManyCalls[3].where.gradingRuns).toBeUndefined();
   });
 
   it('treats an explicit empty attempt vector as zero candidates', async () => {
@@ -585,7 +604,7 @@ describe('question-scoped grading batch orchestration', () => {
         create: async ({ data }: any) => { const job = { ...data }; jobs.push(job); return job; },
       },
       gradingRerun: { create: async ({ data }: any) => { reruns.push(data); return data; } },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };
@@ -613,7 +632,7 @@ describe('question-scoped grading batch orchestration', () => {
         findUnique: async () => batch,
         update: async ({ data }: any) => { Object.assign(batch, data); updates.push(data); return batch; },
       },
-      gradingAuditEvent: { create: async () => undefined },
+      gradingAuditEvent: { create: async () => ({ id: 'audit-test' }) },
       gradingRequestIdempotency: requestIdempotencyRepository(requestRows),
       $transaction: async (callback: (tx: any) => Promise<unknown>) => callback(db),
     };

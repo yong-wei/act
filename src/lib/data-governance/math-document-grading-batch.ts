@@ -213,6 +213,7 @@ export async function createQuestionScopedGradingBatch(input: {
     studentIds: input.request.studentIds,
     attemptIds: input.request.attemptIds,
     maxItems: input.request.maxItems ?? MATH_DOCUMENT_GRADING_LIMITS.batchItems,
+    includeActiveGradingRuns: Boolean(input.request.rerunReason?.trim()),
   });
   const requestResult = await withGradingRequestIdempotency({
     db: input.db,
@@ -694,6 +695,7 @@ async function processBatchItem(input: {
         include: { blocks: true, conversion: true },
       })
     : null;
+  let refreshedVisualEvidence = false;
   if (!evidence && input.db.answerEvidence?.findFirst) {
     evidence = await input.db.answerEvidence.findFirst({
       where: { attemptId: attempt.id, readiness: 'READY' },
@@ -704,6 +706,21 @@ async function processBatchItem(input: {
   if (evidence
     && attempt.answer.assets.length > 0
     && evidence.anchorVersion !== ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION) evidence = null;
+  // A prior conversion may have persisted BLOCKED evidence because visual
+  // attachments were not yet described. Treat that evidence as stale for a
+  // rerun so the current batch's frozen visual policy can create a fresh
+  // conversion/evidence pair instead of permanently reusing the blocked row.
+  if (evidence && input.batch.visualPolicyId && attempt.answer.assets.length > 0) {
+    const conversionVisualEvidence = evidence.conversion?.visualEvidence ?? [];
+    const visualEvidenceIncomplete = conversionVisualEvidence.some((visual: any) => visual.readiness !== 'READY');
+    // Assignment-level materialization can produce READY text evidence without
+    // a conversion relation. It is not sufficient for a document batch that
+    // must carry visual evidence, so force a fresh conversion in that case.
+    if (evidence.readiness !== 'READY' || !evidence.conversion || visualEvidenceIncomplete) {
+      evidence = null;
+      refreshedVisualEvidence = true;
+    }
+  }
   const sourceAsset = attempt.answer.assets.find((asset: any) => asset.id === evidence?.sourceAssetId);
   const trustedWordDualRepresentation = evidence?.conversion?.adapter === 'local-markitdown'
     && Boolean(evidence.conversion.renderedObjectKey)
@@ -861,8 +878,8 @@ async function processBatchItem(input: {
     evidence = result.evidence;
   }
   if (!evidence || evidence.readiness !== 'READY') throw new Error('batch-evidence-not-ready');
-  if (input.item.evidenceVersion != null && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
-  if (input.item.evidenceHash && evidence.sourceHash !== input.item.evidenceHash) throw new Error('batch-frozen-evidence-hash-mismatch');
+  if (!refreshedVisualEvidence && input.item.evidenceVersion != null && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
+  if (!refreshedVisualEvidence && input.item.evidenceHash && evidence.sourceHash !== input.item.evidenceHash) throw new Error('batch-frozen-evidence-hash-mismatch');
   await assertBatchWorkerLease(input);
   await assertBatchNotCancelled(input.db, input.batch.id);
   await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { evidenceId: evidence.id, evidenceHash: evidence.sourceHash, evidenceVersion: evidence.version, conversionId: evidence.conversionId ?? evidence.conversion?.id ?? input.item.conversionId ?? null, state: 'GRADING', progress: 60, updatedAt: input.now });
@@ -877,7 +894,7 @@ async function processBatchItem(input: {
   const runState = processed?.run.state ?? enqueued.run.state;
   const finalState = runState === 'AWAITING_REVIEW' ? 'SUCCEEDED' : runState === 'CANCELLED' ? 'CANCELLED' : runState === 'BLOCKED' ? 'BLOCKED' : runState === 'RETRYABLE' ? 'RETRYABLE' : 'FAILED';
   await assertBatchWorkerLease(input);
-  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { gradingRunId: enqueued.run.id, inputHash: enqueued.run.inputHash, state: finalState, progress: finalState === 'RETRYABLE' ? 60 : 100, workerClaimToken: null, workerClaimedAt: null, updatedAt: input.now });
+  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { gradingRunId: enqueued.run.id, inputHash: enqueued.run.inputHash, state: finalState, failureCode: null, progress: finalState === 'RETRYABLE' ? 60 : 100, workerClaimToken: null, workerClaimedAt: null, updatedAt: input.now });
   return { itemId: input.item.id, state: finalState };
 }
 
@@ -892,7 +909,7 @@ async function assertBatchWorkerLease(input: { parentLeaseLost?: () => Promise<b
   if (input.signal?.aborted || (input.parentLeaseLost && await input.parentLeaseLost())) throw new Error('batch-worker-fenced');
 }
 
-async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignmentRevisionId: string; questionId: string; classId: string; studentIds?: string[]; attemptIds?: string[]; maxItems: number }) {
+async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignmentRevisionId: string; questionId: string; classId: string; studentIds?: string[]; attemptIds?: string[]; maxItems: number; includeActiveGradingRuns?: boolean }) {
   const attempts = await db.submissionAttempt.findMany({
     where: {
       ...(input.attemptIds !== undefined ? { id: { in: input.attemptIds } } : {}),
@@ -906,7 +923,7 @@ async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignme
           ...(input.studentIds?.length ? { studentId: { in: input.studentIds } } : {}),
         },
       },
-      gradingRuns: { none: { state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED'] } } },
+      ...(input.includeActiveGradingRuns ? {} : { gradingRuns: { none: { state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED'] } } } }),
     },
     orderBy: { submittedAt: 'desc' },
     distinct: ['answerId'],

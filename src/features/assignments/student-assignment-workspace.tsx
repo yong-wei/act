@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
 import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
+import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
 import {
   normalizeAssignmentAssetMimeType,
   SUBMISSION_LIMITS,
@@ -1164,9 +1165,10 @@ function StudentPublishedResult({ assignment, onSelectQuestion }: { assignment: 
   const result = assignment.resultPackage;
   if (!result) return null;
   const titles = new Map(assignment.questions.map((question, index) => [question.id, `第 ${index + 1} 题`]));
+  const feedbackByQuestion = new Map((assignment.feedback ?? []).map((item) => [item.questionId, item]));
   return <section className="surface-card mb-5 p-5 sm:p-6" aria-labelledby="published-result-heading" data-student-assignment-result="published">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-emerald-600 dark:text-emerald-300">教师已确认并发布</p><h2 id="published-result-heading" className="mt-1 text-xl font-semibold text-foreground">作业结果</h2><p className="mt-2 text-xs text-subtle">发布于 {new Date(result.releasedAt).toLocaleString('zh-CN')}</p></div><p className="rounded-xl bg-emerald-500/10 px-4 py-2 text-lg font-semibold text-emerald-700 dark:text-emerald-300">总分 {result.totalScore}</p></div>
-    <div className="mt-5 space-y-4">{result.questions.map((question) => <article key={question.questionId} className="rounded-xl border border-border/70 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => onSelectQuestion(question.questionId)} className="text-left font-semibold text-foreground underline-offset-4 hover:underline">{titles.get(question.questionId) ?? '题目结果'}</button><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{question.score} 分</span></div>{question.comment ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-subtle">{question.comment}</p> : null}{question.criteria.length ? <dl className="mt-4 grid gap-3 sm:grid-cols-2">{question.criteria.map((criterion, index) => <div key={`${criterion.criterionId ?? 'criterion'}-${index}`} className="rounded-lg bg-accent/50 p-3"><dt className="text-xs font-medium text-subtle">评分项 {index + 1}</dt><dd className="mt-1 text-sm text-foreground">{criterion.score ?? 0} 分{criterion.comment ? ` · ${criterion.comment}` : ''}</dd></div>)}</dl> : null}<ResultReference label="参考答案" value={question.referenceAnswer} /><ResultReference label="评分标准" value={question.scoringStandard} /></article>)}</div>
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-emerald-600 dark:text-emerald-300">教师已确认并发布</p><h2 id="published-result-heading" className="mt-1 text-xl font-semibold text-foreground">作业结果</h2><p className="mt-2 text-xs text-subtle">发布于 {new Date(result.releasedAt).toLocaleString('zh-CN')}</p></div><p className="rounded-xl bg-emerald-500/10 px-4 py-2 text-lg font-semibold text-emerald-700 dark:text-emerald-300">总分 {result.totalScore}</p></div>{result.overallComment ? <div className="mt-4 rounded-lg bg-accent/50 p-4"><p className="text-xs font-medium text-subtle">整份作业总体评价</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-subtle">{result.overallComment}</p></div> : null}
+    <div className="mt-5 space-y-4">{result.questions.map((question) => { const feedback = feedbackByQuestion.get(question.questionId); return <article key={question.questionId} className="rounded-xl border border-border/70 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => onSelectQuestion(question.questionId)} className="text-left font-semibold text-foreground underline-offset-4 hover:underline">{titles.get(question.questionId) ?? '题目结果'}</button><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{question.score} 分</span></div>{question.comment ? <div className="mt-3"><p className="text-xs font-medium text-subtle">教师总体评价</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-subtle">{question.comment}</p></div> : null}{question.criteria.length ? <dl className="mt-4 grid gap-3 sm:grid-cols-2">{question.criteria.map((criterion, index) => <div key={`${criterion.criterionId ?? 'criterion'}-${index}`} className="rounded-lg bg-accent/50 p-3"><dt className="text-xs font-medium text-subtle">评分项 {index + 1}</dt><dd className="mt-1 text-sm text-foreground">{criterion.score ?? 0} 分{criterion.comment ? ` · ${criterion.comment}` : ''}</dd></div>)}</dl> : null}{feedback?.reviewedAssets.some((asset) => asset.href && asset.mimeType === 'application/pdf') ? <div className="mt-4 flex flex-wrap gap-2">{feedback.reviewedAssets.filter((asset) => asset.href && asset.mimeType === 'application/pdf').map((asset, index) => <a key={asset.id ?? index} href={asset.href} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs" aria-label={`下载${titles.get(question.questionId) ?? '本题'}批注 PDF`}>下载{titles.get(question.questionId) ?? '本题'}批注 PDF</a>)}</div> : null}<ResultReference label="参考答案" value={question.referenceAnswer} /><ResultReference label="评分标准" value={question.scoringStandard} /></article>; })}</div>
   </section>;
 }
 
@@ -1176,10 +1178,12 @@ function studentAssignmentDisplayState(assignment: StudentAssignmentDetail) {
   return assignmentStateLabels[assignment.state];
 }
 
-function ResultReference({ label, value }: { label: string; value: unknown }) {
-  if (value == null) return null;
-  const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-  return <details className="mt-4 rounded-lg bg-accent/50 p-3"><summary className="cursor-pointer text-sm font-medium text-foreground">{label}</summary><pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6 text-subtle">{text}</pre></details>;
+function ResultReference({ label, value }: { label: '参考答案' | '评分标准'; value: unknown }) {
+  const text = label === '参考答案'
+    ? presentStudentReferenceAnswer(value)
+    : presentStudentScoringStandard(value);
+  if (!text) return null;
+  return <details className="mt-4 rounded-lg bg-accent/50 p-3"><summary className="cursor-pointer text-sm font-medium text-foreground">{label}</summary><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-subtle">{text}</p></details>;
 }
 
 function studentAnchorPrecisionLabel(value: unknown) {

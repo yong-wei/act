@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS "AssignmentSubmissionSnapshot_ai_submissionId_attemptVectorHash_key";

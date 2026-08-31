@@ -306,6 +306,24 @@ describe('teacher assignment review outbox', () => {
     expect(db.evidenceOutbox.upsert).not.toHaveBeenCalled();
   });
 
+  it('derives governed evidence mapping from frozen rubric dimensions when explicit mapping is absent', async () => {
+    const row = { id: 'evidence-rubric-mapping', snapshotId: 'snapshot-rubric-mapping', command: 'PROCESS_GOVERNED_EVIDENCE', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
+    const db: any = memoryOutbox(row);
+    db.teacherAssignmentApprovalSnapshot = { findUnique: vi.fn().mockResolvedValue({
+      id: 'snapshot-rubric-mapping', reviewVersion: 1, assignmentId: 'assignment-1', submissionId: 'submission-1', questionId: 'question-1', attemptId: 'attempt-1', answerEvidenceId: 'evidence-source',
+      reviewerId: 'teacher-1', rubricVersion: 'rubric-v1', evaluatorVersion: 'eval-v1', lifecyclePolicyVersion: 'lifecycle-v1', machineSnapshotHash: 'sha256:machine',
+      criterionSnapshot: [], annotationSnapshot: [], authorizationSnapshot: { mode: 'current-class' }, submission: { frozenStudentId: 'student-1' },
+      answerEvidence: { sourceHash: 'sha256:aaaaaaaa', canonicalMarkdown: 'answer', blocks: [], sourceAsset: { checksum: 'sha256:aaaaaaaa' } },
+      gradingRun: { assessments: [], questionSnapshot: { rubric: { criteria: [{ id: 'criterion-1', goalDimension: 'controlModeling' }] } } },
+    }) };
+    db.evidenceOutbox = { upsert: vi.fn().mockResolvedValue({ id: 'governed-rubric-mapping' }) };
+    await processClaimedTeacherAssignmentReviewOutbox({ db, claim: { ...row }, handlers: {}, now });
+    expect(db.evidenceOutbox.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({ payload: expect.objectContaining({ mapping: { 'criterion-1': { capability: 'controlModeling' } } }) }),
+    }));
+    expect(row.state).toBe('SUCCEEDED');
+  });
+
   it('writes only an idempotent governed evidence candidate with complete lineage', async () => {
     const row = { id: 'evidence-2', snapshotId: 'snapshot-2', command: 'PROCESS_GOVERNED_EVIDENCE', state: 'PROCESSING', attemptCount: 1, claimToken: 'worker', leaseExpiresAt: new Date(now.getTime() + 60_000), payload: {} };
     const db: any = memoryOutbox(row);

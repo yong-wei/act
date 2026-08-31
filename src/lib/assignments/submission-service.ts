@@ -25,6 +25,8 @@ import {
   writeLifecycleAudit,
 } from '@/lib/data-governance/math-document-grading-lifecycle';
 import { materializeTextAnswerEvidence } from '@/lib/data-governance/math-document-grading-persistence';
+import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
+import type { StudentAssignmentResultDto } from './submission-dto';
 
 const SUBMISSION_DELETE_LEASE_MS = 5 * 60_000;
 const SUBMISSION_DELETE_HEARTBEAT_MS = 60_000;
@@ -1419,7 +1421,7 @@ function presentStudentAssignmentGradingState(submission: any): 'AWAITING_REVIEW
   return snapshot.operation?.state === 'RUNNING' ? 'IN_REVIEW' : 'AWAITING_REVIEW';
 }
 
-export function presentStudentAssignmentResult(submission: any) {
+export function presentStudentAssignmentResult(submission: any): StudentAssignmentResultDto | null {
   if (!submission || submission.studentId !== submission.frozenStudentId) return null;
   const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
     const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
@@ -1432,7 +1434,20 @@ export function presentStudentAssignmentResult(submission: any) {
     .sort((left: any, right: any) => new Date(right.releasedAt).getTime() - new Date(left.releasedAt).getTime());
   const release = releases[0];
   if (!release || !release.packageSnapshot || typeof release.packageSnapshot !== 'object') return null;
-  return release.packageSnapshot;
+  const result = release.packageSnapshot as Record<string, unknown>;
+  const questions = Array.isArray(result.questions)
+    ? result.questions.map((value) => {
+      const question = value && typeof value === 'object' && !Array.isArray(value)
+        ? value as Record<string, unknown>
+        : {};
+      return {
+        ...question,
+        referenceAnswer: presentStudentReferenceAnswer(question.referenceAnswer),
+        scoringStandard: presentStudentScoringStandard(question.scoringStandard),
+      };
+    })
+    : [];
+  return { ...result, questions } as StudentAssignmentResultDto;
 }
 
 async function withSerializableRetry<T>(operation: () => Promise<T>, attempts = 3): Promise<T> {

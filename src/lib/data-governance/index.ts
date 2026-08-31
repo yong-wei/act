@@ -76,3 +76,4 @@ export * from './teacher-ai-grading-lab-redaction';
 export * from './teacher-ai-grading-lab-runner';
 export * from './teacher-ai-grading-lab-sensitive-files';
 export * from './teacher-ai-grading-lab-structured-review';
+export * from './teacher-ai-grading-publication-candidate';

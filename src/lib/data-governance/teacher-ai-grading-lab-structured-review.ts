@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+import { hasChineseStudentFacingText } from './math-document-grading-contracts';
+
 type ReviewDb = Record<string, any>;
 
 export interface TeacherAiGradingScoreCorrection {
@@ -21,6 +23,8 @@ export interface AppendTeacherAiGradingStructuredReviewInput {
   scoreCorrections: readonly TeacherAiGradingScoreCorrection[];
   annotationCorrections: readonly TeacherAiGradingAnnotationCorrection[];
   operatorUserId: string;
+  baselineVersion?: string;
+  baselineScore?: number;
   now?: Date;
 }
 
@@ -74,6 +78,13 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
 ): Promise<any> {
   const executionId = requireToken(input.executionId, 'teacher-ai-grading-review-execution-id-missing');
   const operatorUserId = requireToken(input.operatorUserId, 'teacher-ai-grading-review-operator-id-missing');
+  const baselineVersion = input.baselineVersion?.trim() || null;
+  if (input.baselineScore !== undefined && (!Number.isFinite(input.baselineScore) || input.baselineScore < 0)) {
+    throw new Error('teacher-ai-grading-review-baseline-score-invalid');
+  }
+  if ((baselineVersion === null) !== (input.baselineScore === undefined)) {
+    throw new Error('teacher-ai-grading-review-baseline-binding-incomplete');
+  }
   const scoreCorrections = normalizeScoreCorrections(input.scoreCorrections);
   const annotationCorrections = normalizeAnnotationCorrections(input.annotationCorrections);
   const hasCorrections = scoreCorrections.length > 0 || annotationCorrections.length > 0;
@@ -91,6 +102,7 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
       where: { id: executionId },
       select: {
         id: true,
+        configId: true,
         state: true,
         gradingRun: {
           select: {
@@ -108,6 +120,9 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
     });
     if (!execution) throw new Error('teacher-ai-grading-review-execution-not-found');
     if (execution.state !== 'SUCCEEDED') throw new Error('teacher-ai-grading-review-execution-not-complete');
+    if (execution.configId && (baselineVersion === null || input.baselineScore === undefined)) {
+      throw new Error('teacher-ai-grading-review-baseline-binding-required');
+    }
     const latest = await db.teacherAiGradingStructuredReviewVersion.findFirst({
       where: { executionId },
       orderBy: { version: 'desc' },
@@ -121,9 +136,16 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
       orderBy: { version: 'asc' },
       select: {
         id: true, executionId: true, version: true, parentVersionId: true, decision: true,
-        scoreCorrections: true, annotationCorrections: true, operatorUserId: true, contentHash: true, createdAt: true,
+        scoreCorrections: true, annotationCorrections: true, baselineVersion: true, baselineScore: true, operatorUserId: true, contentHash: true, createdAt: true,
       },
     });
+    if (baselineVersion !== null && priorVersions.some((version: any) =>
+      version.baselineVersion !== undefined && version.baselineVersion !== null
+      && (version.baselineVersion !== baselineVersion
+        || (version.baselineScore !== null && version.baselineScore !== undefined
+          && Math.abs(Number(version.baselineScore) - Number(input.baselineScore)) > 1e-9)))) {
+      throw new Error('teacher-ai-grading-review-baseline-version-conflict');
+    }
     const rubricCriteria = rubricCriteriaFromSnapshot(execution.gradingRun.rubricSnapshot);
     const state = reviewStateFromRun(execution.gradingRun);
     applyReviewCorrections(state, priorVersions);
@@ -134,6 +156,10 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
       annotationCorrections,
     }]);
     assertReviewStateAnnotationConsistency(state, rubricCriteria);
+    if (input.baselineScore !== undefined) {
+      const total = [...state.scores.values()].reduce((sum, score) => sum + score, 0);
+      if (Math.abs(total - input.baselineScore) > 1e-9) throw new Error('teacher-ai-grading-review-baseline-score-mismatch');
+    }
     const content = {
       executionId,
       version,
@@ -141,6 +167,8 @@ export async function appendTeacherAiGradingStructuredReviewVersion(
       decision: input.decision === 'accept' ? 'ACCEPTED' : 'CORRECTED',
       scoreCorrections,
       annotationCorrections,
+      baselineVersion,
+      baselineScore: input.baselineScore ?? null,
       operatorUserId,
       createdAt: now.toISOString(),
     };
@@ -195,7 +223,7 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
     orderBy: [{ executionId: 'asc' }, { version: 'asc' }],
     select: {
       id: true, executionId: true, version: true, parentVersionId: true, decision: true,
-      scoreCorrections: true, annotationCorrections: true, operatorUserId: true, contentHash: true, createdAt: true,
+      scoreCorrections: true, annotationCorrections: true, baselineVersion: true, baselineScore: true, operatorUserId: true, contentHash: true, createdAt: true,
     },
   });
   const orderedEndpoints = [...endpoints].sort((left: any, right: any) =>
@@ -227,6 +255,12 @@ export async function materializeTeacherAiGradingStructuredResult(input: {
         throw new Error('teacher-ai-grading-pdf-structured-score-invalid');
       }
       score += criterionScore;
+    }
+    const boundBaselineScores = chain
+      .map((version: any) => version.baselineScore)
+      .filter((value: unknown): value is number => typeof value === 'number');
+    if (boundBaselineScores.length > 0 && Math.abs(score - boundBaselineScores[boundBaselineScores.length - 1]!) > 1e-9) {
+      throw new Error('teacher-ai-grading-review-baseline-score-mismatch');
     }
     const maxScore = [...rubricCriteria.values()].reduce((sum, value) => sum + value, 0);
     if (!(maxScore > 0)) throw new Error('teacher-ai-grading-pdf-structured-max-score-invalid');
@@ -320,6 +354,19 @@ export async function registerTeacherAiGradingHiddenPdfSet(input: {
       if (materialized.splitId !== acceptance.splitId || materialized.sampleId !== derivative.sampleId
         || materialized.structuredResult.checksum !== persisted.structuredResultHash) {
         throw new Error('teacher-ai-grading-pdf-structured-result-mismatch');
+      }
+      const executionModel = (db as any).teacherAiGradingExperimentExecution;
+      if (typeof executionModel?.findMany === 'function') {
+        const executionRows = await executionModel.findMany({
+          where: { splitId: acceptance.splitId, sampleId: derivative.sampleId },
+          select: { questionId: true },
+        });
+        const expectedQuestionIds = new Set<string>(executionRows.map((row: any) => String(row.questionId)));
+        const actualQuestionIds = new Set<string>(materialized.structuredResult.questions.map((row) => String(row.questionId)));
+        if (expectedQuestionIds.size === 0 || expectedQuestionIds.size !== actualQuestionIds.size
+          || [...expectedQuestionIds].some((questionId) => !actualQuestionIds.has(questionId))) {
+          throw new Error('teacher-ai-grading-pdf-question-set-incomplete');
+        }
       }
       const conversion = persisted.sourceConversion;
       if (conversion?.state !== 'SUCCEEDED' || conversion.id !== persisted.sourceConversionId
@@ -451,7 +498,7 @@ function normalizeAnnotationCorrections(input: readonly TeacherAiGradingAnnotati
       action: row.action,
       annotationKey: requireToken(row.annotationKey, 'teacher-ai-grading-review-annotation-key-missing'),
       criterionId: requireToken(row.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
-      reason: requireToken(row.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
+      reason: requireChineseFeedback(row.reason, 'teacher-ai-grading-review-deduction-reason-missing', 'teacher-ai-grading-review-reason-not-chinese'),
       comment: requireToken(row.comment, 'teacher-ai-grading-review-comment-missing'),
       location: normalizeAnnotationLocation(row.location),
     };
@@ -522,8 +569,8 @@ function applyReviewCorrections(state: ReviewState, versions: readonly any[]): v
         state.annotations.set(id, {
           id,
           criterionId: requireToken(correction.criterionId, 'teacher-ai-grading-review-criterion-id-missing'),
-          reason: requireToken(correction.reason, 'teacher-ai-grading-review-deduction-reason-missing'),
-          comment: requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing'),
+          reason: requireChineseFeedback(correction.reason, 'teacher-ai-grading-review-deduction-reason-missing', 'teacher-ai-grading-review-reason-not-chinese'),
+          comment: requireChineseFeedback(correction.comment, 'teacher-ai-grading-review-comment-missing', 'teacher-ai-grading-review-comment-not-chinese'),
           location: normalizeAnnotationLocation(correction.location),
         });
         continue;
@@ -531,7 +578,7 @@ function applyReviewCorrections(state: ReviewState, versions: readonly any[]): v
       const source = state.annotations.get(correction.sourceAnnotationId);
       if (!source) throw new Error('teacher-ai-grading-review-annotation-chain-invalid');
       if (correction.action === 'delete') state.annotations.delete(correction.sourceAnnotationId);
-      else if (correction.action === 'revise-text') source.comment = requireToken(correction.comment, 'teacher-ai-grading-review-comment-missing');
+      else if (correction.action === 'revise-text') source.comment = requireChineseFeedback(correction.comment, 'teacher-ai-grading-review-comment-missing', 'teacher-ai-grading-review-comment-not-chinese');
       else source.location = normalizeAnnotationLocation(correction.location);
     }
   }
@@ -547,6 +594,8 @@ function assertReviewStateAnnotationConsistency(state: ReviewState, rubricCriter
     }
     if (score >= maxPoints) throw new Error('teacher-ai-grading-review-annotation-without-deduction');
     if (!annotation.reason.trim()) throw new Error('teacher-ai-grading-review-deduction-reason-missing');
+    if (!hasChineseStudentFacingText(annotation.reason)) throw new Error('teacher-ai-grading-review-reason-not-chinese');
+    if (!hasChineseStudentFacingText(annotation.comment)) throw new Error('teacher-ai-grading-review-comment-not-chinese');
     annotationCounts.set(annotation.criterionId, (annotationCounts.get(annotation.criterionId) ?? 0) + 1);
   }
   for (const [criterionId, maxPoints] of rubricCriteria) {
@@ -558,6 +607,13 @@ function assertReviewStateAnnotationConsistency(state: ReviewState, rubricCriter
       throw new Error('teacher-ai-grading-review-deduction-annotation-missing');
     }
   }
+}
+
+function requireChineseFeedback(value: unknown, missingCode: string, languageCode: string): string {
+  if (typeof value !== 'string') throw new Error(missingCode);
+  const normalized = requireToken(value, missingCode);
+  if (!hasChineseStudentFacingText(normalized)) throw new Error(languageCode);
+  return normalized;
 }
 
 function materializeFeedbackAnchor(location: Readonly<Record<string, unknown>>): TeacherAiGradingMaterializedStructuredResult['feedback'][number]['anchor'] {
@@ -606,6 +662,8 @@ function resolveReviewChain(endpoint: any, versions: readonly any[]): any[] {
       decision: current.decision,
       scoreCorrections: current.scoreCorrections,
       annotationCorrections: current.annotationCorrections,
+      ...(current.baselineVersion !== undefined ? { baselineVersion: current.baselineVersion } : {}),
+      ...(current.baselineScore !== undefined ? { baselineScore: current.baselineScore } : {}),
       operatorUserId: current.operatorUserId,
       createdAt: new Date(current.createdAt).toISOString(),
     };

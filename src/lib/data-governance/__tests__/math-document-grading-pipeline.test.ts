@@ -8,12 +8,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import {
   buildScopedGradingPrompt,
+  createScopedGradingPromptSnapshot,
   evaluateExternalProcessingPolicy,
+  hasChineseStudentFacingText,
   normalizeDocumentEvidence,
   normalizeTextAnswerEvidence,
   pseudonymousAuditId,
   redactGradingLogValue,
   redactProviderError,
+  scopedGradingPromptSnapshotHash,
   selectQuestionAnswerEvidence,
   sha256,
   validateEvidenceAnchor,
@@ -135,8 +138,8 @@ function deductionAnnotations(evidence: {
 }) {
   const block = evidence.blocks[0];
   return [{
-    reason: 'The supporting reasoning is incomplete.',
-    comment: 'Please explain how the cited evidence supports the conclusion.',
+    reason: '推导依据仍不完整。',
+    comment: '请说明所引用依据如何支持当前结论。',
     anchor: {
       blockId: block.id,
       precision: block.precision ?? 'block',
@@ -150,9 +153,9 @@ function deductionAnnotations(evidence: {
 
 function overallFeedback() {
   return {
-    strengths: ['The main conclusion is stated clearly.'],
-    problems: ['Some supporting reasoning needs more detail.'],
-    suggestions: ['Show the key calculation before the conclusion.'],
+    strengths: ['主要结论表达清楚。'],
+    problems: ['部分推理仍需补充细节。'],
+    suggestions: ['写出关键计算步骤。'],
   };
 }
 
@@ -659,7 +662,7 @@ describe('production math-document grading contracts', () => {
     const valid = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1',
       evaluatorVersion: 'model.v1',
-      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ reason: 'The supporting reasoning is incomplete.', comment: 'Please explain how the stability margin supports the conclusion.', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ reason: '推导依据仍不完整。', comment: '请说明稳定性裕度如何支持当前结论。', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
       limitations: [],
       overallComment: 'The evidence is grounded in the submitted answer.',
       overallFeedback: overallFeedback(),
@@ -686,6 +689,32 @@ describe('production math-document grading contracts', () => {
       ...valid,
       overallFeedback: { ...overallFeedback(), strengths: ['The rubric result is ready.'] },
     }, question(), evidence)).toContain('unsafe-overall-feedback');
+    const deterministicOverallFeedback = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: valid.evaluatorId,
+        evaluatorVersion: valid.evaluatorVersion,
+        assessments: valid.assessments,
+        limitations: [],
+        overallComment: valid.overallComment,
+        overallFeedback: { ...overallFeedback(), strengths: ['The rubric result is ready.'] },
+      },
+    });
+    expect(deterministicOverallFeedback.state).toBe('awaiting-review');
+    expect(deterministicOverallFeedback.blockedReasons).toEqual([]);
+    expect(deterministicOverallFeedback.overallFeedback?.strengths).toEqual([
+      '作答中包含可以核对的过程或结论。',
+    ]);
+    expect(validateGradingOutput({
+      ...valid,
+      overallComment: '模型的动态响应符合题目要求。',
+      overallFeedback: { strengths: ['模型的动态响应清晰。'], problems: ['部分推导仍可展开。'], suggestions: ['补充关键计算步骤。'] },
+    }, question(), evidence)).not.toContain('unsafe-overall-comment');
+    expect(validateGradingOutput({
+      ...valid,
+      overallComment: '模型版本已完成确认。',
+    }, question(), evidence)).toContain('unsafe-overall-comment');
     expect(validateGradingOutput({ ...valid, overallFeedback: undefined }, question(), evidence)).toContain('overall-feedback-missing');
     const invalid = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1', assessments: [{ criterionId: 'unknown', levelId: 'excellent', score: 50, rationale: 'This output is intentionally invalid.', confidence: 1.2, anchors: [{ blockId: 'missing', precision: 'span', excerpt: 'missing' }], limitationState: 'none' }], limitations: [], overallComment: 'Invalid output must remain blocked.'
@@ -722,8 +751,151 @@ describe('production math-document grading contracts', () => {
     expect(overflow.blockedReasons).toContain('score-overflow');
   });
 
+  it('blocks a missing-diagram deduction when visual evidence confirms the diagram exists', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:diagram-evidence',
+      markdown: '图像包含两个手绘的频域图，包括幅频图和相频图。',
+      blocks: [{
+        id: 'visual-evidence:page-2',
+        text: '图像包含两个手绘的频域图，包括幅频图和相频图。',
+        pageNumber: 2,
+        precision: 'block',
+      }],
+    });
+    const visualBlock = evidence.blocks[0]!;
+    const draft = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'partial',
+          score: 3,
+          maxScore: 5,
+          rationale: '作答中未提供要求的Bode图，因此该部分依据不足。',
+          confidence: 0.8,
+          anchors: [{ blockId: visualBlock.id, precision: 'block', excerpt: visualBlock.text, pageNumber: 2 }],
+          limitationState: '图示缺失。',
+          annotations: [{
+            reason: '未提供Bode图。',
+            comment: '请补充幅频图与相频图。',
+            anchor: { blockId: visualBlock.id, precision: 'block', excerpt: visualBlock.text, pageNumber: 2 },
+          }],
+        }],
+        limitations: [],
+        overallComment: '作答中未包含Bode图，需要补充后再进行分析。',
+        overallFeedback: overallFeedback(),
+      },
+    });
+
+    expect(draft.state).toBe('blocked');
+    expect(draft.blockedReasons).toContain('visual-evidence-diagram-contradiction');
+  });
+
+  it('allows a page-local missing-diagram note when another page confirms the diagrams', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:diagram-page-scope',
+      markdown: 'page 1\npage 2',
+      blocks: [
+        { id: 'visual-evidence:page-1', pageNumber: 1, text: '第1页该部分未提供Bode图。', precision: 'page' },
+        { id: 'visual-evidence:page-2', pageNumber: 2, text: '图像包含两个手绘的Bode图。', precision: 'page' },
+      ],
+    });
+    const pageOne = evidence.blocks[0]!;
+    const draft = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'partial',
+          score: 3,
+          maxScore: 5,
+          rationale: '第1页该部分未提供Bode图，但第2页已确认存在图示。',
+          confidence: 0.8,
+          anchors: [{ blockId: pageOne.id, precision: 'page', excerpt: pageOne.text, pageNumber: 1 }],
+          limitationState: '第1页图示缺失。',
+          annotations: [{
+            reason: '第1页图示未完成。',
+            comment: '请补充第1页对应部分的图示。',
+            anchor: { blockId: pageOne.id, precision: 'page', excerpt: pageOne.text, pageNumber: 1 },
+          }],
+        }],
+        limitations: [],
+        overallComment: '第1页对应部分仍需补充图示。',
+        overallFeedback: {
+          strengths: ['第2页已提供图示。'],
+          problems: ['第1页对应部分仍需补充。'],
+          suggestions: ['补充第1页的图示内容。'],
+        },
+      },
+    });
+    expect(draft.state).toBe('awaiting-review');
+    expect(draft.blockedReasons).not.toContain('visual-evidence-diagram-contradiction');
+
+    const mixedPageClaims = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'partial',
+          score: 3,
+          maxScore: 5,
+          rationale: '第1页未提供Bode图，第2页也未提供Bode图。',
+          confidence: 0.8,
+          anchors: [{ blockId: pageOne.id, precision: 'page', excerpt: pageOne.text, pageNumber: 1 }],
+          limitationState: '图示说明不一致。',
+          annotations: [{
+            reason: '图示说明不一致。',
+            comment: '请重新检查两页中的图示内容。',
+            anchor: { blockId: pageOne.id, precision: 'page', excerpt: pageOne.text, pageNumber: 1 },
+          }],
+        }],
+        limitations: [],
+        overallComment: '两页均未提供Bode图。',
+        overallFeedback: {
+          strengths: ['参数推导清楚。'],
+          problems: ['图示判断与作答页面不一致。'],
+          suggestions: ['请重新核对图示。'],
+        },
+      },
+    });
+    expect(mixedPageClaims.state).toBe('blocked');
+    expect(mixedPageClaims.blockedReasons).toContain('visual-evidence-diagram-contradiction');
+  });
+
+  it('rejects English prose mixed into Chinese student-facing feedback', () => {
+    expect(hasChineseStudentFacingText('部分推理仍需补充细节。')).toBe(true);
+    expect(hasChineseStudentFacingText('部分 supporting reasoning 仍需补充细节。')).toBe(false);
+    expect(hasChineseStudentFacingText('请检查 Bode 图的 -40 dB/dec 斜率。')).toBe(true);
+  });
+
   it('canonicalizes a malformed anchor only when it still names a supplied evidence block', () => {
     const evidence = normalizeTextAnswerEvidence('The stability margin is positive.');
+    const missingAnnotationAnchor = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ reason: '推导依据仍不完整。', comment: '请说明稳定性裕度如何支持当前结论。' }] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.', overallFeedback: overallFeedback(),
+    } });
+    expect(missingAnnotationAnchor.state).toBe('awaiting-review');
+    expect(missingAnnotationAnchor.assessments[0]?.annotations?.[0]?.anchor).toMatchObject({ blockId: evidence.blocks[0].id, excerpt: 'stability margin' });
+
+    const englishAnnotation = buildValidatedDraft({ question: question(), evidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }], limitationState: 'none', annotations: [{ reason: 'The deduction is justified.', comment: 'Please add the missing derivation.', anchor: { blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd } }] }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.', overallFeedback: overallFeedback(),
+    } });
+    expect(englishAnnotation.state).toBe('awaiting-review');
+    expect(englishAnnotation.assessments[0]?.annotations?.[0]?.reason).toContain('作答依据');
+    expect(englishAnnotation.assessments[0]?.annotations?.[0]?.comment).toContain('补充关键推导步骤');
+
     const repaired = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
       assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the stability margin evidence.', confidence: 0.88, anchors: [{ blockId: evidence.blocks[0].id, precision: 'block', excerpt: 'invented evidence' }], limitationState: 'none', annotations: deductionAnnotations(evidence) }],
@@ -732,6 +904,19 @@ describe('production math-document grading contracts', () => {
     } });
     expect(repaired.state).toBe('awaiting-review');
     expect(repaired.assessments[0].anchors[0]).toMatchObject({ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'The stability margin is positive.' });
+
+    const geometricEvidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:source',
+      markdown: 'answer',
+      blocks: [{ text: 'answer', pageNumber: 2, bbox: [10, 10, 50, 50], precision: 'block' }],
+    });
+    const repairedGeometry = buildValidatedDraft({ question: question(), evidence: geometricEvidence, output: {
+      evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
+      assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 4, maxScore: 5, rationale: 'The answer cites the supplied evidence.', confidence: 0.88, anchors: [{ blockId: geometricEvidence.blocks[0].id, precision: 'block', excerpt: 'answer', pageNumber: 2, bbox: [5, 5, 60, 60] }], limitationState: 'none', annotations: deductionAnnotations(geometricEvidence) }],
+      limitations: [], overallComment: 'The evidence is grounded in the submitted answer.', overallFeedback: overallFeedback(),
+    } });
+    expect(repairedGeometry.state).toBe('awaiting-review');
+    expect(repairedGeometry.assessments[0].anchors[0]?.bbox).toEqual([10, 10, 50, 50]);
 
     const rejected = buildValidatedDraft({ question: question(), evidence, output: {
       evaluatorId: 'provider-1', evaluatorVersion: 'model.v1',
@@ -896,6 +1081,41 @@ describe('production math-document grading contracts', () => {
     expect(prompt.system).toContain('untrusted evidence');
   });
 
+  it('rejects English-only student-facing annotations', () => {
+    const evidence = normalizeTextAnswerEvidence('stability margin');
+    const base = buildValidatedDraft({
+      question: question(),
+      evidence,
+      output: {
+        evaluatorId: 'provider-1',
+        evaluatorVersion: 'model.v1',
+        assessments: [{
+          criterionId: 'criterion-1',
+          levelId: 'excellent',
+          score: 4,
+          maxScore: 5,
+          rationale: 'The answer cites the stability margin evidence.',
+          confidence: 0.88,
+          anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'stability margin', spanStart: evidence.blocks[0].spanStart, spanEnd: evidence.blocks[0].spanEnd }],
+          limitationState: 'none',
+          annotations: deductionAnnotations(evidence),
+        }],
+        limitations: [],
+        overallComment: 'The evidence is grounded in the submitted answer.',
+        overallFeedback: overallFeedback(),
+      },
+    });
+    expect(base.state).toBe('awaiting-review');
+    const invalid = {
+      ...base,
+      assessments: base.assessments.map((assessment) => ({
+        ...assessment,
+        annotations: assessment.annotations?.map((annotation) => ({ ...annotation, comment: 'Please explain the evidence.' })),
+      })),
+    };
+    expect(validateGradingOutput(invalid, question(), evidence)).toContain('annotation-comment-not-chinese');
+  });
+
   it('makes the configured evaluator identity and full structured output contract explicit', () => {
     const prompt = buildScopedGradingPrompt({
       question: question(),
@@ -909,15 +1129,56 @@ describe('production math-document grading contracts', () => {
     expect(prompt.user).toContain('maxScore');
     expect(prompt.user).toContain('overallFeedback');
     expect(prompt.user).toContain('anchors');
+    expect(prompt.user).toContain('criterion points only; never the question total');
+    expect(prompt.user).toContain('If any score is below its maxPoints, annotations must not be an empty array');
+    expect(prompt.user).toContain('If there is no material problem, set problems to');
     expect(prompt.user).toContain('anchors and annotations must be JSON objects, never strings');
+    expect(prompt.system).toContain('plain student-facing academic prose');
+    expect(prompt.system).toContain('模型版本');
     expect(prompt.user).toContain('Produce exactly one assessment for every criterionId');
     expect(prompt.user).toContain('Every assessment must include at least one anchor');
-    expect(prompt.user).toContain('annotations must contain one or more separate entries');
+    expect(prompt.user).toContain('annotations must not be an empty array');
     expect(prompt.user).toContain('Each assessment limitationState must contain 1 to 120 characters');
     expect(prompt.user).toContain('summarize any longer limitation before returning it');
     expect(prompt.user).toContain('each score-level range');
+    expect(prompt.user).toContain('label is input-only metadata');
+    expect(prompt.user).toContain('closed JSON object');
+    expect(prompt.user).toContain('Do not return an assessment until its anchors array is nonempty');
     expect(prompt.user).toContain('"blockId":"<evidence-block-id>"');
     expect(prompt.user).toContain('<exact-precision-from-selected-evidence-block>');
+  });
+
+  it('renders a supplied prompt snapshot instead of the current default prompt', () => {
+    const snapshot = createScopedGradingPromptSnapshot();
+    const frozen = {
+      ...snapshot,
+      systemInstructions: ['frozen-system-instruction'],
+      evidenceReadingRules: 'frozen-evidence-rule',
+      outputContract: 'frozen-output-contract',
+    };
+    const prompt = buildScopedGradingPrompt({ question: question(), evidence: normalizeTextAnswerEvidence('stability margin'), snapshot: frozen });
+
+    expect(scopedGradingPromptSnapshotHash(frozen)).not.toBe(scopedGradingPromptSnapshotHash(snapshot));
+    expect(prompt.system).toBe('frozen-system-instruction');
+    expect(prompt.user).toContain('frozen-evidence-rule');
+    expect(prompt.user).toContain('frozen-output-contract');
+    expect(prompt.user).not.toContain('Evidence is cumulative and page-scoped');
+  });
+
+  it('keeps page-local visual absences from contradicting diagrams on another page', () => {
+    const evidence = normalizeDocumentEvidence({
+      sourceHash: 'sha256:visual-page-scope',
+      markdown: 'page 1\npage 2',
+      blocks: [
+        { id: 'page-1', blockIndex: 0, pageNumber: 1, text: 'This page has no diagram.' },
+        { id: 'page-2', blockIndex: 1, pageNumber: 2, text: 'This page contains two hand-drawn Bode diagrams.' },
+      ],
+    });
+    const prompt = buildScopedGradingPrompt({ question: question(), evidence });
+    expect(prompt.system).toContain('Evidence is cumulative and page-scoped');
+    expect(prompt.user).toContain('<evidence-reading-rules>');
+    expect(prompt.user.indexOf('page-1')).toBeLessThan(prompt.user.indexOf('page-2'));
+    expect(prompt.system).toContain('page 1 without a diagram plus page 2 with hand-drawn Bode diagrams means the submission contains diagrams');
   });
 
   it('keeps deterministic evaluation explicit to fixtures and redacts audit values', async () => {

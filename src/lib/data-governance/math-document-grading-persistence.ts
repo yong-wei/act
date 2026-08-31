@@ -81,7 +81,10 @@ export async function writeRenderedObjectToSubmissionStore(input: {
   const signed = await input.store.signUpload({ ownerId: input.ownerId, answerId: input.answerId, sizeBytes: input.bytes.byteLength, mimeType: input.mimeType, checksum: input.checksum, ...(input.attemptId ? { attemptId: input.attemptId } : {}), ...(input.workerClaimToken ? { workerClaimFingerprint: sha256(input.workerClaimToken) } : {}) }, 600, input.key);
   if (signed.key !== input.key) throw new Error('rendered-object-key-not-stable');
   const response = await fetch(signed.url, { method: 'PUT', headers: signed.requiredHeaders, body: Buffer.from(input.bytes), signal: input.signal });
-  if (!response.ok) throw new Error(`rendered-object-write-http-${response.status}`);
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => '')).replace(/\s+/g, ' ').trim().slice(0, 240);
+    throw new Error(`rendered-object-write-http-${response.status}${detail ? `:${detail}` : ''}`);
+  }
   const metadata = await input.store.head(signed.key);
   if (!metadata || metadata.ownerId !== input.ownerId || metadata.answerId !== input.answerId || metadata.sizeBytes !== input.bytes.byteLength || metadata.checksum !== input.checksum || (input.attemptId && metadata.attemptId !== input.attemptId) || (input.workerClaimToken && metadata.workerClaimFingerprint !== sha256(input.workerClaimToken))) throw new Error('rendered-object-ownership-verification-failed');
   return signed.key;
@@ -95,6 +98,10 @@ type PreparedVisualEvidence = VisualEvidence & {
 
 const MAX_VISUAL_EVIDENCE_ITEMS = 24;
 const MAX_VISUAL_EVIDENCE_BYTES = 32 * 1024 * 1024;
+
+function safeObjectKeySegment(value: unknown): string {
+  return String(value ?? 'missing').replace(/[^A-Za-z0-9._-]/g, '_');
+}
 
 async function prepareConversionVisualEvidence(input: {
   conversionId: string;
@@ -136,15 +143,16 @@ async function prepareConversionVisualEvidence(input: {
     return { ...visual, bytes: entry.bytes, mediaType: entry.mediaType };
   };
   const bounded = (items: PreparedVisualEvidence[]) => {
-    const totalBytes = items.reduce((sum, item) => sum + item.bytes.byteLength, 0);
-    if (items.length > MAX_VISUAL_EVIDENCE_ITEMS || totalBytes > MAX_VISUAL_EVIDENCE_BYTES) {
+    const uniqueItems = [...new Map(items.map((item) => [item.imageChecksum, item])).values()];
+    const totalBytes = uniqueItems.reduce((sum, item) => sum + item.bytes.byteLength, 0);
+    if (uniqueItems.length > MAX_VISUAL_EVIDENCE_ITEMS || totalBytes > MAX_VISUAL_EVIDENCE_BYTES) {
       return { items: [], limitations: ['visual-evidence-limits-exceeded'] };
     }
-    return { items, limitations: [] };
+    return { items: uniqueItems, limitations: [] };
   };
   const word = input.result.wordRepresentation;
   if (word?.images.length) {
-    return bounded(word.images.map((image, index) => {
+    const direct = word.images.map((image, index) => {
         const anchor = word.anchors.find((candidate) => candidate.paragraphId === image.paragraphId);
         return build({
           id: `visual:${input.conversionId}:word:${index + 1}`,
@@ -155,7 +163,26 @@ async function prepareConversionVisualEvidence(input: {
           limitations: anchor?.pdfPageNumber ? [] : ['visual-evidence-page-unresolved'],
           processorVersion: word.extractorVersion,
         });
-      }));
+      });
+    const needsPageFallback = direct.some((item) => item.limitations.includes('visual-evidence-media-type-unsupported') || item.limitations.includes('visual-evidence-page-unresolved'));
+    if (!needsPageFallback || !input.result.renderedBytes) return bounded(direct);
+    try {
+      const pages = await (input.renderPdfPages ?? renderPdfPagesToPng)({ pdfBytes: input.result.renderedBytes });
+      if (pages.length > 0) {
+        return bounded(pages.map((page) => build({
+          id: `visual:${input.conversionId}:word-page:${page.pageNumber}`,
+          sourceKind: 'pdf-page-image',
+          bytes: page.bytes,
+          mediaType: 'image/png',
+          pageNumber: page.pageNumber,
+          processorVersion: 'pdftoppm.v1',
+        })));
+      }
+    } catch {
+      // Preserve the direct evidence and its explicit limitations if the
+      // rendered-page fallback is unavailable.
+    }
+    return bounded(direct);
   }
   const mimeType = input.source.mimeType.toLowerCase();
   if (mimeType !== 'application/pdf' && !mimeType.startsWith('image/')) return { items: [], limitations: [] };
@@ -1209,7 +1236,7 @@ export async function processDocumentConversionJob(input: {
     : null;
   const workerClaimToken = input.workerClaimToken ?? randomUUID();
   const store = input.store ?? createSubmissionObjectStore();
-  const renderedCandidateKey = `grading-rendered/${job.conversion.id}/${job.conversion.attemptId}/${sha256(workerClaimToken).slice(0, 32)}`;
+  const renderedCandidateKey = `grading-rendered/${safeObjectKeySegment(job.conversion.id)}/${safeObjectKeySegment(job.conversion.attemptId)}/${sha256(workerClaimToken).slice(7, 39)}`;
   let renderedObjectKey: string | null = null;
   let renderedChecksum: string | null = null;
   const visualObjectKeys: Array<{ key: string; checksum: string }> = [];
@@ -1291,7 +1318,7 @@ export async function processDocumentConversionJob(input: {
   if (visualPreparation.items.length > 0 && !input.writeRendered) throw new Error('visual-evidence-object-writer-unavailable');
   for (const [index, visual] of visualPreparation.items.entries()) {
     await assertGradingJobLease({ db: input.db, jobId: job.id, workerClaimToken, heartbeat: leaseHeartbeat, fencedCode: 'conversion-worker-fenced' });
-    const candidateKey = `grading-visual/${job.conversion.id}/${source.attemptId}/${sha256(`${workerClaimToken}:${index}:${visual.contentHash}`).slice(7, 39)}`;
+    const candidateKey = `grading-visual/${safeObjectKeySegment(job.conversion.id)}/${safeObjectKeySegment(source.attemptId)}/${sha256(`${workerClaimToken}:${index}:${visual.contentHash}`).slice(7, 39)}`;
     const objectKey = await input.writeRendered!({
       key: candidateKey,
       bytes: visual.bytes,
@@ -1633,10 +1660,12 @@ export async function enqueueGradingRun(input: {
   const visualRows = visualEvidenceStore?.findMany
     ? await visualEvidenceStore.findMany({
         where: { attemptId: input.attemptId, questionId: question.questionId },
+        include: { conversion: { select: { assetId: true, version: true } } },
         orderBy: [{ pageNumber: 'asc' }, { createdAt: 'asc' }],
       })
     : [];
-  const attachmentManifest = visualRows.map((visual: any): FrozenVisualAttachment => ({
+  const currentVisualRows = selectLatestVisualEvidenceRows(visualRows);
+  const attachmentManifest = currentVisualRows.map((visual: any): FrozenVisualAttachment => ({
     id: String(visual.id),
     questionId: typeof visual.questionId === 'string' ? visual.questionId : null,
     objectKey: String(visual.objectKey),
@@ -1898,7 +1927,7 @@ export async function processGradingRunJob(input: {
     if (draft.state === 'retryable') {
       const retryAt = new Date(now.getTime() + 5_000);
       await updateActivePersistedRecord({ model: tx.gradingJob, id: job.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: job, leaseToken: workerClaimToken, data: { state: 'RETRYABLE', progress: 0, nextRunAt: retryAt, lastErrorCode: draft.blockedReasons[0] ?? 'provider-retryable', workerClaimToken: null, workerClaimedAt: null, workerLeaseExpiresAt: null, updatedAt: now } });
-      const retryable = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'RETRYABLE', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, providerInputTokens: draft.inputTokens ?? null, providerOutputTokens: draft.outputTokens ?? null, providerTelemetryComplete: draft.telemetryComplete === true, limitations: draft.limitations, blockedReasons: [], updatedAt: now } });
+      const retryable = await updateActivePersistedRecord({ model: tx.gradingRun, id: run.id, activeStates: ['RUNNING'], fencedCode: 'grading-worker-fenced', fallback: run, data: { state: 'RETRYABLE', provider: draft.provider, providerRequestId: draft.providerRequestId, providerDeletionHandle: draft.deletionHandle, providerRequestedAt: draft.providerRequestedAt, providerProcessedAt: draft.providerProcessedAt, providerInputTokens: draft.inputTokens ?? null, providerOutputTokens: draft.outputTokens ?? null, providerTelemetryComplete: draft.telemetryComplete === true, limitations: draft.limitations, blockedReasons: draft.blockedReasons, updatedAt: now } });
       await writeGradingAudit(tx, {
         actor: { id: 'grading-worker', role: 'SERVICE' },
         action: 'grading-run.retryable',
@@ -2015,6 +2044,29 @@ function assertDraftEvaluationIdentity(run: any, draft: ValidatedGradingDraft): 
   if (draft.evaluationIdentity !== buildGradingRunEvaluationIdentity(run)) throw new Error('grading-draft-evaluation-identity-mismatch');
 }
 
+/**
+ * A rerun creates a new conversion version while retaining prior visual rows
+ * for auditability. Only rows belonging to the latest conversion for each
+ * asset may enter a grading manifest; otherwise an old review-required row can
+ * incorrectly block a rerun that has complete visual evidence.
+ */
+export function selectLatestVisualEvidenceRows(rows: readonly any[]): any[] {
+  const latestByAsset = new Map<string, number>();
+  for (const row of rows) {
+    const assetId = row?.conversion?.assetId;
+    const version = Number(row?.conversion?.version);
+    if (typeof assetId === 'string' && Number.isFinite(version)) {
+      latestByAsset.set(assetId, Math.max(latestByAsset.get(assetId) ?? Number.NEGATIVE_INFINITY, version));
+    }
+  }
+  return rows.filter((row) => {
+    const assetId = row?.conversion?.assetId;
+    const version = Number(row?.conversion?.version);
+    if (typeof assetId !== 'string' || !Number.isFinite(version)) return true;
+    return latestByAsset.get(assetId) === version;
+  });
+}
+
 function assertDraftAnnotationsMatchScores(draft: ValidatedGradingDraft, question: FrozenQuestionContract): void {
   const criteria = new Map(question.rubric.criteria.map((criterion) => [criterion.id, criterion.maxPoints]));
   const seen = new Set<string>();
@@ -2074,6 +2126,7 @@ async function writeValidatedGradingDraftTransaction(input: {
     evaluatorId: input.draft.evaluatorId,
     evaluatorVersion: input.draft.evaluatorVersion,
     draftTotalScore: input.draft.assessments.reduce((sum, assessment) => sum + assessment.score, 0),
+    aiTotalScore: input.draft.assessments.reduce((sum, assessment) => sum + assessment.score, 0),
     overallComment: input.draft.overallComment,
     overallFeedback: input.draft.overallFeedback ?? null,
     limitations: input.draft.limitations,

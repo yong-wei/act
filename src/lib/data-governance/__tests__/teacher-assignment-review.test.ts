@@ -369,6 +369,46 @@ describe('teacher assignment review persistence', () => {
       where: { snapshotId: 'snapshot-1', state: { in: ['BLOCKED', 'FAILED'] } },
       data: expect.objectContaining({ state: 'RETRYABLE', lastErrorCode: null }),
     }));
+    expect(db.teacherAssignmentReviewOutbox.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { snapshotId: 'snapshot-1', command: 'PROCESS_GOVERNED_EVIDENCE', state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
+      data: expect.objectContaining({ state: 'PENDING', lastErrorCode: null }),
+    }));
+  });
+
+  it('requeues governed evidence when feedback was already published', async () => {
+    const review: any = {
+      ...reviewFixture(),
+      state: 'APPROVED',
+      approvalSnapshot: { id: 'snapshot-1' },
+      submission: { ...reviewFixture().submission, reviewState: 'REVIEWED' },
+    };
+    const updateMany = vi.fn().mockResolvedValue({ count: 1 });
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review) },
+      teacherAssignmentReviewOutbox: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'derivative-command', command: 'GENERATE_DERIVATIVE', state: 'SUCCEEDED' },
+          { id: 'release-command', command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED', payload: {} },
+          { id: 'evidence-command', command: 'PROCESS_GOVERNED_EVIDENCE', state: 'BLOCKED' },
+        ]),
+        updateMany,
+      },
+    };
+
+    await expect(requestTeacherAssignmentFeedbackRelease(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' },
+      assignmentId: 'assignment-1',
+      submissionId: 'submission-1',
+      reviewId: 'review-1',
+      mode: 'RETRY_DERIVATIVE',
+      now,
+    })).resolves.toEqual({ replay: true, mode: 'PUBLISHED' });
+
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { snapshotId: 'snapshot-1', command: 'PROCESS_GOVERNED_EVIDENCE', state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
+      data: expect.objectContaining({ state: 'PENDING', lastErrorCode: null }),
+    }));
   });
 
   it('does not release one question before the whole submission is complete', async () => {

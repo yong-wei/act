@@ -5,7 +5,7 @@ import type { TeacherAiGradingLabOverview } from '@/lib/data-governance/teacher-
 
 const ownerId = 'c123456789012345678901234';
 const safeOverview: TeacherAiGradingLabOverview = {
-  datasets: [], configurations: [], batches: [], executions: [], pdfVerifications: [],
+  datasets: [], configurations: [], batches: [], metrics: { completedRate: null, meanAbsoluteScoreDifference: null, exactScoreRate: null, threeRunExactStabilityRate: null }, metricsByRun: [], executions: [], pdfVerifications: [],
   annotationJudgments: [], pendingBlindAnnotations: [], pendingBlindVisualEvidence: [],
 };
 

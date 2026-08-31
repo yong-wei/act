@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { belongsToAssignmentFilter, studentAssignmentHref } from '@/features/assignments/student-assignment-list';
 import { formatAssignmentDeadline } from '@/features/assignments/student-assignment-types';
+import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
 
 describe('student assignment task center view model', () => {
   it('keeps open, submitted pipeline, and reviewed filters semantically distinct', () => {
@@ -22,5 +23,26 @@ describe('student assignment task center view model', () => {
       .toBe('/missions/assignments/assignment%2F1?revisionId=revision%2F1');
     expect(studentAssignmentHref({ id: 'assignment/1', revisionId: 'revision/2', historicalOnly: false }))
       .toBe('/missions/assignments/assignment%2F1');
+  });
+
+  it('converts released answer and rubric snapshots into student-readable text', () => {
+    expect(presentStudentReferenceAnswer({ text: '给出模型、参数和验证结果。' }))
+      .toBe('给出模型、参数和验证结果。');
+    expect(presentStudentScoringStandard({
+      schemaVersion: 'assignment-scoring-rubric.v2',
+      criteria: [{
+        id: 'internal-only-id',
+        label: '模型证据',
+        maxPoints: 2.5,
+        scoringStandard: '说明对象模型和目标指标。',
+        feedbackGuidance: '教师内部提示。',
+        levels: [{ id: 'complete', label: '完整', maxPoints: 2.5, guideline: '模型与指标准确完整。' }],
+      }],
+    })).toBe('模型证据（2.5 分）\n说明对象模型和目标指标。\n完整：模型与指标准确完整。');
+  });
+
+  it('fails closed instead of displaying unknown snapshot structures', () => {
+    expect(presentStudentReferenceAnswer({ answer: '不应展示' })).toBeNull();
+    expect(presentStudentScoringStandard({ internal: '不应展示' })).toBeNull();
   });
 });

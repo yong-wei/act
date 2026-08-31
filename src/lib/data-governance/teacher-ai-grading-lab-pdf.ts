@@ -8,7 +8,7 @@ import {
 } from './teacher-assignment-review-derivative-storage';
 import { materializeTeacherAiGradingStructuredResult } from './teacher-ai-grading-lab-structured-review';
 
-export const TEACHER_AI_GRADING_LAB_PDF_GENERATOR_VERSION = 'teacher-ai-grading-lab-pdf.v1' as const;
+export const TEACHER_AI_GRADING_LAB_PDF_GENERATOR_VERSION = 'teacher-ai-grading-lab-pdf.v2' as const;
 
 export class TeacherAiGradingLabPdfError extends Error {
   readonly blocked = true;
@@ -101,7 +101,9 @@ export function buildTeacherAiGradingLabPdfPlan(input: {
   requiredChecksum(conversion.renderedChecksum, 'teacher-ai-grading-lab-pdf-source-checksum-invalid');
   if (!Number.isInteger(conversion.renderedSizeBytes) || conversion.renderedSizeBytes < 1) fail('teacher-ai-grading-lab-pdf-source-size-invalid');
   if (!token(input.anchorVersion)) fail('teacher-ai-grading-lab-pdf-anchor-version-missing');
-  const generatorVersion = token(input.generatorVersion) || TEACHER_AI_GRADING_LAB_PDF_GENERATOR_VERSION;
+  const requestedGeneratorVersion = token(input.generatorVersion);
+  if (requestedGeneratorVersion === 'teacher-ai-grading-lab-pdf.v1') fail('teacher-ai-grading-lab-pdf-generator-version-retired');
+  const generatorVersion = requestedGeneratorVersion || TEACHER_AI_GRADING_LAB_PDF_GENERATOR_VERSION;
   const structured = input.structuredResult;
   if (!token(structured.versionId)) fail('teacher-ai-grading-lab-pdf-structured-version-missing');
   validateScore(structured.totalScore, structured.maxScore, 'teacher-ai-grading-lab-pdf-total-score-invalid');
@@ -189,7 +191,10 @@ export async function createTeacherAiGradingLabPdf(input: {
     const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : 'teacher-ai-grading-lab-pdf-render-failed';
     throw new TeacherAiGradingLabPdfError(code);
   }
-  if (rendered.summaryPageNumber !== rendered.sourcePageCount + 1) fail('teacher-ai-grading-lab-pdf-summary-page-missing');
+  const summaryPageNumber = rendered.summaryPageNumber;
+  if (summaryPageNumber === null || !Number.isInteger(summaryPageNumber) || summaryPageNumber < rendered.sourcePageCount + 1) {
+    fail('teacher-ai-grading-lab-pdf-summary-page-missing');
+  }
   const outputChecksum = sha256(rendered.bytes);
   return {
     bytes: rendered.bytes,
@@ -200,8 +205,8 @@ export async function createTeacherAiGradingLabPdf(input: {
       generatorVersion: plan.generatorVersion,
       anchorVersion: plan.anchorVersion,
       sourcePageCount: rendered.sourcePageCount,
-      outputPageCount: rendered.sourcePageCount + 1,
-      summaryPageNumber: rendered.summaryPageNumber,
+      outputPageCount: rendered.outputPageCount,
+      summaryPageNumber,
       outputChecksum,
       outputSizeBytes: rendered.bytes.byteLength,
       annotations: rendered.placements.map((placement) => {
@@ -313,7 +318,7 @@ function markerFor(questionId: string, score: { score: number; maxScore: number 
 }
 
 function detailedFeedback(reason: string, correction: string): string {
-  return `Reason: ${reason.trim()}\nCorrection: ${correction.trim()}`;
+  return `扣分依据：${reason.trim()}\n改进建议：${correction.trim()}`;
 }
 
 function formatScore(value: number): string {

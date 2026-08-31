@@ -351,6 +351,9 @@ describe('teacher AI grading sensitive-file gate', () => {
       'evidence/class-a.grading-lab.zip',
       'private/grading-lab-identity-mapping.csv',
       'tmp/grading-lab-run-artifacts/result.json',
+      '.runtime-stage-a-logical-current.json',
+      '.runtime-stage-a-history.jsonl',
+      '.tmp-t23-state.json',
     ];
     expect(findSensitiveTeacherAiGradingLabPaths(paths).map((finding) => finding.path)).toEqual(paths);
   });

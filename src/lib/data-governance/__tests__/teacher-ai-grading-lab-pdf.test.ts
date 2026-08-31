@@ -19,7 +19,7 @@ import {
 } from '../teacher-ai-grading-lab-pdf';
 
 describe('teacher AI grading lab PDF', () => {
-  it('adds native detailed annotations, ASCII markers, and one summary page without changing source-page semantics', async () => {
+  it('adds visible sidebar feedback, ASCII markers, and one summary page without changing source-page semantics', async () => {
     const source = await syntheticPdf();
     const sourceCopy = source.slice();
     const before = await sourcePageSemantics(source);
@@ -43,27 +43,39 @@ describe('teacher AI grading lab PDF', () => {
     expect(result.metadata.annotations.every((annotation) => annotation.precision === 'EXACT')).toBe(true);
 
     const output = await PDFDocument.load(result.bytes);
-    expect(await sourcePageSemantics(result.bytes, 4)).toEqual(before);
+    const expandedSemantics = await sourcePageSemantics(result.bytes, 4);
+    expect(expandedSemantics.map((page) => page.rotation)).toEqual(before.map((page) => page.rotation));
+    expect(expandedSemantics.map((page) => page.mediaBox)).toEqual([
+      '[ 0 0 473 400 ]',
+      '[ 0 0 300 573 ]',
+      '[ -175 0 300 400 ]',
+      '[ 0 -173 300 400 ]',
+    ]);
+    expect(expandedSemantics.map((page) => page.cropBox)).toEqual([
+      '[ 5 7 473 393 ]',
+      '[ 5 7 293 573 ]',
+      '[ -175 7 293 393 ]',
+      '[ 5 -173 293 393 ]',
+    ]);
+    expect(await pageText(result.bytes, 1)).toEqual(expect.stringContaining('ORIGINAL PAGE 1'));
+    expect((await pageText(result.bytes, 1)).replace(/\s+/g, '')).toContain('批注');
     expect(output.getPageCount()).toBe(5);
     const pageOneAnnotations = annotationsOn(output, 0);
     expect(pageOneAnnotations.map((annotation) => annotation.get(PDFName.of('Subtype')).toString())).toEqual([
       '/Text',
-      '/Text',
       '/FreeText',
     ]);
-    const detail = pageOneAnnotations[1];
-    const marker = pageOneAnnotations[2];
+    const marker = pageOneAnnotations[1];
     expect(marker.get(PDFName.of('Contents')).decodeText()).toBe('T1-1 8/10 SIGN');
     expect(marker.has(PDFName.of('AP'))).toBe(true);
     expect(annotationRect(marker)).toEqual([104, 36, 194, 50]);
     expect(annotationRect(marker)).not.toEqual(result.metadata.annotations[0].rect);
-    expect(detail.lookup(PDFName.of('ACTAnchorRect'), PDFArray).toString()).toBe('[ 10 20 100 50 ]');
+    expect(marker.lookup(PDFName.of('ACTAnchorRect'), PDFArray).toString()).toBe('[ 10 20 100 50 ]');
     expect(rectanglesOverlap(annotationRect(marker), result.metadata.annotations[0].rect)).toBe(false);
-    expect(rectanglesOverlap(annotationRect(detail), result.metadata.annotations[0].rect)).toBe(false);
-    expect(detail.get(PDFName.of('Contents')).decodeText()).toContain('Reason: Sign is incorrect.');
-    expect(detail.get(PDFName.of('Subtype')).toString()).toBe('/Text');
-    expect(detail.get(PDFName.of('ACTPrecision')).toString()).toBe('/EXACT');
-    expect(await pageText(result.bytes, 5)).toEqual(expect.stringContaining('GRADING SUMMARY'));
+    expect(marker.get(PDFName.of('Subtype')).toString()).toBe('/FreeText');
+    expect(marker.get(PDFName.of('ACTPrecision')).toString()).toBe('/EXACT');
+    expect((await pageText(result.bytes, 1)).replace(/\s+/g, '')).toContain('扣分依据:Signisincorrect.');
+    expect((await pageText(result.bytes, 5)).replace(/\s+/g, '')).toContain('总体评价');
     expect(await pageText(result.bytes, 5)).toEqual(expect.stringContaining('TOTAL 30/40'));
     expect(await pageText(result.bytes, 5)).toEqual(expect.stringContaining('T1-4 6/10'));
   });
@@ -89,8 +101,8 @@ describe('teacher AI grading lab PDF', () => {
       degradationReason: 'frozen-bbox-or-coordinate-provenance-missing',
     })]);
     const output = await PDFDocument.load(result.bytes);
-    const detail = annotationsOn(output, 1).find((annotation) => annotation.get(PDFName.of('Subtype')).toString() === '/Text');
-    expect(detail?.get(PDFName.of('ACTPrecision')).toString()).toBe('/QUESTION');
+    const marker = annotationsOn(output, 1).find((annotation) => annotation.get(PDFName.of('Subtype')).toString() === '/FreeText');
+    expect(marker?.get(PDFName.of('ACTPrecision')).toString()).toBe('/QUESTION');
   });
 
   it.each([
@@ -118,8 +130,8 @@ describe('teacher AI grading lab PDF', () => {
     });
 
     const output = await PDFDocument.load(result.bytes);
-    const detail = annotationsOn(output, 1).find((annotation) => annotation.get(PDFName.of('Subtype')).toString() === '/Text');
-    expect(detail?.get(PDFName.of('ACTPrecision')).toString()).toBe(`/${precision}`);
+    const marker = annotationsOn(output, 1).find((annotation) => annotation.get(PDFName.of('Subtype')).toString() === '/FreeText');
+    expect(marker?.get(PDFName.of('ACTPrecision')).toString()).toBe(`/${precision}`);
   });
 
   it('degrades an out-of-bounds frozen bbox instead of presenting it as exact', async () => {
@@ -162,6 +174,189 @@ describe('teacher AI grading lab PDF', () => {
       code: 'reviewed-derivative-pdf-page-invalid',
       blocked: true,
     });
+  });
+
+  it('keeps multiple feedback entries visible in the extended right sidebar without moving their source anchors', async () => {
+    const source = await syntheticPdf();
+    const body = structuredBody();
+    body.feedback = Array.from({ length: 4 }, (_, index) => ({
+      id: `feedback-sidebar-${index + 1}`,
+      questionId: 'T1-1',
+      criterionId: `t1-1-criterion-${index + 1}`,
+      reason: `Independent reason ${index + 1}`,
+      correction: `Independent correction ${index + 1}`,
+      anchor: {
+        pageNumber: 1,
+        precision: 'EXACT' as const,
+        bbox: [10, 40 + index * 50, 100, 70 + index * 50] as [number, number, number, number],
+        coordinateProvenance: provenance(0),
+      },
+    }));
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    expect(result.metadata.annotations.map((annotation) => annotation.rect)).toEqual([
+      [10, 40, 100, 70],
+      [10, 90, 100, 120],
+      [10, 140, 100, 170],
+      [10, 190, 100, 220],
+    ]);
+    const visible = await pageText(result.bytes, 1);
+    expect(visible).toContain('Independent reason 1');
+    expect(visible).toContain('Independent reason 4');
+  });
+
+  it('embeds a CJK font for visible Chinese sidebar feedback', async () => {
+    const source = await syntheticPdf();
+    const body = structuredBody();
+    body.feedback = [{
+      id: 'feedback-chinese',
+      questionId: 'T1-1',
+      criterionId: 't1-1-criterion-1',
+      reason: '符号方向错误',
+      correction: '请检查符号',
+      anchor: {
+        pageNumber: 1,
+        precision: 'EXACT',
+        bbox: [10, 20, 100, 50],
+        coordinateProvenance: provenance(0),
+      },
+    }];
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    expect((await pageText(result.bytes, 1)).replace(/\s+/g, '')).toContain('符号方向错误');
+  });
+
+  it('embeds a math-capable fallback for Greek and mathematical-alphabet feedback', async () => {
+    const source = await syntheticPdf();
+    const body = structuredBody();
+    body.feedback = [{
+      id: 'feedback-math-unicode',
+      questionId: 'T1-1',
+      criterionId: 't1-1-criterion-1',
+      reason: 'α + 𝑥 = 0',
+      correction: 'Keep the coefficient and variable visible.',
+      anchor: { pageNumber: 1, precision: 'QUESTION' as const },
+    }];
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    expect((await pageText(result.bytes, 1)).replace(/\s+/g, '')).toContain('α+x=0');
+  });
+
+  it('continues an overcrowded sidebar on a separate page before the summary', async () => {
+    const source = await syntheticPdf();
+    const body = structuredBody();
+    body.feedback = Array.from({ length: 8 }, (_, index) => ({
+      id: `feedback-overflow-${index + 1}`,
+      questionId: 'T1-1',
+      criterionId: `t1-1-criterion-overflow-${index + 1}`,
+      reason: `Overflow reason ${index + 1}`,
+      correction: `Overflow correction ${index + 1}`,
+      anchor: { pageNumber: 1, precision: 'QUESTION' as const },
+    }));
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    expect(result.metadata).toMatchObject({ sourcePageCount: 4, outputPageCount: 6, summaryPageNumber: 6 });
+    expect((await pageText(result.bytes, 5)).replace(/\s+/g, '')).toContain('批注（续）');
+    expect(await pageText(result.bytes, 5)).toContain('Overflow reason 8');
+  });
+
+  it('keeps exact anchors inside non-zero media boxes and appends sidebars on each visual right edge', async () => {
+    const source = await translatedRotatedPdf();
+    const body = structuredBody();
+    body.feedback = [0, 90, 180, 270].map((rotation, index) => ({
+      id: `feedback-translated-${rotation}`,
+      questionId: `T1-${index + 1}`,
+      criterionId: `t1-${index + 1}-criterion-1`,
+      reason: `Translated page ${rotation}.`,
+      correction: 'Verify the physical PDF coordinates.',
+      anchor: {
+        pageNumber: index + 1,
+        precision: 'EXACT' as const,
+        bbox: [10, 20, 100, 50] as [number, number, number, number],
+        coordinateProvenance: provenance(rotation as 0 | 90 | 180 | 270),
+      },
+    }));
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    expect(result.metadata.annotations.map((annotation) => annotation.rect)).toEqual([
+      [60, 90, 150, 120],
+      [300, 80, 330, 170],
+      [250, 420, 340, 450],
+      [70, 370, 100, 460],
+    ]);
+
+    const output = await PDFDocument.load(result.bytes);
+    for (const [index, page] of output.getPages().slice(0, 4).entries()) {
+      const media = page.getMediaBox();
+      const crop = page.getCropBox();
+      const [x1, y1, x2, y2] = result.metadata.annotations[index].rect;
+      expect(x1).toBeGreaterThanOrEqual(media.x);
+      expect(y1).toBeGreaterThanOrEqual(media.y);
+      expect(x2).toBeLessThanOrEqual(media.x + media.width);
+      expect(y2).toBeLessThanOrEqual(media.y + media.height);
+      expect(page.getRotation().angle).toBe([0, 90, 180, 270][index]);
+      if (index === 0) expect(crop.x + crop.width).toBeGreaterThan(330);
+      if (index === 1) expect(crop.y + crop.height).toBeGreaterThan(440);
+      if (index === 2) expect(crop.x).toBeLessThan(60);
+      if (index === 3) expect(crop.y).toBeLessThan(80);
+    }
+  });
+
+  it('uses the original rotated page geometry for overflow sidebar continuation pages', async () => {
+    const source = await translatedRotatedPdf([90]);
+    const body = structuredBody();
+    body.feedback = Array.from({ length: 8 }, (_, index) => ({
+      id: `feedback-rotated-overflow-${index + 1}`,
+      questionId: 'T1-1',
+      criterionId: `t1-1-criterion-overflow-${index + 1}`,
+      reason: `Rotated overflow reason ${index + 1}`,
+      correction: `Rotated overflow correction ${index + 1}`,
+      anchor: { pageNumber: 1, precision: 'QUESTION' as const },
+    }));
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    const output = await PDFDocument.load(result.bytes);
+    const continuationPages = output.getPages().slice(1, -1);
+    expect(continuationPages).not.toHaveLength(0);
+    for (const page of continuationPages) {
+      expect(page.getRotation().angle).toBe(90);
+      expect(page.getMediaBox()).toEqual(output.getPage(0).getMediaBox());
+      expect(page.getCropBox()).toEqual(output.getPage(0).getCropBox());
+    }
+    expect((await Promise.all(continuationPages.map((_, index) => pageText(result.bytes, index + 2)))).join(' ')).toContain('Rotated overflow reason 8');
+  });
+
+  it('does not reveal original annotations that were outside the source crop box', async () => {
+    const source = await cropHiddenAnnotationPdf();
+    const body = structuredBody();
+    body.feedback = [body.feedback[0]];
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    const output = await PDFDocument.load(result.bytes);
+    const originalAnnotations = annotationsOn(output, 0).filter((annotation) => annotation.get(PDFName.of('NM'))?.decodeText() === 'hidden-original');
+    expect(originalAnnotations).toHaveLength(0);
+    expect(output.getPage(0).getCropBox().x + output.getPage(0).getCropBox().width).toBeGreaterThan(280);
+  });
+
+  it('splits one long rotated sidebar entry across continuation pages without losing text', async () => {
+    const source = await smallRotatedPdf();
+    const body = structuredBody();
+    const longReason = `${'Z'.repeat(600)}TAIL-MUST-BE-VISIBLE`;
+    body.feedback = [{
+      id: 'feedback-long-rotated',
+      questionId: 'T1-1',
+      criterionId: 't1-1-criterion-1',
+      reason: longReason,
+      correction: 'Keep every character visible.',
+      anchor: { pageNumber: 1, precision: 'QUESTION' as const },
+    }];
+
+    const result = await createTeacherAiGradingLabPdf(inputFor(source, body));
+    const output = await PDFDocument.load(result.bytes);
+    expect(output.getPageCount()).toBeGreaterThan(2);
+    expect(output.getPages().slice(1, -1).every((page) => page.getRotation().angle === 90)).toBe(true);
+    const commentText = (await Promise.all(output.getPages().slice(0, -1).map((_, index) => pageText(result.bytes, index + 1)))).join('').replace(/\s+/g, '');
+    expect([...commentText].filter((character) => character === 'Z')).toHaveLength(600);
+    expect(commentText).toContain('TAIL-MUST-BE-VISIBLE');
   });
 
   it('rejects total aggregation drift and feedback without a stable rubric-item identity', async () => {
@@ -209,12 +404,16 @@ describe('teacher AI grading lab PDF', () => {
     const replay = buildTeacherAiGradingLabPdfPlan(inputFor(source, structuredClone(body)));
     expect(replay).toEqual(first);
 
-    const nextGenerator = buildTeacherAiGradingLabPdfPlan({ ...inputFor(source, body), generatorVersion: 'teacher-ai-grading-lab-pdf.v2' });
+    const nextGenerator = buildTeacherAiGradingLabPdfPlan({ ...inputFor(source, body), generatorVersion: 'teacher-ai-grading-lab-pdf.v3' });
     expect(nextGenerator.semanticIdentity).not.toBe(first.semanticIdentity);
     const nextBody = structuredBody();
     nextBody.versionId = 'structured-v2';
     const nextVersion = buildTeacherAiGradingLabPdfPlan(inputFor(source, nextBody));
     expect(nextVersion.semanticIdentity).not.toBe(first.semanticIdentity);
+
+    expect(() => buildTeacherAiGradingLabPdfPlan({ ...inputFor(source, body), generatorVersion: 'teacher-ai-grading-lab-pdf.v1' })).toThrowError(expect.objectContaining({
+      code: 'teacher-ai-grading-lab-pdf-generator-version-retired',
+    }));
 
     const renderedFirst = await createTeacherAiGradingLabPdf(inputFor(source, body));
     const renderedReplay = await createTeacherAiGradingLabPdf(inputFor(source, structuredClone(body)));
@@ -239,7 +438,7 @@ describe('teacher AI grading lab PDF', () => {
         bytes: source,
       },
       selectedReviewVersionIds: ['review-a'],
-      generatorVersion: 'teacher-ai-grading-lab-pdf.v1',
+      generatorVersion: 'teacher-ai-grading-lab-pdf.v2',
       anchorVersion: 'math-document-word-anchor.v1',
     });
 
@@ -248,7 +447,7 @@ describe('teacher AI grading lab PDF', () => {
       sourceConversionId: 'conversion-1',
       sourcePdfChecksum: sha256(source),
       conversionVersion: 2,
-      generatorVersion: 'teacher-ai-grading-lab-pdf.v1',
+      generatorVersion: 'teacher-ai-grading-lab-pdf.v2',
       anchorVersion: 'math-document-word-anchor.v1',
       structuredResultHash: result.metadata.selectedStructuredVersion.checksum,
       semanticIdentity: result.metadata.semanticIdentity,
@@ -277,7 +476,7 @@ function inputFor(source: Uint8Array, body: TeacherAiGradingLabStructuredResultB
       bytes: source,
     },
     structuredResult: { ...body, checksum: hashTeacherAiGradingLabStructuredResult(body) },
-    generatorVersion: 'teacher-ai-grading-lab-pdf.v1',
+    generatorVersion: 'teacher-ai-grading-lab-pdf.v2',
     anchorVersion: 'math-document-word-anchor.v1',
   };
 }
@@ -343,6 +542,41 @@ async function syntheticPdf(): Promise<Uint8Array> {
   return new Uint8Array(await pdf.save());
 }
 
+async function translatedRotatedPdf(rotations: Array<0 | 90 | 180 | 270> = [0, 90, 180, 270]): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  for (const rotation of rotations) {
+    const page = pdf.addPage([300, 400]);
+    page.setMediaBox(50, 70, 300, 400);
+    page.setCropBox(60, 80, 270, 360);
+    page.setRotation(degrees(rotation));
+    page.drawText(`TRANSLATED ${rotation}`, { x: 80, y: 200, size: 12, font });
+  }
+  return new Uint8Array(await pdf.save());
+}
+
+async function cropHiddenAnnotationPdf(): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  const page = pdf.addPage([300, 400]);
+  page.setCropBox(0, 0, 280, 400);
+  const hidden = pdf.context.obj({
+    Type: 'Annot',
+    Subtype: 'Text',
+    Rect: [285, 100, 295, 110],
+    Contents: PDFHexString.fromText('Hidden source annotation'),
+    NM: PDFHexString.fromText('hidden-original'),
+  });
+  page.node.set(PDFName.of('Annots'), pdf.context.obj([pdf.context.register(hidden)]));
+  return new Uint8Array(await pdf.save());
+}
+
+async function smallRotatedPdf(): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  const page = pdf.addPage([100, 100]);
+  page.setRotation(degrees(90));
+  return new Uint8Array(await pdf.save());
+}
+
 function annotationsOn(pdf: PDFDocument, pageIndex: number): any[] {
   const annots = pdf.getPage(pageIndex).node.lookupMaybe(PDFName.of('Annots'), PDFArray);
   return annots ? annots.asArray().map((ref) => pdf.context.lookup(ref)) : [];
@@ -400,7 +634,7 @@ function trustedGenerationDb(source: Uint8Array) {
     parentVersionId: null,
     decision: 'CORRECTED',
     scoreCorrections: [{ criterionId: 'criterion-a', score: 8 }],
-    annotationCorrections: [{ action: 'revise-text', sourceAnnotationId: 'annotation-a', comment: 'Teacher-corrected feedback' }],
+    annotationCorrections: [{ action: 'revise-text', sourceAnnotationId: 'annotation-a', comment: '教师修订后的批注' }],
     operatorUserId: 'teacher-a',
     createdAt: createdAt.toISOString(),
   };
@@ -413,7 +647,7 @@ function trustedGenerationDb(source: Uint8Array) {
       assessments: [{ id: 'assessment-a', criterionId: 'criterion-a', score: 7, rationale: 'AI rationale' }],
       annotations: [{
         id: 'annotation-a', criterionId: 'criterion-a', pageNumber: 1, blockId: 'block-a',
-        bbox: [10, 20, 100, 50], precision: 'EXACT', comment: 'AI feedback',
+         bbox: [10, 20, 100, 50], precision: 'EXACT', comment: '人工智能批注',
         block: { coordinateProvenance: provenance(0) },
       }],
     },

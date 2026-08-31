@@ -63,6 +63,7 @@ function validProviderOutput() {
       criterionId: 'criterion-1',
       levelId: 'full',
       score: 1,
+      maxScore: 1,
       rationale: 'The answer cites the supplied evidence clearly.',
       confidence: 0.9,
       anchors: [{ blockId: 'text-block-1', precision: 'span' as const, excerpt: 'evidence', spanStart: 0, spanEnd: 8 }],
@@ -71,6 +72,11 @@ function validProviderOutput() {
     }],
     limitations: [],
     overallComment: 'The response is supported by the submitted evidence.',
+    overallFeedback: {
+      strengths: ['The response identifies the supplied evidence.'],
+      problems: ['No material issue was identified in the supplied evidence.'],
+      suggestions: ['Keep citing the relevant evidence in the final response.'],
+    },
   };
 }
 
@@ -109,7 +115,7 @@ describe('provider-backed math grading runtime identity', () => {
     }));
 
     const pending = evaluateWithProvider({ question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy() });
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(180_000);
 
     await expect(pending).resolves.toMatchObject({
       state: 'retryable',
@@ -117,6 +123,28 @@ describe('provider-backed math grading runtime identity', () => {
     });
     vi.useRealTimers();
   });
+
+  it('uses the visual timeout for rubric requests carrying image evidence', async () => {
+    vi.useFakeTimers();
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: true, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn() });
+    mocks.generateText.mockImplementationOnce(({ abortSignal }) => new Promise((_resolve, reject) => {
+      abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+    }));
+
+    const pending = evaluateWithProvider({
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy({ dataCategories: ['student-answer', 'student-answer-visual'] }),
+      attachments: [{ kind: 'image', mediaType: 'image/png', data: new Uint8Array([1]), checksum: sha256(new Uint8Array([1])), questionId: 'question-1' }],
+    });
+    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(180_000);
+    await expect(pending).resolves.toMatchObject({ state: 'retryable', blockedReasons: ['provider-timeout'] });
+    vi.useRealTimers();
+  });
+
 
   it('retries an exhausted transient SiliconFlow DeepSeek request', async () => {
     mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
@@ -139,6 +167,35 @@ describe('provider-backed math grading runtime identity', () => {
 
     expect(result.state).toBe('retryable');
     expect(result.blockedReasons).toContain('provider-no-output-generated');
+  });
+
+  it('does not retry a provider response that violates the frozen grading contract', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{ ...validProviderOutput().assessments[0], score: 0, annotations: [] }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('blocked');
+    expect(result.blockedReasons).toContain('deduction-annotation-missing');
+  });
+
+  it('accepts an injected runtime whose provider identity matches the frozen policy', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'siliconflow' }),
+      provider: {
+        id: 'siliconflow', provider: 'siliconflow', version: 'model.v1',
+        evaluate: async () => ({ ...validProviderOutput(), evaluatorId: 'siliconflow', evaluatorVersion: 'model.v1' }),
+      },
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(result.provider).toBe('siliconflow');
   });
 
   it('retries an SDK error that generated no structured object', async () => {
@@ -192,7 +249,7 @@ describe('provider-backed math grading runtime identity', () => {
     expect(result.state).toBe('retryable');
   });
 
-  it('retries provider output that has no usable evidence anchors', async () => {
+  it('blocks provider output that has no usable evidence anchors', async () => {
     const result = await evaluateWithProvider({
       question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
       provider: {
@@ -201,8 +258,52 @@ describe('provider-backed math grading runtime identity', () => {
       },
     });
 
+    expect(result.state).toBe('blocked');
+    expect(result.blockedReasons).toContain('schema:assessments.0.anchors:Array must contain at least 1 element(s)');
+  });
+
+  it('discards unknown provider fields before strict scoring validation', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{ ...validProviderOutput().assessments[0], s: 'provider-format-noise' }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(result.blockedReasons).toEqual([]);
+  });
+
+  it('retries structurally invalid provider output only when the forced-completion policy enables it', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      retryInvalidProviderOutput: true,
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({ ...validProviderOutput(), assessments: [{ ...validProviderOutput().assessments[0], anchors: [] }] }),
+      },
+    });
+
     expect(result.state).toBe('retryable');
     expect(result.blockedReasons).toContain('schema:assessments.0.anchors:Array must contain at least 1 element(s)');
+  });
+
+  it('retries an otherwise unclassified provider exception under the forced-completion policy', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      retryInvalidProviderOutput: true,
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw new Error('provider-error'); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('provider-provider-error');
   });
 
   it('canonicalizes a provider page number when its selected evidence block is known', async () => {
@@ -230,7 +331,7 @@ describe('provider-backed math grading runtime identity', () => {
     });
   });
 
-  it('retries a provider response that violates the frozen rubric contract', async () => {
+  it('blocks a provider response that violates the frozen rubric contract', async () => {
     const result = await evaluateWithProvider({
       question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
       provider: {
@@ -242,7 +343,7 @@ describe('provider-backed math grading runtime identity', () => {
       },
     });
 
-    expect(result.state).toBe('retryable');
+    expect(result.state).toBe('blocked');
     expect(result.blockedReasons).toContain('unknown-criterion');
   });
 
@@ -306,7 +407,7 @@ describe('provider-backed math grading runtime identity', () => {
       question: question(),
       evidence: normalizeTextAnswerEvidence('evidence'),
       classId: 'class-1',
-      policy: policy(),
+      policy: policy({ dataCategories: ['student-answer', 'student-answer-visual'] }),
       attachments: [
         { kind: 'image', mediaType: 'image/png', data: image, checksum: sha256(image), questionId: 'question-1' },
         { kind: 'document', mediaType: 'application/pdf', data: pdf, checksum: sha256(pdf), fileName: 'answer.pdf' },
@@ -337,6 +438,29 @@ describe('provider-backed math grading runtime identity', () => {
     expect(mocks.generateText.mock.calls.at(-1)?.[0]).not.toHaveProperty('prompt');
   });
 
+  it('keeps image evidence out of non-vision rubric provider requests', async () => {
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn(() => 'configured-model') });
+    mocks.generateText.mockResolvedValueOnce({
+      text: JSON.stringify({ ...validProviderOutput(), evaluatorId: 'configured-openai', evaluatorVersion: 'model.v1' }),
+      response: { id: 'request-text-only-1' },
+      usage: { inputTokens: 321, outputTokens: 123, totalTokens: 444 },
+    });
+    const image = new Uint8Array([1, 2, 3]);
+
+    const result = await evaluateWithProvider({
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy(),
+      attachments: [{ kind: 'image', mediaType: 'image/png', data: image, checksum: sha256(image), questionId: 'question-1' }],
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).toHaveProperty('prompt');
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).not.toHaveProperty('messages');
+  });
+
   it('parses a string-valued SDK output for visual descriptions before local validation', async () => {
     mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: true, jsonSchema: true, streaming: false, citationNormalization: false } });
     mocks.create.mockReturnValue({ getModel: vi.fn(() => 'configured-model') });
@@ -354,6 +478,7 @@ describe('provider-backed math grading runtime identity', () => {
     });
     const result = await adapter.evaluate({ system: 'visual', user: '{}', attachments: [{ kind: 'image', mediaType: 'image/png', data: new Uint8Array([1]), checksum: sha256(new Uint8Array([1])) }] });
     expect(result).toMatchObject({ output: expect.objectContaining({ description: expect.any(String), confidence: 0.99 }) });
+    expect(mocks.outputJson).toHaveBeenCalledWith({ name: 'teacher_ai_grading_visual_description' });
   });
 
   it('binds selected attachment checksums to grading identity and blocks invalid attachments before provider access', async () => {

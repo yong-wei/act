@@ -398,7 +398,13 @@ function defaultEvidenceMapping(snapshot: any): Record<string, unknown> | null {
   const mapping = snapshot?.gradingRun?.questionSnapshot?.evidenceMapping
     ?? snapshot?.gradingRun?.questionSnapshot?.competencyMapping
     ?? snapshot?.gradingRun?.question?.sourceLineage?.evidenceMapping;
-  return mapping && typeof mapping === 'object' && !Array.isArray(mapping) ? mapping : null;
+  if (mapping && typeof mapping === 'object' && !Array.isArray(mapping)) return mapping;
+  const criteria = snapshot?.gradingRun?.questionSnapshot?.rubric?.criteria;
+  if (!Array.isArray(criteria)) return null;
+  const derived = Object.fromEntries(criteria
+    .filter((criterion: any) => typeof criterion?.id === 'string' && criterion.id.trim() && typeof criterion?.goalDimension === 'string' && criterion.goalDimension.trim())
+    .map((criterion: any) => [criterion.id, { capability: criterion.goalDimension }]));
+  return Object.keys(derived).length > 0 ? derived : null;
 }
 
 function hasCompleteAnchorIntegrity(snapshot: any) {

@@ -57,6 +57,7 @@ export interface StudentAssignmentDetail extends StudentAssignmentSummary {
   resultPackage?: {
     version: 'assignment-student-result.v1';
     totalScore: number;
+    overallComment?: string | null;
     releasedAt: string;
     questions: Array<{
       questionId: string;
@@ -64,8 +65,8 @@ export interface StudentAssignmentDetail extends StudentAssignmentSummary {
       comment: string;
       criteria: Array<{ criterionId?: string; levelId?: string; score?: number; comment?: string }>;
       annotations: Array<{ criterionId?: string; comment?: string; anchor?: { precision?: string } }>;
-      referenceAnswer: unknown;
-      scoringStandard: unknown;
+      referenceAnswer: string | null;
+      scoringStandard: string | null;
     }>;
   } | null;
   feedbackStatus?: 'HIDDEN' | 'PUBLISHING' | 'BLOCKED' | 'PUBLISHED';

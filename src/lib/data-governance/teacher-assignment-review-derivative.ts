@@ -93,7 +93,11 @@ export function buildReviewedDerivativePlan(snapshot: any, options: ReviewedDeri
   const frozenSourceSize = canonicalPdf
     ? canonicalPdf.sizeBytes
     : (Number.isInteger(asset?.sizeBytes) && asset.sizeBytes >= 0 ? asset.sizeBytes : null);
-  const annotations = Array.isArray(snapshot?.annotationSnapshot) ? snapshot.annotationSnapshot.filter((row: any) => row?.status !== 'SUPPRESSED') : [];
+  const activeAnnotations = Array.isArray(snapshot?.annotationSnapshot)
+    ? snapshot.annotationSnapshot.filter((row: any) => row?.status !== 'SUPPRESSED')
+    : [];
+  const deductionFilter = filterDeductionAnnotations(snapshot, activeAnnotations);
+  const annotations = deductionFilter.annotations;
   const capabilities = options.anchorCapabilities ?? (options.anchorMapVersion
     ? [{ anchorVersion: options.anchorMapVersion, nativeFormats: options.nativeFormats }]
     : defaultReviewedDerivativeAnchorCapabilities());
@@ -108,19 +112,31 @@ export function buildReviewedDerivativePlan(snapshot: any, options: ReviewedDeri
   if (sourceFormat === 'PDF' && capability?.nativeFormats.includes('PDF') && !annotations.every((row: any) => hasFrozenPdfCoordinateProvenance(row?.anchor, evidence))) limitations.push('pdf-coordinate-provenance-missing');
   if (!anchorMapReliable && !limitations.includes('anchor-map-version-mismatch')) limitations.push('anchor-mapping-unreliable');
   if (canonicalPdf) limitations.push('word-review-uses-canonical-pdf');
+  if (deductionFilter.excludedCount > 0) limitations.push('non-deduction-annotations-suppressed');
 
   let outputKind: ReviewedDerivativePlan['outputKind'] = 'ANNOTATED_MARKDOWN';
   let outputMimeType = 'text/markdown';
   if (sourceFormat === 'PDF' && options.nativeFormats.includes('PDF')) {
     outputKind = 'REVIEWED_PDF';
     outputMimeType = 'application/pdf';
-    if (!nativeCapable) limitations.push('reviewed-pdf-summary-only-no-precise-overlay');
+  }
+
+  const pdfSidebarAnchors = outputKind === 'REVIEWED_PDF'
+    ? annotations.map((row: any) => sanitizePdfSidebarAnchor(row?.anchor, evidence))
+    : [];
+  const pdfSidebarCapable = outputKind === 'REVIEWED_PDF'
+    && annotations.length > 0
+    && pdfSidebarAnchors.every(Boolean);
+  if (outputKind === 'REVIEWED_PDF' && !nativeCapable) {
+    limitations.push(pdfSidebarCapable ? 'reviewed-pdf-page-sidebar-fallback' : 'reviewed-pdf-summary-only-no-precise-overlay');
   }
 
   const preserveMappedAnchors = anchorMapReliable && !(outputKind === 'REVIEWED_PDF' && !nativeCapable);
   const safeAnnotations = preserveMappedAnchors
     ? annotations.map((row: any) => ({ ...copyAnnotation(row), anchor: sanitizeReliableAnchor(row.anchor, evidence) }))
-    : annotations.map((row: any) => ({ ...copyAnnotation(row), anchor: { precision: 'GENERAL' } }));
+    : pdfSidebarCapable
+      ? annotations.map((row: any, index: number) => ({ ...copyAnnotation(row), anchor: pdfSidebarAnchors[index]! }))
+      : annotations.map((row: any) => ({ ...copyAnnotation(row), anchor: { precision: 'GENERAL' } }));
   const anchorPrecision = aggregateAnchorPrecision(safeAnnotations);
   const reviewSnapshotChecksum = checksum({
     snapshotId: snapshot.id,
@@ -344,6 +360,95 @@ function supportsNativeAnchor(format: NativeFormat, anchor: any, evidence: any) 
   return Boolean(block && samePageBbox(block, anchor) && hasFrozenPdfCoordinateProvenance(anchor, evidence));
 }
 
+function filterDeductionAnnotations(snapshot: any, annotations: any[]) {
+  const criteria = rubricCriteria(snapshot);
+  const scores = new Map<string, number>((Array.isArray(snapshot?.criterionSnapshot) ? snapshot.criterionSnapshot : [])
+    .map((value: any) => [String(value?.criterionId ?? ''), Number(value?.score)]));
+  const kept = annotations.filter((annotation: any) => {
+    const criterionId = String(annotation?.criterionId ?? '');
+    const maxPoints = criteria.get(criterionId);
+    const score = scores.get(criterionId);
+    return criterionId.length > 0 && typeof maxPoints === 'number' && typeof score === 'number'
+      && Number.isFinite(maxPoints) && Number.isFinite(score) && score < maxPoints;
+  });
+  return { annotations: kept, excludedCount: annotations.length - kept.length };
+}
+
+function rubricCriteria(snapshot: any) {
+  const candidates = [
+    snapshot?.gradingRun?.question?.rubricSnapshot?.criteria,
+    snapshot?.gradingRun?.questionSnapshot?.rubric?.criteria,
+    snapshot?.gradingRun?.questionSnapshot?.rubricSnapshot?.criteria,
+    snapshot?.gradingRun?.rubricSnapshot?.criteria,
+    snapshot?.questionSnapshot?.rubric?.criteria,
+    snapshot?.questionSnapshot?.rubricSnapshot?.criteria,
+    snapshot?.rubricSnapshot?.criteria,
+  ];
+  const criteria = candidates.find((value) => Array.isArray(value));
+  return new Map<string, number>((criteria ?? [])
+    .filter((criterion: any) => typeof criterion?.id === 'string' && Number.isFinite(Number(criterion.maxPoints)))
+    .map((criterion: any) => [criterion.id, Number(criterion.maxPoints)]));
+}
+
+function sanitizePdfSidebarAnchor(anchor: any, evidence: any) {
+  const precision = normalizePrecision(anchor?.precision);
+  const blocks = Array.isArray(evidence?.blocks) ? evidence.blocks : [];
+  if (precision === 'BLOCK') {
+    const block = blocks.find((row: any) => row?.id === anchor?.blockId);
+    const pageNumber = Number.isInteger(block?.pageNumber) && block.pageNumber > 0
+      ? block.pageNumber
+      : Number.isInteger(anchor?.pageNumber) && anchor.pageNumber > 0 && blocks.some((row: any) => row?.pageNumber === anchor.pageNumber)
+        ? anchor.pageNumber
+        : null;
+    if (pageNumber == null) return null;
+    const mappedBlock = nearestFrozenPdfBlock(anchor, evidence, pageNumber);
+    if (mappedBlock) return {
+      precision: 'BLOCK',
+      blockId: mappedBlock.id,
+      pageNumber,
+      bbox: [...mappedBlock.bbox],
+      coordinateProvenance: { ...mappedBlock.coordinateProvenance },
+    };
+    if (isReliableAnchor(anchor, evidence)) return sanitizeReliableAnchor(anchor, evidence);
+    return { precision: 'PAGE', pageNumber };
+  }
+  if (precision === 'PAGE' && Number.isInteger(anchor?.pageNumber) && anchor.pageNumber > 0
+    && blocks.some((row: any) => row?.pageNumber === anchor.pageNumber)) {
+    return { precision: 'PAGE', pageNumber: anchor.pageNumber };
+  }
+  return null;
+}
+
+function nearestFrozenPdfBlock(anchor: any, evidence: any, pageNumber: number) {
+  const excerpt = normalizeAnchorText(anchor?.excerpt);
+  if (!excerpt) return null;
+  const candidates = (Array.isArray(evidence?.blocks) ? evidence.blocks : [])
+    .filter((block: any) => block?.pageNumber === pageNumber && isValidBbox(block?.bbox) && isFrozenPdfCoordinateProvenance(block?.coordinateProvenance));
+  let best: any = null;
+  let bestScore = 0;
+  for (const candidate of candidates) {
+    const score = anchorTextOverlap(excerpt, normalizeAnchorText(candidate?.text ?? candidate?.markdown));
+    if (score > bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+  return bestScore >= 8 ? best : null;
+}
+
+function normalizeAnchorText(value: unknown) {
+  return String(value ?? '').normalize('NFKC').replace(/[\s\p{P}\p{S}]+/gu, '');
+}
+
+function anchorTextOverlap(left: string, right: string) {
+  if (!left || !right) return 0;
+  let score = 0;
+  for (let index = 0; index + 4 <= left.length; index += 1) {
+    if (right.includes(left.slice(index, index + 4))) score += 4;
+  }
+  return score;
+}
+
 function sanitizeReliableAnchor(anchor: any, evidence: any) {
   const precision = normalizePrecision(anchor?.precision);
   const block = Array.isArray(evidence?.blocks) ? evidence.blocks.find((row: any) => row?.id === anchor?.blockId || row?.pageNumber === anchor?.pageNumber) : null;
@@ -351,8 +456,8 @@ function sanitizeReliableAnchor(anchor: any, evidence: any) {
   if (precision === 'SPAN') return { precision, spanStart: anchor.spanStart, spanEnd: anchor.spanEnd };
   if (precision === 'BLOCK') return {
     precision, blockId: anchor.blockId,
-    ...(Number.isInteger(anchor.pageNumber) ? { pageNumber: anchor.pageNumber } : {}),
-    ...(isValidBbox(anchor.bbox) ? { bbox: [...anchor.bbox] } : {}),
+    ...(Number.isInteger(anchor.pageNumber) ? { pageNumber: anchor.pageNumber } : Number.isInteger(block?.pageNumber) ? { pageNumber: block.pageNumber } : {}),
+    ...(isValidBbox(anchor.bbox) ? { bbox: [...anchor.bbox] } : isValidBbox(block?.bbox) ? { bbox: [...block.bbox] } : {}),
     ...(isFrozenPdfCoordinateProvenance(coordinateProvenance) ? { coordinateProvenance: { ...coordinateProvenance } } : {}),
   };
   if (precision === 'PAGE') return { precision, pageNumber: anchor.pageNumber, bbox: [...anchor.bbox], coordinateProvenance: { ...coordinateProvenance } };

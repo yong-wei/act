@@ -1,7 +1,15 @@
 import { createHash } from 'node:crypto';
 import { extname, join } from 'node:path';
 
-import { externalProcessingPolicyHash, normalizeDocumentEvidence, type ExternalProcessingPolicy, type NormalizedAnswerEvidence } from './math-document-grading-contracts';
+import {
+  assertScopedGradingPromptSnapshot,
+  externalProcessingPolicyHash,
+  normalizeDocumentEvidence,
+  scopedGradingPromptSnapshotHash,
+  type ExternalProcessingPolicy,
+  type NormalizedAnswerEvidence,
+  type ScopedGradingPromptSnapshot,
+} from './math-document-grading-contracts';
 import { convertProtectedSubmission, renderPdfPagesToPng } from './math-document-conversion';
 import {
   buildGradingRunEvaluationIdentity,
@@ -32,6 +40,11 @@ import type { TeacherAiGradingModelSubmission } from './teacher-ai-grading-lab-r
 
 export { createFileSystemTeacherAiGradingLabArtifactStore } from './teacher-ai-grading-lab-artifact-store';
 export { createFileSystemTeacherAiGradingLabDatasetStore } from './teacher-ai-grading-lab-dataset-store';
+export {
+  assertPublicationCandidateExcludedFromMetrics,
+  buildTeacherAiGradingPublicationCandidate,
+  decideTeacherAiGradingPublicationCandidate,
+} from './teacher-ai-grading-publication-candidate';
 import {
   appendAnnotationJudgment,
   appendBlindVisualEvidenceJudgment,
@@ -67,11 +80,13 @@ import {
 } from './teacher-ai-grading-lab-metrics';
 import { createAndPersistTeacherAiGradingLabPdf } from './teacher-ai-grading-lab-pdf';
 import {
+  abortUnclaimedExecutions,
   claim,
   createRunSet,
   fail,
   freezeConfig,
   loadBatch,
+  MAX_EXPERIMENT_EXECUTION_ATTEMPTS,
   recover,
   renew,
   type VersionedExperimentComponent,
@@ -132,6 +147,10 @@ export interface TeacherAiGradingLabReportReference {
 }
 
 export interface TeacherAiGradingLabVersionedComponent extends VersionedExperimentComponent {}
+
+export interface TeacherAiGradingLabPromptComponent extends TeacherAiGradingLabVersionedComponent {
+  snapshot: ScopedGradingPromptSnapshot;
+}
 
 export interface TeacherAiGradingLabModelComponent extends TeacherAiGradingLabVersionedComponent {
   parameters: Record<string, unknown>;
@@ -196,7 +215,7 @@ export interface FreezeTeacherAiGradingLabConfigurationInput {
   split: TeacherAiGradingLabSplitReference;
   idempotencyKey: string;
   seed: number;
-  prompt: TeacherAiGradingLabVersionedComponent;
+  prompt: TeacherAiGradingLabPromptComponent;
   model: TeacherAiGradingLabModelComponent;
   processor: TeacherAiGradingLabVersionedComponent;
   metric: TeacherAiGradingLabVersionedComponent;
@@ -207,7 +226,7 @@ export interface FreezeTeacherAiGradingControlledVisualExperimentInput {
   experimentId: string;
   seed: number;
   maxAttempts?: number;
-  prompt: TeacherAiGradingLabVersionedComponent;
+  prompt: TeacherAiGradingLabPromptComponent;
   model: TeacherAiGradingLabModelComponent;
   baselineProcessor: TeacherAiGradingVisualExperimentProcessor;
   candidateProcessor: TeacherAiGradingVisualExperimentProcessor;
@@ -220,6 +239,8 @@ export interface RunTeacherAiGradingLabEvaluationInput {
   idempotencyKey: string;
   acceptanceId?: string;
   maxAttempts?: number;
+  sampleIds?: readonly string[];
+  stopOnTerminalFailure?: boolean;
 }
 export interface ResumeTeacherAiGradingLabEvaluationInput { run: TeacherAiGradingLabEvaluationRunReference }
 export interface RevealTeacherAiGradingLabHiddenAcceptanceInput {
@@ -298,7 +319,7 @@ export function createTeacherAiGradingLabCore(dependencies: TeacherAiGradingLabC
         case 'run-evaluation': return runEvaluation(dependencies, (operation as TeacherAiGradingLabCoreOperation<'run-evaluation'>).input, clock) as never;
         case 'resume-evaluation': return resumeEvaluation(dependencies, (operation as TeacherAiGradingLabCoreOperation<'resume-evaluation'>).input, clock) as never;
         case 'reveal-hidden-acceptance': return revealHiddenAcceptance(dependencies, (operation as TeacherAiGradingLabCoreOperation<'reveal-hidden-acceptance'>).input, clock()) as never;
-        case 'record-human-judgment': return recordHumanJudgment(dependencies.db, (operation as TeacherAiGradingLabCoreOperation<'record-human-judgment'>).input, clock()) as never;
+        case 'record-human-judgment': return recordHumanJudgment(dependencies, (operation as TeacherAiGradingLabCoreOperation<'record-human-judgment'>).input, clock()) as never;
         case 'build-report': return buildReport(dependencies, (operation as TeacherAiGradingLabCoreOperation<'build-report'>).input, clock()) as never;
         case 'build-controlled-visual-experiment-report': return buildControlledVisualExperimentReport(dependencies, (operation as TeacherAiGradingLabCoreOperation<'build-controlled-visual-experiment-report'>).input, clock()) as never;
         case 'export-pdf-verification-checklist': return exportPdfChecklist(dependencies, (operation as TeacherAiGradingLabCoreOperation<'export-pdf-verification-checklist'>).input, clock()) as never;
@@ -327,6 +348,8 @@ async function freezeConfiguration(dependencies: TeacherAiGradingLabCoreDependen
     || String(persistedSplit.version) !== input.split.splitVersion || persistedSplit.contentHash !== input.split.contentHash) {
     throw new Error('teacher-ai-grading-freeze-split-mismatch');
   }
+  assertFrozenPromptComponent(input.prompt);
+  providerRetriesUntilResult({ modelParameters: input.model.parameters });
   const rubric = datasetRubric(dataset);
   const frozen = await freezeConfig({
     db: dependencies.db, idempotencyKey: input.idempotencyKey,
@@ -349,6 +372,7 @@ async function freezeControlledVisualExperiment(
     || String(persistedSplit.version) !== input.split.splitVersion || persistedSplit.contentHash !== input.split.contentHash) {
     throw new Error('teacher-ai-grading-freeze-split-mismatch');
   }
+  assertFrozenPromptComponent(input.prompt);
   const rubric = datasetRubric(dataset);
   const tuningMembers = await dependencies.db.teacherAiGradingLabSplitMember.findMany({
     where: { splitId: persistedSplit.id, partition: 'TUNING' },
@@ -419,8 +443,11 @@ function controlledEvidenceChain(config: { snapshot?: unknown }): 'text-only' | 
   const controlled = processor && typeof processor === 'object'
     ? (processor as Record<string, unknown>).controlledVisualExperiment
     : null;
-  if (!controlled) return 'text-only';
-  const evidenceChain = (controlled as Record<string, unknown>).evidenceChain;
+  const evidenceChain = controlled && typeof controlled === 'object'
+    ? (controlled as Record<string, unknown>).evidenceChain
+    : processor && typeof processor === 'object'
+      ? (processor as Record<string, unknown>).evidenceChain ?? 'text-only'
+      : 'text-only';
   if (evidenceChain !== 'text-only' && evidenceChain !== 'visual-evidence') {
     throw new Error('teacher-ai-grading-controlled-experiment-chain-invalid');
   }
@@ -448,17 +475,22 @@ function assertFrozenVisualProviderPolicyBinding(config: { snapshot?: unknown },
 
 async function runEvaluation(dependencies: TeacherAiGradingLabCoreDependencies, input: RunTeacherAiGradingLabEvaluationInput, clock: () => Date): Promise<TeacherAiGradingLabEvaluationRunReference> {
   if (input.partition !== 'tuning' && input.partition !== 'hidden') throw new Error('teacher-ai-grading-partition-invalid');
+  if (input.partition === 'hidden' && input.sampleIds !== undefined) throw new Error('teacher-ai-grading-hidden-sample-scope-forbidden');
   const config = await loadConfigContext(dependencies, input.configuration.configurationVersion);
+  frozenPromptSnapshot(config);
   const maxAttempts = controlledMaxAttempts(config);
+  const retryUntilResult = providerRetriesUntilResult(config);
+  if (retryUntilResult && maxAttempts !== undefined) throw new Error('teacher-ai-grading-provider-retry-policy-controlled-experiment-conflict');
+  if (retryUntilResult && input.maxAttempts !== undefined) throw new Error('teacher-ai-grading-provider-retry-policy-max-attempts-conflict');
   if (maxAttempts !== undefined && input.maxAttempts !== undefined && input.maxAttempts !== maxAttempts) {
     throw new Error('teacher-ai-grading-controlled-experiment-max-attempts-drift');
   }
-  const effectiveMaxAttempts = maxAttempts ?? input.maxAttempts;
+  const effectiveMaxAttempts = retryUntilResult ? MAX_EXPERIMENT_EXECUTION_ATTEMPTS : maxAttempts ?? input.maxAttempts;
   const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   if (dataset.manifest.datasetKind === 'preflight' && input.partition !== 'tuning') {
     throw new Error('teacher-ai-grading-preflight-hidden-evaluation-forbidden');
   }
-  const samples = await buildRunSamples(dependencies, config, input.partition);
+  const samples = await buildRunSamples(dependencies, config, input.partition, input.sampleIds);
   let batchId: string;
   if (input.partition === 'hidden') {
     if (!input.acceptanceId) throw new Error('teacher-ai-grading-hidden-acceptance-id-missing');
@@ -474,7 +506,7 @@ async function runEvaluation(dependencies: TeacherAiGradingLabCoreDependencies, 
     batchId = (await createRunSet({ db: dependencies.db, configId: config.id, splitId: config.splitId,
       idempotencyKey: input.idempotencyKey, samples, maxAttempts: effectiveMaxAttempts, now: clock() })).batch.id;
   }
-  await drainBatch(dependencies, batchId, clock);
+  await drainBatch(dependencies, batchId, clock, input.stopOnTerminalFailure === true);
   return { evaluationRunId: batchId };
 }
 
@@ -506,16 +538,26 @@ async function revealHiddenAcceptance(
   return { ...revealed.result, replay: revealed.replay };
 }
 
-async function drainBatch(dependencies: TeacherAiGradingLabCoreDependencies, batchId: string, clock: () => Date): Promise<void> {
+async function drainBatch(dependencies: TeacherAiGradingLabCoreDependencies, batchId: string, clock: () => Date, stopOnTerminalFailure = false): Promise<void> {
   if (!dependencies.conversion || !dependencies.artifactStore) throw new Error('teacher-ai-grading-lab-runner-not-configured');
   const batch = await loadBatch(dependencies.db, batchId);
-  const claimBudget = Math.max(1, Number(batch.totalExecutions ?? 1) * Number(batch.maxAttempts ?? 3) + 10);
+  const retryUntilResult = batch.maxAttempts === MAX_EXPERIMENT_EXECUTION_ATTEMPTS;
+  const claimBudget = retryUntilResult
+    ? Number.MAX_SAFE_INTEGER
+    : Math.max(1, Number(batch.totalExecutions ?? 1) * Number(batch.maxAttempts ?? 3) + 10);
   for (let claimCount = 0; claimCount < claimBudget; claimCount += 1) {
     const claimed = await claim({ db: dependencies.db, batchId, leaseMs: dependencies.leaseMs, now: clock() });
     if (!claimed) return;
+    if (retryUntilResult && claimed.execution.attemptCount > 1) {
+      await waitForProviderRetry(claimed.execution.attemptCount);
+    }
     const heartbeat = startTeacherAiGradingClaimHeartbeat(dependencies, claimed.execution.id, claimed.claimToken, clock);
     try {
-      await executeClaim(dependencies, claimed.execution, claimed.claimToken, claimed.resumeStage, clock, heartbeat);
+      const outcome = await executeClaim(dependencies, claimed.execution, claimed.claimToken, claimed.resumeStage, clock, heartbeat);
+      if (stopOnTerminalFailure && outcome === 'terminal-failure') {
+        await abortUnclaimedExecutions({ db: dependencies.db, batchId, errorCode: 'preflight-terminal-failure', now: clock() });
+        return;
+      }
     } catch (error) {
       if (!isFencingError(error)) throw error;
     } finally {
@@ -532,7 +574,7 @@ async function executeClaim(
   resumeStage: 'raw-output' | undefined,
   clock: () => Date,
   heartbeat: TeacherAiGradingClaimHeartbeat,
-): Promise<void> {
+): Promise<'terminal-failure' | undefined> {
   const artifactStore = dependencies.artifactStore!;
   const stageKey = `teacher-ai-grading/staged/${encodeURIComponent(execution.id)}/pending.json`;
   try {
@@ -635,7 +677,8 @@ async function executeClaim(
     if (!providerClassId) throw new Error('teacher-ai-grading-lab-provider-class-id-missing');
     const startedAt = clock();
     const draft = await evaluateFrozenQuestionEvidence({
-      question, evidence: prepared.evidence, classId: providerClassId,
+      question, evidence: prepared.evidence, classId: providerClassId, promptSnapshot: context.promptSnapshot,
+      retryInvalidProviderOutput: providerRetriesUntilValidResult(context.config),
       policy: providerPolicy, provider: dependencies.provider, attachments: scoringAttachments,
       idempotencyKey: buildGradingRunEvaluationIdentity(run),
       onProviderAttempt: (attempt) => { providerAttempt = attempt; },
@@ -661,9 +704,9 @@ async function executeClaim(
       });
     }
     if (draft.state !== 'awaiting-review' || !rawOutput) {
-      await settleClaimFailure(dependencies, heartbeat, { executionId: execution.id, claimToken, failureStage: 'provider',
+      const settled = await settleClaimFailure(dependencies, heartbeat, { executionId: execution.id, claimToken, failureStage: 'provider',
         errorCode: safeErrorCode(draft.blockedReasons[0] ?? draft.state), retryable: draft.state === 'retryable', now: clock() });
-      return;
+      return settled?.state === 'FAILED' ? 'terminal-failure' : undefined;
     }
     await artifactStore.write(stageKey, rawOutput);
     await persistValidatedGradingDraft({
@@ -690,21 +733,32 @@ async function executeClaim(
   }
 }
 
-async function recordHumanJudgment(db: CoreDb, input: RecordTeacherAiGradingLabHumanJudgmentInput, now: Date): Promise<TeacherAiGradingLabHumanJudgmentReference> {
+async function recordHumanJudgment(dependencies: TeacherAiGradingLabCoreDependencies, input: RecordTeacherAiGradingLabHumanJudgmentInput, now: Date): Promise<TeacherAiGradingLabHumanJudgmentReference> {
   if (input.judgmentKind === 'blind-annotation') {
-    const row = await appendAnnotationJudgment({ db, ...input, now });
+    const row = await appendAnnotationJudgment({ db: dependencies.db, ...input, now });
     return { judgmentVersion: row.id };
   }
   if (input.judgmentKind === 'blind-visual-evidence') {
-    const row = await appendBlindVisualEvidenceJudgment({ db, ...input, now });
+    const row = await appendBlindVisualEvidenceJudgment({ db: dependencies.db, ...input, now });
     return { judgmentVersion: row.id };
   }
   if (input.judgmentKind === 'structured-review') {
-    const row = await appendTeacherAiGradingStructuredReviewVersion({ db, ...input, now });
+    const execution = await dependencies.db.teacherAiGradingExperimentExecution.findUnique({
+      where: { id: input.executionId }, select: { configId: true, sampleId: true, questionId: true, state: true },
+    });
+    if (!execution || execution.state !== 'SUCCEEDED') throw new Error('teacher-ai-grading-review-execution-not-complete');
+    const config = await loadConfigContext(dependencies, execution.configId);
+    const dataset = await dependencies.datasetStore.load({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
+    const baseline = dataset.baseline.samples.find((sample: any) => sample.sampleId === execution.sampleId)
+      ?.questions.find((question: any) => question.questionId === execution.questionId);
+    if (!baseline) throw new Error('teacher-ai-grading-review-baseline-not-found');
+    const row = await appendTeacherAiGradingStructuredReviewVersion({
+      db: dependencies.db, ...input, baselineVersion: dataset.manifest.baseline.checksum, baselineScore: baseline.teacherScore, now,
+    });
     return { judgmentVersion: row.id };
   }
   if (input.judgmentKind !== 'pdf-verification') throw new Error('teacher-ai-grading-judgment-kind-invalid');
-  const row = await recordTeacherAiGradingPdfVerification({ db, ...input, now });
+  const row = await recordTeacherAiGradingPdfVerification({ db: dependencies.db, ...input, now });
   return { judgmentVersion: row.id };
 }
 
@@ -859,6 +913,28 @@ function controlledStrata(snapshot: Record<string, unknown>): Array<{ sampleId: 
   });
 }
 
+function providerRetriesUntilResult(config: { modelParameters?: unknown }): boolean {
+  const parameters = config.modelParameters && typeof config.modelParameters === 'object'
+    ? config.modelParameters as Record<string, unknown>
+    : {};
+  const policy = parameters.providerRetryPolicy;
+  if (policy === undefined || policy === 'bounded') return false;
+  if (policy === 'until-result' || policy === 'until-valid-result') return true;
+  throw new Error('teacher-ai-grading-provider-retry-policy-invalid');
+}
+
+function providerRetriesUntilValidResult(config: { modelParameters?: unknown }): boolean {
+  const parameters = config.modelParameters && typeof config.modelParameters === 'object'
+    ? config.modelParameters as Record<string, unknown>
+    : {};
+  return parameters.providerRetryPolicy === 'until-valid-result';
+}
+
+async function waitForProviderRetry(attemptCount: number): Promise<void> {
+  const delayMs = Math.min(30_000, 1_000 * 2 ** Math.min(5, Math.max(0, attemptCount - 2)));
+  await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+}
+
 function controlledMaxAttempts(config: { snapshot?: unknown }): number | undefined {
   const processor = config.snapshot && typeof config.snapshot === 'object'
     ? (config.snapshot as Record<string, unknown>).processor
@@ -975,7 +1051,7 @@ async function controlledReportInput(
   }
   const rows = await dependencies.db.teacherAiGradingExperimentExecution.findMany({
     where: { batchId: batch.id },
-    select: { sampleId: true, questionId: true, repetitionOrdinal: true, state: true, gradingRun: { select: { draftTotalScore: true } } },
+    select: { sampleId: true, questionId: true, repetitionOrdinal: true, state: true, gradingRun: { select: { aiTotalScore: true, draftTotalScore: true } } },
   });
   const conversions = await dependencies.db.teacherAiGradingConversionAttempt.findMany({
     where: { batchId: batch.id },
@@ -1016,7 +1092,7 @@ async function controlledReportInput(
       questionId: row.questionId,
       repetitionOrdinal: row.repetitionOrdinal,
       status: row.state === 'SUCCEEDED' ? 'succeeded' as const : 'failed' as const,
-      score: row.gradingRun?.draftTotalScore ?? undefined,
+      score: row.gradingRun?.aiTotalScore ?? row.gradingRun?.draftTotalScore ?? undefined,
     })),
     conversions: [...selectedConversions.values()].map((row: any) => ({
       sampleId: row.sampleId,
@@ -1060,7 +1136,14 @@ async function exportPdfChecklist(dependencies: TeacherAiGradingLabCoreDependenc
     if (hashBytes(stored) !== created.derivative.contentChecksum) throw new Error('teacher-ai-grading-pdf-artifact-checksum-mismatch');
     derivatives.push({ sampleId: item.sampleId, derivativeId });
   }
-  await registerTeacherAiGradingHiddenPdfSet({ db: dependencies.db, acceptanceId: input.acceptanceId, derivatives, now });
+  try {
+    await registerTeacherAiGradingHiddenPdfSet({ db: dependencies.db, acceptanceId: input.acceptanceId, derivatives, now });
+  } catch (error) {
+    await Promise.all(derivatives.map((item) => dependencies.artifactStore!.delete(
+      `teacher-ai-grading/pdf-derivatives/${encodeURIComponent(item.derivativeId)}.pdf`,
+    )));
+    throw error;
+  }
   return { acceptanceId: input.acceptanceId, items: derivatives.map((item) => ({ ...item, revision: 0, status: 'pending' as const })) };
 }
 
@@ -1083,11 +1166,22 @@ export function assertFrozenProviderPolicyBinding(input: {
   }
 }
 
-async function buildRunSamples(dependencies: TeacherAiGradingLabCoreDependencies, config: any, partition: 'tuning' | 'hidden') {
+async function buildRunSamples(dependencies: TeacherAiGradingLabCoreDependencies, config: any, partition: 'tuning' | 'hidden', requestedSampleIds?: readonly string[]) {
   const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   requireEvaluableDataset(dataset);
   if (dataset.contentHash !== config.datasetContentHash) throw new Error('teacher-ai-grading-dataset-drift');
-  const members = await dependencies.db.teacherAiGradingLabSplitMember.findMany({ where: { splitId: config.splitId, partition: partition === 'tuning' ? 'TUNING' : 'HIDDEN' }, select: { sampleId: true } });
+  if (requestedSampleIds !== undefined && (partition !== 'tuning' || requestedSampleIds.length === 0 || new Set(requestedSampleIds).size !== requestedSampleIds.length)) {
+    throw new Error('teacher-ai-grading-sample-scope-invalid');
+  }
+  const members = await dependencies.db.teacherAiGradingLabSplitMember.findMany({
+    where: {
+      splitId: config.splitId,
+      partition: partition === 'tuning' ? 'TUNING' : 'HIDDEN',
+      ...(requestedSampleIds ? { sampleId: { in: [...requestedSampleIds] } } : {}),
+    },
+    select: { sampleId: true },
+  });
+  if (requestedSampleIds && members.length !== requestedSampleIds.length) throw new Error('teacher-ai-grading-sample-scope-not-in-partition');
   const sampleIds = new Set<string>(members.map((member: any) => String(member.sampleId)));
   await Promise.all([...sampleIds].flatMap((sampleId) => dataset.questions.questions.map((question) => (
     dataset.readModelSubmission(sampleId, question.questionId)
@@ -1103,7 +1197,37 @@ async function loadExecutionContext(dependencies: TeacherAiGradingLabCoreDepende
   const dataset = await dependencies.datasetStore.loadEvaluation({ datasetId: config.datasetId, datasetVersion: config.datasetVersion });
   requireEvaluableDataset(dataset);
   if (dataset.contentHash !== config.datasetContentHash) throw new Error('teacher-ai-grading-dataset-drift');
-  return { config, dataset };
+  return { config, dataset, promptSnapshot: frozenPromptSnapshot(config) };
+}
+
+function assertFrozenPromptComponent(component: TeacherAiGradingLabPromptComponent): void {
+  try {
+    assertScopedGradingPromptSnapshot(component.snapshot);
+  } catch {
+    throw new Error('teacher-ai-grading-prompt-snapshot-invalid');
+  }
+  if (component.contentHash !== scopedGradingPromptSnapshotHash(component.snapshot)) {
+    throw new Error('teacher-ai-grading-prompt-snapshot-hash-mismatch');
+  }
+}
+
+function frozenPromptSnapshot(config: { snapshot?: unknown; promptContentHash?: unknown }): ScopedGradingPromptSnapshot {
+  const prompt = config.snapshot && typeof config.snapshot === 'object'
+    ? (config.snapshot as Record<string, unknown>).prompt
+    : null;
+  if (!prompt || typeof prompt !== 'object') throw new Error('teacher-ai-grading-prompt-snapshot-missing');
+  const component = prompt as Record<string, unknown>;
+  try {
+    assertScopedGradingPromptSnapshot(component.snapshot);
+  } catch {
+    throw new Error('teacher-ai-grading-prompt-snapshot-invalid');
+  }
+  const snapshot = component.snapshot;
+  if (component.contentHash !== scopedGradingPromptSnapshotHash(snapshot)
+    || config.promptContentHash !== component.contentHash) {
+    throw new Error('teacher-ai-grading-prompt-snapshot-hash-mismatch');
+  }
+  return snapshot;
 }
 
 function datasetRubric(dataset: LoadedTeacherAiGradingEvaluationDataset): VersionedExperimentComponent {
@@ -1186,7 +1310,7 @@ async function projectReportInput(dependencies: TeacherAiGradingLabCoreDependenc
   });
   const executions: TeacherAiGradingExecutionResult[] = rows.map((row: any) => ({
     sampleId: row.sampleId, questionId: row.questionId, repetitionOrdinal: row.repetitionOrdinal,
-    status: row.state === 'SUCCEEDED' ? 'succeeded' : 'failed', score: row.gradingRun?.draftTotalScore ?? undefined,
+    status: row.state === 'SUCCEEDED' ? 'succeeded' : 'failed', score: row.gradingRun?.aiTotalScore ?? row.gradingRun?.draftTotalScore ?? undefined,
     annotations: (row.gradingRun?.annotations ?? []).map((annotation: any) => ({ annotationId: annotation.id, criterionId: annotation.criterionId,
       issueIdentity: hashJson({ criterionId: annotation.criterionId, comment: annotation.comment }), evidenceIdentity: hashJson({ blockId: annotation.blockId, excerpt: annotation.excerpt }) })),
     providerStage: row.providerCalls.length > 0 ? 'called' : 'not_reached',
@@ -1313,12 +1437,13 @@ async function settleClaimFailure(
   dependencies: TeacherAiGradingLabCoreDependencies,
   heartbeat: TeacherAiGradingClaimHeartbeat,
   input: Omit<Parameters<typeof fail>[0], 'db'>,
-): Promise<void> {
+): Promise<any | null> {
   await heartbeat.stop();
   try {
-    await fail({ db: dependencies.db, ...input });
+    return await fail({ db: dependencies.db, ...input });
   } catch (error) {
     if (!isFencingError(error)) throw error;
+    return null;
   }
 }
 
@@ -1551,9 +1676,20 @@ const terminalBatchStates = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED']);
 async function requireTerminalEvaluationRun(dependencies: TeacherAiGradingLabCoreDependencies, config: any, evaluationRunId: string): Promise<void> {
   const batch = await dependencies.db.teacherAiGradingExperimentBatch.findUnique({
     where: { id: evaluationRunId },
-    select: { id: true, configId: true, splitId: true, state: true },
+    select: { id: true, configId: true, splitId: true, state: true, totalExecutions: true },
   });
-  if (!batch || batch.configId !== config.id || batch.splitId !== config.splitId || !terminalBatchStates.has(batch.state)) {
+  if (!batch || batch.configId !== config.id || batch.splitId !== config.splitId || batch.state !== 'SUCCEEDED') {
+    throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
+  }
+  const executions = await dependencies.db.teacherAiGradingExperimentExecution.findMany({
+    where: { batchId: evaluationRunId },
+    select: { state: true, rawOutputObjectKey: true, gradingRun: { select: { aiTotalScore: true, draftTotalScore: true } } },
+  });
+  if (executions.length === 0 || executions.length !== Number(batch.totalExecutions)
+    || executions.some((execution: any) => execution.state !== 'SUCCEEDED'
+      || typeof execution.rawOutputObjectKey !== 'string'
+      || (execution.gradingRun?.aiTotalScore ?? execution.gradingRun?.draftTotalScore) === null
+      || (execution.gradingRun?.aiTotalScore ?? execution.gradingRun?.draftTotalScore) === undefined)) {
     throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
   }
 }
@@ -1570,7 +1706,7 @@ async function requireTerminalPartitionRun(
   const expectedSampleIds = new Set(members.map((member: any) => String(member.sampleId)));
   const batches = await dependencies.db.teacherAiGradingExperimentBatch.findMany({
     where: { configId: config.id, splitId: config.splitId, state: { in: [...terminalBatchStates] } },
-    select: { sampleSetSnapshot: true },
+    select: { id: true, state: true, totalExecutions: true, sampleSetSnapshot: true },
   });
   const hasMatchingRun = batches.some((batch: any) => {
     const samples = Array.isArray(batch.sampleSetSnapshot) ? batch.sampleSetSnapshot : [];
@@ -1582,6 +1718,23 @@ async function requireTerminalPartitionRun(
     return sampleIds.size === expectedSampleIds.size && [...expectedSampleIds].every((sampleId) => sampleIds.has(sampleId));
   });
   if (!hasMatchingRun) throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
+  for (const batch of batches) {
+    const samples = Array.isArray(batch.sampleSetSnapshot) ? batch.sampleSetSnapshot : [];
+    const sampleIds = new Set(samples.flatMap((sample: any) => sample && typeof sample.sampleId === 'string' ? [sample.sampleId] : []));
+    if (sampleIds.size !== expectedSampleIds.size || [...expectedSampleIds].some((sampleId) => !sampleIds.has(sampleId))) continue;
+    const executions = await dependencies.db.teacherAiGradingExperimentExecution.findMany({
+      where: { batchId: batch.id },
+      select: { sampleId: true, questionId: true, repetitionOrdinal: true, state: true, rawOutputObjectKey: true, gradingRun: { select: { aiTotalScore: true, draftTotalScore: true } } },
+    });
+    const complete = executions.length > 0 && executions.length === Number(batch.totalExecutions)
+      && executions.every((execution: any) => execution.state === 'FAILED'
+        || (execution.state === 'SUCCEEDED'
+          && typeof execution.rawOutputObjectKey === 'string'
+          && (execution.gradingRun?.aiTotalScore ?? execution.gradingRun?.draftTotalScore) !== null
+          && (execution.gradingRun?.aiTotalScore ?? execution.gradingRun?.draftTotalScore) !== undefined));
+    if (complete) return;
+  }
+  throw new Error('teacher-ai-grading-baseline-before-independent-run-complete');
 }
 
 type PreparedLabVisualEvidence = {
@@ -1629,10 +1782,6 @@ export async function prepareLabExperimentEvidence(input: {
   const allImages = input.result.wordRepresentation?.images ?? [];
   if (allImages.some((image) => image.questionId === null)) {
     throw new Error('teacher-ai-grading-controlled-visual-question-mapping-invalid');
-  }
-  const images = allImages.filter((image) => image.questionId === input.request.submission.questionId);
-  if (images.length === 0) {
-    return { evidence: textEvidence, visualEvidence: [], visualEvidenceStatus: 'NOT_APPLICABLE' };
   }
   if (allImages.some((image) => image.questionId !== input.request.submission.questionId)) {
     throw new Error('teacher-ai-grading-controlled-visual-question-mapping-invalid');

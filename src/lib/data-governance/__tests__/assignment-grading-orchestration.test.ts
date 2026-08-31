@@ -28,6 +28,7 @@ vi.mock('../teacher-assignment-review', () => ({ createTeacherAssignmentReview, 
 import {
   createAssignmentAiGradingBatches,
   createManualQuestionGradingReview,
+  ensureAssignmentAiResultSnapshot,
   executeAssignmentAiGradingBatches,
   refreshAssignmentAiGradingOperation,
   submissionRequiresIncrementalGrading,
@@ -328,6 +329,70 @@ describe('assignment grading orchestration', () => {
       idempotencyKey: 'before-deadline',
       now,
     })).rejects.toThrow('assignment-grading-before-deadline');
+  });
+
+  it('projects approved current attempts into one immutable teacher-confirmation snapshot', async () => {
+    const revision = revisionFixture();
+    const submission = {
+      id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1',
+      frozenAudienceDueAt: revision.audiences[0].dueAt, state: 'SUBMITTED',
+      audience: { class: { teacherId: 'teacher-1', isActive: true } },
+      answers: [
+        { id: 'answer-1', assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1, answerVersion: 1 }] },
+        { id: 'answer-2', assignmentQuestionId: 'question-2', currentAttemptNumber: 1, attempts: [{ id: 'attempt-2', attemptNumber: 1, answerVersion: 1 }] },
+      ],
+    };
+    const operations: any[] = [];
+    const db: any = {
+      assignmentRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      assignmentSubmission: { findUnique: vi.fn().mockResolvedValue(submission) },
+      teacherAssignmentApprovalSnapshot: { findMany: vi.fn().mockResolvedValue([
+        { questionId: 'question-1', attemptId: 'attempt-1' },
+        { questionId: 'question-2', attemptId: 'attempt-2' },
+      ]) },
+      assignmentGradingOperation: {
+        findUnique: vi.fn(async () => operations[0] ?? null),
+        create: vi.fn(async ({ data }: any) => {
+          const operation = { ...data, snapshots: [{ ...data.snapshots.create, items: data.snapshots.create.items.create }] };
+          operations.push(operation);
+          return operation;
+        }),
+      },
+    };
+
+    const first = await ensureAssignmentAiResultSnapshot({ db, assignmentId: 'assignment-1', submissionId: 'submission-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now });
+    const replay = await ensureAssignmentAiResultSnapshot({ db, assignmentId: 'assignment-1', submissionId: 'submission-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now });
+
+    expect(first).toMatchObject({ submissionId: 'submission-1', source: 'AI' });
+    expect(replay).toBe(first);
+    expect(db.assignmentGradingOperation.create).toHaveBeenCalledTimes(1);
+    expect(db.assignmentGradingOperation.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'SUCCEEDED',
+        snapshots: expect.objectContaining({ create: expect.objectContaining({ source: 'AI', submissionId: 'submission-1' }) }),
+      }),
+    }));
+  });
+
+  it('refuses a teacher-confirmation snapshot before every current attempt is approved', async () => {
+    const revision = revisionFixture();
+    const db: any = {
+      assignmentRevision: { findFirst: vi.fn().mockResolvedValue(revision) },
+      assignmentSubmission: { findUnique: vi.fn().mockResolvedValue({
+        id: 'submission-1', assignmentRevisionId: 'revision-1', audienceId: 'audience-1', studentId: 'student-1', frozenStudentId: 'student-1', frozenAudienceClassId: 'class-1',
+        frozenAudienceDueAt: revision.audiences[0].dueAt, state: 'SUBMITTED', audience: { class: { teacherId: 'teacher-1', isActive: true } },
+        answers: [
+          { id: 'answer-1', assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1, answerVersion: 1 }] },
+          { id: 'answer-2', assignmentQuestionId: 'question-2', currentAttemptNumber: 1, attempts: [{ id: 'attempt-2', attemptNumber: 1, answerVersion: 1 }] },
+        ],
+      }) },
+      assignmentGradingOperation: { findUnique: vi.fn().mockResolvedValue(null) },
+      teacherAssignmentApprovalSnapshot: { findMany: vi.fn().mockResolvedValue([{ questionId: 'question-1', attemptId: 'attempt-1' }]) },
+    };
+
+    await expect(ensureAssignmentAiResultSnapshot({ db, assignmentId: 'assignment-1', submissionId: 'submission-1', actor: { id: 'teacher-1', role: 'TEACHER' }, now }))
+      .rejects.toThrow('assignment-result-approval-incomplete');
+    expect(db.assignmentGradingOperation.create).toBeUndefined();
   });
 
   it('executes each question batch independently', async () => {

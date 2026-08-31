@@ -309,7 +309,7 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     if (reviewCas?.count !== 1) throw conflict();
     const runCas = await tx.gradingRun.updateMany({
       where: { id: review.gradingRunId, state: 'AWAITING_REVIEW', teacherReviewedAt: null },
-      data: { state: 'APPROVED', teacherReviewedAt: now, draftTotalScore: total, overallComment: review.overallComment, updatedAt: now },
+      data: { state: 'APPROVED', teacherReviewedAt: now, approvedTotalScore: total, overallComment: review.overallComment, updatedAt: now },
     });
     if (runCas?.count !== 1) throw conflict();
     for (const assessment of review.gradingRun.assessments) {
@@ -843,7 +843,15 @@ export async function requestTeacherAssignmentFeedbackRelease(db: any, input: {
     const release = commands.find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
     const derivative = commands.find((row: any) => row.command === 'GENERATE_DERIVATIVE');
     if (!release || !derivative) throw new TeacherAssignmentReviewError('teacher-review-release-command-missing', 409);
-    if (release.state === 'SUCCEEDED') return { replay: true, mode: 'PUBLISHED' as const };
+    if (release.state === 'SUCCEEDED') {
+      if (input.mode === 'RETRY_DERIVATIVE') {
+        await tx.teacherAssignmentReviewOutbox.updateMany({
+          where: { snapshotId: review.approvalSnapshot.id, command: 'PROCESS_GOVERNED_EVIDENCE', state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
+          data: { state: 'PENDING', availableAt: now, claimToken: null, claimedAt: null, leaseExpiresAt: null, lastErrorCode: null, limitationCode: null, processedAt: null, updatedAt: now },
+        });
+      }
+      return { replay: true, mode: 'PUBLISHED' as const };
+    }
     if (!['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED'].includes(review.submission.reviewState)) {
       throw new TeacherAssignmentReviewError('teacher-review-release-incomplete', 409);
     }
@@ -868,6 +876,10 @@ export async function requestTeacherAssignmentFeedbackRelease(db: any, input: {
       });
       await tx.teacherAssignmentReviewOutbox.updateMany({
         where: { id: derivative.id, state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
+        data: { state: 'PENDING', availableAt: now, claimToken: null, claimedAt: null, leaseExpiresAt: null, lastErrorCode: null, limitationCode: null, processedAt: null, updatedAt: now },
+      });
+      await tx.teacherAssignmentReviewOutbox.updateMany({
+        where: { snapshotId: review.approvalSnapshot.id, command: 'PROCESS_GOVERNED_EVIDENCE', state: { in: ['RETRYABLE', 'BLOCKED', 'FAILED'] } },
         data: { state: 'PENDING', availableAt: now, claimToken: null, claimedAt: null, leaseExpiresAt: null, lastErrorCode: null, limitationCode: null, processedAt: null, updatedAt: now },
       });
     }

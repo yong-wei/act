@@ -12,13 +12,13 @@ import { sha256, stableStringify } from '../math-document-grading-contracts';
 
 const now = new Date('2026-08-14T12:00:00.000Z');
 
-function snapshotFixture() {
+function snapshotFixture(): any {
   return {
     id: 'snapshot-1', assignmentRevisionId: 'revision-1', submissionId: 'submission-1', frozenAudienceClassId: 'class-1', originalDueAt: new Date('2026-08-13T12:00:00.000Z'), attemptVectorHash: 'sha256:vector',
     revision: { assignmentId: 'assignment-1', solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' }, assignment: { authorId: 'teacher-1', reviewGrants: [] } },
     submission: { assignmentRevisionId: 'revision-1', studentId: 'student-1', frozenStudentId: 'student-1', audience: { class: { teacherId: 'teacher-1', isActive: true } }, student: { profile: { classId: 'class-1' } } },
     items: [
-      { id: 'item-1', questionId: 'question-1', answerId: 'answer-1', attemptId: 'attempt-1', questionSnapshotHash: 'sha256:q1', question: { points: 5, responseType: 'SUBJECTIVE_TEXT', promptSnapshot: { text: 'q1' }, answerSnapshot: { text: 'a1' }, rubricSnapshot: { criteria: [] } }, attempt: { gradingRuns: [], approvalSnapshots: [{ reviewId: 'review-1', gradingRunId: 'run-1', approvedAt: now, questionTotal: 4, overallComment: 'good', gradingRun: { source: 'AI' } }] } },
+      { id: 'item-1', questionId: 'question-1', answerId: 'answer-1', attemptId: 'attempt-1', questionSnapshotHash: 'sha256:q1', question: { points: 5, responseType: 'SUBJECTIVE_TEXT', promptSnapshot: { text: 'q1' }, answerSnapshot: { text: 'a1' }, rubricSnapshot: { criteria: [] } }, attempt: { gradingRuns: [], approvalSnapshots: [{ id: 'approval-1', reviewId: 'review-1', gradingRunId: 'run-1', approvedAt: now, questionTotal: 4, overallComment: 'good', gradingRun: { source: 'AI' } }] } },
       { id: 'item-2', questionId: 'question-2', attemptId: null, questionSnapshotHash: 'sha256:q2', question: { points: 5, promptSnapshot: { text: 'q2' }, answerSnapshot: { text: 'a2' }, rubricSnapshot: { criteria: [] } }, attempt: null },
     ],
   };
@@ -80,6 +80,7 @@ describe('assignment submission grade', () => {
   it('freezes approved criterion and annotation comments in the confirmation', async () => {
     const snapshot = snapshotFixture();
     snapshot.items[0].attempt!.approvalSnapshots[0] = {
+      id: 'approval-1',
       approvedAt: now,
       questionTotal: 4,
       overallComment: '',
@@ -94,7 +95,7 @@ describe('assignment submission grade', () => {
     const result = await confirmAssignmentSubmissionGrade(db, { actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: 'assignment-1', snapshotId: 'snapshot-1', expectedVersion: 1, idempotencyKey: 'confirm-comments-1', now });
 
     expect(result.confirmation.questionProjection).toEqual(expect.arrayContaining([
-      expect.objectContaining({ questionId: 'question-1', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback' }], annotations: [{ id: 'annotation-1', comment: 'document feedback' }] }),
+      expect.objectContaining({ questionId: 'question-1', approvalSnapshotId: 'approval-1', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback' }], annotations: [{ id: 'annotation-1', comment: 'document feedback' }] }),
     ]));
   });
 
@@ -181,14 +182,14 @@ describe('assignment submission grade', () => {
   it('releases only a confirmed aggregate as a sanitized student package', async () => {
     const snapshot = snapshotFixture();
     const grade = { id: 'grade-1', version: 2, state: 'CONFIRMED', conclusions: [] };
-    const confirmation = { id: 'confirmation-1', gradeId: 'grade-1', version: 2, totalScore: 4, questionProjection: [{ questionId: 'question-1', score: 4, comment: 'good', source: 'AI', failureReason: 'internal', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback', origin: 'AI_DRAFT' }], annotations: [{ id: 'annotation-1', comment: 'document feedback', origin: 'AI_DRAFT', authorRole: 'AI', anchor: { blockId: 'block-1', precision: 'BLOCK', excerpt: 'internal excerpt' } }], question: { answerSnapshot: { text: 'a1' }, rubricSnapshot: { criteria: [] } } }] };
+    const confirmation = { id: 'confirmation-1', gradeId: 'grade-1', version: 2, totalScore: 4, overallComment: '第 1 题：good', questionProjection: [{ questionId: 'question-1', score: 4, comment: 'good', source: 'AI', failureReason: 'internal', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback', origin: 'AI_DRAFT' }], annotations: [{ id: 'annotation-1', comment: 'document feedback', origin: 'AI_DRAFT', authorRole: 'AI', anchor: { blockId: 'block-1', precision: 'BLOCK', excerpt: 'internal excerpt' } }], question: { answerSnapshot: { text: 'a1' }, rubricSnapshot: { criteria: [] } } }] };
     const db: any = dbFor(snapshot, grade);
     db.assignmentSubmissionGradeConfirmation.findFirst.mockResolvedValue(confirmation);
     db.$transaction = async (callback: any) => callback(db);
 
     const result = await releaseAssignmentSubmissionGrade(db, { actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: 'assignment-1', submissionId: 'submission-1', snapshotId: 'snapshot-1', confirmationId: 'confirmation-1', idempotencyKey: 'release-grade-1', now });
 
-    expect(result).toMatchObject({ replay: false, release: { ownerStudentId: 'student-1', packageSnapshot: { totalScore: 4, questions: [{ questionId: 'question-1', score: 4, comment: 'good', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback' }], annotations: [{ comment: 'document feedback' }], referenceAnswer: { text: 'a1' }, scoringStandard: { criteria: [] } }] } } });
+    expect(result).toMatchObject({ replay: false, release: { ownerStudentId: 'student-1', packageSnapshot: { totalScore: 4, overallComment: '第 1 题：good', questions: [{ questionId: 'question-1', score: 4, comment: 'good', criteria: [{ criterionId: 'criterion-1', comment: 'specific feedback' }], annotations: [{ comment: 'document feedback' }], referenceAnswer: 'a1', scoringStandard: null }] } } });
     expect(result.release.packageSnapshot.questions[0]).not.toHaveProperty('source');
     expect(result.release.packageSnapshot.questions[0]).not.toHaveProperty('failureReason');
     expect(result.release.packageSnapshot.questions[0].criteria[0]).not.toHaveProperty('origin');
@@ -200,18 +201,31 @@ describe('assignment submission grade', () => {
   it('releases a ready reviewed PDF together with the final result package', async () => {
     const snapshot = snapshotFixture();
     const grade = { id: 'grade-1', version: 2, state: 'CONFIRMED', conclusions: [] };
-    const confirmation = { id: 'confirmation-1', gradeId: 'grade-1', version: 2, totalScore: 4, questionProjection: [] };
+    const confirmation = { id: 'confirmation-1', gradeId: 'grade-1', version: 2, totalScore: 4, questionProjection: [{ questionId: 'question-1', approvalSnapshotId: 'approval-1' }] };
     const db: any = dbFor(snapshot, grade);
     db.assignmentSubmissionGradeConfirmation.findFirst.mockResolvedValue(confirmation);
-    db.teacherAssignmentApprovalSnapshot.findMany.mockResolvedValue([{
-      id: 'approval-1', authorizationSnapshot: { teacherId: 'teacher-1' }, reviewedDerivatives: [{ id: 'reviewed-pdf-1', outputObjectKey: 'teacher-reviewed/1.pdf', outputChecksum: 'sha256:abcdef' }],
-    }]);
+    const approvals = [{
+      id: 'approval-1', attemptId: 'attempt-1', questionId: 'question-1', authorizationSnapshot: { teacherId: 'teacher-1' }, reviewedDerivatives: [{ id: 'reviewed-markdown-1', outputKind: 'ANNOTATED_MARKDOWN', outputObjectKey: 'teacher-reviewed/1.md', outputChecksum: 'sha256:markdown' }, { id: 'reviewed-pdf-1', outputKind: 'REVIEWED_PDF', outputObjectKey: 'teacher-reviewed/1.pdf', outputChecksum: 'sha256:abcdef' }],
+    }, {
+      id: 'approval-2', attemptId: 'attempt-1', questionId: 'question-1', authorizationSnapshot: { teacherId: 'teacher-1' }, reviewedDerivatives: [{ id: 'reviewed-pdf-2', outputKind: 'REVIEWED_PDF', outputObjectKey: 'teacher-reviewed/2.pdf', outputChecksum: 'sha256:other' }],
+    }];
+    db.teacherAssignmentApprovalSnapshot.findMany.mockImplementation(async ({ where, include }: any) => approvals
+      .filter((approval) => where?.id?.in?.includes(approval.id) && where?.submissionId === 'submission-1')
+      .map((approval) => ({
+        ...approval,
+        reviewedDerivatives: approval.reviewedDerivatives.filter((derivative) => derivative.outputKind === include?.reviewedDerivatives?.where?.outputKind),
+      })));
 
     await releaseAssignmentSubmissionGrade(db, { actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: 'assignment-1', submissionId: 'submission-1', snapshotId: 'snapshot-1', confirmationId: 'confirmation-1', idempotencyKey: 'release-grade-with-pdf', now });
 
     expect(db.teacherAssignmentFeedbackRelease.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { snapshotId: 'approval-1' },
       create: expect.objectContaining({ derivativeId: 'reviewed-pdf-1', ownerStudentId: 'student-1', mode: 'DERIVATIVE' }),
+    }));
+    expect(db.teacherAssignmentFeedbackRelease.upsert).toHaveBeenCalledTimes(1);
+    expect(db.teacherAssignmentApprovalSnapshot.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: { in: ['approval-1'] }, submissionId: 'submission-1' },
+      include: { reviewedDerivatives: expect.objectContaining({ where: { state: 'READY', outputKind: 'REVIEWED_PDF' } }) },
     }));
   });
 

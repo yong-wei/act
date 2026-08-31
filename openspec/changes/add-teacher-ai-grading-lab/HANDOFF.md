@@ -1,8 +1,10 @@
 # Teacher AI grading lab handoff
 
-最后更新：2026-08-07
+最后更新：2026-08-27
 
 ## 当前状态
+
+- 2026-08-26：负责人明确授权将受控阶段 A 正式闭环与阶段 B 重新调优纳入 `add-teacher-ai-grading-lab`。OpenSpec 已修订并通过严格校验：阶段 A 仅限本地专用验收任务和三类已核验测试账号，不接入真实学生、现有课程受众或生产成绩发布；范围授权不是隐藏集揭示授权。G.6 正在根据正式页面投影与受保护 PDF 路由重新独立审核。
 
 - 仓库：`E:\CODE\grading-lab`
 - 分支：`teacher-ai-grading-lab`，已同步 `upstream/integration` 至 `f28affbdd`
@@ -22,6 +24,13 @@
 - 不伪造 `Assignment -> Submission -> Attempt -> Evidence` 正式业务谱系。
 - 第一阶段不提供学生发布、截止任务、补交或正式成绩写入动作。
 - 真实作业、身份映射、解压内容和运行产物只允许位于本机 Git 忽略的受控数据根目录。
+
+## 40. G.6 限定复审放行（2026-08-27）
+
+- 确认结果投影现在冻结逐题 `approvalSnapshotId`；反馈发布只查询确认投影引用的审批快照，并限制为 `READY + REVIEWED_PDF`，不会混入同题同 attempt 的其他审批版本或非 PDF 派生物。
+- 新增多审批版本反例与工作台加载/恢复失败重试回归；13 个受影响测试文件共 139 项通过，类型检查和 `git diff --check` 通过。
+- 独立复审 finding：上述三项 `ACCEPT`，测试夹具生命周期字段不完整一项 `DEFER`，无阻断问题；G.6=`PASS`。
+- G.7、阶段 A 真实闭环、G.8 与阶段 B 仍未启动。
 
 ## 1–5 阶段摘要
 
@@ -503,3 +512,119 @@
 - 负责人已授权：后续审核未通过时，主线可直接实施下一轮最小范围整改并复审，无需重复征询。
 - Word→PDF 成功转换测试现在捕获 `DocumentConversion.update` 的实际写入数据，并断言 `renderedObjectKey`、`renderedChecksum`、`renderedPageCount`、`state` 和 `layoutRepresentation`；对象键仍不含学生标识。
 - 定向验证维持为 Word 表示、worker、持久化、转换链共 144 项通过，类型检查和差异格式检查通过。仅待 `gpt-5.6-sol high` 独立只读限定复审；阶段 4 与阶段 B 均未启动。
+- 
+## 40. G.7 阶段 A 样本与本地验收准备（2026-08-27）
+
+- 固定 split `grading-lab-split:39c71b3e63237a1ec3bcba3343d88ca5` 只读核对为 `TUNING=28`、`HIDDEN=12`，HiddenAcceptance 保持 `SEALED`。
+- 仅扫描 28 个 TUNING 样本的结构特征，共 112 个 Word 文件；未读取人工评分、身份字段或答题正文。结构报告摘要校验和为 `sha256:0c3a1bd1b67a0abe31fd110fad65aea7147db1a013fb0abd4ab955996410fddd`。
+- 已冻结三个候选：`sample-0007`（公式/图片或跨页）、`sample-0023`（规范文本基线）、`sample-0032`（题号或排版不规范）；三者均属于 TUNING。
+- 负责人教师账号与三个已核验学生账号只读核对通过，均未创建或修改；账号及班级仅以匿名别名保留在阶段 A 准备记录中。
+- 现有已发布 revision 有 2 份历史提交，不能复用；专用验收作业、受众和截止时间尚未创建，因此 G.7 未放行，阶段 A 与阶段 B 均未启动。
+- 证据：`docs/operations/teacher-ai-grading-stage-a-preparation-2026-08-27.md`。
+
+## 41. G.7 复审放行（2026-08-27）
+
+- 专用阶段 A 作业已创建并发布，revision 版本 `3`，四题 `T2-1/T2-2/T2-3/O2`，总分 `100`，发布策略 `TEACHER_CONFIRMED_RESULT`。
+- 目标班级受众花名册为 `3` 人，专用 revision 提交数为 `0`；负责人角色为 `TEACHER`，未创建或修改账号。
+- 两张图片资源完成私有 S3 上传、ClamAV 扫描和 revision 引用绑定；仅保留作业/revision/班级不可逆摘要及 `T2S-20.md` 源摘要。
+- G.7 复审结论为 `PASS`（证据：`docs/operations/teacher-ai-grading-g7-audit-2026-08-27.md`）。允许进入阶段 8；阶段 A、G.8 和阶段 B 尚未启动。
+
+## 42. 阶段 A 真实闭环执行（2026-08-27）
+
+- 三个匿名受控学生已通过正式提交链完成四题上传，共 12 份 DOCX；预签名、可信扫描、最终确认、按题提交和完整 attempt vector 均已核验。
+- 初始批次与受控重试均保留。恢复同一 MinIO 数据目录并显式使用本地受控凭据后，12 个对象可读；LibreOffice 控制台入口为 `26.2.5.2`。
+- 转换链已生成 12 份 Markdown/规范 PDF；为处理同一 DOCX 内重复图片导致的视觉证据唯一约束冲突，视觉证据在同一转换内按图片校验和去重，定向回归通过。
+- 带视觉策略的批改重跑仍有 `visual-evidence-incomplete` 阻断项和 Provider 超时 `RETRYABLE` 项；12 题未全部产生独立 AI 分数、扣分批注和总体评价。
+- 因此教师确认、逐份发布、学生结果读取与 12 份批注 PDF 下载未执行。阶段 A 证据记录见 `docs/operations/teacher-ai-grading-stage-a-execution-2026-08-27.md`。
+- `G.8=FAIL`；不得启动阶段 B 或隐藏验收。恢复前置条件是解决视觉证据就绪契约和 Provider 超时/重试问题。
+
+## 43. 阶段 A 续行只读复核（2026-08-28）
+
+- 最新只读汇总确认量规 Provider 固定为 `siliconflow / Qwen/Qwen3.5-35B-A3B`，视觉 Provider 固定为 `siliconflow / Qwen/Qwen3-VL-8B-Instruct`，未发生策略漂移。
+- `v19` 未形成 `12/12`，但已形成 `6/12`：T2-1 为 `3/3`、T2-2 为 `2/3`、T2-3 为 `1/3`、O2 为 `0/3`。其余项保留真实失败，不从分母删除。
+- 本轮失败经验已归类：模型输出契约、租约恢复和对象存储认证不能混为一类。O2 的过期 `RERUN` 已按领域恢复并单项执行，最终因 `object-store-head-failed` 失败。
+- `G.8` 继续为 `FAIL`。对象存储端点可达，但受限访问密钥当前返回 `InvalidAccessKeyId`，12 个提交对象 HEAD 校验均失败；恢复访问密钥并核验对象前，禁止继续 Provider 重试、教师确认、发布、学生读取、PDF 下载、阶段 B 或隐藏验收。
+
+## 44. 阶段 A 教师确认与发布前置恢复（2026-08-28）
+
+- 12/12 `PROCESS_GOVERNED_EVIDENCE`、12/12 derivative 和 12/12 反馈命令已由正式 outbox worker 成功处理。
+- 已补齐整份结果快照投影及已发布后治理证据重试语义；未创建新 AI 批次，未修改 AI 分数、教师批注或审批快照。
+- 冻结截止时间为 `2026-08-28T05:45:13Z`，本次执行时尚未到达；领域接口以 `assignment-result-before-deadline` 拒绝提前生成确认快照。
+- `G.8` 仍为 `FAIL`。截止时间后须执行整份结果 `REFRESH`、`CONFIRM`、`RELEASE`，再验证学生读取和 12 份 PDF。
+- 详细证据见 `docs/operations/teacher-ai-grading-stage-a-recovery-2026-08-28.md`。
+## 2026-08-27 阶段 A 诊断脚本收敛
+
+- 独立复审指出 `scripts/ops/debug-stage-a-job.ts` 原先会从任意 `CONVERSION` 作业加载完整 submission/evidence 关联，超出阶段 A 范围并违反敏感数据约束；该 finding 已 `ACCEPT`。
+- 脚本现先限定最新已发布 `stage-a:T2S-20:*` revision，再以只读聚合投影输出作业与转换状态计数；不再读取或输出 submission、answer、asset、evidence、policy、模型输出、身份或关联 ID。
+- 脚本实际运行结果仅保留匿名计数；阶段 A 仍为 `G.8=FAIL`，在形成完整 `12/12` AI 结果前不得进行教师确认、发布、学生读取、PDF 下载或阶段 B。
+## 2026-08-28 批注语言门禁
+
+- 已发现历史阶段 A 快照中存在英文总体评价和英文批注；英文来自评分输出及历史快照，不是 PDF 字体或渲染器翻译造成的。
+- 已在评分提示词中明确要求所有面向学生的批注、总体评价和反馈数组使用简体中文；数学公式、变量名和必要技术缩写可以保留原样。
+- 已在评分输出校验中拒绝英文-only 的扣分依据和批注内容，拒绝码为 `annotation-reason-not-chinese` 与 `annotation-comment-not-chinese`；确定性测试夹具也改为中文。
+- PDF 批注固定标签已改为 `扣分依据` 与 `改进建议`。历史不可变 PDF 不直接覆盖。
+- 语言不合规的历史逻辑项必须创建新不可变版本，并重新执行教师确认、逐份发布、学生读取和 PDF 核验；在完成前 `G.8` 保持 `FAIL`。
+
+## 2026-08-28 T2-3 定向重评分与 PDF 修订
+
+- T2-3 定向重评分为 `18/20`，仅生成两条中文扣分批注；整份结果新快照确认并发布后总分为 `98`。
+- 新 PDF 版本 `11-no-native-text-summary-wrap` 已通过命令级本地 MinIO 凭据成功生成；失败经验为先前受限凭据触发 `InvalidAccessKeyId`，不得误判为渲染或评分失败。
+- 学生 PDF 仅保留扣分处右侧中文批注和虚线连接，移除原生 `Text` 批注图标；总体评价按字体宽度换行，不显示复核校验值。正式 PDF 三页、原生批注数为 `0`，逐页视觉检查通过。
+- 本次只修订 T2-3，未重做其他题目；阶段 B 继续暂停，G.8 仍需按全量门禁独立裁定。
+
+## 2026-08-29 阶段 B 调优终态
+
+- G.8 的最新 OpenSpec 裁定为 `PASS`，随后以新配置 `experiment-config:9c35c1c283f399d3eae790a049f4524e` 启动阶段 B；正式 Provider 为 `siliconflow / Qwen/Qwen3.5-35B-A3B`。
+- 8 个调优样本预检共 96 条 executions，87 成功、9 失败。失败为 `deduction-annotation-missing` 与 `anchor-excerpt-mismatch`，均保留在分母。
+- 完整调优批次 `experiment-batch:79a30bc5449b8fee6ac4b6f073491cc6` 共 336 条 executions，319 成功、17 失败，最终成功率 94.94%；401 次 Provider 调用中包含 65 次重试。
+- 调优指标：MAE 5.4013、平均偏差 -3.2445、完全一致率 36.36%、10% 容差一致率 51.72%、三次完全稳定率 65.69%。T2-3 MAE 7.9605，是四题中最高。
+- 正式调优结论为 `FAIL`。评分一致性、稳定性和处理成功率均未达到门槛，当前配置不得进入隐藏验收；隐藏集保持 `SEALED`，未读取、未运行、未揭示。
+- 冻结数据目录中的旧格式 `baseline.json` 缺少必填 `teacherTotalScore`，核心报告入口因此拒绝生成。受控对比产物从四题已验证人工分确定性派生总分，不修改原始数据、manifest 或冻结结果；该契约缺口不改变逐题指标与失败结论。
+- 聚合证据：`docs/operations/teacher-ai-grading-stage-b-tuning-result-2026-08-29.md`。本地明细报告与 CSV 留在受控数据目录，不进入 Git。
+- 预检已有 9 条失败后完整批次仍已启动，故其结果只用于失败诊断，不能视为“预检通过后运行”；任务清单 10.2 与 10.3 保持未完成。
+- 受影响回归套件通过：23 个测试文件、400 项测试；PDF 断言验证右侧可见反馈和 `/FreeText` 锚点标记，不再要求已移除的原生 `/Text` 图标。
+- 批次只读聚合补充：首次成功 292/336（86.90%），第 2/3 次 Provider 调用为 44/21，重试共 65 次；重试 token 为输入 678,863、输出 121,726，Provider 费用遥测缺失。教师基准没有批注/区域标注，10.5 语义覆盖、错误归属与定位指标不能计算。
+- 阶段 B 专属 11 个测试文件、160 项，以及实验室操作/概览 Route Handler 和工作区页面 4 个文件、24 项均通过；typecheck、lint、Prisma、OpenSpec strict 与直接影响文件差异检查通过。
+- 审计补强：根目录 `.runtime-stage-a-*.json/.jsonl` 与 `.tmp-*.json` 已纳入 `.gitignore` 和敏感文件提交门禁；相关门禁测试 `42/42` 通过。暂存区为空，非忽略未跟踪路径 65 个的敏感路径扫描为 0 命中。一次被中断的本地开发服务留下 `.next` 路由声明截断，已仅清除该 Git 忽略缓存目录，并重新通过 typecheck/lint。
+- 相对 `upstream/integration` 的预审覆盖合并基线 `681d2df` 至当前 `HEAD`：共 185 个已提交变更文件。负责人路由均校验 `TEACHER` 角色及配置的唯一负责人；隐藏状态机、基准延迟读取、不可变记录和迁移触发器均有实现与回归证据。未发现新增真实文档、评测包、身份映射或凭据模式。该预审不是最终独立审查：当前工作区仍有大量既有未提交改动，克隆仓库合成 E2E、独立只读审查及合并 PR 准备保持待办。
+- 第二版本判断：17 项失败均属 Provider 输出契约，但 T2-1 `-5.2500` 与 O2 `+3.9740` 的相反评分偏差表明格式修补不能解决质量门槛。不得自动补造缺失批注或篡改越界锚点以提高成功率。当前不存在兼具明确根因和可验证效果的最小修复，故不创建第二配置或新 Provider 调用；如要续行，先离线验证覆盖评分校准与输出契约的具体变更，再取得负责人对新配置和预算的明确批准。
+
+## 2026-08-29 阶段 B 提示词快照 V2
+
+- 经负责人明确授权，V2 配置 `experiment-config:70b13c217cf523017a7eba0b17ba7c2f` 冻结实际静态提示词快照及内容哈希；Provider 可用性/传输失败按 `until-result` 重试，结构化评分输出不合格保留终态失败。
+- 前置批次 `experiment-batch:2d434aacc35f135eb8e0556fa7eb56b9` 为 24 条 executions：15 成功、9 失败、0 条可重试。仅记录安全错误码：`schema-assessments.0-unrecognized-key-s-in-object-label` 6 条、`schema-assessments.0.anchors-required` 3 条。
+- V2 不满足全 24 条成功条件，故 28 份调优样本的完整运行未启动；隐藏集仍为 `SEALED`，未读取、未运行、未揭示。V2 批次已在“首个终态失败即停止未领取 execution”的运行门禁加入前完成，故只作输出契约诊断；后续运行将停止未领取 execution。
+- 当前结论仍为 `FAIL`；不得自动创建 V3 或继续调用 Provider。须先离线验证能够同时覆盖评分校准与结构化输出契约的具体改动，并取得负责人对新冻结配置和预算的明确批准。
+
+## 2026-08-29 V3 前的离线结构化输出候选
+
+- 适配器对 Qwen 3.5 使用 JSON 对象兼容模式；Provider 文档只保证 JSON 对象，不提供服务端 JSON Schema 约束。这与 V2 聚合中的额外 `label` 字段和空 `anchors` 终态失败相符。
+- 唯一候选变量已在静态输出契约中离线实现：嵌套返回对象为闭集、`label` 仅为输入元数据且禁止输出、每个 assessment 返回前 anchors 必须非空并来自已提供的证据块。未放宽结构化校验或改写模型结果。
+- 定向测试与类型检查通过；这只证明提示词构造和冻结内容哈希，不证明 Provider 遵循率。未冻结 V3、未创建批次、未调用 Provider；继续前仍需负责人对新配置和预算明确批准。
+
+## 2026-08-29 阶段 B V3 前置终态
+
+- 负责人授权后，V3 配置 `experiment-config:5797f1475453f5c6f2ffb49157f4950b` 与前置批次 `experiment-batch:ea08b7f4cc73824dacd37016b425c243` 已创建。唯一变量为闭集输出字段、禁止输出 `label` 与非空 anchors 返回前检查；模型、量规、数据、处理器和 Provider 可用性重试均保持冻结。
+- V3 为 24 条 executions：0 成功、24 失败、0 可重试。首个 Provider 结构化失败为 `anchor-excerpt-mismatch`；停止门禁把余下 23 条未领取 execution 记录为 `preflight-terminal-failure`，未继续发起 Provider 调用。
+- V3 不满足门槛，未启动完整调优，隐藏集保持 `SEALED`。三个正式版本均已使用，停止继续调参；当前能力结论继续为 `FAIL` / “当前不适用”。
+
+## 2026-08-29 阶段 B V4 强制完成终态
+
+- 负责人明确要求取消调优门禁，目标是 28 份调优样本的 336 条 executions 均获得可持久化结果；该授权不包含隐藏验收。V4 配置为 `experiment-config:77e94ce4a770b95d426bb09259b3f5bb`，使用 `until-valid-result`：Provider 可用性、通用异常与结构化输出失败都持续重试。
+- 批次 `experiment-batch:aacd7de5a39a67348678e2dd75c03f54` 已终态完成：336 条 `SUCCEEDED`、0 条失败或待重试。累计 538 次 Provider 调用，202 次重试；费用和 token 遥测不可用，未估算补写。MAE `4.7470`，三次完全稳定率 `76.79%`，不构成自动批改能力合格结论。
+- 人工基准为 `teacher-score-only`，故教师批注语义、错误归属和人工区域定位不可计算；没有用 AI 批注代替人工证据。受控聚合产物仅留在本地 `stage-b-results-v4`。
+- V4 使用同一幂等键恢复，未创建重复批次；隐藏集保持 `SEALED`。V4 是对原三版本上限的负责人覆盖，运行结果不得倒填为 V1–V3 预检通过，也不授权隐藏验收。
+- V4 扣分批注安全诊断：只聚合 AI `reason`/`comment`，未读取学生原文、证据摘录或 PDF。T2-1 的 84 次执行有 31 次公式/推导缺失理由、9 次零分；T2-2 有 19 次公式/推导缺失理由、15 次零分。两题的零分均集中在少数人工正分样本的连续三次执行，优先怀疑局部题目—证据映射或公式/手写内容可见性。T2-3 有 69 次带批注执行，66 次声称缺少 Bode 草图/图示/幅频或相频描述，27 次同时声称缺少参数或推导；28 份转换均成功但视觉状态全为 `NOT_APPLICABLE`。手绘视觉证据未进入评分链是高优先级假设，但尚未通过受控视觉对照证实。
+
+## 2026-08-29 阶段 A 只读重验状态
+
+- 已原样运行 `verify-stage-a-student-release-and-pdfs.ts`。验证在读取首个发布 PDF 前因对象存储端点 `127.0.0.1:9000` 返回 `ECONNREFUSED` 停止；未创建评分、批次、审批或派生版本。
+- G.8 的历史 `PASS` 与冻结 12/12 发布/PDF 证据不被此次环境失败覆盖；对象存储读取重验 `DEFER` 继续保留。待端点和受限读取凭据恢复后，只能重跑同一只读验证器。
+## 2026-08-31 闭环最终交接补充
+
+- 已恢复既有数据目录上的同版本 WSL MinIO，验收端点为 `127.0.0.1:9002`，未使用 `127.0.0.1:9000`。对 12 份冻结候选 PDF 完成对象写入、回读校验和、发布指针事务复核；3 名学生结果及 12 份 PDF 页数和 SHA-256 均通过。
+- `scripts/ops/stage-a-s3-check.mjs` 已改为加载本地配置后执行只读 `ListObjectsV2` 探测；移除不符合受限读取凭据契约的建桶操作。
+- 代码级闭环门禁已通过：直接影响范围 Vitest 6 个文件/51 个测试、TypeScript、ESLint、敏感文件检查和 `git diff --check` 均通过。
+- 真实移动设备矩阵、扫描器/LibreOffice/Provider 统一集成验收仍为 `DEFER`；不得以代码级通过替代这些外部证据。
+- 独立只读审查裁定：代码与测试 finding=`ACCEPT`，PDF 存储/发布验收=`ACCEPT`，真实设备和剩余边界集成=`DEFER`，真实数据进入 Git=`REJECT`。已完成一次限定复审，未重新创建批次或重跑评分。
+- 详见 `docs/operations/assignment-grading-closure-final-2026-08-31.md`。

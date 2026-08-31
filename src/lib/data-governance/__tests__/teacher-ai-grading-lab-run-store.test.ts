@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 import {
+  abortUnclaimedExecutions,
   claim,
   complete,
   createRunSet,
@@ -181,10 +182,15 @@ function createMemoryDb() {
         executions.push(...data.map((row: any) => ({ attemptCount: 0, claimToken: null, leaseExpiresAt: null, startedAt: null, completedAt: null, ...row })));
         return { count: data.length };
       },
-      findFirst: async ({ where }: any) => executions.find((row) =>
+      findFirst: async ({ where }: any) => executions.find((row) => {
+        const states = where.state?.in ?? (where.state ? [where.state] : []);
+        return (
         (!where.batchId || row.batchId === where.batchId)
-        && where.state.in.includes(row.state)
-        && row.claimToken === null) ?? null,
+        && (!states.length || states.includes(row.state))
+        && (!where.failureStage || row.failureStage === where.failureStage)
+        && row.claimToken === null
+        );
+      }) ?? null,
       findUnique: async ({ where, include }: any) => include?.batch ? attachBatch(findExecution(where.id)) : findExecution(where.id),
       findMany: async ({ where }: any) => executions.filter((row) => {
         if (where.batchId) return row.batchId === where.batchId;
@@ -349,7 +355,7 @@ describe('teacher AI grading lab run store', () => {
     expect(db.batches).toHaveLength(0);
   });
 
-  it('fences stale owners, limits retries, and preserves a successful raw output reference', async () => {
+  it('fences stale owners, prioritizes queued work over a retry, and preserves a successful raw output reference', async () => {
     const db = createMemoryDb();
     await createBatch(db, 'batch-claims');
     const now = new Date('2026-07-27T01:00:00.000Z');
@@ -361,10 +367,28 @@ describe('teacher AI grading lab run store', () => {
 
     await fail({ db, executionId: first!.execution.id, claimToken: 'owner-1', failureStage: 'provider', errorCode: 'provider-timeout', retryable: true, now });
     const second = await claim({ db, batchId: db.batches[0].id, claimToken: 'owner-2', now, leaseMs: 1_000 });
+    expect(second!.execution.id).not.toBe(first!.execution.id);
+    expect(second!.execution.attemptCount).toBe(1);
     markDraftPersisted(db, second!.execution);
     await complete({ db, executionId: second!.execution.id, claimToken: 'owner-2', rawOutputObjectKey: 'grading-lab/raw/run-1.json', rawOutputChecksum: 'sha256:raw-output', now });
     expect(second!.execution).toMatchObject({ state: 'SUCCEEDED', rawOutputObjectKey: 'grading-lab/raw/run-1.json' });
     await expect(complete({ db, executionId: second!.execution.id, claimToken: 'owner-2', rawOutputObjectKey: 'other', rawOutputChecksum: 'other', now })).rejects.toThrow('experiment-execution-fenced');
+  });
+
+  it('aborts only unclaimed executions after a preflight terminal failure', async () => {
+    const db = createMemoryDb();
+    await createBatch(db, 'batch-preflight-abort');
+    const now = new Date('2026-07-27T01:05:00.000Z');
+    const claimed = await claim({ db, batchId: db.batches[0].id, claimToken: 'active-owner', now });
+
+    const aborted = await abortUnclaimedExecutions({ db, batchId: db.batches[0].id, errorCode: 'preflight-terminal-failure', now });
+
+    expect(aborted).toBe(2);
+    expect(db.executions.find((execution: any) => execution.id === claimed!.execution.id)).toMatchObject({ state: 'RUNNING', claimToken: 'active-owner' });
+    expect(db.executions.filter((execution: any) => execution.id !== claimed!.execution.id)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ state: 'FAILED', failureStage: 'preflight', errorCode: 'preflight-terminal-failure' }),
+    ]));
+    expect(db.gradingRuns.filter((run: any) => run.id !== claimed!.execution.gradingRunId).every((run: any) => run.state === 'FAILED')).toBe(true);
   });
 
   it('retries a transient serialization conflict while refreshing a claimed batch', async () => {

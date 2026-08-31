@@ -24,8 +24,9 @@ export interface StudentAssignmentDto {
 export interface StudentAssignmentResultDto {
   version: 'assignment-student-result.v1';
   totalScore: number;
+  overallComment?: string | null;
   releasedAt: string;
-  questions: Array<{ questionId: string; score: number; comment: string; criteria: unknown[]; annotations: unknown[]; referenceAnswer: unknown; scoringStandard: unknown }>;
+  questions: Array<{ questionId: string; score: number; comment: string; criteria: unknown[]; annotations: unknown[]; referenceAnswer: string | null; scoringStandard: string | null }>;
 }
 
 export interface StudentAssignmentFeedbackDto {

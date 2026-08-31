@@ -45,6 +45,7 @@ export interface TeacherAiGradingExecutionResult {
   providerCalls?: readonly TeacherAiGradingProviderCall[];
   providerStage?: 'not_reached' | 'called';
   providerTelemetryComplete?: boolean;
+  sourceKind?: 'independent-ai' | 'publication-candidate';
 }
 
 export interface TeacherAiGradingBlindAnnotationItem {
@@ -587,6 +588,7 @@ function indexExpectedExecutions(
     'teacher-ai-grading-execution-duplicate',
   );
   for (const execution of result.values()) {
+    if (execution.sourceKind === 'publication-candidate') throw new Error('teacher-ai-grading-publication-candidate-metrics-forbidden');
     const expectedExecution = expectedMap.get(executionKey(execution));
     if (!expectedExecution) throw new Error('teacher-ai-grading-execution-unexpected');
     if (execution.score !== undefined) assertScore(execution.score, 'teacher-ai-grading-execution-score-invalid');

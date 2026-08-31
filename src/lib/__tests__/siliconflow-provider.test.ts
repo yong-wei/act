@@ -70,6 +70,12 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     expect(siliconflowSource).not.toContain("'--data-binary',\n          providerBody");
   });
 
+  it('keeps the DeepSeek request budget below the five-minute grading lease', () => {
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_TIMEOUT_SECONDS = 210;');
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_TOTAL_BUDGET_SECONDS = 270;');
+    expect(siliconflowSource).toContain('const SILICONFLOW_CURL_MIN_RETRY_SECONDS = 30;');
+  });
+
   it.each(['Qwen/Qwen3.6-35B-A3B', 'Qwen/Qwen3.5-35B-A3B'])('sends %s chat requests without stream_options', async (model) => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
@@ -305,7 +311,7 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     expect(forwardedBody).not.toHaveProperty('enable_thinking');
   });
 
-  it('terminates the DeepSeek curl process when the request signal aborts', async () => {
+  it.skipIf(process.platform === 'win32')('terminates the DeepSeek curl process when the request signal aborts', async () => {
     const fakeBin = mkdtempSync(join(tmpdir(), 'siliconflow-curl-abort-'));
     const fakeCurl = join(fakeBin, 'curl');
     const startedFile = join(fakeBin, 'started');

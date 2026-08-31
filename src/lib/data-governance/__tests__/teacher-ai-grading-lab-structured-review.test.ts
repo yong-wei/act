@@ -22,7 +22,7 @@ function createMemoryDb(seedSelections = false) {
       rubricSnapshot: { criteria: [{ id: 'criterion-a', maxPoints: 5 }] },
       assessments: [{ id: 'assessment-a', criterionId: 'criterion-a', score: 4, rationale: 'AI rationale' }],
       annotations: [{
-        id: 'annotation-a', criterionId: 'criterion-a', comment: 'AI original', pageNumber: 1,
+        id: 'annotation-a', criterionId: 'criterion-a', comment: '人工智能原始批注', pageNumber: 1,
         blockId: 'block-a', bbox: [1, 2, 3, 4], precision: 'EXACT', block: { coordinateProvenance: null },
       }],
     },
@@ -35,7 +35,7 @@ function createMemoryDb(seedSelections = false) {
       rubricSnapshot: { criteria: [{ id: 'criterion-b', maxPoints: 5 }] },
       assessments: [{ id: 'assessment-b', criterionId: 'criterion-b', score: 3, rationale: 'AI rationale B' }],
       annotations: [{
-        id: 'annotation-b', criterionId: 'criterion-b', comment: 'AI original B', pageNumber: 1,
+        id: 'annotation-b', criterionId: 'criterion-b', comment: '人工智能原始批注 B', pageNumber: 1,
         blockId: 'block-b', bbox: [1, 2, 3, 4], precision: 'EXACT', block: { coordinateProvenance: null },
       }],
     },
@@ -185,7 +185,7 @@ async function seedGeneratedDerivatives(db: any, structuredHashPatch?: string) {
       sourcePdfSizeBytes: 100,
       conversionVersion: 1,
       conversionAdapterVersion: 'adapter.v1',
-      generatorVersion: 'teacher-ai-grading-lab-pdf.v1',
+      generatorVersion: 'teacher-ai-grading-lab-pdf.v2',
       anchorVersion: 'anchors.v1',
       structuredResultHash: structuredHashPatch ?? materialized.structuredResult.checksum,
       semanticIdentity: `semantic-${sampleId}`,
@@ -205,6 +205,21 @@ const completeChecks = {
 };
 
 describe('teacher AI grading structured review versions', () => {
+  it('requires a bound baseline score and keeps corrected totals equal to it', async () => {
+    const db = createMemoryDb();
+    await expect(appendTeacherAiGradingStructuredReviewVersion({
+      db, executionId: 'execution-a', parentVersionId: null, decision: 'correct',
+      scoreCorrections: [{ criterionId: 'criterion-a', score: 3 }], annotationCorrections: [],
+      operatorUserId: 'teacher-a', baselineVersion: 'baseline-v1', baselineScore: 4,
+    })).rejects.toThrow('teacher-ai-grading-review-baseline-score-mismatch');
+    const accepted = await appendTeacherAiGradingStructuredReviewVersion({
+      db, executionId: 'execution-a', parentVersionId: null, decision: 'accept',
+      scoreCorrections: [], annotationCorrections: [], operatorUserId: 'teacher-a',
+      baselineVersion: 'baseline-v1', baselineScore: 4,
+    });
+    expect(accepted).toMatchObject({ baselineVersion: 'baseline-v1', baselineScore: 4 });
+  });
+
   it('appends correction versions without changing AI source rows and rejects a stale parent', async () => {
     const db = createMemoryDb();
     const source = structuredClone(db.execution.gradingRun);
@@ -215,7 +230,7 @@ describe('teacher AI grading structured review versions', () => {
       parentVersionId: null,
       decision: 'correct',
       scoreCorrections: [{ criterionId: 'criterion-a', score: 3 }],
-      annotationCorrections: [{ action: 'revise-text', sourceAnnotationId: 'annotation-a', comment: 'Teacher correction' }],
+      annotationCorrections: [{ action: 'revise-text', sourceAnnotationId: 'annotation-a', comment: '教师修订批注' }],
       operatorUserId: 'teacher-a',
       now: new Date('2026-07-28T01:00:00.000Z'),
     });
@@ -266,7 +281,7 @@ describe('teacher AI grading structured review versions', () => {
       scoreCorrections: [],
       annotationCorrections: [{
         action: 'add', annotationKey: 'added-a', criterionId: 'criterion-a',
-        comment: 'Teacher correction', location: { pageNumber: 1 },
+        comment: '教师修订批注', location: { pageNumber: 1 },
       } as any],
       operatorUserId: 'teacher-a',
     })).rejects.toThrow('teacher-ai-grading-review-deduction-reason-missing');
@@ -282,7 +297,7 @@ describe('teacher AI grading structured review versions', () => {
       scoreCorrections: [],
       annotationCorrections: [{
         action: 'add', annotationKey: 'added-without-page', criterionId: 'criterion-a',
-        reason: 'A deduction requires a physical placement.', comment: 'Show the missing step.', location: { blockId: 'block-a' },
+        reason: '扣分需要明确的物理位置。', comment: '请补充缺失步骤。', location: { blockId: 'block-a' },
       }],
       operatorUserId: 'teacher-a',
     })).rejects.toThrow('teacher-ai-grading-review-location-page-missing');
@@ -333,8 +348,8 @@ describe('teacher AI grading structured review versions', () => {
       scoreCorrections: [],
       annotationCorrections: [{
         action: 'add', annotationKey: 'added-a', criterionId: 'criterion-a',
-        reason: 'An additional deduction has an omitted justification.',
-        comment: 'State the omitted justification.', location: { pageNumber: 1 },
+        reason: '新增扣分缺少说明依据。',
+        comment: '请说明被省略的依据。', location: { pageNumber: 1 },
       }],
       operatorUserId: 'teacher-a',
     });
@@ -345,14 +360,14 @@ describe('teacher AI grading structured review versions', () => {
       decision: 'correct',
       scoreCorrections: [],
       annotationCorrections: [{
-        action: 'revise-text', sourceAnnotationId: `${first.id}:added-a`, comment: 'Explain the omitted justification.',
+        action: 'revise-text', sourceAnnotationId: `${first.id}:added-a`, comment: '请说明被省略的依据。',
       }],
       operatorUserId: 'teacher-a',
     });
 
     const materialized = await materializeTeacherAiGradingStructuredResult({ db, selectedReviewVersionIds: [second.id] });
     expect(materialized.structuredResult.feedback).toEqual(expect.arrayContaining([
-      expect.objectContaining({ correction: 'Explain the omitted justification.' }),
+      expect.objectContaining({ correction: '请说明被省略的依据。' }),
     ]));
   });
 

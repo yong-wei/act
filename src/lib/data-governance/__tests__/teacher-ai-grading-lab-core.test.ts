@@ -25,7 +25,12 @@ import {
   createTeacherAiGradingRedactedDocument,
   createTeacherAiGradingRedactionReview,
 } from '../teacher-ai-grading-lab-redaction';
-import { sha256, type ExternalProcessingPolicy } from '../math-document-grading-contracts';
+import {
+  createScopedGradingPromptSnapshot,
+  scopedGradingPromptSnapshotHash,
+  sha256,
+  type ExternalProcessingPolicy,
+} from '../math-document-grading-contracts';
 
 const temporaryRoots: string[] = [];
 
@@ -50,6 +55,33 @@ describe('teacher AI grading lab core', () => {
     })).toThrow('teacher-ai-grading-provider-model-identity-mismatch');
   });
 
+  it('rejects a configuration prompt that does not contain a hash-bound snapshot', async () => {
+    const split = { datasetId: 'dataset-1', datasetVersion: 'v1', splitId: 'split-1', splitVersion: '1', contentHash: 'sha256:split' };
+    const core = createTeacherAiGradingLabCore({
+      datasetStore: { loadEvaluation: async () => ({ manifest: { datasetKind: 'first-round' }, datasetId: split.datasetId, datasetVersion: split.datasetVersion }) } as any,
+      db: { teacherAiGradingLabSplit: { findUnique: async () => ({ id: split.splitId, datasetId: split.datasetId, datasetVersion: split.datasetVersion, version: 1, contentHash: split.contentHash }) } } as any,
+    });
+
+    await expect(core.execute({
+      kind: 'freeze-configuration',
+      input: {
+        split, idempotencyKey: 'freeze-1', seed: 1,
+        prompt: component('prompt') as any,
+        model: { ...component('model'), parameters: {} }, processor: component('processor'), metric: component('metric'),
+      },
+    })).rejects.toThrow('teacher-ai-grading-prompt-snapshot-invalid');
+
+    const prompt = promptComponent();
+    await expect(core.execute({
+      kind: 'freeze-configuration',
+      input: {
+        split, idempotencyKey: 'freeze-2', seed: 1,
+        prompt: { ...prompt, contentHash: `sha256:${'0'.repeat(64)}` },
+        model: { ...component('model'), parameters: {} }, processor: component('processor'), metric: component('metric'),
+      },
+    })).rejects.toThrow('teacher-ai-grading-prompt-snapshot-hash-mismatch');
+  });
+
   it('does not load the human baseline before a terminal run exists for the requested partition', async () => {
     const load = vi.fn(async () => { throw new Error('baseline-read'); });
     const core = createTeacherAiGradingLabCore({
@@ -68,6 +100,22 @@ describe('teacher AI grading lab core', () => {
       kind: 'build-report',
       input: { configuration: { configurationVersion: 'config-1' }, partition: 'tuning' },
     })).rejects.toThrow('teacher-ai-grading-baseline-before-independent-run-complete');
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('does not load the human baseline for a partial batch with missing independent output', async () => {
+    const load = vi.fn(async () => { throw new Error('baseline-read'); });
+    const core = createTeacherAiGradingLabCore({
+      datasetStore: { load, loadEvaluation: async () => ({ manifest: { datasetKind: 'first-round' } }) } as any,
+      db: {
+        teacherAiGradingExperimentConfig: { findUnique: async () => ({ id: 'config-1', datasetId: 'dataset-1', datasetVersion: 'v1', splitId: 'split-1' }) },
+        teacherAiGradingLabSplitMember: { findMany: async () => [{ sampleId: 'sample-abcd' }] },
+        teacherAiGradingExperimentBatch: { findMany: async () => [{ id: 'batch-1', state: 'PARTIAL', sampleSetSnapshot: [{ sampleId: 'sample-abcd' }] }] },
+        teacherAiGradingExperimentExecution: { findMany: async () => [] },
+      } as any,
+    });
+    await expect(core.execute({ kind: 'build-report', input: { configuration: { configurationVersion: 'config-1' }, partition: 'tuning' } }))
+      .rejects.toThrow('teacher-ai-grading-baseline-before-independent-run-complete');
     expect(load).not.toHaveBeenCalled();
   });
 
@@ -121,6 +169,21 @@ describe('teacher AI grading lab core', () => {
     });
     expect(result.visualEvidence.map((item) => item.visual.pageNumber)).toEqual([1, 2, 3]);
     expect(provider.evaluate).toHaveBeenCalledTimes(3);
+  });
+
+  it('describes PDF pages even when Word extraction has no embedded-image record', async () => {
+    const provider = visualDescriptionProvider();
+    const result = await prepareLabExperimentEvidence({
+      result: visualConversionResult({
+        wordRepresentation: { renderedPdfPageCount: 1, images: [] },
+      }),
+      request: visualConversionRequest(provider),
+      renderPdfPages: async () => [{ pageNumber: 1, bytes: Buffer.from('hand-drawn-page') }],
+    });
+
+    expect(result.visualEvidenceStatus).toBe('COMPLETE');
+    expect(result.visualEvidence).toHaveLength(1);
+    expect(provider.evaluate).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a rendered page set with gaps or out-of-range pages', async () => {
@@ -194,17 +257,16 @@ describe('teacher AI grading lab core', () => {
     })).rejects.toThrow('teacher-ai-grading-controlled-visual-evidence-low-confidence');
   });
 
-  it('does not process a known image assigned to another question', async () => {
+  it('rejects a document whose embedded image is assigned to another question', async () => {
     const renderer = vi.fn(async () => [{ pageNumber: 1, bytes: Buffer.from('unexpected') }]);
-    const result = await prepareLabExperimentEvidence({
+    await expect(prepareLabExperimentEvidence({
       result: visualConversionResult({
         wordRepresentation: { images: [{ id: 'other-image', questionId: 'T2-2' }] },
       }),
       request: visualConversionRequest(visualDescriptionProvider()),
       renderPdfPages: renderer,
-    });
+    })).rejects.toThrow('teacher-ai-grading-controlled-visual-question-mapping-invalid');
 
-    expect(result.visualEvidenceStatus).toBe('NOT_APPLICABLE');
     expect(renderer).not.toHaveBeenCalled();
   });
 
@@ -432,6 +494,7 @@ describe('teacher AI grading lab core', () => {
           return [1, 2, 3].map((repetitionOrdinal) => ({
             sampleId: 'sample-abcd', questionId: 'T1-4', repetitionOrdinal, state: 'SUCCEEDED',
             configId,
+            rawOutputObjectKey: `raw/${configId}/${repetitionOrdinal}.json`,
             gradingRun: { draftTotalScore: score },
           }));
         },
@@ -448,8 +511,8 @@ describe('teacher AI grading lab core', () => {
       },
       teacherAiGradingExperimentBatch: {
         findUnique: async ({ where }: any) => {
-          if (where.id === 'baseline-batch') return { id: 'baseline-batch', configId: controlled.baselineConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED' };
-          if (where.id === 'candidate-batch') return { id: 'candidate-batch', configId: controlled.candidateConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED' };
+          if (where.id === 'baseline-batch') return { id: 'baseline-batch', configId: controlled.baselineConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED', totalExecutions: 3 };
+          if (where.id === 'candidate-batch') return { id: 'candidate-batch', configId: controlled.candidateConfiguration.configurationVersion, splitId: split.id, state: 'SUCCEEDED', totalExecutions: 3 };
           return batches.find((row) => row.id === where.id || row.idempotencyKey === where.idempotencyKey) ?? null;
         },
         create: async ({ data }: any) => { batches.push(data); return data; },
@@ -475,7 +538,7 @@ describe('teacher AI grading lab core', () => {
       input: {
         split: { datasetId: split.datasetId, datasetVersion: split.datasetVersion, splitId: split.id, splitVersion: '1', contentHash: split.contentHash },
         idempotencyKey: 'freeze-1', seed: 7,
-        prompt: component('prompt'), model: { ...component('model'), parameters: { temperature: 0 } },
+        prompt: promptComponent(), model: { ...component('model'), parameters: { temperature: 0 } },
         processor: component('processor'), metric: component('metric'),
       },
     });
@@ -487,7 +550,7 @@ describe('teacher AI grading lab core', () => {
         experimentId: 't2-visual-v1',
         seed: 7,
         maxAttempts: 5,
-        prompt: component('prompt'),
+        prompt: promptComponent(),
         model: { ...component('model'), parameters: { temperature: 0 } },
         baselineProcessor: { ...component('text-chain'), evidenceChain: 'text-only' },
         candidateProcessor: {
@@ -636,14 +699,21 @@ function component(id: string) {
   return { id, version: 'v1', contentHash: `sha256:${id.padEnd(64, '0').slice(0, 64)}` };
 }
 
+function promptComponent(id = 'prompt') {
+  const snapshot = createScopedGradingPromptSnapshot();
+  return { id, version: 'v1', contentHash: scopedGradingPromptSnapshotHash(snapshot), snapshot };
+}
+
 async function expectRunBlockedWithoutConversion(
   datasetStore: ReturnType<typeof createFileSystemTeacherAiGradingLabDatasetStore>,
   conversionCalls: Buffer[],
 ): Promise<void> {
   const loaded = await datasetStore.load({ datasetId: 'synthetic-t1', datasetVersion: 'v1' });
+  const prompt = promptComponent();
   const db = {
     teacherAiGradingExperimentConfig: { findUnique: async () => ({
       id: 'config-redaction', datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetContentHash: loaded.contentHash, splitId: 'split-redaction',
+      promptContentHash: prompt.contentHash, snapshot: { prompt },
     }) },
     teacherAiGradingLabSplitMember: { findMany: async () => [{ sampleId: 'sample-abcd' }] },
   };

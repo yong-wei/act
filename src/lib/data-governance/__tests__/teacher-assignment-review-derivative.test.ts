@@ -18,6 +18,7 @@ const snapshot = {
   machineSnapshotHash: 'sha256:machine',
   annotationSnapshot: [{ id: 'annotation-1', criterionId: 'criterion-1', status: 'ACTIVE', comment: 'Check sign', anchor: { precision: 'SPAN', spanStart: 2, spanEnd: 8 } }],
   criterionSnapshot: [{ criterionId: 'criterion-1', score: 4, comment: 'Good' }],
+  gradingRun: { question: { rubricSnapshot: { criteria: [{ id: 'criterion-1', maxPoints: 5 }] } } },
   overallComment: 'Revise the sign.',
   answerEvidence: { id: 'evidence-1', sourceHash: 'sha256:aaaaaaaa', anchorVersion: 'anchors-v2', precision: 'SPAN', canonicalMarkdown: 'x = -1, then verify', blocks: [], limitations: [], sourceAsset: { id: 'asset-1', objectKey: 'private/source.docx', checksum: 'sha256:aaaaaaaa', sizeBytes: 100, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }, conversion: { state: 'SUCCEEDED', renderedObjectKey: 'grading-rendered/conversion-1.pdf', renderedChecksum: 'sha256:bbbbbbbb' } },
 };
@@ -34,6 +35,19 @@ it('freezes derivative source lineage without blocking honest runtime output fal
 });
 
 describe('reviewed derivative', () => {
+  it('keeps annotations only for criteria that lost points', () => {
+    const mixed: any = structuredClone(snapshot);
+    mixed.annotationSnapshot.push({ id: 'annotation-2', criterionId: 'criterion-2', status: 'ACTIVE', comment: '完善表达', anchor: { precision: 'SPAN', spanStart: 9, spanEnd: 10 } });
+    mixed.criterionSnapshot.push({ criterionId: 'criterion-2', score: 5, comment: '满分' });
+    mixed.gradingRun.question.rubricSnapshot.criteria.push({ id: 'criterion-2', maxPoints: 5 });
+
+    const plan = buildReviewedDerivativePlan(mixed, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] });
+
+    expect(plan.annotations).toHaveLength(1);
+    expect(plan.annotations[0].id).toBe('annotation-1');
+    expect(plan.limitations).toContain('non-deduction-annotations-suppressed');
+  });
+
   it('uses the immutable canonical PDF for a Word submission', () => {
     expect(buildReviewedDerivativePlan(snapshot, { generatorId: 'renderer', generatorVersion: '2', anchorMapVersion: 'anchors-v2', nativeFormats: ['DOCX', 'PDF'] })).toMatchObject({
       outputKind: 'REVIEWED_PDF', nativeCapable: false, sourceChecksum: 'sha256:bbbbbbbb', sourceObjectKey: 'grading-rendered/conversion-1.pdf', sourceRepresentation: 'CANONICAL_PDF',
@@ -88,6 +102,91 @@ describe('reviewed derivative', () => {
     expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'GENERAL' });
     expect(plan.limitations).toContain('reviewed-pdf-summary-only-no-precise-overlay');
     expect(plan.annotations[0].anchor).toEqual({ precision: 'GENERAL' });
+  });
+
+  it('keeps a reliable block anchor for a canonical-PDF sidebar when native comments are unavailable', () => {
+    const word: any = structuredClone(snapshot);
+    word.answerEvidence.precision = 'BLOCK';
+    word.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1 }];
+    word.annotationSnapshot[0].anchor = { precision: 'BLOCK', blockId: 'block-1', pageNumber: 1 };
+
+    const plan = buildReviewedDerivativePlan(word, { generatorId: 'pdf-renderer', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['PDF'] });
+
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'BLOCK' });
+    expect(plan.limitations).toContain('reviewed-pdf-page-sidebar-fallback');
+    expect(plan.annotations[0].anchor).toEqual({ precision: 'BLOCK', blockId: 'block-1', pageNumber: 1 });
+  });
+
+  it('recovers the page number from the frozen evidence block', () => {
+    const word: any = structuredClone(snapshot);
+    word.answerEvidence.precision = 'BLOCK';
+    word.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 2 }];
+    word.annotationSnapshot[0].anchor = { precision: 'BLOCK', blockId: 'block-1' };
+
+    const plan = buildReviewedDerivativePlan(word, { generatorId: 'pdf-renderer', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['PDF'] });
+
+    expect(plan.annotations[0].anchor).toMatchObject({ precision: 'BLOCK', blockId: 'block-1', pageNumber: 2 });
+  });
+
+  it('maps a visual-only deduction anchor to the matching frozen PDF text block', () => {
+    const word: any = structuredClone(snapshot);
+    word.answerEvidence.precision = 'BLOCK';
+    word.answerEvidence.blocks = [
+      {
+        id: 'visual-summary',
+        pageNumber: 1,
+        text: '第 3.2 题要求绘制 Bode 图，但该部分没有图示。',
+      },
+      {
+        id: 'question-3-2',
+        pageNumber: 1,
+        text: '3.2 根据传递函数绘制 Bode 幅频草图与相频草图。',
+        bbox: [90, 170, 505, 276],
+        coordinateProvenance: { unit: 'PDF_POINT', origin: 'BOTTOM_LEFT', rotation: 0, pageWidth: 595, pageHeight: 842 },
+      },
+    ];
+    word.annotationSnapshot[0].anchor = {
+      precision: 'BLOCK',
+      blockId: 'visual-summary',
+      pageNumber: 1,
+      excerpt: '第3.2题要求绘制Bode幅频草图与相频草图，但该部分没有图示。',
+    };
+
+    const plan = buildReviewedDerivativePlan(word, { generatorId: 'pdf-renderer', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['PDF'] });
+
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'BLOCK' });
+    expect(plan.annotations[0].anchor).toEqual({
+      precision: 'BLOCK',
+      blockId: 'question-3-2',
+      pageNumber: 1,
+      bbox: [90, 170, 505, 276],
+      coordinateProvenance: { unit: 'PDF_POINT', origin: 'BOTTOM_LEFT', rotation: 0, pageWidth: 595, pageHeight: 842 },
+    });
+  });
+
+  it('downgrades a known block anchor to its evidence page for a canonical-PDF sidebar', () => {
+    const word: any = structuredClone(snapshot);
+    word.answerEvidence.precision = 'PAGE';
+    word.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1 }];
+    word.annotationSnapshot[0].anchor = { precision: 'BLOCK', blockId: 'block-1', pageNumber: 1 };
+
+    const plan = buildReviewedDerivativePlan(word, { generatorId: 'pdf-renderer', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['PDF'] });
+
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'PAGE' });
+    expect(plan.limitations).toContain('reviewed-pdf-page-sidebar-fallback');
+    expect(plan.annotations[0].anchor).toEqual({ precision: 'PAGE', pageNumber: 1 });
+  });
+
+  it('downgrades an unmatched block anchor to its declared evidence page for a canonical-PDF sidebar', () => {
+    const word: any = structuredClone(snapshot);
+    word.answerEvidence.precision = 'PAGE';
+    word.answerEvidence.blocks = [{ id: 'block-1', pageNumber: 1 }];
+    word.annotationSnapshot[0].anchor = { precision: 'BLOCK', blockId: 'old-block-id', pageNumber: 1 };
+
+    const plan = buildReviewedDerivativePlan(word, { generatorId: 'pdf-renderer', generatorVersion: '1', anchorMapVersion: 'anchors-v2', nativeFormats: ['PDF'] });
+
+    expect(plan).toMatchObject({ outputKind: 'REVIEWED_PDF', nativeCapable: false, anchorPrecision: 'PAGE' });
+    expect(plan.annotations[0].anchor).toEqual({ precision: 'PAGE', pageNumber: 1 });
   });
 
   it('persists immutable checksum lineage and reuses the full-version idempotency key', async () => {

@@ -2543,6 +2543,7 @@ model AssignmentSubmissionGrade {
   state             AssignmentSubmissionGradeState @default(PENDING_GRADING)
   questionProjection Json                          @default("[]")
   totalScore        Decimal?                       @db.Decimal(10, 4)
+  overallComment    String?                        @db.Text
   confirmedById     String?
   confirmedAt       DateTime?
   releasedAt        DateTime?
@@ -2587,6 +2588,7 @@ model AssignmentSubmissionGradeConfirmation {
   requestHash       String
   attemptVectorHash String
   totalScore        Decimal  @db.Decimal(10, 4)
+  overallComment    String?  @db.Text
   questionProjection Json
   confirmedById     String
   confirmedAt       DateTime
@@ -2885,6 +2887,8 @@ model TeacherAiGradingStructuredReviewVersion {
   annotationCorrections Json
   operatorUserId        String
   contentHash           String
+  baselineVersion       String?
+  baselineScore         Float?
   createdAt             DateTime @default(now())
 
   execution       TeacherAiGradingExperimentExecution       @relation(fields: [executionId], references: [id], onDelete: Restrict)
@@ -3124,6 +3128,8 @@ model GradingRun {
   source                            GradingSource   @default(AI)
   state                             GradingRunState @default(QUEUED)
   draftTotalScore                   Float?
+  aiTotalScore                      Float?
+  approvedTotalScore                Float?
   overallComment                    String?         @db.Text
   overallFeedback                   Json?
   modelInputObjectKey               String?

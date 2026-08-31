@@ -1,5 +1,7 @@
 import { sha256, stableStringify } from './math-document-grading-contracts';
 
+import { presentStudentReferenceAnswer, presentStudentScoringStandard } from '@/lib/assignments/student-result-presentation';
+
 export type AssignmentGradeActor = { id: string; role: 'TEACHER' | 'ADMIN' };
 
 export class AssignmentSubmissionGradeError extends Error {
@@ -29,7 +31,14 @@ export async function getAssignmentSubmissionGrade(db: any, input: {
       attemptId: item.attemptId,
       promptSnapshot: item.question.promptSnapshot,
       sourceHistory: (item.attempt?.gradingRuns ?? []).map((run: any) => ({ id: run.id, source: run.source, state: run.state, draftTotalScore: run.draftTotalScore, overallComment: run.overallComment, updatedAt: run.updatedAt })),
-      approvalHistory: (item.attempt?.approvalSnapshots ?? []).map((approval: any) => ({ id: approval.id, source: approval.gradingRun?.source ?? 'AI', questionTotal: approval.questionTotal, overallComment: approval.overallComment, approvedAt: approval.approvedAt })),
+      approvalHistory: (item.attempt?.approvalSnapshots ?? []).map((approval: any) => ({
+        id: approval.id,
+        source: approval.gradingRun?.source ?? 'AI',
+        questionTotal: approval.questionTotal,
+        overallComment: approval.overallComment,
+        approvedAt: approval.approvedAt,
+        reviewedPdfId: (approval.reviewedDerivatives ?? []).find((derivative: any) => derivative.state === 'READY' && derivative.outputKind === 'REVIEWED_PDF')?.id ?? null,
+      })),
     })),
   };
 }
@@ -53,6 +62,7 @@ export async function refreshAssignmentSubmissionGrade(db: any, input: {
       aggregate: {
         complete: true,
         total: grade.totalScore == null ? null : Number(grade.totalScore),
+        overallComment: grade.overallComment ?? null,
         questions: Array.isArray(grade.questionProjection) ? grade.questionProjection : [],
         blockers: [],
         state: grade.state,
@@ -71,6 +81,7 @@ export async function refreshAssignmentSubmissionGrade(db: any, input: {
       state: aggregate.state,
       questionProjection: aggregate.questions,
       totalScore: aggregate.total,
+      overallComment: aggregate.overallComment,
       updatedAt: now,
     },
   });
@@ -82,6 +93,7 @@ export async function refreshAssignmentSubmissionGrade(db: any, input: {
         state: aggregate.state,
         questionProjection: aggregate.questions,
         totalScore: aggregate.total,
+        overallComment: aggregate.overallComment,
         updatedAt: now,
       },
       aggregate,
@@ -94,6 +106,7 @@ export async function refreshAssignmentSubmissionGrade(db: any, input: {
       aggregate: {
         complete: true,
         total: current.totalScore == null ? null : Number(current.totalScore),
+        overallComment: current.overallComment ?? null,
         questions: Array.isArray(current.questionProjection) ? current.questionProjection : [],
         blockers: [],
         state: current.state,
@@ -172,7 +185,7 @@ export async function confirmAssignmentSubmissionGrade(db: any, input: {
     if (!aggregate.complete || aggregate.total == null) throw new AssignmentSubmissionGradeError('assignment-result-incomplete', 409, { blockers: aggregate.blockers });
     const updated = await tx.assignmentSubmissionGrade.updateMany({
       where: { id: grade.id, version: input.expectedVersion, state: { in: ['PENDING_GRADING', 'PARTIAL_FAILURE', 'AWAITING_CONFIRMATION'] } },
-      data: { version: { increment: 1 }, state: 'CONFIRMED', questionProjection: aggregate.questions, totalScore: aggregate.total, confirmedById: input.actor.id, confirmedAt: now, updatedAt: now },
+      data: { version: { increment: 1 }, state: 'CONFIRMED', questionProjection: aggregate.questions, totalScore: aggregate.total, overallComment: aggregate.overallComment, confirmedById: input.actor.id, confirmedAt: now, updatedAt: now },
     });
     if (updated?.count !== 1) throw new AssignmentSubmissionGradeError('assignment-result-confirmation-conflict', 409);
     const confirmation = await tx.assignmentSubmissionGradeConfirmation.create({
@@ -184,6 +197,7 @@ export async function confirmAssignmentSubmissionGrade(db: any, input: {
         requestHash,
         attemptVectorHash: snapshot.attemptVectorHash,
         totalScore: aggregate.total,
+        overallComment: aggregate.overallComment,
         questionProjection: aggregate.questions,
         confirmedById: input.actor.id,
         confirmedAt: now,
@@ -220,7 +234,8 @@ export async function releaseAssignmentSubmissionGrade(db: any, input: {
           || (existing.idempotencyKey === input.idempotencyKey && existing.requestHash !== requestHash)) {
           throw new AssignmentSubmissionGradeError('assignment-result-release-conflict', 409);
         }
-        await ensureFinalResultFeedbackReleases(tx, snapshot, now);
+        const confirmation = await tx.assignmentSubmissionGradeConfirmation.findFirst({ where: { id: existing.confirmationId, gradeId: grade.id } });
+        await ensureFinalResultFeedbackReleases(tx, snapshot, confirmation, now);
         return { release: existing, replay: true };
       }
       if (grade.state !== 'CONFIRMED') throw new AssignmentSubmissionGradeError('assignment-result-unconfirmed', 409);
@@ -245,7 +260,7 @@ export async function releaseAssignmentSubmissionGrade(db: any, input: {
           createdAt: now,
         },
       });
-      await ensureFinalResultFeedbackReleases(tx, snapshot, now);
+      await ensureFinalResultFeedbackReleases(tx, snapshot, confirmation, now);
       return { release, replay: false };
     });
   } catch (error) {
@@ -260,12 +275,13 @@ export async function releaseAssignmentSubmissionGrade(db: any, input: {
   }
 }
 
-async function ensureFinalResultFeedbackReleases(db: any, snapshot: any, now: Date) {
-  const attemptIds = [...new Set(snapshot.items.map((item: any) => item.attemptId).filter((value: unknown): value is string => typeof value === 'string'))];
-  if (attemptIds.length === 0) return;
+async function ensureFinalResultFeedbackReleases(db: any, snapshot: any, confirmation: any, now: Date) {
+  const approvalIds = [...new Set((Array.isArray(confirmation?.questionProjection) ? confirmation.questionProjection : [])
+    .map((item: any) => item?.approvalSnapshotId).filter((value: unknown): value is string => typeof value === 'string' && value.length > 0))];
+  if (approvalIds.length === 0) return;
   const approvals = await db.teacherAssignmentApprovalSnapshot.findMany({
-    where: { submissionId: snapshot.submissionId, attemptId: { in: attemptIds } },
-    include: { reviewedDerivatives: { where: { state: 'READY' }, orderBy: { readyAt: 'desc' } } },
+    where: { id: { in: approvalIds }, submissionId: snapshot.submissionId },
+    include: { reviewedDerivatives: { where: { state: 'READY', outputKind: 'REVIEWED_PDF' }, orderBy: { readyAt: 'desc' } } },
   });
   for (const approval of approvals) {
     const derivative = approval.reviewedDerivatives.find((row: any) => row.outputObjectKey && row.outputChecksum);
@@ -370,7 +386,7 @@ function deriveAggregate(snapshot: any, conclusions: any[]) {
     const approval = approvals.find((row: any) => row.gradingRun?.source === 'MANUAL') ?? approvals[0];
     if (approval) {
       total += Number(approval.questionTotal);
-      return questionProjection(item, { status: 'COMPLETE', source: approval.gradingRun?.source ?? 'AI', score: Number(approval.questionTotal), comment: approval.overallComment ?? '', criteria: Array.isArray(approval.criterionSnapshot) ? approval.criterionSnapshot : [], annotations: Array.isArray(approval.annotationSnapshot) ? approval.annotationSnapshot : [] });
+      return questionProjection(item, { status: 'COMPLETE', source: approval.gradingRun?.source ?? 'AI', score: Number(approval.questionTotal), comment: approval.overallComment ?? '', criteria: Array.isArray(approval.criterionSnapshot) ? approval.criterionSnapshot : [], annotations: Array.isArray(approval.annotationSnapshot) ? approval.annotationSnapshot : [], approvalSnapshotId: approval.id });
     }
     const run = [...(item.attempt?.gradingRuns ?? [])].sort((left: any, right: any) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())[0];
     const reason = !item.attemptId ? 'missing-attempt' : run && ['FAILED', 'BLOCKED', 'CONTENT_UNAVAILABLE'].includes(run.state) ? 'question-failed' : run ? 'question-processing' : 'question-ungraded';
@@ -378,11 +394,15 @@ function deriveAggregate(snapshot: any, conclusions: any[]) {
     return questionProjection(item, { status: reason === 'question-failed' ? 'FAILED' : 'UNRESOLVED', source: null, score: null, comment: null, criteria: [], annotations: [], failureReason: reason });
   });
   const state = blockers.length === 0 ? 'AWAITING_CONFIRMATION' : questions.some((row: any) => row.status === 'FAILED') ? 'PARTIAL_FAILURE' : 'PENDING_GRADING';
-  return { complete: blockers.length === 0, total: blockers.length === 0 ? Number(total.toFixed(4)) : null, questions, blockers, state };
+  const overallComment = questions
+    .map((question: any, index: number) => typeof question.comment === 'string' && question.comment.trim() ? `第 ${index + 1} 题：${question.comment.trim()}` : null)
+    .filter((comment: string | null): comment is string => comment !== null)
+    .join('\n');
+  return { complete: blockers.length === 0, total: blockers.length === 0 ? Number(total.toFixed(4)) : null, overallComment: overallComment || null, questions, blockers, state };
 }
 
 function questionProjection(item: any, value: any) {
-  return { questionId: item.questionId, snapshotItemId: item.id, attemptId: item.attemptId, questionSnapshotHash: item.questionSnapshotHash, question: { promptSnapshot: item.question.promptSnapshot, answerSnapshot: item.question.answerSnapshot, rubricSnapshot: item.question.rubricSnapshot }, ...value };
+  return { questionId: item.questionId, snapshotItemId: item.id, attemptId: item.attemptId, questionSnapshotHash: item.questionSnapshotHash, question: { promptSnapshot: item.question.promptSnapshot, answerSnapshot: item.question.answerSnapshot, rubricSnapshot: item.question.rubricSnapshot }, approvalSnapshotId: value.approvalSnapshotId ?? null, ...value };
 }
 
 function studentResultPackage(confirmation: any, releasedAt: Date) {
@@ -392,12 +412,13 @@ function studentResultPackage(confirmation: any, releasedAt: Date) {
     comment: typeof item.comment === 'string' ? item.comment : '',
     criteria: studentCriteria(item.criteria),
     annotations: studentAnnotations(item.annotations),
-    referenceAnswer: item.question?.answerSnapshot ?? null,
-    scoringStandard: item.question?.rubricSnapshot ?? null,
+    referenceAnswer: presentStudentReferenceAnswer(item.question?.answerSnapshot),
+    scoringStandard: presentStudentScoringStandard(item.question?.rubricSnapshot),
   })) : [];
   return {
     version: 'assignment-student-result.v1',
     totalScore: Number(confirmation.totalScore),
+    overallComment: typeof confirmation.overallComment === 'string' ? confirmation.overallComment : null,
     releasedAt: releasedAt.toISOString(),
     questions,
   };
@@ -457,7 +478,30 @@ async function ensureGrade(db: any, snapshot: any, now: Date) {
 }
 
 async function loadSnapshot(db: any, snapshotId: string) {
-  const snapshot = await db.assignmentSubmissionSnapshot.findUnique({ where: { id: snapshotId }, include: { revision: { include: { assignment: { include: { reviewGrants: true } } } }, submission: { include: { audience: { include: { class: true } }, student: { include: { profile: true } } } }, items: { orderBy: [{ question: { orderIndex: 'asc' } }, { id: 'asc' }], include: { question: true, attempt: { include: { gradingRuns: true, approvalSnapshots: { include: { gradingRun: { select: { source: true } } } } } } } } } });
+  const snapshot = await db.assignmentSubmissionSnapshot.findUnique({
+    where: { id: snapshotId },
+    include: {
+      revision: { include: { assignment: { include: { reviewGrants: true } } } },
+      submission: { include: { audience: { include: { class: true } }, student: { include: { profile: true } } } },
+      items: {
+        orderBy: [{ question: { orderIndex: 'asc' } }, { id: 'asc' }],
+        include: {
+          question: true,
+          attempt: {
+            include: {
+              gradingRuns: true,
+              approvalSnapshots: {
+                include: {
+                  gradingRun: { select: { source: true } },
+                  reviewedDerivatives: { where: { state: 'READY', outputKind: 'REVIEWED_PDF' }, select: { id: true, state: true, outputKind: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
   if (!snapshot) throw new AssignmentSubmissionGradeError('assignment-result-snapshot-not-found', 404);
   return snapshot;
 }

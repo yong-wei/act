@@ -42,7 +42,10 @@ describe('teacher AI grading lab overview', () => {
             state: 'SUCCEEDED', failureStage: null, errorCode: null,
             gradingRun: {
               draftTotalScore: 9,
-              annotations: [],
+              annotations: [{
+                id: 'annotation-1', excerpt: '图中曲线未覆盖高频趋势。', reason: '未识别高频衰减', comment: '请补充高频段分析。',
+                pageNumber: 2, precision: 'REGION',
+              }],
               answerEvidence: {
                 blocks: [{
                   id: 'conversion-1:visual-evidence:diagram-1', sourceHash: 'sha256:source',
@@ -65,8 +68,45 @@ describe('teacher AI grading lab overview', () => {
       sampleId: 'sample-1', questionId: 'T2-3', description: '单位负反馈结构图，包含输入、输出和反馈支路。',
       pageNumber: 1, confidence: 0.92,
     })]);
+    expect(overview.metrics).toEqual({ completedRate: null, meanAbsoluteScoreDifference: null, exactScoreRate: null, threeRunExactStabilityRate: null });
     expect(JSON.stringify(overview.pendingBlindVisualEvidence)).not.toContain('draftTotalScore');
+    expect(overview.pendingBlindAnnotations).toEqual([expect.objectContaining({
+      gradingAnnotationId: 'annotation-1', excerpt: '图中曲线未覆盖高频趋势。', reason: '未识别高频衰减',
+      comment: '请补充高频段分析。', pageNumber: 2, precision: 'REGION',
+    })]);
     expect(overview.executions[0]?.teacherScore).toBeNull();
     expect(load).not.toHaveBeenCalled();
+  });
+
+  it('keeps experiment metrics isolated per evaluation run', async () => {
+    const overview = await getTeacherAiGradingLabOverview({
+      datasetStore: {
+        list: async () => [],
+        load: async () => ({ baseline: { samples: [{ sampleId: 'sample-1', questions: [{ questionId: 'T1-1', teacherScore: 10 }] }] } }),
+      } as any,
+      db: {
+        teacherAiGradingExperimentConfig: { findMany: async () => [
+          { id: 'config-a', datasetId: 'd', datasetVersion: 'v1', splitId: 'split-a', contentHash: 'hash-a', createdAt: new Date('2026-08-21T00:00:00Z') },
+          { id: 'config-b', datasetId: 'd', datasetVersion: 'v1', splitId: 'split-b', contentHash: 'hash-b', createdAt: new Date('2026-08-22T00:00:00Z') },
+        ] },
+        teacherAiGradingExperimentBatch: { findMany: async () => [
+          { id: 'run-a', configId: 'config-a', splitId: 'split-a', state: 'SUCCEEDED', totalExecutions: 3, completedCount: 3, failedCount: 0, retryableCount: 0, updatedAt: new Date('2026-08-21T00:00:00Z'), hiddenAcceptance: null },
+          { id: 'run-b', configId: 'config-b', splitId: 'split-b', state: 'SUCCEEDED', totalExecutions: 3, completedCount: 3, failedCount: 0, retryableCount: 0, updatedAt: new Date('2026-08-22T00:00:00Z'), hiddenAcceptance: null },
+        ] },
+        teacherAiGradingExperimentExecution: { findMany: async () => [
+          ...[1, 2, 3].map((repetitionOrdinal) => ({ id: `a-${repetitionOrdinal}`, batchId: 'run-a', configId: 'config-a', splitId: 'split-a', sampleId: 'sample-1', questionId: 'T1-1', repetitionOrdinal, state: 'SUCCEEDED', failureStage: null, errorCode: null, rawOutputObjectKey: 'a', gradingRun: { aiTotalScore: 10, draftTotalScore: 10, annotations: [], answerEvidence: { blocks: [] } }, annotationJudgments: [], batch: { hiddenAcceptance: null } })),
+          ...[1, 2, 3].map((repetitionOrdinal) => ({ id: `b-${repetitionOrdinal}`, batchId: 'run-b', configId: 'config-b', splitId: 'split-b', sampleId: 'sample-1', questionId: 'T1-1', repetitionOrdinal, state: 'SUCCEEDED', failureStage: null, errorCode: null, rawOutputObjectKey: 'b', gradingRun: { aiTotalScore: 8, draftTotalScore: 8, annotations: [], answerEvidence: { blocks: [] } }, annotationJudgments: [], batch: { hiddenAcceptance: null } })),
+        ] },
+        teacherAiGradingPdfVerification: { findMany: async () => [] },
+        teacherAiGradingAnnotationJudgment: { findMany: async () => [] },
+        teacherAiGradingVisualEvidenceBlindJudgment: { findMany: async () => [] },
+      },
+    });
+
+    expect(overview.metrics.completedRate).toBeNull();
+    expect(overview.metricsByRun).toEqual([
+      expect.objectContaining({ evaluationRunId: 'run-a', configurationVersion: 'config-a', splitId: 'split-a', meanAbsoluteScoreDifference: 0, exactScoreRate: 1 }),
+      expect.objectContaining({ evaluationRunId: 'run-b', configurationVersion: 'config-b', splitId: 'split-b', meanAbsoluteScoreDifference: 2, exactScoreRate: 0 }),
+    ]);
   });
 });

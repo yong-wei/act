@@ -53,6 +53,7 @@ export type ExperimentFailureStage =
   | 'evidence'
   | 'grading'
   | 'provider'
+  | 'preflight'
   | 'persistence'
   | 'raw-output';
 
@@ -64,6 +65,7 @@ export interface ExperimentClaim {
 
 const ACTIVE_LEASE_MS = 5 * 60_000;
 const DEFAULT_MAX_ATTEMPTS = 3;
+export const MAX_EXPERIMENT_EXECUTION_ATTEMPTS = 2_147_483_647;
 const SERIALIZABLE_TRANSACTION_RETRY_LIMIT = 3;
 
 export async function freezeConfig(input: FreezeExperimentConfigInput): Promise<{ config: any; replay: boolean }> {
@@ -159,7 +161,9 @@ export async function createRunSet(input: CreateExperimentRunSetInput): Promise<
   requireNonEmpty(input.idempotencyKey, 'experiment-batch-idempotency-key-missing');
   if (input.samples.length === 0) throw new Error('experiment-samples-empty');
   const maxAttempts = input.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) throw new Error('experiment-max-attempts-invalid');
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > MAX_EXPERIMENT_EXECUTION_ATTEMPTS) {
+    throw new Error('experiment-max-attempts-invalid');
+  }
 
   const sampleIds = new Set<string>();
   for (const sample of input.samples) {
@@ -335,10 +339,15 @@ export async function claim(input: { db: ExperimentDb; batchId?: string; leaseMs
   if (!Number.isInteger(leaseMs) || leaseMs < 1) throw new Error('experiment-lease-duration-invalid');
   const claimToken = input.claimToken ?? randomUUID();
   const claimExecution = async (db: ExperimentDb) => {
-    const candidate = await db.teacherAiGradingExperimentExecution.findFirst({
-      where: { ...(input.batchId ? { batchId: input.batchId } : {}), state: { in: ['QUEUED', 'RETRYABLE'] }, claimToken: null },
+    const findCandidate = (state: 'QUEUED' | 'RETRYABLE', failureStage?: 'raw-output' | 'persistence') => db.teacherAiGradingExperimentExecution.findFirst({
+      where: { ...(input.batchId ? { batchId: input.batchId } : {}), state, ...(failureStage ? { failureStage } : {}), claimToken: null },
       orderBy: [{ createdAt: 'asc' }, { questionId: 'asc' }, { repetitionOrdinal: 'asc' }],
     });
+    // Complete fenced write recovery first, but do not let ordinary retries starve new work.
+    const candidate = await findCandidate('RETRYABLE', 'raw-output')
+      ?? await findCandidate('RETRYABLE', 'persistence')
+      ?? await findCandidate('QUEUED')
+      ?? await findCandidate('RETRYABLE');
     if (!candidate) return null;
     const resumeStage = candidate.failureStage === 'raw-output' ? 'raw-output' : undefined;
     const updated = await db.teacherAiGradingExperimentExecution.updateMany({
@@ -571,6 +580,40 @@ async function refreshBatch(db: ExperimentDb, batchId: string, now: Date): Promi
     });
   };
   await runSerializableTransaction(db, recompute);
+}
+
+export async function abortUnclaimedExecutions(input: { db: ExperimentDb; batchId: string; errorCode: string; now?: Date }): Promise<number> {
+  assertSafeErrorCode(input.errorCode);
+  const now = input.now ?? new Date();
+  const candidates = await input.db.teacherAiGradingExperimentExecution.findMany({
+    where: { batchId: input.batchId, state: { in: ['QUEUED', 'RETRYABLE'] }, claimToken: null },
+    select: { id: true, gradingRunId: true },
+  });
+  let aborted = 0;
+  for (const candidate of candidates) {
+    const settled = async (db: ExperimentDb) => {
+      const updated = await db.teacherAiGradingExperimentExecution.updateMany({
+        where: { id: candidate.id, state: { in: ['QUEUED', 'RETRYABLE'] }, claimToken: null },
+        data: {
+          state: 'FAILED', failureStage: 'preflight', errorCode: input.errorCode,
+          completedAt: now, updatedAt: now,
+        },
+      });
+      if (updated.count !== 1) return false;
+      const run = await db.gradingRun.updateMany({
+        where: { id: candidate.gradingRunId, state: { in: ['QUEUED', 'RETRYABLE'] } },
+        data: { state: 'FAILED', updatedAt: now },
+      });
+      if (run.count !== 1) throw new Error('experiment-grading-run-fenced');
+      return true;
+    };
+    const didAbort = input.db.$transaction
+      ? await input.db.$transaction(settled, { isolationLevel: 'Serializable' })
+      : await settled(input.db);
+    if (didAbort) aborted += 1;
+  }
+  if (aborted > 0) await refreshBatch(input.db, input.batchId, now);
+  return aborted;
 }
 
 async function runSerializableTransaction<T>(db: ExperimentDb, operation: (tx: ExperimentDb) => Promise<T>): Promise<T> {

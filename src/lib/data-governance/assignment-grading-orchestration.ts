@@ -251,6 +251,7 @@ function assignmentSubmissionSnapshotData(input: { operationId: string; source: 
   });
   return {
     id: `assignment-submission-snapshot:${sha256(`${input.operationId}:${input.submission.id}`).slice(-32)}`,
+    operationId: input.operationId,
     submissionId: input.submission.id,
     assignmentRevisionId: input.submission.assignmentRevisionId,
     frozenAudienceId: input.submission.audienceId,
@@ -283,6 +284,90 @@ export function submissionRequiresIncrementalGrading(submission: any, questions:
     if (!matchesCurrentAttemptVector) return false;
     return snapshot.source !== 'MANUAL' || ['CONFIRMED', 'RELEASED'].includes(snapshot.grade?.state);
   });
+}
+
+export async function ensureAssignmentAiResultSnapshot(input: {
+  db: GradingDb;
+  assignmentId: string;
+  submissionId: string;
+  actor: PipelineActor;
+  snapshotVersion?: string;
+  now?: Date;
+}) {
+  const now = input.now ?? new Date();
+  const snapshotVersion = input.snapshotVersion?.trim() || null;
+  const revision = await loadPublishedRevision(input.db, input.assignmentId);
+  const submission = await input.db.assignmentSubmission.findUnique({
+    where: { id: input.submissionId },
+    include: {
+      audience: { include: { class: true } },
+      answers: { include: { attempts: true } },
+    },
+  });
+  if (!submission || submission.assignmentRevisionId !== revision.id) throw new Error('assignment-result-submission-not-found');
+  if (!['SUBMITTED', 'IN_PROGRESS'].includes(submission.state) || now <= new Date(submission.frozenAudienceDueAt)) throw new Error('assignment-result-before-deadline');
+  if (submission.audience?.class?.isActive !== true) throw new Error('assignment-result-class-unavailable');
+  await assertPipelineActorScope({
+    db: input.db,
+    actor: input.actor,
+    assignmentRevisionId: revision.id,
+    classId: submission.frozenAudienceClassId,
+    classTeacherId: submission.audience.class.teacherId,
+    ownerStudentId: submission.frozenStudentId,
+    requestedStudentId: submission.frozenStudentId,
+    purpose: 'teacher-review',
+    now,
+  });
+  const snapshot = assignmentSubmissionSnapshotData({
+    operationId: `assignment-teacher-confirmation:${sha256(snapshotVersion ? `${input.actor.id}:${submission.id}:${snapshotVersion}` : `${input.actor.id}:${submission.id}`).slice(-32)}`,
+    source: 'AI',
+    submission,
+    questions: revision.questions,
+    now,
+  });
+  const operation = await input.db.assignmentGradingOperation.findUnique({
+    where: { id: snapshot.operationId },
+    include: { snapshots: true },
+  });
+  if (operation?.snapshots?.[0]) return operation.snapshots[0];
+  const currentAttemptIds = snapshot.items.create.map((item: any) => item.attemptId).filter(Boolean);
+  const approved = await input.db.teacherAssignmentApprovalSnapshot.findMany({
+    where: { submissionId: submission.id, attemptId: { in: currentAttemptIds } },
+    select: { questionId: true, attemptId: true },
+  });
+  const approvedKeys = new Set(approved.map((row: any) => `${row.questionId}:${row.attemptId}`));
+  if (snapshot.items.create.some((item: any) => item.attemptId && !approvedKeys.has(`${item.questionId}:${item.attemptId}`))) {
+    throw new Error('assignment-result-approval-incomplete');
+  }
+  const requestHash = sha256(stableStringify({ assignmentId: input.assignmentId, submissionId: submission.id, attemptVectorHash: snapshot.attemptVectorHash, snapshotVersion }));
+  try {
+    const { operationId: _operationId, ...snapshotData } = snapshot;
+    const created = await input.db.assignmentGradingOperation.create({
+      data: {
+        id: snapshot.operationId,
+        assignmentId: input.assignmentId,
+        assignmentRevisionId: revision.id,
+        requesterUserId: input.actor.id,
+        idempotencyKey: snapshotVersion ? `teacher-confirmation:${submission.id}:${snapshotVersion}` : `teacher-confirmation:${submission.id}`,
+        requestHash,
+        dedupeKey: snapshotVersion ? `assignment-teacher-confirmation:${input.actor.id}:${submission.id}:${snapshotVersion}` : `assignment-teacher-confirmation:${input.actor.id}:${submission.id}`,
+        selectionSnapshot: { version: 'assignment-teacher-confirmation-projection.v1', submissionId: submission.id, attemptVectorHash: snapshot.attemptVectorHash, ...(snapshotVersion ? { snapshotVersion } : {}), requestedAt: now.toISOString() },
+        state: 'SUCCEEDED',
+        startedAt: now,
+        completedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        snapshots: { create: snapshotData },
+      },
+      include: { snapshots: true },
+    });
+    return created.snapshots[0];
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error;
+    const winner = await input.db.assignmentGradingOperation.findUnique({ where: { id: snapshot.operationId }, include: { snapshots: true } });
+    if (winner?.snapshots?.[0]) return winner.snapshots[0];
+    throw new Error('assignment-result-snapshot-conflict');
+  }
 }
 
 function submissionHasCurrentAttempt(submission: any, questions: any[]) {
