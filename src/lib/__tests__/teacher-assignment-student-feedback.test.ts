@@ -141,7 +141,7 @@ describe('student assignment approved feedback projection', () => {
       assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' }, solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' },
       questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
     }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
-      id: 'submission-1', state: 'SUBMITTED', reviewState: 'PENDING', studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'REVIEWED', reviewedAt: new Date('2026-08-14T13:30:00Z'), studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
       answers: [], approvalSnapshots: [snapshot], resubmissionGrants: [], gradingSnapshots: [{ createdAt: new Date('2026-08-14T12:00:00Z'), items: [{ questionId: 'question-1', attemptId: null }] }],
     }, true, new Date('2026-08-14T14:00:00Z'));
 

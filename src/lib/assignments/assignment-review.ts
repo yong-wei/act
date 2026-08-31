@@ -309,7 +309,7 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     if (reviewCas?.count !== 1) throw conflict();
     const runCas = await tx.gradingRun.updateMany({
       where: { id: review.gradingRunId, state: 'AWAITING_REVIEW', teacherReviewedAt: null },
-      data: { state: 'APPROVED', teacherReviewedAt: now, draftTotalScore: total, overallComment: review.overallComment, updatedAt: now },
+      data: { state: 'APPROVED', teacherReviewedAt: now, approvedTotalScore: total, overallComment: review.overallComment, updatedAt: now },
     });
     if (runCas?.count !== 1) throw conflict();
     for (const assessment of review.gradingRun.assessments) {
@@ -367,7 +367,12 @@ export async function approveTeacherAssignmentReview(db: any, input: {
         },
       });
     }
-    const commands = approvalOutboxRows(snapshot, review, now);
+    const resultGated = review.revision?.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
+    const commands = approvalOutboxRows(snapshot, review, now).map((row: any) => (
+      row.command === 'RELEASE_STUDENT_FEEDBACK'
+        ? { ...row, payload: { ...row.payload, assignmentResultReleaseGate: resultGated } }
+        : row
+    ));
     const appended = await tx.teacherAssignmentReviewOutbox.createMany({ data: commands, skipDuplicates: true });
     if (appended?.count !== commands.length) throw new TeacherAssignmentReviewError('teacher-review-outbox-conflict', 409);
 
@@ -907,7 +912,8 @@ export async function createTeacherAssignmentReview(db: any, input: { actor: Tea
   });
   const submission = run?.answerAttempt?.answer?.submission;
   const assignment = submission?.revision?.assignment;
-  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW' || run.answerEvidence?.readiness !== 'READY') {
+  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW'
+    || (run.source !== 'MANUAL' && run.answerEvidence?.readiness !== 'READY')) {
     throw new TeacherAssignmentReviewError('teacher-review-run-not-ready', 409);
   }
   const reviewScope = {
@@ -1278,15 +1284,16 @@ function assertReviewRunLineage(review: any) {
   const answer = attempt?.answer;
   const evidence = run?.answerEvidence;
   const question = run?.question;
-  if (!run || !attempt || !answer || !evidence || !question
+  if (!run || !attempt || !answer || !question
+    || (!evidence && run.source !== 'MANUAL')
     || review.gradingRunId !== run.id
     || review.attemptId !== run.answerAttemptId
     || review.attemptId !== attempt.id
     || review.answerId !== answer.id
     || answer.submissionId !== review.submissionId
     || review.answerEvidenceId !== run.answerEvidenceId
-    || review.answerEvidenceId !== evidence.id
-    || evidence.attemptId !== review.attemptId
+    || (evidence && (review.answerEvidenceId !== evidence.id
+      || evidence.attemptId !== review.attemptId))
     || review.questionId !== run.questionId
     || review.questionId !== question.id
     || answer.assignmentQuestionId !== review.questionId

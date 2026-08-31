@@ -1438,6 +1438,9 @@ export function presentStudentAssignmentResult(submission: any, questions?: any[
   // RELEASE_STUDENT_FEEDBACK 均已 SUCCEEDED 且 feedbackRelease 归属本人时才对
   // 学生可见；总分恒为题级教师审批分数之和，未发布题目存在时整体不可见。
   if (!submission || submission.studentId !== submission.frozenStudentId) return null;
+  // TEACHER_CONFIRMED_RESULT 下的显式发布门禁：approve 创建的发布命令带作业级 gate，
+  // worker 在 gate 下不授予可见性；只有教师显式 RELEASE 后作业才进入 REVIEWED。
+  if (submission.reviewState !== 'REVIEWED' || !submission.reviewedAt) return null;
   const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
     const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
     return [[answer.assignmentQuestionId, attempt?.id ?? null] as const];

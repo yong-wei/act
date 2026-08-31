@@ -1,8 +1,5 @@
 import { sha256 } from '@/lib/data-governance/math-document-grading-contracts';
-import {
-  requestTeacherAssignmentFeedbackRelease,
-  returnTeacherAssignmentReview,
-} from './assignment-review';
+import { returnTeacherAssignmentReview } from './assignment-review';
 import {
   presentStudentReferenceAnswer,
   presentStudentScoringStandard,
@@ -127,9 +124,11 @@ export async function confirmAssignmentSubmissionGrade(db: any, input: {
   };
 }
 
-// 发布复用题级 canonical 发布命令：approve 达成完整性时 canonical 已激活全部
-// RELEASE_STUDENT_FEEDBACK 命令；这里对仍失败/未激活的题目执行 DERIVATIVE 重试，
-// 学生可见性由题级 release outbox 的 SUCCEEDED 状态派生。
+// 发布是显式授权动作：approve 在 TEACHER_CONFIRMED_RESULT revision 上创建的
+// RELEASE_STUDENT_FEEDBACK 命令带 assignmentResultReleaseGate，worker 只准备派生物、
+// 不授予学生可见性。这里逐题解除 gate 并唤醒命令（payload 记录显式发布审计），
+// worker 完成 feedbackRelease 后 reconcile 才把作业推进到 REVIEWED；全豁免作业
+// 没有题级命令，直接在 submission 上写入显式发布状态。
 export async function releaseAssignmentSubmissionGrade(db: any, input: {
   actor: AssignmentGradeActor;
   assignmentId: string;
@@ -149,35 +148,53 @@ export async function releaseAssignmentSubmissionGrade(db: any, input: {
   if (snapshot.revision.solutionReleasePolicy?.mode !== 'TEACHER_CONFIRMED_RESULT') {
     throw new AssignmentSubmissionGradeError('assignment-result-release-policy-invalid', 409);
   }
-  const retried: string[] = [];
-  const published: string[] = [];
+  if (!['APPROVED_PENDING_RELEASE', 'RELEASE_BLOCKED', 'REVIEWED'].includes(snapshot.submission.reviewState)) {
+    throw new AssignmentSubmissionGradeError('assignment-result-not-confirmed', 409);
+  }
+  const releaseAudit = { actorId: input.actor.id, releasedAt: now.toISOString() };
+  const releasedApprovals: string[] = [];
+  const pendingApprovals: string[] = [];
   for (const item of snapshot.items) {
     const approval = latestApproval(item);
-    if (!approval?.reviewId) continue;
+    if (!approval) continue;
     const releaseCommand = (approval.outboxCommands ?? []).find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
-    if (releaseCommand?.state === 'SUCCEEDED') {
-      published.push(approval.id);
+    if (!releaseCommand) continue;
+    const payload = releaseCommand.payload && typeof releaseCommand.payload === 'object' && !Array.isArray(releaseCommand.payload)
+      ? releaseCommand.payload
+      : {};
+    if (releaseCommand.state === 'SUCCEEDED' && approval.feedbackRelease) {
+      releasedApprovals.push(approval.id);
       continue;
     }
-    try {
-      await requestTeacherAssignmentFeedbackRelease(db, {
-        actor: { id: input.actor.id, role: input.actor.role },
-        assignmentId: input.assignmentId,
-        submissionId: snapshot.submissionId,
-        reviewId: approval.reviewId,
-        mode: 'RETRY_DERIVATIVE',
-        now,
-      });
-      retried.push(approval.id);
-    } catch (error) {
-      if ((error as any)?.code === 'teacher-review-release-command-missing') continue;
-      throw error;
-    }
+    await db.teacherAssignmentReviewOutbox.update({
+      where: { id: releaseCommand.id },
+      data: {
+        state: 'PENDING',
+        attemptCount: 0,
+        availableAt: now,
+        claimToken: null,
+        claimedAt: null,
+        leaseExpiresAt: null,
+        lastErrorCode: null,
+        limitationCode: null,
+        processedAt: null,
+        payload: { ...payload, assignmentResultReleaseGate: false, assignmentResultRelease: releaseAudit },
+        updatedAt: now,
+      },
+    });
+    pendingApprovals.push(approval.id);
+  }
+  if (pendingApprovals.length === 0) {
+    // 全豁免（或全部已发布）作业：没有可激活的题级命令，显式发布状态直接落在 submission 上。
+    await db.assignmentSubmission.update({
+      where: { id: snapshot.submissionId },
+      data: { reviewState: 'REVIEWED', reviewedAt: now, updatedAt: now },
+    });
   }
   const after = deriveClosureView(await loadSnapshot(db, input.snapshotId));
   return {
-    release: { snapshotId: snapshot.id, state: after.state, totalScore: after.totalScore, publishing: after.publishing, retriedApprovals: retried, publishedApprovals: published },
-    replay: retried.length === 0,
+    release: { snapshotId: snapshot.id, state: after.state, totalScore: after.totalScore, publishing: pendingApprovals.length > 0, releasedApprovals, pendingApprovals },
+    replay: pendingApprovals.length === 0,
   };
 }
 

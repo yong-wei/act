@@ -10,14 +10,12 @@ import {
   returnAssignmentQuestionForResubmission,
 } from '@/lib/assignments/assignment-grading-closure';
 
-const releaseFeedbackMock = vi.hoisted(() => vi.fn());
 const returnReviewMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/assignments/assignment-review', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/assignments/assignment-review')>();
   return {
     ...actual,
-    requestTeacherAssignmentFeedbackRelease: releaseFeedbackMock,
     returnTeacherAssignmentReview: returnReviewMock,
   };
 });
@@ -87,6 +85,8 @@ function dbFor(snapshot: any) {
     assignmentSubmissionSnapshot: { findUnique: vi.fn().mockResolvedValue(snapshot) },
     teacherAssignmentQuestionExemption: { upsert: vi.fn().mockResolvedValue({ id: 'exemption-1' }) },
     teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue({ id: 'review-1', version: 3 }) },
+    teacherAssignmentReviewOutbox: { update: vi.fn().mockResolvedValue({ id: 'command-1' }) },
+    assignmentSubmission: { update: vi.fn().mockResolvedValue({}) },
   };
   db.$transaction = vi.fn(async (callback: any) => callback(db));
   return db;
@@ -97,7 +97,6 @@ const baseInput = { actor, assignmentId: 'assignment-1', snapshotId: 'snapshot-1
 
 describe('assignment grading closure', () => {
   beforeEach(() => {
-    releaseFeedbackMock.mockReset();
     returnReviewMock.mockReset();
   });
 
@@ -199,32 +198,43 @@ describe('assignment grading closure', () => {
     await expect(releaseAssignmentSubmissionGrade(db, baseInput)).rejects.toMatchObject({ code: 'assignment-result-release-policy-invalid' });
   });
 
-  it('release replays fully published submissions without touching canonical commands', async () => {
+  it('release replays fully published submissions and persists the explicit release state', async () => {
     const snapshot = snapshotFixture();
     snapshot.submission.questionExemptions = [{ questionId: 'question-2', scoreEffect: 2, reason: '[EXEMPT] 缺席' }];
     snapshot.items[0].attempt.approvalSnapshots = [approvalFixture({
       outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED' }],
       feedbackRelease: { ownerStudentId: 'student-1', releasedAt: now },
     })];
+    snapshot.submission.reviewState = 'APPROVED_PENDING_RELEASE';
     const db = dbFor(snapshot);
     const result = await releaseAssignmentSubmissionGrade(db, baseInput);
     expect(result.replay).toBe(true);
-    expect(releaseFeedbackMock).not.toHaveBeenCalled();
+    expect(db.teacherAssignmentReviewOutbox.update).not.toHaveBeenCalled();
+    expect(db.assignmentSubmission.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'submission-1' },
+      data: expect.objectContaining({ reviewState: 'REVIEWED', reviewedAt: now }),
+    }));
   });
 
-  it('release delegates pending approvals to the canonical feedback release command', async () => {
+  it('release lifts the assignment-level gate and wakes pending publication commands', async () => {
     const snapshot = snapshotFixture();
     snapshot.submission.questionExemptions = [{ questionId: 'question-2', scoreEffect: 2, reason: '[EXEMPT] 缺席' }];
-    releaseFeedbackMock.mockResolvedValue({ replay: false, mode: 'RETRY_DERIVATIVE' });
+    snapshot.submission.reviewState = 'APPROVED_PENDING_RELEASE';
+    snapshot.items[0].attempt.approvalSnapshots = [approvalFixture({
+      outboxCommands: [{ id: 'command-1', command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED', payload: { assignmentResultReleaseGate: true } }],
+      feedbackRelease: null,
+    })];
     const db = dbFor(snapshot);
     const result = await releaseAssignmentSubmissionGrade(db, baseInput);
-    expect(releaseFeedbackMock).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      assignmentId: 'assignment-1',
-      submissionId: 'submission-1',
-      reviewId: 'review-1',
-      mode: 'RETRY_DERIVATIVE',
+    expect(db.teacherAssignmentReviewOutbox.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'command-1' },
+      data: expect.objectContaining({
+        state: 'PENDING',
+        payload: expect.objectContaining({ assignmentResultReleaseGate: false, assignmentResultRelease: { actorId: 'teacher-1', releasedAt: now.toISOString() } }),
+      }),
     }));
-    expect(result.release.retriedApprovals).toEqual(['approval-1']);
+    expect(result.release.pendingApprovals).toEqual(['approval-1']);
+    expect(db.assignmentSubmission.update).not.toHaveBeenCalled();
   });
 
   it('conclude writes a canonical question exemption with an audited reason', async () => {

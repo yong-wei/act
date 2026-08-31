@@ -51,6 +51,8 @@ describe('student assignment task center view model', () => {
     const result = presentStudentAssignmentResult({
       studentId: 'student-1',
       frozenStudentId: 'student-1',
+      reviewState: 'REVIEWED',
+      reviewedAt: new Date('2026-08-31T00:00:00.000Z'),
       answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }],
       approvalSnapshots: [{
         questionId: 'question-1',
