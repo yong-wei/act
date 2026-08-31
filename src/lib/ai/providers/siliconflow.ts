@@ -173,9 +173,12 @@ function prepareSiliconFlowRequestBody(
   const { stream_options: _streamOptions, ...providerBody } = requestBody;
 
   if (providerBody.model === QWEN_3_5_35B_A3B_MODEL) {
+    // 既有降级（显式 json_schema 调用方）保持不变；随后对带受治理标记的
+    // json_object 请求升级约束解码（Issue #1744）。
     const qwen35Body = withQwen35JsonObjectFallback(providerBody);
+    const constrainedBody = upgradeQwen35JsonObjectToSchema(qwen35Body);
     return {
-      ...qwen35Body,
+      ...constrainedBody,
       enable_thinking: false,
     };
   }
@@ -185,13 +188,60 @@ function prepareSiliconFlowRequestBody(
   }
 
   if (providerBody.model === QWEN_3_6_35B_A3B_MODEL) {
+    // 与 Qwen3.5 相同的受治理约束解码升级（同属 thinking-toggle 白名单，
+    // 实测支持 json_schema 且输出完整结束）。
     return {
-      ...providerBody,
+      ...upgradeQwen35JsonObjectToSchema(providerBody),
       enable_thinking: config.modelOptions?.enableThinking ?? false,
     };
   }
 
   return providerBody;
+}
+
+/** 受治理结构化输出的固定标记（generateUnvalidatedJson 拼接）。 */
+const GOVERNED_JSON_SCHEMA_MARKER = '必须遵循的 JSON Schema：';
+
+/**
+ * Issue #1744：ai-sdk 结构化路径发出的 json_object 在诊断规模 prompt 下
+ * 无约束输出膨胀，在输出预算处截断（finish=length）并触发 text-JSON
+ * fallback 二次截断。请求尾部的受治理 schema 标记可确定性提取时，把
+ * response_format 升级为 json_schema 约束解码（strict:false 不要求
+ * schema 满足 OpenAI strict 形态）；提取失败保持原样（fail-open）。
+ */
+function upgradeQwen35JsonObjectToSchema(providerBody: Record<string, unknown>): Record<string, unknown> {
+  const responseFormat = providerBody.response_format;
+  if (
+    typeof responseFormat !== 'object' || responseFormat === null
+    || (responseFormat as { type?: unknown }).type !== 'json_object'
+  ) {
+    return providerBody;
+  }
+  const messages = Array.isArray(providerBody.messages) ? providerBody.messages : [];
+  const lastUser = [...messages].reverse().find((message) => (
+    typeof message === 'object' && message !== null && (message as { role?: unknown }).role === 'user'
+  )) as { content?: unknown } | undefined;
+  if (typeof lastUser?.content !== 'string') return providerBody;
+  const markerIndex = lastUser.content.lastIndexOf(GOVERNED_JSON_SCHEMA_MARKER);
+  if (markerIndex < 0) return providerBody;
+  let schema: unknown;
+  try {
+    schema = JSON.parse(lastUser.content.slice(markerIndex + GOVERNED_JSON_SCHEMA_MARKER.length));
+  } catch {
+    return providerBody;
+  }
+  if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) return providerBody;
+  return {
+    ...providerBody,
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'governed_output',
+        schema,
+        strict: false,
+      },
+    },
+  };
 }
 
 function withQwen35JsonObjectFallback(providerBody: Record<string, unknown>): Record<string, unknown> {

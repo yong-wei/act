@@ -174,6 +174,147 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     ]);
   });
 
+  it('upgrades Qwen3.5 governed json_object requests to constrained json_schema decoding', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model: 'Qwen/Qwen3.5-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: true, jsonSchema: true, streaming: true, citationNormalization: true },
+    };
+
+    createSiliconFlowAdapter(config);
+    const governedSchema = { type: 'object', properties: { summary: { type: 'string' } }, required: ['summary'] };
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'Qwen/Qwen3.5-35B-A3B',
+          messages: [
+            { role: 'system', content: '你是教师学情诊断生成器。' },
+            { role: 'user', content: `诊断输入\n必须遵循的 JSON Schema：${JSON.stringify(governedSchema)}` },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string,
+    ) as Record<string, unknown>;
+    expect(forwardedBody.response_format).toEqual({
+      type: 'json_schema',
+      json_schema: { name: 'governed_output', schema: governedSchema, strict: false },
+    });
+    expect(forwardedBody.enable_thinking).toBe(false);
+  });
+
+  it('upgrades Qwen3.6 governed json_object requests to constrained json_schema decoding', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model: 'Qwen/Qwen3.6-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: true, jsonSchema: true, streaming: true, citationNormalization: true },
+      modelOptions: { enableThinking: false },
+    };
+
+    createSiliconFlowAdapter(config);
+    const governedSchema = { type: 'object', properties: { summary: { type: 'string' } }, required: ['summary'] };
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'Qwen/Qwen3.6-35B-A3B',
+          messages: [
+            { role: 'user', content: `诊断输入\n必须遵循的 JSON Schema：${JSON.stringify(governedSchema)}` },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string,
+    ) as Record<string, unknown>;
+    expect(forwardedBody.response_format).toEqual({
+      type: 'json_schema',
+      json_schema: { name: 'governed_output', schema: governedSchema, strict: false },
+    });
+    expect(forwardedBody.enable_thinking).toBe(false);
+  });
+
+  it('keeps Qwen3.5 json_object requests unchanged when the governed marker is absent or malformed', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}'));
+    const { createSiliconFlowAdapter } = await import(
+      '@/lib/ai/providers/siliconflow'
+    );
+    const config: AIProviderConfig = {
+      provider: 'siliconflow',
+      providerKind: 'openai-compatible',
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
+      model: 'Qwen/Qwen3.5-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: true, jsonSchema: true, streaming: true, citationNormalization: true },
+    };
+
+    createSiliconFlowAdapter(config);
+    await openAIMockState.createOpenAIOptions?.fetch?.(
+      'https://api.siliconflow.cn/v1/chat/completions',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'Qwen/Qwen3.5-35B-A3B',
+          messages: [
+            { role: 'user', content: '普通结构化请求，没有受治理标记' },
+            { role: 'user', content: '必须遵循的 JSON Schema：{损坏的 JSON' },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+      },
+    );
+
+    const forwardedBody = JSON.parse(
+      fetchMock.mock.calls[0]?.[1]?.body as string,
+    ) as Record<string, unknown>;
+    // fail-open：标记缺失或 JSON 损坏时保持 json_object 原样。
+    expect(forwardedBody.response_format).toEqual({ type: 'json_object' });
+    expect(forwardedBody.enable_thinking).toBe(false);
+  });
+
   it('converts Qwen3-VL JSON Schema requests to JSON Object with the schema preserved', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
