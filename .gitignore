@@ -80,6 +80,8 @@ course-content/slides-ref
 *.pdf
 
 # Run-specific QA screenshots and traces. Representative fixtures stay force-added.
+# Diagnosis benchmark run outputs (runtime artifacts, not source of truth)
+artifacts/diagnosis-benchmark/
 artifacts/**/*.png
 artifacts/**/*.jpg
 artifacts/**/*.jpeg
