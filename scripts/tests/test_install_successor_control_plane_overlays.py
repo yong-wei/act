@@ -719,6 +719,90 @@ class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             self.assertEqual(published["authorityReleaseId"], predecessor["releaseId"])
             self.assertFalse(published.get("applied", False))
 
+    def test_selection_lock_is_held_during_apply(self):
+        import fcntl
+        import subprocess
+        import time
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "project").mkdir()
+            (root / "state").mkdir()
+            selected = self.prepare_view_root(root)
+            source = root / "source"
+            installer = InstallSuccessorControlPlaneOverlaysTest()
+            predecessor = {
+                "projectionId": "proj-" + ("1" * 64),
+                "projectionHash": "1" * 64,
+                "publicationId": "proj-" + ("2" * 64),
+                "publicationHash": "2" * 64,
+                "catalogId": "adc-" + ("3" * 64),
+                "catalogHash": "3" * 64,
+                "snapshot": "4" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.22",
+                "shardSetId": "ads-" + ("5" * 64),
+                "shardSetHash": "5" * 64,
+                "activationId": "activation-v022",
+                "activationHash": "6" * 64,
+                "receiptId": "v022-cutover-consumers",
+                "domainProjectionId": "proj-" + ("8" * 64),
+                "domainProjectionHash": "8" * 64,
+            }
+            successor = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            installer.populate_source(selected, predecessor)
+            installer.populate_source(source, successor)
+            seal_successor_domain_teaching(source, successor)
+            installer.attach_successor_blob_payloads(selected, root, successor)
+            marker = root / "state" / "deploy-started"
+            deploy = root / "deploy.sh"
+            deploy.write_text(
+                "#!/bin/bash\nprintf started > \"%s\"\nsleep 8\nexit 1\n" % marker,
+                encoding="utf-8",
+            )
+            os.chmod(deploy, 0o755)
+            proc = subprocess.Popen(
+                [
+                    "bash", str(REMOTE),
+                    "--source", str(source),
+                    "--expected-authority-release-id", successor["releaseId"],
+                    "--expected-teaching-projection-hash", successor["projectionHash"],
+                    "--expected-domain-teaching-projection-hash", successor["domainProjectionHash"],
+                    "--release-id", "runtime-test1",
+                    "--apply",
+                ],
+                cwd=str(ROOT),
+                env=self.overlay_env(root, deploy),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            deadline = time.time() + 15
+            while not marker.exists() and proc.poll() is None and time.time() < deadline:
+                time.sleep(0.1)
+            self.assertTrue(marker.exists(), proc.stderr.read() if proc.poll() is not None else "apply did not reach consumer restart")
+            lock_path = root / "state" / ".act-runtime-selection.lock"
+            with lock_path.open("a", encoding="utf-8") as handle:
+                with self.assertRaises(BlockingIOError):
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            stdout, stderr = proc.communicate(timeout=20)
+            self.assertNotEqual(proc.returncode, 0, stderr or stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

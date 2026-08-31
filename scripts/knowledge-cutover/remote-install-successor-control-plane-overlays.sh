@@ -48,11 +48,32 @@ done
 
 lock_path="$STATE_DIR/.act-runtime-selection.lock"
 mkdir -p "$STATE_DIR"
+lock_holder=""
+release_selection_lock() {
+  if [[ -n "$lock_holder" ]]; then
+    kill "$lock_holder" 2>/dev/null || true
+    wait "$lock_holder" 2>/dev/null || true
+    lock_holder=""
+  fi
+}
 exec 9>"$lock_path"
 if command -v flock >/dev/null 2>&1; then
   flock 9
 else
-  python3 -c 'import fcntl; fcntl.flock(9, fcntl.LOCK_EX)'
+  exec 8< <(python3 -c 'import fcntl, os, signal, sys
+fcntl.flock(9, fcntl.LOCK_EX)
+os.write(1, b"locked\n")
+sys.stdout.flush()
+signal.pause()
+')
+  lock_holder=$!
+  IFS= read -r locked_line <&8 || true
+  if [[ "$locked_line" != "locked" ]]; then
+    echo "ERROR: file lock is unavailable" >&2
+    release_selection_lock
+    exit 1
+  fi
+  trap release_selection_lock EXIT
 fi
 
 current_link="$VIEW_ROOT/current"
