@@ -5,6 +5,7 @@ type OverviewDb = Record<string, any>;
 
 export interface TeacherAiGradingLabOverview {
   datasets: Array<{ datasetId: string; datasetVersion: string; datasetKind: 'synthetic' | 'pilot' | 'preflight' | 'first-round'; sampleCount: number; questionCount: number }>;
+  incompatibleDatasets: Array<{ datasetId: string; datasetVersion: string; reason: string }>;
   configurations: Array<{ configurationVersion: string; datasetId: string; datasetVersion: string; splitId: string; createdAt: string }>;
   batches: Array<{ evaluationRunId: string; configurationVersion: string; state: string; totalExecutions: number; completedCount: number; failedCount: number; retryableCount: number; hiddenAcceptanceState: string | null; updatedAt: string }>;
   metrics: { completedRate: number | null; meanAbsoluteScoreDifference: number | null; exactScoreRate: number | null; threeRunExactStabilityRate: number | null };
@@ -20,7 +21,7 @@ export async function getTeacherAiGradingLabOverview(input: {
   db: OverviewDb;
   datasetStore: TeacherAiGradingLabDatasetStore;
 }): Promise<TeacherAiGradingLabOverview> {
-  const [datasets, configurations, batches, executions, pdfVerifications, annotationJudgments, visualEvidenceJudgments] = await Promise.all([
+  const [datasetListing, configurations, batches, executions, pdfVerifications, annotationJudgments, visualEvidenceJudgments] = await Promise.all([
     input.datasetStore.list(),
     input.db.teacherAiGradingExperimentConfig.findMany({
       select: { id: true, datasetId: true, datasetVersion: true, splitId: true, contentHash: true, metricVersion: true, splitContentHash: true, createdAt: true },
@@ -143,7 +144,8 @@ export async function getTeacherAiGradingLabOverview(input: {
   });
   const metrics = metricsByRun.length === 1 ? metricsByRun[0] : null;
   return {
-    datasets,
+    datasets: datasetListing.datasets,
+    incompatibleDatasets: datasetListing.incompatible,
     configurations: configurations.map((row: any) => ({
       configurationVersion: row.id, datasetId: row.datasetId, datasetVersion: row.datasetVersion,
       splitId: row.splitId, createdAt: row.createdAt.toISOString(),

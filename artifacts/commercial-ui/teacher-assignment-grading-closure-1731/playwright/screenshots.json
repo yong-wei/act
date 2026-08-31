@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-08-31T13:24:37.535Z",
+  "entries": [
+    {
+      "name": "grading-console-768",
+      "viewport": 768,
+      "screenshot": "grading-console-768.png",
+      "widthEvidence": "grading-console-768-width.json"
+    },
+    {
+      "name": "grading-console-1024",
+      "viewport": 1024,
+      "screenshot": "grading-console-1024.png",
+      "widthEvidence": "grading-console-1024-width.json"
+    },
+    {
+      "name": "grading-console-1440",
+      "viewport": 1440,
+      "screenshot": "grading-console-1440.png",
+      "widthEvidence": "grading-console-1440-width.json"
+    },
+    {
+      "name": "grade-workspace-awaiting-768",
+      "viewport": 768,
+      "screenshot": "grade-workspace-awaiting-768.png",
+      "widthEvidence": "grade-workspace-awaiting-768-width.json"
+    },
+    {
+      "name": "grade-workspace-released-768",
+      "viewport": 768,
+      "screenshot": "grade-workspace-released-768.png",
+      "widthEvidence": "grade-workspace-released-768-width.json"
+    },
+    {
+      "name": "grade-workspace-awaiting-1024",
+      "viewport": 1024,
+      "screenshot": "grade-workspace-awaiting-1024.png",
+      "widthEvidence": "grade-workspace-awaiting-1024-width.json"
+    },
+    {
+      "name": "grade-workspace-released-1024",
+      "viewport": 1024,
+      "screenshot": "grade-workspace-released-1024.png",
+      "widthEvidence": "grade-workspace-released-1024-width.json"
+    },
+    {
+      "name": "grade-workspace-awaiting-1440",
+      "viewport": 1440,
+      "screenshot": "grade-workspace-awaiting-1440.png",
+      "widthEvidence": "grade-workspace-awaiting-1440-width.json"
+    },
+    {
+      "name": "grade-workspace-released-1440",
+      "viewport": 1440,
+      "screenshot": "grade-workspace-released-1440.png",
+      "widthEvidence": "grade-workspace-released-1440-width.json"
+    },
+    {
+      "name": "grade-workspace-awaiting-320",
+      "viewport": 320,
+      "screenshot": "grade-workspace-awaiting-320.png",
+      "widthEvidence": "grade-workspace-awaiting-320-width.json"
+    },
+    {
+      "name": "grade-workspace-released-320",
+      "viewport": 320,
+      "screenshot": "grade-workspace-released-320.png",
+      "widthEvidence": "grade-workspace-released-320-width.json"
+    },
+    {
+      "name": "grade-workspace-awaiting-375",
+      "viewport": 375,
+      "screenshot": "grade-workspace-awaiting-375.png",
+      "widthEvidence": "grade-workspace-awaiting-375-width.json"
+    },
+    {
+      "name": "grade-workspace-released-375",
+      "viewport": 375,
+      "screenshot": "grade-workspace-released-375.png",
+      "widthEvidence": "grade-workspace-released-375-width.json"
+    },
+    {
+      "name": "student-result-768",
+      "viewport": 768,
+      "screenshot": "student-result-768.png",
+      "widthEvidence": "student-result-768-width.json"
+    },
+    {
+      "name": "student-result-1024",
+      "viewport": 1024,
+      "screenshot": "student-result-1024.png",
+      "widthEvidence": "student-result-1024-width.json"
+    },
+    {
+      "name": "student-result-1440",
+      "viewport": 1440,
+      "screenshot": "student-result-1440.png",
+      "widthEvidence": "student-result-1440-width.json"
+    },
+    {
+      "name": "student-result-320",
+      "viewport": 320,
+      "screenshot": "student-result-320.png",
+      "widthEvidence": "student-result-320-width.json"
+    },
+    {
+      "name": "student-result-375",
+      "viewport": 375,
+      "screenshot": "student-result-375.png",
+      "widthEvidence": "student-result-375-width.json"
+    }
+  ]
+}

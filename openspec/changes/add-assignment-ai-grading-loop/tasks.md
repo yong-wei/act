@@ -110,9 +110,17 @@
 - [x] 7.2 增加学生整份作业审核页：逐题结果、来源、失败/缺题状态、修改、确认和发布操作；保持与现有教师审核界面一致的交互和状态表达。
 - [x] 7.3 在现有学生作业页接入提交状态和已发布结果包，不泄露教师内部评分信息，并保持原学生作业页面的视觉风格和响应式行为。
 - [x] 7.4 为关键状态显示明确文案：未到截止、待批改、批改中、部分失败、待教师确认、已发布、补交待批改。
-- [x] 7.5 完成 Route Handler、服务层、数据库集成、浏览器交互和可见性回归测试。
+- [x] 7.5 完成 Route Handler、服务层、数据库集成、浏览器交互和可见性回归测试。（2026-08-31 reconciliation 重做：并行 grade 表与 facade 移除后，回归面迁移为 `assignment-grading-closure` 单测、grade route 单测、学生投影单测与守卫测试。）
 - [x] 7.6 运行定向测试、受影响 ESLint、typecheck、OpenSpec strict validate、`git diff --check`；记录未解决的模型质量风险但不把其伪装成闭环通过。
-- [x] 7.7 完成教师和学生最小端到端验收：发布一份作业、两名学生提交、截止后分别 AI/人工批改、教师修改并确认、逐份发布、学生读取结果、补交后增量批改。
+- [x] 7.7 完成教师和学生最小端到端验收：发布一份作业、两名学生提交、截止后分别 AI/人工批改、教师修改并确认、逐份发布、学生读取结果、补交后增量批改。（2026-08-31 reconciliation 重做：`tests/teacher-assignment-grading-closure-1731.spec.ts` Playwright 13/13 通过，覆盖教师批改控制台、整份审阅确认/发布、学生已发布结果，桌面 768/1024/1440 与移动 320/375 视口含无横向溢出守卫；截图与宽度证据在 `artifacts/commercial-ui/teacher-assignment-grading-closure-1731/playwright/`。）
+
+## 阶段 8：integration reconciliation（2026-08-31）
+
+- [x] 8.1 合并 `origin/integration`（落后 458 个提交），解决 9 个 git 冲突；工具链、vitest 配置以 integration 为准。
+- [x] 8.2 按 `assignment-review-feedback-authority` spec 移除 `AssignmentSubmissionGrade`/`Confirmation`/`Release`/`AssignmentQuestionConclusion` 表、enum、迁移与物化 facade，作业级状态改为从题级 canonical 审批快照、豁免与发布 outbox 派生。
+- [x] 8.3 批改编排、人工批改、批注资产与 grade 路由全部经 `src/lib/assignments/public-api` 薄壳化，恢复架构守卫测试通过。
+- [x] 8.4 学生结果包从题级审批动态组装；全部题目发布成功才对本人可见。
+- [x] 8.5 教师实验室数据集 listing 逐份隔离违反量规契约的旧数据集并显式上报原因，不再让单个旧数据集阻断 overview。
 
 ## 阶段完成门槛
 

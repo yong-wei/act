@@ -46,17 +46,17 @@
 
 备选方案是把一键批改实现成新的整份作业 Provider 调用。它与现有按题目提交、量规、证据和失败隔离模型冲突，因此不采用。
 
-### 4. 作业级聚合为确认与发布的唯一门禁
+### 4. 作业级完整性由题级 canonical 审批派生，不再落并行聚合表
 
-新建 `AssignmentSubmissionGrade`，每个 `AssignmentSubmissionSnapshot` 有一条聚合记录。它持有题目状态投影、总分、完整性状态、确认者/时间、发布者/时间、当前确认快照和版本。聚合服务从快照中的题目 attempt、题目级 AI/人工结果与教师明确结论重算，不在提交时自动计零。
+> 2026-08-31 integration reconciliation 更新：本仓库 `assignment-review-feedback-authority` spec 禁止第二套表/状态机，原设计中的 `AssignmentSubmissionGrade`/`Confirmation`/`Release` 三表已移除。
 
-完整性只有在每道题都有当前 AI/人工评分，或教师记录 `UNANSWERED`/`EXEMPT` 结论时才成立。确认冻结最终题目值、答案/量规 revision 哈希、attempt-vector hash 和总分；已确认版本不能被后续 AI 覆盖。补交为包含新旧题目 attempt 向量的新快照和新聚合，而历史确认和发布快照继续可审计。
+作业级状态、总分与完整性全部从题级 canonical 数据派生：每个 `AssignmentSubmissionSnapshotItem` 依据当前 attempt 的 `TeacherAssignmentApprovalSnapshot`（人工优先）或 canonical `TeacherAssignmentQuestionExemption` 汇总；服务层为 `src/lib/assignments/assignment-grading-closure.ts`。教师确认即题级 approve（唯一分数权威与审计来源），作业级 CONFIRM 仅在服务端重算完整性并返回派生确认视图（天然幂等）。补交产生新快照，旧审批与豁免继续可审计。
 
-### 5. 发布包由作业级确认快照原子生成
+### 5. 学生结果包由题级发布命令派生，作业级原子可见
 
-发布命令仅接受已完整并确认的 `AssignmentSubmissionGrade` 版本。事务创建 `AssignmentResultRelease` 和不可变学生投影，其中包含总分、逐题分数、教师确认批注、答案快照和量规快照。学生接口只查询自己的已发布投影；内部 AI 原始结果、失败和修改历史不进入投影。
+> 2026-08-31 integration reconciliation 更新：不新建 `AssignmentResultRelease` 表。
 
-现有题目级反馈 outbox 保留为派生反馈/附件链路，但 `RELEASE_STUDENT_FEEDBACK` 不再独立授予学生可见性。对新确认发布 revision，它只能生成或准备受作业级 release 引用的派生产物；学生投影只读取 `AssignmentResultRelease`，并且该 release 仅在所需派生产物完成后成功。历史 revision 继续保持旧题目级 feedback release 行为。
+学生可见性仍以题级 `RELEASE_STUDENT_FEEDBACK` outbox 为唯一权威：approve 达成完整性时 canonical 自动激活全部题目发布命令；作业级 RELEASE 对失败命令执行 canonical 重试。学生接口在 `TEACHER_CONFIRMED_RESULT` revision 上仅当快照内全部题目的发布命令 `SUCCEEDED` 且 feedbackRelease 归属本人时，才从题级审批快照动态组装 `assignment-student-result.v1` 结果包（总分恒为题级教师审批分数之和）。任一题目未发布则整体不可见，保持作业级原子性；历史 revision 维持旧题目级行为。
 
 ### 6. 批改与补交都以截止时间作为服务端门禁
 
@@ -64,7 +64,7 @@
 
 ### 7. 状态转换、错误码与审计字段在服务层统一定义
 
-题目级评分状态不引入第二套枚举：`GradingBatchItemState` 使用 `QUEUED -> CONVERTING | GRADING -> SUCCEEDED | FAILED | RETRYABLE | BLOCKED`，AI `GradingRunState` 使用既有 `QUEUED -> RUNNING -> AWAITING_REVIEW | FAILED | RETRYABLE | BLOCKED`，人工运行进入 `AWAITING_REVIEW`。`AssignmentGradingOperation` 的状态只表达编排进度，并显式映射为 `QUEUED`、`RUNNING`、`PARTIAL`、`SUCCEEDED`、`FAILED` 或 `BLOCKED`。作业级结果状态为 `PENDING_GRADING -> PARTIAL_FAILURE | AWAITING_CONFIRMATION -> CONFIRMED -> RELEASED`；它是新聚合表专属状态，不复用 `GradingRunState`。补交的新快照生成新结果版本并回到 `PENDING_GRADING`，不回写旧版本。教师明确的 `UNANSWERED` 或 `EXEMPT` 只能解决对应题目的完整性，不删除失败记录。
+题目级评分状态不引入第二套枚举：`GradingBatchItemState` 使用 `QUEUED -> CONVERTING | GRADING -> SUCCEEDED | FAILED | RETRYABLE | BLOCKED`，AI `GradingRunState` 使用既有 `QUEUED -> RUNNING -> AWAITING_REVIEW | FAILED | RETRYABLE | BLOCKED`，人工运行进入 `AWAITING_REVIEW`。`AssignmentGradingOperation` 的状态只表达编排进度，并显式映射为 `QUEUED`、`RUNNING`、`PARTIAL`、`SUCCEEDED`、`FAILED` 或 `BLOCKED`。作业级结果状态为派生视图 `PENDING_GRADING -> PARTIAL_FAILURE | AWAITING_CONFIRMATION -> RELEASED`（2026-08-31 reconciliation：不再有物化 `CONFIRMED` 态，题级 approve 即确认，`CONFIRMED` 从 UI 状态机中移除）；它不复用 `GradingRunState`，也不落库。补交的新快照重新按当前 attempt 派生，不回写旧审批。教师明确的 `UNANSWERED` 或 `EXEMPT` 落 canonical `TeacherAssignmentQuestionExemption`（唯一约束 `submissionId+questionId` 提供幂等），只解决对应题目的完整性，不删除失败记录。
 
 服务层使用稳定错误码：`assignment-grading-before-deadline`、`assignment-grading-operation-conflict`、`assignment-grading-attempt-not-eligible`、`assignment-manual-grading-invalid`、`assignment-result-incomplete`、`assignment-result-confirmation-conflict`、`assignment-result-not-confirmed`、`assignment-result-release-conflict`、`assignment-solution-release-policy-invalid`、`assignment-resubmission-before-deadline` 与 `assignment-result-access-forbidden`。Route Handler 只投影这些安全错误，不暴露 Provider 原始信息。
 
@@ -76,7 +76,7 @@
 
 ## Risks / Trade-offs
 
-- [既有题目级反馈 release 与作业级发布并存] → 作业级发布作为学生答案/量规可见性的唯一权威，题目级 outbox 仅作为受其约束的派生反馈链路。
+- [题目级反馈 release 与作业级可见性并存] → 题级 `RELEASE_STUDENT_FEEDBACK` outbox 仍是唯一发布权威；作业级仅以「全部题目发布成功」作为结果包（含总分）的派生可见门禁，题目级反馈（批注 PDF/结构化反馈）按 canonical 语义独立可见。
 - [人工记录缺少 `AnswerEvidence`] → 人工记录复用提交 attempt 与冻结题目/量规；若需要原始证据，仍通过既有 submission 资产授权读取，不伪造 AI 证据。
 - [并发重试或补交] → 每次操作冻结 attempt 范围，使用请求哈希、幂等键、唯一约束和乐观版本检查；历史运行不可被覆盖。
 - [旧作业兼容] → 只为新发布 revision 写入新策略，读路径以冻结策略分支；不批量更新历史 JSON。

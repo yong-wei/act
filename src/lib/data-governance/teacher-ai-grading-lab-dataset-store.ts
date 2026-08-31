@@ -51,13 +51,16 @@ export interface TeacherAiGradingLabDatasetStore {
     runnable: false;
     redactionState: 'pending';
   }>;
-  list(): Promise<Array<{
-    datasetId: string;
-    datasetVersion: string;
-    datasetKind: TeacherAiGradingLabManifest['datasetKind'];
-    sampleCount: number;
-    questionCount: number;
-  }>>;
+  list(): Promise<{
+    datasets: Array<{
+      datasetId: string;
+      datasetVersion: string;
+      datasetKind: TeacherAiGradingLabManifest['datasetKind'];
+      sampleCount: number;
+      questionCount: number;
+    }>;
+    incompatible: Array<{ datasetId: string; datasetVersion: string; reason: string }>;
+  }>;
   loadEvaluation(key: TeacherAiGradingLabDatasetKey): Promise<LoadedTeacherAiGradingEvaluationDataset>;
   load(key: TeacherAiGradingLabDatasetKey): Promise<LoadedTeacherAiGradingLabDataset>;
 }
@@ -91,27 +94,49 @@ export function createFileSystemTeacherAiGradingLabDatasetStore(input: {
           .filter((entry) => entry.isDirectory() && /^[a-z0-9][a-z0-9_-]{1,63}$/.test(entry.name))
           .map((entry) => entry.name);
       } catch (error: any) {
-        if (error?.code === 'ENOENT') return [];
+        if (error?.code === 'ENOENT') return { datasets: [], incompatible: [] };
         throw error;
       }
-      const datasets = await Promise.all(datasetIds.flatMap(async (datasetId) => {
+      // 旧数据集可能违反 0.5 分粒度等量规契约；逐份隔离并显式上报原因，
+      // 不得让单个不兼容数据集阻断整个实验室概览。
+      const incompatible: Array<{ datasetId: string; datasetVersion: string; reason: string }> = [];
+      const datasets: Array<{
+        datasetId: string;
+        datasetVersion: string;
+        datasetKind: TeacherAiGradingLabManifest['datasetKind'];
+        sampleCount: number;
+        questionCount: number;
+      }> = [];
+      for (const datasetId of datasetIds) {
         const versions = await readdir(controlledPath(datasetsRoot, datasetId), { withFileTypes: true });
-        return Promise.all(versions
-          .filter((entry) => entry.isDirectory() && /^[a-z0-9][a-z0-9_-]{1,63}$/.test(entry.name))
-          .map(async (entry) => {
+        for (const entry of versions) {
+          if (!entry.isDirectory() || !/^[a-z0-9][a-z0-9_-]{1,63}$/.test(entry.name)) continue;
+          try {
             const loaded = await loadEvaluationDataset(dataRoot, config, { datasetId, datasetVersion: entry.name });
-            return {
+            datasets.push({
               datasetId: loaded.datasetId,
               datasetVersion: loaded.datasetVersion,
               datasetKind: loaded.manifest.datasetKind,
               sampleCount: loaded.manifest.samples.length,
               questionCount: loaded.questions.questions.length,
-            };
-          }));
-      }));
-      return datasets.flat().sort((left, right) => (
-        left.datasetId.localeCompare(right.datasetId) || left.datasetVersion.localeCompare(right.datasetVersion)
-      ));
+            });
+          } catch (error) {
+            incompatible.push({
+              datasetId,
+              datasetVersion: entry.name,
+              reason: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+      }
+      return {
+        datasets: datasets.sort((left, right) => (
+          left.datasetId.localeCompare(right.datasetId) || left.datasetVersion.localeCompare(right.datasetVersion)
+        )),
+        incompatible: incompatible.sort((left, right) => (
+          left.datasetId.localeCompare(right.datasetId) || left.datasetVersion.localeCompare(right.datasetVersion)
+        )),
+      };
     },
     async loadEvaluation(key) {
       return loadEvaluationDataset(dataRoot, config, key);

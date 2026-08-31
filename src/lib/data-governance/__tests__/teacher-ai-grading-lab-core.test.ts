@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -365,9 +365,12 @@ describe('teacher AI grading lab core', () => {
     expect(reloaded.baseline.samples[0].sampleId).toBe('sample-abcd');
     expect(reloaded.questions.questions[0].questionId).toBe('T1-4');
     await expect(reloaded.readSubmission('sample-abcd', 'T1-4')).resolves.toEqual(expect.any(Buffer));
-    expect(listed).toEqual([{
-      datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetKind: 'synthetic', sampleCount: 1, questionCount: 1,
-    }]);
+    expect(listed).toEqual({
+      datasets: [{
+        datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetKind: 'synthetic', sampleCount: 1, questionCount: 1,
+      }],
+      incompatible: [],
+    });
     expect(JSON.stringify({ validated, imported })).not.toContain(dataRoot);
   });
 
@@ -616,9 +619,35 @@ describe('teacher AI grading lab core', () => {
     await datasetStore.importPackage(await buildSyntheticTeacherAiGradingPackage());
     await rm(join(dataRoot, 'datasets', 'synthetic-t1', 'v1', 'baseline.json'));
 
-    await expect(datasetStore.list()).resolves.toEqual([{
+    await expect(datasetStore.list()).resolves.toEqual({
+      datasets: [{
+        datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetKind: 'synthetic', sampleCount: 1, questionCount: 1,
+      }],
+      incompatible: [],
+    });
+  });
+
+  it('isolates legacy datasets that violate the rubric contract instead of failing the listing', async () => {
+    const dataRoot = await mkdtemp(join(tmpdir(), 'grading-lab-list-isolation-legacy-'));
+    temporaryRoots.push(dataRoot);
+    const datasetStore = createFileSystemTeacherAiGradingLabDatasetStore({ dataRoot });
+    await datasetStore.importPackage(await buildSyntheticTeacherAiGradingPackage());
+    // 注入一份校验必败的旧数据集（manifest 引用缺失的题目文件，等价于
+    // 旧量规契约不合规）：listing 必须逐份隔离而不是整体抛错。
+    const legacyRoot = join(dataRoot, 'datasets', 'synthetic-t1', 'v2');
+    await mkdir(legacyRoot, { recursive: true });
+    const manifest = JSON.parse(await readFile(join(dataRoot, 'datasets', 'synthetic-t1', 'v1', 'manifest.json'), 'utf8'));
+    manifest.datasetVersion = 'v2';
+    manifest.question = { path: 'legacy-question.md', checksum: manifest.question.checksum };
+    await writeFile(join(legacyRoot, 'manifest.json'), JSON.stringify(manifest));
+
+    const listed = await datasetStore.list();
+
+    expect(listed.datasets).toEqual([{
       datasetId: 'synthetic-t1', datasetVersion: 'v1', datasetKind: 'synthetic', sampleCount: 1, questionCount: 1,
     }]);
+    expect(listed.incompatible).toHaveLength(1);
+    expect(listed.incompatible[0]).toMatchObject({ datasetId: 'synthetic-t1', datasetVersion: 'v2' });
   });
 
   it('loads only an owner-confirmed redacted copy and rejects every incomplete gate', async () => {
