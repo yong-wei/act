@@ -205,6 +205,26 @@ function isWeakProgressRow(row: { status: string; progress: number }): boolean {
     || (row.progress < DIAGNOSIS_WEAK_PROGRESS_THRESHOLD && row.status !== 'COMPLETED');
 }
 
+/**
+ * 节点薄弱资格的唯一判定真源（Issue #1728）：按诊断 scope 类型选择规则——
+ * 学生诊断（targetStudentId 存在）要求目标学生该节点行本身弱势；班级诊断
+ * 要求弱势学生数达到班级门槛，与班级实际人数无关（单人班级的班级级诊断
+ * 同样受 max(3, 20%) 约束，fail-closed 而非降级为单学生规则）。
+ */
+function weaknessEligibility(
+  stat: { coveredStudents: ReadonlySet<string>; weakStudents: ReadonlySet<string> },
+  targetStudentId: string | null | undefined,
+) {
+  const minimumWeakStudents = Math.max(
+    DIAGNOSIS_WEAK_MIN_STUDENTS,
+    Math.ceil(DIAGNOSIS_WEAK_MIN_STUDENT_RATIO * stat.coveredStudents.size),
+  );
+  const eligible = targetStudentId
+    ? stat.weakStudents.has(targetStudentId)
+    : stat.weakStudents.size >= minimumWeakStudents;
+  return { minimumWeakStudents, eligible };
+}
+
 export function buildKnowledgeNodeWeaknessStats(
   knowledgeProgress: ReadonlyArray<{ userId: string; nodeId: string; status: string; progress: number }>,
 ): DiagnosisNodeWeaknessStats {
@@ -240,6 +260,7 @@ export function enforceDiagnosisFindingCalibration(
   nodeByEvidenceRef: ReadonlyMap<string, string>,
   weaknessStats: DiagnosisNodeWeaknessStats,
   diagnosedStudentIds: ReadonlyArray<string>,
+  targetStudentId?: string | null,
 ) {
   const violations: string[] = [];
   let coverageGap = false;
@@ -268,14 +289,7 @@ export function enforceDiagnosisFindingCalibration(
     if (stat.coveredStudents.size < diagnosedStudentSet.size) {
       coverageGap = true;
     }
-    const minWeakStudents = Math.max(
-      DIAGNOSIS_WEAK_MIN_STUDENTS,
-      Math.ceil(DIAGNOSIS_WEAK_MIN_STUDENT_RATIO * stat.coveredStudents.size),
-    );
-    const qualifies = diagnosedStudentSet.size === 1
-      ? [...diagnosedStudentSet].every((studentId) => stat.weakStudents.has(studentId))
-      : stat.weakStudents.size >= minWeakStudents;
-    if (!qualifies) {
+    if (!weaknessEligibility(stat, targetStudentId).eligible) {
       violations.push(`findings[${index}]`);
     }
   });
@@ -449,6 +463,7 @@ export async function generateGovernedDiagnosisReport(
   const riskFlags = projectFrozenRiskFlags(governedInput.data, learnerAliasFor);
   const competency = input.targetStudentId ? null : projectFrozenCompetency(governedInput.data);
   const knowledgeProgress = projectFrozenKnowledgeProgress(governedInput.data, learnerAliasFor);
+  const weaknessStats = buildKnowledgeNodeWeaknessStats(governedInput.data.knowledgeProgress);
   const toolAudit = [
     auditToolResult('get_class_assignment_outcomes', assignments),
     auditToolResult('get_class_assessment_outcomes', assessments),
@@ -465,7 +480,7 @@ export async function generateGovernedDiagnosisReport(
     assessments: compactAssessmentsForProvider(assessments),
     riskFlags: compactRiskFlagsForProvider(riskFlags),
     competency: competency ? compactCompetencyForProvider(competency) : null,
-    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress),
+    knowledgeProgress: compactKnowledgeProgressForProvider(knowledgeProgress, weaknessStats, input.targetStudentId),
   };
 
   const provider = await resolveSmartLessonStructuredProvider();
@@ -481,7 +496,7 @@ export async function generateGovernedDiagnosisReport(
         'findings 中引用 knowledge-progress 证据的知识点发现必须携带与引用证据一致的有效 knowledgeNodeId；总体风险、成绩分布等非知识点发现不需要 knowledgeNodeId。',
         '不得创建输入中不存在的 evidenceRefs；不得推断学生身份或输出原始证据。',
         '无法确定知识节点 ID 时，必须省略 findings[].knowledgeNodeId；不得输出空字符串、null 或编造 ID。',
-        '知识点薄弱判定必须锚定绝对弱势证据：只有该节点上存在长期未开始（NOT_STARTED）或进度低于 40 且未完成的学生时，才可判为薄弱；班级诊断时弱势学生不足 max(3, 有进度记录学生的 20%) 的节点不得判为薄弱。',
+        '知识点薄弱判定必须锚定绝对弱势证据：绝对弱势指长期未开始（NOT_STARTED）或进度低于 40 且未完成。governedToolResults.knowledgeProgress.nodeWeakness 已按节点给出 weakStudentCount、coveredStudentCount、minimumWeakStudents 与 eligibleForWeaknessFinding 判定结果；知识点薄弱判定只应锚定 eligibleForWeaknessFinding 为 true 的节点，不得自行按聚合进度估算弱势人数。',
         '仅凭班级内相对较低、但仍处于正常范围（已完成或进度不低于 40）的排序位置，不得把节点判为薄弱；"学完但整体测评不理想"等班级整体问题用不带 knowledgeNodeId 的总体发现表达。',
         '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
         '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
@@ -558,7 +573,6 @@ export async function generateGovernedDiagnosisReport(
   }
   // 薄弱判定校准契约（Issue #1728）：不满足最小绝对弱势证据的知识点
   // 薄弱判定与覆盖不足未降级的报告按模型行为缺陷拒绝重试，不得持久化。
-  const weaknessStats = buildKnowledgeNodeWeaknessStats(governedInput.data.knowledgeProgress);
   const calibrationViolations = enforceDiagnosisFindingCalibration(
     reportBody.findings,
     reportBody.confidence,
@@ -566,6 +580,7 @@ export async function generateGovernedDiagnosisReport(
     knowledgeNodeByEvidenceRef,
     weaknessStats,
     governedInput.data.studentIds,
+    input.targetStudentId,
   );
   if (calibrationViolations.length > 0) {
     throw new DiagnosisFindingCalibrationError(calibrationViolations);
@@ -814,7 +829,11 @@ function compactCompetencyForProvider(projection: ReturnType<typeof projectFroze
   };
 }
 
-function compactKnowledgeProgressForProvider(projection: ReturnType<typeof projectFrozenKnowledgeProgress>) {
+function compactKnowledgeProgressForProvider(
+  projection: ReturnType<typeof projectFrozenKnowledgeProgress>,
+  weaknessStats: DiagnosisNodeWeaknessStats,
+  targetStudentId?: string | null,
+) {
   const grouped = new Map<string, typeof projection.progress>();
   for (const row of projection.progress) {
     const key = `${row.knowledgeNodeId}\u0000${row.status}`;
@@ -822,6 +841,21 @@ function compactKnowledgeProgressForProvider(projection: ReturnType<typeof proje
     rows.push(row);
     grouped.set(key, rows);
   }
+  // 逐节点确定性弱势统计（Issue #1728 review）：进度分组只有聚合值，
+  // 模型无法自行数出弱势人数；把资格判定结果一并投影，保证提示词
+  // 指令与确定性校准门使用同一输入语义。
+  const nodeWeakness = [...weaknessStats.entries()]
+    .map(([nodeId, stat]) => {
+      const { minimumWeakStudents, eligible } = weaknessEligibility(stat, targetStudentId);
+      return {
+        knowledgeNodeId: nodeId,
+        weakStudentCount: stat.weakStudents.size,
+        coveredStudentCount: stat.coveredStudents.size,
+        minimumWeakStudents,
+        eligibleForWeaknessFinding: eligible,
+      };
+    })
+    .sort((left, right) => left.knowledgeNodeId.localeCompare(right.knowledgeNodeId));
   const progress = [...grouped.values()]
     .map((rows) => {
       const representative = takeEvenlyDistributed(
@@ -847,6 +881,7 @@ function compactKnowledgeProgressForProvider(projection: ReturnType<typeof proje
   return {
     classId: projection.classId,
     progress,
+    nodeWeakness,
     evidenceRefs: progress.flatMap((row) => row.evidenceRefs),
     sourceCoverage: projection.sourceCoverage,
     confidence: projection.confidence,

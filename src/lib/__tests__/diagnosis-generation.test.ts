@@ -1234,6 +1234,7 @@ describe('diagnosis finding knowledge-node attribution contract', () => {
 
     const result = await generateGovernedDiagnosisReport({} as never, {
       ...attributionRequest,
+      targetStudentId: 'student-1',
       attemptId: 'attempt-attribution-backfill',
     });
 
@@ -1643,6 +1644,86 @@ describe('diagnosis finding weakness-calibration contract', () => {
       attemptId: 'attempt-calibration-student-weak',
     });
     expect(result.reportBody.findings[0]?.knowledgeNodeId).toBe('node-weak');
+  });
+
+  it('projects deterministic node weakness stats into the provider tool results', async () => {
+    providerGenerate.mockResolvedValueOnce(calibrationOutput([
+      {
+        title: '关键知识点掌握薄弱',
+        knowledgeNodeId: 'node-weak',
+        evidenceRefs: ['knowledge-progress:weak-0', 'knowledge-progress:weak-1', 'knowledge-progress:weak-2'],
+      },
+    ]));
+
+    await generateGovernedDiagnosisReport({} as never, {
+      ...calibrationRequest,
+      attemptId: 'attempt-calibration-projection',
+    });
+
+    const prompt = providerGenerate.mock.calls.at(-1)?.[0]?.prompt as string;
+    const governed = JSON.parse(prompt).governedToolResults.knowledgeProgress;
+    const byNode = new Map(governed.nodeWeakness.map((entry: { knowledgeNodeId: string }) => [entry.knowledgeNodeId, entry]));
+    expect(byNode.get('node-weak')).toMatchObject({
+      weakStudentCount: 3,
+      coveredStudentCount: 10,
+      minimumWeakStudents: 3,
+      eligibleForWeaknessFinding: true,
+    });
+    expect(byNode.get('node-healthy')).toMatchObject({
+      weakStudentCount: 0,
+      eligibleForWeaknessFinding: false,
+    });
+    expect(byNode.get('node-barely')).toMatchObject({
+      weakStudentCount: 2,
+      minimumWeakStudents: 3,
+      eligibleForWeaknessFinding: false,
+    });
+    expect(byNode.get('node-partial')).toMatchObject({
+      weakStudentCount: 3,
+      coveredStudentCount: 8,
+      eligibleForWeaknessFinding: true,
+    });
+  });
+
+  it('applies the class threshold to a one-student class-level diagnosis', async () => {
+    const soloInput = {
+      schemaVersion: 'teacher-diagnosis-governed-input.v1',
+      classId: 'class-1',
+      studentIds: ['student-1'],
+      riskFlags: [],
+      competencySnapshots: [],
+      knowledgeProgress: [progressRow('solo-weak', 'student-1', 'node-weak', 'NOT_STARTED', 0)],
+    };
+    const soloRequest = {
+      ...calibrationRequest,
+      targetStudentId: null,
+      governedInput: soloInput,
+      inputDigest: digestDiagnosisGovernedInput(soloInput),
+    };
+
+    providerGenerate.mockResolvedValueOnce(calibrationOutput(
+      [{ title: '知识点长期未开始', knowledgeNodeId: 'node-weak', evidenceRefs: ['knowledge-progress:solo-weak'] }],
+      { reportRefs: ['knowledge-progress:solo-weak'] },
+    ));
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      ...soloRequest,
+      attemptId: 'attempt-calibration-solo-class',
+    })).rejects.toMatchObject({
+      name: 'DiagnosisFindingCalibrationError',
+      violations: ['findings[0]'],
+    });
+
+    const prompt = providerGenerate.mock.calls.at(-1)?.[0]?.prompt as string;
+    const byNode = new Map(
+      (JSON.parse(prompt).governedToolResults.knowledgeProgress.nodeWeakness as Array<{ knowledgeNodeId: string }>)
+        .map((entry) => [entry.knowledgeNodeId, entry]),
+    );
+    expect(byNode.get('node-weak')).toMatchObject({
+      weakStudentCount: 1,
+      coveredStudentCount: 1,
+      minimumWeakStudents: 3,
+      eligibleForWeaknessFinding: false,
+    });
   });
 
   it('records calibration-invalid provider output as retryable instead of non-retryable validation', async () => {
