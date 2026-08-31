@@ -155,6 +155,39 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             source / "knowledge/consumer-activation/releases" / identities["activationId"] / "activation.json",
             {"activationId": identities["activationId"]},
         )
+        write(
+            source / "knowledge/teaching-projection/domain-fragments/current.json",
+            domain_teaching_pointer(
+                identities["domainProjectionId"],
+                identities["domainProjectionHash"],
+                identities["releaseId"],
+            ),
+        )
+        write(
+            source / "knowledge/teaching-projection/domain-fragments/releases" / identities["domainProjectionId"] / "composed-manifest.json",
+            {
+                "projectionId": identities["domainProjectionId"],
+                "projectionHash": identities["domainProjectionHash"],
+            },
+        )
+
+    def attach_successor_blob_payloads(self, view: Path, root: Path, successor: dict) -> None:
+        blob = root / "blob"
+        if not blob.exists():
+            blob.write_bytes(b'{"projectionId":"successor"}\n')
+            os.chmod(blob, 0o644)
+        targets = [
+            view / "knowledge/projection/releases" / successor["projectionId"] / "projection-manifest.json",
+            view / "knowledge/prerequisites/releases" / successor["publicationId"] / "publication-manifest.json",
+            view / "knowledge/authority-domain-shards/sets" / successor["shardSetId"] / "manifest.json",
+            view / "knowledge/consumer-activation/releases" / successor["activationId"] / "activation.json",
+            view / "knowledge/consumer-activation/activations" / (successor["receiptId"] + ".json"),
+        ]
+        for target in targets:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.exists() or target.is_symlink():
+                target.unlink()
+            os.symlink(str(blob), target)
 
     def test_replaces_predecessor_overlays_and_keeps_successor_blob_payloads(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -175,6 +208,8 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "activationId": "activation-v022",
                 "activationHash": "6" * 64,
                 "receiptId": "v022-cutover-consumers",
+                "domainProjectionId": "proj-" + ("8" * 64),
+                "domainProjectionHash": "8" * 64,
             }
             successor = {
                 "projectionId": "proj-" + ("a" * 64),
@@ -190,42 +225,12 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "activationId": "activation-v037",
                 "activationHash": "f" * 64,
                 "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
             }
             self.populate_source(view, predecessor)
             self.populate_source(source, successor)
-            successor_payload = view / "knowledge/projection/releases" / successor["projectionId"] / "projection-manifest.json"
-            successor_payload.parent.mkdir(parents=True, exist_ok=True)
-            blob = root / "blob"
-            blob.write_bytes(b'{"projectionId":"successor"}\n')
-            os.symlink(str(blob), successor_payload)
-            (view / "knowledge/prerequisites/releases" / successor["publicationId"]).mkdir(parents=True, exist_ok=True)
-            os.symlink(
-                str(blob),
-                view / "knowledge/prerequisites/releases" / successor["publicationId"] / "publication-manifest.json",
-            )
-            (view / "knowledge/authority-domain-shards/sets" / successor["shardSetId"]).mkdir(parents=True, exist_ok=True)
-            os.symlink(
-                str(blob),
-                view / "knowledge/authority-domain-shards/sets" / successor["shardSetId"] / "manifest.json",
-            )
-            (view / "knowledge/consumer-activation/releases" / successor["activationId"]).mkdir(parents=True, exist_ok=True)
-            os.symlink(
-                str(blob),
-                view / "knowledge/consumer-activation/releases" / successor["activationId"] / "activation.json",
-            )
-            os.symlink(
-                str(blob),
-                view / "knowledge/consumer-activation/activations" / (successor["receiptId"] + ".json"),
-            )
-            domain_projection_id = "proj-" + ("9" * 64)
-            write(source / "knowledge/teaching-projection/domain-fragments/current.json", domain_teaching_pointer(
-                domain_projection_id, "9" * 64, successor["releaseId"],
-            ))
-            write(
-                source / "knowledge/teaching-projection/domain-fragments/releases" / domain_projection_id / "composed-manifest.json",
-                {"projectionId": domain_projection_id, "projectionHash": "9" * 64},
-            )
-
+            self.attach_successor_blob_payloads(view, root, successor)
             result = self.run_installer(
                 "--view", str(view),
                 "--source", str(source),
@@ -244,9 +249,9 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             domain_pointer = json.loads(
                 (view / "knowledge/teaching-projection/domain-fragments/current.json").read_text(encoding="utf-8"),
             )
-            self.assertEqual(domain_pointer["projectionHash"], "9" * 64)
+            self.assertEqual(domain_pointer["projectionHash"], successor["domainProjectionHash"])
             self.assertTrue(
-                (view / "knowledge/teaching-projection/domain-fragments/releases" / domain_projection_id / "composed-manifest.json").is_file(),
+                (view / "knowledge/teaching-projection/domain-fragments/releases" / successor["domainProjectionId"] / "composed-manifest.json").is_file(),
             )
 
     def test_refuses_source_bound_to_predecessor_authority(self):
@@ -268,6 +273,8 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
                 "activationId": "activation-v022",
                 "activationHash": "6" * 64,
                 "receiptId": "v022-cutover-consumers",
+                "domainProjectionId": "proj-" + ("8" * 64),
+                "domainProjectionHash": "8" * 64,
             }
             self.populate_source(view, identities)
             self.populate_source(source, identities)
@@ -287,6 +294,232 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
             )
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("expected successor", completed.stderr)
+
+    def test_refuses_source_without_domain_fragments_pointer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            view = root / "view"
+            source = root / "source"
+            identities = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            self.populate_source(view, identities)
+            self.populate_source(source, identities)
+            (source / "knowledge/teaching-projection/domain-fragments/current.json").unlink()
+            import subprocess
+            completed = subprocess.run(
+                [
+                    "python3", str(INSTALLER),
+                    "--view", str(view),
+                    "--source", str(source),
+                    "--expected-authority-release-id", identities["releaseId"],
+                    "--expected-teaching-projection-hash", identities["projectionHash"],
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("knowledge/teaching-projection/domain-fragments/current.json", completed.stderr)
+
+    def test_snapshot_restore_replaces_applied_overlays(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            view = root / "view"
+            source = root / "source"
+            snapshot = root / "snapshot"
+            predecessor = {
+                "projectionId": "proj-" + ("1" * 64),
+                "projectionHash": "1" * 64,
+                "publicationId": "proj-" + ("2" * 64),
+                "publicationHash": "2" * 64,
+                "catalogId": "adc-" + ("3" * 64),
+                "catalogHash": "3" * 64,
+                "snapshot": "4" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.22",
+                "shardSetId": "ads-" + ("5" * 64),
+                "shardSetHash": "5" * 64,
+                "activationId": "activation-v022",
+                "activationHash": "6" * 64,
+                "receiptId": "v022-cutover-consumers",
+                "domainProjectionId": "proj-" + ("8" * 64),
+                "domainProjectionHash": "8" * 64,
+            }
+            successor = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            self.populate_source(view, predecessor)
+            self.populate_source(source, successor)
+            self.attach_successor_blob_payloads(view, root, successor)
+            self.run_installer("--view", str(view), "--snapshot-to", str(snapshot))
+            result = self.run_installer(
+                "--view", str(view),
+                "--source", str(source),
+                "--expected-authority-release-id", successor["releaseId"],
+                "--expected-teaching-projection-hash", successor["projectionHash"],
+                "--apply",
+            )
+            self.assertTrue(result["applied"])
+            installed = json.loads((view / "knowledge/projection/current.json").read_text(encoding="utf-8"))
+            self.assertEqual(installed["projectionHash"], successor["projectionHash"])
+            restored = self.run_installer("--view", str(view), "--restore-from", str(snapshot))
+            self.assertIn("knowledge/projection/current.json", restored["restored"])
+            rolled_back = json.loads((view / "knowledge/projection/current.json").read_text(encoding="utf-8"))
+            self.assertEqual(rolled_back["projectionHash"], predecessor["projectionHash"])
+            self.assertFalse(
+                (view / "knowledge/teaching-projection/domain-fragments/releases" / successor["domainProjectionId"] / "composed-manifest.json").exists(),
+            )
+
+
+REMOTE = ROOT / "scripts/knowledge-cutover/remote-install-successor-control-plane-overlays.sh"
+MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+
+
+class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
+    def run_remote(self, env, *args):
+        import subprocess
+        return subprocess.run(
+            ["bash", str(REMOTE), *args],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
+
+    def overlay_env(self, root: Path, deploy: Path) -> dict:
+        env = os.environ.copy()
+        env.update({
+            "ACT_RUNTIME_PROJECT_DIR": str(root / "project"),
+            "ACT_RUNTIME_STATE_DIR": str(root / "state"),
+            "ACT_RUNTIME_BLOB_VIEW_ROOT": str(root / "views"),
+            "ACT_RUNTIME_TEACHING_OVERLAY_INSTALLER": str(INSTALLER),
+            "ACT_RUNTIME_BLOB_MATERIALIZER": str(MATERIALIZER),
+            "ACT_RUNTIME_APP_DEPLOY_SCRIPT": str(deploy),
+        })
+        return env
+
+    def prepare_view_root(self, root: Path):
+        view_root = root / "views"
+        selected = view_root / "views" / "runtime-test1"
+        other = view_root / "views" / "runtime-other"
+        selected.mkdir(parents=True)
+        other.mkdir(parents=True)
+        os.symlink("views/runtime-test1", view_root / "current")
+        return selected
+
+    def test_refuses_release_id_that_is_not_the_active_view(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "project").mkdir()
+            (root / "state").mkdir()
+            self.prepare_view_root(root)
+            source = root / "source"
+            source.mkdir()
+            deploy = root / "deploy.sh"
+            deploy.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+            os.chmod(deploy, 0o755)
+            completed = self.run_remote(
+                self.overlay_env(root, deploy),
+                "--source", str(source),
+                "--expected-authority-release-id", "ctr:release:control-theory-engineering-v0.37",
+                "--expected-teaching-projection-hash", "a" * 64,
+                "--release-id", "runtime-other",
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("selected blob-view is not runtime-other", completed.stderr)
+
+    def test_apply_restores_overlays_when_consumer_restart_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "project").mkdir()
+            (root / "state").mkdir()
+            selected = self.prepare_view_root(root)
+            source = root / "source"
+            installer = InstallSuccessorControlPlaneOverlaysTest()
+            predecessor = {
+                "projectionId": "proj-" + ("1" * 64),
+                "projectionHash": "1" * 64,
+                "publicationId": "proj-" + ("2" * 64),
+                "publicationHash": "2" * 64,
+                "catalogId": "adc-" + ("3" * 64),
+                "catalogHash": "3" * 64,
+                "snapshot": "4" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.22",
+                "shardSetId": "ads-" + ("5" * 64),
+                "shardSetHash": "5" * 64,
+                "activationId": "activation-v022",
+                "activationHash": "6" * 64,
+                "receiptId": "v022-cutover-consumers",
+                "domainProjectionId": "proj-" + ("8" * 64),
+                "domainProjectionHash": "8" * 64,
+            }
+            successor = {
+                "projectionId": "proj-" + ("a" * 64),
+                "projectionHash": "a" * 64,
+                "publicationId": "proj-" + ("b" * 64),
+                "publicationHash": "b" * 64,
+                "catalogId": "adc-" + ("c" * 64),
+                "catalogHash": "c" * 64,
+                "snapshot": "d" * 64,
+                "releaseId": "ctr:release:control-theory-engineering-v0.37",
+                "shardSetId": "ads-" + ("e" * 64),
+                "shardSetHash": "e" * 64,
+                "activationId": "activation-v037",
+                "activationHash": "f" * 64,
+                "receiptId": "coordinated-r4-c6-presentation-evidence-v022",
+                "domainProjectionId": "proj-" + ("9" * 64),
+                "domainProjectionHash": "9" * 64,
+            }
+            installer.populate_source(selected, predecessor)
+            installer.populate_source(source, successor)
+            installer.attach_successor_blob_payloads(selected, root, successor)
+            deploy = root / "deploy.sh"
+            deploy.write_text("#!/bin/bash\nexit 1\n", encoding="utf-8")
+            os.chmod(deploy, 0o755)
+            completed = self.run_remote(
+                self.overlay_env(root, deploy),
+                "--source", str(source),
+                "--expected-authority-release-id", successor["releaseId"],
+                "--expected-teaching-projection-hash", successor["projectionHash"],
+                "--release-id", "runtime-test1",
+                "--apply",
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            rolled_back = json.loads((selected / "knowledge/projection/current.json").read_text(encoding="utf-8"))
+            self.assertEqual(rolled_back["projectionHash"], predecessor["projectionHash"])
+            self.assertFalse(
+                (selected / "knowledge/teaching-projection/domain-fragments/releases" / successor["domainProjectionId"] / "composed-manifest.json").exists(),
+            )
 
 
 if __name__ == "__main__":

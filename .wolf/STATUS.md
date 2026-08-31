@@ -2,7 +2,7 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-30
+> Last updated: 2026-08-31
 
 ---
 
@@ -10,7 +10,7 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
-- 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。本地已实现 live domain-fragments overlay loader、candidate 封装脚本和控制面允许集，未提交、未发新应用镜像。6.5–6.7 未勾，未 archive，未关 #1683。
+- 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。PR #1727 已落地 live overlay loader；Codex 三条 P1 已修（domain-fragments 必填、锁后校验 selected view、失败 snapshot/restore）。未合入带 overlay 的应用前不得在现网 apply domain-fragments。6.5–6.7 未勾，未 archive，未关 #1683。
 
 - 2026-08-30：#1683 应用已发布 `v0.6.0`（`6e492afbeb98c118ed0ad24689b96be319eb31f9`），GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.0，生产 `deploy:app --skip-build` 已换到该镜像。
 
@@ -69,7 +69,7 @@
 
 ## 🚀 Next phase
 
-- 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：提交 loader overlay + 安装器 + staged domain-fragments（runtime 新文件需 `git add -f`），另开 PR 合入后发新应用版本并 overlay 安装 domain-fragments，再验 6.5–6.6。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
+- 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：把 PR #1727 P1 合入 `origin/integration`，再清场、合 main、发 `v0.6.1`、`deploy:app --skip-build`，停服只 overlay（含必填 domain-fragments），再验 6.5–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
 
 **Governed graph mathematics presentation (2026-08-25):** #1536 / `render-governed-math-across-knowledge-surfaces` 已为 `status:ready`，尚未 claim。实现必须先 claim，再接通同版 Authority rich-text/math sidecar、有界服务端投影、共享严格 KaTeX 配置、2D/3D 语义标签层及全部 DOM/Markdown 消费表面；Authority 已登记缺陷与 ACT 自有 Markdown 失败必须分治，后者不得使用上游豁免。不得修改 ActKG Schema、Teaching Projection 或生产选择器。
 

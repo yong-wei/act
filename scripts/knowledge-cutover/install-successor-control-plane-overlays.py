@@ -30,8 +30,9 @@ REQUIRED_POINTER_RELATIVES = (
     "knowledge/authority-domain-catalog/current.json",
     "knowledge/authority-domain-shards/current.json",
     "knowledge/consumer-activation/current.json",
+    "knowledge/teaching-projection/domain-fragments/current.json",
 )
-OPTIONAL_POINTER_RELATIVES = (
+PREFIX_PAYLOAD_POINTER_RELATIVES = (
     "knowledge/teaching-projection/domain-fragments/current.json",
 )
 CATALOG_PAYLOAD_RELATIVE = "knowledge/authority-domain-catalog/catalog.json"
@@ -169,14 +170,6 @@ def collect_source_overlay_files(source_root, materializer):
     # type: (Path, Any) -> List[str]
     relatives = list(REQUIRED_POINTER_RELATIVES)
     relatives.append(CATALOG_PAYLOAD_RELATIVE)
-    for relative in OPTIONAL_POINTER_RELATIVES:
-        candidate = source_root / relative
-        try:
-            details = os.lstat(str(candidate))
-        except OSError:
-            continue
-        if stat.S_ISREG(details.st_mode) and not stat.S_ISLNK(details.st_mode):
-            relatives.append(relative)
     files = []
     seen = set()
     for relative in relatives:
@@ -189,7 +182,7 @@ def collect_source_overlay_files(source_root, materializer):
         pointer = materializer.read_control_plane_pointer(source_root / relative)
         for kind, payload_relative in materializer.control_plane_payload_targets(relative, pointer):
             if kind == "prefix":
-                if relative not in OPTIONAL_POINTER_RELATIVES:
+                if relative not in PREFIX_PAYLOAD_POINTER_RELATIVES:
                     continue
                 for extra in sorted(materializer.regular_files_under(source_root, payload_relative)):
                     require_regular_file(source_root / extra, extra)
@@ -224,15 +217,6 @@ def plan_install(view, source_root, expected_authority_release_id, expected_teac
     teaching_hash = successor_pointers["knowledge/projection/current.json"].get("projectionHash")
     if teaching_hash != expected_teaching_projection_hash:
         fail("successor teaching projection hash does not match the expected identity")
-    domain_teaching_relative = "knowledge/teaching-projection/domain-fragments/current.json"
-    if domain_teaching_relative in source_files:
-        domain_pointer = materializer.read_control_plane_pointer(source_root / domain_teaching_relative)
-        domain_authority = pointer_authority_release_id(domain_pointer)
-        if domain_authority is not None and domain_authority != expected_authority_release_id:
-            fail("%s authority identity is not the expected successor (%s keys=%s)" % (
-                domain_teaching_relative, domain_authority, sorted(domain_pointer.keys()),
-            ))
-        successor_pointers[domain_teaching_relative] = domain_pointer
     predecessor_regular = set(materializer.discover_control_plane_overlay_regular_paths(view))
     return {
         "successorPointers": successor_pointers,
@@ -283,15 +267,56 @@ def apply_install(view, source_root, expected_authority_release_id, expected_tea
     }
 
 
+def snapshot_overlays(view, snapshot_root, materializer):
+    # type: (Path, Path, Any) -> Dict[str, Any]
+    if snapshot_root.exists() or snapshot_root.is_symlink():
+        fail("overlay snapshot path already exists")
+    snapshot_root.mkdir(parents=True)
+    os.chmod(str(snapshot_root), 0o755)
+    copied = {}
+    for relative in sorted(materializer.discover_control_plane_overlay_regular_paths(view)):
+        copied[relative] = copy_regular(view / relative, snapshot_root / relative)
+    return {"snapshotRoot": str(snapshot_root), "files": copied}
+
+
+def restore_overlays(view, snapshot_root, materializer):
+    # type: (Path, Path, Any) -> Dict[str, Any]
+    snapshot = require_real_directory(snapshot_root, "overlay snapshot")
+    snapshot_files = set()
+    for current, directories, filenames in os.walk(str(snapshot), followlinks=False):
+        current_path = Path(current)
+        directories[:] = [
+            name for name in directories
+            if not os.path.islink(str(current_path / name))
+        ]
+        for name in filenames:
+            absolute = current_path / name
+            details = os.lstat(str(absolute))
+            if stat.S_ISREG(details.st_mode) and not stat.S_ISLNK(details.st_mode):
+                snapshot_files.add(absolute.relative_to(snapshot).as_posix())
+    current = set(materializer.discover_control_plane_overlay_regular_paths(view))
+    removed = []
+    for relative in sorted(current - snapshot_files):
+        if unlink_regular(view / relative):
+            removed.append(relative)
+            prune_empty_directories(view, str(Path(relative).parent))
+    restored = {}
+    for relative in sorted(snapshot_files):
+        restored[relative] = copy_regular(snapshot / relative, view / relative)
+    return {"restored": restored, "removed": removed}
+
+
 def parse_args(argv):
     # type: (Optional[List[str]]) -> argparse.Namespace
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--view", required=True, help="resolved blob-view directory")
-    parser.add_argument("--source", required=True, help="Git runtime root containing successor overlays")
-    parser.add_argument("--expected-authority-release-id", required=True)
-    parser.add_argument("--expected-teaching-projection-hash", required=True)
+    parser.add_argument("--source", help="Git runtime root containing successor overlays")
+    parser.add_argument("--expected-authority-release-id")
+    parser.add_argument("--expected-teaching-projection-hash")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--receipt", help="optional JSON receipt path written after --apply")
+    parser.add_argument("--snapshot-to", help="copy current overlay regular files to this directory")
+    parser.add_argument("--restore-from", help="restore overlay regular files from a snapshot directory")
     return parser.parse_args(argv)
 
 
@@ -299,31 +324,38 @@ def main(argv=None):
     # type: (Optional[List[str]]) -> int
     args = parse_args(argv)
     view = require_real_directory(Path(args.view), "view")
-    source = require_real_directory(Path(args.source), "source")
     materializer = load_materializer()
-    if args.apply:
-        result = apply_install(
-            view,
-            source,
-            args.expected_authority_release_id,
-            args.expected_teaching_projection_hash,
-            materializer,
-        )
-        result["applied"] = True
-        if args.receipt:
-            write_regular_bytes(
-                Path(args.receipt),
-                (json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8"),
-            )
+    if args.snapshot_to:
+        result = snapshot_overlays(view, Path(args.snapshot_to), materializer)
+    elif args.restore_from:
+        result = restore_overlays(view, Path(args.restore_from), materializer)
     else:
-        result = plan_install(
-            view,
-            source,
-            args.expected_authority_release_id,
-            args.expected_teaching_projection_hash,
-            materializer,
-        )
-        result["applied"] = False
+        if not args.source or not args.expected_authority_release_id or not args.expected_teaching_projection_hash:
+            fail("source and successor identities are required")
+        source = require_real_directory(Path(args.source), "source")
+        if args.apply:
+            result = apply_install(
+                view,
+                source,
+                args.expected_authority_release_id,
+                args.expected_teaching_projection_hash,
+                materializer,
+            )
+            result["applied"] = True
+            if args.receipt:
+                write_regular_bytes(
+                    Path(args.receipt),
+                    (json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8"),
+                )
+        else:
+            result = plan_install(
+                view,
+                source,
+                args.expected_authority_release_id,
+                args.expected_teaching_projection_hash,
+                materializer,
+            )
+            result["applied"] = False
     print(json.dumps(result, separators=(",", ":"), sort_keys=True))
     return 0
 
