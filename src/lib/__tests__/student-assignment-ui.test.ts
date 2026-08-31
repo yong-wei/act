@@ -51,40 +51,24 @@ describe('student assignment task center view model', () => {
     const result = presentStudentAssignmentResult({
       studentId: 'student-1',
       frozenStudentId: 'student-1',
-      answers: [],
-      gradingSnapshots: [{
-        items: [],
-        grade: {
-          release: {
-            ownerStudentId: 'student-1',
-            releasedAt: new Date('2026-08-31T00:00:00.000Z'),
-            packageSnapshot: {
-              version: 'assignment-student-result.v1',
-              totalScore: 4,
-              overallComment: '总体评价',
-              releasedAt: '2026-08-31T00:00:00.000Z',
-              provider: 'internal-provider',
-              confidence: 0.9,
-              questions: [{
-                questionId: 'question-1',
-                score: 4,
-                comment: '题目评价',
-                evidenceBlock: 'internal-evidence',
-                criteria: [{ criterionId: 'criterion-1', score: 4, comment: '评分说明', reasonCode: 'internal' }],
-                annotations: [{ criterionId: 'criterion-1', comment: '批注', anchor: { excerpt: 'internal' } }],
-                referenceAnswer: { text: '参考答案' },
-                scoringStandard: '评分标准',
-              }],
-            },
-          },
-        },
+      answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }] }],
+      approvalSnapshots: [{
+        questionId: 'question-1',
+        attemptId: 'attempt-1',
+        questionTotal: 4,
+        overallComment: '题目评价',
+        criterionSnapshot: [{ criterionId: 'criterion-1', score: 4, comment: '评分说明', reasonCode: 'internal' }],
+        annotationSnapshot: [{ criterionId: 'criterion-1', comment: '批注', anchor: { excerpt: 'internal' } }],
+        outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED' }],
+        feedbackRelease: { ownerStudentId: 'student-1', releasedAt: new Date('2026-08-31T00:00:00.000Z') },
       }],
-    });
+      gradingSnapshots: [{ createdAt: new Date('2026-08-30T00:00:00.000Z'), items: [{ questionId: 'question-1', attemptId: 'attempt-1' }] }],
+    }, [{ id: 'question-1', answerSnapshot: { text: '参考答案' }, rubricSnapshot: '评分标准' }]);
 
     expect(result).toEqual({
       version: 'assignment-student-result.v1',
       totalScore: 4,
-      overallComment: '总体评价',
+      overallComment: '第 1 题：题目评价',
       releasedAt: '2026-08-31T00:00:00.000Z',
       questions: [{
         questionId: 'question-1',

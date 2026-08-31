@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/assignments/assignment-route-guards', () => ({ requireAssignmentActor: mocks.requireAssignmentActor }));
-vi.mock('@/lib/data-governance/assignment-submission-grade', () => ({
+vi.mock('@/lib/assignments/assignment-grading-closure', () => ({
   AssignmentSubmissionGradeError: class AssignmentSubmissionGradeError extends Error {
     constructor(public readonly code: string, public readonly status: number) { super(code); }
   },

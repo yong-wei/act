@@ -83,13 +83,13 @@ export async function listStudentAssignments(prisma: PrismaClient, studentId: st
   const currentClassId = profile?.classId ?? null;
   const publishedRevisions = currentClassId ? await prisma.assignmentRevision.findMany({
     where: { state: 'PUBLISHED', audiences: { some: { classId: currentClassId, archivedAt: null, availableAt: { lte: now }, class: { isActive: true } } } },
-    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
+    include: { audiences: { where: { classId: currentClassId, archivedAt: null }, take: 1 }, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' } }, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } },
     orderBy: [{ publishedAt: 'desc' }, { revisionNumber: 'desc' }, { id: 'desc' }],
   }) : [];
   const revisions = selectCurrentPublishedRevisions(publishedRevisions);
   const historical = await prisma.assignmentSubmission.findMany({
     where: { studentId, revision: { id: { notIn: revisions.map((revision) => revision.id) }, historicalOwnerships: { some: { studentId, anonymizedAt: null } } } },
-    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } } },
+    include: { revision: { include: { questions: { orderBy: { orderIndex: 'asc' } } } }, audience: true, answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' } }, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } } },
   });
   return [...revisions.map((revision) => presentRevision(revision, revision.audiences[0], revision.submissions[0], true, now)), ...historical.map((item) => presentRevision(item.revision, item.audience, item, false, now))];
 }
@@ -106,7 +106,7 @@ export function selectCurrentPublishedRevisions<T extends { assignmentId: string
 
 export async function getStudentAssignment(prisma: PrismaClient, studentId: string, assignmentId: string, now = new Date(), revisionId?: string) {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: studentId }, select: { classId: true } });
-  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
+  const revision = !revisionId && profile?.classId ? await prisma.assignmentRevision.findFirst({ where: { assignmentId, state: 'PUBLISHED', audiences: { some: { classId: profile.classId, archivedAt: null, class: { isActive: true } } } }, orderBy: { revisionNumber: 'desc' }, include: { audiences: true, questions: { orderBy: { orderIndex: 'asc' } }, submissions: { where: { studentId }, include: { answers: { include: { attempts: { orderBy: { attemptNumber: 'desc' }, include: { assets: true } }, assets: { orderBy: { version: 'desc' } } } }, approvalSnapshots: { include: { outboxCommands: true, feedbackRelease: { include: { derivative: true } } }, orderBy: { approvedAt: 'asc' } }, questionExemptions: true, gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } }, resubmissionGrants: { orderBy: { grantedAt: 'desc' } } }, take: 1 } } }) : null;
   if (!revision) {
     const historical = await prisma.assignmentSubmission.findFirst({
       where: {
@@ -142,7 +142,8 @@ export async function getStudentAssignment(prisma: PrismaClient, studentId: stri
           },
           orderBy: { approvedAt: 'asc' },
         },
-        gradingSnapshots: { include: { operation: { select: { state: true } }, items: true, grade: { include: { release: true } } }, orderBy: { createdAt: 'desc' } },
+        questionExemptions: true,
+        gradingSnapshots: { include: { operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } },
         resubmissionGrants: { orderBy: { grantedAt: 'desc' } },
       },
     });
@@ -1262,7 +1263,7 @@ export function presentRevision(revision: any, audience: any, submission: any, c
   const historicalOnly = !currentContext;
   const persistedState = submission?.state ?? 'NOT_STARTED';
   const resultReleasePolicy = revision.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
-  const resultPackage = resultReleasePolicy ? presentStudentAssignmentResult(submission) : null;
+  const resultPackage = resultReleasePolicy ? presentStudentAssignmentResult(submission, revision.questions) : null;
   const feedback = resultReleasePolicy && !resultPackage
     ? []
     : presentStudentAssignmentFeedback(submission, revision.questions, now);
@@ -1408,6 +1409,7 @@ export function presentStudentAssignmentFeedback(submission: any, questions: any
 }
 
 function presentStudentAssignmentGradingState(submission: any): 'AWAITING_REVIEW' | 'IN_REVIEW' | 'PARTIAL_GRADING_FAILURE' | 'AWAITING_TEACHER_CONFIRMATION' | null {
+  // 从编排 operation 状态与题级 canonical 审批覆盖度派生批改进度，不读作业级物化状态。
   const currentAttemptByQuestion = new Map((submission?.answers ?? []).map((answer: any) => [
     answer.assignmentQuestionId,
     answer.attempts?.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber)?.id ?? null,
@@ -1415,54 +1417,95 @@ function presentStudentAssignmentGradingState(submission: any): 'AWAITING_REVIEW
   const snapshot = [...(submission?.gradingSnapshots ?? [])]
     .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
     .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
-  if (!snapshot?.grade) return null;
-  if (snapshot.grade.state === 'PARTIAL_FAILURE') return 'PARTIAL_GRADING_FAILURE';
-  if (snapshot.grade.state === 'AWAITING_CONFIRMATION' || snapshot.grade.state === 'CONFIRMED') return 'AWAITING_TEACHER_CONFIRMATION';
+  if (!snapshot) return null;
+  const settled = new Set([
+    ...(submission?.questionExemptions ?? []).map((row: any) => row.questionId),
+    ...(submission?.approvalSnapshots ?? [])
+      .filter((row: any) => {
+        const attemptId = currentAttemptByQuestion.get(row.questionId) ?? null;
+        return attemptId == null || row.attemptId === attemptId;
+      })
+      .map((row: any) => row.questionId),
+  ]);
+  const items = snapshot.items ?? [];
+  if (items.length > 0 && items.every((item: any) => settled.has(item.questionId))) return 'AWAITING_TEACHER_CONFIRMATION';
+  if (['PARTIAL', 'FAILED'].includes(snapshot.operation?.state)) return 'PARTIAL_GRADING_FAILURE';
   return snapshot.operation?.state === 'RUNNING' ? 'IN_REVIEW' : 'AWAITING_REVIEW';
 }
 
-export function presentStudentAssignmentResult(submission: any): StudentAssignmentResultDto | null {
+export function presentStudentAssignmentResult(submission: any, questions?: any[]): StudentAssignmentResultDto | null {
+  // 作业级结果包从题级 canonical 审批快照派生：全部题目当前 attempt 的
+  // RELEASE_STUDENT_FEEDBACK 均已 SUCCEEDED 且 feedbackRelease 归属本人时才对
+  // 学生可见；总分恒为题级教师审批分数之和，未发布题目存在时整体不可见。
   if (!submission || submission.studentId !== submission.frozenStudentId) return null;
   const currentAttemptByQuestion = new Map((submission.answers ?? []).flatMap((answer: any) => {
     const attempt = (answer.attempts ?? []).find((row: any) => row.attemptNumber === answer.currentAttemptNumber);
     return [[answer.assignmentQuestionId, attempt?.id ?? null] as const];
   }));
-  const releases = (submission.gradingSnapshots ?? [])
-    .filter((snapshot: any) => (snapshot.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
-    .map((snapshot: any) => snapshot.grade?.release)
-    .filter((release: any) => release?.ownerStudentId === submission.frozenStudentId)
-    .sort((left: any, right: any) => new Date(right.releasedAt).getTime() - new Date(left.releasedAt).getTime());
-  const release = releases[0];
-  if (!release || !release.packageSnapshot || typeof release.packageSnapshot !== 'object') return null;
-  const result = release.packageSnapshot as Record<string, unknown>;
-  if (result.version !== 'assignment-student-result.v1'
-    || typeof result.totalScore !== 'number'
-    || !Number.isFinite(result.totalScore)
-    || typeof result.releasedAt !== 'string') return null;
-  const questions = Array.isArray(result.questions)
-    ? result.questions.flatMap((value) => {
-      const question = value && typeof value === 'object' && !Array.isArray(value)
-        ? value as Record<string, unknown>
-        : {};
-      if (typeof question.questionId !== 'string' || !question.questionId.trim()
-        || typeof question.score !== 'number' || !Number.isFinite(question.score)) return [];
-      return [{
-        questionId: question.questionId,
-        score: question.score,
-        comment: typeof question.comment === 'string' ? question.comment : '',
-        criteria: presentStudentResultCriteria(question.criteria),
-        annotations: presentStudentResultAnnotations(question.annotations),
-        referenceAnswer: presentStudentReferenceAnswer(question.referenceAnswer),
-        scoringStandard: presentStudentScoringStandard(question.scoringStandard),
-      }];
-    })
-    : [];
+  const snapshot = [...(submission.gradingSnapshots ?? [])]
+    .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
+  if (!snapshot) return null;
+  const questionRows = questions ?? [];
+  const questionById = new Map(questionRows.map((question: any) => [question.id, question]));
+  const latestReleasedByQuestion = new Map<string, any>();
+  for (const approval of submission.approvalSnapshots ?? []) {
+    const attemptId = currentAttemptByQuestion.get(approval.questionId) ?? null;
+    if (attemptId != null && approval.attemptId !== attemptId) continue;
+    const release = (approval.outboxCommands ?? []).find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
+    if (!release || release.state !== 'SUCCEEDED'
+      || !approval.feedbackRelease
+      || approval.feedbackRelease.ownerStudentId !== submission.frozenStudentId) return null;
+    const previous = latestReleasedByQuestion.get(approval.questionId);
+    const previousAt = previous?.approvedAt ? new Date(previous.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    const approvalAt = approval.approvedAt ? new Date(approval.approvedAt).getTime() : Number.NEGATIVE_INFINITY;
+    if (!previous || approvalAt >= previousAt) latestReleasedByQuestion.set(approval.questionId, approval);
+  }
+  const exemptions = submission.questionExemptions ?? [];
+  const resultQuestions: Array<{ questionId: string; score: number; comment: string; criteria: unknown[]; annotations: unknown[]; referenceAnswer: string | null; scoringStandard: string | null }> = [];
+  let total = 0;
+  let releasedAt: Date | null = null;
+  for (const item of snapshot.items ?? []) {
+    const exemption = exemptions.find((row: any) => row.questionId === item.questionId);
+    const question = questionById.get(item.questionId);
+    if (exemption) {
+      total += Number(exemption.scoreEffect);
+      resultQuestions.push({
+        questionId: item.questionId,
+        score: Number(exemption.scoreEffect),
+        comment: exemption.reason ?? '',
+        criteria: [],
+        annotations: [],
+        referenceAnswer: presentStudentReferenceAnswer(question?.answerSnapshot),
+        scoringStandard: presentStudentScoringStandard(question?.rubricSnapshot),
+      });
+      continue;
+    }
+    const approval = latestReleasedByQuestion.get(item.questionId);
+    if (!approval) return null;
+    total += Number(approval.questionTotal);
+    const releasedAtCandidate = approval.feedbackRelease?.releasedAt ? new Date(approval.feedbackRelease.releasedAt) : null;
+    if (releasedAtCandidate && (!releasedAt || releasedAtCandidate > releasedAt)) releasedAt = releasedAtCandidate;
+    resultQuestions.push({
+      questionId: item.questionId,
+      score: Number(approval.questionTotal),
+      comment: typeof approval.overallComment === 'string' ? approval.overallComment : '',
+      criteria: presentStudentResultCriteria(approval.criterionSnapshot),
+      annotations: presentStudentResultAnnotations(approval.annotationSnapshot),
+      referenceAnswer: presentStudentReferenceAnswer(question?.answerSnapshot),
+      scoringStandard: presentStudentScoringStandard(question?.rubricSnapshot),
+    });
+  }
+  const overallComment = resultQuestions
+    .map((question, index) => typeof question.comment === 'string' && question.comment.trim() ? `第 ${index + 1} 题：${question.comment.trim()}` : null)
+    .filter((comment: string | null): comment is string => comment !== null)
+    .join('\n');
   return {
     version: 'assignment-student-result.v1',
-    totalScore: result.totalScore,
-    overallComment: typeof result.overallComment === 'string' ? result.overallComment : null,
-    releasedAt: result.releasedAt,
-    questions,
+    totalScore: Number(total.toFixed(4)),
+    overallComment: overallComment || null,
+    releasedAt: (releasedAt ?? new Date()).toISOString(),
+    questions: resultQuestions,
   };
 }
 

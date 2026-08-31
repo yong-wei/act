@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { gradingErrorMessage, isAiGradingCandidate, isAiReviewCandidate, normalizeSubmission, toggleAllAiGradingCandidates } from '@/features/assignments/teacher-assignment-grading-console';
-import { deriveTeacherAssignmentGradingDiagnostic } from '@/lib/data-governance/teacher-assignment-review';
+import { deriveTeacherAssignmentGradingDiagnostic } from '@/lib/assignments/assignment-review';
 
 describe('teacher assignment grading console candidates', () => {
   it('includes partially submitted students and excludes empty or already snapshotted submissions', () => {

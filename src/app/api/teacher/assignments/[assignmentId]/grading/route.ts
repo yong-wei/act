@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { createAssignmentAiGradingBatches } from '@/lib/data-governance/assignment-grading-orchestration';
-import { prisma } from '@/lib/prisma';
+import { teacherStartAssignmentAiGrading } from '@/lib/assignments/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,8 +37,7 @@ export async function POST(request: Request, context: { params: Promise<{ assign
   try {
     const { assignmentId } = await context.params;
     const body = startSchema.parse(await readBoundedAssignmentJson(request, 32_000));
-    const result = await createAssignmentAiGradingBatches({
-      db: prisma,
+    const result = await teacherStartAssignmentAiGrading({
       assignmentId,
       revisionId: body.revisionId,
       actor: auth.actor,

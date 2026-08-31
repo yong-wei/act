@@ -2,9 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { createManualQuestionGradingReview } from '@/lib/data-governance/assignment-grading-orchestration';
-import { buildTeacherAssignmentReviewApiProjection } from '@/lib/assignments/assignment-review';
-import { prisma } from '@/lib/prisma';
+import { teacherCreateManualQuestionGrading } from '@/lib/assignments/public-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +26,8 @@ export async function POST(request: Request, context: { params: Promise<{ assign
   try {
     const { assignmentId } = await context.params;
     const body = manualSchema.parse(await readBoundedAssignmentJson(request, 16_000));
-    const result = await createManualQuestionGradingReview({ db: prisma, assignmentId, actor: auth.actor, ...body });
-    return NextResponse.json({
-      run: { id: result.run.id, source: result.run.source, state: result.run.state },
-      review: buildTeacherAssignmentReviewApiProjection(result.review),
-      replay: result.replay,
-    }, { status: result.replay ? 200 : 201 });
+    const result = await teacherCreateManualQuestionGrading({ assignmentId, actor: auth.actor, ...body });
+    return NextResponse.json(result, { status: result.replay ? 200 : 201 });
   } catch (error) {
     return manualErrorResponse(error);
   }

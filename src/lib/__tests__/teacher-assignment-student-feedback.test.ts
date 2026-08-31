@@ -142,10 +142,10 @@ describe('student assignment approved feedback projection', () => {
       questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
     }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
       id: 'submission-1', state: 'SUBMITTED', reviewState: 'PENDING', studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
-      answers: [], approvalSnapshots: [snapshot], resubmissionGrants: [], gradingSnapshots: [{ grade: { release: { ownerStudentId: 'student-1', releasedAt: new Date('2026-08-14T13:00:00Z'), packageSnapshot: { version: 'assignment-student-result.v1', totalScore: 8, releasedAt: '2026-08-14T13:00:00.000Z', questions: [{ questionId: 'question-1', score: 8, comment: '证据充分', referenceAnswer: { text: '参考解答' }, scoringStandard: { criteria: [] } }] } } } }],
+      answers: [], approvalSnapshots: [snapshot], resubmissionGrants: [], gradingSnapshots: [{ createdAt: new Date('2026-08-14T12:00:00Z'), items: [{ questionId: 'question-1', attemptId: null }] }],
     }, true, new Date('2026-08-14T14:00:00Z'));
 
-    expect(detail).toMatchObject({ approvedTotal: 8, feedbackStatus: 'PUBLISHED', feedback: [expect.objectContaining({ snapshotId: 'snapshot-1', reviewedAssets: [expect.objectContaining({ label: '下载批注说明' })] })], resultPackage: { totalScore: 8, questions: [{ questionId: 'question-1', score: 8, comment: '证据充分' }] } });
+    expect(detail).toMatchObject({ approvedTotal: 8, feedbackStatus: 'PUBLISHED', feedback: [expect.objectContaining({ snapshotId: 'snapshot-1', reviewedAssets: [expect.objectContaining({ label: '下载批注说明' })] })], resultPackage: { totalScore: 8, overallComment: '第 1 题：继续完善工程解释。', questions: [{ questionId: 'question-1', score: 8, comment: '继续完善工程解释。' }] } });
     expect(detail.resultPackage?.questions[0]).not.toHaveProperty('source');
   });
 
@@ -185,8 +185,17 @@ describe('student assignment approved feedback projection', () => {
     const result = presentStudentAssignmentResult({
       studentId: 'student-1', frozenStudentId: 'student-1',
       answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 2, attempts: [{ id: 'attempt-1', attemptNumber: 1 }, { id: 'attempt-2', attemptNumber: 2 }] }],
-      gradingSnapshots: [{ items: [{ questionId: 'question-1', attemptId: 'attempt-1' }], grade: { release: { ownerStudentId: 'student-1', releasedAt: new Date('2026-08-14T13:00:00Z'), packageSnapshot: { totalScore: 8 } } } }],
-    });
+      approvalSnapshots: [{
+        questionId: 'question-1',
+        attemptId: 'attempt-1',
+        questionTotal: 8,
+        criterionSnapshot: [],
+        annotationSnapshot: [],
+        outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED' }],
+        feedbackRelease: { ownerStudentId: 'student-1', releasedAt: new Date('2026-08-14T13:00:00Z') },
+      }],
+      gradingSnapshots: [{ createdAt: new Date('2026-08-14T12:00:00Z'), items: [{ questionId: 'question-1', attemptId: 'attempt-1' }] }],
+    }, [{ id: 'question-1', answerSnapshot: null, rubricSnapshot: null }]);
 
     expect(result).toBeNull();
   });

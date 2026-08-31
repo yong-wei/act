@@ -23,7 +23,7 @@ const {
 
 vi.mock('../math-document-grading-batch', () => ({ createQuestionScopedGradingBatch, processQuestionGradingBatch }));
 vi.mock('../math-document-grading-persistence', () => ({ assertPipelineActorScope, questionContractFromRow }));
-vi.mock('../teacher-assignment-review', () => ({ createTeacherAssignmentReview, resolveTeacherAssignmentReviewAuthorization }));
+vi.mock('@/lib/assignments/assignment-review', () => ({ createTeacherAssignmentReview, resolveTeacherAssignmentReviewAuthorization }));
 
 import {
   createAssignmentAiGradingBatches,
