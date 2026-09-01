@@ -1,5 +1,8 @@
 import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
 import { createHash } from 'node:crypto';
+import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
+import { canonicalMicroTutoringQuestionId } from '@/features/assessment/micro-tutoring-validation-registry';
+import { getCheckpointAuthoredQuestionRecordByRuntimeId } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import {
   REMEDIATION_MANUAL_PRACTICE_PATH,
   readAvailableRemediationInterventionSource,
@@ -218,6 +221,20 @@ function validationRuntimeHash(question: unknown): string {
   return createHash('sha256').update(JSON.stringify(canonicalize(question))).digest('hex');
 }
 
+function sameValidationQuestionId(left: string, right: string): boolean {
+  if (left === right) return true;
+  const canonical = canonicalMicroTutoringQuestionId(left);
+  return canonical === canonicalMicroTutoringQuestionId(right) &&
+    getCheckpointAuthoredQuestionRecordByRuntimeId(canonical) !== null;
+}
+
+function resolvedRuntimeQuestion(
+  questionId: string,
+  question: CrossDomainQuestion | null,
+): CrossDomainQuestion | null {
+  return question && sameValidationQuestionId(question.id, questionId) ? question : null;
+}
+
 function taskSnapshot(value: unknown): RemediationTaskSnapshot | null {
   const task = record(value);
   const validation = record(task?.validationQuestion);
@@ -266,15 +283,23 @@ function sourceSnapshot(value: unknown): InterventionSourceSnapshot | null {
 
 function sourceFromAvailableTask(
   source: AvailableRemediationInterventionSource,
-  question: unknown | null,
+  question: CrossDomainQuestion | null,
 ): InterventionSourceSnapshot {
+  const resolved = resolvedRuntimeQuestion(source.task.validationQuestion.questionId, question);
+  const task = structuredClone(source.task);
+  if (resolved) {
+    task.validationQuestion = {
+      ...task.validationQuestion,
+      questionId: resolved.id,
+    };
+  }
   return {
     version: SOURCE_SNAPSHOT_VERSION,
     remediationResultId: source.remediationResultId,
     orchestratorVersion: source.orchestratorVersion,
     learnerSessionId: source.learnerSessionId,
-    validationRuntimeHash: question ? validationRuntimeHash(question) : null,
-    task: structuredClone(source.task),
+    validationRuntimeHash: resolved ? validationRuntimeHash(resolved) : null,
+    task,
   };
 }
 
@@ -291,7 +316,10 @@ function sameSource(
     storedTask.knowledgeNodeId === currentTask.knowledgeNodeId &&
     storedTask.misconceptionTag === currentTask.misconceptionTag &&
     storedTask.validationQuestion.itemRefId === currentTask.validationQuestion.itemRefId &&
-    storedTask.validationQuestion.questionId === currentTask.validationQuestion.questionId &&
+    sameValidationQuestionId(
+      storedTask.validationQuestion.questionId,
+      currentTask.validationQuestion.questionId,
+    ) &&
     storedTask.validationQuestion.contentHash === currentTask.validationQuestion.contentHash &&
     storedTask.validationQuestion.version === currentTask.validationQuestion.version &&
     JSON.stringify(canonicalize(storedTask.resources)) === JSON.stringify(canonicalize(currentTask.resources));
@@ -604,10 +632,7 @@ export async function startMicroIntervention(input: {
       userId: input.authenticatedUserId,
       learnerSessionId: source.learnerSessionId,
       startEventKey: input.startEventKey,
-      sourceSnapshot: sourceFromAvailableTask(
-        source,
-        question?.id === source.task.validationQuestion.questionId ? question : null,
-      ),
+      sourceSnapshot: sourceFromAvailableTask(source, question),
     },
   });
   return readMicroIntervention({
@@ -642,11 +667,11 @@ export async function readMicroInterventionValidationQuestion(input: {
     };
   }
   const question = getAdaptiveQuestionById(current.source.task.validationQuestion.questionId);
+  const resolved = resolvedRuntimeQuestion(current.source.task.validationQuestion.questionId, question);
   if (
-    !question ||
-    question.id !== current.source.task.validationQuestion.questionId ||
+    !resolved ||
     !current.source.validationRuntimeHash ||
-    validationRuntimeHash(question) !== current.source.validationRuntimeHash
+    validationRuntimeHash(resolved) !== current.source.validationRuntimeHash
   ) {
     return {
       id: current.row.id,
@@ -655,9 +680,9 @@ export async function readMicroInterventionValidationQuestion(input: {
     };
   }
   return {
-    id: question.id,
-    prompt: question.stem,
-    options: question.options.map(({ label, text }) => ({ label, text })),
+    id: resolved.id,
+    prompt: resolved.stem,
+    options: resolved.options.map(({ label, text }) => ({ label, text })),
   };
 }
 
@@ -733,11 +758,14 @@ export async function submitMicroInterventionValidation(input: {
   const current = await currentIntervention(input);
   if (!current || 'status' in current) return current;
   const durationSeconds = positiveDuration(input.durationSeconds);
-  if (!durationSeconds || input.questionId !== current.source.task.validationQuestion.questionId) {
+  if (!durationSeconds || !sameValidationQuestionId(input.questionId, current.source.task.validationQuestion.questionId)) {
     throw new MicroInterventionRequestError('VALIDATION_INVALID');
   }
-  const question = getAdaptiveQuestionById(current.source.task.validationQuestion.questionId);
-  if (!question || question.id !== current.source.task.validationQuestion.questionId) {
+  const question = resolvedRuntimeQuestion(
+    current.source.task.validationQuestion.questionId,
+    getAdaptiveQuestionById(current.source.task.validationQuestion.questionId),
+  );
+  if (!question) {
     throw new MicroInterventionRequestError('VALIDATION_UNAVAILABLE');
   }
   if (!current.source.validationRuntimeHash || validationRuntimeHash(question) !== current.source.validationRuntimeHash) {
