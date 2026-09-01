@@ -1,5 +1,5 @@
 /**
- * 学情诊断基准场景（Issue #1729）：8 类场景与版本化真值。
+ * 学情诊断基准场景（Issue #1729）：9 类场景与版本化真值。
  *
  * 真值由注入计划直接给出——被注入弱势的节点即真实薄弱节点，
  * 标记 primary 的注入即首要薄弱节点；场景携带固定 seed，
@@ -36,9 +36,9 @@ function degradedBoundary() {
 }
 
 /**
- * 8 类基准场景（Issue #1729 基准场景清单）：
+ * 9 类基准场景（Issue #1729 基准场景清单 + Issue #1755 稀疏风险标志）：
  * 健康班级、单薄弱、多薄弱、子群风险、分层风险、作业测评冲突、
- * 30% 数据缺失、归因压力。节点编号 bench-node-01..12。
+ * 30% 数据缺失、归因压力、稀疏风险标志与跨来源冲突。节点编号 bench-node-01..12。
  */
 export const DIAGNOSIS_BENCHMARK_SCENARIOS: DiagnosisBenchmarkScenario[] = [
   {
@@ -146,6 +146,21 @@ export const DIAGNOSIS_BENCHMARK_SCENARIOS: DiagnosisBenchmarkScenario[] = [
     progressCoverage: 1,
     assignmentAssessmentConflict: false,
     ...healthyBoundary(),
+  },
+  {
+    // Issue #1755：完整数据 + 稀疏风险标志 + 跨来源冲突。命中 52 人的
+    // 风险标志不得被解释为风险数据覆盖不足；冲突仍允许降级到 medium。
+    id: 'sparse-risk-flags-conflict',
+    scenarioVersion: SCENARIO_VERSION,
+    seed: 20260839,
+    description: '稀疏风险标志：52 人命中风险 + 作业测评冲突，覆盖完整。',
+    studentCount: BENCHMARK_STUDENT_COUNT,
+    nodeCount: BENCHMARK_NODE_COUNT,
+    weaknessInjection: [{ nodeId: 'bench-node-06', weakStudents: 26, primary: true }],
+    progressCoverage: 1,
+    assignmentAssessmentConflict: true,
+    riskFlagHits: 52,
+    ...degradedBoundary(),
   },
 ];
 

@@ -26,8 +26,8 @@ import {
 } from '@/lib/diagnosis-benchmark/runner';
 
 describe('diagnosis benchmark scenarios and generation', () => {
-  it('covers the eight scenario classes with versioned ground truth', () => {
-    expect(DIAGNOSIS_BENCHMARK_SCENARIOS).toHaveLength(8);
+  it('covers the nine scenario classes with versioned ground truth', () => {
+    expect(DIAGNOSIS_BENCHMARK_SCENARIOS).toHaveLength(9);
     const healthy = scenarioById('healthy-class');
     expect(benchmarkGroundTruth(healthy).trueWeakNodes).toEqual([]);
     expect(benchmarkGroundTruth(healthy).primaryWeakNode).toBeNull();
@@ -450,7 +450,7 @@ describe('diagnosis benchmark fixture run', () => {
     expect(violated.coverageClaimAccurate).toBe(false);
   });
 
-  it('passes all eight scenarios end to end with the fixture stub', async () => {
+  it('passes all nine scenarios end to end with the fixture stub', async () => {
     const result = await runDiagnosisBenchmark({
       generate: createFixtureGenerate(),
       replicates: 3,
@@ -466,7 +466,7 @@ describe('diagnosis benchmark fixture run', () => {
       },
     });
 
-    expect(result.scenarioEvaluations).toHaveLength(8);
+    expect(result.scenarioEvaluations).toHaveLength(9);
     expect(result.aggregate.microPrecision).toBe(1);
     expect(result.aggregate.microRecall).toBe(1);
     expect(result.aggregate.macroF1).toBe(1);
@@ -512,5 +512,46 @@ describe('diagnosis benchmark fixture run', () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe('sparse risk-flags benchmark scenario (Issue #1755)', () => {
+  it('generates sparse risk flags deterministically with complete coverage', () => {
+    const scenario = scenarioById('sparse-risk-flags-conflict');
+    const first = materializeScenario(scenario);
+    const second = materializeScenario(scenario);
+
+    expect(first.governedInput.riskFlags).toHaveLength(52);
+    expect(new Set(first.governedInput.riskFlags.map((row) => row.userId)).size).toBe(52);
+    expect(first.governedInput.studentIds).toHaveLength(100);
+    expect(first.groundTruth.actualProgressCoverage).toBe(1);
+    expect(first.governedInput).toEqual(second.governedInput);
+  });
+
+  it('rejects a report that misreads risk-flag hits as coverage through the production gate', async () => {
+    const scenario = scenarioById('sparse-risk-flags-conflict');
+    const materialized = materializeScenario(scenario);
+    const generate = createFixtureGenerate();
+    const generated = await generate({
+      scenario,
+      governedInput: materialized.governedInput,
+      groundTruth: materialized.groundTruth,
+      replicate: 1,
+    });
+    expect(generated.ok).toBe(true);
+    const compliant = replayBenchmarkGovernance(
+      scenario,
+      materialized.governedInput,
+      (generated as { report: DiagnosisBenchmarkCandidateReport }).report,
+    );
+    expect(compliant.status).toBe('ok');
+
+    const misread: DiagnosisBenchmarkCandidateReport = {
+      ...(generated as { report: DiagnosisBenchmarkCandidateReport }).report,
+      limitations: ['风险标志数据仅覆盖52名学生（占比52%），样本覆盖度有限。'],
+    };
+    const violated = replayBenchmarkGovernance(scenario, materialized.governedInput, misread);
+    expect(violated.status).toBe('calibration-rejected');
+    expect(violated.failureReason).toContain('riskCoverage=limitations[0]');
   });
 });

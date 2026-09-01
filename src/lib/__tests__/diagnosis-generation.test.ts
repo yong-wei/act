@@ -38,8 +38,12 @@ import {
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
+  DiagnosisRiskFlagCoverageError,
+  buildDiagnosisProviderSystemPrompt,
+  buildDiagnosisProviderToolResults,
   buildKnowledgeNodeByEvidenceRef,
   enforceDiagnosisFindingNodeAttribution,
+  enforceRiskFlagCoverageSemantics,
   generateGovernedDiagnosisReport,
   isSimplifiedChineseNaturalLanguageText,
   validateDiagnosisReportBodyLanguage,
@@ -1767,6 +1771,122 @@ describe('diagnosis finding weakness-calibration contract', () => {
         failureMessage: '诊断模型返回的知识点薄弱判定未满足最小绝对弱势证据或覆盖降级约束。',
         retryable: true,
       }),
+    }));
+  });
+});
+
+
+describe('sparse risk-flag coverage semantics (Issue #1755)', () => {
+  const sparseStudents = Array.from({ length: 100 }, (_value, index) => `student-${index + 1}`);
+  const sparseInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+    classId: 'class-1',
+    studentIds: sparseStudents,
+    riskFlags: sparseStudents.slice(0, 52).map((userId, index) => ({
+      id: `risk-${index}`,
+      userId,
+      type: 'stagnation',
+      severity: 'medium',
+      description: '学习进度长期滞后。',
+      evidenceSummary: { factCount: 1 },
+      triggeredAt: now.toISOString(),
+      observedAt: now.toISOString(),
+    })),
+    competencySnapshots: [],
+    knowledgeProgress: sparseStudents.map((userId, index) => ({
+      id: `progress-${index}`,
+      userId,
+      nodeId: 'node-1',
+      status: 'IN_PROGRESS',
+      progress: 55,
+      timeSpent: 120,
+      lastVisited: now.toISOString(),
+    })),
+  };
+
+  it('projects risk flags with explicit hit semantics and no coverage fields', () => {
+    const { providerToolResults } = buildDiagnosisProviderToolResults(sparseInput, { attemptId: 'attempt-sparse' });
+
+    expect(providerToolResults.riskFlags.hitSummary).toEqual({
+      flaggedStudentCount: 52,
+      flagRecordCount: 52,
+      diagnosedStudentCount: 100,
+    });
+    expect(providerToolResults.riskFlags).not.toHaveProperty('sourceCoverage');
+    expect(JSON.stringify(providerToolResults.riskFlags)).not.toContain('includedStudents');
+  });
+
+  it('declares the sparse hit-set semantics in the production system prompt', () => {
+    const prompt = buildDiagnosisProviderSystemPrompt(now.toISOString());
+
+    expect(prompt).toContain('稀疏命中集合');
+    expect(prompt).toContain('不得据此生成“风险数据仅覆盖 N 名学生”');
+  });
+
+  it('rejects output that misreads the hit count as coverage', () => {
+    expect(enforceRiskFlagCoverageSemantics({
+      summary: '班级整体表现稳定。',
+      limitations: ['风险标志数据仅覆盖52名学生（占比52%），样本覆盖度有限，可能影响对整体受限学生规模的精确评估。'],
+    })).toEqual(['limitations[0]']);
+    expect(enforceRiskFlagCoverageSemantics({
+      summary: '风险数据仅覆盖 52% 的学生，结论需谨慎。',
+      limitations: [],
+    })).toEqual(['summary']);
+    expect(enforceRiskFlagCoverageSemantics({
+      summary: '班级整体表现稳定。',
+      limitations: ['作业与测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'],
+    })).toEqual([]);
+  });
+
+  it('rejects a persisted-bound report that misstates risk-flag coverage', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '班级诊断完成，作业测评表现正常。',
+        findings: [],
+        evidenceRefs: ['knowledge-progress:progress-0'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 100 },
+        confidence: 'medium',
+        limitations: ['风险标志数据仅覆盖52名学生（占比52%），样本覆盖度有限。'],
+      },
+      normalizedResponseId: 'provider-response-risk-coverage',
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-risk-coverage-misread',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: sparseInput,
+      inputDigest: digestDiagnosisGovernedInput(sparseInput),
+    })).rejects.toMatchObject({
+      name: 'DiagnosisRiskFlagCoverageError',
+      violations: ['limitations[0]'],
+    });
+  });
+
+  it('records risk-coverage-misread provider output as retryable instead of terminal validation', async () => {
+    const riskCoverageError = new DiagnosisRiskFlagCoverageError(['limitations[0]']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw riskCoverageError; },
+    )).rejects.toBe(riskCoverageError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-risk-flag-coverage-misread',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
     }));
   });
 });

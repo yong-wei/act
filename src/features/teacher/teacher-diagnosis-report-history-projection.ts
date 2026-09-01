@@ -98,7 +98,7 @@ export function projectReportHistoryCard(
     evidenceCutoffLabel: formatShortDate(report.evidenceCutoff),
     generationReason: formatGenerationReason(report),
     mainWeaknessLabel: mainWeaknessLabel(report),
-    availability: buildAvailability(report, confidenceReasons, attributionOnly),
+    availability: buildAvailability(report, confidenceReasons, attributionOnly, evidenceGroups),
     evidenceGroups,
     confidenceReasons,
     comparison: compareAdjacentReports(report, adjacentOlderReport),
@@ -189,6 +189,17 @@ function outcomeEvidenceGroup(
   };
 }
 
+function evidenceCoverageComplete(
+  report: DiagnosisReportApiItem,
+  evidenceGroups: EvidenceCoverageGroup[],
+) {
+  const coverage = report.reportBody.sourceCoverage;
+  const membershipGap = typeof coverage.classMembers === 'number'
+    && typeof coverage.includedStudents === 'number'
+    && coverage.includedStudents < coverage.classMembers;
+  return !membershipGap && evidenceGroups.every((group) => group.state === 'available');
+}
+
 function buildConfidenceReasons(
   report: DiagnosisReportApiItem,
   evidenceGroups: EvidenceCoverageGroup[],
@@ -225,13 +236,22 @@ function buildConfidenceReasons(
       recoveryAction: '补齐未纳入学生的学习证据后，重新生成诊断。',
     });
   }
+  // 覆盖完整时，模型声明的自定义限制（如跨来源证据冲突）就是真实降级原因，
+  // 如实展示并指向教师复核，不得回退为笼统的"补充证据"（Issue #1755）。
+  const coverageComplete = evidenceCoverageComplete(report, evidenceGroups);
   for (const limitation of report.reportBody.limitations) {
     const formatted = formatLimitation(limitation);
-    if (formatted === limitation) continue;
-    reasons.push({
-      reason: formatted,
-      recoveryAction: '等待对应数据恢复完整后，重新生成诊断。',
-    });
+    if (formatted !== limitation) {
+      reasons.push({
+        reason: formatted,
+        recoveryAction: '等待对应数据恢复完整后，重新生成诊断。',
+      });
+    } else if (coverageComplete) {
+      reasons.push({
+        reason: `报告声明了影响结论强度的判断边界：${limitation}`,
+        recoveryAction: '教师复核声明的判断边界；如需更新结论，重新生成诊断。',
+      });
+    }
   }
   if (attributionLimited) {
     reasons.push({
@@ -252,6 +272,7 @@ function buildAvailability(
   report: DiagnosisReportApiItem,
   confidenceReasons: ConfidenceReason[],
   attributionOnly: boolean,
+  evidenceGroups: EvidenceCoverageGroup[],
 ): ReportAvailability {
   if (report.reportBody.confidence === 'unavailable') {
     return {
@@ -268,6 +289,15 @@ function buildAvailability(
     };
   }
   if (report.reportBody.confidence === 'medium') {
+    // 覆盖完整且报告声明了判断边界（如跨来源证据冲突）：如实表述为冲突
+    // 并指向教师复核，不再笼统归因于覆盖不完整（Issue #1755）。
+    if (evidenceCoverageComplete(report, evidenceGroups) && report.reportBody.limitations.length > 0) {
+      return {
+        label: '证据存在冲突',
+        description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突或判断边界。',
+        recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
+      };
+    }
     return {
       label: '证据部分可用',
       description: '已有可用证据，但覆盖或归因仍不完整。',

@@ -142,6 +142,16 @@ export class DiagnosisFindingCalibrationError extends Error {
   }
 }
 
+export class DiagnosisRiskFlagCoverageError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型把稀疏风险标志的命中数量误述为风险证据覆盖不足。');
+    this.name = 'DiagnosisRiskFlagCoverageError';
+    this.violations = violations;
+  }
+}
+
 export function buildKnowledgeNodeByEvidenceRef(
   knowledgeProgress: ReadonlyArray<{ id: string; nodeId: string }>,
 ) {
@@ -301,6 +311,31 @@ export function enforceDiagnosisFindingCalibration(
       violations.push('limitations');
     }
   }
+  return violations;
+}
+
+/**
+ * 稀疏风险标志覆盖误读校验（Issue #1755）：风险标志是命中集合，
+ * 命中数量不得被表述为风险证据覆盖人数或覆盖比例。模型在 summary 或
+ * limitations 中把命中数当作覆盖率（如"风险数据仅覆盖 52 名学生"）时，
+ * 按模型行为缺陷拒绝重试，不得持久化。只拦截这一类已知缺陷措辞，
+ * 不做通用自然语言审查。
+ */
+const RISK_FLAG_COVERAGE_MISREAD_PATTERN = /风险[^。；\n]{0,40}覆盖[^。；\n]{0,20}(\d|%|名|人|占比)/;
+
+export function enforceRiskFlagCoverageSemantics(reportBody: {
+  summary: string;
+  limitations: ReadonlyArray<string>;
+}) {
+  const violations: string[] = [];
+  if (RISK_FLAG_COVERAGE_MISREAD_PATTERN.test(reportBody.summary)) {
+    violations.push('summary');
+  }
+  reportBody.limitations.forEach((limitation, index) => {
+    if (RISK_FLAG_COVERAGE_MISREAD_PATTERN.test(limitation)) {
+      violations.push(`limitations[${index}]`);
+    }
+  });
   return violations;
 }
 
@@ -530,6 +565,11 @@ export async function generateGovernedDiagnosisReport(
   if (calibrationViolations.length > 0) {
     throw new DiagnosisFindingCalibrationError(calibrationViolations);
   }
+  // 稀疏风险标志覆盖误读（Issue #1755）：与校准门同语义，模型行为缺陷重试。
+  const riskFlagCoverageViolations = enforceRiskFlagCoverageSemantics(reportBody);
+  if (riskFlagCoverageViolations.length > 0) {
+    throw new DiagnosisRiskFlagCoverageError(riskFlagCoverageViolations);
+  }
   return {
     reportBody,
     agentSessionId: agentSession.id,
@@ -552,6 +592,7 @@ const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
   '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
   '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
   '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
+  '风险标志是稀疏命中集合：governedToolResults.riskFlags.hitSummary.flaggedStudentCount 是当前命中风险的学生数，不是风险数据的覆盖人数；未命中风险的学生不缺少任何证据，不得据此生成“风险数据仅覆盖 N 名学生”或等价覆盖比例限制。',
   '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
   'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
 ];
@@ -746,9 +787,12 @@ function projectFrozenRiskFlags(
     learners: input.studentIds.map(learnerAliasFor),
     flags,
     evidenceRefs: flags.flatMap((flag) => flag.evidenceRefs),
-    sourceCoverage: {
-      classMembers: input.studentIds.length,
-      includedStudents: new Set(flags.map((flag) => flag.learnerAlias)).size,
+    // 稀疏命中集合（Issue #1755）：风险标志只含当前命中风险的学生，
+    // 命中数不是覆盖人数；显式命名字段防止模型按 coverage 语义误读。
+    hitSummary: {
+      flaggedStudentCount: new Set(flags.map((flag) => flag.learnerAlias)).size,
+      flagRecordCount: flags.length,
+      diagnosedStudentCount: input.studentIds.length,
     },
     confidence: flags.length > 0 ? 'medium' : 'unavailable',
     limitations: flags.length > 0 ? [] : ['no-current-governed-risk-flags'],

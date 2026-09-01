@@ -488,3 +488,86 @@ describe('teacher diagnosis report history projection', () => {
     expect(compareAdjacentReports(current, baseline).description).toContain('缺少风险等级');
   });
 });
+
+describe('sparse risk-flag conflict projection (Issue #1755)', () => {
+  const completeCoverageReport: DiagnosisReportApiItem = {
+    ...baseline,
+    id: 'report-sparse-risk',
+    reportBody: {
+      ...baseline.reportBody,
+      summary: '班级作业与测评整体表现正常，部分学生知识进度长期滞后。',
+      evidenceRefs: ['knowledge-progress:progress-1'],
+      sourceCoverage: {
+        classMembers: 100,
+        includedStudents: 100,
+        coverage: 1,
+        progressRows: 200,
+        assignment: {
+          availability: 'available',
+          includedStudents: 100,
+          missingStudents: 0,
+          evidenceCount: 100,
+          scoredCount: 100,
+        },
+        assessment: {
+          availability: 'available',
+          includedStudents: 100,
+          missingStudents: 0,
+          evidenceCount: 100,
+          scoredCount: 100,
+        },
+      },
+      confidence: 'medium',
+      limitations: ['作业、测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'],
+    },
+  };
+
+  it('describes a declared cross-source conflict instead of a coverage gap when coverage is complete', () => {
+    const projection = projectReportHistoryCard(completeCoverageReport);
+
+    expect(projection.availability).toMatchObject({ label: '证据存在冲突' });
+    expect(projection.availability.recoveryAction).toContain('教师复核');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        reason: expect.stringContaining('判断边界'),
+        recoveryAction: expect.stringContaining('教师复核'),
+      }),
+    ]));
+    expect(JSON.stringify(projection.confidenceReasons)).not.toContain('补充可核验证据');
+    expect(JSON.stringify(projection.availability)).not.toContain('补充可核验证据');
+  });
+
+  it('keeps the generic fallback only when no known reason applies', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: '报告没有提供可验证的置信度原因。' }),
+    ]));
+  });
+
+  it('keeps genuine coverage-gap wording when coverage is incomplete', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        sourceCoverage: {
+          ...completeCoverageReport.reportBody.sourceCoverage,
+          includedStudents: 80,
+          coverage: 0.8,
+        },
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: '仅纳入 80/100 名学生的可用证据。' }),
+    ]));
+  });
+});

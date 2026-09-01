@@ -17,6 +17,7 @@ import {
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
+  DiagnosisRiskFlagCoverageError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { prisma } from '@/lib/prisma';
@@ -67,6 +68,15 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-finding-calibration-invalid',
+      message: error.message,
+    };
+  }
+  // 稀疏风险标志覆盖误读（Issue #1755），与空输出同类（模型行为缺陷），
+  // 在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisRiskFlagCoverageError) {
+    return {
+      validation: false,
+      code: 'diagnosis-risk-flag-coverage-misread',
       message: error.message,
     };
   }
