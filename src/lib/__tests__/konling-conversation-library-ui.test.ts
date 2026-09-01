@@ -196,4 +196,15 @@ describe('Konling conversation library UI contracts', () => {
     // 解析失败保持显式不可用，不静默放行创建
     expect(sidebarSource).toContain('历史对话恢复失败，请稍后重试。');
   });
+
+  it('discards late match results after the user manually selects a conversation', () => {
+    // 在途解析结果不得覆盖用户更新的手动选择：代次失效 + 门禁解除
+    expect(sidebarSource).toContain('const textbookCoachGenerationRef = useRef(0);');
+    expect(sidebarSource).toContain('textbookCoachGenerationRef.current !== resolveGeneration');
+    expect(sidebarSource).toContain("? { key: current.key, state: 'superseded' }");
+    for (const handler of ['handleSelectConversation', 'handleNewConversation']) {
+      const start = sidebarSource.indexOf(`const ${handler}`);
+      expect(sidebarSource.slice(start, start + 400)).toContain('supersedeCoachResolution()');
+    }
+  });
 });

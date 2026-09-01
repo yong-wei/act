@@ -331,9 +331,11 @@ export function GlobalAISidebar() {
   // 解析得出 matched/blank 前（或版本不可用、解析失败时）不得创建或提交会话。
   const [coachResolution, setCoachResolution] = useState<{
     key: string;
-    state: 'loading' | 'matched' | 'blank' | 'unavailable';
+    state: 'loading' | 'matched' | 'blank' | 'unavailable' | 'superseded';
   } | null>(null);
   const textbookCoachResolveKeyRef = useRef<string | null>(null);
+  // 匹配代次：用户手动选择或新建会话会使在途解析失效，过期结果不得覆盖更新的选择
+  const textbookCoachGenerationRef = useRef(0);
   const coachResolveKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'resource-coach' || !requestedAssistantBinding) return null;
     const hints = requestedAssistantBinding.modeClientContextHints;
@@ -354,6 +356,8 @@ export function GlobalAISidebar() {
     const hints = requestedAssistantBinding.modeClientContextHints;
     if (textbookCoachResolveKeyRef.current === resolveKey) return;
     textbookCoachResolveKeyRef.current = resolveKey;
+    const resolveGeneration = textbookCoachGenerationRef.current + 1;
+    textbookCoachGenerationRef.current = resolveGeneration;
     setCoachResolution({ key: resolveKey, state: 'loading' });
     const controller = new AbortController();
     const params = new URLSearchParams();
@@ -374,8 +378,9 @@ export function GlobalAISidebar() {
         }>;
       })
       .then((result) => {
-        // 页面身份或解析键已变化时丢弃过期结果
+        // 页面身份、解析键已变化或用户已手动选择时丢弃过期结果
         if (textbookCoachResolveKeyRef.current !== resolveKey) return;
+        if (textbookCoachGenerationRef.current !== resolveGeneration) return;
         if (result.status === 'matched' && result.conversation?.id) {
           setCoachResolution({ key: resolveKey, state: 'matched' });
           selectConversation(result.conversation.id);
@@ -420,6 +425,13 @@ export function GlobalAISidebar() {
       || coachResolution.state === 'unavailable'
     ),
   );
+  // 用户手动选择或新建会话：使在途解析失效，并解除首问门禁
+  const supersedeCoachResolution = useCallback(() => {
+    textbookCoachGenerationRef.current += 1;
+    setCoachResolution((current) => current?.state === 'loading'
+      ? { key: current.key, state: 'superseded' }
+      : current);
+  }, []);
 
   useEffect(() => {
     if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
@@ -786,6 +798,7 @@ export function GlobalAISidebar() {
   }, [chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
 
   const handleNewConversation = useCallback(async () => {
+    supersedeCoachResolution();
     try {
       await createConversation(null);
       setMessages([]);
@@ -794,16 +807,17 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '新建控灵会话失败。');
     }
-  }, [createConversation, setMessages]);
+  }, [createConversation, setMessages, supersedeCoachResolution]);
 
   const handleSelectConversation = useCallback((conversationId: string) => {
     if (isLoading) return;
+    supersedeCoachResolution();
     selectConversation(conversationId);
     setMessages([]);
     setEditingConversationId(null);
     setLibraryOpen(false);
     setActionStatus('已恢复所选对话。');
-  }, [isLoading, selectConversation, setMessages]);
+  }, [isLoading, selectConversation, setMessages, supersedeCoachResolution]);
 
   const handleRenameConversation = useCallback(async (conversationId: string) => {
     try {
