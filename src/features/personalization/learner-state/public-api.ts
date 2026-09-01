@@ -9,6 +9,10 @@ import {
   resolveAdaptiveGoalSliceDefinition,
 } from '@/features/personalization/plugins/public-api';
 import {
+  projectCoexistingLearningFactIdentities as projectLearnerStateFactIdentities,
+  projectLearningFactServingIdentity as projectLearnerStateFactIdentity,
+} from '@/lib/canonical-learning-fact-identity';
+import {
   ADAPTIVE_LEARNER_STATE_ALGORITHM_VERSION,
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
@@ -18,8 +22,6 @@ import {
   CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
   CONTROL_CORRECTION_TARGET_LEVELS,
   isAdaptiveLearnerStateServiceEnabled,
-  projectLearnerStateFactIdentities,
-  projectLearnerStateFactIdentity,
   validateControlCorrectionGoalSliceContract,
   type AdaptiveGoalSliceDefinition,
   type AdaptiveLearnerState,

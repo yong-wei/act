@@ -8,12 +8,12 @@ import {
   asRecord,
   normalizeRequestedGoal,
   portraitConsumerForInput,
-  reduceLearnerState,
   uniqueFactsById,
   type AdaptiveLearnerState,
   type AdaptiveLearnerStateGoalId,
   type AdaptiveLearnerStateInput,
 } from '../internal';
+import { reduceLearnerState } from '../reducer';
 import type { LearnerStateRuntime } from '../ports';
 
 async function readPluginEvidence(
