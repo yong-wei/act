@@ -434,7 +434,9 @@ function hotspotRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Curre
       note: 'shared-lib-adaptive-surface',
     },
   ];
-  const centers = core.observations.filter((row) => row.kind === 'change-center' && inScopePath(row.identity));
+  const centers = core.observations.filter((row) => (
+    row.kind === 'change-center' && inScopePath(row.identity) && !isTestPath(row.identity)
+  ));
   const records = surfaces
     .filter((surface) => surface.files.length > 0)
     .map((surface) => {

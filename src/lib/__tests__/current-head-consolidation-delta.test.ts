@@ -131,4 +131,15 @@ describe('current-head consolidation delta', () => {
     expect(hotspot?.observationVsFinding).toBe('observation');
     expect(Number(hotspot?.attributes.byteLength ?? 0)).toBeGreaterThan(0);
   });
+
+  it('does not treat an oversized in-scope test as a hotspot record', () => {
+    const snapshot = fixture([
+      file('src/features/personalization/path-planning/__tests__/assemble-plan.test.ts', `${'export const test = 1;\n'.repeat(400)}`),
+      file('src/features/personalization/path-planning/internal/assemble-plan.ts', `${'export const assemble = 1;\n'.repeat(80)}`),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    expect(pack.records.some((row) => row.identity.includes('__tests__/assemble-plan.test.ts'))).toBe(false);
+    expect(pack.records.some((row) => row.identity.endsWith('assemble-plan.ts') && row.category === 'hotspot')).toBe(true);
+  });
 });
