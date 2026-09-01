@@ -982,6 +982,66 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
 }
 
 /**
+ * Shared render-time change-scope bookkeeping (#1739 不变量，完整三分支):
+ *
+ *   1. 筛选投影（增删皆见过身份）→ 全部剩余节点冻结，不重热；
+ *   2. 仅关系变化：仅移除 → 全冻结不重热；含新增边 → 变化边端点的连
+ *      通邻域重排，其余冻结并重热；
+ *   3. 真实新增节点 → 新节点连同变化边端点及其连通邻域重排，其余冻
+ *      结并重热。
+ *
+ * 画布 memo 各调用一次，effect 只消费冻结集与重热标志。
+ */
+export function scopeKnowledgeGraphRenderChange<T extends KnowledgeGraphPositionedNode>(input: {
+  nodes: T[];
+  links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+  previousNodeIds: ReadonlySet<string> | null;
+  everSeenNodeIds: ReadonlySet<string>;
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+}): { nodes: T[]; frozenNodeIds: Set<string>; reheat: boolean } {
+  const filterOutcome = freezeKnowledgeGraphFilterProjectionScope(input.nodes, input.previousNodeIds, input.everSeenNodeIds);
+  const edgeOutcome = freezeKnowledgeGraphEdgeGrowthScope(
+    filterOutcome.nodes,
+    input.links,
+    input.previousNodeIds,
+    input.knownLinks,
+  );
+  const previousNodeIds = input.previousNodeIds;
+  const realNewNodeIds: Set<string> = new Set(
+    previousNodeIds === null
+      ? []
+      : input.nodes
+        .filter((node) => !previousNodeIds.has(String(node.id)) && !input.everSeenNodeIds.has(String(node.id)))
+        .map((node) => String(node.id)),
+  );
+  if (realNewNodeIds.size === 0) {
+    return {
+      nodes: edgeOutcome.nodes,
+      frozenNodeIds: edgeOutcome.frozenNodeIds ?? filterOutcome.frozenNodeIds ?? new Set<string>(),
+      reheat: edgeOutcome.frozenNodeIds !== null,
+    };
+  }
+  // 真实新增节点：新节点连同变化边端点及其连通邻域重排，其余冻结。
+  const { addedEdgeEndpointIds, removedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(input.links, input.knownLinks);
+  const affected = new Set<string>([...realNewNodeIds, ...addedEdgeEndpointIds, ...removedEdgeEndpointIds]);
+  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(input.links, affected)) {
+    affected.add(id);
+  }
+  const frozenNodeIds = new Set<string>();
+  const scopedNodes = edgeOutcome.nodes.map((node) => {
+    if (affected.has(String(node.id))) return node;
+    frozenNodeIds.add(String(node.id));
+    return {
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    };
+  });
+  return { nodes: scopedNodes, frozenNodeIds, reheat: true };
+}
+
+/**
  * Derive the endpoint ids of links that changed against the previous frame
  * (link-only shard changes: an enabled relation family adds edges, a
  * disabled one removes them) so only their neighborhood reheats (#1739).

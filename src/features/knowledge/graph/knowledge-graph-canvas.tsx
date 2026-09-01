@@ -55,8 +55,7 @@ import {
   selectFocusedExpansionGraphNodes,
   freezeKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
-  freezeKnowledgeGraphFilterProjectionScope,
-  freezeKnowledgeGraphEdgeGrowthScope,
+  scopeKnowledgeGraphRenderChange,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -761,26 +760,21 @@ export function KnowledgeGraphCanvas({
 
     // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标，与 2D 相同
     // （摄入的 warmup ticks 先于被动 effect，#1739 task 3.3）。
-    // #1739 变更范围不变量（渲染期/摄入前统一决策）：筛选投影与关系
-    // 变化在此分类冻结并返回冻结集与重热标志；effect 只消费结果。
-    const previousNodeIds = knownNodeIdsRef.current;
-    const filterOutcome = freezeKnowledgeGraphFilterProjectionScope(focusedThreeDimensionalNodes, previousNodeIds, everSeenNodeIdsRef.current);
-    const edgeOutcome = freezeKnowledgeGraphEdgeGrowthScope(
-      filterOutcome.nodes,
-      transformedLinks,
-      previousNodeIds,
-      knownLinksRef.current,
-    );
-    const scopedNodes = edgeOutcome.nodes;
-    const hasRealNewNodes = previousNodeIds !== null
-      && focusedThreeDimensionalNodes.some((node) => !previousNodeIds.has(String(node.id)) && !everSeenNodeIdsRef.current.has(String(node.id)));
+    // #1739 变更范围不变量（渲染期统一决策，完整三分支：筛选投影/仅
+    // 关系变化/真实新增节点）：冻结集与重热标志由共享簿记函数给出，
+    // effect 只消费结果。
+    const changeScope = scopeKnowledgeGraphRenderChange({
+      nodes: focusedThreeDimensionalNodes,
+      links: transformedLinks,
+      previousNodeIds: knownNodeIdsRef.current,
+      everSeenNodeIds: everSeenNodeIdsRef.current,
+      knownLinks: knownLinksRef.current,
+    });
     knownNodeIdsRef.current = new Set(focusedThreeDimensionalNodes.map((node) => String(node.id)));
     for (const node of focusedThreeDimensionalNodes) everSeenNodeIdsRef.current.add(String(node.id));
     knownLinksRef.current = new Map(transformedLinks.map((link) => [String(link.id), link]));
-    changeScopeRef.current = {
-      frozenNodeIds: edgeOutcome.frozenNodeIds ?? filterOutcome.frozenNodeIds ?? new Set<string>(),
-      reheat: hasRealNewNodes || edgeOutcome.frozenNodeIds !== null,
-    };
+    changeScopeRef.current = changeScope;
+    const scopedNodes = changeScope.nodes;
     return {
       nodes: scopedNodes,
       links: transformedLinks
