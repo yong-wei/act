@@ -322,7 +322,13 @@ export function projectGovernedFormula(
     }
     throw new Error(`unregistered governed math failure: ${key}`);
   }
-  const latex = record.render_latex ?? record.original_latex;
+  // Locale-bound rows carry governed per-locale expressions; the requested
+  // locale selects the render latex so canvas and copy follow the language
+  // switch (#1740 同 locale 投影).
+  const localeLatex = record.render_latex_by_locale?.[locale];
+  const latex = (typeof localeLatex === 'string' && localeLatex.length > 0
+    ? localeLatex
+    : record.render_latex) ?? record.original_latex;
   if (!latex) {
     if (unavailable) {
       return {
@@ -358,9 +364,9 @@ export function projectGovernedFormula(
     latex,
     macroProfileId: GOVERNED_KATEX_MACRO_PROFILE_ID,
     macroProfileHash: GOVERNED_KATEX_MACRO_PROFILE_HASH,
-    accessibleLabel: stripLatexCommandNoise(record.original_latex) || record.original_latex,
+    accessibleLabel: stripLatexCommandNoise(latex) || latex,
     copyLatex: latex,
-    renderKey: opaqueRenderKey([formulaId, record.render_hash, record.display_mode]),
+    renderKey: opaqueRenderKey([formulaId, record.render_hash, record.display_mode, latex]),
   };
 }
 

@@ -1930,9 +1930,12 @@ export function KnowledgeGraph2D({
             id: node.id,
             richTitle: node.richTitle,
             mathematics: node.mathematics,
-            // 公式主标签下的有界人名上下文（#1740 decision 2）。
+            // 公式主标签下的有界人名上下文：仅受治理人类标题可用时展示，
+            // 无治理标题时省略（Formula 的 prose 名是 TeX 源码，不得当人名
+            // 渲染，#1740）。
             humanContext: node.mathematics && node.mathematics.state !== 'missing'
-              ? node.name
+              && node.richTitle?.state === 'available'
+              ? node.richTitle.accessibleName
               : undefined,
             fallbackLines: layoutKnowledgeNodeLabel(node.name).lines.map((line) => line.text),
             accessibleName: node.mathematics?.state === 'available'

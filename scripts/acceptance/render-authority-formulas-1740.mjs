@@ -70,7 +70,12 @@ try {
   const canvasRenderKey = await canvasLabel.getAttribute('data-governed-formula-label');
   results.canvas2dRenderKey = canvasRenderKey;
   results.canvas2dAriaLabel = await canvasLabel.getAttribute('aria-label');
-  results.canvas2dHumanContext = (await canvasLabel.locator('xpath=following-sibling::span[1]').textContent()) ?? null;
+  // Bounded human context renders ONLY for governed human titles; Formula
+  // prose names are TeX source and must be omitted (#1740 round 2).
+  const contextSpan = page.locator('[data-knowledge-2d-dom-label-layer] [data-governed-formula-label] + span');
+  results.canvas2dHumanContext = (await contextSpan.count()) > 0
+    ? await contextSpan.first().textContent()
+    : null;
   results.canvas2dKatexHtml = ((await canvasLabel.innerHTML()) ?? '').includes('katex');
   if (canvasRenderKey !== searchRenderKey) throw new Error('canvas and search formula identity drifted');
 

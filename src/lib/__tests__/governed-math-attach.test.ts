@@ -21,6 +21,8 @@ import {
   attachGovernedMathToLearnerShard,
   attachGovernedMathToSearchHits,
 } from '@/lib/governed-math/attach';
+import { readGovernedMathLedger } from '@/lib/governed-math/ledger';
+import { projectGovernedFormula } from '@/lib/governed-math/project';
 import { loadGovernedMathSidecarCorpus } from '@/lib/governed-math/sidecar';
 import type { AuthorityDomainSearchHit } from '@/lib/authority-domain-shards/contracts';
 
@@ -122,6 +124,16 @@ describe('governed math formula attach (#1740)', () => {
     const attached = attachGovernedMathToLearnerShard(neighborhood, 'zh-CN');
     const formula = attached.objects.find((object) => object.id === NULL_RENDER_LATEX_FORMULA);
     expect(formula?.mathematics?.state).toBe('available');
+    if (formula?.mathematics?.state !== 'available') return;
+    expect(formula.mathematics.latex).toContain('\\text{或}');
+    // 请求 locale 选择受治理的 locale 限定表达式（#1740 同 locale 投影）。
+    const english = attachGovernedMathToLearnerShard(neighborhood, 'en');
+    const englishFormula = english.objects.find((object) => object.id === NULL_RENDER_LATEX_FORMULA);
+    expect(englishFormula?.mathematics?.state).toBe('available');
+    if (englishFormula?.mathematics?.state !== 'available') return;
+    expect(englishFormula.mathematics.latex).toContain('\\text{or}');
+    expect(englishFormula.mathematics.latex).not.toContain('或');
+    expect(englishFormula.mathematics.renderKey).not.toBe(formula.mathematics.renderKey);
   });
 
   it('attaches projections only to bounded Formula search hits of the same release', () => {
@@ -160,6 +172,15 @@ describe('governed math formula attach (#1740)', () => {
     expect(formulaIds.size).toBe(1995);
     for (const id of formulaIds) {
       expect(corpus.formulas.has(id)).toBe(true);
+    }
+    // 资格阶段闭合证据：唯一严格渲染失败记录持有课程负责人已审核的
+    // registered-unavailable 处置（corpus 级全量采样闭合由
+    // governed-math-sidecar qualification 测试承担），运行期才能安全地
+    // 把治理 ledger 保持离线（#1740）。
+    const ledger = readGovernedMathLedger();
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const projection = projectGovernedFormula(corpus, LEDGER_UNAVAILABLE_FORMULA, locale, ledger);
+      expect(projection.state).toBe('registered-unavailable');
     }
   });
 
