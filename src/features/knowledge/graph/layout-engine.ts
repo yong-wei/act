@@ -982,6 +982,23 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
 }
 
 /**
+ * Post-ingest identity advance (#1739)：把上一帧/历史身份与边表推进到
+ * 当前帧（幂等，StrictMode 重放下安全）。两画布 effect 各调用一次。
+ */
+export function advanceKnowledgeGraphFrameIdentity<T extends { id: unknown }, L extends { id: unknown }>(input: {
+  nodes: readonly T[];
+  links: readonly L[];
+  nodeIdsRef: { current: ReadonlySet<string> | null };
+  everSeenNodeIdsRef: { current: Set<string> };
+  knownLinksRef: { current: Map<string, L> };
+}): void {
+  const nextIds = new Set(input.nodes.map((node) => String(node.id)));
+  input.nodeIdsRef.current = nextIds;
+  for (const id of nextIds) input.everSeenNodeIdsRef.current.add(id);
+  input.knownLinksRef.current = new Map(input.links.map((link) => [String(link.id), link]));
+}
+
+/**
  * Shared render-time change-scope bookkeeping (#1739 不变量，完整三分支):
  *
  *   1. 筛选投影（增删皆见过身份）→ 全部剩余节点冻结，不重热；

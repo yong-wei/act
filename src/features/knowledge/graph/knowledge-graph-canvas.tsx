@@ -56,6 +56,7 @@ import {
   freezeKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
   scopeKnowledgeGraphRenderChange,
+  advanceKnowledgeGraphFrameIdentity,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -770,9 +771,8 @@ export function KnowledgeGraphCanvas({
       everSeenNodeIds: everSeenNodeIdsRef.current,
       knownLinks: knownLinksRef.current,
     });
-    knownNodeIdsRef.current = new Set(focusedThreeDimensionalNodes.map((node) => String(node.id)));
-    for (const node of focusedThreeDimensionalNodes) everSeenNodeIdsRef.current.add(String(node.id));
-    knownLinksRef.current = new Map(transformedLinks.map((link) => [String(link.id), link]));
+    // 渲染期只做幂等的纯决策写入（StrictMode 重放下同输入同结果）；
+    // 有损的历史身份推进在摄入后的 effect 中完成（#1739）。
     changeScopeRef.current = changeScope;
     const scopedNodes = changeScope.nodes;
     return {
@@ -1161,6 +1161,15 @@ export function KnowledgeGraphCanvas({
     // 消费渲染期（摄入前）的变更范围决策：登记冻结集并在存在真实新增
     // （新节点或新关系）时重热；仅移除关系不重热（#1739）。
     if (forceLifecycle.staticLayout) return;
+    // 历史身份推进（幂等）放在摄入后：useMemo 在 StrictMode 重放下会
+    // 多次执行，渲染期推进会把同一批变化误判为稳定帧（#1739）。
+    advanceKnowledgeGraphFrameIdentity({
+      nodes: graphData.nodes,
+      links: graphData.links,
+      nodeIdsRef: knownNodeIdsRef,
+      everSeenNodeIdsRef,
+      knownLinksRef,
+    });
     const scope = changeScopeRef.current;
     unaffectedFrozenNodeIdsRef.current = scope.frozenNodeIds;
     if (scope.reheat) fgRef.current?.d3ReheatSimulation?.();
