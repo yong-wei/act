@@ -638,7 +638,7 @@ personalizing explanations, scope, style, and evidence diagnostics.
 - **AND** it SHALL treat portrait incompleteness as a personalization limitation rather than a retrieval failure.
 
 ### Requirement: Konling conversations belong to the authenticated user
-Readable Konling conversations SHALL be owned by one authenticated user and SHALL remain available across supported pages until the user deletes them or explicit global retention governance removes or expires them. A library conversation SHALL NOT become unreadable solely because a fixed product-level seven-day interval elapsed. Every list, read, update, delete and message operation SHALL enforce the same owner and governed-retention eligibility.
+Readable Konling conversations, including conversations created or continued from the standalone `/ai/copilot` page, SHALL be owned by one authenticated user and SHALL remain available across supported pages until the user deletes them or explicit global retention governance removes or expires them. A library conversation SHALL NOT become unreadable solely because a fixed product-level seven-day interval elapsed. Every list, read, update, delete and message operation SHALL enforce the same owner and governed-retention eligibility. Every message write SHALL verify conversation ownership and current authorized context before persistence.
 
 #### Scenario: Owner lists conversations
 - **WHEN** an authenticated user opens the Konling conversation library
@@ -668,6 +668,16 @@ Readable Konling conversations SHALL be owned by one authenticated user and SHAL
 - **THEN** the proposal, tool run, and applied artifact SHALL retain exact task and task-revision lineage
 - **AND** user-level conversation ownership SHALL NOT replace domain artifact ownership or revision binding.
 
+#### Scenario: Owner continues a conversation from standalone Copilot
+- **WHEN** an authenticated user selects an owned conversation on `/ai/copilot` and sends a new message
+- **THEN** the runtime SHALL persist the exchange in that conversation
+- **AND** the updated conversation SHALL remain available through the shared conversation library.
+
+#### Scenario: Another user requests a standalone Copilot conversation
+- **WHEN** a user supplies a conversation identity owned by another user
+- **THEN** the runtime SHALL deny access to its title, messages, context records and tool runs
+- **AND** it SHALL NOT persist the attempted message.
+
 ### Requirement: Conversation library supports deliberate organization
 The library SHALL support new conversation, title search, manual rename, pin or unpin, and confirmed deletion for every owner-readable conversation that has not reached an explicit governed expiry.
 
@@ -696,7 +706,7 @@ The library SHALL support new conversation, title search, manual rename, pin or 
 - **AND** the UI SHALL open a new blank conversation while independently persisted platform artifacts remain.
 
 ### Requirement: Cross-page continuation appends context without rewriting history
-The runtime SHALL preserve the initiating page context and SHALL append one server-authored current-page context record immediately before a new user message when the conversation continues from a materially different page context.
+The runtime SHALL preserve the initiating page context and SHALL append one server-authored current-page context record immediately before a new user message when a shared conversation continues from `/ai/copilot` or another materially different authorized page context. A standalone Copilot task descriptor SHALL be revalidated for the current request and MUST NOT rewrite prior context or expand conversation authority.
 
 #### Scenario: Conversation continues on the same page context
 - **WHEN** the current authorized page-context identity matches the latest recorded context
@@ -711,6 +721,15 @@ The runtime SHALL preserve the initiating page context and SHALL append one serv
 #### Scenario: Client supplies unauthorized context
 - **WHEN** client hints contain data outside the user's current authorized page scope
 - **THEN** the server SHALL omit or reject those fields before persisting the context record.
+
+#### Scenario: Conversation continues on standalone Copilot with a new task context
+- **WHEN** an owned conversation continues on `/ai/copilot` with a currently supported portfolio-reflection or evidence task descriptor
+- **THEN** the runtime SHALL validate and append the current authorized context before the user message
+- **AND** prior system context, messages and task boundaries SHALL remain unchanged.
+
+#### Scenario: Client supplies unauthorized standalone task context
+- **WHEN** client hints or historical messages claim evidence, writeback or learner authority outside the current user's authorized task contract
+- **THEN** the server SHALL omit or reject those claims before persisting context or invoking the model.
 
 ### Requirement: Existing usable conversations migrate into the library
 The system SHALL migrate and retain existing readable Konling sessions idempotently while preserving chronological messages, readable tool records and original timestamps. Existing rows already marked `libraryVisible=true` but hidden only by the obsolete fixed seven-day expiry SHALL be restored without creating duplicate conversations. Rows excluded as empty, failed initialization or non-library technical sessions SHALL remain excluded.
@@ -1068,4 +1087,21 @@ When explaining a persisted batch, Konling SHALL use the server-owned batch proj
 #### Scenario: Explanation uses stored candidates
 - **WHEN** Konling explains or links to a candidate from a successful batch
 - **THEN** it references the persisted candidate and does not independently re-rank, regenerate, or rewrite the candidate set
+
+### Requirement: Arena intervention persistence requires official submission evidence
+The Konling runtime SHALL create a governed Arena control-workbench intervention only when the request carries a server-verified official submission reference owned by the authenticated student and scoped to the current task. Client-authored `StudentState`, parameters, metrics, outcome, task id or method MUST NOT be sufficient to create intervention evidence, Memory, feedback identity or cooldown state.
+
+#### Scenario: Runtime receives only client-authored state
+- **WHEN** the Arena intervention path receives attempt history or current state without a verified official submission reference
+- **THEN** the runtime SHALL fail before creating an intervention, evidence record, Memory or feedback identity.
+
+#### Scenario: Official submission scope does not match
+- **WHEN** the referenced official submission belongs to another student or task, or its method cannot be resolved from the registered task
+- **THEN** the runtime SHALL reject the request
+- **AND** it SHALL not fall back to client-supplied state.
+
+#### Scenario: Legacy row lacks official evidence
+- **WHEN** an existing intervention was created without a verifiable official submission reference
+- **THEN** the runtime SHALL exclude it from official baseline, follow-up and cooldown resolution
+- **AND** it SHALL preserve the row for authorized historical audit unless separate retention governance removes it.
 

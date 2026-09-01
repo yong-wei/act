@@ -142,7 +142,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('data-primary-task-input={localTaskMode ? \'copilot-local-task\' : undefined}');
     expect(copilot).toContain("context === 'portfolio-reflection'");
     expect(copilot).toContain("context === 'evidence'");
-    expect(copilot).toContain('clearLocalConversation');
+    expect(copilot).toContain('createConversation(null)');
+    expect(copilot).toContain('deleteConversation(conversationId)');
     expect(copilot).toContain('buildPortfolioReflectionDraft(source, {');
     expect(copilot).toContain('intent: taskIntent');
     expect(copilot).toContain('auditTaskContext: portfolioReflectionTaskContext');

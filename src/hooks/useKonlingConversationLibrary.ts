@@ -234,9 +234,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('新建控灵会话失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('新建控灵会话失败');
     } finally {
       setIsMutating(false);
     }
@@ -264,9 +262,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('对话重命名失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('对话重命名失败');
     } finally {
       setIsMutating(false);
     }
@@ -286,9 +282,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('对话置顶状态更新失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('对话置顶状态更新失败');
     } finally {
       setIsMutating(false);
     }
@@ -314,9 +308,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return wasActive;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('删除控灵会话失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('删除控灵会话失败');
     } finally {
       setIsMutating(false);
     }
