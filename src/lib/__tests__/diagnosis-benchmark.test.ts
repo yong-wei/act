@@ -226,6 +226,64 @@ describe('diagnosis benchmark metrics', () => {
     expect(metrics.generationSuccessRate).toBe(0.5);
   });
 
+  it('pools governance compliance across successful replicates instead of scenario rates', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const okReplicate = (overrides: Partial<Record<string, unknown>>) => ({
+      scenarioId: scenario.id,
+      replicate: 1,
+      status: 'ok' as const,
+      reportedNodes: truth.trueWeakNodes,
+      primaryReportedNode: 'bench-node-07',
+      chineseCompliant: true,
+      evidenceRefsValid: true,
+      attributionValid: true,
+      coverageClaimAccurate: true,
+      durationMs: 1,
+      ...overrides,
+    });
+    // 场景级比例 1/1 与 1/2：池化口径应为 2/3，而非"完全合规场景占比" 0.5。
+    const aggregate = aggregateBenchmarkMetrics([
+      {
+        scenario,
+        groundTruth: truth,
+        evaluations: [okReplicate({ replicate: 1 })],
+      },
+      {
+        scenario: scenarioById('single-weak-node'),
+        groundTruth: benchmarkGroundTruth(scenarioById('single-weak-node')),
+        evaluations: [
+          okReplicate({ replicate: 1 }),
+          okReplicate({ replicate: 2, coverageClaimAccurate: false }),
+        ],
+      },
+    ]);
+    expect(aggregate.coverageClaimAccuracyRate).toBeCloseTo(2 / 3, 3);
+    expect(aggregate.chineseComplianceRate).toBe(1);
+  });
+
+  it('fails the threshold gate when any scenario has no successful replicate', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const unavailableRun = {
+      scenario,
+      groundTruth: truth,
+      evaluations: [{
+        scenarioId: scenario.id,
+        replicate: 1,
+        status: 'generation-failed' as const,
+        reportedNodes: [],
+        primaryReportedNode: null,
+        chineseCompliant: false,
+        evidenceRefsValid: false,
+        attributionValid: false,
+        coverageClaimAccurate: false,
+        durationMs: 1,
+        failureReason: 'provider unavailable',
+      }],
+    };
+    const failures = evaluateBenchmarkThreshold(aggregateBenchmarkMetrics([unavailableRun]), [unavailableRun]);
+    expect(failures.some((failure) => failure.metric === 'scenarioSuccessfulReplicateFloor')).toBe(true);
+  });
+
   it('records full compliance for scenarios with no successful replicate', () => {
     const truth = benchmarkGroundTruth(scenario);
     const metrics = computeScenarioMetrics(scenario, truth, [

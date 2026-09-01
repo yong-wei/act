@@ -144,6 +144,18 @@ export function aggregateBenchmarkMetrics(
 
   const healthyEntries = scored.filter((entry) => entry.healthyFalsePositiveRate !== null);
   const macroF1Values = scored.map((entry) => entry.f1).filter((value): value is number => value !== null);
+  // 治理合规率直接汇总全部成功 replicate 的布尔结果（Issue #1749 review）：
+  // 场景级比例再二值化会得到"完全合规场景占比"（1/1 与 1/2 场景记 0.5
+  // 而真实成功样本口径为 2/3），偏离 spec 的成功 replicate 口径。
+  const successfulReplicates = runs.flatMap((run) => run.evaluations.filter((entry) => entry.status === 'ok'));
+  const pooledGovernance = successfulReplicates.length === 0
+    ? { chinese: 1, refs: 1, attribution: 1, coverage: 1 }
+    : {
+        chinese: rate(successfulReplicates.map((entry) => entry.chineseCompliant)),
+        refs: rate(successfulReplicates.map((entry) => entry.evidenceRefsValid)),
+        attribution: rate(successfulReplicates.map((entry) => entry.attributionValid)),
+        coverage: rate(successfulReplicates.map((entry) => entry.coverageClaimAccurate)),
+      };
   // 重复运行稳定性按逐 replicate F1 事件计算（Issue #1729 review）：
   // 场景均值的标准差衡量的是场景间差异，会掩盖单次调用的大幅波动。
   const replicateF1Values: number[] = [];
@@ -161,10 +173,10 @@ export function aggregateBenchmarkMetrics(
     exactMatchRate: rate(scored.map((entry) => entry.exactMatchRate >= 1)),
     primaryHitRate: mean(scored.map((entry) => entry.primaryHitRate).filter((value): value is number => value !== null)),
     healthyFalsePositiveRate: mean(healthyEntries.map((entry) => entry.healthyFalsePositiveRate ?? 0)),
-    chineseComplianceRate: rate(scored.map((entry) => entry.chineseComplianceRate >= 1)),
-    evidenceReferenceValidityRate: rate(scored.map((entry) => entry.evidenceReferenceValidityRate >= 1)),
-    attributionValidityRate: rate(scored.map((entry) => entry.attributionValidityRate >= 1)),
-    coverageClaimAccuracyRate: rate(scored.map((entry) => entry.coverageClaimAccuracyRate >= 1)),
+    chineseComplianceRate: pooledGovernance.chinese,
+    evidenceReferenceValidityRate: pooledGovernance.refs,
+    attributionValidityRate: pooledGovernance.attribution,
+    coverageClaimAccuracyRate: pooledGovernance.coverage,
     generationSuccessRate: rate(scored.map((entry) => entry.generationSuccessRate >= 1)),
     scenarioCount: scored.length,
     replicateDispersion: {
