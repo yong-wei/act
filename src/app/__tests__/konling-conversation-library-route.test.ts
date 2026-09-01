@@ -335,6 +335,18 @@ describe('Konling conversation library routes', () => {
     expect(mocks.prisma.agentSession.deleteMany).not.toHaveBeenCalled();
   });
 
+  it('rolls back child deletions and reports not-found when a concurrent delete wins the race', async () => {
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(record());
+    mocks.prisma.konlingSession.deleteMany.mockResolvedValue({ count: 0 });
+    mocks.prisma.agentSession.deleteMany.mockResolvedValue({ count: 1 });
+    const response = await deleteConversation(new NextRequest('http://localhost/api/ai/sessions/conversation-1', {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmed: true }),
+    }), routeContext);
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'Conversation not found' });
+  });
+
   it('rehydrates bounded owner-and-conversation-scoped legacy structured actions', async () => {
     mocks.prisma.konlingSession.findFirst.mockResolvedValue(record({
       messages: [{
