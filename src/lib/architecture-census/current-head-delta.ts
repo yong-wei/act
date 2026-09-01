@@ -213,6 +213,20 @@ function censusConsumers(
       found.set(key, { path: from, kind, relationship });
     }
   }
+  const names = new Set(snapshot.files.map((file) => file.path));
+  for (const file of snapshot.files) {
+    if (!file.content) continue;
+    for (const match of file.content.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/gu)) {
+      const to = resolveImport(file.path, match[1]!, names).to;
+      if (!to || !hitsTarget(to, identities) || file.path === to) continue;
+      const kind = consumerKind(file.path);
+      const relationship = relationshipFor(file.path, to, snapshot);
+      const key = `${file.path}:${kind}:${relationship}`;
+      if (!found.has(key)) {
+        found.set(key, { path: file.path, kind, relationship });
+      }
+    }
+  }
   return [...found.values()].sort((left, right) => left.path.localeCompare(right.path) || left.kind.localeCompare(right.kind));
 }
 

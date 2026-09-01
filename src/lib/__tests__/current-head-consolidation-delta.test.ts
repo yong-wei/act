@@ -148,6 +148,17 @@ describe('current-head consolidation delta', () => {
     expect(publicApi?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
   });
 
+  it('records TypeScript import-type queries as consumers', () => {
+    const snapshot = fixture([
+      file('src/features/assessment/adaptive-attempt-context.ts', 'export type AdaptiveAttemptContext = { id: string };\n'),
+      file('src/lib/ai-prompt-builder.ts', "export type PromptContext = import('@/features/assessment/adaptive-attempt-context').AdaptiveAttemptContext;\n"),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    const assessment = pack.records.find((row) => row.category === 'owner-conflict' && row.identity.includes('assessment'));
+    expect(assessment?.consumers.some((item) => item.path === 'src/lib/ai-prompt-builder.ts')).toBe(true);
+  });
+
   it('includes the adaptive UI production files in the retirement denominator', () => {
     const snapshot = fixture([
       file('src/features/adaptive/path-advisor-entrypoint-bridge.tsx', 'export const bridge = 1;\n'),
