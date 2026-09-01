@@ -148,6 +148,20 @@ describe('current-head consolidation delta', () => {
     expect(publicApi?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
   });
 
+  it('includes the adaptive UI production files in the retirement denominator', () => {
+    const snapshot = fixture([
+      file('src/features/adaptive/path-advisor-entrypoint-bridge.tsx', 'export const bridge = 1;\n'),
+      file('src/features/adaptive/path-workspace-module.tsx', 'export const panel = 1;\n'),
+      file('src/lib/adaptive-path-comparison.ts', 'export const compare = 1;\n'),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    const retired = pack.records.filter((row) => row.category === 'retirement').map((row) => row.identity);
+    expect(retired).toContain('src/features/adaptive/path-advisor-entrypoint-bridge.tsx');
+    expect(retired).toContain('src/features/adaptive/path-workspace-module.tsx');
+    expect(retired).toContain('src/lib/adaptive-path-comparison.ts');
+  });
+
   it('classifies named export-from as re-export', () => {
     const snapshot = fixture([
       file('src/features/personalization/path-planning/internal/assemble-plan.ts', 'export const assemble = 1;\n'),

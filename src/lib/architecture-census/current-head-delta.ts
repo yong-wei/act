@@ -433,7 +433,8 @@ function retirementRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Cu
   const sourceTree = snapshot.identity.sourceTree;
   const compat = core.observations.filter((row) => row.kind === 'compatibility-surface' && inScopePath(row.identity));
   const libAdaptive = [...libAdaptiveFiles(snapshot), ...filesUnder(snapshot, 'src/lib/adaptive-planning/')];
-  const identities = uniqueSorted([...compat.map((row) => row.identity), ...libAdaptive]);
+  const adaptiveUi = filesUnder(snapshot, 'src/features/adaptive/');
+  const identities = uniqueSorted([...compat.map((row) => row.identity), ...libAdaptive, ...adaptiveUi]);
   return identities.map((identity) => {
     const observation: CensusObservation | undefined = compat.find((row) => row.identity === identity);
     const consumers = mergeConsumers(censusConsumers(core, [identity], snapshot), mentionConsumers(snapshot.files, [identity]));
