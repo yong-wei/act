@@ -24,14 +24,15 @@ encourages routes or data-governance code to reconstruct assignment state.
 
 ### New Capabilities
 
-- `assignment-lifecycle-owner-consolidation`: Defines the closed Assignment
-  owner boundary and cross-domain handoff rules.
+None.
 
 ### Modified Capabilities
 
-None.  `assignment-lifecycle-public-api`, `assignment-authoring-and-publication`,
-`assignment-review-feedback-authority`, Assessment, and Learning Record specs
-remain authoritative; this change closes their caller/owner implementation gap.
+- `assignment-lifecycle-public-api`: Preserve every existing requirement while
+  closing the single-owner consumer migration and legacy-deletion boundary.
+  `assignment-authoring-and-publication`, `assignment-review-feedback-authority`,
+  Assessment, and Learning Record remain authoritative for their existing
+  scopes.
 
 ## Impact
 
