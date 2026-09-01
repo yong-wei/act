@@ -150,7 +150,10 @@ import {
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile } from '@/types/ai-context';
-import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
+import {
+  type ArenaCompanionContext,
+  isClientAuthoredArenaCompanionScope,
+} from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
 import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
@@ -7958,6 +7961,9 @@ export async function createGovernedKonlingIntervention(
   db: KonlingRuntimeDb,
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
+  if (input.arenaContext || isClientAuthoredArenaCompanionScope(input.scope)) {
+    throw new Error('Arena 受治理干预不能由客户端尝试状态创建');
+  }
   const now = input.now ?? new Date();
   const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
   const evidence = buildInterventionEvidence(input.studentState, input.arenaContext);

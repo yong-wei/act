@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "issue": 1759,
+  "capturedAt": "2026-09-01T10:58:52.647Z",
+  "commitSha": "7b64cd888cf60cb0986d51f22daa100f59c54b16",
+  "generator": "tests/retire-client-authored-companion-1759.spec.ts",
+  "generatorSha256": "ed7608b5a3f287eb34777d65d50e63fe6490fa03d5747a9928021a8b5444f390",
+  "representativeRoute": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+  "sourceSha256": {
+    "tests/retire-client-authored-companion-1759.spec.ts": "ed7608b5a3f287eb34777d65d50e63fe6490fa03d5747a9928021a8b5444f390",
+    "src/features/control-workbench/shell/control-workbench-shell.tsx": "e724958b84883d0b0fc61b191740db1fb4e4457e5a4bdc621ecb310094fbd258",
+    "src/app/api/ai/intervention/generate/route.ts": "80dcba4d1d4ca37be299335586ea481a9b793dd2ff9735e6e5bee56f7c86dcfe",
+    "src/lib/konling-agent-runtime.ts": "011b5adafbe0e7d5d8ffb99be5166463c9f0be7e903d7de6f28a25fcc680ec55",
+    "src/features/arena/student/konling-official-followup.ts": "09615e8a089e34c64082a4b21585c5306510403016c243d4eb2c9e8e0f898a7b",
+    "src/features/ai/companion/arena-companion-context.ts": "5f4b7672da4c75395b02854dfd41a986849019c4f5ebe65694c73ded48f0a5d1"
+  },
+  "sourceGitBlobIds": {
+    "tests/retire-client-authored-companion-1759.spec.ts": "1814f421f861c3d3778e295a8affc3bbf04fc484",
+    "src/features/control-workbench/shell/control-workbench-shell.tsx": "5f3e321a37204dfd76f9829867a0fa3828beeb00",
+    "src/app/api/ai/intervention/generate/route.ts": "88cd4f978e657e4c3470a28a480b02d9b56e44e6",
+    "src/lib/konling-agent-runtime.ts": "662150cfc5cef25a757b27fe2033e5ff44a60574",
+    "src/features/arena/student/konling-official-followup.ts": "d1c86fa1f44ccfb13d2479457e1b4e83ac2ab92d",
+    "src/features/ai/companion/arena-companion-context.ts": "586fb2af2edb7b6247ffa483326df64d3582f0f6"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1759-retire-client-authored-companion/official-desktop-1440.png",
+      "sha256": "241458802925f211e692da9399fb8ea4b8c532a9f0bde3748cda4974ef00f3ed",
+      "scenario": "official-desktop-1440",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 1440,
+      "height": 900,
+      "assertions": [
+        "old hand-entered companion panel is absent",
+        "official follow-up card remains reachable",
+        "no horizontal overflow"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1759-retire-client-authored-companion/official-mobile-320.png",
+      "sha256": "6ef8ccf9c2fb49d38f08c805f25ac7d7a3807aa11b57b18eb5e6c365a0d9a545",
+      "scenario": "official-mobile-320",
+      "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
+      "width": 320,
+      "height": 900,
+      "assertions": [
+        "old hand-entered companion panel is absent",
+        "official follow-up card remains reachable",
+        "no horizontal overflow"
+      ]
+    }
+  ]
+}

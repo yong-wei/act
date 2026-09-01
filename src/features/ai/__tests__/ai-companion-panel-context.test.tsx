@@ -26,14 +26,14 @@ describe('Arena-aware AI companion panel', () => {
     expect(html).not.toContain('Kp');
   });
 
-  it('mounts the companion in the task-bound control workbench', () => {
+  it('does not mount the client-authored companion in the task-bound control workbench', () => {
     const source = readFileSync(
       join(process.cwd(), 'src/features/control-workbench/shell/control-workbench-shell.tsx'),
       'utf8',
     );
 
-    expect(source).toContain("from '@/features/ai/companion/ai-companion-panel'");
-    expect(source).toContain('<AICompanionPanel');
-    expect(source).toContain('arenaTaskId={session.taskId}');
+    expect(source).not.toContain("from '@/features/ai/companion/ai-companion-panel'");
+    expect(source).not.toContain('<AICompanionPanel');
+    expect(source).toContain('ArenaWorkbenchSubmissionMount');
   });
 });
