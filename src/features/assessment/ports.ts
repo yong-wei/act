@@ -1,4 +1,4 @@
-import type { AdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import type { AdaptiveAssessmentCatalogSnapshot } from '@/features/assessment/adaptive-assessment-catalog-selector';
 import type { CompanionPracticeMetadata } from './adaptive-engine';
 import type {
   AbilityReport,

@@ -244,7 +244,7 @@ function buildRecord(seed: TerminalValidationSeed): CheckpointAuthoredQuestionRe
     reviewerId: TERMINAL_VALIDATION_QUESTION_SET_REVIEWER_ID,
     reviewerRole: TERMINAL_VALIDATION_QUESTION_SET_REVIEWER_ROLE,
     reviewBatchId: TERMINAL_VALIDATION_REVIEW_BATCH_ID,
-    sourceRef: `src/features/adaptive-assessment/learning-goal-terminal-validation-question-sets.ts#${id}`,
+    sourceRef: `src/features/assessment/learning-goal-terminal-validation-question-sets.ts#${id}`,
   };
 }
 

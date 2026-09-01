@@ -2,12 +2,12 @@ import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import { buildKaqQuizQuestionMetadata } from '@/features/assessment/kaq-quiz-foundation';
 import {
   LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
   type CheckpointAuthoredQuestionRecord,
-} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import { PRESET_QUESTIONS, type CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import {
   contentHashForGeneratedCandidate,

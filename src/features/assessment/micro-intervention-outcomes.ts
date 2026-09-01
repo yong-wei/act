@@ -2,7 +2,7 @@ import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
 import { createHash } from 'node:crypto';
 import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import { canonicalMicroTutoringQuestionId } from '@/features/assessment/micro-tutoring-validation-registry';
-import { getCheckpointAuthoredQuestionRecordByRuntimeId } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+import { getCheckpointAuthoredQuestionRecordByRuntimeId } from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import {
   REMEDIATION_MANUAL_PRACTICE_PATH,
   readAvailableRemediationInterventionSource,

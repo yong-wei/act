@@ -3,8 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
 import v2BaselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import v2OptionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
 import v2ProjectionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-resource-projection-v2.json';

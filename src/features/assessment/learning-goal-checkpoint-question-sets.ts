@@ -619,7 +619,7 @@ function authoredQuestion(
     reviewerId: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ID,
     reviewerRole: LEARNING_GOAL_CHECKPOINT_QUESTION_SET_REVIEWER_ROLE,
     reviewBatchId: LEARNING_GOAL_CHECKPOINT_REVIEW_BATCH_ID,
-    sourceRef: `src/features/adaptive-assessment/learning-goal-checkpoint-question-sets.ts#${id}`,
+    sourceRef: `src/features/assessment/learning-goal-checkpoint-question-sets.ts#${id}`,
   };
 }
 

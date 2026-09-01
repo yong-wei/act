@@ -13,7 +13,7 @@ import {
   attributeWrongAnswerEvidence,
   type WrongAnswerAttributionDb,
 } from '@/features/assessment/wrong-answer-attribution';
-import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
+import { ensureGeneratedCatalogHydrated } from '@/features/assessment/generated-catalog-runtime';
 
 export const dynamic = 'force-dynamic';
 

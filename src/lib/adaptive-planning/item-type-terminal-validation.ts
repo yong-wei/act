@@ -2,13 +2,13 @@ import {
   AdaptiveAssessmentCatalogSelectionError,
   selectCatalogBackedAssessmentItemFromArtifacts,
   type CatalogBackedAssessmentSelection,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selection';
+} from '@/features/assessment/adaptive-assessment-catalog-selection';
 import {
   LIFECYCLE_COVERAGE_V2_VERSION,
   loadFrozenTerminalValidationOverlay,
-} from '@/features/adaptive-assessment/adaptive-assessment-lifecycle-coverage';
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-lifecycle-coverage';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
 
 export interface ItemTypeTerminalValidationResolution {
   status: 'ready' | 'unavailable';

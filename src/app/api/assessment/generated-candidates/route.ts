@@ -7,11 +7,11 @@ import {
   publicGeneratedCandidateSummary,
   type GeneratedCandidateContent,
   type GeneratedAssessmentKind,
-} from '@/features/adaptive-assessment/generated-candidate-governance';
+} from '@/features/assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
   persistGeneratedCandidateStore,
-} from '@/features/adaptive-assessment/generated-candidate-persistence';
+} from '@/features/assessment/generated-candidate-persistence';
 
 export const dynamic = 'force-dynamic';
 

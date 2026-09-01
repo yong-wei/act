@@ -3,7 +3,7 @@ import { createHmac } from 'node:crypto';
 
 vi.mock('server-only', () => ({}));
 
-import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { assessmentItemSemanticReviewSourceHash } from '@/features/assessment/adaptive-assessment-semantic-review';
 import { adaptiveAssessmentItemContentHash } from '@/features/assessment/adaptive-assessment-item-content-hash';
 import {
   createKonlingTeachingAssistantServerContextToken,

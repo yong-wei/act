@@ -5,7 +5,7 @@ import path from 'node:path';
 import {
   getCheckpointAuthoredQuestionRecordByRuntimeId,
   LEARNING_GOAL_CHECKPOINT_QUESTION_SET_VERSION,
-} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 

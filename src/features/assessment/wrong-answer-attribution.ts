@@ -1,8 +1,8 @@
 import {
   evaluateAssessmentEvidenceSnapshotAuthority,
   type AssessmentEvidenceCatalogSnapshot,
-} from '@/features/adaptive-assessment/assessment-evidence-authority';
-import type { AdaptiveAssessmentCatalogStage } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+} from '@/features/assessment/assessment-evidence-authority';
+import type { AdaptiveAssessmentCatalogStage } from '@/features/assessment/adaptive-assessment-item-catalog';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
 import { findMicroTutoringOptionAttribution } from './micro-tutoring-option-attribution';
 

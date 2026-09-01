@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { writeGeneratedCatalogRelease } from '@/features/adaptive-assessment/generated-candidate-catalog';
-import { applyGeneratedCandidateStoreToRuntimeOverlay } from '@/features/adaptive-assessment/generated-catalog-runtime';
-import { publishGeneratedCandidate } from '@/features/adaptive-assessment/generated-candidate-governance';
+import { writeGeneratedCatalogRelease } from '@/features/assessment/generated-candidate-catalog';
+import { applyGeneratedCandidateStoreToRuntimeOverlay } from '@/features/assessment/generated-catalog-runtime';
+import { publishGeneratedCandidate } from '@/features/assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
   persistGeneratedCandidateStore,
-} from '@/features/adaptive-assessment/generated-candidate-persistence';
+} from '@/features/assessment/generated-candidate-persistence';
 
 export const dynamic = 'force-dynamic';
 
