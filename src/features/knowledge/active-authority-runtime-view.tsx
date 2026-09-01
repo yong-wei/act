@@ -111,7 +111,13 @@ export function ActiveAuthorityRuntimeView({
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
     : [];
   const showNodeDirectory = kind === 'domain' && (
-    !view || view.edges.length === 0 || showUnavailableTeachingDirectory
+    !view
+    || view.edges.length === 0
+    || showUnavailableTeachingDirectory
+    // mobile 大域（超 compact 上限）画布标签几何受限（fit 后像素级
+    // 节点），可浏览目录承担无选择可读名称（#1739 spec mobile 大域
+    // 场景）；桌面画布不受压缩，目录保持 sr-only 语义通道。
+    || (compactLabelPriority && view.nodes.length > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES)
   );
 
   useEffect(() => {

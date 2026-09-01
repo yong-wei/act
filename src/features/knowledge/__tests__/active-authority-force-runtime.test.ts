@@ -479,6 +479,7 @@ describe('scoped reheat affected scope (#1739)', () => {
       nodes: frameOne,
       links: [{ source: 'n1', target: 'old-near' }],
       previousIds: previousIdsOne,
+      everSeenIds: previousIdsOne,
       previousFrozenNodeIds: new Set(),
       pinnedNodeIds: new Set(),
     });
@@ -492,6 +493,7 @@ describe('scoped reheat affected scope (#1739)', () => {
       nodes: frameOne,
       links: [{ source: 'n1', target: 'old-near' }, { source: 'n2', target: 'old-far' }],
       previousIds: new Set(['old-far', 'old-near', 'n1']),
+      everSeenIds: new Set(['old-far', 'old-near', 'n1']),
       previousFrozenNodeIds: frozenOne!.frozenNodeIds,
       pinnedNodeIds: new Set(),
     });
@@ -510,6 +512,7 @@ describe('scoped reheat affected scope (#1739)', () => {
       nodes,
       links: [],
       previousIds: new Set(['a', 'b', 'filtered-out']),
+      everSeenIds: new Set(['a', 'b', 'filtered-out']),
       previousFrozenNodeIds: new Set(),
       pinnedNodeIds: new Set(),
     });
@@ -528,7 +531,8 @@ describe('scoped reheat affected scope (#1739)', () => {
     const outcome = reheatKnowledgeGraphNewcomerScope({
       nodes: restored,
       links: [],
-      previousIds: new Set(['a', 'restored', 'filtered-out']),
+      previousIds: new Set(['a']),
+      everSeenIds: new Set(['a', 'restored', 'filtered-out']),
       previousFrozenNodeIds: new Set(),
       pinnedNodeIds: new Set(),
     });

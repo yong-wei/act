@@ -1144,17 +1144,19 @@ export function KnowledgeGraphCanvas({
   const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const nextIds = new Set(graphData.nodes.map((node: any) => String(node.id)));
-    // 以并入前的历史身份为基线：筛选恢复（见过）走全冻结，真实新披露
-    // 才进入连通域局部重热（#1739）；knownNodeIdsRef 记录上一帧身份。
-    const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
+    // 上一帧身份驱动变化检测；历史身份区分筛选投影（见过，含清除筛选的
+    // 恢复，登记冻结并在 engine-stop 释放）与真实新披露（连通域局部重热）。
+    const previousFrameIds = knownNodeIdsRef.current;
     knownNodeIdsRef.current = nextIds;
+    const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
     for (const id of nextIds) everSeenNodeIdsRef.current.add(id);
-    if (everSeenSnapshot.size === 0 || forceLifecycle.staticLayout) return;
+    if (previousFrameIds === null || forceLifecycle.staticLayout) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     const outcome = reheatKnowledgeGraphNewcomerScope({
       nodes: graphNodes,
       links: graphData.links,
-      previousIds: everSeenSnapshot,
+      previousIds: previousFrameIds,
+      everSeenIds: everSeenSnapshot,
       previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
       pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
     });

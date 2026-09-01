@@ -980,22 +980,35 @@ export function selectKnowledgeGraphReheatAffectedNodeIds(
 }
 
 /**
- * Shared newcomer-reheat step for both canvases (#1739): freeze every node
- * outside the newcomers' connected neighborhood and return the frozen ids
- * for the engine-stop release. Returns null when nothing changed (no
- * newcomers); the caller owns the reheat trigger.
+ * Shared newcomer-reheat step for both canvases (#1739). Handles two scopes:
+ *
+ * - real newcomers (ids never seen before): freeze everything outside their
+ *   connected neighborhood, the caller reheats; later batches that pull
+ *   previously frozen nodes into the affected scope release the old frame
+ *   first so no frozen fx survives as an implicit pin.
+ * - filter projections (frame change whose ids were all seen before —
+ *   removal or restoration): freeze and REGISTER every node so engine-stop
+ *   releases them; no reheat, so filtering never restarts the simulation.
+ *
+ * `previousIds` is the previous frame's identity set (drives change and
+ * newcomer detection); `everSeenIds` is the full historical identity set.
+ * Returns the frozen id set plus whether a reheat should run, or null when
+ * the frame did not change.
  */
 export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositionedNode>(input: {
   nodes: T[];
   links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>;
-  previousIds: ReadonlySet<string>;
+  previousIds: ReadonlySet<string> | null;
+  everSeenIds: ReadonlySet<string>;
   previousFrozenNodeIds: ReadonlySet<string>;
   pinnedNodeIds: ReadonlySet<string>;
 }): { frozenNodeIds: Set<string>; hasNewcomers: boolean } | null {
   const nextIds = new Set(input.nodes.map((node) => String(node.id)));
-  const newcomerIds = new Set([...nextIds].filter((id) => !input.previousIds.has(id)));
-  const removedIds = [...input.previousIds].filter((id) => !nextIds.has(id));
-  if (newcomerIds.size === 0 && removedIds.length === 0) return null;
+  if (input.previousIds === null) return null;
+  const changed = nextIds.size !== input.previousIds.size
+    || [...nextIds].some((id) => !input.previousIds!.has(id));
+  if (!changed) return null;
+  const realNewcomerIds = new Set([...nextIds].filter((id) => !input.everSeenIds.has(id)));
 
   // 释放上一轮冻结（pin/root 豁免）：后续批次中进入受影响区的节点不得
   // 保留旧冻结 fx，否则 engine-stop 释放不到而变成隐式 pin（#1739）。
@@ -1006,19 +1019,19 @@ export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositi
     });
   }
 
-  if (newcomerIds.size === 0) {
-    // 纯筛选/移除：全部剩余节点临时冻结，筛选不再重启力学布局（#1739
-    // task 3.3）；调用方不触发 reheat，engine-stop 后释放。
+  if (realNewcomerIds.size === 0) {
+    // 筛选投影（移除或恢复）：全部节点临时冻结并登记，engine-stop 后
+    // 释放；不触发 reheat（#1739 task 3.3）。
     freezeKnowledgeGraphUnaffectedScope(input.nodes, new Set());
     return { frozenNodeIds: new Set(input.nodes.map((node) => String(node.id))), hasNewcomers: false };
   }
 
-  const affectedNodeIds = selectKnowledgeGraphReheatAffectedNodeIds(input.links, newcomerIds);
+  const affectedNodeIds = selectKnowledgeGraphReheatAffectedNodeIds(input.links, realNewcomerIds);
   freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedNodeIds);
   return {
     frozenNodeIds: new Set(
       input.nodes
-        .filter((node) => input.previousIds.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
+        .filter((node) => input.previousIds!.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
         .map((node) => String(node.id)),
     ),
     hasNewcomers: true,
