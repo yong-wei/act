@@ -26,14 +26,14 @@ describe('real 1-2 manifest static-surface-3d plugin pipeline', () => {
 
   const step = manifest
     ? Object.values(manifest.steps).find((candidate) =>
-      candidate.modules.some((module) => module.payload.capabilityRef === 'static-surface-3d'),
+      candidate.modules.some((entry) => entry.payload.capabilityRef === 'static-surface-3d'),
     )
     : undefined;
-  const module = step?.modules.find((candidate) => candidate.payload.capabilityRef === 'static-surface-3d');
+  const pilotModule = step?.modules.find((candidate) => candidate.payload.capabilityRef === 'static-surface-3d');
 
   it('step-09 declares the pilot module', () => {
     expect(step?.id).toBe('step-09');
-    expect(module?.kind).toBe('compute.panel');
+    expect(pilotModule?.kind).toBe('compute.panel');
   });
 
   it('renders the pilot through the owned plugin with characterization markers', () => {
@@ -54,14 +54,14 @@ describe('real 1-2 manifest static-surface-3d plugin pipeline', () => {
   });
 
   it('projects identical role-safe views with no reference-answer leakage', () => {
-    expect(manifest && step && module).toBeTruthy();
+    expect(manifest && step && pilotModule).toBeTruthy();
     const registry = composeManifestPluginRegistry([staticSurface3DPluginSet]);
     const lookup = registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'static-surface-3d' });
     expect(lookup.status).toBe('rendered');
-    if (lookup.status !== 'rendered' || !manifest || !step || !module) return;
+    if (lookup.status !== 'rendered' || !manifest || !step || !pilotModule) return;
     const plugin = lookup.plugin;
     const project = (role: 'student' | 'teacher') =>
-      plugin.projectRole(plugin.schema({ manifest, step, module, role }), role);
+      plugin.projectRole(plugin.schema({ manifest, step, module: pilotModule, role }), role);
     const studentView = project('student');
     const teacherView = project('teacher');
     expect(studentView).toEqual(teacherView);

@@ -722,13 +722,13 @@ function main() {
 
   assert.equal(
     packageJson.dependencies.prisma,
-    '^7.8.0',
+    '^7.10.0',
     'docker-entrypoint.sh 运行 Prisma 7 migrate deploy，prisma CLI 必须归类为 dependencies'
   );
 
   assert.equal(
     packageJson.dependencies['@prisma/adapter-pg'],
-    '^7.8.0',
+    '^7.10.0',
     'Prisma 7 PostgreSQL adapter 必须归类为 dependencies，production-only install 才能创建客户端'
   );
 
