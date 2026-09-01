@@ -3,7 +3,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -24,6 +24,7 @@ import type { AuthoritativeV2Evidence } from '@/lib/authoritative-knowledge/cont
 import {
   AUTHORITY_SHARD_ENVELOPE_CONTRACT,
   AUTHORITY_SHARD_PAYLOAD_BUDGETS,
+  AuthorityShardStoreError,
   buildAuthorityDomainShards,
   canonicalIdToken,
   createRecordingShardIo,
@@ -34,9 +35,11 @@ import {
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
   loadRootShard,
+  loadRootShardWithCoverage,
   loadOptionalDomainTeachingProjection,
   projectAuthorityLearnerShard,
   projectAuthorityObject,
+  relationCacheKey,
   createAuthorityLabelResolverContext,
   isSafeAuthorityLabel,
   resolveAuthorityLabel,
@@ -1618,6 +1621,79 @@ describe('authority domain shard delivery', () => {
   it('uses collision-resistant file tokens for opaque node ids', () => {
     expect(canonicalIdToken('ctc:node/a')).not.toBe(canonicalIdToken('ctc:node_a'));
     expect(canonicalIdToken('ctc:node/a')).toMatch(/^node-[a-f0-9]{64}$/u);
+  });
+
+  it('fails the root entry closed when the coverage receipt is absent or mismatched', () => {
+    const sealed = writeShards();
+    const options = {
+      shardPaths: sealed.shardPaths,
+      identity: {
+        envelope: sealed.envelope,
+        catalog: sealed.catalog,
+        teachingPointer: null,
+      },
+    };
+    const setDir = path.join(sealed.shardPaths.setsDir, readdirSync(sealed.shardPaths.setsDir)[0]!);
+    const coveragePath = path.join(setDir, 'coverage.json');
+
+    // 基线：合格收据下根入口正常发布。
+    expect(() => loadRootShardWithCoverage(options)).not.toThrow();
+
+    // 收据分母失配（catalogDomainCount 与 defaultShardCount 不再相等）。
+    const coverage = JSON.parse(readFileSync(coveragePath, 'utf8')) as Record<string, unknown>;
+    writeFileSync(coveragePath, `${JSON.stringify({ ...coverage, catalogDomainCount: 99 })}\n`);
+    expect(() => loadRootShardWithCoverage(options)).toThrow(AuthorityShardStoreError);
+
+    // 部署遗漏收据：根入口必须 fail closed，而裸 root.json 仍可读——
+    // 证明发布门禁依赖的是覆盖收据而非 root 分片自身。
+    rmSync(coveragePath);
+    expect(() => loadRootShardWithCoverage(options)).toThrow(AuthorityShardStoreError);
+    expect(loadRootShard(options).shardClass).toBe('root');
+  });
+
+  it('evicts the previous neighborhood while keeping overview and family members', () => {
+    const { materialized } = writeShards();
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.families['system-modeling:association']));
+
+    // NEIGHBOR 的邻域引入跨域对象 TIME；给它补 detail，随后验证它随邻域一起被淘汰。
+    const neighborhoodWithTime = projectAuthorityLearnerShard(materialized.neighborhoods[NEIGHBOR]!);
+    state = mergeAuthorityShard(state, neighborhoodWithTime);
+    expect(state.objectsByCanonicalId[TIME]).toBeDefined();
+    const syntheticDetail = projectAuthorityLearnerShard({
+      ...materialized.details[NEIGHBOR]!,
+      node: { ...materialized.details[NEIGHBOR]!.node, id: TIME },
+    });
+    state = mergeAuthorityShard(state, syntheticDetail);
+    expect(state.loadedShardKeys).toContain(`node-detail:${TIME}`);
+    expect(state.detailsByCanonicalId[TIME]).toBeDefined();
+
+    const nextNeighborhood = projectAuthorityLearnerShard(materialized.neighborhoods[MODELING]!);
+    const after = mergeAuthorityShard(state, nextNeighborhood);
+
+    const retainedIds = new Set<string>([
+      ...after.domainOverviewIds,
+      ...after.familyObjectKeys,
+      ...nextNeighborhood.objects.map((object) => object.id),
+      ...nextNeighborhood.boundaries.map((boundary) => boundary.canonicalId),
+    ]);
+    for (const id of Object.keys(after.objectsByCanonicalId)) {
+      expect(retainedIds.has(id)).toBe(true);
+    }
+    // 上一个邻域的独有对象、详情与加载键全部淘汰。
+    expect(after.objectsByCanonicalId[TIME]).toBeUndefined();
+    expect(after.detailsByCanonicalId[TIME]).toBeUndefined();
+    expect(after.loadedShardKeys).not.toContain(`node-neighborhood:${TIME}`);
+    expect(after.loadedShardKeys).not.toContain(`node-detail:${TIME}`);
+    // 概览、family 成员与 family 关系在邻域切换后保留。
+    expect(after.objectsByCanonicalId[MODELING]).toBeDefined();
+    expect(after.objectsByCanonicalId[SHARED]).toBeDefined();
+    expect(after.objectsByCanonicalId[NEIGHBOR]).toBeDefined();
+    const familyRelation = materialized.families['system-modeling:association']?.relations[0];
+    expect(familyRelation).toBeDefined();
+    expect(Object.keys(after.relationsByLayerKey)).toContain(relationCacheKey(familyRelation!));
   });
 });
 

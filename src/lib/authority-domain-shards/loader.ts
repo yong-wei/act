@@ -227,6 +227,19 @@ export function loadRootShard(
   );
 }
 
+/**
+ * Root entry publication gate (#1738): the root shard is only served when the
+ * shard-set coverage receipt closes the catalog denominator under the same
+ * identity. A deployment or mount that omits the receipt fails closed here
+ * instead of exposing clickable domain entries that 404/503 on first click.
+ */
+export function loadRootShardWithCoverage(
+  options: LoadAuthorityShardOptions = {},
+): AuthorityRootShard {
+  loadShardSetCoverage(options);
+  return loadRootShard(options);
+}
+
 export function loadDomainDefaultShard(
   domainKey: string,
   options: LoadAuthorityShardOptions = {},

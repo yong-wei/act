@@ -44,7 +44,7 @@ import {
   loadNodeDetailShard,
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
-  loadRootShard,
+  loadRootShardWithCoverage,
   readActiveAuthorityInfograph,
   attachActiveAuthorityLearningContent,
   projectAuthorityLearnerShard,
@@ -668,7 +668,10 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
 }
 
 export function readActiveRootShard(): AuthorityRootShard {
-  return loadRootShard();
+  // 根入口在发布前必须确认分片集闭包合格（spec：default/search/
+  // neighborhood/detail 闭包缺失或身份失配时不得发布根入口）；部署或
+  // 挂载遗漏 coverage 收据时 fail closed，而不是等后续点击再失败。
+  return loadRootShardWithCoverage();
 }
 
 export function readActiveDomainDefaultShard(domainKey: string): AuthorityDomainDefaultShard {

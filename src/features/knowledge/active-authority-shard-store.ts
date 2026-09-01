@@ -61,6 +61,12 @@ export interface AuthorityShardWorkspaceState {
    * domain-default shard, in server order (#1738).
    */
   domainOverviewIds: string[];
+  /**
+   * Object ids introduced by enabled relation-family shards. Neighborhood
+   * disclosure evicts the previous neighborhood while keeping the overview
+   * and these domain-scoped family members (#1738 连续导航不形成无界缓存).
+   */
+  familyObjectKeys: string[];
   root: PublicAuthorityRootShard['root'] | null;
   detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
   /** Reviewed cross-domain cues from loaded family and neighborhood shards. */
@@ -106,6 +112,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     localeCapability: historicalLocaleCapability(),
     teachingCoverageByDomain: {},
     domainOverviewIds: [],
+    familyObjectKeys: [],
     root: null,
     detailsByCanonicalId: {},
     boundaryRefsByCanonicalId: {},
@@ -334,6 +341,7 @@ export function mergeAuthorityShard(
       teachingCoverageByDomain,
       detailsByCanonicalId: boundedDetails,
       domainOverviewIds: shard.objects.map((object) => object.id),
+      familyObjectKeys: [],
       activeDomainId: current.activeDomainId ?? shard.domainId,
       activeVisualRole: current.activeVisualRole ?? shard.visualRole,
       loadedShardKeys,
@@ -346,7 +354,7 @@ export function mergeAuthorityShard(
     };
   }
 
-  if (shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood') {
+  if (shard.shardClass === 'relation-family') {
     for (const object of shard.objects) {
       objectsByCanonicalId[object.id] = mergeObject(
         objectsByCanonicalId[object.id],
@@ -360,14 +368,84 @@ export function mergeAuthorityShard(
     for (const boundary of shard.boundaries) {
       boundaryRefsByCanonicalId[boundary.canonicalId] = boundary;
     }
+    const familyObjectKeys = [
+      ...new Set([...current.familyObjectKeys, ...shard.objects.map((object) => object.id)]),
+    ];
     return {
       ...current,
       envelope,
       objectsByCanonicalId,
       relationsByLayerKey,
       boundaryRefsByCanonicalId,
+      familyObjectKeys,
       loadedShardKeys,
       loadedDisplayKeys,
+      selectedCanonicalId: current.selectedCanonicalId,
+      inspectorOpen: current.inspectorOpen,
+      positionsByCanonicalId: current.positionsByCanonicalId,
+      localeRefreshPending: current.localeRefreshPending || localeChanged,
+      latestCutover,
+    };
+  }
+
+  if (shard.shardClass === 'node-neighborhood') {
+    // 连续披露不形成无界缓存：保留域概览、已启用关系族成员和本邻域，
+    // 淘汰上一个邻域引入的对象/详情/边界/关系及其加载键（#1738）。
+    const retainedIds = new Set<string>([
+      ...current.domainOverviewIds,
+      ...current.familyObjectKeys,
+      ...shard.objects.map((object) => object.id),
+      ...shard.boundaries.map((boundary) => boundary.canonicalId),
+    ]);
+    for (const object of shard.objects) {
+      objectsByCanonicalId[object.id] = mergeObject(
+        objectsByCanonicalId[object.id],
+        object,
+        localeChanged,
+      );
+    }
+    for (const relation of shard.relations) {
+      relationsByLayerKey[relationCacheKey(relation)] = relation;
+    }
+    for (const boundary of shard.boundaries) {
+      boundaryRefsByCanonicalId[boundary.canonicalId] = boundary;
+    }
+    const boundedObjects = Object.fromEntries(
+      Object.entries(objectsByCanonicalId).filter(([id]) => retainedIds.has(id)),
+    );
+    const boundedRelations = Object.fromEntries(
+      Object.entries(relationsByLayerKey).filter(([, relation]) => (
+        retainedIds.has(relation.sourceId) && retainedIds.has(relation.targetId)
+      )),
+    );
+    const boundedBoundaries = Object.fromEntries(
+      Object.entries(boundaryRefsByCanonicalId).filter(([canonicalId]) => retainedIds.has(canonicalId)),
+    );
+    const boundedDetails = Object.fromEntries(
+      Object.entries(detailsByCanonicalId).filter(([id]) => retainedIds.has(id)),
+    );
+    const retainedNeighborhoodNodeIds = new Set(shard.objects.map((object) => object.id));
+    const boundedLoadedKeys = loadedShardKeys.filter((loadedKey) => {
+      if (loadedKey.startsWith('node-neighborhood:')) {
+        return retainedNeighborhoodNodeIds.has(loadedKey.slice('node-neighborhood:'.length));
+      }
+      if (loadedKey.startsWith('node-detail:')) {
+        return retainedIds.has(loadedKey.slice('node-detail:'.length));
+      }
+      return true;
+    });
+    const boundedLoadedDisplayKeys = loadedDisplayKeys.filter((displayKey) => (
+      boundedLoadedKeys.some((topologyKey) => displayKey.endsWith(`:${topologyKey}`))
+    ));
+    return {
+      ...current,
+      envelope,
+      objectsByCanonicalId: boundedObjects,
+      relationsByLayerKey: boundedRelations,
+      boundaryRefsByCanonicalId: boundedBoundaries,
+      detailsByCanonicalId: boundedDetails,
+      loadedShardKeys: boundedLoadedKeys,
+      loadedDisplayKeys: boundedLoadedDisplayKeys,
       selectedCanonicalId: current.selectedCanonicalId,
       inspectorOpen: current.inspectorOpen,
       positionsByCanonicalId: current.positionsByCanonicalId,
@@ -475,6 +553,7 @@ export function resetAuthorityShardDomain(
     boundaryRefsByCanonicalId: {},
     teachingCoverageByDomain: {},
     domainOverviewIds: [],
+    familyObjectKeys: [],
     loadedShardKeys: current.loadedShardKeys.filter((key) => key === 'root'),
     loadedDisplayKeys: current.loadedDisplayKeys.filter((key) => key.endsWith(':root')),
     enabledFamilies: [],
