@@ -1141,14 +1141,17 @@ export function KnowledgeGraphCanvas({
     knownNodeIdsRef.current = new Set(graphData.nodes.map((node: any) => String(node.id)));
     if (!previousIds || forceLifecycle.staticLayout) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-    const frozenNodeIds = reheatKnowledgeGraphNewcomerScope({
+    const outcome = reheatKnowledgeGraphNewcomerScope({
       nodes: graphNodes,
       links: graphData.links,
       previousIds,
+      previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
+      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
     });
-    if (!frozenNodeIds) return;
-    unaffectedFrozenNodeIdsRef.current = frozenNodeIds;
-    fgRef.current?.d3ReheatSimulation?.();
+    if (!outcome) return;
+    unaffectedFrozenNodeIdsRef.current = outcome.frozenNodeIds;
+    // 纯筛选/移除不重热：只有新节点到达才重启力学（#1739 task 3.3）。
+    if (outcome.hasNewcomers) fgRef.current?.d3ReheatSimulation?.();
   }, [forceLifecycle.staticLayout, graphData.links, graphData.nodes]);
 
   const handleEngineStop = useCallback(() => {

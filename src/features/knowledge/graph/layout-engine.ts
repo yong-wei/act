@@ -958,17 +958,40 @@ export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositi
   nodes: T[];
   links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>;
   previousIds: ReadonlySet<string>;
-}): Set<string> | null {
+  previousFrozenNodeIds: ReadonlySet<string>;
+  pinnedNodeIds: ReadonlySet<string>;
+}): { frozenNodeIds: Set<string>; hasNewcomers: boolean } | null {
   const nextIds = new Set(input.nodes.map((node) => String(node.id)));
   const newcomerIds = new Set([...nextIds].filter((id) => !input.previousIds.has(id)));
-  if (newcomerIds.size === 0) return null;
+  const removedIds = [...input.previousIds].filter((id) => !nextIds.has(id));
+  if (newcomerIds.size === 0 && removedIds.length === 0) return null;
+
+  // 释放上一轮冻结（pin/root 豁免）：后续批次中进入受影响区的节点不得
+  // 保留旧冻结 fx，否则 engine-stop 释放不到而变成隐式 pin（#1739）。
+  if (input.previousFrozenNodeIds.size > 0) {
+    releaseKnowledgeGraphFrozenScope(input.nodes, {
+      frozenNodeIds: input.previousFrozenNodeIds,
+      pinnedNodeIds: input.pinnedNodeIds,
+    });
+  }
+
+  if (newcomerIds.size === 0) {
+    // 纯筛选/移除：全部剩余节点临时冻结，筛选不再重启力学布局（#1739
+    // task 3.3）；调用方不触发 reheat，engine-stop 后释放。
+    freezeKnowledgeGraphUnaffectedScope(input.nodes, new Set());
+    return { frozenNodeIds: new Set(input.nodes.map((node) => String(node.id))), hasNewcomers: false };
+  }
+
   const affectedNodeIds = selectKnowledgeGraphReheatAffectedNodeIds(input.links, newcomerIds);
   freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedNodeIds);
-  return new Set(
-    input.nodes
-      .filter((node) => input.previousIds.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
-      .map((node) => String(node.id)),
-  );
+  return {
+    frozenNodeIds: new Set(
+      input.nodes
+        .filter((node) => input.previousIds.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
+        .map((node) => String(node.id)),
+    ),
+    hasNewcomers: true,
+  };
 }
 
 /** Release a previously frozen scope; pins, roots and dragged nodes stay fixed. */

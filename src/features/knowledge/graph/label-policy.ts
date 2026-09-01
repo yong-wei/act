@@ -23,12 +23,12 @@ export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
 
 /**
  * 大域（概念数超过 compact 上限）概览经重点标签通道（labelPriority）
- * 呈现：可见率下限按碰撞几何给出；mobile 大域同为 compact 重点通道。
- * 依据：273 概念真实分片 + 画布同参力学沉降 + fit + 碰撞求解实测（#1739）。
+ * 呈现，可见率下限按无钳位碰撞几何实测给出（273 概念真实分片 + 画布
+ * 同参力学沉降 + fit + 碰撞求解，#1739）。mobile 大域是缩略图语义：
+ * 画布标签实测为 0，识别通道是节点目录而非比例预算，故不设档。
  */
 export const KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO = {
-  desktop: 0.5,
-  mobile: 0.5,
+  desktop: 0.15,
 } as const;
 
 /** 超过此概念数的概览适用大域标签预算。 */

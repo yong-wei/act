@@ -39,6 +39,7 @@ import {
 } from '../graph/label-policy';
 import {
   freezeKnowledgeGraphUnaffectedScope,
+  reheatKnowledgeGraphNewcomerScope,
   releaseKnowledgeGraphDragFrame,
   releaseKnowledgeGraphFrozenScope,
   selectKnowledgeGraphReheatAffectedNodeIds,
@@ -364,10 +365,12 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
     expect(overlaps).toBeLessThanOrEqual(KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT);
   });
 
-  it('scales the visible-label budget to the real domain shard scale', () => {
+  it.each([
+    { tag: 'desktop', width: 1280, height: 720, budget: KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO.desktop },
+  ] as const)('scales the visible-label budget to the real domain shard scale ($tag)', ({ width, height, budget }) => {
     // 用真实 runtime 分片（system-modeling 概览，273 个 DomainConcept）
-    // 验证预算，而不是十二节点夹具：教学序网格种子 → 相机 fit →
-    // 标签碰撞求解，可见率必须达到桌面预算。
+    // 验证预算：教学序网格种子 → 画布同参力学沉降 → 相机 fit → 标签
+    // 碰撞求解（重点标签通道，无钳位堆叠），可见率达到分档预算。
     const pointer = JSON.parse(readFileSync(join(
       process.cwd(),
       'course-content/runtime/knowledge/authority-domain-shards/current.json',
@@ -380,10 +383,6 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
     ), 'utf8')) as { objects: Array<{ id: string; label: string }> };
     expect(shard.objects.length).toBeGreaterThan(200);
 
-    expect(shard.objects.length).toBeGreaterThan(KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES);
-
-    const width = 1280;
-    const height = 720;
     const aspect = width / height;
     const columns = Math.max(1, Math.ceil(Math.sqrt(shard.objects.length * aspect)));
     const spacing = 168;
@@ -398,8 +397,6 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
       };
     });
 
-    // Spec 要求力分离、相机 fit 与标签碰撞共同满足预算：先跑画布同参
-    // （charge -65 / collide 24，无向心收缩）的有界力沉降，再 fit 放置。
     const simulation = forceSimulation(seeds as never[])
       .alphaDecay(KNOWLEDGE_FORCE_ALPHA_DECAY)
       .alphaMin(KNOWLEDGE_FORCE_ALPHA_MIN)
@@ -415,11 +412,7 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
     const fitScale = Math.min(1, width / (maxX - minX), height / (maxY - minY));
     const placements = placeKnowledgeGraphLabels({
       nodes: seeds.map((node, index) => {
-        // 与渲染器同源的标签碰撞框估计（按真实概念名长度）。
-        const bounds = getKnowledgeNodeLabelBounds({
-          name: shard.objects[index]!.label,
-          bodyRadius: 22,
-        });
+        const bounds = getKnowledgeNodeLabelBounds({ name: shard.objects[index]!.label, bodyRadius: 22 });
         return {
           id: node.id,
           x: node.x,
@@ -428,8 +421,6 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
           screenY: (node.y - (minY + maxY) / 2) * fitScale + height / 2,
           projectedScale: fitScale,
           bodyRadius: 22,
-          // 大域概览经重点标签通道（runtime view 按 COMPACT_MAX_NODES 打开
-          // labelPriority），模拟产品输入的 isKeyNode 语义。
           isKeyNode: true,
           labelBounds: { halfWidth: bounds.halfWidth, halfHeight: bounds.halfHeight },
         };
@@ -445,10 +436,7 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
     const entries = [...placements.values()];
     const visible = entries.filter((placement) => placement.visible);
     expect(entries.length).toBe(seeds.length);
-    // 大域按重点标签通道的碰撞几何下限预算（label-policy 常量注释）。
-    expect(visible.length / entries.length).toBeGreaterThanOrEqual(
-      KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO.desktop,
-    );
+    expect(visible.length / entries.length).toBeGreaterThanOrEqual(budget);
   });
 });
 
@@ -473,5 +461,57 @@ describe('scoped reheat affected scope (#1739)', () => {
     ];
     const affected = selectKnowledgeGraphReheatAffectedNodeIds(links, new Set(['new-a']));
     expect(affected.has('old-neighbor')).toBe(true);
+  });
+
+  it('releases a previous frozen frame when a later batch affects it', () => {
+    // 第一批：n1 是新节点，old-far 冻结。
+    const frameOne: SimNode[] = [
+      { id: 'old-far', x: 0, y: 0 },
+      { id: 'old-near', x: 10, y: 0 },
+      { id: 'n1', x: 20, y: 0 },
+    ];
+    const previousIdsOne = new Set(['old-far', 'old-near']);
+    const frozenOne = reheatKnowledgeGraphNewcomerScope({
+      nodes: frameOne,
+      links: [{ source: 'n1', target: 'old-near' }],
+      previousIds: previousIdsOne,
+      previousFrozenNodeIds: new Set(),
+      pinnedNodeIds: new Set(),
+    });
+    expect(frozenOne?.frozenNodeIds).toEqual(new Set(['old-far']));
+    expect(frameOne[0]!.fx).toBe(0);
+
+    // 第二批：n2 连到 old-far——上一轮冻结的 old-far 进入受影响区，
+    // 旧冻结必须先释放，不能留下隐式 pin。
+    frameOne.push({ id: 'n2', x: 0, y: 10 });
+    const frozenTwo = reheatKnowledgeGraphNewcomerScope({
+      nodes: frameOne,
+      links: [{ source: 'n1', target: 'old-near' }, { source: 'n2', target: 'old-far' }],
+      previousIds: new Set(['old-far', 'old-near', 'n1']),
+      previousFrozenNodeIds: frozenOne!.frozenNodeIds,
+      pinnedNodeIds: new Set(),
+    });
+    expect(frozenTwo?.frozenNodeIds).toEqual(new Set(['old-near', 'n1']));
+    expect(frameOne[0]!.fx).toBeUndefined();
+    expect(frameOne[0]!.fy).toBeUndefined();
+    expect(frameOne[1]!.fx).toBe(10);
+  });
+
+  it('freezes every remaining node for filter-only removal without reheating', () => {
+    const nodes: SimNode[] = [
+      { id: 'a', x: 1, y: 2 },
+      { id: 'b', x: 3, y: 4 },
+    ];
+    const frozen = reheatKnowledgeGraphNewcomerScope({
+      nodes,
+      links: [],
+      previousIds: new Set(['a', 'b', 'filtered-out']),
+      previousFrozenNodeIds: new Set(),
+      pinnedNodeIds: new Set(),
+    });
+    expect(frozen?.frozenNodeIds).toEqual(new Set(['a', 'b']));
+    expect(frozen?.hasNewcomers).toBe(false);
+    expect(nodes[0]!.fx).toBe(1);
+    expect(nodes[1]!.fx).toBe(3);
   });
 });

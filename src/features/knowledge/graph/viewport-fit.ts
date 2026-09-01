@@ -302,7 +302,10 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       : collisionFree.find((rect) => (!input.enforceViewport
       || (rect.left >= safeInsets.left && rect.right <= input.width - safeInsets.right
         && rect.top >= safeInsets.top && rect.bottom <= input.height - safeInsets.bottom)));
-    if (!candidate && input.enforceViewport && (priority(node) <= 1 || node.isKeyNode)) {
+    // 视口钳位回退只保留 selected/hovered：keyNode 强制钳位会在大规模
+    // 概览产生成百对重叠标签（273 概念实测桌面 452 对、移动端 1979 对），
+    // keyNode 放不下时必须走延迟而不是堆叠（#1739）。
+    if (!candidate && input.enforceViewport && priority(node) <= 1) {
       const point = center(node);
       const safeLeft = safeInsets.left;
       const safeRight = input.width - safeInsets.right;
