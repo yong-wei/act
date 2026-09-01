@@ -40,6 +40,8 @@ interface UseKonlingConversationLibraryOptions {
   resourceId?: string;
   pathNodeId?: string;
   assistantBinding?: KonlingConversationAssistantBinding | null;
+  // 资源辅导等按身份恢复的入口在等待精确匹配期间不得自动选中无关会话
+  autoSelectFirstConversation?: boolean;
 }
 
 const ASSISTANT_BINDING_STORAGE_PREFIX = 'konling:conversation-assistant-binding:';
@@ -102,6 +104,7 @@ export function useKonlingConversationLibrary({
   resourceId,
   pathNodeId,
   assistantBinding = null,
+  autoSelectFirstConversation = true,
 }: UseKonlingConversationLibraryOptions) {
   const [conversations, setConversations] = useState<KonlingConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -110,6 +113,7 @@ export function useKonlingConversationLibrary({
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  const [hasHydratedList, setHasHydratedList] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const listRequestRef = useRef(0);
   const activeRequestRef = useRef(0);
@@ -126,11 +130,14 @@ export function useKonlingConversationLibrary({
       if (listRequestRef.current !== requestId) return body.conversations;
       setConversations(body.conversations);
       setError(null);
-      setActiveConversationId((current) => {
-        const next = current ?? body.conversations[0]?.id ?? null;
-        selectedConversationIdRef.current = next;
-        return next;
-      });
+      setHasHydratedList(true);
+      if (autoSelectFirstConversation) {
+        setActiveConversationId((current) => {
+          const next = current ?? body.conversations[0]?.id ?? null;
+          selectedConversationIdRef.current = next;
+          return next;
+        });
+      }
       return body.conversations;
     } catch (cause) {
       if (listRequestRef.current !== requestId) return [];
@@ -140,7 +147,7 @@ export function useKonlingConversationLibrary({
     } finally {
       if (listRequestRef.current === requestId) setIsLoading(false);
     }
-  }, [enabled, search]);
+  }, [autoSelectFirstConversation, enabled, search]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -148,7 +155,7 @@ export function useKonlingConversationLibrary({
   }, [enabled, refreshConversations]);
 
   useEffect(() => {
-    if (!enabled || !activeConversationId) {
+    if (!activeConversationId) {
       setActiveConversation(null);
       setActiveAssistantBinding(null);
       return;
@@ -172,7 +179,7 @@ export function useKonlingConversationLibrary({
       .finally(() => {
         if (activeRequestRef.current === requestId) setIsLoading(false);
       });
-  }, [activeConversationId, enabled]);
+  }, [activeConversationId]);
 
   const refreshActiveConversation = useCallback(async () => {
     const conversationId = selectedConversationIdRef.current;
@@ -221,6 +228,12 @@ export function useKonlingConversationLibrary({
           classId,
           resourceId,
           pathNodeId,
+          ...(binding ? {
+            assistantBinding: {
+              modeId: binding.teachingAssistantModeId,
+              clientContextHints: binding.modeClientContextHints,
+            },
+          } : {}),
         }),
       });
       const conversation = await readJson<KonlingConversation>(response);
@@ -246,6 +259,15 @@ export function useKonlingConversationLibrary({
     setActiveConversation(null);
     setActiveAssistantBinding(null);
     setActiveConversationId(conversationId);
+  }, []);
+
+  // 进入未落库空白态：仅清除选择，不创建任何会话
+  const enterBlankConversation = useCallback(() => {
+    activeRequestRef.current += 1;
+    selectedConversationIdRef.current = null;
+    setActiveConversationId(null);
+    setActiveConversation(null);
+    setActiveAssistantBinding(null);
   }, []);
 
   const renameConversation = useCallback(async (conversationId: string, title: string) => {
@@ -339,12 +361,14 @@ export function useKonlingConversationLibrary({
     setSearch,
     isLoading,
     isMutating,
+    hasHydratedList,
     error,
     refreshConversations,
     refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
+    enterBlankConversation,
     renameConversation,
     setConversationPinned,
     deleteConversation,

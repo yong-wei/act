@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "issue": 1761,
+  "route": "/textbooks/hu-shousong-auto-control-8th/%E7%AC%AC%E5%85%AB%E7%89%88/chapter-chapter-01",
+  "routeFile": "src/app/textbooks/[bookId]/page.tsx",
+  "routeArchetype": "textbook-reader",
+  "dockState": "konling-sidebar-open",
+  "captureRevision": "76accb3f233e2ee390ea4b0f5799328350eb7532",
+  "captureTime": "2026-09-01T15:28:22.120Z",
+  "generator": "tests/textbook-resource-coaching.spec.ts（回归）+ artifacts 捕获脚本（一次性）",
+  "baseUrl": "http://127.0.0.1:3001",
+  "runtime": {
+    "runtimeRevision": "76accb3f233e2ee390ea4b0f5799328350eb7532",
+    "runtimeRevisionSource": "local dev server serving the committed captureRevision worktree",
+    "session": "authenticated student fixture: coach1761（本地测试账号）",
+    "expectedState": "重开同一教材版本单元时通过服务端精确匹配恢复既有绑定会话；未提交问题时不创建新会话",
+    "driftCheck": "tests/textbook-resource-coaching.spec.ts 断言 match 命中、详情恢复且页面侧无 POST /api/ai/sessions"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "resource-coach-restore-desktop.png",
+      "sha256": "0603c90905fbc28846e567fe1f4f40ef89c18b989da31758c1d75eaf6a316538"
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 720,
+      "screenshot": "resource-coach-restore-mobile.png",
+      "sha256": "56a9bcb3c7ee0cbe01a4d81f203775ea0ea113d7761cdeb5108307a7551f4a1d"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/components/ai/global-ai-sidebar.tsx",
+      "sha256": "29b619f7ab10d1061b545cf5015d50cc840766d7b810d8688d97095d75065b6f"
+    },
+    {
+      "path": "src/hooks/useKonlingConversationLibrary.ts",
+      "sha256": "897732da4225c204857810d2e907c3dcd4bf17d36e80243269ec89ea731b88a6"
+    },
+    {
+      "path": "src/app/api/ai/sessions/route.ts",
+      "sha256": "f888b466b67dfe20698a8a69b128b46c6515de1cfda8c0f9093d6f92da747172"
+    },
+    {
+      "path": "src/app/api/ai/sessions/resource-coach-match/route.ts",
+      "sha256": "42b66415294406ac7f2502f33c884beb589bc1c52b59ec57f502fed309e89b51"
+    },
+    {
+      "path": "src/lib/textbook-resource-coach/conversation-match.ts",
+      "sha256": "6928e57fe02f09d8f4d99c77ed703cae3ba1a369212342192c50d81d1cabf9ec"
+    },
+    {
+      "path": "src/lib/textbook-resource-coach/identity.ts",
+      "sha256": "df0cebf28518891c473a2d28ae4876718a47baef5956a0e4d09b9cea340912fa"
+    }
+  ]
+}

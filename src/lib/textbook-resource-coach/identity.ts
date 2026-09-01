@@ -29,7 +29,7 @@ export type TextbookCoachUnavailableReason =
   | 'anchor-unavailable'
   | 'hash-drift';
 
-const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,255}$/;
+const SAFE_ID = /^[\p{L}\p{N}][\p{L}\p{N}._:@/-]{0,255}$/u;
 const SAFE_HASH = /^sha256:[a-f0-9]{64}$/;
 const SAFE_FRAGMENT = /^(?:formula|figure|table)-[A-Za-z0-9][A-Za-z0-9._-]{0,95}$/;
 const UNSUPPORTED_KINDS = new Set([

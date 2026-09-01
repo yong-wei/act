@@ -138,6 +138,7 @@ export function GlobalAISidebar() {
       ? pathname
       : pageContext?.stepId || pageContext?.courseId;
   }, [pageContext?.courseId, pageContext?.stepId, pathname]);
+  const isResourceCoachEntry = assistantEntryPoint?.mode === 'resource-coach';
   const {
     conversations,
     activeConversationId,
@@ -147,12 +148,14 @@ export function GlobalAISidebar() {
     setSearch,
     isLoading: isConversationLoading,
     isMutating: isConversationMutating,
+    hasHydratedList,
     error: conversationError,
     refreshConversations,
     refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
+    enterBlankConversation,
     renameConversation,
     setConversationPinned,
     deleteConversation,
@@ -165,29 +168,12 @@ export function GlobalAISidebar() {
     resourceId: effectiveServerContext?.resourceId,
     pathNodeId: effectiveServerContext?.pathNodeId,
     assistantBinding: requestedAssistantBinding,
+    autoSelectFirstConversation: !isResourceCoachEntry,
   });
   const agentSessionStorageKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
     return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
   }, [assistantEntryPoint?.mode, effectiveServerContext?.smartTaskId]);
-
-  const textbookCoachSwitchKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!requestedAssistantBinding) return;
-    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
-    const switchKey = [
-      activeConversationId ?? 'none',
-      requestedAssistantBinding.modeClientContextHints.unitId,
-      requestedAssistantBinding.modeClientContextHints.sourceRevision,
-      requestedAssistantBinding.modeClientContextHints.contentHash,
-      requestedAssistantBinding.modeClientContextHints.anchorId ?? '',
-    ].join('\u001f');
-    if (textbookCoachSwitchKeyRef.current === switchKey) return;
-    textbookCoachSwitchKeyRef.current = switchKey;
-    void createConversation(requestedAssistantBinding).catch(() => {
-      textbookCoachSwitchKeyRef.current = null;
-    });
-  }, [activeAssistantBinding, activeConversationId, assistantEntryPoint, createConversation, requestedAssistantBinding]);
 
   useEffect(() => {
     setSmartPrepContext(null);
@@ -339,6 +325,113 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  // 资源辅导入口：会话库水合完成后，按服务端验证的完整资源身份恢复精确匹配会话；
+  // 无匹配时保持未落库空白态，首个问题提交时才创建并绑定会话。
+  // 解析得出 matched/blank 前（或版本不可用、解析失败时）不得创建或提交会话。
+  const [coachResolution, setCoachResolution] = useState<{
+    key: string;
+    state: 'loading' | 'matched' | 'blank' | 'unavailable' | 'superseded';
+  } | null>(null);
+  const textbookCoachResolveKeyRef = useRef<string | null>(null);
+  // 匹配代次：用户手动选择或新建会话会使在途解析失效，过期结果不得覆盖更新的选择
+  const textbookCoachGenerationRef = useRef(0);
+  const coachResolveKey = useMemo(() => {
+    if (assistantEntryPoint?.mode !== 'resource-coach' || !requestedAssistantBinding) return null;
+    const hints = requestedAssistantBinding.modeClientContextHints;
+    return [
+      String(hints.unitId ?? ''),
+      String(hints.sourceRevision ?? ''),
+      String(hints.contentHash ?? ''),
+      String(hints.anchorId ?? ''),
+    ].join('\u001f');
+  }, [assistantEntryPoint?.mode, requestedAssistantBinding]);
+  useEffect(() => {
+    if (!requestedAssistantBinding || assistantEntryPoint?.mode !== 'resource-coach') return;
+    // 启用会话库的页面必须先完成列表水合；未启用的页面以服务端匹配查询为唯一真源
+    if (enabled && !hasHydratedList) return;
+    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+    if (!coachResolveKey) return;
+    const resolveKey = coachResolveKey;
+    const hints = requestedAssistantBinding.modeClientContextHints;
+    if (textbookCoachResolveKeyRef.current === resolveKey) return;
+    textbookCoachResolveKeyRef.current = resolveKey;
+    const resolveGeneration = textbookCoachGenerationRef.current + 1;
+    textbookCoachGenerationRef.current = resolveGeneration;
+    setCoachResolution({ key: resolveKey, state: 'loading' });
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    for (const key of ['resourceKind', 'resourceId', 'bookId', 'edition', 'sourceRevision', 'unitId', 'contentHash', 'anchorId']) {
+      const value = hints[key];
+      if (typeof value === 'string' && value) params.set(key, value);
+    }
+    void fetch(`/api/ai/sessions/resource-coach-match?${params.toString()}`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('resource-coach match failed');
+        return response.json() as Promise<{
+          status: 'matched' | 'blank' | 'unavailable';
+          conversation?: { id: string };
+          reason?: string;
+        }>;
+      })
+      .then((result) => {
+        // 页面身份、解析键已变化或用户已手动选择时丢弃过期结果
+        if (textbookCoachResolveKeyRef.current !== resolveKey) return;
+        if (textbookCoachGenerationRef.current !== resolveGeneration) return;
+        if (result.status === 'matched' && result.conversation?.id) {
+          setCoachResolution({ key: resolveKey, state: 'matched' });
+          selectConversation(result.conversation.id);
+          return;
+        }
+        setCoachResolution({
+          key: resolveKey,
+          state: result.status === 'unavailable' ? 'unavailable' : 'blank',
+        });
+        enterBlankConversation();
+        setMessages([]);
+        if (result.status === 'unavailable') {
+          setActionStatus('该教材版本已不可用，无法恢复原有辅导对话。');
+        }
+      })
+      .catch((cause) => {
+        if ((cause as Error | null)?.name === 'AbortError') return;
+        // 解析失败保持显式不可用：允许身份变化后重试，但不得在结论未知时创建会话
+        textbookCoachResolveKeyRef.current = null;
+        setActionStatus('历史对话恢复失败，请稍后重试。');
+      });
+    return () => controller.abort();
+  }, [
+    activeAssistantBinding,
+    assistantEntryPoint,
+    coachResolveKey,
+    enabled,
+    enterBlankConversation,
+    hasHydratedList,
+    requestedAssistantBinding,
+    selectConversation,
+    setMessages,
+  ]);
+
+  // 首问提交门禁：仅当当前身份的解析结论为 blank（确认无匹配）或 matched 已完成恢复时才放行
+  const coachSubmissionBlocked = Boolean(
+    coachResolveKey
+    && shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)
+    && (
+      coachResolution?.key !== coachResolveKey
+      || coachResolution.state === 'loading'
+      || coachResolution.state === 'unavailable'
+    ),
+  );
+  // 用户手动选择或新建会话：使在途解析失效，并解除首问门禁
+  const supersedeCoachResolution = useCallback(() => {
+    textbookCoachGenerationRef.current += 1;
+    setCoachResolution((current) => current?.state === 'loading'
+      ? { key: current.key, state: 'superseded' }
+      : current);
+  }, []);
 
   useEffect(() => {
     if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
@@ -627,6 +720,12 @@ export function GlobalAISidebar() {
   const handleQuickQuestion = useCallback(
     async (question: string) => {
       if (isLoading || isConversationLoading || isConversationMutating) return;
+      if (coachSubmissionBlocked) {
+        setActionStatus(coachResolution?.state === 'unavailable'
+          ? '该教材版本已不可用，无法继续辅导。'
+          : '正在恢复该教材版本的历史对话，请稍候。');
+        return;
+      }
       try {
         const conversation = await ensureConversation();
         await append(
@@ -638,7 +737,7 @@ export function GlobalAISidebar() {
         setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
       }
     },
-    [append, chatBody, clearUnread, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
+    [append, chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
   );
 
   useEffect(() => {
@@ -683,6 +782,12 @@ export function GlobalAISidebar() {
   const handleConversationSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isLoading || isConversationLoading || isConversationMutating) return;
+    if (coachSubmissionBlocked) {
+      setActionStatus(coachResolution?.state === 'unavailable'
+        ? '该教材版本已不可用，无法继续辅导。'
+        : '正在恢复该教材版本的历史对话，请稍候。');
+      return;
+    }
     try {
       const conversation = await ensureConversation();
       await handleSubmit(undefined, { ...chatBody, conversationId: conversation.id });
@@ -690,9 +795,10 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
     }
-  }, [chatBody, clearUnread, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
+  }, [chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
 
   const handleNewConversation = useCallback(async () => {
+    supersedeCoachResolution();
     try {
       await createConversation(null);
       setMessages([]);
@@ -701,16 +807,17 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '新建控灵会话失败。');
     }
-  }, [createConversation, setMessages]);
+  }, [createConversation, setMessages, supersedeCoachResolution]);
 
   const handleSelectConversation = useCallback((conversationId: string) => {
     if (isLoading) return;
+    supersedeCoachResolution();
     selectConversation(conversationId);
     setMessages([]);
     setEditingConversationId(null);
     setLibraryOpen(false);
     setActionStatus('已恢复所选对话。');
-  }, [isLoading, selectConversation, setMessages]);
+  }, [isLoading, selectConversation, setMessages, supersedeCoachResolution]);
 
   const handleRenameConversation = useCallback(async (conversationId: string) => {
     try {
@@ -737,6 +844,9 @@ export function GlobalAISidebar() {
     try {
       const deletedActiveConversation = await deleteConversation(conversationId);
       if (deletedActiveConversation) {
+        // 仅活动会话被删除才更新选择，此时同步作废在途匹配；
+        // 删除无关历史会话不影响在途解析与首问门禁
+        supersedeCoachResolution();
         await createConversation(null);
         setMessages([]);
         setLibraryOpen(false);
@@ -747,7 +857,7 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '删除控灵会话失败。');
     }
-  }, [createConversation, deleteConversation, isLoading, setMessages]);
+  }, [createConversation, deleteConversation, isLoading, setMessages, supersedeCoachResolution]);
 
   // 构建欢迎消息
   const welcomeMessage = useMemo(() => {
