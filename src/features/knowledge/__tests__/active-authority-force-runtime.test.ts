@@ -518,4 +518,22 @@ describe('scoped reheat affected scope (#1739)', () => {
     expect(nodes[0]!.fx).toBe(1);
     expect(nodes[1]!.fx).toBe(3);
   });
+
+  it('treats filter restoration of previously seen nodes as a projection', () => {
+    // 清除筛选：恢复节点曾见过（在历史基线内）→ 全冻结不重热。
+    const restored: SimNode[] = [
+      { id: 'a', x: 1, y: 2 },
+      { id: 'restored', x: 5, y: 6 },
+    ];
+    const outcome = reheatKnowledgeGraphNewcomerScope({
+      nodes: restored,
+      links: [],
+      previousIds: new Set(['a', 'restored', 'filtered-out']),
+      previousFrozenNodeIds: new Set(),
+      pinnedNodeIds: new Set(),
+    });
+    expect(outcome?.hasNewcomers).toBe(false);
+    expect(outcome?.frozenNodeIds).toEqual(new Set(['a', 'restored']));
+    expect(restored[1]!.fx).toBe(5);
+  });
 });

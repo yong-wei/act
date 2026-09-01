@@ -929,17 +929,26 @@ export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPosi
 }
 
 /**
- * Render-time (pre-ingest) freeze for filter-only removal (#1739): when the
- * node set only shrank, output fixed coordinates so force-graph's synchronous
- * warmup ticks cannot move the remaining nodes before any effect runs.
+ * Render-time (pre-ingest) freeze for filter-only node-set changes (#1739):
+ * when every node id was seen before (no genuinely new disclosure), the
+ * change is a filter projection (removal or restoration) — output fixed
+ * coordinates so force-graph's synchronous warmup ticks cannot move the
+ * settled nodes before any effect runs. Distinguishing by full historical
+ * identity keeps real shard disclosures on the newcomer reheat path.
  */
-export function freezeKnowledgeGraphFilterRemovalScope<T extends KnowledgeGraphPositionedNode>(
+export function freezeKnowledgeGraphFilterProjectionScope<T extends KnowledgeGraphPositionedNode>(
   nodes: T[],
   previousIds: ReadonlySet<string> | null,
+  everSeenIds: ReadonlySet<string>,
 ): T[] {
-  if (previousIds === null
-    || nodes.length >= previousIds.size
-    || nodes.some((node) => !previousIds.has(String(node.id)))) {
+  // 筛选投影 = 上一帧集合确实变化（增删皆是见过身份）；集合未变的
+  // 稳定重算（如 pin 写入触发的 memo）必须原样返回，否则全图 fx 副本
+  // 会被 force-graph 摄入并打断进行中的拖拽（#1739）。
+  const changed = previousIds !== null
+    && (nodes.length !== previousIds.size
+      || nodes.some((node) => !previousIds.has(String(node.id))));
+  const allSeen = !nodes.some((node) => !everSeenIds.has(String(node.id)));
+  if (!changed || !allSeen) {
     return nodes;
   }
   return nodes.map((node) => ({

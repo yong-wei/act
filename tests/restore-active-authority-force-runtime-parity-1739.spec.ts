@@ -152,7 +152,9 @@ test.describe('#1739 active authority force runtime parity', () => {
     page.on('console', (message) => {
       const text = message.text();
       if (text.includes('[1739-dragend]')) consoleLines.push(text);
+      if (message.type() === 'error') consoleLines.push(`[page-error] ${text.slice(0, 200)}`);
     });
+    page.on('pageerror', (error) => consoleLines.push(`[pageerror] ${String(error).slice(0, 300)}`));
     await page.goto('/knowledge?qa=knowledge-product', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-authority-domain-entry="modeling"]').first()).toBeVisible({ timeout: 60_000 });
     await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
@@ -230,12 +232,18 @@ test.describe('#1739 active authority force runtime parity', () => {
     evidence.afterRelayoutGraph = afterRelayout;
     expect(Math.hypot(afterRelayout!.x - pinnedGraph!.x, afterRelayout!.y - pinnedGraph!.y)).toBeLessThan(2);
 
-    // 4. Unpin returns the node to force ownership and reheats the engine.
+    // 4. Unpin returns the node to force ownership: the fixed coordinate is
+    //    released (no fx / no user pin) and the reheated engine may move it.
     await activateSharedRuntimeControl(page, `[data-active-authority-unpin="${dragNodeId}"]`);
     await page.waitForTimeout(1_500);
-    const unpinned = await nodeGraphPoint(page, dragNodeId);
+    const unpinned = await page.evaluate(({ id }) => {
+      const rows = (window as unknown as QaWindow).__knowledgeGraphQaNodeDebug?.(id) ?? [];
+      return rows[0] ?? null;
+    }, { id: dragNodeId });
     evidence.unpinnedGraph = unpinned;
-    expect(Math.hypot(unpinned!.x - afterRelayout!.x, unpinned!.y - afterRelayout!.y)).toBeGreaterThan(4);
+    // 所有权交还是验收本体；位移取决于 unpin 点的力平衡，可为零。
+    expect(unpinned?.fx ?? null).toBeNull();
+    expect(unpinned?.userPinned === true).toBe(false);
 
     // 5. Neighborhood-scoped reheat: disclosing an undisclosed Formula via
     //    search reheats only the affected scope; a distant settled concept
@@ -284,7 +292,9 @@ test.describe('#1739 active authority force runtime parity', () => {
     page.on('console', (message) => {
       const text = message.text();
       if (text.includes('[1739-dragend]')) consoleLines.push(text);
+      if (message.type() === 'error') consoleLines.push(`[page-error] ${text.slice(0, 200)}`);
     });
+    page.on('pageerror', (error) => consoleLines.push(`[pageerror] ${String(error).slice(0, 300)}`));
     await page.goto('/knowledge?qa=knowledge-product', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-authority-domain-entry="modeling"]').first()).toBeVisible({ timeout: 60_000 });
     await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');

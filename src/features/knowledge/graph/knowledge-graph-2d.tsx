@@ -19,7 +19,7 @@ import {
   releaseKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
   reheatKnowledgeGraphNewcomerScope,
-  freezeKnowledgeGraphFilterRemovalScope,
+  freezeKnowledgeGraphFilterProjectionScope,
 } from './layout-engine';
 import {
   KNOWLEDGE_FORCE_ALPHA_DECAY,
@@ -412,6 +412,8 @@ export function KnowledgeGraph2D({
   // react-force-graph-2d 的 ref 不暴露 graphData 方法；memo 产出的节点数组就是
   // d3 原地变异的活对象，用 ref 保留上一代即可在增量重算时续承沉降坐标（#1739）。
   const liveNodesRef = useRef<RuntimeKnowledgeGraphNode[]>([]);
+  // 历史见过的全部节点身份（只增不减）：区分筛选投影（增删皆见过）与真实新披露。
+  const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
   const knownNodeIdsRef = useRef<Set<string> | null>(null);
   const committedRelayoutVersionRef = useRef(relayoutVersion);
   const committedGraphVersionRef = useRef(graphVersion);
@@ -554,7 +556,7 @@ export function KnowledgeGraph2D({
     // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标：摄入会同步执行
     // warmup ticks，先于任何被动 effect，否则剩余节点在冻结前已位移
     // （#1739 task 3.3）。
-    const scopedNodes = freezeKnowledgeGraphFilterRemovalScope(focusedLayoutNodes, knownNodeIdsRef.current);
+    const scopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedLayoutNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
     return {
       nodes: scopedNodes,
       links: transformedLinks
@@ -865,14 +867,18 @@ export function KnowledgeGraph2D({
   // at the engine-stop settle milestone.
   const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const previousIds = knownNodeIdsRef.current;
-    knownNodeIdsRef.current = new Set(graphData.nodes.map((node: any) => String(node.id)));
-    if (!previousIds || forceLifecycle.staticLayout) return;
+    const nextIds = new Set(graphData.nodes.map((node: any) => String(node.id)));
+    // 以并入前的历史身份为基线：筛选恢复（见过）走全冻结，真实新披露
+    // 才进入连通域局部重热（#1739）；knownNodeIdsRef 记录上一帧身份。
+    const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
+    knownNodeIdsRef.current = nextIds;
+    for (const id of nextIds) everSeenNodeIdsRef.current.add(id);
+    if (everSeenSnapshot.size === 0 || forceLifecycle.staticLayout) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     const outcome = reheatKnowledgeGraphNewcomerScope({
       nodes: graphNodes,
       links: graphData.links,
-      previousIds,
+      previousIds: everSeenSnapshot,
       previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
       pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
     });
