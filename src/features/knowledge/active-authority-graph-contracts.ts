@@ -68,6 +68,8 @@ export interface ActiveCanvasNode {
   richDescription?: GovernedRichTextProjection;
   searchText?: string;
   accessibleName?: string;
+  /** Bounded governed formula projection for materialized Formula nodes (#1740). */
+  mathematics?: GovernedFormulaProjection;
 }
 
 export interface ActiveCanvasRelation {

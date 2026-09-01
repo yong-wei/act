@@ -73,7 +73,7 @@ import {
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
-import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
+import { attachGovernedMathToLearnerShard, attachGovernedMathToSearchHits } from '@/lib/governed-math/attach';
 import {
   closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
@@ -784,11 +784,16 @@ export function activeDomainSearchResponse(
     const receipt = capability.mode === 'complete-locale' && qualification?.qualification
       ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
       : null;
-    const hits = applyLocaleToSearchHits(
-      pageEntries,
+    const hits = attachGovernedMathToSearchHits(
+      applyLocaleToSearchHits(
+        pageEntries,
+        resolved.locale,
+        capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+        receipt,
+      ),
       resolved.locale,
-      capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
-      receipt,
+      // 同版绑定：搜索命中只在命中对象属于当前 Authority release 时携带公式投影
+      activeIdentity.envelope.authority.releaseId,
     );
     const response: AuthorityDomainSearchResponse = {
       contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,

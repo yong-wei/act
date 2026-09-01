@@ -1,0 +1,16 @@
+{
+  "rootDomainEntries": 15,
+  "searchFormulaHits": 1,
+  "searchRenderKey": "8b3e04301299e3c2cda181b95c102706",
+  "canvas2dRenderKey": "8b3e04301299e3c2cda181b95c102706",
+  "canvas2dAriaLabel": "DC gain = s 0 G(s)",
+  "canvas2dHumanContext": "\\text{DC gain} = \\lim_{s \\rightarrow 0} G(s)",
+  "canvas2dKatexHtml": true,
+  "canvas2dLabelCountAfterZoom": 1,
+  "canvas2dHtmlStableAcrossZoom": true,
+  "canvas3dRenderKeys": [
+    "8b3e04301299e3c2cda181b95c102706"
+  ],
+  "canvas3dSameIdentity": true,
+  "ok": true
+}

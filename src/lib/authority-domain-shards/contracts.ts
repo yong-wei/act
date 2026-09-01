@@ -169,6 +169,8 @@ export interface AuthorityShardObject {
   richDescription?: GovernedRichTextProjection;
   searchText?: string;
   accessibleName?: string;
+  /** Bounded governed formula projection for materialized Formula objects (#1740). */
+  mathematics?: GovernedFormulaProjection;
 }
 
 export interface AuthorityShardMembership {
@@ -265,6 +267,8 @@ export interface AuthorityDomainSearchEntry {
 
 export interface AuthorityDomainSearchHit extends AuthorityDomainSearchEntry {
   typeLabel?: string | null;
+  /** Bounded governed formula projection for Formula hits (#1740). */
+  mathematics?: GovernedFormulaProjection;
 }
 
 /** Bounded, version-matched search response returned by the search API. */

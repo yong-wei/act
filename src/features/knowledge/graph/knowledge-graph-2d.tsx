@@ -161,6 +161,16 @@ type RuntimeKnowledgeGraphNode = KnowledgeGraphPositionedNode & {
   vz?: number;
 };
 
+/**
+ * 公式标签与 richTitle 共用同一语义 DOM 标签层：有界 Formula 节点的
+ * 表达式由 DOM 层渲染，画布文本跳过（#1740）。
+ */
+function hasGovernedSemanticLabel(
+  node: Pick<KnowledgeNodeData, 'richTitle' | 'mathematics'>,
+): boolean {
+  return Boolean(node.richTitle || (node.mathematics && node.mathematics.state !== 'missing'));
+}
+
 // ========== 形状绘制函数 ==========
 
 /**
@@ -1180,7 +1190,7 @@ export function KnowledgeGraph2D({
     }
 
     const labelPresentation = getFrameLabelPlacements(globalScale).get(node.id)!;
-    if (!labelPresentation.visible || node.richTitle) {
+    if (!labelPresentation.visible || hasGovernedSemanticLabel(node)) {
       ctx.restore();
       return;
     }
@@ -1409,7 +1419,7 @@ export function KnowledgeGraph2D({
     const projector = fgRef.current?.graph2ScreenCoords as ((x: number, y: number) => { x: number; y: number }) | undefined;
     if (!layer || !projector) return;
     const richNodes = (graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>)
-      .filter((node) => node.richTitle);
+      .filter((node) => hasGovernedSemanticLabel(node));
     if (richNodes.length === 0) return;
     const scale = Number(projectedScale ?? fgRef.current?.zoom?.() ?? 1);
     const placements = getFrameLabelPlacements(scale);
@@ -1438,7 +1448,7 @@ export function KnowledgeGraph2D({
   }, [syncRichLabelLayer]);
 
   useEffect(() => {
-    if (!(graphData.nodes as KnowledgeNodeData[]).some((node) => node.richTitle)) return;
+    if (!(graphData.nodes as KnowledgeNodeData[]).some((node) => hasGovernedSemanticLabel(node))) return;
     if (labelRefreshTimerRef.current !== null) window.clearTimeout(labelRefreshTimerRef.current);
     labelRefreshTimerRef.current = window.setTimeout(() => {
       syncRichLabelLayerRef.current();
@@ -1883,9 +1893,11 @@ export function KnowledgeGraph2D({
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintNodePointerArea}
         nodeLabel={(node: any) => (
-          node.richTitle?.state === 'available'
-            ? node.richTitle.accessibleName
-            : layoutKnowledgeNodeLabel(node.name).accessibleName
+          node.mathematics?.state === 'available'
+            ? node.mathematics.accessibleLabel
+            : node.richTitle?.state === 'available'
+              ? node.richTitle.accessibleName
+              : layoutKnowledgeNodeLabel(node.name).accessibleName
         )}
 
         // 连线渲染
@@ -1913,14 +1925,21 @@ export function KnowledgeGraph2D({
       />
       <SemanticLabelLayer
         labels={(graphData.nodes as KnowledgeNodeData[])
-          .filter((node) => node.richTitle)
+          .filter((node) => hasGovernedSemanticLabel(node))
           .map((node) => ({
             id: node.id,
             richTitle: node.richTitle,
+            mathematics: node.mathematics,
+            // 公式主标签下的有界人名上下文（#1740 decision 2）。
+            humanContext: node.mathematics && node.mathematics.state !== 'missing'
+              ? node.name
+              : undefined,
             fallbackLines: layoutKnowledgeNodeLabel(node.name).lines.map((line) => line.text),
-            accessibleName: node.richTitle?.state === 'available'
-              ? node.richTitle.accessibleName
-              : layoutKnowledgeNodeLabel(node.name).accessibleName,
+            accessibleName: node.mathematics?.state === 'available'
+              ? node.mathematics.accessibleLabel
+              : node.richTitle?.state === 'available'
+                ? node.richTitle.accessibleName
+                : layoutKnowledgeNodeLabel(node.name).accessibleName,
             visible: false,
             x: 0,
             y: 0,

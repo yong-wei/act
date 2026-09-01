@@ -5,7 +5,7 @@ import type {
   ActiveNodeAdjacency,
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
-import type { GovernedRichTextProjection } from '@/lib/governed-math';
+import type { GovernedFormulaProjection, GovernedRichTextProjection } from '@/lib/governed-math';
 import { governedSearchHaystack, matchesGovernedSearch, titleIsProductHidden } from '@/lib/governed-math';
 
 /**
@@ -47,6 +47,7 @@ export interface ActiveNodePresentation {
   richDescription?: GovernedRichTextProjection;
   searchText?: string;
   accessibleName?: string;
+  mathematics?: GovernedFormulaProjection;
 }
 
 export interface ActiveRelationView {
@@ -381,6 +382,7 @@ export function createActiveAuthorityGraphModel(
       richDescription: sourceNode.richDescription,
       searchText: sourceNode.searchText,
       accessibleName: sourceNode.accessibleName,
+      mathematics: sourceNode.mathematics,
     } satisfies ActiveNodePresentation))
     .sort(compareKey);
   const nodeByKey = new Map(candidates.map((node) => [node.key, node]));

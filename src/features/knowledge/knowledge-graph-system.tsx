@@ -149,6 +149,8 @@ export interface KnowledgeNodeData {
     revealableNeighborCount?: number;
   };
   richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
+  /** Bounded governed formula projection for materialized Formula nodes (#1740). */
+  mathematics?: import('@/lib/governed-math').GovernedFormulaProjection;
 }
 
 // 知识连接接口
