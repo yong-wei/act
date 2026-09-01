@@ -424,10 +424,13 @@ export function mergeAuthorityShard(
     const boundedDetails = Object.fromEntries(
       Object.entries(detailsByCanonicalId).filter(([id]) => retainedIds.has(id)),
     );
-    const retainedNeighborhoodNodeIds = new Set(shard.objects.map((object) => object.id));
+    // 邻域键只保留当前分片中心：B 的一跳通常仍含 A，若按对象集保留
+    // node-neighborhood:A，返回 A 时 loadedDisplayKeys 会跳过重载，
+    // 画布停留在 B 的闭包（A→B→A 回归）。
+    const currentNeighborhoodKey = `node-neighborhood:${shard.nodeId}`;
     const boundedLoadedKeys = loadedShardKeys.filter((loadedKey) => {
       if (loadedKey.startsWith('node-neighborhood:')) {
-        return retainedNeighborhoodNodeIds.has(loadedKey.slice('node-neighborhood:'.length));
+        return loadedKey === currentNeighborhoodKey;
       }
       if (loadedKey.startsWith('node-detail:')) {
         return retainedIds.has(loadedKey.slice('node-detail:'.length));

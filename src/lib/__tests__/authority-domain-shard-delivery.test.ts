@@ -1687,6 +1687,9 @@ describe('authority domain shard delivery', () => {
     expect(after.detailsByCanonicalId[TIME]).toBeUndefined();
     expect(after.loadedShardKeys).not.toContain(`node-neighborhood:${TIME}`);
     expect(after.loadedShardKeys).not.toContain(`node-detail:${TIME}`);
+    // 邻域键只保留当前分片中心：即使 B 的一跳仍含 A，返回 A 必须重载。
+    expect(after.loadedShardKeys).toContain(`node-neighborhood:${MODELING}`);
+    expect(after.loadedShardKeys).not.toContain(`node-neighborhood:${NEIGHBOR}`);
     // 概览、family 成员与 family 关系在邻域切换后保留。
     expect(after.objectsByCanonicalId[MODELING]).toBeDefined();
     expect(after.objectsByCanonicalId[SHARED]).toBeDefined();
@@ -1694,6 +1697,26 @@ describe('authority domain shard delivery', () => {
     const familyRelation = materialized.families['system-modeling:association']?.relations[0];
     expect(familyRelation).toBeDefined();
     expect(Object.keys(after.relationsByLayerKey)).toContain(relationCacheKey(familyRelation!));
+  });
+
+  it('reloads a neighborhood whose load key was evicted when navigating back (A→B→A)', () => {
+    const { materialized } = writeShards();
+    let state = createEmptyAuthorityShardWorkspace();
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.domainDefaults['system-modeling']));
+
+    // A→B：进入 NEIGHBOR 的邻域（其对象仍包含 MODELING）。
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.neighborhoods[MODELING]!));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.neighborhoods[NEIGHBOR]!));
+    expect(state.loadedShardKeys).toContain(`node-neighborhood:${NEIGHBOR}`);
+    // B 的一跳含 MODELING，但 A 的邻域键必须已淘汰，返回 A 才会重新请求。
+    expect(state.loadedShardKeys).not.toContain(`node-neighborhood:${MODELING}`);
+
+    // B→A：重新合并 A 的邻域分片后 TIME 被淘汰、A 的键恢复为当前邻域键。
+    const backToA = mergeAuthorityShard(state, projectAuthorityLearnerShard(materialized.neighborhoods[MODELING]!));
+    expect(backToA.objectsByCanonicalId[TIME]).toBeUndefined();
+    expect(backToA.loadedShardKeys).toContain(`node-neighborhood:${MODELING}`);
+    expect(backToA.loadedShardKeys).not.toContain(`node-neighborhood:${NEIGHBOR}`);
   });
 });
 
