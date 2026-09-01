@@ -67,6 +67,13 @@ function sourceHashAtCommit(commitSha: string, file: string): string {
   return sha256(execFileSync('git', ['show', `${commitSha}:${file}`], { cwd: process.cwd() }));
 }
 
+function assertCleanWorkingTree(phase: string) {
+  expect(
+    git(['status', '--porcelain', '--untracked-files=all']),
+    `${phase}: working tree must be clean before binding evidence to HEAD`,
+  ).toBe('');
+}
+
 async function installOfficialFollowupRoutes(page: Page) {
   await page.route('**/api/auth/session', async (route) => {
     await route.fulfill({
@@ -134,6 +141,9 @@ async function capture(page: Page, name: string, assertions: string[]) {
 }
 
 test('Arena workbench keeps official companion and rejects the old hand-entered panel', async ({ page }) => {
+  if (updateEvidence) {
+    assertCleanWorkingTree('before capture');
+  }
   await installOfficialFollowupRoutes(page);
 
   for (const viewport of [
@@ -165,8 +175,8 @@ test('Arena workbench keeps official companion and rejects the old hand-entered 
 
   if (!updateEvidence) return;
 
+  assertCleanWorkingTree('before writing evidence manifest');
   const sourceRevision = git(['rev-parse', 'HEAD']);
-  expect(git(['status', '--porcelain', '--', ...evidenceSourceFiles]), 'evidence source files must be clean at capture HEAD').toBe('');
   for (const file of evidenceSourceFiles) {
     expect(git(['hash-object', file]), `${file} working tree must match ${sourceRevision}`).toBe(
       git(['rev-parse', `${sourceRevision}:${file}`]),
