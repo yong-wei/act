@@ -8,7 +8,6 @@ import { Plus, Settings2, X } from 'lucide-react';
 
 import { AppShell } from '@/components/platform/app-shell';
 import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   arenaMethodLabels,
   arenaWorkspaceLabels,
@@ -573,13 +572,6 @@ function ResolvedControlWorkbenchShell({
             <ArenaWorkbenchSubmissionMount
               workspaceMode={session.recommendedWorkspaceMode}
               className="mt-2"
-            />
-          ) : null}
-          {'taskId' in session ? (
-            <AICompanionPanel
-              title={taskTitle}
-              sessionId={`arena-companion:${session.taskId}:${'publicationId' in session ? session.publicationId : 'open'}`}
-              arenaTaskId={session.taskId}
             />
           ) : null}
         </div>

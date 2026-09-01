@@ -7958,6 +7958,9 @@ export async function createGovernedKonlingIntervention(
   db: KonlingRuntimeDb,
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
+  if (input.arenaContext) {
+    throw new Error('Arena 受治理干预不能由客户端尝试状态创建');
+  }
   const now = input.now ?? new Date();
   const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
   const evidence = buildInterventionEvidence(input.studentState, input.arenaContext);

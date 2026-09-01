@@ -13868,16 +13868,12 @@ describe('konling agent runtime', () => {
     expect(db.aIIntervention.create).toHaveBeenCalled();
   });
 
-  it('keeps cooldowns for the same Arena control method', async () => {
+  it('fails closed before creating Arena interventions from client-authored state', async () => {
     const scope = createScope();
     const arenaContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
     const db = {
       aIIntervention: {
-        findFirst: vi.fn().mockResolvedValue({
-          id: 'intv-pid',
-          interventionType: 'constraint-hint',
-          cooldownUntil: new Date('2026-05-28T00:30:00Z'),
-        }),
+        findFirst: vi.fn(),
         create: vi.fn(),
       },
       konlingMemory: {
@@ -13885,88 +13881,15 @@ describe('konling agent runtime', () => {
       },
     };
 
-    const intervention = await createGovernedKonlingIntervention(db, {
+    await expect(createGovernedKonlingIntervention(db, {
       scope,
       studentState: createStudentState(),
       arenaContext,
       now: new Date('2026-05-28T00:00:00Z'),
-    });
-
-    expect(intervention).toMatchObject({
-      shouldIntervene: false,
-      reason: 'cooldown-active',
-      id: 'intv-pid',
-    });
-    expect(db.aIIntervention.findFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid',
-      }),
-    }));
+    })).rejects.toThrow('Arena 受治理干预不能由客户端尝试状态创建');
+    expect(db.aIIntervention.findFirst).not.toHaveBeenCalled();
     expect(db.aIIntervention.create).not.toHaveBeenCalled();
-  });
-
-  it('allows a second Arena method to bypass another method cooldown', async () => {
-    const scope = createScope();
-    const pidContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'pid');
-    const serialContext = resolveArenaCompanionContext('task-second-order-lead-pid', 'serial-compensator');
-    const db = {
-      aIIntervention: {
-        findFirst: vi.fn().mockImplementation(async ({ where }) => (
-          where.sessionId === 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:pid'
-            ? {
-                id: 'intv-pid',
-                interventionType: 'constraint-hint',
-                cooldownUntil: new Date('2026-05-28T00:30:00Z'),
-              }
-            : null
-        )),
-        create: vi.fn().mockResolvedValue({ id: 'intv-serial' }),
-      },
-      konlingMemory: {
-        create: vi.fn().mockResolvedValue({ id: 'memory-serial' }),
-      },
-    };
-
-    const pidIntervention = await createGovernedKonlingIntervention(db, {
-      scope,
-      studentState: createStudentState(),
-      arenaContext: pidContext,
-      now: new Date('2026-05-28T00:00:00Z'),
-    });
-    const serialIntervention = await createGovernedKonlingIntervention(db, {
-      scope,
-      studentState: createStudentState(),
-      arenaContext: serialContext,
-      now: new Date('2026-05-28T00:00:00Z'),
-    });
-
-    expect(pidIntervention.reason).toBe('cooldown-active');
-    expect(serialIntervention).toMatchObject({
-      shouldIntervene: true,
-      id: 'intv-serial',
-    });
-    expect(db.aIIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
-        evidence: expect.arrayContaining([
-          expect.objectContaining({
-            kind: 'arena-companion-context',
-            ref: 'task-second-order-lead-pid:serial-compensator',
-          }),
-        ]),
-      }),
-    }));
-    expect(db.konlingMemory.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        sessionId: 'konling:unit-4-5:step-03:arena:task-second-order-lead-pid:serial-compensator',
-        evidenceRefs: expect.arrayContaining([
-          expect.objectContaining({
-            kind: 'arena-companion-context',
-            ref: 'task-second-order-lead-pid:serial-compensator',
-          }),
-        ]),
-      }),
-    }));
+    expect(db.konlingMemory.create).not.toHaveBeenCalled();
   });
 
   it('does not persist no-op interventions or feedback outside the current scope', async () => {

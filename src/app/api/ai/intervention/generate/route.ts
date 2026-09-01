@@ -11,10 +11,6 @@ import {
   type InterventionDecision,
   type StudentState,
 } from '@/features/personalization/interventions/public-api';
-import {
-  ArenaCompanionContextError,
-  resolveArenaCompanionContext,
-} from '@/features/ai/companion/arena-companion-context';
 import type { ControllerMethod } from '@/features/arena/types';
 
 export const dynamic = 'force-dynamic';
@@ -39,22 +35,11 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as GenerateRequest;
-    const hasArenaTaskId = Boolean(body.arenaTaskId);
-    const hasArenaMethod = Boolean(body.method);
-    if (hasArenaTaskId !== hasArenaMethod) {
-      return NextResponse.json({ error: '竞技场任务和控制方法必须同时提供' }, { status: 400 });
-    }
-
-    let arenaContext;
-    if (hasArenaTaskId && hasArenaMethod) {
-      try {
-        arenaContext = resolveArenaCompanionContext(body.arenaTaskId!, body.method!);
-      } catch (error) {
-        if (error instanceof ArenaCompanionContextError) {
-          return NextResponse.json({ error: error.message }, { status: 400 });
-        }
-        throw error;
-      }
+    if (body.arenaTaskId || body.method) {
+      return NextResponse.json(
+        { error: '竞技场受治理陪伴只能由正式评测提交创建' },
+        { status: 400 },
+      );
     }
 
     const scope = await verifyKonlingRuntimeScope(prisma, {
@@ -74,7 +59,6 @@ export async function POST(request: Request) {
     const intervention = await createGovernedKonlingIntervention(prisma, {
       scope: scope.scope,
       studentState: body.studentState,
-      arenaContext,
     });
 
     return NextResponse.json({

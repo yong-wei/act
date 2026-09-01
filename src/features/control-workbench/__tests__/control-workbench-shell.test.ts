@@ -157,6 +157,7 @@ describe('control workbench route boundary', () => {
     expect(shellSource).toContain('sessionStorage');
     expect(shellSource).toContain('ArenaWorkbenchSubmissionMount');
     expect(shellSource).toContain('showArenaSubmissionMount');
+    expect(shellSource).not.toContain('AICompanionPanel');
     expect(shellSource).toContain("session.defaultPreset !== 'classic-whitebox'");
     expect(shellSource).toContain('workspaceMode={session.recommendedWorkspaceMode}');
     expect(shellSource).toContain("from '../routing'");
