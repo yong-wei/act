@@ -1597,6 +1597,14 @@ export function ActiveAuthorityGraph({
       ],
     });
   }, [scopedGraph, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
+  const overviewDirectoryEntries = useMemo(() => {
+    if (!model) return undefined;
+    const entries = workspace.domainOverviewIds
+      .map((id) => model.nodeByKey.get(id))
+      .filter((node): node is NonNullable<typeof node> => node !== undefined)
+      .map((node) => ({ id: node.key, label: node.label }));
+    return entries.length > 0 ? entries : undefined;
+  }, [model, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
   const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
     ? {
@@ -1971,6 +1979,7 @@ export function ActiveAuthorityGraph({
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
                   showUnavailableTeachingDirectory={!latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用'}
                   overviewCount={workspace.domainOverviewIds.length}
+                  overviewEntries={overviewDirectoryEntries}
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />

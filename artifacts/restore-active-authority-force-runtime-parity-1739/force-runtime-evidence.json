@@ -1,85 +1,85 @@
 {
   "earlyPoint": {
-    "x": -909.1803281872831,
-    "y": -143.18259773102113
+    "x": -1165.1692158762999,
+    "y": -53.21783675515428
   },
   "settledPoint": {
-    "x": -2591.6747247431754,
-    "y": -922.0378186154691
+    "x": -3007.0021412020214,
+    "y": -774.8195227698095
   },
-  "settleDisplacement": 1854.0234220583457,
+  "settleDisplacement": 1978.144968922424,
   "dragCandidates": [
     {
-      "id": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+      "id": "ctc:0f418dc24d2aacaaafdcdcc0",
       "topElement": "canvas"
     },
     {
-      "id": "ctc:modeling-1ca9b9e7c47289b157be60ab",
+      "id": "ctc:909e732d40f972bf760fa8ff",
       "topElement": "canvas"
     },
     {
-      "id": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+      "id": "ctc:90af7a0497e616bbe6249c30",
       "topElement": "canvas"
     },
     {
-      "id": "ctc:modeling-1f9d48d8fc305d13a1ad4763",
+      "id": "ctc:modeling-00d2998755974a1329049aac",
       "topElement": "canvas"
     },
     {
-      "id": "ctc:modeling-20f3dc8367288f2a5908a82b",
+      "id": "ctc:modeling-023f560241f0e47081f0f59e",
       "topElement": "canvas"
     },
     {
-      "id": "ctc:modeling-2175d5717ff3333e7780bba0",
+      "id": "ctc:modeling-029518e82a518c01bc626b66",
       "topElement": "canvas"
     }
   ],
   "dragAttempts": [
     {
-      "id": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+      "id": "ctc:0f418dc24d2aacaaafdcdcc0",
       "start": {
-        "x": 711.5232704824133,
-        "y": 327.01943895727305
+        "x": 713.0776337542011,
+        "y": 334.4033142424122
       },
       "after": {
-        "x": 809.7327809161565,
-        "y": 377.545080812392
+        "x": 816.0004760702751,
+        "y": 384.6571261476604
       },
-      "displacement": 110.44432273551799
+      "displacement": 114.53626972023972
     }
   ],
-  "dragDisplacement": 110.44432273551799,
+  "dragDisplacement": 114.53626972023972,
   "dragEndCalls": [],
   "pinnedGraphBeforeRelayout": {
-    "x": -1407.9951310408624,
-    "y": -75.96386988186725
+    "x": -1541.2844276896253,
+    "y": -59.15815330587225
   },
   "afterRelayoutGraph": {
-    "x": -1407.9951310408624,
-    "y": -75.96386988186725
+    "x": -1541.2844276896253,
+    "y": -59.15815330587225
   },
   "unpinnedGraph": {
-    "id": "ctc:modeling-1ca93c10f7b87df4cc16b696",
-    "x": -1551.83519764837,
-    "y": -90.07212428160948,
+    "id": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "x": -1641.0681085885233,
+    "y": -65.5281419193974,
     "fx": null,
     "fy": null,
     "userPinned": false,
     "anchor": {
-      "x": 504,
-      "y": 408,
+      "x": -672,
+      "y": 72,
       "fixed": false
     },
-    "screenX": 559.5384615384846,
-    "screenY": 205.89353307835864
+    "screenX": 551.244934883068,
+    "screenY": 213.3088966988023
   },
-  "reheatProbeId": "ctc:modeling-0f6572562d2ba1a5b005f2c5",
+  "reheatProbeId": "ctc:modeling-0dd26e5dad1221fb520f0be6",
   "reheatProbeBefore": {
-    "x": 526.973039635017,
-    "y": 71.97123520816751
+    "x": 263.3311851369817,
+    "y": -29.313254170915034
   },
   "reheatProbeAfter": {
-    "x": 625.2927520124396,
-    "y": 92.51956664735533
+    "x": 311.07586939982696,
+    "y": -106.64286938569866
   }
 }

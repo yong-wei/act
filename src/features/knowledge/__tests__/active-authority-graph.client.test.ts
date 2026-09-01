@@ -1798,7 +1798,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
     expect(canvas).not.toBeNull();
     expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
-    expect(container.querySelectorAll('[data-active-authority-node]')).toHaveLength(2);
+    // 无边域的可浏览目录展示完整过滤概览（#1739：compact 大域目录语义，
+    // 不受可见上限裁剪；不受支持对象仍被 model 过滤）。
+    expect(container.querySelectorAll('[data-active-authority-node]')).toHaveLength(4);
     expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();

@@ -57,6 +57,7 @@ import {
   selectKnowledgeGraphReheatAffectedNodeIds,
   reheatKnowledgeGraphNewcomerScope,
   freezeKnowledgeGraphFilterProjectionScope,
+  selectKnowledgeGraphAddedEdgeEndpointIds,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -598,6 +599,7 @@ export function KnowledgeGraphCanvas({
   // 历史见过的全部节点身份（只增不减）：区分筛选投影（增删皆见过）与真实新披露。
   const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
   const knownNodeIdsRef = useRef<Set<string> | null>(null);
+  const knownLinkKeysRef = useRef<Set<string>>(new Set());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
 
   useEffect(() => () => nodeObjectsByIdRef.current.clear(), []);
@@ -1150,6 +1152,12 @@ export function KnowledgeGraphCanvas({
     knownNodeIdsRef.current = nextIds;
     const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
     for (const id of nextIds) everSeenNodeIdsRef.current.add(id);
+    // 仅新增关系（如启用关系族）的边端点进入局部重热范围。
+    const { nextLinkIds, addedEdgeEndpointIds } = selectKnowledgeGraphAddedEdgeEndpointIds(
+      graphData.links,
+      knownLinkKeysRef.current,
+    );
+    knownLinkKeysRef.current = nextLinkIds;
     if (previousFrameIds === null || forceLifecycle.staticLayout) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     const outcome = reheatKnowledgeGraphNewcomerScope({
@@ -1157,6 +1165,7 @@ export function KnowledgeGraphCanvas({
       links: graphData.links,
       previousIds: previousFrameIds,
       everSeenIds: everSeenSnapshot,
+      addedEdgeEndpointIds,
       previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
       pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
     });
