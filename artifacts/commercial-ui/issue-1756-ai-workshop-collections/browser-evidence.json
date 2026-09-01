@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "commercial-ui-evidence.v1",
+  "issue": 1756,
+  "route": "/ai",
+  "routeFile": "src/app/ai/page.tsx",
+  "routeArchetype": "knowledge-data-map",
+  "dockState": "hidden",
+  "captureRevision": "fd5862be38b6bc973a372416e19250fd786351cc",
+  "captureTime": "2026-09-01T07:33:00.000Z",
+  "generator": "tests/ai-workshop-governed-collections-1756.spec.ts",
+  "baseUrl": "http://127.0.0.1:3101",
+  "runtime": {
+    "runtimeRevision": "fd5862be38b6bc973a372416e19250fd786351cc",
+    "runtimeRevisionSource": "local dev server serving the committed captureRevision worktree; working tree verified clean (no source or user-owned files dirty) before capture",
+    "session": "authenticated student fixture: demo",
+    "expectedState": "server-owned governed collections: tasks/milestones/achievements/journals empty with adjacent actions, experiments available with real simulation and Arena records",
+    "sourceWorktreeCheck": "clean capture revision verified via git status before capture",
+    "driftCheck": "fails closed if rendered collection states contradict server-owned projection (each panel exposes data-ai-workshop-collection-state)"
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "screenshot": "ai-workshop-collections-desktop.png",
+      "sha256": "ad0e5c7e7bd1767244464598d231c5a066967867e1e76fd6aedabafd42e72e77"
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 900,
+      "screenshot": "ai-workshop-collections-mobile.png",
+      "sha256": "523c61fd8d7aa3167b93b85a4b28ef8008b93aee1490c4d074b1db8b2e70dcc5"
+    }
+  ],
+  "sourceFiles": [
+    { "path": "src/app/ai/page.tsx", "sha256": "f59c08b1973534613a92aa6a66d17204e6c6fec6458d2e6dc299bdaf2dbcc8ea" },
+    { "path": "src/features/ai/ai-workshop-collections.ts", "sha256": "8ebfd777def008d36ddc2accf50c4b32c02fafdee221fd1ce1ad2eb16328a79f" },
+    { "path": "src/features/ai/ai-workshop-collections.server.ts", "sha256": "f342e9d93261f0155c7452f66afbeff7c98d91ffefe64b4b7fb91d9dec7d74ae" },
+    { "path": "src/features/ai/personal-learning-center.tsx", "sha256": "824cbd9701026676e66294fdd4b76b84aefb2f0e5833977337cdb99516e09549" }
+  ]
+}
