@@ -45,6 +45,7 @@ export const DIAGNOSIS_BENCHMARK_THRESHOLD = {
   healthyFalsePositiveRate: 0.1,
   complianceRate: 1,
   coverageClaimAccuracyRate: 0.95,
+  scenarioMinimumSuccessfulReplicates: 1,
 } as const;
 
 export type DiagnosisBenchmarkGenerate = (context: {
@@ -267,6 +268,19 @@ export function evaluateBenchmarkThreshold(
   check('exactMatchRate', DIAGNOSIS_BENCHMARK_THRESHOLD.exactMatchRate, aggregate.exactMatchRate);
   check('primaryHitRate', DIAGNOSIS_BENCHMARK_THRESHOLD.primaryHitRate, aggregate.primaryHitRate);
   check('healthyFalsePositiveRate', DIAGNOSIS_BENCHMARK_THRESHOLD.healthyFalsePositiveRate, aggregate.healthyFalsePositiveRate, true);
+  // 场景成功下限（Issue #1749 review）：任一场景零成功 replicate 时，
+  // 准确率指标为 null、治理率记 1，完全不可用的评测不得通过门禁。
+  for (const run of runs) {
+    const successful = run.evaluations.filter((entry) => entry.status === 'ok').length;
+    if (successful < DIAGNOSIS_BENCHMARK_THRESHOLD.scenarioMinimumSuccessfulReplicates) {
+      failures.push({
+        metric: 'scenarioSuccessfulReplicateFloor',
+        threshold: DIAGNOSIS_BENCHMARK_THRESHOLD.scenarioMinimumSuccessfulReplicates,
+        observed: successful,
+        scenarioId: run.scenario.id,
+      });
+    }
+  }
   check('chineseComplianceRate', DIAGNOSIS_BENCHMARK_THRESHOLD.complianceRate, aggregate.chineseComplianceRate);
   check('evidenceReferenceValidityRate', DIAGNOSIS_BENCHMARK_THRESHOLD.complianceRate, aggregate.evidenceReferenceValidityRate);
   check('attributionValidityRate', DIAGNOSIS_BENCHMARK_THRESHOLD.complianceRate, aggregate.attributionValidityRate);

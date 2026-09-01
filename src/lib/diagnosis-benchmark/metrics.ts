@@ -71,6 +71,18 @@ export function computeScenarioMetrics(
   const primaryHits = successful.map((entry) => (
     groundTruth.primaryWeakNode !== null && entry.primaryReportedNode === groundTruth.primaryWeakNode
   ));
+  // 治理合规率只以成功 replicate 为分母（Issue #1749）：被治理门拒绝是
+  // 治理生效的证明，由 generationSuccessRate 计数，不得再把合规率拉低；
+  // 违规细节保留在 replicate 记录的 failureReason 中可审计。
+  // 无成功 replicate 的场景记 1（无输出即无违规输出）。
+  const governed = successful.length === 0
+    ? { chinese: 1, refs: 1, attribution: 1, coverage: 1 }
+    : {
+        chinese: rate(successful.map((entry) => entry.chineseCompliant)),
+        refs: rate(successful.map((entry) => entry.evidenceRefsValid)),
+        attribution: rate(successful.map((entry) => entry.attributionValid)),
+        coverage: rate(successful.map((entry) => entry.coverageClaimAccurate)),
+      };
   return {
     scenarioId: scenario.id,
     precision: mean(precisions),
@@ -81,10 +93,10 @@ export function computeScenarioMetrics(
     healthyFalsePositiveRate: groundTruth.trueWeakNodes.length > 0
       ? null
       : round4(successful.reduce((sum, entry) => sum + entry.reportedNodes.length, 0) / (scenario.nodeCount * Math.max(successful.length, 1))),
-    chineseComplianceRate: rate(evaluations.map((entry) => entry.chineseCompliant)),
-    evidenceReferenceValidityRate: rate(evaluations.map((entry) => entry.evidenceRefsValid)),
-    attributionValidityRate: rate(evaluations.map((entry) => entry.attributionValid)),
-    coverageClaimAccuracyRate: rate(evaluations.map((entry) => entry.coverageClaimAccurate)),
+    chineseComplianceRate: governed.chinese,
+    evidenceReferenceValidityRate: governed.refs,
+    attributionValidityRate: governed.attribution,
+    coverageClaimAccuracyRate: governed.coverage,
     generationSuccessRate: rate(evaluations.map((entry) => entry.status === 'ok')),
     replicateCount: evaluations.length,
   };
@@ -132,6 +144,18 @@ export function aggregateBenchmarkMetrics(
 
   const healthyEntries = scored.filter((entry) => entry.healthyFalsePositiveRate !== null);
   const macroF1Values = scored.map((entry) => entry.f1).filter((value): value is number => value !== null);
+  // 治理合规率直接汇总全部成功 replicate 的布尔结果（Issue #1749 review）：
+  // 场景级比例再二值化会得到"完全合规场景占比"（1/1 与 1/2 场景记 0.5
+  // 而真实成功样本口径为 2/3），偏离 spec 的成功 replicate 口径。
+  const successfulReplicates = runs.flatMap((run) => run.evaluations.filter((entry) => entry.status === 'ok'));
+  const pooledGovernance = successfulReplicates.length === 0
+    ? { chinese: 1, refs: 1, attribution: 1, coverage: 1 }
+    : {
+        chinese: rate(successfulReplicates.map((entry) => entry.chineseCompliant)),
+        refs: rate(successfulReplicates.map((entry) => entry.evidenceRefsValid)),
+        attribution: rate(successfulReplicates.map((entry) => entry.attributionValid)),
+        coverage: rate(successfulReplicates.map((entry) => entry.coverageClaimAccurate)),
+      };
   // 重复运行稳定性按逐 replicate F1 事件计算（Issue #1729 review）：
   // 场景均值的标准差衡量的是场景间差异，会掩盖单次调用的大幅波动。
   const replicateF1Values: number[] = [];
@@ -149,11 +173,13 @@ export function aggregateBenchmarkMetrics(
     exactMatchRate: rate(scored.map((entry) => entry.exactMatchRate >= 1)),
     primaryHitRate: mean(scored.map((entry) => entry.primaryHitRate).filter((value): value is number => value !== null)),
     healthyFalsePositiveRate: mean(healthyEntries.map((entry) => entry.healthyFalsePositiveRate ?? 0)),
-    chineseComplianceRate: rate(scored.map((entry) => entry.chineseComplianceRate >= 1)),
-    evidenceReferenceValidityRate: rate(scored.map((entry) => entry.evidenceReferenceValidityRate >= 1)),
-    attributionValidityRate: rate(scored.map((entry) => entry.attributionValidityRate >= 1)),
-    coverageClaimAccuracyRate: rate(scored.map((entry) => entry.coverageClaimAccuracyRate >= 1)),
-    generationSuccessRate: rate(scored.map((entry) => entry.generationSuccessRate >= 1)),
+    chineseComplianceRate: pooledGovernance.chinese,
+    evidenceReferenceValidityRate: pooledGovernance.refs,
+    attributionValidityRate: pooledGovernance.attribution,
+    coverageClaimAccuracyRate: pooledGovernance.coverage,
+    // 生成成功率同样按全部 replicate 池化（Issue #1749 review）：场景二值化
+    // 会把 21/24 记成 5/8（"全成功场景占比"）而非 0.875。
+    generationSuccessRate: rate(runs.flatMap((run) => run.evaluations.map((entry) => entry.status === 'ok'))),
     scenarioCount: scored.length,
     replicateDispersion: {
       macroF1Stdev: stdev(replicateF1Values),

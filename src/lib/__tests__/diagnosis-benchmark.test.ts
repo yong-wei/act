@@ -188,6 +188,148 @@ describe('diagnosis benchmark metrics', () => {
     expect(aggregate.replicateDispersion.macroF1Worst).not.toBeNull();
   });
 
+  it('excludes governance-rejected replicates from compliance rate denominators', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const metrics = computeScenarioMetrics(scenario, truth, [
+      {
+        scenarioId: scenario.id,
+        replicate: 1,
+        status: 'ok',
+        reportedNodes: truth.trueWeakNodes,
+        primaryReportedNode: 'bench-node-07',
+        chineseCompliant: true,
+        evidenceRefsValid: true,
+        attributionValid: true,
+        coverageClaimAccurate: true,
+        durationMs: 1,
+      },
+      {
+        scenarioId: scenario.id,
+        replicate: 2,
+        status: 'calibration-rejected',
+        reportedNodes: [],
+        primaryReportedNode: null,
+        chineseCompliant: false,
+        evidenceRefsValid: false,
+        attributionValid: false,
+        coverageClaimAccurate: false,
+        durationMs: 1,
+        failureReason: 'language=1',
+      },
+    ]);
+
+    // 拒绝 replicate 不进治理率分母（Issue #1749），但计入失败率。
+    expect(metrics.chineseComplianceRate).toBe(1);
+    expect(metrics.evidenceReferenceValidityRate).toBe(1);
+    expect(metrics.attributionValidityRate).toBe(1);
+    expect(metrics.coverageClaimAccuracyRate).toBe(1);
+    expect(metrics.generationSuccessRate).toBe(0.5);
+  });
+
+  it('pools governance compliance across successful replicates instead of scenario rates', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const okReplicate = (overrides: Partial<Record<string, unknown>>) => ({
+      scenarioId: scenario.id,
+      replicate: 1,
+      status: 'ok' as const,
+      reportedNodes: truth.trueWeakNodes,
+      primaryReportedNode: 'bench-node-07',
+      chineseCompliant: true,
+      evidenceRefsValid: true,
+      attributionValid: true,
+      coverageClaimAccurate: true,
+      durationMs: 1,
+      ...overrides,
+    });
+    // 场景级比例 1/1 与 1/2：池化口径应为 2/3，而非"完全合规场景占比" 0.5。
+    const aggregate = aggregateBenchmarkMetrics([
+      {
+        scenario,
+        groundTruth: truth,
+        evaluations: [okReplicate({ replicate: 1 })],
+      },
+      {
+        scenario: scenarioById('single-weak-node'),
+        groundTruth: benchmarkGroundTruth(scenarioById('single-weak-node')),
+        evaluations: [
+          okReplicate({ replicate: 1 }),
+          okReplicate({ replicate: 2, coverageClaimAccurate: false }),
+        ],
+      },
+    ]);
+    expect(aggregate.coverageClaimAccuracyRate).toBeCloseTo(2 / 3, 3);
+    expect(aggregate.chineseComplianceRate).toBe(1);
+  });
+
+  it('pools the generation success rate across all replicates', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const replicate = (n: number, failed = false) => ({
+      scenarioId: scenario.id,
+      replicate: n,
+      status: failed ? ('generation-failed' as const) : ('ok' as const),
+      reportedNodes: failed ? [] : truth.trueWeakNodes,
+      primaryReportedNode: failed ? null : 'bench-node-07',
+      chineseCompliant: !failed,
+      evidenceRefsValid: !failed,
+      attributionValid: !failed,
+      coverageClaimAccurate: !failed,
+      durationMs: 1,
+      ...(failed ? { failureReason: 'provider unavailable' } : {}),
+    });
+    // 6 个 replicate 中 5 个成功：池化口径 5/6，而非"全成功场景占比" 0.5。
+    const aggregate = aggregateBenchmarkMetrics([
+      { scenario, groundTruth: truth, evaluations: [replicate(1), replicate(2), replicate(3)] },
+      { scenario: scenarioById('single-weak-node'), groundTruth: benchmarkGroundTruth(scenarioById('single-weak-node')), evaluations: [replicate(1), replicate(2, true), replicate(3)] },
+    ]);
+    expect(aggregate.generationSuccessRate).toBeCloseTo(5 / 6, 3);
+  });
+
+  it('fails the threshold gate when any scenario has no successful replicate', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const unavailableRun = {
+      scenario,
+      groundTruth: truth,
+      evaluations: [{
+        scenarioId: scenario.id,
+        replicate: 1,
+        status: 'generation-failed' as const,
+        reportedNodes: [],
+        primaryReportedNode: null,
+        chineseCompliant: false,
+        evidenceRefsValid: false,
+        attributionValid: false,
+        coverageClaimAccurate: false,
+        durationMs: 1,
+        failureReason: 'provider unavailable',
+      }],
+    };
+    const failures = evaluateBenchmarkThreshold(aggregateBenchmarkMetrics([unavailableRun]), [unavailableRun]);
+    expect(failures.some((failure) => failure.metric === 'scenarioSuccessfulReplicateFloor')).toBe(true);
+  });
+
+  it('records full compliance for scenarios with no successful replicate', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const metrics = computeScenarioMetrics(scenario, truth, [
+      {
+        scenarioId: scenario.id,
+        replicate: 1,
+        status: 'generation-failed',
+        reportedNodes: [],
+        primaryReportedNode: null,
+        chineseCompliant: false,
+        evidenceRefsValid: false,
+        attributionValid: false,
+        coverageClaimAccurate: false,
+        durationMs: 1,
+        failureReason: 'provider unavailable',
+      },
+    ]);
+
+    expect(metrics.chineseComplianceRate).toBe(1);
+    expect(metrics.coverageClaimAccuracyRate).toBe(1);
+    expect(metrics.generationSuccessRate).toBe(0);
+  });
+
   it('computes replicate dispersion from per-replicate F1, not scenario means', () => {
     const run = {
       scenario,
