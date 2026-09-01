@@ -11,6 +11,7 @@ import { useRef, useCallback, useMemo, useEffect, useLayoutEffect, useState, typ
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
+import { GovernedFormulaLabel } from './semantic-label-layer';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   getNodeColor,
@@ -2118,9 +2119,11 @@ export function KnowledgeGraphCanvas({
   ) => updatePresentationLinkObjectRef.current(object, positions, link), []);
   const getAccessibleNodeLabel = useCallback(
     (node: any) => (
-      node.richTitle?.state === 'available'
-        ? node.richTitle.accessibleName
-        : layoutKnowledgeNodeLabel(node.name).accessibleName
+      node.mathematics?.state === 'available'
+        ? node.mathematics.accessibleLabel
+        : node.richTitle?.state === 'available'
+          ? node.richTitle.accessibleName
+          : layoutKnowledgeNodeLabel(node.name).accessibleName
     ),
     [],
   );
@@ -2729,6 +2732,13 @@ export function KnowledgeGraphCanvas({
       id: node.id,
       lines: layout.lines.map((line) => line.text),
       richTitle: node.richTitle,
+      mathematics: node.mathematics,
+      // 公式主标签下的有界人名上下文：仅受治理人类标题可用时展示，
+      // 无治理标题时省略（Formula 的 prose 名是 TeX 源码，#1740）。
+      humanContext: node.mathematics && node.mathematics.state !== 'missing'
+        && node.richTitle?.state === 'available'
+        ? node.richTitle.accessibleName
+        : undefined,
       x: Number(point.x) + (isRootBubble ? 0 : placement.offsetX),
       y: Number(point.y) + (isRootBubble ? 0 : placement.offsetY),
       width: layout.width * placement.fontSize / policyFontSize,
@@ -2911,7 +2921,13 @@ export function KnowledgeGraphCanvas({
               transform: 'translate(-50%, -50%)',
             }}
           >
-            {label.richTitle ? (
+            {label.mathematics && label.mathematics.state !== 'missing' ? (
+              <GovernedFormulaLabel
+                projection={label.mathematics}
+                humanContext={label.humanContext}
+                theme={isLightTheme ? 'light' : 'dark'}
+              />
+            ) : label.richTitle ? (
               <GovernedRichText projection={label.richTitle} density="canvas" theme={isLightTheme ? 'light' : 'dark'} />
             ) : label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
           </div>

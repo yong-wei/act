@@ -236,12 +236,20 @@ function mergeObject(
     }
   }
   if (replaceDisplay) {
+    // Locale refresh replaces the whole display projection including governed
+    // math fields — dropping them here would strip formula/rich-text labels
+    // after a language switch (#1740).
     return {
       ...current,
       label: incoming.label,
       aliases: incoming.aliases ?? [],
       description: incoming.description,
       typeLabel: incoming.typeLabel ?? null,
+      richTitle: incoming.richTitle,
+      richDescription: incoming.richDescription,
+      searchText: incoming.searchText,
+      accessibleName: incoming.accessibleName,
+      mathematics: incoming.mathematics,
       memberships,
     };
   }

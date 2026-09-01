@@ -73,7 +73,7 @@ import {
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
-import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
+import { attachGovernedMathToLearnerShard, attachGovernedMathToSearchHits, governedFormulaSearchTerms } from '@/lib/governed-math/attach';
 import {
   closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
@@ -771,9 +771,20 @@ export function activeDomainSearchResponse(
       } satisfies AuthorityDomainSearchResponse);
     }
     const needle = normalizedSearchNeedle(query);
+    // 受治理搜索词先于过滤参与匹配：公式按请求 locale 的可访问名可被发现
+    // （#1740 spec：Search matches mathematical content），原始索引标签不动。
+    const formulaSearchTerms = governedFormulaSearchTerms(
+      index.entries.flatMap((entry) => (entry.canonicalType === 'Formula' ? [entry.id] : [])),
+      resolved.locale,
+      activeIdentity.envelope.authority.releaseId,
+    );
     const matched = index.entries
       .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
-      .filter((entry) => searchEntryMatches(entry, needle))
+      .filter((entry) => (
+        searchEntryMatches(entry, needle)
+        || (formulaSearchTerms.has(entry.id)
+          && normalizedSearchNeedle(formulaSearchTerms.get(entry.id)!).includes(needle))
+      ))
       .sort((left, right) => (
         left.label.localeCompare(right.label, 'zh-CN')
         || left.id.localeCompare(right.id)
@@ -784,11 +795,16 @@ export function activeDomainSearchResponse(
     const receipt = capability.mode === 'complete-locale' && qualification?.qualification
       ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
       : null;
-    const hits = applyLocaleToSearchHits(
-      pageEntries,
+    const hits = attachGovernedMathToSearchHits(
+      applyLocaleToSearchHits(
+        pageEntries,
+        resolved.locale,
+        capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+        receipt,
+      ),
       resolved.locale,
-      capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
-      receipt,
+      // 同版绑定：搜索命中只在命中对象属于当前 Authority release 时携带公式投影
+      activeIdentity.envelope.authority.releaseId,
     );
     const response: AuthorityDomainSearchResponse = {
       contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,

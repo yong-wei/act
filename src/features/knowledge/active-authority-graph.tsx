@@ -57,6 +57,7 @@ import {
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
 import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
+import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
 import { useKnowledgeGraphRuntimeLayout } from './graph/use-knowledge-graph-runtime-layout';
 import { KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH } from './graph/viewport-fit';
@@ -1224,11 +1225,15 @@ function SearchResults({
           key={hit.id}
           type="button"
           onClick={() => onSelect(hit)}
-          aria-label={`定位${hit.label}`}
+          aria-label={`定位${hit.mathematics?.state === 'available' ? hit.mathematics.accessibleLabel : hit.label}`}
           data-active-authority-search-result={hit.id}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
-          <span className="truncate text-platform-fg-primary">{hit.label}</span>
+          <span className="min-w-0 truncate text-platform-fg-primary" data-active-authority-search-result-label={hit.id}>
+            {hit.mathematics && hit.mathematics.state !== 'missing' ? (
+              <GovernedFormulaLabel projection={hit.mathematics} theme="dark" />
+            ) : hit.label}
+          </span>
           <span className="shrink-0 text-platform-fg-muted">
             {hit.typeLabel ?? presentActiveNodeType(hit.canonicalType).label}
           </span>
@@ -1587,6 +1592,7 @@ export function ActiveAuthorityGraph({
       summary: model.nodeByKey.get(hoveredNodeId)!.description ?? graphCopy(locale, 'empty.domain'),
       richTitle: model.nodeByKey.get(hoveredNodeId)!.richTitle,
       richDescription: model.nodeByKey.get(hoveredNodeId)!.richDescription,
+      mathematics: model.nodeByKey.get(hoveredNodeId)!.mathematics,
     }
     : null;
 

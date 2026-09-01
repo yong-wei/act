@@ -1,0 +1,16 @@
+{
+  "rootDomainEntries": 15,
+  "searchFormulaHits": 1,
+  "searchRenderKey": "4791d2b6d0ebf5c7c815ab51eae7a26f",
+  "canvas2dRenderKey": "4791d2b6d0ebf5c7c815ab51eae7a26f",
+  "canvas2dAriaLabel": "DC gain = s 0 G(s)",
+  "canvas2dHumanContext": null,
+  "canvas2dKatexHtml": true,
+  "canvas2dLabelCountAfterZoom": 1,
+  "canvas2dHtmlStableAcrossZoom": true,
+  "canvas3dRenderKeys": [
+    "4791d2b6d0ebf5c7c815ab51eae7a26f"
+  ],
+  "canvas3dSameIdentity": true,
+  "ok": true
+}

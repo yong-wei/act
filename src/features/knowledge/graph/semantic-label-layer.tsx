@@ -1,13 +1,21 @@
 'use client';
 
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
-import type { GovernedRichTextProjection } from '@/lib/governed-math';
+import {
+  renderGovernedKatexHtml,
+  type GovernedFormulaProjection,
+  type GovernedRichTextProjection,
+} from '@/lib/governed-math';
 
 export interface SemanticLabelModel {
   id: string;
   richTitle?: GovernedRichTextProjection;
+  /** Governed formula projection for Formula nodes (#1740). */
+  mathematics?: GovernedFormulaProjection;
+  /** Bounded human name shown as secondary context under the expression. */
+  humanContext?: string;
   fallbackLines: readonly string[];
   accessibleName: string;
   visible: boolean;
@@ -20,6 +28,62 @@ export interface SemanticLabelModel {
   opacity: number;
 }
 
+/**
+ * Shared governed formula label for 2D and 3D semantic label layers (#1740):
+ * the expression is the primary glyph, the human name is bounded secondary
+ * context, and KaTeX output is cached by immutable render identity so force
+ * and camera frames only move placement — never re-execute rendering.
+ */
+export function GovernedFormulaLabel({
+  projection,
+  humanContext,
+  theme,
+}: {
+  projection: GovernedFormulaProjection;
+  humanContext?: string;
+  theme: 'light' | 'dark';
+}) {
+  const html = useMemo(() => (
+    projection.state === 'available'
+      ? renderGovernedKatexHtml({
+        latex: projection.latex,
+        displayMode: projection.display === 'block',
+        macroProfileId: projection.macroProfileId,
+        macroProfileHash: projection.macroProfileHash,
+        theme,
+      })
+      : null
+  ), [projection, theme]);
+  if (projection.state === 'registered-unavailable') {
+    return (
+      <span
+        data-governed-formula-label="unavailable"
+        className="block max-w-full truncate"
+        aria-label={projection.accessibleName}
+      >
+        {projection.fallbackText}
+      </span>
+    );
+  }
+  if (projection.state !== 'available' || html === null) return null;
+  return (
+    <>
+      <span
+        data-governed-formula-label={projection.renderKey}
+        className="block max-w-full overflow-hidden"
+        aria-label={projection.accessibleLabel}
+      >
+        <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: html }} />
+      </span>
+      {humanContext ? (
+        <span className="block max-w-full truncate text-[0.82em] font-normal opacity-80">
+          {humanContext}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
 function SemanticLabelContent({
   label,
   theme,
@@ -27,6 +91,15 @@ function SemanticLabelContent({
   label: SemanticLabelModel;
   theme: 'light' | 'dark';
 }) {
+  if (label.mathematics && label.mathematics.state !== 'missing') {
+    return (
+      <GovernedFormulaLabel
+        projection={label.mathematics}
+        humanContext={label.humanContext}
+        theme={theme}
+      />
+    );
+  }
   if (label.richTitle && label.richTitle.state !== 'missing') {
     return (
       <GovernedRichText
@@ -83,7 +156,7 @@ export function SemanticLabelLayer({
       data-knowledge-visible-label-count={String(labels.filter((label) => label.visible).length)}
       aria-hidden="false"
     >
-      {labels.filter((label) => label.visible || label.richTitle).map((label) => (
+      {labels.filter((label) => label.visible || label.richTitle || (label.mathematics && label.mathematics.state !== 'missing')).map((label) => (
         <div
           key={label.id}
           data-semantic-label-id={label.id}

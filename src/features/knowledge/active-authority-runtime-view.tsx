@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
+import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import type { PublicAuthorityRootShard } from '@/lib/authority-domain-shards/contracts';
 import type { KnowledgeNodeData } from './knowledge-graph-system';
 import type { GraphDimension } from './graph-runtime-session';
@@ -39,6 +40,7 @@ interface ActiveAuthorityRuntimeViewProps {
     summary: string;
     richTitle?: import('@/lib/governed-math').GovernedRichTextProjection;
     richDescription?: import('@/lib/governed-math').GovernedRichTextProjection;
+    mathematics?: import('@/lib/governed-math').GovernedFormulaProjection;
   } | null;
   canvasAriaLabel: string;
   showUnavailableTeachingDirectory?: boolean;
@@ -222,6 +224,9 @@ export function ActiveAuthorityRuntimeView({
             <li key={node.canonicalId}>
               <button
                 type="button"
+                aria-label={node.presentation.mathematics?.state === 'available'
+                  ? node.presentation.mathematics.accessibleLabel
+                  : undefined}
                 className={showNodeDirectory
                   ? 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-platform-fg-primary transition-colors hover:bg-platform-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-primary'
                   : undefined}
@@ -273,6 +278,14 @@ export function ActiveAuthorityRuntimeView({
               ? <GovernedRichText projection={hoverPreview.richTitle} density="preview" />
               : hoverPreview.name}
           </p>
+          {hoverPreview.mathematics && hoverPreview.mathematics.state !== 'missing' ? (
+            <p className="mt-1 max-w-full overflow-hidden" data-active-authority-hover-formula="true">
+              <GovernedFormulaLabel
+                projection={hoverPreview.mathematics}
+                theme="dark"
+              />
+            </p>
+          ) : null}
           <p className="text-platform-fg-secondary">{hoverPreview.typeLabel}</p>
           <p className="mt-1 text-platform-fg-muted">
             {hoverPreview.richDescription
