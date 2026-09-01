@@ -750,6 +750,7 @@ export async function completeKonlingConversationTurn(
     where: {
       id: input.conversationId,
       userId: input.ownerUserId,
+      ...konlingLibraryRetentionWhere(now),
     },
   });
   if (!current) return null;
@@ -778,6 +779,7 @@ export async function completeKonlingConversationTurn(
       id: current.id,
       userId: input.ownerUserId,
       activeTurnId: input.turnId,
+      ...konlingLibraryRetentionWhere(now),
     },
     data: {
       messages: [
@@ -946,12 +948,15 @@ export async function releaseKonlingConversationTurn(
     conversationId: string;
     ownerUserId: string;
     turnId: string;
+    now?: Date;
   },
 ) {
+  const now = input.now ?? new Date();
   const current = await db.konlingSession.findFirst({
     where: {
       id: input.conversationId,
       userId: input.ownerUserId,
+      ...konlingLibraryRetentionWhere(now),
     },
   });
   if (!current || current.activeTurnId !== input.turnId) {
@@ -962,6 +967,7 @@ export async function releaseKonlingConversationTurn(
       id: input.conversationId,
       userId: input.ownerUserId,
       activeTurnId: input.turnId,
+      ...konlingLibraryRetentionWhere(now),
     },
     data: {
       messages: removeKonlingTurnMessages(

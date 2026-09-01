@@ -283,7 +283,15 @@ describe('Konling conversation library routes', () => {
     }), routeContext);
     expect(deleted.status).toBe(200);
     expect(mocks.prisma.konlingSession.deleteMany).toHaveBeenCalledWith({
-      where: { id: 'conversation-1', userId: 'user-1' },
+      where: {
+        id: 'conversation-1',
+        userId: 'user-1',
+        libraryVisible: true,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      },
     });
     expect(mocks.prisma.agentSession.deleteMany).toHaveBeenCalledWith({
       where: {
@@ -303,6 +311,28 @@ describe('Konling conversation library routes', () => {
     );
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ error: 'Conversation not found' });
+  });
+
+  it('refuses deletion once the explicit governed expiry has elapsed', async () => {
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(null);
+    const response = await deleteConversation(new NextRequest('http://localhost/api/ai/sessions/conversation-1', {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmed: true }),
+    }), routeContext);
+    expect(response.status).toBe(404);
+    expect(mocks.prisma.konlingSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        id: 'conversation-1',
+        userId: 'user-1',
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      }),
+      select: { id: true },
+    });
+    expect(mocks.prisma.konlingSession.deleteMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.agentSession.deleteMany).not.toHaveBeenCalled();
   });
 
   it('rehydrates bounded owner-and-conversation-scoped legacy structured actions', async () => {
@@ -553,7 +583,15 @@ describe('Konling conversation library routes', () => {
     }), routeContext);
     expect(response.status).toBe(200);
     expect(mocks.prisma.konlingSession.deleteMany).toHaveBeenCalledWith({
-      where: { id: 'conversation-1', userId: 'teacher-1' },
+      where: {
+        id: 'conversation-1',
+        userId: 'teacher-1',
+        libraryVisible: true,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      },
     });
     expect(mocks.prisma.agentSession.deleteMany).toHaveBeenCalledWith({
       where: {

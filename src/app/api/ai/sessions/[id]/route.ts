@@ -174,7 +174,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const deleted = await prisma.$transaction(async (tx) => {
       const conversation = await tx.konlingSession.findFirst({
-        where: { id, userId: session.user.id },
+        where: { id, userId: session.user.id, ...konlingLibraryRetentionWhere() },
         select: { id: true },
       });
       if (!conversation) return { count: 0 };
@@ -187,7 +187,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
         },
       });
       return tx.konlingSession.deleteMany({
-        where: { id, userId: session.user.id },
+        where: { id, userId: session.user.id, ...konlingLibraryRetentionWhere() },
       });
     });
     if (deleted.count !== 1) {
