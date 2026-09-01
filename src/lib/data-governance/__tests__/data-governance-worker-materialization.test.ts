@@ -59,7 +59,6 @@ vi.mock('../event-buffer', () => ({
 }));
 vi.mock('../learning-fact-materialization', () => ({
   eventToLearningFactInput: (event: unknown) => event,
-  shouldMaterializeLearningFact: () => false,
 }));
 vi.mock('@/features/learning-record/ingestion/public-api', () => ({
   ingestLearningFact: mocks.ingestLearningFact,

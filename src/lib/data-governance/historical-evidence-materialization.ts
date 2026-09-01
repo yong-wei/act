@@ -578,9 +578,10 @@ export async function applyHistoricalEvidenceMaterializationPlan(
   plan: HistoricalEvidenceMaterializationPlan,
   options: HistoricalEvidenceMaterializationApplyOptions,
 ): Promise<HistoricalEvidenceMaterializationApplyResult> {
-  assertExplicitHistoricalApply(options);
+  const auth = assertExplicitHistoricalApply(options);
   const factsToCreate = plan.candidates
     .filter((candidate) => !candidate.alreadyMaterialized)
+    .filter((candidate) => candidate.occurredAt <= auth.frozenCutoff)
     .map((candidate) => candidate.fact);
 
   const batchSize = Number.isInteger(options.batchSize) && options.batchSize && options.batchSize > 0

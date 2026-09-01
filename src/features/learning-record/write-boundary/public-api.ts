@@ -16,4 +16,3 @@ export {
   listWriteBoundaryEntries,
 } from './inventory';
 export { assertWriteBoundaryCanary, discoverWriteBoundaryPaths } from './canary';
-export { classifySecondaryWorkerClaim, type SecondaryWorkerClaimClass } from './isolate';

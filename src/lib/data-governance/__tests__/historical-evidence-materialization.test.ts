@@ -594,4 +594,43 @@ describe('historical evidence materialization', () => {
       { operationId: '', authorizedBy: '', frozenCutoff: '' },
     )).rejects.toBeInstanceOf(WriteBoundaryError);
   });
+
+  it('does not apply candidates that occur after the frozen cutoff', async () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: {
+        SimulationLog: [
+          {
+            id: 'sim-old',
+            userId: 'student-1',
+            occurredAt: '2026-05-18T10:00:00.000Z',
+            sourceLabel: 'real-student-run',
+          },
+          {
+            id: 'sim-new',
+            userId: 'student-2',
+            occurredAt: '2026-05-19T01:00:00.000Z',
+            sourceLabel: 'real-student-run',
+          },
+        ],
+      },
+    });
+    const createMany = vi.fn().mockResolvedValue({ count: 1 });
+    const result = await applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany } },
+      plan,
+      APPLY_AUTH,
+    );
+    expect(result.createdRows).toBe(1);
+    expect(createMany).toHaveBeenCalledTimes(1);
+    expect(createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          sourceEventId: 'historical:SimulationLog:sim-old:simulation_attempt',
+        }),
+      ],
+      skipDuplicates: true,
+    });
+  });
 });

@@ -7,7 +7,7 @@ Event protocol: existing `learning-record-event-contract` registry only
 ## Isolated this change
 
 - Historical apply no longer records online projection triggers; apply requires `operationId`, `authorizedBy`, `frozenCutoff`.
-- Redis secondary worker treats `shouldMaterializeLearningFact` identities as `deduplicated` (API direct owns them).
+- Redis secondary worker still calls idempotent `ingestLearningFact`; duplicates are isolated by ingest dedupe, never ACK-skipped.
 
 ## Already retired (unchanged)
 

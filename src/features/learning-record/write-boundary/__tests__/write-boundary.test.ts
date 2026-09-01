@@ -11,7 +11,6 @@ import {
   assertExplicitHistoricalApply,
   assertWriteBoundaryCanary,
   assertWriteBoundaryRowComplete,
-  classifySecondaryWorkerClaim,
   getWriteBoundaryRow,
 } from '../public-api';
 
@@ -62,10 +61,11 @@ describe('Learning Record write-boundary denominator', () => {
     expect(interactive.indexOf('ingestLearningFact')).toBeLessThan(interactive.indexOf('routeEvent(learningEvent)'));
   });
 
-  it('isolates Redis claims that already have an API direct identity', () => {
-    expect(classifySecondaryWorkerClaim(null)).toBe('invalid');
-    expect(classifySecondaryWorkerClaim({ actionType: 'lesson_submit', payload: {} })).toBe('isolated-duplicate');
-    expect(classifySecondaryWorkerClaim({ actionType: 'page_view', payload: {} })).toBe('ingest');
+  it('keeps Redis secondary claims on idempotent ingest instead of ACK-skipping them', () => {
+    const worker = readFileSync('scripts/workers/data-governance-worker.ts', 'utf8');
+    expect(worker).toContain('ingestLearningFact');
+    expect(worker).not.toContain('classifySecondaryWorkerClaim');
+    expect(worker).toContain('selectAckClaims');
   });
 
   it('records the deletion/isolation ledger without guessing C6/C7 file deletions', () => {
@@ -76,6 +76,7 @@ describe('Learning Record write-boundary denominator', () => {
       'historical.online-projection-trigger',
       'redis.core-shouldMaterialize',
     ]);
+    expect(WRITE_BOUNDARY_DELETION_LEDGER.find((item) => item.id === 'redis.core-shouldMaterialize')?.replacement).toContain('ingestLearningFact');
     expect(getWriteBoundaryRow('producer.arena.official').disposition).toBe('exception-c6-c7');
     expect(getWriteBoundaryRow('producer.assessment.adaptive').disposition).toBe('canonical');
     expect(getWriteBoundaryRow('backfill.historical-evidence').transport).toBe('explicit-backfill');
