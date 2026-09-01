@@ -355,7 +355,7 @@ function buildOpenSpecConflicts(snapshot: CensusSourceSnapshot): CurrentHeadOpen
       } else if (deletionOverlap.length > 0) {
         overlapKind = 'deletion-set';
         paths = deletionOverlap;
-      } else if (ownerOverlap.length > 0) {
+      } else if (ownerOverlap.length > 0 && leftPaths.length > 0 && rightPaths.length > 0) {
         overlapKind = 'owner';
         paths = ownerOverlap;
       }

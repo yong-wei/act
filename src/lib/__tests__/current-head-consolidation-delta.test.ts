@@ -150,8 +150,8 @@ describe('current-head consolidation delta', () => {
     const snapshot = fixture([
       file('src/features/personalization/path-planning/internal/assemble-plan.ts', 'export const assemble = 1;\n'),
       file('src/features/personalization/learner-state/internal.ts', 'export const state = 1;\n'),
-      file('openspec/changes/simplify-personalization-path-assembly/proposal.md', 'Personalization path assembly\n'),
-      file('openspec/changes/simplify-personalization-learner-state/proposal.md', 'Personalization learner state\n'),
+      file('openspec/changes/simplify-personalization-path-assembly/proposal.md', 'Personalization path assembly src/features/personalization/path-planning/internal/assemble-plan.ts\n'),
+      file('openspec/changes/simplify-personalization-learner-state/proposal.md', 'Personalization learner state src/features/personalization/learner-state/internal.ts\n'),
     ]);
     const { pack, failures } = generateCurrentHeadDelta(snapshot);
     qualifyCurrentHeadDelta(pack, failures);
