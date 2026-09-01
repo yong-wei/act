@@ -59,7 +59,22 @@ describe('standalone Copilot conversation library', () => {
     expect(copilot).toContain("taskType: 'evidence-copilot'");
     expect(copilot).toContain('data-copilot-conversation-status');
     expect(copilot).toContain('recovery-failed');
+    expect(copilot).toContain('const recoveryFailed = Boolean(authenticatedUserId && conversationError)');
     expect(copilot).toContain('/login?callbackUrl=');
+
+    const mutationSource = libraryHook.slice(
+      libraryHook.indexOf('const createConversation'),
+      libraryHook.indexOf('const ensureConversation'),
+    );
+    expect(mutationSource).toContain("method: 'POST'");
+    expect(mutationSource).toContain("method: 'DELETE'");
+    const mutationCatches = [...mutationSource.matchAll(/catch \(cause\) \{([^}]*)\}/g)]
+      .map((match) => match[1]);
+    expect(mutationCatches).toHaveLength(4);
+    for (const body of mutationCatches) {
+      expect(body).toContain('throw');
+      expect(body).not.toContain('setError');
+    }
   });
 
   it('does not promote conversation use into formal learning records', () => {

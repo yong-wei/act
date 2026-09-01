@@ -73,7 +73,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   expect(loginResponse.ok(), `credentials login failed: ${loginResponse.status()}`).toBe(true);
 }
 
-async function installLibrary(page: Page, options?: { failActive?: boolean }) {
+async function installLibrary(page: Page, options?: { failActive?: boolean; failDelete?: boolean }) {
   const now = '2026-09-01T00:00:00.000Z';
   const conversations: StoredConversation[] = [{
     id: 'conv-owned',
@@ -144,6 +144,10 @@ async function installLibrary(page: Page, options?: { failActive?: boolean }) {
       return;
     }
     if (method === 'DELETE' && conversation) {
+      if (options?.failDelete) {
+        await route.fulfill({ status: 500, json: { error: '删除控灵会话失败' } });
+        return;
+      }
       const index = conversations.findIndex((item) => item.id === conversation.id);
       conversations.splice(index, 1);
       await route.fulfill({ json: { success: true, deletedConversationId: conversation.id } });
@@ -261,6 +265,25 @@ test('standalone Copilot recovery failure is not an empty conversation', async (
   await expect(main.getByText('欢迎使用')).toHaveCount(0);
 });
 
+test('standalone Copilot keeps recovered history when delete fails', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('act:app-shell:navigation-preference', 'collapsed');
+  });
+  await establishAuthenticatedSession(page.context());
+  await installLibrary(page, { failDelete: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(representativeRoute, { waitUntil: 'domcontentloaded' });
+  const main = page.getByRole('main');
+  await expect(main.getByText('请解释稳态误差')).toBeVisible();
+
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.locator('[data-copilot-delete-conversation]').click();
+  await expect(main.getByText('删除控灵会话失败')).toBeVisible();
+  await expect(page.locator('[data-copilot-conversation-status="recovery-failed"]')).toHaveCount(0);
+  await expect(main.getByText('请解释稳态误差')).toBeVisible();
+  await expect(main.getByLabel('请输入您的问题，例如：如何减少航迹误差？')).toBeEnabled();
+});
+
 test('standalone Copilot stays usable at 320px and without a session', async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem('act:app-shell:navigation-preference', 'collapsed');
@@ -286,6 +309,13 @@ test('standalone Copilot stays usable at 320px and without a session', async ({ 
 
   const sourceRevision = git(['rev-parse', 'HEAD']);
   const files = [generatorPath, ...sourceFiles];
+  const dirty = git(['status', '--porcelain', '--', generatorPath, ...sourceFiles]);
+  expect(dirty, 'evidence source files must be clean at capture HEAD').toBe('');
+  for (const file of files) {
+    expect(git(['hash-object', file]), `${file} working tree must match ${sourceRevision}`).toBe(
+      git(['rev-parse', `${sourceRevision}:${file}`]),
+    );
+  }
   mkdirSync(evidenceDir, { recursive: true });
   writeFileSync(join(evidenceDir, 'evidence-manifest.json'), `${JSON.stringify({
     schemaVersion: 1,
