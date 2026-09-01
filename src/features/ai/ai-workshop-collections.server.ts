@@ -160,7 +160,8 @@ function assignmentToTaskItem(assignment: StudentAssignmentDto): AiTaskItem {
     progress,
     sourceKind: 'assignment',
     sourceLabel: '课程作业',
-    href: `/missions/assignments/${assignment.id}`,
+    // 与 studentAssignmentHref 同语义：作业 ID 必须路径编码（Issue #1756 review）。
+    href: `/missions/assignments/${encodeURIComponent(assignment.id)}`,
   };
 }
 

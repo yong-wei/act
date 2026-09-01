@@ -183,6 +183,20 @@ describe('assembleAiWorkshopCollections', () => {
     expect(collections.tasks.items.map((item) => item.id)).toEqual(['path:path-1:node-a', 'path:path-1:node-c']);
   });
 
+  it('path-encodes assignment ids in task navigation hrefs', async () => {
+    listStudentAssignments.mockResolvedValue([{
+      id: 'assignment/with?reserved#chars', title: '特殊 ID 作业', contextStatus: 'CURRENT', state: 'NOT_STARTED',
+      submittedRequiredCount: 0, requiredQuestionCount: 1,
+    }]);
+    const db = createDb();
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    expect(collections.tasks.items[0]?.href).toBe(
+      `/missions/assignments/${encodeURIComponent('assignment/with?reserved#chars')}`,
+    );
+  });
+
   it('marks milestones pending when the execution record carries no completion set', async () => {
     listStudentAssignments.mockResolvedValue([]);
     const db = createDb();
