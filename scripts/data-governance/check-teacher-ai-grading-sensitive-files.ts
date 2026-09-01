@@ -30,7 +30,9 @@ async function main() {
 }
 
 function runGit(args: string[], encoding: BufferEncoding | null) {
-  return spawnSync('git', args, { cwd, encoding });
+  // Sealed runtime artifacts (for example Authority shard-set manifests) can
+  // exceed spawnSync's 1 MiB default and would otherwise abort inspection.
+  return spawnSync('git', args, { cwd, encoding, maxBuffer: 64 * 1024 * 1024 });
 }
 
 function failInspection(): never {

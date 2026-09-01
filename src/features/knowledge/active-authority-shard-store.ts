@@ -56,6 +56,11 @@ export interface AuthorityShardWorkspaceState {
   selectedLocale: AdmittedLocale;
   localeCapability: PublicLocaleCapability;
   teachingCoverageByDomain: Record<string, PublicAuthorityDomainDefaultShard['teachingCoverage']>;
+  /**
+   * Server-bounded level-two overview: the exact object ids of the active
+   * domain-default shard, in server order (#1738).
+   */
+  domainOverviewIds: string[];
   root: PublicAuthorityRootShard['root'] | null;
   detailsByCanonicalId: Record<string, PublicAuthorityNodeDetailShard['node']>;
   /** Reviewed cross-domain cues from loaded family and neighborhood shards. */
@@ -100,6 +105,7 @@ export function createEmptyAuthorityShardWorkspace(): AuthorityShardWorkspaceSta
     selectedLocale: 'zh-CN',
     localeCapability: historicalLocaleCapability(),
     teachingCoverageByDomain: {},
+    domainOverviewIds: [],
     root: null,
     detailsByCanonicalId: {},
     boundaryRefsByCanonicalId: {},
@@ -297,13 +303,25 @@ export function mergeAuthorityShard(
   }
 
   if (shard.shardClass === 'domain-default') {
+    // Level two is server-owned: entering a domain bounds browser memory to
+    // that domain's members. Objects and details from other domains are
+    // unreachable from this level and must not accumulate across navigation.
+    const memberOfDomain = (object: AuthorityShardObject): boolean => (
+      object.memberships.some((membership) => membership.domainId === shard.domainId)
+    );
+    const boundedObjects = Object.fromEntries(
+      Object.entries(objectsByCanonicalId).filter(([, object]) => memberOfDomain(object)),
+    );
     for (const object of shard.objects) {
-      objectsByCanonicalId[object.id] = mergeObject(
-        objectsByCanonicalId[object.id],
+      boundedObjects[object.id] = mergeObject(
+        boundedObjects[object.id],
         object,
         localeChanged,
       );
     }
+    const boundedDetails = Object.fromEntries(
+      Object.entries(detailsByCanonicalId).filter(([id]) => Boolean(boundedObjects[id])),
+    );
     for (const relation of shard.teachingRelations) {
       relationsByLayerKey[relationCacheKey(relation)] = relation;
     }
@@ -311,9 +329,11 @@ export function mergeAuthorityShard(
     return {
       ...current,
       envelope,
-      objectsByCanonicalId,
+      objectsByCanonicalId: boundedObjects,
       relationsByLayerKey,
       teachingCoverageByDomain,
+      detailsByCanonicalId: boundedDetails,
+      domainOverviewIds: shard.objects.map((object) => object.id),
       activeDomainId: current.activeDomainId ?? shard.domainId,
       activeVisualRole: current.activeVisualRole ?? shard.visualRole,
       loadedShardKeys,
@@ -454,6 +474,7 @@ export function resetAuthorityShardDomain(
     relationsByLayerKey: {},
     boundaryRefsByCanonicalId: {},
     teachingCoverageByDomain: {},
+    domainOverviewIds: [],
     loadedShardKeys: current.loadedShardKeys.filter((key) => key === 'root'),
     loadedDisplayKeys: current.loadedDisplayKeys.filter((key) => key.endsWith(':root')),
     enabledFamilies: [],

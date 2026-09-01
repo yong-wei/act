@@ -40,6 +40,7 @@ import {
   AuthorityShardIdentityError,
   AuthorityShardStoreError,
   loadDomainDefaultShard,
+  loadDomainSearchIndexShard,
   loadNodeDetailShard,
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
@@ -47,8 +48,13 @@ import {
   readActiveAuthorityInfograph,
   attachActiveAuthorityLearningContent,
   projectAuthorityLearnerShard,
+  publicAuthorityShardEnvelope,
+  AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+  AUTHORITY_DOMAIN_SEARCH_MIN_QUERY_CHARS,
+  AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT,
   type AuthorityLearnerShard,
   type AuthorityDomainDefaultShard,
+  type AuthorityDomainSearchResponse,
   type AuthorityNodeDetailShard,
   type PublicAuthorityNodeDetailShard,
   type AuthorityNodeNeighborhoodShard,
@@ -57,7 +63,11 @@ import {
 } from '@/lib/authority-domain-shards';
 import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
-import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
+import {
+  applyLocaleToLearnerShard,
+  applyLocaleToSearchHits,
+  localeBindingForCapability,
+} from '@/lib/authority-locale-readiness/project-shard';
 import {
   resolveActiveLocaleQualification,
   resolveActiveLocaleRequest,
@@ -683,4 +693,117 @@ export function readActiveDetailShard(nodeId: string): AuthorityNodeDetailShard 
 export function readActiveDetailInfograph(nodeId: string): Buffer | null {
   const shard = loadNodeDetailShard(nodeId);
   return readActiveAuthorityInfograph(shard);
+}
+
+function normalizedSearchNeedle(value: string): string {
+  return value.trim().toLocaleLowerCase('zh-CN');
+}
+
+function searchEntryMatches(
+  entry: { label: string; aliases: readonly string[] },
+  needle: string,
+): boolean {
+  if (!needle) return false;
+  if (entry.label.trim().toLocaleLowerCase('zh-CN').includes(needle)) return true;
+  return entry.aliases.some((alias) => (
+    alias.trim().toLocaleLowerCase('zh-CN').includes(needle)
+  ));
+}
+
+/**
+ * Bounded domain search over the sealed identity-safe index (#1738). The
+ * complete index never leaves the server; responses carry the same public
+ * envelope as learner shards so clients can fail closed on identity drift.
+ */
+export function activeDomainSearchResponse(
+  input: {
+    domainKey: string;
+    query: string;
+    canonicalType: string | null;
+    page: number;
+    pageSize: number;
+    request: Request;
+  },
+): NextResponse {
+  const rejected = knowledgeSurfaceSelectorRejection(input.request);
+  if (rejected) return rejected;
+  try {
+    const query = input.query.trim().slice(0, 120);
+    const canonicalType = input.canonicalType && input.canonicalType.length <= 60
+      ? input.canonicalType
+      : null;
+    const pageSize = Math.min(
+      Math.max(1, Math.floor(input.pageSize || AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT)),
+      AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT,
+    );
+    const page = Math.max(0, Math.floor(input.page));
+    const index = loadDomainSearchIndexShard(input.domainKey);
+
+    const qualification = resolveActiveLocaleQualification();
+    const capability = qualification?.capability ?? historicalLocaleCapability();
+    const resolved = resolveActiveLocaleRequest(input.request, capability);
+    if (!resolved.ok) return resolved.response;
+    const activeIdentity = resolveActiveShardIdentity();
+    // One version-matched envelope for empty and matched responses alike.
+    const envelope = publicAuthorityShardEnvelope(
+      activeIdentity.envelope,
+      localeBindingForCapability(
+        resolved.locale,
+        capability,
+        `acv-${activeIdentity.envelope.authority.snapshotHash}`,
+      ),
+    );
+
+    if (query.length < AUTHORITY_DOMAIN_SEARCH_MIN_QUERY_CHARS) {
+      return NextResponse.json({
+        contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+        envelope,
+        domainId: index.domainId,
+        query,
+        canonicalType,
+        page: 0,
+        pageSize,
+        total: 0,
+        hits: [],
+      } satisfies AuthorityDomainSearchResponse);
+    }
+    const needle = normalizedSearchNeedle(query);
+    const matched = index.entries
+      .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
+      .filter((entry) => searchEntryMatches(entry, needle))
+      .sort((left, right) => (
+        left.label.localeCompare(right.label, 'zh-CN')
+        || left.id.localeCompare(right.id)
+      ));
+    const start = page * pageSize;
+    const pageEntries = matched.slice(start, start + pageSize);
+
+    const receipt = capability.mode === 'complete-locale' && qualification?.qualification
+      ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
+      : null;
+    const hits = applyLocaleToSearchHits(
+      pageEntries,
+      resolved.locale,
+      capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+      receipt,
+    );
+    const response: AuthorityDomainSearchResponse = {
+      contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+      envelope,
+      domainId: index.domainId,
+      query,
+      canonicalType,
+      page,
+      pageSize,
+      total: matched.length,
+      hits,
+    };
+    return NextResponse.json(response);
+  } catch (error) {
+    const failure = shardFailureCode(error);
+    return NextResponse.json(
+      { error: failure.message, code: failure.code },
+      { status: failure.status },
+    );
+  }
 }

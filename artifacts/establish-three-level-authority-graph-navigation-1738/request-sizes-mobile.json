@@ -1,0 +1,26 @@
+{
+  "shardSetId": "ads-294a061649658ea5298f257af4ce248677844348efe89879f253d1ecba3eee6c",
+  "catalogDomains": 15,
+  "requests": [
+    {
+      "test": "mobile",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active",
+      "bytes": 6324
+    },
+    {
+      "test": "mobile",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/nonlinear-analysis",
+      "bytes": 49336
+    },
+    {
+      "test": "mobile",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/lyapunov",
+      "bytes": 27698
+    },
+    {
+      "test": "mobile",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/discrete-design",
+      "bytes": 71154
+    }
+  ]
+}

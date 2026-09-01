@@ -498,6 +498,24 @@ export function isPrimaryDomainObject(node: ActiveNodePresentation): boolean {
   return PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType);
 }
 
+/**
+ * Deterministic level-two scope: exactly the server-bounded domain-default
+ * overview ids that are currently materialized in the model (#1738).
+ * Returning to the overview restores the same scope without flattening
+ * disclosed secondary nodes.
+ */
+export function selectAuthorityDomainOverviewScope(
+  model: ActiveAuthorityGraphModel,
+  overviewIds: readonly string[],
+): Set<string> {
+  const overview = new Set(overviewIds);
+  return new Set(
+    model.nodes
+      .filter((node) => overview.has(node.key))
+      .map((node) => node.key),
+  );
+}
+
 export function buildActiveAdjacencyIndex(
   model: ActiveAuthorityGraphModel,
 ): ReadonlyMap<string, readonly ActiveRelationView[]> {

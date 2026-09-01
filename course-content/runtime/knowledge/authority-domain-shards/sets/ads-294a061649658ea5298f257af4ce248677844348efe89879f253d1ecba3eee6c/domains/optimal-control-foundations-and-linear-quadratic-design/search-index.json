@@ -1,0 +1,2635 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+  "entries": [
+    {
+      "id": "ctkg:m1q:phase-g:source:0097b018d37b4c0f64f035ac",
+      "canonicalType": "Formula",
+      "label": "输出跟踪系统性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:026b8eced59b9e511644744b",
+      "canonicalType": "Formula",
+      "label": "末值型性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:05d43e73e9bec60360ca412f",
+      "canonicalType": "Formula",
+      "label": "最小时间控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:0870eeee2775e60889a043cb",
+      "canonicalType": "Formula",
+      "label": "积分型性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:0be203d44c747533f24ec7bc",
+      "canonicalType": "DomainConcept",
+      "label": "有约束梯度法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:0fa61871cf1a878696ffc0f4",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器理论",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:14214b1d0aad8662c3b331f7",
+      "canonicalType": "Formula",
+      "label": "目标集方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:17efd3cb2acb4f913d51d815",
+      "canonicalType": "Formula",
+      "label": "复合型性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:2f4a97c113cff88562a70745",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最优控制问题的一般提法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:39875458a40d9b624f7ce550",
+      "canonicalType": "Formula",
+      "label": "极值条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:3e1369beccedd1c9a3b32e67",
+      "canonicalType": "DomainConcept",
+      "label": "控制域",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:4cb3e16efa8eb5180b6a7f22",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 10－13",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f",
+      "canonicalType": "DomainConcept",
+      "label": "最小时间控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:55f0727b1a436cb92aa23bbe",
+      "canonicalType": "DomainConcept",
+      "label": "最优控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:56ded7b00e6a88012556bf5f",
+      "canonicalType": "Formula",
+      "label": "性能指标参数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:5c903b16cda43eb32d987621",
+      "canonicalType": "Formula",
+      "label": "状态调节器性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:73c1edbf0eb92724a55d5ef1",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:86329e8f2b6c184747154a69",
+      "canonicalType": "DomainConcept",
+      "label": "目标集",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+      "canonicalType": "DomainConcept",
+      "label": "极小值原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4",
+      "canonicalType": "DomainConcept",
+      "label": "变分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:98bdda41cc01fcf999ef1cc0",
+      "canonicalType": "DomainConcept",
+      "label": "数值计算法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:99a18a2354f41aefee724581",
+      "canonicalType": "Formula",
+      "label": "最少燃耗控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:9c7b9b7d5907c2c2233ec1a2",
+      "canonicalType": "Formula",
+      "label": "假设关系式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:9d04d49c7abe20be31ef2949",
+      "canonicalType": "Formula",
+      "label": "系统状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:a2ebd484fa91012aaed92210",
+      "canonicalType": "DomainConcept",
+      "label": "区间消去法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:a60470ae679dee12de497495",
+      "canonicalType": "Formula",
+      "label": "里卡蒂方程转置简化形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:a7624df21a8131acf8f0eea4",
+      "canonicalType": "DomainConcept",
+      "label": "容许控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:aa50da603bbdf63c5a434d5f",
+      "canonicalType": "Formula",
+      "label": "最优性能指标表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:adcdf916ae61935ca913d006",
+      "canonicalType": "DomainConcept",
+      "label": "最少燃耗控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b178d24007ea1db95507dc15",
+      "canonicalType": "DomainConcept",
+      "label": "解析法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+      "canonicalType": "DomainConcept",
+      "label": "动态规划",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b92bf373f4070c1fdd42e820",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型最优控制法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:bb73369ac528efb1b0c17a01",
+      "canonicalType": "DomainConcept",
+      "label": "性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:c14dc59187664d8a36099266",
+      "canonicalType": "DomainConcept",
+      "label": "末值项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:c5b9d4343933c86a327e9dc1",
+      "canonicalType": "DomainConcept",
+      "label": "梯度型法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:cab0fb8113c335326aa725d5",
+      "canonicalType": "Formula",
+      "label": "最优控制表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:d001a43ab70a15e2559b382a",
+      "canonicalType": "Formula",
+      "label": "正则方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:d5d1a4a8623ebd675fa4fec4",
+      "canonicalType": "DomainConcept",
+      "label": "经典变分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:d94071a161cf88039949ca97",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:dc7bd0679d5954c66a8a35be",
+      "canonicalType": "DomainConcept",
+      "label": "经典微分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:ead9114be82984bd36296a82",
+      "canonicalType": "Formula",
+      "label": "最少能量控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:eb858cb5deee15e7a30bcf84",
+      "canonicalType": "Formula",
+      "label": "最优控制问题的泛函形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:ebc37de828f93d94903147e5",
+      "canonicalType": "DomainConcept",
+      "label": "跟踪误差",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:f310ff6dd591a2c2f23060c3",
+      "canonicalType": "DomainConcept",
+      "label": "无约束梯度法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:f5c3fb5e2db0df782135c7a1",
+      "canonicalType": "Formula",
+      "label": "哈密顿函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:fa4ec22e9cd6aa9278b34b17",
+      "canonicalType": "DomainConcept",
+      "label": "过程项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:0957e5da86177ded0212662e",
+      "canonicalType": "Formula",
+      "label": "最优闭环系统方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 R(t)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:55c046b64f038df677afa8bc",
+      "canonicalType": "Formula",
+      "label": "反馈增益矩阵",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 F",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:a9e49020d5d4129b8f442796",
+      "canonicalType": "Formula",
+      "label": "最优控制反馈形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 Q(t)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:def08c5f16d819be739fbbf5",
+      "canonicalType": "Formula",
+      "label": "最优闭环系统方程（反馈形式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:0082e7e68208bee99ddedbf9",
+      "canonicalType": "Formula",
+      "label": "欧拉方程（无约束泛函极值）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:02524c34447741a6819893b3",
+      "canonicalType": "DomainConcept",
+      "label": "线性连续泛函",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:03d76f9488f7e95f1f3f3cf7",
+      "canonicalType": "Formula",
+      "label": "泛函增量表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:05611a5171d5f311ea8a41b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "泛函变分的规则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:0b4f64cb684b1f7a4aac2a88",
+      "canonicalType": "KnowledgeStatement",
+      "label": "庞特里亚金极小值原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:0fd16223eb12c0ac442e15b0",
+      "canonicalType": "Formula",
+      "label": "有等式约束泛函极值的横截条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:1130b68058e41113f6ee971a",
+      "canonicalType": "Formula",
+      "label": "状态变量反馈律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:145b1f7dbebfbf44f575613c",
+      "canonicalType": "Formula",
+      "label": "泛函变分求法公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:15092b17544b9e21efd4b093",
+      "canonicalType": "Formula",
+      "label": "无限时间调节器的最优性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:15d2ced5db7ea23fd9cfcb2c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无约束泛函极值问题定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:169803ab31a95d97d351f7fe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "变分预备定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:1a6cd2ca88f7e8c14a1ab9df",
+      "canonicalType": "Formula",
+      "label": "横截条件及边界条件（末端时刻固定）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:2013e2fdd8b97da62f7c6bf7",
+      "canonicalType": "Formula",
+      "label": "带标量加权的通用性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:22cd74c562ea7736ffebec77",
+      "canonicalType": "DomainConcept",
+      "label": "有限时间时变状态调节器问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:22d9b2fe6c33497f873f70e1",
+      "canonicalType": "DomainConcept",
+      "label": "无约束梯度法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+      "canonicalType": "DomainConcept",
+      "label": "最优控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:292fcdde0fa6eb44f56c8e3e",
+      "canonicalType": "ModelRepresentation",
+      "label": "标准三阶系统可控标准型状态空间模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:297e3f7fa1a0f3396d81b097",
+      "canonicalType": "Formula",
+      "label": "含控制能量加权的性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:29bf09f1791d38b270e051e7",
+      "canonicalType": "Formula",
+      "label": "哈密顿函数定义（定理10-7）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:2acd9fce19e7ed5275dff79d",
+      "canonicalType": "Formula",
+      "label": "PID控制器传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:2e34860dcff2c047e6df0c68",
+      "canonicalType": "DomainConcept",
+      "label": "经典变分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:3307bbc7ab377be901406d10",
+      "canonicalType": "Formula",
+      "label": "常值伴随向量公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:36015aad0c3546a3bfe17319",
+      "canonicalType": "DomainConcept",
+      "label": "有约束梯度法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:389d6184acf41a015bd081a8",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:3aa260e4bf082beea350cc93",
+      "canonicalType": "Formula",
+      "label": "闭环系统方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:3abcb6852919fae6ccc9ffde",
+      "canonicalType": "Formula",
+      "label": "欧拉方程（末端时刻自由）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:3af65874ae840a3acc215e16",
+      "canonicalType": "Formula",
+      "label": "泛函极值必要条件公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:44f4ee302c194bdf70d2e5cd",
+      "canonicalType": "DomainConcept",
+      "label": "泛函的变分",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:4533c354bad2dbd5b19eb378",
+      "canonicalType": "KnowledgeStatement",
+      "label": "协态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:473f0b1b4035bd33b308a982",
+      "canonicalType": "Formula",
+      "label": "泛函的变分（定义式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:474231a8a05ebd24888d03c2",
+      "canonicalType": "Formula",
+      "label": "积分型性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:47b4a875efa74c0514f6577f",
+      "canonicalType": "Formula",
+      "label": "性能指标泛函（复合型）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:4a260ca2acd538397b8b2bdd",
+      "canonicalType": "Formula",
+      "label": "离散系统目标集约束",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:4cdf6b311ece1304be018300",
+      "canonicalType": "KnowledgeStatement",
+      "label": "泛函极值的必要条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:4e3085f580dc5c675f268c14",
+      "canonicalType": "Formula",
+      "label": "性能指标 J",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:4e9523f78c6c397fbf18be25",
+      "canonicalType": "SystemModel",
+      "label": "线性时变系统的动态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:50bcc69d89b4d114a9878c70",
+      "canonicalType": "Formula",
+      "label": "关于 P 的李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:5107d9e37918a70e381cfaa2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "渐近稳定性的可观测性要求",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:585bb7b9473e28cbd7c5fb04",
+      "canonicalType": "Formula",
+      "label": "离散系统性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:5888289646bfbbc97da68373",
+      "canonicalType": "Formula",
+      "label": "代数黎卡提方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:5953f3e70b969ae95e2e51ec",
+      "canonicalType": "Formula",
+      "label": "横截条件及边界条件（末端时刻固定、末端状态自由）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:5d0ba6f5b5ad95b34666ac52",
+      "canonicalType": "SystemModel",
+      "label": "登月舱最优控制问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:5f031c4dce662397c38a661c",
+      "canonicalType": "Formula",
+      "label": "状态调节器性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:6256a9c1362bb8b0023d1bd9",
+      "canonicalType": "DomainConcept",
+      "label": "数值计算法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:6a6f1102d49c2595e569c096",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最优控制的充分必要条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:715901279030d3cd5955fb36",
+      "canonicalType": "Formula",
+      "label": "目标集约束",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:725a2f96f4fa08ad5810260d",
+      "canonicalType": "Formula",
+      "label": "状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:72bfa3290a75b2423a85f508",
+      "canonicalType": "Formula",
+      "label": "系统状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:791a0fe97611f1359b52473e",
+      "canonicalType": "Formula",
+      "label": "近似最优控制律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:7ba804183502bcdcd1d05448",
+      "canonicalType": "DomainConcept",
+      "label": "线性泛函算子",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:825e0a2f4fd87fe0160723a1",
+      "canonicalType": "DomainConcept",
+      "label": "解析法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:83e122ab2882f3896f0748bb",
+      "canonicalType": "Formula",
+      "label": "无限时间定常输出跟踪系统性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:85dc678350d39c7d678fd7ae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "泛函极值的定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:87ca8d72ee0483ae88a6957f",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪系统问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:8b4a21b5389de93b1cf56221",
+      "canonicalType": "DomainConcept",
+      "label": "拉格朗日乘子法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:8d7aa52d3b7aa1592465313b",
+      "canonicalType": "Formula",
+      "label": "黎卡提代数方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:8de9fdd2fa25e7d69f86395a",
+      "canonicalType": "Formula",
+      "label": "末端约束方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:8e146053d3bf62dd0bbcdc66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最小时间控制问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:8e3a0ba5fb7c20cb50d99038",
+      "canonicalType": "Formula",
+      "label": "横截条件（无约束泛函极值）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9030337ee9d1fb8226c7fc1c",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器理论",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:91e900c1e7625067a59de967",
+      "canonicalType": "Formula",
+      "label": "最优闭环系统动态特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:932d4d44710bbbe890f2c282",
+      "canonicalType": "Formula",
+      "label": "变分预备定理积分条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:93df1a9327792487c53acbca",
+      "canonicalType": "Formula",
+      "label": "最优控制问题泛函形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:93f9cb978a744de81099410b",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:95590c4bc02e51f04ef7c9d5",
+      "canonicalType": "SystemModel",
+      "label": "例10-11：二次积分模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:95de545fffd0baddc27a3a83",
+      "canonicalType": "DomainConcept",
+      "label": "哈密顿函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:95fb6615b00b750ac0fbbbca",
+      "canonicalType": "Formula",
+      "label": "状态向量范数平方",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型调节器 (LQR)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:98c3a9bfecf5e620d7a47117",
+      "canonicalType": "DomainConcept",
+      "label": "输出误差向量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:99f5daf5754088353daf3b64",
+      "canonicalType": "Formula",
+      "label": "最少燃耗控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9a82f2bc0d82b92c5cf8bcf7",
+      "canonicalType": "Formula",
+      "label": "最少能量控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9a9b18a83b2ea1c49610f73d",
+      "canonicalType": "Formula",
+      "label": "目标集",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9bb8b40f1da2ab6433336af7",
+      "canonicalType": "Formula",
+      "label": "协态方程（公式10-46）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9cff27f6ba6dc2a6b13ae89a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理 10-21：无限时间调节器最优控制的存在性与唯一性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9e9fc679376c4f36518e1896",
+      "canonicalType": "DomainConcept",
+      "label": "容许控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9f0eb0406172a7616a92a4e2",
+      "canonicalType": "DomainConcept",
+      "label": "经典微分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:9f86d5b230b19337aefb8de7",
+      "canonicalType": "Formula",
+      "label": "最优反馈增益公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a189a6be8c062334f1a59c87",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型最优控制法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a1aba833d74dcd167511bb1d",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a2646fbc613ffe08c4556c2c",
+      "canonicalType": "Formula",
+      "label": "系统状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a2af4e3bae8af89b67a0e895",
+      "canonicalType": "Formula",
+      "label": "哈密顿函数定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a3629ddf343a18ace5ab18ef",
+      "canonicalType": "Formula",
+      "label": "斜坡输入闭环传递函数标准形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a767e4fec7db44fc62573ac5",
+      "canonicalType": "DomainConcept",
+      "label": "爬山法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a82c5126c8ea74f42bad7fe0",
+      "canonicalType": "Formula",
+      "label": "闭环状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:a9d7fcea7c2be5c503121d7b",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "canonicalType": "DomainConcept",
+      "label": "泛函",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b16d68c7b95fa2bf37c6a1ac",
+      "canonicalType": "Formula",
+      "label": "最小时间控制性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b25beafead188a4ac3a2bc9b",
+      "canonicalType": "Formula",
+      "label": "性能指标一般形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "canonicalType": "DomainConcept",
+      "label": "横截条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b56c728f65df6b1670272ea9",
+      "canonicalType": "Formula",
+      "label": "横截条件（末端时刻自由、末端状态受约束）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b62de820edbebab8c6b71c56",
+      "canonicalType": "SystemModel",
+      "label": "线性定常系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b79c58bbd1fa8f35cd308507",
+      "canonicalType": "DomainConcept",
+      "label": "宗量变分",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b811928b31321f0555c93887",
+      "canonicalType": "Formula",
+      "label": "里卡蒂矩阵代数方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b837ccfee9830d6e22ff81de",
+      "canonicalType": "KnowledgeStatement",
+      "label": "泛函变分求法定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:b94c81dcdd104313c2a2ad34",
+      "canonicalType": "Formula",
+      "label": "状态调节器性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:bdeea9b30e840f4c163ebb5d",
+      "canonicalType": "DomainConcept",
+      "label": "ITAE方法PID控制器设计过程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:be0f307042350c3858fd1c01",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无限时间调节器中的零终端加权",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:bf38718abec01d7882cedf19",
+      "canonicalType": "Formula",
+      "label": "正常的秩条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:bffa1cb987575a626f0ee10c",
+      "canonicalType": "Formula",
+      "label": "状态方程（公式10-49）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:c1b8f4342f4be1a534e41062",
+      "canonicalType": "Formula",
+      "label": "可控性秩条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:c427e4cfa202c0529f401b88",
+      "canonicalType": "Formula",
+      "label": "ITAE性能指标（有限时间形式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:c4e4e453133f5340000ddbb6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "泛函极值必要条件定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:c518faf39e0fcab0b0498ffc",
+      "canonicalType": "DomainConcept",
+      "label": "梯度型法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:c6c234fedb3f8c9202737b5a",
+      "canonicalType": "Formula",
+      "label": "末值型性能指标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:cf5f25d42a2720e35e1a8ec8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "有等式约束泛函极值问题定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d0c9c8610ea1fe71d84b820e",
+      "canonicalType": "DomainConcept",
+      "label": "动态规划",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d39393ae9fbe826acb5c9849",
+      "canonicalType": "DomainConcept",
+      "label": "极小值原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d41d6293f0334ac036b78990",
+      "canonicalType": "Formula",
+      "label": "离散系统状态差分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d437e6e19051d30e30868d7a",
+      "canonicalType": "Formula",
+      "label": "输出误差向量定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d4af18e4c03952083f079b4f",
+      "canonicalType": "DomainConcept",
+      "label": "变分法解最优控制问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d5a101872c7ca669a641cc29",
+      "canonicalType": "Formula",
+      "label": "横截条件及边界条件通式（末端时刻自由）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d82ad57f74d40f098c5713ee",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极小值原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:d900955da384c77af47392a6",
+      "canonicalType": "DomainConcept",
+      "label": "区间消去法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:db0fd785754f7494539a5158",
+      "canonicalType": "Formula",
+      "label": "矩阵 Gⱼ",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:df432f0ee9258a9063681f9e",
+      "canonicalType": "Formula",
+      "label": "闭环系统动态特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:e0a2f9c5f5c652c8362d403d",
+      "canonicalType": "Formula",
+      "label": "奇异性的最终行列式条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:e22d1e5be9886dcc8afbfd35",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理10-22：最优闭环系统的渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:e2c11ca62ef17c8f439c9b0b",
+      "canonicalType": "DomainConcept",
+      "label": "最优控制系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:e32bcaf4c34460be7514218a",
+      "canonicalType": "DomainConcept",
+      "label": "变分法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:e9eff7ed1eeb2a176f409df3",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:ecc6ea42836fa252ba347d9b",
+      "canonicalType": "DomainConcept",
+      "label": "控制域",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:f36025c10dd5eb827a9e9143",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无限时间稳态调节器问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:f3f463711cbc8a1f2c20b3be",
+      "canonicalType": "Formula",
+      "label": "有等式约束泛函极值的欧拉方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:f5619549b6ab0c8e254b427b",
+      "canonicalType": "Formula",
+      "label": "横截条件（末端时刻自由、末端状态自由）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:f5beefbd8d4c6bfede93c65a",
+      "canonicalType": "Formula",
+      "label": "状态变量反馈控制律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:f8519cfaa42787f42a911602",
+      "canonicalType": "DomainConcept",
+      "label": "末值项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:fa13b72937c38c9a3775d44c",
+      "canonicalType": "Formula",
+      "label": "最优系统的灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:fa7eb2f11f26c5e1cc654219",
+      "canonicalType": "Formula",
+      "label": "哈密顿函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:fab542813621f896367d33f8",
+      "canonicalType": "DomainConcept",
+      "label": "连续泛函",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:fd13398c26b914394318760f",
+      "canonicalType": "Formula",
+      "label": "定理 10-23 的系统动力学方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:ff5b0fd30bb9b2e14765d2c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无限时间调节器的能控性要求",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1q:source:ffb55f0cb23572ec2f2044ac",
+      "canonicalType": "DomainConcept",
+      "label": "过程项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:113f5b3b46b0fa1724bf518a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:6505f3432b8e5be7deccde90",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:89b548f5bd448e3fd7961c66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:978af30a972784f5154078ce",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:9c0f32f728aef101236540c5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:a23339bff32ad615b9a5a153",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:c499d77c3b7ffe861a9c313a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:de20b53186f2cca307bd6dd9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:dff12d41329ab90d1628520e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:knowledge-statement-candidate:f89c46e4c43d6d610b366442",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:sol-statement:finite-horizon-gain-and-law",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:sol-statement:optimal-closed-loop-from-feedback",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:sol-statement:qrf-matrix-conditions",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:sol-statement:quadratic-index-weight-roles",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "canonicalType": "DomainConcept",
+      "label": "有限时域最优状态反馈律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

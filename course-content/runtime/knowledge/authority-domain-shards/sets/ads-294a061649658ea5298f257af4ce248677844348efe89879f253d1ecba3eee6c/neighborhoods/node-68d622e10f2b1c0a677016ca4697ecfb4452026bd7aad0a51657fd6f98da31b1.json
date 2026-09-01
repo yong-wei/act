@@ -1,0 +1,107 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "canonicalType": "DomainConcept",
+      "label": "求解齐次状态方程的一种方法，对状态方程取拉普拉斯变换，得到 $\\boldsymbol{X}(s)=(s \\boldsymbol{I}-\\boldsymbol{A})^{-1} \\boldsymbol{x}(0)$，再取反变换得到 $\\boldsymbol{x}(t)$。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctk:c1a1b07b18731a97ae408246",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:ee85fdaa4af0781879cd7b5c",
+      "predicate": "derived_from",
+      "sourceId": "ctk:c1a1b07b18731a97ae408246",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

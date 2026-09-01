@@ -22,6 +22,8 @@ export const GRAPH_INTERFACE_KEYS = [
   'search.label',
   'search.placeholder',
   'search.empty',
+  'search.searching',
+  'search.failed',
   'search.shownCount',
   'search.loadMore',
   'search.loadMoreAria',
@@ -123,6 +125,8 @@ export const GRAPH_INTERFACE_CATALOG: CatalogTable = {
   'search.label': { 'zh-CN': '搜索知识对象', en: 'Search knowledge objects' },
   'search.placeholder': { 'zh-CN': '搜索对象名称或类型', en: 'Search object names or types' },
   'search.empty': { 'zh-CN': '没有匹配的语义对象。', en: 'No matching semantic objects.' },
+  'search.searching': { 'zh-CN': '正在检索当前领域…', en: 'Searching the current domain…' },
+  'search.failed': { 'zh-CN': '检索暂时不可用，请调整关键词后重试。', en: 'Search is temporarily unavailable; adjust the query and retry.' },
   'search.shownCount': {
     'zh-CN': '已显示 {visible} / {total} 个匹配对象',
     en: 'Showing {visible} / {total} matching objects',

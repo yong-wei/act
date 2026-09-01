@@ -238,6 +238,47 @@ function mockResponse<T>(payload: T) {
   return { ok: true, status: 200, json: async () => payload };
 }
 
+/** Server-shaped bounded domain search over label + optional type (#1738). */
+function domainSearchPayload(
+  entries: Array<{ id: string; canonicalType: string; label: string }>,
+  url: string,
+) {
+  const params = new URL(url, 'https://act.local').searchParams;
+  const query = params.get('q') ?? '';
+  const canonicalType = params.get('type');
+  const pageSize = Math.max(1, Number.parseInt(params.get('limit') ?? '12', 10) || 12);
+  const page = Math.max(0, Number.parseInt(params.get('page') ?? '0', 10) || 0);
+  const needle = query.trim().toLocaleLowerCase('zh-CN');
+  const matched = entries
+    .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
+    .filter((entry) => !needle || entry.label.toLocaleLowerCase('zh-CN').includes(needle))
+    .sort((left, right) => left.label.localeCompare(right.label, 'zh-CN') || left.id.localeCompare(right.id));
+  const start = page * pageSize;
+  return {
+    contract: 'act-authority-domain-search/v1' as const,
+    envelope: shardEnvelope,
+    domainId: 'system-modeling',
+    query,
+    canonicalType,
+    page,
+    pageSize,
+    total: matched.length,
+    hits: matched.slice(start, start + pageSize).map((entry) => ({
+      id: entry.id,
+      canonicalType: entry.canonicalType,
+      label: entry.label,
+      aliases: [] as string[],
+      memberships: [{ domainId: 'system-modeling' as const, visualRole: 'modeling' as const, preferred: true }],
+    })),
+  };
+}
+
+async function settleDomainSearch() {
+  await act(async () => {
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
+  });
+}
+
 function domainDefaultShard(
   nodes = canvas.nodes,
   _relations: typeof canvas.relations = [],
@@ -348,6 +389,16 @@ describe('active Authority knowledge workspace client boundary', () => {
       const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
       if (url.endsWith('/api/knowledge/shards/active')) {
         return { ok: true, status: 200, json: async () => rootShard };
+      }
+      if (url.includes('/domains/') && url.includes('/search')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => domainSearchPayload(
+            canvas.nodes.map((node) => ({ id: node.id, canonicalType: node.canonicalType, label: node.label })),
+            url,
+          ),
+        };
       }
       if (url.includes('/domains/') && url.includes('/families/association')) {
         return { ok: true, status: 200, json: async () => familyShard('association', [canvas.relations[0]]) };
@@ -1180,6 +1231,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       search.value = '孤立';
       search.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await settleDomainSearch();
     const result = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="node-isolated"]');
     expect(result).not.toBeNull();
     await act(async () => result!.click());
@@ -1390,6 +1442,80 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
   });
 
+  it('restores the bounded concept overview after leaving a search-disclosed neighborhood', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: true, status: 200, json: async () => rootShard };
+      }
+      if (url.includes('/domains/') && url.includes('/search')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => domainSearchPayload(
+            canvas.nodes.map((node) => ({ id: node.id, canonicalType: node.canonicalType, label: node.label })),
+            url,
+          ),
+        };
+      }
+      if (url.includes('/domains/')) {
+        // Server-bounded overview: the default carries concepts only.
+        return { ok: true, status: 200, json: async () => domainDefaultShard([canvas.nodes[0]!]) };
+      }
+      if (url.includes('/neighborhoods/')) {
+        return { ok: true, status: 200, json: async () => neighborhoodShard(nodeId) };
+      }
+      if (url.includes('/shards/active/nodes/')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            shardClass: 'node-detail',
+            envelope: shardEnvelope,
+            node: { ...nodeDetail(nodeId).node, teachingFields: {}, media: { cardAvailable: false, infographAvailable: false } },
+          }),
+        };
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+
+    // Level two: only the server-bounded DomainConcept overview shows.
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+
+    // Level three: an undisclosed Formula arrives through bounded search and
+    // its one-hop neighborhood, not through the domain default.
+    const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
+    await act(async () => {
+      search.value = '特征';
+      search.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await settleDomainSearch();
+    const result = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="node-formula"]');
+    expect(result).not.toBeNull();
+    await act(async () => result!.click());
+    await act(async () => Promise.resolve());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
+
+    // Leaving the neighborhood restores the same overview deterministically.
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await new Promise((resolve) => window.setTimeout(resolve, 5));
+    });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
+  });
+
   it('keeps a selected node and its real cross-type one-hop graph after filtered search', async () => {
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
@@ -1407,6 +1533,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       search.value = '稳定性';
       search.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await settleDomainSearch();
     const result = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="node-concept"]');
     expect(result).not.toBeNull();
 
@@ -1525,6 +1652,16 @@ describe('active Authority knowledge workspace client boundary', () => {
       if (url.endsWith('/api/knowledge/shards/active')) {
         return { ok: true, status: 200, json: async () => rootShard };
       }
+      if (url.includes('/domains/') && url.includes('/search')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => domainSearchPayload(
+            nodes.map((node) => ({ id: node.id, canonicalType: node.canonicalType, label: node.label })),
+            url,
+          ),
+        };
+      }
       if (url.includes('/domains/')) {
         return { ok: true, status: 200, json: async () => domainDefaultShard(nodes) };
       }
@@ -1556,6 +1693,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       search.value = '可读公式';
       search.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await settleDomainSearch();
     const resultList = container.querySelector<HTMLElement>('[data-active-search-results]');
     expect(resultList?.getAttribute('data-active-search-result-total')).toBe('13');
     expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(12);
@@ -1563,6 +1701,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     const loadMore = container.querySelector<HTMLButtonElement>('[data-active-authority-search-load-more]');
     expect(loadMore).not.toBeNull();
     await act(async () => loadMore!.click());
+    await act(async () => Promise.resolve());
     expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(13);
     const thirteenth = container.querySelector<HTMLButtonElement>('[data-active-authority-search-result="search-node-13"]');
     expect(thirteenth).not.toBeNull();
@@ -1595,6 +1734,16 @@ describe('active Authority knowledge workspace client boundary', () => {
       if (url.endsWith('/api/knowledge/shards/active')) {
         return { ok: true, status: 200, json: async () => rootShard };
       }
+      if (url.includes('/domains/') && url.includes('/search')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => domainSearchPayload(
+            nodes.map((node) => ({ id: node.id, canonicalType: node.canonicalType, label: node.label })),
+            url,
+          ),
+        };
+      }
       if (url.includes('/domains/')) {
         return { ok: true, status: 200, json: async () => domainDefaultShard(nodes) };
       }
@@ -1624,6 +1773,7 @@ describe('active Authority knowledge workspace client boundary', () => {
       search.value = '千级对象';
       search.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    await settleDomainSearch();
     const resultList = container.querySelector<HTMLElement>('[data-active-search-results]');
     expect(resultList?.getAttribute('data-active-search-result-total')).toBe('1000');
     expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(12);
@@ -1632,6 +1782,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(loadMore?.getAttribute('aria-label')).toContain('还剩988项');
 
     await act(async () => loadMore!.click());
+    await act(async () => Promise.resolve());
     expect(container.querySelectorAll('[data-active-authority-search-result]').length).toBe(24);
     expect(container.querySelector('[data-active-authority-search-result="thousand-node-13"]')).not.toBeNull();
   });

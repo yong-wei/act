@@ -55,7 +55,7 @@ describe('shared graph presentation contract', () => {
     expect(activeGraph).not.toContain('ActiveAuthorityRootCanvas');
   });
 
-  it('keeps the largest admitted peer domain on bounded shared-runtime shards and governed viewports', () => {
+  it('keeps every catalog domain on bounded shared-runtime shards with identical denominators', () => {
     const runtimeRoot = path.join(process.cwd(), 'course-content/runtime/knowledge');
     const catalog = JSON.parse(readFileSync(
       path.join(runtimeRoot, 'authority-domain-catalog/catalog.json'),
@@ -64,12 +64,12 @@ describe('shared graph presentation contract', () => {
       domains: Array<{ domainId: string; memberCount: number }>;
       memberships: unknown[];
     };
-    const largest = catalog.domains
-      .filter((domain) => (REGISTERED_PEER_DOMAIN_IDS as readonly string[]).includes(domain.domainId))
-      .sort((left, right) => right.memberCount - left.memberCount)[0];
-    expect(largest).toMatchObject({
-      domainId: 'state-space-control-analysis-and-design',
-    });
+    const catalogDomainIds = catalog.domains.map((domain) => domain.domainId);
+    // The denominator is the exact active catalog; the historical constant
+    // must not stand in for it (#1738).
+    expect(catalogDomainIds).toHaveLength(15);
+    expect(catalogDomainIds).not.toEqual([...REGISTERED_PEER_DOMAIN_IDS]);
+    expect(REGISTERED_PEER_DOMAIN_IDS).toHaveLength(8);
 
     const pointer = JSON.parse(readFileSync(
       path.join(runtimeRoot, 'authority-domain-shards/current.json'),
@@ -77,20 +77,50 @@ describe('shared graph presentation contract', () => {
     )) as { shardSetId: string };
     const setRoot = path.join(runtimeRoot, 'authority-domain-shards/sets', pointer.shardSetId);
     const manifest = JSON.parse(readFileSync(path.join(setRoot, 'manifest.json'), 'utf8')) as {
-      counts: { domainDefault: number; relationFamily: number };
+      counts: {
+        domainDefault: number;
+        relationFamily: number;
+        searchIndex: number;
+        coverage: number;
+      };
       files: Record<string, string>;
     };
-    const domainRelative = `domains/${largest?.domainId}/default.json`;
-    const largestShard = JSON.parse(readFileSync(path.join(setRoot, domainRelative), 'utf8')) as {
+    const coverage = JSON.parse(readFileSync(path.join(setRoot, 'coverage.json'), 'utf8')) as {
+      catalogDomainCount: number;
+      defaultShardCount: number;
+      searchIndexCount: number;
+      domains: Array<{ domainId: string; overviewTypes: string[] }>;
+      closure: { complete: boolean; catalogMemberCount: number };
+    };
+    // Structural identity: catalog count, manifest counts, sealed defaults,
+    // search indexes and the coverage denominator are all the same fifteen.
+    expect(manifest.counts.domainDefault).toBe(catalogDomainIds.length);
+    expect(manifest.counts.searchIndex).toBe(catalogDomainIds.length);
+    expect(manifest.counts.coverage).toBe(1);
+    expect(coverage.catalogDomainCount).toBe(catalogDomainIds.length);
+    expect(coverage.defaultShardCount).toBe(catalogDomainIds.length);
+    expect(coverage.searchIndexCount).toBe(catalogDomainIds.length);
+    expect(coverage.closure.complete).toBe(true);
+    expect(coverage.domains.map((row) => row.domainId).sort()).toEqual([...catalogDomainIds].sort());
+    for (const domain of coverage.domains) {
+      expect(domain.overviewTypes).toEqual(['DomainConcept']);
+      expect(manifest.files[`domains/${domain.domainId}/default.json`]).toMatch(/^[a-f0-9]{64}$/u);
+      expect(manifest.files[`domains/${domain.domainId}/search-index.json`]).toMatch(/^[a-f0-9]{64}$/u);
+    }
+
+    // Every visible root entry resolves to a sealed bounded concept overview;
+    // the seven formerly missing v0.37 domains are no longer ghost entries.
+    const largestShard = JSON.parse(readFileSync(
+      path.join(setRoot, 'domains/state-space-control-analysis-and-design/default.json'),
+      'utf8',
+    )) as {
       shardClass: string;
-      objects: unknown[];
+      objects: Array<{ canonicalType: string }>;
       teachingRelations: unknown[];
     };
-    expect(manifest.counts.domainDefault).toBe(REGISTERED_PEER_DOMAIN_IDS.length);
-    expect(manifest.counts.relationFamily).toBeGreaterThan(REGISTERED_PEER_DOMAIN_IDS.length);
-    expect(manifest.files[domainRelative]).toMatch(/^[a-f0-9]{64}$/u);
     expect(largestShard.shardClass).toBe('domain-default');
     expect(largestShard.objects.length).toBeLessThan(catalog.memberships.length);
+    expect(largestShard.objects.every((object) => object.canonicalType === 'DomainConcept')).toBe(true);
     expect(largestShard).not.toHaveProperty('fullGraph');
     expect(largestShard).not.toHaveProperty('engineering');
 

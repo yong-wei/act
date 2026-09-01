@@ -401,8 +401,16 @@ function publishedTeachingArtifacts(): {
     authorityBinding: fragment.authorityBinding,
     authoritySelection: fragment.authoritySelection,
   });
+  // #1738: domain defaults only carry teaching edges whose endpoints are
+  // bounded concept-overview members, so anchor the fixture edges to the
+  // fixture catalog's system-modeling concepts.
+  const anchoredRelations = artifacts.relations.map((relation) => ({
+    ...relation,
+    sourceNodeId: MODELING,
+    targetNodeId: SHARED,
+  }));
   return {
-    artifacts,
+    artifacts: { ...artifacts, relations: anchoredRelations },
     pointer: {
       contract: 'act-domain-teaching-projection-current/v1',
       projectionId: artifacts.manifest.projectionId,
@@ -918,10 +926,14 @@ describe('authority domain shard delivery', () => {
       catalog,
       engineering: v018FormulaEngineeringBody(),
     });
-    expect(materialized.domainDefaults['system-modeling'].objects.find((object) => object.id === V018_CTF_ID)).toMatchObject({
+    // #1738: Formula stays out of the concept overview default and stays
+    // reachable through the sealed search index and one-hop closure.
+    expect(materialized.domainDefaults['system-modeling'].objects.map((object) => object.id)).not.toContain(V018_CTF_ID);
+    expect(materialized.searchIndexes['system-modeling'].entries.find((entry) => entry.id === V018_CTF_ID)).toMatchObject({
       id: V018_CTF_ID,
       label: V018_CTF_DISPLAY_NAME,
     });
+    expect(materialized.neighborhoods[V018_CTF_ID]).toBeDefined();
     expect(isSafeAuthorityLabel(V018_CTF_DISPLAY_NAME, 'DomainConcept', true)).toBe(false);
     expect(materialized.domainDefaults['time-domain-analysis'].objects.find((object) => object.id === TIME)?.label).toBe('时域对象');
   });

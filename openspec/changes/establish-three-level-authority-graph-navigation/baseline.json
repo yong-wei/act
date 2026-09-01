@@ -1,0 +1,183 @@
+{
+  "contract": "act-three-level-navigation-baseline/2026-08-31",
+  "sourceShardSetId": "ads-c462da19203700966fce21ad5f8d2d6fbc1832844872ca71f019f0a28e670c68",
+  "catalogVersion": "v0.37-r4-c6-presentation-evidence",
+  "catalogDomainCount": 15,
+  "sealedDomainDefaultCount": 8,
+  "missingDomainDefaults": [
+    "discrete-time-control-design",
+    "lyapunov-stability",
+    "nonlinear-control-design",
+    "nonlinear-system-analysis",
+    "optimal-control-foundations-and-linear-quadratic-design",
+    "robust-control-analysis-and-design",
+    "robustness-sensitivity-analysis"
+  ],
+  "domains": [
+    {
+      "domainId": "classical-control-design",
+      "catalogMemberCount": 776,
+      "defaultObjectCount": 776,
+      "defaultTypeCounts": {
+        "DomainConcept": 103,
+        "Formula": 130,
+        "KnowledgeStatement": 529,
+        "SystemModel": 14
+      },
+      "defaultBytes": 535415,
+      "hasDefault": true
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "catalogMemberCount": 619,
+      "defaultObjectCount": 619,
+      "defaultTypeCounts": {
+        "DomainConcept": 126,
+        "Formula": 118,
+        "KnowledgeStatement": 371,
+        "SystemModel": 4
+      },
+      "defaultBytes": 429216,
+      "hasDefault": true
+    },
+    {
+      "domainId": "discrete-time-control-design",
+      "catalogMemberCount": 450,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "catalogMemberCount": 954,
+      "defaultObjectCount": 954,
+      "defaultTypeCounts": {
+        "DomainConcept": 124,
+        "Formula": 330,
+        "KnowledgeStatement": 475,
+        "ModelRepresentation": 13,
+        "SystemModel": 12
+      },
+      "defaultBytes": 657034,
+      "hasDefault": true
+    },
+    {
+      "domainId": "lyapunov-stability",
+      "catalogMemberCount": 141,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "nonlinear-control-design",
+      "catalogMemberCount": 104,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "nonlinear-system-analysis",
+      "catalogMemberCount": 349,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+      "catalogMemberCount": 200,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "robust-control-analysis-and-design",
+      "catalogMemberCount": 707,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "robustness-sensitivity-analysis",
+      "catalogMemberCount": 259,
+      "defaultObjectCount": 0,
+      "defaultTypeCounts": {},
+      "defaultBytes": 0,
+      "hasDefault": false
+    },
+    {
+      "domainId": "root-locus",
+      "catalogMemberCount": 104,
+      "defaultObjectCount": 104,
+      "defaultTypeCounts": {
+        "DomainConcept": 85,
+        "Formula": 16,
+        "KnowledgeStatement": 1,
+        "ModelRepresentation": 1,
+        "SystemModel": 1
+      },
+      "defaultBytes": 68365,
+      "hasDefault": true
+    },
+    {
+      "domainId": "stability-analysis",
+      "catalogMemberCount": 264,
+      "defaultObjectCount": 264,
+      "defaultTypeCounts": {
+        "DomainConcept": 35,
+        "Formula": 46,
+        "KnowledgeStatement": 180,
+        "ModelRepresentation": 1,
+        "SystemModel": 2
+      },
+      "defaultBytes": 184311,
+      "hasDefault": true
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "catalogMemberCount": 1300,
+      "defaultObjectCount": 1300,
+      "defaultTypeCounts": {
+        "DomainConcept": 151,
+        "Formula": 304,
+        "KnowledgeStatement": 787,
+        "SystemModel": 58
+      },
+      "defaultBytes": 938151,
+      "hasDefault": true
+    },
+    {
+      "domainId": "system-modeling",
+      "catalogMemberCount": 666,
+      "defaultObjectCount": 666,
+      "defaultTypeCounts": {
+        "DomainConcept": 273,
+        "Formula": 214,
+        "KnowledgeStatement": 174,
+        "ModelRepresentation": 1,
+        "SystemModel": 4
+      },
+      "defaultBytes": 469169,
+      "hasDefault": true
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "catalogMemberCount": 584,
+      "defaultObjectCount": 584,
+      "defaultTypeCounts": {
+        "DomainConcept": 153,
+        "Formula": 84,
+        "KnowledgeStatement": 319,
+        "ModelRepresentation": 1,
+        "SystemModel": 27
+      },
+      "defaultBytes": 409651,
+      "hasDefault": true
+    }
+  ]
+}
