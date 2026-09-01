@@ -89,5 +89,16 @@ jsdom move.
 
 Host `node ./scripts/build-next-with-trace-check.mjs` on this revision
 compiled without the whole-project tracing warning, then pruned non-runtime
-trace entries. `npm run test:turbopack-trace-boundary` passed. The Linux
-amd64 image remains the release verification unit.
+trace entries. `npm run test:turbopack-trace-boundary` passed.
+
+## Candidate Linux/amd64 image
+
+- Revision: `8c8758e4ad5b879166283be645c2439725ec918b`
+- Tag: `localhost/act-obe-platform:1032-next163-prisma710`
+- Image ID: `sha256:acab1212a5a32b0a26d47f734c155d429f0a42bb45d9b437877ad60c8eb4e296`
+- Tar SHA-256: `56423d7d73f23eb8be114e16518986f53475023b364037a4a4310012c7e48254`
+- Scope: `BUILD_SCOPE=app-only`
+
+Disposable PostgreSQL/Redis verification, Prisma deploy/status, Sharp/PDF,
+and representative browser routes are in
+`docs/security/dependency-remediation-handoff-2026-09-01.md`.

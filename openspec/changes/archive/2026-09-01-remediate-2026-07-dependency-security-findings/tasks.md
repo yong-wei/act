@@ -14,10 +14,11 @@
 ## 3. Verify affected contracts
 
 - [x] 3.1 Run targeted NextAuth tests for credentials success/failure, JWT encode/decode, custom session fields, server session retrieval, and protected-route authorization.
-- [ ] 3.2 Build a disposable PostgreSQL database from the existing migration history, run the documented `prisma migrate deploy --config ./prisma.config.ts` and `prisma migrate status` commands from the candidate image, and verify zero schema drift without touching shared/production databases or adding migration files.
+- [x] 3.2 Build a disposable PostgreSQL database from the existing migration history, run the documented `prisma migrate deploy --config ./prisma.config.ts` and `prisma migrate status` commands from the candidate image, and verify zero schema drift without touching shared/production databases or adding migration files.
 - [x] 3.3 Run representative image-processing and smart-courseware/PDF rendering checks for the updated Sharp dependency path.
-- [ ] 3.4 Run `npm run test:docker-migration-readiness`, `node scripts/tests/test-remote-deploy-script.mjs`, typecheck, lint, default tests, and unit tests on the final intended revision.
-- [ ] 3.5 Build the Linux/amd64 release image through `bash scripts/build.sh`, record its immutable image ID/digest and artifact SHA256, then use that exact image with disposable PostgreSQL/Redis to start the app, data-governance worker, and scheduler and verify Prisma, Sharp/PDF, public, authenticated, and protected browser paths.
+- [x] 3.4 Run `npm run test:docker-migration-readiness`, `node scripts/tests/test-remote-deploy-script.mjs`, typecheck, lint, default tests, and unit tests on the final intended revision.
+  Residual: `test-remote-deploy-script.mjs` still expects `npm run seed:knowledge`; that mismatch already exists on `origin/integration`. `test-docker-migration-readiness` covers the current `seed-all-knowledge.mjs` command.
+- [x] 3.5 Build the Linux/amd64 release image through `bash scripts/build.sh`, record its immutable image ID/digest and artifact SHA256, then use that exact image with disposable PostgreSQL/Redis to start the app, data-governance worker, and scheduler and verify Prisma, Sharp/PDF, public, authenticated, and protected browser paths.
 
 ## 4. Reconcile audit governance
 
@@ -31,6 +32,6 @@
 
 ## 5. Final release evidence
 
-- [ ] 5.1 Record the selected versions, per-lane verification results, final audit/deprecation state, residual owner links, candidate image digest, retained previous image digest, and production compatibility conclusion.
-- [ ] 5.2 Confirm the implementation created no Prisma schema migration, data backfill, authentication contract change, package major migration, or unrelated dependency refresh.
-- [ ] 5.3 Produce a deployment handoff that preserves the existing PostgreSQL/Redis containers and volumes and rolls app, worker, and scheduler together between immutable images; do not execute production deployment as part of this change.
+- [x] 5.1 Record the selected versions, per-lane verification results, final audit/deprecation state, residual owner links, candidate image digest, retained previous image digest, and production compatibility conclusion.
+- [x] 5.2 Confirm the implementation created no Prisma schema migration, data backfill, authentication contract change, package major migration, or unrelated dependency refresh.
+- [x] 5.3 Produce a deployment handoff that preserves the existing PostgreSQL/Redis containers and volumes and rolls app, worker, and scheduler together between immutable images; do not execute production deployment as part of this change.
