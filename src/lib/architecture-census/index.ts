@@ -3,6 +3,17 @@ export { snapshotFromFiles, loadGitSourceSnapshot, readCaptureIdentity, isMixedW
 export { createMeasurementReceipt, projectWithReceipts } from './receipts';
 export { serializeDeterministic, sha256Text } from './serialize';
 export { projectAll, frozenProjectionIdentity } from './projections';
+export {
+  CURRENT_HEAD_DELTA_SCHEMA_VERSION,
+  CURRENT_HEAD_COMMAND_SCOPE,
+  CURRENT_HEAD_OUTPUT_DIR,
+  generateCurrentHeadDelta,
+  qualifyCurrentHeadDelta,
+  projectCurrentHeadFiles,
+  currentHeadPackageHash,
+  captureDriftFailures,
+  captureWriteGate,
+} from './current-head-delta';
 export { CENSUS_CORE_SCHEMA_VERSION, MEASUREMENT_RECEIPT_SCHEMA_VERSION } from './types';
 export type {
   CaptureIdentity,
@@ -13,3 +24,9 @@ export type {
   MeasurementReceipt,
   QualificationFailure,
 } from './types';
+export type {
+  CurrentHeadPackage,
+  CurrentHeadFiles,
+  CurrentHeadPredecessor,
+  CurrentHeadRecord,
+} from './current-head-delta';
