@@ -17,6 +17,8 @@ import {
   freezeKnowledgeGraphDragFrame,
   type KnowledgeGraphPositionedNode,
   releaseKnowledgeGraphDragFrame,
+  selectKnowledgeGraphReheatAffectedNodeIds,
+  reheatKnowledgeGraphNewcomerScope,
 } from './layout-engine';
 import {
   KNOWLEDGE_FORCE_ALPHA_DECAY,
@@ -858,21 +860,19 @@ export function KnowledgeGraph2D({
   const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
   const knownNodeIdsRef = useRef<Set<string> | null>(null);
   useEffect(() => {
-    const nextIds = new Set(graphData.nodes.map((node: any) => String(node.id)));
     const previousIds = knownNodeIdsRef.current;
-    knownNodeIdsRef.current = nextIds;
+    knownNodeIdsRef.current = new Set(graphData.nodes.map((node: any) => String(node.id)));
     if (!previousIds || forceLifecycle.staticLayout) return;
-    const newcomers = [...nextIds].filter((id) => !previousIds.has(id));
-    if (newcomers.length === 0) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-    freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set(newcomers));
-    unaffectedFrozenNodeIdsRef.current = new Set(
-      graphNodes
-        .filter((node) => previousIds.has(String(node.id)))
-        .map((node) => String(node.id)),
-    );
+    const frozenNodeIds = reheatKnowledgeGraphNewcomerScope({
+      nodes: graphNodes,
+      links: graphData.links,
+      previousIds,
+    });
+    if (!frozenNodeIds) return;
+    unaffectedFrozenNodeIdsRef.current = frozenNodeIds;
     fgRef.current?.d3ReheatSimulation?.();
-  }, [forceLifecycle.staticLayout, graphData.nodes]);
+  }, [forceLifecycle.staticLayout, graphData.links, graphData.nodes]);
 
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();

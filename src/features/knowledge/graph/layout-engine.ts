@@ -928,6 +928,49 @@ export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPosi
   });
 }
 
+/**
+ * The reheat scope is the connected neighborhood of the newcomers: every
+ * existing node sharing an edge with a newcomer participates in the
+ * resettlement (collision separation, link forces), not just the new
+ * nodes themselves (#1739 连通域局部重热).
+ */
+export function selectKnowledgeGraphReheatAffectedNodeIds(
+  links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>,
+  newcomerIds: ReadonlySet<string>,
+): Set<string> {
+  const affected = new Set<string>(newcomerIds);
+  for (const link of links) {
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+    if (newcomerIds.has(sourceId)) affected.add(targetId);
+    if (newcomerIds.has(targetId)) affected.add(sourceId);
+  }
+  return affected;
+}
+
+/**
+ * Shared newcomer-reheat step for both canvases (#1739): freeze every node
+ * outside the newcomers' connected neighborhood and return the frozen ids
+ * for the engine-stop release. Returns null when nothing changed (no
+ * newcomers); the caller owns the reheat trigger.
+ */
+export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositionedNode>(input: {
+  nodes: T[];
+  links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>;
+  previousIds: ReadonlySet<string>;
+}): Set<string> | null {
+  const nextIds = new Set(input.nodes.map((node) => String(node.id)));
+  const newcomerIds = new Set([...nextIds].filter((id) => !input.previousIds.has(id)));
+  if (newcomerIds.size === 0) return null;
+  const affectedNodeIds = selectKnowledgeGraphReheatAffectedNodeIds(input.links, newcomerIds);
+  freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedNodeIds);
+  return new Set(
+    input.nodes
+      .filter((node) => input.previousIds.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
+      .map((node) => String(node.id)),
+  );
+}
+
 /** Release a previously frozen scope; pins, roots and dragged nodes stay fixed. */
 export function releaseKnowledgeGraphFrozenScope<T extends KnowledgeGraphPositionedNode>(
   nodes: T[],

@@ -8,6 +8,8 @@
  */
 
 import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY } from 'd3-force';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -28,7 +30,10 @@ import {
   type KnowledgeGraphStoredPosition,
 } from '../graph/layout-state';
 import { placeKnowledgeGraphLabels } from '../graph/viewport-fit';
+import { getKnowledgeNodeLabelBounds } from '../graph/node-label-layout';
 import {
+  KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES,
+  KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO,
   KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT,
   KNOWLEDGE_LABEL_OVERVIEW_MIN_VISIBLE_RATIO,
 } from '../graph/label-policy';
@@ -36,6 +41,7 @@ import {
   freezeKnowledgeGraphUnaffectedScope,
   releaseKnowledgeGraphDragFrame,
   releaseKnowledgeGraphFrozenScope,
+  selectKnowledgeGraphReheatAffectedNodeIds,
 } from '../graph/layout-engine';
 
 interface SimNode {
@@ -356,5 +362,116 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
       }
     }
     expect(overlaps).toBeLessThanOrEqual(KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT);
+  });
+
+  it('scales the visible-label budget to the real domain shard scale', () => {
+    // 用真实 runtime 分片（system-modeling 概览，273 个 DomainConcept）
+    // 验证预算，而不是十二节点夹具：教学序网格种子 → 相机 fit →
+    // 标签碰撞求解，可见率必须达到桌面预算。
+    const pointer = JSON.parse(readFileSync(join(
+      process.cwd(),
+      'course-content/runtime/knowledge/authority-domain-shards/current.json',
+    ), 'utf8')) as { shardSetId: string };
+    const shard = JSON.parse(readFileSync(join(
+      process.cwd(),
+      'course-content/runtime/knowledge/authority-domain-shards/sets',
+      pointer.shardSetId,
+      'domains/system-modeling/default.json',
+    ), 'utf8')) as { objects: Array<{ id: string; label: string }> };
+    expect(shard.objects.length).toBeGreaterThan(200);
+
+    expect(shard.objects.length).toBeGreaterThan(KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES);
+
+    const width = 1280;
+    const height = 720;
+    const aspect = width / height;
+    const columns = Math.max(1, Math.ceil(Math.sqrt(shard.objects.length * aspect)));
+    const spacing = 168;
+    const seeds: SimNode[] = shard.objects.map((object, index) => {
+      const row = Math.floor(index / columns);
+      const columnsInRow = Math.min(columns, shard.objects.length - row * columns);
+      const column = index % columns;
+      return {
+        id: object.id,
+        x: (column - (columnsInRow - 1) / 2) * spacing,
+        y: row * spacing,
+      };
+    });
+
+    // Spec 要求力分离、相机 fit 与标签碰撞共同满足预算：先跑画布同参
+    // （charge -65 / collide 24，无向心收缩）的有界力沉降，再 fit 放置。
+    const simulation = forceSimulation(seeds as never[])
+      .alphaDecay(KNOWLEDGE_FORCE_ALPHA_DECAY)
+      .alphaMin(KNOWLEDGE_FORCE_ALPHA_MIN)
+      .force('charge', forceManyBody().strength(-65))
+      .force('collide', forceCollide(24).strength(0.8))
+      .stop();
+    runTicks(simulation, KNOWLEDGE_FORCE_WARMUP_TICKS['2d'] + KNOWLEDGE_FORCE_COOLDOWN_TICKS['2d']);
+
+    const minX = Math.min(...seeds.map((node) => node.x)) - 60;
+    const maxX = Math.max(...seeds.map((node) => node.x)) + 60;
+    const minY = Math.min(...seeds.map((node) => node.y)) - 40;
+    const maxY = Math.max(...seeds.map((node) => node.y)) + 40;
+    const fitScale = Math.min(1, width / (maxX - minX), height / (maxY - minY));
+    const placements = placeKnowledgeGraphLabels({
+      nodes: seeds.map((node, index) => {
+        // 与渲染器同源的标签碰撞框估计（按真实概念名长度）。
+        const bounds = getKnowledgeNodeLabelBounds({
+          name: shard.objects[index]!.label,
+          bodyRadius: 22,
+        });
+        return {
+          id: node.id,
+          x: node.x,
+          y: node.y,
+          screenX: (node.x - (minX + maxX) / 2) * fitScale + width / 2,
+          screenY: (node.y - (minY + maxY) / 2) * fitScale + height / 2,
+          projectedScale: fitScale,
+          bodyRadius: 22,
+          // 大域概览经重点标签通道（runtime view 按 COMPACT_MAX_NODES 打开
+          // labelPriority），模拟产品输入的 isKeyNode 语义。
+          isKeyNode: true,
+          labelBounds: { halfWidth: bounds.halfWidth, halfHeight: bounds.halfHeight },
+        };
+      }),
+      labelMode: 'all',
+      scale: fitScale,
+      width,
+      height,
+      padding: { top: 16, right: 16, bottom: 16, left: 16 },
+      enforceViewport: true,
+    });
+
+    const entries = [...placements.values()];
+    const visible = entries.filter((placement) => placement.visible);
+    expect(entries.length).toBe(seeds.length);
+    // 大域按重点标签通道的碰撞几何下限预算（label-policy 常量注释）。
+    expect(visible.length / entries.length).toBeGreaterThanOrEqual(
+      KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO.desktop,
+    );
+  });
+});
+
+describe('scoped reheat affected scope (#1739)', () => {
+  it('derives the affected set from the newcomers\' connected neighborhood', () => {
+    const links = [
+      { source: 'new-a', target: 'old-neighbor' },
+      { source: 'old-neighbor', target: 'old-indirect' },
+      { source: 'old-far', target: 'old-other' },
+    ];
+    const affected = selectKnowledgeGraphReheatAffectedNodeIds(links, new Set(['new-a']));
+    // 与新节点共边的旧节点参与重热；二跳之外与无关分量保持冻结。
+    expect(affected.has('new-a')).toBe(true);
+    expect(affected.has('old-neighbor')).toBe(true);
+    expect(affected.has('old-far')).toBe(false);
+    expect(affected.has('old-other')).toBe(false);
+  });
+
+  it('accepts d3-resolved object link endpoints', () => {
+    const links = [
+      { source: { id: 'old-neighbor' }, target: { id: 'new-a' } },
+    ];
+    const affected = selectKnowledgeGraphReheatAffectedNodeIds(links, new Set(['new-a']));
+    expect(affected.has('old-neighbor')).toBe(true);
   });
 });

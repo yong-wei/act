@@ -21,6 +21,19 @@ export const KNOWLEDGE_LABEL_OVERVIEW_MIN_VISIBLE_RATIO = {
 /** Visible labels never overlap one another (collision solver defers). */
 export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
 
+/**
+ * 大域（概念数超过 compact 上限）概览经重点标签通道（labelPriority）
+ * 呈现：可见率下限按碰撞几何给出；mobile 大域同为 compact 重点通道。
+ * 依据：273 概念真实分片 + 画布同参力学沉降 + fit + 碰撞求解实测（#1739）。
+ */
+export const KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO = {
+  desktop: 0.5,
+  mobile: 0.5,
+} as const;
+
+/** 超过此概念数的概览适用大域标签预算。 */
+export const KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES = 48;
+
 interface KnowledgeGraphLabelPolicyInput {
   labelMode: KnowledgeGraphLabelMode;
   nodeId?: string | null;

@@ -23,6 +23,7 @@ import {
 } from './graph/authority-runtime-adapter';
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
+import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 
 interface ActiveAuthorityRuntimeViewProps {
   kind: 'root' | 'domain';
@@ -86,7 +87,13 @@ export function ActiveAuthorityRuntimeView({
   );
   const domainNodes = useMemo(
     () => (kind === 'domain' && view
-      ? toActiveRuntimeNodes(view).map((node) => ({ ...node, labelPriority: compactLabelPriority }))
+      ? toActiveRuntimeNodes(view).map((node) => ({
+        ...node,
+        // compact 视口与大规模概览走重点标签通道：普通 LOD 的投影字号
+        // 闸会把 fit 后的大域标签全部隐藏（#1739 大域标签预算）。
+        labelPriority: compactLabelPriority
+          || view.nodes.length > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES,
+      }))
       : []),
     [compactLabelPriority, kind, view],
   );

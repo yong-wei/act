@@ -65,6 +65,34 @@ async function nodeScreenPoint(page: Page, nodeId: string): Promise<{ x: number;
   }, { id: nodeId });
 }
 
+/** 轮询等待节点在图坐标系静止（对 dev server 冷热时序不敏感）。 */
+async function waitForGraphNodeSettled(
+  page: Page,
+  nodeId: string,
+): Promise<{ x: number; y: number } | null> {
+  const samples = 3;
+  const deadline = Date.now() + 12_000;
+  let last = await nodeGraphPoint(page, nodeId);
+  let stable = 0;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(250);
+    const next = await nodeGraphPoint(page, nodeId);
+    if (!next || !last) {
+      last = next;
+      stable = 0;
+      continue;
+    }
+    if (Math.hypot(next.x - last.x, next.y - last.y) < 0.5) {
+      stable += 1;
+      if (stable >= samples) return next;
+    } else {
+      stable = 0;
+    }
+    last = next;
+  }
+  return last;
+}
+
 /** 图坐标（引擎坐标系）；重排后相机会重新取景，屏幕坐标不适合做不变量。 */
 async function nodeGraphPoint(page: Page, nodeId: string): Promise<{ x: number; y: number } | null> {
   return page.evaluate(({ id }) => {
@@ -120,6 +148,11 @@ test.describe('#1739 active authority force runtime parity', () => {
     await addStudentSession(context as BrowserContext);
     const evidence: Record<string, unknown> = {};
 
+    const consoleLines: string[] = [];
+    page.on('console', (message) => {
+      const text = message.text();
+      if (text.includes('[1739-dragend]')) consoleLines.push(text);
+    });
     await page.goto('/knowledge?qa=knowledge-product', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-authority-domain-entry="modeling"]').first()).toBeVisible({ timeout: 60_000 });
     await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
@@ -131,8 +164,8 @@ test.describe('#1739 active authority force runtime parity', () => {
     //    engine settles, then again after settlement.
     await page.waitForTimeout(150);
     const early = await nodeScreenPoint(page, conceptId);
-    await page.waitForTimeout(3_500);
-    const settled = await nodeScreenPoint(page, conceptId);
+    const settled = await waitForGraphNodeSettled(page, conceptId);
+    await page.waitForTimeout(300);
     evidence.earlyPoint = early;
     evidence.settledPoint = settled;
     expect(settled).not.toBeNull();
@@ -149,6 +182,7 @@ test.describe('#1739 active authority force runtime parity', () => {
       const candidates = await dragCandidates(page);
       evidence.dragCandidates = candidates.map((candidate) => ({ id: candidate.id, topElement: candidate.topElement }));
       for (const candidate of candidates) {
+        await waitForGraphNodeSettled(page, candidate.id);
         const start = await nodeScreenPoint(page, candidate.id);
         if (!start) continue;
         await page.mouse.move(start.x, start.y, { steps: 4 });
@@ -179,6 +213,7 @@ test.describe('#1739 active authority force runtime parity', () => {
       await page.screenshot({ path: join(evidenceDir, 'after-drag.png') }).catch(() => undefined);
     }
 
+    evidence.dragEndCalls = consoleLines;
     // The inspector exposes the explicit unpin control for the pinned node.
     await activateSharedRuntimeControl(page, `[data-active-authority-node="${dragNodeId}"]`);
     await expect(page.locator('[data-active-node-detail]').first()).toBeVisible({ timeout: 30_000 });
@@ -245,6 +280,11 @@ test.describe('#1739 active authority force runtime parity', () => {
     const hasTouch = await page.evaluate(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0);
     test.skip(!hasTouch, 'touch drag requires a touch-capable context');
 
+    const consoleLines: string[] = [];
+    page.on('console', (message) => {
+      const text = message.text();
+      if (text.includes('[1739-dragend]')) consoleLines.push(text);
+    });
     await page.goto('/knowledge?qa=knowledge-product', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-authority-domain-entry="modeling"]').first()).toBeVisible({ timeout: 60_000 });
     await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
