@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "issue": 1758,
+  "capturedAt": "2026-09-01T08:25:38.606Z",
+  "commitSha": "1f4410c6ed75e59375315248e1f93c102d1ab128",
+  "generator": "tests/standalone-copilot-conversation-1758.spec.ts",
+  "generatorSha256": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
+  "representativeRoute": "/ai/copilot",
+  "sourceSha256": {
+    "tests/standalone-copilot-conversation-1758.spec.ts": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
+    "src/app/ai/copilot/page.tsx": "b59e85e8a5dc19812d63302900dd9575adb35fd069fa4aa2c154c686c9d4802d",
+    "src/hooks/useKonlingConversationLibrary.ts": "1ed8f20d2824cdba08669ce3630c1068579f14908c0b193fb9141d9b0c395e73",
+    "src/app/api/ai/chat/route.ts": "b9631d21116e8de0ad1269ecf67f208727a408bb9c7377fc31bbebedf3ed3ff8",
+    "src/app/api/ai/sessions/route.ts": "a317d1a0c5451541b3d204dc6927307ad2a5c1b8d875127bd261e98f9d97abd2"
+  },
+  "sourceGitBlobIds": {
+    "tests/standalone-copilot-conversation-1758.spec.ts": "5e0dd03df87b3b3dda0a7d196e14c4f30999821d",
+    "src/app/ai/copilot/page.tsx": "05c69966cd5ad5b9d4251b584303655e27dae8ab",
+    "src/hooks/useKonlingConversationLibrary.ts": "383474f7fe7e12a56484181b678b71dca241cab6",
+    "src/app/api/ai/chat/route.ts": "c9cfa661e4469b06da1c1ecda212064acfd697da",
+    "src/app/api/ai/sessions/route.ts": "29a034611c2ea095d7981bed356afaa4894b5805"
+  },
+  "screenshots": [
+    {
+      "file": "artifacts/commercial-ui/issue-1758-standalone-copilot-conversation/restore-desktop-1440.png",
+      "sha256": "a54b4f4907905d6c7c3941f747112918511ccae81f5094939b1df9af38f859f4",
+      "scenario": "restore-desktop-1440",
+      "route": "/ai/copilot",
+      "width": 1440,
+      "height": 900,
+      "assertions": [
+        "refresh restores owned visible history"
+      ]
+    },
+    {
+      "file": "artifacts/commercial-ui/issue-1758-standalone-copilot-conversation/restore-mobile-320.png",
+      "sha256": "69a21be843072f3bc2d3472a1ee7e4388e7aecec561037273db67cb6bf65a09e",
+      "scenario": "restore-mobile-320",
+      "route": "/ai/copilot",
+      "width": 320,
+      "height": 900,
+      "assertions": [
+        "320px composer reachable without horizontal overflow"
+      ]
+    }
+  ]
+}

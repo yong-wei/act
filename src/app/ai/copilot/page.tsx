@@ -8,7 +8,11 @@
  */
 
 import { useChat } from '@/hooks/useLegacyChat';
-import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
+import {
+  useKonlingConversationLibrary,
+  visibleKonlingMessages,
+} from '@/hooks/useKonlingConversationLibrary';
+import { useRef, useEffect, useMemo, useCallback, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AppShell } from '@/components/platform/app-shell';
@@ -29,6 +33,10 @@ import {
 } from '@/lib/ai-task-boundary-contracts';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
+const STANDALONE_COPILOT_COURSE_ID = 'ai-assistant';
+const STANDALONE_COPILOT_PAGE_ID = '/ai/copilot';
+const STANDALONE_COPILOT_LOGIN_HREF = `/login?callbackUrl=${encodeURIComponent(STANDALONE_COPILOT_PAGE_ID)}`;
+
 export default function CopilotPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sessionData = useSession();
@@ -39,10 +47,12 @@ export default function CopilotPage() {
   const taskIntent = searchParams.get('intent') ?? context ?? undefined;
   const localTaskMode = context === 'portfolio-reflection' || context === 'evidence';
   const viewerRole = resolveCopilotViewerRole(sessionData.data?.user?.role);
+  const authenticatedUserId = sessionData.data?.user?.id;
   const [evidenceProjection, setEvidenceProjection] = useState<EvidenceCopilotProjection | null>(null);
   const [evidenceProjectionError, setEvidenceProjectionError] = useState(false);
   const [copilotProfile, setCopilotProfile] = useState<GovernedCopilotProfileProjection | null>(null);
   const [copilotProfileError, setCopilotProfileError] = useState(false);
+  const [libraryActionError, setLibraryActionError] = useState<string | null>(null);
   const reflectionDraft = useMemo(
     () =>
       context === 'portfolio-reflection'
@@ -110,10 +120,9 @@ export default function CopilotPage() {
     [context, reflectionDraft],
   );
 
-  // 获取页面上下文和用户画像
   const { pageContext } = usePageAIContext({
-    courseId: 'general',
-    courseTitle: 'AI-OBE智能学习平台',
+    courseId: STANDALONE_COPILOT_COURSE_ID,
+    courseTitle: 'AI 助手',
     topic: '通用学习辅助',
     pageType: 'workspace',
   });
@@ -129,6 +138,26 @@ export default function CopilotPage() {
         : undefined,
     [assignment, context, source, taskIntent],
   );
+
+  const {
+    conversations,
+    activeConversationId,
+    activeConversation,
+    isLoading: isConversationLoading,
+    isMutating: isConversationMutating,
+    error: conversationError,
+    refreshConversations,
+    refreshActiveConversation,
+    createConversation,
+    ensureConversation,
+    selectConversation,
+    deleteConversation,
+  } = useKonlingConversationLibrary({
+    enabled: Boolean(authenticatedUserId),
+    courseId: STANDALONE_COPILOT_COURSE_ID,
+    pageId: STANDALONE_COPILOT_PAGE_ID,
+    pageContext,
+  });
 
   useEffect(() => {
     if (context !== 'evidence') {
@@ -165,7 +194,7 @@ export default function CopilotPage() {
   }, [assignment, context, source, taskIntent]);
 
   useEffect(() => {
-    if (!sessionData.data?.user?.id) {
+    if (!authenticatedUserId) {
       setCopilotProfile(null);
       setCopilotProfileError(false);
       return;
@@ -191,27 +220,120 @@ export default function CopilotPage() {
     return () => {
       cancelled = true;
     };
-  }, [sessionData.data?.user?.id]);
+  }, [authenticatedUserId]);
+
+  const chatBody = useMemo(() => ({
+    pageContext,
+    auditTaskContext: portfolioReflectionTaskContext ?? evidenceTaskContext,
+    conversationId: activeConversationId ?? undefined,
+    courseId: STANDALONE_COPILOT_COURSE_ID,
+    pageId: STANDALONE_COPILOT_PAGE_ID,
+  }), [activeConversationId, evidenceTaskContext, pageContext, portfolioReflectionTaskContext]);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, reload, stop, append, setMessages } =
     useChat({
       api: '/api/ai/chat',
-      body: {
-        pageContext,
-        auditTaskContext: portfolioReflectionTaskContext ?? evidenceTaskContext,
+      body: chatBody,
+      onFinish: () => {
+        void Promise.all([
+          refreshConversations(),
+          refreshActiveConversation(),
+        ]).catch(() => undefined);
       },
     });
 
-  // 自动滚动到底部
+  useEffect(() => {
+    if (conversationError) return;
+    if (!activeConversation || activeConversation.id !== activeConversationId) return;
+    setMessages(visibleKonlingMessages(activeConversation.messages));
+  }, [activeConversation, activeConversationId, conversationError, setMessages]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const clearLocalConversation = useCallback(() => {
-    setMessages([]);
-  }, [setMessages]);
+  const busy = isLoading || isConversationLoading || isConversationMutating;
+  const recoveryFailed = Boolean(authenticatedUserId && conversationError);
+  const conversationStatus = !authenticatedUserId
+    ? 'unauthenticated'
+    : recoveryFailed
+      ? 'recovery-failed'
+      : isConversationLoading && messages.length === 0
+        ? 'loading'
+        : messages.length === 0
+          ? 'empty'
+          : 'ready';
 
-  // 快捷问题
+  const handleConversationSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!authenticatedUserId || busy || recoveryFailed) return;
+    try {
+      const conversation = await ensureConversation();
+      setLibraryActionError(null);
+      await handleSubmit(undefined, { ...chatBody, conversationId: conversation.id });
+    } catch (cause) {
+      setLibraryActionError(cause instanceof Error ? cause.message : '无法发送控灵问题。');
+    }
+  }, [authenticatedUserId, busy, chatBody, ensureConversation, handleSubmit, recoveryFailed]);
+
+  const handleQuickQuestion = useCallback(async (question: string) => {
+    if (!authenticatedUserId || busy || recoveryFailed) return;
+    try {
+      const conversation = await ensureConversation();
+      setLibraryActionError(null);
+      await append(
+        { role: 'user', content: question },
+        { ...chatBody, conversationId: conversation.id },
+      );
+    } catch (cause) {
+      setLibraryActionError(cause instanceof Error ? cause.message : '无法发送控灵问题。');
+    }
+  }, [append, authenticatedUserId, busy, chatBody, ensureConversation, recoveryFailed]);
+
+  const handleSelectConversation = useCallback((conversationId: string) => {
+    if (!conversationId || isLoading) return;
+    stop();
+    setLibraryActionError(null);
+    selectConversation(conversationId);
+    setMessages([]);
+  }, [isLoading, selectConversation, setMessages, stop]);
+
+  const handleNewConversation = useCallback(async () => {
+    if (!authenticatedUserId || busy) return;
+    try {
+      stop();
+      await createConversation(null);
+      setMessages([]);
+      setLibraryActionError(null);
+    } catch (cause) {
+      setLibraryActionError(cause instanceof Error ? cause.message : '新建控灵会话失败。');
+    }
+  }, [authenticatedUserId, busy, createConversation, setMessages, stop]);
+
+  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+    if (!conversationId || busy || !window.confirm('确认删除此对话？此操作无法撤销。')) return;
+    try {
+      stop();
+      const deletedActiveConversation = await deleteConversation(conversationId);
+      if (deletedActiveConversation) {
+        await createConversation(null);
+        setMessages([]);
+      }
+      setLibraryActionError(null);
+    } catch (cause) {
+      setLibraryActionError(cause instanceof Error ? cause.message : '删除控灵会话失败。');
+    }
+  }, [busy, createConversation, deleteConversation, setMessages, stop]);
+
+  const retryRecovery = useCallback(() => {
+    setLibraryActionError(null);
+    if (activeConversationId) {
+      void refreshActiveConversation().catch(() => undefined);
+      return;
+    }
+    void refreshConversations().catch(() => undefined);
+  }, [activeConversationId, refreshActiveConversation, refreshConversations]);
+
   const quickQuestions = useMemo(() => {
     if (context === 'portfolio-reflection') {
       return [
@@ -277,25 +399,78 @@ export default function CopilotPage() {
         data-ai-task-focus-mode={localTaskMode ? 'local-first' : undefined}
         data-task-workspace-archetype={localTaskMode ? 'ai-local-task' : undefined}
       >
-        <div className="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
-          <div className="mx-auto flex max-w-4xl items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600">
-              <KonlingAvatar size="md" />
+        <div className="border-b border-slate-800 bg-slate-950/80 px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-4xl flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600">
+                <KonlingAvatar size="md" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">{KONLING_BRAND.name}</h2>
+                <p className="text-sm text-amber-400">{KONLING_BRAND.subtitle}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">{KONLING_BRAND.name}</h2>
-              <p className="text-sm text-amber-400">{KONLING_BRAND.subtitle}</p>
-            </div>
+            {authenticatedUserId ? (
+              <div className="flex flex-wrap items-center gap-2" data-copilot-conversation-library>
+                <label className="sr-only" htmlFor="copilot-conversation-select">选择会话</label>
+                <select
+                  id="copilot-conversation-select"
+                  aria-label="选择会话"
+                  data-copilot-conversation-select
+                  value={activeConversationId ?? ''}
+                  onChange={(event) => handleSelectConversation(event.target.value)}
+                  disabled={busy}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                >
+                  {conversations.length === 0 ? (
+                    <option value="">尚未选择会话</option>
+                  ) : null}
+                  {conversations.map((conversation) => (
+                    <option key={conversation.id} value={conversation.id}>
+                      {conversation.title}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-copilot-new-conversation
+                  onClick={() => void handleNewConversation()}
+                  disabled={busy}
+                >
+                  新对话
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-copilot-delete-conversation
+                  onClick={() => activeConversationId && void handleDeleteConversation(activeConversationId)}
+                  disabled={busy || !activeConversationId}
+                >
+                  删除
+                </Button>
+              </div>
+            ) : (
+              <div
+                className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+                data-copilot-conversation-status="unauthenticated"
+              >
+                未登录时不会保存会话。
+                <Link href={STANDALONE_COPILOT_LOGIN_HREF} className="ml-2 underline">
+                  登录后恢复会话
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 主内容区 */}
         <div className="flex-1 overflow-hidden">
-          <div className="mx-auto flex h-full max-w-4xl flex-col p-6 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] md:pb-6">
-            {/* 消息列表 */}
-            <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+          <div className="mx-auto flex h-full max-w-4xl flex-col p-4 pb-[calc(env(safe-area-inset-bottom,0px)+8rem)] sm:p-6 md:pb-6">
+            <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6">
               {taskState ? <ActionStatusPanel state={taskState} className="mb-4" /> : null}
-              {sessionData.data?.user?.id ? (
+              {authenticatedUserId ? (
                 <div
                   className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100"
                   data-copilot-profile-status={
@@ -392,11 +567,38 @@ export default function CopilotPage() {
                   </div>
                 </div>
               ) : null}
-              {messages.length === 0 ? (
+              {authenticatedUserId && (conversationStatus === 'loading' || recoveryFailed || libraryActionError) ? (
+              <div
+                className="mb-4 text-sm"
+                data-copilot-conversation-status={conversationStatus}
+                role={recoveryFailed ? 'alert' : 'status'}
+                aria-live="polite"
+              >
+                {conversationStatus === 'loading' ? (
+                  <p className="text-slate-400">正在恢复会话…</p>
+                ) : null}
+                {recoveryFailed ? (
+                  <div className="rounded-lg bg-red-900/30 p-4 text-red-300">
+                    <p>会话恢复失败，不是空会话。</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button size="sm" variant="ghost" onClick={retryRecovery}>
+                        重试
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => void handleNewConversation()}>
+                        新对话
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+                {libraryActionError ? (
+                  <p className="text-red-300">{libraryActionError}</p>
+                ) : null}
+              </div>
+              ) : null}
+              {((conversationStatus === 'empty' && !recoveryFailed) || conversationStatus === 'unauthenticated') ? (
                 <div className="space-y-6">
-                  {/* 欢迎信息 */}
                   <div className="rounded-xl bg-gradient-to-br from-amber-900/30 to-orange-900/20 p-6">
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="mb-3 flex items-center gap-3">
                       <KonlingAvatar size="md" />
                       <h2 className="text-lg font-semibold text-amber-300">欢迎使用 {KONLING_BRAND.name}</h2>
                     </div>
@@ -424,7 +626,6 @@ export default function CopilotPage() {
                     </ul>
                   </div>
 
-                  {/* 快捷问题 */}
                   <div>
                     <p className="mb-3 text-sm text-slate-500">快捷问题</p>
                     <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -432,8 +633,9 @@ export default function CopilotPage() {
                         <button
                           type="button"
                           key={i}
-                          onClick={() => append({ role: 'user', content: q.question })}
-                          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-left text-sm text-slate-300 transition-colors hover:border-amber-600 hover:bg-slate-800"
+                          onClick={() => void handleQuickQuestion(q.question)}
+                          disabled={!authenticatedUserId || busy || recoveryFailed}
+                          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-left text-sm text-slate-300 transition-colors hover:border-amber-600 hover:bg-slate-800 disabled:opacity-50"
                         >
                           {q.label}
                         </button>
@@ -441,7 +643,7 @@ export default function CopilotPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : conversationStatus === 'ready' || isLoading ? (
                 <div className="space-y-4">
                   <KonlingChatMessageList messages={messages} />
                   {isLoading && (
@@ -455,7 +657,7 @@ export default function CopilotPage() {
                         <div
                           className="h-2 w-2 animate-bounce rounded-full bg-amber-400"
                           style={{ animationDelay: '300ms' }}
-                        />
+                          />
                       </div>
                       <span>{KONLING_BRAND.name}正在思考...</span>
                     </div>
@@ -470,11 +672,10 @@ export default function CopilotPage() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-              )}
+              ) : null}
             </div>
 
-            {/* 输入区 */}
-            <form onSubmit={handleSubmit} className="mt-4" data-task-workspace-zone="local-primary-input">
+            <form onSubmit={(event) => void handleConversationSubmit(event)} className="mt-4" data-task-workspace-zone="local-primary-input">
               <div className="flex gap-3">
                 <input
                   aria-label="请输入您的问题，例如：如何减少航迹误差？"
@@ -484,13 +685,8 @@ export default function CopilotPage() {
                   placeholder="请输入您的问题，例如：如何减少航迹误差？"
                   data-primary-task-input={localTaskMode ? 'copilot-local-task' : undefined}
                   className={`${konlingPromptInputClassName} rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20`}
-                  disabled={isLoading}
+                  disabled={!authenticatedUserId || isLoading || recoveryFailed}
                 />
-                {messages.length > 0 ? (
-                  <Button type="button" onClick={clearLocalConversation} size="lg" variant="outline" className="px-4">
-                    清空
-                  </Button>
-                ) : null}
                 {isLoading ? (
                   <Button type="button" onClick={stop} size="lg" variant="secondary" className="px-6">
                     停止
@@ -499,7 +695,7 @@ export default function CopilotPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    disabled={!input.trim()}
+                    disabled={!authenticatedUserId || !input.trim() || busy || recoveryFailed}
                     className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 hover:from-amber-600 hover:to-orange-600"
                   >
                     发送
