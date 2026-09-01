@@ -1,7 +1,7 @@
 import { matchingOwners } from '@/lib/architecture-charter/assign';
 import { REQUIRED_BASELINE, type OwnerId } from '@/lib/architecture-charter/types';
 
-import { isTestPath } from './classify';
+import { currentOwnerEvidence as ownerEvidenceFromPath, isTestPath } from './classify';
 import { generateCensusCore } from './generate';
 import { resolveImport } from './imports';
 import { privacyViolation } from './privacy';
@@ -458,7 +458,7 @@ function retirementRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Cu
       identity,
       sourceCommit,
       sourceTree,
-      currentOwnerEvidence: observation?.ownership.currentOwnerEvidence ?? ['lib:shared'],
+      currentOwnerEvidence: observation?.ownership.currentOwnerEvidence ?? ownerEvidenceFromPath(identity),
       candidateTargetOwners: ownersFor(identity),
       consumers,
       deletionCondition: DELETION_UNRESOLVED,

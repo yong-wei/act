@@ -169,6 +169,7 @@ describe('current-head consolidation delta', () => {
     qualifyCurrentHeadDelta(pack, failures);
     const retired = pack.records.filter((row) => row.category === 'retirement').map((row) => row.identity);
     expect(retired).toContain('src/features/adaptive/path-advisor-entrypoint-bridge.tsx');
+    expect(pack.records.find((row) => row.identity.endsWith('path-advisor-entrypoint-bridge.tsx'))?.currentOwnerEvidence).toContain('feature:adaptive');
     expect(retired).toContain('src/features/adaptive/path-workspace-module.tsx');
     expect(retired).toContain('src/lib/adaptive-path-comparison.ts');
   });
