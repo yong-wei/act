@@ -1,6 +1,6 @@
 import { opaqueSubjectRef } from '@/features/learning-record/event-contract/allowlist';
 import { LEARNING_FACT_INGESTION_OUTBOX_EVENT_TYPE, INGESTION_STATUS, ingestionDedupeKey, readExistingInputDigest, rejectDirectAndOutboxDoubleWrite, type IngestionWriteDb, type IngestLearningFactResult } from './types';
-import { computeDigests, resolveAnchors } from './ingest';
+import { computeDigests, receivedAtIso, resolveAnchors } from './ingest';
 import { assertStagingPayload, sanitizeStagingPayload } from './sanitizer';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import type { LearningRecordEnvelope } from '@/features/learning-record/event-contract';
@@ -24,7 +24,7 @@ export async function stageLearningFactIngestion(input: {
     eventId: input.event.eventId,
     sourceEventId: input.event.eventId,
     trustedOccurredAt: input.envelope?.trustedOccurredAt ?? input.event.occurredAt,
-    receivedAt: input.envelope?.receivedAt ?? (input.now ?? new Date()).toISOString(),
+    receivedAt: receivedAtIso(input),
     captureRevision: input.captureRevision,
     revision: input.captureRevision,
     subjectRef: opaqueSubjectRef(input.actorUserId),

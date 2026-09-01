@@ -76,7 +76,7 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
       ?? readPayloadNumber(payload, envelopePayload, 'normalizedResult'),
     confidence: readPayloadNumber(payload, envelopePayload, 'confidence'),
     trustedOccurredAt: anchorsTrustedOccurredAt(input),
-    receivedAt: (input.now ?? new Date()).toISOString(),
+    receivedAt: receivedAtIso(input),
     subjectRef: opaqueSubjectRef(input.actorUserId),
     idempotencyKey: ingestionDedupeKey({
       sourceEventId: input.event.eventId,
@@ -203,7 +203,7 @@ export function resolveAnchors(input: IngestLearningFactInput): IngestionAnchors
   };
 }
 
-function receivedAtIso(input: IngestLearningFactInput): string {
+export function receivedAtIso(input: Pick<IngestLearningFactInput, 'envelope' | 'receivedAt' | 'now'>): string {
   return input.envelope?.receivedAt ?? input.receivedAt ?? (input.now ?? new Date()).toISOString();
 }
 
