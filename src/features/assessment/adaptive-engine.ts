@@ -5,18 +5,18 @@ import {
   type QuestionDomain,
   type QuestionType,
 } from '@/features/assessment/adaptive-question-bank';
-import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import { buildKaqQuizQuestionMetadata } from '@/features/assessment/kaq-quiz-foundation';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
   findGeneratedRuntimeQuestionById,
   selectCatalogBackedAssessmentItem,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   getCheckpointAuthoredQuestionRecordByRuntimeId,
   checkpointAuthoredQuestionToRuntimeQuestion,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS,
-} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/learning-goal-checkpoint-question-sets';
 
 
 export interface AdaptiveAnswerRecord {

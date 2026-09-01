@@ -1,7 +1,7 @@
 import learningGoalAssessmentCoverageMatrix from '../../course-content/runtime/resource-governance/learning-goal-assessment-coverage-matrix.json';
 
 import type { AdaptiveLearningPathGraphContextInput } from '@/features/personalization/path-planning/public-api';
-import type { LearningGoalAssessmentCoverageMatrixRow } from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
+import type { LearningGoalAssessmentCoverageMatrixRow } from '@/features/assessment/learning-goal-assessment-coverage';
 
 type PlannerLearningGoalAssessmentCoverage = NonNullable<AdaptiveLearningPathGraphContextInput['assessmentCoverage']>;
 

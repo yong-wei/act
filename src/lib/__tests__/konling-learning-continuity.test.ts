@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
+import { buildKaqQuizQuestionMetadata } from '@/features/assessment/kaq-quiz-foundation';
 import { PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import { resolveKonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 import { verifyCompanionPracticeMetadata, verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';

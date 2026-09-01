@@ -1,13 +1,13 @@
 import {
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   type AssessmentEvidenceCatalogSnapshot,
-} from '@/features/adaptive-assessment/assessment-evidence-authority';
+} from '@/features/assessment/assessment-evidence-authority';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
   findGeneratedRuntimeQuestionById,
   type AdaptiveAssessmentCatalogSnapshot,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import { checkpointAuthoredQuestionRuntimeId } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
+import { checkpointAuthoredQuestionRuntimeId } from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
 import { ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION } from '@/features/assessment/adaptive-mastery';
 

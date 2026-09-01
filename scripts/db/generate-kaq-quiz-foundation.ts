@@ -1,12 +1,12 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import { REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+import { REVIEWED_LEARNING_GOAL_CHECKPOINT_RUNTIME_QUESTIONS } from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import { PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import {
   buildKaqQuizFoundationArtifacts,
   type KaqQuizCoverageBaselineMatrix,
-} from '@/features/adaptive-assessment/kaq-quiz-foundation';
+} from '@/features/assessment/kaq-quiz-foundation';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const BASELINE_MATRIX_PATH = path.join(OUTPUT_DIR, 'learning-goal-resource-baseline-matrix.json');

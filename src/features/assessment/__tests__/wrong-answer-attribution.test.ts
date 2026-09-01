@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { assessmentItemSemanticReviewSourceHash } from '@/features/assessment/adaptive-assessment-semantic-review';
 
 import { resolveAdaptiveDiagnosisContext } from '../adaptive-diagnosis-context';
 import { adaptiveAssessmentItemContentHash } from '../adaptive-assessment-item-content-hash';

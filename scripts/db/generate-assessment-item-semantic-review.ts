@@ -4,12 +4,12 @@ import path from 'node:path';
 import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
-} from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+} from '@/features/assessment/adaptive-assessment-item-catalog';
 import {
   assessmentItemSemanticReviewArtifactsToFiles,
   buildAssessmentItemSemanticReviewArtifacts,
   loadAssessmentItemSemanticReviewSource,
-} from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-semantic-review';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');

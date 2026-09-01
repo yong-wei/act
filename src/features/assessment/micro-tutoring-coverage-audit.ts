@@ -1,8 +1,8 @@
 import { createHash, createHmac } from 'node:crypto';
 
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { evaluateAssessmentEvidenceAuthority } from '@/features/adaptive-assessment/assessment-evidence-authority';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import { evaluateAssessmentEvidenceAuthority } from '@/features/assessment/assessment-evidence-authority';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   isMicroTutoringOptionAttribution,
   optionAttributionKey,

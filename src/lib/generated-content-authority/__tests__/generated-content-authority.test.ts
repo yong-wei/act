@@ -52,7 +52,7 @@ function writeFixtureTree(root: string, options: {
 } = {}): void {
   const dirs = [
     'src/features/adaptive-assessment',
-    'src/features/adaptive-assessment/__tests__',
+    'src/features/assessment/__tests__',
     'src/features/assessment',
     'src/lib/assignments',
     'src/lib/smart-lesson-plan',
@@ -65,15 +65,15 @@ function writeFixtureTree(root: string, options: {
   ];
   for (const dir of dirs) mkdirSync(join(root, dir), { recursive: true });
 
-  writeFileSync(join(root, 'src/features/adaptive-assessment/generated-candidate-governance.ts'), 'export const governance = true;\n');
-  writeFileSync(join(root, 'src/features/adaptive-assessment/generated-candidate-persistence.ts'), 'export const persistence = true;\n');
-  writeFileSync(join(root, 'src/features/adaptive-assessment/generated-candidate-catalog.ts'), 'export const catalog = true;\n');
-  mkdirSync(join(root, 'src/features/adaptive-assessment/__tests__'), { recursive: true });
-  writeFileSync(join(root, 'src/features/adaptive-assessment/__tests__/generated-candidate-governance.test.ts'), 'export {};\n');
-  writeFileSync(join(root, 'src/features/adaptive-assessment/generated-catalog-runtime.ts'), 'export const runtime = true;\n');
+  writeFileSync(join(root, 'src/features/assessment/generated-candidate-governance.ts'), 'export const governance = true;\n');
+  writeFileSync(join(root, 'src/features/assessment/generated-candidate-persistence.ts'), 'export const persistence = true;\n');
+  writeFileSync(join(root, 'src/features/assessment/generated-candidate-catalog.ts'), 'export const catalog = true;\n');
+  mkdirSync(join(root, 'src/features/assessment/__tests__'), { recursive: true });
+  writeFileSync(join(root, 'src/features/assessment/__tests__/generated-candidate-governance.test.ts'), 'export {};\n');
+  writeFileSync(join(root, 'src/features/assessment/generated-catalog-runtime.ts'), 'export const runtime = true;\n');
   writeFileSync(join(root, 'src/app/api/assessment/generated-candidates/route.ts'),
     options.generationImportsSink
-      ? "import { writeGeneratedCatalogRelease } from '@/features/adaptive-assessment/generated-candidate-catalog';\nexport const route = writeGeneratedCatalogRelease;\n"
+      ? "import { writeGeneratedCatalogRelease } from '@/features/assessment/generated-candidate-catalog';\nexport const route = writeGeneratedCatalogRelease;\n"
       : 'export const route = true;\n');
   writeFileSync(join(root, 'src/features/assessment/adaptive-engine.ts'), 'export const engine = true;\n');
   writeFileSync(join(root, 'src/lib/assignments/assignment-review.ts'), 'export const review = true;\n');
@@ -272,13 +272,13 @@ describe('generated content authority — fixture fitness checks', () => {
 
   it('fails closed when a generation module imports a forbidden authority sink', () => {
     writeFileSync(join(root, 'src/app/api/assessment/generated-candidates/route.ts'),
-      "import { writeGeneratedCatalogRelease } from '@/features/adaptive-assessment/generated-candidate-catalog';\nexport const route = writeGeneratedCatalogRelease;\n");
+      "import { writeGeneratedCatalogRelease } from '@/features/assessment/generated-candidate-catalog';\nexport const route = writeGeneratedCatalogRelease;\n");
     commitAll(root, 'introduce sink violation');
     const report = evaluateGeneratedContentAuthorityFitness(fixtureInput());
     const assessment = report.rows.find((row) => row.domain === 'assessment')!;
     expect(assessment.status).toBe('NOT_QUALIFIED');
     expect(assessment.blockedSinks).toContainEqual({
-      module: 'src/features/adaptive-assessment/generated-candidate-catalog.ts',
+      module: 'src/features/assessment/generated-candidate-catalog.ts',
       importedBy: 'src/app/api/assessment/generated-candidates/route.ts',
     });
     expect(assessment.invariantFindings.NO_DIRECT_AUTHORITY_WRITE.status).toBe('NOT_QUALIFIED');
@@ -356,7 +356,7 @@ describe('generated content authority — fixture fitness checks', () => {
     commitAll(root, 'add rogue unregistered provider');
     const violations = scanDomainAuthorityWrites(root, {
       domainRootsByDomain: {
-        assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
+        assessment: ['src/features/assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
         'assignment-rubric': ['src/lib/assignments/', 'src/app/api/teacher/assignments/'],
         'smart-lesson': ['src/lib/smart-lesson-plan/', 'src/app/api/teacher/smart-lesson-tasks/'],
         'smart-courseware': ['src/lib/smart-courseware/', 'src/app/api/teacher/smart-courseware/'],
@@ -424,7 +424,7 @@ describe('generated content authority — fixture fitness checks', () => {
   it('includes denominator test evidence and directory content in the evidence digest', () => {
     const before = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
     // 声明的测试证据文件被弱化 → 摘要变化
-    const assessmentTestFile = join(root, 'src/features/adaptive-assessment/__tests__/generated-candidate-governance.test.ts');
+    const assessmentTestFile = join(root, 'src/features/assessment/__tests__/generated-candidate-governance.test.ts');
     writeFileSync(assessmentTestFile, 'export const weakened = true;\n');
     const afterWeaken = computeEvidenceDigest(root, GENERATED_CONTENT_AUTHORITY_MATRIX.rows);
     expect(afterWeaken).not.toBe(before);

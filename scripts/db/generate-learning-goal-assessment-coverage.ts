@@ -4,14 +4,14 @@ import path from 'node:path';
 import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
-} from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+} from '@/features/assessment/adaptive-assessment-item-catalog';
 import {
   loadAssessmentItemSemanticReviewSource,
-} from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   buildLearningGoalAssessmentCoverageArtifacts,
   learningGoalAssessmentCoverageArtifactsToFiles,
-} from '@/features/adaptive-assessment/learning-goal-assessment-coverage';
+} from '@/features/assessment/learning-goal-assessment-coverage';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
 import { CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH } from '@/lib/resource-node-path-readiness-review-batch';
 

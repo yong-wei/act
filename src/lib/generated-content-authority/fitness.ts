@@ -449,7 +449,7 @@ export function scanUndeclaredCrossDomainImports(
 ): string[] {
   const names = gitLsFiles(repoRoot);
   const domainRoots: ReadonlyArray<{ domain: GeneratedContentDomain | 'unowned'; root: string }> = [
-    { domain: 'assessment', root: 'src/features/adaptive-assessment/' },
+    { domain: 'assessment', root: 'src/features/assessment/' },
     { domain: 'assessment', root: 'src/features/assessment/' },
     { domain: 'assignment-rubric', root: 'src/lib/assignments/' },
     { domain: 'smart-lesson', root: 'src/lib/smart-lesson-plan/' },

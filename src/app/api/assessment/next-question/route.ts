@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AdaptiveAssessmentCatalogSelectionError } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { AdaptiveAssessmentCatalogSelectionError } from '@/features/assessment/adaptive-assessment-catalog-selector';
 import { selectNextPathQuestion } from '@/features/assessment/public-api';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';

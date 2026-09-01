@@ -5,9 +5,9 @@ import {
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   isAssessmentSnapshotBeforeEnforcementEpoch,
   type AssessmentEvidenceCatalogSnapshot,
-} from '@/features/adaptive-assessment/assessment-evidence-authority';
-import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
+} from '@/features/assessment/assessment-evidence-authority';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/assessment/generated-catalog-runtime';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import { remapPathNodeId } from '@/lib/path-node-id-alias-remap';
 import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';

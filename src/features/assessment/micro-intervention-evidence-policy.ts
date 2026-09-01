@@ -1,5 +1,5 @@
-import { REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
-import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '@/features/adaptive-assessment/learning-goal-terminal-validation-question-sets';
+import { REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS } from '@/features/assessment/learning-goal-checkpoint-question-sets';
+import { REVIEWED_TERMINAL_VALIDATION_QUESTIONS } from '@/features/assessment/learning-goal-terminal-validation-question-sets';
 
 export const MICRO_INTERVENTION_EVIDENCE_ALGORITHM_VERSION = 'micro-intervention-evidence.v1';
 export const MICRO_INTERVENTION_EVIDENCE_REPEAT_WINDOW_MS = 6 * 60 * 60 * 1000;

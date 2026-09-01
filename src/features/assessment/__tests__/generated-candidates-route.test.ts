@@ -14,12 +14,12 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {},
 }));
 
-vi.mock('@/features/adaptive-assessment/generated-candidate-persistence', () => ({
+vi.mock('@/features/assessment/generated-candidate-persistence', () => ({
   loadGeneratedCandidateStore: mocks.loadGeneratedCandidateStore,
   persistGeneratedCandidateStore: mocks.persistGeneratedCandidateStore,
 }));
 
-import { createGeneratedCandidateStore } from '@/features/adaptive-assessment/generated-candidate-governance';
+import { createGeneratedCandidateStore } from '@/features/assessment/generated-candidate-governance';
 import { POST as createCandidate } from '@/app/api/assessment/generated-candidates/route';
 import { POST as reviewCandidate } from '@/app/api/assessment/generated-candidates/[id]/review/route';
 import { POST as publishCandidate } from '@/app/api/assessment/generated-candidates/[id]/publish/route';

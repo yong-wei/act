@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import {
   checkpointAuthoredQuestionRuntimeId,
   sourceIdFromCheckpointAuthoredQuestionRuntimeId,
-} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/learning-goal-checkpoint-question-sets';
 
 import { resolveMicroTutoringGoalNode } from './micro-tutoring-goal-node-catalog';
 import { loadMicroTutoringRuntimeSource } from './micro-tutoring-runtime-source';

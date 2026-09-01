@@ -5,11 +5,11 @@ import {
   adaptiveAssessmentCatalogArtifactsToFiles,
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
-} from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+} from '@/features/assessment/adaptive-assessment-item-catalog';
 import {
   generatedQuestionsFromStore,
   readGeneratedCandidateStore,
-} from '@/features/adaptive-assessment/generated-candidate-catalog';
+} from '@/features/assessment/generated-candidate-catalog';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 const MANIFEST_PATH = path.join(OUTPUT_DIR, 'adaptive-assessment-item-catalog-manifest.json');

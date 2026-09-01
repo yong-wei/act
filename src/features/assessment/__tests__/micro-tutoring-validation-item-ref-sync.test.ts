@@ -5,10 +5,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   findAdaptiveAssessmentCatalogSnapshot,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
-import { checkpointAuthoredQuestionRuntimeId } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
+import { checkpointAuthoredQuestionRuntimeId } from '@/features/assessment/learning-goal-checkpoint-question-sets';
 import { ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION } from '@/features/assessment/adaptive-mastery';
 import v2BaselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import v2OptionAttributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
