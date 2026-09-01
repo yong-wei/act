@@ -71,6 +71,7 @@ export interface EvidenceCoverageRow {
   sourceId?: EvidenceSourceId;
   userId?: string | null;
   occurredAt?: string | Date | null;
+  ingestedAt?: string | Date | null;
   eventType?: string | null;
   eventData?: unknown;
   sourceLabel?: string | null;

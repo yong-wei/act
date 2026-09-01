@@ -595,26 +595,50 @@ describe('historical evidence materialization', () => {
     )).rejects.toBeInstanceOf(WriteBoundaryError);
   });
 
-  it('does not apply candidates that occur after the frozen cutoff', async () => {
+  it.each([
+    {
+      name: 'occurredAt after cutoff',
+      sourceId: 'SimulationLog' as const,
+      keptId: 'historical:SimulationLog:kept:simulation_attempt',
+      droppedId: 'historical:SimulationLog:dropped:simulation_attempt',
+      kept: { id: 'kept', userId: 'student-1', occurredAt: '2026-05-18T10:00:00.000Z', sourceLabel: 'real-student-run' },
+      dropped: { id: 'dropped', userId: 'student-2', occurredAt: '2026-05-19T01:00:00.000Z', sourceLabel: 'real-student-run' },
+    },
+    {
+      name: 'ingestedAt after cutoff with older client time',
+      sourceId: 'InteractionLog' as const,
+      keptId: 'historical:InteractionLog:kept:lesson_submit',
+      droppedId: 'historical:InteractionLog:dropped:lesson_submit',
+      kept: {
+        id: 'kept',
+        userId: 'student-1',
+        occurredAt: '2026-05-18T10:00:00.000Z',
+        ingestedAt: '2026-05-18T10:00:01.000Z',
+        eventType: 'submit',
+        sessionId: 'session-1',
+        lessonKey: 'unit-4-7-v1',
+        stepId: 'step-01',
+        eventData: { eventType: 'lesson_submit', score: 90, source: 'real-classroom' },
+        sourceLabel: 'real-classroom',
+      },
+      dropped: {
+        id: 'dropped',
+        userId: 'student-2',
+        occurredAt: '2026-05-18T09:00:00.000Z',
+        ingestedAt: '2026-05-19T01:00:00.000Z',
+        eventType: 'submit',
+        sessionId: 'session-1',
+        lessonKey: 'unit-4-7-v1',
+        stepId: 'step-02',
+        eventData: { eventType: 'lesson_submit', score: 80, source: 'real-classroom' },
+        sourceLabel: 'real-classroom',
+      },
+    },
+  ])('does not apply candidates $name', async ({ sourceId, kept, dropped, keptId, droppedId }) => {
     const plan = buildHistoricalEvidenceMaterializationPlan({
       generatedAt: '2026-05-19T00:00:00.000Z',
       existingSourceEventIds: new Set(),
-      rowsBySource: {
-        SimulationLog: [
-          {
-            id: 'sim-old',
-            userId: 'student-1',
-            occurredAt: '2026-05-18T10:00:00.000Z',
-            sourceLabel: 'real-student-run',
-          },
-          {
-            id: 'sim-new',
-            userId: 'student-2',
-            occurredAt: '2026-05-19T01:00:00.000Z',
-            sourceLabel: 'real-student-run',
-          },
-        ],
-      },
+      rowsBySource: { [sourceId]: [kept, dropped] },
     });
     const createMany = vi.fn().mockResolvedValue({ count: 1 });
     const result = await applyHistoricalEvidenceMaterializationPlan(
@@ -622,15 +646,10 @@ describe('historical evidence materialization', () => {
       plan,
       APPLY_AUTH,
     );
+    const written = JSON.stringify(createMany.mock.calls);
     expect(result.createdRows).toBe(1);
     expect(createMany).toHaveBeenCalledTimes(1);
-    expect(createMany).toHaveBeenCalledWith({
-      data: [
-        expect.objectContaining({
-          sourceEventId: 'historical:SimulationLog:sim-old:simulation_attempt',
-        }),
-      ],
-      skipDuplicates: true,
-    });
+    expect(written).toContain(keptId);
+    expect(written).not.toContain(droppedId);
   });
 });

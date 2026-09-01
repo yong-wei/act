@@ -420,11 +420,13 @@ async function* paginateCoverageRows<T extends { id: string }>(
 async function* readSourceRowBatches(
   sourceId: EvidenceSourceId,
   batchSize: number,
+  frozenCutoff: Date,
 ): AsyncGenerator<EvidenceCoverageRow[]> {
   if (sourceId === 'InteractionLog') {
     yield* paginateCoverageRows(
       (pagination) => prisma.interactionLog.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -447,6 +449,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.clientEventAt ?? row.createdAt,
+        ingestedAt: row.createdAt,
         eventType: row.eventType,
         eventData: row.eventData,
         resourceId: row.resourceId,
@@ -760,9 +763,10 @@ async function buildPlanFromSourceBatches(
   batchSize: number,
 ) {
   const state = createAggregatePlanState();
+  const frozenCutoff = new Date(state.generatedAt);
 
   for (const sourceId of SOURCE_PROCESSING_ORDER) {
-    for await (const rows of readSourceRowBatches(sourceId, batchSize)) {
+    for await (const rows of readSourceRowBatches(sourceId, batchSize, frozenCutoff)) {
       const batchPlan = buildHistoricalEvidenceMaterializationPlan({
         generatedAt: state.generatedAt,
         existingSourceEventIds: new Set(),

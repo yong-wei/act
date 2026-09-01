@@ -39,6 +39,7 @@ export interface HistoricalEvidenceMaterializationCandidate {
   traceReference: string;
   userId: string;
   occurredAt: string;
+  ingestedAt: string;
   provenance: EvidenceProvenance;
   valueLevel: EvidenceValueLevel;
   eligibility: EvidenceEligibility;
@@ -506,6 +507,7 @@ export function buildHistoricalEvidenceMaterializationPlan(
         traceReference,
         userId,
         occurredAt: timestamp,
+        ingestedAt: normalizeDate(row.ingestedAt) ?? timestamp,
         provenance: classification.provenance,
         valueLevel: classification.valueLevel,
         eligibility: classification.eligibility,
@@ -581,7 +583,7 @@ export async function applyHistoricalEvidenceMaterializationPlan(
   const auth = assertExplicitHistoricalApply(options);
   const factsToCreate = plan.candidates
     .filter((candidate) => !candidate.alreadyMaterialized)
-    .filter((candidate) => candidate.occurredAt <= auth.frozenCutoff)
+    .filter((candidate) => candidate.ingestedAt <= auth.frozenCutoff)
     .map((candidate) => candidate.fact);
 
   const batchSize = Number.isInteger(options.batchSize) && options.batchSize && options.batchSize > 0
