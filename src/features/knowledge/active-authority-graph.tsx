@@ -26,9 +26,9 @@ import {
 import {
   activeModelRelationSummaries,
   activeNodeRelationSummaries,
-  activeNodeSearch,
   createActiveAuthorityGraphModel,
   expandActiveAuthorityOneHop,
+  knownActiveNodeTypes,
   materializeActiveNodeScope,
   presentActiveNodeType,
   presentActiveRelation,
@@ -36,6 +36,7 @@ import {
   presentGovernanceLabel,
   presentSourceCitation,
   isPrimaryDomainObject,
+  selectAuthorityDomainOverviewScope,
   selectInitialPrimaryDomainScope,
   visibleActiveGraph,
   ACTIVE_GRAPH_NODE_LIMIT,
@@ -64,16 +65,20 @@ import {
   defaultEnabledTeachingFamilies,
 } from './authority-graph-view-model';
 import type { GraphDimension } from './graph-runtime-session';
-import type {
-  AuthorityShardPublicEnvelope,
-  AuthorityShardMembership,
-  EngineeringRelationFamily,
+import {
+  AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+  type AuthorityShardPublicEnvelope,
+  type AuthorityShardMembership,
+  type AuthorityDomainSearchHit,
+  type EngineeringRelationFamily,
 } from '@/lib/authority-domain-shards/contracts';
 import { REGISTERED_PEER_DOMAIN_IDS } from '@/lib/authority-domain-catalog/contracts';
 import { ENGINEERING_RELATION_FAMILIES } from '@/lib/authority-domain-shards/contracts';
 import {
   isPublicAuthorityLearnerShard,
   publicEnvelopesShareAuthorityAndCatalog,
+  publicEnvelopesShareLocaleProfile,
+  publicTeachingIdentityMatches,
 } from '@/lib/authority-domain-shards/envelope';
 import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
 import {
@@ -1120,50 +1125,126 @@ function ActiveNodeDetail({
   );
 }
 
+interface DomainSearchState {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  queryKey: string;
+  pageSize: number;
+  total: number;
+  hits: readonly AuthorityDomainSearchHit[];
+}
+
+const IDLE_DOMAIN_SEARCH: DomainSearchState = {
+  status: 'idle',
+  queryKey: '',
+  pageSize: SEARCH_RESULT_PAGE_SIZE,
+  total: 0,
+  hits: [],
+};
+
+function isAuthorityDomainSearchResponse(value: unknown): value is {
+  contract: typeof AUTHORITY_DOMAIN_SEARCH_CONTRACT;
+  envelope?: unknown;
+  domainId: string;
+  total: number;
+  pageSize: number;
+  hits: AuthorityDomainSearchHit[];
+} {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as {
+    contract?: unknown;
+    domainId?: unknown;
+    total?: unknown;
+    page?: unknown;
+    pageSize?: unknown;
+    hits?: unknown;
+  };
+  if (record.contract !== AUTHORITY_DOMAIN_SEARCH_CONTRACT) return false;
+  if (typeof record.domainId !== 'string') return false;
+  if (typeof record.total !== 'number' || typeof record.page !== 'number') return false;
+  if (typeof record.pageSize !== 'number' || !Array.isArray(record.hits)) return false;
+  return record.hits.every((hit) => (
+    hit && typeof hit === 'object'
+    && typeof (hit as { id?: unknown }).id === 'string'
+    && typeof (hit as { label?: unknown }).label === 'string'
+    && typeof (hit as { canonicalType?: unknown }).canonicalType === 'string'
+  ));
+}
+
+/**
+ * Fail closed: a domain-search response from another Authority, Teaching or
+ * locale generation must not enter the current workspace.
+ */
+function searchResponseSharesEnvelope(
+  workspaceEnvelope: AuthorityShardPublicEnvelope,
+  payload: { envelope?: unknown },
+): boolean {
+  const responseEnvelope = payload.envelope as AuthorityShardPublicEnvelope | undefined;
+  return Boolean(
+    responseEnvelope
+    && publicEnvelopesShareAuthorityAndCatalog(workspaceEnvelope, responseEnvelope)
+    && publicTeachingIdentityMatches(workspaceEnvelope, responseEnvelope)
+    && publicEnvelopesShareLocaleProfile(workspaceEnvelope, responseEnvelope),
+  );
+}
+
 function SearchResults({
-  results,
+  state,
   onSelect,
+  onLoadMore,
   locale,
 }: {
-  results: readonly ActiveNodePresentation[];
-  onSelect: (key: string) => void;
+  state: DomainSearchState;
+  onSelect: (hit: AuthorityDomainSearchHit) => void;
+  onLoadMore: () => void;
   locale: AdmittedLocale;
 }) {
-  const [visibleCount, setVisibleCount] = useState(SEARCH_RESULT_PAGE_SIZE);
-  if (results.length === 0) return null;
-  const visibleResults = results.slice(0, Math.min(visibleCount, results.length));
-  const remainingCount = results.length - visibleResults.length;
+  if (state.status === 'error') {
+    return (
+      <p
+        role="alert"
+        data-active-search-failed="true"
+        className="mt-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+      >
+        {graphCopy(locale, 'search.failed')}
+      </p>
+    );
+  }
+  const loadingNextPage = state.status === 'loading';
+  if (state.status !== 'ready' || state.hits.length === 0) return null;
+  const remainingCount = Math.max(0, state.total - state.hits.length);
   return (
-    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
+    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={state.total}>
       <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
-        {formatSearchShownCount(locale, visibleResults.length, results.length)}
+        {loadingNextPage
+          ? graphCopy(locale, 'search.searching')
+          : formatSearchShownCount(locale, state.hits.length, state.total)}
       </div>
-      {visibleResults.map((node) => (
+      {state.hits.map((hit) => (
         <button
-          key={node.key}
+          key={hit.id}
           type="button"
-          onClick={() => onSelect(node.key)}
-          aria-label={`定位${node.label}`}
-          data-active-authority-search-result={node.key}
+          onClick={() => onSelect(hit)}
+          aria-label={`定位${hit.label}`}
+          data-active-authority-search-result={hit.id}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
-          <span className="truncate text-platform-fg-primary">
-            {node.richTitle
-              ? <GovernedRichText projection={node.richTitle} density="preview" />
-              : node.label}
+          <span className="truncate text-platform-fg-primary">{hit.label}</span>
+          <span className="shrink-0 text-platform-fg-muted">
+            {hit.typeLabel ?? presentActiveNodeType(hit.canonicalType).label}
           </span>
-          <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
         </button>
       ))}
       {remainingCount > 0 ? (
         <button
           type="button"
-          onClick={() => setVisibleCount((current) => Math.min(results.length, current + SEARCH_RESULT_PAGE_SIZE))}
+          onClick={onLoadMore}
           aria-label={formatLoadMoreAria(locale, remainingCount)}
           data-active-authority-search-load-more
           className="w-full border-t border-platform-border px-3 py-2 text-left text-xs text-platform-action-primary hover:bg-platform-action-subtle"
         >
-          {formatLoadMore(locale, remainingCount)}
+          {loadingNextPage
+            ? graphCopy(locale, 'search.searching')
+            : formatLoadMore(locale, remainingCount)}
         </button>
       ) : null}
     </div>
@@ -1296,24 +1377,33 @@ export function ActiveAuthorityGraph({
   useEffect(() => {
     if (!model) return;
     const pending = pendingCrossDomainSelectionRef.current;
-    if (pending && pending.intent === selectionIntentRef.current && model.nodeByKey.has(pending.key)) {
-      setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
-      setSelectedNodeKey(pending.key);
+    if (pending && pending.intent !== selectionIntentRef.current) {
       pendingCrossDomainSelectionRef.current = null;
-    } else {
-      pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(isCompactViewport
-        ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
-        : new Set(model.nodes.map((node) => node.key)));
-      setSelectedNodeKey(null);
     }
+    // Desktop and mobile enter the same server-bounded DomainConcept
+    // overview; the desktop all-model-nodes initialization path is gone.
+    setVisibleKeys(isCompactViewport
+      ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+      : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
+    setSelectedNodeKey(null);
     setQuery('');
     setTypeFilter('');
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
+  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit, workspace.domainOverviewIds]);
   /* eslint-enable react-hooks/exhaustive-deps */
+
+  // A cross-domain selection waits until its owning domain response and, for
+  // secondary objects, the one-hop disclosure have materialized the node.
+  useEffect(() => {
+    const pending = pendingCrossDomainSelectionRef.current;
+    if (!model || !pending || pending.intent !== selectionIntentRef.current) return;
+    if (!model.nodeByKey.has(pending.key)) return;
+    pendingCrossDomainSelectionRef.current = null;
+    setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
+    setSelectedNodeKey(pending.key);
+  }, [model, visibleNodeLimit]);
 
   useEffect(() => {
     if (!model) return;
@@ -1365,12 +1455,14 @@ export function ActiveAuthorityGraph({
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       const key = selectedNodeKey;
-      setSelectedNodeKey(null);
+      leaveSelectedNeighborhood();
       window.setTimeout(() => restoreFocus(key), 0);
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [selectedNodeKey]);
+    // Leave/restore semantics read the current model and overview ids.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNodeKey, model, workspace.domainOverviewIds, isCompactViewport, visibleNodeLimit]);
 
   useEffect(() => {
     const main = graphMainRef.current;
@@ -1379,10 +1471,94 @@ export function ActiveAuthorityGraph({
     return () => main.removeAttribute('inert');
   }, [isCompactViewport, selectedNodeKey]);
 
-  const searchResults = useMemo(
-    () => model ? activeNodeSearch(model, query, typeFilter || undefined) : [],
-    [model, query, typeFilter],
-  );
+  const [domainSearch, setDomainSearch] = useState<DomainSearchState>(IDLE_DOMAIN_SEARCH);
+  const trimmedQuery = query.trim();
+  const searchQueryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}\u0000${typeFilter}`;
+  const domainSearchRef = useRef(domainSearch);
+  domainSearchRef.current = domainSearch;
+
+  // Bounded server search over the sealed per-domain index: secondary types
+  // stay undisclosed on the canvas until their one-hop neighborhood loads.
+  useEffect(() => {
+    if (!workspace.activeVisualRole || !workspace.envelope || !trimmedQuery) {
+      setDomainSearch(IDLE_DOMAIN_SEARCH);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const queryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}\u0000${typeFilter}`;
+      setDomainSearch((current) => (
+        current.queryKey === queryKey
+          ? { ...current, status: 'loading' }
+          : { ...IDLE_DOMAIN_SEARCH, status: 'loading', queryKey, pageSize: SEARCH_RESULT_PAGE_SIZE }
+      ));
+      requestDomainSearch({ page: 0, append: false, signal: controller.signal });
+    }, 250);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+    // Search keys track the active domain, query, type and locale only.
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, [searchQueryKey, locale, workspace.activeVisualRole]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  /** One bounded search request shared by the debounced query and load-more. */
+  function requestDomainSearch(options: { page: number; append: boolean; signal?: AbortSignal }) {
+    const visualRole = workspace.activeVisualRole;
+    const workspaceEnvelope = workspace.envelope;
+    if (!visualRole || !workspaceEnvelope || !trimmedQuery) return;
+    const queryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}\u0000${typeFilter}`;
+    const params = new URLSearchParams({ q: trimmedQuery, limit: String(SEARCH_RESULT_PAGE_SIZE) });
+    if (typeFilter) params.set('type', typeFilter);
+    if (options.page > 0) params.set('page', String(options.page));
+    fetch(
+      shardUrl(
+        `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/search?${params.toString()}`,
+        locale,
+      ),
+      { signal: options.signal, headers: { accept: 'application/json' } },
+    )
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`search failed: ${response.status}`);
+        return response.json() as Promise<unknown>;
+      })
+      .then((payload: unknown) => {
+        if (options.signal?.aborted) return;
+        if (!isAuthorityDomainSearchResponse(payload)) return;
+        if (!searchResponseSharesEnvelope(workspaceEnvelope, payload)) return;
+        setDomainSearch((current) => {
+          if (current.queryKey !== queryKey) return current;
+          if (!options.append) {
+            return {
+              status: 'ready',
+              queryKey,
+              pageSize: payload.pageSize,
+              total: payload.total,
+              hits: payload.hits,
+            };
+          }
+          return { ...current, status: 'ready', hits: [...current.hits, ...payload.hits] };
+        });
+      })
+      .catch(() => {
+        if (options.signal?.aborted) return;
+        setDomainSearch((current) => (
+          current.queryKey === queryKey ? { ...current, status: 'error' } : current
+        ));
+      });
+  }
+
+  function loadMoreSearchResults() {
+    const current = domainSearchRef.current;
+    if (current.status !== 'ready' || current.hits.length >= current.total) return;
+    setDomainSearch((state) => ({ ...state, status: 'loading' }));
+    requestDomainSearch({
+      page: Math.floor(current.hits.length / Math.max(1, current.pageSize)),
+      append: true,
+    });
+  }
+
   const scopedGraph = useMemo(() => {
     if (!model) return null;
     const scoped = visibleActiveGraph(model, visibleKeys);
@@ -1414,8 +1590,12 @@ export function ActiveAuthorityGraph({
     }
     : null;
 
-  function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
-    if (!model && !workspace.objectsByCanonicalId[key]) return;
+  function resolveNodeSelection(
+    key: string,
+    mode: 'canvas' | 'search',
+    knownMemberships?: readonly AuthorityShardMembership[],
+  ): void {
+    if (!model && !workspace.objectsByCanonicalId[key] && !knownMemberships) return;
     const intent = selectionIntentRef.current + 1;
     selectionIntentRef.current = intent;
     if (mode === 'search') {
@@ -1426,9 +1606,9 @@ export function ActiveAuthorityGraph({
     }
 
     const object = workspace.objectsByCanonicalId[key];
-    const memberships = object?.memberships.filter((membership) => (
+    const memberships = (object?.memberships ?? knownMemberships ?? []).filter((membership) => (
       workspace.root?.domains.some((domain) => domain.visualRole === membership.visualRole) ?? false
-    )) ?? [];
+    ));
     const membership = selectActiveAuthorityMembership(memberships, workspace.activeDomainId);
     const owningDomain = membership
       ? workspace.root?.domains.find((domain) => domain.visualRole === membership.visualRole)
@@ -1439,9 +1619,14 @@ export function ActiveAuthorityGraph({
     )) {
       if (!model) return;
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys((current) => mode === 'search'
-        ? materializeActiveNodeScope(model, key, visibleNodeLimit)
-        : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
+      setVisibleKeys((current) => {
+        // An undisclosed same-domain hit keeps the current scope until its
+        // bounded one-hop neighborhood materializes the node.
+        if (!model.nodeByKey.has(key)) return current;
+        return mode === 'search'
+          ? materializeActiveNodeScope(model, key, visibleNodeLimit)
+          : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit);
+      });
       setSelectedNodeKey(key);
       requestNeighborhood(key);
       return;
@@ -1475,17 +1660,30 @@ export function ActiveAuthorityGraph({
     };
   }
 
-  function focusSearchResult(key: string) {
-    resolveNodeSelection(key, 'search');
+  function focusSearchResult(hit: AuthorityDomainSearchHit) {
+    resolveNodeSelection(hit.id, 'search', hit.memberships);
   }
 
   function followBoundary(nodeId: string) {
     resolveNodeSelection(nodeId, 'canvas');
   }
 
+  /**
+   * Leaving a selected neighborhood deterministically restores the same
+   * domain's level-two overview; filters and viewport state are preserved
+   * and disclosed secondary nodes are not left flattened into the overview.
+   */
+  function leaveSelectedNeighborhood() {
+    setSelectedNodeKey(null);
+    if (!model) return;
+    setVisibleKeys(isCompactViewport
+      ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+      : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
+  }
+
   function closeDetail() {
     const key = selectedNodeKey;
-    setSelectedNodeKey(null);
+    leaveSelectedNeighborhood();
     window.setTimeout(() => restoreFocus(key), 0);
   }
 
@@ -1604,7 +1802,7 @@ export function ActiveAuthorityGraph({
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
                   <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
                 </div>
-                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} locale={locale} /> : null}
+                {query || typeFilter ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
                 <label className="sr-only" htmlFor="active-authority-type-filter">{graphCopy(locale, 'filter.type')}</label>
@@ -1614,19 +1812,12 @@ export function ActiveAuthorityGraph({
                     aria-label={graphCopy(locale, 'filter.type')}
                     value={typeFilter}
                     onChange={(event) => {
-                      const value = event.target.value;
-                      setTypeFilter(value);
-                      if (value === 'Formula' || value === 'KnowledgeStatement') {
-                        setVisibleKeys((current) => new Set([
-                          ...current,
-                          ...model.nodes.filter((node) => node.type.canonicalType === value).map((node) => node.key),
-                        ]));
-                      }
+                      setTypeFilter(event.target.value);
                     }}
                     className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary"
                   >
                     <option value="">{graphCopy(locale, 'filter.allTypes')}</option>
-                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{model.nodes.find((node) => node.type.canonicalType === canonicalType)?.type.label ?? presentActiveNodeType(canonicalType).label}</option>)}
+                    {knownActiveNodeTypes().map((type) => <option key={type.canonicalType} value={type.canonicalType}>{type.label}</option>)}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
                 </div>
@@ -1756,7 +1947,8 @@ export function ActiveAuthorityGraph({
             ) : null}
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
             {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
-            {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'search.empty')}</p> : null}
+            {(query || typeFilter) && (domainSearch.status === 'ready' && domainSearch.hits.length === 0
+              || domainSearch.status === 'error') ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
           </main>
           {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} /> : null}
         </div>

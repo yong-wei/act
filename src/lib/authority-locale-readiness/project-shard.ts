@@ -1,5 +1,6 @@
 import type {
   AuthorityDomainDefaultShard,
+  AuthorityDomainSearchHit,
   AuthorityLearnerShard,
   AuthorityNodeDetailShard,
   AuthorityNodeNeighborhoodShard,
@@ -82,8 +83,7 @@ function mapObject(
   manifest: AuthorityLocaleManifest,
   receipt: LocaleQualificationReceipt,
   locale: AdmittedLocale,
-): AuthorityShardObject {
-  const name = firstLocaleValue(manifest, receipt, locale, 'object-names', [object.id]);
+): AuthorityShardObject {  const name = firstLocaleValue(manifest, receipt, locale, 'object-names', [object.id]);
   const explanation = firstLocaleValue(
     manifest,
     receipt,
@@ -168,6 +168,32 @@ function mapRelation(
     predicateLabel: predicateLabel ?? relation.predicateLabel ?? null,
     directionLabel: directionLabel ?? relation.directionLabel ?? null,
   };
+}
+
+/**
+ * Locale-project bounded search hits with the same complete-locale records
+ * used by learner shards; identity, type and memberships stay untouched.
+ */
+export function applyLocaleToSearchHits(
+  hits: readonly AuthorityDomainSearchHit[],
+  locale: AdmittedLocale,
+  manifest: AuthorityLocaleManifest | null,
+  receipt: LocaleQualificationReceipt | null,
+): AuthorityDomainSearchHit[] {
+  if (!manifest || !receipt || receipt.status !== 'ready' || receipt.locale !== locale) {
+    return hits.map((hit) => ({ ...hit, typeLabel: hit.typeLabel ?? null }));
+  }
+  return hits.map((hit) => {
+    const name = firstLocaleValue(manifest, receipt, locale, 'object-names', [hit.id]);
+    const alias = firstLocaleValue(manifest, receipt, locale, 'approved-aliases', aliasRecordIds(hit.id));
+    const typeLabel = firstLocaleValue(manifest, receipt, locale, 'types', typeRecordIds(hit.canonicalType));
+    return {
+      ...hit,
+      label: name ?? hit.label,
+      aliases: alias ? Object.freeze([alias]) : hit.aliases,
+      typeLabel: typeLabel ?? hit.typeLabel ?? null,
+    };
+  });
 }
 
 export function applyLocaleToLearnerShard<T extends AuthorityLearnerShard>(

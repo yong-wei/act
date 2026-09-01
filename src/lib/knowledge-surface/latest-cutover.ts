@@ -68,6 +68,13 @@ export type LatestCutoverCombination = 'successor' | 'predecessor' | 'unknown' |
 export interface KnowledgeSurfaceLatestCutover {
   ready: boolean;
   combination: LatestCutoverCombination;
+  /**
+   * Observability-only markers for accepted drift (#1738): a resealed
+   * domain-shard set still qualifies while its sealed predecessor set
+   * remains present in the runtime closure; the final verification or the
+   * authorized release workflow reseals the candidate to clear the marker.
+   */
+  drift: readonly string[];
   identities: {
     activeReceiptSha256: string | null;
     authorityCurrentSha256: string | null;
@@ -224,6 +231,28 @@ function setMatches(sealed: string | null, pointers: readonly LatestCutoverArtif
   return setDigest(pointers) === sealed;
 }
 
+/**
+ * A resealed domain-shard set stays qualified when the sealed predecessor
+ * set is still part of the runtime closure (#1738): every other identity
+ * keeps matching and the drift stays observable instead of silent.
+ */
+function shardSetAccepted(
+  sealed: string | null,
+  pointers: readonly LatestCutoverArtifactPointer[],
+  drift: Set<string>,
+): boolean {
+  if (setMatches(sealed, pointers)) return true;
+  if (
+    sealed
+    && pointers.length > 1
+    && pointers.some((pointer) => pointer.sha256 === sealed)
+  ) {
+    drift.add('domain-shard-set-resealed');
+    return true;
+  }
+  return false;
+}
+
 function identityConflicts(expected: Record<string, string>, actual: Record<string, string>): boolean {
   return Object.entries(actual).some(([key, value]) => expected[key] != null && expected[key] !== value);
 }
@@ -368,6 +397,7 @@ function emptyResult(reason: string): KnowledgeSurfaceLatestCutover {
       consumerActivationSha256: null,
       formalResourceEnvelopeSha256: null,
     },
+    drift: [],
     reasons: [reason],
   };
 }
@@ -385,6 +415,7 @@ export function verifyLatestKnowledgeCutover(
   if (!input.receipt) return emptyResult('absent-active-receipt');
 
   const reasons = new Set<string>();
+  const drift = new Set<string>();
   const read = (
     pointer: LatestCutoverArtifactPointer | null | undefined,
     missingReason = 'missing-member',
@@ -453,7 +484,7 @@ export function verifyLatestKnowledgeCutover(
     || stringAt(extension, 'composedDomainFragmentManifestHash') !== input.composedDomainFragments.sha256
     || stringAt(extension, 'prerequisitePublicationHash') !== input.prerequisites.sha256
     || stringAt(extension, 'consumerActivationHash') !== input.consumerActivation.sha256
-    || !setMatches(stringAt(extension, 'domainShardSetHash'), input.domainShards)
+    || !shardSetAccepted(stringAt(extension, 'domainShardSetHash'), input.domainShards, drift)
   ) {
     reasons.add('mixed-identity');
   }
@@ -491,7 +522,7 @@ export function verifyLatestKnowledgeCutover(
       || stringAt(candidateReceipt, 'prerequisitePublicationHash') !== input.prerequisites.sha256
       || stringAt(candidateReceipt, 'consumerActivationHash') !== input.consumerActivation.sha256
       || stringAt(candidateReceipt, 'domainShardCatalogHash') !== input.domainCatalog.sha256
-      || !setMatches(stringAt(candidateReceipt, 'domainShardSetHash'), input.domainShards)
+      || !shardSetAccepted(stringAt(candidateReceipt, 'domainShardSetHash'), input.domainShards, drift)
     ) {
       reasons.add('mixed-identity');
     }
@@ -599,6 +630,7 @@ export function verifyLatestKnowledgeCutover(
       ready: false,
       combination: 'predecessor',
       identities,
+      drift: [...drift].sort(),
       reasons: [],
     };
   }
@@ -614,6 +646,7 @@ export function verifyLatestKnowledgeCutover(
     ready: combination === 'successor' && reasons.size === 0,
     combination,
     identities,
+    drift: [...drift].sort(),
     reasons: [...reasons].sort(),
   };
 }

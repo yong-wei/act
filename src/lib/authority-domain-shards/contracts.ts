@@ -25,7 +25,7 @@ export const AUTHORITY_SHARD_SET_CONTRACT =
 export const AUTHORITY_SHARD_CURRENT_CONTRACT =
   'act-authority-domain-shard-current/v1' as const;
 export const AUTHORITY_SHARD_BUILDER_VERSION =
-  'act-authority-domain-shard-builder/v1' as const;
+  'act-authority-domain-shard-builder/v2' as const;
 
 export const DEFAULT_AUTHORITY_DOMAIN_SHARD_RUNTIME_RELATIVE =
   'course-content/runtime/knowledge/authority-domain-shards' as const;
@@ -58,13 +58,40 @@ export type AuthorityRelationLayer =
 
 export const AUTHORITY_SHARD_PAYLOAD_BUDGETS = {
   root: 64 * 1024,
-  'domain-default': 2 * 1024 * 1024,
+  'domain-default': 512 * 1024,
   'relation-family': 2 * 1024 * 1024,
   'node-neighborhood': 128 * 1024,
   'node-detail': 64 * 1024,
+  'domain-search-index': 512 * 1024,
 } as const;
 
 export const AUTHORITY_SHARD_NEIGHBORHOOD_LIMIT = 32;
+
+/**
+ * Fail-closed object-count ceiling for one domain-default overview (#1738).
+ * Observed v0.37 maximum is 273 DomainConcept members; exceeding this limit
+ * fails qualification instead of silently shipping a larger overview.
+ */
+export const AUTHORITY_DOMAIN_DEFAULT_OBJECT_LIMIT = 320;
+
+/**
+ * The domain default is a concept overview only. Secondary types stay
+ * reachable through the sealed search index and published one-hop shards.
+ */
+export const AUTHORITY_DOMAIN_DEFAULT_TYPES = ['DomainConcept'] as const;
+export type AuthorityDomainDefaultObjectType =
+  (typeof AUTHORITY_DOMAIN_DEFAULT_TYPES)[number];
+
+/** Server-side search paging ceiling for one domain-search response. */
+export const AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT = 24;
+
+/** Minimum non-empty query length before a bounded search is issued. */
+export const AUTHORITY_DOMAIN_SEARCH_MIN_QUERY_CHARS = 1;
+
+export const AUTHORITY_DOMAIN_SEARCH_CONTRACT =
+  'act-authority-domain-search/v1' as const;
+export const AUTHORITY_SHARD_COVERAGE_CONTRACT =
+  'act-authority-shard-coverage/v1' as const;
 
 export interface AuthorityShardAuthorityIdentity {
   snapshotId: string;
@@ -215,6 +242,78 @@ export interface AuthorityDomainDefaultShard {
   teachingCoverage: AuthorityShardTeachingCoverage;
 }
 
+/**
+ * Identity-safe per-domain search rows for every catalog member (#1738).
+ * Internal sealed artifact: served only through the bounded domain-search
+ * API projection, never returned wholesale to the browser.
+ */
+export interface AuthorityDomainSearchIndexShard {
+  shardClass: 'domain-search-index';
+  envelope: AuthorityShardEnvelope;
+  domainId: RegisteredPeerDomainId;
+  entries: readonly AuthorityDomainSearchEntry[];
+}
+
+/** One searchable member row; labels and aliases only, no descriptions. */
+export interface AuthorityDomainSearchEntry {
+  id: string;
+  canonicalType: string;
+  label: string;
+  aliases: readonly string[];
+  memberships: readonly AuthorityShardMembership[];
+}
+
+export interface AuthorityDomainSearchHit extends AuthorityDomainSearchEntry {
+  typeLabel?: string | null;
+}
+
+/** Bounded, version-matched search response returned by the search API. */
+export interface AuthorityDomainSearchResponse {
+  contract: typeof AUTHORITY_DOMAIN_SEARCH_CONTRACT;
+  envelope: AuthorityShardPublicEnvelope;
+  domainId: RegisteredPeerDomainId;
+  query: string;
+  canonicalType: string | null;
+  page: number;
+  pageSize: number;
+  total: number;
+  hits: readonly AuthorityDomainSearchHit[];
+}
+
+/** Per-domain coverage statistics recorded in the sealed coverage receipt. */
+export interface AuthorityShardCoverageDomain {
+  domainId: RegisteredPeerDomainId;
+  catalogMemberCount: number;
+  overviewObjectCount: number;
+  overviewTypes: readonly string[];
+  searchEntryCount: number;
+  teachingRelationCount: number;
+}
+
+/**
+ * Sealed candidate gate (#1738): catalog denominator, per-domain overview
+ * budgets, search coverage and follow-on closure under one shard-set
+ * identity. Root entries may only be published when every recorded domain
+ * has its default, search, neighborhood and detail closure.
+ */
+export interface AuthorityShardCoverageReceipt {
+  shardClass: 'coverage-receipt';
+  contract: typeof AUTHORITY_SHARD_COVERAGE_CONTRACT;
+  builderVersion: typeof AUTHORITY_SHARD_BUILDER_VERSION;
+  envelope: AuthorityShardEnvelope;
+  catalogDomainCount: number;
+  defaultShardCount: number;
+  searchIndexCount: number;
+  domains: readonly AuthorityShardCoverageDomain[];
+  closure: {
+    catalogMemberCount: number;
+    neighborhoodCount: number;
+    detailCount: number;
+    /** Every catalog member owns a neighborhood and detail shard. */
+    complete: boolean;
+  };
+}
+
 export interface AuthorityRelationFamilyShard {
   shardClass: 'relation-family';
   envelope: AuthorityShardEnvelope;
@@ -339,6 +438,8 @@ export interface AuthorityShardSetManifest {
     relationFamily: number;
     neighborhood: number;
     detail: number;
+    searchIndex: number;
+    coverage: 1;
   };
 }
 

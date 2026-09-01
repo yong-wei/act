@@ -173,6 +173,32 @@ export function resolveLiveLatestKnowledgeCutover(options: {
     : identityPointer('authority-current', null, [], null);
   const catalog = identityPointer('domain-catalog', parseJson(catalogBytes), ['catalogHash'], catalogBytes);
   const shards = identityPointer('domain-shard-set', parseJson(shardBytes), ['shardSetHash'], shardBytes);
+  // A resealed active set (#1738) stays qualified while the sealed
+  // predecessor set remains present in the immutable runtime closure.
+  const candidateJson = parseJson(candidateBytes);
+  const sealedShardSetHash = typeof candidateJson?.domainShardSetHash === 'string'
+    ? candidateJson.domainShardSetHash
+    : null;
+  const domainShards: LatestCutoverArtifactPointer[] = [shards];
+  if (
+    sealedShardSetHash
+    && shards.sha256 !== sealedShardSetHash
+    && sealedShardSetHash.startsWith('ads-') === false
+  ) {
+    const legacyBytes = put(
+      'domain-shard-set-sealed',
+      path.join(knowledgeRoot, 'authority-domain-shards/sets', `ads-${sealedShardSetHash}`, 'manifest.json'),
+    );
+    const legacy = identityPointer(
+      'domain-shard-set-sealed',
+      parseJson(legacyBytes),
+      ['shardSetHash'],
+      legacyBytes,
+    );
+    if (legacy.sha256 === sealedShardSetHash) {
+      domainShards.push(legacy);
+    }
+  }
   const teachingProjection = identityPointer(
     'teaching-projection',
     parseJson(projectionBytes),
@@ -240,7 +266,7 @@ export function resolveLiveLatestKnowledgeCutover(options: {
     runtimeIdentity,
     extension,
     domainCatalog: catalog,
-    domainShards: [shards],
+    domainShards,
     teachingProjection,
     teachingClosure,
     composedDomainFragments: composed,

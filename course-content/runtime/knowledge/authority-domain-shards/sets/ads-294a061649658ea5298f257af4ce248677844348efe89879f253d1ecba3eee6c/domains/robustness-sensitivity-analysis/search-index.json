@@ -1,0 +1,3402 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "robustness-sensitivity-analysis",
+  "entries": [
+    {
+      "id": "ctkg:domainconcept:02015f2f2580a38840cfec63",
+      "canonicalType": "DomainConcept",
+      "label": "测速发电机与无源网络的组合线路",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+      "canonicalType": "DomainConcept",
+      "label": "环路增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+      "canonicalType": "DomainConcept",
+      "label": "前馈跟踪",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:06e510e5b8555b4f541cdfc6",
+      "canonicalType": "DomainConcept",
+      "label": "统一反馈系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0966916146ae0d7be3728867",
+      "canonicalType": "DomainConcept",
+      "label": "前馈补偿设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+      "canonicalType": "DomainConcept",
+      "label": "测量组件（传感器）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+      "canonicalType": "DomainConcept",
+      "label": "系统灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0fda1802f8f2f950a188f4a1",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度函数S（s）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+      "canonicalType": "DomainConcept",
+      "label": "测量噪声衰减分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:11f909e91cd0ec78fed08544",
+      "canonicalType": "DomainConcept",
+      "label": "被控对象模型逆",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:150c8a62277a497691a2f785",
+      "canonicalType": "DomainConcept",
+      "label": "复合控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1bd485e2c679f6653728f6a9",
+      "canonicalType": "DomainConcept",
+      "label": "稳态全补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:22d52d18fa2362f832542e2d",
+      "canonicalType": "DomainConcept",
+      "label": "跟踪误差E（s）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+      "canonicalType": "DomainConcept",
+      "label": "闭环增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:2630562292426845725f1507",
+      "canonicalType": "DomainConcept",
+      "label": "系统传递函数作为参数的分式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+      "canonicalType": "DomainConcept",
+      "label": "反馈控制系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+      "canonicalType": "DomainConcept",
+      "label": "前置滤波器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+      "canonicalType": "DomainConcept",
+      "label": "复合校正",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3c543b41f43c8ad2f2aeb77d",
+      "canonicalType": "DomainConcept",
+      "label": "环路增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3d6bc7c8912501619b65df0c",
+      "canonicalType": "DomainConcept",
+      "label": "不变性原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3dced083486515b875738cae",
+      "canonicalType": "DomainConcept",
+      "label": "按输入补偿的复合校正方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:403811219247cb33fb07e873",
+      "canonicalType": "DomainConcept",
+      "label": "按扰动补偿的复合校正方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+      "canonicalType": "DomainConcept",
+      "label": "扰动抑制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+      "canonicalType": "DomainConcept",
+      "label": "测量噪声衰减",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "canonicalType": "DomainConcept",
+      "label": "跟踪误差",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4df9dd74e6afd893b38a44eb",
+      "canonicalType": "DomainConcept",
+      "label": "F(s) 函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+      "canonicalType": "DomainConcept",
+      "label": "参数不确定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+      "canonicalType": "DomainConcept",
+      "label": "前馈扰动抑制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:5136a9cb0263b94b3f8cd7c6",
+      "canonicalType": "DomainConcept",
+      "label": "部分补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:550f9472042bebc4561cc83b",
+      "canonicalType": "DomainConcept",
+      "label": "扰动信号",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:5595fefdcc239f5c0844448c",
+      "canonicalType": "DomainConcept",
+      "label": "用于跟踪的前馈控制结构",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:58b32d6f599add0ab7eb86b5",
+      "canonicalType": "DomainConcept",
+      "label": "最小节拍组合校正方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:5c7d6f5a4ff04bd0326b7e62",
+      "canonicalType": "DomainConcept",
+      "label": "闭环速度控制系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:662d2caa390cab7ff89cb7ed",
+      "canonicalType": "DomainConcept",
+      "label": "测量噪声衰减",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+      "canonicalType": "DomainConcept",
+      "label": "误差全补偿条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6b32986633be2c4347fa679c",
+      "canonicalType": "DomainConcept",
+      "label": "误差全补偿条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+      "canonicalType": "DomainConcept",
+      "label": "最小节拍响应",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:71944aefb645b35836d384ab",
+      "canonicalType": "DomainConcept",
+      "label": "时变参数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+      "canonicalType": "DomainConcept",
+      "label": "参数变化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:75bb9455b7033d0d7856decc",
+      "canonicalType": "DomainConcept",
+      "label": "扰动信号",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:785caa007445e7d5d34dcde5",
+      "canonicalType": "DomainConcept",
+      "label": "测速发电机与无源网络组合实现二阶前馈补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7ac1fd3d4d946a6005473483",
+      "canonicalType": "DomainConcept",
+      "label": "等效系统型别",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7fe6f3265399479fdcf4f742",
+      "canonicalType": "DomainConcept",
+      "label": "扰动抑制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:839a003f71ed74b5004a97a6",
+      "canonicalType": "DomainConcept",
+      "label": "过程逆",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:90d3e7470077a3db4e292395",
+      "canonicalType": "DomainConcept",
+      "label": "前置滤波组合校正方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9157ad36336f3c28e55274a1",
+      "canonicalType": "DomainConcept",
+      "label": "闭环传递函数T（s）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:96bb25cb179a77a34e6d9918",
+      "canonicalType": "DomainConcept",
+      "label": "按输入补偿的复合校正",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:98d0b7bb7be104ca36fe3437",
+      "canonicalType": "DomainConcept",
+      "label": "反馈代价",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+      "canonicalType": "DomainConcept",
+      "label": "未建模动态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9dcf197f97b02d753e086ce6",
+      "canonicalType": "DomainConcept",
+      "label": "反馈导致的不稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9dd6e45819cbb414472fb7e4",
+      "canonicalType": "DomainConcept",
+      "label": "环路增益 L（s）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+      "canonicalType": "DomainConcept",
+      "label": "前馈补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a0012962c283b4d51fcf217d",
+      "canonicalType": "DomainConcept",
+      "label": "元件数量增加",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a4088ba5c51bbfd2606affeb",
+      "canonicalType": "DomainConcept",
+      "label": "反馈复杂性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:aed306227c0364d8de049ef8",
+      "canonicalType": "DomainConcept",
+      "label": "等效开环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+      "canonicalType": "DomainConcept",
+      "label": "时域响应参数灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+      "canonicalType": "DomainConcept",
+      "label": "扰动抑制分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b6a5ab67117745c88183da2f",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c01b8b723223b776fb7959f5",
+      "canonicalType": "DomainConcept",
+      "label": "基于对象模型逆的前馈控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+      "canonicalType": "DomainConcept",
+      "label": "前馈控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c4223390d01343ed903a1de4",
+      "canonicalType": "DomainConcept",
+      "label": "灵敏度分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+      "canonicalType": "DomainConcept",
+      "label": "开环系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d0324f34ffab4881781cb2bf",
+      "canonicalType": "DomainConcept",
+      "label": "通过反馈降低灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d58237fb48dce6cbb860ec06",
+      "canonicalType": "DomainConcept",
+      "label": "开环速度控制系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+      "canonicalType": "DomainConcept",
+      "label": "测量噪声信号",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d59701f04ecd244e0d27dc18",
+      "canonicalType": "DomainConcept",
+      "label": "参数变化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d648aca9705d20330b480898",
+      "canonicalType": "DomainConcept",
+      "label": "环路增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d670229de2b41116e752913e",
+      "canonicalType": "DomainConcept",
+      "label": "测速发电机实现一阶前馈补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+      "canonicalType": "DomainConcept",
+      "label": "传感器噪声",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e068737e2de7d2aa0eda0686",
+      "canonicalType": "DomainConcept",
+      "label": "近似全补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e1ece02aa6e1f0b54de07ff5",
+      "canonicalType": "DomainConcept",
+      "label": "按扰动补偿的复合校正",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ef3f532a7566912a4623e253",
+      "canonicalType": "DomainConcept",
+      "label": "增益损失",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f11c9bf6bb230dc4cbcf9702",
+      "canonicalType": "DomainConcept",
+      "label": "误差信号分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+      "canonicalType": "DomainConcept",
+      "label": "前馈校正",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:fdd93ca8412d5e51d7a201b3",
+      "canonicalType": "DomainConcept",
+      "label": "寄生因式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:fef4835248def04a043183ee",
+      "canonicalType": "DomainConcept",
+      "label": "闭环系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:04787d19495f4d566567e1df",
+      "canonicalType": "Formula",
+      "label": "Y(s)=\\frac{G_{c}(s) G(s)}{1+G_{c}(s) G(s)} R(s)+\\frac{G(s)}{1+G_{c}(s) G(s)} T_{d}(s)-\\frac{G_{c}(s) G(s)}{1+G_{c}(s) G(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0ccc50e8c2404ffe9165c319",
+      "canonicalType": "Formula",
+      "label": "S = \\frac{\\Delta T(s) / T(s)}{\\Delta G(s) / G(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0deae4f5961372cd571cf0d7",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{K_{v}\\left[1+\\left(\\lambda_{1}+T\\right) s+\\lambda_{2} s^{2}\\right]}{(T s+1)\\left[s\\left(a_{n} s^{n-1}+a_{n-1} s^{n-2}+\\cdots+a_{2} s+a_{1}\\right)+K_{v}\\right]}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:1163b45898f67a8d2d32c7ec",
+      "canonicalType": "Formula",
+      "label": "\\lim_{t \\to \\infty} \\omega(t) = \\frac{-1}{b + (K_m / R_a)(K_t K_a + K_b)} D",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:12a5ab6d1e9c84d591f753ee",
+      "canonicalType": "Formula",
+      "label": "\\Phi_{e}(s)=\\frac{a_{n} T s^{n+1}+\\left(a_{n}+a_{n-1} T\\right) s^{n}+\\cdots+\\left(a_{3}+a_{2} T\\right) s^{3}+\\left(a_{2}+a_{1} T-\\lambda_{2} K_{v}\\right) s^{2}+\\left(a_{1}-\\lambda_{1} K_{v}\\right) s}{(T s+1)\\left[s\\left(a_{n} s^{n-1}+a_{n-1} s^{n-2}+\\cdots+a_{2} s+a_{1}\\right)+K_{v}\\right]}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:1c903b6a1c64a3c733afaf68",
+      "canonicalType": "Formula",
+      "label": "E(s) = C(s) N(s) = \\frac{L(s)}{1+L(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:225bbb5dbef47c4f06c839ea",
+      "canonicalType": "Formula",
+      "label": "C(s) \\approx L(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:25d89dae66684837cebe2580",
+      "canonicalType": "Formula",
+      "label": "正弦参考稳态误差幅值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:28726345827759ca17282f0a",
+      "canonicalType": "Formula",
+      "label": "Y(s) \\simeq -N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2a30c68c3c7113138f088283",
+      "canonicalType": "Formula",
+      "label": "Y(s) = \\frac{-G_c(s) G(s)}{1+G_c(s) G(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2db242d905a32a7778aacc7d",
+      "canonicalType": "Formula",
+      "label": "K_{1}=\\frac{R_{2}}{R_{1}+R_{2}}, \\quad \\tau=R_{1} C_{1}, \\quad T=\\frac{R_{1} R_{2} C_{1}}{R_{1}+R_{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2dca53c4c140397fd3f1b6cc",
+      "canonicalType": "Formula",
+      "label": "T_{cl} + \\delta T_{cl} = \\frac{(G + \\delta G) D_{cl}}{1 + (G + \\delta G) D_{cl}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2e7bb393204ab49859cf2eda",
+      "canonicalType": "Formula",
+      "label": "S_{G}^{T} = \\frac{1}{1 + G_{c}(s) G(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3c45db91c26634cad5189a84",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=\\frac{K(\\tau s+1)}{T s+1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3dced939c3b2dc8728c9a8ae",
+      "canonicalType": "Formula",
+      "label": "E(s) = -S(s) G(s) T_d(s) = -\\frac{G(s)}{1+L(s)} T_d(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3e108b408bc1c6e760b288e7",
+      "canonicalType": "Formula",
+      "label": "C(s)=\\frac{\\left[1+G_{r}(s)\\right] G(s)}{1+G(s)} R(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:40a3881004614f8a6f36b0a7",
+      "canonicalType": "Formula",
+      "label": "\\Phi_{e}(s)=\\frac{E(s)}{R(s)}=1-\\Phi(s)=\\frac{1-G_{r}(s) G(s)}{1+G_{r}(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:42a68e5917256cfae8b4459f",
+      "canonicalType": "Formula",
+      "label": "\\delta T_{cl} = \\frac{d T_{cl}}{d G} \\delta G",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4302af826ba025627030a586",
+      "canonicalType": "Formula",
+      "label": "G_{k}(s)=\\frac{\\Phi(s)}{1-\\Phi(s)}=\\frac{\\left[1+G_{r}(s)\\right] G(s)}{1-G_{r}(s) G(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:44c04a8b5623079c6e158d40",
+      "canonicalType": "Formula",
+      "label": "t_{s}=\\frac{4.4}{\\zeta_{d} \\omega_{n}} \\leqslant 0.6 \\quad(\\Delta=2 \\%)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:44f136092735cf08a1bd32f6",
+      "canonicalType": "Formula",
+      "label": "s^{2}+K_{1} s+K_{2}=s^{2}+2 \\zeta_{d} \\omega_{n} s+\\omega_{n}^{2}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:488e1a457c5cce4910fa9806",
+      "canonicalType": "Formula",
+      "label": "1 / \\left(1 + G_{c}(s) G(s)\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4d62c78a949859675a5fdb10",
+      "canonicalType": "Formula",
+      "label": "E(s)=\\frac{1}{1+L(s)} R(s)-\\frac{G(s)}{1+L(s)} T_{d}(s)+\\frac{L(s)}{1+L(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:5374618e9cbfa71f01675409",
+      "canonicalType": "Formula",
+      "label": "S_{\\alpha}^{T} = \\frac{\\partial \\ln T}{\\partial \\ln \\alpha} = \\left. \\frac{\\partial \\ln N}{\\partial \\ln \\alpha} \\right|_{\\alpha=\\alpha_{0}} - \\left. \\frac{\\partial \\ln D}{\\partial \\ln \\alpha} \\right|_{\\alpha=\\alpha_{0}} = S_{\\alpha}^{N} - S_{\\alpha}^{D}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:546e8767471d6b01b20da431",
+      "canonicalType": "Formula",
+      "label": "G_{p}(s)=\\frac{8}{s+8}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:55f9f897588309a58131f832",
+      "canonicalType": "Formula",
+      "label": "\\frac{E(s)}{T_d(s)} = \\frac{G_c(s) G(s)}{1+G_c(s) G(s)} = \\frac{L(s)}{1+L(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:5683cc68fcfdd51b1ae3cd41",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{\\left(K_{1} s+K_{2}\\right) G_{p}(s)}{s^{2}+K_{1} s+K_{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:57fa897ecd8a26ea7ba31050",
+      "canonicalType": "Formula",
+      "label": "\\mathcal{S}_{G}^{T_{cl}} = \\frac{1}{1 + G D_{cl}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:59b89b78d90da7fab2fc4a52",
+      "canonicalType": "Formula",
+      "label": "\\frac{E(s)}{R(s)} = \\frac{1}{1+G_c(s) G(s)} = \\frac{1}{1+L(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7019b8a549878bd2bdda0652",
+      "canonicalType": "Formula",
+      "label": "E(s)=\\frac{1}{1+G_{c}(s) G(s)} R(s)-\\frac{G(s)}{1+G_{c}(s) G(s)} T_{d}(s)+\\frac{G_{c}(s) G(s)}{1+G_{c}(s) G(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:70d6c774fee35ae061b8da42",
+      "canonicalType": "Formula",
+      "label": "E(s) = -\\omega(s) = \\frac{G_2(s)}{1+G_1(s) G_2(s) H(s)} T_d(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:70e59d314040d2b4e69fdff8",
+      "canonicalType": "Formula",
+      "label": "\\Delta E(s) \\approx -\\frac{1}{L(s)} \\frac{\\Delta G(s)}{G(s)} R(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7590937a14c2a08740c8bb5f",
+      "canonicalType": "Formula",
+      "label": "S_{\\alpha}^{T} = S_{G}^{T} S_{\\alpha}^{G}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7d0717eaf461f8e59f8dbdde",
+      "canonicalType": "Formula",
+      "label": "开环传递函数相对变化量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7d3746290c24b2d29639a5a1",
+      "canonicalType": "Formula",
+      "label": "E(s) = -\\omega(s) = \\frac{1}{J s + b + K_m K_b / R_a} T_d(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7dbd771ba9e5593b04a9b3b4",
+      "canonicalType": "Formula",
+      "label": "灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:825cbddf14ff47ac754f0086",
+      "canonicalType": "Formula",
+      "label": "G_{r}(s)=\\frac{1}{G(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8773547a042857fc1dcf6260",
+      "canonicalType": "Formula",
+      "label": "G_{k}(s)=\\frac{a_{2} s^{2}+a_{1} s+K_{v}}{s^{3}\\left(a_{n} s^{n-3}+a_{n-1} s^{n-4}+\\cdots+a_{3}\\right)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:924c833dfbc365196485218f",
+      "canonicalType": "Formula",
+      "label": "G_{k}(s)=\\frac{\\left(a_{2}+a_{1} T\\right) s^{2}+\\left(a_{1}+K_{v} T\\right) s+K_{v}}{s^{3}\\left[a_{n} T s^{n-2}+\\left(a_{n}+a_{n-1} T\\right) s^{n-3}+\\cdots+\\left(a_{3}+a_{2} T\\right)\\right]}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:95ea21b1e4dc307d4bb01ac4",
+      "canonicalType": "Formula",
+      "label": "G_{k}(s)=\\frac{a_{1} s+K_{v}}{s^{2}\\left(a_{n} s^{n-2}+\\cdots+a_{2}\\right)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:96df57bb2dbff4d79f34678d",
+      "canonicalType": "Formula",
+      "label": "\\frac{\\omega_c(\\infty)}{\\omega_0(\\infty)} = \\frac{R_a b + K_m K_b}{K_a K_m K_t}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:9a32ff05616fb7f1561a8af7",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s) G(s) / \\left(1 + G_{c}(s) G(s)\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:9a9dcccdf7138c16988b3b9f",
+      "canonicalType": "Formula",
+      "label": "\\Phi_{e}(s)=\\frac{a_{n} s^{n}+a_{n-1} s^{n-1}+\\cdots+\\left(a_{2}-\\lambda_{2} K_{v}\\right) s^{2}+\\left(a_{1}-\\lambda_{1} K_{v}\\right) s}{s\\left(a_{n} s^{n-1}+a_{n-1} s^{n-2}+\\cdots+a_{2} s+a_{1}\\right)+K_{v}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:9d65f6ce1d1f695715505f5f",
+      "canonicalType": "Formula",
+      "label": "闭环传递函数灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a44ab09ec8a9a1bf40267258",
+      "canonicalType": "Formula",
+      "label": "G_{r}(s) =K_{1} \\frac{\\tau s+1}{T s+1} \\cdot \\beta K_{t} s=\\frac{\\lambda_{2} s^{2}+\\lambda_{1} s}{T s+1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a7545c47d3a8b7eb6274aff0",
+      "canonicalType": "Formula",
+      "label": "F(s)=1+L(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a8797fee39fcc81ddd343909",
+      "canonicalType": "Formula",
+      "label": "\\Delta E(s) \\approx \\frac{-G_{c}(s) \\Delta G(s)}{(1 + L(s))^{2}} R(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a998b40f984e1382f2058b55",
+      "canonicalType": "Formula",
+      "label": "\\omega(\\infty) \\approx \\frac{-R_a}{K_a K_m K_t} D = \\omega_c(\\infty)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ae1ad7c4b94aa739122ede98",
+      "canonicalType": "Formula",
+      "label": "T_{cl} = \\frac{G D_{cl}}{1 + G D_{cl}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:b13b85c2a6ddc005a93741bc",
+      "canonicalType": "Formula",
+      "label": "G_{n}(s)=-\\frac{1}{G_{1}(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c3debd2580ffb9f23a711c82",
+      "canonicalType": "Formula",
+      "label": "L(s)=G_{c}(s) G(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c564facccb4da96fed5ae290",
+      "canonicalType": "Formula",
+      "label": "K_{1}=2 \\zeta_{d} \\omega_{n}=16, \\quad K_{2}=\\omega_{n}^{2}=128",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:cad0114cc24c055f1544cbdb",
+      "canonicalType": "Formula",
+      "label": "T_{ol} + \\delta T_{ol} = D_{ol}(G + \\delta G) = D_{ol} G + D_{ol} \\delta G = T_{ol} + D_{ol} \\delta G",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:cb8b5541926af6e28c1ea0e8",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{128}{s^{2}+16 s+128}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ce681ca68ce10a3154659a30",
+      "canonicalType": "Formula",
+      "label": "\\omega(s) = \\frac{-1}{J s + b + (K_m / R_a)(K_t K_a + K_b)} T_d(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:da3892211175c801ac40d9fb",
+      "canonicalType": "Formula",
+      "label": "\\mathcal{S}_{G}^{T} = \\frac{\\frac{\\delta T_{ol}}{T_{ol}}}{\\frac{\\delta G}{G}} = \\frac{G}{T_{ol}} \\frac{\\delta T_{ol}}{\\delta G}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:daa2997914f79cb93172e95f",
+      "canonicalType": "Formula",
+      "label": "E(s)=R(s)-Y(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:dc3df6410969dd6cf1854ffe",
+      "canonicalType": "Formula",
+      "label": "G^{-1}(0)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:df018a40b79b95855f8f7338",
+      "canonicalType": "Formula",
+      "label": "\\lambda_{1}=\\frac{a_{1}}{K_{v}}, \\quad \\lambda_{2}=\\frac{a_{2}+a_{1} T}{K_{v}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:dfa8bea055789beccabf23c7",
+      "canonicalType": "Formula",
+      "label": "E_{n}(s)=-C_{n}(s)=-\\frac{G_{2}(s)\\left[1+G_{1}(s) G_{n}(s)\\right]}{1+G_{1}(s) G_{2}(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:e2f5136fc3d4b6e9ee7379d9",
+      "canonicalType": "Formula",
+      "label": "S = \\frac{\\partial T / T}{\\partial G / G} = \\frac{\\partial \\ln T}{\\partial \\ln G}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:e9d2c81b7d1e9d7112b3c847",
+      "canonicalType": "Formula",
+      "label": "\\mathcal{S} + \\mathcal{T} = 1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:eaa320c4eefabddd04624a14",
+      "canonicalType": "Formula",
+      "label": "E(s) \\approx \\frac{1}{G_1(s) H(s)} T_d(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:efc012b499ae5012fe47291a",
+      "canonicalType": "Formula",
+      "label": "S_G^T = \\frac{1}{1+G_c(s) G(s)} = \\frac{1}{1+L(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f59424e65b0e5fb98071417e",
+      "canonicalType": "Formula",
+      "label": "C_{n}(s)=\\frac{G_{2}(s)\\left[1+G_{1}(s) G_{n}(s)\\right]}{1+G_{1}(s) G_{2}(s)} N(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f7855ef9a1ae591ace10875e",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{16(s+8)}{s^{2}+16 s+128}=\\frac{\\omega_{n}^{2}}{z} \\cdot \\frac{s+z}{s^{2}+2 \\zeta_{d} \\omega_{n} s+\\omega_{n}^{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:fac5a373bba7ffe3a61c2234",
+      "canonicalType": "Formula",
+      "label": "S(s)=\\frac{1}{F(s)}=\\frac{1}{1+L(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ff88b7bc15d50326fea56ed3",
+      "canonicalType": "Formula",
+      "label": "\\beta=\\frac{a_{1}}{K_{1} K_{t} K_{v}}, \\quad K_{1}=\\frac{a_{2}+a_{1} T}{K_{t} K_{v} \\beta \\tau}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:072661ffd43a07f33f595cbf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback reduces sensitivity by factor of loop gain",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:09f88576763fed614ce5dec9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Providing feedforward of the control based on plant inverse DC gain eliminates steady-state errors due to command inputs.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0bb886c87805d241cd0d6d08",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题：Disturbances, when measurable, can be used for feedforward control to cancel their effect.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0cc5af830c384103fbcf8ce3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Many control specifications are expressed in terms of step response, making sensitivity of time response to parameter changes a useful analysis tool.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0e4fb7c26b958724217e0e58",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Since many control specifications are in terms of the step response, the sensitivity of the time response to parameter changes is sometimes very useful to explore.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Frequency-Dependent Loop Gain Design Strategy",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:28073cae1e93887ae5c020d6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "复合控制提高系统准确度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:2bcea9de1af95a1d125309d4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Setting G_c(s)G(s)=1 by making G_c(s) the inverse of G(s) is not advisable in practice due to unmodeled dynamics and parameter uncertainty.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:2d784aa73a131ed9491865ad",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最小节拍响应特征",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:2f22d34d3f4b9f209cf4e39e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Small Loop Gain Attenuates Measurement Noise",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:3078c0f5b91b6e7303117690",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：The sensor is often the most expensive component in a control system",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:3738318f1da6f2fbcd695418",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Large Loop Gain for Disturbance Rejection",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:3ca3a21608d3f01006a4137a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Closed-loop system may be unstable even if open-loop system is stable",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:427bca8d87f1e2bfcc6429f8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题：Feedforward provides the control effort required for the desired command input, while feedback handles differences between the real plant and the model plus disturbances.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:44d2db0186a50374e2afa756",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Closed-Loop Sensitivity Equals Sensitivity Function",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Design Compromise Between Sensitivity and Complementary Sensitivity",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:4bb5ca53c13a90f2476294e4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前馈补偿提高系统型别至III型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:4fc9b70be0c41a533f1c5a99",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前馈补偿装置参数稳定性要求",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:507b946207d4a8dbbd43c392",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：S and T are fundamental for feedback design",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "灵敏度互补关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:535da39bced2f934e6691ee4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Open-loop control using process inversion is not advisable in practice",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Frequency Separation Design Principle",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6a2be27177d54be7d5845245",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback Reduces Effect of Parameter Variations",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6a795567f9d3cbe56d7c0239",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Measurement Noise Attenuation via Small Loop Gain",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6a7a214f144091a45fadb4c9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：High loop gain reduces sinusoidal error",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Trade-off between Disturbance Rejection and Noise Attenuation",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6d58d4a87e4c48a479491896",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Small Loop Gain for Noise Attenuation",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6f439374d5396922504d14e6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Frequency-Dependent Loop Gain Design for Disturbance Rejection and Noise Attenuation",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:70047bf3b7c7b92db2e9757b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Large Loop Gain Causes Oscillatory Response",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7185f792ea12cf829edbe718",
+      "canonicalType": "KnowledgeStatement",
+      "label": "开环灵敏度等于一",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8a96ed2f8ebfa2af4b1d6d9a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "复合控制中扰动补偿原则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8bdf3a740add2c9d3b96853b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前馈补偿不改变反馈系统特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8c5ab8c546b0982f1b839071",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：The gain reduction factor 1/(1+G_c(s)G(s)) is the same factor that reduces sensitivity to parameter variations and disturbances.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:90c02f30817f688609b35ced",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前置滤波器消除零点影响",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:97e1c512fe26064c4a4b11cd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback introduces additional components and complexity",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a166d67455f9d64b010c4274",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Closed-Loop Allows Less Accurate Plant Specification",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:aa33bc7b05d44d2d908e98e2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前馈补偿不影响系统稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:b98f4a91b744fdd297c437dc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "参数选择使等效系统成为III型系统的充分条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:c2ab38356a7715a85ff23dc8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback reduces loop gain",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:c458e846e8ebf3b22e68c7a4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "误差全补偿条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:c8c00c07877fcbfb582cd7d4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Large Loop Gain Reduces Disturbance Influence",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ce72b640392aba1cc5d1be79",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Process parameters may be uncertain or vary with time",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d056410d71056e24a8e3ee7d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Large Loop Gain Reduces Tracking Error Change",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d13ae649a48dd8b9baca8a51",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback design must consider additional complexity and stability",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d804fc6cd68896cc78caf09c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "减小T值以降低动态性能影响",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:e1813326f8427fff6ff0be00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "复合校正解决精度与稳定性矛盾",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:e20ee8b02a158d67916e1eec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Despite the costs of feedback (complexity, loss of gain, instability), the advantages far outweigh the disadvantages for most cases, making feedback systems desirable.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:e2e2bdc9c2b97bab5c08f871",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Disturbance Rejection via Large Loop Gain",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f06831e5aa15c1df45a8d9e9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Open-loop sensitivity equals 1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f082b39a3f337c8d548a1de4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前馈补偿提高系统型别",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f1504ca60e5a18c724414122",
+      "canonicalType": "KnowledgeStatement",
+      "label": "误差全补偿条件物理实现困难",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f41b02d8158b67652e020d18",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback Reduces Sensitivity to Parameter Variations",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f44d6f0f6f193589e9fdedd1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Feedback Reduces Sensitivity to Plant Variations",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f738ea80afdf3f1e7fddcb15",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最小节拍系统设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f8c36008b0390cea6989e59c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "寄生因式极点对系统动态性能的影响",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ff4d3f58873cce5bedc28288",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Closed-Loop Feedback Reduces Disturbance Effect",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2i:source-object:49c3ac805ddb91639360a025",
+      "canonicalType": "Formula",
+      "label": "最坏情况被控对象传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:09a4d34ede5a20c32cf327a3",
+      "canonicalType": "Formula",
+      "label": "加性摄动鲁棒稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:128dbaee7c1e4ae8c3e26a52",
+      "canonicalType": "Formula",
+      "label": "灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:333b4eccaaba394db05c3cc8",
+      "canonicalType": "DomainConcept",
+      "label": "鲁棒控制系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:346fd894a2c3cc5fc66ca767",
+      "canonicalType": "Formula",
+      "label": "系统灵敏度与根灵敏度的关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:363faba0924a6c24e4cb3c1c",
+      "canonicalType": "Formula",
+      "label": "乘性摄动的鲁棒稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:36751393b1b483d25904a89c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鲁棒性定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:4d2e1a9956142ebb053cbd71",
+      "canonicalType": "Formula",
+      "label": "灵敏度与补灵敏度函数之和为1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:5e99209aab3d9d3805fcba5a",
+      "canonicalType": "Formula",
+      "label": "补灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:842aa4cce5d679e7dc3390e6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鲁棒控制系统设计目标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:875ce0768128aea8a8f4a204",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鲁棒稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:90cacda823ed918e9d9d2e68",
+      "canonicalType": "Formula",
+      "label": "根灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:9a1d9d4a4afbdaa54afbdbe6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "乘性摄动的性质",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:a6cb408c837941b9b3722dcb",
+      "canonicalType": "Formula",
+      "label": "加性摄动模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:ab88168f8394aee0c6460706",
+      "canonicalType": "KnowledgeStatement",
+      "label": "模型不准确性的来源",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:ae382d12eced4568d9407844",
+      "canonicalType": "Formula",
+      "label": "乘性摄动模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:c917b49a88e4aea2003ea698",
+      "canonicalType": "Formula",
+      "label": "系统灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:cb54398b3537c7e253fc3e10",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鲁棒控制系统定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:canonical-object:ec98e6bbda70421331b88be9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "小参数摄动的灵敏度鲁棒性度量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:1c127fa27aaa5a7007523cbb",
+      "canonicalType": "Formula",
+      "label": "对G(s)的灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:5e6fc6b518531f3fe4be5609",
+      "canonicalType": "ModelRepresentation",
+      "label": "灵敏度与补灵敏度伯德图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:60559f2ace7bf82c2e71d22f",
+      "canonicalType": "SystemModel",
+      "label": "含不确定性的闭环控制系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:69a83bd6e26ccfd01dd051e4",
+      "canonicalType": "Formula",
+      "label": "鲁棒稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:8dec43492b6bb5c7f884f8a0",
+      "canonicalType": "Formula",
+      "label": "系统灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:cec75b55995b84a000aec445",
+      "canonicalType": "Formula",
+      "label": "M(jω)的幅值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:d6e50367ffbed99bf79fb6c5",
+      "canonicalType": "Formula",
+      "label": "未建模极点对应的乘性摄动",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:dedc9738595d9f98b9f94bd4",
+      "canonicalType": "Formula",
+      "label": "一阶系统灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:canonical-object:04abc5818c5db8191aeb71f3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "扰动影响最小化目标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:canonical-object:7731e49138bfa9f0c952e1dc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最坏情况多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:canonical-object:7b455f3e86ee7178bcba26f6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鲁棒控制设计目标",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:3663593e71d5647a9f735d7f",
+      "canonicalType": "Formula",
+      "label": "根灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:4542bc9df696fdcfe78bd9a8",
+      "canonicalType": "Formula",
+      "label": "四个最坏情况多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:6b6581ea130fed1b5d227ac5",
+      "canonicalType": "Formula",
+      "label": "不确定参数特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:7eb25adadb41b495982ccb5b",
+      "canonicalType": "Formula",
+      "label": "T(s)对G(s)的灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:89665f26a72f66c6a6afff6a",
+      "canonicalType": "Formula",
+      "label": "扰动传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:bd2dde5ba6fb1fc7cc28e7d6",
+      "canonicalType": "Formula",
+      "label": "系数界限",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:ebfa3aa64b2f405df2d8bad1",
+      "canonicalType": "Formula",
+      "label": "穿越频率处灵敏度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:ec3c4df3eaf64ada1b279c0f",
+      "canonicalType": "Formula",
+      "label": "灵敏度幅值（由闭环传递函数与回路增益计算）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:01da79739fa05a876f7ee401",
+      "canonicalType": "Formula",
+      "label": "根灵敏度表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:1705e6ba04d3c3e36ada2d64",
+      "canonicalType": "Formula",
+      "label": "灵敏度函数幅值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:86995273f5e35a2527edffb5",
+      "canonicalType": "Formula",
+      "label": "灵敏度幅值计算",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:986a0736dc2b06ddf1e785c9",
+      "canonicalType": "DomainConcept",
+      "label": "鲁棒设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:98f12df04fdd8c3902416e66",
+      "canonicalType": "Formula",
+      "label": "复根时根灵敏度幅值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:f6b369c71fc2167b31f4b849",
+      "canonicalType": "Formula",
+      "label": "最坏情况被控对象传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2r:canonical-object:37f52a59ccdbaf82a6634501",
+      "canonicalType": "Formula",
+      "label": "补灵敏度函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2s:canonical-object:7febaf558a5823adb3cef00e",
+      "canonicalType": "Formula",
+      "label": "乘性不确定性表示",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2s:canonical-object:961ae2a671493c0b506f3b3d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "小增益定理鲁棒稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2s:source-object:31791c09a15222cd36ae750a",
+      "canonicalType": "Formula",
+      "label": "时延稳定鲁棒性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2u:source-object:6b70b8e5aa2f73ae6e8d150d",
+      "canonicalType": "Formula",
+      "label": "M 与 W 的严格幅值不等式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2u:source-object:882fe815e145150445a78f78",
+      "canonicalType": "KnowledgeStatement",
+      "label": "有界时延不确定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:15eb09f5651e8de43c09ebbe",
+      "canonicalType": "ModelRepresentation",
+      "label": "用于抑制扰动的前馈控制结构",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:5e76afd7ab1f94cb2b8df1e6",
+      "canonicalType": "ModelRepresentation",
+      "label": "按扰动补偿的复合控制系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:680d23ec58dff7980823182b",
+      "canonicalType": "ModelRepresentation",
+      "label": "按输入补偿的复合控制系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:a06ca8dcabff155b3a58ceb2",
+      "canonicalType": "ModelRepresentation",
+      "label": "复合控制系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:fe456ca299e96b04f5194cff",
+      "canonicalType": "ModelRepresentation",
+      "label": "带前置滤波器的控制系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement:m1p-v6r-root-locus-closed-loop-stability-parameter-variation",
+      "canonicalType": "KnowledgeStatement",
+      "label": "适用性：Root Locus analysis of Closed-loop Stability under Parameter Variation",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}
