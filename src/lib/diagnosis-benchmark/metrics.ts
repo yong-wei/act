@@ -71,6 +71,18 @@ export function computeScenarioMetrics(
   const primaryHits = successful.map((entry) => (
     groundTruth.primaryWeakNode !== null && entry.primaryReportedNode === groundTruth.primaryWeakNode
   ));
+  // 治理合规率只以成功 replicate 为分母（Issue #1749）：被治理门拒绝是
+  // 治理生效的证明，由 generationSuccessRate 计数，不得再把合规率拉低；
+  // 违规细节保留在 replicate 记录的 failureReason 中可审计。
+  // 无成功 replicate 的场景记 1（无输出即无违规输出）。
+  const governed = successful.length === 0
+    ? { chinese: 1, refs: 1, attribution: 1, coverage: 1 }
+    : {
+        chinese: rate(successful.map((entry) => entry.chineseCompliant)),
+        refs: rate(successful.map((entry) => entry.evidenceRefsValid)),
+        attribution: rate(successful.map((entry) => entry.attributionValid)),
+        coverage: rate(successful.map((entry) => entry.coverageClaimAccurate)),
+      };
   return {
     scenarioId: scenario.id,
     precision: mean(precisions),
@@ -81,10 +93,10 @@ export function computeScenarioMetrics(
     healthyFalsePositiveRate: groundTruth.trueWeakNodes.length > 0
       ? null
       : round4(successful.reduce((sum, entry) => sum + entry.reportedNodes.length, 0) / (scenario.nodeCount * Math.max(successful.length, 1))),
-    chineseComplianceRate: rate(evaluations.map((entry) => entry.chineseCompliant)),
-    evidenceReferenceValidityRate: rate(evaluations.map((entry) => entry.evidenceRefsValid)),
-    attributionValidityRate: rate(evaluations.map((entry) => entry.attributionValid)),
-    coverageClaimAccuracyRate: rate(evaluations.map((entry) => entry.coverageClaimAccurate)),
+    chineseComplianceRate: governed.chinese,
+    evidenceReferenceValidityRate: governed.refs,
+    attributionValidityRate: governed.attribution,
+    coverageClaimAccuracyRate: governed.coverage,
     generationSuccessRate: rate(evaluations.map((entry) => entry.status === 'ok')),
     replicateCount: evaluations.length,
   };
