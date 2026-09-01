@@ -9,65 +9,19 @@ import {
   type AiTaskCandidate,
 } from '@/lib/ai-task-boundary-contracts';
 import type { AiWorkshopEvidenceProjection } from './ai-workshop-evidence';
+import type {
+  AiTaskItem,
+  AiWorkshopCollections,
+} from './ai-workshop-collections';
 import { LearningDashboard } from './dashboard/learning-dashboard';
 import { LearningCompass } from './compass/learning-compass';
 import { TaskMatrix } from './tasks/task-matrix';
 import { ExperimentArchive } from './archive/experiment-archive';
 import { JournalCarousel } from './journal/journal-carousel';
 
-export interface MilestoneData {
-  id: string;
-  title: string;
-  description?: string;
-  order: number;
-  status: 'PENDING' | 'CURRENT' | 'COMPLETED';
-  completedAt?: Date;
-}
-
-export interface AchievementData {
-  id: string;
-  badgeType: string;
-  title: string;
-  description: string;
-  icon: string;
-  earnedAt: Date;
-}
-
-export interface TaskData {
-  id: string;
-  title: string;
-  category: 'theory' | 'simulation' | 'ethics';
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  progress: number;
-  estimatedTime: number;
-  status: 'locked' | 'available' | 'in_progress' | 'completed';
-}
-
-export interface ExperimentRecord {
-  id: string;
-  title: string;
-  type: 'PID_TUNING' | 'ETHICS_SANDBOX' | 'ANOMALY_EVENT';
-  score: number;
-  createdAt: Date;
-  parameters: Record<string, unknown>;
-}
-
-export interface JournalEntryData {
-  id: string;
-  title: string;
-  content: string;
-  entryType: 'ETHICS_DECISION' | 'CERTIFICATE' | 'COMPETITION' | 'TRAINING';
-  grade?: string;
-  createdAt: Date;
-}
-
 interface PersonalLearningCenterProps {
   evidence: AiWorkshopEvidenceProjection;
-  milestones?: MilestoneData[];
-  achievements?: AchievementData[];
-  tasks?: TaskData[];
-  experiments?: ExperimentRecord[];
-  journals?: JournalEntryData[];
+  collections: AiWorkshopCollections;
   userName?: string;
   taskIntent?: string;
   taskSource?: string;
@@ -77,18 +31,14 @@ interface PersonalLearningCenterProps {
 
 export function PersonalLearningCenter({
   evidence,
-  milestones = [],
-  achievements = [],
-  tasks = [],
-  experiments = [],
-  journals = [],
+  collections,
   userName = '学习者',
   taskIntent,
   taskSource,
   taskAssignment,
   taskContextIntent,
 }: PersonalLearningCenterProps) {
-  const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
+  const [selectedTask, setSelectedTask] = useState<AiTaskItem | null>(null);
   const [reportTaskSelection, setReportTaskSelection] = useState<{
     status: 'candidate' | 'adopted' | 'discarded' | 'pending-writeback';
     candidateId?: string;
@@ -135,12 +85,12 @@ export function PersonalLearningCenter({
         />
       ) : null}
       <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto md:flex-row md:overflow-hidden">
-        <LearningCompass milestones={milestones} evidence={evidence} />
+        <LearningCompass collection={collections.milestones} evidence={evidence} />
         <div className="flex flex-1 flex-col overflow-hidden">
-          <TaskMatrix tasks={tasks} achievements={achievements} evidence={evidence} selectedTask={selectedTask} onTaskSelect={setSelectedTask} />
-          <JournalCarousel journals={journals} evidence={evidence} />
+          <TaskMatrix tasks={collections.tasks} achievements={collections.achievements} selectedTask={selectedTask} onTaskSelect={setSelectedTask} />
+          <JournalCarousel collection={collections.journals} />
         </div>
-        <ExperimentArchive experiments={experiments} evidence={evidence} />
+        <ExperimentArchive collection={collections.experiments} />
       </div>
     </div>
   );

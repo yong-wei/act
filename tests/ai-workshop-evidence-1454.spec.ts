@@ -13,17 +13,33 @@ for (const viewport of [
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await establishAuthenticatedSession(page.context());
     const response = await page.goto('/ai', { waitUntil: 'domcontentloaded' });
+    // 页面经 Suspense 流式渲染：等待流结束，避免隐藏的未揭示段被计入定位。
+    await page.waitForLoadState('networkidle');
 
     expect(response?.status()).toBe(200);
     const metricValues = await page.locator('[data-ai-workshop-metric]').allTextContents();
     expect(metricValues).not.toEqual(expect.arrayContaining(['0', '0%']));
     expect(metricValues.some((value) => value.trim() === '0' || value.trim() === '0%' || value.trim().startsWith('0 '))).toBe(false);
     await expect(page.locator('[data-ai-workshop-metric="experiment-count"]')).not.toHaveText(/^0$/);
-    await expect(page.locator('[data-ai-workshop-action="milestones"]')).toHaveAttribute('href', '/interactive-learning');
-    await expect(page.locator('[data-ai-workshop-action="achievements"]')).toHaveAttribute('href', '/interactive-learning');
-    await expect(page.locator('[data-ai-workshop-action="tasks"]')).toHaveAttribute('href', '/interactive-learning');
-    await expect(page.locator('[data-ai-workshop-action="experiments"]')).toHaveAttribute('href', '/arena');
-    await expect(page.locator('[data-ai-workshop-action="journals"]')).toHaveAttribute('href', '/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create');
+    // Issue #1756：集合状态由服务端受治理投影决定。可用集合渲染真实记录，
+    // 空态/不可用集合才渲染邻近行动；两种形态都验证契约。
+    const expectedActions = {
+      milestones: '/interactive-learning',
+      achievements: '/interactive-learning',
+      tasks: '/interactive-learning',
+      experiments: '/arena',
+      journals: '/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create',
+    } as const;
+    for (const [name, href] of Object.entries(expectedActions)) {
+      const panel = page.locator(`[data-ai-workshop-collection="${name}"]`);
+      const state = await panel.getAttribute('data-ai-workshop-collection-state');
+      expect(['available', 'empty', 'unavailable']).toContain(state);
+      if (state === 'available') {
+        await expect(panel.locator(`[data-ai-workshop-empty="${name}"]`)).toHaveCount(0);
+      } else {
+        await expect(page.locator(`[data-ai-workshop-action="${name}"]`)).toHaveAttribute('href', href);
+      }
+    }
     await expect(page.locator('[data-ai-workshop-source-coverage]')).toContainText('来源覆盖');
     const journalHref = await page.locator('[data-ai-workshop-action="journals"]').getAttribute('href');
     expect(journalHref).toBe('/ai/copilot?context=portfolio-reflection&source=learning-journal&intent=create');
@@ -32,12 +48,16 @@ for (const viewport of [
     await expect(page.getByText('已创建作品集反思草稿候选。', { exact: true })).toBeVisible();
     await expect(page.getByText('打开作品集候选预览', { exact: true })).toBeVisible();
     await page.goto('/ai', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle');
     await page.locator('nextjs-portal').evaluateAll((portals) => {
       portals.forEach((portal) => {
         (portal as HTMLElement).style.display = 'none';
       });
     });
-    await expect(page.locator('[data-ai-workshop-empty="tasks"]')).toBeVisible();
+    const tasksPanel = page.locator('[data-ai-workshop-collection="tasks"]');
+    if ((await tasksPanel.getAttribute('data-ai-workshop-collection-state')) !== 'available') {
+      await expect(page.locator('[data-ai-workshop-empty="tasks"]')).toBeVisible();
+    }
     await expect(page.locator('text=120 分钟')).toHaveCount(0);
     await expect(page.locator('text=85%')).toHaveCount(0);
 
