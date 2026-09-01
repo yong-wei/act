@@ -98,4 +98,35 @@ describe('POST /api/ai/intervention/generate Arena context', () => {
     expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
     expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
   });
+
+  it('rejects retired companion identities even when arenaTaskId and method are omitted', async () => {
+    const response = await postJson({
+      studentState,
+      courseId: 'simulation-companion',
+      pageId: 'arena-companion:task-third-order-block-diagram',
+      resourceId: 'arena-companion:task-third-order-block-diagram',
+      pathNodeId: 'ai-companion:arena-companion:task-third-order-block-diagram',
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
+    expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
+  });
+
+  it('still generates interventions outside Arena companion identity', async () => {
+    const response = await postJson({
+      studentState,
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.verifyKonlingRuntimeScope).toHaveBeenCalled();
+    expect(mocks.createGovernedKonlingIntervention).toHaveBeenCalled();
+  });
 });

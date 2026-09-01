@@ -13892,6 +13892,33 @@ describe('konling agent runtime', () => {
     expect(db.konlingMemory.create).not.toHaveBeenCalled();
   });
 
+  it('fails closed when the runtime scope uses retired companion identity without arenaContext', async () => {
+    const scope = createScope({
+      courseId: 'simulation-companion',
+      pageId: 'arena-companion:task-third-order-block-diagram',
+      resourceId: 'arena-companion:task-third-order-block-diagram',
+      pathNodeId: 'ai-companion:arena-companion:task-third-order-block-diagram',
+    });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+    };
+
+    await expect(createGovernedKonlingIntervention(db, {
+      scope,
+      studentState: createStudentState(),
+      now: new Date('2026-05-28T00:00:00Z'),
+    })).rejects.toThrow('Arena 受治理干预不能由客户端尝试状态创建');
+    expect(db.aIIntervention.findFirst).not.toHaveBeenCalled();
+    expect(db.aIIntervention.create).not.toHaveBeenCalled();
+    expect(db.konlingMemory.create).not.toHaveBeenCalled();
+  });
+
   it('does not persist no-op interventions or feedback outside the current scope', async () => {
     const scope = createScope();
     const db = {

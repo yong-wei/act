@@ -120,6 +120,30 @@ const methodDefinitions: Record<ControllerMethod, MethodCompanionDefinition> = {
   },
 };
 
+const CLIENT_AUTHORED_ARENA_COMPANION_COURSE_ID = 'simulation-companion';
+const CLIENT_AUTHORED_ARENA_COMPANION_ID_PREFIXES = [
+  'arena:',
+  'arena-companion:',
+  'arena-official:',
+  'ai-companion:',
+] as const;
+
+export function isClientAuthoredArenaCompanionScope(input: {
+  courseId?: string | null;
+  pageId?: string | null;
+  resourceId?: string | null;
+  pathNodeId?: string | null;
+  arenaTaskId?: string | null;
+  method?: string | null;
+}): boolean {
+  if (input.arenaTaskId || input.method) return true;
+  if (input.courseId === CLIENT_AUTHORED_ARENA_COMPANION_COURSE_ID) return true;
+  return [input.pageId, input.resourceId, input.pathNodeId].some((value) => (
+    typeof value === 'string'
+    && CLIENT_AUTHORED_ARENA_COMPANION_ID_PREFIXES.some((prefix) => value.startsWith(prefix))
+  ));
+}
+
 function requireTask(taskId: string) {
   const task = getArenaChallengeTask(taskId);
   if (!task) {

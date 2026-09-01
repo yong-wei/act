@@ -12,6 +12,7 @@ import {
   type StudentState,
 } from '@/features/personalization/interventions/public-api';
 import type { ControllerMethod } from '@/features/arena/types';
+import { isClientAuthoredArenaCompanionScope } from '@/features/ai/companion/arena-companion-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as GenerateRequest;
-    if (body.arenaTaskId || body.method) {
+    if (isClientAuthoredArenaCompanionScope(body)) {
       return NextResponse.json(
         { error: '竞技场受治理陪伴只能由正式评测提交创建' },
         { status: 400 },
