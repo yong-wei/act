@@ -659,7 +659,8 @@ export function sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId: stri
 export function getCheckpointAuthoredQuestionRecordByRuntimeId(
   questionId: string,
 ): CheckpointAuthoredQuestionRecord | null {
-  const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(questionId);
+  const trimmed = questionId.trim();
+  const sourceId = sourceIdFromCheckpointAuthoredQuestionRuntimeId(trimmed) ?? trimmed;
   if (!sourceId) return null;
   return REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS.find((record) => record.id === sourceId)
     ?? REVIEWED_TERMINAL_VALIDATION_QUESTIONS.find((record) => record.id === sourceId)

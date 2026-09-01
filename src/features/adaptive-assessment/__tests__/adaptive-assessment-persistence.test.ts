@@ -340,6 +340,8 @@ describe('K/A/Q adaptive assessment persistence', () => {
     expect(authoredCheckpoint).toBeTruthy();
     const runtimeQuestionId = checkpointAuthoredQuestionRuntimeId(authoredCheckpoint!.id);
     const question = getAdaptiveQuestionById(runtimeQuestionId);
+    expect(getAdaptiveQuestionById(authoredCheckpoint!.id)).toEqual(question);
+    expect(question?.id).toBe(runtimeQuestionId);
     const db = createMockDb([question!.id]);
     expect(question).toBeTruthy();
     const correctOptionText = question!.options.find((option) => option.isCorrect)?.text;

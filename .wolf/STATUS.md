@@ -10,7 +10,7 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
-- 2026-09-01：#1032 在 `act-dev1` 完成 Next 16.3.4 / Prisma 7.10.0 / Sharp 0.35.4 安全刷新。官方 audit 0 findings。Linux/amd64 `BUILD_SCOPE=app-only` 镜像 `sha256:acab1212…` 已在可处置 Postgres/Redis 上验证 migrate、app、worker、scheduler、Sharp/PDF 与登录路径。未生产部署。待 archive、PR 进 `integration`、Codex 清场后合入，并关 #1032/#1035/#291；不要关 #1033。
+- 2026-09-01：#1032 已合入 `origin/integration`（PR #1752，merge `2ead59506`）。Next 16.3.4 / Prisma 7.10.0 / Sharp 0.35.4；官方 audit 0 findings。OpenSpec 已归档。已关 #1032/#1035/#291；#1033 仍开。未生产部署。
 
 - 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。PR #1727 已落地 live overlay loader。旧三条 P1 已修并 resolve；第二轮 P1（领域投影哈希、失败不发布 success receipt）已修，待新 HEAD Codex 清场。未合入带 overlay 的应用前不得在现网 apply domain-fragments。6.5–6.7 未勾，未 archive，未关 #1683。
 
@@ -71,7 +71,7 @@
 
 ## 🚀 Next phase
 
-- 2026-09-01：#1032 实现与可处置镜像验证已完成。下一步：同一 PR archive OpenSpec、推送 `apply-stable-next-16-3-and-prisma-7-10-security-updates`、请求 `@codex review`、清场后合入 `origin/integration`。合入后关 #1032、#1035、#291；不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。不要认领 1739+ 图谱系列。
+- 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：PR #1727 新 HEAD 清场后合入 `origin/integration`，再合 main、发 `v0.6.1`、`deploy:app --skip-build`，停服只 overlay（含必填 domain-fragments 且校验领域投影哈希），再验 6.5–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
 
