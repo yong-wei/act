@@ -500,7 +500,7 @@ export async function loadAndValidateRelease(options: {
   lineageClaims?: LineageClaims;
   captureRevision?: string;
 } = {}): Promise<ValidatedRelease> {
-  const root = path.resolve(options.root ?? process.cwd());
+  const root = path.resolve(/*turbopackIgnore: true*/ options.root ?? process.cwd());
   const lockPath = path.join(root, HISTORICAL_RELEASE_SET_LOCK_PATH);
   const lockBytes = await readFile(lockPath);
   const lock = object(JSON.parse(lockBytes.toString('utf8')), 'release-set lock') as unknown as ReleaseSetLock;
@@ -512,14 +512,14 @@ export async function loadAndValidateRelease(options: {
   const entry = lock.releases.find((candidate) => candidate.release_id === releaseId);
   if (!entry) fail(`release ${releaseId} is not explicitly locked`);
 
-  const controlledDirectory = path.join(root, entry.controlled_path);
+  const controlledDirectory = path.join(/*turbopackIgnore: true*/ root, entry.controlled_path);
   const requestedDirectory = path.resolve(root, options.releasePath ?? entry.controlled_path);
-  if (await realpath(requestedDirectory) !== await realpath(controlledDirectory)) fail('requested package path is not the controlled locked path');
-  const releasePath = path.join(requestedDirectory, `${entry.release_version}.json`);
+  if (await realpath(/*turbopackIgnore: true*/ requestedDirectory) !== await realpath(/*turbopackIgnore: true*/ controlledDirectory)) fail('requested package path is not the controlled locked path');
+  const releasePath = path.join(/*turbopackIgnore: true*/ requestedDirectory, `${entry.release_version}.json`);
   const schemaPath = path.join(requestedDirectory, 'ctkg.schema.json');
   const notesPath = path.join(requestedDirectory, 'RELEASE-NOTES.md');
   const [releaseBytes, schemaBytes, notesBytes] = await Promise.all([
-    readFile(releasePath),
+    readFile(/*turbopackIgnore: true*/ releasePath),
     readFile(schemaPath),
     readFile(notesPath),
   ]);

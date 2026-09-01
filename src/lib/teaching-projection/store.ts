@@ -167,15 +167,15 @@ export function stagedProjectionNormalizedBytes(
   ] as const;
   const out: Record<string, string> = {};
   for (const name of names) {
-    const full = join(releaseDir, name);
-    if (!existsSync(full)) {
+    const full = join(/*turbopackIgnore: true*/ releaseDir, name);
+    if (!existsSync(/*turbopackIgnore: true*/ full)) {
       throw new TeachingProjectionBuildError(
         'missing-artifact',
         `missing staged artifact ${name}`,
       );
     }
     if (name.endsWith('.jsonl')) {
-      out[name] = readFileSync(full, 'utf8');
+      out[name] = readFileSync(/*turbopackIgnore: true*/ full, 'utf8');
     } else {
       // Re-canonicalize object files for hash comparison.
       out[name] = `${projectionCanonicalJson(readJsonFile(full))}\n`;
@@ -288,7 +288,7 @@ export function stageTeachingProjectionArtifacts(
     'impact-report.json',
     'gate.json',
   ]) {
-    fileHashes[name] = fileSha256(join(dir, name));
+    fileHashes[name] = fileSha256(join(/*turbopackIgnore: true*/ dir, name));
   }
 
   return {
@@ -347,7 +347,7 @@ export function loadStagedTeachingProjection(
     'impact-report.json',
     'gate.json',
   ]) {
-    fileHashes[name] = fileSha256(join(dir, name));
+    fileHashes[name] = fileSha256(join(/*turbopackIgnore: true*/ dir, name));
   }
 
   return {

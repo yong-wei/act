@@ -43,7 +43,7 @@ function stageRemotePublishingModules(sshTarget: string, revision: string): {
   const remoteContentHash = ssh(sshTarget, [
     'python3 - <<\'PY\'',
     'import hashlib, os',
-    f'root = {JSON.stringify(`${remoteDir}/tools/teaching-projection-publishing`)}',
+    `root = ${JSON.stringify(`${remoteDir}/tools/teaching-projection-publishing`)}`,
     'entries = []',
     'for dirpath, dirnames, filenames in os.walk(root):',
     '    for name in filenames:',

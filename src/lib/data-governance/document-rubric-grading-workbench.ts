@@ -1541,7 +1541,7 @@ function buildStudentGradingFeedbackActionCards(
 
 async function markItDownCliRunner(asset: DocumentSubmissionAsset): Promise<MarkItDownRunnerResult> {
   const workdir = await mkdtemp(join(tmpdir(), 'act-markitdown-'));
-  const inputPath = join(workdir, sanitizeFileName(asset.fileName));
+  const inputPath = join(/*turbopackIgnore: true*/ workdir, sanitizeFileName(asset.fileName));
   try {
     await writeFile(inputPath, decodeSubmissionBytes(asset.bytes, asset.contentEncoding));
     const command = process.env.MARKITDOWN_COMMAND ?? 'uvx';

@@ -200,7 +200,7 @@ export async function loadTextbookCatalog(input: {
   authorizeTextbookAccess(input);
   const runtimeRoot = input.runtimeRoot ?? DEFAULT_RUNTIME_ROOT;
   try {
-    const bookIds = (await readdir(runtimeRoot, { withFileTypes: true }))
+    const bookIds = (await readdir(/*turbopackIgnore: true*/ runtimeRoot, { withFileTypes: true }))
       .filter((entry) => (
         entry.isDirectory()
         && SAFE_BOOK_ID.test(entry.name)

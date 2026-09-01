@@ -60,24 +60,16 @@ This keeps low-risk dependency refresh work from treating known warnings as loca
 
 ## Current Residual Findings
 
-The approved security audit residual findings are the Next-owned bundled PostCSS advisory owned by #261 and the Prisma-owned Hono advisory record owned by #291.
+The official-registry audit of the committed lockfile currently reports zero moderate-or-higher findings, so `docs/security/dependency-audit-allowlist.json` has no security-exception entries.
 
-Next/PostCSS residuals:
+Resolved by the 2026-09-01 compatible batch (#1032):
 
-- `next` at `node_modules/next`
-- `postcss` at `node_modules/next/node_modules/postcss`
+- Next `16.3.4` with PostCSS `8.5.23` and Sharp `0.35.4` removed the production Next/PostCSS/Sharp highs owned by #1035.
+- Prisma CLI/client/adapter `7.10.0` with `@prisma/dev@0.24.17` removed the Prisma/Hono path owned by #291 and installed patched `find-my-way@9.7.0`.
+- A nested override of `@prisma/config` → `deepmerge-ts@8.0.2` removed `GHSA-ggr8-5vv4-36mx`. Remove the override when a supported Prisma 7 release depends on `deepmerge-ts>=8`.
+- Compatible tooling resolutions `brace-expansion@1.1.18` / `5.0.9`, `fast-uri@3.1.6`, and `js-yaml@4.3.2` removed the remaining current-major highs.
 
-Both are moderate severity and production-runtime relevant because `next` is a production dependency. `npm audit --omit=dev --json` currently suggests `next@9.3.3` through `npm audit fix --force`; that is an unsupported downgrade for this application and is rejected by governance. The exception expires on 2026-09-01 and must be removed earlier if a supported Next 15 backport or stable Next release stops reporting the bundled PostCSS advisory.
-
-Prisma/Hono residuals:
-
-- `prisma` at `node_modules/prisma`
-- `@prisma/dev` at `node_modules/@prisma/dev`
-- `@hono/node-server` at `node_modules/@hono/node-server`
-
-These are moderate severity findings for `@hono/node-server <1.19.13` through the Prisma tooling dependency path. `npm audit` currently suggests `prisma@6.19.3`, which is a downgrade from the current supported Prisma line rather than a Tailwind/Turbopack source-boundary remediation. The exception expires on 2026-09-01 and must be removed earlier if the supported Prisma line clears `@prisma/dev` or upgrades its Hono dependency.
-
-The current lockfile has no deprecated-package residuals. Previous ESLint 8, Tailwind 3/Sucrase, and Drei 9 warning ownership entries were removed because `package-lock.json` no longer marks those packages as deprecated; stale residual entries fail the governance command by design.
+The only remaining owned residual is the development-only `whatwg-encoding@3.1.1` deprecation installed by `jsdom@26.1.0`, owned by #1033 until the supported jsdom line removes it.
 
 ## Verification
 

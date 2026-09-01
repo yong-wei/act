@@ -577,7 +577,7 @@ async function loadIndex(
   try {
     const manifest = validateManifest(parseJson(manifestBytes, 'manifest.json'));
     for (const fileName of FILE_NAMES) {
-      const actual = await sha256File(path.join(root, fileName));
+      const actual = await sha256File(path.join(/*turbopackIgnore: true*/ root, fileName));
       if (actual !== manifest.files[fileName]) fail(`index file hash mismatch: ${fileName}`);
     }
     const windowsPath = path.join(root, 'windows.jsonl');
@@ -618,7 +618,7 @@ async function loadIndex(
     );
     const sizes = await Promise.all([
       stat(path.join(root, 'manifest.json')),
-      ...FILE_NAMES.map((name) => stat(path.join(root, name))),
+      ...FILE_NAMES.map((name) => stat(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ root, name))),
     ]);
     const artifactBytes = sizes.reduce((total, item) => total + item.size, 0);
     const residentArtifactBytes = artifactBytes - bodyStat.size;

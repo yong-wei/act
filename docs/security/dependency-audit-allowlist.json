@@ -6,50 +6,7 @@
     "newFindingRule": "Any unallowlisted npm audit finding at moderate, high, or critical severity fails the governance command.",
     "allowlistRemovalRule": "Entries must name an owner issue, review date, expiry date, and removal condition. Expired or unused entries fail the governance command and must be removed or renewed through a reviewed change."
   },
-  "entries": [
-    {
-      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-DIRECT",
-      "packageName": "prisma",
-      "dependencyPath": "node_modules/prisma",
-      "advisoryIds": ["@prisma/dev"],
-      "severity": "moderate",
-      "reason": "Residual Prisma-owned audit finding introduced by npm audit metadata after the Tailwind/Turbopack source-boundary change. npm audit suggests downgrading prisma to 6.19.3 from the current supported line, so this is tracked as dependency governance rather than a source-boundary failure.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
-      "reviewDate": "2026-06-03",
-      "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when the supported Prisma line no longer depends on the vulnerable @prisma/dev/@hono/node-server path or npm audit no longer reports the Prisma-owned finding."
-    },
-    {
-      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-PRISMA-DEV",
-      "packageName": "@prisma/dev",
-      "dependencyPath": "node_modules/@prisma/dev",
-      "advisoryIds": ["@hono/node-server"],
-      "severity": "moderate",
-      "reason": "Residual transitive Prisma development package finding for the @hono/node-server serveStatic advisory. The remediation lane is a supported Prisma update, not a Tailwind/Turbopack source-boundary change.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
-      "reviewDate": "2026-06-03",
-      "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when @prisma/dev is no longer present in the vulnerable range or no longer depends on @hono/node-server <1.19.13."
-    },
-    {
-      "id": "PRISMA-HONO-GHSA-92pp-h63x-v22m-HONO",
-      "packageName": "@hono/node-server",
-      "dependencyPath": "node_modules/@hono/node-server",
-      "advisoryIds": [
-        "GHSA-92pp-h63x-v22m",
-        "1116281",
-        "GHSA-frvp-7c67-39w9",
-        "1124006",
-        "@hono/node-server"
-      ],
-      "severity": "moderate",
-      "reason": "Residual transitive @hono/node-server findings reached through Prisma tooling. Prisma 7.9.0 removes this path but currently introduces the new high-severity find-my-way advisory, so the supported 7.8 line remains until a safe Prisma release is available.",
-      "ownerIssue": "https://github.com/yong-wei/act/issues/291",
-      "reviewDate": "2026-07-24",
-      "expiresOn": "2026-09-01",
-      "removalCondition": "Remove when node_modules/@hono/node-server is at 2.0.5 or newer, disappears from the Prisma dependency tree without introducing a new moderate-or-higher finding, or npm audit no longer reports either owned advisory."
-    }
-  ],
+  "entries": [],
   "deprecationResiduals": [
     {
       "id": "JSDOM26-WHATWG-ENCODING-DEPRECATION",

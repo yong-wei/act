@@ -181,7 +181,7 @@ export function readTeacherAiGradingLabConfig(
   if (!rawDataRoot) throw new TeacherAiGradingLabError('LAB_CONFIG_DATA_ROOT_MISSING', 'Evaluation data root is required.');
   if (!isAbsolute(rawDataRoot)) throw new TeacherAiGradingLabError('LAB_CONFIG_DATA_ROOT_RELATIVE', 'Evaluation data root must be absolute.');
 
-  const dataRoot = resolve(rawDataRoot);
+  const dataRoot = resolve(/*turbopackIgnore: true*/ rawDataRoot);
   const repoRoot = resolve(repositoryRoot);
   const repoRelative = relative(repoRoot, dataRoot);
   if (repoRelative === '' || (!repoRelative.startsWith('..') && !isAbsolute(repoRelative))) {

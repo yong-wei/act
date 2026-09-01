@@ -238,7 +238,7 @@ export function expectedSidecarHashesFromBundleManifest(bundleDir: string): {
   duplicatePaths: string[];
 } {
   const manifest = JSON.parse(
-    readFileSync(join(bundleDir, GOVERNED_MATH_SIDECAR_FILES.bundleManifest), 'utf8'),
+    readFileSync(/*turbopackIgnore: true*/ join(/*turbopackIgnore: true*/ bundleDir, GOVERNED_MATH_SIDECAR_FILES.bundleManifest), 'utf8'),
   ) as BundleManifest;
   const hashes: Record<string, string> = {};
   const duplicatePaths: string[] = [];

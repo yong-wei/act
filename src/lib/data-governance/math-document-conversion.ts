@@ -410,7 +410,7 @@ export function createLocalDocumentConverter(input: {
         return textToLocalResult(decodedText);
       }
       const workdir = await mkdtemp(join(tmpdir(), 'act-grading-conversion-'));
-      const inputPath = join(workdir, safeFileName(request.fileName));
+      const inputPath = join(/*turbopackIgnore: true*/ workdir, safeFileName(request.fileName));
       try {
         await writeFile(inputPath, request.bytes);
         const configuredCommand = input.markItDownCommand ?? process.env.MARKITDOWN_COMMAND;

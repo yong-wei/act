@@ -326,16 +326,16 @@ export function resolveActiveConsumerActivation(
   }
 
   // Require matching activation or rollback receipt (same protocol as Authority).
-  const activationPath = join(
+  const activationPath = join(/*turbopackIgnore: true*/ 
     paths.activationsDir,
     `${pointer.activationReceiptId}.json`,
   );
-  const rollbackPath = join(
+  const rollbackPath = join(/*turbopackIgnore: true*/ 
     paths.rollbacksDir,
     `${pointer.activationReceiptId}.json`,
   );
   let receiptOk = false;
-  if (existsSync(activationPath)) {
+  if (existsSync(/*turbopackIgnore: true*/ activationPath)) {
     try {
       const receipt = readJsonFile<ConsumerActivationReceipt>(activationPath);
       receiptOk =
@@ -346,7 +346,7 @@ export function resolveActiveConsumerActivation(
     } catch {
       receiptOk = false;
     }
-  } else if (existsSync(rollbackPath)) {
+  } else if (existsSync(/*turbopackIgnore: true*/ rollbackPath)) {
     try {
       const receipt = readJsonFile<ConsumerActivationRollbackReceipt>(rollbackPath);
       receiptOk =
@@ -666,7 +666,7 @@ export function activateConsumerActivation(
 
   try {
     writeJsonAtomic(
-      join(paths.activationsDir, `${activationReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ paths.activationsDir, `${activationReceiptId}.json`),
       receipt,
     );
   } catch (error) {
@@ -785,7 +785,7 @@ function failActivation(input: {
   };
   try {
     writeJsonAtomic(
-      join(input.paths.activationsDir, `${input.activationReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ input.paths.activationsDir, `${input.activationReceiptId}.json`),
       receipt,
     );
   } catch {
@@ -994,7 +994,7 @@ export function rollbackConsumerActivation(
 
   try {
     writeJsonAtomic(
-      join(paths.rollbacksDir, `${rollbackReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ paths.rollbacksDir, `${rollbackReceiptId}.json`),
       receipt,
     );
   } catch (error) {
@@ -1084,7 +1084,7 @@ function failRollback(input: {
   };
   try {
     writeJsonAtomic(
-      join(input.paths.rollbacksDir, `${input.rollbackReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ input.paths.rollbacksDir, `${input.rollbackReceiptId}.json`),
       receipt,
     );
   } catch {

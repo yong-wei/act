@@ -65,7 +65,7 @@ export interface MathCalculateFailure {
 
 export type MathCalculateResponse = MathCalculateSuccess | MathCalculateFailure;
 
-const MATH_CALC_SCRIPT_PATH = join(process.cwd(), 'scripts', 'math-calc', 'calc.wls');
+const MATH_CALC_SCRIPT_PATH = join(/*turbopackIgnore: true*/ process.cwd(), 'scripts', 'math-calc', 'calc.wls');
 const MATH_CALC_TIMEOUT_MS = 30_000;
 const MAX_CONCURRENT_CALCULATIONS = 1;
 const MAX_QUEUED_CALCULATIONS = 8;

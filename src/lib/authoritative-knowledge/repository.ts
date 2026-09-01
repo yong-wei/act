@@ -807,7 +807,7 @@ export class AuthoritativeKnowledgeRepository {
     this.authorityStorePaths = options.authorityStorePaths
       ?? resolveAuthorityStorePaths(
         options.authorityRoot
-          ?? path.resolve(process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE),
+          ?? path.resolve(/*turbopackIgnore: true*/ process.cwd(), DEFAULT_AUTHORITY_ROOT_RELATIVE),
       );
   }
 

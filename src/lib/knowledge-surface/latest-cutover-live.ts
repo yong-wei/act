@@ -84,7 +84,7 @@ export function resolveLiveLatestKnowledgeCutover(options: {
   candidateRoot?: string;
 } = {}): KnowledgeSurfaceLatestCutover {
   const repoRoot = options.repoRoot ?? process.cwd();
-  const knowledgeRoot = path.join(repoRoot, 'course-content/runtime/knowledge');
+  const knowledgeRoot = path.join(/*turbopackIgnore: true*/ repoRoot, 'course-content/runtime/knowledge');
   const candidateRoot = resolveCandidateRoot(repoRoot, options.candidateRoot);
   const values = new Map<string, unknown>();
 

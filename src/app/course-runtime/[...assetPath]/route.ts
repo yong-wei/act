@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 
 import { RUNTIME_BLOB_HELPER_NAME } from '@/lib/runtime-content-path';
 
-const RUNTIME_ROOT = join(process.cwd(), 'course-content', 'runtime');
+const RUNTIME_ROOT = join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime');
 
 const CONTENT_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml; charset=utf-8',
@@ -68,14 +68,14 @@ export async function GET(_request: Request, props: { params: Promise<{ assetPat
     return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
   }
 
-  const absolutePath = join(RUNTIME_ROOT, relativePath);
+  const absolutePath = join(/*turbopackIgnore: true*/ RUNTIME_ROOT, relativePath);
 
   if (!absolutePath.startsWith(RUNTIME_ROOT)) {
     return NextResponse.json({ error: 'Invalid asset path' }, { status: 400 });
   }
 
   try {
-    const buffer = await readFile(absolutePath);
+    const buffer = await readFile(/*turbopackIgnore: true*/ absolutePath);
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': CONTENT_TYPES[extname(absolutePath).toLowerCase()] ?? 'application/octet-stream',

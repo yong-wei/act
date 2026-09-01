@@ -83,7 +83,7 @@ function isSha256(value: unknown): value is string {
 function resolveAuthorityCurrentPath(
   authorityRoot = process.env.ACT_AUTHORITY_STORE_ROOT?.trim()
     || process.env.AUTHORITY_STORE_ROOT?.trim()
-    || path.join(process.cwd(), 'course-content', 'authoring', 'knowledge', 'authority'),
+    || path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'authoring', 'knowledge', 'authority'),
 ): string {
   return path.join(authorityRoot, 'current.json');
 }
@@ -281,11 +281,11 @@ async function readDevDeliveryMarker(markerPath: string): Promise<MarkerState> {
  */
 export async function verifyConsumerFilesystem(
   identity: RuntimeReadinessIdentity,
-  runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime'),
-  receiptPath = path.join(process.cwd(), 'course-content', RUNTIME_CONSUMER_VERIFICATION_FILENAME),
+  runtimeRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime'),
+  receiptPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', RUNTIME_CONSUMER_VERIFICATION_FILENAME),
   consumerUid: number | null = typeof process.getuid === 'function' ? process.getuid() : null,
   probePath?: string,
-  devDeliveryMarkerPath = path.join(process.cwd(), 'course-content', RUNTIME_DEV_DELIVERY_FILENAME),
+  devDeliveryMarkerPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', RUNTIME_DEV_DELIVERY_FILENAME),
 ): Promise<RuntimeFilesystemReadiness> {
   const marker = await readDevDeliveryMarker(devDeliveryMarkerPath);
   if (marker === 'absent') return { ready: true };
