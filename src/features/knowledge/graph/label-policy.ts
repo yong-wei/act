@@ -24,14 +24,13 @@ export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
 /**
  * 大域（概念数超过 compact 上限）概览经重点标签通道（labelPriority）
  * 呈现，可见率下限按无钳位碰撞几何实测给出（273 概念真实分片 + 画布
- * 同参力学沉降 + fit + 碰撞求解，#1739）。mobile 视口画布标签几何上
- * 极度受限（390×844 实测 0.022、320×568 实测 0.007），预算按下限视口
- * 实测定档；其余延迟标签的无障碍名称由 sr-only 节点目录承担（spec
- * 的 MAY defer 条款）。
+ * 同参力学沉降 + fit + 碰撞求解，#1739）。mobile 大域 fit 后节点为
+ * 像素级，画布标签几何不可行（320×568 实测未选中可见 0/273）：
+ * spec 语义为节点目录承担无选择可读名称，画布预算仅由选中节点的
+ * 钳位兜底保证（≈1/273）。
  */
 export const KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO = {
   desktop: 0.15,
-  /** 选中节点经钳位兜底恒可见（≈1/273）；无障碍名称主通道是节点目录。 */
   mobile: 0.003,
 } as const;
 
