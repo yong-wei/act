@@ -48,10 +48,11 @@ function readChangedFiles(input: { staged: boolean; base: string | null; stagedB
   renameSources.clear();
   if (!input.staged) {
     try {
-      return execFileSync('git', buildUnstagedDiffArgs(input.base, true), {
+      const tokens = execFileSync('git', buildUnstagedNameStatusArgs(input.base), {
         encoding: 'utf8',
         maxBuffer: 16 * 1024 * 1024,
       }).split('\0').filter(Boolean);
+      return parseNameStatus(tokens);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`无法读取 portrait-v2 门禁文件列表：${message}`);
@@ -71,28 +72,39 @@ function readChangedFiles(input: { staged: boolean; base: string | null; stagedB
       encoding: 'utf8',
       maxBuffer: 16 * 1024 * 1024,
     }).split('\0').filter(Boolean);
-    const files: string[] = [];
-    for (let index = 0; index < tokens.length; ) {
-      const status = tokens[index] ?? '';
-      if (status.startsWith('R') || status.startsWith('C')) {
-        const fromPath = tokens[index + 1] ?? '';
-        const toPath = tokens[index + 2] ?? '';
-        if (toPath) {
-          files.push(toPath);
-          if (fromPath) renameSources.set(toPath, fromPath);
-        }
-        index += 3;
-        continue;
-      }
-      const filePath = tokens[index + 1];
-      if (filePath) files.push(filePath);
-      index += 2;
-    }
-    return files;
+    return parseNameStatus(tokens);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`无法读取 portrait-v2 门禁文件列表：${message}`);
   }
+}
+
+function parseNameStatus(tokens: string[]): string[] {
+  const files: string[] = [];
+  for (let index = 0; index < tokens.length; ) {
+    const status = tokens[index] ?? '';
+    if (status.startsWith('R') || status.startsWith('C')) {
+      const fromPath = tokens[index + 1] ?? '';
+      const toPath = tokens[index + 2] ?? '';
+      if (toPath) {
+        files.push(toPath);
+        if (fromPath) renameSources.set(toPath, fromPath);
+      }
+      index += 3;
+      continue;
+    }
+    const filePath = tokens[index + 1];
+    if (filePath) files.push(filePath);
+    index += 2;
+  }
+  return files;
+}
+
+function buildUnstagedNameStatusArgs(requestedBase: string | null): string[] {
+  const outputArgs = ['-M', '--name-status', '--diff-filter=ACMR', '-z', '--no-ext-diff'];
+  return requestedBase
+    ? ['diff', ...outputArgs, `${requestedBase}...HEAD`]
+    : ['diff-tree', '--root', ...outputArgs, '--no-commit-id', '-r', 'HEAD'];
 }
 
 function readGitDiff(input: { staged: boolean; base: string | null; stagedBase: string | null }, filePath: string): string {
@@ -115,8 +127,8 @@ function readGitDiff(input: { staged: boolean; base: string | null; stagedBase: 
 
 function buildUnstagedDiffArgs(requestedBase: string | null, namesOnly: boolean): string[] {
   const outputArgs = namesOnly
-    ? ['--name-only', '--diff-filter=ACMR', '-z']
-    : ['--unified=0'];
+    ? ['-M', '--name-only', '--diff-filter=ACMR', '-z']
+    : ['-M', '--unified=0'];
   return requestedBase
     ? ['diff', ...outputArgs, '--no-ext-diff', `${requestedBase}...HEAD`]
     : ['diff-tree', '--root', ...outputArgs, '--no-commit-id', '-r', 'HEAD'];
