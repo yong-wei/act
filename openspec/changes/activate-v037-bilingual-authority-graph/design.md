@@ -62,3 +62,45 @@ Root domains, overview concepts, search, filters, relation terms, formulas, hove
 ## Open Questions
 
 None. The exact active identity and upstream artifact hashes are implementation inputs, not configurable runtime choices.
+
+## v0.37 Denominator & Vocabulary Refinement (implementation decisions, 2026-09-02)
+
+Measured against the sealed active set (`ads-294a0616…`, snapshot `e2d8b92f…`):
+
+- Reachable presentation closure: 2,849 objects; types 7 (Condition, DomainConcept,
+  Formula, KnowledgeStatement, ModelRepresentation, StatementArgument, SystemModel);
+  predicates 10 (9 engineering + teaching `PREREQUISITE`); direction enums 3
+  (forward, source_to_target, unordered); detail sources 0; shard aliases 0.
+- Upstream r3 evidence (`localized-content-index.jsonl`: 7,258 node names + 2,551
+  meanings per locale; `entity-type-locale-lexicon.jsonl`: 7/7 types;
+  `relation-locale-lexicon.jsonl`: 9 engineering predicates) is the release
+  language component. Upstream has NO domain display names, NO direction-enum
+  labels, NO teaching predicate labels, NO aliases, NO source records.
+
+Refined qualification contract (recorded as the v0.37 reading of the existing
+spec; supersedes the v0.22-era "every object id needs alias+explanation records"
+denominator which no presentation surface exhibits):
+
+1. Manifest categories carry upstream-sourced release content only:
+   `object-names` (reachable objects), `object-explanations` (objects whose
+   detail shard presents a description), `types` (7 canonical types),
+   `relations` (engineering predicates with upstream lexicon rows).
+2. `domains`, `directions`, `approved-aliases`, `readable-sources` denominators
+   are the presentation-true sets: aliases/sources are empty today (shards carry
+   none); domain display names, direction-enum labels and the teaching predicate
+   are ACT presentation-layer vocabulary (navigation catalog, presentation
+   enums, ACT-authored teaching overlay), not Authority release content. Their
+   bilingual values live in the governed interface catalog under
+   `graphDomain.<visualRole>`, `relationDirection.<enum>`,
+   `teachingRelation.<predicate>` keys — none of which match
+   FORBIDDEN_AUTHORITY_OVERRIDE (which keeps release-content keys out of the
+   interface layer). All 15 domains are therefore still inside the acceptance
+   denominator, via the interface-catalog digest sealed with the package.
+3. Server locale projection (project-shard) fills `predicateLabel` for the
+   teaching predicate and `directionLabel` for the direction enums from the
+   interface catalog under complete-locale mode, so the client needs no new
+   synthesis path and historical zh behavior is unchanged.
+4. Runtime reads only the sealed package (manifest + receipts + digests) at
+   `cutover/envelopes/locale-manifests/control-theory-engineering-v0.37.json`
+   plus the composite registry entry; the full inventory walk stays a
+   qualification-time operation.

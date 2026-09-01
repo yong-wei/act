@@ -39,18 +39,21 @@ function collectObjects(
   for (const object of objects) {
     objectNames.add(object.id);
     types.add(object.canonicalType);
-    aliasIds.add(object.id);
+    // 别名分母只含真实携带别名的对象（#1741 精化）：呈现面不存在
+    // "每个对象都有别名记录"的语义。
+    if (object.aliases && object.aliases.length > 0) aliasIds.add(object.id);
   }
 }
 
 function collectRelations(
   relations: readonly AuthorityShardRelation[],
   predicates: Set<string>,
-  directions: Set<string>,
 ): void {
   for (const relation of relations) {
+    // 谓词分母限定工程层（上游 relation lexicon 覆盖面）；教学谓词与
+    // 方向枚举是 ACT 呈现层词汇，由 interface catalog 承载（#1741）。
+    if (relation.layer !== 'ENGINEERING') continue;
     if (relation.predicate) predicates.add(relation.predicate);
-    if (relation.direction) directions.add(relation.direction);
   }
 }
 
@@ -69,20 +72,19 @@ export function loadActivePresentationInventory(
   const objectNames = new Set<string>();
   const types = new Set<string>();
   const predicates = new Set<string>();
-  const directions = new Set<string>();
   const aliasIds = new Set<string>();
 
   for (const domain of active.catalog.domains) {
     const shard = loadDomainDefaultShard(domain.domainId, { repoRoot, identity: active });
     collectObjects(shard.objects, objectNames, types, aliasIds);
-    collectRelations(shard.teachingRelations, predicates, directions);
+    collectRelations(shard.teachingRelations, predicates);
     for (const family of ENGINEERING_RELATION_FAMILIES) {
       const familyShard = loadRelationFamilyShard(domain.domainId, family, {
         repoRoot,
         identity: active,
       });
       collectObjects(familyShard.objects, objectNames, types, aliasIds);
-      collectRelations(familyShard.relations, predicates, directions);
+      collectRelations(familyShard.relations, predicates);
     }
   }
 
@@ -109,7 +111,7 @@ export function loadActivePresentationInventory(
       context,
     );
     collectObjects(neighborhood.objects, objectNames, types, aliasIds);
-    collectRelations(neighborhood.relations, predicates, directions);
+    collectRelations(neighborhood.relations, predicates);
     if (objectNames.size > before) {
       for (const object of neighborhood.objects) {
         if (!visitedNeighborhoods.has(object.id)) pending.push(object.id);
@@ -118,25 +120,33 @@ export function loadActivePresentationInventory(
   }
 
   const objectIds = uniqueSorted(objectNames);
+  const sourceIds = new Set<string>();
+  const explanationIds = new Set<string>();
+  collectDetailPresentations(context, objectIds, sourceIds, explanationIds);
   const inventory = {
-    domains,
+    // 域名分母为呈现真实空集：域名标签属 interface catalog（#1741）。
+    domains: [],
     objectNames: objectIds,
-    objectExplanations: objectIds,
+    // 说明分母只含 detail 呈现真实说明的对象（#1741 精化）。
+    objectExplanations: uniqueSorted(explanationIds),
     types: uniqueSorted(types),
     relations: uniqueSorted(predicates),
-    directions: uniqueSorted(directions),
+    // directions/domains：方向枚举与域名标签属 interface catalog（#1741），
+    // 分母为呈现真实空集。
+    directions: [],
     aliasIds: uniqueSorted(aliasIds),
-    sourceIds: uniqueSorted(collectSourceIds(context, objectIds)),
+    sourceIds: uniqueSorted(sourceIds),
   };
   inventoryByEvidence.set(cacheKey, inventory);
   return inventory;
 }
 
-function collectSourceIds(
+function collectDetailPresentations(
   context: ReturnType<typeof loadActiveShardContext>,
   objectIds: readonly string[],
-): string[] {
-  const sourceIds = new Set<string>();
+  sourceIds: Set<string>,
+  explanationIds: Set<string>,
+): void {
   for (const objectId of objectIds) {
     const relative = shardRelativePaths({ canonicalId: objectId }).detail;
     if (!relative) {
@@ -149,10 +159,12 @@ function collectSourceIds(
       );
     }
     const shard = loadVerifiedShardRelative<AuthorityNodeDetailShard>(relative, 'node-detail', context);
+    if (shard.node.description && shard.node.description.length > 0) {
+      explanationIds.add(objectId);
+    }
     for (const source of shard.node.sources) {
       const recordId = sourcePresentationRecordId(source);
       if (recordId) sourceIds.add(recordId);
     }
   }
-  return [...sourceIds];
 }

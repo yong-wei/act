@@ -90,6 +90,26 @@ export const GRAPH_INTERFACE_KEYS = [
   'a11y.canvas',
   'a11y.hiddenUnsafe',
   'focus.search',
+  'graphDomain.aggregate',
+  'graphDomain.root-locus',
+  'graphDomain.modeling',
+  'graphDomain.time',
+  'graphDomain.stability',
+  'graphDomain.frequency',
+  'graphDomain.design',
+  'graphDomain.discrete',
+  'graphDomain.state-space',
+  'graphDomain.nonlinear-analysis',
+  'graphDomain.lyapunov',
+  'graphDomain.discrete-design',
+  'graphDomain.robustness',
+  'graphDomain.optimal',
+  'graphDomain.robust-design',
+  'graphDomain.nonlinear-design',
+  'relationDirection.forward',
+  'relationDirection.source_to_target',
+  'relationDirection.unordered',
+  'teachingRelation.PREREQUISITE',
 ] as const;
 
 export type GraphInterfaceKey = (typeof GRAPH_INTERFACE_KEYS)[number];
@@ -202,9 +222,33 @@ export const GRAPH_INTERFACE_CATALOG: CatalogTable = {
   'a11y.canvas': { 'zh-CN': '新版语义关系画布', en: 'Semantic relation canvas' },
   'a11y.hiddenUnsafe': {
     'zh-CN': '部分内容暂不可解释，已隐藏以保持语义安全。',
-    en: 'Some content cannot be explained yet and is hidden to keep the semantics safe.',
+    en: 'Some content cannot be explained yet and are hidden to keep the semantics safe.',
   },
   'focus.search': { 'zh-CN': '搜索知识对象', en: 'Search knowledge objects' },
+  // ACT 呈现层词汇（#1741）：导航域名、方向枚举与教学谓词是 ACT 编排层
+  // 词汇而非上游 Authority release 内容，其双语值在此维护并随 interface
+  // catalog digest 一起封印；release 内容（对象名/说明/类型/工程谓词）仍
+  // 只经 locale manifest 投影。
+  'graphDomain.aggregate': { 'zh-CN': '控制理论综合', en: 'Control theory integration' },
+  'graphDomain.root-locus': { 'zh-CN': '根轨迹', en: 'Root locus' },
+  'graphDomain.modeling': { 'zh-CN': '系统建模', en: 'System modeling' },
+  'graphDomain.time': { 'zh-CN': '时域分析', en: 'Time-domain analysis' },
+  'graphDomain.stability': { 'zh-CN': '稳定性分析', en: 'Stability analysis' },
+  'graphDomain.frequency': { 'zh-CN': '频域分析', en: 'Frequency-domain analysis' },
+  'graphDomain.design': { 'zh-CN': '经典控制设计', en: 'Classical control design' },
+  'graphDomain.discrete': { 'zh-CN': '离散时间控制分析', en: 'Discrete-time control analysis' },
+  'graphDomain.state-space': { 'zh-CN': '状态空间控制分析与设计', en: 'State-space control analysis and design' },
+  'graphDomain.nonlinear-analysis': { 'zh-CN': '非线性系统分析', en: 'Nonlinear system analysis' },
+  'graphDomain.lyapunov': { 'zh-CN': '李雅普诺夫稳定性', en: 'Lyapunov stability' },
+  'graphDomain.discrete-design': { 'zh-CN': '离散时间控制设计', en: 'Discrete-time control design' },
+  'graphDomain.robustness': { 'zh-CN': '鲁棒性与灵敏度分析', en: 'Robustness and sensitivity analysis' },
+  'graphDomain.optimal': { 'zh-CN': '最优控制与线性二次型设计', en: 'Optimal control and LQ design' },
+  'graphDomain.robust-design': { 'zh-CN': '鲁棒控制分析与设计', en: 'Robust control analysis and design' },
+  'graphDomain.nonlinear-design': { 'zh-CN': '非线性控制设计', en: 'Nonlinear control design' },
+  'relationDirection.forward': { 'zh-CN': '由前者指向后者', en: 'From the former to the latter' },
+  'relationDirection.source_to_target': { 'zh-CN': '由前者指向后者', en: 'From the former to the latter' },
+  'relationDirection.unordered': { 'zh-CN': '关联关系', en: 'Undirected relation' },
+  'teachingRelation.PREREQUISITE': { 'zh-CN': '先修关系', en: 'Prerequisite' },
 };
 
 export class GraphInterfaceCatalogError extends Error {
