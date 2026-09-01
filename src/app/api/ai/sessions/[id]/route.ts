@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
   conversationMessages,
+  konlingLibraryRetentionWhere,
   konlingStructuredActionToolRunIds,
   mergeLegacyKonlingStructuredActionToolRuns,
   normalizeKonlingManualTitle,
@@ -81,8 +82,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       where: {
         id,
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
       },
     });
     if (!conversation) {
@@ -137,8 +137,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       where: {
         id,
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
       },
       data,
     });

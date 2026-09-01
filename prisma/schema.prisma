@@ -5192,7 +5192,7 @@ model KonlingSession {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  expiresAt DateTime // 7天后过期
+  expiresAt DateTime? // 治理到期时间；null 表示无产品级到期
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   agentSessions AgentSession[]

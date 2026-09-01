@@ -100,7 +100,7 @@ describe('Konling conversation library routes', () => {
     mocks.prisma.agentToolRun.findMany.mockResolvedValue([]);
   });
 
-  it('lists only owner-visible unexpired conversations with title-only search and pin ordering', async () => {
+  it('lists only owner-visible retention-eligible conversations with title-only search and pin ordering', async () => {
     mocks.prisma.konlingSession.findMany.mockResolvedValue([record({ pinnedAt: now })]);
     const response = await listConversations(new NextRequest('http://localhost/api/ai/sessions?search=%E6%A0%B9%E8%BD%A8%E8%BF%B9'));
     expect(response.status).toBe(200);
@@ -108,7 +108,10 @@ describe('Konling conversation library routes', () => {
       where: {
         userId: 'user-1',
         libraryVisible: true,
-        expiresAt: { gt: expect.any(Date) },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
         title: { contains: '根轨迹', mode: 'insensitive' },
       },
       orderBy: [
@@ -119,6 +122,83 @@ describe('Konling conversation library routes', () => {
     }));
     expect(await response.json()).toMatchObject({
       conversations: [{ id: 'conversation-1', pinned: true }],
+    });
+  });
+
+  it('reads, renames, pins and continues an older conversation without scheduled governance expiry', async () => {
+    const older = record({
+      createdAt: new Date('2026-06-01T00:00:00.000Z'),
+      lastActivityAt: new Date('2026-06-01T00:00:00.000Z'),
+      expiresAt: null,
+    });
+    mocks.prisma.konlingSession.findMany.mockResolvedValue([older]);
+    const listResponse = await listConversations(new NextRequest('http://localhost/api/ai/sessions'));
+    expect(listResponse.status).toBe(200);
+    expect(await listResponse.json()).toMatchObject({
+      conversations: [{ id: 'conversation-1', expiresAt: null }],
+    });
+
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(older);
+    const readResponse = await getConversation(
+      new NextRequest('http://localhost/api/ai/sessions/conversation-1'),
+      routeContext,
+    );
+    expect(readResponse.status).toBe(200);
+    expect(mocks.prisma.konlingSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        id: 'conversation-1',
+        userId: 'user-1',
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      }),
+    });
+
+    mocks.prisma.konlingSession.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.konlingSession.findUnique.mockResolvedValue(record({
+      expiresAt: null,
+      title: '旧会话新标题',
+      titleIsManual: true,
+      pinnedAt: now,
+    }));
+    const patchResponse = await patchConversation(new NextRequest('http://localhost/api/ai/sessions/conversation-1', {
+      method: 'PATCH',
+      body: JSON.stringify({ title: '旧会话新标题', pinned: true }),
+    }), routeContext);
+    expect(patchResponse.status).toBe(200);
+    expect(mocks.prisma.konlingSession.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        id: 'conversation-1',
+        userId: 'user-1',
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      }),
+      data: {
+        title: '旧会话新标题',
+        titleIsManual: true,
+        pinnedAt: expect.any(Date),
+      },
+    });
+  });
+
+  it('excludes a conversation whose explicit governed expiry has elapsed', async () => {
+    mocks.prisma.konlingSession.findFirst.mockResolvedValue(null);
+    const response = await getConversation(
+      new NextRequest('http://localhost/api/ai/sessions/conversation-expired'),
+      { params: Promise.resolve({ id: 'conversation-expired' }) },
+    );
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: 'Conversation not found' });
+    expect(mocks.prisma.konlingSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: expect.any(Date) } },
+        ],
+      }),
     });
   });
 

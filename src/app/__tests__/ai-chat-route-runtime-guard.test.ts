@@ -137,18 +137,19 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('normalizeKonlingStructuredText');
   });
 
-  it('rejects expired or hidden legacy sessions before agent, tool, or model side effects', () => {
+  it('rejects governed-expired or hidden legacy sessions before agent, tool, or model side effects', () => {
     const sessionLookup = sessionMessagesRouteSource.indexOf('const konlingSession = await prisma.konlingSession.findFirst');
-    const visibilityGate = sessionMessagesRouteSource.indexOf('libraryVisible: true', sessionLookup);
-    const expiryGate = sessionMessagesRouteSource.indexOf('expiresAt: { gt: new Date() }', sessionLookup);
+    const retentionGate = sessionMessagesRouteSource.indexOf('konlingLibraryRetentionWhere', sessionLookup);
     const notFound = sessionMessagesRouteSource.indexOf("error: 'Session not found'", sessionLookup);
     const agentSession = sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession');
     const model = sessionMessagesRouteSource.indexOf('const result = await streamText');
     expect(sessionLookup).toBeGreaterThanOrEqual(0);
-    expect(visibilityGate).toBeGreaterThan(sessionLookup);
-    expect(expiryGate).toBeGreaterThan(sessionLookup);
+    expect(retentionGate).toBeGreaterThan(sessionLookup);
     expect(notFound).toBeLessThan(agentSession);
     expect(notFound).toBeLessThan(model);
+    expect(sessionMessagesRouteSource).not.toContain('expiresAt: { gt: new Date() }');
+    expect(chatRouteSource).toContain('konlingLibraryRetentionWhere');
+    expect(chatRouteSource).not.toContain('expiresAt: { gt: new Date() }');
   });
 
   it('uses collision-resistant message ids and claims a conversation before model or tool execution', () => {

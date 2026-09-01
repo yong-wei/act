@@ -16,7 +16,8 @@ export interface KonlingConversationSummary {
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
-  expiresAt: string;
+  // null 表示当前没有已安排的治理到期，而非“永久保证”
+  expiresAt: string | null;
 }
 
 export interface KonlingConversation extends KonlingConversationSummary {
