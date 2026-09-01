@@ -26,17 +26,25 @@ Did not split files. Did not add a planner, schema, or `src/lib` business entry.
 
 ## Metrics
 
+Agreed semantic inventory is `assemble-plan.ts` counts of types/interfaces, functions, `if (` guards, `validate*` functions, top-level imports, and duplicate conversion helpers (pairwise diversity builders + SAR node resolvers). Same file, same git baseline `a03e14aa3b`.
+
 | Metric | Before | After | Delta |
 | --- | --- | --- | --- |
 | Module bytes | 489323 | 486779 | -2544 |
 | Module LOC | 12794 | 12751 | -43 |
 | `assemble-plan.ts` bytes | 250248 | 247704 | -2544 |
 | `assemble-plan.ts` LOC | 6182 | 6139 | -43 |
-| `assemble-plan.ts` functions | 175 | 171 | -4 |
+| Types / interfaces (state variants) | 73 | 73 | 0 |
+| Functions (semantic concepts) | 175 | 171 | -4 |
+| Guards (`if (`) | 266 | 266 | 0 |
+| Validators (`validate*`) | 6 | 6 | 0 |
+| Dependencies (top-level imports) | 22 | 22 | 0 |
+| Duplicate conversions: pairwise builders | 4 | 1 | -3 |
+| Duplicate conversions: SAR resolvers | 2 | 1 | -1 |
 | Public exports | unchanged | unchanged | 0 |
 | Tests | 177 | 177 | 0 |
 
-25% byte reduction not achieved; net production bytes and function count both declined. Further catalog/factory compression would add wrappers without deleting a second authority, so it was skipped.
+25% byte reduction not achieved. Production bytes declined; semantic concept inventory declined via functions and duplicate conversions. Guards, validators, and identity/privacy/terminal checks were not removed. Further catalog/factory compression would add wrappers without deleting a second authority, so it was skipped.
 
 ## Verification
 
