@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
 
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-1759-retire-client-authored-companion');
+const manifestPath = join(evidenceDir, 'evidence-manifest.json');
 const generatorPath = 'tests/retire-client-authored-companion-1759.spec.ts';
 const sourceFiles = [
   'src/features/control-workbench/shell/control-workbench-shell.tsx',
@@ -15,6 +16,8 @@ const sourceFiles = [
   'src/lib/konling-agent-runtime.ts',
   'src/features/arena/student/konling-official-followup.ts',
 ] as const;
+const evidenceSourceFiles = [generatorPath, ...sourceFiles] as const;
+const updateEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
 const representativeRoute = '/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram';
 const screenshots: Array<Record<string, unknown>> = [];
 
@@ -54,6 +57,14 @@ function sha256(bytes: Buffer | string): string {
 
 function git(args: string[]): string {
   return execFileSync('git', args, { cwd: process.cwd(), encoding: 'utf8' }).trim();
+}
+
+function sourceHash(file: string): string {
+  return sha256(readFileSync(join(process.cwd(), file)));
+}
+
+function sourceHashAtCommit(commitSha: string, file: string): string {
+  return sha256(execFileSync('git', ['show', `${commitSha}:${file}`], { cwd: process.cwd() }));
 }
 
 async function installOfficialFollowupRoutes(page: Page) {
@@ -105,6 +116,23 @@ function assertNoOverflow(page: Page) {
   });
 }
 
+async function capture(page: Page, name: string, assertions: string[]) {
+  if (!updateEvidence) return;
+  mkdirSync(evidenceDir, { recursive: true });
+  const file = join(evidenceDir, `${name}.png`);
+  await page.screenshot({ path: file, fullPage: false, animations: 'disabled' });
+  const size = page.viewportSize();
+  screenshots.push({
+    file: `artifacts/commercial-ui/issue-1759-retire-client-authored-companion/${name}.png`,
+    sha256: sha256(readFileSync(file)),
+    scenario: name,
+    route: representativeRoute,
+    width: size?.width ?? 0,
+    height: size?.height ?? 0,
+    assertions,
+  });
+}
+
 test('Arena workbench keeps official companion and rejects the old hand-entered panel', async ({ page }) => {
   await installOfficialFollowupRoutes(page);
 
@@ -128,48 +156,56 @@ test('Arena workbench keeps official companion and rejects the old hand-entered 
     await card.locator('summary').click();
     await expect(card).toContainText('先使当前未通过的硬约束达标');
     await assertNoOverflow(page);
-
-    mkdirSync(evidenceDir, { recursive: true });
-    const file = join(evidenceDir, `official-${viewport.name}.png`);
-    await page.screenshot({ path: file, fullPage: false, animations: 'disabled' });
-    screenshots.push({
-      file: `artifacts/commercial-ui/issue-1759-retire-client-authored-companion/official-${viewport.name}.png`,
-      sha256: sha256(readFileSync(file)),
-      scenario: `official-${viewport.name}`,
-      route: representativeRoute,
-      width: viewport.width,
-      height: viewport.height,
-      assertions: [
-        'old hand-entered companion panel is absent',
-        'official follow-up card remains reachable',
-        'no horizontal overflow',
-      ],
-    });
+    await capture(page, `official-${viewport.name}`, [
+      'old hand-entered companion panel is absent',
+      'official follow-up card remains reachable',
+      'no horizontal overflow',
+    ]);
   }
 
+  if (!updateEvidence) return;
+
   const sourceRevision = git(['rev-parse', 'HEAD']);
-  const files = [generatorPath, ...sourceFiles];
-  expect(git(['status', '--porcelain', '--', generatorPath, ...sourceFiles]), 'evidence source files must be clean at capture HEAD').toBe('');
-  for (const file of files) {
+  expect(git(['status', '--porcelain', '--', ...evidenceSourceFiles]), 'evidence source files must be clean at capture HEAD').toBe('');
+  for (const file of evidenceSourceFiles) {
     expect(git(['hash-object', file]), `${file} working tree must match ${sourceRevision}`).toBe(
       git(['rev-parse', `${sourceRevision}:${file}`]),
     );
   }
   mkdirSync(evidenceDir, { recursive: true });
-  writeFileSync(join(evidenceDir, 'evidence-manifest.json'), `${JSON.stringify({
+  writeFileSync(manifestPath, `${JSON.stringify({
     schemaVersion: 1,
     issue: 1759,
     capturedAt: new Date().toISOString(),
     commitSha: sourceRevision,
     generator: generatorPath,
-    generatorSha256: sha256(readFileSync(join(process.cwd(), generatorPath))),
+    generatorSha256: sourceHash(generatorPath),
     representativeRoute,
     sourceSha256: Object.fromEntries(
-      files.map((file) => [file, sha256(readFileSync(join(process.cwd(), file)))]),
+      evidenceSourceFiles.map((file) => [file, sourceHash(file)]),
     ),
     sourceGitBlobIds: Object.fromEntries(
-      files.map((file) => [file, git(['hash-object', file])]),
+      evidenceSourceFiles.map((file) => [file, git(['hash-object', file])]),
     ),
     screenshots,
   }, null, 2)}\n`);
+});
+
+test('evidence manifest stays bound to a reachable capture revision', () => {
+  test.skip(updateEvidence, 'capture run regenerates the manifest');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    commitSha?: string;
+    sourceSha256?: Record<string, string>;
+    sourceGitBlobIds?: Record<string, string>;
+  };
+  expect(manifest.commitSha).toMatch(/^[0-9a-f]{40}$/);
+  expect(git(['cat-file', '-t', manifest.commitSha!])).toBe('commit');
+  git(['merge-base', '--is-ancestor', manifest.commitSha!, 'HEAD']);
+  for (const file of evidenceSourceFiles) {
+    const expectedHash = manifest.sourceSha256?.[file];
+    expect(expectedHash, `${file} source hash missing or stale`).toBe(sourceHashAtCommit(manifest.commitSha!, file));
+    expect(sourceHashAtCommit('HEAD', file), `${file} changed after evidence capture`).toBe(expectedHash);
+    expect(sourceHash(file)).toBe(expectedHash);
+    expect(manifest.sourceGitBlobIds?.[file]).toBe(git(['rev-parse', `${manifest.commitSha!}:${file}`]));
+  }
 });
