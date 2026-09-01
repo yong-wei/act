@@ -261,6 +261,29 @@ describe('diagnosis benchmark metrics', () => {
     expect(aggregate.chineseComplianceRate).toBe(1);
   });
 
+  it('pools the generation success rate across all replicates', () => {
+    const truth = benchmarkGroundTruth(scenario);
+    const replicate = (n: number, failed = false) => ({
+      scenarioId: scenario.id,
+      replicate: n,
+      status: failed ? ('generation-failed' as const) : ('ok' as const),
+      reportedNodes: failed ? [] : truth.trueWeakNodes,
+      primaryReportedNode: failed ? null : 'bench-node-07',
+      chineseCompliant: !failed,
+      evidenceRefsValid: !failed,
+      attributionValid: !failed,
+      coverageClaimAccurate: !failed,
+      durationMs: 1,
+      ...(failed ? { failureReason: 'provider unavailable' } : {}),
+    });
+    // 6 个 replicate 中 5 个成功：池化口径 5/6，而非"全成功场景占比" 0.5。
+    const aggregate = aggregateBenchmarkMetrics([
+      { scenario, groundTruth: truth, evaluations: [replicate(1), replicate(2), replicate(3)] },
+      { scenario: scenarioById('single-weak-node'), groundTruth: benchmarkGroundTruth(scenarioById('single-weak-node')), evaluations: [replicate(1), replicate(2, true), replicate(3)] },
+    ]);
+    expect(aggregate.generationSuccessRate).toBeCloseTo(5 / 6, 3);
+  });
+
   it('fails the threshold gate when any scenario has no successful replicate', () => {
     const truth = benchmarkGroundTruth(scenario);
     const unavailableRun = {

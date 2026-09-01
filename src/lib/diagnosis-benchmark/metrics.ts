@@ -177,7 +177,9 @@ export function aggregateBenchmarkMetrics(
     evidenceReferenceValidityRate: pooledGovernance.refs,
     attributionValidityRate: pooledGovernance.attribution,
     coverageClaimAccuracyRate: pooledGovernance.coverage,
-    generationSuccessRate: rate(scored.map((entry) => entry.generationSuccessRate >= 1)),
+    // 生成成功率同样按全部 replicate 池化（Issue #1749 review）：场景二值化
+    // 会把 21/24 记成 5/8（"全成功场景占比"）而非 0.875。
+    generationSuccessRate: rate(runs.flatMap((run) => run.evaluations.map((entry) => entry.status === 'ok'))),
     scenarioCount: scored.length,
     replicateDispersion: {
       macroF1Stdev: stdev(replicateF1Values),
