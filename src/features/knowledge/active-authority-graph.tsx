@@ -1607,7 +1607,7 @@ export function ActiveAuthorityGraph({
     const entries = workspace.domainOverviewIds
       .map((id) => model.nodeByKey.get(id))
       .filter((node): node is NonNullable<typeof node> => node !== undefined)
-      .map((node) => ({ id: node.key, label: node.label }));
+      .map((node) => ({ id: node.key, label: node.label, mathematics: node.mathematics }));
     return entries.length > 0 ? entries : undefined;
   }, [model, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;

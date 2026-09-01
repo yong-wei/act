@@ -25,6 +25,7 @@ import {
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
+import type { GovernedFormulaProjection } from '@/lib/governed-math/types';
 
 interface ActiveAuthorityRuntimeViewProps {
   kind: 'root' | 'domain';
@@ -48,7 +49,7 @@ interface ActiveAuthorityRuntimeViewProps {
   /** 未裁剪的域概览规模（compact 视图的 view.nodes 已按上限裁剪）。 */
   overviewCount?: number;
   /** 未裁剪且经 model 过滤的概览目录条目（compact 可浏览目录数据源）。 */
-  overviewEntries?: Array<{ id: string; label: string }>;
+  overviewEntries?: Array<{ id: string; label: string; mathematics?: GovernedFormulaProjection }>;
   layout: KnowledgeGraphRuntimeLayout;
   sessionKey: string;
 }
@@ -245,26 +246,23 @@ export function ActiveAuthorityRuntimeView({
           {(showNodeDirectory && overviewEntries
             // 无边/大域目录 = 完整概览 ∪ 当前已披露对象（邻域披露的节点
             // 仍可在目录中浏览与选择，#1739）。
-            ? [...overviewEntries, ...view.nodes.map((node) => ({ id: node.canonicalId, label: node.label }))]
-              .filter((entry, index, all) => all.findIndex((other) => other.id === entry.id) === index)
-              .map((entry) => ({ canonicalId: entry.id, label: entry.label }))
-            : view.nodes).map((node) => (
+            ? [...overviewEntries.map((entry) => ({ canonicalId: entry.id, label: entry.label, mathematics: entry.mathematics, shape: undefined, halo: false, cardStar: false })), ...view.nodes.map((node) => ({ canonicalId: node.canonicalId, label: node.label, mathematics: node.presentation.mathematics, shape: node.presentation.type.shape, halo: node.decoration.hasCrossDomainHalo, cardStar: node.decoration.hasCardStar }))]
+              .filter((entry, index, all) => all.findIndex((other) => other.canonicalId === entry.canonicalId) === index)
+            : view.nodes.map((node) => ({ canonicalId: node.canonicalId, label: node.label, mathematics: node.presentation.mathematics, shape: node.presentation.type.shape, halo: node.decoration.hasCrossDomainHalo, cardStar: node.decoration.hasCardStar }))).map((node) => (
             <li key={node.canonicalId}>
               <button
                 type="button"
-                aria-label={node.presentation.mathematics?.state === 'available'
-                  ? node.presentation.mathematics.accessibleLabel
-                  : undefined}
+                aria-label={node.mathematics?.state === 'available' ? node.mathematics.accessibleLabel : undefined}
                 className={showNodeDirectory
                   ? 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-platform-fg-primary transition-colors hover:bg-platform-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-primary'
                   : undefined}
                 data-active-authority-node={node.canonicalId}
                 data-active-authority-visible-node={showNodeDirectory ? 'true' : undefined}
-                data-active-authority-node-shape={('presentation' in node ? node.presentation.type.shape : undefined)}
+                data-active-authority-node-shape={node.shape}
                 data-active-authority-node-selected={selectedNodeId === node.canonicalId ? 'true' : 'false'}
                 aria-pressed={selectedNodeId === node.canonicalId}
-                data-active-authority-halo={('decoration' in node && node.decoration.hasCrossDomainHalo) ? 'true' : 'false'}
-                data-active-authority-card-star={('decoration' in node && node.decoration.hasCardStar) ? 'true' : 'false'}
+                data-active-authority-halo={node.halo ? 'true' : 'false'}
+                data-active-authority-card-star={node.cardStar ? 'true' : 'false'}
                 onClick={(event: MouseEvent<HTMLButtonElement>) => {
                   event.preventDefault();
                   onSelectNode(node.canonicalId);
