@@ -59,8 +59,8 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/control-correction-path-rounds', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/control-correction-path-rounds')>();
+vi.mock('@/features/personalization/path-planning/control-correction-path-rounds', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/personalization/path-planning/control-correction-path-rounds')>();
   return {
     ...actual,
     isControlCorrectionPathRoundPersistenceEnabled: () => process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED !== 'false',

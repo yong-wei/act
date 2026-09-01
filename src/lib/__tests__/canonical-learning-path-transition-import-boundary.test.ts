@@ -85,21 +85,21 @@ function specifierHitsForbidden(
  */
 describe('canonical learning path transition import boundary', () => {
   it('keeps control-correction-path-rounds free of the transition barrel', () => {
-    const source = readSource('src/lib/control-correction-path-rounds.ts');
+    const source = readSource('src/features/personalization/path-planning/control-correction-path-rounds.ts');
     expect(source).not.toMatch(
       /from ['"]\.\/canonical-learning-path-transition['"]/,
     );
     expect(source).toMatch(
-      /from ['"]\.\/canonical-learning-path-transition\/mutation-guard['"]/,
+      /from ['"]@\/lib\/canonical-learning-path-transition\/mutation-guard['"]/,
     );
     expect(source).toMatch(
-      /from ['"]\.\/canonical-learning-path-transition\/write-fence['"]/,
+      /from ['"]@\/lib\/canonical-learning-path-transition\/write-fence['"]/,
     );
     expect(source).not.toMatch(
-      /from ['"]\.\/canonical-learning-path-transition\/replan['"]/,
+      /from ['"]@\/lib\/canonical-learning-path-transition\/replan['"]/,
     );
     expect(source).toMatch(
-      /from ['"]\.\/student-visible-path-target['"]/,
+      /from ['"]@\/lib\/student-visible-path-target['"]/,
     );
   });
 
@@ -174,7 +174,7 @@ describe('canonical learning path transition import boundary', () => {
 
     expect(hits).toEqual([]);
     expect(visited.has('src/lib/student-visible-path-target.ts')).toBe(true);
-    expect(visited.has('src/lib/control-correction-path-rounds.ts')).toBe(false);
+    expect(visited.has('src/features/personalization/path-planning/control-correction-path-rounds.ts')).toBe(false);
     expect(
       [...visited].some((file) => file.includes('write-fence')),
     ).toBe(false);

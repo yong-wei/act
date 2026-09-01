@@ -11,7 +11,7 @@ import {
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import {
   CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
-} from '@/lib/data-governance/control-correction-diagnosis-profile';
+} from '@/features/personalization/diagnosis/control-correction-diagnosis-profile';
 import {
   normalizeKonlingRole,
   resolveKonlingTeachingAssistantMode,

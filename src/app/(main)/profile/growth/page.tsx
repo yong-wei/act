@@ -34,7 +34,7 @@ import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import { DiagnosisSurfacePanel } from '@/features/personalization/experience/diagnosis-surface-panel';
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
-import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
+import type { RoleBasedLearningDiagnosis } from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 
 interface EvidenceSummaryItem {
   factType: string;

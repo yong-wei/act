@@ -1,5 +1,5 @@
-import type { KaqArtifactVersionRefs } from '../kaq-artifact-versioning';
-import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
+import type { KaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
+import { detectKaqArtifactStaleness, validateKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 import {
   getLearningGoal,
   type AdaptiveLearningPathEvidenceType,
@@ -8,9 +8,9 @@ import {
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVE_CATALOG,
-} from './autocontrol-kaq-graph-catalog';
-import type { KaqGraphNode } from './kaq-graph-schema';
-import type { KaqObjective, KaqObjectiveDomain } from './kaq-objective-taxonomy';
+} from '@/lib/data-governance/autocontrol-kaq-graph-catalog';
+import type { KaqGraphNode } from '@/lib/data-governance/kaq-graph-schema';
+import type { KaqObjective, KaqObjectiveDomain } from '@/lib/data-governance/kaq-objective-taxonomy';
 
 export type KaqEvidenceSourceClass =
   | 'instructional-checkpoint'

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
+import { recordPathIntervention } from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   assertCanReadPath,
   assertCanWritePathIntervention,

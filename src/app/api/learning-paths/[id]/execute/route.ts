@@ -16,7 +16,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   recordPathNodeExecution,
   updateControlCorrectionPathRoundAfterExecution,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
   assertPathMutableForWrite,

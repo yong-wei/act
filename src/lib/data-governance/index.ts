@@ -36,11 +36,8 @@ export * from './learning-evidence-rag-corpus';
 // K/A/Q graph catalogs
 export * from './autocontrol-kaq-graph-catalog';
 export * from './graph-center';
-export * from './kaq-evidence-writeback';
 
-// Role-based learning diagnosis
-export * from './control-correction-diagnosis-profile';
-export * from './role-based-learning-diagnosis';
+// Teacher prep pack
 export * from './teacher-prep-pack-generation';
 
 // Interactive session finalization

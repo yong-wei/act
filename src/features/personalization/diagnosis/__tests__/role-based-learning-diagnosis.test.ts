@@ -9,7 +9,7 @@ import {
   validateRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosisInput,
 } from '../role-based-learning-diagnosis';
-import type { LearningEvidenceAuthorityMetadata, LearningEvidenceCorpusChunk, LearningEvidenceRetrievalRole } from '../learning-evidence-rag-corpus';
+import type { LearningEvidenceAuthorityMetadata, LearningEvidenceCorpusChunk, LearningEvidenceRetrievalRole } from '@/lib/data-governance/learning-evidence-rag-corpus';
 
 const now = new Date('2026-06-04T10:00:00.000Z');
 

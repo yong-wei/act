@@ -62,3 +62,12 @@ export async function readMasteryUpdates(userId: string): Promise<Array<Record<s
 export async function readLatestAbilityEstimate(userId: string): Promise<Record<string, unknown> | null> {
   return readLatestAbilityEstimateUseCase(runtime(), userId);
 }
+
+export {
+  materializeKaqEvidenceWriteback,
+  projectKaqEvidenceWritebackForConsumer,
+} from './kaq-evidence-writeback';
+export type {
+  KaqEvidenceWritebackInput,
+  KaqEvidenceWritebackResult,
+} from './kaq-evidence-writeback';
