@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -6,6 +7,7 @@ import { REQUIRED_BASELINE } from '../src/lib/architecture-charter';
 import {
   CURRENT_HEAD_OUTPUT_DIR,
   captureDriftFailures,
+  captureWriteGate,
   currentHeadPackageHash,
   generateCurrentHeadDelta,
   loadGitSourceSnapshot,
@@ -47,6 +49,10 @@ function main(): void {
   const failures = [...generated.failures, ...captureDriftFailures(snapshot, after)];
   qualifyCurrentHeadDelta(generated.pack, failures);
   const { pack, files } = generated;
+  const porcelain = execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' });
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
+  const tree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { cwd: repoRoot, encoding: 'utf8' }).trim();
+  qualifyCurrentHeadDelta(pack, captureWriteGate(pack.captureIdentity, porcelain, commit, tree));
   const outDir = join(repoRoot, CURRENT_HEAD_OUTPUT_DIR);
   mkdirSync(outDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {

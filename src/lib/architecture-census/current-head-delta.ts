@@ -776,3 +776,17 @@ export function captureDriftFailures(
   }
   return failures;
 }
+
+export function captureWriteGate(
+  expected: CaptureIdentity,
+  porcelain: string,
+  commit: string,
+  tree: string,
+): QualificationFailure[] {
+  const failures: QualificationFailure[] = [];
+  if (porcelain.trim().length > 0) failures.push({ code: 'dirty-worktree', identity: commit || expected.sourceCommit });
+  if (commit !== expected.sourceCommit || tree !== expected.sourceTree) {
+    failures.push({ code: 'mixed-identity', identity: commit || expected.sourceCommit });
+  }
+  return failures;
+}

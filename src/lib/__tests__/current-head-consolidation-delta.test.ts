@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { REQUIRED_BASELINE } from '@/lib/architecture-charter';
 import {
   captureDriftFailures,
+  captureWriteGate,
   generateCurrentHeadDelta,
   projectCurrentHeadFiles,
   qualifyCurrentHeadDelta,
@@ -163,6 +164,7 @@ describe('current-head consolidation delta', () => {
     const after = fixture([file('src/features/assessment/public-api.ts', 'export const api = 1;\n')], { dirty: true });
     const generated = generateCurrentHeadDelta(before);
     expect(() => qualifyCurrentHeadDelta(generated.pack, [...generated.failures, ...captureDriftFailures(before, after)])).toThrow(/dirty-worktree/);
+    expect(() => qualifyCurrentHeadDelta(generated.pack, captureWriteGate(before.identity, ' M src/features/assessment/public-api.ts\n', before.identity.sourceCommit, before.identity.sourceTree))).toThrow(/dirty-worktree/);
   });
 
   it('records owner overlap when two active changes share an owner but not the same src path', () => {
