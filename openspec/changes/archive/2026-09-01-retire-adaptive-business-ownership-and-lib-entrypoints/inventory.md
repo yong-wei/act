@@ -1,6 +1,6 @@
 # Current-head owner mapping (C2)
 
-Scan: production sources under `src/app`, `src/features`, `src/lib`, `scripts` after consumer rewrite. Banned needles `@/features/adaptive/` and `@/lib/adaptive-` have zero production hits. Replacement SHA is the delivery commit that contains this file.
+Scan revision: will be the delivery HEAD of the commit that includes this inventory (`git rev-parse HEAD` after that commit). Production sources under `src/app`, `src/features`, `src/lib`, `scripts`. Banned needles `@/features/adaptive/` and `@/lib/adaptive-` have zero production hits. Client/experience consumers use leaf modules; server routes use `path-planning/public-api`. Verification: `rtk npm run typecheck` exit 0; `legacy-adaptive-entrypoint-retirement` and path-advisor tests passing.
 
 | Old path | Owner | Replacement | Consumers after rewrite | Deletion |
 | --- | --- | --- | --- | --- |

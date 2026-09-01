@@ -3,7 +3,7 @@ import {
   canonicalizeAdaptivePathInternalHref as canonicalizeDestinationHref,
   resolveAdaptivePathCenterOwnedTargetHref as resolveDestinationCenterTarget,
   resolveAdaptivePathDestinationContract,
-} from '@/features/personalization/path-planning/public-api';
+} from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import {
   projectAdaptivePathCorrectionOutcome,
   type AdaptivePathCorrectionOutcome,

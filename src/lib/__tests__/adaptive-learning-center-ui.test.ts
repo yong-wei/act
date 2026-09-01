@@ -992,7 +992,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");
     expect(restoreSource).toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
     expect(restoreSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");
-    expect(bridgeSource).toContain("import type { AdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/public-api'");
+    expect(bridgeSource).toContain("import type { AdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/adaptive-path-goal-options'");
     expect(bridgeSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
     expect(bridgeSource).toContain('goalContexts: Partial<Record<string, AdaptivePathAdvisorGoalContext>>');
     expect(bridgeSource).toContain('requestedGoal && goalContexts[requestedGoal]');
