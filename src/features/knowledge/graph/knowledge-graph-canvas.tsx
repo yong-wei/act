@@ -58,6 +58,7 @@ import {
   reheatKnowledgeGraphNewcomerScope,
   freezeKnowledgeGraphFilterProjectionScope,
   selectKnowledgeGraphAddedEdgeEndpointIds,
+  freezeKnowledgeGraphEdgeGrowthScope,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -761,7 +762,15 @@ export function KnowledgeGraphCanvas({
 
     // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标，与 2D 相同
     // （摄入的 warmup ticks 先于被动 effect，#1739 task 3.3）。
-    const scopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedThreeDimensionalNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
+    const filterScopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedThreeDimensionalNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
+    // 仅新增关系的分片同样在渲染期（摄入前）冻结，与筛选投影同一时序
+    // 约束（#1739）。
+    const scopedNodes = freezeKnowledgeGraphEdgeGrowthScope(
+      filterScopedNodes,
+      transformedLinks,
+      knownNodeIdsRef.current,
+      knownLinkKeysRef.current,
+    );
     return {
       nodes: scopedNodes,
       links: transformedLinks

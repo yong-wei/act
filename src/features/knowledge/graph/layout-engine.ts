@@ -929,6 +929,37 @@ export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPosi
 }
 
 /**
+ * Render-time (pre-ingest) freeze for link-only growth (#1739): when the
+ * node set is unchanged but new edges arrive, every node outside the new
+ * edges' connected neighborhood enters the frame with fixed coordinates so
+ * force-graph's synchronous warmup ticks cannot move the settled rest.
+ * Returns the input array unchanged when the change is not link-only.
+ */
+export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+  previousIds: ReadonlySet<string> | null,
+  knownLinkIds: ReadonlySet<string>,
+): T[] {
+  if (previousIds === null
+    || nodes.length !== previousIds.size
+    || nodes.some((node) => !previousIds.has(String(node.id)))) {
+    return nodes;
+  }
+  const { addedEdgeEndpointIds } = selectKnowledgeGraphAddedEdgeEndpointIds(links, knownLinkIds);
+  if (addedEdgeEndpointIds.size === 0) return nodes;
+  const affectedEndpoints = selectKnowledgeGraphReheatAffectedNodeIds(links, addedEdgeEndpointIds);
+  return nodes.map((node) => (affectedEndpoints.has(String(node.id))
+    ? node
+    : {
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    }));
+}
+
+/**
  * Derive the endpoint ids of links that were not present in the previous
  * frame (link-only shard growth, e.g. an enabled relation family) so only
  * their neighborhood reheats (#1739).

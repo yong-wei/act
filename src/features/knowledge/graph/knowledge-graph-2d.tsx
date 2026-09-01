@@ -21,6 +21,7 @@ import {
   reheatKnowledgeGraphNewcomerScope,
   freezeKnowledgeGraphFilterProjectionScope,
   selectKnowledgeGraphAddedEdgeEndpointIds,
+  freezeKnowledgeGraphEdgeGrowthScope,
 } from './layout-engine';
 import {
   KNOWLEDGE_FORCE_ALPHA_DECAY,
@@ -558,7 +559,15 @@ export function KnowledgeGraph2D({
     // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标：摄入会同步执行
     // warmup ticks，先于任何被动 effect，否则剩余节点在冻结前已位移
     // （#1739 task 3.3）。
-    const scopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedLayoutNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
+    const filterScopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedLayoutNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
+    // 仅新增关系的分片同样在渲染期（摄入前）冻结，与筛选投影同一时序
+    // 约束（#1739）。
+    const scopedNodes = freezeKnowledgeGraphEdgeGrowthScope(
+      filterScopedNodes,
+      transformedLinks,
+      knownNodeIdsRef.current,
+      knownLinkKeysRef.current,
+    );
     return {
       nodes: scopedNodes,
       links: transformedLinks
