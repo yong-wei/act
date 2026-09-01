@@ -575,7 +575,10 @@ describe('knowledge graph focused expansion layout', () => {
 
     expect(laidOut[0]).toBe(center);
     expect(distanceFrom(laidOut[1], { x: 300, y: 400 })).toBeCloseTo(96);
-    expect(laidOut[1]).toMatchObject({ x: 396, y: 400, fx: 396, fy: 400 });
+    expect(laidOut[1]).toMatchObject({ x: 396, y: 400 });
+    // #1739: focused expansion coordinates are seeds, not fixed anchors.
+    expect(laidOut[1]).not.toHaveProperty('fx');
+    expect(laidOut[1]).not.toHaveProperty('fy');
   });
 
   it('spills large direct-child sets into stable bounded rings', () => {
@@ -691,9 +694,13 @@ describe('knowledge graph focused expansion layout', () => {
     syncKnowledgeGraphMutableNodePositions(focusedNodes, clearKnowledgeGraphLayoutPins(userPinned));
     expect(focusedChild).toMatchObject({
       ...focusedPosition,
-      fx: focusedPosition.x,
-      fy: focusedPosition.y,
+      positionX: focusedPosition.x,
+      positionY: focusedPosition.y,
     });
+    // Unpinning returns the focused child to force ownership (#1739): the
+    // deterministic focused position is restored as a movable seed.
+    expect(focusedChild).not.toHaveProperty('fx');
+    expect(focusedChild).not.toHaveProperty('fy');
   });
 
   it('records a focused automatic anchor when a direct child was pinned before expansion', () => {
@@ -719,6 +726,8 @@ describe('knowledge graph focused expansion layout', () => {
 
     syncKnowledgeGraphMutableNodePositions(focusedNodes, userPinned);
     syncKnowledgeGraphMutableNodePositions(focusedNodes, clearKnowledgeGraphLayoutPins(userPinned));
-    expect(focusedChild).toMatchObject({ x: 96, y: 0, fx: 96, fy: 0 });
+    expect(focusedChild).toMatchObject({ x: 96, y: 0 });
+    expect(focusedChild).not.toHaveProperty('fx');
+    expect(focusedChild).not.toHaveProperty('fy');
   });
 });

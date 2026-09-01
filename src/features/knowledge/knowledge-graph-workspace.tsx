@@ -30,6 +30,7 @@ export function KnowledgeGraphWorkspace({
   const runtimeControlsRef = useRef<{
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
+    requestUnpin: (nodeId?: string) => void;
   } | null>(null);
   const sessionsRef = useRef(createGraphRuntimeSessionStore());
   const candidateDiagnosticEnabled = candidateAllowed && controlledVerification;

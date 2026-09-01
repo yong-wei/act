@@ -67,6 +67,7 @@ export function ActiveAuthorityRuntimeView({
     fitViewRequest,
     handleNodeDragEnd,
     requestFitView,
+    engineReheatRevision,
   } = layout;
   const {
     cameraPoseByScopeRef,
@@ -162,6 +163,7 @@ export function ActiveAuthorityRuntimeView({
           layoutState={layoutState}
           fitViewRequest={fitViewRequest}
           relayoutVersion={relayoutVersion}
+          engineReheatRevision={engineReheatRevision}
           graphVersion={graphVersion}
           autoFitScopeKey={cameraScopeKey}
           autoFitReady={nodes.length > 0}

@@ -5,6 +5,22 @@ export type KnowledgeGraphLabelMode = 'focus' | 'all';
 
 export const KNOWLEDGE_LABEL_ZOOM_THRESHOLD = 1.6;
 
+/**
+ * #1739 default readable-label budgets for the bounded DomainConcept
+ * overview. After force separation, camera fit and collision deferral the
+ * ordinary (unselected, unhovered) state must keep at least this share of
+ * concept labels visible; deferred labels keep their accessible name and
+ * the deferred count is recorded against these budgets.
+ */
+export const KNOWLEDGE_LABEL_OVERVIEW_MIN_VISIBLE_RATIO = {
+  /** Measured on the settled twelve-concept overview fixture (#1739). */
+  desktop: 0.75,
+  mobile: 0.55,
+} as const;
+
+/** Visible labels never overlap one another (collision solver defers). */
+export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
+
 interface KnowledgeGraphLabelPolicyInput {
   labelMode: KnowledgeGraphLabelMode;
   nodeId?: string | null;

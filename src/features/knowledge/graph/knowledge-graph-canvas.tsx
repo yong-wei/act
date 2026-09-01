@@ -42,6 +42,9 @@ import {
   type KnowledgeGraphLayoutState,
 } from './layout-state';
 import {
+  freezeKnowledgeGraphUnaffectedScope,
+  releaseKnowledgeGraphFrozenScope,
+  releaseKnowledgeGraphDragFrame,
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
@@ -54,6 +57,11 @@ import {
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
+import {
+  KNOWLEDGE_FORCE_ALPHA_DECAY,
+  KNOWLEDGE_FORCE_ALPHA_MIN,
+  resolveKnowledgeForceLifecycle,
+} from './force-lifecycle';
 import {
   createKnowledgeGraphMotionScopeKey,
   bindKnowledgeGraphMotionEnvironment,
@@ -170,6 +178,7 @@ interface KnowledgeGraphCanvasProps {
   onCameraManipulation?: (scopeKey: string) => void;
   onCameraPoseChange?: (scopeKey: string, pose: KnowledgeGraphCameraPose) => void;
   relayoutVersion: number;
+  engineReheatRevision?: number;
   width?: number;
   height?: number;
   expandedNodeIds: readonly string[];
@@ -508,6 +517,7 @@ export function KnowledgeGraphCanvas({
   onCameraManipulation,
   onCameraPoseChange,
   relayoutVersion,
+  engineReheatRevision = 0,
   width,
   height,
   expandedNodeIds,
@@ -579,6 +589,9 @@ export function KnowledgeGraphCanvas({
   const rightPanRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  // 与 2D 相同：react-force-graph-3d 的 ref 也不暴露 graphData 方法，memo 节点
+  // 数组即 d3 原地变异的活对象，用 ref 保留上一代续承沉降坐标（#1739）。
+  const liveNodesRef = useRef<RuntimeKnowledgeGraphNode[]>([]);
   const committedRelayoutVersionRef = useRef(relayoutVersion);
 
   useEffect(() => () => nodeObjectsByIdRef.current.clear(), []);
@@ -600,6 +613,11 @@ export function KnowledgeGraphCanvas({
   const settledLayoutSignatureRef = useRef('');
   const [reducedMotion, setReducedMotion] = useState(false);
   const [motionEnvironmentActive, setMotionEnvironmentActive] = useState(false);
+  const forceLifecycle = resolveKnowledgeForceLifecycle({
+    dimension: '3d',
+    liveEngine: true,
+    reducedMotion,
+  });
   useEffect(() => {
     const handleResize = () => setViewportRevision((value) => value + 1);
     window.addEventListener('resize', handleResize);
@@ -697,7 +715,7 @@ export function KnowledgeGraphCanvas({
         }).nodes as RuntimeKnowledgeGraphNode[];
     const baseLayoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: clonedBaseLayoutNodes,
-      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+      liveNodes: liveNodesRef.current,
       runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
       preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
@@ -720,19 +738,13 @@ export function KnowledgeGraphCanvas({
     });
     const focusedThreeDimensionalNodes = focusedLayoutNodes.map((node) => {
       const focusedZ = focusedDepthByNodeId.get(node.id);
-      if (focusedZ === undefined) return {
-        ...node,
-        fx: node.x,
-        fy: node.y,
-        fz: node.z ?? 0,
-      };
+      if (focusedZ === undefined) return node;
+      // Focused depth is a z seed, not a fixed coordinate: ordinary nodes
+      // stay under force ownership in every dimension (#1739).
       return {
         ...node,
         z: focusedZ,
         positionZ: focusedZ,
-        fx: node.x,
-        fy: node.y,
-        fz: focusedZ,
         __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor
           ? { ...node.__knowledgeAutomaticAnchor, z: focusedZ }
           : node.__knowledgeAutomaticAnchor,
@@ -744,6 +756,7 @@ export function KnowledgeGraphCanvas({
       links: transformedLinks
     };
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
+  liveNodesRef.current = graphData.nodes as RuntimeKnowledgeGraphNode[];
   const structuralForegroundEdgeIdSet = useMemo(() => new Set(
     selectKnowledgeGraphStructuralForegroundEdgeIds(graphData.links),
   ), [graphData.links]);
@@ -920,10 +933,11 @@ export function KnowledgeGraphCanvas({
       disposeKnowledgeGraphPresentationLinkGroup(object);
       linkObjectsByIdRef.current.delete(linkId);
     });
-    fgRef.current?.graphData?.(graphData);
     fgRef.current?.refresh?.();
     const refreshFrame = window.requestAnimationFrame(() => {
-      const liveLinks = (fgRef.current?.graphData?.()?.links ?? []) as any[];
+      // d3 在摄入后会把 memo 链接对象的 source/target 原地解析为节点引用；
+      // ref 上没有 graphData 方法，直接读 memo 数组即活对象（#1739）。
+      const liveLinks = graphData.links as any[];
       liveLinks.forEach((link) => {
         const source = typeof link.source === 'object' ? link.source : null;
         const target = typeof link.target === 'object' ? link.target : null;
@@ -1115,13 +1129,43 @@ export function KnowledgeGraphCanvas({
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
+  // Component-scoped reheat (#1739): newly disclosed nodes settle while
+  // unaffected nodes hold their settled coordinates; the frame is released
+  // at the engine-stop settle milestone.
+  const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
+  const knownNodeIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const nextIds = new Set(graphData.nodes.map((node: any) => String(node.id)));
+    const previousIds = knownNodeIdsRef.current;
+    knownNodeIdsRef.current = nextIds;
+    if (!previousIds || forceLifecycle.staticLayout) return;
+    const newcomers = [...nextIds].filter((id) => !previousIds.has(id));
+    if (newcomers.length === 0) return;
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set(newcomers));
+    unaffectedFrozenNodeIdsRef.current = new Set(
+      graphNodes
+        .filter((node) => previousIds.has(String(node.id)))
+        .map((node) => String(node.id)),
+    );
+    fgRef.current?.d3ReheatSimulation?.();
+  }, [forceLifecycle.staticLayout, graphData.nodes]);
+
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
+    if (unaffectedFrozenNodeIdsRef.current.size > 0) {
+      const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+      releaseKnowledgeGraphFrozenScope(graphNodes, {
+        frozenNodeIds: unaffectedFrozenNodeIdsRef.current,
+        pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+      });
+      unaffectedFrozenNodeIdsRef.current = new Set();
+    }
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setCameraProjectionRevision((revision) => revision + 1);
     setLayoutSettledRevision((revision) => revision + 1);
-  }, [layoutSignature, snapshotRuntimePositions]);
+  }, [graphData.nodes, layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -1197,7 +1241,7 @@ export function KnowledgeGraphCanvas({
       const rendererWidth = renderer?.domElement?.width;
       const rendererHeight = renderer?.domElement?.height;
       const graphNodes = [
-        ...((fgRef.current?.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+        ...((fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
         ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
       ];
       return graphNodes
@@ -2405,11 +2449,19 @@ export function KnowledgeGraphCanvas({
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
   useEffect(() => {
-    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+    const currentNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as
       | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
       | undefined;
     syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
   }, [graphData, layoutState]);
+
+  const lastEngineReheatRevisionRef = useRef(engineReheatRevision);
+  useEffect(() => {
+    if (engineReheatRevision <= lastEngineReheatRevisionRef.current) return;
+    lastEngineReheatRevisionRef.current = engineReheatRevision;
+    if (forceLifecycle.staticLayout) return;
+    fgRef.current?.d3ReheatSimulation?.();
+  }, [engineReheatRevision, forceLifecycle.staticLayout]);
 
   // 6. 节点点击处理
   const handleNodeClick = useCallback((node: any) => {
@@ -2424,9 +2476,14 @@ export function KnowledgeGraphCanvas({
   const handleNodeDragEnd = useCallback((node: any) => {
     scheduleProjectionRefresh();
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    releaseKnowledgeGraphDragFrame(graphNodes, {
+      draggedId: String(node?.id ?? ''),
+      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+    });
     onNodeDragEnd(node as KnowledgeNodeData);
     flushCameraPose(autoFitScopeKey);
-  }, [autoFitScopeKey, flushCameraPose, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, flushCameraPose, graphData.nodes, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
 
   const handleNodeDrag = useCallback((node: any) => {
     scheduleProjectionRefresh();
@@ -2875,10 +2932,13 @@ export function KnowledgeGraphCanvas({
         onEngineTick={scheduleProjectionRefresh}
         enableNodeDrag={true}
 
-        // 物理引擎
+        // 物理引擎：有界力生命周期（#1739）
         d3VelocityDecay={0.3}
-        warmupTicks={0}
-        cooldownTicks={0}
+        d3AlphaDecay={KNOWLEDGE_FORCE_ALPHA_DECAY}
+        d3AlphaMin={KNOWLEDGE_FORCE_ALPHA_MIN}
+        warmupTicks={forceLifecycle.warmupTicks}
+        cooldownTicks={forceLifecycle.cooldownTicks}
+        cooldownTime={forceLifecycle.cooldownTimeMs}
 
         // 背景透明（使用CSS渐变背景）
         backgroundColor="rgba(0,0,0,0)"

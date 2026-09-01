@@ -944,7 +944,7 @@ it('3D refreshes projection in place without replacing the node factory or Objec
   await act(async () => root.unmount());
 });
 
-it('3D keeps authored teaching coordinates fixed instead of restarting force simulation', async () => {
+it('3D keeps authored teaching coordinates as soft seeds instead of claiming fixed ownership', async () => {
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
@@ -953,12 +953,16 @@ it('3D keeps authored teaching coordinates fixed instead of restarting force sim
   }))));
   await act(async () => vi.runAllTimers());
   const graphData = forceGraph.threeDProps.graphData as {
-    nodes: Array<{ x: number; y: number; z?: number; fx: number; fy: number; fz: number }>;
+    nodes: Array<{ x: number; y: number; z?: number; fx?: number; fy?: number; fz?: number }>;
   };
+  // #1739：教学序种子只是初始坐标，普通节点不再拥有 fx/fy/fz；
+  // 固定坐标只属于治理锚点与用户 pin。
   graphData.nodes.forEach((node) => {
-    expect(node.fx).toBe(node.x);
-    expect(node.fy).toBe(node.y);
-    expect(node.fz).toBe(node.z ?? 0);
+    expect(Number.isFinite(node.x)).toBe(true);
+    expect(Number.isFinite(node.y)).toBe(true);
+    expect(node.fx).toBeUndefined();
+    expect(node.fy).toBeUndefined();
+    expect(node.fz).toBeUndefined();
   });
   expect(forceGraph.threeDProps.warmupTicks).toBe(0);
   expect(forceGraph.threeDProps.cooldownTicks).toBe(0);

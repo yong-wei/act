@@ -34,7 +34,18 @@ export interface KnowledgeTeachingOrderLayoutResult<T extends TeachingOrderNode>
   diagnostics: KnowledgeTeachingOrderDiagnostic[];
   fitScale: number;
   iterations: number;
-  nodes: Array<T & { x: number; y: number; z: number; fx: number; fy: number; fz: number }>;
+  /**
+   * 确定性教学序坐标是软种子（x/y/z + positionX/Y/Z），不再拥有 fx/fy/fz；
+   * 力学引擎从种子出发自然沉降，固定坐标只属于治理锚点与用户 pin（#1739）。
+   */
+  nodes: Array<T & {
+    x: number;
+    y: number;
+    z: number;
+    positionX: number;
+    positionY: number;
+    positionZ: number;
+  }>;
   orderNodeIds: string[];
   positions: Record<string, { x: number; y: number }>;
   unorderedNodeIds: string[];
@@ -312,9 +323,6 @@ export function buildKnowledgeTeachingOrderLayout<T extends TeachingOrderNode>(i
       x: position.x,
       y: position.y,
       z: 0,
-      fx: position.x,
-      fy: position.y,
-      fz: 0,
       positionX: position.x,
       positionY: position.y,
       positionZ: 0,

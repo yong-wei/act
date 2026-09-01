@@ -107,6 +107,7 @@ interface ActiveAuthorityGraphProps {
   runtimeControlsRef?: { current: {
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
+    requestUnpin: (nodeId?: string) => void;
   } | null };
 }
 
@@ -884,6 +885,8 @@ function ActiveNodeDetail({
   compact,
   onActivateNeighbor,
   locale,
+  pinned = false,
+  onUnpin,
 }: {
   nodeKey: string;
   fallbackNode: ActiveNodePresentation | undefined;
@@ -895,6 +898,8 @@ function ActiveNodeDetail({
   compact: boolean;
   onActivateNeighbor: (key: string) => void;
   locale: AdmittedLocale;
+  pinned?: boolean;
+  onUnpin?: () => void;
 }) {
   const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure, locale);
   const panelRef = useRef<HTMLElement>(null);
@@ -947,14 +952,27 @@ function ActiveNodeDetail({
           <div className="text-xs font-medium text-platform-fg-muted">{graphCopy(locale, 'inspector.label')}</div>
           <div className="mt-1 text-sm text-platform-fg-secondary">{graphCopy(locale, 'inspector.subtitle')}</div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={graphCopy(locale, 'inspector.close')}
-          className="rounded-md border border-platform-border p-2 text-platform-fg-secondary hover:bg-platform-action-subtle"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          {pinned && onUnpin ? (
+            <button
+              type="button"
+              onClick={onUnpin}
+              data-active-authority-unpin={nodeKey}
+              aria-label="解除固定，交还力学布局"
+              className="rounded-md border border-platform-border px-2 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+            >
+              解除固定
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={graphCopy(locale, 'inspector.close')}
+            className="rounded-md border border-platform-border p-2 text-platform-fg-secondary hover:bg-platform-action-subtle"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -1657,6 +1675,7 @@ export function ActiveAuthorityGraph({
     runtimeControlsRef.current = {
       requestFitView: runtimeLayout.requestFitView,
       requestRelayout: runtimeLayout.requestRelayout,
+      requestUnpin: runtimeLayout.unpinNode,
     };
   }
 
@@ -1805,6 +1824,17 @@ export function ActiveAuthorityGraph({
                 {query || typeFilter ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
+                {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => runtimeLayout.unpinNode()}
+                    data-active-authority-unpin-all="true"
+                    aria-label={`解除全部固定（${runtimeLayout.pinnedNodeIds.size} 个节点）`}
+                    className="shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"
+                  >
+                    解除全部固定（{runtimeLayout.pinnedNodeIds.size}）
+                  </button>
+                ) : null}
                 <label className="sr-only" htmlFor="active-authority-type-filter">{graphCopy(locale, 'filter.type')}</label>
                 <div className="relative">
                   <select
@@ -1950,7 +1980,7 @@ export function ActiveAuthorityGraph({
             {(query || typeFilter) && (domainSearch.status === 'ready' && domainSearch.hits.length === 0
               || domainSearch.status === 'error') ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
           </main>
-          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} /> : null}
+          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>
       )}
     </div>

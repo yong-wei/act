@@ -304,9 +304,9 @@ export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGra
     const vx = readFiniteCoordinate(node.vx);
     const vy = readFiniteCoordinate(node.vy);
     const vz = readFiniteCoordinate(node.vz);
-    const fx = readFiniteCoordinate(node.fx);
-    const fy = readFiniteCoordinate(node.fy);
-    const fz = readFiniteCoordinate(node.fz);
+    // 只续承位置与速度；fx/fy/fz 是固定坐标所有权，不能随增量重算隐式
+    // 复活——用户 pin 的 fx 由 sync 从布局 store 恢复，治理锚点由种子
+    // 布局重新给出（#1739 unpin 不回冻）。
     livePositionsByNodeId.set(node.id, {
       x,
       y,
@@ -314,9 +314,6 @@ export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGra
       ...(vx === null ? {} : { vx }),
       ...(vy === null ? {} : { vy }),
       ...(vz === null ? {} : { vz }),
-      ...(fx === null ? {} : { fx }),
-      ...(fy === null ? {} : { fy }),
-      ...(fz === null ? {} : { fz }),
       ...(node.__knowledgeAutomaticAnchor
         ? { __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor }
         : {}),
@@ -838,14 +835,14 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
     }
 
     if (!focused) return node;
+    // Focused expansion positions are deterministic seeds, not fixed
+    // coordinates: one-hop nodes stay under force ownership (#1739).
     return {
       ...node,
       x: focused.x,
       y: focused.y,
       positionX: focused.x,
       positionY: focused.y,
-      fx: focused.x,
-      fy: focused.y,
       __knowledgeAutomaticAnchor: {
         id: node.id,
         x: focused.x,
@@ -886,6 +883,64 @@ export function freezeKnowledgeGraphDragFrame<T extends KnowledgeGraphPositioned
     node.fy = y;
     const z = readFiniteCoordinate(node.fz ?? node.z ?? node.positionZ);
     if (z !== null) node.fz = z;
+  });
+}
+
+/**
+ * Release the drag-isolation frame after a drag ends (#1739): every
+ * non-dragged node that owns no pin and no governed root anchor returns to
+ * force ownership; the dragged node keeps its coordinates as the basis for
+ * the explicit pin the runtime layout stores.
+ */
+export function releaseKnowledgeGraphDragFrame<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  options: { draggedId: string; pinnedNodeIds: ReadonlySet<string> }
+): void {
+  nodes.forEach((node) => {
+    if (node.id === options.draggedId) return;
+    if (options.pinnedNodeIds.has(node.id)) return;
+    if ((node as T & { __knowledgeRootPacking?: unknown }).__knowledgeRootPacking) return;
+    if ((node as T & { __knowledgeUserPinned?: true }).__knowledgeUserPinned) return;
+    delete node.fx;
+    delete node.fy;
+    delete node.fz;
+  });
+}
+
+/**
+ * Component-scoped reheat support (#1739): while newly disclosed nodes
+ * settle, every unaffected node keeps its settled coordinates as a
+ * temporary fixed frame so the physics only reflows the affected scope.
+ */
+export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  affectedNodeIds: ReadonlySet<string>
+): void {
+  nodes.forEach((node) => {
+    if (affectedNodeIds.has(node.id)) return;
+    const x = readFiniteCoordinate(node.x ?? node.positionX);
+    const y = readFiniteCoordinate(node.y ?? node.positionY);
+    if (x === null || y === null) return;
+    node.fx = x;
+    node.fy = y;
+    const z = readFiniteCoordinate(node.z ?? node.positionZ);
+    if (z !== null) node.fz = z;
+  });
+}
+
+/** Release a previously frozen scope; pins, roots and dragged nodes stay fixed. */
+export function releaseKnowledgeGraphFrozenScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  options: { frozenNodeIds: ReadonlySet<string>; pinnedNodeIds: ReadonlySet<string> }
+): void {
+  nodes.forEach((node) => {
+    if (!options.frozenNodeIds.has(node.id)) return;
+    if (options.pinnedNodeIds.has(node.id)) return;
+    if ((node as T & { __knowledgeUserPinned?: true }).__knowledgeUserPinned) return;
+    if ((node as T & { __knowledgeRootPacking?: unknown }).__knowledgeRootPacking) return;
+    delete node.fx;
+    delete node.fy;
+    delete node.fz;
   });
 }
 
