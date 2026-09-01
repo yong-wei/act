@@ -11,8 +11,6 @@ import type {
 interface TaskMatrixProps {
   tasks: AiCollectionEnvelope<AiTaskItem>;
   achievements: AiCollectionEnvelope<AiAchievementItem>;
-  selectedTask: AiTaskItem | null;
-  onTaskSelect: (task: AiTaskItem | null) => void;
 }
 
 const categoryIcons = { theory: BookOpen, simulation: Beaker, ethics: Scale };
@@ -28,7 +26,7 @@ const difficultyLabels = {
   expert: { label: '专家', color: 'text-muted-foreground' },
 };
 
-export function TaskMatrix({ tasks, achievements, selectedTask, onTaskSelect }: TaskMatrixProps) {
+export function TaskMatrix({ tasks, achievements }: TaskMatrixProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-6" data-ai-workshop-collection="achievements" data-ai-workshop-collection-state={achievements.state}>
@@ -68,17 +66,9 @@ export function TaskMatrix({ tasks, achievements, selectedTask, onTaskSelect }: 
               const difficulty = task.difficulty ? difficultyLabels[task.difficulty] : null;
               const isLocked = task.status === 'locked';
               const isCompleted = task.status === 'completed';
-              const isSelected = selectedTask?.id === task.id;
 
-              return (
-                <button
-                  type="button"
-                  key={task.id}
-                  onClick={() => !isLocked && onTaskSelect(isSelected ? null : task)}
-                  disabled={isLocked}
-                  aria-label={`${task.title}（${task.sourceLabel}）`}
-                  className={`group relative rounded border p-4 text-left transition-all ${isLocked ? 'cursor-not-allowed border-border bg-muted opacity-50' : isSelected ? `${colors.border} ${colors.bg}` : 'border-border bg-background hover:border-primary hover:bg-accent'}`}
-                >
+              const cardBody = (
+                <>
                   {isCompleted ? <CheckCircle className="absolute right-3 top-3 h-5 w-5 text-foreground" /> : null}
                   {isLocked ? <Lock className="absolute right-3 top-3 h-5 w-5 text-muted-foreground" /> : null}
                   <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded ${colors.bg}`}><Icon className={`h-5 w-5 ${colors.text}`} /></div>
@@ -89,8 +79,33 @@ export function TaskMatrix({ tasks, achievements, selectedTask, onTaskSelect }: 
                     {typeof task.estimatedTime === 'number' ? <><span className="text-muted-foreground">·</span><span className="text-muted-foreground">{task.estimatedTime}分钟</span></> : null}
                   </div>
                   {!isLocked ? <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${task.progress}%` }} /></div> : null}
-                  {!isLocked && !isCompleted && task.status === 'available' ? <div className="absolute inset-0 flex items-center justify-center rounded bg-card opacity-0 transition-opacity group-hover:opacity-100"><div className="flex items-center gap-2 text-foreground"><Play className="h-5 w-5" /><span>开始学习</span></div></div> : null}
-                </button>
+                  {!isLocked && !isCompleted ? <div className="absolute inset-0 flex items-center justify-center rounded bg-card opacity-0 transition-opacity group-hover:opacity-100"><div className="flex items-center gap-2 text-foreground"><Play className="h-5 w-5" /><span>开始学习</span></div></div> : null}
+                </>
+              );
+
+              // 任务卡片导航到经授权的真实目标（Issue #1756 review）；
+              // 未解锁节点不导航。
+              if (isLocked) {
+                return (
+                  <div
+                    key={task.id}
+                    aria-label={`${task.title}（${task.sourceLabel}，未解锁）`}
+                    aria-disabled="true"
+                    className="group relative cursor-not-allowed rounded border border-border bg-muted p-4 text-left opacity-50"
+                  >
+                    {cardBody}
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={task.id}
+                  href={task.href}
+                  aria-label={`${task.title}（${task.sourceLabel}）`}
+                  className="group relative rounded border border-border bg-background p-4 text-left transition-all hover:border-primary hover:bg-accent"
+                >
+                  {cardBody}
+                </Link>
               );
             })}
           </div>

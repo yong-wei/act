@@ -34,9 +34,11 @@ export async function assembleAiWorkshopCollections(
   userId: string,
   db: PrismaClient = prisma,
 ): Promise<AiWorkshopCollections> {
+  // 已采用路径同时供给任务与里程碑两个集合（同一来源），读取失败只影响这两者。
+  const adoptedPath = await readAdoptedPath(userId, db);
   const [tasks, milestones, achievements, experiments, journals] = await Promise.all([
-    readTaskCollection(userId, db),
-    readMilestoneCollection(userId, db),
+    readTaskCollection(userId, db, adoptedPath),
+    readMilestoneCollection(adoptedPath),
     readGrowthCollection(userId, db),
     readExperimentCollection(userId, db),
     readJournalCollection(userId, db),
@@ -52,15 +54,67 @@ export async function assembleAiWorkshopCollections(
   };
 }
 
+type AdoptedPathRow = {
+  id: string;
+  title: string;
+  nodeIds: unknown;
+  currentNodeId: string | null;
+  lastExecutionMetadata: unknown;
+};
+
+type AdoptedPathResult =
+  | { ok: true; path: AdoptedPathRow | null; nodeIds: string[]; completedNodeIds: Set<string> | null; nodeTitle: (nodeId: string) => string }
+  | { ok: false };
+
+async function readAdoptedPath(userId: string, db: PrismaClient): Promise<AdoptedPathResult> {
+  try {
+    const path = await db.learningPath.findFirst({
+      where: { userId, pathStatus: 'active' },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+      select: { id: true, title: true, nodeIds: true, currentNodeId: true, lastExecutionMetadata: true },
+    });
+    const nodeIds = Array.isArray(path?.nodeIds)
+      ? path.nodeIds.filter((id): id is string => typeof id === 'string')
+      : [];
+    // 执行记录维护的权威完成集合（跳过/改道不由数组位置推断）；
+    // 缺失时返回 null，调用方不得把位置当完成状态。
+    const rawCompleted = path?.lastExecutionMetadata
+      && typeof path.lastExecutionMetadata === 'object'
+      ? (path.lastExecutionMetadata as Record<string, unknown>).completedNodeIds
+      : null;
+    const completedNodeIds = Array.isArray(rawCompleted)
+      ? new Set(rawCompleted.filter((id): id is string => typeof id === 'string'))
+      : null;
+    const nodes = nodeIds.length > 0
+      ? await db.knowledgeNode.findMany({ where: { id: { in: nodeIds } }, select: { id: true, name: true } })
+      : [];
+    const nameById = new Map(nodes.map((node) => [node.id, node.name]));
+    return {
+      ok: true,
+      path,
+      nodeIds,
+      completedNodeIds,
+      nodeTitle: (nodeId) => nameById.get(nodeId) ?? '路径节点',
+    };
+  } catch (error) {
+    console.error('[AiWorkshop] path source failed:', error instanceof Error ? error.message : 'unknown');
+    return { ok: false };
+  }
+}
+
 async function readTaskCollection(
   userId: string,
   db: PrismaClient,
+  adoptedPath: AdoptedPathResult,
 ): Promise<AiCollectionEnvelope<AiTaskItem>> {
   try {
     const assignments = await listStudentAssignments(db, userId);
-    const items = assignments
+    const items: AiTaskItem[] = assignments
       .filter((assignment) => assignment.contextStatus === 'CURRENT')
       .map(assignmentToTaskItem);
+    if (adoptedPath.ok && adoptedPath.path && adoptedPath.nodeIds.length > 0) {
+      items.push(...pathTaskItems(adoptedPath));
+    }
     return items.length > 0
       ? availableCollection(items, items.length, AI_WORKSHOP_COLLECTION_ACTIONS.tasks)
       : emptyCollection(AI_WORKSHOP_COLLECTION_ACTIONS.tasks);
@@ -68,6 +122,24 @@ async function readTaskCollection(
     console.error('[AiWorkshop] task source failed:', error instanceof Error ? error.message : 'unknown');
     return unavailableCollection('作业与任务来源暂时无法确认，请稍后重试。');
   }
+}
+
+/** 已采用路径的任务投影：当前节点进行中、未到达节点未解锁，完成节点不再列为任务。 */
+function pathTaskItems(adoptedPath: Extract<AdoptedPathResult, { ok: true }>): AiTaskItem[] {
+  const path = adoptedPath.path!;
+  const completed = adoptedPath.completedNodeIds ?? new Set<string>();
+  return adoptedPath.nodeIds
+    .filter((nodeId) => !completed.has(nodeId))
+    .map((nodeId) => ({
+      id: `path:${path.id}:${nodeId}`,
+      title: adoptedPath.nodeTitle(nodeId),
+      category: 'theory' as const,
+      status: nodeId === path.currentNodeId ? 'in_progress' as const : 'locked' as const,
+      progress: 0,
+      sourceKind: 'path' as const,
+      sourceLabel: path.title,
+      href: `/assessment/adaptive-practice?pathId=${path.id}`,
+    }));
 }
 
 function assignmentToTaskItem(assignment: StudentAssignmentDto): AiTaskItem {
@@ -88,49 +160,34 @@ function assignmentToTaskItem(assignment: StudentAssignmentDto): AiTaskItem {
     progress,
     sourceKind: 'assignment',
     sourceLabel: '课程作业',
+    href: `/missions/assignments/${assignment.id}`,
   };
 }
 
 async function readMilestoneCollection(
-  userId: string,
-  db: PrismaClient,
+  adoptedPath: AdoptedPathResult,
 ): Promise<AiCollectionEnvelope<AiMilestoneItem>> {
-  try {
-    const path = await db.learningPath.findFirst({
-      where: { userId, pathStatus: 'active' },
-      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
-      select: { id: true, title: true, nodeIds: true, currentNodeId: true },
-    });
-    const nodeIds = Array.isArray(path?.nodeIds)
-      ? path.nodeIds.filter((id): id is string => typeof id === 'string')
-      : [];
-    if (!path || nodeIds.length === 0) {
-      return emptyCollection(AI_WORKSHOP_COLLECTION_ACTIONS.milestones);
-    }
-    const nodes = await db.knowledgeNode.findMany({
-      where: { id: { in: nodeIds } },
-      select: { id: true, name: true },
-    });
-    const nameById = new Map(nodes.map((node) => [node.id, node.name]));
-    const currentIndex = path.currentNodeId ? nodeIds.indexOf(path.currentNodeId) : -1;
-    const items: AiMilestoneItem[] = nodeIds.map((nodeId, index) => ({
-      id: `path:${path.id}:${nodeId}`,
-      title: nameById.get(nodeId) ?? '路径节点',
-      order: index + 1,
-      status: currentIndex < 0
-        ? 'PENDING'
-        : index < currentIndex
-          ? 'COMPLETED'
-          : index === currentIndex
-            ? 'CURRENT'
-            : 'PENDING',
-      sourceLabel: path.title,
-    }));
-    return availableCollection(items, items.length, AI_WORKSHOP_COLLECTION_ACTIONS.milestones);
-  } catch (error) {
-    console.error('[AiWorkshop] milestone source failed:', error instanceof Error ? error.message : 'unknown');
+  if (!adoptedPath.ok) {
     return unavailableCollection('学习路径来源暂时无法确认，请稍后重试。');
   }
+  const { path, nodeIds, completedNodeIds, nodeTitle } = adoptedPath;
+  if (!path || nodeIds.length === 0) {
+    return emptyCollection(AI_WORKSHOP_COLLECTION_ACTIONS.milestones);
+  }
+  // 权威状态：执行记录的 completedNodeIds 判完成，currentNodeId 判当前；
+  // 完成集合缺失时其余节点一律 PENDING，不按数组位置推断完成（Issue #1756 review）。
+  const items: AiMilestoneItem[] = nodeIds.map((nodeId, index) => ({
+    id: `path:${path.id}:${nodeId}`,
+    title: nodeTitle(nodeId),
+    order: index + 1,
+    status: completedNodeIds?.has(nodeId)
+      ? 'COMPLETED'
+      : nodeId === path.currentNodeId
+        ? 'CURRENT'
+        : 'PENDING',
+    sourceLabel: path.title,
+  }));
+  return availableCollection(items, items.length, AI_WORKSHOP_COLLECTION_ACTIONS.milestones);
 }
 
 async function readGrowthCollection(

@@ -9,10 +9,7 @@ import {
   type AiTaskCandidate,
 } from '@/lib/ai-task-boundary-contracts';
 import type { AiWorkshopEvidenceProjection } from './ai-workshop-evidence';
-import type {
-  AiTaskItem,
-  AiWorkshopCollections,
-} from './ai-workshop-collections';
+import type { AiWorkshopCollections } from './ai-workshop-collections';
 import { LearningDashboard } from './dashboard/learning-dashboard';
 import { LearningCompass } from './compass/learning-compass';
 import { TaskMatrix } from './tasks/task-matrix';
@@ -38,7 +35,6 @@ export function PersonalLearningCenter({
   taskAssignment,
   taskContextIntent,
 }: PersonalLearningCenterProps) {
-  const [selectedTask, setSelectedTask] = useState<AiTaskItem | null>(null);
   const [reportTaskSelection, setReportTaskSelection] = useState<{
     status: 'candidate' | 'adopted' | 'discarded' | 'pending-writeback';
     candidateId?: string;
@@ -87,7 +83,7 @@ export function PersonalLearningCenter({
       <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto md:flex-row md:overflow-hidden">
         <LearningCompass collection={collections.milestones} evidence={evidence} />
         <div className="flex flex-1 flex-col overflow-hidden">
-          <TaskMatrix tasks={collections.tasks} achievements={collections.achievements} selectedTask={selectedTask} onTaskSelect={setSelectedTask} />
+          <TaskMatrix tasks={collections.tasks} achievements={collections.achievements} />
           <JournalCarousel collection={collections.journals} />
         </div>
         <ExperimentArchive collection={collections.experiments} />

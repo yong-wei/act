@@ -17,7 +17,7 @@ function mixedCollections(): AiWorkshopCollections {
     generatedAt: '2026-09-01T00:00:00.000Z',
     tasks: availableCollection([{
       id: 'assignment:a1', title: '时域分析作业', category: 'theory', status: 'in_progress',
-      progress: 50, sourceKind: 'assignment', sourceLabel: '课程作业',
+      progress: 50, sourceKind: 'assignment', sourceLabel: '课程作业', href: '/missions/assignments/a1',
     }], 1, AI_WORKSHOP_COLLECTION_ACTIONS.tasks),
     milestones: availableCollection([{
       id: 'path:p1:n1', title: '根轨迹', order: 1, status: 'CURRENT', sourceLabel: '控制矫正路径',
@@ -43,6 +43,8 @@ describe('PersonalLearningCenter governed collections', () => {
     // 可用集合渲染真实记录与来源标签，不回退为空态。
     expect(html).toContain('时域分析作业');
     expect(html).toContain('课程作业');
+    // 任务卡片是到真实作业目标的导航链接（Issue #1756 review）。
+    expect(html).toContain('href="/missions/assignments/a1"');
     expect(html).toContain('根轨迹');
     expect(html).toContain('反思一');
     // 空态与不可用态互不混用文案。

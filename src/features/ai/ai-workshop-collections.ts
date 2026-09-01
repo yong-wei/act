@@ -32,6 +32,8 @@ export interface AiTaskItem {
   progress: number;
   sourceKind: 'assignment' | 'path';
   sourceLabel: string;
+  /** 经授权的任务目标地址（作业页或自适应路径练习页）。 */
+  href: string;
   difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
   estimatedTime?: number;
 }

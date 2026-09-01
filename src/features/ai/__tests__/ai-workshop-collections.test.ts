@@ -44,6 +44,7 @@ describe('assembleAiWorkshopCollections', () => {
     const db = createDb();
     db.learningPath.findFirst.mockResolvedValue({
       id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-b',
+      lastExecutionMetadata: { completedNodeIds: ['node-a'] },
     });
     db.knowledgeNode.findMany.mockResolvedValue([
       { id: 'node-a', name: '根轨迹' },
@@ -80,16 +81,24 @@ describe('assembleAiWorkshopCollections', () => {
     const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
 
     expect(collections.authority).toBe('server-owned');
-    // 历史作业不属于当前发布范围，不得进入任务集合。
+    // 历史作业不属于当前发布范围；已采用路径的任务一并投影并携带真实目标地址。
     expect(collections.tasks.state).toBe('available');
-    expect(collections.tasks.items).toHaveLength(1);
+    expect(collections.tasks.items).toHaveLength(3);
     expect(collections.tasks.items[0]).toMatchObject({
       id: 'assignment:assignment-1',
       status: 'in_progress',
       progress: 50,
       sourceKind: 'assignment',
+      href: '/missions/assignments/assignment-1',
     });
-    // 里程碑保留路径身份与权威状态。
+    expect(collections.tasks.items.filter((item) => item.sourceKind === 'path')).toEqual([
+      expect.objectContaining({
+        id: 'path:path-1:node-b', status: 'in_progress', title: '频域分析',
+        href: '/assessment/adaptive-practice?pathId=path-1',
+      }),
+      expect.objectContaining({ id: 'path:path-1:node-c', status: 'locked', title: '校正设计' }),
+    ]);
+    // 里程碑以执行记录的完成集合为权威，保留路径身份与当前节点。
     expect(collections.milestones.state).toBe('available');
     expect(collections.milestones.items.map((item) => item.status)).toEqual(['COMPLETED', 'CURRENT', 'PENDING']);
     expect(collections.milestones.items[1]?.title).toBe('频域分析');
@@ -151,6 +160,40 @@ describe('assembleAiWorkshopCollections', () => {
     expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ userId: 'student-1' }),
     }));
+  });
+
+  it('does not infer completion from node position when the execution record skips a node', async () => {
+    listStudentAssignments.mockResolvedValue([]);
+    const db = createDb();
+    // 跳过/改道：currentNodeId 移到 node-c，但执行记录只确认 node-b 完成。
+    db.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-c',
+      lastExecutionMetadata: { completedNodeIds: ['node-b'] },
+    });
+    db.knowledgeNode.findMany.mockResolvedValue([
+      { id: 'node-a', name: '根轨迹' },
+      { id: 'node-b', name: '频域分析' },
+      { id: 'node-c', name: '校正设计' },
+    ]);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    expect(collections.milestones.items.map((item) => item.status)).toEqual(['PENDING', 'COMPLETED', 'CURRENT']);
+    // 被跳过的 node-a 仍作为未解锁任务保留，不得标成已完成。
+    expect(collections.tasks.items.map((item) => item.id)).toEqual(['path:path-1:node-a', 'path:path-1:node-c']);
+  });
+
+  it('marks milestones pending when the execution record carries no completion set', async () => {
+    listStudentAssignments.mockResolvedValue([]);
+    const db = createDb();
+    db.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b'], currentNodeId: 'node-a',
+      lastExecutionMetadata: null,
+    });
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    expect(collections.milestones.items.map((item) => item.status)).toEqual(['CURRENT', 'PENDING']);
   });
 });
 
