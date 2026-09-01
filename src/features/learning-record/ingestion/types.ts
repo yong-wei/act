@@ -141,6 +141,12 @@ export function ingestionDedupeKey(input: {
   return `learning-fact-ingestion:${input.sourceEventId}:${input.captureRevision}`;
 }
 
+export function readExistingInputDigest(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+  const digest = (payload as { inputDigest?: unknown }).inputDigest;
+  return typeof digest === 'string' ? digest : undefined;
+}
+
 export function currentCaptureRevision(env: NodeJS.ProcessEnv = process.env): string {
   return env.APP_REVISION || env.GIT_SHA || 'working-tree';
 }

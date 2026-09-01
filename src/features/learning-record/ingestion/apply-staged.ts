@@ -17,6 +17,35 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+async function claimPendingOutboxRows(
+  db: IngestionWriteDb,
+  eventType: string,
+  now: Date,
+  limit: number,
+) {
+  if (typeof db.evidenceOutbox?.findMany !== 'function' || typeof db.evidenceOutbox.updateMany !== 'function') {
+    return [];
+  }
+  const rows = await db.evidenceOutbox.findMany({
+    where: {
+      eventType,
+      status: 'pending',
+      availableAt: { lte: now },
+    },
+    orderBy: { createdAt: 'asc' },
+    take: limit,
+  });
+  const claimed = [];
+  for (const row of rows) {
+    const leased = await db.evidenceOutbox.updateMany!({
+      where: { id: row.id, status: 'pending' },
+      data: { availableAt: new Date(now.getTime() + LEASE_MS) },
+    });
+    if (leased.count === 1) claimed.push(row);
+  }
+  return claimed;
+}
+
 function eventFromStagedPayload(row: {
   ownerUserId: string;
   causationId: string;
@@ -47,28 +76,16 @@ export async function applyStagedLearningFactIngestions(
   options: { limit?: number; now?: Date } = {},
 ): Promise<{ processed: number; failed: number; results: IngestLearningFactResult[] }> {
   const now = options.now ?? new Date();
-  const limit = options.limit ?? 50;
-  if (typeof db.evidenceOutbox?.findMany !== 'function' || typeof db.evidenceOutbox.updateMany !== 'function') {
-    return { processed: 0, failed: 0, results: [] };
-  }
-  const rows = await db.evidenceOutbox.findMany({
-    where: {
-      eventType: LEARNING_FACT_INGESTION_OUTBOX_EVENT_TYPE,
-      status: 'pending',
-      availableAt: { lte: now },
-    },
-    orderBy: { createdAt: 'asc' },
-    take: limit,
-  });
+  const rows = await claimPendingOutboxRows(
+    db,
+    LEARNING_FACT_INGESTION_OUTBOX_EVENT_TYPE,
+    now,
+    options.limit ?? 50,
+  );
   const results: IngestLearningFactResult[] = [];
   let processed = 0;
   let failed = 0;
   for (const row of rows) {
-    const claimed = await db.evidenceOutbox.updateMany!({
-      where: { id: row.id, status: 'pending' },
-      data: { availableAt: new Date(now.getTime() + LEASE_MS) },
-    });
-    if (claimed.count !== 1) continue;
     const payload = asRecord(row.payload);
     const captureRevision = typeof payload.captureRevision === 'string' ? payload.captureRevision : 'working-tree';
     try {
@@ -88,7 +105,7 @@ export async function applyStagedLearningFactIngestions(
           : result.status === INGESTION_STATUS.terminalFailed
             ? 'failed'
             : 'pending';
-      await db.evidenceOutbox.update?.({
+      await db.evidenceOutbox?.update?.({
         where: { id: row.id },
         data: {
           status: nextStatus,
@@ -112,30 +129,19 @@ export async function applyStagedProjectionTriggers(
   apply: (input: { ownerUserId: string; triggerKey: string }) => Promise<void>,
   options: { limit?: number; now?: Date } = {},
 ): Promise<{ processed: number; failed: number }> {
-  if (typeof db.evidenceOutbox?.findMany !== 'function' || typeof db.evidenceOutbox.updateMany !== 'function') {
-    return { processed: 0, failed: 0 };
-  }
   const now = options.now ?? new Date();
-  const rows = await db.evidenceOutbox.findMany({
-    where: {
-      eventType: LEARNING_FACT_TRIGGER_OUTBOX_EVENT_TYPE,
-      status: 'pending',
-      availableAt: { lte: now },
-    },
-    orderBy: { createdAt: 'asc' },
-    take: options.limit ?? 50,
-  });
+  const rows = await claimPendingOutboxRows(
+    db,
+    LEARNING_FACT_TRIGGER_OUTBOX_EVENT_TYPE,
+    now,
+    options.limit ?? 50,
+  );
   let processed = 0;
   let failed = 0;
   for (const row of rows) {
-    const claimed = await db.evidenceOutbox.updateMany!({
-      where: { id: row.id, status: 'pending' },
-      data: { availableAt: new Date(now.getTime() + LEASE_MS) },
-    });
-    if (claimed.count !== 1) continue;
     try {
       await apply({ ownerUserId: row.ownerUserId, triggerKey: row.dedupeKey });
-      await db.evidenceOutbox.update?.({
+      await db.evidenceOutbox?.update?.({
         where: { id: row.id },
         data: { status: 'projected', processedAt: now },
       });

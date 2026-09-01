@@ -1,32 +1,12 @@
-import { collectForbiddenFields, projectAllowlistedPayload } from '@/features/learning-record/event-contract/allowlist';
+import { collectForbiddenFields, isAllowlistedPayloadKey, projectAllowlistedPayload } from '@/features/learning-record/event-contract/allowlist';
 
 const EXCEPTION_ECHO = /(error:\s|exception|traceback|at\s+\S+\s+\(|\/Users\/|\/home\/|C:\\)/i;
-const ALLOWED_STAGING_KEYS = new Set([
-  'actionType',
-  'eventType',
-  'originalEventType',
-  'learningContext',
-  'stepId',
-  'cardId',
-  'resourceKey',
-  'lessonKey',
-  'attemptKey',
-  'normalizedResult',
-  'normalizedValue',
-  'confidence',
-  'durationMs',
-  'priority',
-  'pageType',
-  'moduleId',
-  'targetType',
-  'targetId',
+const STAGING_ENVELOPE_KEYS = new Set([
   'eventId',
   'trustedOccurredAt',
   'receivedAt',
   'reportedClientAt',
-  'captureRevision',
   'revision',
-  'schemaVersion',
   'decoderVersion',
   'materializerVersion',
   'subjectRef',
@@ -34,21 +14,8 @@ const ALLOWED_STAGING_KEYS = new Set([
   'inputDigest',
   'trustedSetDigest',
   'sourceEventId',
-  'sourceLogId',
   'kind',
   'classId',
-  'goalId',
-  'pluginId',
-  'pluginVersion',
-  'adapterVersion',
-  'releaseRevision',
-  'canonicalLessonId',
-  'canonicalResourceId',
-  'canonicalActivityId',
-  'arenaTaskId',
-  'expectedCaptureRevision',
-  'idempotencyKey',
-  'materialization',
 ]);
 
 export function collectEncodingViolations(value: unknown, path = ''): string[] {
@@ -75,7 +42,9 @@ export function inspectIngestionBoundary(value: unknown): string[] {
 }
 
 export function unknownStagingKeys(payload: Record<string, unknown>): string[] {
-  return Object.keys(payload).filter((key) => !ALLOWED_STAGING_KEYS.has(key)).map((key) => `unknown:${key}`);
+  return Object.keys(payload)
+    .filter((key) => !isAllowlistedPayloadKey(key) && !STAGING_ENVELOPE_KEYS.has(key))
+    .map((key) => `unknown:${key}`);
 }
 
 export function assertStagingPayload(payload: Record<string, unknown>): string[] {

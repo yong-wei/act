@@ -1,5 +1,5 @@
 import { opaqueSubjectRef } from '@/features/learning-record/event-contract/allowlist';
-import { LEARNING_FACT_INGESTION_OUTBOX_EVENT_TYPE, INGESTION_STATUS, ingestionDedupeKey, rejectDirectAndOutboxDoubleWrite, type IngestionWriteDb, type IngestLearningFactResult } from './types';
+import { LEARNING_FACT_INGESTION_OUTBOX_EVENT_TYPE, INGESTION_STATUS, ingestionDedupeKey, readExistingInputDigest, rejectDirectAndOutboxDoubleWrite, type IngestionWriteDb, type IngestLearningFactResult } from './types';
 import { computeDigests, resolveAnchors } from './ingest';
 import { assertStagingPayload, sanitizeStagingPayload } from './sanitizer';
 import type { LearningEvent } from '@/lib/data-governance/event-protocol';
@@ -64,10 +64,8 @@ export async function stageLearningFactIngestion(input: {
   if (typeof input.db.evidenceOutbox?.findFirst === 'function') {
     const existing = await input.db.evidenceOutbox.findFirst({ where: { dedupeKey } });
     if (existing) {
-      const existingDigest = existing.payload && typeof existing.payload === 'object'
-        ? (existing.payload as { inputDigest?: unknown }).inputDigest
-        : undefined;
-      if (typeof existingDigest === 'string' && existingDigest !== inputDigest) {
+      const existingDigest = readExistingInputDigest(existing.payload);
+      if (existingDigest && existingDigest !== inputDigest) {
         return {
           status: INGESTION_STATUS.terminalFailed,
           profileRefreshed: false,
