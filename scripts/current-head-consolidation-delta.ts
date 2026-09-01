@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { REQUIRED_BASELINE } from '../src/lib/architecture-charter';
 import {
   CURRENT_HEAD_OUTPUT_DIR,
+  captureDriftFailures,
   currentHeadPackageHash,
   generateCurrentHeadDelta,
   loadGitSourceSnapshot,
@@ -41,8 +42,11 @@ function main(): void {
   const repoRoot = process.cwd();
   const snapshot = loadGitSourceSnapshot(repoRoot);
   const predecessor = loadPredecessor(repoRoot);
-  const { pack, files, failures } = generateCurrentHeadDelta(snapshot, predecessor);
-  qualifyCurrentHeadDelta(pack, failures);
+  const generated = generateCurrentHeadDelta(snapshot, predecessor);
+  const after = loadGitSourceSnapshot(repoRoot);
+  const failures = [...generated.failures, ...captureDriftFailures(snapshot, after)];
+  qualifyCurrentHeadDelta(generated.pack, failures);
+  const { pack, files } = generated;
   const outDir = join(repoRoot, CURRENT_HEAD_OUTPUT_DIR);
   mkdirSync(outDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {

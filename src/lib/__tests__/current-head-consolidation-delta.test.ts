@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { REQUIRED_BASELINE } from '@/lib/architecture-charter';
 import {
+  captureDriftFailures,
   generateCurrentHeadDelta,
   projectCurrentHeadFiles,
   qualifyCurrentHeadDelta,
@@ -144,6 +145,24 @@ describe('current-head consolidation delta', () => {
     expect(personalization?.consumers.some((item) => item.path.endsWith('path-planning/public-api.ts') && item.relationship === 're-export')).toBe(true);
     expect(personalization?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
     expect(publicApi?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
+  });
+
+  it('classifies named export-from as re-export', () => {
+    const snapshot = fixture([
+      file('src/features/personalization/path-planning/internal/assemble-plan.ts', 'export const assemble = 1;\n'),
+      file('src/features/personalization/path-planning/public-api.ts', 'export { assemble } from "./internal/assemble-plan";\n'),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    const personalization = pack.records.find((row) => row.category === 'owner-conflict' && row.identity.includes('personalization'));
+    expect(personalization?.consumers.some((item) => item.path.endsWith('path-planning/public-api.ts') && item.relationship === 're-export')).toBe(true);
+  });
+
+  it('fails closed if the worktree drifts after the snapshot is taken', () => {
+    const before = fixture([file('src/features/assessment/public-api.ts', 'export const api = 1;\n')]);
+    const after = fixture([file('src/features/assessment/public-api.ts', 'export const api = 1;\n')], { dirty: true });
+    const generated = generateCurrentHeadDelta(before);
+    expect(() => qualifyCurrentHeadDelta(generated.pack, [...generated.failures, ...captureDriftFailures(before, after)])).toThrow(/dirty-worktree/);
   });
 
   it('records owner overlap when two active changes share an owner but not the same src path', () => {

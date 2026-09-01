@@ -1,5 +1,5 @@
 import { matchingOwners } from '@/lib/architecture-charter/assign';
-import { OWNER_CATALOG, REQUIRED_BASELINE, type OwnerId } from '@/lib/architecture-charter/types';
+import { REQUIRED_BASELINE, type OwnerId } from '@/lib/architecture-charter/types';
 
 import { isTestPath } from './classify';
 import { generateCensusCore } from './generate';
@@ -186,7 +186,7 @@ function relationshipFor(
   if (from.startsWith('scripts/')) return 'script';
   const content = snapshot.files.find((file) => file.path === from)?.content ?? '';
   const names = new Set(snapshot.files.map((file) => file.path));
-  for (const match of content.matchAll(/export\s+\*\s+from\s+['"]([^'"]+)['"]/gu)) {
+  for (const match of content.matchAll(/export\s+(?:type\s+)?(?:\*|\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/gu)) {
     if (resolveImport(from, match[1]!, names).to === to) return 're-export';
   }
   for (const match of content.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/gu)) {
@@ -296,15 +296,8 @@ function mentionedPaths(content: string): string[] {
 
 const IN_SCOPE_OWNERS = new Set(['assessment', 'personalization']);
 
-function mentionedOwners(content: string): string[] {
-  return uniqueSorted(OWNER_CATALOG
-    .filter((owner) => IN_SCOPE_OWNERS.has(owner.id))
-    .filter((owner) => {
-      const label = new RegExp(`\\b${owner.label}\\b`, 'iu');
-      const id = new RegExp(`\\b${owner.id}\\b`, 'iu');
-      return label.test(content) || id.test(content);
-    })
-    .map((owner) => owner.id));
+function ownersFromPaths(paths: readonly string[]): string[] {
+  return uniqueSorted(paths.flatMap((path) => ownersFor(path)).filter((owner) => IN_SCOPE_OWNERS.has(owner)));
 }
 
 function deletionSets(paths: readonly string[]): string[] {
@@ -339,7 +332,7 @@ function buildOpenSpecConflicts(snapshot: CensusSourceSnapshot): CurrentHeadOpen
       const pathOverlap = uniqueSorted(leftPaths.filter((path) => rightPaths.includes(path)));
       const contractOverlap = uniqueSorted(mentionedContracts(leftText).filter((path) => mentionedContracts(rightText).includes(path)));
       const deletionOverlap = uniqueSorted(deletionSets(leftPaths).filter((prefix) => deletionSets(rightPaths).includes(prefix)));
-      const ownerOverlap = uniqueSorted(mentionedOwners(leftText).filter((owner) => mentionedOwners(rightText).includes(owner)));
+      const ownerOverlap = uniqueSorted(ownersFromPaths(leftPaths).filter((owner) => ownersFromPaths(rightPaths).includes(owner)));
       const predecessor = left === 'capture-current-head-consolidation-delta' || right === 'capture-current-head-consolidation-delta';
       let overlapKind: CurrentHeadOpenSpecConflict['overlapKind'] | null = null;
       let paths: string[] = [];
@@ -768,4 +761,18 @@ export function qualifyCurrentHeadDelta(pack: CurrentHeadPackage, failures: Qual
 
 export function currentHeadPackageHash(files: CurrentHeadFiles): string {
   return sha256Text(files['delta.json']);
+}
+
+export function captureDriftFailures(
+  before: CensusSourceSnapshot,
+  after: CensusSourceSnapshot,
+): QualificationFailure[] {
+  const failures: QualificationFailure[] = [];
+  if (after.dirty) failures.push({ code: 'dirty-worktree', identity: after.identity.sourceCommit });
+  if (after.mixedWorktree) failures.push({ code: 'mixed-worktree', identity: after.identity.sourceCommit });
+  if (after.detachedUnresolved) failures.push({ code: 'unresolved-identity', identity: after.identity.sourceCommit });
+  if (after.identity.sourceCommit !== before.identity.sourceCommit || after.identity.sourceTree !== before.identity.sourceTree) {
+    failures.push({ code: 'mixed-identity', identity: after.identity.sourceCommit });
+  }
+  return failures;
 }

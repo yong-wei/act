@@ -11,6 +11,7 @@ export {
   qualifyCurrentHeadDelta,
   projectCurrentHeadFiles,
   currentHeadPackageHash,
+  captureDriftFailures,
 } from './current-head-delta';
 export { CENSUS_CORE_SCHEMA_VERSION, MEASUREMENT_RECEIPT_SCHEMA_VERSION } from './types';
 export type {
