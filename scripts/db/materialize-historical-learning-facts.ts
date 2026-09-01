@@ -476,6 +476,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.studentStepResponse.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -486,6 +487,7 @@ async function* readSourceRowBatches(
           sourceLogId: true,
           clientEventId: true,
           submittedAt: true,
+          createdAt: true,
           responseData: true,
         },
       }),
@@ -495,6 +497,7 @@ async function* readSourceRowBatches(
           id: row.id,
           userId: row.userId,
           occurredAt: row.submittedAt,
+          ingestedAt: row.createdAt,
           eventData: {
             ...responseData,
             sessionId: row.sessionId,
@@ -515,6 +518,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.simulationLog.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -531,6 +535,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           ...readRecord(row.inputParams),
           ...readRecord(row.metrics),
@@ -553,6 +558,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.userAnswer.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -572,6 +578,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           questionId: row.questionId,
           isCorrect: row.isCorrect,
@@ -590,6 +597,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.abilityAssessment.findMany({
         ...pagination,
+        where: { assessedAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -603,6 +611,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.assessedAt,
+        ingestedAt: row.assessedAt,
         eventData: {
           computationalTheta: row.computationalTheta,
           crossDomainTheta: row.crossDomainTheta,
@@ -618,6 +627,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.promptAssessment.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -631,6 +641,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           ...readRecord(row.structuredData),
           sessionId: row.sessionId,
@@ -648,6 +659,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.designSession.findMany({
         ...pagination,
+        where: { startedAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -663,6 +675,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.completedAt ?? row.startedAt,
+        ingestedAt: row.startedAt,
         eventData: {
           taskType: row.taskType,
           designActions: row.designActions,
@@ -681,6 +694,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.arenaSubmission.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -692,12 +706,14 @@ async function* readSourceRowBatches(
           score: true,
           valid: true,
           submittedAt: true,
+          createdAt: true,
         },
       }),
       (row): EvidenceCoverageRow => ({
         id: row.id,
         userId: row.userId,
         occurredAt: row.submittedAt,
+        ingestedAt: row.createdAt,
         eventData: {
           taskId: row.taskId,
           classId: row.classId,
@@ -718,16 +734,19 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.arenaEvaluationRun.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           taskId: true,
           metadata: true,
           completedAt: true,
+          createdAt: true,
         },
       }),
       (row): EvidenceCoverageRow => ({
         id: row.id,
         occurredAt: row.completedAt,
+        ingestedAt: row.createdAt,
         eventData: row.metadata,
         sourceLabel: compactSourceLabel(readRecord(row.metadata).source, row.taskId),
       }),
@@ -739,6 +758,7 @@ async function* readSourceRowBatches(
   yield* paginateCoverageRows(
     (pagination) => prisma.learningFact.findMany({
       ...pagination,
+      where: { createdAt: { lte: frozenCutoff } },
       select: {
         id: true,
         userId: true,
@@ -746,12 +766,14 @@ async function* readSourceRowBatches(
         sourceEventId: true,
         contextJson: true,
         startedAt: true,
+        createdAt: true,
       },
     }),
     (row): EvidenceCoverageRow => ({
       id: row.id,
       userId: row.userId,
       occurredAt: row.startedAt,
+      ingestedAt: row.createdAt,
       eventData: row.contextJson,
       sourceLabel: compactSourceLabel(row.factType, row.sourceEventId ?? undefined),
     }),
