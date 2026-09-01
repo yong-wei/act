@@ -206,5 +206,10 @@ describe('Konling conversation library UI contracts', () => {
       const start = sidebarSource.indexOf(`const ${handler}`);
       expect(sidebarSource.slice(start, start + 400)).toContain('supersedeCoachResolution()');
     }
+    // 删除路径仅在活动会话被删除（选择确实变化）时才作废在途解析
+    const deleteStart = sidebarSource.indexOf('const handleDeleteConversation');
+    const deleteHandler = sidebarSource.slice(deleteStart, deleteStart + 800);
+    expect(deleteHandler.indexOf('if (deletedActiveConversation)'))
+      .toBeLessThan(deleteHandler.indexOf('supersedeCoachResolution()'));
   });
 });

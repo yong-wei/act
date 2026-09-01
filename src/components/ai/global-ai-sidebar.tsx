@@ -841,10 +841,12 @@ export function GlobalAISidebar() {
 
   const handleDeleteConversation = useCallback(async (conversationId: string) => {
     if (isLoading || !window.confirm('确认删除此对话？此操作无法撤销。')) return;
-    supersedeCoachResolution();
     try {
       const deletedActiveConversation = await deleteConversation(conversationId);
       if (deletedActiveConversation) {
+        // 仅活动会话被删除才更新选择，此时同步作废在途匹配；
+        // 删除无关历史会话不影响在途解析与首问门禁
+        supersedeCoachResolution();
         await createConversation(null);
         setMessages([]);
         setLibraryOpen(false);
