@@ -704,6 +704,17 @@ function main() {
     'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
   );
 
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/app\/tsconfig\.base\.json \.\/tsconfig\.base\.json/,
+    '镜像必须包含 tsconfig.base.json，tsx worker 才能解析 @/ 路径别名'
+  );
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/app\/tsconfig\.worker\.json \.\/tsconfig\.worker\.json/,
+    '镜像必须包含 tsconfig.worker.json，tsx worker 入口才能按 worker graph include 解析'
+  );
+
   runImageWolframSmoke();
   runImageKnowledgeDeployContract();
   assertMissingWolframImageFailsClosed();
