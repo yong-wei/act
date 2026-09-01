@@ -55,9 +55,7 @@ import {
   selectFocusedExpansionGraphNodes,
   freezeKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
-  reheatKnowledgeGraphNewcomerScope,
   freezeKnowledgeGraphFilterProjectionScope,
-  selectKnowledgeGraphChangedEdgeEndpoints,
   freezeKnowledgeGraphEdgeGrowthScope,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
@@ -601,6 +599,7 @@ export function KnowledgeGraphCanvas({
   const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
   const knownNodeIdsRef = useRef<Set<string> | null>(null);
   const knownLinksRef = useRef<Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>>(new Map());
+  const changeScopeRef = useRef<{ frozenNodeIds: Set<string>; reheat: boolean }>({ frozenNodeIds: new Set(), reheat: false });
   const committedRelayoutVersionRef = useRef(relayoutVersion);
 
   useEffect(() => () => nodeObjectsByIdRef.current.clear(), []);
@@ -762,15 +761,26 @@ export function KnowledgeGraphCanvas({
 
     // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标，与 2D 相同
     // （摄入的 warmup ticks 先于被动 effect，#1739 task 3.3）。
-    const filterScopedNodes = freezeKnowledgeGraphFilterProjectionScope(focusedThreeDimensionalNodes, knownNodeIdsRef.current, everSeenNodeIdsRef.current);
-    // 仅新增关系的分片同样在渲染期（摄入前）冻结，与筛选投影同一时序
-    // 约束（#1739）。
-    const scopedNodes = freezeKnowledgeGraphEdgeGrowthScope(
-      filterScopedNodes,
+    // #1739 变更范围不变量（渲染期/摄入前统一决策）：筛选投影与关系
+    // 变化在此分类冻结并返回冻结集与重热标志；effect 只消费结果。
+    const previousNodeIds = knownNodeIdsRef.current;
+    const filterOutcome = freezeKnowledgeGraphFilterProjectionScope(focusedThreeDimensionalNodes, previousNodeIds, everSeenNodeIdsRef.current);
+    const edgeOutcome = freezeKnowledgeGraphEdgeGrowthScope(
+      filterOutcome.nodes,
       transformedLinks,
-      knownNodeIdsRef.current,
+      previousNodeIds,
       knownLinksRef.current,
     );
+    const scopedNodes = edgeOutcome.nodes;
+    const hasRealNewNodes = previousNodeIds !== null
+      && focusedThreeDimensionalNodes.some((node) => !previousNodeIds.has(String(node.id)) && !everSeenNodeIdsRef.current.has(String(node.id)));
+    knownNodeIdsRef.current = new Set(focusedThreeDimensionalNodes.map((node) => String(node.id)));
+    for (const node of focusedThreeDimensionalNodes) everSeenNodeIdsRef.current.add(String(node.id));
+    knownLinksRef.current = new Map(transformedLinks.map((link) => [String(link.id), link]));
+    changeScopeRef.current = {
+      frozenNodeIds: edgeOutcome.frozenNodeIds ?? filterOutcome.frozenNodeIds ?? new Set<string>(),
+      reheat: hasRealNewNodes || edgeOutcome.frozenNodeIds !== null,
+    };
     return {
       nodes: scopedNodes,
       links: transformedLinks
@@ -1154,34 +1164,12 @@ export function KnowledgeGraphCanvas({
   // at the engine-stop settle milestone.
   const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    const nextIds = new Set(graphData.nodes.map((node: any) => String(node.id)));
-    // 上一帧身份驱动变化检测；历史身份区分筛选投影（见过，含清除筛选的
-    // 恢复，登记冻结并在 engine-stop 释放）与真实新披露（连通域局部重热）。
-    const previousFrameIds = knownNodeIdsRef.current;
-    knownNodeIdsRef.current = nextIds;
-    const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
-    for (const id of nextIds) everSeenNodeIdsRef.current.add(id);
-    // 关系变化（启用/禁用关系族）的边端点进入局部重热范围。
-    const { nextLinks, changedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(
-      graphData.links,
-      knownLinksRef.current,
-    );
-    knownLinksRef.current = nextLinks;
-    if (previousFrameIds === null || forceLifecycle.staticLayout) return;
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-    const outcome = reheatKnowledgeGraphNewcomerScope({
-      nodes: graphNodes,
-      links: graphData.links,
-      previousIds: previousFrameIds,
-      everSeenIds: everSeenSnapshot,
-      changedEdgeEndpointIds,
-      previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
-      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
-    });
-    if (!outcome) return;
-    unaffectedFrozenNodeIdsRef.current = outcome.frozenNodeIds;
-    // 纯筛选/移除不重热：只有新节点到达才重启力学（#1739 task 3.3）。
-    if (outcome.hasNewcomers) fgRef.current?.d3ReheatSimulation?.();
+    // 消费渲染期（摄入前）的变更范围决策：登记冻结集并在存在真实新增
+    // （新节点或新关系）时重热；仅移除关系不重热（#1739）。
+    if (forceLifecycle.staticLayout) return;
+    const scope = changeScopeRef.current;
+    unaffectedFrozenNodeIdsRef.current = scope.frozenNodeIds;
+    if (scope.reheat) fgRef.current?.d3ReheatSimulation?.();
   }, [forceLifecycle.staticLayout, graphData.links, graphData.nodes]);
 
   const handleEngineStop = useCallback(() => {

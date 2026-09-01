@@ -39,10 +39,11 @@ import {
 } from '../graph/label-policy';
 import {
   freezeKnowledgeGraphUnaffectedScope,
-  reheatKnowledgeGraphNewcomerScope,
   releaseKnowledgeGraphDragFrame,
   releaseKnowledgeGraphFrozenScope,
   selectKnowledgeGraphReheatAffectedNodeIds,
+  freezeKnowledgeGraphFilterProjectionScope,
+  freezeKnowledgeGraphEdgeGrowthScope,
 } from '../graph/layout-engine';
 
 interface SimNode {
@@ -452,92 +453,58 @@ describe('scoped reheat affected scope (#1739)', () => {
       { source: 'old-far', target: 'old-other' },
     ];
     const affected = selectKnowledgeGraphReheatAffectedNodeIds(links, new Set(['new-a']));
-    // 与新节点共边的旧节点参与重热；二跳之外与无关分量保持冻结。
     expect(affected.has('new-a')).toBe(true);
     expect(affected.has('old-neighbor')).toBe(true);
     expect(affected.has('old-far')).toBe(false);
     expect(affected.has('old-other')).toBe(false);
   });
 
-  it('accepts d3-resolved object link endpoints', () => {
-    const links = [
-      { source: { id: 'old-neighbor' }, target: { id: 'new-a' } },
-    ];
-    const affected = selectKnowledgeGraphReheatAffectedNodeIds(links, new Set(['new-a']));
-    expect(affected.has('old-neighbor')).toBe(true);
+  it('freezes the projection for filter removal and restoration', () => {
+    const removal: SimNode[] = [{ id: 'a', x: 1, y: 2 }, { id: 'b', x: 3, y: 4 }];
+    const removed = freezeKnowledgeGraphFilterProjectionScope(removal, new Set(['a', 'b', 'filtered-out']), new Set(['a', 'b', 'filtered-out']));
+    expect(removed.frozenNodeIds).toEqual(new Set(['a', 'b']));
+    expect(removed.nodes[0]!.fx).toBe(1);
+
+    const restoration: SimNode[] = [{ id: 'a', x: 1, y: 2 }, { id: 'restored', x: 5, y: 6 }];
+    const restored = freezeKnowledgeGraphFilterProjectionScope(restoration, new Set(['a']), new Set(['a', 'restored', 'filtered-out']));
+    expect(restored.frozenNodeIds).toEqual(new Set(['a', 'restored']));
+    expect(restored.nodes[1]!.fx).toBe(5);
+
+    // 集合未变的稳定重算原样返回（不打断拖拽）。
+    const stable = freezeKnowledgeGraphFilterProjectionScope(restoration, new Set(['a', 'restored']), new Set(['a', 'restored']));
+    expect(stable.frozenNodeIds).toBeNull();
+    expect(stable.nodes).toBe(restoration);
   });
 
-  it('releases a previous frozen frame when a later batch affects it', () => {
-    // 第一批：n1 是新节点，old-far 冻结。
-    const frameOne: SimNode[] = [
-      { id: 'old-far', x: 0, y: 0 },
-      { id: 'old-near', x: 10, y: 0 },
-      { id: 'n1', x: 20, y: 0 },
-    ];
-    const previousIdsOne = new Set(['old-far', 'old-near']);
-    const frozenOne = reheatKnowledgeGraphNewcomerScope({
-      nodes: frameOne,
-      links: [{ source: 'n1', target: 'old-near' }],
-      previousIds: previousIdsOne,
-      everSeenIds: previousIdsOne,
-      previousFrozenNodeIds: new Set(),
-      pinnedNodeIds: new Set(),
-    });
-    expect(frozenOne?.frozenNodeIds).toEqual(new Set(['old-far']));
-    expect(frameOne[0]!.fx).toBe(0);
-
-    // 第二批：n2 连到 old-far——上一轮冻结的 old-far 进入受影响区，
-    // 旧冻结必须先释放，不能留下隐式 pin。
-    frameOne.push({ id: 'n2', x: 0, y: 10 });
-    const frozenTwo = reheatKnowledgeGraphNewcomerScope({
-      nodes: frameOne,
-      links: [{ source: 'n1', target: 'old-near' }, { source: 'n2', target: 'old-far' }],
-      previousIds: new Set(['old-far', 'old-near', 'n1']),
-      everSeenIds: new Set(['old-far', 'old-near', 'n1']),
-      previousFrozenNodeIds: frozenOne!.frozenNodeIds,
-      pinnedNodeIds: new Set(),
-    });
-    expect(frozenTwo?.frozenNodeIds).toEqual(new Set(['old-near', 'n1']));
-    expect(frameOne[0]!.fx).toBeUndefined();
-    expect(frameOne[0]!.fy).toBeUndefined();
-    expect(frameOne[1]!.fx).toBe(10);
+  it('freezes everything for removal-only relation changes without reheat', () => {
+    const nodes: SimNode[] = [{ id: 'a', x: 1, y: 2 }, { id: 'b', x: 3, y: 4 }];
+    const knownLinks = new Map([['rel-1', { id: 'rel-1', source: 'a', target: 'b' }]]);
+    const outcome = freezeKnowledgeGraphEdgeGrowthScope(nodes, [], new Set(['a', 'b']), knownLinks);
+    expect(outcome.frozenNodeIds).toEqual(new Set(['a', 'b']));
+    expect(outcome.nodes[0]!.fx).toBe(1);
+    expect(outcome.nodes[1]!.fx).toBe(3);
   });
 
-  it('freezes every remaining node for filter-only removal without reheating', () => {
+  it('reheats only the added edges\' neighborhood', () => {
     const nodes: SimNode[] = [
-      { id: 'a', x: 1, y: 2 },
-      { id: 'b', x: 3, y: 4 },
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 10, y: 0 },
+      { id: 'far', x: 100, y: 100 },
     ];
-    const frozen = reheatKnowledgeGraphNewcomerScope({
-      nodes,
-      links: [],
-      previousIds: new Set(['a', 'b', 'filtered-out']),
-      everSeenIds: new Set(['a', 'b', 'filtered-out']),
-      previousFrozenNodeIds: new Set(),
-      pinnedNodeIds: new Set(),
-    });
-    expect(frozen?.frozenNodeIds).toEqual(new Set(['a', 'b']));
-    expect(frozen?.hasNewcomers).toBe(false);
-    expect(nodes[0]!.fx).toBe(1);
-    expect(nodes[1]!.fx).toBe(3);
-  });
+    // 既有边保留、新增 a-b：新边的连通邻域（a、b）重排，无关节点 far
+    // 冻结。
+    const knownLinks = new Map([['rel-old', { id: 'rel-old', source: 'b', target: 'a' }]]);
+    const links = [{ id: 'rel-old', source: 'b', target: 'a' }, { id: 'rel-new', source: 'a', target: 'b' }];
+    const outcome = freezeKnowledgeGraphEdgeGrowthScope(nodes, links, new Set(['a', 'b', 'far']), knownLinks);
+    expect(outcome.frozenNodeIds).toEqual(new Set(['far']));
+    expect(outcome.nodes[0]!.fx).toBeUndefined();
+    expect(outcome.nodes[1]!.fx).toBeUndefined();
+    expect(outcome.nodes[2]!.fx).toBe(100);
 
-  it('treats filter restoration of previously seen nodes as a projection', () => {
-    // 清除筛选：恢复节点曾见过（在历史基线内）→ 全冻结不重热。
-    const restored: SimNode[] = [
-      { id: 'a', x: 1, y: 2 },
-      { id: 'restored', x: 5, y: 6 },
-    ];
-    const outcome = reheatKnowledgeGraphNewcomerScope({
-      nodes: restored,
-      links: [],
-      previousIds: new Set(['a']),
-      everSeenIds: new Set(['a', 'restored', 'filtered-out']),
-      previousFrozenNodeIds: new Set(),
-      pinnedNodeIds: new Set(),
-    });
-    expect(outcome?.hasNewcomers).toBe(false);
-    expect(outcome?.frozenNodeIds).toEqual(new Set(['a', 'restored']));
-    expect(restored[1]!.fx).toBe(5);
+    // 混合移除：removed 边端点（含其邻域）同样参与重排。
+    const knownMixed = new Map([['rel-old', { id: 'rel-old', source: 'a', target: 'far' }]]);
+    const mixed = freezeKnowledgeGraphEdgeGrowthScope(nodes, [{ id: 'rel-new', source: 'a', target: 'b' }], new Set(['a', 'b', 'far']), knownMixed);
+    expect(mixed.frozenNodeIds).toEqual(new Set());
+    expect(mixed.nodes[2]!.fx).toBeUndefined();
   });
 });

@@ -940,27 +940,45 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
   links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
   previousIds: ReadonlySet<string> | null,
   knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
-): T[] {
+): { nodes: T[]; frozenNodeIds: Set<string> | null } {
   if (previousIds === null
     || nodes.length !== previousIds.size
     || nodes.some((node) => !previousIds.has(String(node.id)))) {
-    return nodes;
+    return { nodes, frozenNodeIds: null };
   }
-  const { changedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(links, knownLinks);
-  if (changedEdgeEndpointIds.size === 0) return nodes;
-  // removed 边已不在 links 中，其端点直接计入受影响范围（邻域重排）。
-  const affectedEndpoints = new Set(changedEdgeEndpointIds);
-  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(links, changedEdgeEndpointIds)) {
+  const { addedEdgeEndpointIds, removedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(links, knownLinks);
+  if (addedEdgeEndpointIds.size === 0 && removedEdgeEndpointIds.size === 0) {
+    return { nodes, frozenNodeIds: null };
+  }
+  if (addedEdgeEndpointIds.size === 0) {
+    // 仅移除关系（禁用关系族）：投影变化不重热，全部剩余节点冻结。
+    return {
+      nodes: nodes.map((node) => ({
+        ...node,
+        fx: node.x,
+        fy: node.y,
+        ...(node.z !== undefined ? { fz: node.z } : {}),
+      })),
+      frozenNodeIds: new Set(nodes.map((node) => String(node.id))),
+    };
+  }
+  // 新增关系（含混合移除）：新边端点及其邻域参与局部重排，其余冻结。
+  const affectedEndpoints = new Set([...addedEdgeEndpointIds, ...removedEdgeEndpointIds]);
+  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(links, affectedEndpoints)) {
     affectedEndpoints.add(id);
   }
-  return nodes.map((node) => (affectedEndpoints.has(String(node.id))
-    ? node
-    : {
+  const frozenNodeIds = new Set<string>();
+  const scopedNodes = nodes.map((node) => {
+    if (affectedEndpoints.has(String(node.id))) return node;
+    frozenNodeIds.add(String(node.id));
+    return {
       ...node,
       fx: node.x,
       fy: node.y,
       ...(node.z !== undefined ? { fz: node.z } : {}),
-    }));
+    };
+  });
+  return { nodes: scopedNodes, frozenNodeIds };
 }
 
 /**
@@ -971,9 +989,14 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
 export function selectKnowledgeGraphChangedEdgeEndpoints(
   links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
   knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
-): { nextLinks: Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>; changedEdgeEndpointIds: Set<string> } {
+): {
+  nextLinks: Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+  addedEdgeEndpointIds: Set<string>;
+  removedEdgeEndpointIds: Set<string>;
+} {
   const nextLinks = new Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>();
-  const changedEdgeEndpointIds = new Set<string>();
+  const addedEdgeEndpointIds = new Set<string>();
+  const removedEdgeEndpointIds = new Set<string>();
   const endpointOf = (link: { source: string | { id: string }; target: string | { id: string } }, side: 'source' | 'target') => (
     typeof link[side] === 'object' ? (link[side] as { id: string }).id : link[side] as string
   );
@@ -981,16 +1004,16 @@ export function selectKnowledgeGraphChangedEdgeEndpoints(
     const key = String(link.id);
     nextLinks.set(key, link);
     if (knownLinks.has(key)) continue;
-    changedEdgeEndpointIds.add(endpointOf(link, 'source'));
-    changedEdgeEndpointIds.add(endpointOf(link, 'target'));
+    addedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    addedEdgeEndpointIds.add(endpointOf(link, 'target'));
   }
   // 被移除的边（如禁用关系族）：其端点同样进入受影响范围。
   for (const [key, link] of knownLinks) {
     if (nextLinks.has(key)) continue;
-    changedEdgeEndpointIds.add(endpointOf(link, 'source'));
-    changedEdgeEndpointIds.add(endpointOf(link, 'target'));
+    removedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    removedEdgeEndpointIds.add(endpointOf(link, 'target'));
   }
-  return { nextLinks, changedEdgeEndpointIds };
+  return { nextLinks, addedEdgeEndpointIds, removedEdgeEndpointIds };
 }
 
 /**
@@ -1005,7 +1028,7 @@ export function freezeKnowledgeGraphFilterProjectionScope<T extends KnowledgeGra
   nodes: T[],
   previousIds: ReadonlySet<string> | null,
   everSeenIds: ReadonlySet<string>,
-): T[] {
+): { nodes: T[]; frozenNodeIds: Set<string> | null } {
   // 筛选投影 = 上一帧集合确实变化（增删皆是见过身份）；集合未变的
   // 稳定重算（如 pin 写入触发的 memo）必须原样返回，否则全图 fx 副本
   // 会被 force-graph 摄入并打断进行中的拖拽（#1739）。
@@ -1014,14 +1037,17 @@ export function freezeKnowledgeGraphFilterProjectionScope<T extends KnowledgeGra
       || nodes.some((node) => !previousIds.has(String(node.id))));
   const allSeen = !nodes.some((node) => !everSeenIds.has(String(node.id)));
   if (!changed || !allSeen) {
-    return nodes;
+    return { nodes, frozenNodeIds: null };
   }
-  return nodes.map((node) => ({
-    ...node,
-    fx: node.x,
-    fy: node.y,
-    ...(node.z !== undefined ? { fz: node.z } : {}),
-  }));
+  return {
+    nodes: nodes.map((node) => ({
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    })),
+    frozenNodeIds: new Set(nodes.map((node) => String(node.id))),
+  };
 }
 
 /**
