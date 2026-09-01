@@ -20,3 +20,9 @@ The evaluation SHALL compute and record node-level precision, recall, and F1, ma
 - **WHEN** a scenario completes with no successful replicate (every attempt generation-failed or governance-rejected)
 - **THEN** the run SHALL fail its threshold gate with an explicit scenario successful-replicate floor failure
 - **AND** SHALL NOT pass merely because accuracy metrics are null and pooled governance rates default to 1.
+
+#### Scenario: Overdiagnosis regression anchor
+
+- **WHEN** the fixture evaluation replays a provider output that reports a relatively-lowest but normal node as weak on a healthy class (the pre-#1728 behavior)
+- **THEN** the production calibration gate SHALL reject that output and the evaluation SHALL record the replicate as a calibration rejection rather than a false positive
+- **AND** the same output SHALL fail the benchmark when run against the pre-calibration gate semantics.
