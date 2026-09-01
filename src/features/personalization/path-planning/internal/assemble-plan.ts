@@ -2281,9 +2281,9 @@ function assembleAdaptiveLearningPathPlanInternal(
     eligibleIds,
     requestedCompletedNodeIds,
   );
-  const repairCoverageGraphContext = graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0
-    ? graphContext
-    : undefined;
+  const coveredGraphTargets = graphContext ? graphTargetsCoveredByScoredNodes(scored, graphContext) : [];
+  const hasGraphCandidateCoverage = coveredGraphTargets.length > 0;
+  const repairCoverageGraphContext = hasGraphCandidateCoverage ? graphContext : undefined;
   const repairEntries = expandRepairCandidateEntries(
     uniqueScoredEntries([...mainPathNodes, ...scored]),
     input.registry,
@@ -2354,7 +2354,7 @@ function assembleAdaptiveLearningPathPlanInternal(
         constraints: input.constraints,
         goal: input.goal,
         graphContext,
-        hasGraphCandidateCoverage: Boolean(graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0),
+        hasGraphCandidateCoverage,
         attemptedCandidates: scored.length,
         policyFamily,
       })
@@ -2367,7 +2367,7 @@ function assembleAdaptiveLearningPathPlanInternal(
     constraints: input.constraints,
     goal: input.goal,
     graphContext,
-    hasGraphCandidateCoverage: Boolean(graphContext && graphTargetsCoveredByScoredNodes(scored, graphContext).length > 0),
+    hasGraphCandidateCoverage,
     attemptedCandidates: scored.length,
     policyFamily,
   });
@@ -3058,10 +3058,12 @@ export function evaluateHardEligibility(
   for (const node of nodes) {
     const reasonCodes = blockingReasonCodes(node, constraints);
     if (reasonCodes.length > 0) {
+      const redacted = shouldRedactBlockedNode(node, reasonCodes);
+      const nodeId = redacted ? `restricted:${blocked.length + 1}` : node.id;
       blocked.push({
-        nodeId: shouldRedactBlockedNode(node, reasonCodes) ? `restricted:${blocked.length + 1}` : node.id,
-        nodeIds: [shouldRedactBlockedNode(node, reasonCodes) ? `restricted:${blocked.length + 1}` : node.id],
-        title: shouldRedactBlockedNode(node, reasonCodes) ? '受限资源' : node.title,
+        nodeId,
+        nodeIds: [nodeId],
+        title: redacted ? '受限资源' : node.title,
         reasonCodes,
         score: 0,
         blocked: true,
@@ -3106,7 +3108,13 @@ function evaluateSarCandidates(input: {
   for (const candidate of candidateRefs) {
     const kind = candidate.kind ?? 'unknown';
     const node = sarCandidateCanMapToPathNode(kind, candidate)
-      ? resolveSarCandidateNodeForPath(candidate, kind, nodeById, nodeByResourceId, nodeByPlanningUnitId)
+      ? resolveSarCandidateNode(
+        candidate,
+        nodeById,
+        nodeByResourceId,
+        nodeByPlanningUnitId,
+        kind !== 'retrievalChunk' && kind !== 'citationTarget',
+      )
       : null;
     if (!node) {
       rejectedCandidates.push(toUnmappedRejectedSarCandidate(
@@ -3219,30 +3227,17 @@ function resolveSarCandidateNode(
   nodeById: Map<string, ResourceNode>,
   nodeByResourceId: Map<string, ResourceNode>,
   nodeByPlanningUnitId: Map<string, ResourceNode>,
+  allowRefFallback = true,
 ): ResourceNode | null {
-  return (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
+  const mapped = (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
     (candidate.planningUnitId ? nodeByPlanningUnitId.get(candidate.planningUnitId) : undefined) ??
     (candidate.resourceId ? nodeByResourceId.get(candidate.resourceId) : undefined) ??
-    nodeById.get(candidate.ref) ??
+    null;
+  if (mapped || !allowRefFallback) return mapped;
+  return nodeById.get(candidate.ref) ??
     nodeByPlanningUnitId.get(candidate.ref) ??
     nodeByResourceId.get(candidate.ref) ??
     null;
-}
-
-function resolveSarCandidateNodeForPath(
-  candidate: AdaptiveLearningPathSarCandidateRef,
-  kind: AdaptiveLearningPathSarCandidateKind,
-  nodeById: Map<string, ResourceNode>,
-  nodeByResourceId: Map<string, ResourceNode>,
-  nodeByPlanningUnitId: Map<string, ResourceNode>,
-): ResourceNode | null {
-  if (kind === 'retrievalChunk' || kind === 'citationTarget') {
-    return (candidate.resourceNodeId ? nodeById.get(candidate.resourceNodeId) : undefined) ??
-      (candidate.planningUnitId ? nodeByPlanningUnitId.get(candidate.planningUnitId) : undefined) ??
-      (candidate.resourceId ? nodeByResourceId.get(candidate.resourceId) : undefined) ??
-      null;
-  }
-  return resolveSarCandidateNode(candidate, nodeById, nodeByResourceId, nodeByPlanningUnitId);
 }
 
 function sarReadinessReasonCodes(
@@ -5206,7 +5201,12 @@ function buildPolicyBundle(
       );
     }
   }
-  const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths, input.registry);
+  const pairwiseResourceOverlap = pairwisePolicies(basePaths, (left, right) => ({
+    overlap: resourceOverlap(
+      differentiablePolicyCoreRefs(left.planNodes ?? [], input.registry),
+      differentiablePolicyCoreRefs(right.planNodes ?? [], input.registry),
+    ),
+  }));
   const paths = basePaths.map((path) => ({
     ...path,
     overlap: {
@@ -5215,9 +5215,21 @@ function buildPolicyBundle(
         .reduce((max, item) => Math.max(max, item.overlap), 0), 3),
     },
   }));
-  const pairwiseModalityDistance = buildPairwiseModalityDistance(paths, input.registry);
-  const pairwiseEstimatedEffortDifference = buildPairwiseEstimatedEffortDifference(paths);
-  const pairwiseTerminalValidationDifference = buildPairwiseTerminalValidationDifference(paths);
+  const pairwiseModalityDistance = pairwisePolicies(paths, (left, right) => ({
+    distance: setDistance(
+      Object.keys(differentiablePolicyModalityMix(left.planNodes ?? [], input.registry)),
+      Object.keys(differentiablePolicyModalityMix(right.planNodes ?? [], input.registry)),
+    ),
+  }));
+  const pairwiseEstimatedEffortDifference = pairwisePolicies(paths, (left, right) => ({
+    difference: round(
+      Math.abs(left.estimatedMinutes - right.estimatedMinutes) / Math.max(left.estimatedMinutes, right.estimatedMinutes, 1),
+      3,
+    ),
+  }));
+  const pairwiseTerminalValidationDifference = pairwisePolicies(paths, (left, right) => ({
+    difference: setDistance(left.terminalValidationNodeIds, right.terminalValidationNodeIds),
+  }));
   const maxResourceOverlap = round(
     pairwiseResourceOverlap.reduce((max, item) => Math.max(max, item.overlap), 0),
     3,
@@ -5868,26 +5880,26 @@ function buildPathOptionLimitations(
   ]);
 }
 
-function buildPairwiseResourceOverlap(
+function pairwisePolicies<T extends Record<string, number>>(
   paths: AdaptiveLearningPathPolicyBundle['paths'],
-  registry: ResourceNodeRegistry,
-): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] {
-  const overlaps: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] = [];
+  metric: (
+    left: AdaptiveLearningPathPolicyBundle['paths'][number],
+    right: AdaptiveLearningPathPolicyBundle['paths'][number],
+  ) => T,
+): Array<T & { left: AdaptiveLearningPathPolicyFamily; right: AdaptiveLearningPathPolicyFamily }> {
+  const results: Array<T & { left: AdaptiveLearningPathPolicyFamily; right: AdaptiveLearningPathPolicyFamily }> = [];
   for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
-      const left = paths[leftIndex];
-      const right = paths[rightIndex];
-      overlaps.push({
+      const left = paths[leftIndex]!;
+      const right = paths[rightIndex]!;
+      results.push({
         left: left.policyFamily,
         right: right.policyFamily,
-        overlap: resourceOverlap(
-          differentiablePolicyCoreRefs(left.planNodes ?? [], registry),
-          differentiablePolicyCoreRefs(right.planNodes ?? [], registry),
-        ),
+        ...metric(left, right),
       });
     }
   }
-  return overlaps;
+  return results;
 }
 
 function retryStateKey(refs: ReadonlySet<string>): string {
@@ -5917,61 +5929,6 @@ function pathsWithCoreOverlapAboveThreshold(
       right.overlap - left.overlap ||
       left.path.policyFamily.localeCompare(right.path.policyFamily)
     );
-}
-
-function buildPairwiseModalityDistance(
-  paths: AdaptiveLearningPathPolicyBundle['paths'],
-  registry: ResourceNodeRegistry,
-): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] {
-  const distances: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] = [];
-  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
-      const left = paths[leftIndex];
-      const right = paths[rightIndex];
-      distances.push({
-        left: left.policyFamily,
-        right: right.policyFamily,
-        distance: setDistance(
-          Object.keys(differentiablePolicyModalityMix(left.planNodes ?? [], registry)),
-          Object.keys(differentiablePolicyModalityMix(right.planNodes ?? [], registry)),
-        ),
-      });
-    }
-  }
-  return distances;
-}
-
-function buildPairwiseEstimatedEffortDifference(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseEstimatedEffortDifference'] {
-  const differences: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseEstimatedEffortDifference'] = [];
-  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
-      const left = paths[leftIndex];
-      const right = paths[rightIndex];
-      const denominator = Math.max(left.estimatedMinutes, right.estimatedMinutes, 1);
-      differences.push({
-        left: left.policyFamily,
-        right: right.policyFamily,
-        difference: round(Math.abs(left.estimatedMinutes - right.estimatedMinutes) / denominator, 3),
-      });
-    }
-  }
-  return differences;
-}
-
-function buildPairwiseTerminalValidationDifference(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseTerminalValidationDifference'] {
-  const differences: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseTerminalValidationDifference'] = [];
-  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
-      const left = paths[leftIndex];
-      const right = paths[rightIndex];
-      differences.push({
-        left: left.policyFamily,
-        right: right.policyFamily,
-        difference: setDistance(left.terminalValidationNodeIds, right.terminalValidationNodeIds),
-      });
-    }
-  }
-  return differences;
 }
 
 function minPairwiseValue<T extends Record<K, number>, K extends string>(items: T[], key: K): number {
