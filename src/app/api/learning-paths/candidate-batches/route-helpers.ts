@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
-import type { AdaptivePathCandidateBatchView } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
+import type { AdaptivePathCandidateBatchView } from '@/features/personalization/path-planning/public-api';
 import type { LearningPathRequester } from '../route-helpers';
 
 export type VersionedAdaptivePathCandidateBatch = AdaptivePathCandidateBatchView & {

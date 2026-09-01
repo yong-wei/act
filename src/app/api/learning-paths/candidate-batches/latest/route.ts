@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
-import { readLatestAdaptivePathCandidateBatch } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
+import { readLatestAdaptivePathCandidateBatch } from '@/features/personalization/path-planning/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { getLearningPathRequester } from '../../route-helpers';

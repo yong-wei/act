@@ -1,14 +1,38 @@
 # Current-head owner mapping (C2)
 
-Scan revision: `b8c2cce5f6` plus this change. Replacement owner is Personalization unless noted. Deletion condition for every row: zero production imports of the old path after consumer rewrite.
+Scan: production sources under `src/app`, `src/features`, `src/lib`, `scripts` after consumer rewrite. Banned needles `@/features/adaptive/` and `@/lib/adaptive-` have zero production hits. Replacement SHA is the delivery commit that contains this file.
 
-| Old path | Owner | Disposition |
-| --- | --- | --- |
-| `src/features/adaptive/*.ts(x)` (10 files) | Personalization presentation | moved to `src/features/personalization/experience/` |
-| `src/lib/adaptive-*.ts` (16 files) | Personalization path-planning | moved to `src/features/personalization/path-planning/` |
-| `src/lib/adaptive-planning/path-constraint-repair.ts` | Personalization path-planning | moved to `src/features/personalization/path-planning/path-constraint-repair.ts` |
-| `src/lib/adaptive-planning/resource-ranker.ts` | Personalization path-planning | moved to `src/features/personalization/path-planning/resource-ranker.ts` |
-| `src/lib/adaptive-planning/item-type-terminal-validation.ts` | Assessment | moved to `src/features/assessment/item-type-terminal-validation.ts` |
+| Old path | Owner | Replacement | Consumers after rewrite | Deletion |
+| --- | --- | --- | --- | --- |
+| `src/features/adaptive/adaptive-learning-center-contracts.ts` | Personalization presentation | `src/features/personalization/experience/adaptive-learning-center-contracts.ts` | experience/app/arena | deleted old path |
+| `src/features/adaptive/adaptive-path-correction-outcomes.ts` | Personalization presentation | `src/features/personalization/experience/adaptive-path-correction-outcomes.ts` | experience | deleted old path |
+| `src/features/adaptive/adaptive-path-journey-contracts.ts` | Personalization presentation | `src/features/personalization/experience/adaptive-path-journey-contracts.ts` | experience/app | deleted old path |
+| `src/features/adaptive/adaptive-path-journey-control.tsx` | Personalization presentation | `src/features/personalization/experience/adaptive-path-journey-control.tsx` | experience/app/arena | deleted old path |
+| `src/features/adaptive/adaptive-path-timeline.tsx` | Personalization presentation | `src/features/personalization/experience/adaptive-path-timeline.tsx` | experience | deleted old path |
+| `src/features/adaptive/adaptive-path-unlock-chain-view.tsx` | Personalization presentation | `src/features/personalization/experience/adaptive-path-unlock-chain-view.tsx` | experience | deleted old path |
+| `src/features/adaptive/cold-start-collection-panel.tsx` | Personalization presentation | `src/features/personalization/experience/cold-start-collection-panel.tsx` | assessment practice page | deleted old path |
+| `src/features/adaptive/diagnosis-surface-panel.tsx` | Personalization presentation | `src/features/personalization/experience/diagnosis-surface-panel.tsx` | teacher/profile | deleted old path |
+| `src/features/adaptive/path-advisor-entrypoint-bridge.tsx` | Personalization presentation | `src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx` | practice page | deleted old path |
+| `src/features/adaptive/path-workspace-module.tsx` | Personalization presentation | `src/features/personalization/experience/path-workspace-module.tsx` | practice/layout | deleted old path |
+| `src/lib/adaptive-cold-start-detection.ts` | Personalization path-planning | `public-api` re-export of `adaptive-cold-start-detection.ts` | public-api consumers | deleted old path |
+| `src/lib/adaptive-generation-readiness.ts` | Personalization path-planning | `public-api` | path-advisor tool route | deleted old path |
+| `src/lib/adaptive-learning-optimization-experiments.ts` | Personalization path-planning | `public-api` | admin experiment UI | deleted old path |
+| `src/lib/adaptive-path-candidate-batches.ts` | Personalization path-planning | `public-api` | path-advisor, candidate-batch routes, konling | deleted old path |
+| `src/lib/adaptive-path-candidate-limitation-copy.ts` | Personalization path-planning | `public-api` | option-display internals | deleted old path |
+| `src/lib/adaptive-path-comparison.ts` | Personalization path-planning | `public-api` | path-advisor, konling | deleted old path |
+| `src/lib/adaptive-path-correction-decisions.ts` | Personalization path-planning | `public-api` | correction-decisions route | deleted old path |
+| `src/lib/adaptive-path-decision-evidence.ts` | Personalization path-planning | `public-api` | effect evaluation | deleted old path |
+| `src/lib/adaptive-path-destination-contract.ts` | Personalization path-planning | `public-api` | assemble-plan internals | deleted old path |
+| `src/lib/adaptive-path-execution-state.ts` | Personalization path-planning | `public-api` | journey/execute routes | deleted old path |
+| `src/lib/adaptive-path-generation-panel.ts` | Personalization path-planning | `public-api` | practice page | deleted old path |
+| `src/lib/adaptive-path-goal-options-client.ts` | Personalization client port | same module under path-planning (client entry, not server public-api) | practice page, round-restore | deleted old path |
+| `src/lib/adaptive-path-goal-options.ts` | Personalization path-planning | `public-api` | path-advisor, konling | deleted old path |
+| `src/lib/adaptive-path-node-decisions.ts` | Personalization path-planning | `public-api` | assemble-plan internals | deleted old path |
+| `src/lib/adaptive-path-option-display.ts` | Personalization path-planning | `public-api` | experience/practice | deleted old path |
+| `src/lib/adaptive-path-round-restore.ts` | Personalization path-planning | `public-api` | practice restore | deleted old path |
+| `src/lib/adaptive-path-unlock-chain.ts` | Personalization path-planning | `public-api` | unlock view | deleted old path |
+| `src/lib/adaptive-planning/path-constraint-repair.ts` | Personalization path-planning | `public-api` | plan-learning-path internals | deleted old path |
+| `src/lib/adaptive-planning/resource-ranker.ts` | Personalization path-planning | `public-api` | assemble-plan internals | deleted old path |
+| `src/lib/adaptive-planning/item-type-terminal-validation.ts` | Assessment | `src/features/assessment/item-type-terminal-validation.ts` | assessment catalog/lifecycle | deleted old path |
 
-Retained: Prisma tables, LearningFact, outbox, path history. No schema/selector/deploy.
-Rollback: restore the preceding code revision `b8c2cce5f6`.
+Retained persistence: Prisma tables, LearningFact, outbox, path history. Rollback: `b8c2cce5f6`.

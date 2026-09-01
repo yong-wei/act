@@ -18,15 +18,15 @@ import {
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import { prisma } from '@/lib/prisma';
-import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
-import { getAdaptivePracticeGoalOption } from '@/features/personalization/path-planning/adaptive-path-goal-options';
-import { readAdaptivePathCandidateBatch } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
-import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/adaptive-path-comparison';
 import {
   adaptiveGenerationReadinessFromHttp,
+  authorizeAdaptivePathComparisonIdentity,
   buildAdaptiveGenerationReadiness,
+  getAdaptivePracticeGoalOption,
+  isRegisteredAdaptiveLearningPathGoal,
+  readAdaptivePathCandidateBatch,
   type AdaptiveGenerationReadiness,
-} from '@/features/personalization/path-planning/adaptive-generation-readiness';
+} from '@/features/personalization/path-planning/public-api';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const runtime = 'nodejs';

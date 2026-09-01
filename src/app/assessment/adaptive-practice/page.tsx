@@ -25,7 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
-import { extractColdStartEvidenceCount, isColdStartLearner } from '@/features/personalization/path-planning/adaptive-cold-start-detection';
+import { extractColdStartEvidenceCount, isColdStartLearner } from '@/features/personalization/path-planning/public-api';
 import { ColdStartCollectionPanel } from '@/features/personalization/experience/cold-start-collection-panel';
 import {
   learnerEvidenceInputFromAdaptiveState,
@@ -39,7 +39,7 @@ import {
 import {
   resolveAdaptivePathCenterOwnedTargetHref,
 } from '@/features/personalization/experience/adaptive-path-journey-contracts';
-import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
+import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/public-api';
 import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
@@ -78,7 +78,7 @@ import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,
   type AdaptivePathUnlockChainNodeInput,
-} from '@/features/personalization/path-planning/adaptive-path-unlock-chain';
+} from '@/features/personalization/path-planning/public-api';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import type {
   EvidenceTimelineLearnerRecordSourceScope,
@@ -89,7 +89,7 @@ import {
   type AdaptivePathOptionDisplay,
   type AdaptivePathOptionWriteOption,
   type AdaptivePathResourceKind,
-} from '@/features/personalization/path-planning/adaptive-path-option-display';
+} from '@/features/personalization/path-planning/public-api';
 import {
   buildPathGenerationGoalHref,
   defaultPathGenerationPanel,
@@ -98,13 +98,13 @@ import {
   type GenerationCheckpointPreference,
   type GenerationDifficultyRhythm,
   type PathGenerationPanelState,
-} from '@/features/personalization/path-planning/adaptive-path-generation-panel';
+} from '@/features/personalization/path-planning/public-api';
 import {
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
   selectAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
-} from '@/features/personalization/path-planning/adaptive-generation-readiness';
+} from '@/features/personalization/path-planning/public-api';
 import {
   claimPathGenerationRequest,
   INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE,
@@ -118,8 +118,8 @@ import {
   enumerateAdaptivePathComparisonPairs,
   normalizeAdaptivePathComparisonPair,
   type AdaptivePathComparisonPair,
-} from '@/features/personalization/path-planning/adaptive-path-comparison';
-import { restoreAdaptiveLearningPathPlanFromRound } from '@/features/personalization/path-planning/adaptive-path-round-restore';
+} from '@/features/personalization/path-planning/public-api';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/features/personalization/path-planning/public-api';
 import {
   adaptivePracticeGoalLabel,
   getAdaptivePracticeGoalOptions,
@@ -133,7 +133,7 @@ import {
   resolveAdaptivePathLandingState,
   type AdaptiveLearnerStateLoadState,
   type AdaptivePathContextLoadState,
-} from '@/features/personalization/path-planning/adaptive-path-execution-state';
+} from '@/features/personalization/path-planning/public-api';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 

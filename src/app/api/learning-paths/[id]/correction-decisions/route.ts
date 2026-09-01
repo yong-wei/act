@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import {
   buildAuthorizedAdaptivePathJourney,
 } from '@/features/personalization/experience/adaptive-path-journey-contracts';
-import { buildAdaptivePathCorrectionApplication } from '@/features/personalization/path-planning/adaptive-path-correction-decisions';
+import { buildAdaptivePathCorrectionApplication } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';

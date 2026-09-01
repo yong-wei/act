@@ -56,8 +56,8 @@ import {
   readAdaptivePathCandidateBatchByGenerationRequest,
   resolveAdaptivePathCandidateSelection,
   type AdaptivePathCandidateBatchView,
-} from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
-import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/adaptive-path-comparison';
+} from '@/features/personalization/path-planning/public-api';
+import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,

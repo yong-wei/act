@@ -6,7 +6,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
 import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
-import { projectSelectionBasisOntoPlanNodes } from '@/features/personalization/path-planning/adaptive-path-node-decisions';
+import { projectSelectionBasisOntoPlanNodes } from '@/features/personalization/path-planning/public-api';
 import {
   completeKonlingCandidateSelectionToolRun,
   KonlingCandidateSelectionToolRunError,
