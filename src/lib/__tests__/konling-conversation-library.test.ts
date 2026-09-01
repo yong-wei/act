@@ -7,6 +7,7 @@ import {
   createKonlingContextEvent,
   createKonlingMessageId,
   deriveKonlingConversationTitle,
+  konlingLibraryRetentionWhere,
   normalizeKonlingConversationAssistantBinding,
   KonlingConversationTurnConflictError,
   mergeLegacyKonlingStructuredActionToolRuns,
@@ -43,12 +44,23 @@ function conversation(overrides: Record<string, unknown> = {}) {
 
 function statefulConversationDb(initial = conversation()) {
   let state = { ...initial };
+  const retentionEligible = (where: {
+    libraryVisible?: boolean;
+    OR?: Array<{ expiresAt?: null | { gt?: Date } }>;
+  }) => {
+    if (where.libraryVisible === true && !state.libraryVisible) return false;
+    if (!Array.isArray(where.OR)) return true;
+    return where.OR.some((branch) => branch.expiresAt === null
+      ? state.expiresAt === null
+      : Boolean(branch.expiresAt?.gt)
+        && state.expiresAt !== null
+        && state.expiresAt > branch.expiresAt!.gt!);
+  };
   const db = {
     konlingSession: {
       findFirst: vi.fn(async ({ where }) => {
         if (where.id !== state.id || where.userId !== state.userId) return null;
-        if (where.libraryVisible === true && !state.libraryVisible) return null;
-        if (where.expiresAt?.gt && state.expiresAt <= where.expiresAt.gt) return null;
+        if (!retentionEligible(where)) return null;
         return { ...state };
       }),
       updateMany: vi.fn(async ({ where, data }) => {
@@ -72,6 +84,17 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('shares one retention condition across no expiry, future and elapsed governed expiry', () => {
+    const where = konlingLibraryRetentionWhere(now);
+    expect(where).toEqual({
+      libraryVisible: true,
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gt: now } },
+      ],
+    });
+  });
+
   it('restores a persisted diagnosis binding in a new client', () => {
     const binding = normalizeKonlingConversationAssistantBinding({
       modeId: 'diagnosis-explainer',
@@ -1257,9 +1280,68 @@ describe('Konling conversation library', () => {
         id: 'conversation-other',
         userId: 'user-1',
         libraryVisible: true,
-        expiresAt: { gt: now },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: now } },
+        ],
       },
     });
+  });
+
+  it.each([
+    ['no governed expiry on a month-old conversation', {
+      createdAt: new Date('2026-06-01T00:00:00.000Z'),
+      lastActivityAt: new Date('2026-06-01T00:00:00.000Z'),
+      expiresAt: null,
+    }, true],
+    ['governed expiry still in the future', {
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    }, true],
+    ['governed expiry already elapsed', {
+      expiresAt: new Date('2026-07-01T00:00:00.000Z'),
+    }, false],
+  ])('claims a turn only within retention eligibility: %s', async (_label, overrides, eligible) => {
+    const store = statefulConversationDb(conversation(overrides));
+    const claimed = await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-retention', role: 'user', content: '保留边界上的提问' },
+      now,
+    });
+    expect(Boolean(claimed)).toBe(eligible);
+  });
+
+  it('does not write back or release a turn after governed expiry elapses mid-request', async () => {
+    const store = statefulConversationDb(conversation({
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    }));
+    const claimed = await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-crossing', role: 'user', content: '到期前开始的问题' },
+      now,
+    });
+    expect(claimed?.turnId).toBe('turn-crossing');
+
+    // 治理到期在模型执行期间生效
+    (store.current() as { expiresAt: Date | null }).expiresAt = new Date('2026-07-01T00:00:00.000Z');
+    await expect(completeKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-crossing',
+      assistantMessage: { id: 'late-answer', role: 'assistant', content: '迟到回答' },
+      now,
+    })).resolves.toBeNull();
+    await expect(releaseKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-crossing',
+      now,
+    })).resolves.toEqual({ count: 0 });
+    const persisted = store.current().messages as unknown as Array<{ id: string }>;
+    expect(persisted.some((message) => message.id === 'late-answer')).toBe(false);
   });
 
   it('allows only one of four concurrent requests to claim model execution and never loses the delivered exchange', async () => {
@@ -1308,6 +1390,7 @@ describe('Konling conversation library', () => {
       conversationId: 'conversation-1',
       ownerUserId: 'user-1',
       turnId: 'failed-turn',
+      now,
     });
     expect(store.current().messages).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'failed-turn' }),

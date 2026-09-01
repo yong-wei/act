@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import {
   createKonlingContextEvent,
   KONLING_DEFAULT_CONVERSATION_TITLE,
+  konlingLibraryRetentionWhere,
   resolveKonlingContextEventScope,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
@@ -11,7 +12,6 @@ import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
-const SESSION_EXPIRY_DAYS = 7;
 const SEARCH_MAX_LENGTH = 64;
 
 export const dynamic = 'force-dynamic';
@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
     const conversations = await prisma.konlingSession.findMany({
       where: {
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
         ...(search ? {
           title: {
             contains: search,
@@ -106,8 +105,6 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const conversationId = crypto.randomUUID();
-    const expiresAt = new Date(now);
-    expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
     const initialContext = createKonlingContextEvent(contextEventScope);
     const conversation = await prisma.konlingSession.create({
       data: {
@@ -120,7 +117,6 @@ export async function POST(request: NextRequest) {
         migrationSourceId: `native:${conversationId}`,
         messages: [initialContext] as unknown as import('@prisma/client').Prisma.InputJsonValue,
         lastActivityAt: now,
-        expiresAt,
       },
     });
 

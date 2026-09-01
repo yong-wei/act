@@ -20,7 +20,7 @@ interface KonlingSession {
   messages: Message[];
   createdAt: string;
   updatedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
 }
 
 interface UseKonlingSessionOptions {

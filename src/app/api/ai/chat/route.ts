@@ -78,6 +78,7 @@ import {
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
   KonlingConversationTurnConflictError,
+  konlingLibraryRetentionWhere,
   normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
@@ -354,8 +355,7 @@ export async function POST(request: Request) {
         where: {
           id: conversationId,
           userId: session.user.id,
-          libraryVisible: true,
-          expiresAt: { gt: new Date() },
+          ...konlingLibraryRetentionWhere(),
         },
       })
       : null;

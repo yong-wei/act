@@ -152,6 +152,8 @@ describe('/api/ai/sessions route', () => {
         messages: [expect.objectContaining({ role: 'system' })],
       }),
     });
+    const createInput = mocks.prisma.konlingSession.create.mock.calls[0]?.[0].data;
+    expect(createInput).not.toHaveProperty('expiresAt');
   });
 
   it('creates conversations for bounded smart-prep bootstrap and path-advisor contexts', async () => {
