@@ -841,6 +841,7 @@ export function GlobalAISidebar() {
 
   const handleDeleteConversation = useCallback(async (conversationId: string) => {
     if (isLoading || !window.confirm('确认删除此对话？此操作无法撤销。')) return;
+    supersedeCoachResolution();
     try {
       const deletedActiveConversation = await deleteConversation(conversationId);
       if (deletedActiveConversation) {
@@ -854,7 +855,7 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '删除控灵会话失败。');
     }
-  }, [createConversation, deleteConversation, isLoading, setMessages]);
+  }, [createConversation, deleteConversation, isLoading, setMessages, supersedeCoachResolution]);
 
   // 构建欢迎消息
   const welcomeMessage = useMemo(() => {

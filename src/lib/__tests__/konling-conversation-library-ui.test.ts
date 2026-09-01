@@ -202,7 +202,7 @@ describe('Konling conversation library UI contracts', () => {
     expect(sidebarSource).toContain('const textbookCoachGenerationRef = useRef(0);');
     expect(sidebarSource).toContain('textbookCoachGenerationRef.current !== resolveGeneration');
     expect(sidebarSource).toContain("? { key: current.key, state: 'superseded' }");
-    for (const handler of ['handleSelectConversation', 'handleNewConversation']) {
+    for (const handler of ['handleSelectConversation', 'handleNewConversation', 'handleDeleteConversation']) {
       const start = sidebarSource.indexOf(`const ${handler}`);
       expect(sidebarSource.slice(start, start + 400)).toContain('supersedeCoachResolution()');
     }
