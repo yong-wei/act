@@ -30,4 +30,4 @@
 - [x] 5.1 Run direct materializer, loader, API and three-level state tests, then the affected knowledge graph domain suite.
 - [x] 5.2 Run desktop/mobile browser checks for root, overview, one-hop, search, return and seven formerly missing domains with request-size evidence.
 - [x] 5.3 Run typecheck, lint, full `npm run test`, build, commercial UI governance and strict OpenSpec validation on the final clean revision.
-- [ ] 5.4 Obtain independent review of exact catalog coverage, server-bounded behavior and absence of Authority/Teaching/selector scope expansion.
+- [x] 5.4 Obtain independent review of exact catalog coverage, server-bounded behavior and absence of Authority/Teaching/selector scope expansion.
