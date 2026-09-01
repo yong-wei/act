@@ -372,7 +372,7 @@ export const LEARNING_FACT_WRITE_SITES: readonly string[] = [
   'src/lib/canonical-learning-fact-identity/writer.ts',
   'src/lib/data-governance/learning-fact-materialization.ts',
   'src/lib/data-governance/simulation-task-learning-fact.ts',
-  'src/lib/data-governance/document-rubric-grading-workbench.ts',
+  'src/features/teacher/document-rubric-grading-workbench.ts',
   'src/lib/data-governance/historical-evidence-materialization.ts',
   'src/lib/data-governance/interactive-evidence-scoring-recompute.ts',
   'src/lib/data-governance/simulation-agent-evidence-materialization.ts',

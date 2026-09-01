@@ -13,7 +13,7 @@ import {
   buildTeacherGradingWorkbenchView,
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 import {
   buildPipelineGradingWorkbenchView,
   assertPipelineReviewActor,

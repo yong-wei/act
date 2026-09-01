@@ -94,7 +94,7 @@ export const LEARNING_FACT_SINK_INVENTORY: readonly LearningFactSinkClassificati
   {
     kind: 'governed-knowledge-scoped',
     id: 'document-rubric-grading-workbench',
-    path: 'src/lib/data-governance/document-rubric-grading-workbench.ts',
+    path: 'src/features/teacher/document-rubric-grading-workbench.ts',
     adapter: 'canonical-selector',
     sourcePrefixes: ['grading'],
     notes: 'Teacher-approved document rubric facts; sourceEventId = grading:…',

@@ -8,7 +8,7 @@ import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   type PersistedDocumentRubricGradingDraft,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 import {
   CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
 } from '@/features/personalization/diagnosis/control-correction-diagnosis-profile';

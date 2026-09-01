@@ -104,12 +104,12 @@ import {
 import {
   STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION,
   type StudentSimulationArenaFeatureSummary,
-} from '../student-evidence-feature-cache';
+} from '@/lib/data-governance/student-evidence-feature-cache';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
   PORTRAIT_V2_DIMENSION_IDS,
   createPortraitV2Payload,
-} from '../portrait-v2-model';
+} from '@/lib/data-governance/portrait-v2-model';
 
 function enrolledStudent(userId: string, name: string) {
   return {

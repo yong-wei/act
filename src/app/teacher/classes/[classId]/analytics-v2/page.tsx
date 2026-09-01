@@ -20,7 +20,7 @@ import {
 
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
 import type { HeatmapData } from '@/app/api/teacher/classes/[classId]/heatmap/route';
-import type { ControlCorrectionTeacherReport } from '@/lib/data-governance/control-correction-teacher-report';
+import type { ControlCorrectionTeacherReport } from '@/features/teacher/control-correction-teacher-report';
 import type { PersonalizedPathEffectEvaluation } from '@/lib/personalized-path-effect-evaluation';
 import { PersonalizedPathEffectPanel } from '@/features/teacher/personalized-path-effect-panel';
 import {

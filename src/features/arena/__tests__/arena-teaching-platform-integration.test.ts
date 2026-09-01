@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildArenaClassInsightAggregation } from '@/lib/data-governance/arena-insights';
+import { buildArenaClassInsightAggregation } from '@/features/arena/arena-insights';
 import { eventToLearningFactInput } from '@/lib/data-governance/learning-fact-materialization';
 import { buildOdysseyArenaArtifact, bridgeOdysseyRunToArenaSubmission } from '../odyssey/bridge';
 import {

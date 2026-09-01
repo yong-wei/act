@@ -9,7 +9,7 @@ import {
   type StudentSimulationArenaFeatureSummary,
   type StudentSimulationArenaWeakMetric,
   type StudentSimulationArenaTraceReference,
-} from './student-evidence-feature-cache';
+} from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type TeacherEvidenceState = 'ready' | 'stale' | 'missing';
 export type TeacherSessionQualityStatus = 'green' | 'yellow' | 'red' | 'unknown';

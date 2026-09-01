@@ -9,7 +9,7 @@ import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-
 import type {
   ControlCorrectionTeacherReport,
   ControlCorrectionReportMetric,
-} from './control-correction-teacher-report';
+} from '@/features/teacher/control-correction-teacher-report';
 import type {
   LearningEvidenceCitationChipPayload,
   LearningEvidenceConfidence,

@@ -6,7 +6,7 @@ import {
   persistSimulationAgentEvidenceMaterialization,
 } from '../simulation-agent-evidence-materialization';
 import { buildStudentEvidenceFeaturePayload } from '../student-evidence-feature-cache';
-import { buildTeacherScopedSimulationArenaFeatureMap } from '../teacher-evidence-governance';
+import { buildTeacherScopedSimulationArenaFeatureMap } from '@/features/teacher/teacher-evidence-governance';
 
 const completedAt = new Date('2026-05-29T02:00:00.000Z');
 
