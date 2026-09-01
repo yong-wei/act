@@ -35,15 +35,15 @@ vi.mock('@/features/personalization/path-planning/public-api', () => ({
   isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
 }));
 
-vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+vi.mock('@/features/personalization/path-planning/adaptive-path-candidate-batches', () => ({
   readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
 }));
 
-vi.mock('@/lib/adaptive-path-goal-options', () => ({
+vi.mock('@/features/personalization/path-planning/adaptive-path-goal-options', () => ({
   getAdaptivePracticeGoalOption: () => ({ title: '控制校正' }),
 }));
 
-vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+vi.mock('@/features/personalization/path-planning/adaptive-path-candidate-batches', () => ({
   readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
 }));
 

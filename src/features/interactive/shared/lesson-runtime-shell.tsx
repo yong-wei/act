@@ -6,8 +6,8 @@ import { useState, type ReactNode } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, Loader2, PanelRightClose, Route } from 'lucide-react';
 
 import { AppShell, PlatformSurface, type AppBreadcrumbItem } from '@/components/platform/app-shell';
-import { resolveAdaptivePathLaunchReturnContext } from '@/features/adaptive/adaptive-learning-center-contracts';
-import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import { resolveAdaptivePathLaunchReturnContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/personalization/experience/adaptive-path-journey-control';
 import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
 
 export type LessonRuntimeMode = 'student' | 'guest' | 'teacher' | 'invalid';

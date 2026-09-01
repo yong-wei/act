@@ -48,7 +48,7 @@ const adaptivePracticeLayoutSource = readFileSync(
   'utf8',
 );
 const pathAdvisorEntryPointBridgeSource = readFileSync(
-  join(process.cwd(), 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'),
+  join(process.cwd(), 'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx'),
   'utf8',
 );
 const aiContextResolverSource = readFileSync(

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
-import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { buildLearnerDataRouteShell } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';

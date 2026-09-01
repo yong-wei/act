@@ -8,7 +8,7 @@ import {
   persistAdaptivePathCandidateBatch,
   resolveAdaptivePathCandidateSelection,
   buildGatedCandidateSnapshots,
-} from '@/lib/adaptive-path-candidate-batches';
+} from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
   buildSerializablePathOptions,

@@ -5,7 +5,7 @@ import {
   planLearningPath,
   type AdaptiveLearningPathPlannerInput,
 } from '@/features/personalization/path-planning/public-api';
-import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
+import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {

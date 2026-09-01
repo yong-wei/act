@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { readAdaptivePathCandidateBatch } from '@/lib/adaptive-path-candidate-batches';
+import { readAdaptivePathCandidateBatch } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { getLearningPathRequester } from '../../route-helpers';

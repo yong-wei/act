@@ -9,7 +9,7 @@ const generatorPath = 'tests/adaptive-path-evidence-links-1186-p3.spec.ts';
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/features/personalization/path-planning/internal/assemble-plan.ts',
-  'src/lib/adaptive-path-node-decisions.ts',
+  'src/features/personalization/path-planning/adaptive-path-node-decisions.ts',
   'src/lib/data-governance/adaptive-learner-state-service.ts',
   'src/lib/data-governance/evidence-timeline.ts',
 ];

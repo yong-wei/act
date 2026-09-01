@@ -114,7 +114,7 @@ describe('canonical learning path transition import boundary', () => {
 
   it('keeps adaptive-path-journey-contracts free of path-rounds / write-fence / prisma', () => {
     const source = readSource(
-      'src/features/adaptive/adaptive-path-journey-contracts.ts',
+      'src/features/personalization/experience/adaptive-path-journey-contracts.ts',
     );
     expect(source).not.toMatch(/control-correction-path-rounds/);
     expect(source).not.toMatch(/write-fence/);
@@ -137,7 +137,7 @@ describe('canonical learning path transition import boundary', () => {
   });
 
   it('does not reach path-rounds or write-fence from client adaptive contracts', () => {
-    const entry = 'src/features/adaptive/adaptive-path-journey-contracts.ts';
+    const entry = 'src/features/personalization/experience/adaptive-path-journey-contracts.ts';
     const forbidden = [
       'control-correction-path-rounds',
       'canonical-learning-path-transition/write-fence',

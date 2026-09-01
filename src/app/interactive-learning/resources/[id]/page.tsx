@@ -11,8 +11,8 @@ import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
 import {
   buildAdaptivePathCompletionRequest,
   resolveAdaptivePathLaunchReturnContext,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
-import { publishAdaptivePathJourneyResponse } from '@/features/adaptive/adaptive-path-journey-control';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
+import { publishAdaptivePathJourneyResponse } from '@/features/personalization/experience/adaptive-path-journey-control';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { useVerifiedFeedbackTaskContext } from '@/features/assessment/use-verified-feedback-task-context';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';

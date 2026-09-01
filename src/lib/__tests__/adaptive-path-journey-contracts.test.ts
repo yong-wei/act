@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { buildAuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 
 function buildPath(overrides: Record<string, unknown> = {}) {
   return {

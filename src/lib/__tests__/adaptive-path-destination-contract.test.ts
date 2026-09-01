@@ -66,7 +66,7 @@ describe('adaptive path destination contract', () => {
 
   it('keeps the destination contract off the manifest course app loader graph', () => {
     const source = readFileSync(
-      join(process.cwd(), 'src/lib/adaptive-path-destination-contract.ts'),
+      join(process.cwd(), 'src/features/personalization/path-planning/adaptive-path-destination-contract.ts'),
       'utf8',
     );
     expect(source).toContain("from '@/features/interactive/shared/manifest-course-route-segments'");

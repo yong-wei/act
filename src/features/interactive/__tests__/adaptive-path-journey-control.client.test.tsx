@@ -25,8 +25,8 @@ import {
   AdaptivePathOwnedResourceAction,
   publishAdaptivePathJourneyResponse,
   requestAdaptivePathJourneyRefresh,
-} from '@/features/adaptive/adaptive-path-journey-control';
-import type { AuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+} from '@/features/personalization/experience/adaptive-path-journey-control';
+import type { AuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import { sendArenaCoreEvent } from '@/features/arena/telemetry';
 
 function routeSearch(pathId: string, nodeId: string) {

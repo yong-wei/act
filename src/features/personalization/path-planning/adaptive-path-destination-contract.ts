@@ -1,6 +1,6 @@
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
-import { isStudentVisiblePathTarget } from './student-visible-path-target';
+import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 
 export type AdaptivePathDestinationDisposition =
   | 'destination-control'

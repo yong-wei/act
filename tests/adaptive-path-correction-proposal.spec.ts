@@ -10,8 +10,8 @@ const manifestPath = path.join(evidenceDir, 'manifest.json');
 const generatorFile = 'tests/adaptive-path-correction-proposal.spec.ts';
 const productionSourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/features/adaptive/adaptive-path-journey-control.tsx',
-  'src/features/adaptive/adaptive-path-journey-contracts.ts',
+  'src/features/personalization/experience/adaptive-path-journey-control.tsx',
+  'src/features/personalization/experience/adaptive-path-journey-contracts.ts',
 ];
 const trackedSourceFiles = [generatorFile, ...productionSourceFiles];
 const viewports = [

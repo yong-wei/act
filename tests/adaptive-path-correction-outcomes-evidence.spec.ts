@@ -11,9 +11,9 @@ const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1
 const manifestPath = path.join(evidenceDir, 'manifest.json');
 const generatorFile = 'tests/adaptive-path-correction-outcomes-evidence.spec.ts';
 const productionSourceFiles = [
-  'src/features/adaptive/adaptive-path-correction-outcomes.ts',
-  'src/features/adaptive/adaptive-path-journey-contracts.ts',
-  'src/features/adaptive/adaptive-path-journey-control.tsx',
+  'src/features/personalization/experience/adaptive-path-correction-outcomes.ts',
+  'src/features/personalization/experience/adaptive-path-journey-contracts.ts',
+  'src/features/personalization/experience/adaptive-path-journey-control.tsx',
   'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
   'src/lib/data-governance/control-correction-teacher-report.ts',
 ];

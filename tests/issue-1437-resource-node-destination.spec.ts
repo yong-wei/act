@@ -9,10 +9,10 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001';
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1437-resource-node-destination');
 const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
-  'src/lib/adaptive-path-destination-contract.ts',
+  'src/features/personalization/path-planning/adaptive-path-destination-contract.ts',
   'src/lib/resource-node-registry.ts',
   'src/features/personalization/path-planning/internal/assemble-plan.ts',
-  'src/features/adaptive/adaptive-path-journey-contracts.ts',
+  'src/features/personalization/experience/adaptive-path-journey-contracts.ts',
   'src/app/assessment/adaptive-practice/page.tsx',
   'tests/issue-1437-resource-node-destination.spec.ts',
 ];

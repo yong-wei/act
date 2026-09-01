@@ -3,7 +3,7 @@ import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-
 import {
   projectAdaptivePathCorrectionOutcome,
   type AdaptivePathCorrectionOutcomeState,
-} from '@/features/adaptive/adaptive-path-correction-outcomes';
+} from '@/features/personalization/experience/adaptive-path-correction-outcomes';
 
 export const CONTROL_CORRECTION_TEACHER_REPORT_VERSION = 'control-correction-teacher-report.v1';
 export const CONTROL_CORRECTION_REPORT_GOAL_ID = 'control-correction';

@@ -25,8 +25,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
-import { extractColdStartEvidenceCount, isColdStartLearner } from '@/lib/adaptive-cold-start-detection';
-import { ColdStartCollectionPanel } from '@/features/adaptive/cold-start-collection-panel';
+import { extractColdStartEvidenceCount, isColdStartLearner } from '@/features/personalization/path-planning/adaptive-cold-start-detection';
+import { ColdStartCollectionPanel } from '@/features/personalization/experience/cold-start-collection-panel';
 import {
   learnerEvidenceInputFromAdaptiveState,
   projectColdStartCollection,
@@ -35,19 +35,19 @@ import {
   AdaptivePathJourneyControlFromRoute,
   AdaptivePathOwnedResourceAction,
   publishAdaptivePathJourneyResponse,
-} from '@/features/adaptive/adaptive-path-journey-control';
+} from '@/features/personalization/experience/adaptive-path-journey-control';
 import {
   resolveAdaptivePathCenterOwnedTargetHref,
-} from '@/features/adaptive/adaptive-path-journey-contracts';
-import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
+} from '@/features/personalization/experience/adaptive-path-journey-contracts';
+import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
-} from '@/features/adaptive/adaptive-path-timeline';
+} from '@/features/personalization/experience/adaptive-path-timeline';
 import {
   PathWorkspaceModule,
   type PathWorkspaceModuleId,
-} from '@/features/adaptive/path-workspace-module';
+} from '@/features/personalization/experience/path-workspace-module';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
@@ -67,18 +67,18 @@ import {
   type ControlCorrectionLearningCenterView,
   type ControlCorrectionCenterRouteIntent,
   type PracticeEntryRouteNode,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import {
   AdaptivePathUnlockChainView,
   type AdaptivePathUnlockProjectedAction,
   resolveAdaptivePathUnlockChainAction,
-} from '@/features/adaptive/adaptive-path-unlock-chain-view';
+} from '@/features/personalization/experience/adaptive-path-unlock-chain-view';
 import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,
   type AdaptivePathUnlockChainNodeInput,
-} from '@/lib/adaptive-path-unlock-chain';
+} from '@/features/personalization/path-planning/adaptive-path-unlock-chain';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import type {
   EvidenceTimelineLearnerRecordSourceScope,
@@ -89,7 +89,7 @@ import {
   type AdaptivePathOptionDisplay,
   type AdaptivePathOptionWriteOption,
   type AdaptivePathResourceKind,
-} from '@/lib/adaptive-path-option-display';
+} from '@/features/personalization/path-planning/adaptive-path-option-display';
 import {
   buildPathGenerationGoalHref,
   defaultPathGenerationPanel,
@@ -98,13 +98,13 @@ import {
   type GenerationCheckpointPreference,
   type GenerationDifficultyRhythm,
   type PathGenerationPanelState,
-} from '@/lib/adaptive-path-generation-panel';
+} from '@/features/personalization/path-planning/adaptive-path-generation-panel';
 import {
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
   selectAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
-} from '@/lib/adaptive-generation-readiness';
+} from '@/features/personalization/path-planning/adaptive-generation-readiness';
 import {
   claimPathGenerationRequest,
   INITIAL_PATH_GENERATION_REQUEST_LIFECYCLE,
@@ -118,22 +118,22 @@ import {
   enumerateAdaptivePathComparisonPairs,
   normalizeAdaptivePathComparisonPair,
   type AdaptivePathComparisonPair,
-} from '@/lib/adaptive-path-comparison';
-import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
+} from '@/features/personalization/path-planning/adaptive-path-comparison';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/features/personalization/path-planning/adaptive-path-round-restore';
 import {
   adaptivePracticeGoalLabel,
   getAdaptivePracticeGoalOptions,
   isAdaptivePracticeGoalId,
   type AdaptivePathAdvisorQuickPrompt,
   type AdaptivePracticeGoalId,
-} from '@/lib/adaptive-path-goal-options-client';
+} from '@/features/personalization/path-planning/adaptive-path-goal-options-client';
 import {
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
   resolveAdaptivePathLandingState,
   type AdaptiveLearnerStateLoadState,
   type AdaptivePathContextLoadState,
-} from '@/lib/adaptive-path-execution-state';
+} from '@/features/personalization/path-planning/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 import { buildFeedbackTaskContext, buildFeedbackTaskHref } from '@/lib/student-feedback-task-contract';
 

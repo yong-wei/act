@@ -9,15 +9,15 @@ import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChainContextNode,
   type AdaptivePathUnlockChainNodeInput,
-} from '@/lib/adaptive-path-unlock-chain';
+} from '@/features/personalization/path-planning/adaptive-path-unlock-chain';
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
-} from '@/lib/adaptive-path-option-display';
+} from '@/features/personalization/path-planning/adaptive-path-option-display';
 import {
   AdaptivePathUnlockChainView,
   resolveAdaptivePathUnlockChainAction,
-} from '@/features/adaptive/adaptive-path-unlock-chain-view';
+} from '@/features/personalization/experience/adaptive-path-unlock-chain-view';
 
 const repoRoot = process.cwd();
 

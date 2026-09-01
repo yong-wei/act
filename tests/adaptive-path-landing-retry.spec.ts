@@ -10,7 +10,7 @@ const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1
 const manifestPath = path.join(evidenceDir, 'manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/lib/adaptive-path-execution-state.ts',
+  'src/features/personalization/path-planning/adaptive-path-execution-state.ts',
   'tests/adaptive-path-landing-retry.spec.ts',
 ];
 const expectedScreenshotFiles = [

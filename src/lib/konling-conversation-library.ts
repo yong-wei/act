@@ -1,7 +1,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
-import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
+import { isAdaptivePracticeGoalId } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
 import type { KonlingTeachingAssistantModeId } from '@/lib/konling-agent-runtime';

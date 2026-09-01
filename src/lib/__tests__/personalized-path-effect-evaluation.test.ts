@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PersonalizedPathDecisionEvidence } from '@/lib/adaptive-path-decision-evidence';
+import type { PersonalizedPathDecisionEvidence } from '@/features/personalization/path-planning/adaptive-path-decision-evidence';
 import {
   classifyPersonalizedPathEffectCohort,
   evaluatePersonalizedPathEffects,

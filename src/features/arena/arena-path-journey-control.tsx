@@ -7,7 +7,7 @@ import {
   AdaptivePathJourneyControlFromRoute,
   publishAdaptivePathJourneyResponse,
   requestAdaptivePathJourneyRefresh,
-} from '@/features/adaptive/adaptive-path-journey-control';
+} from '@/features/personalization/experience/adaptive-path-journey-control';
 import { buildArenaPathCompletionRequest, resolveArenaPathLaunchParams } from './arena-path-journey';
 
 export function AdaptivePathJourneyControlForArenaTask({ taskId }: { taskId: string }) {

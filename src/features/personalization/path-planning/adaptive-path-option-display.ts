@@ -2,9 +2,9 @@ import {
   buildAdaptivePathUnlockChain,
   type AdaptivePathUnlockChain,
   type AdaptivePathUnlockChainNodeInput,
-} from '@/lib/adaptive-path-unlock-chain';
+} from '@/features/personalization/path-planning/adaptive-path-unlock-chain';
 import type { AdaptiveLearningPathRecommendationProvenance } from '@/features/personalization/path-planning/public-api';
-import { studentVisibleCandidateLimitation } from '@/lib/adaptive-path-candidate-limitation-copy';
+import { studentVisibleCandidateLimitation } from '@/features/personalization/path-planning/adaptive-path-candidate-limitation-copy';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 import type { PersonalizedPathDecisionPathEvidence } from './adaptive-path-decision-evidence';
 

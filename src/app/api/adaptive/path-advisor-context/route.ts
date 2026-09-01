@@ -4,12 +4,12 @@ import { getServerAuthSession } from '@/lib/auth';
 import {
   createKonlingTeachingAssistantServerContextToken,
 } from '@/lib/konling-teaching-assistant-server-context';
-import { getAdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
+import { getAdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/public-api';
 import {
   buildAdaptiveGenerationReadiness,
   type AdaptiveGenerationReadiness,
-} from '@/lib/adaptive-generation-readiness';
+} from '@/features/personalization/path-planning/adaptive-generation-readiness';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import { prisma } from '@/lib/prisma';
 

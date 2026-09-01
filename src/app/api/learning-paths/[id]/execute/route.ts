@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { buildAuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import {
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   isAssessmentSnapshotBeforeEnforcementEpoch,

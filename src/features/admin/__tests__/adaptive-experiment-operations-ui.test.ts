@@ -15,7 +15,7 @@ import {
   type AdaptiveExperimentAssignment,
   type AdaptiveOptimizationMetricName,
   type AdaptiveOptimizationMetricSummary,
-} from '@/lib/adaptive-learning-optimization-experiments';
+} from '@/features/personalization/path-planning/adaptive-learning-optimization-experiments';
 
 const assignment: AdaptiveExperimentAssignment = {
   experimentId: 'stage-2-path-optimization',

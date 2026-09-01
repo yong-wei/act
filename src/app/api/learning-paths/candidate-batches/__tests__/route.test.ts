@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../route-helpers', () => ({
   getLearningPathRequester: mocks.requester,
 }));
-vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
+vi.mock('@/features/personalization/path-planning/adaptive-path-candidate-batches', () => ({
   readLatestAdaptivePathCandidateBatch: mocks.readLatest,
   readAdaptivePathCandidateBatch: mocks.readExact,
 }));

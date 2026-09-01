@@ -1,4 +1,4 @@
-import type { AdaptivePathCorrectionProposal } from '@/features/adaptive/adaptive-path-journey-contracts';
+import type { AdaptivePathCorrectionProposal } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import type {
   EvidenceTimelineLearnerRecordSourceScope,
   StudentSafeEvidenceEventReference,

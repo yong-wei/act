@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPathGenerationGoalHref,
   defaultPathGenerationPanel,
-} from '@/lib/adaptive-path-generation-panel';
+} from '@/features/personalization/path-planning/adaptive-path-generation-panel';
 
 const repoRoot = process.cwd();
 
@@ -247,7 +247,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (');
     expect(source).toContain('{showExecutionWorkspace || showRecoveredExecutionWorkspace ? null :');
     expect(source).toContain("const showColdStartLandingWorkspace = showLandingWorkspace && pathLandingState === 'cold-start';");
-    expect(source).toContain("from '@/features/adaptive/cold-start-collection-panel'");
+    expect(source).toContain("from '@/features/personalization/experience/cold-start-collection-panel'");
     expect(source).toContain("from '@/lib/cold-start-evidence-collection'");
     expect(source).toContain('const learnerStateReadyForCollection = isDemoMode || learnerStateLoadState === \'ready\'');
     expect(source).not.toContain('adaptive-path-candidate-batches');

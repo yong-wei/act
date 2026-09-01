@@ -1,5 +1,5 @@
-import type { AdaptivePathResourceKind } from '@/lib/adaptive-path-option-display';
-import type { AdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
+import type { AdaptivePathResourceKind } from '@/features/personalization/path-planning/adaptive-path-option-display';
+import type { AdaptivePracticeGoalId } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 
 export type GenerationDifficultyRhythm = 'gentle' | 'steady' | 'challenge';
 export type GenerationCheckpointPreference = 'light' | 'standard' | 'dense';

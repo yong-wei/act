@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildAdaptivePathLaunchHref,
   resolveAdaptivePathLaunchReturnContext,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import {
   buildFeedbackTaskContext,
   buildFeedbackTaskHref,
