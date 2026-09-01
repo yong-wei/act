@@ -367,6 +367,7 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
 
   it.each([
     { tag: 'desktop', width: 1280, height: 720, budget: KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO.desktop },
+    { tag: 'mobile', width: 320, height: 568, budget: KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO.mobile },
   ] as const)('scales the visible-label budget to the real domain shard scale ($tag)', ({ width, height, budget }) => {
     // 用真实 runtime 分片（system-modeling 概览，273 个 DomainConcept）
     // 验证预算：教学序网格种子 → 画布同参力学沉降 → 相机 fit → 标签
@@ -431,6 +432,9 @@ describe('default overview label budgets (#1739 task 4.2)', () => {
       height,
       padding: { top: 16, right: 16, bottom: 16, left: 16 },
       enforceViewport: true,
+      // mobile 档语义：选中节点经钳位兜底恒可见（几何上 2px 级节点的
+      // 画布标签不可读，无障碍名称主通道是 sr-only 节点目录）。
+      selectedNodeId: seeds[0]!.id,
     });
 
     const entries = [...placements.values()];

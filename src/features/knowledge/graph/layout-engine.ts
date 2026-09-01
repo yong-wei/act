@@ -929,6 +929,28 @@ export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPosi
 }
 
 /**
+ * Render-time (pre-ingest) freeze for filter-only removal (#1739): when the
+ * node set only shrank, output fixed coordinates so force-graph's synchronous
+ * warmup ticks cannot move the remaining nodes before any effect runs.
+ */
+export function freezeKnowledgeGraphFilterRemovalScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  previousIds: ReadonlySet<string> | null,
+): T[] {
+  if (previousIds === null
+    || nodes.length >= previousIds.size
+    || nodes.some((node) => !previousIds.has(String(node.id)))) {
+    return nodes;
+  }
+  return nodes.map((node) => ({
+    ...node,
+    fx: node.x,
+    fy: node.y,
+    ...(node.z !== undefined ? { fz: node.z } : {}),
+  }));
+}
+
+/**
  * The reheat scope is the connected neighborhood of the newcomers: every
  * existing node sharing an edge with a newcomer participates in the
  * resettlement (collision separation, link forces), not just the new

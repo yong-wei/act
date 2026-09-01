@@ -56,6 +56,7 @@ import {
   freezeKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
   reheatKnowledgeGraphNewcomerScope,
+  freezeKnowledgeGraphFilterRemovalScope,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
@@ -594,6 +595,7 @@ export function KnowledgeGraphCanvas({
   // 与 2D 相同：react-force-graph-3d 的 ref 也不暴露 graphData 方法，memo 节点
   // 数组即 d3 原地变异的活对象，用 ref 保留上一代续承沉降坐标（#1739）。
   const liveNodesRef = useRef<RuntimeKnowledgeGraphNode[]>([]);
+  const knownNodeIdsRef = useRef<Set<string> | null>(null);
   const committedRelayoutVersionRef = useRef(relayoutVersion);
 
   useEffect(() => () => nodeObjectsByIdRef.current.clear(), []);
@@ -753,8 +755,11 @@ export function KnowledgeGraphCanvas({
       };
     });
 
+    // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标，与 2D 相同
+    // （摄入的 warmup ticks 先于被动 effect，#1739 task 3.3）。
+    const scopedNodes = freezeKnowledgeGraphFilterRemovalScope(focusedThreeDimensionalNodes, knownNodeIdsRef.current);
     return {
-      nodes: focusedThreeDimensionalNodes,
+      nodes: scopedNodes,
       links: transformedLinks
     };
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
@@ -1135,7 +1140,6 @@ export function KnowledgeGraphCanvas({
   // unaffected nodes hold their settled coordinates; the frame is released
   // at the engine-stop settle milestone.
   const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
-  const knownNodeIdsRef = useRef<Set<string> | null>(null);
   useEffect(() => {
     const previousIds = knownNodeIdsRef.current;
     knownNodeIdsRef.current = new Set(graphData.nodes.map((node: any) => String(node.id)));
