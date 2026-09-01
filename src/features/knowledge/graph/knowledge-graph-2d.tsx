@@ -20,7 +20,7 @@ import {
   selectKnowledgeGraphReheatAffectedNodeIds,
   reheatKnowledgeGraphNewcomerScope,
   freezeKnowledgeGraphFilterProjectionScope,
-  selectKnowledgeGraphAddedEdgeEndpointIds,
+  selectKnowledgeGraphChangedEdgeEndpoints,
   freezeKnowledgeGraphEdgeGrowthScope,
 } from './layout-engine';
 import {
@@ -417,7 +417,7 @@ export function KnowledgeGraph2D({
   // 历史见过的全部节点身份（只增不减）：区分筛选投影（增删皆见过）与真实新披露。
   const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
   const knownNodeIdsRef = useRef<Set<string> | null>(null);
-  const knownLinkKeysRef = useRef<Set<string>>(new Set());
+  const knownLinksRef = useRef<Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>>(new Map());
   const committedRelayoutVersionRef = useRef(relayoutVersion);
   const committedGraphVersionRef = useRef(graphVersion);
   const revealedExpansionSignatureRef = useRef('');
@@ -566,7 +566,7 @@ export function KnowledgeGraph2D({
       filterScopedNodes,
       transformedLinks,
       knownNodeIdsRef.current,
-      knownLinkKeysRef.current,
+      knownLinksRef.current,
     );
     return {
       nodes: scopedNodes,
@@ -885,12 +885,12 @@ export function KnowledgeGraph2D({
     knownNodeIdsRef.current = nextIds;
     const everSeenSnapshot = new Set(everSeenNodeIdsRef.current);
     for (const id of nextIds) everSeenNodeIdsRef.current.add(id);
-    // 仅新增关系（如启用关系族）的边端点进入局部重热范围。
-    const { nextLinkIds, addedEdgeEndpointIds } = selectKnowledgeGraphAddedEdgeEndpointIds(
+    // 关系变化（启用/禁用关系族）的边端点进入局部重热范围。
+    const { nextLinks, changedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(
       graphData.links,
-      knownLinkKeysRef.current,
+      knownLinksRef.current,
     );
-    knownLinkKeysRef.current = nextLinkIds;
+    knownLinksRef.current = nextLinks;
     if (previousFrameIds === null || forceLifecycle.staticLayout) return;
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     const outcome = reheatKnowledgeGraphNewcomerScope({
@@ -898,7 +898,7 @@ export function KnowledgeGraph2D({
       links: graphData.links,
       previousIds: previousFrameIds,
       everSeenIds: everSeenSnapshot,
-      addedEdgeEndpointIds,
+      changedEdgeEndpointIds,
       previousFrozenNodeIds: unaffectedFrozenNodeIdsRef.current,
       pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
     });

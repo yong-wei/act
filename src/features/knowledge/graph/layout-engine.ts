@@ -939,16 +939,20 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
   nodes: T[],
   links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
   previousIds: ReadonlySet<string> | null,
-  knownLinkIds: ReadonlySet<string>,
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
 ): T[] {
   if (previousIds === null
     || nodes.length !== previousIds.size
     || nodes.some((node) => !previousIds.has(String(node.id)))) {
     return nodes;
   }
-  const { addedEdgeEndpointIds } = selectKnowledgeGraphAddedEdgeEndpointIds(links, knownLinkIds);
-  if (addedEdgeEndpointIds.size === 0) return nodes;
-  const affectedEndpoints = selectKnowledgeGraphReheatAffectedNodeIds(links, addedEdgeEndpointIds);
+  const { changedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(links, knownLinks);
+  if (changedEdgeEndpointIds.size === 0) return nodes;
+  // removed 边已不在 links 中，其端点直接计入受影响范围（邻域重排）。
+  const affectedEndpoints = new Set(changedEdgeEndpointIds);
+  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(links, changedEdgeEndpointIds)) {
+    affectedEndpoints.add(id);
+  }
   return nodes.map((node) => (affectedEndpoints.has(String(node.id))
     ? node
     : {
@@ -960,26 +964,33 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
 }
 
 /**
- * Derive the endpoint ids of links that were not present in the previous
- * frame (link-only shard growth, e.g. an enabled relation family) so only
- * their neighborhood reheats (#1739).
+ * Derive the endpoint ids of links that changed against the previous frame
+ * (link-only shard changes: an enabled relation family adds edges, a
+ * disabled one removes them) so only their neighborhood reheats (#1739).
  */
-export function selectKnowledgeGraphAddedEdgeEndpointIds(
+export function selectKnowledgeGraphChangedEdgeEndpoints(
   links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
-  knownLinkIds: ReadonlySet<string>,
-): { nextLinkIds: Set<string>; addedEdgeEndpointIds: Set<string> } {
-  const nextLinkIds = new Set<string>();
-  const addedEdgeEndpointIds = new Set<string>();
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+): { nextLinks: Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>; changedEdgeEndpointIds: Set<string> } {
+  const nextLinks = new Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>();
+  const changedEdgeEndpointIds = new Set<string>();
+  const endpointOf = (link: { source: string | { id: string }; target: string | { id: string } }, side: 'source' | 'target') => (
+    typeof link[side] === 'object' ? (link[side] as { id: string }).id : link[side] as string
+  );
   for (const link of links) {
     const key = String(link.id);
-    nextLinkIds.add(key);
-    if (knownLinkIds.has(key)) continue;
-    const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-    const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-    addedEdgeEndpointIds.add(sourceId);
-    addedEdgeEndpointIds.add(targetId);
+    nextLinks.set(key, link);
+    if (knownLinks.has(key)) continue;
+    changedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    changedEdgeEndpointIds.add(endpointOf(link, 'target'));
   }
-  return { nextLinkIds, addedEdgeEndpointIds };
+  // 被移除的边（如禁用关系族）：其端点同样进入受影响范围。
+  for (const [key, link] of knownLinks) {
+    if (nextLinks.has(key)) continue;
+    changedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    changedEdgeEndpointIds.add(endpointOf(link, 'target'));
+  }
+  return { nextLinks, changedEdgeEndpointIds };
 }
 
 /**
@@ -1046,10 +1057,10 @@ export function selectKnowledgeGraphReheatAffectedNodeIds(
  *
  * `previousIds` is the previous frame's identity set (drives change and
  * newcomer detection); `everSeenIds` is the full historical identity set;
- * `addedEdgeEndpointIds` covers link-only changes (e.g. an enabled relation
- * family adding edges between existing nodes): the endpoints join the
- * affected scope so only their neighborhood reheats while the settled rest
- * stays frozen.
+ * `changedEdgeEndpointIds` covers link-only changes (an enabled or disabled
+ * relation family adding/removing edges between existing nodes): those
+ * endpoints join the affected scope so only their neighborhood reheats
+ * while the settled rest stays frozen.
  * Returns the frozen id set plus whether a reheat should run, or null when
  * nothing changed.
  */
@@ -1060,23 +1071,27 @@ export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositi
   everSeenIds: ReadonlySet<string>;
   previousFrozenNodeIds: ReadonlySet<string>;
   pinnedNodeIds: ReadonlySet<string>;
-  addedEdgeEndpointIds?: ReadonlySet<string>;
+  changedEdgeEndpointIds?: ReadonlySet<string>;
 }): { frozenNodeIds: Set<string>; hasNewcomers: boolean } | null {
   const nextIds = new Set(input.nodes.map((node) => String(node.id)));
   if (input.previousIds === null) return null;
   const changed = nextIds.size !== input.previousIds.size
     || [...nextIds].some((id) => !input.previousIds!.has(id));
-  const edgeOnlyGrowth = !changed && (input.addedEdgeEndpointIds?.size ?? 0) > 0;
+  const edgeOnlyGrowth = !changed && (input.changedEdgeEndpointIds?.size ?? 0) > 0;
   if (!changed && !edgeOnlyGrowth) return null;
   if (edgeOnlyGrowth) {
-    // 仅新增关系的分片：节点集不变，新边端点及其邻域参与局部重热。
+    // 仅关系变化的分片：节点集不变，变化边（新增或移除）端点及其邻域
+    // 参与局部重热。
     if (input.previousFrozenNodeIds.size > 0) {
       releaseKnowledgeGraphFrozenScope(input.nodes, {
         frozenNodeIds: input.previousFrozenNodeIds,
         pinnedNodeIds: input.pinnedNodeIds,
       });
     }
-    const affectedEndpoints = selectKnowledgeGraphReheatAffectedNodeIds(input.links, input.addedEdgeEndpointIds!);
+    const affectedEndpoints = new Set(input.changedEdgeEndpointIds!);
+    for (const id of selectKnowledgeGraphReheatAffectedNodeIds(input.links, input.changedEdgeEndpointIds!)) {
+      affectedEndpoints.add(id);
+    }
     freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedEndpoints);
     return {
       frozenNodeIds: new Set(
