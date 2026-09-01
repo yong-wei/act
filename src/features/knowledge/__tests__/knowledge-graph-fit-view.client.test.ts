@@ -901,6 +901,18 @@ it.each([
 });
 
 it('keeps ordinary node geometry and external label policy outside the root map', async () => {
+  // 本用例考察普通节点标签策略，与动效偏好无关：覆写全局 reduced mock，
+  // 避免 #1739 的首帧偏好读取改变标签渲染路径。
+  vi.stubGlobal('matchMedia', vi.fn(() => ({
+    matches: false,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })));
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);

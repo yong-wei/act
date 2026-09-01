@@ -434,7 +434,9 @@ export function KnowledgeGraph2D({
   const [viewportRevision, setViewportRevision] = useState(0);
   const [layoutSettledRevision, setLayoutSettledRevision] = useState(0);
   const settledLayoutSignatureRef = useRef('');
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // 首渲染即读系统减弱动态偏好（#1739）：惰性初始化避免 reduced-motion
+  // 用户首帧按完整动态渲染。
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedKnowledgeGraphMotion);
   const forceLifecycle = resolveKnowledgeForceLifecycle({
     dimension: '2d',
     liveEngine: true,
