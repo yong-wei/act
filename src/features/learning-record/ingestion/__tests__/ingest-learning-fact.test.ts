@@ -330,6 +330,7 @@ describe('canonical LearningFact ingestion', () => {
     expect(applied.results[0]?.trustedSetDigest).toBe(staged.trustedSetDigest);
     expect(applied.results[0]?.times?.receivedAt).toBe('2026-08-29T00:00:00.000Z');
     expect(applied.results[0]?.times?.trustedOccurredAt).toBe('2026-08-29T00:00:00.000Z');
+    expect(applied.results[0]?.times?.materializedAt).toBe('2026-08-29T01:00:00.000Z');
   });
 
   it('rejects a staged payload that reuses a dedupe identity with a different digest', async () => {

@@ -176,7 +176,7 @@ export function computeDigests(input: IngestLearningFactInput): { inputDigest: s
     }),
     trustedSetDigest: sha256Canonical({
       trustedOccurredAt: anchorsTrustedOccurredAt(input),
-      receivedAt: (input.now ?? new Date()).toISOString(),
+      receivedAt: receivedAtIso(input),
       subjectRef: opaqueSubjectRef(input.actorUserId),
       sessionRef: input.event.sessionId ?? null,
       sourceEventId: input.event.eventId,
@@ -203,8 +203,12 @@ export function resolveAnchors(input: IngestLearningFactInput): IngestionAnchors
   };
 }
 
+function receivedAtIso(input: IngestLearningFactInput): string {
+  return input.envelope?.receivedAt ?? input.receivedAt ?? (input.now ?? new Date()).toISOString();
+}
+
 function resolveTimes(input: IngestLearningFactInput, materializedAt?: string): TrustedTimeSet {
-  const receivedAt = input.envelope?.receivedAt ?? (input.now ?? new Date()).toISOString();
+  const receivedAt = receivedAtIso(input);
   return {
     trustedOccurredAt: anchorsTrustedOccurredAt(input),
     receivedAt,

@@ -113,6 +113,7 @@ export interface IngestLearningFactInput {
   captureRevision: string;
   classId?: string;
   now?: Date;
+  receivedAt?: string;
   rebaseReceipt?: RebaseReceipt;
   captureRebaseReceipt?: RebaseReceipt;
 }

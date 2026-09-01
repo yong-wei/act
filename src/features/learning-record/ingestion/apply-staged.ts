@@ -91,8 +91,8 @@ export async function applyStagedLearningFactIngestions(
     const payload = asRecord(row.payload);
     const captureRevision = typeof payload.captureRevision === 'string' ? payload.captureRevision : 'working-tree';
     const receivedAt = typeof payload.receivedAt === 'string' && payload.receivedAt
-      ? new Date(payload.receivedAt)
-      : now;
+      ? payload.receivedAt
+      : undefined;
     try {
       const result = await ingestLearningFact({
         db,
@@ -100,7 +100,8 @@ export async function applyStagedLearningFactIngestions(
         event: eventFromStagedPayload(row),
         actorUserId: row.ownerUserId,
         captureRevision,
-        now: Number.isNaN(receivedAt.getTime()) ? now : receivedAt,
+        now,
+        receivedAt,
       });
       results.push(result);
       const nextStatus = result.status === INGESTION_STATUS.deduplicated
