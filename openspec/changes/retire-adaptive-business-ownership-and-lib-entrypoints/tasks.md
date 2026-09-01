@@ -1,7 +1,37 @@
 ## 1. Ownership and consumer inventory
 
 - [ ] 1.1 Consume the qualified C0 delta and C1 Assessment owner-migration evidence; verify predecessor change identities and non-goals.
-- [ ] 1.2 Inventory the 10 production `src/features/adaptive` files and 19 production `src/lib/adaptive-*`/`src/lib/adaptive-planning/*` files with owner, exports, file bytes, and current deletion disposition.
+- [ ] 1.2 Inventory the following exact 29 production paths with owner, exports, file bytes, current consumers, and deletion disposition:
+  - `src/features/adaptive/adaptive-learning-center-contracts.ts`
+  - `src/features/adaptive/adaptive-path-correction-outcomes.ts`
+  - `src/features/adaptive/adaptive-path-journey-contracts.ts`
+  - `src/features/adaptive/adaptive-path-journey-control.tsx`
+  - `src/features/adaptive/adaptive-path-timeline.tsx`
+  - `src/features/adaptive/adaptive-path-unlock-chain-view.tsx`
+  - `src/features/adaptive/cold-start-collection-panel.tsx`
+  - `src/features/adaptive/diagnosis-surface-panel.tsx`
+  - `src/features/adaptive/path-advisor-entrypoint-bridge.tsx`
+  - `src/features/adaptive/path-workspace-module.tsx`
+  - `src/lib/adaptive-cold-start-detection.ts`
+  - `src/lib/adaptive-generation-readiness.ts`
+  - `src/lib/adaptive-learning-optimization-experiments.ts`
+  - `src/lib/adaptive-path-candidate-batches.ts`
+  - `src/lib/adaptive-path-candidate-limitation-copy.ts`
+  - `src/lib/adaptive-path-comparison.ts`
+  - `src/lib/adaptive-path-correction-decisions.ts`
+  - `src/lib/adaptive-path-decision-evidence.ts`
+  - `src/lib/adaptive-path-destination-contract.ts`
+  - `src/lib/adaptive-path-execution-state.ts`
+  - `src/lib/adaptive-path-generation-panel.ts`
+  - `src/lib/adaptive-path-goal-options-client.ts`
+  - `src/lib/adaptive-path-goal-options.ts`
+  - `src/lib/adaptive-path-node-decisions.ts`
+  - `src/lib/adaptive-path-option-display.ts`
+  - `src/lib/adaptive-path-round-restore.ts`
+  - `src/lib/adaptive-path-unlock-chain.ts`
+  - `src/lib/adaptive-planning/item-type-terminal-validation.ts`
+  - `src/lib/adaptive-planning/path-constraint-repair.ts`
+  - `src/lib/adaptive-planning/resource-ranker.ts`
 - [ ] 1.3 Scan all production routes, workers, scripts, dynamic loads, re-exports, package aliases, and tests; classify each consumer as Assessment, Personalization, Learning Record, presentation-only, tooling, or historical.
 - [ ] 1.4 Record active feature flags, fallback helpers, compatibility aliases, old test paths, retained tables/outbox consumers, and exact replacement/deletion conditions.
 

@@ -14,11 +14,11 @@ Assessment and Personalization now have canonical public boundaries, but the top
 
 ### New Capabilities
 
-- `adaptive-business-ownership-retirement`: Canonical ownership, consumer migration, and deletion gates for the remaining adaptive feature and `src/lib` entrypoints.
+- None. This change extends the existing adaptive-entrypoint-retirement contract.
 
 ### Modified Capabilities
 
-- None. `adaptive-entrypoint-retirement`, Assessment, Personalization, Learning Record, and path contracts remain authoritative; this change supplies the concrete current-head retirement tranche.
+- `adaptive-entrypoint-retirement`: Preserve the existing retirement requirements and add the current-head owner mapping, consumer denominator, exact deletion set, and zero-production-reachability evidence for the remaining adaptive surfaces.
 
 ## Impact
 
