@@ -481,6 +481,7 @@ describe('scoped reheat affected scope (#1739)', () => {
     const knownLinks = new Map([['rel-1', { id: 'rel-1', source: 'a', target: 'b' }]]);
     const outcome = freezeKnowledgeGraphEdgeGrowthScope(nodes, [], new Set(['a', 'b']), knownLinks);
     expect(outcome.frozenNodeIds).toEqual(new Set(['a', 'b']));
+    expect(outcome.reheats).toBe(false);
     expect(outcome.nodes[0]!.fx).toBe(1);
     expect(outcome.nodes[1]!.fx).toBe(3);
   });
@@ -497,6 +498,7 @@ describe('scoped reheat affected scope (#1739)', () => {
     const links = [{ id: 'rel-old', source: 'b', target: 'a' }, { id: 'rel-new', source: 'a', target: 'b' }];
     const outcome = freezeKnowledgeGraphEdgeGrowthScope(nodes, links, new Set(['a', 'b', 'far']), knownLinks);
     expect(outcome.frozenNodeIds).toEqual(new Set(['far']));
+    expect(outcome.reheats).toBe(true);
     expect(outcome.nodes[0]!.fx).toBeUndefined();
     expect(outcome.nodes[1]!.fx).toBeUndefined();
     expect(outcome.nodes[2]!.fx).toBe(100);

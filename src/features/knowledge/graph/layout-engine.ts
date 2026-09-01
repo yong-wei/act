@@ -940,15 +940,15 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
   links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
   previousIds: ReadonlySet<string> | null,
   knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
-): { nodes: T[]; frozenNodeIds: Set<string> | null } {
+): { nodes: T[]; frozenNodeIds: Set<string> | null; reheats: boolean } {
   if (previousIds === null
     || nodes.length !== previousIds.size
     || nodes.some((node) => !previousIds.has(String(node.id)))) {
-    return { nodes, frozenNodeIds: null };
+    return { nodes, frozenNodeIds: null, reheats: false };
   }
   const { addedEdgeEndpointIds, removedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(links, knownLinks);
   if (addedEdgeEndpointIds.size === 0 && removedEdgeEndpointIds.size === 0) {
-    return { nodes, frozenNodeIds: null };
+    return { nodes, frozenNodeIds: null, reheats: false };
   }
   if (addedEdgeEndpointIds.size === 0) {
     // 仅移除关系（禁用关系族）：投影变化不重热，全部剩余节点冻结。
@@ -960,6 +960,7 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
         ...(node.z !== undefined ? { fz: node.z } : {}),
       })),
       frozenNodeIds: new Set(nodes.map((node) => String(node.id))),
+      reheats: false,
     };
   }
   // 新增关系（含混合移除）：新边端点及其邻域参与局部重排，其余冻结。
@@ -978,7 +979,7 @@ export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPosi
       ...(node.z !== undefined ? { fz: node.z } : {}),
     };
   });
-  return { nodes: scopedNodes, frozenNodeIds };
+  return { nodes: scopedNodes, frozenNodeIds, reheats: true };
 }
 
 /**
@@ -1035,7 +1036,7 @@ export function scopeKnowledgeGraphRenderChange<T extends KnowledgeGraphPosition
     return {
       nodes: edgeOutcome.nodes,
       frozenNodeIds: edgeOutcome.frozenNodeIds ?? filterOutcome.frozenNodeIds ?? new Set<string>(),
-      reheat: edgeOutcome.frozenNodeIds !== null,
+      reheat: edgeOutcome.reheats,
     };
   }
   // 真实新增节点：新节点连同变化边端点及其连通邻域重排，其余冻结。
