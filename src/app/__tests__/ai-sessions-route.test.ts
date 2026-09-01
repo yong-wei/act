@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { Prisma } from '@prisma/client';
 
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   verifyKonlingRuntimeScope: vi.fn(),
   getStepAIContext: vi.fn(),
+  loadTextbookCoachContext: vi.fn(),
   prisma: {
     konlingSession: {
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
     },
     teachingResource: {
@@ -50,10 +53,37 @@ vi.mock('@/lib/ai-context-resolver', () => ({
   resolveRegisteredAIContextFromPath: vi.fn(() => null),
 }));
 
+vi.mock('@/lib/textbook-resource-coach/loader', () => ({
+  loadTextbookCoachContext: mocks.loadTextbookCoachContext,
+}));
+
 import { GET, POST } from '../api/ai/sessions/route';
+import { hashTextbookMarkdown } from '@/lib/textbook-resource-coach/identity';
 
 const createGetRequest = () => new NextRequest('http://localhost/api/ai/sessions');
 const createdAt = new Date('2026-06-12T00:00:00.000Z');
+
+const coachIdentity = {
+  resourceKind: 'structured-textbook-unit',
+  resourceId: 'unit-3-1',
+  bookId: 'hu-shousong-auto-control-8th',
+  edition: '第 8 版',
+  sourceRevision: 'rev-2026-08',
+  unitId: 'unit-3-1',
+  contentHash: hashTextbookMarkdown('单元正文'),
+  anchorId: null,
+};
+
+function coachPostBody() {
+  return JSON.stringify({
+    courseId: 'course-1',
+    pageId: 'page-1',
+    assistantBinding: {
+      modeId: 'resource-coach',
+      clientContextHints: { ...coachIdentity },
+    },
+  });
+}
 
 function createdConversation(courseId: string, pageId: string, userId = 'student-1') {
   return {
@@ -221,6 +251,88 @@ describe('/api/ai/sessions route', () => {
       body: JSON.stringify({ courseId: 'course-other', pageId: 'page-other' }),
     }));
     expect(response.status).toBe(403);
+    expect(mocks.prisma.konlingSession.create).not.toHaveBeenCalled();
+  });
+
+  it('persists the server-verified resource-coach binding with a deterministic identity key', async () => {
+    mocks.loadTextbookCoachContext.mockResolvedValueOnce({
+      status: 'ready',
+      identity: coachIdentity,
+    });
+    mocks.prisma.konlingSession.create.mockImplementationOnce(async ({ data }) =>
+      createdConversation('course-1', 'page-1'));
+
+    const response = await POST(new NextRequest('http://localhost/api/ai/sessions', {
+      method: 'POST',
+      body: coachPostBody(),
+    }));
+
+    expect(response.status).toBe(201);
+    const createInput = mocks.prisma.konlingSession.create.mock.calls[0]?.[0].data;
+    expect(createInput.migrationSourceId).toBe(
+      `resource-coach:student-1:unit-3-1:rev-2026-08:${coachIdentity.contentHash}:-`,
+    );
+    expect(createInput.messages).toHaveLength(2);
+    expect(createInput.messages[1]).toMatchObject({
+      role: 'system',
+      metadata: {
+        konlingAssistantBindingEvent: {
+          teachingAssistantModeId: 'resource-coach',
+          pinnedTextbookResourceIdentity: coachIdentity,
+        },
+      },
+    });
+  });
+
+  it('reuses the racing winner when a concurrent first question already created the bound conversation', async () => {
+    mocks.loadTextbookCoachContext.mockResolvedValue({
+      status: 'ready',
+      identity: coachIdentity,
+    });
+    mocks.prisma.konlingSession.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError('unique violation', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+    const winner = {
+      ...createdConversation('course-1', 'page-1'),
+      id: 'winner-session',
+      expiresAt: null,
+    };
+    mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(winner);
+
+    const response = await POST(new NextRequest('http://localhost/api/ai/sessions', {
+      method: 'POST',
+      body: coachPostBody(),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ id: 'winner-session' });
+    expect(mocks.prisma.konlingSession.findFirst).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        migrationSourceId: `resource-coach:student-1:unit-3-1:rev-2026-08:${coachIdentity.contentHash}:-`,
+        userId: 'student-1',
+      }),
+    });
+  });
+
+  it('does not create a conversation when the pinned resource version is unavailable', async () => {
+    mocks.loadTextbookCoachContext.mockResolvedValueOnce({
+      status: 'unavailable',
+      reason: 'revision-unavailable',
+    });
+
+    const response = await POST(new NextRequest('http://localhost/api/ai/sessions', {
+      method: 'POST',
+      body: coachPostBody(),
+    }));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: 'KONLING_MODE_UNAVAILABLE',
+      unavailableReasons: ['textbook-coach:revision-unavailable'],
+    });
     expect(mocks.prisma.konlingSession.create).not.toHaveBeenCalled();
   });
 });

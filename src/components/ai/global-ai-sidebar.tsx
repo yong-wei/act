@@ -138,6 +138,7 @@ export function GlobalAISidebar() {
       ? pathname
       : pageContext?.stepId || pageContext?.courseId;
   }, [pageContext?.courseId, pageContext?.stepId, pathname]);
+  const isResourceCoachEntry = assistantEntryPoint?.mode === 'resource-coach';
   const {
     conversations,
     activeConversationId,
@@ -147,12 +148,14 @@ export function GlobalAISidebar() {
     setSearch,
     isLoading: isConversationLoading,
     isMutating: isConversationMutating,
+    hasHydratedList,
     error: conversationError,
     refreshConversations,
     refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
+    enterBlankConversation,
     renameConversation,
     setConversationPinned,
     deleteConversation,
@@ -165,29 +168,12 @@ export function GlobalAISidebar() {
     resourceId: effectiveServerContext?.resourceId,
     pathNodeId: effectiveServerContext?.pathNodeId,
     assistantBinding: requestedAssistantBinding,
+    autoSelectFirstConversation: !isResourceCoachEntry,
   });
   const agentSessionStorageKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
     return `konling:agent-session:smart-prep:${effectiveServerContext?.smartTaskId ?? 'bootstrap'}`;
   }, [assistantEntryPoint?.mode, effectiveServerContext?.smartTaskId]);
-
-  const textbookCoachSwitchKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!requestedAssistantBinding) return;
-    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
-    const switchKey = [
-      activeConversationId ?? 'none',
-      requestedAssistantBinding.modeClientContextHints.unitId,
-      requestedAssistantBinding.modeClientContextHints.sourceRevision,
-      requestedAssistantBinding.modeClientContextHints.contentHash,
-      requestedAssistantBinding.modeClientContextHints.anchorId ?? '',
-    ].join('\u001f');
-    if (textbookCoachSwitchKeyRef.current === switchKey) return;
-    textbookCoachSwitchKeyRef.current = switchKey;
-    void createConversation(requestedAssistantBinding).catch(() => {
-      textbookCoachSwitchKeyRef.current = null;
-    });
-  }, [activeAssistantBinding, activeConversationId, assistantEntryPoint, createConversation, requestedAssistantBinding]);
 
   useEffect(() => {
     setSmartPrepContext(null);
@@ -339,6 +325,70 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  // 资源辅导入口：会话库水合完成后，按服务端验证的完整资源身份恢复精确匹配会话；
+  // 无匹配时保持未落库空白态，首个问题提交时才创建并绑定会话。
+  const textbookCoachResolveKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!requestedAssistantBinding || assistantEntryPoint?.mode !== 'resource-coach') return;
+    // 启用会话库的页面必须先完成列表水合；未启用的页面以服务端匹配查询为唯一真源
+    if (enabled && !hasHydratedList) return;
+    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+    const hints = requestedAssistantBinding.modeClientContextHints;
+    const resolveKey = [
+      String(hints.unitId ?? ''),
+      String(hints.sourceRevision ?? ''),
+      String(hints.contentHash ?? ''),
+      String(hints.anchorId ?? ''),
+    ].join('\u001f');
+    if (textbookCoachResolveKeyRef.current === resolveKey) return;
+    textbookCoachResolveKeyRef.current = resolveKey;
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    for (const key of ['resourceKind', 'resourceId', 'bookId', 'edition', 'sourceRevision', 'unitId', 'contentHash', 'anchorId']) {
+      const value = hints[key];
+      if (typeof value === 'string' && value) params.set(key, value);
+    }
+    void fetch(`/api/ai/sessions/resource-coach-match?${params.toString()}`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('resource-coach match failed');
+        return response.json() as Promise<{
+          status: 'matched' | 'blank' | 'unavailable';
+          conversation?: { id: string };
+          reason?: string;
+        }>;
+      })
+      .then((result) => {
+        // 页面身份或解析键已变化时丢弃过期结果
+        if (textbookCoachResolveKeyRef.current !== resolveKey) return;
+        if (result.status === 'matched' && result.conversation?.id) {
+          selectConversation(result.conversation.id);
+          return;
+        }
+        enterBlankConversation();
+        setMessages([]);
+        if (result.status === 'unavailable') {
+          setActionStatus('该教材版本已不可用，无法恢复原有辅导对话。');
+        }
+      })
+      .catch((cause) => {
+        if ((cause as Error | null)?.name === 'AbortError') return;
+        textbookCoachResolveKeyRef.current = null;
+      });
+    return () => controller.abort();
+  }, [
+    activeAssistantBinding,
+    assistantEntryPoint,
+    enabled,
+    enterBlankConversation,
+    hasHydratedList,
+    requestedAssistantBinding,
+    selectConversation,
+    setMessages,
+  ]);
 
   useEffect(() => {
     if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;

@@ -164,4 +164,24 @@ describe('Konling conversation library UI contracts', () => {
     expect(deleteHandler).toContain('await createConversation(null)');
     expect(deleteHandler).toContain('setMessages([])');
   });
+
+  it('gates resource-coach session resolution behind list hydration and never creates on mount', () => {
+    // 挂载或刷新时不得在水合完成前创建会话
+    expect(sidebarSource).not.toContain('void createConversation(requestedAssistantBinding)');
+    expect(sidebarSource).toContain('autoSelectFirstConversation: !isResourceCoachEntry');
+
+    const resolveStart = sidebarSource.indexOf('const textbookCoachResolveKeyRef');
+    expect(resolveStart).toBeGreaterThanOrEqual(0);
+    const resolveEffect = sidebarSource.slice(resolveStart, sidebarSource.indexOf('return () => controller.abort();', resolveStart));
+    expect(resolveEffect.indexOf('if (enabled && !hasHydratedList) return;'))
+      .toBeLessThan(resolveEffect.indexOf('/api/ai/sessions/resource-coach-match'));
+    // 匹配命中恢复既有会话；无匹配进入未落库空白态
+    expect(resolveEffect).toContain('selectConversation(result.conversation.id)');
+    expect(resolveEffect).toContain('enterBlankConversation()');
+    // 过期结果不得覆盖较新的页面身份
+    expect(resolveEffect).toContain('textbookCoachResolveKeyRef.current !== resolveKey');
+    expect(libraryHookSource).toContain('const enterBlankConversation');
+    expect(libraryHookSource).toContain('setHasHydratedList(true)');
+    expect(libraryHookSource).toContain('assistantBinding: {');
+  });
 });
