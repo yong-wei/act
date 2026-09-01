@@ -19,6 +19,8 @@ export interface DiagnosisBenchmarkAllowedConclusionBoundary {
   requireLimitations: boolean;
   /** 报告允许的最高置信档。 */
   maxConfidence: 'high' | 'medium' | 'low' | 'unavailable';
+  /** 稀疏风险标志场景（Issue #1755）：命中数不得被表述为证据覆盖不足。 */
+  forbidRiskCoverageMisread?: boolean;
 }
 
 export interface DiagnosisBenchmarkScenario {
@@ -34,6 +36,8 @@ export interface DiagnosisBenchmarkScenario {
   progressCoverage: number;
   /** 是否注入作业高分与测评低分的证据冲突。 */
   assignmentAssessmentConflict: boolean;
+  /** 稀疏风险标志：仅前 N 名学生命中当前风险（缺省不生成风险标志）。 */
+  riskFlagHits?: number;
   allowedConclusionBoundary: DiagnosisBenchmarkAllowedConclusionBoundary;
 }
 
@@ -71,7 +75,16 @@ export interface DiagnosisBenchmarkGovernedInput {
     score: number;
     completedAt: string;
   }>;
-  riskFlags: [];
+  riskFlags: Array<{
+    id: string;
+    userId: string;
+    type: string;
+    severity: string;
+    description: string;
+    evidenceSummary: Record<string, unknown>;
+    triggeredAt: string;
+    observedAt: string;
+  }>;
   competencySnapshots: [];
   knowledgeProgress: Array<{
     id: string;

@@ -110,6 +110,21 @@ export function generateBenchmarkGovernedInput(
     });
   });
 
+  // 稀疏风险标志（Issue #1755）：仅前 riskFlagHits 名学生命中当前风险；
+  // 命中集合不表示其余学生缺少风险证据。
+  const riskFlags: DiagnosisBenchmarkGovernedInput['riskFlags'] = studentIds
+    .slice(0, scenario.riskFlagHits ?? 0)
+    .map((userId) => ({
+      id: `risk-${userId}`,
+      userId,
+      type: 'stagnation',
+      severity: 'medium',
+      description: '学习进度长期滞后',
+      evidenceSummary: { source: 'benchmark' },
+      triggeredAt: FROZEN_NOW,
+      observedAt: FROZEN_NOW,
+    }));
+
   return {
     governedInput: {
       schemaVersion: 'teacher-diagnosis-governed-input.v1',
@@ -117,7 +132,7 @@ export function generateBenchmarkGovernedInput(
       studentIds,
       assignmentSubmissions,
       assessmentSessions,
-      riskFlags: [],
+      riskFlags,
       competencySnapshots: [],
       knowledgeProgress,
     },

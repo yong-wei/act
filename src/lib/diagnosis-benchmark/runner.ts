@@ -15,6 +15,7 @@ import {
   buildKnowledgeNodeWeaknessStats,
   enforceDiagnosisFindingCalibration,
   enforceDiagnosisFindingNodeAttribution,
+  enforceRiskFlagCoverageSemantics,
   validateDiagnosisReportBodyLanguage,
 } from '@/lib/diagnosis-generation-provider';
 import {
@@ -92,6 +93,7 @@ export function replayBenchmarkGovernance(
     ...governedInput.knowledgeProgress.map((row) => `knowledge-progress:${row.id}`),
     ...(governedInput.assignmentSubmissions ?? []).map((row) => `assignment-submission:${row.id}`),
     ...(governedInput.assessmentSessions ?? []).map((row) => `adaptive-assessment-session:${row.id}`),
+    ...(governedInput.riskFlags ?? []).map((row) => `student-risk-flag:${row.id}`),
   ]);
   const languageViolations = validateDiagnosisReportBodyLanguage({
     summary: report.summary,
@@ -120,10 +122,16 @@ export function replayBenchmarkGovernance(
     finding.knowledgeNodeId
     || finding.evidenceRefs.some((ref) => ref.startsWith('knowledge-progress:'))
   ));
+  // 稀疏风险标志覆盖误读（Issue #1755）：复用生产校验函数，违例同样视为治理拒绝。
+  const riskFlagCoverageViolations = enforceRiskFlagCoverageSemantics({
+    summary: report.summary,
+    limitations: report.limitations,
+  });
   const governanceFailed = languageViolations.length > 0
     || attributionViolations.length > 0
     || !evidenceRefsValid
-    || calibrationViolations.length > 0;
+    || calibrationViolations.length > 0
+    || riskFlagCoverageViolations.length > 0;
 
   return {
     status: governanceFailed ? 'calibration-rejected' : 'ok',
@@ -137,7 +145,7 @@ export function replayBenchmarkGovernance(
     coverageClaimAccurate: report.sourceCoverage.progressRows === governedInput.knowledgeProgress.length
       && boundaryRespected(scenario, report),
     failureReason: governanceFailed
-      ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'}`
+      ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'},riskCoverage=${riskFlagCoverageViolations.join(',') || 'none'}`
       : undefined,
   };
 }
@@ -154,6 +162,12 @@ function boundaryRespected(
   report: DiagnosisBenchmarkCandidateReport,
 ): boolean {
   const boundary = scenario.allowedConclusionBoundary;
+  // 稀疏风险标志语义（Issue #1755 review）：命中数被表述为覆盖不足即违反边界，
+  // 复用生产确定性校验的同一判定。
+  if (boundary.forbidRiskCoverageMisread
+    && enforceRiskFlagCoverageSemantics({ summary: report.summary, limitations: report.limitations }).length > 0) {
+    return false;
+  }
   if (!boundary.requireLimitations) return true;
   if (report.limitations.length === 0) return false;
   const observed = CONFIDENCE_ORDER.indexOf(report.confidence as typeof CONFIDENCE_ORDER[number]);
@@ -223,9 +237,13 @@ export function createFixtureGenerate(): DiagnosisBenchmarkGenerate {
       knowledgeNodeId: nodeId,
       evidenceRefs: evidenceRefFor(governedInput, nodeId, 3),
     }));
-    const limitations = strength
+    // 限制文案必须与场景事实一致：覆盖缺失场景声明缺失，冲突场景声明冲突，
+    // 完整覆盖场景不得生成"数据缺失"式错误限制（Issue #1755 review）。
+    const limitations = groundTruth.actualProgressCoverage < 1
       ? ['知识进度数据存在缺失，结论强度已相应降低。']
-      : [];
+      : strength
+        ? ['作业与测评整体表现正常，与部分学生知识进度长期滞后存在冲突。']
+        : [];
     return {
       ok: true,
       durationMs: 1,
