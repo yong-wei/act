@@ -5,7 +5,7 @@ export const TEACHER_DIAGNOSIS_REPORT_HISTORY_SOURCE_PATHS = [
   'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx',
   'src/app/globals.css',
   'src/components/platform/role-workspace-shell.tsx',
-  'src/features/adaptive/diagnosis-surface-panel.tsx',
+  'src/features/personalization/experience/diagnosis-surface-panel.tsx',
   'src/features/teacher/teacher-diagnosis-report-history.tsx',
   'src/features/teacher/teacher-diagnosis-report-history-projection.ts',
   'src/app/api/teacher/classes/[classId]/diagnosis-reports/route.ts',

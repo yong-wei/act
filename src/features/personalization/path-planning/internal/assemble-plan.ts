@@ -22,19 +22,19 @@ import type {
 import {
   rankResourceLearnerCandidates,
   type ResourceLearnerRankerExplanation,
-} from '@/lib/adaptive-planning/resource-ranker';
+} from '@/features/personalization/path-planning/resource-ranker';
 import {
   PATH_CONSTRAINT_REPAIR_VERSION,
   deterministicPathConstraintRepairAdapter,
   type PathConstraintRepairCandidate,
   type PathConstraintRepairResult,
-} from '@/lib/adaptive-planning/path-constraint-repair';
+} from '@/features/personalization/path-planning/path-constraint-repair';
 import {
   buildPersonalizedPathDecisionEvidence,
   listPersonalizedPathDegradationReasons,
   type PersonalizedPathDecisionEvidence,
   type PersonalizedPathDecisionPathEvidence,
-} from '@/lib/adaptive-path-decision-evidence';
+} from '@/features/personalization/path-planning/adaptive-path-decision-evidence';
 import {
   collectionCheckpointPreference,
   collectionDifficultyRhythm,
@@ -69,14 +69,14 @@ import {
   type SourcePackItem,
   type SourcePackLimitation,
 } from '@/lib/source-pack';
-import type { AdaptivePathNodeDecisionExplanation } from '@/lib/adaptive-path-node-decisions';
+import type { AdaptivePathNodeDecisionExplanation } from '@/features/personalization/path-planning/adaptive-path-node-decisions';
 import type { StudentSafeEvidenceEventReference } from '@/lib/data-governance/evidence-timeline';
 import type { StudentEvidenceWindow } from '@/lib/data-governance/student-evidence-feature-cache';
-import { resolveAdaptivePathDestinationContract } from '@/lib/adaptive-path-destination-contract';
+import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import {
   resolveItemTypeTerminalValidation,
   type ItemTypeTerminalValidationResolution,
-} from '@/lib/adaptive-planning/item-type-terminal-validation';
+} from '@/features/assessment/item-type-terminal-validation';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
 import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
 import type { PersonalizationPluginPathPlanningPolicy, PersonalizationPluginStatus } from '@/features/personalization/plugins/types';

@@ -80,7 +80,7 @@ export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = 
     { path: 'src/lib/__tests__/runtime-resource-projections.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/teacher-resource-node-management.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/adaptive-learning-path-planner.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
-    { path: 'src/lib/adaptive-planning/resource-ranker.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
+    { path: 'src/features/personalization/path-planning/resource-ranker.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
     { path: 'src/lib/canonical-resource-binding/runtime-projection.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
     { path: 'src/lib/control-correction-resource-seed.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
     { path: 'src/lib/data-governance/__tests__/data-completeness-audit.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },

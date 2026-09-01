@@ -151,7 +151,7 @@ import {
   type RuntimeResourceProjectionInput,
 } from '@/lib/resource-node-registry';
 import { retrieveSourcePack } from '@/lib/source-pack';
-import { fingerprintAdaptivePathCandidateSnapshot } from '@/lib/adaptive-path-candidate-batches';
+import { fingerprintAdaptivePathCandidateSnapshot } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
 
 function expectRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
   expect(typeof value, `${label} should be an object`).toBe('object');

@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
+import { DiagnosisSurfacePanel } from '@/features/personalization/experience/diagnosis-surface-panel';
 import { TeacherPrepPackReviewSurface } from '@/features/teacher/teacher-prep-pack-review-surface';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import type { CourseEnhancementPack } from '@/lib/data-governance/teacher-prep-pack-generation';

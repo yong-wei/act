@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { resolveAdaptivePathCompletionContinueHref } from '@/app/interactive-learning/resources/[id]/path-completion-navigation';
-import type { AuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import type { AuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 
 const fallbackHref = '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1';
 const currentHref = '/interactive-learning/resources/lesson13-cruise-bridge?source=adaptive-path-center&goal=control-correction&pathId=path-1&nodeId=registry%3Alesson13-cruise-bridge';

@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { PathWorkspaceModule } from '@/features/adaptive/path-workspace-module';
+import { PathWorkspaceModule } from '@/features/personalization/experience/path-workspace-module';
 
 describe('PathWorkspaceModule', () => {
   it('stacks title and trailing content at narrow widths without removing readable title width', () => {

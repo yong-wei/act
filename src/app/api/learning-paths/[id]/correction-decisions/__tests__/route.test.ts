@@ -32,7 +32,7 @@ vi.mock('@/lib/canonical-learning-path-transition/write-fence', () => ({
     },
   }),
 }));
-vi.mock('@/features/adaptive/adaptive-path-journey-contracts', () => ({
+vi.mock('@/features/personalization/experience/adaptive-path-journey-contracts', () => ({
   buildAuthorizedAdaptivePathJourney: mocks.buildJourney,
 }));
 

@@ -44,3 +44,21 @@ export {
   validateLearningGoalPackageCatalog,
 } from './internal/assemble-plan';
 export * from './internal/prerequisite-planner';
+export * from './adaptive-cold-start-detection';
+export * from './adaptive-generation-readiness';
+export * from './adaptive-learning-optimization-experiments';
+export * from './adaptive-path-candidate-batches';
+export * from './adaptive-path-candidate-limitation-copy';
+export * from './adaptive-path-comparison';
+export * from './adaptive-path-correction-decisions';
+export * from './adaptive-path-decision-evidence';
+export * from './adaptive-path-destination-contract';
+export * from './adaptive-path-execution-state';
+export * from './adaptive-path-generation-panel';
+export * from './adaptive-path-goal-options';
+export * from './adaptive-path-node-decisions';
+export * from './adaptive-path-option-display';
+export * from './adaptive-path-round-restore';
+export * from './adaptive-path-unlock-chain';
+export * from './path-constraint-repair';
+export * from './resource-ranker';

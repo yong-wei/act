@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAdaptivePracticeGoalOptions as getClientGoalOptions } from '@/lib/adaptive-path-goal-options-client';
-import { getAdaptivePracticeGoalOptions as getServerGoalOptions } from '@/lib/adaptive-path-goal-options';
+import { getAdaptivePracticeGoalOptions as getClientGoalOptions } from '@/features/personalization/path-planning/adaptive-path-goal-options-client';
+import { getAdaptivePracticeGoalOptions as getServerGoalOptions } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 
 describe('adaptive practice client goal options', () => {
   it('stays aligned with the registered server goal catalogue', () => {

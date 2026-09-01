@@ -5,7 +5,7 @@ import {
   buildAdaptivePathComparisonVersion,
   enumerateAdaptivePathComparisonPairs,
   normalizeAdaptivePathComparisonPair,
-} from '@/lib/adaptive-path-comparison';
+} from '@/features/personalization/path-planning/adaptive-path-comparison';
 
 describe('adaptive path comparison state', () => {
   it('normalizes an unordered pair according to candidate order', () => {

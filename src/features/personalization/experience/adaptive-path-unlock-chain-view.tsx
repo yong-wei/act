@@ -1,6 +1,6 @@
 import { ArrowRight, LockKeyhole } from 'lucide-react';
 
-import type { AdaptivePathUnlockChain } from '@/lib/adaptive-path-unlock-chain';
+import type { AdaptivePathUnlockChain } from '@/features/personalization/path-planning/public-api.client';
 
 export interface AdaptivePathUnlockProjectedAction {
   nodeId: string | null;

@@ -23,7 +23,7 @@ const nextDevEntrypoint = './node_modules/next/dist/bin/next';
 // 需要验证的源码文件（相对 repoRoot）
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/lib/adaptive-cold-start-detection.ts',
+  'src/features/personalization/path-planning/adaptive-cold-start-detection.ts',
   'src/lib/__tests__/adaptive-cold-start-detection.test.ts',
   'scripts/tests/capture-cold-start-evidence.mjs',
 ];

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
-import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/personalization/experience/adaptive-path-journey-control';
 
 const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbItem[]> = {
   '/interactive-learning': [

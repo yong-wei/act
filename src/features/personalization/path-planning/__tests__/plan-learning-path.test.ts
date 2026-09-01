@@ -32,7 +32,7 @@ const PRODUCTION_CALLERS = [
   'src/lib/konling-agent-runtime.ts',
   'src/lib/full-resource-path-readiness-gate.ts',
   'src/lib/canonical-learning-path-transition/replan.ts',
-  'src/lib/adaptive-path-candidate-batches.ts',
+  'src/features/personalization/path-planning/adaptive-path-candidate-batches.ts',
   'src/app/api/learning-paths/plan/route.ts',
   'src/app/api/adaptive/path-advisor-tool/route.ts',
   'src/app/api/learning-paths/candidate-batches/latest/route.ts',

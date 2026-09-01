@@ -10,9 +10,9 @@ import {
   ResourceGraphNodeRefs,
   ResourceNode,
   ResourceNodeRegistry,
-} from '../resource-node-registry';
-import { hasAuthoritativePortraitV2Evidence } from '../data-governance/portrait-v2-consumer';
-import type { PortraitV2ProjectedPayload } from '../data-governance/portrait-v2-model';
+} from '@/lib/resource-node-registry';
+import { hasAuthoritativePortraitV2Evidence } from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2ProjectedPayload } from '@/lib/data-governance/portrait-v2-model';
 
 export type ResourceLearnerMatchingScene = 'path' | 'konling' | 'diagnosis' | 'prep-pack';
 

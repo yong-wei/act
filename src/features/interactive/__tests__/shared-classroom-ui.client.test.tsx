@@ -17,7 +17,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
-vi.mock('@/features/adaptive/adaptive-path-journey-control', () => ({
+vi.mock('@/features/personalization/experience/adaptive-path-journey-control', () => ({
   AdaptivePathJourneyControlFromRoute: () => null,
 }));
 vi.mock('@/components/platform/app-shell', () => ({

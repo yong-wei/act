@@ -2,7 +2,7 @@ import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-p
 import {
   getAdaptivePracticeGoalOption,
   isAdaptivePracticeGoalId,
-} from '@/lib/adaptive-path-goal-options-client';
+} from '@/features/personalization/path-planning/adaptive-path-goal-options-client';
 import { resolveArenaPathTargetIntegrity } from '@/lib/arena-path-target-integrity';
 import {
   remapAdaptivePathPayloadReferences,

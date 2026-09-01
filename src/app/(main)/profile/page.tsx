@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
-import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { buildLearnerDataRouteShell } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import type { ArenaStudentPortfolio } from '@/features/arena/profile';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import type { RecommendationRationale } from '@/features/personalization/recommendations/types';

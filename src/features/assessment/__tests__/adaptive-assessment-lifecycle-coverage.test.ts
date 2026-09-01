@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { buildGeneratedQuestion, PRESET_QUESTIONS } from '@/features/assessment/adaptive-question-bank';
 import { MICRO_TUTORING_PRACTICE_BASELINE_VERSION } from '@/features/assessment/micro-tutoring-coverage-audit';
 import { ADAPTIVE_LEARNING_GOAL_DEFINITIONS } from '@/features/personalization/path-planning/public-api';
-import { resolveItemTypeTerminalValidation } from '@/lib/adaptive-planning/item-type-terminal-validation';
+import { resolveItemTypeTerminalValidation } from '@/features/assessment/item-type-terminal-validation';
 
 import {
   AdaptiveAssessmentCatalogSelectionError,

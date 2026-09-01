@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
-import type { AdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options';
+import type { AdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 
 interface PathAdvisorEntryPointBridgeProps {
   classId: string | null;

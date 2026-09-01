@@ -2,7 +2,7 @@ import type {
   PersonalizedPathDecisionEvidence,
   PersonalizedPathDecisionImpact,
   PersonalizedPathDecisionSnapshot,
-} from '@/lib/adaptive-path-decision-evidence';
+} from '@/features/personalization/path-planning/public-api';
 
 export const PERSONALIZED_PATH_EFFECT_EVALUATION_VERSION = 'personalized-path-effect-evaluation.v1';
 export const PERSONALIZED_PATH_EFFECT_MIN_SAMPLE_SIZE = 5;

@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 
 import {
   buildAuthorizedAdaptivePathJourney,
-} from '@/features/adaptive/adaptive-path-journey-contracts';
-import { buildAdaptivePathCorrectionApplication } from '@/lib/adaptive-path-correction-decisions';
+} from '@/features/personalization/experience/adaptive-path-journey-contracts';
+import { buildAdaptivePathCorrectionApplication } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';

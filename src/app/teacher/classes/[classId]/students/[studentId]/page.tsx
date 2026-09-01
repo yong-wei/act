@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
-import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
+import { DiagnosisSurfacePanel } from '@/features/personalization/experience/diagnosis-surface-panel';
 import { TeacherDiagnosisReportHistory } from '@/features/teacher/teacher-diagnosis-report-history';
 
 type PortraitRefreshState = 'idle' | 'submitted' | 'processing' | 'completed' | 'failed';

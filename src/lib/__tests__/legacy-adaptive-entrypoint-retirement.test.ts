@@ -13,6 +13,11 @@ const DELETED_AUTHORITIES = [
   'src/lib/data-governance/adaptive-learner-state-service.ts',
   'src/lib/data-governance/recommendation-engine.ts',
   'src/features/ai/companion/intervention-engine.ts',
+  'src/features/adaptive/adaptive-learning-center-contracts.ts',
+  'src/lib/adaptive-path-comparison.ts',
+  'src/lib/adaptive-planning/item-type-terminal-validation.ts',
+  'src/lib/adaptive-planning/path-constraint-repair.ts',
+  'src/lib/adaptive-planning/resource-ranker.ts',
 ];
 
 const BANNED_PRODUCTION_NEEDLES = [
@@ -25,6 +30,8 @@ const BANNED_PRODUCTION_NEEDLES = [
   '@/features/ai/companion/intervention-engine',
   'WithPersistenceFallback',
   'isAdaptiveAssessmentPersistenceEnabled',
+  '@/features/adaptive/',
+  '@/lib/adaptive-',
 ];
 
 const PATH_OWNED_ASSESSMENT_ROUTES = [

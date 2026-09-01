@@ -7,7 +7,7 @@ import { InlineMath } from 'react-katex';
 import { Plus, Settings2, X } from 'lucide-react';
 
 import { AppShell } from '@/components/platform/app-shell';
-import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/personalization/experience/adaptive-path-journey-control';
 import {
   arenaMethodLabels,
   arenaWorkspaceLabels,

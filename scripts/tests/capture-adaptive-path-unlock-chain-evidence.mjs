@@ -12,10 +12,10 @@ const baseUrl = process.env.ADAPTIVE_PATH_UNLOCK_CHAIN_BASE_URL ?? 'http://local
 
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/features/adaptive/adaptive-learning-center-contracts.ts',
-  'src/features/adaptive/adaptive-path-unlock-chain-view.tsx',
-  'src/lib/adaptive-path-option-display.ts',
-  'src/lib/adaptive-path-unlock-chain.ts',
+  'src/features/personalization/experience/adaptive-learning-center-contracts.ts',
+  'src/features/personalization/experience/adaptive-path-unlock-chain-view.tsx',
+  'src/features/personalization/path-planning/adaptive-path-option-display.ts',
+  'src/features/personalization/path-planning/adaptive-path-unlock-chain.ts',
   'scripts/tests/capture-adaptive-path-unlock-chain-evidence.mjs',
   'openspec/changes/add-adaptive-path-unlock-chain-explanation/tasks.md',
 ];

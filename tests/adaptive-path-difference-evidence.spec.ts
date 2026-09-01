@@ -13,7 +13,7 @@ const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
   'src/app/assessment/adaptive-practice/layout.tsx',
   'src/app/api/adaptive/path-advisor-tool/route.ts',
-  'src/features/adaptive/path-advisor-entrypoint-bridge.tsx',
+  'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx',
   'src/lib/konling-agent-runtime.ts',
   'tests/adaptive-path-difference-evidence.spec.ts',
 ];

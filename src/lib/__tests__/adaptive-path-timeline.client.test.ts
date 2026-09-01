@@ -7,7 +7,7 @@ import {
   AdaptivePathTimeline,
   getAdaptivePathResourceVisual,
   type AdaptivePathTimelineNode,
-} from '@/features/adaptive/adaptive-path-timeline';
+} from '@/features/personalization/experience/adaptive-path-timeline';
 import { GOVERNED_PATH_NODE_TYPES } from '@/lib/resource-node-registry';
 
 const nodes: AdaptivePathTimelineNode[] = [

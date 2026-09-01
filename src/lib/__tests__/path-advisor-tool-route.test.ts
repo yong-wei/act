@@ -31,21 +31,15 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/features/personalization/path-planning/public-api', () => ({
-  isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
-}));
-
-vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
-  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
-}));
-
-vi.mock('@/lib/adaptive-path-goal-options', () => ({
-  getAdaptivePracticeGoalOption: () => ({ title: '控制校正' }),
-}));
-
-vi.mock('@/lib/adaptive-path-candidate-batches', () => ({
-  readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
-}));
+vi.mock('@/features/personalization/path-planning/public-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/personalization/path-planning/public-api')>();
+  return {
+    ...actual,
+    isRegisteredAdaptiveLearningPathGoal: mocks.isRegisteredAdaptiveLearningPathGoal,
+    readAdaptivePathCandidateBatch: mocks.readAdaptivePathCandidateBatch,
+    getAdaptivePracticeGoalOption: () => ({ title: '控制校正' }),
+  };
+});
 
 vi.mock('@/lib/konling-teaching-assistant-server-context', () => ({
   resolveKonlingTeachingAssistantServerModeContext: mocks.resolveKonlingTeachingAssistantServerModeContext,
