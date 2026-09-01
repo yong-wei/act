@@ -1,29 +1,29 @@
 {
   "schemaVersion": 1,
   "issue": 1758,
-  "capturedAt": "2026-09-01T07:59:43.037Z",
-  "commitSha": "181b71c9dd9a759f226fe74e5ae56072e49ed0b3",
+  "capturedAt": "2026-09-01T08:25:38.606Z",
+  "commitSha": "1f4410c6ed75e59375315248e1f93c102d1ab128",
   "generator": "tests/standalone-copilot-conversation-1758.spec.ts",
-  "generatorSha256": "c6dfbc325659cd0b6bd3f64745f8d1f68124ea5c28a5468e3943d8e95e1f3a7f",
+  "generatorSha256": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
   "representativeRoute": "/ai/copilot",
   "sourceSha256": {
-    "tests/standalone-copilot-conversation-1758.spec.ts": "c6dfbc325659cd0b6bd3f64745f8d1f68124ea5c28a5468e3943d8e95e1f3a7f",
+    "tests/standalone-copilot-conversation-1758.spec.ts": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
     "src/app/ai/copilot/page.tsx": "b59e85e8a5dc19812d63302900dd9575adb35fd069fa4aa2c154c686c9d4802d",
-    "src/hooks/useKonlingConversationLibrary.ts": "e7739be2faa238cf608b4754bfaf8a3dc90058ddc83a3df07181dbdac519fcd1",
+    "src/hooks/useKonlingConversationLibrary.ts": "1ed8f20d2824cdba08669ce3630c1068579f14908c0b193fb9141d9b0c395e73",
     "src/app/api/ai/chat/route.ts": "b9631d21116e8de0ad1269ecf67f208727a408bb9c7377fc31bbebedf3ed3ff8",
     "src/app/api/ai/sessions/route.ts": "a317d1a0c5451541b3d204dc6927307ad2a5c1b8d875127bd261e98f9d97abd2"
   },
   "sourceGitBlobIds": {
-    "tests/standalone-copilot-conversation-1758.spec.ts": "93a20c7a1dfdc2d42776da5afd5167362338c4d1",
+    "tests/standalone-copilot-conversation-1758.spec.ts": "5e0dd03df87b3b3dda0a7d196e14c4f30999821d",
     "src/app/ai/copilot/page.tsx": "05c69966cd5ad5b9d4251b584303655e27dae8ab",
-    "src/hooks/useKonlingConversationLibrary.ts": "de9d058f797c6b627ba465d28a5c5648a0ba40f9",
+    "src/hooks/useKonlingConversationLibrary.ts": "383474f7fe7e12a56484181b678b71dca241cab6",
     "src/app/api/ai/chat/route.ts": "c9cfa661e4469b06da1c1ecda212064acfd697da",
     "src/app/api/ai/sessions/route.ts": "29a034611c2ea095d7981bed356afaa4894b5805"
   },
   "screenshots": [
     {
       "file": "artifacts/commercial-ui/issue-1758-standalone-copilot-conversation/restore-desktop-1440.png",
-      "sha256": "2f5500bb420416abbaa5671e3d559358a76ccf661c6d10db759a85dfb59b4f62",
+      "sha256": "a54b4f4907905d6c7c3941f747112918511ccae81f5094939b1df9af38f859f4",
       "scenario": "restore-desktop-1440",
       "route": "/ai/copilot",
       "width": 1440,
