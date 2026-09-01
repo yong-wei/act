@@ -77,8 +77,12 @@ describe('Learning Record write-boundary denominator', () => {
       'redis.core-shouldMaterialize',
     ]);
     expect(WRITE_BOUNDARY_DELETION_LEDGER.find((item) => item.id === 'redis.core-shouldMaterialize')?.replacement).toContain('ingestLearningFact');
-    expect(getWriteBoundaryRow('producer.arena.official').disposition).toBe('exception-c6-c7');
+    expect(getWriteBoundaryRow('producer.arena.official').disposition).toBe('canonical');
     expect(getWriteBoundaryRow('producer.assessment.adaptive').disposition).toBe('canonical');
+    expect(getWriteBoundaryRow('producer.teacher.document-rubric')).toMatchObject({
+      entry: 'src/features/teacher/document-rubric-grading-workbench.ts',
+      disposition: 'canonical',
+    });
     expect(getWriteBoundaryRow('producer.control-correction.path')).toMatchObject({
       entry: 'src/features/personalization/path-planning/control-correction-path-rounds.ts',
       disposition: 'canonical',

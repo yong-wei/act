@@ -24,11 +24,11 @@ import {
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import type { KonlingRuntimeContext, KonlingRuntimeScope } from '@/lib/konling-agent-runtime';
-import { sha256, stableStringify } from '../math-document-grading-contracts';
-import { assertPipelineReviewActor, buildPipelineReviewFacts, validatePipelineReviewContract } from '../math-document-grading-review';
-import { calculateCompetencyVector } from '../competency-engine';
-import { mapLearningFactsToPortraitEvidence } from '../portrait-v2-incremental-update';
-import { isTrustedLearningFact } from '../trusted-learning-fact-filter';
+import { sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
+import { assertPipelineReviewActor, buildPipelineReviewFacts, validatePipelineReviewContract } from '@/lib/data-governance/math-document-grading-review';
+import { calculateCompetencyVector } from '@/lib/data-governance/competency-engine';
+import { mapLearningFactsToPortraitEvidence } from '@/lib/data-governance/portrait-v2-incremental-update';
+import { isTrustedLearningFact } from '@/lib/data-governance/trusted-learning-fact-filter';
 import { getLocalTestSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const mocks = vi.hoisted(() => ({

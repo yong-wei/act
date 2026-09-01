@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 import { vi } from 'vitest';
-import { sha256, stableStringify } from '../math-document-grading-contracts';
+import { sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
 
 import {
   approveGradingRun,
@@ -24,9 +24,9 @@ import {
   writeApprovedGradingEvidence,
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
-import { listEvidenceTimeline } from '../evidence-timeline';
-import { buildFeedbackTaskContext } from '../../student-feedback-task-contract';
-import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineReviewEdits, validatePipelineRuntimeSource } from '../math-document-grading-review';
+import { listEvidenceTimeline } from '@/lib/data-governance/evidence-timeline';
+import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
+import { buildPipelineGradingWorkbenchView, buildPipelineReviewListItem, validatePipelineReviewContract, validatePipelineReviewEdits, validatePipelineRuntimeSource } from '@/lib/data-governance/math-document-grading-review';
 import { MemorySubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 
 const now = new Date('2026-06-04T08:00:00.000Z');

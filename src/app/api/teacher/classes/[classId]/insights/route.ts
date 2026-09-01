@@ -21,8 +21,8 @@ import {
 import {
   CUMULATIVE_ATTAINMENT_LABEL,
   getUnsupportedTeacherAttainmentScopeError,
-} from '@/lib/data-governance/teacher-attainment-scope';
-import { buildTeacherScopedLearningFactScopeFilters } from '@/lib/data-governance/teacher-evidence-governance';
+} from '@/features/teacher/teacher-attainment-scope';
+import { buildTeacherScopedLearningFactScopeFilters } from '@/features/teacher/teacher-evidence-governance';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {

@@ -14,7 +14,7 @@ import {
 import {
   CUMULATIVE_ATTAINMENT_LABEL,
   getUnsupportedTeacherAttainmentScopeError,
-} from '@/lib/data-governance/teacher-attainment-scope';
+} from '@/features/teacher/teacher-attainment-scope';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {

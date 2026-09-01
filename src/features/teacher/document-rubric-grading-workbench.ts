@@ -11,18 +11,18 @@ import {
   type LearningFactWriteRow,
 } from '@/lib/canonical-learning-fact-identity';
 import {
-  COMPETENCY_DIMENSIONS,
+  COMPETENCY_DIMENSIONS, // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER
   type CompetencyDimension,
-} from './competency-model';
+} from '@/lib/data-governance/competency-model';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import { buildFeedbackTaskHref, type StudentFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
-import type { LearningEvidenceCitationChipPayload } from './learning-evidence-rag-corpus';
+import type { LearningEvidenceCitationChipPayload } from '@/lib/data-governance/learning-evidence-rag-corpus';
 import {
   hasAtMostOneDecimal,
   roundUpToOneDecimal,
   teacherScoreIsValid,
 } from '@/lib/assignments/assignment-rubric-contract';
-import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 
 const execFileAsync = promisify(execFile);
 

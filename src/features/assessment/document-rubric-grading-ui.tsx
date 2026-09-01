@@ -1,7 +1,7 @@
 import type {
   StudentGradingFeedbackView,
   TeacherGradingWorkbenchView,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 import type { AuditedActionState } from '@/lib/action-status-contract';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';

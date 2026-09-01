@@ -15,7 +15,7 @@ const productionSourceFiles = [
   'src/features/personalization/experience/adaptive-path-journey-contracts.ts',
   'src/features/personalization/experience/adaptive-path-journey-control.tsx',
   'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
-  'src/lib/data-governance/control-correction-teacher-report.ts',
+  'src/features/teacher/control-correction-teacher-report.ts',
 ];
 const viewports = [
   { name: 'desktop-1440', width: 1440, height: 1100 },
