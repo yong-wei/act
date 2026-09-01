@@ -9,15 +9,18 @@
 
 ## 2. Apply code simplification
 
-- [ ] 2.1 Simplify load/retry/conflict and local-draft preservation transitions
+- [ ] 2.1 Invoke the `code-simplification` skill with the frozen behavior,
+  trust boundaries, target workspace, characterization tests, permitted
+  deletion set, and explicit prohibition on adjacent refactoring.
+- [ ] 2.2 Simplify load/retry/conflict and local-draft preservation transitions
   with named predicates and guard clauses.
-- [ ] 2.2 Deduplicate attachment preflight/sign/finalize/read/remove/reorder
+- [ ] 2.3 Deduplicate attachment preflight/sign/finalize/read/remove/reorder
   handling only where scope and side effects are identical.
-- [ ] 2.3 Simplify question submit/resubmit/history/result branches while
+- [ ] 2.4 Simplify question submit/resubmit/history/result branches while
   retaining distinct server-owned lifecycle states.
-- [ ] 2.4 Preserve frozen student ownership, Assignment API authority,
+- [ ] 2.5 Preserve frozen student ownership, Assignment API authority,
   Assessment attempts, Learning Record boundaries, and result privacy.
-- [ ] 2.5 Reject pure file splitting, speculative abstractions, or cosmetic
+- [ ] 2.6 Reject pure file splitting, speculative abstractions, or cosmetic
   edits as completion evidence.
 
 ## 3. Compare and verify

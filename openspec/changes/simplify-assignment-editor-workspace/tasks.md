@@ -11,15 +11,18 @@
 
 ## 2. Apply code simplification
 
-- [ ] 2.1 Simplify load/save/conflict/error transitions with named predicates and
+- [ ] 2.1 Invoke the `code-simplification` skill with the frozen behavior,
+  trust boundaries, target workspace, characterization tests, permitted
+  deletion set, and explicit prohibition on adjacent refactoring.
+- [ ] 2.2 Simplify load/save/conflict/error transitions with named predicates and
   guard clauses while preserving ordering and recovery.
-- [ ] 2.2 Deduplicate question, rubric, asset, and validation updates only when
+- [ ] 2.3 Deduplicate question, rubric, asset, and validation updates only when
   request scope, side effects, and error behavior are identical.
-- [ ] 2.3 Make publication and AI-draft approval branches explicit; do not
+- [ ] 2.4 Make publication and AI-draft approval branches explicit; do not
   collapse draft, stale, published, or approved states.
-- [ ] 2.4 Preserve Assignment API ownership, immutable snapshots, teacher
+- [ ] 2.5 Preserve Assignment API ownership, immutable snapshots, teacher
   authorization, and server-derived audience scope.
-- [ ] 2.5 Reject pure file splitting, speculative abstractions, or formatter-
+- [ ] 2.6 Reject pure file splitting, speculative abstractions, or formatter-
   only edits as completion evidence.
 
 ## 3. Compare and verify

@@ -10,15 +10,18 @@
 
 ## 2. Apply code simplification
 
-- [ ] 2.1 Replace identified nested conditions with clear guard clauses and
+- [ ] 2.1 Invoke the `code-simplification` skill with the frozen renderer
+  behavior, trust boundaries, target family, characterization tests,
+  permitted deletion set, and prohibition on adjacent plugin redesign.
+- [ ] 2.2 Replace identified nested conditions with clear guard clauses and
   named predicates without changing branch ordering or errors.
-- [ ] 2.2 Consolidate repeated payload/card/field normalization into named pure
+- [ ] 2.3 Consolidate repeated payload/card/field normalization into named pure
   helpers only where the baseline proves duplication.
-- [ ] 2.3 Simplify dispatch and fallback expressions while preserving exact
+- [ ] 2.4 Simplify dispatch and fallback expressions while preserving exact
   plugin identity, unclaimed, missing, and optional behavior.
-- [ ] 2.4 Keep rendering side-effect free and preserve submission/evidence,
+- [ ] 2.5 Keep rendering side-effect free and preserve submission/evidence,
   role-safe answer privacy, and live-state boundaries.
-- [ ] 2.5 Reject any pure file split, speculative abstraction, or line-count
+- [ ] 2.6 Reject any pure file split, speculative abstraction, or line-count
   optimization that does not reduce reasoning complexity.
 
 ## 3. Compare and verify

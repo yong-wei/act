@@ -10,16 +10,19 @@
 
 ## 2. Apply code simplification
 
-- [ ] 2.1 Simplify queue/open/reload and availability branches with named
+- [ ] 2.1 Invoke the `code-simplification` skill with the frozen behavior,
+  trust boundaries, target workspace, characterization tests, permitted
+  deletion set, and explicit prohibition on adjacent refactoring.
+- [ ] 2.2 Simplify queue/open/reload and availability branches with named
   predicates and guard clauses without changing authorization or errors.
-- [ ] 2.2 Deduplicate criterion/annotation/save/conflict action handling only
+- [ ] 2.3 Deduplicate criterion/annotation/save/conflict action handling only
   where scope, CAS, idempotency, and side effects are identical.
-- [ ] 2.3 Simplify approval/return/release and projection branches while keeping
+- [ ] 2.4 Simplify approval/return/release and projection branches while keeping
   teacher score authority, AI advisory state, completeness blockers, and
   partial feedback explicit.
-- [ ] 2.4 Preserve Assignment API ownership, Assessment attempt semantics,
+- [ ] 2.5 Preserve Assignment API ownership, Assessment attempt semantics,
   Learning Record/evidence boundary, outbox, privacy, and recovery states.
-- [ ] 2.5 Reject pure file splitting, speculative abstractions, or cosmetic
+- [ ] 2.6 Reject pure file splitting, speculative abstractions, or cosmetic
   edits as completion evidence.
 
 ## 3. Compare and verify
