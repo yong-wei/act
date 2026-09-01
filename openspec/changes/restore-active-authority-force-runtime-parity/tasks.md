@@ -28,5 +28,5 @@
 
 - [x] 5.1 Run direct coordinate-owner, force-lifecycle, drag/pin, label-placement and camera tests plus the knowledge graph domain suite.
 - [x] 5.2 Run real browser wheel/pinch, pan, drag, pin, unpin, reflow, neighborhood reheat and 2D/3D state-isolation checks with performance traces.
-- [ ] 5.3 Run typecheck, lint, full `npm run test`, build, commercial UI governance and strict OpenSpec validation on the final clean revision.
-- [ ] 5.4 Obtain independent review that rejects static-coordinate rendering, unbounded simulation and regressions to Legacy/session isolation.
+- [x] 5.3 Run typecheck, lint, full `npm run test`, build, commercial UI governance and strict OpenSpec validation on the final clean revision.
+- [x] 5.4 Obtain independent review that rejects static-coordinate rendering, unbounded simulation and regressions to Legacy/session isolation.
