@@ -14,7 +14,7 @@ import {
   type LearningEvidenceCorpusPrivacyClass,
   type LearningEvidenceCorpusSourceType,
   type LearningEvidenceRetrievalRole,
-} from './learning-evidence-rag-corpus';
+} from '@/lib/data-governance/learning-evidence-rag-corpus';
 import {
   CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
   canReadDiagnosisReportSnapshot,

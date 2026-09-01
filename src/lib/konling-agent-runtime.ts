@@ -46,7 +46,7 @@ import {
   persistLearningPathRound,
   recordPathChoiceEvidence,
   recordPathIntervention,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   AdaptivePathCandidateBatchConflictError,
   assertAdaptivePathCandidateBatchMatchesInput,

@@ -5,18 +5,18 @@ import {
   planLearningPath,
   type AdaptiveLearningPathPlan,
 } from '@/features/personalization/path-planning/public-api';
-import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
   PORTRAIT_V2_DIMENSION_IDS,
   createPortraitV2Payload,
   projectPortraitV2ForConsumer,
-} from '../data-governance/portrait-v2-model';
+} from '@/lib/data-governance/portrait-v2-model';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeRegistry,
   type ResourceNodeType,
-} from '../resource-node-registry';
+} from '@/lib/resource-node-registry';
 import {
   persistControlCorrectionPathRound,
   persistLearningPathRound,

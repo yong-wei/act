@@ -6,7 +6,7 @@ import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization
 import {
   readControlCorrectionPathRound,
   toControlCorrectionPathRoundView,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   assertCanReadPath,
   ensureControlCorrectionPathRoutesEnabled,

@@ -7,8 +7,8 @@ import {
   materializeKaqEvidenceWriteback,
   projectKaqEvidenceWritebackForConsumer,
 } from '../kaq-evidence-writeback';
-import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
-import { buildControlCorrectionResourceNodeRegistry } from '../../control-correction-resource-seed';
+import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 
 const versionRefs = buildKaqArtifactVersionRefs({
   citationVersion: 'learning-evidence-citation.v1',

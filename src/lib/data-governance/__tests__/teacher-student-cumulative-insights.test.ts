@@ -35,13 +35,13 @@ vi.mock('@/lib/data-governance/cumulative-portrait-read-model', async (importOri
   };
 });
 
-vi.mock('@/lib/data-governance/control-correction-diagnosis-profile', () => ({
+vi.mock('@/features/personalization/diagnosis/control-correction-diagnosis-profile', () => ({
   createPrismaDiagnosisReportSnapshotStore: vi.fn(),
   hasDiagnosisReportSnapshotPersistenceTable: vi.fn().mockResolvedValue(false),
   readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence: vi.fn(),
 }));
 
-vi.mock('@/lib/data-governance/role-based-learning-diagnosis', () => ({
+vi.mock('@/features/personalization/diagnosis/role-based-learning-diagnosis', () => ({
   materializeRoleBasedLearningDiagnosis: mocks.materializeRoleBasedLearningDiagnosis,
 }));
 

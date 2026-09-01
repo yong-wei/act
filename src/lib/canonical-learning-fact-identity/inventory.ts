@@ -86,7 +86,7 @@ export const LEARNING_FACT_SINK_INVENTORY: readonly LearningFactSinkClassificati
   {
     kind: 'governed-knowledge-scoped',
     id: 'control-correction-path-rounds',
-    path: 'src/lib/control-correction-path-rounds.ts',
+    path: 'src/features/personalization/path-planning/control-correction-path-rounds.ts',
     adapter: 'canonical-selector',
     sourcePrefixes: ['control-correction-path', 'learning-path'],
     notes: 'Path choice evidence; sourceEventId = {dedupePrefix}:choice:…',

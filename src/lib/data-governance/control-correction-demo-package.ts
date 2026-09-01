@@ -5,7 +5,7 @@ import {
 import {
   isControlCorrectionPathRoundPersistenceEnabled,
   validateControlCorrectionPathPlanForPersistence,
-} from '../control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeType,

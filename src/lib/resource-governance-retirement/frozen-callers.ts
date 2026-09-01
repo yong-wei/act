@@ -72,7 +72,7 @@ export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = 
     { path: 'src/lib/__tests__/adaptive-path-journey-control.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/adaptive-path-timeline.client.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/canonical-learning-path-transition.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/__tests__/control-correction-path-rounds.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
+    { path: 'src/features/personalization/path-planning/__tests__/control-correction-path-rounds.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/konling-agent-runtime.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/resource-field-completion-audit.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/__tests__/resource-node-knowledge-workspace-ui.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },

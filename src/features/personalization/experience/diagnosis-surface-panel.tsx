@@ -18,7 +18,7 @@ import type {
   RoleBasedLearningDiagnosisClaim,
   RoleBasedLearningDiagnosisLimitation,
   RoleBasedLearningDiagnosisRootCauseCluster,
-} from '@/lib/data-governance/role-based-learning-diagnosis';
+} from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 
 type DiagnosisSurfaceMode = 'student' | 'teacher-class' | 'teacher-student';
 

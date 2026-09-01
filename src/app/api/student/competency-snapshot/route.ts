@@ -15,7 +15,7 @@ import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer'
 import type {
   RoleBasedLearningDiagnosis,
   RoleBasedLearningDiagnosisClaim,
-} from '@/lib/data-governance/role-based-learning-diagnosis';
+} from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 

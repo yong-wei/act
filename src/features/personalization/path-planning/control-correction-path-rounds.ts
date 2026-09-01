@@ -8,21 +8,21 @@ import {
 import {
   LearningPathMutationBlockedError,
   throwIfLearningPathNotWritable,
-} from './canonical-learning-path-transition/mutation-guard';
+} from '@/lib/canonical-learning-path-transition/mutation-guard';
 import {
   runWithLearningPathWriteFence,
   updateLearningPathIfWritable,
   type LearningPathFenceClient,
-} from './canonical-learning-path-transition/write-fence';
+} from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   selectLearningFactAuthority,
   writeKnowledgeScopedLearningFacts,
   type LearningFactWriteRow,
-} from './canonical-learning-fact-identity';
-import { resolveActiveKnowledgeRevision } from './data-governance/knowledge-truth-revision';
-import { isStudentVisiblePathTarget } from './student-visible-path-target';
+} from '@/lib/canonical-learning-fact-identity';
+import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 
-export { isStudentVisiblePathTarget } from './student-visible-path-target';
+export { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 
 export const CONTROL_CORRECTION_PATH_ROUND_GOAL_ID = 'control-correction';
 export const CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION = 'stage-1-rules-graph';

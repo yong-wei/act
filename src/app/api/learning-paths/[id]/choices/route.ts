@@ -14,7 +14,7 @@ import {
 import {
   recordPathChoiceEvidence,
   type PathChoiceEvidenceAction,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
   assertPathMutableForWrite,

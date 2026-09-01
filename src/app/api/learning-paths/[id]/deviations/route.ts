@@ -5,7 +5,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { LEGACY_STOPPED_PATH_STATUS } from '@/lib/canonical-learning-path-transition/contracts';
 import { throwIfLearningPathNotWritable } from '@/lib/canonical-learning-path-transition/mutation-guard';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
-import { recordPathDeviation } from '@/lib/control-correction-path-rounds';
+import { recordPathDeviation } from '@/features/personalization/path-planning/control-correction-path-rounds';
 import {
   assertCanWriteStudentPath,
   assertPathMutableForWrite,

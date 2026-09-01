@@ -45,7 +45,7 @@ import {
   recordPathIntervention,
   recordPathNodeExecution,
   updateControlCorrectionPathRoundAfterExecution,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import type { CumulativePortraitReadModel } from '@/lib/data-governance/cumulative-portrait-read-model';
 import {
   createPortraitV2Payload,
