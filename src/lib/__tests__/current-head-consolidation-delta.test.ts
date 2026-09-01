@@ -132,6 +132,37 @@ describe('current-head consolidation delta', () => {
     expect(Number(hotspot?.attributes.byteLength ?? 0)).toBeGreaterThan(0);
   });
 
+  it('does not invent reverse-edge consumers and classifies export * as re-export', () => {
+    const snapshot = fixture([
+      file('src/features/personalization/path-planning/internal/prerequisite-planner/index.ts', 'export const planner = 1;\n'),
+      file('src/features/personalization/path-planning/public-api.ts', 'export * from "./internal/prerequisite-planner/index";\n'),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    const personalization = pack.records.find((row) => row.category === 'owner-conflict' && row.identity.includes('personalization'));
+    const publicApi = pack.records.find((row) => row.identity.endsWith('path-planning/public-api.ts'));
+    expect(personalization?.consumers.some((item) => item.path.endsWith('path-planning/public-api.ts') && item.relationship === 're-export')).toBe(true);
+    expect(personalization?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
+    expect(publicApi?.consumers.some((item) => item.path.endsWith('prerequisite-planner/index.ts'))).toBe(false);
+  });
+
+  it('records owner overlap when two active changes share an owner but not the same src path', () => {
+    const snapshot = fixture([
+      file('src/features/personalization/path-planning/internal/assemble-plan.ts', 'export const assemble = 1;\n'),
+      file('src/features/personalization/learner-state/internal.ts', 'export const state = 1;\n'),
+      file('openspec/changes/simplify-personalization-path-assembly/proposal.md', 'Personalization path assembly\n'),
+      file('openspec/changes/simplify-personalization-learner-state/proposal.md', 'Personalization learner state\n'),
+    ]);
+    const { pack, failures } = generateCurrentHeadDelta(snapshot);
+    qualifyCurrentHeadDelta(pack, failures);
+    const overlap = pack.openspecConflicts.find((item) => (
+      item.changeIds.includes('simplify-personalization-path-assembly')
+      && item.changeIds.includes('simplify-personalization-learner-state')
+    ));
+    expect(overlap?.overlapKind).toBe('owner');
+    expect(overlap?.paths).toContain('personalization');
+  });
+
   it('does not treat an oversized in-scope test as a hotspot record', () => {
     const snapshot = fixture([
       file('src/features/personalization/path-planning/__tests__/assemble-plan.test.ts', `${'export const test = 1;\n'.repeat(400)}`),

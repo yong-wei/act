@@ -1,8 +1,9 @@
 import { matchingOwners } from '@/lib/architecture-charter/assign';
-import { REQUIRED_BASELINE, type OwnerId } from '@/lib/architecture-charter/types';
+import { OWNER_CATALOG, REQUIRED_BASELINE, type OwnerId } from '@/lib/architecture-charter/types';
 
 import { isTestPath } from './classify';
 import { generateCensusCore } from './generate';
+import { resolveImport } from './imports';
 import { privacyViolation } from './privacy';
 import { serializeDeterministic, sha256Text, stableId } from './serialize';
 import type {
@@ -87,7 +88,7 @@ export interface CurrentHeadRecord {
 
 export interface CurrentHeadOpenSpecConflict {
   readonly changeIds: readonly string[];
-  readonly overlapKind: 'path' | 'owner' | 'deletion-set' | 'predecessor-delta';
+  readonly overlapKind: 'path' | 'owner' | 'deletion-set' | 'contract' | 'predecessor-delta';
   readonly paths: readonly string[];
   readonly orderImplication: string;
   readonly resolutionCondition: string;
@@ -171,27 +172,42 @@ function ownersFor(identity: string, extra: readonly string[] = []): string[] {
   return uniqueSorted(matchingOwners([identity, ...extra].join(' ')));
 }
 
-function censusConsumers(core: CensusCore, identities: readonly string[]): CurrentHeadConsumer[] {
-  const targets = new Set(identities);
+function hitsTarget(to: string, identities: readonly string[]): boolean {
+  return identities.some((identity) => to === identity || to.startsWith(`${identity}/`) || identity === to);
+}
+
+function relationshipFor(
+  from: string,
+  to: string,
+  snapshot: CensusSourceSnapshot,
+): CurrentHeadConsumer['relationship'] {
+  if (isTestPath(from)) return 'test';
+  if (from.startsWith('src/app/') && /\/route\.ts$/u.test(from)) return 'route';
+  if (from.startsWith('scripts/')) return 'script';
+  const content = snapshot.files.find((file) => file.path === from)?.content ?? '';
+  const names = new Set(snapshot.files.map((file) => file.path));
+  for (const match of content.matchAll(/export\s+\*\s+from\s+['"]([^'"]+)['"]/gu)) {
+    if (resolveImport(from, match[1]!, names).to === to) return 're-export';
+  }
+  for (const match of content.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/gu)) {
+    if (resolveImport(from, match[1]!, names).to === to) return 'dynamic-load';
+  }
+  return 'import';
+}
+
+function censusConsumers(
+  core: CensusCore,
+  identities: readonly string[],
+  snapshot: CensusSourceSnapshot,
+): CurrentHeadConsumer[] {
   const found = new Map<string, CurrentHeadConsumer>();
   for (const row of core.observations) {
-    if (row.kind !== 'dependency-edge' && row.kind !== 'deep-import' && row.kind !== 'reverse-edge') continue;
+    if (row.kind !== 'dependency-edge' && row.kind !== 'deep-import') continue;
     const from = String(row.attributes.from ?? '');
     const to = String(row.attributes.to ?? '');
-    const hitsTarget = targets.has(to) || [...targets].some((identity) => to.startsWith(`${identity}/`) || identity.startsWith(`${to}`));
-    if (!hitsTarget || !from || from === to) continue;
+    if (!hitsTarget(to, identities) || !from || from === to) continue;
     const kind = consumerKind(from);
-    const relationship = isTestPath(from)
-      ? 'test'
-      : from.startsWith('src/app/') && /\/route\.ts$/u.test(from)
-        ? 'route'
-        : from.startsWith('src/app/') && /worker/iu.test(from)
-          ? 'worker'
-          : from.startsWith('scripts/')
-            ? 'script'
-            : /export \* from /u.test(from)
-              ? 're-export'
-              : 'import';
+    const relationship = relationshipFor(from, to, snapshot);
     const key = `${from}:${kind}:${relationship}`;
     if (!found.has(key)) {
       found.set(key, { path: from, kind, relationship });
@@ -278,31 +294,74 @@ function mentionedPaths(content: string): string[] {
   return uniqueSorted([...(content.match(/src\/[A-Za-z0-9._\/-]+/gu) ?? [])].filter(inScopePath));
 }
 
+function mentionedOwners(content: string): string[] {
+  return uniqueSorted(OWNER_CATALOG
+    .filter((owner) => content.includes(owner.label) || content.includes(owner.id) || content.includes(owner.id.replace('-', ' ')))
+    .map((owner) => owner.id));
+}
+
+function deletionSets(paths: readonly string[]): string[] {
+  const prefixes = SCOPE_PREFIXES.filter((prefix) => paths.some((path) => path.startsWith(prefix)));
+  const lib = paths.some((path) => /^src\/lib\/adaptive-[^/]+/u.test(path) || path.startsWith('src/lib/adaptive-planning/'));
+  return uniqueSorted(lib ? [...prefixes, 'src/lib/adaptive-*'] : [...prefixes]);
+}
+
+function mentionedContracts(content: string): string[] {
+  return uniqueSorted(mentionedPaths(content).filter((path) => /(?:public-api|ports|contract)/u.test(path)));
+}
+
+function changeText(snapshot: CensusSourceSnapshot, changeId: string): string {
+  return snapshot.files
+    .filter((file) => file.path.startsWith(`openspec/changes/${changeId}/`))
+    .map((file) => file.content)
+    .join('\n');
+}
+
 function buildOpenSpecConflicts(snapshot: CensusSourceSnapshot): CurrentHeadOpenSpecConflict[] {
   const changes = activeChangeIds(snapshot);
-  const byChange = new Map<string, string[]>();
-  for (const changeId of changes) {
-    const texts = snapshot.files
-      .filter((file) => file.path.startsWith(`openspec/changes/${changeId}/`))
-      .map((file) => file.content)
-      .join('\n');
-    byChange.set(changeId, mentionedPaths(texts));
-  }
+  const texts = new Map(changes.map((changeId) => [changeId, changeText(snapshot, changeId)]));
   const conflicts: CurrentHeadOpenSpecConflict[] = [];
   for (let i = 0; i < changes.length; i += 1) {
     for (let j = i + 1; j < changes.length; j += 1) {
       const left = changes[i]!;
       const right = changes[j]!;
-      const overlap = uniqueSorted((byChange.get(left) ?? []).filter((path) => (byChange.get(right) ?? []).includes(path)));
-      if (overlap.length === 0) continue;
+      const leftText = texts.get(left) ?? '';
+      const rightText = texts.get(right) ?? '';
+      const leftPaths = mentionedPaths(leftText);
+      const rightPaths = mentionedPaths(rightText);
+      const pathOverlap = uniqueSorted(leftPaths.filter((path) => rightPaths.includes(path)));
+      const contractOverlap = uniqueSorted(mentionedContracts(leftText).filter((path) => mentionedContracts(rightText).includes(path)));
+      const deletionOverlap = uniqueSorted(deletionSets(leftPaths).filter((prefix) => deletionSets(rightPaths).includes(prefix)));
+      const ownerOverlap = uniqueSorted(mentionedOwners(leftText).filter((owner) => mentionedOwners(rightText).includes(owner)));
       const predecessor = left === 'capture-current-head-consolidation-delta' || right === 'capture-current-head-consolidation-delta';
+      let overlapKind: CurrentHeadOpenSpecConflict['overlapKind'] | null = null;
+      let paths: string[] = [];
+      if (predecessor && (pathOverlap.length > 0 || contractOverlap.length > 0 || deletionOverlap.length > 0 || ownerOverlap.length > 0)) {
+        overlapKind = 'predecessor-delta';
+        paths = uniqueSorted([...pathOverlap, ...contractOverlap, ...deletionOverlap]);
+      } else if (pathOverlap.length > 0) {
+        overlapKind = 'path';
+        paths = pathOverlap;
+      } else if (contractOverlap.length > 0) {
+        overlapKind = 'contract';
+        paths = contractOverlap;
+      } else if (deletionOverlap.length > 0) {
+        overlapKind = 'deletion-set';
+        paths = deletionOverlap;
+      } else if (ownerOverlap.length > 0) {
+        overlapKind = 'owner';
+        paths = ownerOverlap;
+      }
+      if (!overlapKind) continue;
       conflicts.push({
         changeIds: [left, right],
-        overlapKind: predecessor ? 'predecessor-delta' : 'path',
-        paths: overlap,
+        overlapKind,
+        paths,
         orderImplication: predecessor
           ? 'later-owner-migration-must-consume-qualified-current-head-delta'
-          : 'overlapping-active-changes-must-not-claim-the-same-deletion-set',
+          : overlapKind === 'owner'
+            ? 'shared-owner-changes-must-be-sequenced-before-simplification'
+            : 'overlapping-active-changes-must-not-claim-the-same-deletion-set',
         resolutionCondition: predecessor
           ? 'c1-and-later-read-this-delta-before-migrating'
           : 'keep-both-changes-unclaimed-until-shared-paths-are-sequenced',
@@ -346,7 +405,7 @@ function ownerConflictRecords(snapshot: CensusSourceSnapshot, core: CensusCore):
   return groups
     .filter((group) => group.files.length > 0)
     .map((group) => {
-      const consumers = mergeConsumers(censusConsumers(core, group.files), mentionConsumers(snapshot.files, group.files));
+      const consumers = mergeConsumers(censusConsumers(core, group.files, snapshot), mentionConsumers(snapshot.files, group.files));
       const candidates = uniqueSorted([...group.candidates, ...group.files.flatMap((path) => ownersFor(path))]);
       return record({
         category: 'owner-conflict',
@@ -377,7 +436,7 @@ function retirementRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Cu
   const identities = uniqueSorted([...compat.map((row) => row.identity), ...libAdaptive]);
   return identities.map((identity) => {
     const observation: CensusObservation | undefined = compat.find((row) => row.identity === identity);
-    const consumers = mergeConsumers(censusConsumers(core, [identity]), mentionConsumers(snapshot.files, [identity]));
+    const consumers = mergeConsumers(censusConsumers(core, [identity], snapshot), mentionConsumers(snapshot.files, [identity]));
     const classified = consumerClassOf(consumers);
     return record({
       category: 'retirement',
@@ -448,7 +507,7 @@ function hotspotRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Curre
         sourceTree,
         currentOwnerEvidence: uniqueSorted(surface.files.flatMap((path) => core.observations.find((row) => row.identity === path)?.ownership.currentOwnerEvidence ?? [])),
         candidateTargetOwners: uniqueSorted(surface.files.flatMap((path) => ownersFor(path))),
-        consumers: mergeConsumers(censusConsumers(core, surface.files)),
+        consumers: mergeConsumers(censusConsumers(core, surface.files, snapshot)),
         deletionCondition: DELETION_UNRESOLVED,
         rollbackReference: ROLLBACK,
         evidence: surface.files,
@@ -470,7 +529,7 @@ function hotspotRecords(snapshot: CensusSourceSnapshot, core: CensusCore): Curre
       sourceTree,
       currentOwnerEvidence: center.ownership.currentOwnerEvidence,
       candidateTargetOwners: ownersFor(center.identity),
-      consumers: censusConsumers(core, [center.identity]),
+      consumers: censusConsumers(core, [center.identity], snapshot),
       deletionCondition: DELETION_UNRESOLVED,
       rollbackReference: ROLLBACK,
       evidence: [center.identity],
