@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { WriteBoundaryError } from '@/features/learning-record/write-boundary/public-api';
 import {
   applyHistoricalEvidenceMaterializationPlan,
   buildHistoricalEvidenceMaterializationPlan,
 } from '../historical-evidence-materialization';
+
+const APPLY_AUTH = {
+  operationId: 'historical-test',
+  authorizedBy: 'operator-test',
+  frozenCutoff: '2026-05-19T00:00:00.000Z',
+} as const;
 
 describe('historical evidence materialization', () => {
   it('emits traceable candidates for real high-value historical evidence', () => {
@@ -455,6 +462,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
+      APPLY_AUTH,
     );
 
     expect(result).toMatchObject({
@@ -503,6 +511,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
+      APPLY_AUTH,
     );
 
     expect(plan.candidates[0]).toMatchObject({
@@ -547,7 +556,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
-      { batchSize: 1 },
+      { ...APPLY_AUTH, batchSize: 1 },
     );
 
     expect(result).toMatchObject({
@@ -571,5 +580,18 @@ describe('historical evidence materialization', () => {
       ],
       skipDuplicates: true,
     });
+  });
+
+  it('refuses apply without an explicit authorized operation', async () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: { SimulationLog: [] },
+    });
+    await expect(applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany: vi.fn() } },
+      plan,
+      { operationId: '', authorizedBy: '', frozenCutoff: '' },
+    )).rejects.toBeInstanceOf(WriteBoundaryError);
   });
 });

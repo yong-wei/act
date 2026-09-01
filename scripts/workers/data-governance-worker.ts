@@ -26,6 +26,7 @@ import {
   ingestLearningFact,
 } from '@/features/learning-record/ingestion/public-api';
 import { selectAckClaims } from '@/features/learning-record/retirement/public-api';
+import { classifySecondaryWorkerClaim } from '@/features/learning-record/write-boundary/public-api';
 import { generateSessionSummaryReports } from '@/lib/data-governance/session-reports';
 import {
   failSessionClosureOutbox,
@@ -623,11 +624,15 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
   const triggeredUsers = new Set<string>();
 
   for (const claim of claims) {
-    if (!claim.event) {
+    const event = claim.event;
+    const claimClass = classifySecondaryWorkerClaim(event);
+    if (claimClass !== 'ingest' || !event) {
       outcomes.push({
-        status: 'terminal_failed',
+        status: claimClass === 'invalid' || !event ? 'terminal_failed' : 'deduplicated',
         factsCreated: 0,
-        failure: { code: 'invalid-json', fingerprint: 'invalid-json' },
+        failure: claimClass === 'invalid' || !event
+          ? { code: 'invalid-json', fingerprint: 'invalid-json' }
+          : undefined,
       });
       continue;
     }
@@ -635,10 +640,10 @@ export async function processEventIngestionJob(job: Job<EventIngestionJob>) {
       const result = await ingestLearningFact({
         db: db as never,
         transport: 'outbox-apply',
-        event: claim.event,
-        actorUserId: claim.event.userId,
+        event,
+        actorUserId: event.userId,
         captureRevision,
-        classId: claim.event.classId,
+        classId: event.classId,
       });
       outcomes.push({
         status: result.status,

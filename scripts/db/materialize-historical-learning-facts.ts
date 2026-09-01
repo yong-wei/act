@@ -33,6 +33,14 @@ function hasFlag(name: string) {
   return process.argv.includes(name);
 }
 
+function readArg(name: string) {
+  const inline = process.argv.find((argument) => argument.startsWith(`${name}=`));
+  if (inline) return inline.slice(`${name}=`.length).trim();
+  const index = process.argv.indexOf(name);
+  if (index >= 0) return (process.argv[index + 1] ?? '').trim();
+  return '';
+}
+
 function readBatchSize() {
   const value = process.argv.find((argument) => argument.startsWith('--batch-size='));
   if (!value) return DEFAULT_BATCH_SIZE;
@@ -776,7 +784,12 @@ async function main() {
   const batchSize = readBatchSize();
   const plan = await buildPlanFromSourceBatches(batchSize);
   const applyResult = isApply
-    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan, { batchSize })
+    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan, {
+      batchSize,
+      operationId: readArg('--operation-id'),
+      authorizedBy: readArg('--authorize'),
+      frozenCutoff: plan.generatedAt,
+    })
     : null;
 
   if (hasFlag('--json')) {

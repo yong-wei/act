@@ -20,12 +20,7 @@ import {
   shouldMaterializeLearningFact,
 } from './learning-fact-materialization';
 import { resolveActiveKnowledgeRevision } from './knowledge-truth-revision';
-import {
-  buildProjectionTrigger,
-  currentCaptureRevision,
-  recordProjectionTriggerIntent,
-} from '@/features/learning-record/ingestion/public-api';
-import { sha256Canonical } from '@/features/learning-record/event-contract/digest';
+import { assertExplicitHistoricalApply } from '@/features/learning-record/write-boundary/authorization';
 
 type LearningFactCreateManyDelegate = {
   createMany(args: {
@@ -116,6 +111,9 @@ export interface HistoricalEvidenceMaterializationApplyResult {
 
 export interface HistoricalEvidenceMaterializationApplyOptions {
   batchSize?: number;
+  operationId: string;
+  authorizedBy: string;
+  frozenCutoff: string;
 }
 
 const DEFAULT_APPLY_BATCH_SIZE = 1000;
@@ -578,8 +576,9 @@ export function buildHistoricalEvidenceMaterializationPlan(
 export async function applyHistoricalEvidenceMaterializationPlan(
   db: { learningFact: LearningFactCreateManyDelegate },
   plan: HistoricalEvidenceMaterializationPlan,
-  options: HistoricalEvidenceMaterializationApplyOptions = {},
+  options: HistoricalEvidenceMaterializationApplyOptions,
 ): Promise<HistoricalEvidenceMaterializationApplyResult> {
+  assertExplicitHistoricalApply(options);
   const factsToCreate = plan.candidates
     .filter((candidate) => !candidate.alreadyMaterialized)
     .map((candidate) => candidate.fact);
@@ -605,25 +604,6 @@ export async function applyHistoricalEvidenceMaterializationPlan(
       { knowledgeRevisionRef: activeRevision.id },
     );
     createdRows += result.written;
-  }
-
-  if (createdRows > 0) {
-    const users = new Set(
-      plan.candidates
-        .filter((candidate) => !candidate.alreadyMaterialized)
-        .map((candidate) => candidate.userId),
-    );
-    for (const userId of users) {
-      await recordProjectionTriggerIntent(db as never, buildProjectionTrigger({
-        subjectUserId: userId,
-        inputDigest: sha256Canonical({
-          userId,
-          generatedAt: plan.generatedAt,
-          producer: 'historical-evidence-materialization',
-        }),
-        captureRevision: currentCaptureRevision(),
-      }));
-    }
   }
 
   return {
