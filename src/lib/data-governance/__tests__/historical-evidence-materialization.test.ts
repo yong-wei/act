@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { WriteBoundaryError } from '@/features/learning-record/write-boundary/public-api';
 import {
   applyHistoricalEvidenceMaterializationPlan,
   buildHistoricalEvidenceMaterializationPlan,
 } from '../historical-evidence-materialization';
+
+const APPLY_AUTH = {
+  operationId: 'historical-test',
+  authorizedBy: 'operator-test',
+  frozenCutoff: '2026-05-19T00:00:00.000Z',
+} as const;
 
 describe('historical evidence materialization', () => {
   it('emits traceable candidates for real high-value historical evidence', () => {
@@ -455,6 +462,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
+      APPLY_AUTH,
     );
 
     expect(result).toMatchObject({
@@ -503,6 +511,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
+      APPLY_AUTH,
     );
 
     expect(plan.candidates[0]).toMatchObject({
@@ -547,7 +556,7 @@ describe('historical evidence materialization', () => {
     const result = await applyHistoricalEvidenceMaterializationPlan(
       { learningFact: { createMany } },
       plan,
-      { batchSize: 1 },
+      { ...APPLY_AUTH, batchSize: 1 },
     );
 
     expect(result).toMatchObject({
@@ -571,5 +580,76 @@ describe('historical evidence materialization', () => {
       ],
       skipDuplicates: true,
     });
+  });
+
+  it('refuses apply without an explicit authorized operation', async () => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: { SimulationLog: [] },
+    });
+    await expect(applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany: vi.fn() } },
+      plan,
+      { operationId: '', authorizedBy: '', frozenCutoff: '' },
+    )).rejects.toBeInstanceOf(WriteBoundaryError);
+  });
+
+  it.each([
+    {
+      name: 'occurredAt after cutoff',
+      sourceId: 'SimulationLog' as const,
+      keptId: 'historical:SimulationLog:kept:simulation_attempt',
+      droppedId: 'historical:SimulationLog:dropped:simulation_attempt',
+      kept: { id: 'kept', userId: 'student-1', occurredAt: '2026-05-18T10:00:00.000Z', sourceLabel: 'real-student-run' },
+      dropped: { id: 'dropped', userId: 'student-2', occurredAt: '2026-05-19T01:00:00.000Z', sourceLabel: 'real-student-run' },
+    },
+    {
+      name: 'ingestedAt after cutoff with older client time',
+      sourceId: 'InteractionLog' as const,
+      keptId: 'historical:InteractionLog:kept:lesson_submit',
+      droppedId: 'historical:InteractionLog:dropped:lesson_submit',
+      kept: {
+        id: 'kept',
+        userId: 'student-1',
+        occurredAt: '2026-05-18T10:00:00.000Z',
+        ingestedAt: '2026-05-18T10:00:01.000Z',
+        eventType: 'submit',
+        sessionId: 'session-1',
+        lessonKey: 'unit-4-7-v1',
+        stepId: 'step-01',
+        eventData: { eventType: 'lesson_submit', score: 90, source: 'real-classroom' },
+        sourceLabel: 'real-classroom',
+      },
+      dropped: {
+        id: 'dropped',
+        userId: 'student-2',
+        occurredAt: '2026-05-18T09:00:00.000Z',
+        ingestedAt: '2026-05-19T01:00:00.000Z',
+        eventType: 'submit',
+        sessionId: 'session-1',
+        lessonKey: 'unit-4-7-v1',
+        stepId: 'step-02',
+        eventData: { eventType: 'lesson_submit', score: 80, source: 'real-classroom' },
+        sourceLabel: 'real-classroom',
+      },
+    },
+  ])('does not apply candidates $name', async ({ sourceId, kept, dropped, keptId, droppedId }) => {
+    const plan = buildHistoricalEvidenceMaterializationPlan({
+      generatedAt: '2026-05-19T00:00:00.000Z',
+      existingSourceEventIds: new Set(),
+      rowsBySource: { [sourceId]: [kept, dropped] },
+    });
+    const createMany = vi.fn().mockResolvedValue({ count: 1 });
+    const result = await applyHistoricalEvidenceMaterializationPlan(
+      { learningFact: { createMany } },
+      plan,
+      APPLY_AUTH,
+    );
+    const written = JSON.stringify(createMany.mock.calls);
+    expect(result.createdRows).toBe(1);
+    expect(createMany).toHaveBeenCalledTimes(1);
+    expect(written).toContain(keptId);
+    expect(written).not.toContain(droppedId);
   });
 });

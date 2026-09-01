@@ -33,6 +33,14 @@ function hasFlag(name: string) {
   return process.argv.includes(name);
 }
 
+function readArg(name: string) {
+  const inline = process.argv.find((argument) => argument.startsWith(`${name}=`));
+  if (inline) return inline.slice(`${name}=`.length).trim();
+  const index = process.argv.indexOf(name);
+  if (index >= 0) return (process.argv[index + 1] ?? '').trim();
+  return '';
+}
+
 function readBatchSize() {
   const value = process.argv.find((argument) => argument.startsWith('--batch-size='));
   if (!value) return DEFAULT_BATCH_SIZE;
@@ -412,11 +420,13 @@ async function* paginateCoverageRows<T extends { id: string }>(
 async function* readSourceRowBatches(
   sourceId: EvidenceSourceId,
   batchSize: number,
+  frozenCutoff: Date,
 ): AsyncGenerator<EvidenceCoverageRow[]> {
   if (sourceId === 'InteractionLog') {
     yield* paginateCoverageRows(
       (pagination) => prisma.interactionLog.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -439,6 +449,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.clientEventAt ?? row.createdAt,
+        ingestedAt: row.createdAt,
         eventType: row.eventType,
         eventData: row.eventData,
         resourceId: row.resourceId,
@@ -465,6 +476,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.studentStepResponse.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -475,6 +487,7 @@ async function* readSourceRowBatches(
           sourceLogId: true,
           clientEventId: true,
           submittedAt: true,
+          createdAt: true,
           responseData: true,
         },
       }),
@@ -484,6 +497,7 @@ async function* readSourceRowBatches(
           id: row.id,
           userId: row.userId,
           occurredAt: row.submittedAt,
+          ingestedAt: row.createdAt,
           eventData: {
             ...responseData,
             sessionId: row.sessionId,
@@ -504,6 +518,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.simulationLog.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -520,6 +535,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           ...readRecord(row.inputParams),
           ...readRecord(row.metrics),
@@ -542,6 +558,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.userAnswer.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -561,6 +578,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           questionId: row.questionId,
           isCorrect: row.isCorrect,
@@ -579,6 +597,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.abilityAssessment.findMany({
         ...pagination,
+        where: { assessedAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -592,6 +611,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.assessedAt,
+        ingestedAt: row.assessedAt,
         eventData: {
           computationalTheta: row.computationalTheta,
           crossDomainTheta: row.crossDomainTheta,
@@ -607,6 +627,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.promptAssessment.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -620,6 +641,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.createdAt,
+        ingestedAt: row.createdAt,
         eventData: {
           ...readRecord(row.structuredData),
           sessionId: row.sessionId,
@@ -637,6 +659,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.designSession.findMany({
         ...pagination,
+        where: { startedAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -652,6 +675,7 @@ async function* readSourceRowBatches(
         id: row.id,
         userId: row.userId,
         occurredAt: row.completedAt ?? row.startedAt,
+        ingestedAt: row.startedAt,
         eventData: {
           taskType: row.taskType,
           designActions: row.designActions,
@@ -670,6 +694,7 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.arenaSubmission.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           userId: true,
@@ -681,12 +706,14 @@ async function* readSourceRowBatches(
           score: true,
           valid: true,
           submittedAt: true,
+          createdAt: true,
         },
       }),
       (row): EvidenceCoverageRow => ({
         id: row.id,
         userId: row.userId,
         occurredAt: row.submittedAt,
+        ingestedAt: row.createdAt,
         eventData: {
           taskId: row.taskId,
           classId: row.classId,
@@ -707,16 +734,19 @@ async function* readSourceRowBatches(
     yield* paginateCoverageRows(
       (pagination) => prisma.arenaEvaluationRun.findMany({
         ...pagination,
+        where: { createdAt: { lte: frozenCutoff } },
         select: {
           id: true,
           taskId: true,
           metadata: true,
           completedAt: true,
+          createdAt: true,
         },
       }),
       (row): EvidenceCoverageRow => ({
         id: row.id,
         occurredAt: row.completedAt,
+        ingestedAt: row.createdAt,
         eventData: row.metadata,
         sourceLabel: compactSourceLabel(readRecord(row.metadata).source, row.taskId),
       }),
@@ -728,6 +758,7 @@ async function* readSourceRowBatches(
   yield* paginateCoverageRows(
     (pagination) => prisma.learningFact.findMany({
       ...pagination,
+      where: { createdAt: { lte: frozenCutoff } },
       select: {
         id: true,
         userId: true,
@@ -735,12 +766,14 @@ async function* readSourceRowBatches(
         sourceEventId: true,
         contextJson: true,
         startedAt: true,
+        createdAt: true,
       },
     }),
     (row): EvidenceCoverageRow => ({
       id: row.id,
       userId: row.userId,
       occurredAt: row.startedAt,
+      ingestedAt: row.createdAt,
       eventData: row.contextJson,
       sourceLabel: compactSourceLabel(row.factType, row.sourceEventId ?? undefined),
     }),
@@ -752,9 +785,10 @@ async function buildPlanFromSourceBatches(
   batchSize: number,
 ) {
   const state = createAggregatePlanState();
+  const frozenCutoff = new Date(state.generatedAt);
 
   for (const sourceId of SOURCE_PROCESSING_ORDER) {
-    for await (const rows of readSourceRowBatches(sourceId, batchSize)) {
+    for await (const rows of readSourceRowBatches(sourceId, batchSize, frozenCutoff)) {
       const batchPlan = buildHistoricalEvidenceMaterializationPlan({
         generatedAt: state.generatedAt,
         existingSourceEventIds: new Set(),
@@ -776,7 +810,12 @@ async function main() {
   const batchSize = readBatchSize();
   const plan = await buildPlanFromSourceBatches(batchSize);
   const applyResult = isApply
-    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan, { batchSize })
+    ? await applyHistoricalEvidenceMaterializationPlan(prisma, plan, {
+      batchSize,
+      operationId: readArg('--operation-id'),
+      authorizedBy: readArg('--authorize'),
+      frozenCutoff: plan.generatedAt,
+    })
     : null;
 
   if (hasFlag('--json')) {
