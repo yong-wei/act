@@ -988,7 +988,8 @@ describe('adaptive learning center UI contracts', () => {
     const bridgeSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx'), 'utf8');
     const restoreSource = readFileSync(join(repoRoot, 'src/features/personalization/path-planning/adaptive-path-round-restore.ts'), 'utf8');
 
-    expect(pageSource).toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
+    expect(pageSource).toContain("from '@/features/personalization/path-planning/public-api.client'");
+    expect(pageSource).not.toContain("from '@/features/personalization/path-planning/public-api'");
     expect(pageSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");
     expect(restoreSource).toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
     expect(restoreSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");

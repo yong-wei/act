@@ -1,6 +1,6 @@
 # Current-head owner mapping (C2)
 
-Scan revision: `18b85b5c` (client/experience leaf imports; server routes use `path-planning/public-api`). Production sources under `src/app`, `src/features`, `src/lib`, `scripts`. Banned needles `@/features/adaptive/` and `@/lib/adaptive-` have zero production hits. Verification: `rtk npm run typecheck` exit 0; `legacy-adaptive-entrypoint-retirement` and path-advisor tests passing.
+Scan revision: `18b85b5a7919f2944b3a393f4b4ef9064095d654` (client leaf split) plus this follow-up adding `path-planning/public-api.client.ts`. Server routes use `path-planning/public-api`; client/experience use `path-planning/public-api.client`. Production sources under `src/app`, `src/features`, `src/lib`, `scripts`. Banned needles `@/features/adaptive/` and `@/lib/adaptive-` have zero production hits. Verification: `rtk npm run typecheck` exit 0; `legacy-adaptive-entrypoint-retirement` and path-advisor tests passing.
 
 | Old path | Owner | Replacement | Consumers after rewrite | Deletion |
 | --- | --- | --- | --- | --- |

@@ -8,11 +8,11 @@ import type {
   PlatformStatusDomain,
   PlatformStatusPayload,
 } from '@/components/platform/platform-ui-contracts';
-import type {
-  AdaptiveLearningPathDeficit,
-  AdaptiveLearningPathPlan,
-} from '@/features/personalization/path-planning/internal/assemble-plan';
-import { studentVisibleCandidateLimitation } from '@/features/personalization/path-planning/adaptive-path-candidate-limitation-copy';
+import {
+  studentVisibleCandidateLimitation,
+  type AdaptiveLearningPathDeficit,
+  type AdaptiveLearningPathPlan,
+} from '@/features/personalization/path-planning/public-api.client';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 
