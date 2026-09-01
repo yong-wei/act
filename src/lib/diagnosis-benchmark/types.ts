@@ -19,6 +19,8 @@ export interface DiagnosisBenchmarkAllowedConclusionBoundary {
   requireLimitations: boolean;
   /** 报告允许的最高置信档。 */
   maxConfidence: 'high' | 'medium' | 'low' | 'unavailable';
+  /** 稀疏风险标志场景（Issue #1755）：命中数不得被表述为证据覆盖不足。 */
+  forbidRiskCoverageMisread?: boolean;
 }
 
 export interface DiagnosisBenchmarkScenario {

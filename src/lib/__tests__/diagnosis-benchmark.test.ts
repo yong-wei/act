@@ -555,3 +555,28 @@ describe('sparse risk-flags benchmark scenario (Issue #1755)', () => {
     expect(violated.failureReason).toContain('riskCoverage=limitations[0]');
   });
 });
+
+describe('sparse risk-flags conclusion boundary (Issue #1755 review)', () => {
+  it('records the misread prohibition in the scenario boundary and enforces it on coverage claims', async () => {
+    const scenario = scenarioById('sparse-risk-flags-conflict');
+    expect(scenario.allowedConclusionBoundary.forbidRiskCoverageMisread).toBe(true);
+
+    const materialized = materializeScenario(scenario);
+    const generate = createFixtureGenerate();
+    const generated = await generate({
+      scenario,
+      governedInput: materialized.governedInput,
+      groundTruth: materialized.groundTruth,
+      replicate: 1,
+    });
+    const report = (generated as { report: DiagnosisBenchmarkCandidateReport }).report;
+    expect(report.limitations[0]).toContain('冲突');
+    expect(replayBenchmarkGovernance(scenario, materialized.governedInput, report).coverageClaimAccurate).toBe(true);
+
+    const misread: DiagnosisBenchmarkCandidateReport = {
+      ...report,
+      limitations: ['风险标志数据仅覆盖52名学生（占比52%），样本覆盖度有限。'],
+    };
+    expect(replayBenchmarkGovernance(scenario, materialized.governedInput, misread).coverageClaimAccurate).toBe(false);
+  });
+});

@@ -160,7 +160,11 @@ export const DIAGNOSIS_BENCHMARK_SCENARIOS: DiagnosisBenchmarkScenario[] = [
     progressCoverage: 1,
     assignmentAssessmentConflict: true,
     riskFlagHits: 52,
-    ...degradedBoundary(),
+    allowedConclusionBoundary: {
+      requireLimitations: true,
+      maxConfidence: 'medium',
+      forbidRiskCoverageMisread: true,
+    },
   },
 ];
 

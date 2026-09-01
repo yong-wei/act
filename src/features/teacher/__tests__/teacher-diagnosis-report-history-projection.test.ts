@@ -571,3 +571,47 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     ]));
   });
 });
+
+describe('evidence-conflict wording guardrails (Issue #1755 review)', () => {
+  it('does not label non-conflict limitations as evidence conflict', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 1,
+          progressRows: 200,
+          assignment: {
+            availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+          },
+        },
+        confidence: 'medium',
+        limitations: ['部分结论的样本时间窗较短，需要结合后续表现复核。'],
+      },
+    });
+
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: expect.stringContaining('判断边界') }),
+    ]));
+  });
+
+  it('does not treat omitted optional coverage fields as complete coverage', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        sourceCoverage: { progressRows: 200 },
+        confidence: 'medium',
+        limitations: ['作业与测评表现与知识进度存在冲突。'],
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
+  });
+});
