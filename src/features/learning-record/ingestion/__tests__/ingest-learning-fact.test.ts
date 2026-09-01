@@ -313,6 +313,25 @@ describe('canonical LearningFact ingestion', () => {
     expect(applied.results[0]?.status).toBe(INGESTION_STATUS.applied);
   });
 
+  it('keeps staged apply on the original receivedAt and trustedSetDigest', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const db = memoryOutbox();
+    const stagedAt = new Date('2026-08-29T00:00:00.000Z');
+    const staged = await stageLearningFactIngestion({
+      db,
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+      now: stagedAt,
+    });
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const applied = await applyStagedLearningFactIngestions(db, { now: new Date('2026-08-29T01:00:00.000Z') });
+    expect(applied.results[0]?.status).toBe(INGESTION_STATUS.applied);
+    expect(applied.results[0]?.trustedSetDigest).toBe(staged.trustedSetDigest);
+    expect(applied.results[0]?.times?.receivedAt).toBe('2026-08-29T00:00:00.000Z');
+    expect(applied.results[0]?.times?.trustedOccurredAt).toBe('2026-08-29T00:00:00.000Z');
+  });
+
   it('rejects a staged payload that reuses a dedupe identity with a different digest', async () => {
     const db = memoryOutbox();
     await stageLearningFactIngestion({

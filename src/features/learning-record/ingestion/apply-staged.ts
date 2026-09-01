@@ -67,7 +67,9 @@ function eventFromStagedPayload(row: {
     payload: sanitizeStagingPayload(payload),
     source: 'system',
     priority: payload.priority === 'core' ? 'core' : 'secondary',
-    sessionId: typeof payload.sessionRef === 'string' ? payload.sessionRef : undefined,
+    sessionId: typeof payload.sessionRef === 'string' && payload.sessionRef.trim()
+      ? payload.sessionRef
+      : undefined,
   };
 }
 
@@ -88,6 +90,9 @@ export async function applyStagedLearningFactIngestions(
   for (const row of rows) {
     const payload = asRecord(row.payload);
     const captureRevision = typeof payload.captureRevision === 'string' ? payload.captureRevision : 'working-tree';
+    const receivedAt = typeof payload.receivedAt === 'string' && payload.receivedAt
+      ? new Date(payload.receivedAt)
+      : now;
     try {
       const result = await ingestLearningFact({
         db,
@@ -95,7 +100,7 @@ export async function applyStagedLearningFactIngestions(
         event: eventFromStagedPayload(row),
         actorUserId: row.ownerUserId,
         captureRevision,
-        now,
+        now: Number.isNaN(receivedAt.getTime()) ? now : receivedAt,
       });
       results.push(result);
       const nextStatus = result.status === INGESTION_STATUS.deduplicated
