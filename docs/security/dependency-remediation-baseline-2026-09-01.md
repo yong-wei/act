@@ -73,3 +73,21 @@ npm ls --package-lock-only next prisma @prisma/client @prisma/adapter-pg @prisma
 
 Security allowlist entries are empty. The remaining owned residual is the
 jsdom `whatwg-encoding@3.1.1` deprecation (#1033).
+
+## Next 16.3 filesystem tracing
+
+Next `16.3.4` treats dynamic `path.join` / `path.resolve` / `realpath` /
+`readFile` of runtime stores as whole-project NFT tracing. That fails
+`scripts/build-next-with-trace-check.mjs`; 16.2 did not trip this gate.
+
+Those reads are intentional runtime filesystem access. The production image
+already lists the needed trees in `outputFileTracingIncludes` and mounts
+`course-content/runtime`. The compatible fix is the official opt-out
+`/*turbopackIgnore: true*/` on the highlighted call. Do not disable the
+tracing gate, and do not replace it with Prisma 8 / Auth.js v5 / a major
+jsdom move.
+
+Host `node ./scripts/build-next-with-trace-check.mjs` on this revision
+compiled without the whole-project tracing warning, then pruned non-runtime
+trace entries. `npm run test:turbopack-trace-boundary` passed. The Linux
+amd64 image remains the release verification unit.

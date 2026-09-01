@@ -279,7 +279,7 @@ export async function loadAssessmentItemSemanticReviewSource(
   );
   let input: string;
   try {
-    input = await readFile(sourcePath, 'utf8');
+    input = await readFile(/*turbopackIgnore: true*/ sourcePath, 'utf8');
   } catch (error) {
     if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
       throw new AssessmentItemSemanticReviewSourceValidationError([`missing-review-source:${sourcePath}`]);

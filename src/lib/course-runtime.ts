@@ -163,7 +163,7 @@ const LESSON_ID_MAP_PATH = path.join(
   'shared',
   'lesson-id-map.json',
 );
-const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content', 'runtime', 'lessons');
+const RUNTIME_LESSONS_DIR = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime', 'lessons');
 
 let runtimeLessonDirIndexPromise: Promise<Record<string, string>> | null = null;
 

@@ -118,7 +118,7 @@ async function assertActiveReceiptMatchesManifest(receiptPath: string, manifest:
 }
 
 export async function readActiveRuntimeReleaseManifest(
-  runtimeRoot = path.join(process.cwd(), 'course-content', 'runtime'),
+  runtimeRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime'),
   activeReceiptPath = process.env[ACT_RUNTIME_ACTIVE_RECEIPT_PATH_ENV]?.trim() || path.join(runtimeRoot, ACT_RUNTIME_ACTIVE_RECEIPT_FILENAME),
 ): Promise<AnyActRuntimeReleaseManifest | null> {
   let manifest: AnyActRuntimeReleaseManifest | null = null;

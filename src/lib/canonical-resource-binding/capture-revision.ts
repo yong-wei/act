@@ -70,7 +70,7 @@ export async function resolveCanonicalResourceBindingCaptureRevision(options?: {
   cwd?: string;
   env?: Record<string, string | undefined>;
 }): Promise<string> {
-  const cwd = path.resolve(options?.cwd ?? process.cwd());
+  const cwd = path.resolve(/*turbopackIgnore: true*/ options?.cwd ?? process.cwd());
   const env = options?.env ?? process.env;
   const environmentRevision = env.APP_REVISION?.trim() || undefined;
 

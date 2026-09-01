@@ -75,7 +75,7 @@ export function resolveAuthorityDomainShardPaths(
   return {
     runtimeRoot,
     currentPath: join(runtimeRoot, 'current.json'),
-    setsDir: join(runtimeRoot, 'sets'),
+    setsDir: join(/*turbopackIgnore: true*/ runtimeRoot, 'sets'),
   };
 }
 

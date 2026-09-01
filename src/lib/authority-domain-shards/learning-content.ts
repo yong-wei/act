@@ -61,9 +61,9 @@ interface ResolvedLearningContent {
 
 function runtimePaths(repoRoot = process.cwd()): RuntimePaths {
   return {
-    cardRoot: join(repoRoot, CARD_ROOT_RELATIVE),
-    infographRoot: join(repoRoot, INFOGRAPH_ROOT_RELATIVE),
-    manifestPath: join(repoRoot, MANIFEST_RELATIVE),
+    cardRoot: join(/*turbopackIgnore: true*/ repoRoot, CARD_ROOT_RELATIVE),
+    infographRoot: join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_ROOT_RELATIVE),
+    manifestPath: join(/*turbopackIgnore: true*/ repoRoot, MANIFEST_RELATIVE),
   };
 }
 
@@ -91,9 +91,9 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
-  if (!existsSync(paths.manifestPath)) return null;
+  if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(paths.manifestPath, 'utf8')) as Partial<AuthorityLearningContentManifest>;
+    const parsed = JSON.parse(readFileSync(/*turbopackIgnore: true*/ paths.manifestPath, 'utf8')) as Partial<AuthorityLearningContentManifest>;
     if (
       parsed.contract !== LEARNING_CONTENT_MANIFEST_CONTRACT
       || !isNonEmptyString(parsed.authorityReleaseId)
@@ -260,9 +260,9 @@ function resolveNodeLearningContent(
     if (entry.card.state !== 'available' || !entry.card.sha256) {
       return { state: 'missing' as const, message: '当前节点暂无已发布学习卡片。' };
     }
-    const path = join(paths.cardRoot, `${entry.safeId}.md`);
-    if (!existsSync(path)) return { state: 'unavailable' as const, message: '当前学习卡片暂时不可用。' };
-    const raw = readFileSync(path, 'utf8');
+    const path = join(/*turbopackIgnore: true*/ paths.cardRoot, `${entry.safeId}.md`);
+    if (!existsSync(/*turbopackIgnore: true*/ path)) return { state: 'unavailable' as const, message: '当前学习卡片暂时不可用。' };
+    const raw = readFileSync(/*turbopackIgnore: true*/ path, 'utf8');
     if (sha256(raw) !== entry.card.sha256) {
       return { state: 'unavailable' as const, message: '当前学习卡片暂时不可用。' };
     }
@@ -274,8 +274,8 @@ function resolveNodeLearningContent(
     if (entry.infograph.state !== 'available' || !entry.infograph.sha256) {
       return { state: 'missing' as const, message: '当前节点暂无可用信息图。' };
     }
-    const path = join(paths.infographRoot, `${entry.safeId}.png`);
-    if (!existsSync(path)) return { state: 'unavailable' as const, message: '当前信息图暂时不可用。' };
+    const path = join(/*turbopackIgnore: true*/ paths.infographRoot, `${entry.safeId}.png`);
+    if (!existsSync(/*turbopackIgnore: true*/ path)) return { state: 'unavailable' as const, message: '当前信息图暂时不可用。' };
     return {
       state: 'available' as const,
       alternativeText: `${shard.node.label} 信息图`,
@@ -285,7 +285,7 @@ function resolveNodeLearningContent(
   return {
     content: { card, infograph },
     infograph: infograph.state === 'available' && entry.infograph.sha256
-      ? { path: join(paths.infographRoot, `${entry.safeId}.png`), sha256: entry.infograph.sha256 }
+      ? { path: join(/*turbopackIgnore: true*/ paths.infographRoot, `${entry.safeId}.png`), sha256: entry.infograph.sha256 }
       : null,
   };
 }
@@ -306,7 +306,7 @@ export function readActiveAuthorityInfograph(
   const resolved = resolveNodeLearningContent(shard);
   if (!resolved.infograph) return null;
   try {
-    const content = readFileSync(resolved.infograph.path);
+    const content = readFileSync(/*turbopackIgnore: true*/ resolved.infograph.path);
     return sha256(content) === resolved.infograph.sha256 ? content : null;
   } catch {
     return null;

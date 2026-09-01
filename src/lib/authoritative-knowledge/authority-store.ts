@@ -455,16 +455,16 @@ export function resolveActiveAuthoritySnapshot(
         detail: 'current pointer missing activationReceiptId',
       };
     }
-    const activationPath = join(
+    const activationPath = join(/*turbopackIgnore: true*/ 
       paths.activationsDir,
       `${pointer.activationReceiptId}.json`,
     );
-    const rollbackPath = join(
+    const rollbackPath = join(/*turbopackIgnore: true*/ 
       paths.rollbacksDir,
       `${pointer.activationReceiptId}.json`,
     );
     let receiptOk = false;
-    if (existsSync(activationPath)) {
+    if (existsSync(/*turbopackIgnore: true*/ activationPath)) {
       try {
         const activation = readJsonFile<AuthorityActivationReceipt>(activationPath);
         receiptOk = (
@@ -476,7 +476,7 @@ export function resolveActiveAuthoritySnapshot(
       } catch {
         receiptOk = false;
       }
-    } else if (existsSync(rollbackPath)) {
+    } else if (existsSync(/*turbopackIgnore: true*/ rollbackPath)) {
       try {
         const rollback = readJsonFile<AuthorityRollbackReceipt>(rollbackPath);
         receiptOk = (
@@ -659,7 +659,7 @@ export function activateAuthoritySnapshot(
   // current pointer. If receipt write fails, the prior pointer remains
   // untouched. resolveActiveAuthoritySnapshot requires a matching receipt.
   try {
-    writeJsonAtomic(join(paths.activationsDir, `${activationReceiptId}.json`), receipt);
+    writeJsonAtomic(join(/*turbopackIgnore: true*/ paths.activationsDir, `${activationReceiptId}.json`), receipt);
   } catch (error) {
     return failActivation({
       paths,
@@ -771,7 +771,7 @@ function failActivation(input: {
   };
   try {
     writeJsonAtomic(
-      join(input.paths.activationsDir, `${input.activationReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ input.paths.activationsDir, `${input.activationReceiptId}.json`),
       receipt,
     );
   } catch {
@@ -905,7 +905,7 @@ export function rollbackAuthorityPointer(
   // Transaction protocol: write rollback receipt before pointer replace so a
   // receipt failure leaves the prior pointer untouched.
   try {
-    writeJsonAtomic(join(paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
+    writeJsonAtomic(join(/*turbopackIgnore: true*/ paths.rollbacksDir, `${rollbackReceiptId}.json`), receipt);
   } catch (error) {
     return failRollback({
       paths,
@@ -996,7 +996,7 @@ function failRollback(input: {
   };
   try {
     writeJsonAtomic(
-      join(input.paths.rollbacksDir, `${input.rollbackReceiptId}.json`),
+      join(/*turbopackIgnore: true*/ input.paths.rollbacksDir, `${input.rollbackReceiptId}.json`),
       receipt,
     );
   } catch {

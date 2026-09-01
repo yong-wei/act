@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { AssignmentDomainError } from './assignment-domain';
 import { signCatalogSelectionIdentity, stableHash } from './assignment-integrity';
 
-const catalogPath = path.join(process.cwd(), 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl');
+const catalogPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content/runtime/resource-governance/adaptive-assessment-item-catalog-items.jsonl');
 
 export function isAssignmentAuthoringEligible(item: AdaptiveAssessmentCatalogItem): boolean {
   return item.reviewState === 'path-eligible'

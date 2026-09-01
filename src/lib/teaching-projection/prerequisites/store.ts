@@ -317,8 +317,8 @@ export function stagedPrerequisiteNormalizedBytes(
   ] as const;
   const out: Record<string, string> = {};
   for (const name of names) {
-    const full = join(releaseDir, name);
-    out[name] = `${projectionCanonicalJson(JSON.parse(readFileSync(full, 'utf8')))}\n`;
+    const full = join(/*turbopackIgnore: true*/ releaseDir, name);
+    out[name] = `${projectionCanonicalJson(JSON.parse(readFileSync(/*turbopackIgnore: true*/ full, 'utf8')))}\n`;
   }
   return out;
 }

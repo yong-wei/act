@@ -49,7 +49,7 @@ export async function resolvePidEvidenceRuntimeAttestation(options?: {
   cwd?: string;
   env?: Record<string, string | undefined>;
 }) {
-  const cwd = path.resolve(options?.cwd ?? process.cwd());
+  const cwd = path.resolve(/*turbopackIgnore: true*/ options?.cwd ?? process.cwd());
   const env = options?.env ?? process.env;
   const gitRoot = await git(cwd, ['rev-parse', '--show-toplevel']);
   const revision = await git(gitRoot, ['rev-parse', 'HEAD']);
@@ -74,7 +74,7 @@ export async function resolvePidEvidenceRuntimeAttestation(options?: {
 
   const sourceHashes = Object.fromEntries(await Promise.all(
     PID_EVIDENCE_RUNTIME_PATHS.map(async (relativePath) => {
-      const bytes = await readFile(path.join(gitRoot, relativePath));
+      const bytes = await readFile(/*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ gitRoot, relativePath));
       return [relativePath, createHash('sha256').update(bytes).digest('hex')];
     }),
   ));

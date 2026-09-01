@@ -368,7 +368,7 @@ async function readStableFile(filePath: string): Promise<{ content: string; fing
 async function readFileGraphSnapshot(): Promise<FileGraphSnapshot | null> {
   const runtimeRoot = process.env.KNOWLEDGE_RUNTIME_ROOT
     ? path.resolve(process.env.KNOWLEDGE_RUNTIME_ROOT)
-    : path.join(process.cwd(), 'course-content', 'runtime', 'knowledge');
+    : path.join(/*turbopackIgnore: true*/ process.cwd(), 'course-content', 'runtime', 'knowledge');
   const graphPath = path.join(runtimeRoot, 'graph', 'nodes.json');
   const relationsPath = path.join(runtimeRoot, 'graph', 'relations.jsonl');
   const [nodesResult, relationsResult] = await Promise.allSettled([

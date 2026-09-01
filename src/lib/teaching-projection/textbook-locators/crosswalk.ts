@@ -166,7 +166,7 @@ export function loadSourceResourceCrosswalk(input?: {
     );
   let text: string;
   try {
-    text = readFileSync(filePath, 'utf8');
+    text = readFileSync(/*turbopackIgnore: true*/ filePath, 'utf8');
   } catch (error) {
     throw new TextbookCrosswalkError(
       'missing-crosswalk',
