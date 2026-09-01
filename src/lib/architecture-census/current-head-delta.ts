@@ -294,9 +294,16 @@ function mentionedPaths(content: string): string[] {
   return uniqueSorted([...(content.match(/src\/[A-Za-z0-9._\/-]+/gu) ?? [])].filter(inScopePath));
 }
 
+const IN_SCOPE_OWNERS = new Set(['assessment', 'personalization']);
+
 function mentionedOwners(content: string): string[] {
   return uniqueSorted(OWNER_CATALOG
-    .filter((owner) => content.includes(owner.label) || content.includes(owner.id) || content.includes(owner.id.replace('-', ' ')))
+    .filter((owner) => IN_SCOPE_OWNERS.has(owner.id))
+    .filter((owner) => {
+      const label = new RegExp(`\\b${owner.label}\\b`, 'iu');
+      const id = new RegExp(`\\b${owner.id}\\b`, 'iu');
+      return label.test(content) || id.test(content);
+    })
     .map((owner) => owner.id));
 }
 

@@ -161,6 +161,7 @@ describe('current-head consolidation delta', () => {
     ));
     expect(overlap?.overlapKind).toBe('owner');
     expect(overlap?.paths).toContain('personalization');
+    expect(pack.openspecConflicts.length).toBeLessThan(20);
   });
 
   it('does not treat an oversized in-scope test as a hotspot record', () => {
