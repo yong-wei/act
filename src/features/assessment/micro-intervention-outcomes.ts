@@ -2,6 +2,7 @@ import { getAdaptiveQuestionById } from '@/features/assessment/adaptive-engine';
 import { createHash } from 'node:crypto';
 import type { CrossDomainQuestion } from '@/features/assessment/adaptive-question-bank';
 import { canonicalMicroTutoringQuestionId } from '@/features/assessment/micro-tutoring-validation-registry';
+import { getCheckpointAuthoredQuestionRecordByRuntimeId } from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
 import {
   REMEDIATION_MANUAL_PRACTICE_PATH,
   readAvailableRemediationInterventionSource,
@@ -221,7 +222,10 @@ function validationRuntimeHash(question: unknown): string {
 }
 
 function sameValidationQuestionId(left: string, right: string): boolean {
-  return canonicalMicroTutoringQuestionId(left) === canonicalMicroTutoringQuestionId(right);
+  if (left === right) return true;
+  const canonical = canonicalMicroTutoringQuestionId(left);
+  return canonical === canonicalMicroTutoringQuestionId(right) &&
+    getCheckpointAuthoredQuestionRecordByRuntimeId(canonical) !== null;
 }
 
 function resolvedRuntimeQuestion(

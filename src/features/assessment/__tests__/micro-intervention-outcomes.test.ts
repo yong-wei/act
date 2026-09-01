@@ -611,6 +611,22 @@ describe('micro intervention outcomes', () => {
     expect(interventions[0].sourceSnapshot.validationRuntimeHash).toBeNull();
   });
 
+  it('rejects a checkpoint-authored alias for a non-authored validation question', async () => {
+    const { db } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'checkpoint-authored-question:validation-question',
+      selectedOption: 'B',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'VALIDATION_INVALID' });
+  });
+
   it('recommends an existing governed transfer practice after a passing validation', async () => {
     const { db, mocks: dbMocks } = createDb();
     mocks.readAvailableRemediationInterventionSource.mockResolvedValue({
