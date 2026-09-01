@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
   "issue": 1759,
-  "capturedAt": "2026-09-01T10:17:51.732Z",
-  "commitSha": "61faec01f762f2826a0cecd707298d3c93ad48c6",
+  "capturedAt": "2026-09-01T10:31:33.777Z",
+  "commitSha": "e8e70c82aa8b65165f99a53936efa26afb918d2f",
   "generator": "tests/retire-client-authored-companion-1759.spec.ts",
-  "generatorSha256": "eae5cc2da3de20be9b72d0a980d6340635d7c53630483d236eabd58c4cee3d76",
+  "generatorSha256": "ecd4cd0f35bc239017cbeb1fef3f23960c273499a8e2de733ed0e6fa5065d97f",
   "representativeRoute": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
   "sourceSha256": {
-    "tests/retire-client-authored-companion-1759.spec.ts": "eae5cc2da3de20be9b72d0a980d6340635d7c53630483d236eabd58c4cee3d76",
+    "tests/retire-client-authored-companion-1759.spec.ts": "ecd4cd0f35bc239017cbeb1fef3f23960c273499a8e2de733ed0e6fa5065d97f",
     "src/features/control-workbench/shell/control-workbench-shell.tsx": "e724958b84883d0b0fc61b191740db1fb4e4457e5a4bdc621ecb310094fbd258",
     "src/app/api/ai/intervention/generate/route.ts": "aee58b6ec9441fbcae0cd6eedf15df62b0e21d4b94845976dd8196e3c6de3a23",
     "src/lib/konling-agent-runtime.ts": "f8a0c68913ea854ab56cd2b5ae7bf852c20405903f31e9c1986db5a259ab5e83",
     "src/features/arena/student/konling-official-followup.ts": "09615e8a089e34c64082a4b21585c5306510403016c243d4eb2c9e8e0f898a7b"
   },
   "sourceGitBlobIds": {
-    "tests/retire-client-authored-companion-1759.spec.ts": "ca43070758d37d5c47a4251f583f5ed12750fe5b",
+    "tests/retire-client-authored-companion-1759.spec.ts": "144aa81a5609859c1dda4a6a6260e474920510d0",
     "src/features/control-workbench/shell/control-workbench-shell.tsx": "5f3e321a37204dfd76f9829867a0fa3828beeb00",
     "src/app/api/ai/intervention/generate/route.ts": "06f8cf6bd4e8f2ee3ca2c24d00a18493aeac251c",
     "src/lib/konling-agent-runtime.ts": "699e27a0fa65c88758a7503de5e1868e2dd5b149",
@@ -23,7 +23,7 @@
   "screenshots": [
     {
       "file": "artifacts/commercial-ui/issue-1759-retire-client-authored-companion/official-desktop-1440.png",
-      "sha256": "19a6a23d3c1e114924a86c6215f879d5816d12f0070aeb6e507d778547e7ef6b",
+      "sha256": "241458802925f211e692da9399fb8ea4b8c532a9f0bde3748cda4974ef00f3ed",
       "scenario": "official-desktop-1440",
       "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
       "width": 1440,
@@ -36,7 +36,7 @@
     },
     {
       "file": "artifacts/commercial-ui/issue-1759-retire-client-authored-companion/official-mobile-320.png",
-      "sha256": "5bb6f82476cc84f45d8152691bf54dd5f903bcee1963705ccf69db0ca0b69ca5",
+      "sha256": "6ef8ccf9c2fb49d38f08c805f25ac7d7a3807aa11b57b18eb5e6c365a0d9a545",
       "scenario": "official-mobile-320",
       "route": "/interactive-learning/control-workbench?arenaTask=task-third-order-block-diagram",
       "width": 320,
