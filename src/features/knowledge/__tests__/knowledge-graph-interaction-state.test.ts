@@ -333,7 +333,9 @@ describe('knowledge graph interaction state stability', () => {
     expect(rendererSource).toContain('if (event.target !== canvas) return;');
     expect(rendererSource).toContain('if (!hitNode && !hitLink)');
     expect(rendererSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
-    expect(rendererSource).toContain('cooldownTicks={0}');
+    // #1739: bounded lifecycle wiring; behavior is proven by the real
+    // d3 simulation in active-authority-force-runtime.test.ts.
+    expect(rendererSource).toContain('cooldownTicks={forceLifecycle.cooldownTicks}');
     expect(rendererSource).toContain('committedGraphVersionRef.current !== graphVersion');
     expect(rendererSource).toContain('runtimePositionsByNodeIdRef.current.clear();');
     expect(rendererSource).not.toContain('applyKnowledgeGraphStoredPositions(');
@@ -363,7 +365,7 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).not.toContain("controls.addEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).not.toContain("controls.removeEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
-    expect(canvasSource).toContain('cooldownTicks={0}');
+    expect(canvasSource).toContain('cooldownTicks={forceLifecycle.cooldownTicks}');
     expect(canvasSource).toContain('committedGraphVersionRef.current !== graphVersion');
     expect(canvasSource).toContain('runtimePositionsByNodeIdRef.current.clear();');
     expect(canvasSource).toContain('}, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);');

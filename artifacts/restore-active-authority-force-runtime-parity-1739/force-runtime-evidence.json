@@ -1,0 +1,85 @@
+{
+  "earlyPoint": {
+    "x": -1165.9680317009343,
+    "y": -53.66770217969054
+  },
+  "settledPoint": {
+    "x": -3007.0021412020214,
+    "y": -774.8195227698095
+  },
+  "settleDisplacement": 1977.2370977419237,
+  "dragCandidates": [
+    {
+      "id": "ctc:0f418dc24d2aacaaafdcdcc0",
+      "topElement": "canvas"
+    },
+    {
+      "id": "ctc:909e732d40f972bf760fa8ff",
+      "topElement": "canvas"
+    },
+    {
+      "id": "ctc:90af7a0497e616bbe6249c30",
+      "topElement": "canvas"
+    },
+    {
+      "id": "ctc:modeling-00d2998755974a1329049aac",
+      "topElement": "canvas"
+    },
+    {
+      "id": "ctc:modeling-023f560241f0e47081f0f59e",
+      "topElement": "canvas"
+    },
+    {
+      "id": "ctc:modeling-029518e82a518c01bc626b66",
+      "topElement": "canvas"
+    }
+  ],
+  "dragAttempts": [
+    {
+      "id": "ctc:0f418dc24d2aacaaafdcdcc0",
+      "start": {
+        "x": 713.0776337542011,
+        "y": 334.4033142424122
+      },
+      "after": {
+        "x": 816.10278824848,
+        "y": 384.7146240498553
+      },
+      "displacement": 114.65343585392704
+    }
+  ],
+  "dragDisplacement": 114.65343585392704,
+  "dragEndCalls": [],
+  "pinnedGraphBeforeRelayout": {
+    "x": -1539.8274064052503,
+    "y": -58.33932930295464
+  },
+  "afterRelayoutGraph": {
+    "x": -1539.8274064052503,
+    "y": -58.33932930295464
+  },
+  "unpinnedGraph": {
+    "id": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "x": -1675.0685893123718,
+    "y": -65.98825569886012,
+    "fx": null,
+    "fy": null,
+    "userPinned": false,
+    "anchor": {
+      "x": -672,
+      "y": 72,
+      "fixed": false
+    },
+    "screenX": 561.4644493690128,
+    "screenY": 214.0661494595461
+  },
+  "reheatProbeId": "ctc:modeling-0dd26e5dad1221fb520f0be6",
+  "reheatProbeBefore": {
+    "x": 234.28910355918072,
+    "y": -6.605944415530556
+  },
+  "reheatProbeAfter": {
+    "x": 309.34768838389795,
+    "y": -60.309570815806204
+  }
+}

@@ -1,12 +1,14 @@
-import { useCallback, useRef, useState, type SetStateAction } from 'react';
+import { useCallback, useMemo, useRef, useState, type SetStateAction } from 'react';
 
 import type { GraphDimension } from '../graph-runtime-session';
 import type { KnowledgeNodeData } from '../knowledge-graph-system';
 import type { KnowledgeGraphCameraPose } from './knowledge-graph-canvas';
 import type { KnowledgeGraphFitRequest } from './root-layout';
 import {
+  clearKnowledgeGraphLayoutPins,
   getEmptyKnowledgeGraphLayoutState,
   getKnowledgeGraphRuntimeNodePosition,
+  removeKnowledgeGraphNodePin,
   storeKnowledgeGraphNodePosition,
   type KnowledgeGraphLayoutState,
 } from './layout-state';
@@ -82,16 +84,48 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
   }, []);
 
   const requestRelayout = useCallback(() => {
-    setLayoutByDimension((current) => writeDimensionLayout(current, dimension, {
-      version: selectDimensionLayout(current, dimension).version + 1,
-      positionsByNodeId: {},
-    }));
+    // Manual reflow reseeds the automatic layout but must preserve every
+    // explicit user pin (#1739 task 2.3); only the automatic settled
+    // coordinates are regenerated.
+    setLayoutByDimension((current) => {
+      const previous = selectDimensionLayout(current, dimension);
+      return writeDimensionLayout(current, dimension, {
+        ...previous,
+        version: previous.version + 1,
+      });
+    });
     setRelayoutVersionByDimension((current) => ({
       ...current,
       [dimension]: (current[dimension] ?? 0) + 1,
     }));
     setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
   }, [dimension]);
+
+  const [engineReheatRevision, setEngineReheatRevision] = useState(0);
+  const layoutStoreRef = useRef(layoutByDimension);
+  layoutStoreRef.current = layoutByDimension;
+
+  /**
+   * Remove one explicit pin (or every pin) and return the affected nodes to
+   * force ownership (#1739). Unrelated coordinates, pins and camera state
+   * are untouched; the engine reheats so unpinned nodes visibly settle
+   * again instead of freezing at their last pinned spot.
+   */
+  const unpinNode = useCallback((nodeId?: string) => {
+    const previous = selectDimensionLayout(layoutStoreRef.current, dimension);
+    const next = nodeId
+      ? removeKnowledgeGraphNodePin(previous, nodeId)
+      : clearKnowledgeGraphLayoutPins(previous);
+    if (next === previous) return;
+    layoutStoreRef.current = writeDimensionLayout(layoutStoreRef.current, dimension, next);
+    setLayoutByDimension(() => layoutStoreRef.current);
+    setEngineReheatRevision((revision) => revision + 1);
+  }, [dimension]);
+
+  const pinnedNodeIds = useMemo(
+    () => new Set(Object.keys(layoutState.positionsByNodeId)),
+    [layoutState],
+  );
 
   return {
     layoutState,
@@ -101,6 +135,9 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
     handleNodeDragEnd,
     requestFitView,
     requestRelayout,
+    unpinNode,
+    pinnedNodeIds,
+    engineReheatRevision,
   };
 }
 

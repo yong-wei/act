@@ -59,6 +59,8 @@ export interface KnowledgeGraphRuntimeCanvasProps {
   width?: number;
   height?: number;
   liveEngine?: boolean;
+  /** Bump to reheat the live force engine without changing structure (#1739). */
+  engineReheatRevision?: number;
 }
 
 export function KnowledgeGraphRuntimeCanvas({
@@ -99,6 +101,7 @@ export function KnowledgeGraphRuntimeCanvas({
   width,
   height,
   liveEngine = true,
+  engineReheatRevision = 0,
 }: KnowledgeGraphRuntimeCanvasProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
@@ -162,6 +165,7 @@ export function KnowledgeGraphRuntimeCanvas({
           onCameraManipulation={onCameraManipulation}
           onCameraPoseChange={onCameraPoseChange}
           relayoutVersion={relayoutVersion}
+          engineReheatRevision={engineReheatRevision}
           expandedNodeIds={expandedNodeIds}
           expandedDirectLinks={expandedDirectLinks}
           activationSequenceByCenterId={activationSequenceByCenterId}
@@ -190,6 +194,7 @@ export function KnowledgeGraphRuntimeCanvas({
           layoutState={layoutState}
           fitViewRequest={fitViewRequest}
           relayoutVersion={relayoutVersion}
+          engineReheatRevision={engineReheatRevision}
           expandedNodeIds={expandedNodeIds}
           expandedDirectLinks={expandedDirectLinks}
           activationSequenceByCenterId={activationSequenceByCenterId}

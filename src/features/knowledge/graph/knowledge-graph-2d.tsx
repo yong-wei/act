@@ -5,6 +5,8 @@ import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
+  freezeKnowledgeGraphUnaffectedScope,
+  releaseKnowledgeGraphFrozenScope,
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
@@ -14,7 +16,16 @@ import {
   selectFocusedExpansionGraphNodes,
   freezeKnowledgeGraphDragFrame,
   type KnowledgeGraphPositionedNode,
+  releaseKnowledgeGraphDragFrame,
+  selectKnowledgeGraphReheatAffectedNodeIds,
+  scopeKnowledgeGraphRenderChange,
+  advanceKnowledgeGraphFrameIdentity,
 } from './layout-engine';
+import {
+  KNOWLEDGE_FORCE_ALPHA_DECAY,
+  KNOWLEDGE_FORCE_ALPHA_MIN,
+  resolveKnowledgeForceLifecycle,
+} from './force-lifecycle';
 import {
   getNodeColor,
   getGlowColor,
@@ -139,6 +150,7 @@ interface KnowledgeGraph2DProps {
   layoutState: KnowledgeGraphLayoutState;
   fitViewRequest: KnowledgeGraphFitRequest;
   relayoutVersion: number;
+  engineReheatRevision?: number;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
   activationSequenceByCenterId: Readonly<Record<string, number>>;
@@ -365,6 +377,7 @@ export function KnowledgeGraph2D({
   layoutState,
   fitViewRequest,
   relayoutVersion,
+  engineReheatRevision = 0,
   expandedNodeIds,
   expandedDirectLinks,
   activationSequenceByCenterId,
@@ -406,6 +419,14 @@ export function KnowledgeGraph2D({
   const labelProjectionRevisionRef = useRef(0);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  // react-force-graph-2d 的 ref 不暴露 graphData 方法；memo 产出的节点数组就是
+  // d3 原地变异的活对象，用 ref 保留上一代即可在增量重算时续承沉降坐标（#1739）。
+  const liveNodesRef = useRef<RuntimeKnowledgeGraphNode[]>([]);
+  // 历史见过的全部节点身份（只增不减）：区分筛选投影（增删皆见过）与真实新披露。
+  const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
+  const knownNodeIdsRef = useRef<Set<string> | null>(null);
+  const knownLinksRef = useRef<Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>>(new Map());
+  const changeScopeRef = useRef<{ frozenNodeIds: Set<string>; reheat: boolean }>({ frozenNodeIds: new Set(), reheat: false });
   const committedRelayoutVersionRef = useRef(relayoutVersion);
   const committedGraphVersionRef = useRef(graphVersion);
   const revealedExpansionSignatureRef = useRef('');
@@ -423,7 +444,14 @@ export function KnowledgeGraph2D({
   const [viewportRevision, setViewportRevision] = useState(0);
   const [layoutSettledRevision, setLayoutSettledRevision] = useState(0);
   const settledLayoutSignatureRef = useRef('');
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // 首渲染即读系统减弱动态偏好（#1739）：惰性初始化避免 reduced-motion
+  // 用户首帧按完整动态渲染。
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedKnowledgeGraphMotion);
+  const forceLifecycle = resolveKnowledgeForceLifecycle({
+    dimension: '2d',
+    liveEngine: true,
+    reducedMotion,
+  });
   const [motionEnvironmentActive, setMotionEnvironmentActive] = useState(false);
   useEffect(() => {
     const handleResize = () => setViewportRevision((value) => value + 1);
@@ -525,7 +553,7 @@ export function KnowledgeGraph2D({
         }).nodes;
     const layoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: baseLayoutNodes as RuntimeKnowledgeGraphNode[],
-      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+      liveNodes: liveNodesRef.current,
       runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
       preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
@@ -539,11 +567,29 @@ export function KnowledgeGraph2D({
       materializedNodeIds,
     });
 
-    return {
+    // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标：摄入会同步执行
+    // warmup ticks，先于任何被动 effect，否则剩余节点在冻结前已位移
+    // （#1739 task 3.3）。
+    // #1739 变更范围不变量（渲染期统一决策，完整三分支：筛选投影/仅
+    // 关系变化/真实新增节点）：冻结集与重热标志由共享簿记函数给出，
+    // effect 只消费结果。
+    const changeScope = scopeKnowledgeGraphRenderChange({
       nodes: focusedLayoutNodes,
+      links: transformedLinks,
+      previousNodeIds: knownNodeIdsRef.current,
+      everSeenNodeIds: everSeenNodeIdsRef.current,
+      knownLinks: knownLinksRef.current,
+    });
+    // 渲染期只做幂等的纯决策写入（StrictMode 重放下同输入同结果）；
+    // 有损的历史身份推进在摄入后的 effect 中完成（#1739）。
+    changeScopeRef.current = changeScope;
+    const scopedNodes = changeScope.nodes;
+    return {
+      nodes: scopedNodes,
       links: transformedLinks
     };
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
+  liveNodesRef.current = graphData.nodes as RuntimeKnowledgeGraphNode[];
   const structuralForegroundEdgeIdSet = useMemo(() => new Set(
     selectKnowledgeGraphStructuralForegroundEdgeIds(graphData.links),
   ), [graphData.links]);
@@ -843,17 +889,47 @@ export function KnowledgeGraph2D({
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
+  // Component-scoped reheat (#1739): newly disclosed nodes settle while
+  // unaffected nodes hold their settled coordinates; the frame is released
+  // at the engine-stop settle milestone.
+  const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    // 消费渲染期（摄入前）的变更范围决策：登记冻结集并在存在真实新增
+    // （新节点或新关系）时重热；仅移除关系不重热（#1739）。
+    if (forceLifecycle.staticLayout) return;
+    // 历史身份推进（幂等）放在摄入后：useMemo 在 StrictMode 重放下会
+    // 多次执行，渲染期推进会把同一批变化误判为稳定帧（#1739）。
+    advanceKnowledgeGraphFrameIdentity({
+      nodes: graphData.nodes,
+      links: graphData.links,
+      nodeIdsRef: knownNodeIdsRef,
+      everSeenNodeIdsRef,
+      knownLinksRef,
+    });
+    const scope = changeScopeRef.current;
+    unaffectedFrozenNodeIdsRef.current = scope.frozenNodeIds;
+    if (scope.reheat) fgRef.current?.d3ReheatSimulation?.();
+  }, [forceLifecycle.staticLayout, graphData.links, graphData.nodes]);
+
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
+    if (unaffectedFrozenNodeIdsRef.current.size > 0) {
+      const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+      releaseKnowledgeGraphFrozenScope(graphNodes, {
+        frozenNodeIds: unaffectedFrozenNodeIdsRef.current,
+        pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+      });
+      unaffectedFrozenNodeIdsRef.current = new Set();
+    }
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setLayoutSettledRevision((revision) => revision + 1);
-  }, [layoutSignature, snapshotRuntimePositions]);
+  }, [graphData.nodes, layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
       __knowledgeGraphQaNodePoints?: (nodeId?: string) => Array<{ x: number; y: number }>;
-      __knowledgeGraphQaNodeDebug?: (nodeId?: string) => Array<Record<string, number | string | null>>;
+      __knowledgeGraphQaNodeDebug?: (nodeId?: string) => Array<Record<string, unknown>>;
       __knowledgeGraphQaPresentationDebug?: () => Record<string, unknown>;
       __knowledgeGraphQaResetViewport?: () => void;
       __knowledgeGraphQaCenterNode?: (nodeId: string) => void;
@@ -873,7 +949,7 @@ export function KnowledgeGraph2D({
     const getNodePoints = (requestedNodeId = selectedNode?.id) => {
       if (!requestedNodeId || !fgRef.current?.graph2ScreenCoords) return [];
       const graphNodes = [
-        ...((fgRef.current.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number }>),
+        ...((fgRef.current.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & { x?: number; y?: number }>),
         ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>),
       ];
       const canvas = document.querySelector<HTMLCanvasElement>('[data-knowledge-canvas-primary="true"] canvas');
@@ -922,8 +998,22 @@ export function KnowledgeGraph2D({
     };
     qaWindow.__knowledgeGraphQaNodeDebug = (requestedNodeId = selectedNode?.id) => {
       const graphNodes = [
-        ...((fgRef.current?.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number }>),
-        ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>),
+        ...((fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & {
+          x?: number;
+          y?: number;
+          fx?: number;
+          fy?: number;
+          __knowledgeUserPinned?: boolean;
+          __knowledgeAutomaticAnchor?: { x: number; y: number; fixed?: boolean } | null;
+        }>),
+        ...(graphData.nodes as Array<KnowledgeNodeData & {
+          x?: number;
+          y?: number;
+          fx?: number;
+          fy?: number;
+          __knowledgeUserPinned?: boolean;
+          __knowledgeAutomaticAnchor?: { x: number; y: number; fixed?: boolean } | null;
+        }>),
       ];
       return graphNodes
         .filter((node) => node.id === requestedNodeId)
@@ -935,6 +1025,12 @@ export function KnowledgeGraph2D({
             id: node.id,
             x: Number.isFinite(node.x) ? node.x! : null,
             y: Number.isFinite(node.y) ? node.y! : null,
+            fx: Number.isFinite(node.fx) ? node.fx! : null,
+            fy: Number.isFinite(node.fy) ? node.fy! : null,
+            userPinned: node.__knowledgeUserPinned === true,
+            anchor: node.__knowledgeAutomaticAnchor
+              ? { x: node.__knowledgeAutomaticAnchor.x, y: node.__knowledgeAutomaticAnchor.y, fixed: node.__knowledgeAutomaticAnchor.fixed === true }
+              : null,
             screenX: Number.isFinite(Number(point?.x)) ? Number(point?.x) : null,
             screenY: Number.isFinite(Number(point?.y)) ? Number(point?.y) : null,
           };
@@ -1404,8 +1500,13 @@ export function KnowledgeGraph2D({
   const handleNodeDragEnd = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    releaseKnowledgeGraphDragFrame(graphNodes, {
+      draggedId: String(node?.id ?? ''),
+      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+    });
     onNodeDragEnd(node as KnowledgeNodeData);
-  }, [onNodeDragEnd, rememberRuntimeNodePosition]);
+  }, [graphData.nodes, onNodeDragEnd, rememberRuntimeNodePosition]);
 
   const handleNodeDrag = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
@@ -1755,12 +1856,19 @@ export function KnowledgeGraph2D({
     };
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
+  const lastEngineReheatRevisionRef = useRef(engineReheatRevision);
   useEffect(() => {
-    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+    if (engineReheatRevision <= lastEngineReheatRevisionRef.current) return;
+    lastEngineReheatRevisionRef.current = engineReheatRevision;
+    if (forceLifecycle.staticLayout) return;
+    fgRef.current?.d3ReheatSimulation?.();
+  }, [engineReheatRevision, forceLifecycle.staticLayout]);
+
+  useEffect(() => {
+    const currentNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as
       | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
       | undefined;
     syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
-    fgRef.current?.refresh?.();
   }, [graphData, layoutState]);
 
   useEffect(() => {
@@ -1918,10 +2026,13 @@ export function KnowledgeGraph2D({
         onZoomEnd={() => syncRichLabelLayer()}
         enableNodeDrag={true}
 
-        // 物理引擎配置
+        // 物理引擎配置：有界力生命周期（#1739）
         d3VelocityDecay={0.3}
-        warmupTicks={20}
-        cooldownTicks={0}
+        d3AlphaDecay={KNOWLEDGE_FORCE_ALPHA_DECAY}
+        d3AlphaMin={KNOWLEDGE_FORCE_ALPHA_MIN}
+        warmupTicks={forceLifecycle.warmupTicks}
+        cooldownTicks={forceLifecycle.cooldownTicks}
+        cooldownTime={forceLifecycle.cooldownTimeMs}
       />
       <SemanticLabelLayer
         labels={(graphData.nodes as KnowledgeNodeData[])

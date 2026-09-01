@@ -91,7 +91,9 @@ describe('knowledge graph 3D presentation link resources', () => {
       process.cwd(),
       'src/features/knowledge/graph/knowledge-graph-canvas.tsx',
     ), 'utf8');
-    expect(source).toContain('fgRef.current?.graphData?.(graphData);');
+    // #1739：ref 上没有 graphData 方法，链接对象直接从 memo 数组读取
+    // （d3 摄入后 source/target 已原地解析为节点引用）。
+    expect(source).toContain('const liveLinks = graphData.links as any[];');
     expect(source).toContain('updatePresentationLinkObjectRef.current(linkObject');
     expect(source).toContain('disposeKnowledgeGraphPresentationLinkGroup(object);');
   });

@@ -24,6 +24,7 @@ import {
 } from './graph/authority-runtime-adapter';
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
+import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 
 interface ActiveAuthorityRuntimeViewProps {
   kind: 'root' | 'domain';
@@ -44,6 +45,10 @@ interface ActiveAuthorityRuntimeViewProps {
   } | null;
   canvasAriaLabel: string;
   showUnavailableTeachingDirectory?: boolean;
+  /** 未裁剪的域概览规模（compact 视图的 view.nodes 已按上限裁剪）。 */
+  overviewCount?: number;
+  /** 未裁剪且经 model 过滤的概览目录条目（compact 可浏览目录数据源）。 */
+  overviewEntries?: Array<{ id: string; label: string }>;
   layout: KnowledgeGraphRuntimeLayout;
   sessionKey: string;
 }
@@ -60,6 +65,8 @@ export function ActiveAuthorityRuntimeView({
   hoverPreview,
   canvasAriaLabel,
   showUnavailableTeachingDirectory = false,
+  overviewCount,
+  overviewEntries,
   layout,
   sessionKey,
 }: ActiveAuthorityRuntimeViewProps) {
@@ -69,6 +76,7 @@ export function ActiveAuthorityRuntimeView({
     fitViewRequest,
     handleNodeDragEnd,
     requestFitView,
+    engineReheatRevision,
   } = layout;
   const {
     cameraPoseByScopeRef,
@@ -87,7 +95,13 @@ export function ActiveAuthorityRuntimeView({
   );
   const domainNodes = useMemo(
     () => (kind === 'domain' && view
-      ? toActiveRuntimeNodes(view).map((node) => ({ ...node, labelPriority: compactLabelPriority }))
+      ? toActiveRuntimeNodes(view).map((node) => ({
+        ...node,
+        // compact 视口与大规模概览走重点标签通道：普通 LOD 的投影字号
+        // 闸会把 fit 后的大域标签全部隐藏（#1739 大域标签预算）。
+        labelPriority: compactLabelPriority
+          || view.nodes.length > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES,
+      }))
       : []),
     [compactLabelPriority, kind, view],
   );
@@ -105,7 +119,14 @@ export function ActiveAuthorityRuntimeView({
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
     : [];
   const showNodeDirectory = kind === 'domain' && (
-    !view || view.edges.length === 0 || showUnavailableTeachingDirectory
+    !view
+    || view.edges.length === 0
+    || showUnavailableTeachingDirectory
+    // mobile 大域（超 compact 上限）画布标签几何受限（fit 后像素级
+    // 节点），可浏览目录承担无选择可读名称（#1739 spec mobile 大域
+    // 场景）。compact 视图的 view.nodes 已按可见上限裁剪，规模判断用
+    // 未裁剪的 overviewCount；桌面画布不受压缩，目录保持 sr-only。
+    || (compactLabelPriority && (overviewCount ?? view.nodes.length) > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES)
   );
 
   useEffect(() => {
@@ -164,6 +185,7 @@ export function ActiveAuthorityRuntimeView({
           layoutState={layoutState}
           fitViewRequest={fitViewRequest}
           relayoutVersion={relayoutVersion}
+          engineReheatRevision={engineReheatRevision}
           graphVersion={graphVersion}
           autoFitScopeKey={cameraScopeKey}
           autoFitReady={nodes.length > 0}
@@ -220,7 +242,13 @@ export function ActiveAuthorityRuntimeView({
           data-active-authority-node-directory={showNodeDirectory ? 'visible' : 'semantic'}
           aria-label={showNodeDirectory ? '可浏览的知识对象' : undefined}
         >
-          {view.nodes.map((node) => (
+          {(showNodeDirectory && overviewEntries
+            // 无边/大域目录 = 完整概览 ∪ 当前已披露对象（邻域披露的节点
+            // 仍可在目录中浏览与选择，#1739）。
+            ? [...overviewEntries, ...view.nodes.map((node) => ({ id: node.canonicalId, label: node.label }))]
+              .filter((entry, index, all) => all.findIndex((other) => other.id === entry.id) === index)
+              .map((entry) => ({ canonicalId: entry.id, label: entry.label }))
+            : view.nodes).map((node) => (
             <li key={node.canonicalId}>
               <button
                 type="button"
@@ -232,11 +260,11 @@ export function ActiveAuthorityRuntimeView({
                   : undefined}
                 data-active-authority-node={node.canonicalId}
                 data-active-authority-visible-node={showNodeDirectory ? 'true' : undefined}
-                data-active-authority-node-shape={node.presentation.type.shape}
+                data-active-authority-node-shape={('presentation' in node ? node.presentation.type.shape : undefined)}
                 data-active-authority-node-selected={selectedNodeId === node.canonicalId ? 'true' : 'false'}
                 aria-pressed={selectedNodeId === node.canonicalId}
-                data-active-authority-halo={node.decoration.hasCrossDomainHalo ? 'true' : 'false'}
-                data-active-authority-card-star={node.decoration.hasCardStar ? 'true' : 'false'}
+                data-active-authority-halo={('decoration' in node && node.decoration.hasCrossDomainHalo) ? 'true' : 'false'}
+                data-active-authority-card-star={('decoration' in node && node.decoration.hasCardStar) ? 'true' : 'false'}
                 onClick={(event: MouseEvent<HTMLButtonElement>) => {
                   event.preventDefault();
                   onSelectNode(node.canonicalId);
