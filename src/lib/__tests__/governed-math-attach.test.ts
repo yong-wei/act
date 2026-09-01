@@ -20,9 +20,14 @@ import type { AuthorityNodeNeighborhoodShard } from '@/lib/authority-domain-shar
 import {
   attachGovernedMathToLearnerShard,
   attachGovernedMathToSearchHits,
+  governedFormulaSearchTerms,
 } from '@/lib/governed-math/attach';
 import { readGovernedMathLedger } from '@/lib/governed-math/ledger';
 import { projectGovernedFormula } from '@/lib/governed-math/project';
+import {
+  governedKatexCallCount,
+  resetGovernedKatexCache,
+} from '@/lib/governed-math/render-cache';
 import { loadGovernedMathSidecarCorpus } from '@/lib/governed-math/sidecar';
 import type { AuthorityDomainSearchHit } from '@/lib/authority-domain-shards/contracts';
 
@@ -156,6 +161,31 @@ describe('governed math formula attach (#1740)', () => {
       'ctr:release:control-theory-engineering-v0.9',
     );
     expect(crossRelease[0]?.mathematics?.state ?? 'missing').toBe('missing');
+  });
+
+  it('derives locale-bound governed search terms without rendering KaTeX', () => {
+    resetGovernedKatexCache();
+    const terms = governedFormulaSearchTerms(
+      [NULL_RENDER_LATEX_FORMULA],
+      'en',
+      corpus.readiness.release_id,
+    );
+    expect(terms.get(NULL_RENDER_LATEX_FORMULA)).toContain('or');
+    expect(terms.get(NULL_RENDER_LATEX_FORMULA)).not.toContain('\\text');
+    const zhTerms = governedFormulaSearchTerms(
+      [NULL_RENDER_LATEX_FORMULA],
+      'zh-CN',
+      corpus.readiness.release_id,
+    );
+    expect(zhTerms.get(NULL_RENDER_LATEX_FORMULA)).toContain('或');
+    const crossRelease = governedFormulaSearchTerms(
+      [NULL_RENDER_LATEX_FORMULA],
+      'en',
+      'ctr:release:control-theory-engineering-v0.9',
+    );
+    expect(crossRelease.size).toBe(0);
+    // 字符串推导不执行 KaTeX。
+    expect(governedKatexCallCount()).toBe(0);
   });
 
   it('closes the complete reachable Formula denominator against the sealed render index', () => {

@@ -11,6 +11,7 @@ import {
   projectGovernedFormula,
   projectGovernedTitle,
 } from './project';
+import { stripLatexCommandNoise } from './search-text';
 import { titleIsProductHidden } from './types';
 import {
   GOVERNED_MATH_PRESENTATION_BUNDLE,
@@ -197,4 +198,33 @@ export function attachGovernedMathToSearchHits<T extends AuthorityDomainSearchHi
     const mathematics = projectFormulaPresentation(corpus, hit.id, governedLocale);
     return mathematics.state === 'missing' ? hit : { ...hit, mathematics };
   });
+}
+
+/**
+ * Locale-bound governed search terms for Formula entries (#1740): the
+ * accessible label derived from the selected render latex, command noise
+ * stripped. String-only — no KaTeX execution — and used for matching, never
+ * displayed. Raw index labels stay untouched.
+ */
+export function governedFormulaSearchTerms(
+  formulaIds: readonly string[],
+  locale: AdmittedLocale,
+  shardReleaseId: string,
+): Map<string, string> {
+  const terms = new Map<string, string>();
+  const corpus = loadGovernedMathRuntime();
+  if (!corpus || corpus.readiness.release_id !== shardReleaseId) return terms;
+  const governedLocale = asLocale(locale);
+  for (const formulaId of formulaIds) {
+    const record = corpus.formulas.get(formulaId);
+    if (!record) continue;
+    const localeLatex = record.render_latex_by_locale?.[governedLocale];
+    const latex = (typeof localeLatex === 'string' && localeLatex.length > 0
+      ? localeLatex
+      : record.render_latex) ?? record.original_latex;
+    if (!latex) continue;
+    const label = stripLatexCommandNoise(latex) || latex;
+    if (label) terms.set(formulaId, label);
+  }
+  return terms;
 }
