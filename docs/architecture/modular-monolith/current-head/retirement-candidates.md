@@ -4,6 +4,16 @@ A replacement path is not deletion proof. Records stay unresolved until a later 
 
 | id | identity | consumer class | deletion condition | finding |
 | --- | --- | --- | --- | --- |
+| retirement:src/features/adaptive/adaptive-learning-center-contracts.ts | src/features/adaptive/adaptive-learning-center-contracts.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/adaptive-path-correction-outcomes.ts | src/features/adaptive/adaptive-path-correction-outcomes.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/adaptive-path-journey-contracts.ts | src/features/adaptive/adaptive-path-journey-contracts.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/adaptive-path-journey-control.tsx | src/features/adaptive/adaptive-path-journey-control.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/adaptive-path-timeline.tsx | src/features/adaptive/adaptive-path-timeline.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/adaptive-path-unlock-chain-view.tsx | src/features/adaptive/adaptive-path-unlock-chain-view.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/cold-start-collection-panel.tsx | src/features/adaptive/cold-start-collection-panel.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/diagnosis-surface-panel.tsx | src/features/adaptive/diagnosis-surface-panel.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/path-advisor-entrypoint-bridge.tsx | src/features/adaptive/path-advisor-entrypoint-bridge.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
+| retirement:src/features/adaptive/path-workspace-module.tsx | src/features/adaptive/path-workspace-module.tsx | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
 | retirement:src/features/personalization/path-planning/internal/prerequisite-planner/index.ts | src/features/personalization/path-planning/internal/prerequisite-planner/index.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
 | retirement:src/features/personalization/path-planning/public-api.ts | src/features/personalization/path-planning/public-api.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |
 | retirement:src/lib/adaptive-cold-start-detection.ts | src/lib/adaptive-cold-start-detection.ts | production | zero-production-consumers-and-canonical-owner-replacement-proven | unresolved |

@@ -1,9 +1,9 @@
 # Current-head consolidation delta
 
 - schemaVersion: `act-architecture-current-head-delta/v1`
-- sourceCommit: `e9366204b076e3748480b30ab7ff6742751bb720`
-- sourceTree: `d3418d842b46cafde052fb0b46cf15177c328d8d`
-- captureTime: `2026-09-01T22:00:00+08:00`
+- sourceCommit: `320491f1e9934a3d86afd853181bb6686c8c7b10`
+- sourceTree: `36a07db23ddaae539ca4e641903bd2077f532ddf`
+- captureTime: `2026-09-01T22:37:33+08:00`
 - predecessor.sourceCommit: `58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac`
 - predecessor.sourceTree: `189dfeb5ad35f1d88e8ea5509a48b388424bf88f`
 - predecessor.schemaVersion: `act-architecture-census/v1`
@@ -20,7 +20,7 @@ This package is a delta, not a second baseline. It does not rewrite the historic
 | slice | discovered | represented | excluded | duplicate | unresolved |
 | --- | --- | --- | --- | --- | --- |
 | owner-conflict | 3 | 0 | 0 | 0 | 3 |
-| retirement | 22 | 0 | 0 | 0 | 22 |
+| retirement | 32 | 0 | 0 | 0 | 32 |
 | hotspot | 5 | 5 | 0 | 0 | 0 |
 
 ## Exclusions
