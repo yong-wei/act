@@ -37,15 +37,15 @@ describe('resource-coach conversation matching', () => {
     expect(isExactResourceCoachMatch(bindingEvent(identity({ anchorId: 'formula-3-1-2' })), requested)).toBe(true);
   });
 
-  it('falls back to persisted client hints when no pinned identity exists', () => {
+  it('does not treat client-only persisted hints as a recoverable match', () => {
     const requested = identity();
     const legacyEvent = {
       version: 1,
       teachingAssistantModeId: 'resource-coach',
       modeClientContextHints: { ...identity() },
     };
-    expect(resourceCoachBindingIdentity(legacyEvent)).toEqual(requested);
-    expect(isExactResourceCoachMatch(legacyEvent, requested)).toBe(true);
+    expect(resourceCoachBindingIdentity(legacyEvent)).toBeNull();
+    expect(isExactResourceCoachMatch(legacyEvent, requested)).toBe(false);
   });
 
   it.each([

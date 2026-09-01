@@ -328,21 +328,33 @@ export function GlobalAISidebar() {
 
   // 资源辅导入口：会话库水合完成后，按服务端验证的完整资源身份恢复精确匹配会话；
   // 无匹配时保持未落库空白态，首个问题提交时才创建并绑定会话。
+  // 解析得出 matched/blank 前（或版本不可用、解析失败时）不得创建或提交会话。
+  const [coachResolution, setCoachResolution] = useState<{
+    key: string;
+    state: 'loading' | 'matched' | 'blank' | 'unavailable';
+  } | null>(null);
   const textbookCoachResolveKeyRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!requestedAssistantBinding || assistantEntryPoint?.mode !== 'resource-coach') return;
-    // 启用会话库的页面必须先完成列表水合；未启用的页面以服务端匹配查询为唯一真源
-    if (enabled && !hasHydratedList) return;
-    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+  const coachResolveKey = useMemo(() => {
+    if (assistantEntryPoint?.mode !== 'resource-coach' || !requestedAssistantBinding) return null;
     const hints = requestedAssistantBinding.modeClientContextHints;
-    const resolveKey = [
+    return [
       String(hints.unitId ?? ''),
       String(hints.sourceRevision ?? ''),
       String(hints.contentHash ?? ''),
       String(hints.anchorId ?? ''),
     ].join('\u001f');
+  }, [assistantEntryPoint?.mode, requestedAssistantBinding]);
+  useEffect(() => {
+    if (!requestedAssistantBinding || assistantEntryPoint?.mode !== 'resource-coach') return;
+    // 启用会话库的页面必须先完成列表水合；未启用的页面以服务端匹配查询为唯一真源
+    if (enabled && !hasHydratedList) return;
+    if (!shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)) return;
+    if (!coachResolveKey) return;
+    const resolveKey = coachResolveKey;
+    const hints = requestedAssistantBinding.modeClientContextHints;
     if (textbookCoachResolveKeyRef.current === resolveKey) return;
     textbookCoachResolveKeyRef.current = resolveKey;
+    setCoachResolution({ key: resolveKey, state: 'loading' });
     const controller = new AbortController();
     const params = new URLSearchParams();
     for (const key of ['resourceKind', 'resourceId', 'bookId', 'edition', 'sourceRevision', 'unitId', 'contentHash', 'anchorId']) {
@@ -365,9 +377,14 @@ export function GlobalAISidebar() {
         // 页面身份或解析键已变化时丢弃过期结果
         if (textbookCoachResolveKeyRef.current !== resolveKey) return;
         if (result.status === 'matched' && result.conversation?.id) {
+          setCoachResolution({ key: resolveKey, state: 'matched' });
           selectConversation(result.conversation.id);
           return;
         }
+        setCoachResolution({
+          key: resolveKey,
+          state: result.status === 'unavailable' ? 'unavailable' : 'blank',
+        });
         enterBlankConversation();
         setMessages([]);
         if (result.status === 'unavailable') {
@@ -376,12 +393,15 @@ export function GlobalAISidebar() {
       })
       .catch((cause) => {
         if ((cause as Error | null)?.name === 'AbortError') return;
+        // 解析失败保持显式不可用：允许身份变化后重试，但不得在结论未知时创建会话
         textbookCoachResolveKeyRef.current = null;
+        setActionStatus('历史对话恢复失败，请稍后重试。');
       });
     return () => controller.abort();
   }, [
     activeAssistantBinding,
     assistantEntryPoint,
+    coachResolveKey,
     enabled,
     enterBlankConversation,
     hasHydratedList,
@@ -389,6 +409,17 @@ export function GlobalAISidebar() {
     selectConversation,
     setMessages,
   ]);
+
+  // 首问提交门禁：仅当当前身份的解析结论为 blank（确认无匹配）或 matched 已完成恢复时才放行
+  const coachSubmissionBlocked = Boolean(
+    coachResolveKey
+    && shouldStartTextbookCoachConversation(assistantEntryPoint, activeAssistantBinding)
+    && (
+      coachResolution?.key !== coachResolveKey
+      || coachResolution.state === 'loading'
+      || coachResolution.state === 'unavailable'
+    ),
+  );
 
   useEffect(() => {
     if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
@@ -677,6 +708,12 @@ export function GlobalAISidebar() {
   const handleQuickQuestion = useCallback(
     async (question: string) => {
       if (isLoading || isConversationLoading || isConversationMutating) return;
+      if (coachSubmissionBlocked) {
+        setActionStatus(coachResolution?.state === 'unavailable'
+          ? '该教材版本已不可用，无法继续辅导。'
+          : '正在恢复该教材版本的历史对话，请稍候。');
+        return;
+      }
       try {
         const conversation = await ensureConversation();
         await append(
@@ -688,7 +725,7 @@ export function GlobalAISidebar() {
         setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
       }
     },
-    [append, chatBody, clearUnread, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
+    [append, chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, isConversationLoading, isConversationMutating, isLoading]
   );
 
   useEffect(() => {
@@ -733,6 +770,12 @@ export function GlobalAISidebar() {
   const handleConversationSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isLoading || isConversationLoading || isConversationMutating) return;
+    if (coachSubmissionBlocked) {
+      setActionStatus(coachResolution?.state === 'unavailable'
+        ? '该教材版本已不可用，无法继续辅导。'
+        : '正在恢复该教材版本的历史对话，请稍候。');
+      return;
+    }
     try {
       const conversation = await ensureConversation();
       await handleSubmit(undefined, { ...chatBody, conversationId: conversation.id });
@@ -740,7 +783,7 @@ export function GlobalAISidebar() {
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
     }
-  }, [chatBody, clearUnread, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
+  }, [chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
 
   const handleNewConversation = useCallback(async () => {
     try {

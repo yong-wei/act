@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
     }
 
     const now = new Date();
+    // 先在数据库侧按完整 pinned 绑定过滤，再对命中集限界；
+    // 候选截断只影响同一身份的并列匹配（取最近者），不会漏掉历史匹配
     const candidates = await prisma.$queryRaw<BindingProjectionRow[]>`
       SELECT s.id, s.title, s."lastActivityAt",
         (
@@ -60,6 +62,15 @@ export async function GET(request: NextRequest) {
       WHERE s."userId" = ${session.user.id}
         AND s."libraryVisible" = true
         AND (s."expiresAt" IS NULL OR s."expiresAt" > ${now})
+        AND EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(s.messages) AS bound(message)
+          WHERE bound.message -> 'metadata' -> 'konlingAssistantBindingEvent' ->> 'teachingAssistantModeId' = 'resource-coach'
+            AND bound.message -> 'metadata' -> 'konlingAssistantBindingEvent' -> 'pinnedTextbookResourceIdentity' ->> 'unitId' = ${identity.unitId}
+            AND bound.message -> 'metadata' -> 'konlingAssistantBindingEvent' -> 'pinnedTextbookResourceIdentity' ->> 'sourceRevision' = ${identity.sourceRevision}
+            AND bound.message -> 'metadata' -> 'konlingAssistantBindingEvent' -> 'pinnedTextbookResourceIdentity' ->> 'contentHash' = ${identity.contentHash}
+            AND COALESCE(bound.message -> 'metadata' -> 'konlingAssistantBindingEvent' -> 'pinnedTextbookResourceIdentity' ->> 'anchorId', '') = ${identity.anchorId ?? ''}
+        )
       ORDER BY s."lastActivityAt" DESC
       LIMIT ${MATCH_CANDIDATE_LIMIT}
     `;

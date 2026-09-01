@@ -145,4 +145,20 @@ describe('/api/ai/sessions/resource-coach-match', () => {
     expect(response.status).toBe(401);
     expect(mocks.queryRaw).not.toHaveBeenCalled();
   });
+
+  it('filters by the complete pinned identity in the database before bounding results', async () => {
+    mocks.queryRaw.mockResolvedValue([]);
+    await GET(matchUrl());
+    const call = mocks.queryRaw.mock.calls[0]!;
+    const sql = (call[0] as readonly string[]).join('?');
+    // 绑定过滤先于结果限界：EXISTS 位于 WHERE，截断只作用于过滤后的命中集
+    expect(sql).toContain('EXISTS');
+    expect(sql).toContain('pinnedTextbookResourceIdentity');
+    expect(sql.indexOf('EXISTS')).toBeLessThan(sql.indexOf('ORDER BY s."lastActivityAt"'));
+    const values = call.slice(1);
+    expect(values).toContain('student-1');
+    expect(values).toContain(identityParams.unitId);
+    expect(values).toContain(identityParams.sourceRevision);
+    expect(values).toContain(identityParams.contentHash);
+  });
 });

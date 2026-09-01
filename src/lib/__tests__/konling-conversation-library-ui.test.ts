@@ -184,4 +184,16 @@ describe('Konling conversation library UI contracts', () => {
     expect(libraryHookSource).toContain('setHasHydratedList(true)');
     expect(libraryHookSource).toContain('assistantBinding: {');
   });
+
+  it('blocks the first question until the server-side identity resolution concludes', () => {
+    // 匹配请求在途、身份已变化或版本不可用时，提交路径不得创建会话
+    expect(sidebarSource).toContain("setCoachResolution({ key: resolveKey, state: 'loading' })");
+    expect(sidebarSource).toContain('const coachSubmissionBlocked = Boolean(');
+    expect(sidebarSource).toContain("coachResolution.state === 'unavailable'");
+    const submitGuardCount = sidebarSource.match(/if \(coachSubmissionBlocked\) \{/g)?.length ?? 0;
+    expect(submitGuardCount).toBe(2);
+    expect(sidebarSource).toContain('正在恢复该教材版本的历史对话，请稍候。');
+    // 解析失败保持显式不可用，不静默放行创建
+    expect(sidebarSource).toContain('历史对话恢复失败，请稍后重试。');
+  });
 });
