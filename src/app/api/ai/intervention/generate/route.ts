@@ -1,71 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { prisma } from '@/lib/prisma';
-import { buildKonlingInterventionClientFields } from '@/lib/konling-intervention-client-payload';
-import {
-  createGovernedKonlingIntervention,
-  verifyKonlingRuntimeScope,
-} from '@/lib/konling-agent-runtime';
-import {
-  type InterventionDecision,
-  type StudentState,
-} from '@/features/personalization/interventions/public-api';
-import type { ControllerMethod } from '@/features/arena/types';
-import { isClientAuthoredArenaCompanionScope } from '@/features/ai/companion/arena-companion-context';
 
 export const dynamic = 'force-dynamic';
 
-interface GenerateRequest {
-  studentState: StudentState;
-  userId?: string;
-  classId?: string;
-  courseId?: string;
-  pageId?: string;
-  resourceId?: string;
-  pathNodeId?: string;
-  arenaTaskId?: string;
-  method?: ControllerMethod;
-}
-
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const session = await getServerAuthSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
 
-    const body = (await request.json()) as GenerateRequest;
-    if (isClientAuthoredArenaCompanionScope(body)) {
-      return NextResponse.json(
-        { error: '竞技场受治理陪伴只能由正式评测提交创建' },
-        { status: 400 },
-      );
-    }
-
-    const scope = await verifyKonlingRuntimeScope(prisma, {
-      authenticatedUserId: session.user.id,
-      role: session.user.role,
-      targetUserId: body.userId || session.user.id,
-      classId: body.classId,
-      courseId: body.courseId,
-      pageId: body.pageId,
-      resourceId: body.resourceId,
-      pathNodeId: body.pathNodeId,
-    });
-    if (!scope.ok) {
-      return NextResponse.json({ error: scope.error }, { status: scope.status });
-    }
-
-    const intervention = await createGovernedKonlingIntervention(prisma, {
-      scope: scope.scope,
-      studentState: body.studentState,
-    });
-
-    return NextResponse.json({
-      decision: toClientDecision(intervention),
-      ...buildKonlingInterventionClientFields(intervention),
-    });
+    return NextResponse.json(
+      { error: '竞技场受治理陪伴只能由正式评测提交创建' },
+      { status: 400 },
+    );
   } catch (error) {
     rethrowIfNextDynamicError(error);
     return NextResponse.json(
@@ -76,16 +25,4 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-}
-
-function toClientDecision(
-  intervention: Awaited<ReturnType<typeof createGovernedKonlingIntervention>>,
-): InterventionDecision {
-  return {
-    shouldIntervene: intervention.shouldIntervene,
-    reason: intervention.reason as InterventionDecision['reason'],
-    interventionType: intervention.interventionType === 'none' || intervention.interventionType === 'cooldown'
-      ? undefined
-      : intervention.interventionType as InterventionDecision['interventionType'],
-  };
 }

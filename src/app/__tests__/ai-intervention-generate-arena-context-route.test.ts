@@ -116,7 +116,7 @@ describe('POST /api/ai/intervention/generate Arena context', () => {
     expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
   });
 
-  it('still generates interventions outside Arena companion identity', async () => {
+  it('rejects client-authored generate writes even when the caller uses a non-Arena scope', async () => {
     const response = await postJson({
       studentState,
       courseId: 'unit-4-5',
@@ -125,8 +125,11 @@ describe('POST /api/ai/intervention/generate Arena context', () => {
       pathNodeId: 'node-1',
     });
 
-    expect(response.status).toBe(200);
-    expect(mocks.verifyKonlingRuntimeScope).toHaveBeenCalled();
-    expect(mocks.createGovernedKonlingIntervention).toHaveBeenCalled();
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
+    expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
   });
 });

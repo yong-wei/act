@@ -98,9 +98,10 @@ describe('AI intervention generate route contract', () => {
     expect(companionPanelSource).toContain('arenaTaskId: context.taskId, method: context.method');
   });
 
-  it('routes generate responses through the behavior-tested client field builder', () => {
-    expect(generateRouteSource).toContain('buildKonlingInterventionClientFields(intervention)');
-    expect(generateRouteSource).toContain('decision: toClientDecision(intervention)');
-    expect(generateRouteSource).not.toContain('const decision = shouldIntervene');
+  it('closes the generate route so client-authored attempts cannot persist', () => {
+    expect(generateRouteSource).toContain("error: '竞技场受治理陪伴只能由正式评测提交创建'");
+    expect(generateRouteSource).not.toContain('createGovernedKonlingIntervention');
+    expect(generateRouteSource).not.toContain('verifyKonlingRuntimeScope');
+    expect(generateRouteSource).not.toContain('studentState');
   });
 });
