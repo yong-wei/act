@@ -139,6 +139,7 @@ export function SmartLessonPlanWorkspace({
   const [hydrationReady, setHydrationReady] = useState(false);
   const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null);
   const coursewareCreationInFlight = useRef(false);
+  const taskRequestSequences = useRef(new Map<string, number>());
   const highlightTimer = useRef<number | null>(null);
   const sourceOptions = useMemo<SourceOption[]>(() => availableCourseBases.flatMap((basis: any) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
@@ -398,10 +399,15 @@ export function SmartLessonPlanWorkspace({
   }
 
   async function refreshTask(taskId: string) {
+    // 重叠轮询的乱序响应按请求序号仲裁：只应用该任务最新一次请求的结果，
+    // 同 revision 下旧 RUNNING 投影也不得覆盖新 COMPLETED 投影。
+    const sequence = (taskRequestSequences.current.get(taskId) ?? 0) + 1;
+    taskRequestSequences.current.set(taskId, sequence);
     try {
       const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
+      if (taskRequestSequences.current.get(taskId) !== sequence) return;
       setTasks((current) => mergeIncomingTask(current, payload.task as Task));
       setMessage('任务状态已刷新。');
     } catch {
