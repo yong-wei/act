@@ -45,7 +45,6 @@ interface ActiveAuthorityRuntimeViewProps {
     mathematics?: import('@/lib/governed-math').GovernedFormulaProjection;
   } | null;
   canvasAriaLabel: string;
-  showUnavailableTeachingDirectory?: boolean;
   /** 未裁剪的域概览规模（compact 视图的 view.nodes 已按上限裁剪）。 */
   overviewCount?: number;
   /** 未裁剪且经 model 过滤的概览目录条目（compact 可浏览目录数据源）。 */
@@ -65,7 +64,6 @@ export function ActiveAuthorityRuntimeView({
   onEnterDomain,
   hoverPreview,
   canvasAriaLabel,
-  showUnavailableTeachingDirectory = false,
   overviewCount,
   overviewEntries,
   layout,
@@ -119,15 +117,13 @@ export function ActiveAuthorityRuntimeView({
   const rootEntries = catalog
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
     : [];
-  const showNodeDirectory = kind === 'domain' && (
-    !view
-    || view.edges.length === 0
-    || showUnavailableTeachingDirectory
+  const showNodeDirectory = kind === 'domain' && view !== undefined && (
     // mobile 大域（超 compact 上限）画布标签几何受限（fit 后像素级
     // 节点），可浏览目录承担无选择可读名称（#1739 spec mobile 大域
-    // 场景）。compact 视图的 view.nodes 已按可见上限裁剪，规模判断用
-    // 未裁剪的 overviewCount；桌面画布不受压缩，目录保持 sr-only。
-    || (compactLabelPriority && (overviewCount ?? view.nodes.length) > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES)
+    // 场景）。Teaching 不可用 / 零边不再展开可见目录；目录保持
+    // sr-only 语义通道（#1742）。compact 视图的 view.nodes 已按可见
+    // 上限裁剪，规模判断用未裁剪的 overviewCount；桌面画布不受压缩。
+    compactLabelPriority && (overviewCount ?? view.nodes.length) > KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES
   );
 
   useEffect(() => {

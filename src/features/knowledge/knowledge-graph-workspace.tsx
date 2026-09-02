@@ -155,14 +155,17 @@ export function KnowledgeGraphWorkspace({
             ) : null}
           </>
         ) : null}
-        <div
-          ref={chromeHostRef}
-          id={KNOWLEDGE_WORKSPACE_CHROME_SLOT_ID}
-          data-knowledge-workspace-chrome-slot="true"
-          className={mode === 'active' ? 'flex min-w-0 flex-1 flex-wrap items-center gap-2' : 'hidden'}
-          hidden={mode !== 'active'}
-        />
       </div>
+      {/* #1742：active 图的搜索与筛选 chrome 挂载在工具栏下方的独立行，
+          全局工具栏只保留版本/维度/适配/重排/返回领域动作。顶部留白与
+          active 画布的 pt-12/pt-14 对齐，避开悬浮工具栏。 */}
+      <div
+        ref={chromeHostRef}
+        id={KNOWLEDGE_WORKSPACE_CHROME_SLOT_ID}
+        data-knowledge-workspace-chrome-slot="true"
+        className="mx-3 flex min-w-0 flex-col gap-1 pt-12 max-[639px]:pt-14"
+        hidden={mode !== 'active'}
+      />
 
       <div
         className={mode === 'active' ? 'flex min-h-0 flex-1 flex-col overflow-hidden' : 'hidden'}

@@ -130,7 +130,10 @@ describe('shared graph presentation contract', () => {
     );
     expect(activeGraph).toContain('data-latest-cutover-ready');
     expect(activeGraph).toContain("teachingCoverage?.note !== '教学关系暂不可用'");
-    expect(activeGraph).toContain("showUnavailableTeachingDirectory={!latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用'}");
+    // #1742：Teaching 不可用不再展开可见目录；覆盖状态改在筛选面板按
+    // status 提示，画布不出现底部全节点列表。
+    expect(activeGraph).not.toContain('showUnavailableTeachingDirectory');
+    expect(activeGraph).toContain('teachingCoverageNote');
     expect(KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH).toBe(639);
     expect(KNOWLEDGE_GRAPH_SUPPORTED_VIEWPORTS).toMatchObject({
       desktop: { width: 1440 },
