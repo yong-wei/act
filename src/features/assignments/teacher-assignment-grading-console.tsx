@@ -51,15 +51,12 @@ export function TeacherAssignmentGradingConsole({ assignmentId }: { assignmentId
       const response = await fetch(`/api/teacher/assignments/${encodeURIComponent(assignmentId)}/grading/manual`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ submissionId: submission.id, questionId: question.id, idempotencyKey: crypto.randomUUID() }) });
       const payload = await response.json().catch(() => ({})) as { review?: { id?: string }; run?: { id?: string }; error?: string };
       if (!response.ok || !payload.review?.id) throw new Error(payload.error ?? '无法创建人工批改');
-      const query = new URLSearchParams({ questionId: question.id, mode: 'student', reviewId: payload.review.id }); if (payload.run?.id) query.set('gradingRunId', payload.run.id);
-      router.push(`/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions/${encodeURIComponent(submission.id)}/review?${query.toString()}`);
+      router.push(consoleReviewHref(assignmentId, submission.id, question.id, payload.review.id, payload.run?.id));
     } catch (error) { setNotice({ kind: 'error', message: gradingErrorMessage(error, '无法创建人工批改') }); setBusy(null); }
   }
   async function beginAiReview(submission: Submission, question: SubmissionQuestion) {
     if (question.reviewId) {
-      const query = new URLSearchParams({ questionId: question.id, mode: 'student', reviewId: question.reviewId });
-      if (question.gradingRunId) query.set('gradingRunId', question.gradingRunId);
-      router.push(`/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions/${encodeURIComponent(submission.id)}/review?${query.toString()}`);
+      router.push(consoleReviewHref(assignmentId, submission.id, question.id, question.reviewId, question.gradingRunId));
       return;
     }
     if (!question.gradingRunId) return;
@@ -68,8 +65,7 @@ export function TeacherAssignmentGradingConsole({ assignmentId }: { assignmentId
       const response = await fetch(`/api/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions/${encodeURIComponent(submission.id)}/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ gradingRunId: question.gradingRunId }) });
       const payload = await response.json().catch(() => ({})) as { review?: { id?: string }; error?: string };
       if (!response.ok || !payload.review?.id) throw new Error(payload.error ?? '无法打开预评分草稿审核');
-      const query = new URLSearchParams({ questionId: question.id, mode: 'student', reviewId: payload.review.id, gradingRunId: question.gradingRunId });
-      router.push(`/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions/${encodeURIComponent(submission.id)}/review?${query.toString()}`);
+      router.push(consoleReviewHref(assignmentId, submission.id, question.id, payload.review.id, question.gradingRunId));
     } catch (error) { setNotice({ kind: 'error', message: gradingErrorMessage(error, '无法打开预评分草稿审核') }); setBusy(null); }
   }
   async function retryQuestion(submission: Submission, question: SubmissionQuestion) {
@@ -133,6 +129,17 @@ function normalizeDiagnostic(value: unknown): Submission['gradingDiagnostic'] | 
   return code && message ? { code, message, canStartAi: row.canStartAi === true } : undefined;
 }
 function normalizeGrading(value: unknown): Submission['grading'] { if (!value || typeof value !== 'object') return null; const row = value as Record<string, unknown>; const snapshotId = stringValue(row.snapshotId); return snapshotId ? { snapshotId, source: stringValue(row.source) || null, state: stringValue(row.state) || 'PENDING_GRADING', operationState: stringValue(row.operationState) || null } : null; }
+export function consoleReviewHref(
+  assignmentId: string,
+  submissionId: string,
+  questionId: string,
+  reviewId: string,
+  gradingRunId?: string | null,
+) {
+  const query = new URLSearchParams({ questionId, mode: 'student', reviewId });
+  if (gradingRunId) query.set('gradingRunId', gradingRunId);
+  return `/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions/${encodeURIComponent(submissionId)}/review?${query.toString()}`;
+}
 function stringValue(value: unknown) { return typeof value === 'string' ? value : ''; }
 function numberValue(value: unknown) { return typeof value === 'number' && Number.isFinite(value) ? value : 0; }
 export function isAiGradingCandidate(submission: Pick<Submission, 'state' | 'submittedRequiredCount' | 'grading' | 'gradingDiagnostic'>) {

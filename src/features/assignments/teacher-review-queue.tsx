@@ -91,16 +91,11 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
     [fullQueue, status],
   );
   const firstReviewable = firstReviewableQueueItem(queue);
-  const semantics =
-    loadState === "loading"
-      ? "loading"
-      : loadState === "error"
-        ? "error"
-        : submissions.length === 0
-          ? "empty"
-          : queue.length === 0
-            ? "filtered-empty"
-            : "ready";
+  const semantics = queueOperationsSemantics(
+    loadState,
+    submissions.length,
+    queue.length,
+  );
 
   return (
     <main
@@ -205,16 +200,14 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
           </label>
         </section>
 
-        {loadState === "loading" ? <QueueLoading /> : null}
-        {loadState === "error" ? (
+        {semantics === "loading" ? <QueueLoading /> : null}
+        {semantics === "error" ? (
           <QueueError onRetry={() => void load()} />
         ) : null}
-        {loadState === "ready" && submissions.length === 0 ? (
+        {semantics === "empty" ? (
           <QueueEmpty title="暂无提交" detail="学生提交后会出现在这里。" />
         ) : null}
-        {loadState === "ready" &&
-        submissions.length > 0 &&
-        queue.length === 0 ? (
+        {semantics === "filtered-empty" ? (
           <QueueEmpty
             title="当前筛选下没有项目"
             detail="调整状态或题目筛选后再试。"
@@ -231,7 +224,7 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
             </button>
           </QueueEmpty>
         ) : null}
-        {loadState === "ready" && queue.length > 0 ? (
+        {semantics === "ready" ? (
           <section
             aria-label="提交队列"
             className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60"
@@ -285,6 +278,18 @@ export function TeacherReviewQueue({ assignmentId }: { assignmentId: string }) {
       </div>
     </main>
   );
+}
+
+function queueOperationsSemantics(
+  loadState: LoadState,
+  submissionCount: number,
+  queueCount: number,
+) {
+  if (loadState === "loading") return "loading";
+  if (loadState === "error") return "error";
+  if (submissionCount === 0) return "empty";
+  if (queueCount === 0) return "filtered-empty";
+  return "ready";
 }
 
 function ModeButton({
