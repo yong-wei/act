@@ -1933,6 +1933,7 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     ['wu-ke-zhi-yi emphatic affirmation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者无可置疑地存在冲突。'], true],
     ['wu-ke-fou-ren emphatic affirmation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者无可否认存在冲突。'], true],
     ['zhen-cde negated connective stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者不构成真正的冲突。'], false],
+    ['double negation with long connective chain is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者并非没有确实存在冲突的可能。'], true],
   ] as const)('detects %s', (_name, summary, limitations, expected) => {
     expect(detectOverallSubgroupPseudoConflict({ summary, limitations: [...limitations] }).length > 0).toBe(expected);
   });

@@ -19,7 +19,7 @@ export const EVIDENCE_CONFLICT_WORDING_PATTERN = /冲突|矛盾|不一致/;
 // 直达冲突词，仅中和该冲突词实例。肯定强调词（无疑/无可置疑/无可
 // 否认/不排除等）不落在该结构内，天然构成声明而非否定。
 const NEGATED_CONFLICT_PREFIX_PATTERN = /(不(?:存在|构成)?|并非|没有?|毫无?|暂无|并无|无)(?:真正|确实|存在|构成|是|的){0,2}$/;
-const AFFIRMING_NEGATION_PATTERN = /(不排除|并非没|不无)[^，,。；;\n]{0,4}$/;
+const AFFIRMING_NEGATION_PATTERN = /(不排除|并非没|不无)(?:真正|确实|存在|构成|是|的|有|任何|可能)*$/;
 // 指代词：冲突声明子句显式指回前文（含前一子句）的总体—子群组合。
 const COMBINATION_REFERENCE_PATTERN = /二者|两者|上述|前述|这(?:两|三)?种|该(?:两|三)?者/;
 
