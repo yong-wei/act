@@ -13,6 +13,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { isSafeLocalePresentationText } from '@/lib/authority-domain-shards/labels';
+
 import {
   ADMITTED_LOCALES,
   LOCALE_MANIFEST_CONTRACT,
@@ -29,7 +31,7 @@ import type { LocalePresentationInventory } from './presentation-denominator';
 
 /** The exact admitted upstream bilingual bundle; never resolves `latest`. */
 export const V037_BILINGUAL_BUNDLE_RELATIVE =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r3' as const;
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r5' as const;
 
 
 const UPSTREAM_LOCALE_MANIFEST_CONTRACT = 'ctkg-locale-manifest/1';
@@ -53,6 +55,12 @@ interface UpstreamLocalizedContentRow {
   field_path: string;
   value: string;
   review_status: string;
+}
+
+/** Objects lacking approved upstream bilingual rows (r5 residual set). */
+export interface V037UncoveredReport {
+  readonly objectNames: readonly string[];
+  readonly objectExplanations: readonly string[];
 }
 
 interface UpstreamTypeTermRow {
@@ -149,7 +157,7 @@ export function adaptV037LocaleManifest(input: {
   repoRoot: string;
   envelope: V037EnvelopeIdentityInput;
   inventory: LocalePresentationInventory;
-}): AuthorityLocaleManifest {
+}): { manifest: AuthorityLocaleManifest; uncovered: V037UncoveredReport } {
   const { localeManifest } = verifyBundleSeal(input.repoRoot);
 
   const contentRows = readJsonl<UpstreamLocalizedContentRow>(
@@ -166,17 +174,19 @@ export function adaptV037LocaleManifest(input: {
   ).filter((row) => row.review_status === 'approved');
 
   const upstreamByName = new Map<string, Map<AdmittedLocale, string>>();
-  const upstreamByMeaning = new Map<string, Map<AdmittedLocale, string>>();
+  // 说明源 = meaning ∪ statement_text（上游两类按目标互斥：概念/公式走
+  // meaning，知识陈述走 statement_text；联合回退与按类型映射等价）。
+  const upstreamByExplanation = new Map<string, Map<AdmittedLocale, string>>();
   for (const row of contentRows) {
     if (row.locale !== 'zh-CN' && row.locale !== 'en') continue;
     if (row.field_path === 'name') {
       const slot = upstreamByName.get(row.target_id) ?? new Map<AdmittedLocale, string>();
       slot.set(row.locale, row.value);
       upstreamByName.set(row.target_id, slot);
-    } else if (row.field_path === 'meaning') {
-      const slot = upstreamByMeaning.get(row.target_id) ?? new Map<AdmittedLocale, string>();
+    } else if (row.field_path === 'meaning' || row.field_path === 'statement_text') {
+      const slot = upstreamByExplanation.get(row.target_id) ?? new Map<AdmittedLocale, string>();
       slot.set(row.locale, row.value);
-      upstreamByMeaning.set(row.target_id, slot);
+      upstreamByExplanation.set(row.target_id, slot);
     }
   }
   const upstreamTypes = new Map<string, Map<AdmittedLocale, string>>();
@@ -194,23 +204,31 @@ export function adaptV037LocaleManifest(input: {
 
   const records: LocalePresentationRecord[] = [];
   const languageNeutralRecordIds: string[] = [];
+  const uncoveredNames: string[] = [];
+  const uncoveredExplanations: string[] = [];
 
+  // 覆盖集分母：无上游双语行的对象进 uncovered 清单（r5 残留：2 名 +
+  // 1 说明，均为内部记录类对象），en 帧按 product-hidden/空说明处置，
+  // 不以 zh 回填、不以缺失阻断整包资格。
   const emit = (
     category: MandatoryLocaleCategory,
     expectedIds: readonly string[],
     source: Map<string, Map<AdmittedLocale, string>>,
+    uncovered: string[] | null,
     options: { trustedFormulaIdPattern?: RegExp } = {},
-  ): void => {
+  ): readonly string[] => {
+    const covered: string[] = [];
     for (const id of expectedIds) {
       const slot = source.get(id);
       const zh = slot?.get('zh-CN');
       const en = slot?.get('en');
-      if (!zh || !en) {
-        throw new V037AdapterError(
-          'upstream-coverage-gap',
-          `${category} ${id} lacks an approved upstream bilingual value`,
-        );
+      // 不可呈现文本（多行 block LaTeX 名等）不入 locale manifest：uncovered
+      // 处置，en 帧 product-hidden，zh 帧保持 sealed shard 现状（#1741）。
+      if (!zh || !en || !isSafeLocalePresentationText(zh) || !isSafeLocalePresentationText(en)) {
+        uncovered?.push(id);
+        continue;
       }
+      covered.push(id);
       const trustedFormula = options.trustedFormulaIdPattern?.test(id) === true;
       const languageNeutral = zh === en;
       for (const locale of ADMITTED_LOCALES) {
@@ -223,29 +241,34 @@ export function adaptV037LocaleManifest(input: {
           ...(languageNeutral ? { languageNeutral: true, trustedFormula } : {}),
         });
       }
-      if (languageNeutral && trustedFormula) languageNeutralRecordIds.push(id);
+      // 同值双语即 language-neutral；登记进 manifest 分类清单（trusted
+      // Formula 只是公式身份的附加标记，不改变分类）。
+      if (languageNeutral) languageNeutralRecordIds.push(id);
     }
+    return covered;
   };
 
-  emit('object-names', input.inventory.objectNames, upstreamByName, {
+  const coveredNames = emit('object-names', input.inventory.objectNames, upstreamByName, uncoveredNames, {
     trustedFormulaIdPattern: /^ctf:/u,
   });
-  emit('object-explanations', input.inventory.objectExplanations, upstreamByMeaning);
-  emit('types', input.inventory.types, upstreamTypes);
-  emit('relations', input.inventory.relations, upstreamRelations);
+  const coveredExplanations = emit(
+    'object-explanations',
+    input.inventory.objectExplanations,
+    upstreamByExplanation,
+    uncoveredExplanations,
+  );
+  const coveredTypes = emit('types', input.inventory.types, upstreamTypes, null);
+  const coveredRelations = emit('relations', input.inventory.relations, upstreamRelations, null);
 
-  const emptyCategories: MandatoryLocaleCategory[] = [
-    'domains',
-    'directions',
-    'approved-aliases',
-    'readable-sources',
-  ];
+  // 呈现真实空集类别（域名/方向枚举属 interface catalog）；别名与来源
+  // 已在覆盖集中以真实清单出现（当前均为空数组）。
+  const emptyCategories: MandatoryLocaleCategory[] = ['domains', 'directions'];
   const denominators: LocaleCategoryDenominator[] = [
     ...([
-      ['object-names', input.inventory.objectNames],
-      ['object-explanations', input.inventory.objectExplanations],
-      ['types', input.inventory.types],
-      ['relations', input.inventory.relations],
+      ['object-names', coveredNames],
+      ['object-explanations', coveredExplanations],
+      ['types', coveredTypes],
+      ['relations', coveredRelations],
       ['approved-aliases', input.inventory.aliasIds],
       ['readable-sources', input.inventory.sourceIds],
     ] as Array<[MandatoryLocaleCategory, readonly string[]]>).map(([category, ids]) => ({
@@ -280,5 +303,11 @@ export function adaptV037LocaleManifest(input: {
     contentDigest: contentDigestFor(records),
     languageNeutralRecordIds,
   };
-  return manifest;
+  return {
+    manifest,
+    uncovered: {
+      objectNames: uncoveredNames.sort(),
+      objectExplanations: uncoveredExplanations.sort(),
+    },
+  };
 }

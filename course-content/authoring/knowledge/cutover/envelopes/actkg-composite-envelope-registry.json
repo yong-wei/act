@@ -60,6 +60,26 @@
       "activationId": "v022-cutover-9c4b2c1c2c97-1ab3029ae058",
       "activationHash": null,
       "profileId": "ctr:profile:control-theory-engineering-v0.22:runtime-v3"
+    },
+    {
+      "name": "control-theory-engineering-v0.37",
+      "qualified": true,
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+      "authoritySnapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "authoritySnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "multilingualLabelCount": 2330,
+      "runtimeProfileSha256": null,
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "publicationId": "qualification:eef8ace2b95bd2e4b09e6eb579f23954cbd1e68c6396a36d467a7cf531c450e7",
+      "publicationHash": "eef8ace2b95bd2e4b09e6eb579f23954cbd1e68c6396a36d467a7cf531c450e7",
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "shardSetId": "ads-294a061649658ea5298f257af4ce248677844348efe89879f253d1ecba3eee6c",
+      "shardSetHash": "294a061649658ea5298f257af4ce248677844348efe89879f253d1ecba3eee6c",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "profileId": "ctr:profile:control-theory-engineering-v0.35:runtime-v3"
     }
   ]
 }

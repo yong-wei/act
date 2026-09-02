@@ -352,53 +352,80 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
         .map((key) => key.slice(key.indexOf(':') + 1)),
       ...selectedId ? [selectedId] : [],
     ])];
+    const previousLocale = current.selectedLocale;
     updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
     const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
     const controller = new AbortController();
     const requestControllers = requestControllersRef.current;
     requestControllers.add(controller);
-    fetchAuthorityShard(shardUrl('/api/knowledge/shards/active', locale), 'root', controller.signal)
-      .then(async (shard) => {
-        const applyRequired = (next: IncomingAuthorityShard): boolean => (
-          applyShard(next, generation, domainRevision) && !controller.signal.aborted
-        );
-        if (!applyRequired(shard)) return;
-        if (visualRole) {
-          const domainOk = await fetchDomainDefault(visualRole, generation, domainRevision);
-          if (!domainOk || controller.signal.aborted) return;
+
+    // 事务性 locale 刷新（#1741）：一次代内并行取回当前已加载的全部逻辑
+    // 分片，全部成功后同一批提交——中途失败或代过期则整体丢弃并回滚到
+    // 旧 locale 完整帧，绝不出现混合语言帧。
+    type ShardPlan = { url: string; kind: Parameters<typeof fetchAuthorityShard>[1] };
+    const plan: ShardPlan[] = [
+      { url: shardUrl('/api/knowledge/shards/active', locale), kind: 'root' },
+      ...(visualRole ? [{
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`, locale),
+        kind: 'domain-default' as const,
+      }] : []),
+      ...(visualRole ? families.map((family) => ({
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
+        kind: 'relation-family' as const,
+      })) : []),
+      ...loadedNodeIds.flatMap((nodeId): ShardPlan[] => [
+        {
+          url: shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
+          kind: 'node-neighborhood',
+        },
+        {
+          url: shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
+          kind: 'node-detail',
+        },
+      ]),
+    ];
+    const CONCURRENCY = 4;
+    const results: IncomingAuthorityShard[] = [];
+    let failed = false;
+    let cursor = 0;
+    async function worker(): Promise<void> {
+      while (cursor < plan.length && !failed && !controller.signal.aborted) {
+        const item = plan[cursor++]!;
+        const shard = await fetchAuthorityShard(item.url, item.kind, controller.signal);
+        results.push(shard);
+      }
+    }
+    void (async () => {
+      try {
+        await Promise.all(Array.from({ length: Math.min(CONCURRENCY, plan.length) }, () => worker()));
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        // 原子提交：在本地快照上串行 merge 全部响应，任何漂移即整体放弃；
+        // 只有一次 setState 把完整的新 locale 帧写入工作区（#1741）。
+        let next = workspaceRef.current;
+        for (const shard of results) {
+          const drift = shardIdentityDrift(next, shard);
+          if (drift === 'authority-catalog') {
+            onIdentityFailure();
+            return;
+          }
+          if (generation !== requestGenerationRef.current || controller.signal.aborted) return;
+          next = mergeAuthorityShard(next, shard);
         }
-        for (const family of families) {
-          if (!visualRole) break;
-          const familyShard = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
-            'relation-family',
-            controller.signal,
-          );
-          if (!applyRequired(familyShard)) return;
-        }
-        for (const nodeId of loadedNodeIds) {
-          const neighborhood = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
-            'node-neighborhood',
-            controller.signal,
-          );
-          if (!applyRequired(neighborhood)) return;
-          const detail = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
-            'node-detail',
-            controller.signal,
-          );
-          if (!applyRequired(detail)) return;
-        }
+        next = completeAuthorityLocaleRefresh(next);
         if (generation === requestGenerationRef.current) {
-          updateWorkspace(completeAuthorityLocaleRefresh);
+          updateWorkspace(() => next);
+          setState({ status: 'ready', workspace: next });
         }
-      })
-      .catch((error: unknown) => {
+      } catch (error: unknown) {
         if (controller.signal.aborted || isIdentityFailure(error)) return;
-      })
-      .finally(() => requestControllers.delete(controller));
+        // 整体失败：保留旧 locale 的完整帧（未提交任何新 display 记录），
+        // 回滚 selectedLocale 使下一次切换重新发起完整事务。
+        updateWorkspace((workspace) => ({ ...workspace, selectedLocale: previousLocale }));
+      } finally {
+        requestControllers.delete(controller);
+      }
+    })();
     return () => {
       controller.abort();
       requestControllers.delete(controller);

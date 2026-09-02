@@ -172,7 +172,10 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
   },
 };
 
-const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/iu;
+// 大小写敏感：machine token 是固定形式（小写谓词 / 大写 PREREQUISITE）。
+// 忽略大小写会把受治理英文 label（如 Prerequisite）误判为机器 token
+// 而回退中文（#1741）。
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/u;
 
 const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
   approved: '已审核',

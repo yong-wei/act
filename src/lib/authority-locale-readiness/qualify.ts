@@ -1,4 +1,4 @@
-import { isSafeAuthorityLabel } from '@/lib/authority-domain-shards/labels';
+import { isSafeLocalePresentationText } from '@/lib/authority-domain-shards/labels';
 
 import {
   ADMITTED_LOCALES,
@@ -240,7 +240,9 @@ export function qualifyLocaleManifest(
         continue;
       }
     }
-    if (!isSafeAuthorityLabel(record.value, record.trustedFormula ? 'Formula' : null, record.trustedFormula === true)) {
+    // locale 记录是学习者呈现文本：正文斜杠/反斜杠合法，安全底线见
+    // isSafeLocalePresentationText（#1741）。
+    if (!isSafeLocalePresentationText(record.value)) {
       failures.push({
         code: 'unsafe',
         message: 'locale value is not a safe learner-facing label',

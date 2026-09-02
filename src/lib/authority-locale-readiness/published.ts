@@ -47,8 +47,12 @@ export function loadPublishedLatestEnvelopeIdentity(repoRoot = process.cwd()) {
 
 export function readPublishedLocaleManifest(
   repoRoot = process.cwd(),
+  compositeName: string = PUBLISHED_LATEST_COMPOSITE_NAME,
 ): AuthorityLocaleManifest | null {
-  const filePath = path.join(repoRoot, PUBLISHED_LOCALE_MANIFEST_RELATIVE);
+  const filePath = path.join(
+    repoRoot,
+    `course-content/authoring/knowledge/cutover/envelopes/locale-manifests/${compositeName}.json`,
+  );
   if (!existsSync(filePath)) return null;
   const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as AuthorityLocaleManifest;
   if (parsed.contract !== LOCALE_MANIFEST_CONTRACT) return parsed;

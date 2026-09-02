@@ -67,6 +67,7 @@ import {
   applyLocaleToLearnerShard,
   applyLocaleToSearchHits,
   localeBindingForCapability,
+  localeProjectedObjectLabel,
 } from '@/lib/authority-locale-readiness/project-shard';
 import {
   resolveActiveLocaleQualification,
@@ -778,15 +779,35 @@ export function activeDomainSearchResponse(
       resolved.locale,
       activeIdentity.envelope.authority.releaseId,
     );
+    // 完整 locale 模式下，对象名按请求语言的投影参与匹配（#1741）：英文
+    // 查询命中英文对象名，sealed 索引的 zh 标签不再是唯一匹配面。
+    const localeLabels = capability.mode === 'complete-locale' && qualification?.manifest
+      ? new Map(index.entries.flatMap((entry) => {
+        const projected = localeProjectedObjectLabel(
+          entry.id,
+          resolved.locale,
+          qualification.manifest,
+        );
+        return projected ? [[entry.id, projected] as const] : [];
+      }))
+      : null;
+    const entryLabelFor = (entry: { id: string; label: string }): string => (
+      localeLabels?.get(entry.id) ?? entry.label
+    );
     const matched = index.entries
       .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
       .filter((entry) => (
-        searchEntryMatches(entry, needle)
+        searchEntryMatches(
+          localeLabels?.has(entry.id)
+            ? { ...entry, label: entryLabelFor(entry), aliases: [] }
+            : entry,
+          needle,
+        )
         || (formulaSearchTerms.has(entry.id)
           && normalizedSearchNeedle(formulaSearchTerms.get(entry.id)!).includes(needle))
       ))
       .sort((left, right) => (
-        left.label.localeCompare(right.label, 'zh-CN')
+        entryLabelFor(left).localeCompare(entryLabelFor(right), 'zh-CN')
         || left.id.localeCompare(right.id)
       ));
     const start = page * pageSize;

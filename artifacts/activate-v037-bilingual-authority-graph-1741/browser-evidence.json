@@ -1,0 +1,28 @@
+{
+  "rootLocaleZh": "zh-CN",
+  "zhRootName": "根轨迹",
+  "enButtonEnabledInitially": true,
+  "enRootName": "Root locus",
+  "enRootEntryText": "System modeling",
+  "enButtonPressed": "true",
+  "noUnavailableNotice": true,
+  "enDirectoryHasEntries": 270,
+  "enFirstNodeLabel": "The product of branch gains along a forward path, typically ",
+  "enFrameZhLeakInDirectory": 0,
+  "enSearchHits": 12,
+  "enSearchFirstHit": "DC gain | = | lim | ⁡ | 𝑠 | → | 0 | 𝐺 | ( | 𝑠 | ) | DC gain= | s→0 | lim | \t​",
+  "enSearchHitsContainZh": 4,
+  "enSemanticEdgesSample": [
+    "Prerequisite",
+    "Prerequisite"
+  ],
+  "enEdgesContainZh": 0,
+  "inspectorHasEnglish": true,
+  "zhRestoredDirectorySample": [
+    "前向通路上各支路增益之乘积，一般用 p_k 表示。",
+    "在航天器姿态控制中，扰动是指在动力学模型中被忽略并作为影响系统的扰动信号处理的力矩，例如气动力矩以及来自其他天体、磁场等的力矩。控制器的目标是将其影响降至最低。",
+    "控制系统的微分方程是在时间域描述系统动态性能的数学模型"
+  ],
+  "zhRestoredHasChinese": true,
+  "ok": true
+}
