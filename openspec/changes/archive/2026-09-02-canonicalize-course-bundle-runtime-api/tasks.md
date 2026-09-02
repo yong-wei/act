@@ -34,4 +34,5 @@
 - [x] 4.2 Run affected Interactive/Classroom tests, typecheck, lint, and the
   strict validation for this change; record source revision and hashes.
 - [x] 4.3 Publish a migration ledger with behavior comparison, deletion proof,
-  rollback boundary, and known non-blocking test gaps.
+  rollback boundary, and known non-blocking test gaps
+  (`evidence/migration-ledger.md`, bound to `2933a288cad73d57ef99528cbd326405978f20b3`).
