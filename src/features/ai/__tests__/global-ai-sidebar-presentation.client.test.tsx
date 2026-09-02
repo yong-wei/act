@@ -14,6 +14,7 @@ const testState = vi.hoisted(() => ({
   isOpen: true,
   pathAdvisorMode: false,
   chatMessages: [] as Array<Record<string, unknown>>,
+  chatError: null as Error | null,
   closeSidebar: vi.fn(),
   suppressDock: vi.fn(() => vi.fn()),
 }));
@@ -36,7 +37,7 @@ vi.mock('@/hooks/useLegacyChat', async () => {
         handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => setInput(event.target.value),
         handleSubmit: vi.fn(),
         isLoading: testState.chatLoading,
-        error: null,
+        error: testState.chatError,
         reload: vi.fn(),
         stop: vi.fn(),
         append: vi.fn(),
@@ -192,6 +193,7 @@ describe('GlobalAISidebar presentation continuity', () => {
     testState.mediaListeners.clear();
     testState.isOpen = true;
     testState.pathAdvisorMode = false;
+    testState.chatError = null;
     testState.chatMessages = [
       { id: 'message-1', role: 'assistant', content: '保持连续的回答' },
     ];
@@ -540,5 +542,44 @@ describe('GlobalAISidebar presentation continuity', () => {
     expect(container.querySelector('[data-konling-message-scroll-container]')?.className).toContain('overflow-x-hidden');
     expect(container.querySelector('[data-konling-motion-policy="geometry motion-reduce"]')?.className)
       .toContain('motion-reduce:transition-none');
+  });
+
+  it('renders student-safe copy and matched recovery for raw transport failures', async () => {
+    const cases = [
+      {
+        error: new Error(
+          '{"error":"AI_SERVICE_UNAVAILABLE","trace":"INTERNAL-STACK-CANARY-1814","provider":"SiliconFlow"}',
+        ),
+        copy: '智能助手暂时无法完成请求，请稍后再试。',
+        buttons: ['稍后重试'],
+        forbidden: ['INTERNAL-STACK-CANARY-1814', 'AI_SERVICE_UNAVAILABLE', 'SiliconFlow', '出错了'],
+      },
+      {
+        error: new Error('{"error":"未授权"}'),
+        copy: '登录状态已失效，请重新登录后再继续。',
+        buttons: ['重新登录'],
+        forbidden: ['未授权'],
+      },
+      {
+        error: new Error('Conversation not found'),
+        copy: '当前会话已不存在，请刷新会话或开启新对话。',
+        buttons: ['刷新会话', '开启新对话'],
+        forbidden: ['Conversation not found'],
+      },
+    ];
+
+    for (const testCase of cases) {
+      testState.chatError = testCase.error;
+      await act(async () => root.render(<GlobalAISidebar />));
+      await flush();
+
+      expect(container.textContent).toContain(testCase.copy);
+      for (const forbidden of testCase.forbidden) {
+        expect(container.textContent).not.toContain(forbidden);
+      }
+      for (const label of testCase.buttons) {
+        expect(getByRole(container, 'button', { name: label })).toBeDefined();
+      }
+    }
   });
 });
