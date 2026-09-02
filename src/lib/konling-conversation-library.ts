@@ -193,7 +193,11 @@ export function serializeKonlingConversation(
     pinned: Boolean(conversation.pinnedAt),
     pinnedAt: conversation.pinnedAt,
     lastActivityAt: conversation.lastActivityAt,
-    messages: messages.map(projectPublicKonlingMessage),
+    // 内部 system 上下文/绑定记录只留在服务端：公开 DTO 仅返回学生可见的
+    // user/assistant 消息，assistantBinding 已从完整历史单独派生。
+    messages: messages
+      .filter((message) => message.role === 'user' || message.role === 'assistant')
+      .map(projectPublicKonlingMessage),
     assistantBinding: findLatestKonlingAssistantBinding(messages),
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,

@@ -4,6 +4,7 @@ import {
   buildKonlingContextIdentity,
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
+  createKonlingAssistantBindingEvent,
   createKonlingContextEvent,
   createKonlingMessageId,
   deriveKonlingConversationTitle,
@@ -131,6 +132,57 @@ describe('Konling conversation library', () => {
     expect(serializeKonlingConversation(conversation({ messages: diagnosis.modelMessages as never })).assistantBinding)
       .not.toBeNull();
     expect(ordinary.assistantBinding).toBeNull();
+  });
+
+  it('keeps internal system context and binding records out of the public serialization', () => {
+    const persisted = conversation({
+      messages: [
+        createKonlingContextEvent({
+          courseId: 'course-a',
+          pageId: 'page-a',
+          classId: 'CANARY-CLASS-1',
+          resourceId: 'CANARY-RES-1',
+          pathNodeId: 'CANARY-NODE-1',
+          candidateGraph: {
+            authorityState: 'candidate' as const,
+            releaseSetId: 'CANARY-RSET-1',
+            releaseId: 'CANARY-REL-1',
+            projectionDigest: 'CANARY-DIGEST-1',
+            sourceDatasetHash: 'CANARY-HASH-1',
+            selectedCanonicalId: 'CANARY-CANON-1',
+            selectedCanonicalType: 'DomainConcept',
+            governanceFilter: 'EXTENSION' as const,
+            canonicalTypeFilter: null,
+            coverageStatus: 'ready' as const,
+            objectCount: 10,
+            relationCount: 12,
+          },
+        }, 'context-canary'),
+        createKonlingAssistantBindingEvent(normalizeKonlingConversationAssistantBinding({
+          modeId: 'resource-coach',
+          clientContextHints: { resourceId: 'textbook-res-9' },
+        }), 'binding-canary'),
+        { id: 'user-1', role: 'user', content: '帮我看看这道题', parts: [{ type: 'text', text: '帮我看看这道题' }] },
+        { id: 'assistant-1', role: 'assistant', content: '好的，我们来看这道题。', parts: [{ type: 'text', text: '好的，我们来看这道题。' }] },
+      ] as never,
+    });
+
+    const serialized = serializeKonlingConversation(persisted);
+    const raw = JSON.stringify(serialized);
+
+    expect(serialized.messages.map((message) => message.id)).toEqual(['user-1', 'assistant-1']);
+    expect(serialized.messages.map((message) => message.role)).toEqual(['user', 'assistant']);
+    for (const canary of [
+      'CANARY-CLASS-1', 'CANARY-RES-1', 'CANARY-NODE-1', 'CANARY-RSET-1', 'CANARY-REL-1',
+      'CANARY-DIGEST-1', 'CANARY-HASH-1', 'CANARY-CANON-1',
+      '[控灵当前页面上下文]', '[控灵助手绑定]', 'konlingContextEvent', 'konlingAssistantBindingEvent',
+    ]) {
+      expect(raw).not.toContain(canary);
+    }
+    expect(serialized.assistantBinding).toMatchObject({
+      teachingAssistantModeId: 'resource-coach',
+      modeClientContextHints: { resourceId: 'textbook-res-9' },
+    });
   });
 
   it('does not persist client hints for teacher diagnosis', () => {
