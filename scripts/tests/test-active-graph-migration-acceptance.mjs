@@ -7,6 +7,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { CAPTURE_SOURCE_FILES } from './active-graph-acceptance-lib.mjs';
+
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const outputDirRelative = process.env.ACT_ACCEPTANCE_OUTPUT_DIR ?? 'artifacts/active-graph-migration-acceptance-v037';
 const manifestPath = path.join(repoRoot, outputDirRelative, 'manifest.json');
@@ -87,9 +89,11 @@ function sha256File(relativePath) {
 }
 
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot }).toString().trim();
-if (Object.keys(manifest.sourceHashes ?? {}).length === 0) {
-  failures.push('manifest sourceHashes missing');
-}
+const sourceHashKeys = Object.keys(manifest.sourceHashes ?? {});
+const missingSources = CAPTURE_SOURCE_FILES.filter((file) => !sourceHashKeys.includes(file));
+const extraSources = sourceHashKeys.filter((file) => !CAPTURE_SOURCE_FILES.includes(file));
+if (missingSources.length > 0) failures.push(`sourceHashes missing files: ${missingSources.join(', ')}`);
+if (extraSources.length > 0) failures.push(`sourceHashes extra files: ${extraSources.join(', ')}`);
 for (const [file, expected] of Object.entries(manifest.sourceHashes ?? {})) {
   const actual = sha256File(file);
   if (actual !== expected) failures.push(`stale source hash: ${file}`);
