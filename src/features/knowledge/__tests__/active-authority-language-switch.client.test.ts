@@ -163,6 +163,69 @@ describe('active authority language switch', () => {
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
   });
 
+  it('commits workspace locale with the outer locale after a successful English root refresh', async () => {
+    const bilingualRoot: PublicAuthorityRootShard = {
+      ...rootShard,
+      localeCapability: {
+        availableLocales: ['zh-CN', 'en'],
+        bilingualReady: true,
+        englishUnavailableReason: null,
+        mode: 'complete-locale',
+        languageComponentDigest: 'a'.repeat(64),
+      },
+    };
+    const englishRoot: PublicAuthorityRootShard = {
+      ...bilingualRoot,
+      envelope: {
+        ...shardEnvelope,
+        localeProfileVersion: 'alp-test-complete-en',
+      },
+      root: {
+        ...bilingualRoot.root,
+        aggregate: {
+          ...bilingualRoot.root.aggregate,
+          displayName: 'Control theory integration',
+          summary: 'Aggregate entry',
+        },
+        domains: bilingualRoot.root.domains.map((domain) => ({
+          ...domain,
+          displayName: 'System modeling',
+          summary: 'From object to system model',
+        })),
+      },
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('locale=en')) return mockResponse(englishRoot);
+      if ((url.split('?')[0] ?? '').endsWith('/api/knowledge/shards/active')) {
+        return mockResponse(bilingualRoot);
+      }
+      throw new Error(`unexpected ${url}`);
+    });
+    act(() => {
+      root.render(createElement(KnowledgeGraphWorkspace, {
+        viewerRole: 'student',
+        candidateAllowed: false,
+        controlledVerification: false,
+        legacy: createElement('div', { 'data-legacy': 'true' }),
+      }));
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const graph = container.querySelector('[data-active-authority-graph="true"]');
+    const english = container.querySelector('[data-graph-language="en"]') as HTMLButtonElement | null;
+    await act(async () => {
+      english?.click();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(graph?.getAttribute('data-graph-locale')).toBe('en');
+    expect(graph?.getAttribute('data-workspace-locale')).toBe('en');
+  });
+
   it('replaces display records on locale refresh without dropping topology or selection', () => {
     const established = mergeAuthorityShard(createEmptyAuthorityShardWorkspace(), rootShard);
     const withDomain = mergeAuthorityShard(established, {

@@ -57,6 +57,10 @@ export function formatLoadMoreAria(locale: AdmittedLocale, count: number): strin
   return formatGraphInterfaceText('search.loadMoreAria', locale, { count });
 }
 
+export function formatUnpinAllAria(locale: AdmittedLocale, count: number): string {
+  return formatGraphInterfaceText('controls.unpinAllAria', locale, { count });
+}
+
 export function formatSearchShownCount(
   locale: AdmittedLocale,
   visible: number,

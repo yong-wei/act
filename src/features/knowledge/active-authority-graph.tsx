@@ -93,6 +93,7 @@ import {
   familyLabel,
   formatLoadMore,
   formatLoadMoreAria,
+  formatUnpinAllAria,
   formatSearchShownCount,
   graphCopy,
   shardUrl,
@@ -433,7 +434,10 @@ function useActiveAuthorityWorkspace(
           if (generation !== requestGenerationRef.current || controller.signal.aborted) return;
           next = mergeAuthorityShard(next, shard);
         }
-        next = completeAuthorityLocaleRefresh(next);
+        next = {
+          ...completeAuthorityLocaleRefresh(next),
+          selectedLocale: requestedLocale,
+        };
         if (generation === requestGenerationRef.current) {
           updateWorkspace(() => next);
           setState({ status: 'ready', workspace: next });
@@ -1009,10 +1013,10 @@ function ActiveNodeDetail({
               type="button"
               onClick={onUnpin}
               data-active-authority-unpin={nodeKey}
-              aria-label="解除固定，交还力学布局"
+              aria-label={graphCopy(locale, 'controls.unpinAria')}
               className="rounded-md border border-platform-border px-2 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
             >
-              解除固定
+              {graphCopy(locale, 'controls.unpin')}
             </button>
           ) : null}
           <button
@@ -1793,7 +1797,7 @@ export function ActiveAuthorityGraph({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale}>
+    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale} data-workspace-locale={workspace.selectedLocale}>
       <div
         className="pointer-events-none absolute left-3 top-3 z-40 max-[639px]:top-14"
         data-active-authority-header="true"
@@ -1912,10 +1916,10 @@ export function ActiveAuthorityGraph({
                     type="button"
                     onClick={() => runtimeLayout.unpinNode()}
                     data-active-authority-unpin-all="true"
-                    aria-label={`解除全部固定（${runtimeLayout.pinnedNodeIds.size} 个节点）`}
+                    aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
                     className="shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"
                   >
-                    解除全部固定（{runtimeLayout.pinnedNodeIds.size}）
+                    {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
                   </button>
                 ) : null}
                 <label className="sr-only" htmlFor="active-authority-type-filter">{graphCopy(locale, 'filter.type')}</label>
