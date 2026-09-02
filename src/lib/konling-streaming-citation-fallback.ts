@@ -82,7 +82,8 @@ export function buildStreamingCitationFallbackNotice(
   const personalizationText = guard.personalizationAvailability?.status === 'limited'
     ? `个性化状态：limited；缺少 ${guard.personalizationAvailability.missingCitationClasses.join('、') || '无'}；原因 ${guard.personalizationAvailability.lowConfidenceReasons.join('；') || '无'}。`
     : '';
-  return `【控灵证据提示】本次流式回答尚未完成最终引用核验。${sourceText}${missingText}${missingContextText}${confidenceText}${diagnosticText}${personalizationText}\n\n`;
+  // 开发/支持调试注入的详细诊断必须显式标识环境身份，与学生可见的正式引用提示区分。
+  return `【控灵开发诊断｜仅排障，非学习内容】本次流式回答尚未完成最终引用核验。${sourceText}${missingText}${missingContextText}${confidenceText}${diagnosticText}${personalizationText}\n\n`;
 }
 
 export function insertStreamingCitationFallbackNotice(stream: ReadableStream<any>, notice: string | null) {
