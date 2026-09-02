@@ -208,21 +208,8 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
       break;
     }
   }
-  const konlingRoute = `/api/ai/konling-context?selectedNodeId=${encodeURIComponent(knownTeachingNodeId)}&status=selected-node`;
-  const konlingGet = httpGet(publicUrl, teacherJar, konlingRoute, '/tmp/v018-cutover-konling.json');
-  const konling = asObject(konlingGet.status === 200 ? JSON.parse(konlingGet.body) : {});
-  const teachingContext = asObject(konling.teaching_projection_context);
-  const courseGet = httpGet(
-    publicUrl,
-    teacherJar,
-    `/api/ai/konling-context?courseId=${encodeURIComponent('unit-1-1-see-the-full-picture')}`,
-    '/tmp/v018-cutover-course.json',
-  );
-  const courseContext = asObject(
-    courseGet.status === 200
-      ? asObject(JSON.parse(courseGet.body)).teaching_projection_context
-      : {},
-  );
+  // konling-context 端点已退役（内部运行时上下文不再对学生/教师浏览器可达）；
+  // teaching projection 公网身份由上方 teaching/card/infograph 校验承担。
   const leaks = assertNoLearnerVisibleSystemIdentifiers([
     ...labels,
     String(cardNode.label ?? ''),
@@ -237,24 +224,6 @@ function verifyPublicV018(publicUrl: string): Record<string, unknown> {
   }
   if (!infographPng) {
     blockers.push('public-infograph-http');
-  }
-  if (
-    konlingGet.status !== 200
-    || teachingContext.authoritySnapshotId !== V018_SNAPSHOT
-    || teachingContext.authorityReleaseId !== V018_RELEASE_ID
-    || (teachingContext.projectionId != null && teachingContext.projectionId !== V018_PROJECTION_ID)
-  ) {
-    blockers.push('public-konling-identity');
-  }
-  if (
-    courseGet.status !== 200
-    || courseContext.authoritySnapshotId !== V018_SNAPSHOT
-    || courseContext.projectionId !== V018_PROJECTION_ID
-  ) {
-    blockers.push('public-course-runtime-identity');
-  }
-  if (!Array.isArray(teachingContext.prerequisiteAncestors) && !Array.isArray(teachingContext.prerequisiteSuccessors)) {
-    blockers.push('public-learning-path-payload');
   }
   if (leaks.length > 0) blockers.push('learner-visible-system-identifier');
   return {

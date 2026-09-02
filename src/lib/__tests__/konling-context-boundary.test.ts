@@ -1,5 +1,5 @@
 vi.mock('server-only', () => ({}));
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -12,17 +12,27 @@ import { buildKonlingRuntimeContext } from '@/lib/konling-agent-runtime';
 describe('konling runtime context confidentiality boundary', () => {
   it('retires the browser-readable konling-context endpoint', () => {
     expect(existsSync(join(process.cwd(), 'src/app/api/ai/konling-context'))).toBe(false);
-    // 生产与测试代码都不得再请求该端点。
-    const sources = [
-      'src/lib/konling-agent-runtime.ts',
-      'src/components/ai/global-ai-sidebar.tsx',
-      'src/features/knowledge/knowledge-graph-system.tsx',
-    ];
-    for (const file of sources) {
-      const source = readFileSync(join(process.cwd(), file), 'utf8');
-      expect(source, file).not.toContain("'/api/ai/konling-context'");
-      expect(source, file).not.toContain('"/api/ai/konling-context"');
-    }
+    // 生产 src/ 与 scripts/ 都不得再请求该端点。
+    const requestNeedle = /['"`]\/api\/ai\/konling-context/;
+    const scanRoots = ['src', 'scripts'];
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(join(process.cwd(), dir), { withFileTypes: true })) {
+        const fullPath = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name === 'node_modules' || entry.name.includes('.test-results')) continue;
+          walk(fullPath);
+          continue;
+        }
+        if (!/\.(ts|tsx|mjs|cjs|js)$/.test(entry.name)) continue;
+        const content = readFileSync(join(process.cwd(), fullPath), 'utf8');
+        if (requestNeedle.test(content) && !fullPath.endsWith('konling-context-boundary.test.ts')) {
+          offenders.push(fullPath);
+        }
+      }
+    };
+    for (const root of scanRoots) walk(root);
+    expect(offenders).toEqual([]);
   });
 
   it('keeps governed context server-side for model grounding with internal canaries intact', async () => {

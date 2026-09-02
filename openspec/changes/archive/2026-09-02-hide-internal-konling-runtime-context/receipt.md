@@ -43,3 +43,10 @@ task 2.1 废弃路线生效；无学生 UI 字段需要保留公开投影。
 - 前者：`teaching_projection_context`/`dual_domain_provenance` 存在性断言迁至 runtime 源（服务端构建器 `buildKonlingDualDomainProvenanceMetadataPayload`/`teachingProjectionContext`）。
 - 后者：R3 越权门用例对象为已退役端点，随端点删除（等价授权门仍由 adaptive learner-state 等服务端入口承担）。
 两文件 20 项测试通过；typecheck exit 0。
+
+
+## 6. Codex Timeout Retry 轮 P1 修复（脚本残留）
+
+- `scripts/tests/data-governance-integration-test.ts`：Test 4 由响应时间测试改为「端点保持退役」语义——404 通过、可达即失败（保密边界纳入集成回归）。
+- `scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts`：移除 konling-context 的 teaching/course 身份校验段与 3 个 blocker 分支（端点退役；公网身份仍由 teaching/card/infograph 校验承担）。
+- 边界回归扫描扩展到 `src/` + `scripts/` 全目录（排除自身与 node_modules），任何 `.ts/.tsx/.mjs/.cjs/.js` 不得再请求 `/api/ai/konling-context`。
