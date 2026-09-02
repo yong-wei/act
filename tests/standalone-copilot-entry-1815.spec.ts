@@ -203,6 +203,25 @@ test('portfolio-reflection entry keeps draft questions and explicit save action'
   await page.screenshot({ path: `${evidenceDir}/reflection-desktop-1440.png` });
 });
 
+test('evidence pending hang does not claim loaded evidence', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.route('**/api/auth/session', (route) => route.fulfill({ json: {
+    user: { id: 'demo-student', email: 'demo@example.test', name: 'Demo student', role: 'STUDENT' },
+    expires: '2026-09-30T00:00:00.000Z',
+  } }));
+  await page.route('**/api/ai/sessions', (route) => route.fulfill({ json: { conversations: [] } }));
+  await page.route('**/api/ai/copilot-profile', (route) => route.fulfill({ status: 404, json: {} }));
+  await page.route('**/api/ai/evidence-copilot**', () => undefined);
+  await page.goto('/ai/copilot?context=evidence', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-copilot-entry-kind="evidence-pending"]')).toBeVisible();
+  await expect(page.locator('[data-evidence-copilot-status="pending"]')).toBeVisible();
+  const bodyText = await page.locator('main').innerText();
+  expect(bodyText).toContain('正在核对学习证据');
+  expect(bodyText).not.toContain('已加载服务端核对的学习证据');
+  expect(bodyText).not.toContain('已核对的学习证据');
+  expect(bodyText).not.toContain('薄弱点');
+});
+
 test('evidence available and missing states keep authorized actions', async ({ page }) => {
   test.setTimeout(120_000);
   const available = await installStandaloneCopilotRoutes(page, { evidenceStatus: 'available' });

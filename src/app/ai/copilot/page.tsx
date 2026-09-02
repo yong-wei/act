@@ -76,6 +76,14 @@ export default function CopilotPage() {
     if (taskIntent) params.set('taskIntent', taskIntent);
     return `/profile/portfolio?${params.toString()}`;
   }, [assignment, source, taskIntent]);
+  const entryPresentation = buildStandaloneCopilotEntryPresentation({
+    context,
+    evidenceStatus: evidenceProjection?.status ?? null,
+    evidenceUnavailable: evidenceProjectionError,
+    evidenceLimitations: evidenceProjection?.limitations,
+    evidenceNextAction: evidenceProjection?.nextAction,
+    portfolioHref: portfolioReflectionHref,
+  });
   const taskState = useMemo(() => {
     if (context === 'portfolio-reflection') {
       return buildAiAuditTaskState({
@@ -87,23 +95,20 @@ export default function CopilotPage() {
       });
     }
     if (context === 'evidence') {
-      const status = evidenceProjection?.status;
-      const unavailable = evidenceProjectionError || status === 'unavailable';
-      const missing = status === 'missing';
+      const unavailable = entryPresentation.kind === 'evidence-unavailable';
+      const blocked = entryPresentation.kind === 'evidence-missing'
+        || entryPresentation.kind === 'evidence-limited';
       return buildAiAuditTaskState({
         taskType: 'evidence-copilot',
-        status: unavailable ? 'failed' : missing ? 'blocked' : 'pending',
-        message: unavailable
-          ? '学习证据当前不可用。'
-          : missing
-            ? '当前暂无学习证据。'
-            : evidenceProjection?.limitations[0]
-              ?? '已加载服务端核对的学习证据，建议仅作参考。',
-        nextAction: evidenceProjection?.nextAction.label ?? '去做一次自适应练习，补充学习证据',
+        status: unavailable ? 'failed' : blocked ? 'blocked' : 'pending',
+        message: entryPresentation.limitations[0]
+          ?? '正在核对学习证据。',
+        nextAction: entryPresentation.adjacentActions[0]?.label
+          ?? '去做一次自适应练习，补充学习证据',
       });
     }
     return null;
-  }, [context, evidenceProjection, evidenceProjectionError, reflectionDraft?.id]);
+  }, [context, entryPresentation, reflectionDraft?.id]);
   const taskContract =
     context === 'portfolio-reflection'
       ? getAiAuditTaskContract('portfolio-reflection')
@@ -338,14 +343,6 @@ export default function CopilotPage() {
     void refreshConversations().catch(() => undefined);
   }, [activeConversationId, refreshActiveConversation, refreshConversations]);
 
-  const entryPresentation = buildStandaloneCopilotEntryPresentation({
-    context,
-    evidenceStatus: evidenceProjection?.status ?? null,
-    evidenceUnavailable: evidenceProjectionError,
-    evidenceLimitations: evidenceProjection?.limitations,
-    evidenceNextAction: evidenceProjection?.nextAction,
-    portfolioHref: portfolioReflectionHref,
-  });
   const quickQuestions = entryPresentation.suggestions;
 
   return (

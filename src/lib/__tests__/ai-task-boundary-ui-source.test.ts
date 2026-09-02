@@ -162,6 +162,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('任务：');
     expect(copilot).toContain("{reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent}");
     expect(copilot).toContain('buildStandaloneCopilotEntryPresentation');
+    expect(copilot).toContain('entryPresentation.limitations[0]');
+    expect(copilot).not.toContain("?? '已加载服务端核对的学习证据，建议仅作参考。'");
     expect(copilot).not.toContain('请获取当前的仿真状态');
     expect(copilotEntry).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
     expect(copilotEntry).toContain('请先说明当前证据来源，再给出下一步练习建议。');
