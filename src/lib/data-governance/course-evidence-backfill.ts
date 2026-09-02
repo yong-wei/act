@@ -816,6 +816,7 @@ export async function collectCourseEvidenceBackfillPlan(
           sessionId: { in: sessionIds },
           userId: { in: userIds },
           NOT: { stateKey: { startsWith: 'teacher' } },
+          ...(filters.to ? { submittedAt: { lte: filters.to } } : {}),
         },
         orderBy: [{ lastClientEventAt: 'desc' }, { submittedAt: 'desc' }],
         select: {
@@ -853,6 +854,12 @@ export async function collectCourseEvidenceBackfillPlan(
             sessionId: { in: sessionIds },
             userId: { in: userIds },
             ...(filters.lessonKeys?.length ? { lessonKey: { in: filters.lessonKeys } } : {}),
+            ...((filters.from || filters.to) ? {
+              submittedAt: compactRecord({
+                ...(filters.from ? { gte: filters.from } : {}),
+                ...(filters.to ? { lte: filters.to } : {}),
+              }),
+            } : {}),
           }),
           orderBy: { submittedAt: 'asc' },
           select: {

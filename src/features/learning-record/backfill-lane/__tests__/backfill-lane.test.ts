@@ -13,6 +13,7 @@ import {
   beginAuthorizedBackfillApply,
   computeBackfillInputDigest,
   createFileReceiptStore,
+  isAtOrBeforeFrozenCutoff,
   rejectOnlineBackfillFallback,
   type BackfillReceiptStore,
   type BackfillTerminalReceipt,
@@ -93,6 +94,8 @@ describe('Learning Record backfill lane', () => {
     });
     expect(files.get('op-1')?.inputDigest).toBe(digest);
     expect(readFileSync(path.join(dir, 'op-1.json'), 'utf8')).toContain(digest);
+    expect(isAtOrBeforeFrozenCutoff('2026-05-21T00:30:00.000Z', '2026-05-21T08:00:00+08:00')).toBe(false);
+    expect(isAtOrBeforeFrozenCutoff('2026-05-20T23:00:00.000Z', '2026-05-21T08:00:00+08:00')).toBe(true);
   });
 
   it('rejects online backfill fallback and proves current ports never import backfill', () => {

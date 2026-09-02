@@ -139,6 +139,10 @@ describe('course evidence backfill', () => {
         sessionId: { in: ['session-5-1'] },
         userId: { in: ['student-1'] },
         lessonKey: { in: ['unit-5-1-linear-backbone-boundaries-v1'] },
+        submittedAt: {
+          gte: new Date('2026-05-20T00:00:00.000Z'),
+          lte: new Date('2026-05-21T00:00:00.000Z'),
+        },
       },
     }));
     expect(plan.mode).toBe('dry-run');

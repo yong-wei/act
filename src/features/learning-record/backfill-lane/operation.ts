@@ -105,6 +105,20 @@ export function beginAuthorizedBackfillApply(
   return { auth, existing };
 }
 
+export function parseFrozenCutoff(cutoff: string): number {
+  const ms = Date.parse(cutoff);
+  if (!Number.isFinite(ms)) {
+    throw new BackfillLaneError('input-drift', `invalid frozen cutoff: ${cutoff}`);
+  }
+  return ms;
+}
+
+export function isAtOrBeforeFrozenCutoff(value: string | Date | null | undefined, cutoff: string): boolean {
+  if (value == null) return false;
+  const ms = value instanceof Date ? value.getTime() : Date.parse(value);
+  return Number.isFinite(ms) && ms <= parseFrozenCutoff(cutoff);
+}
+
 export function rejectOnlineBackfillFallback(): never {
   throw new BackfillLaneError(
     'online-backfill-forbidden',

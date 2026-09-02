@@ -17,6 +17,7 @@ import {
   buildBackfillTerminalReceipt,
   computeBackfillInputDigest,
   createFileReceiptStore,
+  isAtOrBeforeFrozenCutoff,
 } from '@/features/learning-record/backfill-lane/public-api';
 
 const prisma = createPrismaClient();
@@ -52,12 +53,14 @@ async function main() {
 
   const frozenCutoff = readArg('--frozen-cutoff');
   const factsToInsert: Prisma.LearningFactCreateManyInput[] = [];
+  const windowEventIds: string[] = [];
   const countsByActionType = new Map<string, number>();
 
   for (const batch of batches) {
     const events = Array.isArray(batch.events) ? (batch.events as LearningEvent[]) : [];
     for (const rawEvent of events) {
-      if (frozenCutoff && rawEvent.occurredAt > frozenCutoff) continue;
+      if (frozenCutoff && !isAtOrBeforeFrozenCutoff(rawEvent.occurredAt, frozenCutoff)) continue;
+      if (rawEvent.eventId) windowEventIds.push(rawEvent.eventId);
       const canonicalActionType = resolveLearningFactActionType(rawEvent);
 
       countsByActionType.set(
@@ -100,7 +103,7 @@ async function main() {
   const inputDigest = computeBackfillInputDigest({
     lane: 'event-batches',
     frozenCutoff: auth.frozenCutoff,
-    scope: { sourceEventIds: factsToInsert.map((fact) => String(fact.sourceEventId)).sort() },
+    scope: { sourceEventIds: [...new Set(windowEventIds)].sort() },
   });
   const { existing } = beginAuthorizedBackfillApply(auth, inputDigest, store);
   if (existing?.status === 'applied' || existing?.status === 'resumed') {

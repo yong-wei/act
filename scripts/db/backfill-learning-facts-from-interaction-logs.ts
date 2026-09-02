@@ -18,6 +18,7 @@ import {
   buildBackfillTerminalReceipt,
   computeBackfillInputDigest,
   createFileReceiptStore,
+  isAtOrBeforeFrozenCutoff,
 } from '@/features/learning-record/backfill-lane/public-api';
 import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry';
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
@@ -176,20 +177,26 @@ async function main() {
             return { sessionId: stateSessionId, userId };
           }),
         },
-        select: { sessionId: true, userId: true, data: true },
+        select: { sessionId: true, userId: true, data: true, submittedAt: true, lastClientEventAt: true },
       })
     : [];
-  const stateBySessionAndUser = new Map(states.map((state) => [`${state.sessionId}::${state.userId}`, state]));
-
   const frozenCutoff = getArgValue('--frozen-cutoff') ?? '';
+  const stateBySessionAndUser = new Map(
+    states
+      .filter((state) => !frozenCutoff || isAtOrBeforeFrozenCutoff(state.lastClientEventAt ?? state.submittedAt, frozenCutoff))
+      .map((state) => [`${state.sessionId}::${state.userId}`, state]),
+  );
+
   const factsToInsert: Prisma.LearningFactCreateManyInput[] = [];
+  const windowEventIds: string[] = [];
   const countsByActionType = new Map<string, number>();
   let enrichedFromState = 0;
 
   for (const log of logs) {
     const occurredAt = (log.clientEventAt ?? log.createdAt).toISOString();
-    if (frozenCutoff && occurredAt > frozenCutoff) continue;
+    if (frozenCutoff && !isAtOrBeforeFrozenCutoff(occurredAt, frozenCutoff)) continue;
     const sourceEventId = `interaction-log:${log.id}`;
+    windowEventIds.push(sourceEventId);
     if (existingEventIds.has(sourceEventId)) {
       continue;
     }
@@ -263,7 +270,7 @@ async function main() {
   const inputDigest = computeBackfillInputDigest({
     lane: 'interaction-logs',
     frozenCutoff: auth.frozenCutoff,
-    scope: { sourceEventIds: factsToInsert.map((fact) => String(fact.sourceEventId)).sort() },
+    scope: { sourceEventIds: [...new Set(windowEventIds)].sort() },
   });
   const { existing } = beginAuthorizedBackfillApply(auth, inputDigest, store);
   if (existing?.status === 'applied' || existing?.status === 'resumed') {
