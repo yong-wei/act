@@ -52,3 +52,14 @@ Authority 零改写确认：diff 未触碰 Authority selector、domain shard、A
 ## 7. Scope guard
 
 未新增第二套 graph runtime、未改 Artifact/Run contract、未触 Authority selector/shard/schema/hash/rollback/生产部署；candidate/legacy 诊断保持 admin 显式授权语义。
+
+## 8. Codex P1 修复（HEAD 4978fa872b 上的 finding）
+
+Finding：被删 `GraphCenterClient` 是 `/api/teacher/sar-suggested-bindings/review` 唯一生产提交界面，SAR 候选审查（accept/reject/defer/invalidate）失去持久化入口，违反 tasks 2.1/2.2。核实成立（全仓 caller 扫描仅剩 API 自身与 API 测试）→ ACCEPT。
+
+修复（动作迁移到既有角色 owner——教师 K/A/Q evidence trace 面）：
+
+- `src/lib/data-governance/teacher-kaq-evidence-trace.ts`：`candidateResources` 投影补 `review`（含 auditPayload/availableActions）、`missingCoverageTypes`、`rationale`；`sarTrace` 补 `seedEntityIds`；迁入纯构造器 `buildTeacherKaqSarReviewRequest`（含默认审计 rationale 与 accept patch 规则，与被删 client 等价）。
+- `src/features/teacher/kaq-sar-candidate-review.tsx`（新 client 组件）：候选卡片上的审查理由输入 + 动作按钮 + 提交状态，POST 到既有 API。
+- `src/app/teacher/classes/[classId]/kaq-evidence-trace/page.tsx`：候选卡片渲染审查动作。
+- 回归证据：`teacher-kaq-evidence-trace.test.ts` 新增构造器用例（reject 带自定义 rationale、accept patch knowledgeCoverage、默认审计 rationale、无 review envelope → null），5/5 通过；API route 测试 46/46 通过；`npm run typecheck` exit 0（仅剩 `.next` 陈旧生成物引用已删路由的 tsc 噪音，重建即消）。
