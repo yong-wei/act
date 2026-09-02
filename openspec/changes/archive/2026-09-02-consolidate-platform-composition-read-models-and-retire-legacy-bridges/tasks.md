@@ -21,4 +21,4 @@
 ## 4. Handoff
 
 - [x] 4.1 Record before/after read-model map, deleted bridges and retained ingress adapters with deletion conditions.
-- [x] 4.2 Run `openspec validate consolidate-platform-composition-read-models-and-retire-legacy-bridges --type change --strict` before C34.
+- [x] 4.2 Run `openspec validate consolidate-platform-composition-read-models-and-retire-legacy-bridges --type change --strict`（事后更正：原任务写作 "before C34"，实际执行顺序为 C34（b5e537968）先于 C33 实现合并，该时序条件不可追溯成立；strict validation 实际在本分支归档前通过）。
