@@ -1211,8 +1211,6 @@ export function UNIT_4_1StepContentPanel({
   const moduleExtra = { revealProgress, allowInlineReveal, onInlineReveal: onAdvanceReveal };
   const moduleLegacyKind = (module: InteractiveRuntimeModuleManifest) =>
     typeof module.payload.legacyKind === 'string' ? module.payload.legacyKind : '';
-  const moduleCapabilityRef = (module: InteractiveRuntimeModuleManifest) =>
-    typeof module.payload.capabilityRef === 'string' ? module.payload.capabilityRef : '';
   const renderGraphic = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
     if (step.id === 'step-04') {
       return <MediaPanel src="/course-runtime/lessons/4-1/media/4-1-ship-heading-block.png" alt="客船航向控制对象框图" />;
@@ -1299,7 +1297,7 @@ export function UNIT_4_1StepContentPanel({
       return baseRegistry['content.figure']?.(props) ?? null;
     },
     'compute.panel': (props) => {
-      if (moduleLegacyKind(props.module) === 'interactive-figure' || moduleCapabilityRef(props.module) === 'interactive-figure') {
+      if (moduleLegacyKind(props.module) === 'interactive-figure') {
         return renderInteractiveFigure(props);
       }
       return baseRegistry['compute.panel']?.(props) ?? null;

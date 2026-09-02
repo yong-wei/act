@@ -370,7 +370,11 @@ describe('registration retirement', () => {
         }
         if (entry.name !== 'step-panels.tsx') continue;
         const source = readFileSync(path, 'utf8');
-        if (source.includes('composeManifestPluginRegistry')) offenders.push(path);
+        if (source.includes('composeManifestPluginRegistry')) offenders.push(`${path}:composeManifestPluginRegistry`);
+        if (/capabilityRef\s*===\s*['"]interactive-figure['"]/.test(source)
+          || /moduleCapabilityRef\([^)]*\)\s*===\s*['"]interactive-figure['"]/.test(source)) {
+          offenders.push(`${path}:capabilityRef-interactive-figure`);
+        }
       }
     }
     expect(offenders).toEqual([]);

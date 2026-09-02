@@ -1,6 +1,7 @@
 # Registration inventory (C13)
 
-Source revision: claim branch HEAD at implementation time.
+Source commit: `d9b6e8e963133105c45144c8fd5d7d1aeb703192`
+Source tree: `2c2fde6d45711e67bcb67f4076964e0d1cc025d0`
 Scope: reusable manifest module/activity/layout registration. DB/BOPPPS
 `src/lib/resource-registry.tsx` and uppercase `ResourceRenderer.tsx` stay
 separate and are not migrated.
@@ -45,9 +46,10 @@ Canonical imports remain
 Retained wrappers in unit `step-panels.tsx` spread
 `createManifestContentModuleRegistry` and override `compute.panel` by
 `legacyKind` / `panel_id` for course-owned rust/image/training panels.
-They do not call `composeManifestPluginRegistry` and do not register a
-second composite plugin identity. 1-2 / workbench modules without a local
-override keep the plugin path.
+They must not match a registered plugin `capabilityRef` (`interactive-figure`,
+workbench refs, `static-surface-3d`); those identities go through
+`lookupModule`. They do not call `composeManifestPluginRegistry`. 1-2 /
+workbench modules without a local override keep the plugin path.
 
 ## Activity / layout
 
