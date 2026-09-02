@@ -816,7 +816,13 @@ export async function collectCourseEvidenceBackfillPlan(
           sessionId: { in: sessionIds },
           userId: { in: userIds },
           NOT: { stateKey: { startsWith: 'teacher' } },
-          ...(filters.to ? { submittedAt: { lte: filters.to } } : {}),
+          ...(filters.to ? {
+            submittedAt: { lte: filters.to },
+            OR: [
+              { lastClientEventAt: null },
+              { lastClientEventAt: { lte: filters.to } },
+            ],
+          } : {}),
         },
         orderBy: [{ lastClientEventAt: 'desc' }, { submittedAt: 'desc' }],
         select: {

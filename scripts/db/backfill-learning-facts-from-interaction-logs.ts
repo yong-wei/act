@@ -19,6 +19,7 @@ import {
   computeBackfillInputDigest,
   createFileReceiptStore,
   isAtOrBeforeFrozenCutoff,
+  isAuxiliaryStateAtOrBeforeFrozenCutoff,
 } from '@/features/learning-record/backfill-lane/public-api';
 import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry';
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
@@ -183,7 +184,7 @@ async function main() {
   const frozenCutoff = getArgValue('--frozen-cutoff') ?? '';
   const stateBySessionAndUser = new Map(
     states
-      .filter((state) => !frozenCutoff || isAtOrBeforeFrozenCutoff(state.lastClientEventAt ?? state.submittedAt, frozenCutoff))
+      .filter((state) => !frozenCutoff || isAuxiliaryStateAtOrBeforeFrozenCutoff(state.submittedAt, state.lastClientEventAt, frozenCutoff))
       .map((state) => [`${state.sessionId}::${state.userId}`, state]),
   );
 

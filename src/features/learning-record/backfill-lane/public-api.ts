@@ -17,6 +17,7 @@ export {
   computeBackfillInputDigest,
   createFileReceiptStore,
   isAtOrBeforeFrozenCutoff,
+  isAuxiliaryStateAtOrBeforeFrozenCutoff,
   parseFrozenCutoff,
   rejectOnlineBackfillFallback,
 } from './operation';

@@ -119,6 +119,15 @@ export function isAtOrBeforeFrozenCutoff(value: string | Date | null | undefined
   return Number.isFinite(ms) && ms <= parseFrozenCutoff(cutoff);
 }
 
+export function isAuxiliaryStateAtOrBeforeFrozenCutoff(
+  submittedAt: string | Date | null | undefined,
+  lastClientEventAt: string | Date | null | undefined,
+  cutoff: string,
+): boolean {
+  return isAtOrBeforeFrozenCutoff(submittedAt, cutoff)
+    && (lastClientEventAt == null || isAtOrBeforeFrozenCutoff(lastClientEventAt, cutoff));
+}
+
 export function rejectOnlineBackfillFallback(): never {
   throw new BackfillLaneError(
     'online-backfill-forbidden',
