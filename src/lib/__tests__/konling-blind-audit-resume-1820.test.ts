@@ -282,7 +282,7 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     const provider: KonlingBlindAuditProvider = async () => {
       // 模拟持有权被接管：第一个任务进行期间 holder 换成外部令牌。
       const lockDir = path.join(runDir, 'run.lock.d');
-      const generations = fsReaddir(lockDir).filter((entry) => entry.startsWith('hold-'));
+      const generations = fsReaddir(lockDir).filter((entry) => entry.startsWith('pub-'));
       const latest = generations.sort().at(-1);
       if (latest) writeFileSync(path.join(lockDir, latest, 'holder'), '999999999-foreign\n', 'utf8');
       return { ok: true, result: { ruleScore: 0.9 } };
@@ -321,7 +321,7 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     expect(aggregate.officialMetrics).toBeNull();
   });
 
-  it('rejects concurrent runs and hands stale locks to the next generation', () => {
+  it('rejects concurrent runs and hands stale locks to the next slot', () => {
     const runId = 'run-lock';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     const lockDir = path.join(runDir, 'run.lock.d');
@@ -335,21 +335,21 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     prepare();
     // 活锁（当前进程持有第一代）：第二个进程拒绝启动。
     expect(() => prepare()).toThrow(KonlingBlindAuditRunLockError);
-    expect(readFileSync(path.join(lockDir, 'hold-1', 'holder'), 'utf8')).toContain(`${process.pid}-`);
+    expect(readFileSync(path.join(lockDir, 'pub-1', 'holder'), 'utf8')).toContain(`${process.pid}-`);
 
-    // stale 接替：伪造死持有者，接管建立第二代。
-    writeFileSync(path.join(lockDir, 'hold-1', 'holder'), '999999999-dead-token\n', 'utf8');
+    // stale 接替：伪造死持有者，接管发布第二槽。
+    writeFileSync(path.join(lockDir, 'pub-1', 'holder'), '999999999-dead-token\n', 'utf8');
     expect(() => prepare()).not.toThrow();
-    expect(fsReaddir(lockDir).sort()).toEqual(['hold-1', 'hold-2']);
+    expect(fsReaddir(lockDir).sort()).toEqual(['pub-1', 'pub-2']);
 
-    // 第三代持有者存活（模拟并发接替胜者完成初始化）：判活拒绝启动。
-    writeFileSync(path.join(lockDir, 'hold-2', 'holder'), '999999998-dead-too\n', 'utf8');
-    mkdirSync(path.join(lockDir, 'hold-3'));
-    writeFileSync(path.join(lockDir, 'hold-3', 'holder'), `${process.pid}-rival-live\n`, 'utf8');
+    // 第三代持有者存活（模拟并发接替胜者完成发布）：判活拒绝启动。
+    writeFileSync(path.join(lockDir, 'pub-2', 'holder'), '999999998-dead-too\n', 'utf8');
+    mkdirSync(path.join(lockDir, 'pub-3'));
+    writeFileSync(path.join(lockDir, 'pub-3', 'holder'), `${process.pid}-rival-live\n`, 'utf8');
     expect(() => prepare()).toThrow(KonlingBlindAuditRunLockError);
   });
 
-  it('re-verifies the previous generation before publishing takeover ownership', () => {
+  it('adopts an over-age empty slot by publishing the next one', () => {
     const runId = 'run-lock-reverify';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     const lockDir = path.join(runDir, 'run.lock.d');
@@ -357,22 +357,22 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     // 存活：接管必须让位并拒绝。用复验前置状态模拟——把前代 holder 写
     // 为当前存活进程，mtime 置于宽限之外：宽限判定读不到 holder（空），
     // 复验读到存活 holder 的交错由「先空判、后活判」两读语义覆盖。
-    mkdirSync(path.join(lockDir, 'hold-1'), { recursive: true });
-    utimesSync(path.join(lockDir, 'hold-1'), new Date(Date.now() - 10_000), new Date(Date.now() - 10_000));
+    mkdirSync(path.join(lockDir, 'pub-1'), { recursive: true });
+    utimesSync(path.join(lockDir, 'pub-1'), new Date(Date.now() - 10_000), new Date(Date.now() - 10_000));
     expect(() => prepareKonlingBlindAuditRun({
       root,
       runId,
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).not.toThrow();
-    expect(fsReaddir(lockDir).sort()).toEqual(['hold-1', 'hold-2']);
+    expect(fsReaddir(lockDir).sort()).toEqual(['pub-1', 'pub-2']);
   });
 
-  it('refuses to start while a holder generation is still initializing', () => {
+  it('refuses to start while a holder slot is still initializing', () => {
     const runId = 'run-lock-init';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     const lockDir = path.join(runDir, 'run.lock.d');
-    mkdirSync(path.join(lockDir, 'hold-1'), { recursive: true });
+    mkdirSync(path.join(lockDir, 'pub-1'), { recursive: true });
     // hold-1 存在但 holder 未写（初始化窗口内）：拒绝启动而不是误判 stale。
     expect(() => prepareKonlingBlindAuditRun({
       root,
