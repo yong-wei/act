@@ -239,7 +239,7 @@ export function SmartLessonPlanWorkspace({
         }
       }
       setTasks((current) => current.some((task) => task.id === detail.taskId)
-        ? current.map((task) => task.id === detail.taskId ? nextTask! : task)
+        ? mergeTasksByIdentity(current, [nextTask!])
         : [nextTask!, ...current]);
       setSelectedTaskId(detail.taskId);
       const stageId = detail.affectedStageId ?? 'topic-goals';
@@ -276,7 +276,7 @@ export function SmartLessonPlanWorkspace({
       if (taskResponse) {
         const taskPayload = await taskResponse.json();
         if (taskResponse.ok) {
-          setTasks((current) => current.map((task) => task.id === selectedTaskId ? taskPayload.task : task));
+          setTasks((current) => mergeTasksByIdentity(current, [taskPayload.task as Task]));
         }
       }
     };
@@ -318,7 +318,10 @@ export function SmartLessonPlanWorkspace({
         });
         const payload = await response.json();
         if (!response.ok) return setMessage(errorText(payload));
-        setTasks(payload.tasks);
+        setTasks((current) => (payload.tasks as Task[]).map((task) => {
+          const existing = current.find((item) => item.id === task.id);
+          return existing ? acceptFresherTask(existing, task) : task;
+        }));
         setSelectedTaskId((current) => (
           payload.tasks.some((task: Task) => task.id === current) ? current : payload.tasks[0]?.id ?? ''
         ));
@@ -399,7 +402,7 @@ export function SmartLessonPlanWorkspace({
       const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
-      setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
+      setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
       setMessage('任务状态已刷新。');
     } catch {
       setMessage('任务刷新失败，请检查网络后重试。');
@@ -469,7 +472,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? `任务约束已确认，当前修订 ${payload.task.revision}。` : errorText(payload));
-    if (response.ok) setTasks((currentTasks) => currentTasks.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((currentTasks) => mergeTasksByIdentity(currentTasks, [payload.task as Task]));
   }
 
   async function updateClassDiagnosis(task: Task, classId: string) {
@@ -485,7 +488,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '班级学情选择已更新；已有生成内容会保留并按需标记待重生成。' : errorText(payload));
-    if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
   }
 
   async function updateSourceDecision(
@@ -528,7 +531,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '来源决策已保存。' : errorText(payload));
-    if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
   }
 
   function editPausedOutline(task: Task) {
@@ -948,6 +951,25 @@ function AdvisoryReviewSummary({ value }: { value: unknown }) {
     {summaries.map((item) => <p key={item}>{item}</p>)}
     {suggestions.map((item) => <p key={item}>建议：{item}</p>)}
   </div>;
+}
+
+/**
+ * 过期响应防覆盖：同一任务只接受不早于当前展示 revision 的响应，
+ * 延迟返回的旧轮询/旧列表不得把界面回退到旧 revision。
+ */
+function taskRevisionOf(task: Task): number {
+  return typeof task.revision === 'number' && Number.isSafeInteger(task.revision) ? task.revision : 0;
+}
+
+function acceptFresherTask(current: Task, incoming: Task): Task {
+  return taskRevisionOf(incoming) >= taskRevisionOf(current) ? incoming : current;
+}
+
+function mergeTasksByIdentity(current: Task[], incoming: Task[]): Task[] {
+  return current.map((task) => {
+    const next = incoming.find((item) => item.id === task.id);
+    return next ? acceptFresherTask(task, next) : task;
+  });
 }
 
 const BOPPPS_STAGE_LABELS = Object.fromEntries(BOPPPS_STAGES) as Record<string, string>;

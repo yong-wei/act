@@ -92,6 +92,27 @@ describe('smart-lesson-plan workspace projection owners', () => {
     expect(input.goals).toEqual([]);
   });
 
+  it('rejects stale task responses so delayed polls cannot roll back a newer revision', () => {
+    const workspaceSource = readFileSync(
+      join(process.cwd(), 'src/features/teacher/smart-lesson-plan-workspace.tsx'),
+      'utf8',
+    );
+    // 所有 setTasks 替换路径必须经 revision 单调合并，不允许无条件整表覆盖。
+    expect(workspaceSource).toContain('function mergeTasksByIdentity(');
+    expect(workspaceSource).toContain('function acceptFresherTask(');
+    expect(workspaceSource).not.toContain('setTasks(payload.tasks);');
+    expect(workspaceSource).not.toContain('? payload.task : task)');
+    expect(workspaceSource).not.toContain('? taskPayload.task : task)');
+  });
+
+  it('keeps the fresher task identity when merging by task id', () => {
+    const workspaceSource = readFileSync(
+      join(process.cwd(), 'src/features/teacher/smart-lesson-plan-workspace.tsx'),
+      'utf8',
+    );
+    expect(workspaceSource).toContain('taskRevisionOf(incoming) >= taskRevisionOf(current) ? incoming : current');
+  });
+
   it('keeps the workspace component free of duplicate label, set and input rebuilding code', () => {
     const workspaceSource = readFileSync(
       join(process.cwd(), 'src/features/teacher/smart-lesson-plan-workspace.tsx'),

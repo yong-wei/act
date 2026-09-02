@@ -32,3 +32,9 @@
 ## 4. Scope guard
 
 未改 Prisma schema、API route 行为、AI provider runtime、生成队列/worker、发布链路或权限边界。
+
+
+## 5. Codex 复审修复
+
+- **P1（客户端依赖图污染）**：workspace 组件改从 `@/lib/smart-lesson-plan/workspace` 与 `task-update-input` 客户端安全子模块直接导入，不再经聚合 index（避免 queue/worker 的 BullMQ/Prisma/server-only 进入客户端图）；全仓 `use client` 文件经聚合入口导入扫描为零。
+- **P2（过期响应防覆盖，task 3.1 补齐）**：新增 `taskRevisionOf`/`acceptFresherTask`/`mergeTasksByIdentity`——refreshTask、konling confirm 事件、course-basis 刷新、editTask/updateClassDiagnosis/updateSourceDecision 与列表查询全部改为 revision 单调合并，延迟旧响应不得回退界面 revision；补 2 项回归（源断言禁止无条件 `setTasks(payload.tasks)` / `? payload.task : task` 形态，及合并语义断言）。
