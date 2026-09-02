@@ -18,6 +18,7 @@ import {
 import {
   applyStagedLearningFactIngestions,
   applyStagedProjectionTriggers,
+  assertStagingPayload,
   assertTerminalBeforeDelete,
   authorizeRawArtifact,
   authorizeReplay,
@@ -220,6 +221,34 @@ describe('canonical LearningFact ingestion', () => {
     expect(left.inputDigest).toBe(right.inputDigest);
   });
 
+  it('returns the existing digest when a settled identity is replayed identically', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const db = memoryOutbox();
+    const input = {
+      db,
+      transport: 'direct' as const,
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+      now: new Date('2026-08-29T00:00:00.000Z'),
+    };
+    const { inputDigest } = computeDigests(input);
+    await db.evidenceOutbox.upsert({
+      where: { dedupeKey: 'learning-fact-ingestion:evt-1:rev-1' },
+      create: {
+        eventType: 'learning-fact-ingestion',
+        status: 'projected',
+        payload: { inputDigest },
+        ownerUserId: 'student-1',
+        causationId: 'evt-1',
+      },
+    });
+    const replay = await ingestLearningFact(input);
+    expect(replay.status).toBe(INGESTION_STATUS.deduplicated);
+    expect(replay.factsCreated).toBe(0);
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
   it('records a conflict when a dedupe identity is reused with a different digest', async () => {
     persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
     const db = memoryOutbox();
@@ -282,6 +311,66 @@ describe('canonical LearningFact ingestion', () => {
     const applied = await applyStagedLearningFactIngestions(db);
     expect(applied.processed).toBe(1);
     expect(applied.results[0]?.status).toBe(INGESTION_STATUS.applied);
+  });
+
+  it('keeps staged apply on the original receivedAt and trustedSetDigest', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const db = memoryOutbox();
+    const stagedAt = new Date('2026-08-29T00:00:00.000Z');
+    const staged = await stageLearningFactIngestion({
+      db,
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+      now: stagedAt,
+    });
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const applied = await applyStagedLearningFactIngestions(db, { now: new Date('2026-08-29T01:00:00.000Z') });
+    expect(applied.results[0]?.status).toBe(INGESTION_STATUS.applied);
+    expect(applied.results[0]?.trustedSetDigest).toBe(staged.trustedSetDigest);
+    expect(applied.results[0]?.times?.receivedAt).toBe('2026-08-29T00:00:00.000Z');
+    expect(applied.results[0]?.times?.trustedOccurredAt).toBe('2026-08-29T00:00:00.000Z');
+    expect(applied.results[0]?.times?.materializedAt).toBe('2026-08-29T01:00:00.000Z');
+  });
+
+  it('rejects a staged payload that reuses a dedupe identity with a different digest', async () => {
+    const db = memoryOutbox();
+    await stageLearningFactIngestion({
+      db,
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+      now: new Date('2026-08-29T00:00:00.000Z'),
+    });
+    const collision = await stageLearningFactIngestion({
+      db,
+      event: event({ payload: { stepId: 'step-02', normalizedResult: 'incorrect' } }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+      now: new Date('2026-08-29T00:00:00.000Z'),
+    });
+    expect(collision.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(collision.failure?.code).toBe('dedupe-collision');
+    expect(db.rows.size).toBe(1);
+  });
+
+  it('leaves a claimed staged row recoverable when ingest throws before acknowledgement', async () => {
+    persist.persistCoreLearningFact.mockRejectedValue(new Error('crash-before-ack'));
+    const db = memoryOutbox();
+    const staged = await stageLearningFactIngestion({
+      db,
+      event: event(),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(staged.status).toBe(INGESTION_STATUS.staged);
+    const applied = await applyStagedLearningFactIngestions(db);
+    expect(applied).toEqual({ processed: 0, failed: 1, results: [] });
+    expect([...db.rows.values()][0]?.status).toBe('pending');
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const replayed = await applyStagedLearningFactIngestions(db, { now: new Date('2026-08-29T01:00:00.000Z') });
+    expect(replayed.processed).toBe(1);
+    expect(replayed.results[0]?.status).toBe(INGESTION_STATUS.applied);
   });
 
   it('records rematerialization instead of mutating original decoder versions', async () => {
@@ -404,6 +493,10 @@ describe('canonical LearningFact ingestion', () => {
 });
 
 describe('ingestion privacy, retention and replay', () => {
+  beforeEach(() => {
+    persist.persistCoreLearningFact.mockReset();
+  });
+
   it('rejects exception echo and user identifiers at the sanitizer boundary', () => {
     expect(inspectIngestionBoundary({ stack: 'Error: boom at /Users/YW/app.ts' }).length).toBeGreaterThan(0);
     expect(inspectIngestionBoundary({ userId: 'student-1' }).length).toBeGreaterThan(0);
@@ -473,6 +566,31 @@ describe('ingestion privacy, retention and replay', () => {
       trustedOccurredAt: new Date('2026-08-29T00:00:00.000Z'),
     });
     expect(decision.rejected).toBe('clock-skew');
+  });
+
+  it('fails closed when an envelope carries a client time outside the clock-skew window', async () => {
+    persist.persistCoreLearningFact.mockResolvedValue({ created: 1, skipped: false, actionType: 'lesson_submit' });
+    const result = await ingestLearningFact({
+      db: memoryOutbox(),
+      transport: 'direct',
+      event: event(),
+      envelope: envelope({
+        receivedAt: '2026-08-29T00:00:00.000Z',
+        reportedClientAt: '2026-08-29T01:00:00.000Z',
+      }),
+      actorUserId: 'student-1',
+      captureRevision: 'rev-1',
+    });
+    expect(result.status).toBe(INGESTION_STATUS.terminalFailed);
+    expect(result.failure?.code).toBe('clock-skew');
+    expect(persist.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('keeps staging allowlist as payload keys plus envelope metadata', () => {
+    expect(assertStagingPayload({ actionType: 'lesson_submit', unexpectedBlob: 1 })).toEqual(
+      expect.arrayContaining(['unknown:unexpectedBlob']),
+    );
+    expect(assertStagingPayload({ actionType: 'lesson_submit', stepId: 's1', inputDigest: 'a' })).toEqual([]);
   });
 });
 

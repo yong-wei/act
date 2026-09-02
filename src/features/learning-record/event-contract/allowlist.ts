@@ -38,6 +38,10 @@ const ALLOWED_PAYLOAD_KEYS = new Set([
   'materialization',
 ]);
 
+export function isAllowlistedPayloadKey(key: string): boolean {
+  return ALLOWED_PAYLOAD_KEYS.has(key);
+}
+
 export function collectForbiddenFields(value: unknown, path = ''): string[] {
   if (value == null) return [];
   if (Array.isArray(value)) {
