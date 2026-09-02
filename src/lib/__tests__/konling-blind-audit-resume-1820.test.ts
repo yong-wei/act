@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import {
   aggregateKonlingBlindAuditRun,
+  assertKonlingBlindAuditLockHeld,
   buildKonlingBlindAuditTaskKey,
   konlingBlindAuditManifestHash,
   KonlingBlindAuditManifestDriftError,
@@ -273,6 +274,23 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     const blindAggregate = aggregateKonlingBlindAuditRun({ root, runId, manifest: MANIFEST, mode: 'blind-audit' });
     expect(ruleAggregate.mode).toBe('rule-score');
     expect(blindAggregate.mode).toBe('blind-audit');
+  });
+
+  it('terminates the run when its lock is taken over mid-flight', async () => {
+    const runId = 'run-lock-lost';
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const provider: KonlingBlindAuditProvider = async () => {
+      // 模拟并发接管：第一个任务进行期间锁被移走。
+      writeFileSync(path.join(runDir, 'run.lock'), `999999999-${'foreign'}\n`, 'utf8');
+      return { ok: true, result: { ruleScore: 0.9 } };
+    };
+    await expect(runKonlingBlindAudit(runOptions(runId, provider)))
+      .rejects.toBeInstanceOf(KonlingBlindAuditRunLockError);
+    // 进行中的任务正常落盘；锁丢失后下一个外部调用前终止，不再写入。
+    expect(listKonlingBlindAuditRecordKeys(runDir, 'rule-score'))
+      .toEqual([keyOf('item-a', 1)]);
+    expect(() => assertKonlingBlindAuditLockHeld(runDir))
+      .toThrow(KonlingBlindAuditRunLockError);
   });
 
   it('refuses aggregation when the manifest does not match the run snapshot', async () => {

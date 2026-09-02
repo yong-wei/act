@@ -92,22 +92,57 @@ function acquireRunLock(runDir: string): void {
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
     }
-    const current = fs.readFileSync(lockPath, 'utf8').trim();
+    let current: string;
+    try {
+      current = fs.readFileSync(lockPath, 'utf8').trim();
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
+      throw error;
+    }
     const holderPid = Number(current.split('-')[0]);
     if (Number.isInteger(holderPid) && isProcessAlive(holderPid)) {
       throw new KonlingBlindAuditRunLockError(runDir);
     }
-    // 原子抢占 stale 锁：rename 同一源仅一个进程成功（其余 ENOENT），
-    // 避免删除-重建窗口把接管者的活锁误删（#1820）。
+    // 条件替换接管 stale 锁：rename 后 tombstone 内容必须等于读取时的
+    // stale 实例。内容不一致说明持有者已更换（ABA），原子还原后者的
+    // 活锁并拒绝本轮接管（#1820）。
     const tombstone = `${lockPath}.stale-${token}`;
     try {
       fs.renameSync(lockPath, tombstone);
-      fs.rmSync(tombstone, { force: true });
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
+    const removed = fs.readFileSync(tombstone, 'utf8').trim();
+    if (removed !== current) {
+      // 误移了后继持有者的活锁：仅在路径空缺时还原（避免覆盖更新的
+      // 持有者）；无法还原时由运行期锁归属断言让原持有者退出。
+      try {
+        if (!fs.existsSync(lockPath)) fs.renameSync(tombstone, lockPath);
+      } catch {
+        // best-effort 还原。
+      }
+      throw new KonlingBlindAuditRunLockError(runDir);
+    }
+    fs.rmSync(tombstone, { force: true });
   }
   throw new KonlingBlindAuditRunLockError(runDir);
+}
+
+/**
+ * 运行期锁归属断言：持有者令牌仍在本进程名下。锁文件被并发接管移走
+ * 时，本进程在下一次外部调用前主动终止，收敛独占性。
+ */
+export function assertKonlingBlindAuditLockHeld(runDir: string): void {
+  const lockPath = path.join(runDir, LOCK_FILE);
+  let holder: string;
+  try {
+    holder = fs.readFileSync(lockPath, 'utf8').trim();
+  } catch {
+    throw new KonlingBlindAuditRunLockError(runDir);
+  }
+  if (!holder.startsWith(`${process.pid}-`)) {
+    throw new KonlingBlindAuditRunLockError(runDir);
+  }
 }
 
 export function releaseKonlingBlindAuditRun(runDir: string): void {

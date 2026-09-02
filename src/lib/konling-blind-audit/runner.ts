@@ -1,4 +1,5 @@
 import {
+  assertKonlingBlindAuditLockHeld,
   prepareKonlingBlindAuditRun,
   listKonlingBlindAuditFailureKeys,
   listKonlingBlindAuditRecordKeys,
@@ -64,6 +65,8 @@ export async function runKonlingBlindAudit(input: {
         // 裁决（#1820）。
         if (isRetry && (priorAttempts ?? 0) > 1) continue;
 
+        // 外部计费调用前确认锁仍归属本进程：并发接管移走锁时主动终止。
+        assertKonlingBlindAuditLockHeld(runDir);
         const startedAt = new Date().toISOString();
         const response = await input.provider(item, replicate, input.config);
         const finishedAt = new Date().toISOString();
