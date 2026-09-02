@@ -7,3 +7,10 @@ export function getControlWorkbenchReturnHref(session: WorkbenchSessionContext) 
   const params = new URLSearchParams({ publicationId: session.publicationId });
   return `/arena/challenges/${session.taskId}?${params.toString()}`;
 }
+
+export function getControlWorkbenchLaunchKind(session: WorkbenchSessionContext) {
+  if (!('taskId' in session)) return 'standalone';
+  return session.submissionPolicy.officialEvaluationEnabled
+    ? 'official-evaluation'
+    : 'arena-preview';
+}
