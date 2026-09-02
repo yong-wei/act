@@ -37,15 +37,12 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/course-bundle', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
 }));
 
 vi.mock('@/lib/resource-registry-metadata', () => ({
   getAllRegisteredResourceMetadata: mocks.getAllRegisteredResourceMetadata,
-}));
-
-vi.mock('@/lib/structured-textbook-runtime', () => ({
-  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
-  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
 }));
 
 vi.mock('@/lib/teacher-resource-node-data', () => ({

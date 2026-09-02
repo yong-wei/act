@@ -63,11 +63,11 @@ import {
   bindKonlingCandidateSelectionToolRun,
   buildKonlingCandidateSelectionToolResult,
 } from '@/lib/konling-candidate-selection-tool-run';
-import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-bundle';
 import {
+  loadAllLessonRuntimeResourceCatalogEntries,
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,

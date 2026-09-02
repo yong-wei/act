@@ -18,7 +18,7 @@ import {
   loadStructuredTextbookBook,
   STRUCTURED_TEXTBOOK_RUNTIME_VERSION,
   type TextbookStructureUnitProjection,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import { adaptTextbookStructureUnit } from '@/lib/source-pack/corpus-adapters';
 import type { SourcePackItem } from '@/lib/source-pack/types';
 

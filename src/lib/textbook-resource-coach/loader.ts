@@ -3,7 +3,7 @@ import {
   type StructuredTextbookBook,
   type StructuredTextbookFragment,
   type StructuredTextbookUnit,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import {
   authorizeTextbookAccess,
   TEXTBOOK_COURSE_ID,

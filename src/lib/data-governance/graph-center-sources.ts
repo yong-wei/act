@@ -13,7 +13,7 @@ import {
   loadAllTextbookStructureUnitProjections,
   type TextbookStructureRuntimeCatalogEntry,
   type TextbookStructureUnitProjection,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import {
   buildResourceNodeRegistryFromTeachingResources,
   loadRuntimeResourceProjectionInputs,

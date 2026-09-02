@@ -10,7 +10,7 @@ import {
   type StructuredTextbookManifest,
   type StructuredTextbookNavigation,
   type StructuredTextbookUnit,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import {
   TEXTBOOK_COURSE_ID,
   type TextbookCatalogEntry,

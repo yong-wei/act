@@ -7,3 +7,7 @@ export * from './session-binding';
 export * from './session-reader';
 export * from './blob-reader';
 export * from './runtime-reads';
+// 教材运行时读取（structured-textbook-runtime）同样经由唯一公共入口
+// 暴露（#1785 spec：所有生产教材运行时读取经 CourseBundle public
+// surface）；实现模块保留为内部 owner。
+export * from '../structured-textbook-runtime';

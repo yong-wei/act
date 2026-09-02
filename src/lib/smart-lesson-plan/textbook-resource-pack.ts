@@ -5,7 +5,7 @@ import {
   STRUCTURED_TEXTBOOK_TITLES,
   type StructuredTextbookBook,
   type StructuredTextbookUnit,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import {
   retrieveTextbookSourcePackV2,
   type TextbookV2ToolCandidate,

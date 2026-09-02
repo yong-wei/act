@@ -8,7 +8,7 @@ vi.mock('server-only', () => ({}));
 vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
   retrieveTextbookSourcePackV2: retrievalMocks.retrieve,
 }));
-vi.mock('@/lib/structured-textbook-runtime', () => ({
+vi.mock('@/lib/course-bundle', () => ({
   STRUCTURED_TEXTBOOK_TITLES: { 'book-1': '自动控制原理' },
   loadAllStructuredTextbookBooks: vi.fn(async () => [{
     manifest: { bookId: 'book-1', edition: '8' },
