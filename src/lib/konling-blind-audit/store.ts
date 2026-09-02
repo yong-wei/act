@@ -50,7 +50,8 @@ export function konlingBlindAuditRunDir(root: string, runId: string): string {
 
 /**
  * 创建（首次）或接管（续跑）运行目录：
- * - 独占锁防止并发竞写；持有者进程已退出时允许接管 stale 锁。
+ * - `wx`/O_EXCL 原子创建独占锁，防止并发进程检查-后-写入竞态；
+ *   持有者进程已退出时允许接管 stale 锁。
  * - 首次运行写入清单快照；续跑校验清单哈希，漂移即失败。
  */
 export function prepareKonlingBlindAuditRun(input: {
@@ -62,14 +63,7 @@ export function prepareKonlingBlindAuditRun(input: {
   const runDir = konlingBlindAuditRunDir(input.root, input.runId);
   fs.mkdirSync(path.join(runDir, RECORDS_DIR), { recursive: true });
   fs.mkdirSync(path.join(runDir, FAILURES_DIR), { recursive: true });
-  const lockPath = path.join(runDir, LOCK_FILE);
-  if (fs.existsSync(lockPath)) {
-    const existing = Number(fs.readFileSync(lockPath, 'utf8').trim());
-    if (Number.isInteger(existing) && isProcessAlive(existing)) {
-      throw new KonlingBlindAuditRunLockError(runDir);
-    }
-  }
-  fs.writeFileSync(lockPath, `${process.pid}\n`, 'utf8');
+  acquireRunLock(runDir);
   const snapshotPath = path.join(runDir, MANIFEST_SNAPSHOT);
   if (fs.existsSync(snapshotPath)) {
     const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8')) as { manifestHash?: string };
@@ -85,6 +79,27 @@ export function prepareKonlingBlindAuditRun(input: {
   }
   cleanupTempFiles(runDir);
   return runDir;
+}
+
+function acquireRunLock(runDir: string): void {
+  const lockPath = path.join(runDir, LOCK_FILE);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      // wx = O_CREAT|O_EXCL：只有第一个进程能创建锁，无检查-后-写入窗口。
+      fs.writeFileSync(lockPath, `${process.pid}\n`, { encoding: 'utf8', flag: 'wx' });
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    }
+    const existing = Number(fs.readFileSync(lockPath, 'utf8').trim());
+    if (Number.isInteger(existing) && isProcessAlive(existing)) {
+      throw new KonlingBlindAuditRunLockError(runDir);
+    }
+    // stale 锁：删除后重试一次原子创建。竞争失败（他人先接管）会在
+    // 第二轮 EEXIST 且持有者存活时正确拒绝。
+    fs.rmSync(lockPath, { force: true });
+  }
+  throw new KonlingBlindAuditRunLockError(runDir);
 }
 
 export function releaseKonlingBlindAuditRun(runDir: string): void {

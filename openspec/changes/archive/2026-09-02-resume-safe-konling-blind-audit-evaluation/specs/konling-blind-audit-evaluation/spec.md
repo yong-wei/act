@@ -13,6 +13,11 @@ The knowledge-QA blind-audit runner SHALL assign every audit task a unique key d
 - **THEN** the runner SHALL persist a failure record with a structured error code and message
 - **AND** it SHALL continue or terminate without corrupting completed records.
 
+#### Scenario: Blind audit reviews the candidate answer
+- **WHEN** a blind-audit task executes
+- **THEN** the judge SHALL receive the versioned candidate answer as the explicit object of review
+- **AND** the reference points SHALL be presented only as comparison material, never as the reviewed answer.
+
 ### Requirement: Repeated runs resume without re-billing completed work
 The runner SHALL skip any task key whose completed record already exists in the run directory, and SHALL NOT overwrite frozen completed records.
 
@@ -35,12 +40,16 @@ The aggregation stage SHALL compare the manifest's expected item count with comp
 - **AND** official expert/model comparison metrics SHALL NOT be emitted.
 
 #### Scenario: Mixed configuration detected
-- **WHEN** records in one run disagree on model, provider, prompt version, or score version
+- **WHEN** records in one run disagree on model, provider, prompt version, score version, or captured code revision
 - **THEN** aggregation SHALL refuse to produce official metrics.
 
 #### Scenario: Manifest drift on resume
 - **WHEN** the benchmark manifest hash changes between the original run and a resumed run
 - **THEN** the resumed run SHALL fail before submitting any task.
+
+#### Scenario: Aggregation receives a different manifest than the run snapshot
+- **WHEN** aggregation is invoked with a manifest whose content hash differs from the run's manifest snapshot, or whose expected task keys do not exactly match the completed record keys
+- **THEN** aggregation SHALL refuse to produce official metrics for that run.
 
 ### Requirement: Rule scoring and blind audits stay separated
 Rule-based scores and independent blind-audit judgments SHALL be recorded and summarized in separate mode subtrees, and aggregation SHALL NOT merge them into one result set.

@@ -90,9 +90,10 @@ async function main() {
             system: BLIND_AUDIT_SYSTEM_PROMPT,
             prompt: [
               `问题：${item.question}`,
+              `被审回答（唯一评审对象，参考要点仅作对照）：${item.candidateAnswer}`,
               `参考要点：${item.referenceAnswer}`,
               `意图类型：${item.intent}`,
-              '请给出盲审判定 JSON。',
+              '请针对被审回答的引用支撑、推导正确性与讲解完整性给出盲审判定 JSON。',
             ].join('\n'),
             abortSignal: AbortSignal.timeout(120_000),
           });

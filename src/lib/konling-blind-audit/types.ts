@@ -24,6 +24,8 @@ export interface KonlingBlindAuditItem {
   intent: string;
   question: string;
   referenceAnswer: string;
+  /** 被审回答：盲审对象是这份回答本身，不是参考要点（#1820）。 */
+  candidateAnswer: string;
 }
 
 export interface KonlingBlindAuditManifest {
@@ -129,6 +131,8 @@ export interface KonlingBlindAuditAggregate {
   };
   incompleteDetail?: {
     missingTaskKeys: string[];
+    /** 不属于本清单预期键集的记录键（等长异内容清单防御）。 */
+    unexpectedKeys?: string[];
   };
 }
 

@@ -31,12 +31,14 @@ const MANIFEST: KonlingBlindAuditManifest = {
       intent: 'fact-explanation',
       question: '什么是超调量？',
       referenceAnswer: '峰值相对稳态的超出比例。',
+      candidateAnswer: '超调量是峰值相对稳态值的超出比例 [1]。',
     },
     {
       itemId: 'item-b',
       intent: 'formula-derivation',
       question: '请推导闭环传递函数。',
       referenceAnswer: 'G/(1+GH)。',
+      candidateAnswer: '闭环为 G/(1+GH)。',
     },
   ],
 };
@@ -271,6 +273,31 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     const blindAggregate = aggregateKonlingBlindAuditRun({ root, runId, manifest: MANIFEST, mode: 'blind-audit' });
     expect(ruleAggregate.mode).toBe('rule-score');
     expect(blindAggregate.mode).toBe('blind-audit');
+  });
+
+  it('refuses aggregation when the manifest does not match the run snapshot', async () => {
+    const runId = 'run-aggregate-drift';
+    await runKonlingBlindAudit(runOptions(runId, okProvider()));
+    const swapped: KonlingBlindAuditManifest = {
+      ...MANIFEST,
+      items: [MANIFEST.items[1], { ...MANIFEST.items[0], itemId: 'item-swapped' }],
+    };
+    // 等长异内容清单不能把既有记录凑成 complete。
+    expect(() => aggregateKonlingBlindAuditRun({ root, runId, manifest: swapped, mode: 'rule-score' }))
+      .toThrow(KonlingBlindAuditManifestDriftError);
+  });
+
+  it('treats differing git revisions as mixed configuration', async () => {
+    const runId = 'run-revision-mixed';
+    await runKonlingBlindAudit(runOptions(runId, okProvider()));
+    const recordPath = path.join(
+      root, 'artifacts', 'konling-blind-audit', runId, 'records', 'rule-score', `${keyOf('item-a', 1)}.json`,
+    );
+    const record = JSON.parse(readFileSync(recordPath, 'utf8'));
+    writeFileSync(recordPath, JSON.stringify({ ...record, gitRevision: 'otherrev' }), 'utf8');
+    const aggregate = aggregateKonlingBlindAuditRun({ root, runId, manifest: MANIFEST, mode: 'rule-score' });
+    expect(aggregate.status).toBe('mixed-configuration');
+    expect(aggregate.officialMetrics).toBeNull();
   });
 
   it('rejects concurrent runs on the same run directory and adopts stale locks', () => {

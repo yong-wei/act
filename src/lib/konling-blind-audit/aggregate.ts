@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { konlingBlindAuditManifestHash } from './benchmark';
 import {
+  KonlingBlindAuditManifestDriftError,
   loadKonlingBlindAuditFailures,
   loadKonlingBlindAuditRecords,
 } from './store';
@@ -14,7 +16,8 @@ import {
 
 /**
  * 完整性门禁汇总：completed < expected 一律 incomplete 且不产出正式
- * 指标；混配置批次拒绝汇总；rule-score 与 blind-audit 永远分开（#1820）。
+ * 指标；聚合前核对快照哈希与记录键集，混配置（含代码修订）拒绝汇总；
+ * rule-score 与 blind-audit 永远分开（#1820）。
  */
 export function aggregateKonlingBlindAuditRun(input: {
   root: string;
@@ -26,6 +29,45 @@ export function aggregateKonlingBlindAuditRun(input: {
   const expected = input.manifest.items.length * input.manifest.replicates;
   const records = loadKonlingBlindAuditRecords(runDir, input.mode);
   const failures = loadKonlingBlindAuditFailures(runDir, input.mode);
+
+  const snapshotPath = path.join(runDir, 'manifest.snapshot.json');
+  if (!fs.existsSync(snapshotPath)) {
+    return {
+      runId: input.runId,
+      mode: input.mode,
+      benchmarkVersion: input.manifest.benchmarkVersion,
+      status: 'manifest-missing',
+      expected,
+      completed: records.length,
+      failed: failures.length,
+      officialMetrics: null,
+      configuration: null,
+    };
+  }
+  // 聚合所依据的清单必须与运行快照完全一致，防止用等长异内容清单
+  // 把不属于本批次的记录凑成 complete。
+  const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8')) as { manifestHash?: string };
+  if (snapshot.manifestHash !== konlingBlindAuditManifestHash(input.manifest)) {
+    throw new KonlingBlindAuditManifestDriftError(runDir);
+  }
+
+  const expectedTaskKeys: string[] = [];
+  for (let replicate = 1; replicate <= input.manifest.replicates; replicate += 1) {
+    for (const item of input.manifest.items) {
+      expectedTaskKeys.push(buildKonlingBlindAuditTaskKey({
+        benchmarkVersion: input.manifest.benchmarkVersion,
+        mode: input.mode,
+        itemId: item.itemId,
+        replicate,
+      }));
+    }
+  }
+  const completedKeys = records.map((record) => record.taskKey);
+  const completedKeySet = new Set(completedKeys);
+  const missingTaskKeys = expectedTaskKeys.filter((taskKey) => !completedKeySet.has(taskKey));
+  const unexpectedKeys = completedKeys.filter(
+    (taskKey) => !expectedTaskKeys.includes(taskKey),
+  );
 
   const base: KonlingBlindAuditAggregate = {
     runId: input.runId,
@@ -39,34 +81,20 @@ export function aggregateKonlingBlindAuditRun(input: {
     configuration: null,
   };
 
-  if (!fs.existsSync(path.join(runDir, 'manifest.snapshot.json'))) {
-    return { ...base, status: 'manifest-missing' };
-  }
-
   const configuration = deriveConfiguration(records);
   if (configuration === 'mixed') {
     return { ...base, status: 'mixed-configuration' };
   }
 
-  if (records.length < expected) {
-    const completedKeys = new Set(records.map((record) => record.taskKey));
-    const missingTaskKeys: string[] = [];
-    for (let replicate = 1; replicate <= input.manifest.replicates; replicate += 1) {
-      for (const item of input.manifest.items) {
-        const taskKey = buildKonlingBlindAuditTaskKey({
-          benchmarkVersion: input.manifest.benchmarkVersion,
-          mode: input.mode,
-          itemId: item.itemId,
-          replicate,
-        });
-        if (!completedKeys.has(taskKey)) missingTaskKeys.push(taskKey);
-      }
-    }
+  if (missingTaskKeys.length > 0 || unexpectedKeys.length > 0) {
     return {
       ...base,
       configuration,
       status: 'incomplete',
-      incompleteDetail: { missingTaskKeys },
+      incompleteDetail: {
+        missingTaskKeys,
+        ...(unexpectedKeys.length > 0 ? { unexpectedKeys } : {}),
+      },
     };
   }
 
@@ -91,10 +119,12 @@ function deriveConfiguration(
 ): KonlingBlindAuditAggregate['configuration'] | 'mixed' {
   if (records.length === 0) return null;
   const first = records[0];
+  // gitRevision 一并纳入：同一实验汇总不得静默混合不同代码实现。
   const consistent = records.every((record) => record.model === first.model
     && record.provider === first.provider
     && record.promptVersion === first.promptVersion
-    && record.scoreVersion === first.scoreVersion);
+    && record.scoreVersion === first.scoreVersion
+    && record.gitRevision === first.gitRevision);
   if (!consistent) return 'mixed';
   return {
     model: first.model,
