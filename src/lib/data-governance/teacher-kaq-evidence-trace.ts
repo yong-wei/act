@@ -2,6 +2,7 @@ import type {
   GraphCenterDomain,
   GraphCenterPayload,
   GraphCenterResourceCoverageMissingType,
+  GraphCenterSarResourceGapSuggestion,
   GraphCenterSelectedNodeDetail,
 } from './graph-center';
 import type { PortraitV2DimensionId } from './kaq-objective-taxonomy';
@@ -70,6 +71,7 @@ export interface TeacherKaqEvidenceTracePayload {
     selectedRefCount: number;
     rejectedRefCount: number;
     expansionHopCount: number;
+    seedEntityIds: string[];
     limitations: string[];
   };
   evidenceCounts: {
@@ -88,7 +90,10 @@ export interface TeacherKaqEvidenceTracePayload {
     ref: string;
     label: string;
     suggestedFor: string[];
+    missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
     reason: string;
+    review: GraphCenterSarResourceGapSuggestion['review'] | null;
+    rationale: GraphCenterSarResourceGapSuggestion['rationale'];
   }>;
   limitations: string[];
   returnLinks: Array<{
@@ -144,6 +149,7 @@ export function createTeacherKaqEvidenceTracePayload(input: {
       selectedRefCount: associated?.traceSummary.selectedRefCount ?? 0,
       rejectedRefCount: associated?.traceSummary.rejectedRefCount ?? 0,
       expansionHopCount: associated?.traceSummary.expansionHopCount ?? 0,
+      seedEntityIds: associated?.traceSummary.seedEntityIds ?? [],
       limitations: associated?.traceSummary.limitations ?? limitations,
     },
     evidenceCounts: {
@@ -162,7 +168,10 @@ export function createTeacherKaqEvidenceTracePayload(input: {
       ref: candidate.ref,
       label: teacherKaqCandidateRefLabel(candidate.refType),
       suggestedFor: candidate.suggestedForMissingCoverageTypes.map(teacherKaqMissingCoverageLabel),
+      missingCoverageTypes: candidate.suggestedForMissingCoverageTypes,
       reason: candidate.rationale.reason,
+      review: candidate.review ?? null,
+      rationale: candidate.rationale,
     })),
     limitations,
     returnLinks: buildTeacherKaqReturnLinks({
@@ -214,14 +223,6 @@ function buildTeacherKaqReturnLinks(input: {
   domain: GraphCenterDomain;
   objectiveId: string | null;
 }): TeacherKaqEvidenceTracePayload['returnLinks'] {
-  const graphQuery = new URLSearchParams({
-    domain: input.domain,
-    classId: input.classId,
-  });
-  if (input.nodeId) graphQuery.set('nodeId', input.nodeId);
-  if (input.objectiveId) graphQuery.set('objectiveId', input.objectiveId);
-  if (input.studentId) graphQuery.set('learnerId', input.studentId);
-
   return [
     {
       id: 'class-analytics',
@@ -236,9 +237,9 @@ function buildTeacherKaqReturnLinks(input: {
         }]
       : []),
     {
-      id: 'graph-center',
-      label: '打开图谱中心',
-      href: `/graph-center?${graphQuery.toString()}`,
+      id: 'knowledge-workspace',
+      label: '打开知识图谱工作区',
+      href: '/knowledge',
     },
     {
       id: 'resource-governance',
@@ -266,4 +267,136 @@ function normalizeOptionalId(value: string | null | undefined): string | null {
 
 function uniqueStrings(values: string[]): string[] {
   return Array.from(new Set(values.filter((value) => value.length > 0))).sort();
+}
+
+export type TeacherKaqSarReviewDecision = NonNullable<
+  TeacherKaqEvidenceTracePayload['candidateResources'][number]['review']
+>['availableActions'][number];
+
+export type TeacherKaqSarReviewRequest = {
+  decision: TeacherKaqSarReviewDecision;
+  rationale: string;
+  resourceNodeId: string | null;
+  patch?: {
+    planningMetadata: {
+      knowledgeCoverage: string[];
+      availability?: 'available';
+      pathEligible?: boolean;
+    };
+  };
+  candidate: {
+    id: string;
+    target: {
+      graphNodeId: string;
+      objectiveId: string | null;
+    };
+    candidate: {
+      ref: string;
+      refType: string;
+      resourceNodeId: string | null;
+      sourceRefs: string[];
+    };
+    missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
+    provenance: {
+      source: string;
+      basisEventIds: string[];
+      traceId: null;
+    };
+    traceSummary: {
+      seedEntityIds: string[];
+      expansionHopCount: number;
+      selectedRefCount: number;
+      rejectedRefCount: number;
+      limitations: string[];
+    };
+    limitations: string[];
+  };
+};
+
+export function buildTeacherKaqSarReviewRequest(input: {
+  payload: TeacherKaqEvidenceTracePayload;
+  candidate: TeacherKaqEvidenceTracePayload['candidateResources'][number];
+  decision: TeacherKaqSarReviewDecision;
+  rationale?: string;
+}): TeacherKaqSarReviewRequest | null {
+  const { payload, candidate, decision } = input;
+  if (!candidate.review) return null;
+  const audit = candidate.review.auditPayload;
+  const resourceNodeId = resolveTeacherKaqSarResourceNodeId(candidate);
+  const patch = decision === 'accept' && candidate.refType === 'resource-node'
+    ? {
+        planningMetadata: {
+          knowledgeCoverage: [payload.node?.id ?? ''],
+          ...(audit.missingCoverageTypes.includes('path-eligible-resource')
+            ? { availability: 'available' as const, pathEligible: true }
+            : {}),
+        },
+      }
+    : null;
+  if (decision === 'accept' && candidate.refType === 'resource-node' && !patch) return null;
+  return {
+    decision,
+    rationale: buildTeacherKaqSarReviewRationale(input),
+    resourceNodeId,
+    ...(patch ? { patch } : {}),
+    candidate: {
+      id: audit.candidateId,
+      target: {
+        graphNodeId: payload.node?.id ?? '',
+        objectiveId: payload.node?.objectives[0]?.id ?? null,
+      },
+      candidate: {
+        ref: audit.candidateRef,
+        refType: audit.candidateRefType,
+        resourceNodeId,
+        sourceRefs: audit.sourceRefs,
+      },
+      missingCoverageTypes: audit.missingCoverageTypes,
+      provenance: {
+        source: audit.provenance.source,
+        basisEventIds: audit.provenance.basisEventIds,
+        traceId: null,
+      },
+      traceSummary: {
+        seedEntityIds: payload.sarTrace.seedEntityIds,
+        expansionHopCount: audit.traceSummary.traceHopCount,
+        selectedRefCount: payload.sarTrace.selectedRefCount,
+        rejectedRefCount: payload.sarTrace.rejectedRefCount,
+        limitations: audit.traceSummary.limitations,
+      },
+      limitations: payload.limitations,
+    },
+  };
+}
+
+function buildTeacherKaqSarReviewRationale(input: {
+  payload: TeacherKaqEvidenceTracePayload;
+  candidate: TeacherKaqEvidenceTracePayload['candidateResources'][number];
+  decision: TeacherKaqSarReviewDecision;
+  rationale?: string;
+}): string {
+  const { candidate, decision, rationale } = input;
+  const trimmed = rationale?.trim();
+  if (trimmed) return trimmed;
+  const audit = candidate.review?.auditPayload;
+  const missingTypes = audit?.missingCoverageTypes ?? candidate.missingCoverageTypes;
+  const basisEventIds = audit?.provenance.basisEventIds ?? candidate.rationale.basisEventIds;
+  return [
+    `教师 K/A/Q 证据追踪 SAR ${decision}`,
+    `${candidate.refType}:${audit?.candidateRef ?? candidate.ref}`,
+    `missing:${missingTypes.join(',') || 'none'}`,
+    `source:${(audit?.sourceRefs ?? []).join(',') || 'none'}`,
+    `basis:${basisEventIds.join(',') || 'none'}`,
+  ].join('; ');
+}
+
+function resolveTeacherKaqSarResourceNodeId(
+  candidate: TeacherKaqEvidenceTracePayload['candidateResources'][number],
+): string | null {
+  if (candidate.refType !== 'resource-node') return null;
+  if (candidate.ref.startsWith('teaching-resource:')) return candidate.ref;
+  if (candidate.review?.auditPayload.sourceRefs.includes(candidate.ref)) {
+    return `teaching-resource:${candidate.ref}`;
+  }
+  return candidate.ref;
 }

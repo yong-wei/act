@@ -11,7 +11,6 @@ import { encode } from 'next-auth/jwt';
 const generatorFile = 'tests/client-server-build-boundaries-commercial-ui.spec.ts';
 const productionSourceFiles = [
   'src/features/assignments/student-assignment-workspace.tsx',
-  'src/features/graph-center/graph-center-client.tsx',
   'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx',
   'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx',
   'src/lib/assignments/assignment-domain.ts',
@@ -53,13 +52,6 @@ const routes: readonly EvidenceRoute[] = [
     ready: '教师投影',
     focus: '下一页',
     role: 'TEACHER',
-  },
-  {
-    name: 'graph-center',
-    href: '/graph-center',
-    ready: '图谱中心',
-    focus: '知识',
-    focusRole: 'tab',
   },
   {
     name: 'student-assignment',

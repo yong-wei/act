@@ -446,7 +446,6 @@ describe('platform role navigation', () => {
       '/ai',
       '/ai/copilot',
       '/knowledge',
-      '/graph-center',
     ]);
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.every((route) => route.routeFile.startsWith('src/app/'))).toBe(true);
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.every((route) => existsSync(join(process.cwd(), route.routeFile)))).toBe(
@@ -632,12 +631,7 @@ describe('platform role navigation', () => {
       frame: 'knowledge-data-map',
       legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'knowledge-graph' })]),
     });
-    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/graph-center')).toMatchObject({
-      frame: 'knowledge-data-map',
-      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace', 'local-tool']),
-      floatingDock: 'collapsed',
-      owningChange: 'build-graph-center-readonly-foundation',
-    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/graph-center')).toBeUndefined();
   });
 
   it('records route alias retirement metadata and a single unified UI migration owner', () => {
@@ -889,11 +883,7 @@ describe('platform role navigation', () => {
     const adminKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'admin').map((entry) => entry.href);
     expect(adminKnowledgeNavigation).toEqual(expect.arrayContaining(['/', '/knowledge', '/arena']));
     expect(adminKnowledgeNavigation).not.toContain('/data-center');
-    const studentGraphCenterNavigation = getPlatformRouteNavigation('/graph-center', 'student').map(
-      (entry) => entry.href,
-    );
-    expect(studentGraphCenterNavigation).toEqual(expect.arrayContaining(['/knowledge', '/interactive-learning']));
-    expect(studentGraphCenterNavigation).not.toContain('/data-center');
+    expect(studentKnowledgeNavigation).not.toContain('/graph-center');
     expect(adminKnowledgeNavigation).not.toContain('/login');
     expect(getPlatformRouteNavigation('/teacher/classes/demo-class', 'teacher').map((entry) => entry.href)).toEqual(
       expect.arrayContaining(['/teacher', '/teacher/classes', '/teacher/lesson-plans']),
