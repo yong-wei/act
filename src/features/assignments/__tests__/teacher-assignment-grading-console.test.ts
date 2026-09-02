@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { gradingErrorMessage, isAiGradingCandidate, isAiReviewCandidate, normalizeSubmission, toggleAllAiGradingCandidates } from '@/features/assignments/teacher-assignment-grading-console';
+import { consoleReviewHref, gradingErrorMessage, isAiGradingCandidate, isAiReviewCandidate, normalizeSubmission, toggleAllAiGradingCandidates } from '@/features/assignments/teacher-assignment-grading-console';
 import { deriveTeacherAssignmentGradingDiagnostic } from '@/lib/assignments/assignment-review';
 
 describe('teacher assignment grading console candidates', () => {
@@ -33,6 +33,15 @@ describe('teacher assignment grading console candidates', () => {
   it('selects every eligible student and deselects only those students on a second toggle', () => {
     expect(toggleAllAiGradingCandidates(['student-archived'], ['student-1', 'student-2', 'student-1'])).toEqual(['student-archived', 'student-1', 'student-2']);
     expect(toggleAllAiGradingCandidates(['student-archived', 'student-1', 'student-2'], ['student-1', 'student-2'])).toEqual(['student-archived']);
+  });
+
+  it('keeps both review and grading-run locators when opening an existing review from the console', () => {
+    expect(consoleReviewHref('assignment / 1', 'submission-1', 'question-1', 'review-1', 'run-1')).toBe(
+      '/teacher/assignments/assignment%20%2F%201/submissions/submission-1/review?questionId=question-1&mode=student&reviewId=review-1&gradingRunId=run-1',
+    );
+    expect(consoleReviewHref('a1', 's1', 'q1', 'review-1')).toBe(
+      '/teacher/assignments/a1/submissions/s1/review?questionId=q1&mode=student&reviewId=review-1',
+    );
   });
 
   it('explains why the one-click action is unavailable without exposing implementation details', () => {

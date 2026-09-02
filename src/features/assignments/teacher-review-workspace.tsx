@@ -134,11 +134,7 @@ export function TeacherReviewWorkspace({
           body: JSON.stringify({ gradingRunId: initialGradingRunId }),
         });
       }
-      if (
-        reviewResponse.status === 404 ||
-        reviewResponse.status === 409 ||
-        reviewResponse.status === 410
-      ) {
+      if (isUnavailableReviewStatus(reviewResponse.status)) {
         setQueue(nextQueue);
         setLoadState("missing");
         return;
@@ -253,9 +249,7 @@ export function TeacherReviewWorkspace({
       if (
         !detail ||
         (action === "return" &&
-          (returnReason.trim().length < 8 ||
-            !returnDeadline ||
-            !returnResponseType))
+          !canSubmitReturn(returnReason, returnDeadline, returnResponseType))
       )
         return;
       const actionVersion =
@@ -391,6 +385,18 @@ export function TeacherReviewWorkspace({
         />
       </ReviewShell>
     );
+
+  const mutationBusy =
+    mutationState === "saving" || mutationState === "acting";
+  const canEditReview = criteria.length > 0 && reviewMutable && !mutationBusy;
+  const canReturnReview = canSubmitReturn(
+    returnReason,
+    returnDeadline,
+    returnResponseType,
+  );
+  const canApproveReview = !(
+    detail.incompleteEvidence && !incompleteEvidenceConfirmed
+  );
 
   return (
     <main
@@ -684,12 +690,7 @@ export function TeacherReviewWorkspace({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                disabled={
-                  !criteria.length ||
-                  !reviewMutable ||
-                  mutationState === "saving" ||
-                  mutationState === "acting"
-                }
+                disabled={!canEditReview}
                 onClick={() => void save()}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-600 text-slate-100 disabled:opacity-50"
               >
@@ -698,14 +699,7 @@ export function TeacherReviewWorkspace({
               </button>
               <button
                 type="button"
-                disabled={
-                  !criteria.length ||
-                  !reviewMutable ||
-                  returnReason.trim().length < 8 ||
-                  !returnDeadline ||
-                  mutationState === "saving" ||
-                  mutationState === "acting"
-                }
+                disabled={!canEditReview || !canReturnReview}
                 onClick={() => void act("return")}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-amber-500 text-amber-200 disabled:opacity-50"
               >
@@ -714,13 +708,7 @@ export function TeacherReviewWorkspace({
               </button>
               <button
                 type="button"
-                disabled={
-                  !criteria.length ||
-                  !reviewMutable ||
-                  (detail.incompleteEvidence && !incompleteEvidenceConfirmed) ||
-                  mutationState === "saving" ||
-                  mutationState === "acting"
-                }
+                disabled={!canEditReview || !canApproveReview}
                 onClick={() => void act("approve")}
                 className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 font-medium text-white disabled:opacity-50"
               >
@@ -754,10 +742,7 @@ export function OriginalResponsePanel({
     useState<Record<string, boolean>>({});
   const requestedAssetIds = useRef(new Set<string>());
   const previewAssets = useMemo(
-    () => response.assets.filter((asset) =>
-      asset.role === "EMBEDDED_IMAGE" ||
-      isDirectImage(asset.mimeType) ||
-      asset.mimeType === "application/pdf"),
+    () => response.assets.filter(isPreviewableOriginalAsset),
     [response.assets],
   );
 
@@ -1046,6 +1031,26 @@ export async function openOriginalAsset(
     pendingWindow.close();
     return "access-failed" as const;
   }
+}
+
+function isUnavailableReviewStatus(status: number) {
+  return status === 404 || status === 409 || status === 410;
+}
+
+function canSubmitReturn(
+  reason: string,
+  deadline: string,
+  responseType: string,
+) {
+  return reason.trim().length >= 8 && Boolean(deadline) && Boolean(responseType);
+}
+
+function isPreviewableOriginalAsset(asset: TeacherOriginalResponseAsset) {
+  return (
+    asset.role === "EMBEDDED_IMAGE" ||
+    isDirectImage(asset.mimeType) ||
+    asset.mimeType === "application/pdf"
+  );
 }
 
 function isDirectImage(mimeType: string) {
