@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { submitAnswerSchema } from '@/lib/assignments/submission-domain';
-import { studentSubmitQuestionAnswer } from '@/lib/assignments/public-api';
+import { studentSubmitQuestionAnswer, submitAnswerSchema } from '@/lib/assignments/public-api';
 import { guardSubmissionMutation, readBoundedSubmissionJson, requireStudentActor, submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
 export async function POST(request: Request, { params }: { params: Promise<{ assignmentId: string; questionId: string }> }) { const auth = await requireStudentActor(); if ('response' in auth) return auth.response; const blocked = await guardSubmissionMutation(request, auth.actor.id, 'submit'); if (blocked) return blocked; try { const ids = await params; const body = submitAnswerSchema.parse(await readBoundedSubmissionJson(request)); const result = await studentSubmitQuestionAnswer(auth.actor, { ...ids, ...body }); return NextResponse.json({ attempt: result.attempt && { id: result.attempt.id, attemptNumber: result.attempt.attemptNumber, submittedAt: result.attempt.submittedAt }, assignmentState: result.aggregate.state, submittedRequiredCount: result.aggregate.submittedRequiredCount }); } catch (error) { return submissionErrorResponse(error); } }

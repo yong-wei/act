@@ -12,10 +12,10 @@ const LIFECYCLE_ROUTE_ROOTS = [
   'src/app/api/teacher/assignments',
   'src/app/api/student/assignments',
   'src/app/api/assignments',
+  'src/app/api/student/submission-objects',
 ] as const;
 
 const HANDOFF = [
-  '/rubric-guidelines/',
   '/__tests__/',
 ] as const;
 
@@ -26,7 +26,12 @@ const FORBIDDEN = [
   "@/lib/assignments/assignment-content-assets",
   "@/lib/assignments/assignment-question-catalog",
   "@/lib/assignments/assignment-review",
+  "@/lib/assignments/assignment-domain",
+  "@/lib/assignments/submission-domain",
+  "@/lib/assignments/assignment-rubric-generation",
+  "@/lib/assignments/submission-object-store",
   "@/lib/data-governance/teacher-assignment-review",
+  "@/lib/data-governance/assignment-grading-orchestration",
 ];
 
 function walk(dir: string, acc: string[] = []): string[] {
@@ -50,7 +55,7 @@ describe('assignment lifecycle public API', () => {
     const violations: string[] = [];
     for (const path of routes) {
       const source = readFileSync(join(ROOT, path), 'utf8');
-      if (!source.includes('@/lib/assignments/public-api') && !path.includes('submission-objects')) {
+      if (!source.includes('@/lib/assignments/public-api')) {
         violations.push(`missing-public-api:${path}`);
       }
       for (const token of FORBIDDEN) {
@@ -67,7 +72,27 @@ describe('assignment lifecycle public API', () => {
     expect(source).toContain('export async function studentReadFeedbackAsset');
     expect(source).toContain('export async function teacherApproveReview');
     expect(source).toContain('export async function teacherListAssignmentSubmissions');
+    expect(source).toContain('export async function teacherGenerateRubricGuidelines');
     expect(source).not.toContain("from '@/app/api/");
+  });
+
+  it('routes remaining production consumers through the public API', () => {
+    const workshop = readFileSync(join(ROOT, 'src/features/ai/ai-workshop-collections.server.ts'), 'utf8');
+    expect(workshop).toContain("from '@/lib/assignments/public-api'");
+    expect(workshop).toContain('studentListAssignments');
+    expect(workshop).not.toContain("from '@/lib/assignments/submission-service'");
+    expect(workshop).not.toContain("from '@/lib/assignments/submission-dto'");
+
+    const catalog = readFileSync(join(ROOT, 'src/lib/assignments/assignment-question-catalog.ts'), 'utf8');
+    expect(catalog).toContain("from '@/features/assessment/public-api'");
+    expect(catalog).not.toContain('prisma.adaptiveAssessmentItemRef');
+    expect(catalog).not.toContain("from '@/lib/prisma'");
+    expect(catalog).not.toContain("from '@/features/assessment/adaptive-assessment-item-catalog'");
+
+    const owner = readFileSync(join(ROOT, 'src/lib/assignments/public-api.ts'), 'utf8')
+      + readFileSync(join(ROOT, 'src/lib/assignments/assignment-question-catalog.ts'), 'utf8');
+    expect(owner).not.toContain('learningFact.create');
+    expect(owner).not.toContain("from '@/features/learning-record");
   });
 
   it('omits teacher-only fields from student presentation DTOs', () => {

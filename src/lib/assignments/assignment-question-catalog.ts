@@ -1,8 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
-import { prisma } from '@/lib/prisma';
+import {
+  listAdaptiveAssessmentItemRefs,
+  readAdaptiveAssessmentItemRef,
+  type AdaptiveAssessmentCatalogItem,
+} from '@/features/assessment/public-api';
 
 import { AssignmentDomainError } from './assignment-domain';
 import { signCatalogSelectionIdentity, stableHash } from './assignment-integrity';
@@ -28,11 +31,7 @@ async function readCatalogItems(): Promise<AdaptiveAssessmentCatalogItem[]> {
 
 export async function listAssignmentQuestionCatalog() {
   const items = await readCatalogItems();
-  const refs = await prisma.adaptiveAssessmentItemRef.findMany({
-    where: { questionId: { in: items.map((item) => item.sourceId) } },
-    orderBy: { createdAt: 'desc' },
-    select: { id: true, questionId: true, contentHash: true, algorithmVersion: true },
-  });
+  const refs = await listAdaptiveAssessmentItemRefs(items.map((item) => item.sourceId));
   const refByQuestionId = new Map(refs.map((ref) => [ref.questionId, ref]));
   return items.flatMap((item) => {
     if (!isAssignmentAuthoringEligible(item)) return [];
@@ -55,10 +54,7 @@ export async function listAssignmentQuestionCatalog() {
 }
 
 export async function selectAssignmentQuestionCatalogItem(sourceId: string) {
-  const ref = await prisma.adaptiveAssessmentItemRef.findUnique({
-    where: { id: sourceId },
-    select: { id: true, questionId: true, contentHash: true, algorithmVersion: true },
-  });
+  const ref = await readAdaptiveAssessmentItemRef(sourceId);
   if (!ref) throw new AssignmentDomainError('catalog-source-not-found');
   const items = await readCatalogItems();
   const item = items.find((entry) => entry.sourceId === ref.questionId);

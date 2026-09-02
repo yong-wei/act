@@ -7,6 +7,10 @@ import {
   readAssignmentContentAsset,
   signAssignmentContentAssetUpload,
 } from './assignment-content-assets';
+import {
+  generateAssignmentRubricGuidelines,
+  resolveAssignmentRubricGenerationProvider,
+} from './assignment-rubric-generation';
 import { listAssignmentQuestionCatalog, selectAssignmentQuestionCatalogItem } from './assignment-question-catalog';
 import {
   createAssignmentDraft,
@@ -18,7 +22,7 @@ import {
 } from './assignment-service';
 import { SubmissionError } from './submission-domain';
 import { assertSubmissionObjectIntegrity } from './submission-integrity';
-import { createSubmissionObjectStore } from './submission-object-store';
+import { createSubmissionObjectStore, getLocalTestSubmissionObjectStore } from './submission-object-store';
 import {
   approveTeacherAssignmentReview,
   buildTeacherAssignmentReviewApiProjection,
@@ -64,10 +68,21 @@ export type StudentActor = { id: string };
 
 export type { StudentAssignmentDto, StudentQuestionDto, StudentAssignmentFeedbackDto } from './submission-dto';
 export type { AssignmentDraftInput, AssignmentDraftPersistenceInput, AssignmentAudienceInput } from './assignment-domain';
-export { AssignmentDomainError } from './assignment-domain';
-export { SubmissionError } from './submission-domain';
+export { AssignmentDomainError, assignmentDraftPersistenceSchema } from './assignment-domain';
+export {
+  SubmissionError,
+  SUBMISSION_LIMITS,
+  finalizeSchema,
+  removeAssetSchema,
+  reorderAssetsSchema,
+  submitAnswerSchema,
+  textDraftSchema,
+  uploadIntentSchema,
+} from './submission-domain';
 export { TeacherAssignmentReviewError } from './assignment-review';
 export { assignmentContentAssetUploadSchema } from './assignment-content-assets';
+export { assignmentRubricGenerationRequestSchema } from './assignment-rubric-generation';
+export { getLocalTestSubmissionObjectStore };
 
 function db() {
   return prisma;
@@ -113,6 +128,18 @@ export async function teacherCreateNextDraft(actor: AssignmentActor, assignmentI
 
 export async function teacherPublishRevision(actor: AssignmentActor, input: Omit<Parameters<typeof publishAssignmentRevision>[1], 'actor'>) {
   return publishAssignmentRevision(db(), { actor, ...input });
+}
+
+export async function teacherGenerateRubricGuidelines(
+  actor: AssignmentActor,
+  assignmentId: string,
+  request: Parameters<typeof generateAssignmentRubricGuidelines>[1]['request'],
+) {
+  return generateAssignmentRubricGuidelines(
+    prisma,
+    { actor, assignmentId, request },
+    await resolveAssignmentRubricGenerationProvider(),
+  );
 }
 
 export async function teacherListManagedClasses(actor: AssignmentActor) {

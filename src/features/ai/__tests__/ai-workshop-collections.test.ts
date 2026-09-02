@@ -3,11 +3,11 @@ import type { PrismaClient } from '@prisma/client';
 
 vi.mock('server-only', () => ({}));
 
-const { listStudentAssignments } = vi.hoisted(() => ({
-  listStudentAssignments: vi.fn(),
+const { studentListAssignments } = vi.hoisted(() => ({
+  studentListAssignments: vi.fn(),
 }));
 
-vi.mock('@/lib/assignments/submission-service', () => ({ listStudentAssignments }));
+vi.mock('@/lib/assignments/public-api', () => ({ studentListAssignments }));
 
 import {
   assembleAiWorkshopCollections,
@@ -27,11 +27,11 @@ function createDb() {
 
 describe('assembleAiWorkshopCollections', () => {
   beforeEach(() => {
-    listStudentAssignments.mockReset();
+    studentListAssignments.mockReset();
   });
 
   it('projects mixed source states independently with student-safe items', async () => {
-    listStudentAssignments.mockResolvedValue([
+    studentListAssignments.mockResolvedValue([
       {
         id: 'assignment-1', title: '时域分析作业', contextStatus: 'CURRENT', state: 'IN_PROGRESS',
         submittedRequiredCount: 1, requiredQuestionCount: 2,
@@ -118,7 +118,7 @@ describe('assembleAiWorkshopCollections', () => {
   });
 
   it('isolates a failing source without zeroing other collections', async () => {
-    listStudentAssignments.mockResolvedValue([{
+    studentListAssignments.mockResolvedValue([{
       id: 'assignment-1', title: '作业一', contextStatus: 'CURRENT', state: 'NOT_STARTED',
       submittedRequiredCount: 0, requiredQuestionCount: 2,
     }]);
@@ -134,7 +134,7 @@ describe('assembleAiWorkshopCollections', () => {
   });
 
   it('restricts achievements and journals to durable registered record types', async () => {
-    listStudentAssignments.mockResolvedValue([]);
+    studentListAssignments.mockResolvedValue([]);
     const db = createDb();
 
     await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
@@ -151,19 +151,19 @@ describe('assembleAiWorkshopCollections', () => {
   });
 
   it('never accepts a client-provided learner identity', async () => {
-    listStudentAssignments.mockResolvedValue([]);
+    studentListAssignments.mockResolvedValue([]);
     const db = createDb();
 
     await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
 
-    expect(listStudentAssignments).toHaveBeenCalledWith(db, 'student-1');
+    expect(studentListAssignments).toHaveBeenCalledWith({ id: 'student-1' });
     expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ userId: 'student-1' }),
     }));
   });
 
   it('does not infer completion from node position when the execution record skips a node', async () => {
-    listStudentAssignments.mockResolvedValue([]);
+    studentListAssignments.mockResolvedValue([]);
     const db = createDb();
     // 跳过/改道：currentNodeId 移到 node-c，但执行记录只确认 node-b 完成。
     db.learningPath.findFirst.mockResolvedValue({
@@ -184,7 +184,7 @@ describe('assembleAiWorkshopCollections', () => {
   });
 
   it('path-encodes assignment ids in task navigation hrefs', async () => {
-    listStudentAssignments.mockResolvedValue([{
+    studentListAssignments.mockResolvedValue([{
       id: 'assignment/with?reserved#chars', title: '特殊 ID 作业', contextStatus: 'CURRENT', state: 'NOT_STARTED',
       submittedRequiredCount: 0, requiredQuestionCount: 1,
     }]);
@@ -198,7 +198,7 @@ describe('assembleAiWorkshopCollections', () => {
   });
 
   it('marks milestones pending when the execution record carries no completion set', async () => {
-    listStudentAssignments.mockResolvedValue([]);
+    studentListAssignments.mockResolvedValue([]);
     const db = createDb();
     db.learningPath.findFirst.mockResolvedValue({
       id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b'], currentNodeId: 'node-a',

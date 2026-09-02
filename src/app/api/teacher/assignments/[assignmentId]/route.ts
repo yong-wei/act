@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { teacherDeleteDraft, teacherGetAssignment, teacherUpdateDraft } from '@/lib/assignments/public-api';
+import { assignmentDraftPersistenceSchema, teacherDeleteDraft, teacherGetAssignment, teacherUpdateDraft } from '@/lib/assignments/public-api';
 
 const updateSchema = z.object({
   revisionId: z.string().trim().min(1).max(120),

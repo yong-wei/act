@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { textDraftSchema } from '@/lib/assignments/submission-domain';
-import { studentSaveQuestionDraft } from '@/lib/assignments/public-api';
+import { studentSaveQuestionDraft, textDraftSchema } from '@/lib/assignments/public-api';
 import { guardSubmissionMutation, readBoundedSubmissionJson, requireStudentActor, submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
 export async function PATCH(request: Request, { params }: { params: Promise<{ assignmentId: string; questionId: string }> }) { const auth = await requireStudentActor(); if ('response' in auth) return auth.response; const blocked = await guardSubmissionMutation(request, auth.actor.id, 'autosave'); if (blocked) return blocked; try { const ids = await params; const body = textDraftSchema.parse(await readBoundedSubmissionJson(request)); const answer = await studentSaveQuestionDraft(auth.actor, { ...ids, ...body }); return NextResponse.json({ answer: { id: answer.id, state: answer.state, version: answer.version, textDraft: answer.textDraft } }); } catch (error) { return submissionErrorResponse(error); } }

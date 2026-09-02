@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 
 import {
-  assignmentRubricGenerationRequestSchema,
-  generateAssignmentRubricGuidelines,
-  resolveAssignmentRubricGenerationProvider,
-} from '@/lib/assignments/assignment-rubric-generation';
-import {
   assignmentErrorResponse,
   readBoundedAssignmentJson,
   requireAssignmentActor,
   requireAssignmentMutation,
 } from '@/lib/assignments/assignment-route-guards';
-import { prisma } from '@/lib/prisma';
+import {
+  assignmentRubricGenerationRequestSchema,
+  teacherGenerateRubricGuidelines,
+} from '@/lib/assignments/public-api';
 import { rateLimiter } from '@/lib/rate-limiter';
 
 export const runtime = 'nodejs';
@@ -43,11 +41,7 @@ export async function POST(
     const input = assignmentRubricGenerationRequestSchema.parse(
       await readBoundedAssignmentJson(request, 16_000),
     );
-    const generated = await generateAssignmentRubricGuidelines(
-      prisma,
-      { actor: auth.actor, assignmentId, request: input },
-      await resolveAssignmentRubricGenerationProvider(),
-    );
+    const generated = await teacherGenerateRubricGuidelines(auth.actor, assignmentId, input);
     return NextResponse.json({ generated });
   } catch (error) {
     return assignmentErrorResponse(error);
