@@ -36,6 +36,9 @@ describe('standalone Copilot entry presentation', () => {
     { context: 'portfolio-reflection', evidenceUnavailable: false, evidenceStatus: null, kind: 'portfolio-reflection' },
     { context: 'evidence', evidenceUnavailable: false, evidenceStatus: 'available', kind: 'evidence-available' },
     { context: 'evidence', evidenceUnavailable: false, evidenceStatus: 'missing', kind: 'evidence-missing' },
+    { context: 'evidence', evidenceUnavailable: false, evidenceStatus: null, kind: 'evidence-pending' },
+    { context: 'evidence', evidenceUnavailable: false, evidenceStatus: 'partial', kind: 'evidence-limited' },
+    { context: 'evidence', evidenceUnavailable: false, evidenceStatus: 'stale', kind: 'evidence-limited' },
     { context: 'evidence', evidenceUnavailable: true, evidenceStatus: 'available', kind: 'evidence-unavailable' },
   ] as const)('maps $context / unavailable=$evidenceUnavailable / $evidenceStatus to $kind', (input) => {
     expect(resolveStandaloneCopilotEntryKind(input)).toBe(input.kind);
@@ -91,6 +94,22 @@ describe('standalone Copilot entry presentation', () => {
     ]);
     expect(presentation.suggestions.every((item) => !item.question.includes('当前证据摘要'))).toBe(true);
   });
+
+  it.each(['pending', 'partial', 'stale'] as const)(
+    'does not advertise weak-target diagnosis while evidence is %s',
+    (state) => {
+      const presentation = buildStandaloneCopilotEntryPresentation({
+        context: 'evidence',
+        evidenceStatus: state === 'pending' ? null : state,
+        evidenceLimitations: state === 'pending' ? undefined : [`学习证据${state === 'stale' ? '已过期' : '不完整'}。`],
+      });
+      expect(presentation.kind).toBe(state === 'pending' ? 'evidence-pending' : 'evidence-limited');
+      const text = flatten(presentation);
+      expect(presentation.suggestions.map((item) => item.label)).not.toContain('薄弱点');
+      expect(text).not.toContain('当前证据摘要');
+      expect(presentation.suggestions.every((item) => item.question.includes('证据限制'))).toBe(true);
+    },
+  );
 
   it('keeps available evidence questions and forbids simulation claims', () => {
     const presentation = buildStandaloneCopilotEntryPresentation({

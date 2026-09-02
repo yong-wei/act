@@ -4,6 +4,8 @@ export type StandaloneCopilotEntryKind =
   | 'neutral'
   | 'portfolio-reflection'
   | 'evidence-available'
+  | 'evidence-pending'
+  | 'evidence-limited'
   | 'evidence-missing'
   | 'evidence-unavailable';
 
@@ -30,6 +32,29 @@ export interface StandaloneCopilotEntryPresentation {
 
 const NEUTRAL_LIMITATION = '当前没有绑定具体课程步骤、仿真状态或个人证据。';
 
+const RESTRICTED_EVIDENCE_COPY = {
+  'evidence-pending': {
+    description: '正在核对学习证据。当前还不能根据个人证据做个性化判断。',
+    limitation: '正在核对学习证据。',
+  },
+  'evidence-limited': {
+    description: '学习证据不完整。建议只讨论限制和下一步，不把部分证据写成已掌握。',
+    limitation: '学习证据不完整。',
+  },
+  'evidence-limited-stale': {
+    description: '学习证据已过期。请先复核证据，不要按过期摘要做个性化判断。',
+    limitation: '学习证据已过期。',
+  },
+  'evidence-missing': {
+    description: '当前没有可核验的学习证据。请先补充一次真实学习，再回来讨论证据。',
+    limitation: '当前暂无学习证据。',
+  },
+  'evidence-unavailable': {
+    description: '学习证据当前不可用。页面不会伪造证据或个性化诊断。',
+    limitation: '学习证据当前不可用。',
+  },
+} as const;
+
 export function resolveStandaloneCopilotEntryKind(input: {
   context: string | null | undefined;
   evidenceStatus?: EvidenceCopilotStatus | null;
@@ -39,7 +64,9 @@ export function resolveStandaloneCopilotEntryKind(input: {
   if (input.context === 'portfolio-reflection') return 'portfolio-reflection';
   if (input.evidenceUnavailable || input.evidenceStatus === 'unavailable') return 'evidence-unavailable';
   if (input.evidenceStatus === 'missing') return 'evidence-missing';
-  return 'evidence-available';
+  if (input.evidenceStatus === 'available') return 'evidence-available';
+  if (input.evidenceStatus === 'partial' || input.evidenceStatus === 'stale') return 'evidence-limited';
+  return 'evidence-pending';
 }
 
 export function buildStandaloneCopilotEntryPresentation(input: {
@@ -79,33 +106,37 @@ export function buildStandaloneCopilotEntryPresentation(input: {
     };
   }
 
-  if (kind === 'evidence-missing' || kind === 'evidence-unavailable') {
+  if (
+    kind === 'evidence-pending'
+    || kind === 'evidence-limited'
+    || kind === 'evidence-missing'
+    || kind === 'evidence-unavailable'
+  ) {
     const nextAction = input.evidenceNextAction ?? {
       href: '/assessment/adaptive-practice?intent=practice',
       label: '去做一次自适应练习，补充学习证据',
     };
-    const limitations = input.evidenceLimitations?.length
-      ? input.evidenceLimitations
-      : [kind === 'evidence-missing' ? '当前暂无学习证据。' : '学习证据当前不可用。'];
+    const copyKey = kind === 'evidence-limited' && input.evidenceStatus === 'stale'
+      ? 'evidence-limited-stale'
+      : kind;
+    const copy = RESTRICTED_EVIDENCE_COPY[copyKey];
     return {
       kind,
-      description: kind === 'evidence-missing'
-        ? '当前没有可核验的学习证据。请先补充一次真实学习，再回来讨论证据。'
-        : '学习证据当前不可用。页面不会伪造证据或个性化诊断。',
-      capabilities: ['说明证据限制', '给出真实可执行的下一步', '不把缺失证据写成已掌握'],
+      description: copy.description,
+      capabilities: ['说明证据限制', '给出真实可执行的下一步', '不把缺失或不完整证据写成已掌握'],
       suggestions: [
         {
           label: '证据限制',
-          question: '请先说明当前没有可用学习证据，再给出一个真实可执行的下一步。',
+          question: '请先说明当前证据限制，再给出一个真实可执行的下一步。',
         },
         {
           label: '去练习',
           question: '请根据当前证据限制，建议我去做一次自适应练习来补充证据。',
         },
       ],
-      placeholder: '请输入您的问题，例如：当前没有证据时我下一步做什么',
-      inputAriaLabel: '请输入您的问题，例如：当前没有证据时我下一步做什么',
-      limitations,
+      placeholder: '请输入您的问题，例如：当前证据受限时我下一步做什么',
+      inputAriaLabel: '请输入您的问题，例如：当前证据受限时我下一步做什么',
+      limitations: input.evidenceLimitations?.length ? input.evidenceLimitations : [copy.limitation],
       adjacentActions: [nextAction],
     };
   }

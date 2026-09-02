@@ -50,25 +50,45 @@ function conversationFixture(id = 'conversation-entry-1815') {
   };
 }
 
-function evidenceProjection(status: 'available' | 'missing') {
+const EVIDENCE_FIXTURES = {
+  available: {
+    limitations: ['已加载服务端核对的学习证据，建议仅作参考。'],
+    confidenceLevel: 'medium' as const,
+    freshness: 'current' as const,
+    nextAction: { href: '/profile/evidence', label: '查看学习记录并复核证据' },
+  },
+  missing: {
+    limitations: ['当前没有可核验的学习证据。'],
+    confidenceLevel: 'none' as const,
+    freshness: 'missing' as const,
+    nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '去做一次自适应练习，补充学习证据' },
+  },
+  stale: {
+    limitations: ['部分学习证据已经过期。'],
+    confidenceLevel: 'medium' as const,
+    freshness: 'stale' as const,
+    nextAction: { href: '/profile/evidence', label: '查看学习记录并复核证据' },
+  },
+} as const;
+
+function evidenceProjection(status: keyof typeof EVIDENCE_FIXTURES) {
+  const fixture = EVIDENCE_FIXTURES[status];
   return {
     version: 'evidence-copilot-context.v1',
     status,
-    limitations: status === 'missing' ? ['当前没有可核验的学习证据。'] : ['已加载服务端核对的学习证据，建议仅作参考。'],
+    limitations: [...fixture.limitations],
     sourceCoverage: {},
-    confidenceLevel: status === 'missing' ? 'none' : 'medium',
-    freshness: status === 'missing' ? 'missing' : 'current',
+    confidenceLevel: fixture.confidenceLevel,
+    freshness: fixture.freshness,
     preferredModalities: [],
     weakTargets: [],
-    nextAction: status === 'missing'
-      ? { href: '/assessment/adaptive-practice?intent=practice', label: '去做一次自适应练习，补充学习证据' }
-      : { href: '/profile/evidence', label: '查看学习记录并复核证据' },
+    nextAction: fixture.nextAction,
     navigationHint: { source: null, assignment: null, intent: null },
   };
 }
 
 async function installStandaloneCopilotRoutes(page: Page, options?: {
-  evidenceStatus?: 'available' | 'missing';
+  evidenceStatus?: 'available' | 'missing' | 'stale';
   evidenceFail?: boolean;
 }) {
   const chatBodies: unknown[] = [];
@@ -203,6 +223,13 @@ test('evidence available and missing states keep authorized actions', async ({ p
   await expect(missingEntry).toContainText('当前没有可核验的学习证据');
   await expect(page.getByRole('link', { name: '去做一次自适应练习，补充学习证据' }).first()).toBeVisible();
   expect(missing.chatBodies).toHaveLength(0);
+
+  await installStandaloneCopilotRoutes(page, { evidenceStatus: 'stale' });
+  await page.goto('/ai/copilot?context=evidence', { waitUntil: 'domcontentloaded' });
+  const limitedEntry = page.locator('[data-copilot-entry-kind="evidence-limited"]');
+  await expect(limitedEntry).toBeVisible();
+  await expect(limitedEntry).toContainText('学习证据已过期');
+  await expect(limitedEntry).not.toContainText('薄弱点');
 });
 
 test('neutral and evidence-limited entries fit 320px without overflow', async ({ page }) => {
