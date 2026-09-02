@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
-import { removeAssetSchema } from '@/lib/assignments/submission-domain';
 import {
   guardSubmissionMutation,
   readBoundedSubmissionJson,
   requireStudentActor,
   submissionErrorResponse,
 } from '@/lib/assignments/submission-route-guards';
-import { studentRemoveQuestionAsset } from '@/lib/assignments/public-api';
+import { removeAssetSchema, studentRemoveQuestionAsset } from '@/lib/assignments/public-api';
 
 export async function DELETE(
   request: Request,

@@ -3,8 +3,7 @@ import 'server-only';
 import type { PrismaClient } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { listStudentAssignments } from '@/lib/assignments/submission-service';
-import type { StudentAssignmentDto } from '@/lib/assignments/submission-dto';
+import { studentListAssignments, type StudentAssignmentDto } from '@/lib/assignments/public-api';
 import {
   AI_WORKSHOP_COLLECTION_ACTIONS,
   availableCollection,
@@ -37,7 +36,7 @@ export async function assembleAiWorkshopCollections(
   // 已采用路径同时供给任务与里程碑两个集合（同一来源），读取失败只影响这两者。
   const adoptedPath = await readAdoptedPath(userId, db);
   const [tasks, milestones, achievements, experiments, journals] = await Promise.all([
-    readTaskCollection(userId, db, adoptedPath),
+    readTaskCollection(userId, adoptedPath),
     readMilestoneCollection(adoptedPath),
     readGrowthCollection(userId, db),
     readExperimentCollection(userId, db),
@@ -104,11 +103,10 @@ async function readAdoptedPath(userId: string, db: PrismaClient): Promise<Adopte
 
 async function readTaskCollection(
   userId: string,
-  db: PrismaClient,
   adoptedPath: AdoptedPathResult,
 ): Promise<AiCollectionEnvelope<AiTaskItem>> {
   try {
-    const assignments = await listStudentAssignments(db, userId);
+    const assignments = await studentListAssignments({ id: userId });
     const items: AiTaskItem[] = assignments
       .filter((assignment) => assignment.contextStatus === 'CURRENT')
       .map(assignmentToTaskItem);
