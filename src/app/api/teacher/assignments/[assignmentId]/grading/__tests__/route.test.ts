@@ -18,7 +18,7 @@ vi.mock('@/lib/assignments/assignment-route-guards', () => ({
   requireAssignmentMutation: mocks.requireAssignmentMutation,
   readBoundedAssignmentJson: mocks.readBoundedAssignmentJson,
 }));
-vi.mock('@/lib/data-governance/assignment-grading-orchestration', () => ({
+vi.mock('@/lib/assignments/assignment-grading-orchestration', () => ({
   createAssignmentAiGradingBatches: mocks.createAssignmentAiGradingBatches,
   createManualQuestionGradingReview: mocks.createManualQuestionGradingReview,
 }));

@@ -21,8 +21,8 @@ const {
   resolveTeacherAssignmentReviewAuthorization: vi.fn(),
 }));
 
-vi.mock('../math-document-grading-batch', () => ({ createQuestionScopedGradingBatch, processQuestionGradingBatch }));
-vi.mock('../math-document-grading-persistence', () => ({ assertPipelineActorScope, questionContractFromRow }));
+vi.mock('@/lib/data-governance/math-document-grading-batch', () => ({ createQuestionScopedGradingBatch, processQuestionGradingBatch }));
+vi.mock('@/lib/data-governance/math-document-grading-persistence', () => ({ assertPipelineActorScope, questionContractFromRow }));
 vi.mock('@/lib/assignments/assignment-review', () => ({ createTeacherAssignmentReview, resolveTeacherAssignmentReviewAuthorization }));
 
 import {
@@ -32,7 +32,7 @@ import {
   executeAssignmentAiGradingBatches,
   refreshAssignmentAiGradingOperation,
   submissionRequiresIncrementalGrading,
-} from '../assignment-grading-orchestration';
+} from '@/lib/assignments/assignment-grading-orchestration';
 
 const now = new Date('2026-08-14T12:00:00.000Z');
 

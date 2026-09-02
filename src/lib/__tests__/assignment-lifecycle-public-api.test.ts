@@ -93,6 +93,13 @@ describe('assignment lifecycle public API', () => {
       + readFileSync(join(ROOT, 'src/lib/assignments/assignment-question-catalog.ts'), 'utf8');
     expect(owner).not.toContain('learningFact.create');
     expect(owner).not.toContain("from '@/features/learning-record");
+    expect(owner).not.toContain('@/lib/data-governance/assignment-grading-orchestration');
+    expect(readFileSync(join(ROOT, 'src/lib/data-governance/index.ts'), 'utf8'))
+      .not.toContain('assignment-grading-orchestration');
+    expect(readFileSync(join(ROOT, 'scripts/workers/math-document-grading-worker.ts'), 'utf8'))
+      .toContain("src/lib/assignments/public-api");
+    expect(readFileSync(join(ROOT, 'scripts/workers/math-document-grading-worker.ts'), 'utf8'))
+      .not.toContain('assignment-grading-orchestration');
   });
 
   it('omits teacher-only fields from student presentation DTOs', () => {

@@ -1,14 +1,14 @@
-import { sha256, stableStringify } from './math-document-grading-contracts';
+import { sha256, stableStringify } from '@/lib/data-governance/math-document-grading-contracts';
 import {
   assertPipelineActorScope,
   questionContractFromRow,
   type PipelineActor,
-} from './math-document-grading-persistence';
+} from '@/lib/data-governance/math-document-grading-persistence';
 import {
   createQuestionScopedGradingBatch,
   processQuestionGradingBatch,
   type BatchRequest,
-} from './math-document-grading-batch';
+} from '@/lib/data-governance/math-document-grading-batch';
 import {
   createTeacherAssignmentReview,
   resolveTeacherAssignmentReviewAuthorization,

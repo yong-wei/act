@@ -58,7 +58,6 @@ export * from './visual-evidence-contract';
 export * from './math-document-grading-evaluator';
 export * from './math-document-grading-persistence';
 export * from './math-document-grading-batch';
-export * from './assignment-grading-orchestration';
 export * from './math-document-grading-lifecycle';
 export * from './teacher-ai-grading-lab-contracts';
 export * from './teacher-ai-grading-lab-core';
