@@ -35,3 +35,11 @@ task 2.1 废弃路线生效；无学生 UI 字段需要保留公开投影。
 - vitest：boundary 2 + learner-state-reducer + konling-agent-runtime 216 通过。
 - `rtk npm run typecheck` exit 0；`rtk git diff --check` 干净。
 - 未改服务端模型 grounding、私有记忆保留、learner-state 计算或正式记录。
+
+
+## 5. Codex P1 修复（残留路由源断言）
+
+`adopt-teaching-projection-in-konling-and-rag.test.ts` 与 `ai-domain-orchestration-boundaries.test.ts` 仍读取已删 route 源（ENOENT）：
+- 前者：`teaching_projection_context`/`dual_domain_provenance` 存在性断言迁至 runtime 源（服务端构建器 `buildKonlingDualDomainProvenanceMetadataPayload`/`teachingProjectionContext`）。
+- 后者：R3 越权门用例对象为已退役端点，随端点删除（等价授权门仍由 adaptive learner-state 等服务端入口承担）。
+两文件 20 项测试通过；typecheck exit 0。

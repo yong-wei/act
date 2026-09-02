@@ -78,15 +78,4 @@ describe('AI domain orchestration boundaries', () => {
     }
   });
 
-  it('rejects forged teacher/student scope before any learner fact is read', () => {
-    // R3: 客户端提供的 userId/classId 必须先通过服务端身份与班级归属校验，
-    // 才能进入画像/学习事实读取；教师代读只能命中自己班级的在册学生。
-    const src = source('src/app/api/ai/konling-context/route.ts');
-    const gateIndex = src.indexOf('verifyTeacherStudentScope({');
-    const readIndex = src.indexOf('readLearnerState({');
-    expect(gateIndex).toBeGreaterThan(-1);
-    expect(readIndex).toBeGreaterThan(gateIndex);
-    // 越权读取直接 403/404，不落到默认上下文。
-    expect(src).toContain('return NextResponse.json({ error: scope.error }, { status: scope.status });');
-  });
 });
