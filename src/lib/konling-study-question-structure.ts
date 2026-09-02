@@ -67,7 +67,13 @@ function headingMatchesSection(heading: string, section: StudyQuestionSection): 
   });
 }
 
-function readHeading(line: string): string | null {
+function headingEqualsSection(heading: string, section: StudyQuestionSection): boolean {
+  const normalized = normalizeHeading(heading);
+  if (!normalized) return false;
+  return [section.title, ...section.aliases].some((label) => normalizeHeading(label) === normalized);
+}
+
+function readHeading(line: string, sections: readonly StudyQuestionSection[]): string | null {
   const trimmed = line.trim();
   if (!trimmed) return null;
   const markdown = trimmed.match(/^#{1,3}\s+(.+)$/);
@@ -75,8 +81,10 @@ function readHeading(line: string): string | null {
   const bold = trimmed.match(/^\*\*(.+)\*\*$/);
   if (bold) return bold[1].trim();
   const numbered = trimmed.match(/^(?:\d+[\.、\)]|-)\s+(.+)$/);
-  if (numbered && numbered[1].trim().length <= 24) return numbered[1].trim();
-  return null;
+  if (!numbered) return null;
+  const candidate = numbered[1].trim();
+  if (candidate.length > 24) return null;
+  return sections.some((section) => headingEqualsSection(candidate, section)) ? candidate : null;
 }
 
 export function evaluateStudyQuestionStructure(input: {
@@ -92,7 +100,7 @@ export function evaluateStudyQuestionStructure(input: {
   const blocks: { heading: string; body: string }[] = [];
   let current: { heading: string; body: string } | null = null;
   for (const line of lines) {
-    const heading = readHeading(line);
+    const heading = readHeading(line, sections);
     if (heading) {
       if (current) blocks.push(current);
       current = { heading, body: '' };

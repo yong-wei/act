@@ -25,6 +25,10 @@ A deterministic scorer SHALL treat a required section as present only when a hea
 - **WHEN** an answer is a single paragraph that contains the required title strings but has no heading lines
 - **THEN** the scorer SHALL not mark the structure as passing
 
+#### Scenario: Short list items remain section bodies
+- **WHEN** an answer uses Markdown or bold headings and a section body is a short numbered or bullet list that does not equal a required title or alias
+- **THEN** the scorer SHALL keep those list items as body text and SHALL count the section as present
+
 ### Requirement: Each study intent has a frozen structure regression
 Automatic tests SHALL cover all six study intents with at least one passing semantically structured answer and one failing unstructured answer.
 

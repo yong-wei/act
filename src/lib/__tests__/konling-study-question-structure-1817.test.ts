@@ -202,6 +202,40 @@ describe('issue #1817 study-question structure contract', () => {
     }
   });
 
+  it.each([
+    [
+      'list-item bodies',
+      [
+        '## 前提与符号',
+        '- G(s) 为前向通道',
+        '## 关键变形',
+        '1. 写成 G/(1+GH)',
+        '## 适用条件',
+        '- 单位负反馈',
+        '## 结果校验',
+        '- 分母次数不低于分子',
+      ].join('\n'),
+    ],
+    [
+      'numbered headings',
+      [
+        '1. 前提与符号',
+        'G(s) 为前向通道。',
+        '2. 关键变形',
+        '写成 G/(1+GH)。',
+        '3. 适用条件',
+        '单位负反馈。',
+        '4. 结果校验',
+        '分母次数不低于分子。',
+      ].join('\n'),
+    ],
+  ] as const)('keeps short list items as section bodies instead of new headings (%s)', (_name, answer) => {
+    expect(evaluateStudyQuestionStructure({
+      answer,
+      intent: 'formula-derivation',
+    }).passed).toBe(true);
+  });
+
   it('keeps every section required under concise, table, steps, and guided preferences', () => {
     const runtime = createRuntimeContext();
     const queries = [
