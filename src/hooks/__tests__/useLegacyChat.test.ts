@@ -35,5 +35,7 @@ describe('useLegacyChat compatibility hook', () => {
   it('restores pending input when a submitted turn fails', () => {
     expect(hookSource).toContain('lastSubmittedTextRef.current = text;');
     expect(hookSource).toContain('if (pending && !input) setInput(pending);');
+    // append（快捷问题）同样绑定待恢复文本，失败后不恢复上一次的陈旧问题
+    expect(hookSource).toContain('lastSubmittedTextRef.current = message.content;');
   });
 });

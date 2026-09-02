@@ -97,6 +97,17 @@ describe('useKonlingConversationLibrary', () => {
     vi.unstubAllGlobals();
   });
 
+  it('normalizes a rejected conversation fetch into student-safe network copy', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    render();
+
+    await flush();
+    await flush();
+
+    expect(latest?.error?.message).toBe('网络连接不可用，请检查网络后重试。');
+    expect(latest?.error?.message).not.toContain('Failed to fetch');
+  });
+
   it('auto-selects the first listed conversation by default', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ conversations: [conversationSummary('c-1')] }));
     render();

@@ -93,6 +93,8 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       message: Pick<Message, 'role' | 'content'>,
       requestBody?: Record<string, unknown>,
     ) => {
+      // 快捷问题等 append 发送同样绑定待恢复文本，避免失败后恢复上一次的陈旧问题
+      lastSubmittedTextRef.current = message.content;
       await chat.sendMessage(
         { text: message.content },
         requestBody ? { body: { ...bodyRef.current, ...requestBody } } : undefined,

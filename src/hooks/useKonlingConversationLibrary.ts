@@ -88,6 +88,16 @@ async function readJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+// 网络层 fetch 拒绝（断网/DNS）同样归一化为学生安全失败，避免原始
+// TypeError 文案经 conversationError/actionStatus 进入界面
+async function konlingConversationFetch(input: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new KonlingChatFailureError('network-unavailable');
+  }
+}
+
 export function buildKonlingConversationListUrl(search: string): string {
   const query = search.trim();
   return query
@@ -129,7 +139,7 @@ export function useKonlingConversationLibrary({
     listRequestRef.current = requestId;
     setIsLoading(true);
     try {
-      const response = await fetch(buildKonlingConversationListUrl(search));
+      const response = await konlingConversationFetch(buildKonlingConversationListUrl(search));
       const body = await readJson<{ conversations: KonlingConversationSummary[] }>(response);
       if (listRequestRef.current !== requestId) return body.conversations;
       setConversations(body.conversations);
@@ -168,7 +178,7 @@ export function useKonlingConversationLibrary({
     const requestId = activeRequestRef.current + 1;
     activeRequestRef.current = requestId;
     setIsLoading(true);
-    void fetch(`/api/ai/sessions/${activeConversationId}`)
+    void konlingConversationFetch(`/api/ai/sessions/${activeConversationId}`)
       .then((response) => readJson<KonlingConversation>(response))
       .then((conversation) => {
         if (activeRequestRef.current !== requestId) return;
@@ -192,7 +202,7 @@ export function useKonlingConversationLibrary({
     activeRequestRef.current = requestId;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`);
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`);
       const conversation = await readJson<KonlingConversation>(response);
       if (
         activeRequestRef.current !== requestId
@@ -222,7 +232,7 @@ export function useKonlingConversationLibrary({
     }
     setIsMutating(true);
     try {
-      const response = await fetch('/api/ai/sessions', {
+      const response = await konlingConversationFetch('/api/ai/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -277,7 +287,7 @@ export function useKonlingConversationLibrary({
   const renameConversation = useCallback(async (conversationId: string, title: string) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
@@ -297,7 +307,7 @@ export function useKonlingConversationLibrary({
   const setConversationPinned = useCallback(async (conversationId: string, pinned: boolean) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pinned }),
@@ -317,7 +327,7 @@ export function useKonlingConversationLibrary({
   const deleteConversation = useCallback(async (conversationId: string) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmed: true }),
@@ -344,7 +354,7 @@ export function useKonlingConversationLibrary({
     const selectedConversationId = selectedConversationIdRef.current;
     if (activeConversation?.id === selectedConversationId) return activeConversation;
     if (selectedConversationId) {
-      const response = await fetch(`/api/ai/sessions/${selectedConversationId}`);
+      const response = await konlingConversationFetch(`/api/ai/sessions/${selectedConversationId}`);
       const conversation = await readJson<KonlingConversation>(response);
       if (selectedConversationIdRef.current !== selectedConversationId) {
         throw new Error('控灵会话已切换，请重新发送。');
