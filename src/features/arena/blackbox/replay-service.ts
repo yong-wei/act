@@ -6,6 +6,11 @@ import {
   type SimulationTaskSpecV1,
   type SimulationTraceRecordV1,
 } from '@/resources/simulations/core/run-contract';
+import {
+  assertPreviewOrPracticeNotOfficial,
+  canonicalIdentityHash,
+  type ArtifactRunIdentity,
+} from '@/lib/practice-lab-run-contract';
 
 import {
   buildArenaVirtualSimulationPreview,
@@ -77,6 +82,35 @@ export class ArenaReplayAccessError extends Error {
   constructor(message = 'Replay access is not allowed.') {
     super(message);
     this.name = 'ArenaReplayAccessError';
+  }
+}
+
+export function assertPersistedArenaPreviewContract(input: {
+  previewUserId: string;
+  preview: ArenaVirtualSimulationPreviewRun;
+  rowTaskId: string;
+  rowControllerHash: string;
+  simulationRun?: SimulationRunEnvelopeV1 | null;
+  simulationTrace?: SimulationTraceRecordV1 | null;
+}): void {
+  const persisted = input.preview.metadata?.runContract?.identity as ArtifactRunIdentity | undefined;
+  if (!persisted) return;
+  const { canonicalIdentityHash: storedHash, ...unsigned } = persisted;
+  if (!storedHash || storedHash !== canonicalIdentityHash(unsigned)) {
+    throw new ArenaReplayAccessError('Persisted preview identity hash does not match the sealed identity.');
+  }
+  assertPreviewOrPracticeNotOfficial(persisted);
+  if (persisted.ownerRef.id !== input.previewUserId) {
+    throw new ArenaReplayAccessError('Persisted preview owner does not match the run owner.');
+  }
+  if (persisted.taskId !== input.rowTaskId || persisted.artifactHash !== input.rowControllerHash) {
+    throw new ArenaReplayAccessError('Persisted preview identity does not match the preview row.');
+  }
+  if (input.simulationRun?.ownerUserId && input.simulationRun.ownerUserId !== input.previewUserId) {
+    throw new ArenaReplayAccessError('Linked SimulationRun owner does not match the preview owner.');
+  }
+  if (persisted.checksum && input.simulationTrace?.checksum && persisted.checksum !== input.simulationTrace.checksum) {
+    throw new ArenaReplayAccessError('Persisted preview checksum does not match the linked trace.');
   }
 }
 
@@ -348,6 +382,15 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
     const canonicalTraces = Array.isArray(canonicalRecord?.traces) ? canonicalRecord.traces : [];
     const simulationRun = canonicalRecord ? simulationRunFromRow(canonicalRecord) : null;
     const simulationTrace = simulationTraceFromRow(readObject(canonicalTraces[0]));
+    const preview = row.payload as unknown as ArenaVirtualSimulationPreviewRun;
+    assertPersistedArenaPreviewContract({
+      previewUserId: row.userId,
+      preview,
+      rowTaskId: row.taskId,
+      rowControllerHash: row.controllerHash,
+      simulationRun,
+      simulationTrace,
+    });
 
     return {
       id: row.id,
@@ -357,7 +400,7 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
       controllerHash: row.controllerHash,
       scenarioId: row.scenarioId,
       simulationRunId: row.simulationRunId,
-      preview: row.payload as unknown as ArenaVirtualSimulationPreviewRun,
+      preview,
       createdAt: row.createdAt.toISOString(),
       ownerClassId: row.user.profile?.classId ?? null,
       ownerClassTeacherId: row.user.profile?.class?.teacherId ?? null,
