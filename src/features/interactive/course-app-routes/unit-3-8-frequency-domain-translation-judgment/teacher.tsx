@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_3_8TeacherPage } from '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/teacher-page';
 

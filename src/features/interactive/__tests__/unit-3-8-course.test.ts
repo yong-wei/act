@@ -13,12 +13,12 @@ import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
-let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
-let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
-let loadLessonRuntimeEntry: typeof import('@/lib/course-runtime').loadLessonRuntimeEntry;
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaIndex;
+let loadLessonRuntimeEntry: typeof import('@/lib/course-bundle').loadLessonRuntimeEntry;
 
 beforeAll(async () => {
-  ({ loadLessonRuntimeEntry, parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({ loadLessonRuntimeEntry, parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-bundle'));
 });
 
 describe('unit 3-8 interactive course', () => {

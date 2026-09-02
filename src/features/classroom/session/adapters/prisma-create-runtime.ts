@@ -9,13 +9,13 @@ import {
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 import { resolvePlanRuntimeBindings } from '@/lib/lesson-plan-runtime-binding';
-import { CourseBundleCaptureError } from '@/lib/course-bundle/contract';
-import { captureRuntimeCourseBundleIdentity } from '@/lib/course-bundle/capture';
+import { CourseBundleCaptureError } from '@/lib/course-bundle';
+import { captureRuntimeCourseBundleIdentity } from '@/lib/course-bundle';
 import {
   persistCourseBundleRevision,
   planProjectionBundleIdentity,
   generatedCoursewareBundleIdentity,
-} from '@/lib/course-bundle/session-binding';
+} from '@/lib/course-bundle';
 import {
   buildClassroomIdentityPayload,
   buildClassroomLifecycleEvidenceFields,

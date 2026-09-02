@@ -10,7 +10,7 @@ import {
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/structured-textbook-runtime';
-import type { RuntimeLessonMediaKind } from '@/lib/course-runtime';
+import type { RuntimeLessonMediaKind } from '@/lib/runtime-lesson-media-document';
 import {
   buildResourceFieldCompletionAudit,
   buildResourceFieldCompletionAuditFromRows,

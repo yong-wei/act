@@ -1,3 +1,4 @@
+vi.mock('server-only', () => ({}));
 import { describe, expect, it, vi } from 'vitest';
 import { toModelMessages } from '@/lib/ai-message-compat';
 import {

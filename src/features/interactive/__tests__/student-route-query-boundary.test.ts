@@ -12,11 +12,8 @@ vi.mock('next-auth', () => ({
 
 vi.mock('server-only', () => ({}));
 
-vi.mock('@/lib/course-runtime', () => ({
+vi.mock('@/lib/course-bundle', () => ({
   loadLessonRuntimeEntry: vi.fn(),
-}));
-
-vi.mock('@/lib/course-bundle/session-reader', () => ({
   loadSessionBoundLessonRuntime: vi.fn(),
 }));
 
@@ -47,15 +44,14 @@ function readSource(relativePath: string) {
 async function loadRouteMocks() {
   const [
     { getServerSession },
-    { loadLessonRuntimeEntry },
-    { loadSessionBoundLessonRuntime },
+    bundleMocks,
     { redirectInactiveStudentSessionToLessonEntry },
   ] = await Promise.all([
     import('next-auth'),
-    import('@/lib/course-runtime'),
-    import('@/lib/course-bundle/session-reader'),
+    import('@/lib/course-bundle'),
     import('@/lib/interactive-session-access'),
   ]);
+  const { loadLessonRuntimeEntry, loadSessionBoundLessonRuntime } = bundleMocks;
 
   return {
     getServerSession: vi.mocked(getServerSession),

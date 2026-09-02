@@ -15,7 +15,7 @@ import {
   getVisibleKnowledgeMapLinks,
   type KnowledgeMapInputNode,
 } from '@/features/interactive/shared/lesson-entry-knowledge-map-layout';
-import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-bundle';
 
 const ACTIVE_ARROW_MARKER_PREFIX = 'lesson-entry-knowledge-map-active';
 const MUTED_ARROW_MARKER_PREFIX = 'lesson-entry-knowledge-map-muted';

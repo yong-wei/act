@@ -14,7 +14,7 @@ import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-
 import { useTeacherLessonSession } from '@/features/interactive/session-framework';
 import { useCourseEventTracking } from '@/features/interactive/session-framework/use-course-event-tracking';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {

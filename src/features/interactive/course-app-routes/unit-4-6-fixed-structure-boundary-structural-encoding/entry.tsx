@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_4_6CourseEntryPage } from '@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

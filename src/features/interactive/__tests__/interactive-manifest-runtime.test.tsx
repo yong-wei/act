@@ -5,7 +5,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 import {
   renderInteractiveLessonLayout,

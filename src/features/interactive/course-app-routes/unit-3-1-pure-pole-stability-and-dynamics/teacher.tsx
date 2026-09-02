@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_3_1TeacherPage } from '@/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/teacher-page';
 

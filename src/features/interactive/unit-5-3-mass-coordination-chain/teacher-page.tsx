@@ -16,7 +16,7 @@ import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
 import { getInteractiveRevealLayerCount } from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import type {
   InteractiveRuntimeActivityCardManifest,
   InteractiveRuntimeManifest,

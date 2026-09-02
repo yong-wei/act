@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { UNIT_3_3CourseEntryPage } from '@/features/interactive/unit-3-3-root-locus-rules/entry-page';
 
 export const dynamic = 'force-dynamic';

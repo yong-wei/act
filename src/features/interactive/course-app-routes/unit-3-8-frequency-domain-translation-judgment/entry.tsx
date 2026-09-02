@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { UNIT_3_8CourseEntryPage } from '@/features/interactive/unit-3-8-frequency-domain-translation-judgment/entry-page';
 
 export default async function UNIT_3_8FrequencyDomainTranslationJudgmentEntryRoute() {

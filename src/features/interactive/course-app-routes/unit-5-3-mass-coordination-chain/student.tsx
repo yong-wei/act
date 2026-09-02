@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { UNIT_5_3StudentPage } from '@/features/interactive/unit-5-3-mass-coordination-chain/student-page';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 

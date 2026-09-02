@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { UNIT_1_1StudentPage } from '@/features/interactive/unit-1-1-see-the-full-picture/student-page';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';

@@ -7,7 +7,7 @@
  */
 
 import type { ActStructuralUnitCrosswalkRecord } from '@/lib/aggregate-governance/contracts';
-import type { TextbookStructureUnitProjection } from '@/lib/structured-textbook-runtime';
+import type { TextbookStructureUnitProjection } from '@/lib/course-bundle';
 import type { SourcePackItem } from '@/lib/source-pack/types';
 
 import {

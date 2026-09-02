@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { loadStructuredTextbookBook } from '@/lib/structured-textbook-runtime';
+import { loadStructuredTextbookBook } from '@/lib/course-bundle';
 import { loadTextbookCatalog, loadTextbookReaderProjection } from '@/lib/textbook-reader';
 
 const BOOK_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/u;

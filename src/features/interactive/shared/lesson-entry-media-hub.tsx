@@ -13,7 +13,7 @@ import { downloadLessonHandoutPdf } from '@/features/interactive/shared/download
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import { LessonEntryHandoutPanel } from '@/features/interactive/shared/lesson-entry-handout-panel';
 import { LessonEntryHandoutDialog } from '@/features/interactive/shared/lesson-entry-runtime-sections';
-import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-bundle';
 
 type LessonEntryMediaSlot = 'introVideo' | 'courseVideo' | 'audio' | 'slides';
 type ReadyLessonEntryResource = RuntimeLessonMediaResource & { status: 'ready'; url: string };

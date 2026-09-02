@@ -15,7 +15,7 @@ import {
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
 } from '../authoritative-knowledge';
-import type { RuntimeLessonEntryBundle } from '../course-runtime';
+import type { RuntimeLessonEntryBundle } from '../course-bundle';
 import {
   assertNoLayerIdentityMixing,
   buildCoursePackageLayeredScope,

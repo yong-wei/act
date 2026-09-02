@@ -1,10 +1,11 @@
+vi.mock('server-only', () => ({}));
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { loadAllStructuredTextbookBooks } from '@/lib/structured-textbook-runtime';
+import { loadAllStructuredTextbookBooks } from '@/lib/course-bundle';
 
 const temporaryRoots: string[] = [];
 

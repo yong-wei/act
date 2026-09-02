@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_5_1CourseEntryPage } from '@/features/interactive/unit-5-1-linear-backbone-boundaries/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

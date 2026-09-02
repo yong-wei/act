@@ -1,7 +1,7 @@
 'use client';
 
 import { CourseEntryShell } from '@/features/interactive/shared/course-entry-shell';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import {
   UNIT_4_5_COURSE_DESCRIPTION,
   UNIT_4_5_COURSE_TITLE,

@@ -15,7 +15,7 @@ import {
   LessonRuntimeShell,
 } from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { getUnit55StepAIContext } from '@/lib/unit-5-5-ai-contexts';
 import {
   getUNIT_5_5ManifestStepFromManifest,

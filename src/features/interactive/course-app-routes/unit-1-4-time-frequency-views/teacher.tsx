@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { UNIT_1_4TeacherPage } from '@/features/interactive/unit-1-4-time-frequency-views/teacher-page';
 import { authOptions } from '@/lib/auth';
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 
 export const dynamic = 'force-dynamic';

@@ -6,12 +6,10 @@ import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
-  type RuntimeLessonResourceCatalogEntry,
-} from '@/lib/course-runtime';
-import {
   loadAllTextbookStructureRuntimeCatalogEntries,
+  type RuntimeLessonResourceCatalogEntry,
   type TextbookStructureRuntimeCatalogEntry,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { RESOURCE_NODE_TYPES, type ResourceNodeType, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';
 import {

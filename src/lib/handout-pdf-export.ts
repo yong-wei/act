@@ -4,7 +4,7 @@ import { access } from 'node:fs/promises';
 
 import { chromium } from 'playwright';
 
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { buildLessonHandoutPrintUrl } from '@/lib/handout-pdf';
 
 const SYSTEM_CHROMIUM_EXECUTABLE_CANDIDATES = [

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { UNIT_1_3TeacherPage } from '@/features/interactive/unit-1-3-parameter-pole-migration/teacher-page';
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 
 export const dynamic = 'force-dynamic';

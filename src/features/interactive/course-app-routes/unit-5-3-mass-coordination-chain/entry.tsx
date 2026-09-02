@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_5_3CourseEntryPage } from '@/features/interactive/unit-5-3-mass-coordination-chain/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

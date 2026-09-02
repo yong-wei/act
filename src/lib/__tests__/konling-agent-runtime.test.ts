@@ -1,3 +1,4 @@
+vi.mock('server-only', () => ({}));
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -70,17 +71,14 @@ vi.mock('@/lib/learning-goal-resource-baseline-runtime', async () => {
   };
 });
 
-vi.mock('@/lib/structured-textbook-runtime', () => ({
-  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
-  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
-}));
-
 vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
   retrieveTextbookSourcePackV2Progressive: mocks.retrieveTextbookSourcePackV2Progressive,
 }));
 
-vi.mock('@/lib/course-runtime', () => ({
+vi.mock('@/lib/course-bundle', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+  loadAllTextbookStructureRuntimeCatalogEntries: mocks.loadAllTextbookStructureRuntimeCatalogEntries,
+  loadAllTextbookStructureUnitProjections: mocks.loadAllTextbookStructureUnitProjections,
 }));
 
 vi.mock('@/lib/teacher-resource-node-data', async () => {

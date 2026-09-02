@@ -1,4 +1,4 @@
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 
 import type {
   LayeredGraphAuthorityInput,

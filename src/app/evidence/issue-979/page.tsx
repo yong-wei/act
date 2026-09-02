@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 
