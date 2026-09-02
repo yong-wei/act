@@ -88,6 +88,8 @@ export class ArenaReplayAccessError extends Error {
 export function assertPersistedArenaPreviewContract(input: {
   previewUserId: string;
   preview: ArenaVirtualSimulationPreviewRun;
+  rowTaskId: string;
+  rowControllerHash: string;
   simulationRun?: SimulationRunEnvelopeV1 | null;
   simulationTrace?: SimulationTraceRecordV1 | null;
 }): void {
@@ -101,7 +103,7 @@ export function assertPersistedArenaPreviewContract(input: {
   if (persisted.ownerRef.id !== input.previewUserId) {
     throw new ArenaReplayAccessError('Persisted preview owner does not match the run owner.');
   }
-  if (persisted.taskId !== input.preview.taskId || persisted.artifactHash !== input.preview.controllerHash) {
+  if (persisted.taskId !== input.rowTaskId || persisted.artifactHash !== input.rowControllerHash) {
     throw new ArenaReplayAccessError('Persisted preview identity does not match the preview row.');
   }
   if (input.simulationRun?.ownerUserId && input.simulationRun.ownerUserId !== input.previewUserId) {
@@ -384,6 +386,8 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
     assertPersistedArenaPreviewContract({
       previewUserId: row.userId,
       preview,
+      rowTaskId: row.taskId,
+      rowControllerHash: row.controllerHash,
       simulationRun,
       simulationTrace,
     });

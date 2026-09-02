@@ -25,7 +25,7 @@ function persistedIdentity(ownerUserId = 'student-1', checksum: string | null = 
 
 function previewWithIdentity(identity: ReturnType<typeof persistedIdentity>): ArenaVirtualSimulationPreviewRun {
   return {
-    taskId: 'task-1',
+    taskId: identity.taskId,
     datasetHash: 'arena-blackbox-dataset-x',
     controllerHash: identity.artifactHash,
     scenarioId: 'scenario',
@@ -125,6 +125,8 @@ describe('persisted arena preview contract', () => {
     const run = () => assertPersistedArenaPreviewContract({
       previewUserId: 'student-1',
       preview: previewWithIdentity(mutate ? mutate(identity) : identity),
+      rowTaskId: 'task-1',
+      rowControllerHash: identity.artifactHash,
       ...extras,
     });
     if (error) expect(run).toThrow(error);
@@ -134,6 +136,8 @@ describe('persisted arena preview contract', () => {
   it('does not rewrite historical previews that lack a sealed runContract', () => {
     expect(() => assertPersistedArenaPreviewContract({
       previewUserId: 'student-1',
+      rowTaskId: 'task-1',
+      rowControllerHash: 'controller',
       preview: {
         taskId: 'task-1',
         datasetHash: 'arena-blackbox-dataset-x',
