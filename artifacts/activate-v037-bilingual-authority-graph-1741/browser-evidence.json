@@ -11,7 +11,7 @@
   "enFrameZhLeakInDirectory": 0,
   "enSearchHits": 12,
   "enSearchFirstHit": "DC gain | = | lim | ⁡ | 𝑠 | → | 0 | 𝐺 | ( | 𝑠 | ) | DC gain= | s→0 | lim | \t​",
-  "enSearchHitsContainZh": 4,
+  "enSearchHitsContainZh": 0,
   "enSemanticEdgesSample": [
     "Prerequisite",
     "Prerequisite"

@@ -176,7 +176,11 @@ async function fetchAuthorityShard(
   return payload as IncomingAuthorityShard;
 }
 
-function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
+function useActiveAuthorityWorkspace(
+  retry: number,
+  locale: AdmittedLocale,
+  onLocaleTransactionFailure?: (previousLocale: AdmittedLocale) => void,
+): {
   state: WorkspaceLoadState;
   workspace: AuthorityShardWorkspaceState;
   enterDomain: (visualRole: string) => Promise<boolean>;
@@ -420,8 +424,11 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
       } catch (error: unknown) {
         if (controller.signal.aborted || isIdentityFailure(error)) return;
         // 整体失败：保留旧 locale 的完整帧（未提交任何新 display 记录），
-        // 回滚 selectedLocale 使下一次切换重新发起完整事务。
+        // selectedLocale 与外层 locale state 一起回滚——否则 graphCopy 等
+        // UI 文案已切英文而 workspace 仍是中文数据，形成混合帧（#1741
+        // P1：失败时同步回滚外层 locale 状态）。
         updateWorkspace((workspace) => ({ ...workspace, selectedLocale: previousLocale }));
+        onLocaleTransactionFailure?.(previousLocale);
       } finally {
         requestControllers.delete(controller);
       }
@@ -1327,7 +1334,11 @@ export function ActiveAuthorityGraph({
     resetDomain,
     applyShard,
     onIdentityFailure,
-  } = useActiveAuthorityWorkspace(retry, locale);
+  } = useActiveAuthorityWorkspace(
+  retry,
+  locale,
+  (previousLocale) => setLocale(previousLocale),
+);
   const languageState = selectGraphLanguage(
     createGraphLanguageState(workspace.localeCapability),
     locale,

@@ -304,10 +304,14 @@ export function isSafeAuthorityLabel(
  * characters, line breaks, pure hashes, URI/identity-shaped values and
  * path/directory structures must never reach the browser.
  */
-export function isSafeLocalePresentationText(value: string | null | undefined): boolean {
+export function isSafeLocalePresentationText(
+  value: string | null | undefined,
+  trustedFormula = false,
+): boolean {
   if (typeof value !== 'string' || value.length === 0) return false;
   if (DISALLOWED_CONTROL.test(value)) return false;
-  if (/[\r\n]/u.test(value)) return false;
+  // 受治理公式文本（块级 LaTeX 名）允许换行；普通呈现文本不允许。
+  if (!trustedFormula && /[\r\n]/u.test(value)) return false;
   if (/^(?:[a-f0-9]{32,})$/iu.test(value.trim())) return false;
   if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:){1,2}[A-Za-z0-9:/._-]+$/u.test(value.trim())) return false;
   if (/^(?:[A-Za-z]:[\\/]|\/|~[/\\])/u.test(value.trim())) return false;

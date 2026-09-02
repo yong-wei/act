@@ -796,16 +796,21 @@ export function activeDomainSearchResponse(
     );
     const matched = index.entries
       .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
-      .filter((entry) => (
-        searchEntryMatches(
+      .filter((entry) => {
+        // 完整 locale 模式下 uncovered 对象（无当前语言对象名）不参与
+        // 匹配——绝不让中文占位符出现在外文搜索结果里（#1741 P1）。
+        if (localeLabels && !localeLabels.has(entry.id) && !formulaSearchTerms.has(entry.id)) {
+          return false;
+        }
+        return searchEntryMatches(
           localeLabels?.has(entry.id)
             ? { ...entry, label: entryLabelFor(entry), aliases: [] }
             : entry,
           needle,
         )
-        || (formulaSearchTerms.has(entry.id)
-          && normalizedSearchNeedle(formulaSearchTerms.get(entry.id)!).includes(needle))
-      ))
+          || (formulaSearchTerms.has(entry.id)
+            && normalizedSearchNeedle(formulaSearchTerms.get(entry.id)!).includes(needle));
+      })
       .sort((left, right) => (
         entryLabelFor(left).localeCompare(entryLabelFor(right), 'zh-CN')
         || left.id.localeCompare(right.id)

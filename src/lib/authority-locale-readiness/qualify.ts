@@ -242,7 +242,7 @@ export function qualifyLocaleManifest(
     }
     // locale 记录是学习者呈现文本：正文斜杠/反斜杠合法，安全底线见
     // isSafeLocalePresentationText（#1741）。
-    if (!isSafeLocalePresentationText(record.value)) {
+    if (!isSafeLocalePresentationText(record.value, record.trustedFormula === true)) {
       failures.push({
         code: 'unsafe',
         message: 'locale value is not a safe learner-facing label',

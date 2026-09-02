@@ -39,6 +39,9 @@ const UPSTREAM_LOCALIZED_CONTENT_CONTRACT = 'ctkg-localized-content/1';
 const UPSTREAM_ENTITY_TYPE_LEXICON_CONTRACT = 'ctkg-entity-type-locale-lexicon/1';
 const UPSTREAM_RELATION_LEXICON_CONTRACT = 'ctkg-relation-locale-lexicon/1';
 
+/** 块级数学文本特征：名字即公式（含 LaTeX 环境/命令）的对象。 */
+const BLOCK_MATH_TEXT = /\\begin\{|\\frac|\\tag\{|\\operatorname|\\left\||\\dot\{|\\mathbf/u;
+
 export class V037AdapterError extends Error {
   readonly code: string;
   constructor(code: string, message: string) {
@@ -222,14 +225,21 @@ export function adaptV037LocaleManifest(input: {
       const slot = source.get(id);
       const zh = slot?.get('zh-CN');
       const en = slot?.get('en');
-      // 不可呈现文本（多行 block LaTeX 名等）不入 locale manifest：uncovered
-      // 处置，en 帧 product-hidden，zh 帧保持 sealed shard 现状（#1741）。
-      if (!zh || !en || !isSafeLocalePresentationText(zh) || !isSafeLocalePresentationText(en)) {
+      if (!zh || !en) {
+        uncovered?.push(id);
+        continue;
+      }
+      // 名字本身是数学文本（块级 LaTeX）且两语言同值的对象：按受治理
+      // 语言中立公式记录保留在分母内（允许换行），en 帧渲染同一 TeX，
+      // 保持中英拓扑一致（#1741 P1：不以缩小分母放行）。真正不可呈现的
+      // 文本仍进 uncovered 处置。
+      const mathText = BLOCK_MATH_TEXT.test(zh) && BLOCK_MATH_TEXT.test(en);
+      const trustedFormula = mathText || options.trustedFormulaIdPattern?.test(id) === true;
+      if (!isSafeLocalePresentationText(zh, trustedFormula) || !isSafeLocalePresentationText(en, trustedFormula)) {
         uncovered?.push(id);
         continue;
       }
       covered.push(id);
-      const trustedFormula = options.trustedFormulaIdPattern?.test(id) === true;
       const languageNeutral = zh === en;
       for (const locale of ADMITTED_LOCALES) {
         records.push({
@@ -238,7 +248,10 @@ export function adaptV037LocaleManifest(input: {
           locale,
           value: locale === 'zh-CN' ? zh : en,
           source: LOCALE_RECORD_SOURCE,
-          ...(languageNeutral ? { languageNeutral: true, trustedFormula } : {}),
+          // trustedFormula 独立于 languageNeutral：块级数学文本名（含
+          // 本地化条件词的 zh/en 不同值）也需要换行豁免（#1741）。
+          ...(languageNeutral ? { languageNeutral: true } : {}),
+          ...(trustedFormula ? { trustedFormula: true } : {}),
         });
       }
       // 同值双语即 language-neutral；登记进 manifest 分类清单（trusted
