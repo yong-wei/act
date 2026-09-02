@@ -166,7 +166,9 @@ export function buildStandaloneCopilotEntryPresentation(input: {
       ],
       placeholder: '请输入您的问题，例如：请根据当前证据给出下一步练习建议',
       inputAriaLabel: '请输入您的问题，例如：请根据当前证据给出下一步练习建议',
-      limitations: input.evidenceLimitations ?? ['已加载服务端核对的学习证据，建议仅作参考。'],
+      limitations: input.evidenceLimitations?.length
+        ? input.evidenceLimitations
+        : ['已加载服务端核对的学习证据，建议仅作参考。'],
       adjacentActions: [nextAction],
     };
   }

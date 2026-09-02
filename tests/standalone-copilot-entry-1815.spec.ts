@@ -222,6 +222,22 @@ test('evidence pending hang does not claim loaded evidence', async ({ page }) =>
   expect(bodyText).not.toContain('薄弱点');
 });
 
+test('evidence available with empty limitations still shows checked-evidence copy', async ({ page }) => {
+  test.setTimeout(90_000);
+  await installStandaloneCopilotRoutes(page, { evidenceStatus: 'available' });
+  await page.route('**/api/ai/evidence-copilot**', (route) => route.fulfill({
+    json: {
+      ...evidenceProjection('available'),
+      limitations: [],
+    },
+  }));
+  await page.goto('/ai/copilot?context=evidence', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-copilot-entry-kind="evidence-available"]')).toBeVisible();
+  const bodyText = await page.locator('main').innerText();
+  expect(bodyText).toContain('已加载服务端核对的学习证据');
+  expect(bodyText).not.toContain('正在核对学习证据');
+});
+
 test('evidence available and missing states keep authorized actions', async ({ page }) => {
   test.setTimeout(120_000);
   const available = await installStandaloneCopilotRoutes(page, { evidenceStatus: 'available' });

@@ -111,6 +111,17 @@ describe('standalone Copilot entry presentation', () => {
     },
   );
 
+  it('keeps available copy when the projection has empty limitations', () => {
+    const presentation = buildStandaloneCopilotEntryPresentation({
+      context: 'evidence',
+      evidenceStatus: 'available',
+      evidenceLimitations: [],
+    });
+    expect(presentation.kind).toBe('evidence-available');
+    expect(presentation.limitations[0]).toBe('已加载服务端核对的学习证据，建议仅作参考。');
+    expect(presentation.suggestions[0]?.label).toBe('证据来源');
+  });
+
   it('keeps available evidence questions and forbids simulation claims', () => {
     const presentation = buildStandaloneCopilotEntryPresentation({
       context: 'evidence',
