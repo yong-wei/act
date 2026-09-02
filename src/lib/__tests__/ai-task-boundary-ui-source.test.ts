@@ -21,7 +21,6 @@ describe('ai task boundary UI source contracts', () => {
     const messageContent = readSource('src/components/ai/ai-message-content.tsx');
     const globalSidebar = readSource('src/components/ai/global-ai-sidebar.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
-    const konlingSidebar = readSource('src/components/ai/konling-sidebar.tsx');
     const sharedRenderer = readSource('src/components/ai/konling-chat-renderer.tsx');
     const copilotPanel = readSource('src/features/ai/copilot-panel.tsx');
     const interactiveAiPanel = readSource('src/features/interactive/InteractiveAIPanel.tsx');
@@ -57,11 +56,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).not.toContain('userProfile');
     expect(copilotPanel).not.toContain('userProfile');
     expect(globalSidebar).not.toContain('userProfile');
-    expect(konlingSidebar).not.toContain('userProfile');
     expect(copilot).not.toContain('taskContext: evidenceSummary');
     expect(copilot).not.toContain('证据来源：${evidenceSummary.source}');
-    expect(konlingSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
-    expect(konlingSidebar).toContain('konlingPromptInputClassName');
     expect(copilotPanel).toContain('<KonlingChatMessageList messages={messages} />');
     expect(copilotPanel).toContain('konlingPromptInputClassName');
     expect(interactiveAiPanel).toContain('<KonlingChatMessageList messages={ai.messages} />');
@@ -71,7 +67,6 @@ describe('ai task boundary UI source contracts', () => {
       sharedRenderer,
       globalSidebar,
       copilot,
-      konlingSidebar,
       copilotPanel,
       interactiveAiPanel,
     ].forEach((source) => {
