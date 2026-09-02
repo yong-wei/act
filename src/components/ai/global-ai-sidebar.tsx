@@ -45,6 +45,8 @@ import { shouldStartTextbookCoachConversation } from '@/lib/textbook-resource-co
 import { platformLayerStyle } from '@/components/platform/platform-layers';
 import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 import { KonlingContinuityCard } from './konling-continuity-card';
+import { KonlingChatFailureActions } from './konling-chat-failure-actions';
+import { normalizeKonlingChatFailure } from '@/lib/konling-chat-failure';
 import type { KonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -325,6 +327,8 @@ export function GlobalAISidebar() {
     },
     onResponse: handleChatResponse,
   });
+
+  const chatFailure = error ? normalizeKonlingChatFailure(error) : null;
 
   // 资源辅导入口：会话库水合完成后，按服务端验证的完整资源身份恢复精确匹配会话；
   // 无匹配时保持未落库空白态，首个问题提交时才创建并绑定会话。
@@ -1181,7 +1185,7 @@ export function GlobalAISidebar() {
           data-konling-message-scroll-container
         >
           <div className="sr-only" role="status" aria-live="polite" data-ai-task-status="global-sidebar">
-            {isLoading ? '控灵正在思考。' : error ? `AI 对话失败：${error.message}` : actionStatus}
+            {isLoading ? '控灵正在思考。' : chatFailure ? chatFailure.message : actionStatus}
           </div>
           {actionStatus && (
             <div
@@ -1270,14 +1274,16 @@ export function GlobalAISidebar() {
                   <span>控灵正在思考...</span>
                 </div>
               )}
-              {error && (
-                <div className="rounded-lg bg-red-900/30 p-3 text-sm text-red-300">
-                  <p>出错了: {error.message}</p>
-                  <Button size="sm" variant="ghost" onClick={() => reload()} className="mt-2 text-red-300">
-                    重试
-                  </Button>
-                </div>
-              )}
+            </div>
+          )}
+          {chatFailure && (
+            <div className="rounded-lg bg-red-900/30 p-3 text-sm text-red-300" role="alert">
+              <p>{chatFailure.message}</p>
+              <KonlingChatFailureActions
+                category={chatFailure.category}
+                onRetry={() => reload()}
+                onNewConversation={() => void handleNewConversation()}
+              />
             </div>
           )}
           <div ref={messagesEndRef} />

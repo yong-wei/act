@@ -12,6 +12,8 @@ import {
   useKonlingConversationLibrary,
   visibleKonlingMessages,
 } from '@/hooks/useKonlingConversationLibrary';
+import { KonlingChatFailureActions } from '@/components/ai/konling-chat-failure-actions';
+import { normalizeKonlingChatFailure } from '@/lib/konling-chat-failure';
 import { useRef, useEffect, useMemo, useCallback, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -254,6 +256,7 @@ export default function CopilotPage() {
 
   const busy = isLoading || isConversationLoading || isConversationMutating;
   const recoveryFailed = Boolean(authenticatedUserId && conversationError);
+  const chatFailure = error ? normalizeKonlingChatFailure(error) : null;
   const conversationStatus = !authenticatedUserId
     ? 'unauthenticated'
     : recoveryFailed
@@ -662,17 +665,19 @@ export default function CopilotPage() {
                       <span>{KONLING_BRAND.name}正在思考...</span>
                     </div>
                   )}
-                  {error && (
-                    <div className="rounded-lg bg-red-900/30 p-4 text-red-300">
-                      <p className="text-sm">出错了: {error.message}</p>
-                      <Button size="sm" variant="ghost" onClick={() => reload()} className="mt-2">
-                        重试
-                      </Button>
-                    </div>
-                  )}
                   <div ref={messagesEndRef} />
                 </div>
               ) : null}
+              {chatFailure && (
+                <div className="rounded-lg bg-red-900/30 p-4 text-red-300" role="alert">
+                  <p className="text-sm">{chatFailure.message}</p>
+                  <KonlingChatFailureActions
+                    category={chatFailure.category}
+                    onRetry={() => reload()}
+                    onNewConversation={() => void handleNewConversation()}
+                  />
+                </div>
+              )}
             </div>
 
             <form onSubmit={(event) => void handleConversationSubmit(event)} className="mt-4" data-task-workspace-zone="local-primary-input">

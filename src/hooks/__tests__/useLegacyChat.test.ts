@@ -23,4 +23,17 @@ describe('useLegacyChat compatibility hook', () => {
     expect(hookSource).toContain('}, []);');
     expect(hookSource).not.toContain('}, [chat]);');
   });
+
+  it('normalizes transport failures at the shared boundary and never exposes raw Error.message', () => {
+    expect(hookSource).toContain("from '@/lib/konling-chat-failure'");
+    expect(hookSource).toContain('fetch: createKonlingSafeFetch(onResponse)');
+    expect(hookSource).toContain('error: safeError');
+    expect(hookSource).not.toContain('error: chat.error,');
+    expect(hookSource).not.toContain('出错了');
+  });
+
+  it('restores pending input when a submitted turn fails', () => {
+    expect(hookSource).toContain('lastSubmittedTextRef.current = text;');
+    expect(hookSource).toContain('if (pending && !input) setInput(pending);');
+  });
 });

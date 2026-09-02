@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  KonlingChatFailureError,
+  classifyKonlingChatFailure,
+} from '@/lib/konling-chat-failure';
 import type { PageContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 
@@ -78,8 +82,8 @@ export function writeKonlingConversationAssistantBinding(
 
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const body = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(body?.error || '控灵会话请求失败');
+    const bodyText = await response.text().catch(() => '');
+    throw new KonlingChatFailureError(classifyKonlingChatFailure(response.status, bodyText));
   }
   return response.json() as Promise<T>;
 }

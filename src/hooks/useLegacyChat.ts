@@ -8,6 +8,11 @@ import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toLegacyMessage, toUIMessage } from '@/lib/ai-message-compat';
 import {
+  KonlingChatFailureError,
+  createKonlingSafeFetch,
+  normalizeKonlingChatFailure,
+} from '@/lib/konling-chat-failure';
+import {
   applyKonlingMessageRevision,
   applyKonlingOptimizationStatus,
 } from '@/lib/konling-message-revision-stream';
@@ -25,6 +30,7 @@ interface UseLegacyChatOptions {
 export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyChatOptions) {
   const [input, setInput] = useState('');
   const bodyRef = useRef(body);
+  const lastSubmittedTextRef = useRef<string | null>(null);
   const setChatMessagesRef = useRef<
     ReturnType<typeof useAiSdkChat<KonlingUIMessage>>['setMessages'] | null
   >(null);
@@ -38,11 +44,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       new DefaultChatTransport({
         api,
         body: () => bodyRef.current ?? {},
-        fetch: async (input, init) => {
-          const response = await fetch(input, init);
-          onResponse?.(response.clone());
-          return response;
-        },
+        fetch: createKonlingSafeFetch(onResponse),
       }),
     [api, onResponse],
   );
@@ -63,6 +65,21 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     },
   });
   setChatMessagesRef.current = chat.setMessages;
+
+  // 发送失败时尽量保留未送达的问题文本，供恢复动作后重发
+  useEffect(() => {
+    if (!chat.error) return;
+    const pending = lastSubmittedTextRef.current;
+    lastSubmittedTextRef.current = null;
+    if (pending && !input) setInput(pending);
+  }, [chat.error, input]);
+
+  const safeError = useMemo(
+    () => chat.error
+      ? new KonlingChatFailureError(normalizeKonlingChatFailure(chat.error).category)
+      : chat.error,
+    [chat.error],
+  );
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
@@ -94,6 +111,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       if (!text || chat.status === 'submitted' || chat.status === 'streaming') {
         return;
       }
+      lastSubmittedTextRef.current = text;
       setInput('');
       await chat.sendMessage(
         { text },
@@ -119,7 +137,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     handleInputChange,
     handleSubmit,
     isLoading: chat.status === 'submitted' || chat.status === 'streaming',
-    error: chat.error,
+    error: safeError,
     reload: chat.regenerate,
     stop: chat.stop,
     append,
