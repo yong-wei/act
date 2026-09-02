@@ -281,7 +281,10 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     const provider: KonlingBlindAuditProvider = async () => {
       // 模拟持有权被接管：第一个任务进行期间 holder 换成外部令牌。
-      writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999999-foreign\n', 'utf8');
+      const lockDir = path.join(runDir, 'run.lock.d');
+      const generations = fsReaddir(lockDir).filter((entry) => entry.startsWith('hold-'));
+      const latest = generations.sort().at(-1);
+      if (latest) writeFileSync(path.join(lockDir, latest, 'holder'), '999999999-foreign\n', 'utf8');
       return { ok: true, result: { ruleScore: 0.9 } };
     };
     await expect(runKonlingBlindAudit(runOptions(runId, provider)))
@@ -318,35 +321,40 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     expect(aggregate.officialMetrics).toBeNull();
   });
 
-  it('rejects concurrent runs and hands stale locks to exactly one takeover', () => {
+  it('rejects concurrent runs and hands stale locks to the next generation', () => {
     const runId = 'run-lock';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
-    prepareKonlingBlindAuditRun({
+    const lockDir = path.join(runDir, 'run.lock.d');
+    const prepare = () => prepareKonlingBlindAuditRun({
       root,
       runId,
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     });
-    // 活锁（当前进程持有）：第二个进程拒绝启动。
-    expect(() => prepareKonlingBlindAuditRun({
-      root,
-      runId,
-      manifestHash: konlingBlindAuditManifestHash(MANIFEST),
-      manifestPayload: MANIFEST,
-    })).toThrow(KonlingBlindAuditRunLockError);
 
-    // stale（持有者已死）：唯一接管者获得持有权。
-    writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999999-dead-token\n', 'utf8');
-    expect(() => prepareKonlingBlindAuditRun({
-      root,
-      runId,
-      manifestHash: konlingBlindAuditManifestHash(MANIFEST),
-      manifestPayload: MANIFEST,
-    })).not.toThrow();
+    prepare();
+    // 活锁（当前进程持有第一代）：第二个进程拒绝启动。
+    expect(() => prepare()).toThrow(KonlingBlindAuditRunLockError);
+    expect(readFileSync(path.join(lockDir, 'hold-1', 'holder'), 'utf8')).toContain(`${process.pid}-`);
 
-    // 接管胜者持有期间，第三方（handoff 已被抢占语义）再次拒绝。
-    writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999998-dead-too\n', 'utf8');
-    writeFileSync(path.join(runDir, 'run.lock.d', 'holder.next'), '999999997-other-winner\n', 'utf8');
+    // stale 接替：伪造死持有者，接管建立第二代。
+    writeFileSync(path.join(lockDir, 'hold-1', 'holder'), '999999999-dead-token\n', 'utf8');
+    expect(() => prepare()).not.toThrow();
+    expect(fsReaddir(lockDir).sort()).toEqual(['hold-1', 'hold-2']);
+
+    // 第三代持有者存活（模拟并发接替胜者完成初始化）：判活拒绝启动。
+    writeFileSync(path.join(lockDir, 'hold-2', 'holder'), '999999998-dead-too\n', 'utf8');
+    mkdirSync(path.join(lockDir, 'hold-3'));
+    writeFileSync(path.join(lockDir, 'hold-3', 'holder'), `${process.pid}-rival-live\n`, 'utf8');
+    expect(() => prepare()).toThrow(KonlingBlindAuditRunLockError);
+  });
+
+  it('refuses to start while a holder generation is still initializing', () => {
+    const runId = 'run-lock-init';
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const lockDir = path.join(runDir, 'run.lock.d');
+    mkdirSync(path.join(lockDir, 'hold-1'), { recursive: true });
+    // hold-1 存在但 holder 未写（初始化窗口内）：拒绝启动而不是误判 stale。
     expect(() => prepareKonlingBlindAuditRun({
       root,
       runId,
@@ -355,4 +363,5 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     })).toThrow(KonlingBlindAuditRunLockError);
   });
 });
+
 
