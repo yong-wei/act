@@ -88,6 +88,10 @@ import {
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
 import {
+  extractInteractiveSessionHint,
+  resolveInteractiveTutoringState,
+} from '@/lib/konling-interactive-tutoring-state';
+import {
   findLatestPinnedTextbookIdentity,
   pinTextbookCoachIdentity,
 } from '@/lib/textbook-resource-coach';
@@ -559,6 +563,13 @@ export async function POST(request: Request) {
             candidateGraph: serverCandidateScope.candidateGraph,
           }
         : resolvedScope;
+      const interactiveTutoring = await resolveInteractiveTutoringState(prisma, {
+        authenticatedUserId: session.user.id,
+        role: session.user.role,
+        courseId: authorizedScope.courseId,
+        pageId: authorizedScope.pageId,
+        sessionIdHint: extractInteractiveSessionHint(pageContext),
+      });
       const candidateOnly = Boolean(authorizedScope.candidateGraph);
       const effectiveModeId = candidateOnly ? null : teachingAssistantModeId;
       const effectiveModeClientContextHints = candidateOnly ? undefined : modeClientContextHints;
@@ -676,9 +687,12 @@ export async function POST(request: Request) {
           },
         });
       }
-      const permittedTools = authorizedScope.candidateGraph
+      let permittedTools = authorizedScope.candidateGraph
         ? KONLING_CANDIDATE_READ_TOOLS
         : modeContract.permittedTools;
+      if (interactiveTutoring && !interactiveTutoring.checkAnswerAllowed) {
+        permittedTools = permittedTools.filter((toolName) => toolName !== 'analyze_attempt');
+      }
       forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
         && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
@@ -709,6 +723,9 @@ export async function POST(request: Request) {
         ...aiContext,
         adaptiveRuntime: modeRuntimeContext,
       });
+      if (interactiveTutoring) {
+        systemPrompt = `${systemPrompt}\n\n${interactiveTutoring.promptSection}`;
+      }
       citationGuardMetadata = buildKonlingStreamingCitationGuard(modeRuntimeContext);
       citationGuardMetadataContext = {
         missingContext: modeContract.groundingContext.missingContext,
