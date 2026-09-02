@@ -57,12 +57,17 @@ async function behaviorMatrix(page, rootShard, localeCap) {
 
   // force trace（代表域 root-locus 85 概念；2D）
   await enterGraphAndDomain(page, 'root-locus');
-  const early1 = await labelPositions(page);
-  await page.waitForTimeout(900);
-  const early2 = await labelPositions(page);
-  const earlyMovement = movementBetween(early1, early2);
-  row('force', '2d.early-movement', '进域初期 unpinned 节点存在真实位移', earlyMovement === null || earlyMovement > 0,
-    `movement=${earlyMovement === null ? 'no-label-layer' : earlyMovement.toFixed(1)}px（已 settle 时允许 0，reflow 行为另证）`);
+  let earlyMovement = 0;
+  let prevPositions = await labelPositions(page);
+  for (let sample = 0; sample < 24; sample += 1) {
+    await page.waitForTimeout(250);
+    const next = await labelPositions(page);
+    const delta = movementBetween(prevPositions, next) ?? 0;
+    if (delta > earlyMovement) earlyMovement = delta;
+    prevPositions = next;
+  }
+  row('force', '2d.early-movement', '进域过程存在真实 unpinned 位移（或 reflow 行为另证）', earlyMovement > 0,
+    `maxSampledMovement=${earlyMovement.toFixed(1)}px`);
 
   // reflow：点击重新布局后必须出现新位移并重新稳定
   const beforeReflow = await labelPositions(page);
@@ -150,8 +155,13 @@ async function behaviorMatrix(page, rootShard, localeCap) {
   const drawerPanel = await page.locator('[data-active-authority-mobile-drawer="true"] [data-active-authority-filter-panel="true"]').count();
   await shot(page, '05-mobile-drawer');
   row('controls', 'mobile.drawer', 'mobile 折叠抽屉承载同一筛选面板', collapsed && drawerPanel === 1);
-  const mobileVisibleDirectory = await page.locator('[data-active-authority-node-directory="visible"]').count();
-  row('hierarchy', 'mobile.no-visible-directory', 'mobile 普通域无可见全节点目录', mobileVisibleDirectory === 0);
+  // #1739 spec：mobile 大域（超 compact 阈值 48）的可浏览目录合法保留；
+  // #1742 spec：小域/普通状态无可见目录。
+  const largeDirectory = await page.locator('[data-active-authority-node-directory="visible"]').count();
+  row('hierarchy', 'mobile.large-domain.directory-retained', 'mobile 大域（85>48）保留可浏览目录（#1739）', largeDirectory === 1);
+  await enterGraphAndDomain(page, 'nonlinear-design');
+  const smallDirectory = await page.locator('[data-active-authority-node-directory="visible"]').count();
+  row('hierarchy', 'mobile.small-domain.no-visible-directory', 'mobile 小域无可见全节点目录（#1742）', smallDirectory === 0);
 }
 
 // ---------------------------------------------------------------------------

@@ -118,7 +118,7 @@ async function login(page, { account, password }) {
   await page.locator('input[name="account"]').fill(account);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole('button', { name: '登录' }).click();
-  await page.waitForURL(/profile|cockpit|dashboard/, { timeout: 20000 });
+  await page.waitForURL(/profile|cockpit|dashboard|teacher|admin/, { timeout: 20000 });
   await page.waitForTimeout(1500);
 }
 
