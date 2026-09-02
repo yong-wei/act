@@ -103,35 +103,24 @@ describe('cruise comfort standard course migration', () => {
   });
 
   it('keeps the route while removing the legacy cruise classroom implementation path', () => {
-    const routeFiles = [
-      'src/features/interactive/course-app-routes/cruise-comfort-boppps/entry.tsx',
-      'src/features/interactive/course-app-routes/cruise-comfort-boppps/student.tsx',
-      'src/features/interactive/course-app-routes/cruise-comfort-boppps/teacher.tsx',
-    ];
-
-    for (const routeFile of routeFiles) {
-      const source = readFileSync(join(repoRoot, routeFile), 'utf8');
-      expect(source).not.toContain('cruise-classroom');
-    }
+    const sharedRoute = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'),
+      'utf8',
+    );
+    expect(sharedRoute).not.toContain('cruise-classroom');
+    expect(existsSync(join(repoRoot, 'src/features/interactive/course-app-routes/cruise-comfort-boppps'))).toBe(false);
     expect(existsSync(join(repoRoot, 'src/features/interactive/cruise-classroom'))).toBe(false);
   });
 
   it('keeps role guards on cruise student and teacher session routes', () => {
-    const studentRoute = readFileSync(
-      join(repoRoot, 'src/features/interactive/course-app-routes/cruise-comfort-boppps/student.tsx'),
-      'utf8',
-    );
-    const teacherRoute = readFileSync(
-      join(repoRoot, 'src/features/interactive/course-app-routes/cruise-comfort-boppps/teacher.tsx'),
+    const sharedRoute = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'),
       'utf8',
     );
 
-    expect(studentRoute).toContain('getServerSession(authOptions)');
-    expect(studentRoute).toContain("role === 'TEACHER' || role === 'ADMIN'");
-    expect(studentRoute).toContain('cruise-comfort-boppps/teacher/${params.sessionId}');
-
-    expect(teacherRoute).toContain('getServerSession(authOptions)');
-    expect(teacherRoute).toContain("role !== 'TEACHER' && role !== 'ADMIN'");
-    expect(teacherRoute).toContain('cruise-comfort-boppps/student/${params.sessionId}');
+    expect(sharedRoute).toContain('getServerSession(authOptions)');
+    expect(sharedRoute).toContain('isTeacherOrAdminRole');
+    expect(sharedRoute).toContain('canonicalId: \'cruise-comfort-boppps\'');
+    expect(sharedRoute).toContain('`/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}`');
   });
 });

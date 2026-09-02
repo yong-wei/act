@@ -15,6 +15,7 @@ import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
 
 import { TeacherClassroomWaitingRoute } from './teacher-classroom-waiting-route';
 import { isTeacherOrAdminRole, resolveBatchALesson, type BatchACanonicalId } from './batch-a-classroom-shell';
+import { resolveBatchBLesson, type BatchBCanonicalId } from './batch-b-classroom-shell';
 import { resolveStudentRouteDemoStepId, type StudentRouteSearchParams } from './student-route-query';
 
 type EntryPage = ComponentType<{ initialRole?: string; lessonRuntime: RuntimeLessonEntryBundle }>;
@@ -30,8 +31,10 @@ type TeacherPage = StudentPage;
 
 type BatchAPages = { EntryPage: EntryPage; StudentPage: StudentPage; TeacherPage: TeacherPage };
 
+type SharedCanonicalId = BatchACanonicalId | BatchBCanonicalId;
+
 type BatchALessonConfig = {
-  canonicalId: BatchACanonicalId;
+  canonicalId: SharedCanonicalId;
   loadPages: () => Promise<BatchAPages>;
   layeredGraph?: boolean;
   studentMetadata?: { title: string; description: string };
@@ -48,7 +51,7 @@ function pages<E, S, T>(
   };
 }
 
-function resolveLayered(config: BatchALessonConfig, canonicalId: BatchACanonicalId, lessonRuntime: RuntimeLessonEntryBundle) {
+function resolveLayered(config: BatchALessonConfig, canonicalId: SharedCanonicalId, lessonRuntime: RuntimeLessonEntryBundle) {
   if (!config.layeredGraph) return null;
   return resolveCoursePageLayeredGraphContext({
     scope: buildCoursePackageLayeredScope({
@@ -300,9 +303,196 @@ const BATCH_A_LESSONS: Record<string, BatchALessonConfig> = {
   },
 };
 
+const BATCH_B_LESSONS: Record<string, BatchALessonConfig> = {
+  'unit-4-1-design-task-expression': {
+    canonicalId: '4-1',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-1-design-task-expression/entry-page'),
+        import('@/features/interactive/unit-4-1-design-task-expression/student-page'),
+        import('@/features/interactive/unit-4-1-design-task-expression/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_1CourseEntryPage, StudentPage: student.UNIT_4_1StudentPage, TeacherPage: teacher.UNIT_4_1TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-2-controller-selection-first-start': {
+    canonicalId: '4-2',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-2-controller-selection-first-start/entry-page'),
+        import('@/features/interactive/unit-4-2-controller-selection-first-start/student-page'),
+        import('@/features/interactive/unit-4-2-controller-selection-first-start/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_2CourseEntryPage, StudentPage: student.UNIT_4_2StudentPage, TeacherPage: teacher.UNIT_4_2TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-3-initial-scheme-practice-first-validation': {
+    canonicalId: '4-3',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-3-initial-scheme-practice-first-validation/entry-page'),
+        import('@/features/interactive/unit-4-3-initial-scheme-practice-first-validation/student-page'),
+        import('@/features/interactive/unit-4-3-initial-scheme-practice-first-validation/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_3CourseEntryPage, StudentPage: student.UNIT_4_3StudentPage, TeacherPage: teacher.UNIT_4_3TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-4-fixed-structure-optimization-modeling': {
+    canonicalId: '4-4',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/entry-page'),
+        import('@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/student-page'),
+        import('@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_4CourseEntryPage, StudentPage: student.UNIT_4_4StudentPage, TeacherPage: teacher.UNIT_4_4TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-5-constraint-aware-parameter-optimization': {
+    canonicalId: '4-5',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-5-constraint-aware-parameter-optimization/entry-page'),
+        import('@/features/interactive/unit-4-5-constraint-aware-parameter-optimization/student-page'),
+        import('@/features/interactive/unit-4-5-constraint-aware-parameter-optimization/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_5CourseEntryPage, StudentPage: student.UNIT_4_5StudentPage, TeacherPage: teacher.UNIT_4_5TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-6-fixed-structure-boundary-structural-encoding': {
+    canonicalId: '4-6',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/entry-page'),
+        import('@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/student-page'),
+        import('@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_6CourseEntryPage, StudentPage: student.UNIT_4_6StudentPage, TeacherPage: teacher.UNIT_4_6TeacherPage,
+      }),
+    ),
+  },
+  'unit-4-7-destroyer-hifi-design-closure': {
+    canonicalId: '4-7',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-4-7-destroyer-hifi-design-closure/entry-page'),
+        import('@/features/interactive/unit-4-7-destroyer-hifi-design-closure/student-page'),
+        import('@/features/interactive/unit-4-7-destroyer-hifi-design-closure/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_4_7CourseEntryPage, StudentPage: student.UNIT_4_7StudentPage, TeacherPage: teacher.UNIT_4_7TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-1-linear-backbone-boundaries': {
+    canonicalId: '5-1',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-1-linear-backbone-boundaries/entry-page'),
+        import('@/features/interactive/unit-5-1-linear-backbone-boundaries/student-page'),
+        import('@/features/interactive/unit-5-1-linear-backbone-boundaries/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_1CourseEntryPage, StudentPage: student.UNIT_5_1StudentPage, TeacherPage: teacher.UNIT_5_1TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-2-nonlinear-analysis-entry': {
+    canonicalId: '5-2',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-2-nonlinear-analysis-entry/entry-page'),
+        import('@/features/interactive/unit-5-2-nonlinear-analysis-entry/student-page'),
+        import('@/features/interactive/unit-5-2-nonlinear-analysis-entry/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_2CourseEntryPage, StudentPage: student.UNIT_5_2StudentPage, TeacherPage: teacher.UNIT_5_2TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-3-mass-coordination-chain': {
+    canonicalId: '5-3',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-3-mass-coordination-chain/entry-page'),
+        import('@/features/interactive/unit-5-3-mass-coordination-chain/student-page'),
+        import('@/features/interactive/unit-5-3-mass-coordination-chain/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_3CourseEntryPage, StudentPage: student.UNIT_5_3StudentPage, TeacherPage: teacher.UNIT_5_3TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-4-data-driven-mpc-transition': {
+    canonicalId: '5-4',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-4-data-driven-mpc-transition/entry-page'),
+        import('@/features/interactive/unit-5-4-data-driven-mpc-transition/student-page'),
+        import('@/features/interactive/unit-5-4-data-driven-mpc-transition/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_4CourseEntryPage, StudentPage: student.UNIT_5_4StudentPage, TeacherPage: teacher.UNIT_5_4TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-5-policy-learning-entry-risk': {
+    canonicalId: '5-5',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-5-policy-learning-entry-risk/entry-page'),
+        import('@/features/interactive/unit-5-5-policy-learning-entry-risk/student-page'),
+        import('@/features/interactive/unit-5-5-policy-learning-entry-risk/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_5CourseEntryPage, StudentPage: student.UNIT_5_5StudentPage, TeacherPage: teacher.UNIT_5_5TeacherPage,
+      }),
+    ),
+  },
+  'unit-5-6-method-comparison-cold-chain': {
+    canonicalId: '5-6',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/unit-5-6-method-comparison-cold-chain/entry-page'),
+        import('@/features/interactive/unit-5-6-method-comparison-cold-chain/student-page'),
+        import('@/features/interactive/unit-5-6-method-comparison-cold-chain/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.UNIT_5_6CourseEntryPage, StudentPage: student.UNIT_5_6StudentPage, TeacherPage: teacher.UNIT_5_6TeacherPage,
+      }),
+    ),
+  },
+  'cruise-comfort-boppps': {
+    canonicalId: 'cruise-comfort-boppps',
+    loadPages: pages(
+      () => Promise.all([
+        import('@/features/interactive/cruise-comfort-standard-course/entry-page'),
+        import('@/features/interactive/cruise-comfort-standard-course/student-page'),
+        import('@/features/interactive/cruise-comfort-standard-course/teacher-page'),
+      ]),
+      (entry, student, teacher) => ({
+        EntryPage: entry.CruiseStandardCourseEntryPage,
+        StudentPage: student.CruiseStandardStudentPage,
+        TeacherPage: teacher.CruiseStandardTeacherPage,
+      }),
+    ),
+  },
+};
+
 function lessonConfig(routeSegment: string) {
-  const resolved = resolveBatchALesson(routeSegment);
-  const config = BATCH_A_LESSONS[routeSegment];
+  const resolved = resolveBatchALesson(routeSegment) ?? resolveBatchBLesson(routeSegment);
+  const config = BATCH_A_LESSONS[routeSegment] ?? BATCH_B_LESSONS[routeSegment];
   if (!resolved || !config || config.canonicalId !== resolved.canonicalId) return null;
   return { ...resolved, config };
 }
