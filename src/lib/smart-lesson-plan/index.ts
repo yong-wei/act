@@ -2,6 +2,7 @@ export * from './domain';
 export * from './provider-runtime';
 export * from './queue';
 export * from './schema';
+export * from './task-update-input';
 export * from './service';
 export * from './lifecycle';
 export * from './worker';
