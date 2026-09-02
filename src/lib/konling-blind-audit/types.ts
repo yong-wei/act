@@ -136,12 +136,21 @@ export interface KonlingBlindAuditAggregate {
   };
 }
 
+function assertSafeTaskKeySegment(segment: string, label: string): void {
+  if (!segment || /[\/\\]|\.\./.test(segment)) {
+    throw new Error(`unsafe task key ${label}: ${segment}`);
+  }
+}
+
 export function buildKonlingBlindAuditTaskKey(input: {
   benchmarkVersion: string;
   mode: KonlingBlindAuditMode;
   itemId: string;
   replicate: number;
 }): string {
+  assertSafeTaskKeySegment(input.benchmarkVersion, 'benchmarkVersion');
+  assertSafeTaskKeySegment(input.mode, 'mode');
+  assertSafeTaskKeySegment(input.itemId, 'itemId');
   return [
     input.benchmarkVersion,
     input.mode,

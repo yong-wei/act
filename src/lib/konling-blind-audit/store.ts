@@ -254,7 +254,7 @@ export function appendKonlingBlindAuditFailure(
   failure: KonlingBlindAuditFailureRecord,
   attempt: KonlingBlindAuditFailureRecord['attempts'][number],
 ): void {
-  const failureDir = path.join(runDir, FAILURES_DIR, mode, failure.taskKey);
+  const failureDir = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(failure.taskKey).replace(/\.json$/, ''));
   writeAtomic(
     path.join(failureDir, 'meta.json'),
     JSON.stringify({
@@ -289,14 +289,9 @@ export function readKonlingBlindAuditFailure(
   mode: KonlingBlindAuditMode,
   taskKey: string,
 ): KonlingBlindAuditFailureRecord | null {
-  const failureDir = path.join(runDir, FAILURES_DIR, mode, taskKey);
+  const failureDir = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(taskKey).replace(/\.json$/, ''));
   const metaPath = path.join(failureDir, 'meta.json');
-  if (!fs.existsSync(metaPath)) {
-    // 兼容历史平铺布局（首版单文件 failure）。
-    const legacy = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(taskKey));
-    if (!fs.existsSync(legacy)) return null;
-    return JSON.parse(fs.readFileSync(legacy, 'utf8')) as KonlingBlindAuditFailureRecord;
-  }
+  if (!fs.existsSync(metaPath)) return null;
   const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) as Omit<KonlingBlindAuditFailureRecord, 'status' | 'attempts'>;
   return {
     ...meta,
@@ -334,12 +329,7 @@ export function listKonlingBlindAuditFailureKeys(
   runDir: string,
   mode: KonlingBlindAuditMode,
 ): string[] {
-  const keys = readFailureDirs(runDir, mode);
-  // 兼容历史平铺布局。
-  for (const file of readRecordsDir(runDir, FAILURES_DIR, mode)) {
-    keys.push(file.replace(/\.json$/, ''));
-  }
-  return [...new Set(keys)].sort();
+  return readFailureDirs(runDir, mode);
 }
 
 export function loadKonlingBlindAuditRecords(

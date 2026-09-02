@@ -308,6 +308,27 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
       .toThrow(KonlingBlindAuditRunLockError);
   });
 
+  it('rejects unsafe task key segments at construction time', () => {
+    expect(() => buildKonlingBlindAuditTaskKey({
+      benchmarkVersion: 'test-v1',
+      mode: 'rule-score',
+      itemId: 'chapter/item',
+      replicate: 1,
+    })).toThrow(/unsafe task key/);
+    expect(() => buildKonlingBlindAuditTaskKey({
+      benchmarkVersion: '../escape',
+      mode: 'rule-score',
+      itemId: 'item-a',
+      replicate: 1,
+    })).toThrow(/unsafe task key/);
+    expect(() => buildKonlingBlindAuditTaskKey({
+      benchmarkVersion: 'test-v1',
+      mode: 'rule-score',
+      itemId: 'ok-item',
+      replicate: 1,
+    })).not.toThrow();
+  });
+
   it('resolves concurrent same-key record writes as first-writer-wins', async () => {
     const runId = 'run-write-race';
     await runKonlingBlindAudit(runOptions(runId, okProvider()));
