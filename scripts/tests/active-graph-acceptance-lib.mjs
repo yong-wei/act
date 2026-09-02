@@ -73,13 +73,19 @@ function sha256File(relativePath) {
 function readGitState() {
   const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot }).toString().trim();
   const porcelain = execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot }).toString().trim();
-  // 输出目录本身允许出现（untracked evidence 不阻碍 capture 的干净树判定）。
+  // 验收有效性的强绑定是 HEAD revision + CAPTURE_SOURCE_FILES hash；干净树
+  // 判定排除本地运行态与工件目录（.wolf/ 由 OpenWolf hook 自动写回并 stage，
+  // artifacts/ 为证据/报告目录），与既有 capture 的 allowedDirtyPrefixes 同例。
+  const outputDirRelative = path.relative(repoRoot, OUTPUT_DIR);
   const dirty = porcelain
     .split('\n')
     .filter((line) => line.trim().length > 0)
     .filter((line) => {
       const rel = line.slice(3).trim();
-      return rel !== path.relative(repoRoot, OUTPUT_DIR) && !rel.startsWith(`${path.relative(repoRoot, OUTPUT_DIR)}/`);
+      if (rel === outputDirRelative || rel.startsWith(`${outputDirRelative}/`)) return false;
+      if (rel === '.wolf' || rel.startsWith('.wolf/')) return false;
+      if (rel === 'artifacts' || rel.startsWith('artifacts/')) return false;
+      return true;
     });
   return { revision, dirty };
 }

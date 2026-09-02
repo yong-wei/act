@@ -73,6 +73,7 @@
 
 ## 🚀 Next phase
 
+- 2026-09-02：#1743 `verify-active-authority-graph-parity` 进行中（claim 分支已含 #1846 合并）。#1742 已完整闭环（PR #1846 squash merge `b484cffe69`，Issue 已关并标 status:archived；三项 review P2 修复后 head `0220ebbf92` Codex 显式清场）。经验：本机 Prisma client 过期会造成 typecheck 假失败（先 `npx prisma generate`）；`npm run build` 本机失败于 /ai collect（teacher-assignment-review-derivative-storage 字体 URL，预存在债务，待单独跟踪）。
 - 2026-09-02：#1819 已补映射（issue body marker → `upgrade-konling-traceable-study-qa`）并在 `act-dev2` 认领实现：章节 citationPolicy 映射（evidence-required/model-derived）、guard 按章节绑定回答单元并输出追溯覆盖率、无效/越界 `[n]` 在流式 finalize 与 session 消息两路持久化前清除、推导章节显式标识；提示词写入逐单元引用映射规则。新增 `konling-study-question-citation-coverage-1819.test.ts`（6 用例）并更新既有断言；typecheck tsc 错误清零、openspec strict 校验通过。`konling-session-detail-route` 与 `konling-conversation-library-ui` 各有 1 个基线红（stash 对比确认既有）。待 PR + Codex 清场后收尾。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
