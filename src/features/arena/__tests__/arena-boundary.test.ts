@@ -27,7 +27,8 @@ describe('arena module boundaries', () => {
   it('keeps production code free of root Arena barrel imports', () => {
     for (const path of productionSourceFiles('src')) {
       expect(source(path)).not.toContain("from '@/features/arena'");
-      expect(source(path)).not.toMatch(/import\(['"]@\/features\/arena['"]\)/);
+      expect(source(path)).not.toMatch(/import\(\s*['"]@\/features\/arena['"]\s*\)/);
+      expect(source(path)).not.toMatch(/require\(\s*['"]@\/features\/arena['"]\s*\)/);
     }
   });
 
