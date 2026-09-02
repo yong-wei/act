@@ -7,7 +7,7 @@ import { Redis } from 'ioredis';
 import { createSubmissionObjectStore } from '../../src/lib/assignments/submission-object-store';
 import { createMathpixClient, resolveLibreOfficeRuntimeVersion } from '../../src/lib/data-governance/math-document-conversion';
 import { processQuestionGradingBatch } from '../../src/lib/data-governance/math-document-grading-batch';
-import { refreshAssignmentAiGradingOperation } from '../../src/lib/assignments/assignment-grading-orchestration';
+import { refreshAssignmentAiGradingOperation } from '../../src/lib/assignments/public-api';
 import {
   GRADING_JOB_LEASE_MS,
   processDocumentConversionJob,

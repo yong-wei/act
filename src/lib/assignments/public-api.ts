@@ -36,7 +36,11 @@ import {
   signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
 } from './assignment-review';
-import { createAssignmentAiGradingBatches, createManualQuestionGradingReview } from './assignment-grading-orchestration';
+import {
+  createAssignmentAiGradingBatches,
+  createManualQuestionGradingReview,
+  refreshAssignmentAiGradingOperation as refreshAssignmentAiGradingOperationImpl,
+} from './assignment-grading-orchestration';
 import { retryQuestionGradingBatchItem } from '@/lib/data-governance/math-document-grading-batch';
 import { retryDocumentConversion } from '@/lib/data-governance/math-document-grading-persistence';
 import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';
@@ -399,6 +403,18 @@ export async function teacherReadOriginalAsset(
 
 export async function teacherStartAssignmentAiGrading(input: Omit<Parameters<typeof createAssignmentAiGradingBatches>[0], 'db'>) {
   return createAssignmentAiGradingBatches({ ...input, db: prisma });
+}
+
+export async function refreshAssignmentAiGradingOperation(input: {
+  batchId: string;
+  now?: Date;
+  db?: Parameters<typeof refreshAssignmentAiGradingOperationImpl>[0]['db'];
+}) {
+  return refreshAssignmentAiGradingOperationImpl({
+    db: input.db ?? prisma,
+    batchId: input.batchId,
+    now: input.now,
+  });
 }
 
 export async function teacherCreateManualQuestionGrading(input: {
