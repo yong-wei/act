@@ -28,5 +28,9 @@
 
 - [x] 5.1 Run direct filter model, family loading, state preservation, accessibility and responsive component tests plus the affected graph domain suite.
 - [x] 5.2 Run bilingual desktop/mobile visual and interaction checks for long panels, every control family, zero-edge domains and absent Teaching.
-- [ ] 5.3 Run typecheck, lint, full `npm run test`, build, commercial UI governance and strict OpenSpec validation on the final clean revision.
+- [x] 5.3 Run typecheck, lint, full `npm run test`, build, commercial UI governance and strict OpenSpec validation on the final clean revision.
+  - typecheck、lint（零警告）、full `npm run test`（干净树 receipt exit 0）、OpenSpec strict 通过。
+  - commercial UI governance：4 项预存在失败（edge-presentation source-scan、semantic-map artifacts 截图、governance 2 项）经 stash 对照与本变更无关。
+  - `npm run build`：`/ai` 页面 collect 失败于 `teacher-assignment-review-derivative-storage.ts` 字体 `fileURLToPath(new URL(...))` 的 turbopack SSR 模块评估（本机 Node 26 环境），与本 change 无依赖交集，属预存在构建链债务，需独立跟踪。
 - [ ] 5.4 Obtain independent review of legacy-equivalent control semantics, no visible node directory and no hierarchy/state regression.
+  - 由 PR 的 `@codex review` 承担独立审查。
