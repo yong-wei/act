@@ -38,4 +38,9 @@ describe('useLegacyChat compatibility hook', () => {
     // append（快捷问题）同样绑定待恢复文本，失败后不恢复上一次的陈旧问题
     expect(hookSource).toContain('lastSubmittedTextRef.current = message.content;');
   });
+
+  it('suppresses duplicate sends while a turn is submitted or streaming', () => {
+    expect(hookSource).toContain("if (!text || chat.status === 'submitted' || chat.status === 'streaming') {");
+    expect(hookSource).toContain('return;');
+  });
 });

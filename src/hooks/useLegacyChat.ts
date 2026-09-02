@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * Bounded ingress adapter（legacy-chat-bridge-retirement spec）：
+ * 把既有消费方的 legacy Message/handleSubmit 形状接到 canonical
+ * @ai-sdk/react useChat + /api/ai/chat 服务端合同（C28 canonical runtime）。
+ *
+ * 非权威：不持有会话 store、不解析 provider 流、不做 provider 选择、
+ * 不写业务事实。全部会话与 provider 语义由服务端 route 与
+ * src/lib/ai owner 持有。
+ *
+ * 删除条件：四个保留 surface（copilot page/panel、global/konling sidebar）
+ * 迁移到原生 useChat 契约后本文件删除；不得以另一个 facade 替代。
+ */
+
 import {
   DefaultChatTransport,
 } from 'ai';
