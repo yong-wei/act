@@ -134,6 +134,12 @@ function fieldsWithoutEnvelope(
   };
 }
 
+function assertConsumerExport(value: unknown): void {
+  if (inspectConsumerBoundary(value).length > 0) {
+    throw new Error('consumer-forbidden-field');
+  }
+}
+
 export async function readAuthorizedCumulativePortrait(input: {
   db: unknown;
   viewer: ProjectionViewer;
@@ -185,10 +191,7 @@ export async function readAuthorizedCumulativePortrait(input: {
     overallScore: read.fields.overallScore,
     provenanceRevision: read.fields.provenanceRevision,
   };
-  const violations = inspectConsumerBoundary(exportFields);
-  if (violations.length > 0) {
-    throw new Error('consumer-forbidden-field');
-  }
+  assertConsumerExport(exportFields);
   return {
     status: read.status,
     reason: read.reason,
@@ -273,10 +276,7 @@ export async function readTeacherClassEvidencePort(input: {
     reason: classRead.reason,
     aggregates: classRead.aggregates,
   };
-  const violations = inspectConsumerBoundary(exportFields);
-  if (violations.length > 0) {
-    throw new Error('consumer-forbidden-field');
-  }
+  assertConsumerExport(exportFields);
   return {
     classPortrait: suppressClassPortraitForConsumer(classPortrait, classRead.suppressed),
     learnerPortraits,
@@ -291,23 +291,27 @@ export async function readTeacherStudentEvidencePort(input: {
   classId: string;
   studentId: string;
 }): Promise<TeacherStudentEvidencePortResult> {
-  const [student, classPort] = await Promise.all([
-    readStudentEvidencePort({
-      db: input.db,
-      viewer: input.viewer,
-      targetUserId: input.studentId,
-      classId: input.classId,
-      consumer: 'reviewer',
-    }),
-    readTeacherClassEvidencePort({
-      db: input.db,
-      viewer: input.viewer,
-      classId: input.classId,
-      memberUserIds: [input.studentId],
-    }),
-  ]);
+  const classPort = await readTeacherClassEvidencePort({
+    db: input.db,
+    viewer: input.viewer,
+    classId: input.classId,
+    memberUserIds: [input.studentId],
+    consumer: 'reviewer',
+  });
+  const portrait = classPort.learnerPortraits.get(input.studentId);
+  const read = classPort.studentReads.get(input.studentId);
+  if (!portrait || !read) {
+    throw new Error('consumer-projection-missing');
+  }
   return {
-    student,
+    student: {
+      status: read.status,
+      reason: read.reason,
+      knownZero: mapPortraitStatus(portrait).knownZero,
+      subjectRef: opaqueProjectionSubject(input.studentId),
+      read,
+      portrait,
+    },
     classPortrait: classPort.classPortrait,
     classRead: classPort.classRead,
   };
@@ -333,7 +337,7 @@ export async function readSafeFeaturePort(input: {
     status: student.read.status,
     masteryTarget: input.masteryTarget ?? null,
   });
-  const violations = inspectConsumerBoundary({
+  assertConsumerExport({
     status: feature.status,
     subjectRef: feature.subjectRef,
     coverage: feature.coverage,
@@ -342,9 +346,6 @@ export async function readSafeFeaturePort(input: {
     provenanceRevision: feature.provenanceRevision,
     masteryTarget: feature.masteryTarget,
   });
-  if (violations.length > 0) {
-    throw new Error('consumer-forbidden-field');
-  }
   return {
     feature,
     portrait: student.portrait,
