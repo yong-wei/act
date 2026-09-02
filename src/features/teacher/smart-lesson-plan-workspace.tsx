@@ -7,7 +7,6 @@ import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-but
 import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
 import { BOPPPS_STAGES } from './preparation-document-editor/lesson-document-model';
 import {
-  buildSmartTaskUpdateInput,
   SMART_JOB_ACTIVE_STATES,
   SMART_JOB_EDIT_BLOCKING_STATES,
   SMART_JOB_RECOVERY_STATES,
@@ -15,7 +14,8 @@ import {
   smartDraftStateLabel,
   smartGenerationStageLabel,
   smartGenerationStateLabel,
-} from '@/lib/smart-lesson-plan';
+} from '@/lib/smart-lesson-plan/workspace';
+import { buildSmartTaskUpdateInput } from '@/lib/smart-lesson-plan/task-update-input';
 import type { PreparationEditorReturnState } from './preparation-document-editor/return-state';
 
 type SourceOption = {
