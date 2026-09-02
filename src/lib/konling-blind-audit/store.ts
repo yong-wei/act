@@ -157,6 +157,18 @@ function acquireRunLock(runDir: string): void {
     }
     throw error;
   }
+  // 发布新代所有权前复验前代：若前代在宽限判定之后完成了初始化且其
+  // 持有者存活，让位（删除本代空目录）并拒绝启动，防止双持。
+  if (current) {
+    const holderNow = readHolderToken(current.dir);
+    if (holderNow) {
+      const pidNow = Number(holderNow.split('-')[0]);
+      if (Number.isInteger(pidNow) && isProcessAlive(pidNow)) {
+        fs.rmSync(nextDir, { recursive: true, force: true });
+        throw new KonlingBlindAuditRunLockError(runDir);
+      }
+    }
+  }
   fs.writeFileSync(path.join(nextDir, HOLDER_FILE), `${token}\n`, 'utf8');
 }
 

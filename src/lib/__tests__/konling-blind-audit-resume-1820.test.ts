@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -347,6 +347,25 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     mkdirSync(path.join(lockDir, 'hold-3'));
     writeFileSync(path.join(lockDir, 'hold-3', 'holder'), `${process.pid}-rival-live\n`, 'utf8');
     expect(() => prepare()).toThrow(KonlingBlindAuditRunLockError);
+  });
+
+  it('re-verifies the previous generation before publishing takeover ownership', () => {
+    const runId = 'run-lock-reverify';
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const lockDir = path.join(runDir, 'run.lock.d');
+    // 前代超龄空 holder（宽限已过），但复验时前代持有者已完成初始化并
+    // 存活：接管必须让位并拒绝。用复验前置状态模拟——把前代 holder 写
+    // 为当前存活进程，mtime 置于宽限之外：宽限判定读不到 holder（空），
+    // 复验读到存活 holder 的交错由「先空判、后活判」两读语义覆盖。
+    mkdirSync(path.join(lockDir, 'hold-1'), { recursive: true });
+    utimesSync(path.join(lockDir, 'hold-1'), new Date(Date.now() - 10_000), new Date(Date.now() - 10_000));
+    expect(() => prepareKonlingBlindAuditRun({
+      root,
+      runId,
+      manifestHash: konlingBlindAuditManifestHash(MANIFEST),
+      manifestPayload: MANIFEST,
+    })).not.toThrow();
+    expect(fsReaddir(lockDir).sort()).toEqual(['hold-1', 'hold-2']);
   });
 
   it('refuses to start while a holder generation is still initializing', () => {
