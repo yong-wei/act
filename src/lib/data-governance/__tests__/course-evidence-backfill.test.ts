@@ -139,6 +139,10 @@ describe('course evidence backfill', () => {
         sessionId: { in: ['session-5-1'] },
         userId: { in: ['student-1'] },
         lessonKey: { in: ['unit-5-1-linear-backbone-boundaries-v1'] },
+        submittedAt: {
+          gte: new Date('2026-05-20T00:00:00.000Z'),
+          lte: new Date('2026-05-21T00:00:00.000Z'),
+        },
       },
     }));
     expect(plan.mode).toBe('dry-run');
@@ -445,7 +449,11 @@ describe('course evidence backfill', () => {
       learningFact: { update: vi.fn() },
     };
 
-    const result = await applyCourseEvidenceBackfillPlan(db as never, plan);
+    const result = await applyCourseEvidenceBackfillPlan(db as never, plan, {
+      operationId: 'op-test',
+      authorizedBy: 'operator',
+      frozenCutoff: '2026-05-21T00:00:00.000Z',
+    });
 
     expect(plan.totals).toMatchObject({
       candidateRows: 1,
@@ -460,6 +468,46 @@ describe('course evidence backfill', () => {
     });
     expect(db.studentStepResponse.update).not.toHaveBeenCalled();
     expect(db.learningFact.update).not.toHaveBeenCalled();
+    expect(result.receipt.status).toBe('applied');
+    expect(result.receipt.currentPointerMoved).toBe(false);
+  });
+
+  it('requires an operation identity and resumes the same frozen input', async () => {
+    const plan = buildCourseEvidenceBackfillPlan({
+      studentStepResponses: [],
+      studentStates: [],
+      learningFacts: [],
+    });
+    const db = {
+      studentStepResponse: { update: vi.fn() },
+      learningFact: { update: vi.fn() },
+    };
+    await expect(applyCourseEvidenceBackfillPlan(db as never, plan, {
+      operationId: '',
+      authorizedBy: '',
+      frozenCutoff: '',
+    })).rejects.toThrow();
+    const receipts = new Map();
+    const store = {
+      get: (operationId: string) => receipts.get(operationId),
+      put: (receipt: { operationId: string }) => {
+        receipts.set(receipt.operationId, receipt);
+      },
+    };
+    const auth = {
+      operationId: 'op-replay',
+      authorizedBy: 'operator',
+      frozenCutoff: '2026-05-21T00:00:00.000Z',
+    };
+    const first = await applyCourseEvidenceBackfillPlan(db as never, plan, auth, store);
+    const second = await applyCourseEvidenceBackfillPlan(db as never, plan, auth, store);
+    expect(first.receipt.status).toBe('applied');
+    expect(second.receipt.status).toBe('resumed');
+    expect(db.studentStepResponse.update).not.toHaveBeenCalled();
+    await expect(applyCourseEvidenceBackfillPlan(db as never, {
+      ...plan,
+      filters: { to: new Date('2026-05-22T00:00:00.000Z') },
+    }, auth, store)).rejects.toThrow('plan-exceeds-frozen-cutoff');
   });
 
   it('supplements matching facts when response evidence is already manifest-enriched', () => {
