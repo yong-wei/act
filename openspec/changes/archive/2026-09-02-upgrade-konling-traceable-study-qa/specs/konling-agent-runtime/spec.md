@@ -51,7 +51,7 @@ Konling SHALL map every study-question answer section to an evidence-required or
 
 #### Scenario: Evidence-required section carries per-unit citations
 - **WHEN** a study-question answer includes an evidence-required section that is present in the answer
-- **THEN** the citation guard SHALL report whether that section's answer units carry server-verified citations
+- **THEN** the citation guard SHALL report whether that section's answer units carry server-verified citations, counting the section as covered only when every substantive answer unit in it carries a citation
 - **AND** an uncovered evidence-required section SHALL downgrade the answer confidence with a section-scoped reason.
 
 #### Scenario: Model-derived sections stay distinguishable from source text

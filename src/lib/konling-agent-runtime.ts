@@ -74,8 +74,8 @@ import {
   STUDY_QUESTION_SECTIONS,
   studyQuestionSectionTitles,
   type StudyQuestionIntent,
-  type StudyQuestionSection,
 } from '@/lib/konling-study-question-structure';
+import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
 import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
@@ -9471,43 +9471,52 @@ export function buildKonlingCitationGuard(
   const studyIntent = modeContract?.studyQuestion && isKnownStudyQuestionIntent(modeContract.studyQuestion.intent)
     ? modeContract.studyQuestion.intent as StudyQuestionIntent
     : null;
-  const answerUnits = assistantMessage === undefined
-    ? []
-    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations, studyIntent ?? undefined);
+  const answerScan = assistantMessage === undefined
+    ? null
+    : scanKonlingAnswerUnits(assistantMessage, citations, studyIntent ?? undefined);
+  const answerUnits = answerScan?.bindings ?? [];
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
   let answerUnitCoverage: KonlingAnswerUnitCitationCoverage | null = null;
   let derivedSectionIds: string[] = [];
-  if (studyIntent && assistantMessage !== undefined) {
-    const sectionPresence = detectAnsweredStudyQuestionSections(assistantMessage, studyIntent);
-    derivedSectionIds = sectionPresence
-      .filter((section) => section.present && section.section.citationPolicy === 'model-derived')
-      .map((section) => section.section.id);
-    const normativeFailClosed = modeContract?.studyQuestion?.normativeGuidance === 'verification-required';
-    const coveredBySection = new Set(answerUnits
-      .map((binding) => binding.sectionId)
+  if (studyIntent && answerScan) {
+    // Coverage is measured per substantive answer unit (#1819): an
+    // evidence-required section counts as covered only when every one of
+    // its answer units carries a bindable citation marker.
+    const sectionUnits = (sectionId: string) => answerScan.units.filter(
+      (unitRecord) => unitRecord.sectionId === sectionId,
+    );
+    const presentSectionIds = new Set(answerScan.units
+      .map((unitRecord) => unitRecord.sectionId)
       .filter((sectionId): sectionId is string => Boolean(sectionId)));
+    derivedSectionIds = STUDY_QUESTION_SECTIONS[studyIntent]
+      .filter((section) => section.citationPolicy === 'model-derived' && presentSectionIds.has(section.id))
+      .map((section) => section.id);
+    const normativeFailClosed = modeContract?.studyQuestion?.normativeGuidance === 'verification-required';
     const sections = normativeFailClosed && studyIntent === 'normative-content'
       ? []
-      : STUDY_QUESTION_SECTIONS[studyIntent].map((section) => ({
-        sectionId: section.id,
-        sectionTitle: section.title,
-        citationPolicy: section.citationPolicy,
-        covered: coveredBySection.has(section.id),
-      }));
+      : STUDY_QUESTION_SECTIONS[studyIntent].map((section) => {
+        const unitRecords = sectionUnits(section.id);
+        return {
+          sectionId: section.id,
+          sectionTitle: section.title,
+          citationPolicy: section.citationPolicy,
+          covered: unitRecords.length > 0 && unitRecords.every((unitRecord) => unitRecord.bound),
+        };
+      });
     const applicable = sections.filter((section) => (
       section.citationPolicy === 'evidence-required'
-      && sectionPresence.some((presence) => presence.section.id === section.sectionId && presence.present)
+      && presentSectionIds.has(section.sectionId)
     ));
-    const requiredCount = applicable.length;
-    const coveredCount = applicable.filter((section) => section.covered).length;
-    answerUnitCoverage = requiredCount > 0
+    const requiredUnits = applicable.flatMap((section) => sectionUnits(section.sectionId));
+    const coveredUnits = requiredUnits.filter((unitRecord) => unitRecord.bound);
+    answerUnitCoverage = requiredUnits.length > 0
       ? {
         intent: studyIntent,
         sections,
-        coveredCount,
-        requiredCount,
-        ratio: coveredCount / requiredCount,
+        coveredCount: coveredUnits.length,
+        requiredCount: requiredUnits.length,
+        ratio: coveredUnits.length / requiredUnits.length,
       }
       : null;
     for (const uncovered of applicable.filter((section) => !section.covered)) {
@@ -9613,58 +9622,79 @@ export function buildKonlingCitationGuard(
   };
 }
 
-function detectAnsweredStudyQuestionSections(
-  assistantMessage: string,
-  intent: StudyQuestionIntent,
-): { section: StudyQuestionSection; present: boolean }[] {
-  const present = new Set<string>();
-  for (const line of assistantMessage.split(/\r?\n/)) {
-    const heading = detectStudyQuestionSectionHeading(line, intent);
-    if (heading) present.add(heading.id);
-  }
-  return STUDY_QUESTION_SECTIONS[intent].map((section) => ({
-    section,
-    present: present.has(section.id),
-  }));
-}
-
 function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
   return citation.verified === true && Boolean(citation.citationTargetId);
 }
 
-function buildKonlingAnswerUnitCitationBindings(
+export interface KonlingAnswerUnitRecord {
+  unit: string;
+  sectionId: string | null;
+  bound: boolean;
+}
+
+function isCitationMarkerPosition(
+  assistantMessage: string,
+  codeRanges: readonly { start: number; end: number }[],
+  offset: number,
+): boolean {
+  if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
+  // hasAssignedCitation=true keeps the check narrow: only single Latin/Greek
+  // letters and collection nouns read as technical subscripts, so Chinese
+  // prose before a marker still counts as a citation (#1819).
+  return !isTechnicalIndexContext(assistantMessage, offset, true);
+}
+
+function scanKonlingAnswerUnits(
   assistantMessage: string,
   citations: readonly KonlingCitation[],
   intent?: StudyQuestionIntent,
-): KonlingAnswerUnitCitationBinding[] {
+): { bindings: KonlingAnswerUnitCitationBinding[]; units: KonlingAnswerUnitRecord[] } {
   const bindings: KonlingAnswerUnitCitationBinding[] = [];
+  const units: KonlingAnswerUnitRecord[] = [];
   const marker = /\[(\d+)\]/g;
+  const codeRanges = markdownCodeRanges(assistantMessage);
   let currentSection: { id: string; title: string } | null = null;
+  let lineStart = 0;
   for (const line of assistantMessage.split(/\r?\n/)) {
-    if (intent) {
-      const headingSection = detectStudyQuestionSectionHeading(line, intent);
-      if (headingSection) currentSection = { id: headingSection.id, title: headingSection.title };
-    }
-    for (const match of line.matchAll(marker)) {
-      const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
-      if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
-      const unit = line.slice(0, match.index ?? 0)
-        .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
-        .trim()
-        .slice(0, 180);
-      if (!unit || bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) continue;
-      const section = currentSection;
-      bindings.push({
-        unit,
-        citationId: citation.id,
-        citationTargetId: citation.citationTargetId,
-        limitation: citation.href ? null : 'unavailable-address',
-        sectionId: section?.id ?? null,
-        sectionTitle: section?.title ?? null,
-      });
+    try {
+      if (intent) {
+        const headingSection = detectStudyQuestionSectionHeading(line, intent);
+        if (headingSection) {
+          currentSection = { id: headingSection.id, title: headingSection.title };
+          continue;
+        }
+      }
+      const trimmedUnit = line.replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '').trim();
+      if (!trimmedUnit) continue;
+      let bound = false;
+      for (const match of line.matchAll(marker)) {
+        const markerOffset = lineStart + (match.index ?? 0);
+        if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset)) continue;
+        const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
+        if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
+        const unit = line.slice(0, match.index ?? 0)
+          .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
+          .trim()
+          .slice(0, 180);
+        if (!unit) continue;
+        if (!bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) {
+          bindings.push({
+            unit,
+            citationId: citation.id,
+            citationTargetId: citation.citationTargetId,
+            limitation: citation.href ? null : 'unavailable-address',
+            sectionId: currentSection?.id ?? null,
+            sectionTitle: currentSection?.title ?? null,
+          });
+        }
+        bound = true;
+      }
+      units.push({ unit: trimmedUnit.slice(0, 180), sectionId: currentSection?.id ?? null, bound });
+    } finally {
+      lineStart += line.length + 1;
     }
   }
-  return bindings;
+  return { bindings, units };
 }
 
 function isPersonalizationCitationClass(value: string): boolean {
@@ -9775,8 +9805,11 @@ function collectUnverifiedCitationMarkers(
   const bindableNumbers = new Set(
     citations.filter(isBindableAnswerUnitCitation).map((citation) => citation.displayNumber),
   );
+  const codeRanges = markdownCodeRanges(assistantMessage);
   const invalid: number[] = [];
   for (const match of assistantMessage.matchAll(/\[(\d+)\]/g)) {
+    const markerOffset = match.index ?? 0;
+    if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset)) continue;
     const number = Number(match[1]);
     if (!bindableNumbers.has(number) && !invalid.includes(number)) {
       invalid.push(number);
@@ -9792,8 +9825,13 @@ export function stripUnverifiedKonlingCitationMarkers(
   const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
   if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
   const invalidSet = new Set(invalidNumbers);
+  const codeRanges = markdownCodeRanges(assistantMessage);
   return assistantMessage
-    .replace(/ ?\[(\d+)\]/g, (raw, digits: string) => (invalidSet.has(Number(digits)) ? '' : raw))
+    .replace(/ ?\[(\d+)\]/g, (raw, digits: string, offset: number) => (
+      invalidSet.has(Number(digits)) && isCitationMarkerPosition(assistantMessage, codeRanges, offset)
+        ? ''
+        : raw
+    ))
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n');
 }

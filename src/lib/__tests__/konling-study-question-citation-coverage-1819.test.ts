@@ -308,4 +308,62 @@ describe('issue #1819 answer-unit citation coverage', () => {
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:assumptions');
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:applicability');
   });
+
+  it('measures coverage per answer unit: a partially cited section stays uncovered', () => {
+    const answer = [
+      '## 前提与符号',
+      'G(s) 为前向通道 [1]。',
+      'H(s) 为反馈通道，通常取常数。',
+      '## 关键变形',
+      '闭环为 G/(1+GH)。',
+      '## 结果校验',
+      '分母次数不低于分子。',
+    ].join('\n');
+    const { guard } = guardFor('formula-derivation', answer);
+
+    expect(guard.answerUnitCoverage?.requiredCount).toBe(2);
+    expect(guard.answerUnitCoverage?.coveredCount).toBe(1);
+    expect(guard.answerUnitCoverage?.ratio).toBe(0.5);
+    const assumptions = guard.answerUnitCoverage?.sections.find(
+      (section) => section.sectionId === 'assumptions',
+    );
+    expect(assumptions?.covered).toBe(false);
+    expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:assumptions');
+  });
+
+  it('ignores technical subscripts and fenced code when scanning citation markers', () => {
+    const citationContext = createCitationContext([{
+      id: 'content:evidence:unverified',
+      sourceType: 'content',
+      displayTitle: '未验证材料',
+      href: '/course-runtime/resources/unverified.md',
+      confidence: 'medium',
+      evidenceBasis: 'source-pack:konling-answer:test',
+      owner: 'answer',
+      displayNumber: 2,
+    }]);
+    const answer = [
+      '**故障定位**',
+      '控制台输出 items[0] 为 undefined。',
+      '**可能原因**',
+      '数组越界。',
+      '```ts',
+      'const first = state[2]; // [9] 不是引用',
+      '```',
+      '**最小修复**',
+      '加长度检查 [2]',
+      '**验证方法**',
+      '重新运行。',
+    ].join('\n');
+    const { guard } = guardFor('code-debugging', answer, citationContext);
+
+    expect(guard.unverifiedCitationMarkers).toEqual([2]);
+    expect(guard.answerUnits).toEqual([]);
+    const stripped = stripUnverifiedKonlingCitationMarkers(answer, guard);
+    expect(stripped).toContain('items[0]');
+    expect(stripped).toContain('[9]');
+    expect(stripped).toContain('加长度检查');
+    expect(stripped).not.toContain('加长度检查 [2]');
+    expect(stripped).toContain('state[2]');
+  });
 });

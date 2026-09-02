@@ -42,7 +42,7 @@ type MarkerOccurrence = {
   value: string;
 };
 
-type TextRange = {
+export type TextRange = {
   start: number;
   end: number;
 };
@@ -152,14 +152,14 @@ export function normalizeKonlingCitations(input: {
   };
 }
 
-function markdownCodeRanges(value: string): TextRange[] {
+export function markdownCodeRanges(value: string): TextRange[] {
   return Array.from(value.matchAll(MARKDOWN_CODE), (match) => ({
     start: match.index,
     end: match.index + match[0].length,
   }));
 }
 
-function isTechnicalIndexContext(
+export function isTechnicalIndexContext(
   value: string,
   offset: number,
   hasAssignedCitation: boolean,
