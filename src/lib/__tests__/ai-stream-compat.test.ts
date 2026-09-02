@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   extractAITextFromStreamLine,
   readAITextStream,
-} from '@/lib/ai-stream-compat';
+} from '@/lib/ai/stream-compat';
 
 describe('AI stream compatibility helpers', () => {
   it('extracts legacy AI SDK data-stream text lines', () => {

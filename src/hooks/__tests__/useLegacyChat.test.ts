@@ -7,7 +7,7 @@ const hookSource = readFileSync(join(process.cwd(), 'src/hooks/useLegacyChat.ts'
 
 describe('useLegacyChat compatibility hook', () => {
   it('uses the shared legacy message adapter so tool parts remain renderable', () => {
-    expect(hookSource).toContain("import { toLegacyMessage, toUIMessage } from '@/lib/ai-message-compat'");
+    expect(hookSource).toContain("import { toLegacyMessage, toUIMessage } from '@/lib/ai/message-compat'");
     expect(hookSource).toContain('messages: chat.messages.map(toLegacyMessage)');
   });
 

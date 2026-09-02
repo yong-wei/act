@@ -1,7 +1,7 @@
 import { generateText } from 'ai';
 import { createHash } from 'node:crypto';
 
-import { getConfiguredAIProviderRuntime } from '@/lib/ai-client';
+import { getConfiguredAIProviderRuntime } from '@/lib/ai/provider-runtime';
 import {
   COMPETENCY_DIMENSIONS,
   getCompetencyLabel,

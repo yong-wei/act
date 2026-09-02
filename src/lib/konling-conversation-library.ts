@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai/message-compat';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import { isAdaptivePracticeGoalId } from '@/features/personalization/path-planning/public-api';
 import { getStepAIContext } from '@/lib/course-ai-contexts';

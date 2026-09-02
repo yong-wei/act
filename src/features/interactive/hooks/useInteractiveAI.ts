@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import type { AIMessage, InteractiveAIContextValue, InteractiveConfig } from '../types';
-import { readAITextStream } from './ai-stream';
+import { readAITextStream } from '@/lib/ai/stream-compat';
 import {
   INTERACTIVE_AI_COURSE_ID,
   buildInteractiveAiChatBody,

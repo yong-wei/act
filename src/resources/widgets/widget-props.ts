@@ -7,7 +7,7 @@
  * 2. Embedded - Minimal chrome, AI-integrated (via BOPPPS lesson player)
  */
 
-import type { LessonContext } from '@/lib/ai-client';
+import type { LessonContext } from '@/lib/ai/lesson-prompts';
 
 /**
  * Widget state snapshot for AI context reporting

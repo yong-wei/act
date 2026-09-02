@@ -8,7 +8,7 @@ import { useCallback, useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import type { Message } from '@/types/ai-message';
 import type { PageContext } from '@/types/ai-context';
-import { toLegacyMessage } from '@/lib/ai-message-compat';
+import { toLegacyMessage } from '@/lib/ai/message-compat';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 
 interface KonlingSession {
