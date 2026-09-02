@@ -1,4 +1,9 @@
 import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
+import {
+  detectOverallSubgroupPseudoConflict,
+  diagnosisClauseDeclaresConflict,
+  splitDiagnosisClauses,
+} from '@/lib/diagnosis-pseudo-conflict';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -294,19 +299,32 @@ function buildAvailability(
       recoveryAction: confidenceReasons[0]?.recoveryAction ?? '补充证据后重新生成诊断。',
     };
   }
-  if (report.reportBody.confidence === 'medium') {
+  if (report.reportBody.confidence === 'medium' && evidenceCoverageComplete(report, evidenceGroups)) {
+    // 总体—子群伪冲突（Issue #1872）：历史报告不可变，但不得把班级总体
+    // 与部分学生的不可比信号继续显示为证据冲突，标注需重新生成；检测
+    // 独立进行，summary 内的伪冲突声明同样覆盖。
+    if (detectOverallSubgroupPseudoConflict(report.reportBody).length > 0) {
+      return {
+        label: '报告需重新生成',
+        description: '该报告把班级总体表现与部分学生进度表述为证据冲突；两者学生范围不同、可以同时成立，不属于可比证据冲突。',
+        recoveryAction: '重新生成诊断以获得可比证据冲突判定。',
+      };
+    }
     // 显式完整覆盖且声明限制确含冲突语义：如实表述为证据冲突并指向教师
     // 复核；缺省可选覆盖字段或非冲突限制不得套用该状态（Issue #1755 review）。
-    const conflictDeclared = report.reportBody.limitations.some((limitation) => (
-      EVIDENCE_CONFLICT_WORDING.test(limitation)
-    ));
-    if (conflictDeclared && evidenceCoverageComplete(report, evidenceGroups)) {
+    const conflictDeclared = [
+      report.reportBody.summary,
+      ...report.reportBody.limitations,
+    ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
+    if (conflictDeclared) {
       return {
         label: '证据存在冲突',
         description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',
         recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
       };
     }
+  }
+  if (report.reportBody.confidence === 'medium') {
     return {
       label: '证据部分可用',
       description: '已有可用证据，但覆盖或归因仍不完整。',

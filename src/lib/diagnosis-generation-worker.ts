@@ -17,7 +17,7 @@ import {
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
-  DiagnosisRiskFlagCoverageError,
+  DiagnosisPseudoConflictError, DiagnosisRiskFlagCoverageError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { prisma } from '@/lib/prisma';
@@ -77,6 +77,15 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-risk-flag-coverage-misread',
+      message: error.message,
+    };
+  }
+  // 总体—子群伪冲突（Issue #1872）：与风险标志误读同语义（模型行为
+  // 缺陷），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisPseudoConflictError) {
+    return {
+      validation: false,
+      code: 'diagnosis-pseudo-conflict',
       message: error.message,
     };
   }

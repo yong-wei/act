@@ -38,6 +38,7 @@ import {
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
+  DiagnosisPseudoConflictError,
   DiagnosisRiskFlagCoverageError,
   buildDiagnosisProviderSystemPrompt,
   buildDiagnosisProviderToolResults,
@@ -49,6 +50,8 @@ import {
   validateDiagnosisReportBodyLanguage,
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
+import { DIAGNOSIS_BENCHMARK_SCENARIOS } from '@/lib/diagnosis-benchmark/scenarios';
+import { detectOverallSubgroupPseudoConflict } from '@/lib/diagnosis-pseudo-conflict';
 import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
 import {
   digestDiagnosisGovernedInput,
@@ -1888,5 +1891,117 @@ describe('sparse risk-flag coverage semantics (Issue #1755)', () => {
     expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
       data: { state: 'QUEUED', startedAt: null },
     }));
+  });
+});
+
+
+describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
+  const pseudoConflictInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+    classId: 'class-1',
+    studentIds: Array.from({ length: 10 }, (_value, index) => `student-${index + 1}`),
+    riskFlags: [],
+    competencySnapshots: [],
+    knowledgeProgress: Array.from({ length: 10 }, (_value, index) => ({
+      id: `progress-${index}`,
+      userId: `student-${index + 1}`,
+      nodeId: 'node-1',
+      status: 'IN_PROGRESS' as const,
+      progress: 55,
+      timeSpent: 120,
+      lastVisited: now.toISOString(),
+    })),
+  };
+  it.each([
+    ['pseudo conflict declared', '班级作业与测评整体表现正常，部分学生知识进度长期滞后。', ['作业、测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'], true],
+    ['comparable same-cohort conflict', '班级诊断完成。', ['同一批学生（node-06 的 26 名弱势学生）作业高分、测评低分，方向相反，存在证据冲突。'], false],
+    ['no conflict declared', '班级整体表现稳定。', ['部分学生知识进度长期滞后。'], false],
+    ['conflict declared in summary only', '班级整体表现正常，但与部分学生知识进度长期滞后存在矛盾。', [], true],
+    ['negated conflict wording', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者学生范围不同、并不矛盾，不构成冲突，分别呈现。'], false],
+    ['independent real conflict not attributed', '班级整体表现正常，部分学生知识进度长期滞后。', ['同一批 node-06 弱势学生作业高分、测评低分，存在来源间冲突。'], false],
+    ['half-combination unit with real conflict stays valid', '班级整体表现正常。', ['部分学生知识进度长期滞后；同一批 node-06 学生作业高分、测评低分，存在来源间冲突。'], false],
+    ['negated clause does not neutralize explicit conflict in same field', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者并不矛盾；但班级整体表现正常与部分学生知识进度长期滞后存在冲突。'], true],
+    ['anaphoric reference across clauses', '班级整体表现正常，部分学生知识进度长期滞后。二者存在冲突。', [], true],
+    ['anaphoric reference without preceding combination', '同一批 node-06 学生作业高分、测评低分。二者存在冲突。', [], false],
+    ['comma-joined negation does not neutralize explicit conflict', '班级整体表现正常。', ['二者并不矛盾，但班级整体表现正常与部分学生知识进度长期滞后存在冲突。'], true],
+    ['purely negated declaration stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者不构成冲突。'], false],
+    ['bu-paichu hedged wording is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生长期滞后，不排除存在冲突。'], true],
+    ['double negation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生长期滞后，并非没有冲突。'], true],
+    ['bing-wu short negation stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者并无冲突。'], false],
+    ['bare wu negation stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者无冲突。'], false],
+    ['wu-yi emphatic affirmation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者无疑存在冲突。'], true],
+    ['wu-ke-zhi-yi emphatic affirmation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者无可置疑地存在冲突。'], true],
+    ['wu-ke-fou-ren emphatic affirmation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者无可否认存在冲突。'], true],
+    ['zhen-cde negated connective stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者不构成真正的冲突。'], false],
+    ['double negation with long connective chain is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生知识进度长期滞后，二者并非没有确实存在冲突的可能。'], true],
+  ] as const)('detects %s', (_name, summary, limitations, expected) => {
+    expect(detectOverallSubgroupPseudoConflict({ summary, limitations: [...limitations] }).length > 0).toBe(expected);
+  });
+
+  it('declares evidence comparability constraints in the production system prompt', () => {
+    const prompt = buildDiagnosisProviderSystemPrompt(now.toISOString());
+
+    expect(prompt).toContain('证据冲突声明必须满足可比性');
+    expect(prompt).toContain('相同学生范围、相近时间窗内方向相反');
+    expect(prompt).toContain('绝不可声明为证据冲突');
+  });
+
+  it('rejects a persisted-bound report that declares an overall-vs-subgroup pseudo conflict', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '班级作业与测评整体表现正常，部分学生知识进度长期滞后。',
+        findings: [],
+        evidenceRefs: ['knowledge-progress:progress-0'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 100 },
+        confidence: 'medium',
+        limitations: ['作业、测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'],
+      },
+      normalizedResponseId: 'provider-response-pseudo-conflict',
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-pseudo-conflict',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: pseudoConflictInput,
+      inputDigest: digestDiagnosisGovernedInput(pseudoConflictInput),
+    })).rejects.toMatchObject({
+      name: 'DiagnosisPseudoConflictError',
+    });
+  });
+
+  it('records pseudo-conflict output as retryable instead of terminal validation', async () => {
+    const pseudoConflictError = new DiagnosisPseudoConflictError(['summary', 'limitations[0]']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw pseudoConflictError; },
+    )).rejects.toBe(pseudoConflictError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-pseudo-conflict',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
+  });
+
+  it('binds benchmark conflict scenarios to the same student cohort and time window', () => {
+    const conflictScenario = DIAGNOSIS_BENCHMARK_SCENARIOS.find((scenario) => scenario.id === 'assignment-assessment-conflict');
+    const sparseScenario = DIAGNOSIS_BENCHMARK_SCENARIOS.find((scenario) => scenario.id === 'sparse-risk-flags-conflict');
+    expect(conflictScenario?.description).toContain('同一批学生');
+    expect(conflictScenario?.description).toContain('同一时间窗');
+    expect(sparseScenario?.description).toContain('同批学生');
   });
 });

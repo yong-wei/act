@@ -522,19 +522,55 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     },
   };
 
-  it('describes a declared cross-source conflict instead of a coverage gap when coverage is complete', () => {
+  it('marks an overall-vs-subgroup pseudo conflict as needing regeneration (Issue #1872)', () => {
     const projection = projectReportHistoryCard(completeCoverageReport);
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.description).toContain('学生范围不同');
+    expect(projection.availability.recoveryAction).toContain('重新生成诊断');
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+  });
+
+  it('marks a summary-only pseudo conflict as needing regeneration (Issue #1872)', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，但与部分学生知识进度长期滞后存在矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.label).not.toBe('证据部分可用');
+  });
+
+  it('does not treat a negated summary conflict wording as a real conflict', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，部分学生知识进度长期滞后，二者并不矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+  });
+
+  it('keeps a comparable cross-source conflict presentation when the cohort matches', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级诊断完成，node-06 弱势学生作业与测评方向相反。',
+        limitations: ['同一批学生（node-06 的 26 名弱势学生，同一时间窗）作业高分、测评低分，存在来源间冲突。'],
+      },
+    });
 
     expect(projection.availability).toMatchObject({ label: '证据存在冲突' });
     expect(projection.availability.recoveryAction).toContain('教师复核');
-    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        reason: expect.stringContaining('判断边界'),
-        recoveryAction: expect.stringContaining('教师复核'),
-      }),
-    ]));
     expect(JSON.stringify(projection.confidenceReasons)).not.toContain('补充可核验证据');
-    expect(JSON.stringify(projection.availability)).not.toContain('补充可核验证据');
   });
 
   it('keeps the generic fallback only when no known reason applies', () => {

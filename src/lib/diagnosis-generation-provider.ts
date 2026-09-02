@@ -21,6 +21,7 @@ import {
   resolveSmartLessonStructuredProvider,
   TextJsonFallbackOutputError,
 } from '@/lib/smart-lesson-plan/provider-runtime';
+import { detectOverallSubgroupPseudoConflict } from './diagnosis-pseudo-conflict';
 
 const DIAGNOSIS_TOOLS = [
   'get_class_assignment_outcomes',
@@ -148,6 +149,16 @@ export class DiagnosisRiskFlagCoverageError extends Error {
   constructor(violations: string[]) {
     super('诊断模型把稀疏风险标志的命中数量误述为风险证据覆盖不足。');
     this.name = 'DiagnosisRiskFlagCoverageError';
+    this.violations = violations;
+  }
+}
+
+export class DiagnosisPseudoConflictError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型把班级总体表现与部分学生进度的总体—子群信号误述为证据冲突。');
+    this.name = 'DiagnosisPseudoConflictError';
     this.violations = violations;
   }
 }
@@ -570,6 +581,12 @@ export async function generateGovernedDiagnosisReport(
   if (riskFlagCoverageViolations.length > 0) {
     throw new DiagnosisRiskFlagCoverageError(riskFlagCoverageViolations);
   }
+  // 总体—子群伪冲突（Issue #1872）：班级总体正常与部分学生薄弱学生范围
+  // 不同，不得声明为证据冲突；命中按模型行为缺陷拒绝重试，不得持久化。
+  const pseudoConflictViolations = detectOverallSubgroupPseudoConflict(reportBody);
+  if (pseudoConflictViolations.length > 0) {
+    throw new DiagnosisPseudoConflictError(pseudoConflictViolations);
+  }
   return {
     reportBody,
     agentSessionId: agentSession.id,
@@ -591,6 +608,7 @@ const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
   '仅凭班级内相对较低、但仍处于正常范围（已完成或进度不低于 40）的排序位置，不得把节点判为薄弱；"学完但整体测评不理想"等班级整体问题用不带 knowledgeNodeId 的总体发现表达。',
   '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
   '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
+  '证据冲突声明必须满足可比性：只有相同学生范围、相近时间窗内方向相反的证据（如同一批学生作业高分、测评低分）才可声明冲突；「班级/整体/总体表现正常」与「部分/少数/个别学生薄弱」学生范围不同、可以同时成立，绝不可声明为证据冲突，应分别作为总体发现与子群发现呈现。',
   '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
   '风险标志是稀疏命中集合：governedToolResults.riskFlags.hitSummary.flaggedStudentCount 是当前命中风险的学生数，不是风险数据的覆盖人数；未命中风险的学生不缺少任何证据，不得据此生成“风险数据仅覆盖 N 名学生”或等价覆盖比例限制。',
   '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
