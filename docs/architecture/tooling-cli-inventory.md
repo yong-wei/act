@@ -1,7 +1,7 @@
 # Active tooling CLI inventory
 
-真源：`docs/architecture/tooling-cli-inventory.json`（revision-bound）。source identity 通过 `sourceIdentity.scriptsCanonicalSha256` 绑定捕获时的完整 `package.json` scripts 内容（sorted-key 规范 JSON 的 sha256）；工作区与 git HEAD 双比对，命令体或命令名漂移而清单未更新时测试 fail closed。
-回归：`src/lib/__tests__/tooling-cli-inventory.test.ts`（completeness、retired 防复活、compatibility 转发等价、unknown 可见性、target 存在性、门禁语义、graph 独立、privacy、source identity 双比对、documented direct entries 反向覆盖）。
+真源：`docs/architecture/tooling-cli-inventory.json`（revision-bound）。source identity 通过 `sourceIdentity.captureDenominatorSha256` 绑定完整捕获分母：`package.json` scripts（sorted）、全部已登记 target 文件的 git blob sha1、`documentedDirectEntries` 命令清单、以及从 `scripts/README.md` 与 `AGENTS.md` 解析的直接调用身份集；测试对工作区与 git HEAD 双重计算比对，命令体、target 脚本内容、文档化调用或清单分类任一漂移而身份未刷新时 fail closed。身份刷新：`npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts`（共享逻辑在 `scripts/lib/tooling-cli-inventory-identity.ts`）。
+回归：`src/lib/__tests__/tooling-cli-inventory.test.ts`（completeness、retired 防复活、compatibility 转发等价、unknown 可见性、target 存在性、门禁语义、graph 独立、privacy、捕获分母双比对、documented direct entries 按调用身份双向核对与路径覆盖）。
 
 ## 分类规则
 

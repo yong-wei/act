@@ -1,8 +1,12 @@
-import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, beforeAll, expect, it } from 'vitest';
+
+import {
+  headCaptureDenominatorSha256,
+  parseDocumentedInvocations,
+  workspaceCaptureDenominatorSha256,
+} from '../../../scripts/lib/tooling-cli-inventory-identity';
 
 type InventoryEntry = {
   status: 'active' | 'compatibility' | 'unknown';
@@ -10,7 +14,7 @@ type InventoryEntry = {
 };
 
 type Inventory = {
-  sourceIdentity: { scriptsCanonicalSha256: string; note: string };
+  sourceIdentity: { captureDenominatorSha256: string; note: string };
   canonicalGates: {
     'verify:commit': string;
     'verify:push': string;
@@ -30,14 +34,7 @@ function readJson(relativePath: string) {
   return JSON.parse(readFileSync(join(process.cwd(), relativePath), 'utf8'));
 }
 
-function scriptsCanonicalSha256(rawPackageJson: string) {
-  const scripts = (JSON.parse(rawPackageJson) as { scripts: Record<string, string> }).scripts;
-  const canonical = JSON.stringify(Object.keys(scripts).sort().map((key) => [key, scripts[key]]));
-  return createHash('sha256').update(canonical).digest('hex');
-}
-
-const packageJsonRaw = readFileSync(join(process.cwd(), 'package.json'), 'utf8');
-const packageJson = JSON.parse(packageJsonRaw) as { scripts: Record<string, string> };
+const packageJson = readJson('package.json') as { scripts: Record<string, string> };
 const inventory = readJson('docs/architecture/tooling-cli-inventory.json') as Inventory;
 
 function classifiedCommandNames(): Map<string, InventoryEntry> {
@@ -147,31 +144,35 @@ describe('tooling CLI delivery and graph gates', () => {
 });
 
 describe('tooling CLI inventory source identity', () => {
-  it('fails closed when the workspace or committed package.json scripts drift from the captured inventory identity', () => {
-    const captured = inventory.sourceIdentity.scriptsCanonicalSha256;
+  it('fails closed when the workspace or committed capture denominator drifts from the captured inventory identity', () => {
+    const captured = inventory.sourceIdentity.captureDenominatorSha256;
     expect(captured).toMatch(/^[0-9a-f]{64}$/);
     expect(
-      scriptsCanonicalSha256(packageJsonRaw),
-      'workspace package.json scripts drifted from the inventory; regenerate the inventory identity',
+      workspaceCaptureDenominatorSha256(inventory),
+      'workspace capture denominator (package scripts, target script contents, documented invocations, inventory classification) drifted from the inventory; run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts',
     ).toBe(captured);
-    const headPackageJson = execFileSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' });
     expect(
-      scriptsCanonicalSha256(headPackageJson),
-      'committed HEAD package.json scripts drifted from the inventory; regenerate the inventory identity',
+      headCaptureDenominatorSha256(inventory),
+      'committed HEAD capture denominator drifted from the inventory; run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts and commit',
     ).toBe(captured);
   });
 });
 
 describe('tooling CLI documented direct entries', () => {
-  const allTargets = new Set<string>();
+  const npmTargets = new Set<string>();
+  const directEntryTargets = new Set<string>();
+  const directEntryCommands = new Set<string>();
 
   beforeAll(() => {
     for (const group of Object.values(inventory.namespaces)) {
       for (const entry of Object.values(group.commands)) {
-        if (entry.target) allTargets.add(entry.target);
+        if (entry.target) npmTargets.add(entry.target);
       }
     }
-    for (const entry of inventory.documentedDirectEntries) allTargets.add(entry.target);
+    for (const entry of inventory.documentedDirectEntries) {
+      directEntryTargets.add(entry.target);
+      directEntryCommands.add(entry.command);
+    }
   });
 
   it('classifies every documented direct-invoke entry with an existing target', () => {
@@ -183,7 +184,24 @@ describe('tooling CLI documented direct entries', () => {
     }
   });
 
-  it('covers every directly invoked script path documented in scripts/README.md and AGENTS.md', () => {
+  it('registers every documented direct invocation by call identity, not merely by target path', () => {
+    const docs = (['scripts/README.md', 'AGENTS.md'] as const)
+      .map((doc) => readFileSync(join(process.cwd(), doc), 'utf8'))
+      .join('\n');
+    const documentedInvocations = new Set(parseDocumentedInvocations(docs));
+    expect(documentedInvocations.size).toBeGreaterThan(0);
+    for (const identity of documentedInvocations) {
+      expect(
+        directEntryCommands.has(identity),
+        `${identity} is documented as a direct invocation but is not registered in documentedDirectEntries with its own command, status and evidence`,
+      ).toBe(true);
+    }
+    for (const command of directEntryCommands) {
+      expect(documentedInvocations.has(command), `registered direct entry ${command} no longer appears in scripts/README.md or AGENTS.md`).toBe(true);
+    }
+  });
+
+  it('covers every script path mentioned in scripts/README.md and AGENTS.md', () => {
     const documentedPaths = new Set<string>();
     for (const doc of ['scripts/README.md', 'AGENTS.md']) {
       const text = readFileSync(join(process.cwd(), doc), 'utf8');
@@ -193,7 +211,8 @@ describe('tooling CLI documented direct entries', () => {
     }
     expect(documentedPaths.size).toBeGreaterThan(0);
     for (const path of documentedPaths) {
-      expect(allTargets.has(path), `${path} is documented but missing from the inventory targets`).toBe(true);
+      const known = npmTargets.has(path) || directEntryTargets.has(path);
+      expect(known, `${path} is documented but missing from the inventory targets`).toBe(true);
     }
   });
 });

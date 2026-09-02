@@ -8,14 +8,19 @@
 - `src/lib/__tests__/tooling-cli-inventory.test.ts`：12 项断言（completeness、retired 防复活、compatibility 转发等价、unknown 可见性、target 存在性、canonical gates 语义、5 typecheck graph 独立、发布非激活合同、privacy、source identity 工作区+HEAD 双比对、documented direct entries 存在性与 README/AGENTS 反向覆盖）。
 - `docs/architecture/tooling-cli-inventory.md`、`scripts/README.md` 更新。
 
-## Review 修复（head `9c58009639` 上 Codex 2 findings，均已修复）
+## Review 修复（head `9c58009639` 与 `0b09c896a7` 两轮 Codex findings，均已修复）
 
-- P1（清单修订漂移不失败关闭）：新增 `sourceIdentity.scriptsCanonicalSha256`，测试对工作区与 `git show HEAD:package.json` 双比对；命令体或命令名变化而清单未更新时 fail closed（行为已用变异用例验证）。
-- P2（完整性分母缺直接调用入口）：新增 `documentedDirectEntries`，并加 README/AGENTS 文档化脚本路径的反向覆盖断言。
+第一轮：
+- P1（清单修订漂移不失败关闭）：新增 scripts 内容哈希，测试双比对（后由第二轮升级为完整捕获分母）。
+- P2（完整性分母缺直接调用入口）：新增 `documentedDirectEntries` 与文档路径反向断言。
+
+第二轮（同根因深化，升级为完整捕获分母不变量）：
+- P1（身份未覆盖 targets/文档/清单分类）：`sourceIdentity.captureDenominatorSha256` 绑定完整捕获分母（package scripts sorted + 全部 target 文件 git blob sha1 + direct entry 命令清单 + README/AGENTS 解析的直接调用身份集），共享计算模块 `scripts/lib/tooling-cli-inventory-identity.ts`，测试对工作区与 `git show HEAD` 双计算比对；身份刷新入口 `scripts/tests/refresh-tooling-cli-inventory-identity.ts`。变异抽检确认：target 脚本内容变化、删除 direct entry、文档新增直接调用均 fail closed。
+- P2（反向断言按路径而非调用身份合并核对）：改为按 `bin + path` 调用身份与 `documentedDirectEntries.command` 双向核对，另保留文档路径覆盖断言；`AGENTS.md` 将 worktree hook 安装入口显式化为 `bash scripts/dev/sync-local-worktree-config.sh` 调用形态。
 
 ## 验证
 
-- `npm run verify:commit` 通过；`npm run lint`（--max-warnings=0）通过；新增 12 项测试通过。
+- `npm run verify:commit` 通过；`npm run lint`（--max-warnings=0）通过；identity 测试 13 项中 12 项通过（HEAD 比对项在提交前按设计 fail closed，提交后复验通过）。
 - `openspec validate <change> --type change --strict` 通过；`validate --specs --strict` 中 `student-micro-tutoring-eligibility-projection` 为既有旧债。
 - 既有失败（与本变更无关，干净基线 `734ac45d3f` stash 对照一致，与归档 receipt `2026-09-02-retire-graph-center-and-parallel-knowledge-surfaces` 记录一致）：`resource-field-completion-audit.test.ts` 2 项。
 - typecheck 聚合报告 web graph `production-to-documentation` 为基线既有观察，门禁 exit 0。
