@@ -189,6 +189,7 @@ function useActiveAuthorityWorkspace(
   familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
   neighborhoodFailures: Record<string, string>;
+  localeRefreshFailure: string | null;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
   onIdentityFailure: () => void;
@@ -197,6 +198,7 @@ function useActiveAuthorityWorkspace(
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
   const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
   const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const [localeRefreshFailure, setLocaleRefreshFailure] = useState<string | null>(null);
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
   const requestControllersRef = useRef(new Set<AbortController>());
@@ -357,12 +359,19 @@ function useActiveAuthorityWorkspace(
       ...selectedId ? [selectedId] : [],
     ])];
     const previousLocale = current.selectedLocale;
+    setLocaleRefreshFailure(null);
     updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
     const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
     const controller = new AbortController();
     const requestControllers = requestControllersRef.current;
     requestControllers.add(controller);
+
+    function abortLocaleRefresh(): void {
+      updateWorkspace((workspace) => ({ ...workspace, selectedLocale: previousLocale }));
+      onLocaleTransactionFailure?.(previousLocale);
+      setLocaleRefreshFailure(graphCopy(previousLocale, 'error.generic'));
+    }
 
     // 事务性 locale 刷新（#1741）：一次代内并行取回当前已加载的全部逻辑
     // 分片，全部成功后同一批提交——中途失败或代过期则整体丢弃并回滚到
@@ -410,7 +419,9 @@ function useActiveAuthorityWorkspace(
         for (const shard of results) {
           const drift = shardIdentityDrift(next, shard);
           if (drift === 'authority-catalog') {
-            onIdentityFailure();
+            // Locale 刷新中的身份失败不得清空已有帧；回滚两层 locale 并
+            // 用旧语言报告有界失败（#1741 P1：409/身份失败也进入回滚）。
+            abortLocaleRefresh();
             return;
           }
           if (generation !== requestGenerationRef.current || controller.signal.aborted) return;
@@ -421,14 +432,11 @@ function useActiveAuthorityWorkspace(
           updateWorkspace(() => next);
           setState({ status: 'ready', workspace: next });
         }
-      } catch (error: unknown) {
-        if (controller.signal.aborted || isIdentityFailure(error)) return;
-        // 整体失败：保留旧 locale 的完整帧（未提交任何新 display 记录），
-        // selectedLocale 与外层 locale state 一起回滚——否则 graphCopy 等
-        // UI 文案已切英文而 workspace 仍是中文数据，形成混合帧（#1741
-        // P1：失败时同步回滚外层 locale 状态）。
-        updateWorkspace((workspace) => ({ ...workspace, selectedLocale: previousLocale }));
-        onLocaleTransactionFailure?.(previousLocale);
+      } catch {
+        if (controller.signal.aborted) return;
+        // HTTP 409 与其它 shard 失败同属“切换失败”：保留旧 locale 完整帧，
+        // 回滚 selectedLocale 与外层 locale。不得走 onIdentityFailure() 清空图。
+        abortLocaleRefresh();
       } finally {
         requestControllers.delete(controller);
       }
@@ -579,6 +587,7 @@ function useActiveAuthorityWorkspace(
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
+    localeRefreshFailure,
     resetDomain,
     applyShard,
     onIdentityFailure,
@@ -1331,6 +1340,7 @@ export function ActiveAuthorityGraph({
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
+    localeRefreshFailure,
     resetDomain,
     applyShard,
     onIdentityFailure,
@@ -1811,6 +1821,15 @@ export function ActiveAuthorityGraph({
               {languageState.englishUnavailableReason}
             </p>
           )}
+          {localeRefreshFailure ? (
+            <p
+              role="alert"
+              data-locale-refresh-failed="true"
+              className="max-w-56 text-[11px] text-red-100"
+            >
+              {localeRefreshFailure}
+            </p>
+          ) : null}
         </div>
       </div>
 
