@@ -16,8 +16,10 @@ const SUBGROUP_WEAK_PATTERN = /(部分|少数|个别|某些)[^。；;\n]{0,16}(�
 // 与历史投影的冲突措辞判定保持一致（Issue #1755 review）。
 export const EVIDENCE_CONFLICT_WORDING_PATTERN = /冲突|矛盾|不一致/;
 // 否定连接：冲突词紧邻前缀中的否定形态（否定词与冲突词之间不允许
-// 逗号/句读隔断），仅中和该冲突词实例而非整个子句。
-const NEGATED_CONFLICT_PREFIX_PATTERN = /(不(?:存在|构成)?|并非|没有)[^，,。；;\n]{0,6}$/;
+// 逗号/句读隔断），仅中和该冲突词实例而非整个子句。涵盖 无/并无 等
+// 省略形式；不排除/并非没有 等反转结构表达肯定，不算否定。
+const NEGATED_CONFLICT_PREFIX_PATTERN = /(不(?:存在|构成)?|并非|没有?|并无?)[^，,。；;\n]{0,6}$/;
+const AFFIRMING_NEGATION_PATTERN = /(不排除|并非没|不无)[^，,。；;\n]{0,4}$/;
 // 指代词：冲突声明子句显式指回前文（含前一子句）的总体—子群组合。
 const COMBINATION_REFERENCE_PATTERN = /二者|两者|上述|前述|这(?:两|三)?种|该(?:两|三)?者/;
 
@@ -34,6 +36,7 @@ export function splitDiagnosisClauses(text: string): string[] {
 export function diagnosisClauseDeclaresConflict(clause: string): boolean {
   for (const match of clause.matchAll(/冲突|矛盾|不一致/g)) {
     const prefix = clause.slice(Math.max(0, (match.index ?? 0) - 10), match.index);
+    if (AFFIRMING_NEGATION_PATTERN.test(prefix)) return true;
     if (!NEGATED_CONFLICT_PREFIX_PATTERN.test(prefix)) return true;
   }
   return false;

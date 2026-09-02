@@ -1925,6 +1925,9 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     ['anaphoric reference without preceding combination', '同一批 node-06 学生作业高分、测评低分。二者存在冲突。', [], false],
     ['comma-joined negation does not neutralize explicit conflict', '班级整体表现正常。', ['二者并不矛盾，但班级整体表现正常与部分学生知识进度长期滞后存在冲突。'], true],
     ['purely negated declaration stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者不构成冲突。'], false],
+    ['bu-paichu hedged wording is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生长期滞后，不排除存在冲突。'], true],
+    ['double negation is a declaration', '班级整体表现正常。', ['班级整体表现正常与部分学生长期滞后，并非没有冲突。'], true],
+    ['bing-wu short negation stays compliant', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者并无冲突。'], false],
   ] as const)('detects %s', (_name, summary, limitations, expected) => {
     expect(detectOverallSubgroupPseudoConflict({ summary, limitations: [...limitations] }).length > 0).toBe(expected);
   });
