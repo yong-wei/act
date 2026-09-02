@@ -36,7 +36,7 @@ import {
   signTeacherAssignmentOriginalAssetRead,
   TeacherAssignmentReviewError,
 } from './assignment-review';
-import { createAssignmentAiGradingBatches, createManualQuestionGradingReview } from '@/lib/data-governance/assignment-grading-orchestration';
+import { createAssignmentAiGradingBatches, createManualQuestionGradingReview } from './assignment-grading-orchestration';
 import { retryQuestionGradingBatchItem } from '@/lib/data-governance/math-document-grading-batch';
 import { retryDocumentConversion } from '@/lib/data-governance/math-document-grading-persistence';
 import { enqueueMathDocumentGradingJob } from '@/lib/data-governance/math-document-grading-queue';

@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../../../src/lib/assignments/submission-object-store', () => ({ createSubmissionObjectStore: mocks.store }));
 vi.mock('../../../../src/lib/data-governance/math-document-grading-persistence', () => ({ GRADING_JOB_LEASE_MS: 5 * 60_000, processDocumentConversionJob: mocks.conversion, processGradingRunJob: mocks.grading, writeRenderedObjectToSubmissionStore: mocks.writer }));
 vi.mock('../../../../src/lib/data-governance/math-document-grading-batch', () => ({ processQuestionGradingBatch: mocks.batch }));
-vi.mock('../../../../src/lib/data-governance/assignment-grading-orchestration', () => ({ refreshAssignmentAiGradingOperation: mocks.operationRefresh }));
+vi.mock('../../../../src/lib/assignments/assignment-grading-orchestration', () => ({ refreshAssignmentAiGradingOperation: mocks.operationRefresh }));
 vi.mock('../../../../src/lib/prisma-client', () => ({ createPrismaClient: vi.fn() }));
 
 import { processMathDocumentGradingJob, settleMathDocumentGradingJobFailure } from '../../../../scripts/workers/math-document-grading-worker';
