@@ -45,13 +45,8 @@ describe('unit 1-5 three-domain gain sweep course', () => {
     ]) expect(existsSync(join(courseDir, path)), path).toBe(true);
     expect(existsSync(join(courseDir, 'course-header.tsx'))).toBe(false);
 
-    for (const path of [
-      'entry.tsx',
-      'demo.tsx',
-      'student.tsx',
-      'teacher.tsx',
-      'waiting.tsx',
-    ]) expect(existsSync(join(routeDir, path)), path).toBe(true);
+    expect(existsSync(join(root, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'))).toBe(true);
+    expect(existsSync(join(routeDir, 'student.tsx'))).toBe(false);
 
     for (const path of [
       'page.tsx',

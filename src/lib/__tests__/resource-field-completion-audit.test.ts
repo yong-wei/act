@@ -6,6 +6,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
+
 import { buildGraphCenterPayload } from '../data-governance/graph-center';
 import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
@@ -1907,10 +1909,7 @@ describe('resource field completion audit', () => {
       const routeMatch = String(row.pathTarget).match(/^\/interactive-learning\/courses\/([^/?#]+)\/student\/[^/?#]+(?:\?step=[^#]+)?$/);
       const routeSegment = routeMatch?.[1];
       expect(routeSegment).toBeTruthy();
-      expect(existsSync(join(
-        process.cwd(),
-        `src/features/interactive/course-app-routes/${routeSegment}/student.tsx`,
-      ))).toBe(true);
+      expect(isManifestCourseRouteSegment(routeSegment)).toBe(true);
     }
     const manifestModuleRow = jsonlRows.find((row) => row.resourceId === 'runtime-module:3-5:step-01:boundary-card');
     expect(manifestModuleRow?.sourcePathOrUrl).toBe(runtimeManifestPath);

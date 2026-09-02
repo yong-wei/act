@@ -337,14 +337,14 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
 export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/student.tsx',
+    sourceFile: 'src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/teacher.tsx',
+    sourceFile: 'src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
@@ -372,8 +372,7 @@ export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRo
   },
   {
     routePattern: '/interactive-learning/courses/*/teacher/*/waiting',
-    sourceFile:
-      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/waiting.tsx',
+    sourceFile: 'src/features/interactive/shared/teacher-classroom-waiting-route.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],

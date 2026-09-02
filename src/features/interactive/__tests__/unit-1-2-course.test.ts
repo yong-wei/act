@@ -131,9 +131,8 @@ describe('unit 1-2 modeling from object to system course', () => {
       routeSegment: UNIT_1_2_ROUTE_SEGMENT,
       isPremiumCourse: true,
     });
-    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/entry.tsx`))).toBe(true);
-    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/student.tsx`))).toBe(true);
-    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/teacher.tsx`))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, `src/features/interactive/course-app-routes/${UNIT_1_2_ROUTE_SEGMENT}/entry.tsx`))).toBe(false);
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]/page.tsx'))).toBe(true);
     expect(existsSync(join(repoRoot, `src/app/interactive-learning/courses/${UNIT_1_2_ROUTE_SEGMENT}/page.tsx`))).toBe(false);
   });
