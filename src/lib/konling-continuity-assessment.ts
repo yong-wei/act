@@ -1,4 +1,4 @@
-import type { CompanionPracticeMetadata } from '@/features/assessment/adaptive-engine';
+import type { CompanionPracticeMetadata } from '@/features/assessment/public-api';
 import { resolveKonlingContinuitySnapshot } from '@/lib/konling-learning-continuity';
 import type { ContinuityDb } from '@/lib/konling-learning-continuity';
 

@@ -22,12 +22,9 @@ const AI_DIRECTORIES = [
   'src/features/ai',
 ];
 
-const AI_LIB_FILES = [
-  'src/lib/konling-agent-runtime.ts',
-  'src/lib/konling-structured-action-runtime.ts',
-  'src/lib/konling-conversation-library.ts',
-  'src/lib/konling-teaching-assistant-server-context.ts',
-];
+const AI_LIB_FILES = readdirSync(join(process.cwd(), 'src/lib'))
+  .filter((name) => /^konling-.*\.ts$/.test(name))
+  .map((name) => `src/lib/${name}`);
 
 function aiFiles(): string[] {
   return [
