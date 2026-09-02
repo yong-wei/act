@@ -160,7 +160,7 @@ for (const viewport of viewports) {
     await installCommonRoutes(page, providerUnavailable);
     await page.goto('/ai/copilot', { waitUntil: 'domcontentloaded' });
 
-    const input = page.getByLabel('请输入您的问题，例如：如何减少航迹误差？');
+    const input = page.getByLabel('请输入您的问题，例如：帮我解释一个控制概念');
     await input.fill('这道题怎么做？');
     await input.press('Enter');
 
@@ -248,7 +248,7 @@ for (const testCase of copilotRecoveryCases) {
     await installCommonRoutes(page, testCase.failure);
     await page.goto('/ai/copilot', { waitUntil: 'domcontentloaded' });
 
-    const input = page.getByLabel('请输入您的问题，例如：如何减少航迹误差？');
+    const input = page.getByLabel('请输入您的问题，例如：帮我解释一个控制概念');
     await input.fill('这个问题需要恢复路径');
     await input.press('Enter');
 

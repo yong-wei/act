@@ -228,7 +228,7 @@ test('standalone Copilot restores, sends, and governs conversation lifecycle', a
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(main.getByText('请解释稳态误差')).toBeVisible();
 
-  const composer = main.getByLabel('请输入您的问题，例如：如何减少航迹误差？');
+  const composer = main.getByLabel('请输入您的问题，例如：帮我解释一个控制概念');
   await composer.fill('请继续解释');
   await main.getByRole('button', { name: '发送' }).click();
   await expect.poll(() => library.chatBodies.length).toBeGreaterThan(0);
@@ -278,10 +278,10 @@ test('standalone Copilot keeps recovered history when delete fails', async ({ pa
 
   page.once('dialog', (dialog) => void dialog.accept());
   await page.locator('[data-copilot-delete-conversation]').click();
-  await expect(main.getByText('删除控灵会话失败')).toBeVisible();
+  await expect(main.getByText('智能助手暂时无法完成请求')).toBeVisible();
   await expect(page.locator('[data-copilot-conversation-status="recovery-failed"]')).toHaveCount(0);
   await expect(main.getByText('请解释稳态误差')).toBeVisible();
-  await expect(main.getByLabel('请输入您的问题，例如：如何减少航迹误差？')).toBeEnabled();
+  await expect(main.getByLabel('请输入您的问题，例如：帮我解释一个控制概念')).toBeEnabled();
 });
 
 test('standalone Copilot stays usable at 320px and without a session', async ({ page }) => {
@@ -293,13 +293,13 @@ test('standalone Copilot stays usable at 320px and without a session', async ({ 
   const main = page.getByRole('main');
   await expect(page.locator('[data-copilot-conversation-status="unauthenticated"]')).toBeVisible();
   await expect(main.getByRole('link', { name: '登录后恢复会话' })).toBeVisible();
-  await expect(main.getByLabel('请输入您的问题，例如：如何减少航迹误差？')).toBeDisabled();
+  await expect(main.getByLabel('请输入您的问题，例如：帮我解释一个控制概念')).toBeDisabled();
   await assertNoOverflow(page);
 
   await establishAuthenticatedSession(page.context());
   await installLibrary(page);
   await page.goto(representativeRoute, { waitUntil: 'domcontentloaded' });
-  const composer = main.getByLabel('请输入您的问题，例如：如何减少航迹误差？');
+  const composer = main.getByLabel('请输入您的问题，例如：帮我解释一个控制概念');
   await expect(page.getByLabel('选择会话')).toBeVisible();
   await composer.focus();
   await expect(composer).toBeFocused();

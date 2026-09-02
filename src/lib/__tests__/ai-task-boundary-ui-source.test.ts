@@ -122,6 +122,7 @@ describe('ai task boundary UI source contracts', () => {
   it('maps AI workshop and portfolio reflection intents to candidate-only states with explicit durable draft saves', () => {
     const aiPage = readSource('src/app/ai/page.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
+    const copilotEntry = readSource('src/lib/standalone-copilot-entry.ts');
     const learningCenter = readSource('src/features/ai/personal-learning-center.tsx');
     const portfolio = readSource('src/app/(main)/profile/portfolio/page.tsx');
 
@@ -160,8 +161,13 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('href={portfolioReflectionHref}');
     expect(copilot).toContain('任务：');
     expect(copilot).toContain("{reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent}");
-    expect(copilot).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
-    expect(copilot).toContain('请先说明当前证据来源，再给出下一步练习建议。');
+    expect(copilot).toContain('buildStandaloneCopilotEntryPresentation');
+    expect(copilot).toContain('entryPresentation.limitations[0]');
+    expect(copilot).not.toContain("?? '已加载服务端核对的学习证据，建议仅作参考。'");
+    expect(copilot).not.toContain('请获取当前的仿真状态');
+    expect(copilotEntry).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
+    expect(copilotEntry).toContain('请先说明当前证据来源，再给出下一步练习建议。');
+    expect(copilotEntry).toContain("question: '请用自动控制原理的语言解释一个基础概念");
     expect(learningCenter).not.toContain('练习任务候选已写回学习任务');
     expect(portfolio).toContain('data-ai-task-boundary="portfolio-reflection-draft"');
     expect(portfolio).toContain('buildPortfolioReflectionDraft');
