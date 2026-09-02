@@ -13,6 +13,6 @@ Accepted route-visible deltas vs some private adapters (shared shell follows the
 - Unauthenticated teacher/waiting uses `buildLoginRedirectForPath` with callback, not a bare course-entry redirect.
 - Waiting routes now authenticate before `TeacherClassroomWaitingRoute`.
 
-Focused tests: `batch-b-shared-classroom-shell`, `retire-private-course-session-route-bridges`, `expired-session-redirect`, unit 4-4/4-5/4-6/4-7/5-1…5-6, cruise, AppShell/UI contracts, arena entry. Browser journey not executed in this worktree.
+Focused tests: `batch-b-shared-classroom-shell`, `retire-private-course-session-route-bridges`, `expired-session-redirect`, unit 4-4/4-5/4-6/4-7/5-1…5-6, cruise, AppShell/UI contracts, arena entry. `npm run typecheck` passed (no `tsc-type-errors`). Browser journey not executed in this worktree. Implementation revision: `54f8cb190a01e07b700e63eb8fde33976f7ae766`.
 
 Rollback: restore the deleted adapters and leftover loaders before this revision.
