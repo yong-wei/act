@@ -545,6 +545,19 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     expect(projection.availability.label).not.toBe('证据部分可用');
   });
 
+  it('does not treat a negated summary conflict wording as a real conflict', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，部分学生知识进度长期滞后，二者并不矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+  });
+
   it('keeps a comparable cross-source conflict presentation when the cohort matches', () => {
     const projection = projectReportHistoryCard({
       ...completeCoverageReport,

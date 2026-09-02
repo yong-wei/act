@@ -1921,6 +1921,8 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     ['independent real conflict not attributed', '班级整体表现正常，部分学生知识进度长期滞后。', ['同一批 node-06 弱势学生作业高分、测评低分，存在来源间冲突。'], false],
     ['half-combination unit with real conflict stays valid', '班级整体表现正常。', ['部分学生知识进度长期滞后；同一批 node-06 学生作业高分、测评低分，存在来源间冲突。'], false],
     ['negated clause does not neutralize explicit conflict in same field', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者并不矛盾；但班级整体表现正常与部分学生知识进度长期滞后存在冲突。'], true],
+    ['anaphoric reference across clauses', '班级整体表现正常，部分学生知识进度长期滞后。二者存在冲突。', [], true],
+    ['anaphoric reference without preceding combination', '同一批 node-06 学生作业高分、测评低分。二者存在冲突。', [], false],
   ] as const)('detects %s', (_name, summary, limitations, expected) => {
     expect(detectOverallSubgroupPseudoConflict({ summary, limitations: [...limitations] }).length > 0).toBe(expected);
   });

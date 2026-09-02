@@ -2,11 +2,11 @@
  * 总体—子群伪冲突的确定性识别（Issue #1872）。
  *
  * 班级总体表现正常与部分学生薄弱的学生范围不同，可以同时成立；
- * 方向不同不构成可核验的跨来源冲突。伪冲突成立的条件（子句粒度）：
- * 存在单个子句，其中总体正常表述、子群薄弱表述与未被否定措辞中和
- * 的冲突声明三者齐备——冲突声明明确指向该总体—子群组合。报告其他
- * 子句或单元里的独立真实冲突（如同批学生作业高分、测评低分）不满足
- * 齐备条件，不受影响。
+ * 方向不同不构成可核验的跨来源冲突。伪冲突命中的条件（子句粒度）：
+ * 单个子句内总体正常、子群薄弱与非否定冲突声明三者齐备；或冲突
+ * 声明子句通过「二者/两者/上述」等指代词显式指向前一子句中齐备的
+ * 总体—子群组合。报告其他位置的独立真实冲突（如同批学生作业高分、
+ * 测评低分）不满足归因条件，不受影响。
  *
  * 生成端据此按可重试模型行为缺陷拦截，历史投影端标注「报告需重新生成」。
  */
@@ -17,20 +17,47 @@ const SUBGROUP_WEAK_PATTERN = /(部分|少数|个别|某些)[^。；;\n]{0,16}(�
 export const EVIDENCE_CONFLICT_WORDING_PATTERN = /冲突|矛盾|不一致/;
 // 否定措辞把冲突词中和为「不存在冲突」的合规表述；判定只作用于所在子句。
 const NEGATED_CONFLICT_PATTERN = /不(?:存在|构成)?[^。；;\n]{0,6}(?:冲突|矛盾|不一致)|并非[^。；;\n]{0,12}(?:冲突|矛盾|不一致)|没有[^。；;\n]{0,12}(?:冲突|矛盾|不一致)/;
+// 指代词：冲突声明子句显式指回前文（含前一子句）的总体—子群组合。
+const COMBINATION_REFERENCE_PATTERN = /二者|两者|上述|前述|这(?:两|三)?种|该(?:两|三)?者/;
 
 export interface DiagnosisPseudoConflictSource {
   summary: string;
   limitations: ReadonlyArray<string>;
 }
 
-function splitClauses(text: string): string[] {
+export function splitDiagnosisClauses(text: string): string[] {
   return text.split(/(?<=[。；;])/).map((clause) => clause.trim()).filter(Boolean);
 }
 
-function clauseDeclaresPseudoConflict(clause: string): boolean {
-  if (!EVIDENCE_CONFLICT_WORDING_PATTERN.test(clause)) return false;
-  if (NEGATED_CONFLICT_PATTERN.test(clause)) return false;
-  return OVERALL_NORMAL_PATTERN.test(clause) && SUBGROUP_WEAK_PATTERN.test(clause);
+/** 子句是否为非否定的冲突声明（供检测与历史投影共用）。 */
+export function diagnosisClauseDeclaresConflict(clause: string): boolean {
+  return EVIDENCE_CONFLICT_WORDING_PATTERN.test(clause)
+    && !NEGATED_CONFLICT_PATTERN.test(clause);
+}
+
+function clauseHasOverallNormal(clause: string): boolean {
+  return OVERALL_NORMAL_PATTERN.test(clause);
+}
+
+function clauseHasSubgroupWeak(clause: string): boolean {
+  return SUBGROUP_WEAK_PATTERN.test(clause);
+}
+
+function unitDeclaresPseudoConflict(text: string): boolean {
+  const clauses = splitDiagnosisClauses(text);
+  for (let index = 0; index < clauses.length; index += 1) {
+    const clause = clauses[index];
+    if (!diagnosisClauseDeclaresConflict(clause)) continue;
+    if (clauseHasOverallNormal(clause) && clauseHasSubgroupWeak(clause)) return true;
+    // 跨子句指代：声明子句通过指代词指向前一子句中齐备的总体—子群组合。
+    const previous = index > 0 ? clauses[index - 1] : '';
+    if (COMBINATION_REFERENCE_PATTERN.test(clause)
+      && clauseHasOverallNormal(previous)
+      && clauseHasSubgroupWeak(previous)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -42,11 +69,7 @@ export function detectOverallSubgroupPseudoConflict(source: DiagnosisPseudoConfl
     { label: 'summary', text: source.summary },
     ...source.limitations.map((text, index) => ({ label: `limitations[${index}]`, text })),
   ];
-  const hits: string[] = [];
-  for (const unit of units) {
-    if (splitClauses(unit.text).some(clauseDeclaresPseudoConflict)) {
-      hits.push(unit.label);
-    }
-  }
-  return hits;
+  return units
+    .filter((unit) => unitDeclaresPseudoConflict(unit.text))
+    .map((unit) => unit.label);
 }

@@ -1,5 +1,9 @@
 import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
-import { detectOverallSubgroupPseudoConflict } from '@/lib/diagnosis-pseudo-conflict';
+import {
+  detectOverallSubgroupPseudoConflict,
+  diagnosisClauseDeclaresConflict,
+  splitDiagnosisClauses,
+} from '@/lib/diagnosis-pseudo-conflict';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -311,7 +315,7 @@ function buildAvailability(
     const conflictDeclared = [
       report.reportBody.summary,
       ...report.reportBody.limitations,
-    ].some((text) => EVIDENCE_CONFLICT_WORDING.test(text));
+    ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
     if (conflictDeclared) {
       return {
         label: '证据存在冲突',
