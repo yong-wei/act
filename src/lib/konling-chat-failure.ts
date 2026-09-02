@@ -84,10 +84,10 @@ export function classifyKonlingChatFailure(status: number | null, bodyText: stri
 export class KonlingChatFailureError extends Error {
   readonly konlingChatFailure: KonlingChatFailure;
 
-  constructor(category: KonlingChatFailureCategory) {
-    super(konlingChatFailureCopy(category));
+  constructor(category: KonlingChatFailureCategory, message = konlingChatFailureCopy(category)) {
+    super(message);
     this.name = 'KonlingChatFailureError';
-    this.konlingChatFailure = { category, message: this.message };
+    this.konlingChatFailure = { category, message };
   }
 }
 

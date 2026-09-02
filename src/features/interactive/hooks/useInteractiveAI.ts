@@ -5,6 +5,11 @@ import { useSession } from 'next-auth/react';
 import type { AIMessage, InteractiveAIContextValue, InteractiveConfig } from '../types';
 import { readAITextStream } from '@/lib/ai/stream-compat';
 import {
+  KonlingChatFailureError,
+  classifyKonlingChatFailure,
+  normalizeKonlingChatFailure,
+} from '@/lib/konling-chat-failure';
+import {
   INTERACTIVE_AI_COURSE_ID,
   buildInteractiveAiChatBody,
   interactiveAiListUrl,
@@ -41,11 +46,12 @@ async function ensureInteractiveConversation(pageId: string, resourceTitle: stri
     }),
   });
   if (!created.ok) {
-    throw new Error('无法建立可恢复的学习对话');
+    const bodyText = await created.text().catch(() => '');
+    throw new KonlingChatFailureError(classifyKonlingChatFailure(created.status, bodyText));
   }
   const payload = await created.json() as { id?: string };
   if (typeof payload.id !== 'string' || payload.id.length === 0) {
-    throw new Error('无法建立可恢复的学习对话');
+    throw new KonlingChatFailureError('service-unavailable', '无法建立可恢复的学习对话，请稍后重试。');
   }
   return payload.id;
 }
@@ -65,7 +71,7 @@ export function useInteractiveAI(
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<InteractiveAIContextValue['error']>(null);
   const [recoveryStatus, setRecoveryStatus] = useState<InteractiveAIContextValue['recoveryStatus']>('idle');
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -90,7 +96,8 @@ export function useInteractiveAI(
     try {
       const listRes = await fetch(interactiveAiListUrl(pageId));
       if (!listRes.ok) {
-        throw new Error('recovery-failed');
+        const bodyText = await listRes.text().catch(() => '');
+        throw new KonlingChatFailureError(classifyKonlingChatFailure(listRes.status, bodyText));
       }
       const list = await listRes.json() as { conversations?: Array<{ id?: string }> };
       const existingId = list.conversations?.[0]?.id;
@@ -102,17 +109,20 @@ export function useInteractiveAI(
       }
       const detailRes = await fetch(`/api/ai/sessions/${existingId}`);
       if (!detailRes.ok) {
-        throw new Error('recovery-failed');
+        const bodyText = await detailRes.text().catch(() => '');
+        throw new KonlingChatFailureError(classifyKonlingChatFailure(detailRes.status, bodyText));
       }
       const detail = await detailRes.json() as { id?: string; messages?: Message[] };
       conversationIdRef.current = typeof detail.id === 'string' ? detail.id : existingId;
       setMessages(mapRecoveredInteractiveAiMessages(detail.messages ?? []));
       setRecoveryStatus('ready');
       setError(null);
-    } catch {
+    } catch (e) {
       conversationIdRef.current = null;
       setRecoveryStatus('unavailable');
-      setError(new Error('无法恢复学习对话，请重试或返回当前资源。'));
+      setError(e instanceof KonlingChatFailureError
+        ? e.konlingChatFailure
+        : normalizeKonlingChatFailure(e));
     }
   }, [authStatus, isAuthenticated, pageId]);
 
@@ -162,16 +172,16 @@ export function useInteractiveAI(
 
     try {
       if (authStatus === 'loading') {
-        throw new Error('正在恢复学习对话，请稍候。');
+        throw new KonlingChatFailureError('state-conflict', '正在恢复学习对话，请稍候。');
       }
       let conversationId = conversationIdRef.current;
       if (isAuthenticated) {
         const status = recoveryStatusRef.current;
         if (status === 'idle' || status === 'loading') {
-          throw new Error('正在恢复学习对话，请稍候。');
+          throw new KonlingChatFailureError('state-conflict', '正在恢复学习对话，请稍候。');
         }
         if (status === 'unavailable') {
-          throw new Error('无法恢复学习对话，请重试或返回当前资源。');
+          throw new KonlingChatFailureError('conversation-missing', '无法恢复学习对话，请重试或返回当前资源。');
         }
         if (!conversationId) {
           conversationId = await ensureInteractiveConversation(pageId, config.title);
@@ -180,32 +190,42 @@ export function useInteractiveAI(
         }
       }
 
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildInteractiveAiChatBody({
-          content,
-          conversationId: conversationId ?? undefined,
-          resourceTitle: config.title,
-          persona: config.config.ai?.persona || persona,
-          customPrompt: config.aiHints,
-          pageId,
-        })),
-        signal: abortControllerRef.current.signal,
-      });
+      let response: Response;
+      try {
+        response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildInteractiveAiChatBody({
+            content,
+            conversationId: conversationId ?? undefined,
+            resourceTitle: config.title,
+            persona: config.config.ai?.persona || persona,
+            customPrompt: config.aiHints,
+            pageId,
+          })),
+          signal: abortControllerRef.current.signal,
+        });
+      } catch (e) {
+        if (e instanceof Error && e.name === 'AbortError') {
+          throw e;
+        }
+        throw new KonlingChatFailureError('network-unavailable');
+      }
 
       if (response.status === 409) {
         conversationIdRef.current = null;
         setMessages([userMessage]);
-        throw new Error('当前资源的对话已隔离，请重新提问。');
+        throw new KonlingChatFailureError('state-conflict', '当前资源的对话已隔离，请重新提问。');
       }
       if (response.status === 404 && conversationId) {
         conversationIdRef.current = null;
         setRecoveryStatus('unavailable');
-        throw new Error('无法恢复学习对话，请重试或返回当前资源。');
+        throw new KonlingChatFailureError('conversation-missing', '无法恢复学习对话，请重试或返回当前资源。');
       }
       if (!response.ok) {
-        throw new Error(`AI request failed: ${response.status}`);
+        // 共享学生安全失败契约：原始状态码、响应体与供应商信息不离开传输边界。
+        const bodyText = await response.text().catch(() => '');
+        throw new KonlingChatFailureError(classifyKonlingChatFailure(response.status, bodyText));
       }
 
       const sessionKind = response.headers.get('X-Interactive-AI-Session');
@@ -231,9 +251,12 @@ export function useInteractiveAI(
       if (e instanceof Error && e.name === 'AbortError') {
         throw e;
       }
-      const err = e instanceof Error ? e : new Error('Unknown error');
-      setError(err);
-      throw err;
+      const failure = e instanceof KonlingChatFailureError
+        ? e.konlingChatFailure
+        : normalizeKonlingChatFailure(e);
+      setError(failure);
+      if (e instanceof KonlingChatFailureError) throw e;
+      throw new KonlingChatFailureError(failure.category);
     } finally {
       setIsLoading(false);
     }
