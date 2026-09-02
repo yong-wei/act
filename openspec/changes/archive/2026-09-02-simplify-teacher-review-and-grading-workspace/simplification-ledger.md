@@ -1,7 +1,7 @@
 # simplify-teacher-review-and-grading-workspace 前后对照（#1794）
 
-基线：2728 行（queue 387 / workspace 1352 / grade 94 / console 167 /
-contracts 728）；化简后：2738 行（净 +10；结构化简不以行数为指标，
+源修订：`941555a804`。基线：2728 行（queue 387 / workspace 1352 / grade 94 /
+console 167 / contracts 728）；化简后：2738 行（净 +10；结构化简不以行数为指标，
 见 tasks 2.6——删除的重复被命名谓词与 helper 定义抵消）。
 
 基线函数/分支：queue 6/2、workspace 18/35、grade 10/12、console 13/16、
