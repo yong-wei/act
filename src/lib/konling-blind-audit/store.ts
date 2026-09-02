@@ -83,21 +83,29 @@ export function prepareKonlingBlindAuditRun(input: {
 
 function acquireRunLock(runDir: string): void {
   const lockPath = path.join(runDir, LOCK_FILE);
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const token = `${process.pid}-${randomUUID()}`;
     try {
       // wx = O_CREAT|O_EXCL：只有第一个进程能创建锁，无检查-后-写入窗口。
-      fs.writeFileSync(lockPath, `${process.pid}\n`, { encoding: 'utf8', flag: 'wx' });
+      fs.writeFileSync(lockPath, `${token}\n`, { encoding: 'utf8', flag: 'wx' });
       return;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
     }
-    const existing = Number(fs.readFileSync(lockPath, 'utf8').trim());
-    if (Number.isInteger(existing) && isProcessAlive(existing)) {
+    const current = fs.readFileSync(lockPath, 'utf8').trim();
+    const holderPid = Number(current.split('-')[0]);
+    if (Number.isInteger(holderPid) && isProcessAlive(holderPid)) {
       throw new KonlingBlindAuditRunLockError(runDir);
     }
-    // stale 锁：删除后重试一次原子创建。竞争失败（他人先接管）会在
-    // 第二轮 EEXIST 且持有者存活时正确拒绝。
-    fs.rmSync(lockPath, { force: true });
+    // 原子抢占 stale 锁：rename 同一源仅一个进程成功（其余 ENOENT），
+    // 避免删除-重建窗口把接管者的活锁误删（#1820）。
+    const tombstone = `${lockPath}.stale-${token}`;
+    try {
+      fs.renameSync(lockPath, tombstone);
+      fs.rmSync(tombstone, { force: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
   }
   throw new KonlingBlindAuditRunLockError(runDir);
 }
@@ -105,8 +113,8 @@ function acquireRunLock(runDir: string): void {
 export function releaseKonlingBlindAuditRun(runDir: string): void {
   const lockPath = path.join(runDir, LOCK_FILE);
   try {
-    const holder = Number(fs.readFileSync(lockPath, 'utf8').trim());
-    if (holder === process.pid) fs.rmSync(lockPath);
+    const holder = fs.readFileSync(lockPath, 'utf8').trim();
+    if (holder.startsWith(`${process.pid}-`)) fs.rmSync(lockPath);
   } catch {
     // 锁文件不存在或不可读：释放是 best-effort。
   }

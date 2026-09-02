@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -316,14 +316,15 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).toThrow(KonlingBlindAuditRunLockError);
-    // stale 锁（持有者已不存在）允许接管。
-    writeFileSync(path.join(runDir, 'run.lock'), '999999999\n', 'utf8');
+    // stale 锁（持有者已不存在，含所有权令牌格式）允许原子接管，
+    // 接管后不残留 tombstone。
+    writeFileSync(path.join(runDir, 'run.lock'), '999999999-dead-token\n', 'utf8');
     expect(() => prepareKonlingBlindAuditRun({
       root,
       runId,
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).not.toThrow();
-    // cleanup：删除本测试遗留的 failures 计数干扰由独立 runId 隔离。
+    expect(fsReaddir(runDir).some((entry) => entry.includes('.stale-'))).toBe(false);
   });
 });
