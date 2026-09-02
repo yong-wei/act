@@ -10,8 +10,8 @@ import { chromium } from 'playwright';
 import {
   BASE, OUTPUT_DIR, BUDGETS, CAPTURE_SOURCE_FILES, EVIDENCE, ROWS,
   row, assertCleanCapture, provisionRoles, login,
-  enterGraphAndDomain, labelPositions, movementBetween, semanticNodeIds,
-  structuralClosure, readGitState, sha256File,
+  openActiveGraph, selectDomain, enterGraphAndDomain, labelPositions,
+  movementBetween, semanticNodeIds, structuralClosure, readGitState, sha256File,
 } from './active-graph-acceptance-lib.mjs';
 
 function shot(page, name) {
@@ -194,16 +194,15 @@ async function performanceBudgets(page) {
     }
   };
   page.on('response', listener);
+  await openActiveGraph(page);
   await page.evaluate(() => {
-    if (!window.__longtasks) {
-      window.__longtasks = [];
-      new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) window.__longtasks.push({ duration: entry.duration, startTime: entry.startTime });
-      }).observe({ entryTypes: ['longtask'] });
-    }
+    window.__longtasks = [];
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) window.__longtasks.push({ duration: entry.duration, startTime: entry.startTime });
+    }).observe({ entryTypes: ['longtask'] });
   });
   const usableStart = Date.now();
-  await enterGraphAndDomain(page, 'root-locus');
+  await selectDomain(page, 'root-locus');
   let usableAt = null;
   for (let attempt = 0; attempt < 40; attempt += 1) {
     if ((await semanticNodeIds(page)).length > 0) { usableAt = Date.now(); break; }
@@ -276,6 +275,10 @@ async function main() {
 
   const { revision } = readGitState();
   const sourceHashes = Object.fromEntries(CAPTURE_SOURCE_FILES.map((file) => [file, sha256File(file)]));
+  const outputRelative = path.relative(path.resolve(import.meta.dirname, '../..'), OUTPUT_DIR);
+  EVIDENCE.screenshotHashes = Object.fromEntries(
+    EVIDENCE.screenshots.map((file) => [file, sha256File(path.join(outputRelative, file))]),
+  );
   const failed = ROWS.filter((r) => r.result === 'FAIL');
   const manifest = {
     schema: 'active-graph-migration-acceptance/v1',

@@ -124,10 +124,13 @@ async function login(page, { account, password }) {
   await page.waitForTimeout(1500);
 }
 
-async function enterGraphAndDomain(page, visualRole) {
+async function openActiveGraph(page) {
   await page.goto(`${BASE}/knowledge`, { waitUntil: 'networkidle' });
   await page.waitForSelector('[data-active-authority-graph="true"]', { timeout: 20000 });
   await page.waitForTimeout(2500);
+}
+
+async function selectDomain(page, visualRole) {
   const entries = await page.locator('[data-authority-domain-entry]').all();
   if (visualRole) {
     const entry = page.locator(`[data-authority-domain-entry="${visualRole}"]`);
@@ -136,6 +139,11 @@ async function enterGraphAndDomain(page, visualRole) {
     await page.waitForTimeout(3500);
   }
   return entries.length;
+}
+
+async function enterGraphAndDomain(page, visualRole) {
+  await openActiveGraph(page);
+  return selectDomain(page, visualRole);
 }
 
 async function labelPositions(page) {
@@ -229,6 +237,6 @@ async function structuralClosure(page, rootShard) {
 export {
   BASE, OUTPUT_DIR, BUDGETS, CAPTURE_SOURCE_FILES, ROWS, EVIDENCE,
   row, sha256File, assertCleanCapture, provisionRoles, login,
-  enterGraphAndDomain, labelPositions, movementBetween, semanticNodeIds,
-  structuralClosure, readGitState,
+  openActiveGraph, selectDomain, enterGraphAndDomain, labelPositions,
+  movementBetween, semanticNodeIds, structuralClosure, readGitState,
 };
