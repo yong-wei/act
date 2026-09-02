@@ -773,6 +773,11 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
   },
 };
 
+/** 解析互动课注册表键（含别名归一），非互动课返回 null。 */
+export function resolveInteractiveLessonRegistryKey(courseId: string): string | null {
+  return resolveAIContextRegistryKey(courseId);
+}
+
 function resolveAIContextRegistryKey(courseId: string): string | null {
   if (courseId in COURSE_AI_CONTEXT_REGISTRY) return courseId;
   const resolved = resolveInteractiveLessonIdentity(courseId);

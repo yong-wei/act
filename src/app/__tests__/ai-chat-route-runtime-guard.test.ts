@@ -197,7 +197,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('agentSessionId?: string');
     expect(chatRouteSource).toContain("'X-Konling-Agent-Session-Id': agentSession.id");
     expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
-    expect(chatRouteSource).toContain('const permittedTools = authorizedScope.candidateGraph');
+    expect(chatRouteSource).toContain('let permittedTools = authorizedScope.candidateGraph');
     expect(chatRouteSource).toContain('permittedTools,');
     expect(sessionMessagesRouteSource).toContain('getOrCreateKonlingAgentSession');
     expect(sessionMessagesRouteSource).toContain('agentSessionId');
@@ -229,7 +229,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("error: 'KONLING_MODE_UNAVAILABLE'");
     expect(chatRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
       .toBeLessThan(chatRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
-    expect(chatRouteSource).toContain('const permittedTools = authorizedScope.candidateGraph');
+    expect(chatRouteSource).toContain('let permittedTools = authorizedScope.candidateGraph');
     expect(chatRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools }');
     expect(chatRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
@@ -472,6 +472,23 @@ describe('AI chat route Konling runtime guard', () => {
     );
     expect(interactiveProvider).toContain('classroomSessionId: sessionId');
     expect(interactiveProvider).not.toContain('contextData');
+  });
+
+  it('grounds interactive tutoring state on server-persisted responses only', () => {
+    expect(chatRouteSource).toContain('await resolveInteractiveTutoringState(prisma, {');
+    expect(chatRouteSource).toContain('sessionIdHint: extractInteractiveSessionHint(pageContext)');
+    expect(chatRouteSource).toContain('interactiveTutoring.promptSection');
+    expect(chatRouteSource).toContain(".filter((toolName) => toolName !== 'analyze_attempt')");
+    // 客户端自报的作答/揭示字段不得进入授权或提示词。
+    expect(chatRouteSource).not.toContain('answerVisible');
+    expect(chatRouteSource).not.toContain('savedResponse');
+    const tutoringStateSource = readFileSync(
+      join(process.cwd(), 'src/lib/konling-interactive-tutoring-state.ts'),
+      'utf8',
+    );
+    expect(tutoringStateSource).toContain("stateKey: 'teacher-sync'");
+    expect(tutoringStateSource).toContain("stateKey: 'course'");
+    expect(tutoringStateSource).not.toContain('.answerVisible');
   });
 
   it('hides the public simulation AI companion entry when no user is authenticated', () => {

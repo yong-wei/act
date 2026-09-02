@@ -303,7 +303,7 @@ export function UNIT_2_3StudentPage({
 
         {isUNIT_2_3AiPageType(step.pageType) ? (
           <div className="mt-4">
-            <UNIT_2_3StepAiAssistant step={step} onAiEvent={handleAiEvent} />
+            <UNIT_2_3StepAiAssistant step={step} onAiEvent={handleAiEvent} classroomSessionId={isDemo ? undefined : sessionId} />
           </div>
         ) : null}
 

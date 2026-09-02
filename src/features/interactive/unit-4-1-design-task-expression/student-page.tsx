@@ -384,7 +384,7 @@ export function UNIT_4_1StudentPage({
 
         {isUNIT_4_1AiPageType(step.pageType) ? (
           <div className="mt-4" data-commercial-workspace-zone="support-drawer">
-            <UNIT_4_1StepAiAssistant step={step} onAiEvent={handleAiEvent} />
+            <UNIT_4_1StepAiAssistant step={step} onAiEvent={handleAiEvent} classroomSessionId={isDemo ? undefined : sessionId} />
           </div>
         ) : (
           <div className="sr-only" data-commercial-workspace-zone="support-drawer">
