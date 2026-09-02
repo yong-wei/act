@@ -130,6 +130,21 @@ export function headRecordedCaptureDenominatorSha256(): string {
   return headInventory.sourceIdentity.captureDenominatorSha256;
 }
 
+/** Denominator files with uncommitted changes; a green identity check requires a converged tree. */
+export function dirtyDenominatorPaths(inventory: ToolingInventory): string[] {
+  const paths = [
+    'package.json',
+    'scripts/README.md',
+    'AGENTS.md',
+    'docs/architecture/tooling-cli-inventory.json',
+    'scripts/lib/tooling-cli-inventory-identity.ts',
+    'scripts/tests/refresh-tooling-cli-inventory-identity.ts',
+    ...collectTargets(inventory),
+  ];
+  const status = execFileSync('git', ['status', '--porcelain', '--', ...paths], { encoding: 'utf8' });
+  return status.split('\n').map((line) => line.slice(3).trim()).filter((path) => path.length > 0);
+}
+
 export function refreshIdentity(inventory: ToolingInventory): ToolingInventory {
   return {
     ...inventory,

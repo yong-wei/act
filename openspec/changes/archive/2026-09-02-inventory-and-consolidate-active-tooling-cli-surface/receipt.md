@@ -22,6 +22,9 @@
 - P1（分类元数据未入哈希、HEAD 比对复用工作区清单）：捕获分母加入 `inventoryClassification`（清单本体剔除自引用 sourceIdentity 块后的规范 JSON），篡改任一 status/owner/authority/evidence 即 fail closed；HEAD 比对改为从 `git show HEAD` 重读清单本体，与该提交清单自记录哈希自洽比对，工作区清单不再代入。修复过程中发现并消除 `JSON.stringify` 数组 replacer 全层级白名单导致嵌套字段被静默剔除的实现缺陷（变异抽检捕获）。
 - P2（调用身份丢弃模式参数）：调用身份扩展为 `bin + path + 已知模式 flag`（`INVOCATION_MODE_FLAGS = [--apply, --install-hooks]`，按需扩展）；`documentedDirectEntries` 拆分登记 attribution dry-run 与 `--apply` 写入两个身份，worktree hook 安装登记 `--apply --install-hooks` 身份，共 12 条。
 
+第四轮（P1 收口）：
+- P1（工作区与 HEAD 两组身份无交叉约束，脏工作区 refresh 可洗白分类）：本地"篡改+refresh"与合法更新在机制上不可区分，唯一可完整闭合的失败关闭点是把绿限定在收敛树上 —— 新增 dirty-guard：分母文件（package.json、README/AGENTS、清单本体、全部 target、身份验证器与刷新脚本）存在未提交改动时测试显式失败并给出收敛指引。实测 Codex 的"篡改 owner + refresh"场景现在 fail closed；干净树（CI/合作者 checkout）14/14 通过。绿 = workspace 自洽 + HEAD 自洽 + 分母已全部提交，三条件合一即提交树收敛。
+
 ## 验证
 
 - `npm run verify:commit` 通过；`npm run lint`（--max-warnings=0）通过；identity 测试 13 项中 12 项通过（HEAD 比对项在提交前按设计 fail closed，提交后复验通过）。

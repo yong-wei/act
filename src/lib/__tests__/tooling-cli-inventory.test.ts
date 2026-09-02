@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, beforeAll, expect, it } from 'vitest';
 
 import {
+  dirtyDenominatorPaths,
   headCaptureDenominatorSha256,
   headRecordedCaptureDenominatorSha256,
   parseDocumentedInvocations,
@@ -145,6 +146,14 @@ describe('tooling CLI delivery and graph gates', () => {
 });
 
 describe('tooling CLI inventory source identity', () => {
+  it('fails closed on dirty denominator files: green means a converged, committed capture', () => {
+    const dirty = dirtyDenominatorPaths(inventory);
+    expect(
+      dirty,
+      `inventory capture denominator has uncommitted changes (${dirty.join(', ')}). The identity check only passes on a converged tree: run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts when needed, then commit the denominator changes together with the inventory.`,
+    ).toEqual([]);
+  });
+
   it('fails closed when the workspace or committed capture denominator drifts from the captured inventory identity', () => {
     const captured = inventory.sourceIdentity.captureDenominatorSha256;
     expect(captured).toMatch(/^[0-9a-f]{64}$/);
