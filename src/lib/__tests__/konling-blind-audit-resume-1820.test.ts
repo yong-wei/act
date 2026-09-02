@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -365,6 +365,18 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).not.toThrow();
+    expect(fsReaddir(lockDir).sort()).toEqual(['pub-1', 'pub-2']);
+  });
+
+  it('never resets slot numbering across run release and re-acquire', async () => {
+    const runId = 'run-slot-reuse';
+    await runKonlingBlindAudit(runOptions(runId, okProvider()));
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const lockDir = path.join(runDir, 'run.lock.d');
+    // 正常完成后锁结构保留、槽序列不重置；第二次运行发布更高序号槽。
+    expect(fsReaddir(lockDir)).toEqual(['pub-1']);
+    expect(existsSync(path.join(lockDir, 'pub-1', 'released'))).toBe(true);
+    await runKonlingBlindAudit(runOptions(runId, okProvider()));
     expect(fsReaddir(lockDir).sort()).toEqual(['pub-1', 'pub-2']);
   });
 

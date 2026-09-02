@@ -136,13 +136,15 @@ function acquireRunLock(runDir: string): void {
   let nextSeq = 1;
   const latest = latestHolderSlot(lockDir);
   if (latest) {
+    const released = fs.existsSync(path.join(latest.dir, 'released'));
     const holder = readHolderToken(latest.dir);
-    if (holder) {
+    if (!released && holder) {
       const holderPid = Number(holder.split('-')[0]);
       if (Number.isInteger(holderPid) && isProcessAlive(holderPid)) {
         throw new KonlingBlindAuditRunLockError(runDir);
       }
-    } else if (Date.now() - fs.statSync(latest.dir).mtimeMs < SLOT_INIT_GRACE_MS) {
+    } else if (!released && !holder
+      && Date.now() - fs.statSync(latest.dir).mtimeMs < SLOT_INIT_GRACE_MS) {
       // 最新槽仍在初始化宽限内：拒绝启动而不是误判为可接替。
       throw new KonlingBlindAuditRunLockError(runDir);
     }
@@ -184,8 +186,14 @@ export function releaseKonlingBlindAuditRun(runDir: string): void {
   try {
     const current = latestHolderSlot(lockDir);
     const holder = current ? readHolderToken(current.dir) : '';
-    if (holder.startsWith(`${process.pid}-`)) {
-      fs.rmSync(lockDir, { recursive: true, force: true });
+    if (holder.startsWith(`${process.pid}-`) && current) {
+      // 正常释放只在自有槽内写标记：锁结构与槽序列永不删除/重置，
+      // 暂停恢复的旧候选必被最新活槽或更高序号拒绝（#1820）。
+      fs.writeFileSync(
+        path.join(current.dir, 'released'),
+        `${new Date().toISOString()}\n`,
+        'utf8',
+      );
     }
   } catch {
     // 锁目录不存在或不可读：释放是 best-effort。
