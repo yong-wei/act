@@ -1,0 +1,22 @@
+export {
+  BACKFILL_LANE_CAPTURE_SHA,
+  BackfillLaneError,
+  type BackfillLaneRow,
+  type BackfillOperationMode,
+  type BackfillReceiptStore,
+  type BackfillTerminalReceipt,
+} from './types';
+export {
+  BACKFILL_LANE_ROWS,
+  listOrdinaryBackfillPaths,
+} from './inventory';
+export {
+  beginAuthorizedBackfillApply,
+  buildBackfillTerminalReceipt,
+  computeBackfillInputDigest,
+  rejectOnlineBackfillFallback,
+} from './operation';
+export {
+  assertOnlineDoesNotImportBackfill,
+  assertOrdinaryBackfillDoesNotPublishCurrent,
+} from './canary';

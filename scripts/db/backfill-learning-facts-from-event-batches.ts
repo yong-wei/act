@@ -11,10 +11,16 @@ import {
   resolveLearningFactActionType,
 } from '@/lib/data-governance/learning-fact-materialization';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { assertExplicitHistoricalApply } from '@/features/learning-record/write-boundary/public-api';
 
 const prisma = createPrismaClient();
-const isDryRun = process.argv.includes('--dry-run');
+const isApply = process.argv.includes('--apply');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
+
+function readArg(flag: string): string {
+  const prefix = `${flag}=`;
+  return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length)?.trim() ?? '';
+}
 
 async function main() {
   if (shouldEnqueueSnapshots) {
@@ -62,7 +68,7 @@ async function main() {
   }
 
   console.log(
-    `[BackfillFacts] batches=${batches.length} candidates=${factsToInsert.length} dryRun=${isDryRun}`,
+    `[BackfillFacts] batches=${batches.length} candidates=${factsToInsert.length} dryRun=${!isApply}`,
   );
   console.log(
     '[BackfillFacts] actionTypes=' +
@@ -73,9 +79,15 @@ async function main() {
       ),
   );
 
-  if (isDryRun || factsToInsert.length === 0) {
+  if (!isApply || factsToInsert.length === 0) {
     return;
   }
+
+  assertExplicitHistoricalApply({
+    operationId: readArg('--operation-id'),
+    authorizedBy: readArg('--authorize'),
+    frozenCutoff: readArg('--frozen-cutoff'),
+  });
 
   const activeRevision = await resolveActiveKnowledgeRevision(prisma);
   const writeResult = await writeLegacyKnowledgeScopedLearningFacts(

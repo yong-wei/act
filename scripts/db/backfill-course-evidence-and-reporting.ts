@@ -128,7 +128,11 @@ async function main() {
     manifestsByLessonKey,
   });
   const applyResult = options.apply
-    ? await applyCourseEvidenceBackfillPlan(prisma, plan)
+    ? await applyCourseEvidenceBackfillPlan(prisma, plan, {
+      operationId: options.operationId ?? '',
+      authorizedBy: options.authorizedBy ?? '',
+      frozenCutoff: options.frozenCutoff ?? '',
+    })
     : null;
   const reportResult = options.apply && options.regenerateReports
     ? await regenerateCourseEvidenceReports(prisma, plan.affectedSessionIds)

@@ -110,7 +110,8 @@ describe('Learning Record write-boundary denominator', () => {
     expect(historical).toContain("mode: 'dry-run'");
     expect(historical).not.toContain('recordProjectionTriggerIntent');
     expect(historical).not.toContain('publishCurrentPointer');
-    expect(batches).toContain('const isDryRun = process.argv.includes(\'--dry-run\')');
+    expect(batches).toContain("process.argv.includes('--apply')");
+    expect(batches).toContain('--operation-id');
     expect(batches).toContain('--enqueue-snapshots has been removed');
     expect(script).toContain('--authorize');
     expect(script).toContain('--operation-id');

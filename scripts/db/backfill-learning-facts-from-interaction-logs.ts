@@ -12,11 +12,12 @@ import {
 import type { LearningEvent, PageType, UserRole } from '@/lib/data-governance/event-protocol';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { assertExplicitHistoricalApply } from '@/features/learning-record/write-boundary/public-api';
 import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry';
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
 
 const prisma = createPrismaClient();
-const isDryRun = process.argv.includes('--dry-run');
+const isApply = process.argv.includes('--apply');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
 
 function getArgValue(name: string): string | null {
@@ -233,16 +234,22 @@ async function main() {
   }
 
   console.log(
-    `[BackfillInteractionLogs] logs=${logs.length} candidates=${factsToInsert.length} enrichedFromState=${enrichedFromState} dryRun=${isDryRun}`,
+    `[BackfillInteractionLogs] logs=${logs.length} candidates=${factsToInsert.length} enrichedFromState=${enrichedFromState} dryRun=${!isApply}`,
   );
   console.log(
     '[BackfillInteractionLogs] actionTypes=' +
       JSON.stringify(Object.fromEntries([...countsByActionType.entries()].sort((a, b) => b[1] - a[1]))),
   );
 
-  if (isDryRun || factsToInsert.length === 0) {
+  if (!isApply || factsToInsert.length === 0) {
     return;
   }
+
+  assertExplicitHistoricalApply({
+    operationId: getArgValue('--operation-id') ?? '',
+    authorizedBy: getArgValue('--authorize') ?? '',
+    frozenCutoff: getArgValue('--frozen-cutoff') ?? '',
+  });
 
   const activeRevision = await resolveActiveKnowledgeRevision(prisma);
   const writeResult = await writeLegacyKnowledgeScopedLearningFacts(

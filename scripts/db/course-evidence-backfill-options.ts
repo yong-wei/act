@@ -6,6 +6,9 @@ export interface CourseEvidenceBackfillCliOptions {
   compact: boolean;
   regenerateReports: boolean;
   refreshCache: boolean;
+  operationId?: string;
+  authorizedBy?: string;
+  frozenCutoff?: string;
   filters: CourseEvidenceBackfillFilters;
 }
 
@@ -33,6 +36,12 @@ function readDateValue(args: string[], flag: string) {
   return date;
 }
 
+function readStringValue(args: string[], flag: string) {
+  const prefix = `${flag}=`;
+  const raw = args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length)?.trim();
+  return raw || undefined;
+}
+
 export function parseCourseEvidenceBackfillOptions(argv: string[]): CourseEvidenceBackfillCliOptions {
   const args = argv.slice(2);
   const sessionIds = readListValues(args, '--session-id');
@@ -52,6 +61,9 @@ export function parseCourseEvidenceBackfillOptions(argv: string[]): CourseEviden
     compact: readFlag(args, '--compact'),
     regenerateReports: readFlag(args, '--regenerate-reports'),
     refreshCache: readFlag(args, '--refresh-cache'),
+    operationId: readStringValue(args, '--operation-id'),
+    authorizedBy: readStringValue(args, '--authorize'),
+    frozenCutoff: readStringValue(args, '--frozen-cutoff'),
     filters,
   };
 }

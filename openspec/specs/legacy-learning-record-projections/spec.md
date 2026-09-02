@@ -2,20 +2,16 @@
 
 ## Purpose
 Canonical LearningFact ingestion, current projections and stable read ports are the only normal Learning Record runtime. Destructive queues, duplicate materializers and page-level raw aggregators may be deleted only after a closed, revision-bound retirement ledger; historical facts, snapshots and official authority remain.
-
 ## Requirements
 ### Requirement: Retirement is gated by a closed denominator
-
-Legacy Learning Record runtime SHALL be retired only after a revision-bound ledger enumerates every producer, consumer, worker, backfill, report, queue, materializer, raw aggregator and test, with a migrated replacement, owner, watermark/digest receipt, privacy validation and rollback condition.
+Legacy Learning Record runtime SHALL be retired only after a revision-bound ledger enumerates every online producer/consumer, worker, backfill, report, queue, materializer, raw aggregator and test, with a migrated replacement, owner, watermark/digest receipt, privacy validation, operation-mode separation and rollback condition.
 
 #### Scenario: Missing ledger row
-
-- **WHEN** a legacy component has an unknown caller or missing replacement receipt
+- **WHEN** a legacy component has an unknown caller, mixed online/backfill use or missing replacement/receipt
 - **THEN** retirement fails closed and the component remains available for safe operation
 
 #### Scenario: All callers are migrated
-
-- **WHEN** zero required runtime callers are proven and all replacement receipts are valid
+- **WHEN** zero required online callers are proven, historical callers use the explicit backfill/audit lane, and all replacement receipts are valid
 - **THEN** the component becomes eligible for the explicitly ordered deletion step
 
 ### Requirement: Queue retirement cannot lose inputs
@@ -33,13 +29,11 @@ The old Redis destructive queue SHALL NOT be deleted or treated as drained until
 - **THEN** queue retirement is blocked and the message is retained for authorized recovery
 
 ### Requirement: Duplicate materialization and raw aggregators are removed only after replacement
-
-Duplicate fact materializers, legacy projection services and normal-page raw event aggregators SHALL be deleted only after canonical ingestion/current projection and stable read ports have revision-bound parity and zero required callers. Authorized audit/debug/migration/drilldown operations MAY retain constrained historical access.
+Duplicate fact materializers, legacy projection services, normal-page raw event aggregators and obsolete production backfill registrations SHALL be deleted only after canonical ingestion/current projection and stable read ports have revision-bound parity, historical callers are isolated, and zero required callers are proven. Authorized audit/debug/migration/drilldown operations MAY retain constrained historical access.
 
 #### Scenario: Page loses current projection
-
-- **WHEN** a normal page cannot obtain a qualified current projection after legacy removal
-- **THEN** it returns governed stale/unavailable status and does not aggregate raw events as fallback
+- **WHEN** a normal page cannot obtain a qualified current projection after a legacy or backfill fallback is removed
+- **THEN** it returns governed stale/unavailable status and does not aggregate raw events or invoke backfill as fallback
 
 ### Requirement: Historical evidence and official authority are preserved
 
@@ -99,3 +93,4 @@ Before deletion, verification SHALL cover recursive forbidden-field and encoding
 
 - **WHEN** a stale producer, page, worker or report invokes a removed raw/materializer path
 - **THEN** the call fails closed or routes to the governed replacement and leaves an auditable zero-caller/retirement failure receipt
+
