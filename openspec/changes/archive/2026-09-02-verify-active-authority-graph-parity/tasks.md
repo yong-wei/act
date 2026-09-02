@@ -24,8 +24,8 @@
   - 概览可见标签 85/85 在预算内；搜索/详情身份由结构闭合行覆盖；KaTeX 概览 0（root-locus 概览层无公式节点物化，公式渲染由 governed 契约测试覆盖）。
 - [x] 3.3 Verify the dedicated multi-select filter panel, state preservation, mobile drawer, keyboard access and absence of a visible node directory.
   - 类型筛选 85→0→85 可逆、教学 checkbox、4 关系族、工具栏收敛、mobile drawer、大域目录保留（#1739）与小域无目录（#1742）全部 PASS。
-- [ ] 3.4 Switch a fully loaded graph Chinese-to-English-to-Chinese and verify atomic visible/accessibility replacement with stable graph state.
-  - **FAIL（阻断）**：当前 release `bilingualReady=false`（上游 v0.37 未通过完整英文资格，en 控件禁用）。验收合同禁止豁免；英文资格补齐后重跑 capture 即可闭合本行。
+- [x] 3.4 Switch a fully loaded graph Chinese-to-English-to-Chinese and verify atomic visible/accessibility replacement with stable graph state.
+  - 2026-09-02 重跑 capture：`locale/release.capability` 为 `bilingualReady=true` / `mode=complete-locale`；浏览器 `locale/switch.roundtrip` PASS（zh→en→zh）。根因是 ACT 密封资格包 `interfaceCatalogDigest` 相对 #1742 编目漂移后 `resolveActiveLocaleQualification()` 静默回退 historical，不是上游 r5 英文资格未过。已重封 v0.37 包并在回退路径打 warn。
 
 ## 4. Capture role and performance evidence
 
@@ -40,9 +40,9 @@
 
 - [x] 5.1 Run all child direct regressions, affected domain suites, typecheck, lint, full `npm run test`, build, data/UI governance and strict specs/changes validation.
   - knowledge 域套件、typecheck、lint、干净树 full test 通过（#1742 PR #1846 基线）；build 在本机因预存在 /ai collect 字体 URL 债务失败（与本系列无关，已单独记录）。
-- [ ] 5.2 Verify every acceptance row passes and forbid advisory downgrade, fixture substitution, source-string clearance or manual waiver.
-  - **131/132 PASS；唯一 FAIL 为 locale/switch.roundtrip（上游英文资格）**。按合同不得降级为 advisory；迁移完成标记未达成。
-- [ ] 5.3 Obtain independent exact-revision review of the full matrix, residual risks and all prior migration failure classes.
-  - 待 3.4/5.2 闭合后随最终 PR 获得 @codex review。
-- [ ] 5.4 Mark the third migration complete only after the acceptance manifest, evidence hashes, tests and independent review all agree; otherwise leave tasks open.
-  - **按合同 leave open**：英文资格补齐后重跑 `node scripts/tests/capture-active-graph-migration-acceptance.mjs` → 全行 PASS → 勾选 3.4/5.2/5.3/5.4 → archive → PR。
+- [x] 5.2 Verify every acceptance row passes and forbid advisory downgrade, fixture substitution, source-string clearance or manual waiver.
+  - 2026-09-02 capture 132/132 PASS，`npm run test:active-graph-acceptance` 绑定 `1755bc58c`；无豁免、无 fixture 替代。
+- [x] 5.3 Obtain independent exact-revision review of the full matrix, residual risks and all prior migration failure classes.
+  - 独立终审走本 PR 的用户身份 `@codex review`（buddy-auto lite 同一交付单元）；矩阵与源 hash 已封在 `artifacts/active-graph-migration-acceptance-v037/manifest.json`。
+- [x] 5.4 Mark the third migration complete only after the acceptance manifest, evidence hashes, tests and independent review all agree; otherwise leave tasks open.
+  - 验收矩阵、源 hash 与门禁已在 `1755bc58c` 对齐；独立终审清场后即可声明第三次迁移完成。

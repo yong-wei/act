@@ -2,8 +2,8 @@
   "schema": "active-graph-migration-acceptance/v1",
   "change": "verify-active-authority-graph-parity",
   "issue": 1743,
-  "captureRevision": "917d23af3c414996faba86161356cb175d94241d",
-  "capturedAt": "2026-09-02T06:41:33.976Z",
+  "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155",
+  "capturedAt": "2026-09-02T08:26:58.317Z",
   "baseUrl": "http://localhost:3002",
   "browserClass": "chromium/headless",
   "budgets": {
@@ -33,6 +33,8 @@
     "src/features/knowledge/graph/force-lifecycle.ts": "d929accfe6fa30be1a701cc5cefd2a01d4e487eeb99052dec38a2dd1669e82fb",
     "src/features/knowledge/graph/label-policy.ts": "eaff74d5e77b882a1eff334f2b0c9d3304f4557011493ed7bac22741860fbcac",
     "src/lib/authority-locale-readiness/graph-interface-catalog.ts": "e5712e8ed94eeeaf578d6eac130e56e52f29d68c2e483e55d30f92bc53544fd3",
+    "src/lib/authority-locale-readiness/request.ts": "073ee528af935b45daf94d24775804f6839b5a55b3e9591b638936920a6f6836",
+    "course-content/authoring/knowledge/cutover/envelopes/locale-manifests/control-theory-engineering-v0.37.json": "22f4a66cbbab7013a30a0eb9d67cd1032bbbd043f6784ed7087563c8454a1ec6",
     "src/lib/authority-domain-shards/teaching.ts": "5dd34058391987ef7f785c72dd0a45b1603b2b2068f2873616c6ca63afb0dca0",
     "src/app/api/knowledge/shards/active/route.ts": "74990fa73d87e4c8b18882cf1a4281cb0725eddf89ee9477d7283a1b33485f01"
   },
@@ -59,7 +61,7 @@
       "expectation": "root shard 恰好 15 个领域入口",
       "result": "PASS",
       "detail": "count=15",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "denominator",
@@ -67,15 +69,15 @@
       "expectation": "root shard 含综合入口",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "locale",
       "id": "release.capability",
       "expectation": "记录 release locale 资格（英文验收行按资格判定）",
       "result": "PASS",
-      "detail": "{\"availableLocales\":[\"zh-CN\"],\"bilingualReady\":false,\"englishUnavailableReason\":\"当前发布尚未通过完整英文资格，暂不能切换到 English。\",\"mode\":\"historical\",\"languageComponentDigest\":null}",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "{\"availableLocales\":[\"zh-CN\",\"en\"],\"bilingualReady\":true,\"englishUnavailableReason\":null,\"mode\":\"complete-locale\",\"languageComponentDigest\":\"4ce42afe38d979856ca8c9647219ffd36d524be184014e99b1f042115dd",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -83,7 +85,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=85 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -91,15 +93,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.root-locus.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=19",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=12 total=18",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -107,7 +109,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -115,7 +117,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -123,7 +125,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=273 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -131,15 +133,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.modeling.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=7 total=7",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=6 total=6",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -147,7 +149,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -155,7 +157,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -163,7 +165,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=153 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -171,7 +173,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -179,7 +181,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=3 total=3",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -187,7 +189,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -195,7 +197,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=2",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -203,7 +205,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=35 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -211,15 +213,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.stability.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=10 total=10",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=8 total=8",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -227,7 +229,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -235,7 +237,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=3",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -243,7 +245,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=124 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -251,15 +253,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.frequency.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=51",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=12 total=25",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -267,7 +269,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -275,7 +277,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=3",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -283,7 +285,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=103 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -291,15 +293,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.design.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=22",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=12 total=13",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -307,7 +309,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -315,7 +317,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=4",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -323,7 +325,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=126 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -331,15 +333,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.discrete.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=154",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=12 total=79",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -347,7 +349,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -355,7 +357,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=8",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -363,7 +365,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=151 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -371,15 +373,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.state-space.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=15",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=11 total=11",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -387,7 +389,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -395,7 +397,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=2",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -403,7 +405,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=78 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -411,7 +413,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -419,7 +421,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=1 total=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -427,7 +429,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -435,7 +437,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=2",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -443,7 +445,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=45 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -451,15 +453,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.lyapunov.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=12 total=13",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=7 total=7",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -467,7 +469,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -475,7 +477,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -483,7 +485,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=118 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -491,7 +493,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -499,7 +501,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=12 total=14",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -507,7 +509,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -515,7 +517,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -523,7 +525,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=81 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -531,7 +533,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -539,7 +541,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=3 total=3",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -547,7 +549,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -555,7 +557,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -563,7 +565,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=68 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -571,7 +573,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -579,7 +581,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=2 total=2",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -587,7 +589,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -595,7 +597,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -603,7 +605,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=103 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -611,15 +613,15 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
       "id": "domain.robust-design.search.bounded",
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
-      "detail": "hits=5 total=5",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "hits=1 total=1",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -627,7 +629,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -635,7 +637,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -643,7 +645,7 @@
       "expectation": "default shard 200 且对象全部为 DomainConcept（无二级类型混入）",
       "result": "PASS",
       "detail": "objects=12 types=DomainConcept",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -651,7 +653,7 @@
       "expectation": "default shard 携带 teachingCoverage",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -659,7 +661,7 @@
       "expectation": "search 200 且单页 ≤ 12",
       "result": "PASS",
       "detail": "hits=12 total=16",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -667,7 +669,7 @@
       "expectation": "detail 200 且返回同对象身份",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "structure",
@@ -675,7 +677,7 @@
       "expectation": "neighborhood 200 且对象 ≤ 32",
       "result": "PASS",
       "detail": "objects=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -683,7 +685,7 @@
       "expectation": "root 层 15 个领域入口全部可见",
       "result": "PASS",
       "detail": "count=15",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -691,7 +693,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=85 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -699,7 +701,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=85 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -707,7 +709,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=272 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -715,7 +717,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=272 after=27 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -723,7 +725,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=153 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -731,7 +733,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=153 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -739,7 +741,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=35 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -747,7 +749,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=35 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -755,7 +757,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=124 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -763,7 +765,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=124 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -771,7 +773,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=103 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -779,7 +781,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=103 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -787,7 +789,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=126 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -795,7 +797,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=126 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -803,7 +805,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=151 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -811,7 +813,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=151 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -819,7 +821,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=78 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -827,7 +829,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=78 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -835,7 +837,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=45 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -843,7 +845,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=45 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -851,7 +853,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=118 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -859,7 +861,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=118 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -867,7 +869,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=81 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -875,7 +877,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=81 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -883,7 +885,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=68 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -891,7 +893,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=68 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -899,7 +901,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=103 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -907,7 +909,7 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=103 after=24 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -915,7 +917,7 @@
       "expectation": "概览有界可见且无可见全节点目录",
       "result": "PASS",
       "detail": "nodes=12 visibleDirectory=0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -923,15 +925,15 @@
       "expectation": "选择披露 one-hop 邻域（或显式 relation-empty 状态）",
       "result": "PASS",
       "detail": "before=12 after=12 detail=1 empty=1",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "force",
       "id": "2d.movement",
       "expectation": "进域采样或 reflow 存在真实 unpinned 位移且重新收敛",
       "result": "PASS",
-      "detail": "entryMax=0.0px reflow=72908.1px settleDelta=1562.9px",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "entryMax=0.0px reflow=71216.9px settleDelta=1562.9px",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "force",
@@ -939,7 +941,7 @@
       "expectation": "fit 视图生效（viewport 变化或坐标稳定有效）",
       "result": "PASS",
       "detail": "camera command executed",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "force",
@@ -947,7 +949,7 @@
       "expectation": "3D 维度可用且画布保持",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "controls",
@@ -955,7 +957,7 @@
       "expectation": "类型筛选独立可逆",
       "result": "PASS",
       "detail": "DomainConcept: 85->0->85",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "controls",
@@ -963,7 +965,7 @@
       "expectation": "教学关系行为可逆 checkbox",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "controls",
@@ -971,7 +973,7 @@
       "expectation": "四个工程关系族控件在面板内",
       "result": "PASS",
       "detail": "count=4",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "controls",
@@ -979,15 +981,15 @@
       "expectation": "全局工具栏不含筛选/搜索 chrome",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "locale",
       "id": "switch.roundtrip",
-      "expectation": "全载图 zh→en→zh 原子切换（release 未通过英文资格时该行为阻断即 FAIL）",
-      "result": "FAIL",
-      "detail": "bilingualReady=false reason=当前发布尚未通过完整英文资格，暂不能切换到 English。",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "expectation": "全载图 zh→en→zh 原子切换",
+      "result": "PASS",
+      "detail": "",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "controls",
@@ -995,7 +997,7 @@
       "expectation": "mobile 折叠抽屉承载同一筛选面板",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -1003,7 +1005,7 @@
       "expectation": "mobile 大域（85>48）保留可浏览目录（#1739）",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "hierarchy",
@@ -1011,7 +1013,7 @@
       "expectation": "mobile 小域无可见全节点目录（#1742）",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "roles",
@@ -1019,7 +1021,7 @@
       "expectation": "teacher 可进入域并看到有界概览",
       "result": "PASS",
       "detail": "nodes=85",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "roles",
@@ -1027,47 +1029,47 @@
       "expectation": "admin 可进入域并看到有界概览",
       "result": "PASS",
       "detail": "nodes=85",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
       "id": "domain.usable-time",
       "expectation": "进域到概览可用 ≤ 预算",
       "result": "PASS",
-      "detail": "7021ms",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "6967ms",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
       "id": "domain.requests",
       "expectation": "进域 API 请求 ≤ 预算",
       "result": "PASS",
-      "detail": "requests=4",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "requests=5",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
       "id": "domain.bytes",
       "expectation": "进域 API 字节 ≤ 预算",
       "result": "PASS",
-      "detail": "bytes=231032",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "bytes=247299",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
       "id": "force.settle",
       "expectation": "force 收敛 ≤ 预算",
       "result": "PASS",
-      "detail": "506ms",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "504ms",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
       "id": "overview.dom-nodes",
       "expectation": "概览 DOM 节点 ≤ 预算",
       "result": "PASS",
-      "detail": "942",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "detail": "938",
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
@@ -1075,7 +1077,7 @@
       "expectation": "概览可见标签 ≤ 预算",
       "result": "PASS",
       "detail": "85",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
@@ -1083,7 +1085,7 @@
       "expectation": "概览 KaTeX 渲染 ≤ 预算",
       "result": "PASS",
       "detail": "0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
@@ -1091,7 +1093,7 @@
       "expectation": "长任务数 ≤ 预算",
       "result": "PASS",
       "detail": "0",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "performance",
@@ -1099,7 +1101,7 @@
       "expectation": "长任务总时长 ≤ 预算",
       "result": "PASS",
       "detail": "0ms",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     },
     {
       "category": "privacy",
@@ -1107,7 +1109,7 @@
       "expectation": "manifest 不含凭据/绝对路径/会话令牌",
       "result": "PASS",
       "detail": "",
-      "captureRevision": "917d23af3c414996faba86161356cb175d94241d"
+      "captureRevision": "1755bc58cd141fe30391148c649ca4a8357b4155"
     }
   ],
   "evidence": {
@@ -1201,17 +1203,18 @@
       ],
       "localeCapability": {
         "availableLocales": [
-          "zh-CN"
+          "zh-CN",
+          "en"
         ],
-        "bilingualReady": false,
-        "englishUnavailableReason": "当前发布尚未通过完整英文资格，暂不能切换到 English。",
-        "mode": "historical",
-        "languageComponentDigest": null
+        "bilingualReady": true,
+        "englishUnavailableReason": null,
+        "mode": "complete-locale",
+        "languageComponentDigest": "4ce42afe38d979856ca8c9647219ffd36d524be184014e99b1f042115dda4499"
       },
       "earlyMovement": 0
     },
     "metrics": {
-      "domNodes": 942,
+      "domNodes": 938,
       "visibleLabels": 85,
       "katex": 0,
       "longtasks": 0,
@@ -1220,6 +1223,6 @@
   },
   "totals": {
     "total": 131,
-    "failed": 1
+    "failed": 0
   }
 }
