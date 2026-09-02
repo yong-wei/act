@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -7,23 +7,27 @@ function source(path: string) {
   return readFileSync(join(process.cwd(), path), 'utf8');
 }
 
+function productionSourceFiles(directory: string): string[] {
+  return readdirSync(join(process.cwd(), directory), { withFileTypes: true })
+    .flatMap((entry) => {
+      const child = join(directory, entry.name);
+      return entry.isDirectory() ? productionSourceFiles(child) : [child];
+    })
+    .filter((path) => /\.(ts|tsx)$/.test(path) && !path.includes('__tests__'));
+}
+
 describe('arena module boundaries', () => {
-  it('exposes explicit domain, client, and server entrypoints', () => {
+  it('exposes explicit domain, client, and server entrypoints without a root barrel', () => {
     for (const entrypoint of ['domain.ts', 'client.ts', 'server.ts']) {
       expect(existsSync(join(process.cwd(), 'src/features/arena', entrypoint))).toBe(true);
     }
+    expect(existsSync(join(process.cwd(), 'src/features/arena', 'index.ts'))).toBe(false);
   });
 
-  it('moves touched UI and page imports away from the root Arena barrel', () => {
-    for (const path of [
-      'src/features/arena/arena-hall.tsx',
-      'src/features/arena/teacher/teacher-arena-config.tsx',
-      'src/features/interactive/multi-representation-linkage/arena-submit-panel.tsx',
-      'src/features/interactive/multi-representation-linkage/model.ts',
-      'src/app/arena/page.tsx',
-      'src/app/arena/challenges/[taskId]/page.tsx',
-    ]) {
+  it('keeps production code free of root Arena barrel imports', () => {
+    for (const path of productionSourceFiles('src')) {
       expect(source(path)).not.toContain("from '@/features/arena'");
+      expect(source(path)).not.toMatch(/import\(['"]@\/features\/arena['"]\)/);
     }
   });
 
@@ -39,7 +43,6 @@ describe('arena module boundaries', () => {
     expect(adapterSource).toContain('createMockCruiseRollBlackBoxAdapterForTests');
     expect(adapterSource).not.toContain('export function createCruiseRollBlackBoxAdapter');
     expect(source('src/features/arena/server.ts')).not.toContain("export * from './adapters/plant-adapter'");
-    expect(source('src/features/arena/index.ts')).not.toContain("export * from './adapters/plant-adapter'");
   });
 
   it('does not keep stale whitebox-v1 as the exported current protocol constant', () => {

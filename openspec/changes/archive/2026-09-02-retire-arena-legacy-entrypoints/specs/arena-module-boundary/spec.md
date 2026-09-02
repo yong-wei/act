@@ -3,10 +3,10 @@
 ### Requirement: Root barrel is compatibility only
 The root Arena barrel SHALL NOT be the default import target for production code. During migration it MAY remain only as an explicitly time-bounded compatibility surface with an owner, known callers, replacement and deletion condition; once its production and supported operator callers reach zero, it SHALL be deleted. Explicit domain, client and server boundaries SHALL remain available wherever the current Arena contract requires them.
 
-#### Scenario: A production caller is migrated
-- **WHEN** implementation modifies a file that previously imports from `@/features/arena`
-- **THEN** the import SHALL be narrowed to `@/features/arena/domain`, `@/features/arena/client`, `@/features/arena/server` or a direct public module path
-- **AND** the root barrel SHALL not be reintroduced as a convenience dependency.
+#### Scenario: Touched Arena import
+- **WHEN** implementation modifies a file that previously imported from `@/features/arena`
+- **THEN** the import MUST be narrowed to `@/features/arena/domain`, `@/features/arena/client`, `@/features/arena/server`, or a direct module path
+- **AND** the deleted root barrel MUST NOT be reintroduced, including through dynamic imports.
 
 #### Scenario: Root barrel has no supported callers
 - **WHEN** static, dynamic, route, test and operator scans prove that no supported caller needs the root barrel
