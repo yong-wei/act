@@ -157,6 +157,9 @@ function acquireRunLock(runDir: string): void {
     }
     throw error;
   }
+  // 实例标记：目录一旦被删除重建（持有者完成并释放、后继重建同名代）
+  // 标记即消失，恢复中的旧候选凭此拒绝发布，不会覆盖新实例。
+  fs.writeFileSync(path.join(nextDir, `claim-${token}`), `${token}\n`, 'utf8');
   // 发布新代所有权前复验前代：若前代在宽限判定之后完成了初始化且其
   // 持有者存活，让位（删除本代空目录）并拒绝启动，防止双持。
   if (current) {
@@ -169,7 +172,22 @@ function acquireRunLock(runDir: string): void {
       }
     }
   }
-  fs.writeFileSync(path.join(nextDir, HOLDER_FILE), `${token}\n`, 'utf8');
+  // 实例完整性：自己创建的目录仍在（标记未消失），且 holder 尚未
+  // 被任何人发布（wx 不覆盖）。
+  try {
+    const claim = fs.readFileSync(path.join(nextDir, `claim-${token}`), 'utf8').trim();
+    if (claim !== token) {
+      throw new KonlingBlindAuditRunLockError(runDir);
+    }
+    fs.writeFileSync(path.join(nextDir, HOLDER_FILE), `${token}\n`, { encoding: 'utf8', flag: 'wx' });
+  } catch (error) {
+    if (error instanceof KonlingBlindAuditRunLockError) throw error;
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT'
+      || (error as NodeJS.ErrnoException).code === 'EEXIST') {
+      throw new KonlingBlindAuditRunLockError(runDir);
+    }
+    throw error;
+  }
 }
 
 /**
