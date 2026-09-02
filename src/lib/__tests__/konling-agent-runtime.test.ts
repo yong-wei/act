@@ -15076,6 +15076,8 @@ describe('konling agent runtime', () => {
       ['船级社行业认证需要什么材料？', 'open-ended-explanation'],
       ['官方限值是多少？', 'open-ended-explanation'],
       ['作业必须符合哪些官方限值？', 'open-ended-explanation'],
+      ['CE 认证需要满足哪些要求？', 'open-ended-explanation'],
+      ['What shall a certified controller comply with?', 'open-ended-explanation'],
     ] as const;
 
     for (const [query, intent] of cases) {
@@ -15101,6 +15103,27 @@ describe('konling agent runtime', () => {
       intent: 'fact-explanation',
       normativeGuidance: 'not-applicable',
     });
+
+    const mediaRuntime = createRuntimeContext({
+      pageContext: {
+        ...createRuntimeContext().pageContext,
+        pageType: 'video',
+      },
+    });
+    const media = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: mediaRuntime,
+      scope: createScope(),
+      currentUserQuery: 'GB/T 6113 必须满足哪些官方限值？',
+    });
+    expect(media.answerIntent).toBe('media-guidance');
+    expect(media.studyQuestion).toMatchObject({
+      normativeGuidance: 'verification-required',
+    });
+    expect(buildKonlingCitationGuard({
+      ...mediaRuntime,
+      teachingAssistantMode: media,
+    }).lowConfidenceReasons).toContain('normative-guidance-verification-required');
   });
 
   it('does not let client-marked or prompt-injected sources raise the normative gate', () => {
