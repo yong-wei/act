@@ -68,6 +68,7 @@ import {
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/course-bundle';
+import { studyQuestionSectionTitles } from '@/lib/konling-study-question-structure';
 import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
@@ -1179,20 +1180,7 @@ function isStudyQuestionIntent(answerIntent: KonlingAnswerIntent): answerIntent 
 }
 
 function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['intent']): string[] {
-  switch (intent) {
-    case 'formula-derivation':
-      return ['前提与符号', '关键变形', '适用条件', '结果校验'];
-    case 'code-debugging':
-      return ['故障定位', '原因', '最小修复', '验证方法'];
-    case 'concept-comparison':
-      return ['判别维度', '联系与差异', '边界或反例'];
-    case 'normative-content':
-      return ['适用范围', '规范结论', '核验来源'];
-    case 'open-ended-explanation':
-      return ['核心结论', '定制化讲解', '适用边界'];
-    default:
-      return ['核心结论', '解释', '适用边界'];
-  }
+  return studyQuestionSectionTitles(intent);
 }
 
 function normalizeKonlingStudyAnswerPreferences(
