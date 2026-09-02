@@ -48,6 +48,7 @@ import {
   disableAuthorityShardFamily,
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
+  isTeachingBearingShard,
   mergeAuthorityShard,
   completeAuthorityLocaleRefresh,
   resetAuthorityShardDomain,
@@ -178,8 +179,9 @@ async function fetchAuthorityShard(
 
 function useActiveAuthorityWorkspace(
   retry: number,
-  locale: AdmittedLocale,
+  requestedLocale: AdmittedLocale,
   onLocaleTransactionFailure?: (previousLocale: AdmittedLocale) => void,
+  onLocaleTransactionSuccess?: (nextLocale: AdmittedLocale) => void,
 ): {
   state: WorkspaceLoadState;
   workspace: AuthorityShardWorkspaceState;
@@ -203,8 +205,8 @@ function useActiveAuthorityWorkspace(
   const requestGenerationRef = useRef(0);
   const requestControllersRef = useRef(new Set<AbortController>());
   const failClosedRef = useRef(false);
-  const localeRef = useRef(locale);
-  localeRef.current = locale;
+  const localeRef = useRef<AdmittedLocale>(workspace.selectedLocale);
+  localeRef.current = workspace.selectedLocale;
   workspaceRef.current = workspace;
 
   function updateWorkspace(
@@ -234,7 +236,7 @@ function useActiveAuthorityWorkspace(
     setWorkspace(empty);
     setFamilyFailures({});
     setNeighborhoodFailures({});
-    setState({ status: 'error', message: errorMessage(409, locale) });
+    setState({ status: 'error', message: errorMessage(409, localeRef.current) });
   }
 
   function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): Promise<boolean> {
@@ -254,7 +256,7 @@ function useActiveAuthorityWorkspace(
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(locale, 'error.domainShard'),
+          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.domainShard'),
         });
         return false;
       })
@@ -331,7 +333,7 @@ function useActiveAuthorityWorkspace(
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(locale, 'error.generic'),
+          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.generic'),
         });
       });
     return () => {
@@ -348,7 +350,7 @@ function useActiveAuthorityWorkspace(
   useEffect(() => {
     const current = workspaceRef.current;
     if (state.status !== 'ready' || !current.envelope) return;
-    if (current.selectedLocale === locale) return;
+    if (current.selectedLocale === requestedLocale) return;
     const visualRole = current.activeVisualRole;
     const families = [...current.enabledFamilies];
     const selectedId = current.selectedCanonicalId;
@@ -360,7 +362,6 @@ function useActiveAuthorityWorkspace(
     ])];
     const previousLocale = current.selectedLocale;
     setLocaleRefreshFailure(null);
-    updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
     const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
     const controller = new AbortController();
@@ -368,7 +369,6 @@ function useActiveAuthorityWorkspace(
     requestControllers.add(controller);
 
     function abortLocaleRefresh(): void {
-      updateWorkspace((workspace) => ({ ...workspace, selectedLocale: previousLocale }));
       onLocaleTransactionFailure?.(previousLocale);
       setLocaleRefreshFailure(graphCopy(previousLocale, 'error.generic'));
     }
@@ -378,22 +378,22 @@ function useActiveAuthorityWorkspace(
     // 旧 locale 完整帧，绝不出现混合语言帧。
     type ShardPlan = { url: string; kind: Parameters<typeof fetchAuthorityShard>[1] };
     const plan: ShardPlan[] = [
-      { url: shardUrl('/api/knowledge/shards/active', locale), kind: 'root' },
+      { url: shardUrl('/api/knowledge/shards/active', requestedLocale), kind: 'root' },
       ...(visualRole ? [{
-        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`, locale),
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`, requestedLocale),
         kind: 'domain-default' as const,
       }] : []),
       ...(visualRole ? families.map((family) => ({
-        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, requestedLocale),
         kind: 'relation-family' as const,
       })) : []),
       ...loadedNodeIds.flatMap((nodeId): ShardPlan[] => [
         {
-          url: shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
+          url: shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, requestedLocale),
           kind: 'node-neighborhood',
         },
         {
-          url: shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
+          url: shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, requestedLocale),
           kind: 'node-detail',
         },
       ]),
@@ -416,11 +416,17 @@ function useActiveAuthorityWorkspace(
         // 原子提交：在本地快照上串行 merge 全部响应，任何漂移即整体放弃；
         // 只有一次 setState 把完整的新 locale 帧写入工作区（#1741）。
         let next = workspaceRef.current;
+        const targetEnvelope = results[0]?.envelope;
+        if (!targetEnvelope) {
+          abortLocaleRefresh();
+          return;
+        }
         for (const shard of results) {
-          const drift = shardIdentityDrift(next, shard);
-          if (drift === 'authority-catalog') {
-            // Locale 刷新中的身份失败不得清空已有帧；回滚两层 locale 并
-            // 用旧语言报告有界失败（#1741 P1：409/身份失败也进入回滚）。
+          const catalogDrift = shardIdentityDrift(next, shard) === 'authority-catalog';
+          const localeDrift = !publicEnvelopesShareLocaleProfile(targetEnvelope, shard.envelope);
+          const teachingDrift = isTeachingBearingShard(shard)
+            && !publicTeachingIdentityMatches(targetEnvelope, shard.envelope);
+          if (catalogDrift || localeDrift || teachingDrift) {
             abortLocaleRefresh();
             return;
           }
@@ -431,6 +437,7 @@ function useActiveAuthorityWorkspace(
         if (generation === requestGenerationRef.current) {
           updateWorkspace(() => next);
           setState({ status: 'ready', workspace: next });
+          onLocaleTransactionSuccess?.(requestedLocale);
         }
       } catch {
         if (controller.signal.aborted) return;
@@ -447,7 +454,7 @@ function useActiveAuthorityWorkspace(
     };
     // Locale changes refresh display only; retry remains the identity reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, state.status]);
+  }, [requestedLocale, state.status]);
 
   function enterDomain(visualRole: string): Promise<boolean> {
     const current = workspaceRef.current;
@@ -1170,14 +1177,14 @@ function ActiveNodeDetail({
           </section>
           <section aria-labelledby="active-detail-sources">
             <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
+            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
           </section>
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
               <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus)}</dd>
-                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus)}</dd>
+                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
+                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
               </dl>
             </section>
           ) : null}
@@ -1286,7 +1293,7 @@ function SearchResults({
           key={hit.id}
           type="button"
           onClick={() => onSelect(hit)}
-          aria-label={`定位${hit.mathematics?.state === 'available' ? hit.mathematics.accessibleLabel : hit.label}`}
+          aria-label={`${graphCopy(locale, 'search.locate')}${hit.mathematics?.state === 'available' ? hit.mathematics.accessibleLabel : hit.label}`}
           data-active-authority-search-result={hit.id}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
@@ -1329,6 +1336,7 @@ export function ActiveAuthorityGraph({
   const runtimeLayout = useKnowledgeGraphRuntimeLayout({ dimension });
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
+  const [requestedLocale, setRequestedLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
@@ -1346,8 +1354,12 @@ export function ActiveAuthorityGraph({
     onIdentityFailure,
   } = useActiveAuthorityWorkspace(
   retry,
-  locale,
-  (previousLocale) => setLocale(previousLocale),
+  requestedLocale,
+  (previousLocale) => {
+    setRequestedLocale(previousLocale);
+    setLocale(previousLocale);
+  },
+  (nextLocale) => setLocale(nextLocale),
 );
   const languageState = selectGraphLanguage(
     createGraphLanguageState(workspace.localeCapability),
@@ -1798,7 +1810,7 @@ export function ActiveAuthorityGraph({
               type="button"
               data-graph-language="zh-CN"
               aria-pressed={locale === 'zh-CN'}
-              onClick={() => setLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
+              onClick={() => setRequestedLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
               className={`rounded px-2 py-1 text-xs ${locale === 'zh-CN' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'}`}
             >
               {graphCopy(locale, 'language.zh')}
@@ -1810,7 +1822,7 @@ export function ActiveAuthorityGraph({
               aria-disabled={!languageState.englishAvailable}
               disabled={!languageState.englishAvailable}
               title={languageState.englishUnavailableReason ?? undefined}
-              onClick={() => setLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
+              onClick={() => setRequestedLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
               className={`rounded px-2 py-1 text-xs ${locale === 'en' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {graphCopy(locale, 'language.en')}
@@ -1973,7 +1985,16 @@ export function ActiveAuthorityGraph({
             <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />{graphCopy(locale, 'legend.teachingOrder')}</span>
               <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />{graphCopy(locale, 'legend.engineering')}</span>
-              <span data-authority-teaching-coverage="true">{latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用' ? null : (teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable'))}</span>
+              <span data-authority-teaching-coverage="true">{
+                teachingCoverage?.note
+                  ? graphCopy(
+                    locale,
+                    teachingCoverage.note === '教学关系尚未发布'
+                      ? 'legend.teachingUnpublished'
+                      : 'legend.teachingUnavailable',
+                  )
+                  : null
+              }</span>
             </div>
             ) : null}
             </KnowledgeWorkspaceChromePortal>

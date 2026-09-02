@@ -6,6 +6,11 @@ import type {
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
 import type { GovernedFormulaProjection, GovernedRichTextProjection } from '@/lib/governed-math';
+import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
+import {
+  graphInterfaceText,
+  type GraphInterfaceKey,
+} from '@/lib/authority-locale-readiness/graph-interface-catalog';
 import { governedSearchHaystack, matchesGovernedSearch, titleIsProductHidden } from '@/lib/governed-math';
 
 /**
@@ -177,15 +182,15 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
 // 而回退中文（#1741）。
 const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/u;
 
-const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
-  approved: '已审核',
-  published: '已发布',
-  active: '当前有效',
-  CORE: '核心内容',
-  EXTENSION: '扩展内容',
-  UNCLASSIFIED: '未分类内容',
-  gold: '高置信内容',
-  silver: '一般置信内容',
+const GOVERNANCE_KEYS: Readonly<Record<string, GraphInterfaceKey>> = {
+  approved: 'inspector.governance.approved',
+  published: 'inspector.governance.published',
+  active: 'inspector.governance.active',
+  CORE: 'inspector.governance.core',
+  EXTENSION: 'inspector.governance.extension',
+  UNCLASSIFIED: 'inspector.governance.unclassified',
+  gold: 'inspector.governance.gold',
+  silver: 'inspector.governance.silver',
 };
 
 function nonEmpty(value: string | null | undefined): string | null {
@@ -307,19 +312,28 @@ export function presentActiveDirection(direction: string | null): ActiveDirectio
   };
 }
 
-export function presentGovernanceLabel(value: string | null | undefined): string {
+export function presentGovernanceLabel(
+  value: string | null | undefined,
+  locale: AdmittedLocale = 'zh-CN',
+): string {
   const normalized = nonEmpty(value);
-  return normalized ? GOVERNANCE_LABELS[normalized] ?? '状态暂不可解释' : '状态暂不可用';
+  if (!normalized) return graphInterfaceText('inspector.governance.unavailable', locale);
+  const key = GOVERNANCE_KEYS[normalized];
+  return graphInterfaceText(key ?? 'inspector.governance.unknown', locale);
 }
 
 export function presentSourceCitation(
   sources: ActiveNodeDetailResponse['node']['sources'] | undefined,
+  locale: AdmittedLocale = 'zh-CN',
 ): string {
   const labels = (sources ?? [])
     .map((source) => nonEmpty(source.label))
     .filter((label): label is string => Boolean(label));
   if (labels.length > 0) return labels.join(' · ');
-  return sources && sources.length > 0 ? '来源定位暂不可用' : '暂无公开来源';
+  return graphInterfaceText(
+    sources && sources.length > 0 ? 'inspector.source.locateUnavailable' : 'inspector.source.none',
+    locale,
+  );
 }
 
 function safeNodeLabel(node: ActiveCanvasNode): string | null {
