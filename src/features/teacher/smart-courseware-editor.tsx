@@ -161,31 +161,10 @@ export type SmartCoursewareStudentProjectionReceipt = {
   notice: 'ai-assisted-teacher-reviewed';
 };
 
-export function createSmartCoursewareDraftShell({
-  draftId,
-  planRevisionId,
-}: {
-  draftId: string;
-  planRevisionId: string | null;
-}): SmartCoursewareTeacherEnvelope {
-  return {
-    draftId,
-    planRevisionId,
-    state: 'waiting-for-generation',
-    version: 1,
-    manifest: null,
-    stalePlan: false,
-    teacherModules: {},
-    compositionMetadata: [],
-    planLimitations: [],
-    aiReview: null,
-    generationAudit: [],
-  };
-}
-
 export function createSmartCoursewareTeacherEnvelopeFromProjection(
   projection: SmartCoursewareTeacherProjectionInput,
   stalePlan = false,
+  state: SmartCoursewareTeacherEnvelope['state'] = 'ready',
 ): SmartCoursewareTeacherEnvelope {
   const validationNotes = projection.validation.issues.map((issue) => {
     if (issue && typeof issue === 'object' && 'message' in issue) return String(issue.message);
@@ -194,7 +173,7 @@ export function createSmartCoursewareTeacherEnvelopeFromProjection(
   return {
     draftId: projection.draftId,
     planRevisionId: projection.planRevisionId,
-    state: 'ready',
+    state,
     version: projection.version,
     manifest: projection.runtimeManifest,
     stalePlan,
@@ -264,9 +243,7 @@ export function SmartCoursewareProjectionEditor({
   sourceRevisionId?: string | null;
   returnTaskId?: string | null;
 }) {
-  const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection);
-  initialEnvelope.state = state;
-  initialEnvelope.stalePlan = stalePlan;
+  const initialEnvelope = createSmartCoursewareTeacherEnvelopeFromProjection(teacherProjection, stalePlan, state);
   const initialStudentPreview = studentProjection
     ? createSmartCoursewareStudentPreviewFromService(initialEnvelope, studentProjection)
     : null;
@@ -409,6 +386,13 @@ export function SmartCoursewareEditor({
       return true;
     }
     return false;
+  }
+
+  function selectStep(stepId: string) {
+    if (!confirmVisualDiscard()) return;
+    setSelectedStepId(stepId);
+    const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
+    setSelectedModuleId(step?.modules[0]?.id ?? '');
   }
 
   async function startGeneration() {
@@ -795,12 +779,7 @@ export function SmartCoursewareEditor({
       subtitle={`草稿 ${envelope.draftId} · 版本 ${envelope.version}`}
       sections={editorSections}
       activeSection={selectedStepId}
-      onSelectSection={(stepId) => {
-        if (!confirmVisualDiscard()) return;
-        setSelectedStepId(stepId);
-        const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
-        setSelectedModuleId(step?.modules[0]?.id ?? '');
-      }}
+      onSelectSection={selectStep}
       suggestions={editorSuggestions}
       onIgnoreSuggestion={(suggestion) => {
         setSuggestionStates((current) => {
@@ -903,12 +882,7 @@ export function SmartCoursewareEditor({
         selectedStepId={selectedStepId}
         selectedModuleId={selectedModuleId}
         newModuleClass={newModuleClass}
-        onSelectStep={(stepId) => {
-          if (!confirmVisualDiscard()) return;
-          setSelectedStepId(stepId);
-          const step = envelope.manifest?.stages.flatMap((stage) => stage.steps).find((candidate) => candidate.id === stepId);
-          setSelectedModuleId(step?.modules[0]?.id ?? '');
-        }}
+        onSelectStep={selectStep}
         onSelectModule={(moduleId) => {
           if (!confirmVisualDiscard()) return;
           setSelectedModuleId(moduleId);
