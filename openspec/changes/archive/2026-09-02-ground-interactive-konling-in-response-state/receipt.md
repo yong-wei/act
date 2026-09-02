@@ -43,3 +43,14 @@
 ## 5. Scope guard
 
 未修改正式成绩、LearningFact、画像、历史会话消息、数据库 schema；未新增 AI 数据源或跨页会话规则；教师/管理员预览按 unresolved 降级不产生学生状态。
+
+
+## 6. Codex 三项 P1 修复（HEAD 30e2b6eb5f 上的 findings）
+
+全部核实后 ACCEPT，同一根因（服务端绑定权威性不足）一次性修复：
+
+1. **整页完整提交才开放检查**：`StudentStepResponse` 按卡片粒度生成，任一证据行 ≠ 整页完整。新增 `loadInteractiveStepRequiredResponseKeys`（lessonKey→`resolveInteractiveLessonIdentity`→runtime manifest，进程内缓存，读取失败保守降级）；`submitted` 态要求证据行存在 **且** 必答键（activityCards + compute.panel responseContractId）全部持久化在案，否则维持 `in_progress` 不开放 `analyze_attempt`。回归：部分必答 + 证据行 → in_progress。
+2. **嵌入式入口解析到真实课次**：courseId `'interactive'` 不是注册表键导致嵌入式入口返回 null。新增 `resolveInteractiveLessonTarget`：注册表键直接命中；资源路径 `/interactive-learning/resources/<rid>/classroom/<sid>` 解析 `<prefix>:<stepId>`（unit11/21/22/23/24/41 六课前缀映射表，仅收录实际存在嵌入式 AI 的课）到 lessonKey + 页步骤 id，两入口共用同一状态机。回归：嵌入式资源路径 grounded。
+3. **会话与课次不可变绑定**：会话 id 仅经班级成员校验可被指向同班其他课次/场次。新增课次锚定：学生的 `StudentState`(stateKey='course') 行必须存在于该会话且 `lessonKey === 当前课次键`（该行由课堂状态写入端持久化，lessonKey 为服务端事实），不匹配 → unresolved，揭示/作答/证据查询全部不生效。回归：跨课 course 行 → unresolved。
+
+测试 12→15（新增三个 P1 回归），guard + runtime 套件 232 通过，typecheck exit 0。
