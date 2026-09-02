@@ -8,8 +8,8 @@
 ## 2. Consolidate read-only composition
 
 - [x] 2.1 Implement or select the existing platform composition read-model contract as the sole query-time composition owner.
-- [x] 2.2 Migrate AppShell, role workspace, knowledge/resource, teaching and AI presentation surfaces to the contract without changing domain ownership.
-- [x] 2.3 Preserve source/release/manifest/revision provenance, role filtering, privacy, cache/refresh, SSR and R3F dynamic boundaries.
+- [ ] 2.2 Migrate AppShell, role workspace, knowledge/resource, teaching and AI presentation surfaces to the contract without changing domain ownership. **（部分交付：AppShell/role workspace/角色导航已由既有 C9/C16 关口持有；knowledge/resource、teaching、AI presentation 的统一组合入口为未交付残余，C34+ 不得视为已交付，见 retirement-receipt.md）**
+- [ ] 2.3 Preserve source/release/manifest/revision provenance, role filtering, privacy, cache/refresh, SSR and R3F dynamic boundaries.
 - [x] 2.4 Delete duplicate mappers, aliases, fallback bridges and route-local read models only after before/after tests pass.
 
 ## 3. Verify no authority expansion

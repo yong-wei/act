@@ -45,3 +45,11 @@
 ## Rollback
 
 单 commit revert 恢复 3 个文件与 2 个死导出（`classroom/index.ts` barrel 经复核有 7 处 `@/components/classroom` 导入，保留不删）；无数据、schema、合同或权限变化。
+
+## 未交付残余（C34+ 前置状态声明）
+
+本轮交付 = 零消费者 legacy bridge/死代码退役 + 既有组合 owner 登记（platform-ui-contracts / platform-role-navigation / app-shell / role-workspace-shell 分立持有各面）。
+
+**未交付**：统一的 platform composition read-model 契约模块（单一入口组合多领域 projection、revision identity、privacy 分类与 unavailable 状态）未作为独立合同实现；knowledge/resource、teaching、AI presentation surface 尚未迁移到该合同。`platform-composition-read-model` spec requirement 1 的完整满足需要后续 change 实现该合同并迁移上述 surface；在此之前不得将"single composition contract"视为已交付能力。
+
+理由：本轮 production diff 为行为保持型退役；为单个 shell 构造 facade 式合同比显式残余更糟（review thread 记录该取舍）。
