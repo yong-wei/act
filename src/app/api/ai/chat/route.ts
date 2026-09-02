@@ -9,6 +9,7 @@
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
+import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import {
   getMessageContent,
   toLegacyMessage,
@@ -904,8 +905,18 @@ export async function POST(request: Request) {
             displayName: '同学',
             unavailable: true,
           });
+      // 客户端 pageContext 一律视为不可信提示：只有服务端注册表能解析出的
+      // 页面身份才进入系统提示词，且字段全部来自服务端投影；部分、未注册
+      // 或无法归属的上下文 fail-closed（#1885）。
+      const resolvedPage = resolveServerOwnedChatPageContext(pageContext);
+      if (!resolvedPage.ok) {
+        return new Response(JSON.stringify({ error: 'INVALID_AI_CONTEXT', code: 'INVALID_AI_CONTEXT' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       const aiContext: AIContext = {
-        page: pageContext,
+        page: resolvedPage.page,
         user: resolveCopilotPromptUser({
           authenticatedUserId: session?.user?.id,
           authenticatedDisplayName: session?.user?.name,

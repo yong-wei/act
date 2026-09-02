@@ -63,19 +63,10 @@ export function buildContextAwarePrompt(
     parts.push(BOPPPS_STAGE_HINTS[lessonContext.stage]);
   }
 
-  // 添加当前资源信息
-  if (lessonContext.resourceTitle) {
-    parts.push(`\n当前学习资源: "${lessonContext.resourceTitle}"`);
-  }
-
-  // 添加 AI 角色提示
+  // 添加 AI 角色提示（枚举查表；legacy lessonContext 的 resourceTitle/
+  // customPrompt 是客户端自由文本，不得成为系统级指令，#1885）。
   if (lessonContext.aiPersona && AI_PERSONA_PROMPTS[lessonContext.aiPersona]) {
     parts.push(`\n## 角色定位\n${AI_PERSONA_PROMPTS[lessonContext.aiPersona]}`);
-  }
-
-  // 添加自定义提示
-  if (lessonContext.customPrompt) {
-    parts.push(`\n## 特别指导\n${lessonContext.customPrompt}`);
   }
 
   return parts.join('\n');

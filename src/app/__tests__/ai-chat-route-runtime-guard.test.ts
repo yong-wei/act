@@ -491,6 +491,24 @@ describe('AI chat route Konling runtime guard', () => {
     expect(tutoringStateSource).not.toContain('.answerVisible');
   });
 
+  it('treats client page and lesson context as untrusted hints at the chat boundary', () => {
+    expect(chatRouteSource).toContain('resolveServerOwnedChatPageContext(pageContext)');
+    expect(chatRouteSource).toContain('INVALID_AI_CONTEXT');
+    expect(chatRouteSource).not.toContain('page: pageContext,');
+    const boundarySource = readFileSync(
+      join(process.cwd(), 'src/lib/ai/chat-context-boundary.ts'),
+      'utf8',
+    );
+    expect(boundarySource).toContain('resolveRegisteredAIContextFromPath');
+    expect(boundarySource).toContain('getStepAIContext');
+    const lessonPromptsSource = readFileSync(
+      join(process.cwd(), 'src/lib/ai/lesson-prompts.ts'),
+      'utf8',
+    );
+    expect(lessonPromptsSource).not.toContain('lessonContext.resourceTitle');
+    expect(lessonPromptsSource).not.toContain('lessonContext.customPrompt');
+  });
+
   it('hides the public simulation AI companion entry when no user is authenticated', () => {
     expect(globalAIProviderSource).toContain("sessionStatus !== 'authenticated'");
     expect(globalAIProviderSource).toContain('!session?.user');
