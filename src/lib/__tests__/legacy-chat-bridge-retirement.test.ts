@@ -7,7 +7,6 @@ const RETAINED_SURFACES = [
   'src/app/ai/copilot/page.tsx',
   'src/features/ai/copilot-panel.tsx',
   'src/components/ai/global-ai-sidebar.tsx',
-  'src/components/ai/konling-sidebar.tsx',
 ];
 
 function source(path: string) {

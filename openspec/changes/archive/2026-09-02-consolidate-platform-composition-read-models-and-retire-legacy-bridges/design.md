@@ -6,7 +6,7 @@
 
 **Goals:**
 
-- 一个可定位的 platform read-model composition owner，统一查询组合、revision/provenance 和角色过滤。
+- 登记既有 platform composition owners（platform UI contracts、role navigation、AppShell、role workspace shell）为组合面事实源；统一多领域 read-model composition contract 为后续 change 的目标，不在本 change 交付。
 - 删除没有独立 authority 的桥接层，保持现有页面输出、错误和 SSR/hydration 行为。
 - 让组合结果保持只读、bounded、可缓存/刷新，不改变任何 domain truth。
 
@@ -27,7 +27,7 @@
 
 ### After
 
-- 一个既有 platform owner 的 typed read-model composition contract 负责查询组合、过滤、identity 和 unavailable projection。
+- 既有组合面（AppShell/role shell/角色导航）保持在 C9/C16 owner 上不变；零消费者 legacy bridge、死 barrel 与死导出删除，必要 ingress adapter 有删除条件。
 - AppShell/role shell/页面只消费该 projection；无 authority bridge 删除，必要兼容 adapter 仅在 ingress 并有删除条件。
 - 所有 domain truth、AI suggestion、knowledge relation 和 release state 仍回到其 canonical owner；组合层不写入。
 
@@ -64,7 +64,7 @@ AI suggestion/metadata 仍是 advisory projection；平台 composition 不调用
 
 1. 收集 C9/C16/C30 canonical owner 与当前 platform composition 的静态/运行时调用图，记录重复字段和 legacy bridge。
 2. 为 AppShell、role shell、知识/资源、AI/教学 surfaces 建立 before projection/SSR/privacy/refresh 基线。
-3. 在现有 platform boundary 内接通统一 read-model contract，逐 surface 迁移并保留 owner/revision provenance。
+3.（未执行，移交后续 change）统一 read-model contract 的实现与知识/资源、AI/教学 surface 迁移不在本轮交付；本轮仅删除零 caller bridge/死代码并保留 owner/revision provenance。
 4. 删除零 caller 的 mapper、alias、route-local read model 和 bridge；为必要 adapter 记录 owner、scope、删除条件。
 5. 运行 component/route/browser、role/privacy、SSR/R3F、dependency/fitness、typecheck、lint 和 OpenSpec strict 验证。
 
