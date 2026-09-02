@@ -4619,10 +4619,6 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
-    'interactive-figure': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
     'interactive-figure-panel': ({ manifest, step, module }) => {
       const galleryItems = imageItemsFromPayload(manifest, module.payload);
       if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module)} items={galleryItems} />;
