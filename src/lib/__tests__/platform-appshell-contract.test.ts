@@ -356,8 +356,11 @@ function findRouteCoverage(file: string): RouteCoverage | undefined {
   if (isManifestCourseDispatcher(file)) {
     const source = readFileSync(file, 'utf8');
     if (
-      source.includes("from '@/features/interactive/shared/manifest-course-app-loaders'") &&
-      source.includes('notFound()')
+      source.includes('notFound()') &&
+      (
+        source.includes("from '@/features/interactive/shared/manifest-course-app-loaders'")
+        || source.includes("from '@/features/interactive/shared/batch-a-classroom-pages'")
+      )
     ) {
       return { kind: 'compatible-wrapper', evidence: 'manifest-course-shared-dispatcher' };
     }

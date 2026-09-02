@@ -1,10 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { renderBatchAEntry } from '@/features/interactive/shared/batch-a-classroom-pages';
-import {
-  MANIFEST_COURSE_ENTRY_LOADERS,
-  MANIFEST_COURSE_ROUTE_SEGMENTS,
-} from '@/features/interactive/shared/manifest-course-app-loaders';
+import { MANIFEST_COURSE_ROUTE_SEGMENTS } from '@/features/interactive/shared/manifest-course-app-loaders';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
@@ -21,8 +18,5 @@ export default async function ManifestCourseEntryPage({
   const { routeSegment } = await params;
   const batchA = await renderBatchAEntry(routeSegment);
   if (batchA) return batchA;
-  const load = MANIFEST_COURSE_ENTRY_LOADERS[routeSegment as keyof typeof MANIFEST_COURSE_ENTRY_LOADERS];
-  if (!load) notFound();
-  const { default: Page } = await load();
-  return await Promise.resolve(Page());
+  notFound();
 }

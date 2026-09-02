@@ -351,14 +351,14 @@ export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRo
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/student.tsx',
+    sourceFile: 'src/features/interactive/unit-4-1-design-task-expression/student-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/teacher.tsx',
+    sourceFile: 'src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],

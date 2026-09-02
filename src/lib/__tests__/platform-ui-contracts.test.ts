@@ -996,7 +996,7 @@ describe('platform UI contracts', () => {
       expect(source, relativePath).not.toContain('PremiumLessonEntryPage');
     }
 
-    expect(waitingPages.length).toBeGreaterThan(10);
+    expect(waitingPages.length).toBeGreaterThan(0);
     for (const relativePath of waitingPages) {
       const source = readSource(relativePath);
       expect(source, relativePath).toContain('TeacherClassroomWaitingRoute');

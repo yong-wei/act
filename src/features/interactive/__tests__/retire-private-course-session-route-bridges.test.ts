@@ -3,13 +3,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  MANIFEST_COURSE_ENTRY_LOADERS,
-  MANIFEST_COURSE_ROUTE_SEGMENTS,
-  MANIFEST_COURSE_STUDENT_LOADERS,
-  MANIFEST_COURSE_TEACHER_LOADERS,
-  MANIFEST_COURSE_WAITING_LOADERS,
-} from '@/features/interactive/shared/manifest-course-app-loaders';
+import { MANIFEST_COURSE_ROUTE_SEGMENTS } from '@/features/interactive/shared/manifest-course-app-loaders';
 import { listInteractiveLessonIdentityRecords } from '@/lib/interactive-lesson-identity';
 
 const repoRoot = process.cwd();
@@ -53,31 +47,18 @@ describe('retire private course session route bridges', () => {
       const source = read(relativePath);
       expect(source).toContain('notFound()');
       expect(source).not.toContain('redirect(');
-      expect(source).toContain("from '@/features/interactive/shared/manifest-course-app-loaders'");
     }
+    expect(read('src/app/interactive-learning/courses/[routeSegment]/page.tsx'))
+      .toContain("from '@/features/interactive/shared/manifest-course-app-loaders'");
+    expect(read('src/app/interactive-learning/courses/[routeSegment]/demo/page.tsx'))
+      .toContain("from '@/features/interactive/shared/manifest-course-app-loaders'");
     expect(read('src/app/interactive-learning/courses/[routeSegment]/page.tsx')).toContain('dynamicParams = false');
     expect(read('src/app/interactive-learning/courses/[routeSegment]/demo/page.tsx')).toContain('dynamicParams = false');
   });
 
   it('registers leftover family adapters without leftover private trees', () => {
     expect(MANIFEST_COURSE_ROUTE_SEGMENTS).toHaveLength(32);
-    const leftover = MANIFEST_COURSE_ROUTE_SEGMENTS.filter(
-      (segment) => !/^(unit-1-|unit-2-|unit-3-)/.test(segment),
-    );
-    expect(Object.keys(MANIFEST_COURSE_ENTRY_LOADERS)).toEqual(leftover);
-    expect(Object.keys(MANIFEST_COURSE_STUDENT_LOADERS)).toEqual(leftover);
-    expect(Object.keys(MANIFEST_COURSE_TEACHER_LOADERS)).toEqual(leftover);
-    expect(Object.keys(MANIFEST_COURSE_WAITING_LOADERS)).toEqual(leftover);
-
-    for (const segment of leftover) {
-      expect(existsSync(join(adapterRoot, segment, 'entry.tsx')), segment).toBe(true);
-      expect(existsSync(join(adapterRoot, segment, 'student.tsx')), segment).toBe(true);
-      expect(existsSync(join(adapterRoot, segment, 'teacher.tsx')), segment).toBe(true);
-      expect(existsSync(join(adapterRoot, segment, 'waiting.tsx')), segment).toBe(true);
-      expect(existsSync(join(coursesAppDir, segment))).toBe(false);
-    }
     for (const segment of MANIFEST_COURSE_ROUTE_SEGMENTS) {
-      if (leftover.includes(segment)) continue;
       expect(existsSync(join(adapterRoot, segment)), segment).toBe(false);
       expect(existsSync(join(coursesAppDir, segment))).toBe(false);
     }

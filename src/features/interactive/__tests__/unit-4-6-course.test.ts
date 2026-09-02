@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it, vi } from 'vitest';
@@ -9,10 +9,6 @@ import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-ma
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
-const routeBase = join(
-  repoRoot,
-  'src/features/interactive/course-app-routes/unit-4-6-fixed-structure-boundary-structural-encoding',
-);
 const featureBase = join(
   repoRoot,
   'src/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding',
@@ -117,10 +113,6 @@ describe('unit 4-6 interactive course', () => {
   });
 
   it('exposes the dedicated route files and keeps the implementation runtime-first', () => {
-    expect(existsSync(join(routeBase, 'entry.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'student.tsx'))).toBe(true);
-    expect(existsSync(join(routeBase, 'teacher.tsx'))).toBe(true);
-
     const stepPanelsSource = readFileSync(join(featureBase, 'step-panels.tsx'), 'utf8');
     const studentPageSource = readFileSync(join(featureBase, 'student-page.tsx'), 'utf8');
     const courseSource = readFileSync(join(repoRoot, 'src/lib/unit-4-6-course.ts'), 'utf8');
