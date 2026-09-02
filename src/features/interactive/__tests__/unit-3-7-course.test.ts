@@ -12,11 +12,11 @@ import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-ma
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
-let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
-let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaIndex;
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-bundle'));
 });
 
 describe('unit 3-7 interactive course', () => {

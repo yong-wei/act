@@ -34,7 +34,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/course-runtime', () => ({
+vi.mock('@/lib/course-bundle', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 

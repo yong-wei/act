@@ -80,7 +80,7 @@ vi.mock('@/lib/source-pack/textbook-v2-adapter', () => ({
   retrieveTextbookSourcePackV2Progressive: mocks.retrieveTextbookSourcePackV2Progressive,
 }));
 
-vi.mock('@/lib/course-runtime', () => ({
+vi.mock('@/lib/course-bundle', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 

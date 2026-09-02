@@ -20,8 +20,8 @@ const repoRoot = process.cwd();
 const routeSegment = 'unit-4-1-design-task-expression';
 const featureBase = join(repoRoot, 'src/features/interactive', routeSegment);
 const manifestPath = join(repoRoot, 'course-content/runtime/lessons/4-1/interactive-manifest.json');
-let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
-let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaIndex;
 
 function readRuntimeManifest() {
   const raw = JSON.parse(readFileSync(manifestPath, 'utf8'));
@@ -31,7 +31,7 @@ function readRuntimeManifest() {
 }
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-runtime'));
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex } = await import('@/lib/course-bundle'));
 });
 
 describe('unit 4-1 interactive course', () => {
