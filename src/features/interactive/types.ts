@@ -5,6 +5,7 @@
  */
 
 import type { WidgetResult } from '@/resources/widgets/widget-props';
+import type { KonlingChatFailure } from '@/lib/konling-chat-failure';
 
 // ========== 事件类型 ==========
 
@@ -88,7 +89,8 @@ export interface InteractiveAIContextValue {
   sendMessage: (content: string) => Promise<string>;
   messages: AIMessage[];
   isLoading: boolean;
-  error: Error | null;
+  /** 学生安全失败投影；原始状态码、响应体与异常文本不进入 UI。 */
+  error: KonlingChatFailure | null;
   recoveryStatus: 'idle' | 'loading' | 'ready' | 'unavailable' | 'ephemeral';
   retryRecovery: () => void;
 }
