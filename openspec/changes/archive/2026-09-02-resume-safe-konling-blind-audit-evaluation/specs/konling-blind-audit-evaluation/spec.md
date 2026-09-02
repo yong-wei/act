@@ -10,8 +10,9 @@ The knowledge-QA blind-audit runner SHALL assign every audit task a unique key d
 
 #### Scenario: A task fails
 - **WHEN** the external model service fails for one task with rate limiting, timeout, insufficient balance, or a parse error
-- **THEN** the runner SHALL persist a failure record with a structured error code and message
-- **AND** it SHALL continue or terminate without corrupting completed records.
+- **THEN** the runner SHALL persist the failure attempt with a structured error code and message as its own immutable file
+- **AND** repeated failures across resumed runs SHALL accumulate attempts without losing or overwriting earlier history
+- **AND** the runner SHALL continue or terminate without corrupting completed records.
 
 #### Scenario: Blind audit reviews the candidate answer
 - **WHEN** a blind-audit task executes

@@ -212,6 +212,18 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     expect(failureAfterRetry?.attempts[0].error.code).toBe(code);
   });
 
+  it('keeps every attempt when a task keeps failing across runs', async () => {
+    const runId = 'run-repeat-failure';
+    const failing = keyOf('item-a', 1);
+    await runKonlingBlindAudit(runOptions(runId, faultProvider({ [failing]: 'insufficient-balance' })));
+    await runKonlingBlindAudit(runOptions(runId, faultProvider({ [failing]: 'rate-limited' })));
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const failure = readKonlingBlindAuditFailure(runDir, 'rule-score', failing);
+    expect(failure?.attempts).toHaveLength(2);
+    expect(failure?.attempts[0].error.code).toBe('insufficient-balance');
+    expect(failure?.attempts[1].error.code).toBe('rate-limited');
+  });
+
   it('aggregates incomplete batches as fail-closed without official metrics', async () => {
     const runId = 'run-incomplete';
     await runKonlingBlindAudit(runOptions(

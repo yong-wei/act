@@ -245,15 +245,43 @@ export function writeKonlingBlindAuditRecord(
 }
 
 /**
- * 追加失败 attempt（保留历史），失败文件不存在时创建。
+ * 追加失败 attempt：每次失败一个独立 attempt 文件（唯一名，link 先写
+ * 胜，天然单调追加），历史永不丢失也永不覆盖（#1820）。
  */
-export function writeKonlingBlindAuditFailure(
+export function appendKonlingBlindAuditFailure(
   runDir: string,
   mode: KonlingBlindAuditMode,
   failure: KonlingBlindAuditFailureRecord,
+  attempt: KonlingBlindAuditFailureRecord['attempts'][number],
 ): void {
-  const target = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(failure.taskKey));
-  writeAtomic(target, JSON.stringify(failure, null, 2));
+  const failureDir = path.join(runDir, FAILURES_DIR, mode, failure.taskKey);
+  writeAtomic(
+    path.join(failureDir, 'meta.json'),
+    JSON.stringify({
+      taskKey: failure.taskKey,
+      mode: failure.mode,
+      benchmarkVersion: failure.benchmarkVersion,
+      itemId: failure.itemId,
+      replicate: failure.replicate,
+      model: failure.model,
+      provider: failure.provider,
+      promptVersion: failure.promptVersion,
+      scoreVersion: failure.scoreVersion,
+      gitRevision: failure.gitRevision,
+    }, null, 2),
+  );
+  for (let seq = listFailureAttempts(failureDir).length + 1; ; seq += 1) {
+    if (writeAtomic(path.join(failureDir, `attempt-${seq}.json`), JSON.stringify(attempt, null, 2))) {
+      return;
+    }
+  }
+}
+
+function listFailureAttempts(failureDir: string): string[] {
+  if (!fs.existsSync(failureDir)) return [];
+  return fs.readdirSync(failureDir)
+    .filter((entry) => /^attempt-\d+\.json$/.test(entry))
+    .sort();
 }
 
 export function readKonlingBlindAuditFailure(
@@ -261,15 +289,37 @@ export function readKonlingBlindAuditFailure(
   mode: KonlingBlindAuditMode,
   taskKey: string,
 ): KonlingBlindAuditFailureRecord | null {
-  const target = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(taskKey));
-  if (!fs.existsSync(target)) return null;
-  return JSON.parse(fs.readFileSync(target, 'utf8')) as KonlingBlindAuditFailureRecord;
+  const failureDir = path.join(runDir, FAILURES_DIR, mode, taskKey);
+  const metaPath = path.join(failureDir, 'meta.json');
+  if (!fs.existsSync(metaPath)) {
+    // 兼容历史平铺布局（首版单文件 failure）。
+    const legacy = path.join(runDir, FAILURES_DIR, mode, taskKeyFileName(taskKey));
+    if (!fs.existsSync(legacy)) return null;
+    return JSON.parse(fs.readFileSync(legacy, 'utf8')) as KonlingBlindAuditFailureRecord;
+  }
+  const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')) as Omit<KonlingBlindAuditFailureRecord, 'status' | 'attempts'>;
+  return {
+    ...meta,
+    status: 'failed',
+    attempts: listFailureAttempts(failureDir).map((file) => JSON.parse(
+      fs.readFileSync(path.join(failureDir, file), 'utf8'),
+    ) as KonlingBlindAuditFailureRecord['attempts'][number]),
+  };
 }
 
 function readRecordsDir(runDir: string, subdir: string, mode: KonlingBlindAuditMode): string[] {
   const target = path.join(runDir, subdir, mode);
   if (!fs.existsSync(target)) return [];
   return fs.readdirSync(target).filter((entry) => entry.endsWith('.json')).sort();
+}
+
+function readFailureDirs(runDir: string, mode: KonlingBlindAuditMode): string[] {
+  const target = path.join(runDir, FAILURES_DIR, mode);
+  if (!fs.existsSync(target)) return [];
+  return fs.readdirSync(target, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
 }
 
 export function listKonlingBlindAuditRecordKeys(
@@ -284,8 +334,12 @@ export function listKonlingBlindAuditFailureKeys(
   runDir: string,
   mode: KonlingBlindAuditMode,
 ): string[] {
-  return readRecordsDir(runDir, FAILURES_DIR, mode)
-    .map((file) => file.replace(/\.json$/, ''));
+  const keys = readFailureDirs(runDir, mode);
+  // 兼容历史平铺布局。
+  for (const file of readRecordsDir(runDir, FAILURES_DIR, mode)) {
+    keys.push(file.replace(/\.json$/, ''));
+  }
+  return [...new Set(keys)].sort();
 }
 
 export function loadKonlingBlindAuditRecords(
@@ -301,7 +355,7 @@ export function loadKonlingBlindAuditFailures(
   runDir: string,
   mode: KonlingBlindAuditMode,
 ): KonlingBlindAuditFailureRecord[] {
-  return readRecordsDir(runDir, FAILURES_DIR, mode).map((file) => JSON.parse(
-    fs.readFileSync(path.join(runDir, FAILURES_DIR, mode, file), 'utf8'),
-  ) as KonlingBlindAuditFailureRecord);
+  return listKonlingBlindAuditFailureKeys(runDir, mode)
+    .map((taskKey) => readKonlingBlindAuditFailure(runDir, mode, taskKey))
+    .filter((failure): failure is KonlingBlindAuditFailureRecord => failure !== null);
 }

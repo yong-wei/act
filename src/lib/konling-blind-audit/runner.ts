@@ -1,11 +1,11 @@
 import {
+  appendKonlingBlindAuditFailure,
   assertKonlingBlindAuditLockHeld,
   prepareKonlingBlindAuditRun,
   listKonlingBlindAuditFailureKeys,
   listKonlingBlindAuditRecordKeys,
   readKonlingBlindAuditFailure,
   releaseKonlingBlindAuditRun,
-  writeKonlingBlindAuditFailure,
   writeKonlingBlindAuditRecord,
 } from './store';
 import {
@@ -91,13 +91,7 @@ export async function runKonlingBlindAudit(input: {
           completedThisRun += 1;
         } else {
           if (isRetry) retried += 1;
-          const previousFailure = readKonlingBlindAuditFailure(runDir, input.mode, taskKey);
-          const attempt = {
-            startedAt,
-            finishedAt,
-            error: response.error,
-          };
-          writeKonlingBlindAuditFailure(runDir, input.mode, {
+          appendKonlingBlindAuditFailure(runDir, input.mode, {
             taskKey,
             mode: input.mode,
             benchmarkVersion: input.manifest.benchmarkVersion,
@@ -109,7 +103,11 @@ export async function runKonlingBlindAudit(input: {
             scoreVersion: input.config.scoreVersion,
             gitRevision: input.config.gitRevision,
             status: 'failed',
-            attempts: [...(previousFailure?.attempts ?? []), attempt],
+            attempts: [],
+          }, {
+            startedAt,
+            finishedAt,
+            error: response.error,
           });
           failed += 1;
         }
