@@ -54,6 +54,14 @@ export function parseCourseEvidenceBackfillOptions(argv: string[]): CourseEviden
   if (lessonKeys.length > 0) filters.lessonKeys = lessonKeys;
   if (from) filters.from = from;
   if (to) filters.to = to;
+  const frozenCutoff = readStringValue(args, '--frozen-cutoff');
+  if (frozenCutoff) {
+    const cutoff = new Date(frozenCutoff);
+    if (Number.isNaN(cutoff.getTime())) {
+      throw new Error(`Invalid --frozen-cutoff date: ${frozenCutoff}`);
+    }
+    if (!filters.to || cutoff < filters.to) filters.to = cutoff;
+  }
 
   return {
     apply: readFlag(args, '--apply'),
@@ -63,7 +71,7 @@ export function parseCourseEvidenceBackfillOptions(argv: string[]): CourseEviden
     refreshCache: readFlag(args, '--refresh-cache'),
     operationId: readStringValue(args, '--operation-id'),
     authorizedBy: readStringValue(args, '--authorize'),
-    frozenCutoff: readStringValue(args, '--frozen-cutoff'),
+    frozenCutoff,
     filters,
   };
 }

@@ -500,6 +500,10 @@ describe('course evidence backfill', () => {
     expect(first.receipt.status).toBe('applied');
     expect(second.receipt.status).toBe('resumed');
     expect(db.studentStepResponse.update).not.toHaveBeenCalled();
+    await expect(applyCourseEvidenceBackfillPlan(db as never, {
+      ...plan,
+      filters: { to: new Date('2026-05-22T00:00:00.000Z') },
+    }, auth, store)).rejects.toThrow('plan-exceeds-frozen-cutoff');
   });
 
   it('supplements matching facts when response evidence is already manifest-enriched', () => {

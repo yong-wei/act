@@ -1,3 +1,6 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+
 import { sha256Canonical } from '@/features/learning-record/event-contract/digest';
 import {
   assertExplicitHistoricalApply,
@@ -10,6 +13,19 @@ import {
   type BackfillTerminalReceipt,
 } from './types';
 
+export const BACKFILL_RECEIPT_DIR = 'artifacts/learning-record/backfill-receipts';
+
+function jsonSafe(value: unknown): unknown {
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(jsonSafe);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, nested]) => [key, jsonSafe(nested)]),
+    );
+  }
+  return value;
+}
+
 export function computeBackfillInputDigest(input: {
   lane: string;
   frozenCutoff: string;
@@ -20,8 +36,29 @@ export function computeBackfillInputDigest(input: {
     lane: input.lane,
     frozenCutoff: input.frozenCutoff,
     captureRevision: input.captureRevision ?? '',
-    scope: input.scope ?? null,
+    scope: jsonSafe(input.scope ?? null),
   });
+}
+
+function receiptFile(directory: string, operationId: string): string {
+  if (!/^[A-Za-z0-9._-]+$/.test(operationId)) {
+    throw new BackfillLaneError('input-drift', `unsafe backfill operation id: ${operationId}`);
+  }
+  return path.join(directory, `${operationId}.json`);
+}
+
+export function createFileReceiptStore(directory = BACKFILL_RECEIPT_DIR): BackfillReceiptStore {
+  mkdirSync(directory, { recursive: true });
+  return {
+    get(operationId) {
+      const file = receiptFile(directory, operationId);
+      if (!existsSync(file)) return undefined;
+      return JSON.parse(readFileSync(file, 'utf8')) as BackfillTerminalReceipt;
+    },
+    put(receipt) {
+      writeFileSync(receiptFile(directory, receipt.operationId), `${JSON.stringify(receipt)}\n`);
+    },
+  };
 }
 
 export function buildBackfillTerminalReceipt(

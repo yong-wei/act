@@ -17,6 +17,7 @@ import {
   type InteractiveRuntimeManifest,
 } from '@/lib/interactive-lesson-manifest';
 import { parseCourseEvidenceBackfillOptions } from './course-evidence-backfill-options';
+import { createFileReceiptStore } from '@/features/learning-record/backfill-lane/public-api';
 
 const prisma = createPrismaClient();
 
@@ -102,6 +103,7 @@ function printTextReport(
     console.log('');
     console.log(`Updated StudentStepResponse rows: ${applyResult.responseRowsUpdated}`);
     console.log(`Updated LearningFact rows: ${applyResult.factRowsUpdated}`);
+    console.log(`Receipt: ${applyResult.receipt.status} ${applyResult.receipt.operationId} ${applyResult.receipt.inputDigest}`);
   }
 
   if (reportResult) {
@@ -128,11 +130,16 @@ async function main() {
     manifestsByLessonKey,
   });
   const applyResult = options.apply
-    ? await applyCourseEvidenceBackfillPlan(prisma, plan, {
-      operationId: options.operationId ?? '',
-      authorizedBy: options.authorizedBy ?? '',
-      frozenCutoff: options.frozenCutoff ?? '',
-    })
+    ? await applyCourseEvidenceBackfillPlan(
+      prisma,
+      plan,
+      {
+        operationId: options.operationId ?? '',
+        authorizedBy: options.authorizedBy ?? '',
+        frozenCutoff: options.frozenCutoff ?? '',
+      },
+      createFileReceiptStore(),
+    )
     : null;
   const reportResult = options.apply && options.regenerateReports
     ? await regenerateCourseEvidenceReports(prisma, plan.affectedSessionIds)

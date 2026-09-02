@@ -892,10 +892,21 @@ export async function applyCourseEvidenceBackfillPlan(
   authorization: HistoricalApplyAuthorization,
   store?: BackfillReceiptStore,
 ): Promise<CourseEvidenceBackfillApplyResult> {
+  const cutoff = Date.parse(authorization.frozenCutoff);
+  if (!Number.isFinite(cutoff)) {
+    throw new Error('frozen-cutoff-invalid');
+  }
+  if (plan.filters.to && plan.filters.to.getTime() > cutoff) {
+    throw new Error('plan-exceeds-frozen-cutoff');
+  }
   const inputDigest = computeBackfillInputDigest({
     lane: 'course-evidence',
     frozenCutoff: authorization.frozenCutoff,
-    scope: plan.filters,
+    scope: {
+      filters: plan.filters,
+      responseIds: plan.responseActions.map((action) => action.responseId).sort(),
+      factIds: plan.factActions.map((action) => action.factId).sort(),
+    },
   });
   const { auth, existing } = beginAuthorizedBackfillApply(authorization, inputDigest, store);
   if (existing?.status === 'applied' || existing?.status === 'resumed') {

@@ -38,6 +38,15 @@ describe('parseCourseEvidenceBackfillOptions', () => {
     });
   });
 
+  it('uses frozen cutoff as the query upper bound', () => {
+    expect(parseCourseEvidenceBackfillOptions([
+      'node',
+      'backfill-course-evidence-and-reporting.ts',
+      '--to=2026-05-21T00:00:00.000Z',
+      '--frozen-cutoff=2026-05-20T00:00:00.000Z',
+    ]).filters.to).toEqual(new Date('2026-05-20T00:00:00.000Z'));
+  });
+
   it('runs without mutations unless apply is explicit', () => {
     expect(parseCourseEvidenceBackfillOptions([
       'node',

@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { WriteBoundaryError } from '@/features/learning-record/write-boundary/public-api';
@@ -10,6 +12,7 @@ import {
   assertOrdinaryBackfillDoesNotPublishCurrent,
   beginAuthorizedBackfillApply,
   computeBackfillInputDigest,
+  createFileReceiptStore,
   rejectOnlineBackfillFallback,
   type BackfillReceiptStore,
   type BackfillTerminalReceipt,
@@ -65,6 +68,31 @@ describe('Learning Record backfill lane', () => {
       frozenCutoff: drifted.frozenCutoff,
       scope: { sessionIds: ['session-a'] },
     }), store)).toThrow(BackfillLaneError);
+    expect(computeBackfillInputDigest({
+      lane: 'course-evidence',
+      frozenCutoff: auth.frozenCutoff,
+      scope: { filters: { to: new Date('2026-05-20T00:00:00.000Z') } },
+    })).not.toBe(computeBackfillInputDigest({
+      lane: 'course-evidence',
+      frozenCutoff: auth.frozenCutoff,
+      scope: { filters: { to: new Date('2026-05-21T00:00:00.000Z') } },
+    }));
+    const dir = mkdtempSync(path.join(tmpdir(), 'backfill-receipt-'));
+    const files = createFileReceiptStore(dir);
+    files.put({
+      ...auth,
+      lane: 'course-evidence',
+      mode: 'apply',
+      captureRevision: '',
+      inputDigest: digest,
+      status: 'applied',
+      outcomes: { accepted: 1 },
+      factsCreated: 0,
+      factsUpdated: 1,
+      currentPointerMoved: false,
+    });
+    expect(files.get('op-1')?.inputDigest).toBe(digest);
+    expect(readFileSync(path.join(dir, 'op-1.json'), 'utf8')).toContain(digest);
   });
 
   it('rejects online backfill fallback and proves current ports never import backfill', () => {

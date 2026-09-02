@@ -11,9 +11,11 @@ export {
   listOrdinaryBackfillPaths,
 } from './inventory';
 export {
+  BACKFILL_RECEIPT_DIR,
   beginAuthorizedBackfillApply,
   buildBackfillTerminalReceipt,
   computeBackfillInputDigest,
+  createFileReceiptStore,
   rejectOnlineBackfillFallback,
 } from './operation';
 export {
