@@ -332,6 +332,15 @@ export async function renderBatchAStudent(input: {
     input.sessionId,
     `/interactive-learning/courses/${input.routeSegment}`,
   );
+  if (input.sessionId !== 'demo') {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      redirect(`/interactive-learning/courses/${input.routeSegment}`);
+    }
+    if (isTeacherOrAdminRole(session.user.role)) {
+      redirect(`/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}`);
+    }
+  }
   const runtimeResult = await loadSessionBoundLessonRuntime({
     sessionId: input.sessionId,
     expectedCanonicalId: lesson.canonicalId,

@@ -10,6 +10,12 @@ vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn((href: string) => {
+    throw new Error(`redirect:${href}`);
+  }),
+}));
+
 vi.mock('server-only', () => ({}));
 
 vi.mock('@/lib/course-bundle', () => ({
@@ -138,7 +144,6 @@ describe('interactive student route query boundary', () => {
     for (const route of routes) {
       const mocks = await loadRouteMocks();
 
-      mocks.getServerSession.mockResolvedValueOnce(null);
       const anonymousElement = await renderBatchAStudent({
         routeSegment: route.routeSegment,
         sessionId: 'demo',
@@ -176,6 +181,26 @@ describe('interactive student route query boundary', () => {
       searchParams: { step: 'step-02' },
     })).rejects.toThrow('redirected');
 
+    expect(mocks.loadSessionBoundLessonRuntime).not.toHaveBeenCalled();
+    expect(mocks.getServerSession).not.toHaveBeenCalled();
+  });
+
+  it('sends non-demo anonymous visitors to the lesson entry and teachers to the teacher route', async () => {
+    const mocks = await loadRouteMocks();
+    const { renderBatchAStudent } = await import('../shared/batch-a-classroom-pages');
+
+    mocks.getServerSession.mockResolvedValueOnce(null);
+    await expect(renderBatchAStudent({
+      routeSegment: 'unit-2-2-time-domain-response',
+      sessionId: 'session-1',
+    })).rejects.toThrow('redirect:/interactive-learning/courses/unit-2-2-time-domain-response');
+    expect(mocks.loadSessionBoundLessonRuntime).not.toHaveBeenCalled();
+
+    mocks.getServerSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    await expect(renderBatchAStudent({
+      routeSegment: 'unit-2-2-time-domain-response',
+      sessionId: 'session-1',
+    })).rejects.toThrow('redirect:/interactive-learning/courses/unit-2-2-time-domain-response/teacher/session-1');
     expect(mocks.loadSessionBoundLessonRuntime).not.toHaveBeenCalled();
   });
 });
