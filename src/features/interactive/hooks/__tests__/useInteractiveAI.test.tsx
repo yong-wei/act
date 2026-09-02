@@ -266,6 +266,55 @@ describe('useInteractiveAI governed session', () => {
     expect(JSON.stringify(latest?.error)).not.toContain('Failed to fetch');
   });
 
+  it('classifies an expired server session on conversation creation as auth-required', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        return jsonResponse({ conversations: [] });
+      }
+      if (url === '/api/ai/sessions') {
+        return jsonResponse({ error: 'UNAUTHORIZED' }, { status: 401 });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'ready');
+
+    await expect(act(async () => {
+      await latest?.sendMessage('会话过期时的问题');
+    })).rejects.toThrow('登录状态已失效，请重新登录后再继续。');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'auth-required',
+      message: '登录状态已失效，请重新登录后再继续。',
+    });
+  });
+
+  it('classifies a recovery-list network rejection as network-unavailable instead of session loss', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        throw new TypeError('Failed to fetch');
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'unavailable');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'network-unavailable',
+      message: '网络连接不可用，请检查网络后重试。',
+    });
+    expect(JSON.stringify(latest?.error)).not.toContain('Failed to fetch');
+    expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/sessions')).toBe(false);
+  });
+
   it('keeps the 409 session-isolation recovery semantics with a safe message', async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockImplementation(async (input) => {

@@ -167,6 +167,39 @@ test('interactive course AI panel maps network failure to retry-later without ra
   expect(bodyText).not.toContain('Failed to fetch');
 });
 
+test('interactive course AI panel offers re-login when the server session expired', async ({ context, page }) => {
+  test.setTimeout(120_000);
+  await addStudentSession(context);
+  // 客户端仍认为已登录，但服务端会话过期：会话创建 POST 返回 401。
+  await page.route('**/api/auth/session', (route) => route.fulfill({
+    json: {
+      user: {
+        id: 'interactive-error-student-1870',
+        email: 'interactive-error-student-1870@example.test',
+        name: 'Interactive Error Student',
+        role: 'STUDENT',
+      },
+      expires: new Date(Date.now() + 3600_000).toISOString(),
+    },
+  }));
+  await page.route('**/api/ai/sessions', (route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({ json: { conversations: [] } });
+    }
+    return route.fulfill({ status: 401, json: { error: 'UNAUTHORIZED' } });
+  });
+  await page.goto(COURSE_DEMO_URL, { waitUntil: 'domcontentloaded' });
+
+  await openPanelAndAsk(page, '会话过期时的问题');
+
+  const alert = page.locator('[data-interactive-ai-error="auth-required"]');
+  await expect(alert).toBeVisible();
+  await expect(alert).toContainText('登录状态已失效，请重新登录后再继续。');
+  await expect(alert.getByRole('button', { name: '重新登录' })).toBeVisible();
+  const bodyText = await page.locator('body').innerText();
+  expect(bodyText).not.toContain('UNAUTHORIZED');
+});
+
 test('interactive course AI panel keeps the specialized isolation state with a re-ask action', async ({ context, page }) => {
   test.setTimeout(120_000);
   await addStudentSession(context);

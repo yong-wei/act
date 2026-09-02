@@ -46,7 +46,8 @@ async function ensureInteractiveConversation(pageId: string, resourceTitle: stri
     }),
   });
   if (!created.ok) {
-    throw new KonlingChatFailureError('service-unavailable', '无法建立可恢复的学习对话，请稍后重试。');
+    const bodyText = await created.text().catch(() => '');
+    throw new KonlingChatFailureError(classifyKonlingChatFailure(created.status, bodyText));
   }
   const payload = await created.json() as { id?: string };
   if (typeof payload.id !== 'string' || payload.id.length === 0) {
@@ -95,7 +96,8 @@ export function useInteractiveAI(
     try {
       const listRes = await fetch(interactiveAiListUrl(pageId));
       if (!listRes.ok) {
-        throw new Error('recovery-failed');
+        const bodyText = await listRes.text().catch(() => '');
+        throw new KonlingChatFailureError(classifyKonlingChatFailure(listRes.status, bodyText));
       }
       const list = await listRes.json() as { conversations?: Array<{ id?: string }> };
       const existingId = list.conversations?.[0]?.id;
@@ -107,20 +109,20 @@ export function useInteractiveAI(
       }
       const detailRes = await fetch(`/api/ai/sessions/${existingId}`);
       if (!detailRes.ok) {
-        throw new Error('recovery-failed');
+        const bodyText = await detailRes.text().catch(() => '');
+        throw new KonlingChatFailureError(classifyKonlingChatFailure(detailRes.status, bodyText));
       }
       const detail = await detailRes.json() as { id?: string; messages?: Message[] };
       conversationIdRef.current = typeof detail.id === 'string' ? detail.id : existingId;
       setMessages(mapRecoveredInteractiveAiMessages(detail.messages ?? []));
       setRecoveryStatus('ready');
       setError(null);
-    } catch {
+    } catch (e) {
       conversationIdRef.current = null;
       setRecoveryStatus('unavailable');
-      setError({
-        category: 'conversation-missing',
-        message: '无法恢复学习对话，请重试或返回当前资源。',
-      });
+      setError(e instanceof KonlingChatFailureError
+        ? e.konlingChatFailure
+        : normalizeKonlingChatFailure(e));
     }
   }, [authStatus, isAuthenticated, pageId]);
 
