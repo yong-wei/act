@@ -1,7 +1,7 @@
 import { IDENTITY_SCHEMA, type ControlEngineWasmExport } from './types';
 
 export const CONTROL_ENGINE_IDENTITY_SCHEMA = IDENTITY_SCHEMA;
-export const CONTROL_ENGINE_BUILD_HASH = '19354f032f86f318edd93c9636949b54ac548bd4607c3b4719a6a5cd2952c3d7';
+export const CONTROL_ENGINE_BUILD_HASH = '2a5f9544188c2c2099e75a2e83d0b9d4b7506d12fe12a87866ba53de4064ed04';
 export const CONTROL_ENGINE_EXPORTS: readonly ControlEngineWasmExport[] = [
   'compute_analysis',
   'compute_nonlinear_analysis',

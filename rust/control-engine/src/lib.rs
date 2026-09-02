@@ -17,7 +17,6 @@ pub mod metrics;
 pub mod practice_cruise_live;
 pub mod practice_live;
 pub mod practice_live_platform;
-pub mod simulation;
 pub mod virtual_simulation_runtime;
 
 use crate::analysis::{
