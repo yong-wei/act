@@ -923,9 +923,12 @@ describe('platform UI contracts', () => {
     const entryPages = listSourceFiles('src/features/interactive').filter((relativePath) =>
       relativePath.endsWith('/entry-page.tsx'),
     );
-    const waitingPages = listSourceFiles('src/features/interactive/course-app-routes').filter((relativePath) =>
-      relativePath.endsWith('/waiting.tsx'),
-    );
+    const waitingPages = [
+      ...listSourceFiles('src/features/interactive/course-app-routes').filter((relativePath) =>
+        relativePath.endsWith('/waiting.tsx'),
+      ),
+      'src/features/interactive/shared/batch-a-classroom-pages.tsx',
+    ];
 
     expect(courseEntryShellSource).toContain('<AppShell');
     expect(courseEntryShellSource).toContain('sidebarMode="collapsible"');
@@ -993,7 +996,7 @@ describe('platform UI contracts', () => {
       expect(source, relativePath).not.toContain('PremiumLessonEntryPage');
     }
 
-    expect(waitingPages.length).toBeGreaterThan(20);
+    expect(waitingPages.length).toBeGreaterThan(10);
     for (const relativePath of waitingPages) {
       const source = readSource(relativePath);
       expect(source, relativePath).toContain('TeacherClassroomWaitingRoute');

@@ -141,11 +141,17 @@ function isDefaultExport(node: ts.Node) {
   return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Default);
 }
 
+function isExported(node: ts.Node) {
+  return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export);
+}
+
 function getFunctionBodyForComponent(sourceFile: ts.SourceFile, componentName?: string): ts.ConciseBody | undefined {
+  const exportedFunctions: ts.FunctionDeclaration[] = [];
   for (const statement of sourceFile.statements) {
     if (ts.isFunctionDeclaration(statement)) {
       if (!componentName && isDefaultExport(statement)) return statement.body;
       if (componentName && statement.name?.text === componentName) return statement.body;
+      if (!componentName && isExported(statement) && statement.body) exportedFunctions.push(statement);
     }
 
     if (
@@ -169,6 +175,7 @@ function getFunctionBodyForComponent(sourceFile: ts.SourceFile, componentName?: 
     }
   }
 
+  if (!componentName && exportedFunctions.length === 1) return exportedFunctions[0].body;
   return undefined;
 }
 

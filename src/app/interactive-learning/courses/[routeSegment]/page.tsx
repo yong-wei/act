@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 
+import { renderBatchAEntry } from '@/features/interactive/shared/batch-a-classroom-pages';
 import {
   MANIFEST_COURSE_ENTRY_LOADERS,
   MANIFEST_COURSE_ROUTE_SEGMENTS,
@@ -18,6 +19,8 @@ export default async function ManifestCourseEntryPage({
   params: Promise<{ routeSegment: string }>;
 }) {
   const { routeSegment } = await params;
+  const batchA = await renderBatchAEntry(routeSegment);
+  if (batchA) return batchA;
   const load = MANIFEST_COURSE_ENTRY_LOADERS[routeSegment as keyof typeof MANIFEST_COURSE_ENTRY_LOADERS];
   if (!load) notFound();
   const { default: Page } = await load();

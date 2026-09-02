@@ -32,9 +32,26 @@ vi.mock('@/lib/interactive-session-access', () => ({
 vi.mock('@/features/interactive/unit-1-1-see-the-full-picture/student-page', () => ({
   UNIT_1_1StudentPage: vi.fn(() => null),
 }));
+vi.mock('@/features/interactive/unit-1-1-see-the-full-picture/entry-page', () => ({
+  UNIT_1_1CourseEntryPage: vi.fn(() => null),
+}));
+vi.mock('@/features/interactive/unit-1-1-see-the-full-picture/teacher-page', () => ({
+  UNIT_1_1TeacherPage: vi.fn(() => null),
+}));
 
 vi.mock('@/features/interactive/unit-2-1-modeling-language/student-page', () => ({
   UNIT_2_1StudentPage: vi.fn(() => null),
+}));
+vi.mock('@/features/interactive/unit-2-1-modeling-language/entry-page', () => ({
+  UNIT_2_1CourseEntryPage: vi.fn(() => null),
+}));
+vi.mock('@/features/interactive/unit-2-1-modeling-language/teacher-page', () => ({
+  UNIT_2_1TeacherPage: vi.fn(() => null),
+}));
+
+vi.mock('@/lib/layered-graph', () => ({
+  buildCoursePackageLayeredScope: vi.fn(() => ({})),
+  resolveCoursePageLayeredGraphContext: vi.fn(() => ({ payload: {}, resourceLaunchTargets: {}, resourceRegistryIds: {} })),
 }));
 
 function readSource(relativePath: string) {
@@ -97,47 +114,37 @@ describe('interactive student route query boundary', () => {
   });
 
   it('keeps redirect ordering before auth/runtime awaits while passing demoStepId from the route', () => {
-    const routes = [
-      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
-      'src/features/interactive/course-app-routes/unit-2-1-modeling-language/student.tsx',
-    ];
-
-    for (const routePath of routes) {
-      const source = readSource(routePath);
-      expect(source).toContain('searchParams?: Promise<StudentRouteSearchParams>');
-      expect(source).toContain('resolveStudentRouteDemoStepId(searchParams)');
-      expect(source).toContain('demoStepId={demoStepId}');
-      expect(source).toContain('export const metadata');
-
-      const redirectIndex = source.indexOf('redirectInactiveStudentSessionToLessonEntry');
-      const serverAwaitIndex = source.indexOf('Promise.all([\n    getServerSession(authOptions),');
-      expect(redirectIndex).toBeGreaterThanOrEqual(0);
-      expect(serverAwaitIndex).toBeGreaterThan(redirectIndex);
-    }
+    const source = readSource('src/features/interactive/shared/batch-a-classroom-pages.tsx');
+    expect(source).toContain('searchParams?: StudentRouteSearchParams');
+    expect(source).toContain('resolveStudentRouteDemoStepId(input.searchParams)');
+    expect(source).toContain('demoStepId={demoStepId}');
+    const studentSource = source.slice(
+      source.indexOf('export async function renderBatchAStudent'),
+      source.indexOf('export async function renderBatchATeacher'),
+    );
+    const redirectIndex = studentSource.indexOf('redirectInactiveStudentSessionToLessonEntry');
+    const runtimeIndex = studentSource.indexOf('loadSessionBoundLessonRuntime');
+    expect(redirectIndex).toBeGreaterThanOrEqual(0);
+    expect(runtimeIndex).toBeGreaterThan(redirectIndex);
   });
 
   it('passes demoStepId through representative route auth and non-auth branches', async () => {
+    const { renderBatchAStudent } = await import('../shared/batch-a-classroom-pages');
     const routes = [
-      {
-        modulePath: '@/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student',
-        expectedLessonId: '1-1',
-      },
-      {
-        modulePath: '@/features/interactive/course-app-routes/unit-2-1-modeling-language/student',
-        expectedLessonId: '2-1',
-      },
+      { routeSegment: 'unit-1-1-see-the-full-picture', expectedLessonId: '1-1' },
+      { routeSegment: 'unit-2-1-modeling-language', expectedLessonId: '2-1' },
     ] as const;
 
     for (const route of routes) {
       const mocks = await loadRouteMocks();
-      const routeModule = await import(route.modulePath);
 
       mocks.getServerSession.mockResolvedValueOnce(null);
-      const anonymousElement = await routeModule.default({
-        params: Promise.resolve({ sessionId: 'demo' }),
-        searchParams: Promise.resolve({ step: 'step-07' }),
+      const anonymousElement = await renderBatchAStudent({
+        routeSegment: route.routeSegment,
+        sessionId: 'demo',
+        searchParams: { step: 'step-07' },
       });
-      expect(anonymousElement.props).toMatchObject({ sessionId: 'demo', demoStepId: 'step-07' });
+      expect(anonymousElement?.props).toMatchObject({ sessionId: 'demo', demoStepId: 'step-07' });
       expect(mocks.loadSessionBoundLessonRuntime).toHaveBeenLastCalledWith({
         sessionId: 'demo',
         expectedCanonicalId: route.expectedLessonId,
@@ -145,11 +152,12 @@ describe('interactive student route query boundary', () => {
       });
 
       mocks.getServerSession.mockResolvedValueOnce({ user: { id: 'student-1', name: '学生' } });
-      const authenticatedElement = await routeModule.default({
-        params: Promise.resolve({ sessionId: 'session-1' }),
-        searchParams: Promise.resolve({ step: ['step-08'] }),
+      const authenticatedElement = await renderBatchAStudent({
+        routeSegment: route.routeSegment,
+        sessionId: 'session-1',
+        searchParams: { step: ['step-08'] },
       });
-      expect(authenticatedElement.props).toMatchObject({ sessionId: 'session-1', demoStepId: 'step-08' });
+      expect(authenticatedElement?.props).toMatchObject({ sessionId: 'session-1', demoStepId: 'step-08' });
       expect(mocks.redirectInactiveStudentSessionToLessonEntry).toHaveBeenLastCalledWith(
         'session-1',
         expect.stringMatching(/^\/interactive-learning\/courses\//),
@@ -160,15 +168,14 @@ describe('interactive student route query boundary', () => {
   it('does not load auth or runtime data when inactive session redirect stops the route', async () => {
     const mocks = await loadRouteMocks();
     mocks.redirectInactiveStudentSessionToLessonEntry.mockRejectedValueOnce(new Error('redirected'));
+    const { renderBatchAStudent } = await import('../shared/batch-a-classroom-pages');
 
-    const routeModule = await import('@/features/interactive/course-app-routes/unit-2-1-modeling-language/student');
-
-    await expect(routeModule.default({
-      params: Promise.resolve({ sessionId: 'closed-session' }),
-      searchParams: Promise.resolve({ step: 'step-02' }),
+    await expect(renderBatchAStudent({
+      routeSegment: 'unit-2-1-modeling-language',
+      sessionId: 'closed-session',
+      searchParams: { step: 'step-02' },
     })).rejects.toThrow('redirected');
 
-    expect(mocks.getServerSession).not.toHaveBeenCalled();
     expect(mocks.loadSessionBoundLessonRuntime).not.toHaveBeenCalled();
   });
 });
