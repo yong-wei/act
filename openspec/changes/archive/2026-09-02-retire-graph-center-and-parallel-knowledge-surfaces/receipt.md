@@ -47,7 +47,7 @@ Authority 零改写确认：diff 未触碰 Authority selector、domain shard、A
 
 - Vitest（受影响面）：graph-center 数据层 47、sources、trace 4+route、nav 53、appshell、konling runtime 208、assemble-plan 154+67、admin 合同、entrypoints smoke、arena entry、adaptive center、kaq versioning、SAR review route——全部通过。
 - `rtk npm run typecheck` exit 0；`rtk git diff --check` 干净；`rtk openspec validate retire-graph-center-and-parallel-knowledge-surfaces --type change --strict` 通过。
-- `resource-field-completion-audit.test.ts` 在 dirty worktree 上按 fail-closed 契约拒绝运行（dirty-worktree / inventory-command-set-drift），非回归；干净提交后由 CI/复跑覆盖。
+- `resource-field-completion-audit.test.ts` 的 2 个失败（inventory-command-set-drift 参数校验顺序、core semantic sidecar invariant）在分支基线 `ce5928cf5c` 干净树上同样失败（临时 worktree 对照验证），属既有失败，与本次变更无关。
 
 ## 7. Scope guard
 
