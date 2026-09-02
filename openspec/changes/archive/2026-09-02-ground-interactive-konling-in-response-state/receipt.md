@@ -54,3 +54,13 @@
 3. **会话与课次不可变绑定**：会话 id 仅经班级成员校验可被指向同班其他课次/场次。新增课次锚定：学生的 `StudentState`(stateKey='course') 行必须存在于该会话且 `lessonKey === 当前课次键`（该行由课堂状态写入端持久化，lessonKey 为服务端事实），不匹配 → unresolved，揭示/作答/证据查询全部不生效。回归：跨课 course 行 → unresolved。
 
 测试 12→15（新增三个 P1 回归），guard + runtime 套件 232 通过，typecheck exit 0。
+
+
+## 7. Codex 第二轮四项 P1 修复（不变量重推导：一切输入锚定服务端不可变事实）
+
+1. **整页完整性以提交证据行为权威**：不再用可覆写的 `StudentState.data` 判完整性。`submitted` 要求最新 `StudentStepResponse.responseData.answers`（提交时点不可变记录）覆盖 manifest 全部必答键且每值非空；实时投影仅用于 `in_progress` 判定且不进提示词。回归：部分必答/空串值 + 证据行 → in_progress。
+2. **课次锚定改为不可变 course bundle 绑定**：弃用可被 state API 改写的 `StudentState.lessonKey`，改用现成 `loadSessionBoundLessonRuntime`——`ClassSession.courseBundleRevision`（服务端不可变）经 `verifySessionCourseBundleBinding` 校验、canonicalLessonId 匹配（route-mismatch 拒绝）、legacy/drift/不存在全部 fail-closed 降级 unresolved。回归：legacy/drift → unresolved。
+3. **manifest 从会话绑定的发布修订读取**：`lessonRuntime.interactiveManifest`（release-pinned，绑定模式下经 `binding.resourceHashes.interactiveManifest` sha256 校验），不再读 `process.cwd()` 当前活动 manifest；跨发布切换课堂不会混用修订。
+4. **嵌入式入口接线真实课堂会话**：5 个真实渲染点（unit-2-1/2-2/2-3/2-4/4-1）的 `StepAiAssistant` 新增 `classroomSessionId` prop 并由学生页传入（demo 不传），`pageId` 生成带 `/classroom/<sid>` 后缀使 resolver 生效；unit-1-1 的助手为无渲染点死组件，未接线（receipt 记录）。
+
+测试 14（mock bundle 锚驱动：绑定/legacy/drift/跨课、evidence 完整性含空串、嵌入式路径 grounded、回合迁移、摘要上限）+ guard + hook 41 通过；5 课既有测试 76 通过；typecheck exit 0。

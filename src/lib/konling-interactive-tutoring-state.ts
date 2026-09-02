@@ -1,9 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-
 import { resolveInteractiveLessonRegistryKey } from '@/lib/course-ai-contexts';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
-import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 /**
  * 互动课程控灵的服务端作答状态投影。
@@ -154,6 +151,20 @@ function readLearnerAnswers(courseStateData: unknown, stepId: string): Record<st
   return Object.keys(result).length > 0 ? result : null;
 }
 
+/** 提交证据行的 responseData 顶层 answers（提交时点不可变记录）。 */
+function readEvidenceAnswers(responseData: unknown): Record<string, string> | null {
+  if (typeof responseData !== 'object' || responseData === null) return null;
+  const answers = (responseData as { answers?: unknown }).answers;
+  if (typeof answers !== 'object' || answers === null) return null;
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(answers as Record<string, unknown>)) {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      result[key] = String(value);
+    }
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 function readRevealedStep(teacherSyncData: unknown, stepId: string): boolean {
   if (typeof teacherSyncData !== 'object' || teacherSyncData === null) return false;
   const revealed = (teacherSyncData as { revealedAnswers?: unknown }).revealedAnswers;
@@ -184,42 +195,9 @@ export interface InteractiveTutoringDb {
     findFirst(args: {
       where: { sessionId: string; userId: string; lessonKey: string; stepId: string };
       orderBy: { submittedAt: 'desc' };
-      select: { id: true };
-    }): Promise<{ id: string } | null>;
+      select: { responseData: true };
+    }): Promise<{ responseData: unknown } | null>;
   };
-}
-
-/**
- * 从已发布的 runtime manifest 读取步骤必答键（activityCards + compute.panel
- * responseContractId）。manifest 是不可变发布物，进程内缓存；读取失败返回
- * null，调用方按保守（不开放答案检查）处理。
- */
-export async function loadInteractiveStepRequiredResponseKeys(
-  lessonKey: string,
-  stepId: string,
-): Promise<ReadonlySet<string> | null> {
-  const identity = resolveInteractiveLessonIdentity({ value: lessonKey, kind: 'lessonKey' });
-  if (identity.status !== 'resolved') return null;
-  try {
-    const manifestPath = path.join(
-      process.cwd(),
-      'course-content/runtime/lessons',
-      identity.record.runtimeLessonDir,
-      'interactive-manifest.json',
-    );
-    const raw = await readFile(manifestPath, 'utf8');
-    const manifest = normalizeInteractiveRuntimeManifest(JSON.parse(raw));
-    const step = manifest?.steps.find((item) => item.id === stepId) ?? null;
-    if (!step) return null;
-    const activityKeys = (step.interactionSpec.activityCards ?? []).map((card) => card.id);
-    const computeKeys = step.modules
-      .filter((module) => module.kind === 'compute.panel')
-      .map((module) => module.payload.responseContractId)
-      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
-    return new Set([...activityKeys, ...computeKeys]);
-  } catch {
-    return null;
-  }
 }
 
 export async function resolveInteractiveTutoringState(
@@ -243,6 +221,20 @@ export async function resolveInteractiveTutoringState(
 
   // 教师预览不产生学生状态；管理员同理，均按 unresolved 降级。
   if (input.role !== 'STUDENT') {
+    return tutoringState('unresolved', null);
+  }
+
+  // 课次与修订锚定：通过课堂绑定的不可变 course bundle 校验会话确实属于
+  // 当前课次，并从该绑定修订读取 manifest（release-pinned + 哈希校验）。
+  // 学生可通过 state API 改写的实时行不作为锚点。
+  const identity = resolveInteractiveLessonIdentity({ value: lessonKey, kind: 'lessonKey' });
+  if (identity.status !== 'resolved') return tutoringState('unresolved', null);
+  const boundRuntime = await loadSessionBoundLessonRuntime({
+    sessionId: input.sessionIdHint,
+    expectedCanonicalId: identity.record.canonicalId,
+    role: 'student',
+  });
+  if (boundRuntime.status !== 'bound') {
     return tutoringState('unresolved', null);
   }
 
@@ -286,27 +278,36 @@ export async function resolveInteractiveTutoringState(
         stepId,
       },
       orderBy: { submittedAt: 'desc' },
-      select: { id: true },
+      select: { responseData: true },
     }),
   ]);
 
-  // 课次绑定锚定：学生的 course 状态行必须存在于该会话并绑定当前课次键，
-  // 防止把会话提示指向同班的其他课次或其他场次课堂。
-  if (!courseStateRow || courseStateRow.lessonKey !== lessonKey) {
-    return tutoringState('unresolved', null);
-  }
+  const manifestStep = boundRuntime.lessonRuntime.interactiveManifest?.steps.find((item) => item.id === stepId) ?? null;
+  const requiredKeys = manifestStep
+    ? new Set([
+        ...(manifestStep.interactionSpec.activityCards ?? []).map((card) => card.id),
+        ...manifestStep.modules
+          .filter((module) => module.kind === 'compute.panel')
+          .map((module) => module.payload.responseContractId)
+          .filter((value): value is string => typeof value === 'string' && value.trim().length > 0),
+      ])
+    : null;
 
-  const learnerAnswers = readLearnerAnswers(courseStateRow.data, stepId);
+  // 完整提交以提交证据行为权威（提交时点的不可变记录）：必答项全部在
+  // evidence answers 中且值非空。可反复覆写的实时投影不参与完整性判定。
+  const evidenceAnswers = readEvidenceAnswers(submittedRow?.responseData);
+  const learnerAnswers = readLearnerAnswers(courseStateRow?.data, stepId);
   const disclosed = readRevealedStep(teacherSyncRow?.data, stepId);
-  const requiredKeys = await loadInteractiveStepRequiredResponseKeys(lessonKey, stepId);
-  // 证据行按卡片粒度生成：只有必答项全部持久化在案时才视为完整提交。
-  const completelySubmitted = Boolean(submittedRow)
-    && requiredKeys !== null
-    && learnerAnswers !== null
-    && [...requiredKeys].every((key) => Object.prototype.hasOwnProperty.call(learnerAnswers, key));
+  const completelySubmitted = requiredKeys !== null
+    && submittedRow !== null
+    && evidenceAnswers !== null
+    && [...requiredKeys].every((key) => {
+      const value = evidenceAnswers[key];
+      return typeof value === 'string' && value.trim().length > 0;
+    });
 
-  if (disclosed) return tutoringState('teacher_disclosed', learnerAnswers);
-  if (completelySubmitted) return tutoringState('submitted', learnerAnswers);
+  if (disclosed) return tutoringState('teacher_disclosed', evidenceAnswers ?? learnerAnswers);
+  if (completelySubmitted) return tutoringState('submitted', evidenceAnswers);
   if (learnerAnswers) return tutoringState('in_progress', learnerAnswers);
   return tutoringState('unanswered', null);
 }

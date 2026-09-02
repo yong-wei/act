@@ -2440,14 +2440,17 @@ export function UNIT_2_1StudentSummaryPanel({
 export function UNIT_2_1StepAiAssistant({
   step,
   onAiEvent,
+  classroomSessionId,
 }: {
   step: UNIT_2_1StepDefinition;
   onAiEvent?: (eventType: string, data?: Record<string, unknown>) => void;
+  classroomSessionId?: string;
 }) {
   const prompts = getAiPrompts(step);
   const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
   const ai = useInteractiveAI({
     config: buildInteractiveAiConfig(step),
+    classroomSessionId,
     contextData: {
       lessonId: '2-1',
       stepId: step.id,

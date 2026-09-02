@@ -305,7 +305,7 @@ export function UNIT_2_1StudentPage({
 
         {step.id === 'step-07' ? (
           <div className="mt-4">
-            <UNIT_2_1StepAiAssistant step={step} onAiEvent={handleAiEvent} />
+            <UNIT_2_1StepAiAssistant step={step} onAiEvent={handleAiEvent} classroomSessionId={isDemo ? undefined : sessionId} />
           </div>
         ) : null}
 
