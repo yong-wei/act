@@ -9632,16 +9632,27 @@ export interface KonlingAnswerUnitRecord {
   bound: boolean;
 }
 
+function assignedCitationNumbers(citations: readonly KonlingCitation[]): ReadonlySet<number> {
+  return new Set(
+    citations
+      .map((citation) => citation.displayNumber)
+      .filter((number): number is number => Number.isInteger(number)),
+  );
+}
+
 function isCitationMarkerPosition(
   assistantMessage: string,
   codeRanges: readonly { start: number; end: number }[],
   offset: number,
+  number: number,
+  assignedNumbers: ReadonlySet<number>,
 ): boolean {
   if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
-  // hasAssignedCitation=true keeps the check narrow: only single Latin/Greek
-  // letters and collection nouns read as technical subscripts, so Chinese
-  // prose before a marker still counts as a citation (#1819).
-  return !isTechnicalIndexContext(assistantMessage, offset, true);
+  // Unassigned numbers keep the helper's wide technical-index reading (any
+  // identifier directly before the bracket, e.g. controller[2]); only
+  // server-assigned numbers use the narrow single-letter/collection reading
+  // so Chinese prose before a real citation still counts (#1819).
+  return !isTechnicalIndexContext(assistantMessage, offset, assignedNumbers.has(number));
 }
 
 function scanKonlingAnswerUnits(
@@ -9653,6 +9664,7 @@ function scanKonlingAnswerUnits(
   const units: KonlingAnswerUnitRecord[] = [];
   const marker = /\[(\d+)\]/g;
   const codeRanges = markdownCodeRanges(assistantMessage);
+  const assignedNumbers = assignedCitationNumbers(citations);
   let currentSection: { id: string; title: string } | null = null;
   let lineStart = 0;
   for (const line of assistantMessage.split(/\r?\n/)) {
@@ -9664,12 +9676,17 @@ function scanKonlingAnswerUnits(
           continue;
         }
       }
+      // Fenced/inline code and its fence lines are not substantive answer
+      // units and never require per-unit citations (#1819).
+      if (codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)) {
+        continue;
+      }
       const trimmedUnit = line.replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '').trim();
       if (!trimmedUnit) continue;
       let bound = false;
       for (const match of line.matchAll(marker)) {
         const markerOffset = lineStart + (match.index ?? 0);
-        if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset)) continue;
+        if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset, Number(match[1]), assignedNumbers)) continue;
         const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
         if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
         const unit = line.slice(0, match.index ?? 0)
@@ -9805,12 +9822,12 @@ function collectUnverifiedCitationMarkers(
   const bindableNumbers = new Set(
     citations.filter(isBindableAnswerUnitCitation).map((citation) => citation.displayNumber),
   );
+  const assignedNumbers = assignedCitationNumbers(citations);
   const codeRanges = markdownCodeRanges(assistantMessage);
   const invalid: number[] = [];
   for (const match of assistantMessage.matchAll(/\[(\d+)\]/g)) {
-    const markerOffset = match.index ?? 0;
-    if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset)) continue;
     const number = Number(match[1]);
+    if (!isCitationMarkerPosition(assistantMessage, codeRanges, match.index ?? 0, number, assignedNumbers)) continue;
     if (!bindableNumbers.has(number) && !invalid.includes(number)) {
       invalid.push(number);
     }
@@ -9825,13 +9842,18 @@ export function stripUnverifiedKonlingCitationMarkers(
   const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
   if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
   const invalidSet = new Set(invalidNumbers);
+  const assignedNumbers = assignedCitationNumbers(guard.citations);
   const codeRanges = markdownCodeRanges(assistantMessage);
   return assistantMessage
-    .replace(/ ?\[(\d+)\]/g, (raw, digits: string, offset: number) => (
-      invalidSet.has(Number(digits)) && isCitationMarkerPosition(assistantMessage, codeRanges, offset)
+    .replace(/ ?\[(\d+)\]/g, (raw, digits: string, offset: number) => {
+      if (!invalidSet.has(Number(digits))) return raw;
+      // offset points at the optional leading space; the technical-index
+      // check must see the text right before the bracket itself.
+      const bracketOffset = offset + raw.indexOf('[');
+      return isCitationMarkerPosition(assistantMessage, codeRanges, bracketOffset, Number(digits), assignedNumbers)
         ? ''
-        : raw
-    ))
+        : raw;
+    })
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n');
 }

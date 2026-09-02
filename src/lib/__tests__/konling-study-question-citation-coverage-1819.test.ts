@@ -346,7 +346,7 @@ describe('issue #1819 answer-unit citation coverage', () => {
       '**故障定位**',
       '控制台输出 items[0] 为 undefined。',
       '**可能原因**',
-      '数组越界。',
+      '数组越界，先检查 controller[9] 的初值。',
       '```ts',
       'const first = state[2]; // [9] 不是引用',
       '```',
@@ -362,8 +362,36 @@ describe('issue #1819 answer-unit citation coverage', () => {
     const stripped = stripUnverifiedKonlingCitationMarkers(answer, guard);
     expect(stripped).toContain('items[0]');
     expect(stripped).toContain('[9]');
+    expect(stripped).toContain('controller[9]');
     expect(stripped).toContain('加长度检查');
     expect(stripped).not.toContain('加长度检查 [2]');
     expect(stripped).toContain('state[2]');
+  });
+
+  it('excludes fenced code lines from answer-unit coverage statistics', () => {
+    const answer = [
+      '**故障定位**',
+      '超调持续增大。',
+      '**可能原因**',
+      '积分项没有限幅。',
+      '**最小修复**',
+      '加抗饱和 [1]。',
+      '```ts',
+      'output = clamp(pid.compute(err), -limit, limit);',
+      '```',
+      '**验证方法**',
+      '看阶跃超调是否回落。',
+    ].join('\n');
+    const { guard } = guardFor('code-debugging', answer);
+
+    expect(guard.answerUnits?.length).toBe(1);
+    const fixSection = guard.answerUnitCoverage?.sections.find(
+      (section) => section.sectionId === 'fix',
+    );
+    expect(fixSection?.covered).toBe(true);
+    expect(guard.answerUnitCoverage?.requiredCount).toBe(1);
+    expect(guard.answerUnitCoverage?.coveredCount).toBe(1);
+    expect(guard.answerUnitCoverage?.ratio).toBe(1);
+    expect(guard.lowConfidenceReasons).not.toContain('answer-unit-citation-missing:fix');
   });
 });
