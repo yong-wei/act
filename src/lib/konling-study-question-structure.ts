@@ -13,45 +13,72 @@ export type StudyQuestionSection = {
   id: string;
   title: string;
   aliases: readonly string[];
+  citationPolicy: 'evidence-required' | 'model-derived';
 };
 
 export const STUDY_QUESTION_SECTIONS: Record<StudyQuestionIntent, readonly StudyQuestionSection[]> = {
   'formula-derivation': [
-    { id: 'assumptions', title: '前提与符号', aliases: ['假设与符号', '符号定义', '已知条件'] },
-    { id: 'transform', title: '关键变形', aliases: ['推导步骤', '关键步骤', '主要变形'] },
-    { id: 'applicability', title: '适用条件', aliases: ['成立条件', '使用条件'] },
-    { id: 'check', title: '结果校验', aliases: ['结果检验', '核对'] },
+    { id: 'assumptions', title: '前提与符号', aliases: ['假设与符号', '符号定义', '已知条件'], citationPolicy: 'evidence-required' },
+    { id: 'transform', title: '关键变形', aliases: ['推导步骤', '关键步骤', '主要变形'], citationPolicy: 'model-derived' },
+    { id: 'applicability', title: '适用条件', aliases: ['成立条件', '使用条件'], citationPolicy: 'evidence-required' },
+    { id: 'check', title: '结果校验', aliases: ['结果检验', '核对'], citationPolicy: 'model-derived' },
   ],
   'code-debugging': [
-    { id: 'locate', title: '故障定位', aliases: ['问题定位', '现象'] },
-    { id: 'cause', title: '原因', aliases: ['可能原因', '根因'] },
-    { id: 'fix', title: '最小修复', aliases: ['修复建议', '改法'] },
-    { id: 'verify', title: '验证方法', aliases: ['如何验证', '检验方法'] },
+    { id: 'locate', title: '故障定位', aliases: ['问题定位', '现象'], citationPolicy: 'model-derived' },
+    { id: 'cause', title: '原因', aliases: ['可能原因', '根因'], citationPolicy: 'model-derived' },
+    { id: 'fix', title: '最小修复', aliases: ['修复建议', '改法'], citationPolicy: 'evidence-required' },
+    { id: 'verify', title: '验证方法', aliases: ['如何验证', '检验方法'], citationPolicy: 'model-derived' },
   ],
   'concept-comparison': [
-    { id: 'dimensions', title: '判别维度', aliases: ['比较维度', '从哪几方面看'] },
-    { id: 'difference', title: '联系与差异', aliases: ['相同与不同', '主要差别'] },
-    { id: 'boundary', title: '边界或反例', aliases: ['适用边界', '反例'] },
+    { id: 'dimensions', title: '判别维度', aliases: ['比较维度', '从哪几方面看'], citationPolicy: 'evidence-required' },
+    { id: 'difference', title: '联系与差异', aliases: ['相同与不同', '主要差别'], citationPolicy: 'evidence-required' },
+    { id: 'boundary', title: '边界或反例', aliases: ['适用边界', '反例'], citationPolicy: 'model-derived' },
   ],
   'normative-content': [
-    { id: 'scope', title: '适用范围', aliases: ['适用对象', '覆盖范围'] },
-    { id: 'rule', title: '规范结论', aliases: ['规定结论', '规范要求'] },
-    { id: 'source', title: '核验来源', aliases: ['依据来源', '核验说明'] },
+    { id: 'scope', title: '适用范围', aliases: ['适用对象', '覆盖范围'], citationPolicy: 'evidence-required' },
+    { id: 'rule', title: '规范结论', aliases: ['规定结论', '规范要求'], citationPolicy: 'evidence-required' },
+    { id: 'source', title: '核验来源', aliases: ['依据来源', '核验说明'], citationPolicy: 'evidence-required' },
   ],
   'open-ended-explanation': [
-    { id: 'claim', title: '核心结论', aliases: ['要点', '结论'] },
-    { id: 'explain', title: '定制化讲解', aliases: ['展开讲解', '换一种说法'] },
-    { id: 'limit', title: '适用边界', aliases: ['使用边界', '局限'] },
+    { id: 'claim', title: '核心结论', aliases: ['要点', '结论'], citationPolicy: 'evidence-required' },
+    { id: 'explain', title: '定制化讲解', aliases: ['展开讲解', '换一种说法'], citationPolicy: 'model-derived' },
+    { id: 'limit', title: '适用边界', aliases: ['使用边界', '局限'], citationPolicy: 'evidence-required' },
   ],
   'fact-explanation': [
-    { id: 'claim', title: '核心结论', aliases: ['定义', '要点'] },
-    { id: 'explain', title: '解释', aliases: ['含义说明', '进一步说明'] },
-    { id: 'limit', title: '适用边界', aliases: ['使用边界', '注意'] },
+    { id: 'claim', title: '核心结论', aliases: ['定义', '要点'], citationPolicy: 'evidence-required' },
+    { id: 'explain', title: '解释', aliases: ['含义说明', '进一步说明'], citationPolicy: 'model-derived' },
+    { id: 'limit', title: '适用边界', aliases: ['使用边界', '注意'], citationPolicy: 'evidence-required' },
   ],
 };
 
 export function studyQuestionSectionTitles(intent: StudyQuestionIntent): string[] {
   return STUDY_QUESTION_SECTIONS[intent].map((section) => section.title);
+}
+
+export function isStudyQuestionIntent(value: unknown): value is StudyQuestionIntent {
+  return (STUDY_QUESTION_INTENTS as readonly string[]).includes(String(value));
+}
+
+export function evidenceRequiredStudyQuestionSections(
+  intent: StudyQuestionIntent,
+): readonly StudyQuestionSection[] {
+  return STUDY_QUESTION_SECTIONS[intent].filter((section) => section.citationPolicy === 'evidence-required');
+}
+
+export function findStudyQuestionSection(
+  intent: StudyQuestionIntent,
+  sectionId: string,
+): StudyQuestionSection | null {
+  return STUDY_QUESTION_SECTIONS[intent].find((section) => section.id === sectionId) ?? null;
+}
+
+export function detectStudyQuestionSectionHeading(
+  line: string,
+  intent: StudyQuestionIntent,
+): StudyQuestionSection | null {
+  const heading = readHeading(line, STUDY_QUESTION_SECTIONS[intent]);
+  if (!heading) return null;
+  return STUDY_QUESTION_SECTIONS[intent].find((section) => headingMatchesSection(heading, section)) ?? null;
 }
 
 function normalizeHeading(value: string): string {

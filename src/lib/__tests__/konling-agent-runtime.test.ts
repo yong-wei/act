@@ -15244,17 +15244,34 @@ describe('konling agent runtime', () => {
     expect(prompt).not.toContain('content:unverified:related');
 
     const guarded = buildKonlingCitationGuard(runtime, [
-      '关键变形：分母为 1 + G(s)H(s) [1]',
+      '## 前提与符号',
+      'G(s) 为开环传递函数，H(s) 为反馈 [1]',
+      '## 关键变形',
+      '分母为 1 + G(s)H(s) [1]',
       '不应绑定的相关结论 [2]',
       '伪造来源 [99]',
     ].join('\n'));
 
     expect(guarded.answerUnits).toEqual([{
-      unit: '关键变形：分母为 1 + G(s)H(s)',
+      unit: 'G(s) 为开环传递函数，H(s) 为反馈',
       citationId: 'content:formula:derivation',
       citationTargetId: 'formula:derivation',
       limitation: null,
+      sectionId: 'assumptions',
+      sectionTitle: '前提与符号',
+    }, {
+      unit: '分母为 1 + G(s)H(s)',
+      citationId: 'content:formula:derivation',
+      citationTargetId: 'formula:derivation',
+      limitation: null,
+      sectionId: 'transform',
+      sectionTitle: '关键变形',
     }]);
+    expect(guarded.answerUnitCoverage?.requiredCount).toBe(1);
+    expect(guarded.answerUnitCoverage?.coveredCount).toBe(1);
+    expect(guarded.answerUnitCoverage?.ratio).toBe(1);
+    expect(guarded.derivedSectionIds).toEqual(['transform']);
+    expect(guarded.unverifiedCitationMarkers).toEqual([2, 99]);
 
     const missingBinding = buildKonlingCitationGuard(
       runtime,

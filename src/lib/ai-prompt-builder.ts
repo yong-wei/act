@@ -14,6 +14,7 @@ import {
 import {
   buildStudyQuestionOutputContractLines,
   STUDY_QUESTION_INTENTS,
+  STUDY_QUESTION_SECTIONS,
   type StudyQuestionIntent,
 } from './konling-study-question-structure';
 
@@ -487,6 +488,20 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
         lines.push('  - 公式计算工具规则: 当本次回答调用了 calculate 工具时，默认按详细推导步骤输出，逐条展开工具返回的每一步（原始表达式、执行变换、化简结果），补充每步的数学依据与中间变形，并用 LaTeX 呈现；用户明确要求“简洁/概要”时除外。');
       }
       lines.push('  - 每个关键结论、关键推导变形或修复建议后，只能使用可用内容引用的服务器编号 `[n]`；不得编造编号、ID、链接或脚注。');
+      if (studyIntent) {
+        const evidenceTitles = STUDY_QUESTION_SECTIONS[studyIntent]
+          .filter((section) => section.citationPolicy === 'evidence-required')
+          .map((section) => section.title);
+        const derivedTitles = STUDY_QUESTION_SECTIONS[studyIntent]
+          .filter((section) => section.citationPolicy === 'model-derived')
+          .map((section) => section.title);
+        if (evidenceTitles.length) {
+          lines.push(`  - 逐单元引用映射：「${evidenceTitles.join('、')}」各章的每个关键结论行末必须紧跟可用编号 [n]，不得只在段末集中引用。`);
+        }
+        if (derivedTitles.length) {
+          lines.push(`  - 推导章节：「${derivedTitles.join('、')}」按模型推导或教学补充书写，不需逐步重复引用，但不得表述为来源原文。`);
+        }
+      }
       const studyCitationNumbers = runtime.citationContext?.contentCitations
         ?.filter((citation) => citation.verified === true && Boolean(citation.citationTargetId))
         ?.map((citation) => citation.displayNumber)

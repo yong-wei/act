@@ -70,6 +70,7 @@ import {
   mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   serializeKonlingCitationMetadata,
+  stripUnverifiedKonlingCitationMarkers,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
@@ -194,6 +195,9 @@ function buildCitationGuardMetadataPayload(
     personalizationAvailability: citationGuardMetadata.personalizationAvailability,
     studyQuestion: asPrismaJsonValue(citationGuardMetadata.studyQuestion ?? null),
     answerUnits: asPrismaJsonValue(citationGuardMetadata.answerUnits ?? []),
+    answerUnitCoverage: asPrismaJsonValue(citationGuardMetadata.answerUnitCoverage ?? null),
+    derivedSectionIds: asPrismaJsonValue(citationGuardMetadata.derivedSectionIds ?? []),
+    unverifiedCitationMarkers: asPrismaJsonValue(citationGuardMetadata.unverifiedCitationMarkers ?? []),
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map(serializeKonlingCitationMetadata),
@@ -459,6 +463,10 @@ export async function POST(request: Request) {
     let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
     let dualDomainProvenanceMetadataPayload: ReturnType<typeof buildKonlingDualDomainProvenanceMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
+    let buildFinalCitationGuardOutcome: ((
+      assistantContent: string,
+      assignedCitations?: readonly KonlingAssignedCitation[],
+    ) => { guard: ReturnType<typeof buildKonlingCitationGuard>; body: string }) | null = null;
     let getAssignedCitationTable: (() => KonlingAssignedCitation[]) | null = null;
     let getTextbookOptimizations:
       | ReturnType<typeof buildKonlingToolRuntime>['getTextbookOptimizations']
@@ -715,16 +723,24 @@ export async function POST(request: Request) {
       dualDomainProvenanceMetadataPayload = buildKonlingDualDomainProvenanceMetadataPayload(
         modeRuntimeContext,
       );
-      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => {
+      buildFinalCitationGuardOutcome = (
+        assistantContent: string,
+        assignedCitations: readonly KonlingAssignedCitation[] = getAssignedCitationTable?.() ?? [],
+      ) => {
         const finalRuntimeContext = mergeCandidateAssignedCitations(
           modeRuntimeContext,
-          getAssignedCitationTable?.() ?? [],
+          assignedCitations,
         );
-        return buildCitationGuardMetadataPayload(
-          buildKonlingCitationGuard(finalRuntimeContext, assistantContent),
-          citationGuardMetadataContext?.missingContext ?? [],
-        );
+        const guard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent);
+        return {
+          guard,
+          body: stripUnverifiedKonlingCitationMarkers(assistantContent, guard),
+        };
       };
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
+        buildFinalCitationGuardOutcome!(assistantContent).guard,
+        citationGuardMetadataContext?.missingContext ?? [],
+      );
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -1150,7 +1166,12 @@ export async function POST(request: Request) {
                 return parseCitationRepairMappings(repaired.text);
               },
             });
-            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const finalOutcome = buildFinalCitationGuardOutcome!(normalized.body, assignedCitations);
+            const finalAssistantBody = finalOutcome.body;
+            const baseMetadata = buildCitationGuardMetadataPayload(
+              finalOutcome.guard,
+              citationGuardMetadataContext?.missingContext ?? [],
+            );
             const finalCitationMetadata = {
               ...baseMetadata,
               status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
@@ -1192,7 +1213,7 @@ export async function POST(request: Request) {
                   ...completingTurn,
                   assistantMessage: buildPersistedAssistantRevision(
                     messageId,
-                    normalized.body,
+                    finalAssistantBody,
                     metadata,
                   ),
                 });
@@ -1208,7 +1229,7 @@ export async function POST(request: Request) {
               }
             }
             return {
-              body: normalized.body,
+              body: finalAssistantBody,
               citations: normalized.citations,
               status: normalized.verificationStatus,
               userNotice: normalized.userNotice,
@@ -1282,7 +1303,12 @@ export async function POST(request: Request) {
                     return parseCitationRepairMappings(repaired.text);
                   },
             });
-            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const optimizedOutcome = buildFinalCitationGuardOutcome!(normalized.body, finalCitationTable);
+            const optimizedBody = optimizedOutcome.body;
+            const baseMetadata = buildCitationGuardMetadataPayload(
+              optimizedOutcome.guard,
+              citationGuardMetadataContext?.missingContext ?? [],
+            );
             const finalCitationMetadata = {
               ...baseMetadata,
               status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
@@ -1319,7 +1345,7 @@ export async function POST(request: Request) {
                 ownerUserId: session.user.id,
                 assistantMessage: buildPersistedAssistantRevision(
                   messageId,
-                  normalized.body,
+                  optimizedBody,
                   metadata,
                 ),
                 expectedRevision: 1,
@@ -1330,7 +1356,7 @@ export async function POST(request: Request) {
             return {
               messageId,
               revision: 2,
-              body: normalized.body,
+              body: optimizedBody,
               citations: normalized.citations,
               status: normalized.verificationStatus,
               userNotice: normalized.userNotice,

@@ -75,7 +75,22 @@ type KonlingCitationGuardLike = {
     citationId?: string;
     citationTargetId?: string | null;
     limitation?: string | null;
+    sectionId?: string | null;
+    sectionTitle?: string | null;
   }>;
+  answerUnitCoverage?: {
+    intent?: string;
+    sections?: Array<{
+      sectionId?: string;
+      sectionTitle?: string;
+      citationPolicy?: string;
+      covered?: boolean;
+    }>;
+    coveredCount?: number;
+    requiredCount?: number;
+    ratio?: number;
+  } | null;
+  derivedSectionIds?: string[];
 };
 
 export type KonlingCitationPresentationMetadata = {
@@ -101,6 +116,7 @@ type PresentationAnswerUnit = {
   citationTitle: string;
   href: string | null;
   limitation: string | null;
+  sectionTitle: string | null;
 };
 
 export type KonlingCitationPresentation = {
@@ -112,6 +128,8 @@ export type KonlingCitationPresentation = {
   items: PresentationCitation[];
   studyQuestion: NonNullable<KonlingCitationGuardLike['studyQuestion']> | null;
   answerUnits: PresentationAnswerUnit[];
+  answerUnitCoverage: KonlingCitationGuardLike['answerUnitCoverage'];
+  derivedSectionTitles: string[];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -156,6 +174,8 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
     items: [],
     studyQuestion: null,
     answerUnits: [],
+    answerUnitCoverage: null,
+    derivedSectionTitles: [],
   };
 
   const rawCitations = Array.isArray(guard.citations) && guard.citations.length > 0
@@ -190,7 +210,20 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
       : { ...citation, displayIndex: index + 1 }),
     studyQuestion: guard.studyQuestion ?? null,
     answerUnits: normalizeAnswerUnitBindings(guard.answerUnits, citations),
+    answerUnitCoverage: guard.answerUnitCoverage ?? null,
+    derivedSectionTitles: derivedSectionTitles(guard),
   };
+}
+
+function derivedSectionTitles(guard: KonlingCitationGuardLike): string[] {
+  const derivedIds = new Set(Array.isArray(guard.derivedSectionIds) ? guard.derivedSectionIds : []);
+  if (derivedIds.size === 0) return [];
+  const sectionList = Array.isArray(guard.answerUnitCoverage?.sections) ? guard.answerUnitCoverage?.sections : [];
+  const titles = sectionList
+    .filter((section) => derivedIds.has(String(section?.sectionId ?? '')))
+    .map((section) => stringValue(section?.sectionTitle))
+    .filter(Boolean);
+  return derivedIds.size === titles.length ? titles : [...derivedIds];
 }
 
 function normalizeAnswerUnitBindings(
@@ -212,6 +245,7 @@ function normalizeAnswerUnitBindings(
       citationTitle: citation.title,
       href: citation.href,
       limitation: answerUnit.limitation ?? citation.limitation,
+      sectionTitle: stringValue(answerUnit.sectionTitle) || null,
     }];
   });
 }
@@ -552,10 +586,15 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
         <div className="mt-1 text-[11px] text-muted-foreground" data-konling-answer-unit-bindings>
           {presentation.answerUnits.map((answerUnit) => (
             <div key={`${answerUnit.unit}:${answerUnit.citationId}`}>
-              {answerUnit.unit} → {answerUnit.citationTitle}
+              {answerUnit.sectionTitle ? `「${answerUnit.sectionTitle}」` : ''}{answerUnit.unit} → {answerUnit.citationTitle}
               {answerUnit.limitation ? `（${limitationLabel(answerUnit.limitation)}）` : ''}
             </div>
           ))}
+        </div>
+      ) : null}
+      {presentation.derivedSectionTitles.length > 0 ? (
+        <div className="mt-1 text-[11px] text-muted-foreground" data-konling-derived-sections>
+          模型推导章节：{presentation.derivedSectionTitles.join('、')}（推导与教学补充，非来源原文）
         </div>
       ) : null}
       {process.env.NODE_ENV !== 'production' && presentation.summary.diagnostics.length > 0 ? (
