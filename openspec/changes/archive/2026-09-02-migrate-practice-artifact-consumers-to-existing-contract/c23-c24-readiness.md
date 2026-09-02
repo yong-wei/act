@@ -13,7 +13,7 @@ C23 `retire-simulation-arena-workbench-bridge` 与 C24 `retire-arena-legacy-entr
 | Scene/Practice persist 无 identity | `persistSceneTraceSimulationRun` ← `/api/simulation/runs` | 同上 | `projectPracticeOutcomeIdentity` | 不得删除 scene persist | 恢复 persist 提交 |
 | Arena 虚拟预览写入 | `controller-preview.ts` | `practice-lab-run-contract.test.ts` | `projectArenaPreviewIdentity` | 不得删除 server facade | 恢复 preview writer |
 | 虚拟预览路由 | `/api/arena/virtual-simulation-runs` | contract test | `rejectVirtualPreviewRequestBody` | 不得删除路由 | 恢复 route |
-| Replay canonical run | `replay-service.ts` | `arena-replay-service.test.ts` | `projectSimulationRunIdentity` fail-closed | 不得删除 replay/hidden-input | 恢复 replay 提交 |
+| Replay canonical run | `replay-service.ts` | `arena-replay-preview-contract.test.ts` | 校验已持久化 `runContract.identity`（foreign-owner / checksum drift fail-closed） | 不得删除 replay/hidden-input | 恢复 replay 提交 |
 | 浏览器工作台预览旗标 | `workbench-preview.ts`（`'use client'`） | `arena-controller-artifact.test.ts` | `PREVIEW_DISPLAY_BOUNDARY`（`types.ts`，无 hasher） | **retained**：client 不得 import `canonicalIdentityHash`/`node:crypto` | 恢复 display 常量 |
 | `artifact-mappers.ts` | `arena-submit-panel.tsx`、`domain.ts`、`index.ts` | `multi-representation-artifact-mapper.test.ts` | 无；UI→`ControllerArtifact` 参数转换 | **retained**：非 identity mapper；C23/C24 不得当 bridge 删除 | 保留文件 |
 | `artifact-bridge.ts` | 仅 contracts barrel + 测试 | `control-workbench-contracts.test.ts` | 无；draft 成功/失败代数 | **retained**：无 identity 字段 | 保留文件 |

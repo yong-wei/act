@@ -136,8 +136,9 @@ describe('practice lab artifact/run contract', () => {
     expect(preview).toContain('PREVIEW_DISPLAY_BOUNDARY');
     expect(preview).not.toContain('canonicalIdentityHash');
     const replay = readFileSync(path.join(repoRoot, 'src/features/arena/blackbox/replay-service.ts'), 'utf8');
-    expect(replay).toContain('projectSimulationRunIdentity');
+    expect(replay).toContain('assertPersistedArenaPreviewContract');
     expect(replay).toContain('assertPreviewOrPracticeNotOfficial');
+    expect(replay).not.toContain('projectSimulationRunIdentity');
   });
 
   it('keeps sealed identity field order deterministic', () => {
