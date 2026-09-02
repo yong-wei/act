@@ -152,6 +152,9 @@ describe('issue #1816 study-question intent bias', () => {
     expect(classify('实验报告封面必须写哪些项才算合格？')).toBe('normative-content');
     expect(classify('能不能用船上的舵把超调讲得更直白一点？')).toBe('open-ended-explanation');
     expect(classify('超调量大概表示什么？')).toBe('fact-explanation');
+    expect(classify('这段仿真代码运行错误，应该怎样修复？')).toBe('code-debugging');
+    expect(classify('闭环系统为什么是稳定的？')).toBe('open-ended-explanation');
+    expect(classify('怎么得到更小的超调量？')).not.toBe('formula-derivation');
   });
 
   it('meets frozen-set accuracy, macro-F1, and recall gates', () => {

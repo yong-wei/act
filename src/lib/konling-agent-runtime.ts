@@ -1109,13 +1109,17 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
   ])) {
     return 'normative-content';
   }
-  if (includesAny(normalized, [
-    '推导', '证明', '演算', 'derive', 'derivation', 'prove', '一步步得到', '如何得到', '怎么得到',
-  ])) {
+  if (
+    includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove', '一步步得到'])
+    || (
+      includesAny(normalized, ['怎么得到', '如何得到'])
+      && includesAny(normalized, ['传递函数', '特征方程', '控制律', '公式', '离散化', '根轨迹增益', 'bode', 'nyquist', '包围圈'])
+    )
+  ) {
     return 'formula-derivation';
   }
   if (includesAny(normalized, [
-    '报错', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
+    '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
   ])) {
     return 'code-debugging';
   }
@@ -1125,7 +1129,7 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
     return 'concept-comparison';
   }
   if (includesAny(normalized, [
-    '举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in', '生活化例子', '更直白',
+    '举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in', '生活化例子', '更直白', '为什么',
   ])) {
     return 'open-ended-explanation';
   }
