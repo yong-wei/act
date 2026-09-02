@@ -1374,6 +1374,8 @@ export function ActiveAuthorityGraph({
   // 独立可逆的节点类型筛选：集合保存被隐藏的注册类型身份（canonicalType），
   // 与 locale/维度无关，切换筛选不重建模型、坐标或相机（#1742）。
   const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(new Set());
+  // 教学关系层默认可见、独立可逆，便于单独观察工程关系（#1742 review）。
+  const [teachingRelationsVisible, setTeachingRelationsVisible] = useState(true);
   const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
   const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
@@ -1502,6 +1504,7 @@ export function ActiveAuthorityGraph({
     setSelectedNodeKey(null);
     setQuery('');
     setHiddenNodeTypes(new Set());
+    setTeachingRelationsVisible(true);
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1703,19 +1706,21 @@ export function ActiveAuthorityGraph({
       relations: scopedGraph.relations.map((row) => row.sourceRelation),
       crossDomainCanonicalIds: haloIds,
       enabledRelationFamilies: [
-        ...defaultEnabledTeachingFamilies(),
+        ...(teachingRelationsVisible ? defaultEnabledTeachingFamilies() : []),
         ...workspace.enabledFamilies,
       ],
     });
-  }, [scopedGraph, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
+  }, [scopedGraph, teachingRelationsVisible, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
   const overviewDirectoryEntries = useMemo(() => {
     if (!model) return undefined;
     const entries = workspace.domainOverviewIds
       .map((id) => model.nodeByKey.get(id))
       .filter((node): node is NonNullable<typeof node> => node !== undefined)
+      // mobile 大域目录与画布共用同一类型可见性（#1742 review）。
+      .filter((node) => !hiddenNodeTypes.has(node.type.canonicalType))
       .map((node) => ({ id: node.key, label: node.label, mathematics: node.mathematics }));
     return entries.length > 0 ? entries : undefined;
-  }, [model, workspace.domainOverviewIds]);
+  }, [model, hiddenNodeTypes, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
   const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
     ? {
@@ -1741,6 +1746,7 @@ export function ActiveAuthorityGraph({
       // to the newly materialized semantic node or the canvas instead.
       setQuery('');
       setHiddenNodeTypes(new Set());
+      setTeachingRelationsVisible(true);
     }
 
     const object = workspace.objectsByCanonicalId[key];
@@ -1782,6 +1788,10 @@ export function ActiveAuthorityGraph({
     });
   }
 
+  function toggleTeachingRelations() {
+    setTeachingRelationsVisible((visible) => !visible);
+  }
+
   function toggleNodeTypeFilter(canonicalType: string) {
     setHiddenNodeTypes((current) => {
       const next = new Set(current);
@@ -1798,6 +1808,7 @@ export function ActiveAuthorityGraph({
     setSelectedNodeKey(null);
     setQuery('');
     setHiddenNodeTypes(new Set());
+    setTeachingRelationsVisible(true);
   }
   if (returnToRootRef) returnToRootRef.current = resetOverview;
   if (runtimeControlsRef) {
@@ -1914,7 +1925,7 @@ export function ActiveAuthorityGraph({
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
-        <div className="flex min-h-0 flex-1 flex-col pt-12 max-[639px]:pt-14">
+        <div className="flex min-h-0 flex-1 flex-col">
           <p className="sr-only">{graphCopy(locale, 'root.chooseDomain')}</p>
           <ActiveAuthorityRuntimeView
             kind="root"
@@ -1937,7 +1948,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden pt-12 max-[639px]:p-2 max-[639px]:pt-14" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
             <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
               <button
@@ -2005,6 +2016,8 @@ export function ActiveAuthorityGraph({
                   familyFailures={familyFailures}
                   onRetryFamily={enableFamily}
                   teachingCoverageNote={teachingCoverageNote}
+                  teachingRelationsVisible={teachingRelationsVisible}
+                  onToggleTeachingRelations={toggleTeachingRelations}
                 />
               ) : null}
               </div>

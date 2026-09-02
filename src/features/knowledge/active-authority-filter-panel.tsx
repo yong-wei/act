@@ -24,6 +24,9 @@ interface ActiveAuthorityFilterPanelProps {
   onRetryFamily: (family: EngineeringRelationFamily) => void;
   /** 教学关系覆盖状态（不可用/未发布等）；null 表示无说明。 */
   teachingCoverageNote: string | null;
+  /** 教学关系层默认可见、独立可逆（#1742 review）。 */
+  teachingRelationsVisible: boolean;
+  onToggleTeachingRelations: () => void;
 }
 
 // 样本描边与画布 nodeStroke 共用同一 tone 色板，面板样本与画布从不矛盾。
@@ -88,6 +91,8 @@ export function ActiveAuthorityFilterPanel({
   familyFailures,
   onRetryFamily,
   teachingCoverageNote,
+  teachingRelationsVisible,
+  onToggleTeachingRelations,
 }: ActiveAuthorityFilterPanelProps) {
   return (
     <section
@@ -129,16 +134,23 @@ export function ActiveAuthorityFilterPanel({
         className="flex min-w-0 flex-wrap items-center gap-1"
       >
         <span className="mr-0.5 text-[11px] font-semibold text-platform-fg-secondary">{graphCopy(locale, 'filter.relationFamilies')}</span>
-        <span
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={teachingRelationsVisible ? 'true' : 'false'}
+          onClick={onToggleTeachingRelations}
+          className={`inline-flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary ${teachingRelationsVisible
+            ? 'border-sky-300/50 bg-sky-400/10 text-sky-100'
+            : 'border-platform-border text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'}`}
           data-authority-relation-family="teaching-order"
-          className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-sky-300/50 bg-sky-400/10 px-2 py-1.5 text-xs text-sky-100"
+          data-authority-family-enabled={teachingRelationsVisible ? 'true' : 'false'}
         >
           <RelationLineSample family="teaching" />
           {graphCopy(locale, 'filter.teachingOrder')}
           {teachingCoverageNote ? (
             <span data-authority-teaching-coverage="true" className="text-[11px] text-sky-200/80">{teachingCoverageNote}</span>
           ) : null}
-        </span>
+        </button>
         {ENGINEERING_RELATION_FAMILIES.map((family) => {
           const enabled = enabledFamilies.includes(family);
           const failure = familyFailures[family];

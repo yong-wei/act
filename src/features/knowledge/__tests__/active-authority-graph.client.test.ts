@@ -977,7 +977,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     expect(container.querySelector('[data-active-node-detail="node-model"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
+    // #1742 review：筛选/搜索 chrome 移出全局工具栏，挂在独立 chrome 行。
+    expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).toBeNull();
+    expect(container.querySelector('[data-knowledge-workspace-chrome-slot="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
     expect(container.querySelector('[data-knowledge-layout-control="fit-view"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
 
@@ -1377,6 +1379,91 @@ describe('active Authority knowledge workspace client boundary', () => {
       container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]')
         ?.getAttribute('aria-checked'),
     ).toBe('false');
+  });
+
+  it('toggles teaching relations reversibly from the filter panel', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) {
+        return mockResponse(domainDefaultShard(canvas.nodes, [], {
+          teachingRelations: [teachingRelation('teaching-panel', 'node-concept', 'node-model')],
+          teachingCoverage: { status: 'available', relationCount: 1, coreNodeCount: 2, note: '已发布教学顺序' },
+        }));
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+
+    const teachingToggle = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="teaching-order"]');
+    expect(teachingToggle?.getAttribute('aria-checked')).toBe('true');
+    expect(container.querySelector('[data-active-authority-relation="teaching-panel"]')).not.toBeNull();
+
+    // 教学层独立可逆：隐藏后教学边消失，对象与其他关系保持（#1742 review）。
+    await act(async () => teachingToggle!.click());
+    expect(teachingToggle?.getAttribute('aria-checked')).toBe('false');
+    expect(container.querySelector('[data-active-authority-relation="teaching-panel"]')).toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
+
+    await act(async () => teachingToggle!.click());
+    expect(teachingToggle?.getAttribute('aria-checked')).toBe('true');
+    expect(container.querySelector('[data-active-authority-relation="teaching-panel"]')).not.toBeNull();
+  });
+
+  it('keeps the mobile large-domain directory in sync with hidden node types', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    const nodes = [
+      ...Array.from({ length: 50 }, (_, index) => ({
+        id: `large-concept-${index + 1}`,
+        canonicalType: 'DomainConcept',
+        label: `大域概念 ${String(index + 1).padStart(2, '0')}`,
+        aliases: [],
+        description: null,
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        semanticSupport: { supported: true, readOnly: true as const },
+      })),
+      {
+        id: 'large-formula',
+        canonicalType: 'Formula',
+        label: '大域公式',
+        aliases: [],
+        description: null,
+        governance: { reviewStatus: 'approved', publicationStatus: 'published', lifecycleStatus: 'active' },
+        semanticSupport: { supported: true, readOnly: true as const },
+      },
+    ];
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard(nodes));
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
+    await enterModelingDomain({ families: false });
+
+    // 超过 compact 阈值的大域保持可浏览目录（#1739），且目录与画布共用
+    // 类型可见性：隐藏 DomainConcept 后目录只列未隐藏类型（#1742 review）。
+    const directory = container.querySelector('[data-active-authority-node-directory="visible"]');
+    expect(directory).not.toBeNull();
+    expect(directory?.querySelector('[data-active-authority-node="large-concept-1"]')).not.toBeNull();
+
+    // 面板在 compact 折叠抽屉内，先展开再切换类型。
+    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+    await act(async () => mobileToolsToggle!.click());
+    const conceptToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="DomainConcept"]');
+    await act(async () => conceptToggle!.click());
+    const filteredDirectory = container.querySelector('[data-active-authority-node-directory="visible"]');
+    expect(filteredDirectory?.querySelector('[data-active-authority-node="large-concept-1"]')).toBeNull();
+    expect(filteredDirectory?.querySelector('[data-active-authority-node="large-formula"]')).not.toBeNull();
   });
 
   it('keeps the compact tools drawer focus-trapped and restores focus on close', async () => {
@@ -1948,7 +2035,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelectorAll('[data-active-authority-node]').length).toBeLessThanOrEqual(6);
 
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
-    expect(graphSource).toContain('max-[639px]:pt-14');
+    const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
+    // #1742 review：工具栏避让（pt-12/pt-14）由 workspace chrome 行统一承担。
+    expect(workspaceSource).toContain('pt-12 max-[639px]:pt-14');
     expect(graphSource).toContain('max-[639px]:flex-nowrap');
     expect(graphSource).toContain('max-[639px]:overflow-x-auto');
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
