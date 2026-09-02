@@ -133,3 +133,55 @@ The control-engine implementation SHALL keep numerical model ownership in Rust/W
 - **THEN** the facade SHALL return a bounded failure or invalid result state
 - **AND** it SHALL NOT coerce the value to a guessed finite number.
 
+### Requirement: Control-engine analysis and controllers have independent internal ownership
+The Rust control-engine SHALL keep analysis and controller implementation responsibilities in independently testable internal modules, while `lib.rs` remains the stable facade-facing decode, dispatch and export boundary. Internal modularization SHALL remove the original implementation from the root module rather than adding a wrapper chain.
+
+#### Scenario: Analysis implementation is reorganized
+- **WHEN** an analysis function moves from `lib.rs` into the analysis module
+- **THEN** supported request/response JSON, model ids, units, errors, non-finite rejection and declared tolerance SHALL remain unchanged
+- **AND** the facade SHALL call the module directly without a second numerical implementation.
+
+#### Scenario: Controller implementation is reorganized
+- **WHEN** PID or structure-controller application moves into the controller module
+- **THEN** parameter bounds, hard constraints, units and controller output semantics SHALL remain unchanged
+- **AND** the old root implementation and redundant forwarding wrapper SHALL be removed.
+
+### Requirement: Analysis/controller modularization preserves the existing WASM facade
+Internal module changes SHALL preserve the existing generated WASM export names, versioned client/worker/server facade contract and runtime identity. A public ABI or Artifact/Run contract change SHALL require a separate versioned change.
+
+#### Scenario: Facade requests a supported analysis
+- **WHEN** the client, worker or server facade submits an existing analysis/controller request
+- **THEN** the request SHALL resolve through the same supported capability and result envelope
+- **AND** no consumer SHALL import generated modules directly or use a TypeScript numerical fallback.
+
+#### Scenario: Non-finite or invalid controller input occurs
+- **WHEN** analysis/controller input violates an existing numerical boundary or produces a non-finite value
+- **THEN** the same bounded error/invalid result SHALL be returned
+- **AND** the modularization SHALL not coerce, default or silently accept it.
+
+### Requirement: Control-engine simulation and metrics have independent internal ownership
+The Rust control-engine SHALL keep simulation state stepping/trace assembly and metrics derivation in independently testable internal modules, while `lib.rs` remains the facade-facing decode, dispatch and export boundary. Moduleization SHALL remove the original implementation from the root module and SHALL NOT add a forwarding wrapper chain.
+
+#### Scenario: Simulation implementation is reorganized
+- **WHEN** an existing simulation model or trace assembly function moves from `lib.rs` into the simulation module
+- **THEN** model ids, fixed-step behavior, units, sample cadence, trace identity and result JSON SHALL remain unchanged
+- **AND** the facade SHALL invoke the module without a TypeScript numerical fallback.
+
+#### Scenario: Metrics implementation is reorganized
+- **WHEN** summary metrics move from `lib.rs` into the metrics module
+- **THEN** metric definitions, ordering, finite-value checks, hard-constraint handling and declared tolerance SHALL remain unchanged
+- **AND** Arena evaluator task scoring SHALL remain outside the shared metrics module.
+
+### Requirement: Simulation/metrics failures remain fail-closed
+Internal moduleization SHALL preserve controlled unavailable/invalid/error behavior for non-finite output, timeout, missing runtime and hard-constraint failure. It SHALL not create empty, zero-filled, stale or heuristic results.
+
+#### Scenario: Simulation runtime is unavailable
+- **WHEN** the WASM runtime is not ready, times out or returns a non-finite value
+- **THEN** the client/worker or server facade SHALL return its existing bounded failure state
+- **AND** no official score, evidence-bearing run, preview persistence or leaderboard result SHALL be derived from the failure.
+
+#### Scenario: Trace and metrics are valid
+- **WHEN** a supported simulation produces a finite trace under the declared fixed-step and sampling contract
+- **THEN** the metrics module SHALL derive the same summary within the declared tolerance
+- **AND** replay/checksum and preview/official visibility identities SHALL remain intact.
+

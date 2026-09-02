@@ -6,7 +6,6 @@ import {
   canReadGraphCenterClassOverlay,
   canReadGraphCenterLearnerOverlay,
 } from '../graph-center';
-import { filterGraphCenterPayload } from '../../../features/graph-center/graph-center-client';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '../../platform-role-navigation';
 import type { AdaptiveLearnerState, MasteryEvidenceReference } from '@/features/personalization/learner-state/public-api';
 import {
@@ -51,14 +50,6 @@ const adminDataGovernanceStatusRouteSource = readFileSync(
 );
 const teacherPrepPacksPageSource = readFileSync(
   join(process.cwd(), 'src/app/teacher/prep-packs/page.tsx'),
-  'utf8',
-);
-const graphCenterPageSource = readFileSync(
-  join(process.cwd(), 'src/app/graph-center/page.tsx'),
-  'utf8',
-);
-const graphCenterClientSource = readFileSync(
-  join(process.cwd(), 'src/features/graph-center/graph-center-client.tsx'),
   'utf8',
 );
 
@@ -501,41 +492,6 @@ describe('graph center payload service', () => {
     ) ?? [];
     expect(new Set(reviewSourceRefs)).toEqual(new Set(['semantic-simulation-gap']));
     expect(associated?.resourceGapSuggestions[0]?.rationale.reason).toContain('ResourceNode governance review');
-  });
-
-  it('keeps SAR associated evidence when the client switches from a root payload to another node', () => {
-    const rootPayload = buildGraphCenterPayload({
-      domain: 'knowledge',
-      viewerRole: 'TEACHER',
-      evidenceCorpus: [
-        ragChunk({
-          id: 'chunk-sar-switch-target-gap',
-          knowledgeNodeRefs: ['跨模型验证比较_4_47006'],
-          resourceId: 'external:sar-switch-target-gap',
-        }),
-      ],
-      sarAssociation: {
-        enabled: true,
-        classId: 'class-1',
-      },
-    });
-    const filtered = filterGraphCenterPayload(rootPayload, {
-      objectiveId: null,
-      portraitDimension: null,
-      selectedNodeId: 'kn:autocontrol:simulation-validation',
-    });
-    const associated = filtered.selectedNode?.associatedEvidence;
-
-    expect(filtered.selectedNode?.node.id).toBe('kn:autocontrol:simulation-validation');
-    expect(associated?.status).toBe('available');
-    expect(associated?.candidateRefs.retrievalChunkIds).toContain('chunk-sar-switch-target-gap');
-    expect(associated?.resourceGapSuggestions).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        ref: 'chunk-sar-switch-target-gap',
-        status: 'suggested',
-        draft: true,
-      }),
-    ]));
   });
 
   it('does not trust raw SAR classId without an authorized class overlay', () => {
@@ -1005,17 +961,6 @@ describe('graph center payload service', () => {
     expect(serialized).not.toContain('chunk-sar-student-covered-resource');
     expect(serialized).not.toContain('learner-1');
     expect(serialized).not.toContain('class-1');
-  });
-
-  it('wires Graph Center SAR associated evidence into the page and detail panel', () => {
-    expect(graphCenterPageSource).toContain('sarAssociation');
-    expect(graphCenterPageSource).toContain('enabled: true');
-    expect(graphCenterPageSource).toContain("session.user.role === 'STUDENT' ? session.user.id : params?.learnerId ?? null");
-    expect(graphCenterPageSource).toContain("session.user.role === 'STUDENT' ? null : params?.classId ?? null");
-    expect(graphCenterClientSource).toContain('payload.selectedNode.associatedEvidence');
-    expect(graphCenterClientSource).toContain('data-graph-center-sar-association="true"');
-    expect(graphCenterClientSource).toContain('data-graph-center-sar-candidate="suggested"');
-    expect(graphCenterClientSource).toContain('建议/草稿');
   });
 
   it('projects textbook runtime search documents into citation-verifiable coverage corpus without raw text', () => {

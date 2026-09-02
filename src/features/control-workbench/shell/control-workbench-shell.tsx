@@ -7,6 +7,7 @@ import { InlineMath } from 'react-katex';
 import { Plus, Settings2, X } from 'lucide-react';
 
 import { AppShell } from '@/components/platform/app-shell';
+import { describeExperienceLaunch } from '@/components/platform/platform-ui-contracts';
 import { AdaptivePathJourneyControlFromRoute } from '@/features/personalization/experience/adaptive-path-journey-control';
 import {
   arenaMethodLabels,
@@ -14,10 +15,6 @@ import {
   formatArenaMetric,
 } from '@/features/arena/display-labels';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
-import {
-  buildWorkbenchExperienceContext,
-  describeExperienceLaunch,
-} from '@/features/simulation-arena-workbench/experience-shell-contracts';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
 import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
@@ -39,7 +36,7 @@ import {
   type WorkbenchObjectGroup,
   type WorkbenchObjectOption,
 } from '../object-selection';
-import { getControlWorkbenchReturnHref } from '../routing';
+import { getControlWorkbenchLaunchKind, getControlWorkbenchReturnHref } from '../routing';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -345,8 +342,8 @@ function ResolvedControlWorkbenchShell({
       return plugin.getAvailability(session).available;
     });
   const showObjectSelector = session.mode === 'explore';
-  const experienceContext = buildWorkbenchExperienceContext(session);
-  const launchDescription = describeExperienceLaunch(experienceContext.launch);
+  const launchKind = getControlWorkbenchLaunchKind(session);
+  const launchDescription = describeExperienceLaunch(launchKind);
   const returnHref = getControlWorkbenchReturnHref(session);
   const missionDataState = 'taskId' in session ? 'available' : 'missing-task-context';
   const evidenceStatus = session.submissionPolicy.officialEvaluationEnabled
@@ -489,7 +486,7 @@ function ResolvedControlWorkbenchShell({
       data-product-design-concept-reference="concept-3-learning-mission-studio"
       data-learning-mission-semantics="objective-task-chain-evidence-next-action"
       data-learning-mission-data-state={missionDataState}
-      data-launch-provenance={experienceContext.launch.kind}
+      data-launch-provenance={launchKind}
       data-return-target={returnHref}
     >
       <section className="border-b border-border/70 bg-card/80 px-6 py-5" data-commercial-workspace-zone="context-strip">

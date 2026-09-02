@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { computeCanonicalReleaseHash } from '../../../../scripts/actkg-release/actkg-canonical-digests';
+import { computeCanonicalReleaseHash } from '@/lib/authoritative-knowledge/canonical-json';
 import { projectionCanonicalJson, projectionSha256 } from '../hash';
 import {
   DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE,

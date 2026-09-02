@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import path from 'node:path';
 
-import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
+import { canonicalJson, sha256 } from './canonical-json';
 
 import { isGlobalCourseCoverageRuntimeSelectorPermitted } from '@/lib/legacy-knowledge-runtime-retirement';
 import { multilingualLabelCountForRelease } from '../actkg-envelope/composite-envelope-registry';

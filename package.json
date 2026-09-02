@@ -90,6 +90,7 @@
     "qualify:micro-tutoring": "tsx ./scripts/data-governance/qualify-micro-tutoring.ts",
     "qualify:micro-tutoring:v2": "tsx ./scripts/data-governance/qualify-micro-tutoring.ts --profile v2",
     "test:portrait-v2-primary-usage-command": "node ./scripts/tests/test-portrait-v2-primary-usage-command.mjs",
+    "test:active-graph-acceptance": "node ./scripts/tests/test-active-graph-migration-acceptance.mjs",
     "test:micro-tutoring-coverage-command": "node ./scripts/tests/test-micro-tutoring-coverage-command.mjs",
     "test:micro-tutoring-qualification-command": "node ./scripts/tests/test-micro-tutoring-qualification-command.mjs",
     "test:micro-tutoring-qualification-postgres": "tsx ./scripts/tests/test-micro-tutoring-qualification-postgres.ts",

@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { canonicalJson, sha256 } from '../../../scripts/actkg-release/authoritative-release';
+import { canonicalJson, sha256 } from '@/lib/authoritative-knowledge/canonical-json';
 
 export const V022_DISPLAY_PROJECTION_CONTRACT = 'actkg-v022-display-projections/1' as const;
 export const V022_AUTHORITY_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.22' as const;

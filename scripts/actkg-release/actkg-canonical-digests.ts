@@ -26,6 +26,10 @@
  */
 import { createHash } from 'node:crypto';
 
+import { computeCanonicalReleaseHash } from '../../src/lib/authoritative-knowledge/canonical-json';
+
+export { computeCanonicalReleaseHash };
+
 export type JsonObject = Record<string, unknown>;
 
 function failCanonical(message: string): never {
@@ -60,13 +64,6 @@ export function actkgCanonicalJson(value: unknown): string {
 
 export function actkgSha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex');
-}
-
-/** ActKG Release self-hash: canonical JSON without the circular release_hash field. */
-export function computeCanonicalReleaseHash(release: JsonObject): string {
-  const normalized = structuredClone(release);
-  delete normalized.release_hash;
-  return actkgSha256(actkgCanonicalJson(normalized));
 }
 
 /**

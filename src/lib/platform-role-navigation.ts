@@ -1920,26 +1920,6 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       },
     ],
   }),
-  primaryRoute({
-    href: '/graph-center',
-    routeFile: 'src/app/graph-center/page.tsx',
-    frame: 'knowledge-data-map',
-    roleScope: ['guest', 'student', 'teacher'],
-    authState: 'public',
-    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'collapsed',
-    visualQaProfile: 'representative',
-    owningChange: 'build-graph-center-readonly-foundation',
-    unifiedUiMigrationOwner: 'build-graph-center-readonly-foundation',
-    dockDisposition: [
-      {
-        component: 'GlobalAIFloatingButton',
-        disposition: 'registered-shared-dock',
-        removalCondition:
-          'Graph center uses AppShell and the shared floating dock instead of introducing a route-local fixed assistant button.',
-      },
-    ],
-  }),
 ] as const;
 
 export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEntry[] = [

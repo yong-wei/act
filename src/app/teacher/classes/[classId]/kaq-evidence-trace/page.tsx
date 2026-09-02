@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { AppShell } from '@/components/platform/app-shell';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import { KaqSarCandidateReview } from '@/features/teacher/kaq-sar-candidate-review';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   loadTeacherKaqEvidenceTracePayloadForUser,
@@ -167,6 +168,7 @@ function TeacherKaqEvidenceTraceSurface({ payload }: { payload: TeacherKaqEviden
                     </div>
                     <p className="mt-1 text-sm text-subtle">{candidate.reason}</p>
                     <p className="mt-2 text-xs text-muted-foreground">{candidate.suggestedFor.join('、')}</p>
+                    <KaqSarCandidateReview payload={payload} candidate={candidate} />
                   </article>
                 ))}
               </div>

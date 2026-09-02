@@ -10,7 +10,7 @@ import {
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
 import { resolveArenaWorkbenchContext } from '@/features/arena/workbench/context';
-import { describeExperienceLaunch } from '@/features/simulation-arena-workbench/experience-shell-contracts';
+import { describeExperienceLaunch } from '@/components/platform/platform-ui-contracts';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { CruiseSimulation } from '../_components/simulation-loaders';
@@ -65,17 +65,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
   }
   const canRenderBlackBoxPanel = Boolean(blackBoxTask) && (!requestedPublicationId || Boolean(publicationContext));
   const launchKind = blackBoxTask ? (publicationContext ? 'official-evaluation' : 'arena-preview') : 'standalone';
-  const launchDescription = describeExperienceLaunch({
-    kind: launchKind,
-    arena: blackBoxTask
-      ? {
-        taskId: blackBoxTask.id,
-        publicationId: publicationContext?.id,
-        classId: publicationContext?.classId,
-        seasonId: publicationContext?.seasonId,
-      }
-      : undefined,
-  });
+  const launchDescription = describeExperienceLaunch(launchKind);
   const blackBoxSubmissions = blackBoxTask && canRenderBlackBoxPanel
     ? await prismaArenaSubmissionStore.listSubmissions({
       taskId: blackBoxTask.id,

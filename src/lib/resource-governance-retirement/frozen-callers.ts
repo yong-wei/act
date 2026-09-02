@@ -84,7 +84,6 @@ export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = 
     { path: 'src/lib/canonical-resource-binding/runtime-projection.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
     { path: 'src/lib/control-correction-resource-seed.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'production', kind: 'import' },
     { path: 'src/lib/data-governance/__tests__/data-completeness-audit.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
-    { path: 'src/lib/data-governance/__tests__/graph-center-client-rendering.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/data-governance/__tests__/graph-center.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/data-governance/__tests__/new-resource-semantic-completeness-gate.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },
     { path: 'src/lib/data-governance/__tests__/sar-projection.test.ts', symbol: 'src/lib/resource-node-registry.ts', callerClass: 'test', kind: 'test' },

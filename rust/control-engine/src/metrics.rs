@@ -1,7 +1,7 @@
 //! Summary and metric derivation boundary.
 //!
-//! Existing analysis metrics remain in `lib.rs`. Arena virtual-preview
-//! aggregates are derived here from the Rust trace.
+//! Arena virtual-preview aggregates are derived here from the Rust trace;
+//! Arena task scoring stays in the server evaluator, not this module.
 
 use crate::constraints::reject_non_finite;
 

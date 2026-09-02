@@ -2,9 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildGraphCenterPayload,
-} from '../graph-center';
+import { buildGraphCenterPayload } from '../graph-center';
+import { buildResourceNodeRegistry } from '../../resource-node-registry';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
@@ -22,7 +21,10 @@ import {
   validateLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
-import { createTeacherKaqEvidenceTracePayload } from '../teacher-kaq-evidence-trace';
+import {
+  buildTeacherKaqSarReviewRequest,
+  createTeacherKaqEvidenceTracePayload,
+} from '../teacher-kaq-evidence-trace';
 import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 
 const teacherTracePageSource = readFileSync(
@@ -35,10 +37,6 @@ const teacherAnalyticsSource = readFileSync(
 );
 const teacherTraceServerSource = readFileSync(
   join(process.cwd(), 'src/lib/data-governance/teacher-kaq-evidence-trace-server.ts'),
-  'utf8',
-);
-const graphCenterPageSource = readFileSync(
-  join(process.cwd(), 'src/app/graph-center/page.tsx'),
   'utf8',
 );
 
@@ -85,9 +83,87 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(payload.candidateResources.length).toBeGreaterThan(0);
     expect(payload.returnLinks.map((link) => link.id)).toEqual(expect.arrayContaining([
       'class-analytics',
-      'graph-center',
+      'knowledge-workspace',
       'resource-governance',
     ]));
+  });
+
+  it('builds SAR review requests for teacher trace candidates with audit payloads', () => {
+    const resourceRegistry = buildResourceNodeRegistry({
+      teachingResources: [
+        {
+          id: 'sar-review-migration-resource',
+          title: 'SAR review migration resource',
+          type: 'TEXT',
+          knowledgeNodeIds: ['串联校正_6_fede5751'],
+        },
+      ],
+    });
+    const graphPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      viewerRole: 'TEACHER',
+      resourceRegistry,
+      sarAssociation: {
+        enabled: true,
+        classId: 'class-1',
+        trustedScope: true,
+      },
+      evidenceCorpus: [
+        teacherVisibleChunk({
+          id: 'chunk-sar-review-migration',
+          classId: 'class-1',
+          knowledgeNodeRefs: ['串联校正_6_fede5751'],
+          redactedSummary: '班级在串联校正参数选择上证据不足。',
+        }),
+        teacherVisibleChunk({
+          id: 'chunk-sar-review-migration-resource',
+          classId: 'class-1',
+          knowledgeNodeRefs: ['串联校正_6_fede5751'],
+          redactedSummary: 'SAR 审查迁移候选资源证据。',
+          resourceId: 'resource:teaching-resource:sar-review-migration-resource',
+        }),
+      ],
+    });
+    const payload = createTeacherKaqEvidenceTracePayload({
+      classInfo: { id: 'class-1', name: '自动控制 1 班' },
+      graphPayload,
+      query: { nodeId: 'kn:autocontrol:controller-correction' },
+    });
+
+    const reviewable = payload.candidateResources.filter((candidate) => candidate.review);
+    expect(reviewable.length).toBeGreaterThan(0);
+
+    const chunkCandidate = reviewable.find((candidate) => candidate.refType === 'retrieval-chunk')
+      ?? reviewable[0];
+    const chunkRequest = buildTeacherKaqSarReviewRequest({
+      payload,
+      candidate: chunkCandidate,
+      decision: 'reject',
+      rationale: '证据不足以支撑该资源缺口。',
+    });
+    expect(chunkRequest).not.toBeNull();
+    expect(chunkRequest?.decision).toBe('reject');
+    expect(chunkRequest?.rationale).toBe('证据不足以支撑该资源缺口。');
+    expect(chunkRequest?.patch).toBeUndefined();
+    expect(chunkRequest?.candidate.target.graphNodeId).toBe('kn:autocontrol:controller-correction');
+    expect(chunkRequest?.candidate.provenance.source).toBe(chunkCandidate.review?.auditPayload.provenance.source);
+
+    const resourceCandidate = reviewable.find((candidate) => candidate.refType === 'resource-node');
+    if (resourceCandidate) {
+      const acceptRequest = buildTeacherKaqSarReviewRequest({
+        payload,
+        candidate: resourceCandidate,
+        decision: 'accept',
+      });
+      expect(acceptRequest?.patch?.planningMetadata.knowledgeCoverage)
+        .toEqual(['kn:autocontrol:controller-correction']);
+      expect(acceptRequest?.rationale).toContain('教师 K/A/Q 证据追踪 SAR accept');
+      expect(acceptRequest?.resourceNodeId).not.toBeNull();
+    }
+
+    const withoutReview = { ...reviewable[0], review: null };
+    expect(buildTeacherKaqSarReviewRequest({ payload, candidate: withoutReview, decision: 'accept' })).toBeNull();
   });
 
   it('does not serialize raw learner answers, private memory, hidden Arena internals, or audit-only refs', () => {
@@ -171,7 +247,7 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(teacherAnalyticsSource).toContain('/kaq-evidence-trace?domain=');
     expect(teacherAnalyticsSource).toContain('resolveGraphCenterTraceDomain');
     expect(teacherTraceServerSource).toContain('trustedScope: true');
-    expect(graphCenterPageSource).not.toContain('trustedScope: true');
+    expect(teacherAnalyticsSource).not.toContain('trustedScope: true');
   });
 });
 
@@ -374,6 +450,7 @@ function teacherVisibleChunk(input: {
   knowledgeNodeRefs: string[];
   redactedSummary: string;
   rawText?: string;
+  resourceId?: string;
 }): LearningEvidenceCorpusChunk {
   const chunk = createLearningEvidenceCorpusChunk({
     id: input.id,
@@ -384,7 +461,7 @@ function teacherVisibleChunk(input: {
       ownerUserId: null,
       classId: input.classId,
       goalId: 'teacher-kaq-evidence-trace',
-      resourceId: input.id,
+      resourceId: input.resourceId ?? input.id,
     },
     spanRef: { kind: 'text-range', start: 0, end: 20, locator: 'teacher-trace' },
     display: {
@@ -398,7 +475,7 @@ function teacherVisibleChunk(input: {
       hash: `${input.id}:hash`,
     },
     resourceProjection: {
-      resourceId: input.id,
+      resourceId: input.resourceId ?? input.id,
       segmentRef: `${input.id}:segment`,
       citationTargetRef: null,
       knowledgeNodeRefs: input.knowledgeNodeRefs,

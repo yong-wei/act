@@ -30,6 +30,13 @@ export type PlatformPrivacyStatus = 'public' | 'classroom' | 'restricted' | 'pri
 export type PlatformReplayStatus = 'ready' | 'partial' | 'stale' | 'missing' | 'unsupported';
 export type PlatformProtocolStatus = 'current' | 'preview' | 'legacy' | 'unsupported' | 'missing';
 export type PlatformEvaluationStatus = 'official' | 'preview' | 'hidden' | 'not-evaluated';
+export type ExperienceLaunchKind =
+  | 'standalone'
+  | 'course-launched'
+  | 'arena-preview'
+  | 'official-evaluation'
+  | 'teacher-review'
+  | 'admin-review';
 export type PlatformReadinessStatus = 'ready' | 'degraded' | 'blocked' | 'not-ready';
 export type PlatformFallbackStatus = 'none' | 'fallback-active' | 'fallback-missing-context' | 'unsupported';
 
@@ -1113,6 +1120,43 @@ export function filterPlatformStatusDetailsForRole(
         value: '受限内容不可在当前界面展示',
       };
     });
+}
+
+const EXPERIENCE_LAUNCH_DESCRIPTIONS = {
+  standalone: {
+    label: '独立探索',
+    visualBoundary: 'standalone',
+    summary: '该体验由独立入口启动，不携带课程或 Arena 官方评价上下文。',
+  },
+  'course-launched': {
+    label: '课程内启动',
+    visualBoundary: 'course',
+    summary: '该体验由 DB BOPPPS 课程资源启动，保留课堂、课次和资源上下文。',
+  },
+  'arena-preview': {
+    label: 'Arena 预览',
+    visualBoundary: 'preview',
+    summary: '该体验用于公开预览或虚拟试运行，不作为官方榜单证据。',
+  },
+  'official-evaluation': {
+    label: '官方评价',
+    visualBoundary: 'official',
+    summary: '该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。',
+  },
+  'teacher-review': {
+    label: '教师复核',
+    visualBoundary: 'review',
+    summary: '该体验由教师复核入口打开，保留课堂、学生与教学证据的角色边界。',
+  },
+  'admin-review': {
+    label: '管理员复核',
+    visualBoundary: 'review',
+    summary: '该体验由管理员复核入口打开，保留审计、策略和受限数据的角色边界。',
+  },
+} as const;
+
+export function describeExperienceLaunch(kind: ExperienceLaunchKind) {
+  return EXPERIENCE_LAUNCH_DESCRIPTIONS[kind];
 }
 
 export function buildPlatformStatusViewModel(

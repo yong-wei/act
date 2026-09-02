@@ -75,8 +75,9 @@
 
 ## 🚀 Next phase
 
-- 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 13 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、并发锁）。fixture 端到端演示通过（首轮注入失败 exit 1 → 续跑 complete exit 0）。typecheck 0 错误、strict 校验通过。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+- 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 18 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、代次目录锁：mkdir 单胜 + 初始化宽限 + 前代复验 + 实例标记 wx 发布）。fixture 端到端演示通过。Codex 六轮 findings 全修复，待最终清场合并。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
+- 2026-09-02：#1743 `verify-active-authority-graph-parity` 进行中（claim 分支已含 #1846 合并）。#1742 已完整闭环（PR #1846 squash merge `b484cffe69`，Issue 已关并标 status:archived；三项 review P2 修复后 head `0220ebbf92` Codex 显式清场）。经验：本机 Prisma client 过期会造成 typecheck 假失败（先 `npx prisma generate`）；`npm run build` 本机失败于 /ai collect（teacher-assignment-review-derivative-storage 字体 URL，预存在债务，待单独跟踪）。
 
 - 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 

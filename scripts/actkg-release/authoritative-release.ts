@@ -1,10 +1,13 @@
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { Prisma, PrismaClient } from '@prisma/client';
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
+
+import { canonicalJson, sha256 } from '../../src/lib/authoritative-knowledge/canonical-json';
+
+export { canonicalJson, sha256 };
 
 // Historical CTKG 0.1 adapter. This module validates and imports only the
 // immutable `root-locus-engineering-v0.1` package against its preserved
@@ -113,26 +116,6 @@ function records(release: JsonObject, key: ReleaseArrayKey): JsonObject[] {
   const value = release[key];
   if (!Array.isArray(value)) fail(`${key} must be an array`);
   return value.map((item, index) => object(item, `${key}[${index}]`));
-}
-
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) fail('canonical JSON cannot contain a non-finite number');
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.entries(value as JsonObject)
-      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
-      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`)
-      .join(',')}}`;
-  }
-  fail('canonical JSON contains an unsupported value');
-}
-
-export function sha256(value: string | Buffer): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function assertRawHash(bytes: Buffer, expected: string, label: string): void {
