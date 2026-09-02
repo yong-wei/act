@@ -1,24 +1,8 @@
 ## ADDED Requirements
 
-### Requirement: Platform composition has one bounded read-model owner
+### Requirement: Platform composition surfaces keep established owners and boundaries
 
-Platform pages, shells, and presentation surfaces SHALL consume a single existing platform composition read-model contract for query-time assembly of domain projections, with no parallel composition authority or copied business truth.
-
-#### Scenario: A platform surface needs multiple domain projections
-
-- **WHEN** an AppShell, role workspace, route, or presentation surface needs bounded data from more than one owner
-- **THEN** it SHALL compose the owner-provided projections through the platform contract
-- **AND** it SHALL preserve each projection's owner and identity rather than merging business facts by field name.
-
-#### Scenario: An owner projection is missing or incompatible
-
-- **WHEN** a required canonical projection is unavailable, stale, unauthorized, or version-incompatible
-- **THEN** the composition SHALL return an explicit unavailable/degraded state
-- **AND** it SHALL not infer or fabricate a replacement from another domain or AI output.
-
-### Requirement: Composition preserves role, revision, provenance, and privacy boundaries
-
-The read model SHALL retain source owner, revision/release/manifest identity, role qualification, and privacy classification for every composed item and SHALL apply server-authorized filtering before client rendering.
+Existing platform composition surfaces (AppShell, role navigation, role workspace shells, platform UI contracts) SHALL retain their established owner boundaries: server-authorized role filtering before client rendering, preserved source owner and revision identity, and no copied business truth.
 
 #### Scenario: Student and teacher request the same surface
 

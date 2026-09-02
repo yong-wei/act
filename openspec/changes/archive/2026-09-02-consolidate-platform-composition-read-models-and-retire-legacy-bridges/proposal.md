@@ -6,7 +6,7 @@
 
 ## What Changes
 
-- 明确唯一的 platform composition read-model owner，统一从既有领域 public/application projections 获取 bounded data，并保留 provenance、revision、role/privacy 和 unavailable 状态。
+- 保持既有 platform composition owners（platform UI contracts、role navigation、AppShell、role workspace shell）为组合面事实源，退役无 authority 的 legacy bridge；统一多领域组合合同（单一入口组合 projection/revision/privacy/unavailable）明确不在本 change 交付范围，由后续 change 承接。
 - 让 AppShell、role workspace shell、知识/资源入口、AI presentation 和教学 surfaces 通过同一只读 composition contract，删除重复 mapper、alias、route-local read model 和 legacy bridge。
 - 保持 Active/Legacy、teacher/student/admin、SSR/R3F、resource/Authority/Teaching Projection 等既有边界；不把组合结果写回任何业务或知识真源。
 - 保留显式的 source/release/manifest/revision identity、权限过滤、失败关闭和缓存/刷新语义；缺失 owner projection 不由平台层猜测补齐。

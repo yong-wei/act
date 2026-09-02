@@ -46,6 +46,10 @@
 
 单 commit revert 恢复 3 个文件与 2 个死导出（`classroom/index.ts` barrel 经复核有 7 处 `@/components/classroom` 导入，保留不删）；无数据、schema、合同或权限变化。
 
+## 范围裁剪（review r2：未交付要求不得进入主规范）
+
+原 spec delta 的 Requirement "Platform composition has one bounded read-model owner"（单一统一组合合同）未在本轮交付，已从 spec delta 移除而非同步为主规范能力；统一组合合同 + knowledge/resource/teaching/AI presentation surface 迁移由后续 change 承接。tasks 2.1–2.3 已按实际交付语义改写（owner 登记 + 零消费者 bridge 退役），归档与主规范一致。
+
 ## 未交付残余（C34+ 前置状态声明）
 
 本轮交付 = 零消费者 legacy bridge/死代码退役 + 既有组合 owner 登记（platform-ui-contracts / platform-role-navigation / app-shell / role-workspace-shell 分立持有各面）。
