@@ -29,6 +29,10 @@ The runner SHALL skip any task key whose completed record already exists in the 
 - **THEN** already completed tasks SHALL NOT be submitted to the external service again
 - **AND** the run SHALL continue from the first unfinished task to completion.
 
+#### Scenario: Concurrent writes to one task key
+- **WHEN** two processes persist a record for the same task key concurrently
+- **THEN** exactly the first writer SHALL win and the second SHALL abandon its write without overwriting the frozen record.
+
 #### Scenario: A failed task is retried
 - **WHEN** a run encounters persisted failure records
 - **THEN** the next run MAY retry each failed task at most once

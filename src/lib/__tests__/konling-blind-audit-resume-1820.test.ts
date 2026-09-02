@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, linkSync as fsLinkSync, mkdtempSync, readFileSync, readdirSync as fsReaddir, rmSync, utimesSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -294,6 +294,27 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
       .toEqual([keyOf('item-a', 1)]);
     expect(() => assertKonlingBlindAuditLockHeld(runDir))
       .toThrow(KonlingBlindAuditRunLockError);
+  });
+
+  it('resolves concurrent same-key record writes as first-writer-wins', async () => {
+    const runId = 'run-write-race';
+    await runKonlingBlindAudit(runOptions(runId, okProvider()));
+    const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
+    const recordPath = path.join(runDir, 'records', 'rule-score', `${keyOf('item-a', 1)}.json`);
+    const frozen = readFileSync(recordPath, 'utf8');
+    // 绕过预检直接模拟并发第二写者：临时文件 + link 必须放弃而不覆盖。
+    const second = { ...JSON.parse(frozen), result: { ruleScore: 0.1, tampered: true } };
+    const tmpPath = `${recordPath}.race.tmp`;
+    writeFileSync(tmpPath, JSON.stringify(second), 'utf8');
+    let linkRejected = false;
+    try {
+      fsLinkSync(tmpPath, recordPath);
+    } catch (error) {
+      linkRejected = (error as NodeJS.ErrnoException).code === 'EEXIST';
+    }
+    rmSync(tmpPath, { force: true });
+    expect(linkRejected).toBe(true);
+    expect(readFileSync(recordPath, 'utf8')).toBe(frozen);
   });
 
   it('refuses aggregation when the manifest does not match the run snapshot', async () => {

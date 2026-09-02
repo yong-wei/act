@@ -212,16 +212,22 @@ export function cleanupTempFiles(runDir: string): void {
   }
 }
 
+/**
+ * 先写者胜的原子落盘：临时文件 + link(2) 发布——目标已存在时 EEXIST
+ * 而非覆盖，并发写同一任务键时只有第一个写入者成功（#1820）。
+ */
 function writeAtomic(targetPath: string, contents: string): boolean {
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
   const tmpPath = `${targetPath}.${randomUUID()}.tmp`;
   fs.writeFileSync(tmpPath, contents, 'utf8');
   try {
-    fs.renameSync(tmpPath, targetPath);
+    fs.linkSync(tmpPath, targetPath);
     return true;
   } catch (error) {
-    fs.rmSync(tmpPath, { force: true });
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
     throw error;
+  } finally {
+    fs.rmSync(tmpPath, { force: true });
   }
 }
 
