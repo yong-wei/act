@@ -1916,6 +1916,9 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     ['pseudo conflict declared', '班级作业与测评整体表现正常，部分学生知识进度长期滞后。', ['作业、测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'], true],
     ['comparable same-cohort conflict', '班级诊断完成。', ['同一批学生（node-06 的 26 名弱势学生）作业高分、测评低分，方向相反，存在证据冲突。'], false],
     ['no conflict declared', '班级整体表现稳定。', ['部分学生知识进度长期滞后。'], false],
+    ['conflict declared in summary only', '班级整体表现正常，但与部分学生知识进度长期滞后存在矛盾。', [], true],
+    ['negated conflict wording', '班级整体表现正常，部分学生知识进度长期滞后。', ['二者学生范围不同、并不矛盾，不构成冲突，分别呈现。'], false],
+    ['independent real conflict not attributed', '班级整体表现正常，部分学生知识进度长期滞后。', ['同一批 node-06 弱势学生作业高分、测评低分，存在来源间冲突。'], false],
   ] as const)('detects %s', (_name, summary, limitations, expected) => {
     expect(detectOverallSubgroupPseudoConflict({ summary, limitations: [...limitations] }).length > 0).toBe(expected);
   });
