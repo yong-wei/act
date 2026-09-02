@@ -45,3 +45,27 @@ Konling SHALL bind material conclusions, derivation transformations, and code re
 #### Scenario: A proposed citation is not server-verified
 - **WHEN** model output contains a citation marker that cannot be mapped to an eligible server-verified citation target
 - **THEN** the marker SHALL NOT become a verified citation link or evidence binding.
+
+### Requirement: Konling maps answer units to citations through governed section policies
+Konling SHALL map every study-question answer section to an evidence-required or model-derived citation policy, bind per-unit citation markers to the section they appear in, and report per-section traceability coverage in citation metadata.
+
+#### Scenario: Evidence-required section carries per-unit citations
+- **WHEN** a study-question answer includes an evidence-required section that is present in the answer
+- **THEN** the citation guard SHALL report whether that section's answer units carry server-verified citations
+- **AND** an uncovered evidence-required section SHALL downgrade the answer confidence with a section-scoped reason.
+
+#### Scenario: Model-derived sections stay distinguishable from source text
+- **WHEN** a study-question answer includes model-derived sections such as derivation transformations or teaching elaborations
+- **THEN** the response metadata SHALL identify those sections as model-derived so they are not presented as source quotations.
+
+#### Scenario: Normative fail-closed answers keep coverage measurement honest
+- **WHEN** a normative-content answer lacks eligible authority evidence and is marked verification-required
+- **THEN** its sections SHALL NOT count toward traceability coverage requirements.
+
+### Requirement: Konling removes invalid citation markers from persisted answers
+Konling SHALL report numeric citation markers that resolve to missing, out-of-range, or unverified citation numbers, and SHALL remove them from the persisted answer body whenever a study-question contract is active.
+
+#### Scenario: An invalid numeric marker appears in the answer
+- **WHEN** model output contains a numeric citation marker that is not a server-assigned, verified, target-bearing citation
+- **THEN** the marker SHALL be listed in citation metadata as unverified
+- **AND** it SHALL be removed from the persisted answer text while valid markers are preserved.

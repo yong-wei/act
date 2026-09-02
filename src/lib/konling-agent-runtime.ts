@@ -68,7 +68,14 @@ import {
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/course-bundle';
-import { studyQuestionSectionTitles } from '@/lib/konling-study-question-structure';
+import {
+  detectStudyQuestionSectionHeading,
+  isStudyQuestionIntent as isKnownStudyQuestionIntent,
+  STUDY_QUESTION_SECTIONS,
+  studyQuestionSectionTitles,
+  type StudyQuestionIntent,
+  type StudyQuestionSection,
+} from '@/lib/konling-study-question-structure';
 import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
@@ -323,6 +330,8 @@ export interface KonlingAnswerUnitCitationBinding {
   citationId: string;
   citationTargetId: string | null;
   limitation: string | null;
+  sectionId?: string | null;
+  sectionTitle?: string | null;
 }
 
 export interface KonlingTeachingAssistantModeContract {
@@ -1786,6 +1795,21 @@ export interface KonlingSourcePackCitationSummary {
   answerRelevanceBases?: string[];
 }
 
+export interface KonlingAnswerUnitCoverageSectionState {
+  sectionId: string;
+  sectionTitle: string;
+  citationPolicy: 'evidence-required' | 'model-derived';
+  covered: boolean;
+}
+
+export interface KonlingAnswerUnitCitationCoverage {
+  intent: string;
+  sections: KonlingAnswerUnitCoverageSectionState[];
+  coveredCount: number;
+  requiredCount: number;
+  ratio: number;
+}
+
 export interface KonlingCitationGuard {
   status: 'verified' | 'low-confidence';
   citations: KonlingCitation[];
@@ -1800,6 +1824,9 @@ export interface KonlingCitationGuard {
   };
   studyQuestion?: KonlingStudyQuestionContract | null;
   answerUnits?: KonlingAnswerUnitCitationBinding[];
+  answerUnitCoverage?: KonlingAnswerUnitCitationCoverage | null;
+  derivedSectionIds?: string[];
+  unverifiedCitationMarkers?: number[];
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
@@ -9441,11 +9468,55 @@ export function buildKonlingCitationGuard(
     ...citationContext.contentCitations,
     ...citationContext.evidenceCitations,
   ];
+  const studyIntent = modeContract?.studyQuestion && isKnownStudyQuestionIntent(modeContract.studyQuestion.intent)
+    ? modeContract.studyQuestion.intent as StudyQuestionIntent
+    : null;
   const answerUnits = assistantMessage === undefined
     ? []
-    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations);
+    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations, studyIntent ?? undefined);
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
+  let answerUnitCoverage: KonlingAnswerUnitCitationCoverage | null = null;
+  let derivedSectionIds: string[] = [];
+  if (studyIntent && assistantMessage !== undefined) {
+    const sectionPresence = detectAnsweredStudyQuestionSections(assistantMessage, studyIntent);
+    derivedSectionIds = sectionPresence
+      .filter((section) => section.present && section.section.citationPolicy === 'model-derived')
+      .map((section) => section.section.id);
+    const normativeFailClosed = modeContract?.studyQuestion?.normativeGuidance === 'verification-required';
+    const coveredBySection = new Set(answerUnits
+      .map((binding) => binding.sectionId)
+      .filter((sectionId): sectionId is string => Boolean(sectionId)));
+    const sections = normativeFailClosed && studyIntent === 'normative-content'
+      ? []
+      : STUDY_QUESTION_SECTIONS[studyIntent].map((section) => ({
+        sectionId: section.id,
+        sectionTitle: section.title,
+        citationPolicy: section.citationPolicy,
+        covered: coveredBySection.has(section.id),
+      }));
+    const applicable = sections.filter((section) => (
+      section.citationPolicy === 'evidence-required'
+      && sectionPresence.some((presence) => presence.section.id === section.sectionId && presence.present)
+    ));
+    const requiredCount = applicable.length;
+    const coveredCount = applicable.filter((section) => section.covered).length;
+    answerUnitCoverage = requiredCount > 0
+      ? {
+        intent: studyIntent,
+        sections,
+        coveredCount,
+        requiredCount,
+        ratio: coveredCount / requiredCount,
+      }
+      : null;
+    for (const uncovered of applicable.filter((section) => !section.covered)) {
+      lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
+    }
+  }
+  const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
+    ? []
+    : collectUnverifiedCitationMarkers(assistantMessage, citations);
   if (modeContract) {
     if (modeContract.status === 'unavailable') {
       lowConfidenceReasons.push(`assistant-mode-unavailable:${modeContract.mode.id}`);
@@ -9536,7 +9607,25 @@ export function buildKonlingCitationGuard(
     ),
     studyQuestion: modeContract?.studyQuestion ?? null,
     answerUnits,
+    answerUnitCoverage,
+    derivedSectionIds,
+    unverifiedCitationMarkers,
   };
+}
+
+function detectAnsweredStudyQuestionSections(
+  assistantMessage: string,
+  intent: StudyQuestionIntent,
+): { section: StudyQuestionSection; present: boolean }[] {
+  const present = new Set<string>();
+  for (const line of assistantMessage.split(/\r?\n/)) {
+    const heading = detectStudyQuestionSectionHeading(line, intent);
+    if (heading) present.add(heading.id);
+  }
+  return STUDY_QUESTION_SECTIONS[intent].map((section) => ({
+    section,
+    present: present.has(section.id),
+  }));
 }
 
 function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
@@ -9546,25 +9635,34 @@ function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
 function buildKonlingAnswerUnitCitationBindings(
   assistantMessage: string,
   citations: readonly KonlingCitation[],
+  intent?: StudyQuestionIntent,
 ): KonlingAnswerUnitCitationBinding[] {
   const bindings: KonlingAnswerUnitCitationBinding[] = [];
   const marker = /\[(\d+)\]/g;
-  for (const match of assistantMessage.matchAll(marker)) {
-    const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
-    if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
-    const markerIndex = match.index ?? 0;
-    const lineStart = assistantMessage.lastIndexOf('\n', markerIndex) + 1;
-    const unit = assistantMessage.slice(lineStart, markerIndex)
-      .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
-      .trim()
-      .slice(0, 180);
-    if (!unit || bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) continue;
-    bindings.push({
-      unit,
-      citationId: citation.id,
-      citationTargetId: citation.citationTargetId,
-      limitation: citation.href ? null : 'unavailable-address',
-    });
+  let currentSection: { id: string; title: string } | null = null;
+  for (const line of assistantMessage.split(/\r?\n/)) {
+    if (intent) {
+      const headingSection = detectStudyQuestionSectionHeading(line, intent);
+      if (headingSection) currentSection = { id: headingSection.id, title: headingSection.title };
+    }
+    for (const match of line.matchAll(marker)) {
+      const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
+      if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
+      const unit = line.slice(0, match.index ?? 0)
+        .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
+        .trim()
+        .slice(0, 180);
+      if (!unit || bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) continue;
+      const section = currentSection;
+      bindings.push({
+        unit,
+        citationId: citation.id,
+        citationTargetId: citation.citationTargetId,
+        limitation: citation.href ? null : 'unavailable-address',
+        sectionId: section?.id ?? null,
+        sectionTitle: section?.title ?? null,
+      });
+    }
   }
   return bindings;
 }
@@ -9670,11 +9768,42 @@ export function buildKonlingStreamingCitationGuard(
   };
 }
 
+function collectUnverifiedCitationMarkers(
+  assistantMessage: string,
+  citations: readonly KonlingCitation[],
+): number[] {
+  const bindableNumbers = new Set(
+    citations.filter(isBindableAnswerUnitCitation).map((citation) => citation.displayNumber),
+  );
+  const invalid: number[] = [];
+  for (const match of assistantMessage.matchAll(/\[(\d+)\]/g)) {
+    const number = Number(match[1]);
+    if (!bindableNumbers.has(number) && !invalid.includes(number)) {
+      invalid.push(number);
+    }
+  }
+  return invalid;
+}
+
+export function stripUnverifiedKonlingCitationMarkers(
+  assistantMessage: string,
+  guard: KonlingCitationGuard,
+): string {
+  const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
+  if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
+  const invalidSet = new Set(invalidNumbers);
+  return assistantMessage
+    .replace(/ ?\[(\d+)\]/g, (raw, digits: string) => (invalidSet.has(Number(digits)) ? '' : raw))
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
 export function applyKonlingCitationFallback(
   assistantMessage: string,
   guard: KonlingCitationGuard,
 ): string {
-  if (!guard.fallbackRequired) return assistantMessage;
+  const sanitizedMessage = stripUnverifiedKonlingCitationMarkers(assistantMessage, guard);
+  if (!guard.fallbackRequired) return sanitizedMessage;
   const limitation = [
     ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
     ...guard.lowConfidenceReasons,
@@ -9683,7 +9812,7 @@ export function applyKonlingCitationFallback(
     .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)
     .join('；');
   return [
-    assistantMessage.trim(),
+    sanitizedMessage.trim(),
     '',
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
     citations ? `可用引用：${citations}` : '',

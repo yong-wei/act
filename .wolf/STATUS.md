@@ -2,13 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-01
+> Last updated: 2026-09-02
 
 ---
 
 ## ✅ Done
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
+
+- 2026-09-02：#1817 在 `act-dev2` 完成。PR #1843 squash 合入 `93d21833ab`；Codex 清场绑定 `506a96d492`；OpenSpec 归档 `unify-konling-study-question-structure-contract`。Issue CLOSED / `status:archived`。未关 #1033，未生产部署。
 
 - 2026-09-01：#1032 已合入 `origin/integration`（PR #1752，merge `2ead59506`）。Next 16.3.4 / Prisma 7.10.0 / Sharp 0.35.4；官方 audit 0 findings。OpenSpec 已归档。已关 #1032/#1035/#291；#1033 仍开。未生产部署。
 
@@ -70,6 +72,8 @@
 ---
 
 ## 🚀 Next phase
+
+- 2026-09-02：#1819 已补映射（issue body marker → `upgrade-konling-traceable-study-qa`）并在 `act-dev2` 认领实现：章节 citationPolicy 映射（evidence-required/model-derived）、guard 按章节绑定回答单元并输出追溯覆盖率、无效/越界 `[n]` 在流式 finalize 与 session 消息两路持久化前清除、推导章节显式标识；提示词写入逐单元引用映射规则。新增 `konling-study-question-citation-coverage-1819.test.ts`（6 用例）并更新既有断言；typecheck tsc 错误清零、openspec strict 校验通过。`konling-session-detail-route` 与 `konling-conversation-library-ui` 各有 1 个基线红（stash 对比确认既有）。待 PR + Codex 清场后收尾。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 

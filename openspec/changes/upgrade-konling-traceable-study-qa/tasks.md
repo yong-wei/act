@@ -13,3 +13,10 @@
 
 - [x] 3.1 Add focused runtime and citation-presentation tests for all study-question contracts, normative evidence downgrade, and invalid evidence markers.
 - [x] 3.2 Run focused tests, scoped TypeScript verification, OpenSpec validation, and the local application; capture contract and rendered citation-panel comparison evidence.
+
+## 4. Answer-unit citation coverage and validation (#1819)
+
+- [x] 4.1 Map every study-question section to an evidence-required or model-derived citation policy and expose the mapping to prompt, guard, and presentation layers.
+- [x] 4.2 Bind per-unit citation markers to their answer section, compute per-section traceability coverage, and downgrade uncovered evidence-required sections with section-scoped reasons.
+- [x] 4.3 Report unverified or out-of-range numeric citation markers and strip them from persisted answer bodies on both streaming and session-message paths.
+- [x] 4.4 Add regression tests covering all six study-question intents, normative fail-closed coverage exemption, derivation labeling, and invalid-marker stripping.
