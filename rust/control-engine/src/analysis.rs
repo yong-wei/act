@@ -6,7 +6,6 @@
 use num_complex::Complex64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use crate::controllers::{StructureSpec, tf_from_structure};
@@ -744,13 +743,12 @@ fn eval_poly_complex(coeffs: &[f64], x: Complex64) -> Complex64 {
     })
 }
 
-fn compare_f64(left: f64, right: f64) -> Ordering {
-    left.total_cmp(&right)
-}
-
 fn sort_complex_points(points: &mut [Complex64]) {
-    points
-        .sort_by(|left, right| compare_f64(left.re, right.re).then(compare_f64(left.im, right.im)));
+    points.sort_by(|left, right| {
+        left.re
+            .total_cmp(&right.re)
+            .then(left.im.total_cmp(&right.im))
+    });
 }
 
 fn poly_derivative(coeffs: &[f64]) -> Vec<f64> {
@@ -826,19 +824,7 @@ fn compute_time_metrics(
         .collect();
 
     if finite_points.is_empty() {
-        return ControlMetrics {
-            overshoot_pct: None,
-            rise_time_sec: None,
-            settling_time_sec: None,
-            peak_time_sec: None,
-            final_value: 0.0,
-            phase_margin_deg: None,
-            gain_margin_db: None,
-            gain_crossover_rad_per_sec: None,
-            phase_crossover_rad_per_sec: None,
-            phase_crossover_status: None,
-            bandwidth_rad_per_sec: None,
-        };
+        return default_control_metrics();
     }
 
     let final_value = expected_final_value
@@ -846,23 +832,14 @@ fn compute_time_metrics(
         .unwrap_or_else(|| finite_points.last().map(|point| point.y).unwrap_or(0.0));
     if !asymptotically_stable {
         return ControlMetrics {
-            overshoot_pct: None,
-            rise_time_sec: None,
-            settling_time_sec: None,
-            peak_time_sec: None,
             final_value,
-            phase_margin_deg: None,
-            gain_margin_db: None,
-            gain_crossover_rad_per_sec: None,
-            phase_crossover_rad_per_sec: None,
-            phase_crossover_status: None,
-            bandwidth_rad_per_sec: None,
+            ..default_control_metrics()
         };
     }
     let peak_point = finite_points
         .iter()
         .copied()
-        .max_by(|left, right| compare_f64(left.y, right.y));
+        .max_by(|left, right| left.y.total_cmp(&right.y));
     let max_value = peak_point.map(|point| point.y).unwrap_or(final_value);
     let overshoot_pct = if final_value.abs() > 1e-12 {
         Some(((max_value - final_value).max(0.0) / final_value.abs()) * 100.0)
@@ -905,12 +882,7 @@ fn compute_time_metrics(
         settling_time_sec,
         peak_time_sec: peak_point.map(|point| point.x),
         final_value,
-        phase_margin_deg: None,
-        gain_margin_db: None,
-        gain_crossover_rad_per_sec: None,
-        phase_crossover_rad_per_sec: None,
-        phase_crossover_status: None,
-        bandwidth_rad_per_sec: None,
+        ..default_control_metrics()
     }
 }
 
@@ -2340,7 +2312,7 @@ fn rounded_gain(value: f64) -> f64 {
 
 fn sorted_unique_gains(mut gains: Vec<f64>) -> Vec<f64> {
     gains.retain(|gain| gain.is_finite() && *gain >= 0.0);
-    gains.sort_by(|left, right| compare_f64(*left, *right));
+    gains.sort_by(|left, right| (*left).total_cmp(&(*right)));
     let mut output = Vec::new();
     for gain in gains {
         let rounded = rounded_gain(gain);
@@ -2376,7 +2348,7 @@ fn real_roots(points: &[Complex64]) -> Vec<f64> {
         .filter(|point| point.im.abs() <= 1e-7 * point.norm().max(1.0))
         .map(|point| point.re)
         .collect();
-    values.sort_by(|left, right| compare_f64(*left, *right));
+    values.sort_by(|left, right| (*left).total_cmp(&(*right)));
     let mut output = Vec::new();
     for value in values {
         if output
@@ -2438,7 +2410,7 @@ fn stationary_points(
             });
         }
     }
-    points.sort_by(|left, right| compare_f64(left.gain, right.gain));
+    points.sort_by(|left, right| left.gain.total_cmp(&right.gain));
     points
 }
 
@@ -2528,7 +2500,7 @@ fn real_axis_segments(
 ) -> Vec<RealAxisSegment> {
     let mut singularities = real_roots(open_loop_poles);
     singularities.extend(real_roots(open_loop_zeros));
-    singularities.sort_by(|left, right| compare_f64(*left, *right));
+    singularities.sort_by(|left, right| (*left).total_cmp(&(*right)));
     let mut unique = Vec::new();
     for value in singularities {
         if unique
@@ -2925,7 +2897,7 @@ fn assign_branches_to_finite_zeros(
             ));
         }
     }
-    candidates.sort_by(|left, right| compare_f64(left.0, right.0));
+    candidates.sort_by(|left, right| left.0.total_cmp(&right.0));
 
     let mut used_branches = vec![false; branch_tracks.len()];
     let mut used_zeros = vec![false; open_loop_zeros.len()];
@@ -3026,13 +2998,13 @@ fn root_locus_near_zero_plan(
             Some(branch_index),
             branch_endpoint.sample_index,
         ));
+        let mu_values = root_locus_mu_sequence(config);
         for (mu_index, root) in tracks
             .get(branch_index)
             .into_iter()
             .flat_map(|track| track.iter().skip(1))
             .enumerate()
         {
-            let mu_values = root_locus_mu_sequence(config);
             let gain = mu_values
                 .get(mu_index)
                 .copied()
@@ -3187,7 +3159,6 @@ fn root_locus_segments(
     open_loop_poles: &[Complex64],
     open_loop_zeros: &[Complex64],
     near_zero_plan: &RootLocusNearZeroPlan,
-    near_zero_segments: &[RootLocusSegment],
 ) -> Vec<RootLocusSegment> {
     let centroid = asymptotes.first().map(|asymptote| asymptote.centroid);
     let extent = root_locus_plot_extent(branches, open_loop_poles, open_loop_zeros, centroid);
@@ -3195,24 +3166,17 @@ fn root_locus_segments(
     let mut segments = Vec::new();
     segments.extend(root_locus_real_axis_segments(real_axis_segments, extent));
     segments.extend(root_locus_branch_segments(branches));
-    segments.extend(near_zero_segments.iter().cloned());
+    segments.extend(near_zero_plan.segments.iter().cloned());
     segments.extend(root_locus_asymptotic_tail_segments(
         branches,
         near_zero_plan,
         &asymptote_segments,
     ));
-    if near_zero_segments.is_empty() {
+    if near_zero_plan.segments.is_empty() {
         segments.extend(root_locus_completion_segments(branches, open_loop_zeros));
     }
     segments.extend(asymptote_segments);
     segments
-}
-
-fn point_from_complex(value: Complex64) -> ComplexPoint {
-    ComplexPoint {
-        re: value.re,
-        im: value.im,
-    }
 }
 
 fn root_locus_events(
@@ -3229,7 +3193,7 @@ fn root_locus_events(
             .enumerate()
             .map(|(index, pole)| RootLocusEvent {
                 event_type: RootLocusEventType::OpenLoopPole,
-                point: point_from_complex(*pole),
+                point: complex_to_point(*pole),
                 gain: Some(0.0),
                 branch_id: Some(index),
                 label: None,
@@ -3241,7 +3205,7 @@ fn root_locus_events(
             .enumerate()
             .map(|(index, zero)| RootLocusEvent {
                 event_type: RootLocusEventType::OpenLoopZero,
-                point: point_from_complex(*zero),
+                point: complex_to_point(*zero),
                 gain: None,
                 branch_id: Some(index),
                 label: None,
@@ -3656,7 +3620,6 @@ fn root_locus(
         &open_loop_poles_raw,
         &open_loop_zeros_raw,
         &near_zero_plan,
-        &near_zero_plan.segments,
     );
     let imaginary_axis_crossings = imaginary_axis_crossings(&branches);
     let events = root_locus_events(
@@ -5153,7 +5116,7 @@ mod tests {
             .filter(|pole| pole.im.abs() <= 1e-8)
             .map(|pole| pole.re)
             .collect();
-        real_poles.sort_by(|left, right| compare_f64(*left, *right));
+        real_poles.sort_by(|left, right| (*left).total_cmp(&(*right)));
         let forbidden_start = real_poles[0];
         let forbidden_end = real_poles[1];
 
