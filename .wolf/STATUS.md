@@ -2,13 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-02
+> Last updated: 2026-09-03
 
 ---
 
 ## ✅ Done
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
+
+- 2026-09-03：按 `post-convergence-entropy-reduction-2026-09` 方案完成 Buddy propose 启动系列。tracking parent #1875 下只建立四个 executable changes：#1876 post-convergence successor capture、#1880 clean-head 测试失败分母、#1881 仓库载荷权威/物化分类、#1883 Data Governance 残余 owner 裁决。四项 OpenSpec 均 apply-ready、strict valid，proposal commits 依次为 `330bf5defd`、`9e8e94f6f`、`edb99dbafd`、`747e72a51f`；独立/领域审查 findings 已按根因整改并清场。原生关系已批量回读：#1876 blockedBy #1805–#1810，#1880/#1881/#1883 blockedBy #1876。未 claim、实现、外置/删除载荷、修改 selector、部署或创建其余 24 个候选项。
 
 - 2026-09-02：#1819 在 `act-dev2` 完成。PR #1848 squash 合入 `33f6df4706`（head `85f91011d6`）；Codex 三轮 findings（P1×3、P2×2）全修复，最终 Retry 窗口 Completed 无 findings，5 threads resolve；OpenSpec 归档 `2026-09-02-upgrade-konling-traceable-study-qa`。Issue CLOSED / `status:archived`。缺映射标记已补（issue body `<!-- openspec-buddy change_id: ... -->`）。未关 #1033，未生产部署。
 
@@ -74,6 +76,8 @@
 ---
 
 ## 🚀 Next phase
+
+- 2026-09-03：熵减启动系列以 #1875 为跟踪父项。只有 #1805–#1810 全部 closed、`status:archived` 且 #1876 native `blockedBy` 解除后，才能 claim #1876；#1880/#1881/#1883 必须继续等待 #1876 归档。先由 #1876 产出不可激活的 immutable successor capture，再分别处理测试分母、载荷分类和 owner 裁决；不得提前创建 payload migration、Data Governance 搬迁、hotspot pass 2 或 N5 closure，不得把重复字节当删除授权，不得生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-02：#1872 已新建 change `fix-diagnosis-overall-subgroup-pseudo-conflict` 并在 `act-dev2` 认领实现：总体—子群伪冲突确定性识别（`src/lib/diagnosis-pseudo-conflict.ts`）、提示词证据可比性约束、持久化前 `DiagnosisPseudoConflictError` 可重试拦截（worker 分类 `diagnosis-pseudo-conflict`）、历史投影伪冲突标注「报告需重新生成」（真实可比冲突保留「证据存在冲突」）、benchmark 冲突场景绑定同批学生+时间窗。lib 67/67、投影 20/20、typecheck 0。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
