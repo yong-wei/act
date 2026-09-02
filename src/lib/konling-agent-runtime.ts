@@ -1102,22 +1102,41 @@ function classifyKonlingAnswerIntent(
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, ['法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format'])) {
+  if (includesAny(normalized, [
+    '法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写',
+    '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format',
+    '必须写', '才算合格', '操作规程', '考核办法', '国标格式',
+  ])) {
     return 'normative-content';
   }
-  if (includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove'])) {
+  if (
+    includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove', '一步步得到'])
+    || (
+      includesAny(normalized, ['怎么得到', '如何得到'])
+      && includesAny(normalized, ['传递函数', '特征方程', '控制律', '公式', '离散化', '根轨迹增益', 'bode', 'nyquist', '包围圈'])
+    )
+  ) {
     return 'formula-derivation';
   }
-  if (includesAny(normalized, ['报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback'])) {
+  if (includesAny(normalized, [
+    '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
+  ])) {
     return 'code-debugging';
   }
-  if (includesAny(normalized, ['区别', '辨析', '比较', '联系与区别', 'difference', 'compare', 'versus', ' vs '])) {
+  if (includesAny(normalized, [
+    '区别', '辨析', '比较', '联系与区别', 'difference', 'compare', 'versus', ' vs ', '该怎么选',
+  ])) {
     return 'concept-comparison';
   }
-  if (includesAny(normalized, ['举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in'])) {
+  if (includesAny(normalized, [
+    '举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in', '生活化例子', '更直白', '为什么',
+  ])) {
     return 'open-ended-explanation';
   }
-  return 'fact-explanation';
+  if (includesAny(normalized, ['什么是', '是什么', '定义', '含义', '大概表示什么', 'what is', 'meaning of'])) {
+    return 'fact-explanation';
+  }
+  return 'open-ended-explanation';
 }
 
 function includesAny(value: string, markers: readonly string[]): boolean {
