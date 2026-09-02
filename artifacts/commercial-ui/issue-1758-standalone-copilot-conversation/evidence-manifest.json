@@ -1,29 +1,29 @@
 {
   "schemaVersion": 1,
   "issue": 1758,
-  "capturedAt": "2026-09-01T08:25:38.606Z",
-  "commitSha": "1f4410c6ed75e59375315248e1f93c102d1ab128",
+  "capturedAt": "2026-09-02T02:50:50.061Z",
+  "commitSha": "4c4ce069285949e87d7194a89bda636a1b5fe82e",
   "generator": "tests/standalone-copilot-conversation-1758.spec.ts",
-  "generatorSha256": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
+  "generatorSha256": "dcae1e35bd03b4dc52670b60523d64a903e517735c12aa8d07ecaffde59c5042",
   "representativeRoute": "/ai/copilot",
   "sourceSha256": {
-    "tests/standalone-copilot-conversation-1758.spec.ts": "bec17afd0bdbf5522a234eb1c1e7beafd04f889d4b7dba0f2d8535dd3ef0e8c8",
-    "src/app/ai/copilot/page.tsx": "b59e85e8a5dc19812d63302900dd9575adb35fd069fa4aa2c154c686c9d4802d",
-    "src/hooks/useKonlingConversationLibrary.ts": "1ed8f20d2824cdba08669ce3630c1068579f14908c0b193fb9141d9b0c395e73",
-    "src/app/api/ai/chat/route.ts": "b9631d21116e8de0ad1269ecf67f208727a408bb9c7377fc31bbebedf3ed3ff8",
-    "src/app/api/ai/sessions/route.ts": "a317d1a0c5451541b3d204dc6927307ad2a5c1b8d875127bd261e98f9d97abd2"
+    "tests/standalone-copilot-conversation-1758.spec.ts": "dcae1e35bd03b4dc52670b60523d64a903e517735c12aa8d07ecaffde59c5042",
+    "src/app/ai/copilot/page.tsx": "1a84f160816d6a51aed66b5cb15999ccd48612b8b5d59a378731c2992d1d5871",
+    "src/hooks/useKonlingConversationLibrary.ts": "3719874a26bfe488ac475104dd14be4b7845dc0f31e3aadd4d47359b24a88c86",
+    "src/app/api/ai/chat/route.ts": "fa19b8cbc6c3de95420cf6777be45bd30863b89d0fc4ba02afe0773c0c6b176d",
+    "src/app/api/ai/sessions/route.ts": "f888b466b67dfe20698a8a69b128b46c6515de1cfda8c0f9093d6f92da747172"
   },
   "sourceGitBlobIds": {
-    "tests/standalone-copilot-conversation-1758.spec.ts": "5e0dd03df87b3b3dda0a7d196e14c4f30999821d",
-    "src/app/ai/copilot/page.tsx": "05c69966cd5ad5b9d4251b584303655e27dae8ab",
-    "src/hooks/useKonlingConversationLibrary.ts": "383474f7fe7e12a56484181b678b71dca241cab6",
-    "src/app/api/ai/chat/route.ts": "c9cfa661e4469b06da1c1ecda212064acfd697da",
-    "src/app/api/ai/sessions/route.ts": "29a034611c2ea095d7981bed356afaa4894b5805"
+    "tests/standalone-copilot-conversation-1758.spec.ts": "01dba5004c8b138706ea8b747f763d424331f7d9",
+    "src/app/ai/copilot/page.tsx": "45cbc9cd492ba2ee282c2bb53d6468c271164dd2",
+    "src/hooks/useKonlingConversationLibrary.ts": "1eb1a2b6cdf68415f38d707bc4ba963f18bc2704",
+    "src/app/api/ai/chat/route.ts": "7f325cfcf4856765cf1521545e7ade54255e8dd1",
+    "src/app/api/ai/sessions/route.ts": "819ad995875e765503515be7ce0e9be02ce186d7"
   },
   "screenshots": [
     {
       "file": "artifacts/commercial-ui/issue-1758-standalone-copilot-conversation/restore-desktop-1440.png",
-      "sha256": "a54b4f4907905d6c7c3941f747112918511ccae81f5094939b1df9af38f859f4",
+      "sha256": "c662fbd4f3885449c7ac7501ef9f79f0bc71821f02239a43a178241b6d0d65f9",
       "scenario": "restore-desktop-1440",
       "route": "/ai/copilot",
       "width": 1440,
