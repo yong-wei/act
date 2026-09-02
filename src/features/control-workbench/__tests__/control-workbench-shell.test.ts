@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { resolveControlWorkbenchSession } from '../session-resolver';
-import { getControlWorkbenchReturnHref } from '../routing';
+import { getControlWorkbenchLaunchKind, getControlWorkbenchReturnHref } from '../routing';
 
 const repoRoot = process.cwd();
 
@@ -196,5 +196,19 @@ describe('control workbench route boundary', () => {
     if (!result.ok) return;
 
     expect(getControlWorkbenchReturnHref(result.session)).toBe('/interactive-learning/cross-domain-exploration');
+    expect(getControlWorkbenchLaunchKind(result.session)).toBe('standalone');
+  });
+
+  it('marks Arena-bound official sessions as official-evaluation', () => {
+    const result = resolveControlWorkbenchSession({
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'classic-four-view',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(getControlWorkbenchLaunchKind(result.session)).toBe('official-evaluation');
+    expect(getControlWorkbenchReturnHref(result.session)).toBe('/arena/challenges/task-second-order-lead-pid');
   });
 });
