@@ -104,8 +104,8 @@ function acquireRunLock(runDir: string): void {
       throw new KonlingBlindAuditRunLockError(runDir);
     }
     // 条件替换接管 stale 锁：rename 后 tombstone 内容必须等于读取时的
-    // stale 实例。内容不一致说明持有者已更换（ABA），原子还原后者的
-    // 活锁并拒绝本轮接管（#1820）。
+    // stale 实例。内容不一致说明持有者已更换（ABA），以不覆盖原语恢复
+    // 后者的活锁并拒绝本轮接管（#1820）。
     const tombstone = `${lockPath}.stale-${token}`;
     try {
       fs.renameSync(lockPath, tombstone);
@@ -114,12 +114,14 @@ function acquireRunLock(runDir: string): void {
     }
     const removed = fs.readFileSync(tombstone, 'utf8').trim();
     if (removed !== current) {
-      // 误移了后继持有者的活锁：仅在路径空缺时还原（避免覆盖更新的
-      // 持有者）；无法还原时由运行期锁归属断言让原持有者退出。
+      // 误移了后继持有者的活锁：用 link(2) 做不覆盖的原子恢复——目标
+      // 已被新持有者合法占用时返回 EEXIST 而非覆盖。恢复让位时由
+      // 运行期锁归属断言让被移位方在下一次外部调用前退出。
       try {
-        if (!fs.existsSync(lockPath)) fs.renameSync(tombstone, lockPath);
+        fs.linkSync(tombstone, lockPath);
+        fs.rmSync(tombstone, { force: true });
       } catch {
-        // best-effort 还原。
+        // EEXIST：路径由新持有者持有；tombstone 保留为审计痕迹。
       }
       throw new KonlingBlindAuditRunLockError(runDir);
     }
