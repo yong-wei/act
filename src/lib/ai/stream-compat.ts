@@ -64,7 +64,6 @@ export function extractAITextFromStreamLine(line: string): string {
   return '';
 }
 
-export const extractAITextFromStreamChunk = extractAITextFromStreamLine;
 
 export async function readAITextStream(
   response: Response,

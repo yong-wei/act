@@ -7,14 +7,15 @@
  */
 
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
-import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
+import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
 import {
   getMessageContent,
   toLegacyMessage,
   toModelMessages,
   toUIMessage,
   type IncomingMessage,
-} from '@/lib/ai-message-compat';
+} from '@/lib/ai/message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import {

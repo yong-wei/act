@@ -11,9 +11,9 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { generateText, streamText, stepCountIs } from 'ai';
-import { getConfiguredAIModel } from '@/lib/ai-client';
+import { getConfiguredAIModel } from '@/lib/ai/provider-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
-import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
+import { toLegacyMessage, toModelMessages } from '@/lib/ai/message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   applyKonlingCitationFallback,

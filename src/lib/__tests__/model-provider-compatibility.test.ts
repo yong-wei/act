@@ -283,6 +283,29 @@ describe('model provider compatibility matrix', () => {
     expect(normalized.toolCalls[0]?.id).toBe('native-1');
   });
 
+  it('maps terminal stream states and withholds malformed frames', () => {
+    // finish states: both provider kinds reach the same message_stop contract
+    expect(normalizeProviderStreamEvent('openai-compatible', {
+      choices: [{ delta: {}, finish_reason: 'stop' }],
+    })).toEqual({ type: 'message_stop' });
+    expect(normalizeProviderStreamEvent('anthropic-compatible', { type: 'message_stop' }))
+      .toEqual({ type: 'message_stop' });
+    expect(normalizeProviderStreamEvent('anthropic-compatible', { type: 'message_start' }))
+      .toEqual({ type: 'message_start' });
+
+    // malformed frames: unparseable or unknown shapes are withheld as null,
+    // never partially projected as text or tool events
+    expect(normalizeProviderStreamEvent('openai-compatible', 'not-an-object')).toBeNull();
+    expect(normalizeProviderStreamEvent('openai-compatible', { choices: 'nope' })).toBeNull();
+    expect(normalizeProviderStreamEvent('openai-compatible', { choices: [{ delta: {} }] })).toBeNull();
+    expect(normalizeProviderStreamEvent('anthropic-compatible', { type: 'unknown_event' })).toBeNull();
+    expect(normalizeProviderStreamEvent('anthropic-compatible', null)).toBeNull();
+
+    // provider failures: non-Error inputs and oversized diagnostics stay redacted and bounded
+    expect(redactProviderError('sk-topsecret-key in a string')).toBe('sk-*** in a string');
+    expect(redactProviderError(new Error('x'.repeat(600))).length).toBeLessThanOrEqual(500);
+  });
+
   it('redacts provider secrets and raw authorization errors', () => {
     expect(redactProviderError(new Error('Bearer sk-secret-token failed api_key=abc123'))).toBe(
       'Bearer *** failed api_key=***',

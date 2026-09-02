@@ -6,7 +6,7 @@ import {
 import { useChat as useAiSdkChat } from '@ai-sdk/react';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toLegacyMessage, toUIMessage } from '@/lib/ai-message-compat';
+import { toLegacyMessage, toUIMessage } from '@/lib/ai/message-compat';
 import {
   KonlingChatFailureError,
   createKonlingSafeFetch,

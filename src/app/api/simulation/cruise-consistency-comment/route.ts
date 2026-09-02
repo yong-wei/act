@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;

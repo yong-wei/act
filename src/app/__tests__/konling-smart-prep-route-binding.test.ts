@@ -42,9 +42,11 @@ vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: mocks.prisma }));
-vi.mock('@/lib/ai-client', () => ({
+vi.mock('@/lib/ai/lesson-prompts', () => ({
   SYSTEM_PROMPT: 'system',
   buildContextAwarePrompt: vi.fn(() => 'system'),
+}));
+vi.mock('@/lib/ai/provider-runtime', () => ({
   getConfiguredAIModel: vi.fn(async () => ({})),
   isConfiguredAIServiceAvailable: vi.fn(async () => true),
 }));

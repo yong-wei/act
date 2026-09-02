@@ -1,4 +1,4 @@
-import { getMessageContent, toLegacyMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import { getMessageContent, toLegacyMessage, type IncomingMessage } from '@/lib/ai/message-compat';
 import type { Message } from '@/types/ai-message';
 
 const TOOL_CALL_TAG = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/giu;
