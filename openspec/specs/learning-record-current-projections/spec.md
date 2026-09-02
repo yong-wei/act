@@ -4,13 +4,17 @@
 LearningFact remains append-only evidence. Immutable snapshots, role-safe current read models and fenced current pointers are published separately so stale or conflicting candidates cannot overwrite a qualified current, and page responses do not scan raw events.
 ## Requirements
 ### Requirement: Facts, snapshots and read models are distinct
-
-LearningFact SHALL remain the append-only evidence input. Immutable snapshots SHALL represent a qualified calculation version, while role-specific read models and current pointers SHALL be rebuildable projections. Raw events MUST NOT be the normal source for a student, teacher, AI or Personalization page response.
+LearningFact SHALL remain the append-only evidence input. Immutable snapshots SHALL represent a qualified calculation version, while one declared role-specific current read model and current pointer SHALL be the online projection authority. Raw events MUST NOT be the normal source for a student, teacher, AI or Personalization page response, and a simplification MUST NOT introduce another projection authority.
 
 #### Scenario: Read model is rebuilt
-
 - **WHEN** a projection is rebuilt from its recorded fact watermark
 - **THEN** its output is derived from governed LearningFacts and its revision/provenance is retained
+- **AND** normal consumers continue to read the declared current read model rather than a second aggregation
+
+#### Scenario: Online and historical code are separated
+- **WHEN** an online projection request is served
+- **THEN** it SHALL use the current projection/read port
+- **AND** it SHALL not import, invoke or read the working state of a backfill operation
 
 ### Requirement: Projection qualification is revision-bound
 
@@ -43,18 +47,20 @@ The system SHALL publish the immutable version and current pointer with an atomi
 - **AND** a same-fence version split or ordinary backfill result remains a conflict and does not overwrite current
 
 ### Requirement: Failure preserves qualified current
-
-Projection failure, stale input, insufficient evidence, unavailable dependency or conflict SHALL preserve the previous qualified current and expose an explicit status/reason. If no qualified current exists, the read port SHALL return unavailable rather than scanning raw events or fabricating zero values.
+Projection failure, stale input, insufficient evidence, unavailable dependency or conflict SHALL preserve the previous qualified current and expose an explicit status/reason. If no qualified current exists, the read port SHALL return unavailable rather than scanning raw events, invoking backfill or fabricating zero values.
 
 #### Scenario: Refresh crashes before pointer commit
-
 - **WHEN** a worker crashes after writing a candidate version but before pointer publication
 - **THEN** the prior qualified current remains visible and the candidate is retryable or marked failed
 
 #### Scenario: Current becomes stale
-
 - **WHEN** a newer fact exists but refresh has not qualified a replacement
 - **THEN** the read port reports stale/partial metadata and does not present the previous value as fresh
+
+#### Scenario: Backfill cannot repair an online read
+- **WHEN** an online request has no qualified current projection
+- **THEN** it returns the governed unavailable/stale status
+- **AND** it does not invoke a historical tool or move the current pointer
 
 ### Requirement: Role and privacy projections are minimal
 
