@@ -531,6 +531,20 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     expect(projection.availability.label).not.toBe('证据存在冲突');
   });
 
+  it('marks a summary-only pseudo conflict as needing regeneration (Issue #1872)', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，但与部分学生知识进度长期滞后存在矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.label).not.toBe('证据部分可用');
+  });
+
   it('keeps a comparable cross-source conflict presentation when the cohort matches', () => {
     const projection = projectReportHistoryCard({
       ...completeCoverageReport,
