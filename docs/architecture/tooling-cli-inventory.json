@@ -1209,7 +1209,7 @@
   ],
   "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
   "sourceIdentity": {
-    "captureDenominatorSha256": "c2a968db6a22c3702533658df441355d84f27ba27a6d2134dbdb41ad7d3822f5",
+    "captureDenominatorSha256": "99b86c0b9bc4e2d3ca907c181717831a857ab8bcf11f71342c277e947dd3a25a",
     "note": "captureDenominatorSha256 binds this inventory to its full capture denominator: the package.json scripts object (sorted), the git blob sha1 of every declared target file, the documented direct-invoke command list, and the direct-invoke operator identities parsed from scripts/README.md and AGENTS.md. Any later change to command bodies, target script contents, documented invocations, or inventory classification without an identity refresh fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison. Refresh with: npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts"
   },
   "documentedDirectEntries": [
@@ -1236,12 +1236,6 @@
       "status": "active",
       "target": "scripts/db/backfill-learning-facts-from-event-batches.ts",
       "evidence": "scripts/README.md: learning-facts backfill invoked directly for local writes."
-    },
-    {
-      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts",
-      "status": "active",
-      "target": "scripts/db/backfill-class-session-attribution.ts",
-      "evidence": "scripts/README.md: class-session attribution repair invoked directly with explicit session/class ids; canonical npm alias db:backfill-class-attribution routes the same target."
     },
     {
       "command": "bash scripts/db/ensure-production-test-accounts.sh",
@@ -1274,10 +1268,22 @@
       "evidence": "AGENTS.md Git/CI/release boundary: default image build entry."
     },
     {
-      "command": "bash scripts/dev/sync-local-worktree-config.sh",
+      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts",
+      "status": "active",
+      "target": "scripts/db/backfill-class-session-attribution.ts",
+      "evidence": "scripts/README.md: class-session attribution review (dry-run only, prints redacted summary)."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts --apply",
+      "status": "active",
+      "target": "scripts/db/backfill-class-session-attribution.ts",
+      "evidence": "scripts/README.md: class-session attribution apply variant; --apply performs the gated updateMany write after dry-run confirmation."
+    },
+    {
+      "command": "bash scripts/dev/sync-local-worktree-config.sh --apply --install-hooks",
       "status": "active",
       "target": "scripts/dev/sync-local-worktree-config.sh",
-      "evidence": "AGENTS.md: managed git hook installation and repair entry."
+      "evidence": "AGENTS.md: installs/repairs managed pre-commit and pre-push git hooks (verify:commit / verify:push)."
     }
   ]
 }

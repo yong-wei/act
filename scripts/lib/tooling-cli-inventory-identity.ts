@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export type ToolingInventoryCapture = {
+  inventoryClassification: string;
   scripts: Array<[string, string]>;
   targetBlobSha1: Record<string, string>;
   documentedDirectCommands: string[];
@@ -23,12 +24,17 @@ export function gitBlobSha1(content: Buffer | string): string {
   return createHash('sha1').update(Buffer.concat([header, body])).digest('hex');
 }
 
-/** Direct-invoke operator identities (bin + path) documented in README.md or AGENTS.md. */
+/** Mode flags that change authority, write behavior or side effects of a documented invocation. */
+export const INVOCATION_MODE_FLAGS = ['--apply', '--install-hooks'] as const;
+
+/** Canonical invocation identity: bin + path + sorted known mode flags (values like ids stay out). */
 export function parseDocumentedInvocations(docText: string): string[] {
   const identities = new Set<string>();
-  const pattern = /\b(?:rtk )?(node|npx tsx|tsx|bash|python3) ((?:scripts|tools)\/[A-Za-z0-9_./-]+\.(?:ts|tsx|mjs|js|py|sh))\b/g;
+  const pattern = /\b(?:rtk )?(node|npx tsx|tsx|bash|python3) ((?:scripts|tools)\/[A-Za-z0-9_./-]+\.(?:ts|tsx|mjs|js|py|sh))([^\n`]*)/g;
   for (const match of docText.matchAll(pattern)) {
-    identities.add(`${match[1]} ${match[2]}`);
+    const rest = match[3] ?? '';
+    const flags = INVOCATION_MODE_FLAGS.filter((flag) => new RegExp(`\\s${flag}(\\s|$)`).test(rest)).sort();
+    identities.add([`${match[1]} ${match[2]}`, ...flags].join(' '));
   }
   return [...identities].sort();
 }
@@ -52,6 +58,12 @@ function readHead(target: string): Buffer {
   return Buffer.from(execFileSync('git', ['show', `HEAD:${target}`]), 'buffer');
 }
 
+/** Canonical JSON of the inventory classification itself, excluding the self-referential identity block. */
+function classificationCanonical(inventory: ToolingInventory): string {
+  const { sourceIdentity: _sourceIdentity, ...classification } = inventory;
+  return JSON.stringify(classification);
+}
+
 /** Full capture denominator recomputed from a file source (workspace or git HEAD). */
 export function computeCapture(
   inventory: ToolingInventory,
@@ -66,6 +78,7 @@ export function computeCapture(
   }
   const docs = (['scripts/README.md', 'AGENTS.md'] as const).map(readDoc).join('\n');
   return {
+    inventoryClassification: classificationCanonical(inventory),
     scripts: Object.keys(scripts.scripts).sort().map((key) => [key, scripts.scripts[key]]),
     targetBlobSha1,
     documentedDirectCommands: inventory.documentedDirectEntries.map((e) => e.command).sort(),
@@ -77,6 +90,7 @@ export function captureDenominatorSha256(capture: ToolingInventoryCapture): stri
   const canonicalTargetBlobSha1 = Object.keys(capture.targetBlobSha1).sort()
     .map((target) => [target, capture.targetBlobSha1[target]]);
   const canonical = JSON.stringify({
+    inventoryClassification: capture.inventoryClassification,
     scripts: capture.scripts,
     targetBlobSha1: canonicalTargetBlobSha1,
     documentedDirectCommands: capture.documentedDirectCommands,
@@ -94,13 +108,26 @@ export function workspaceCaptureDenominatorSha256(inventory: ToolingInventory): 
   ));
 }
 
-export function headCaptureDenominatorSha256(inventory: ToolingInventory): string {
+export function headCaptureDenominatorSha256(): string {
+  // Re-read the inventory itself from HEAD so a dirty workspace inventory can never
+  // substitute its own classification into the committed-tree verification.
+  const headInventory = JSON.parse(
+    execFileSync('git', ['show', 'HEAD:docs/architecture/tooling-cli-inventory.json'], { encoding: 'utf8' }),
+  ) as ToolingInventory;
   return captureDenominatorSha256(computeCapture(
-    inventory,
+    headInventory,
     () => execFileSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' }),
     (doc) => execFileSync('git', ['show', `HEAD:${doc}`], { encoding: 'utf8' }),
     readHead,
   ));
+}
+
+/** The capture hash recorded by the committed inventory itself. */
+export function headRecordedCaptureDenominatorSha256(): string {
+  const headInventory = JSON.parse(
+    execFileSync('git', ['show', 'HEAD:docs/architecture/tooling-cli-inventory.json'], { encoding: 'utf8' }),
+  ) as ToolingInventory;
+  return headInventory.sourceIdentity.captureDenominatorSha256;
 }
 
 export function refreshIdentity(inventory: ToolingInventory): ToolingInventory {

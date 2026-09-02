@@ -18,6 +18,10 @@
 - P1（身份未覆盖 targets/文档/清单分类）：`sourceIdentity.captureDenominatorSha256` 绑定完整捕获分母（package scripts sorted + 全部 target 文件 git blob sha1 + direct entry 命令清单 + README/AGENTS 解析的直接调用身份集），共享计算模块 `scripts/lib/tooling-cli-inventory-identity.ts`，测试对工作区与 `git show HEAD` 双计算比对；身份刷新入口 `scripts/tests/refresh-tooling-cli-inventory-identity.ts`。变异抽检确认：target 脚本内容变化、删除 direct entry、文档新增直接调用均 fail closed。
 - P2（反向断言按路径而非调用身份合并核对）：改为按 `bin + path` 调用身份与 `documentedDirectEntries.command` 双向核对，另保留文档路径覆盖断言；`AGENTS.md` 将 worktree hook 安装入口显式化为 `bash scripts/dev/sync-local-worktree-config.sh` 调用形态。
 
+第三轮（同根因收口）：
+- P1（分类元数据未入哈希、HEAD 比对复用工作区清单）：捕获分母加入 `inventoryClassification`（清单本体剔除自引用 sourceIdentity 块后的规范 JSON），篡改任一 status/owner/authority/evidence 即 fail closed；HEAD 比对改为从 `git show HEAD` 重读清单本体，与该提交清单自记录哈希自洽比对，工作区清单不再代入。修复过程中发现并消除 `JSON.stringify` 数组 replacer 全层级白名单导致嵌套字段被静默剔除的实现缺陷（变异抽检捕获）。
+- P2（调用身份丢弃模式参数）：调用身份扩展为 `bin + path + 已知模式 flag`（`INVOCATION_MODE_FLAGS = [--apply, --install-hooks]`，按需扩展）；`documentedDirectEntries` 拆分登记 attribution dry-run 与 `--apply` 写入两个身份，worktree hook 安装登记 `--apply --install-hooks` 身份，共 12 条。
+
 ## 验证
 
 - `npm run verify:commit` 通过；`npm run lint`（--max-warnings=0）通过；identity 测试 13 项中 12 项通过（HEAD 比对项在提交前按设计 fail closed，提交后复验通过）。

@@ -4,6 +4,7 @@ import { describe, beforeAll, expect, it } from 'vitest';
 
 import {
   headCaptureDenominatorSha256,
+  headRecordedCaptureDenominatorSha256,
   parseDocumentedInvocations,
   workspaceCaptureDenominatorSha256,
 } from '../../../scripts/lib/tooling-cli-inventory-identity';
@@ -149,12 +150,12 @@ describe('tooling CLI inventory source identity', () => {
     expect(captured).toMatch(/^[0-9a-f]{64}$/);
     expect(
       workspaceCaptureDenominatorSha256(inventory),
-      'workspace capture denominator (package scripts, target script contents, documented invocations, inventory classification) drifted from the inventory; run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts',
+      'workspace capture denominator (inventory classification, package scripts, target script contents, documented invocations) drifted from the inventory; run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts',
     ).toBe(captured);
     expect(
-      headCaptureDenominatorSha256(inventory),
-      'committed HEAD capture denominator drifted from the inventory; run npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts and commit',
-    ).toBe(captured);
+      headCaptureDenominatorSha256(),
+      'committed HEAD capture denominator drifted from the hash recorded by the committed inventory; refresh the identity and commit both together',
+    ).toBe(headRecordedCaptureDenominatorSha256());
   });
 });
 
