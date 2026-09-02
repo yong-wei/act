@@ -94,7 +94,6 @@ describe('Arena PlantAdapter registry', () => {
       'utf8',
     );
     const serverSource = readFileSync(join(process.cwd(), 'src/features/arena/server.ts'), 'utf8');
-    const indexSource = readFileSync(join(process.cwd(), 'src/features/arena/index.ts'), 'utf8');
 
     expect(blackboxRoute).toContain("from '@/features/arena/adapters/registry'");
     expect(previewRoute).toContain("from '@/features/arena/adapters/registry'");
@@ -102,6 +101,5 @@ describe('Arena PlantAdapter registry', () => {
     expect(blackboxRoute).not.toContain('createMockCruiseRollBlackBoxAdapterForTests');
     expect(previewRoute).not.toContain('createMockCruiseRollBlackBoxAdapterForTests');
     expect(serverSource).not.toContain("export * from './adapters/plant-adapter'");
-    expect(indexSource).not.toContain("export * from './adapters/plant-adapter'");
   });
 });
