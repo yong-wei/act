@@ -16,7 +16,9 @@ import {
  * 数组追加历史；单条记录经同目录临时文件 + rename 原子落盘。
  */
 
-const LOCK_FILE = 'run.lock';
+const LOCK_DIR = 'run.lock.d';
+const HOLDER_FILE = 'holder';
+const HANDOFF_TARGET = 'holder.next';
 const MANIFEST_SNAPSHOT = 'manifest.snapshot.json';
 const RECORDS_DIR = 'records';
 const FAILURES_DIR = 'failures';
@@ -82,63 +84,57 @@ export function prepareKonlingBlindAuditRun(input: {
 }
 
 function acquireRunLock(runDir: string): void {
-  const lockPath = path.join(runDir, LOCK_FILE);
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const token = `${process.pid}-${randomUUID()}`;
-    try {
-      // wx = O_CREAT|O_EXCL：只有第一个进程能创建锁，无检查-后-写入窗口。
-      fs.writeFileSync(lockPath, `${token}\n`, { encoding: 'utf8', flag: 'wx' });
-      return;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-    }
-    let current: string;
-    try {
-      current = fs.readFileSync(lockPath, 'utf8').trim();
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
-      throw error;
-    }
-    const holderPid = Number(current.split('-')[0]);
-    if (Number.isInteger(holderPid) && isProcessAlive(holderPid)) {
-      throw new KonlingBlindAuditRunLockError(runDir);
-    }
-    // 条件替换接管 stale 锁：rename 后 tombstone 内容必须等于读取时的
-    // stale 实例。内容不一致说明持有者已更换（ABA），以不覆盖原语恢复
-    // 后者的活锁并拒绝本轮接管（#1820）。
-    const tombstone = `${lockPath}.stale-${token}`;
-    try {
-      fs.renameSync(lockPath, tombstone);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-    const removed = fs.readFileSync(tombstone, 'utf8').trim();
-    if (removed !== current) {
-      // 误移了后继持有者的活锁：用 link(2) 做不覆盖的原子恢复——目标
-      // 已被新持有者合法占用时返回 EEXIST 而非覆盖。恢复让位时由
-      // 运行期锁归属断言让被移位方在下一次外部调用前退出。
-      try {
-        fs.linkSync(tombstone, lockPath);
-        fs.rmSync(tombstone, { force: true });
-      } catch {
-        // EEXIST：路径由新持有者持有；tombstone 保留为审计痕迹。
-      }
-      throw new KonlingBlindAuditRunLockError(runDir);
-    }
-    fs.rmSync(tombstone, { force: true });
+  const lockDir = path.join(runDir, LOCK_DIR);
+  const token = `${process.pid}-${randomUUID()}`;
+  // mkdir(2) 是原子的独占获取；锁目录在持有者正常释放前永不存在
+  // 「可被第三方抢占的空窗」——并发启动只有一个进程 mkdir 成功。
+  try {
+    fs.mkdirSync(lockDir);
+    fs.writeFileSync(path.join(lockDir, HOLDER_FILE), `${token}\n`, 'utf8');
+    return;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
   }
-  throw new KonlingBlindAuditRunLockError(runDir);
+
+  const holderPath = path.join(lockDir, HOLDER_FILE);
+  let holder = '';
+  try {
+    holder = fs.readFileSync(holderPath, 'utf8').trim();
+  } catch {
+    // mkdir 后、写 holder 前崩溃：等价 stale，走接管。
+  }
+  const holderPid = Number(holder.split('-')[0]);
+  if (holder && Number.isInteger(holderPid) && isProcessAlive(holderPid)) {
+    throw new KonlingBlindAuditRunLockError(runDir);
+  }
+
+  // stale 接管：候选令牌先落盘为唯一名，再以 link(2) 抢占固定的
+  // handoff 目标——仅一个进程 link 成功（其余 EEXIST），胜者原子交接
+  // holder，败者直接拒绝启动（design：第二个进程拒绝而不是竞写）。
+  const handoffPath = path.join(lockDir, `handoff-${token}`);
+  fs.writeFileSync(handoffPath, `${token}\n`, 'utf8');
+  const nextPath = path.join(lockDir, HANDOFF_TARGET);
+  try {
+    fs.linkSync(handoffPath, nextPath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+      // 已有接管胜者：本进程拒绝本轮，留待下轮或人工裁决。
+      throw new KonlingBlindAuditRunLockError(runDir);
+    }
+    throw error;
+  }
+  fs.renameSync(nextPath, holderPath);
+  fs.rmSync(handoffPath, { force: true });
 }
 
 /**
- * 运行期锁归属断言：持有者令牌仍在本进程名下。锁文件被并发接管移走
- * 时，本进程在下一次外部调用前主动终止，收敛独占性。
+ * 运行期锁归属断言：持有者令牌仍在本进程名下。持有权被接管时
+ * （pid 判活误判等残余），本进程在下一次外部调用前主动终止。
  */
 export function assertKonlingBlindAuditLockHeld(runDir: string): void {
-  const lockPath = path.join(runDir, LOCK_FILE);
   let holder: string;
   try {
-    holder = fs.readFileSync(lockPath, 'utf8').trim();
+    holder = fs.readFileSync(path.join(runDir, LOCK_DIR, HOLDER_FILE), 'utf8').trim();
   } catch {
     throw new KonlingBlindAuditRunLockError(runDir);
   }
@@ -148,12 +144,13 @@ export function assertKonlingBlindAuditLockHeld(runDir: string): void {
 }
 
 export function releaseKonlingBlindAuditRun(runDir: string): void {
-  const lockPath = path.join(runDir, LOCK_FILE);
   try {
-    const holder = fs.readFileSync(lockPath, 'utf8').trim();
-    if (holder.startsWith(`${process.pid}-`)) fs.rmSync(lockPath);
+    const holder = fs.readFileSync(path.join(runDir, LOCK_DIR, HOLDER_FILE), 'utf8').trim();
+    if (holder.startsWith(`${process.pid}-`)) {
+      fs.rmSync(path.join(runDir, LOCK_DIR), { recursive: true, force: true });
+    }
   } catch {
-    // 锁文件不存在或不可读：释放是 best-effort。
+    // 锁目录不存在或不可读：释放是 best-effort。
   }
 }
 

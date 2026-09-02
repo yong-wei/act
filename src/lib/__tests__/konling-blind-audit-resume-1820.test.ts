@@ -280,8 +280,8 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     const runId = 'run-lock-lost';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     const provider: KonlingBlindAuditProvider = async () => {
-      // 模拟并发接管：第一个任务进行期间锁被移走。
-      writeFileSync(path.join(runDir, 'run.lock'), `999999999-${'foreign'}\n`, 'utf8');
+      // 模拟持有权被接管：第一个任务进行期间 holder 换成外部令牌。
+      writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999999-foreign\n', 'utf8');
       return { ok: true, result: { ruleScore: 0.9 } };
     };
     await expect(runKonlingBlindAudit(runOptions(runId, provider)))
@@ -318,7 +318,7 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
     expect(aggregate.officialMetrics).toBeNull();
   });
 
-  it('rejects concurrent runs on the same run directory and adopts stale locks', () => {
+  it('rejects concurrent runs and hands stale locks to exactly one takeover', () => {
     const runId = 'run-lock';
     const runDir = path.join(root, 'artifacts', 'konling-blind-audit', runId);
     prepareKonlingBlindAuditRun({
@@ -327,22 +327,32 @@ describe('issue #1820 resumable blind-audit evaluation', () => {
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     });
-    // 活锁：当前进程持有。
+    // 活锁（当前进程持有）：第二个进程拒绝启动。
     expect(() => prepareKonlingBlindAuditRun({
       root,
       runId,
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).toThrow(KonlingBlindAuditRunLockError);
-    // stale 锁（持有者已不存在，含所有权令牌格式）允许原子接管，
-    // 接管后不残留 tombstone。
-    writeFileSync(path.join(runDir, 'run.lock'), '999999999-dead-token\n', 'utf8');
+
+    // stale（持有者已死）：唯一接管者获得持有权。
+    writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999999-dead-token\n', 'utf8');
     expect(() => prepareKonlingBlindAuditRun({
       root,
       runId,
       manifestHash: konlingBlindAuditManifestHash(MANIFEST),
       manifestPayload: MANIFEST,
     })).not.toThrow();
-    expect(fsReaddir(runDir).some((entry) => entry.includes('.stale-'))).toBe(false);
+
+    // 接管胜者持有期间，第三方（handoff 已被抢占语义）再次拒绝。
+    writeFileSync(path.join(runDir, 'run.lock.d', 'holder'), '999999998-dead-too\n', 'utf8');
+    writeFileSync(path.join(runDir, 'run.lock.d', 'holder.next'), '999999997-other-winner\n', 'utf8');
+    expect(() => prepareKonlingBlindAuditRun({
+      root,
+      runId,
+      manifestHash: konlingBlindAuditManifestHash(MANIFEST),
+      manifestPayload: MANIFEST,
+    })).toThrow(KonlingBlindAuditRunLockError);
   });
 });
+
