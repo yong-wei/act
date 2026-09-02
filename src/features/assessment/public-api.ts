@@ -19,6 +19,12 @@ import type {
 import type { AbilityReport, DiagnosticResult } from './adaptive-engine';
 import type { AdaptiveAttemptContext } from './adaptive-attempt-context';
 
+export type { CompanionPracticeMetadata } from './adaptive-engine';
+export {
+  resolveAdaptiveDiagnosisContext,
+  type AdaptiveDiagnosisContext,
+  type AdaptiveDiagnosisContextDb,
+} from './adaptive-diagnosis-context';
 export type {
   SelectNextPathQuestionInput,
   SelectNextPathQuestionResult,

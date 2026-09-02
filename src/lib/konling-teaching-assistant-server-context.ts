@@ -2,16 +2,16 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import {
   resolveAdaptiveDiagnosisContext,
-} from '@/features/assessment/adaptive-diagnosis-context';
+} from '@/features/assessment/public-api';
 
 import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   type PersistedDocumentRubricGradingDraft,
-} from '@/features/teacher/document-rubric-grading-workbench';
+} from '@/features/teacher/public-api';
 import {
   CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
-} from '@/features/personalization/diagnosis/control-correction-diagnosis-profile';
+} from '@/features/personalization/diagnosis/public-api';
 import {
   normalizeKonlingRole,
   resolveKonlingTeachingAssistantMode,

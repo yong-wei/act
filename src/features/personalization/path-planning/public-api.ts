@@ -59,6 +59,7 @@ export * from './adaptive-path-goal-options';
 export * from './adaptive-path-node-decisions';
 export * from './adaptive-path-option-display';
 export * from './adaptive-path-round-restore';
+export * from './control-correction-path-rounds';
 export * from './adaptive-path-unlock-chain';
 export * from './path-constraint-repair';
 export * from './resource-ranker';
