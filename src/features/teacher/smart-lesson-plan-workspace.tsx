@@ -403,14 +403,17 @@ export function SmartLessonPlanWorkspace({
     // 同 revision 下旧 RUNNING 投影也不得覆盖新 COMPLETED 投影。
     const sequence = (taskRequestSequences.current.get(taskId) ?? 0) + 1;
     taskRequestSequences.current.set(taskId, sequence);
+    const isLatest = () => taskRequestSequences.current.get(taskId) === sequence;
     try {
       const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
       const payload = await response.json();
+      // 任何副作用（成功/HTTP 错误/异常提示）之前先丢弃过期响应。
+      if (!isLatest()) return;
       if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
-      if (taskRequestSequences.current.get(taskId) !== sequence) return;
       setTasks((current) => mergeIncomingTask(current, payload.task as Task));
       setMessage('任务状态已刷新。');
     } catch {
+      if (!isLatest()) return;
       setMessage('任务刷新失败，请检查网络后重试。');
     }
   }
