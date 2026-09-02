@@ -8,6 +8,7 @@ import {
 } from '@/resources/simulations/core/run-contract';
 import {
   assertPreviewOrPracticeNotOfficial,
+  canonicalIdentityHash,
   type ArtifactRunIdentity,
 } from '@/lib/practice-lab-run-contract';
 
@@ -92,9 +93,16 @@ export function assertPersistedArenaPreviewContract(input: {
 }): void {
   const persisted = input.preview.metadata?.runContract?.identity as ArtifactRunIdentity | undefined;
   if (!persisted) return;
+  const { canonicalIdentityHash: storedHash, ...unsigned } = persisted;
+  if (!storedHash || storedHash !== canonicalIdentityHash(unsigned)) {
+    throw new ArenaReplayAccessError('Persisted preview identity hash does not match the sealed identity.');
+  }
   assertPreviewOrPracticeNotOfficial(persisted);
   if (persisted.ownerRef.id !== input.previewUserId) {
     throw new ArenaReplayAccessError('Persisted preview owner does not match the run owner.');
+  }
+  if (persisted.taskId !== input.preview.taskId || persisted.artifactHash !== input.preview.controllerHash) {
+    throw new ArenaReplayAccessError('Persisted preview identity does not match the preview row.');
   }
   if (input.simulationRun?.ownerUserId && input.simulationRun.ownerUserId !== input.previewUserId) {
     throw new ArenaReplayAccessError('Linked SimulationRun owner does not match the preview owner.');

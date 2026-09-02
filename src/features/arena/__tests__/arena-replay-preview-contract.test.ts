@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { projectArenaPreviewIdentity } from '@/lib/practice-lab-run-contract';
+import { canonicalIdentityHash, projectArenaPreviewIdentity } from '@/lib/practice-lab-run-contract';
 import {
   ArenaReplayAccessError,
   assertPersistedArenaPreviewContract,
@@ -27,7 +27,7 @@ function previewWithIdentity(identity: ReturnType<typeof persistedIdentity>): Ar
   return {
     taskId: 'task-1',
     datasetHash: 'arena-blackbox-dataset-x',
-    controllerHash: 'controller',
+    controllerHash: identity.artifactHash,
     scenarioId: 'scenario',
     trace: [],
     summary: {
@@ -97,10 +97,34 @@ describe('persisted arena preview contract', () => {
       extras: { simulationTrace: { id: 'trace-1', checksum: 'sha256:right' } as never },
       error: /checksum/,
     },
-  ])('handles $name', ({ owner, checksum, extras, error }) => {
+    {
+      name: 'tampered identity hash',
+      owner: 'student-1',
+      checksum: 'sha256:trace',
+      extras: {},
+      error: /identity hash/,
+      mutate: (identity: ReturnType<typeof persistedIdentity>) => ({
+        ...identity,
+        canonicalIdentityHash: 'sha256:tampered',
+      }),
+    },
+    {
+      name: 'task identity drift',
+      owner: 'student-1',
+      checksum: 'sha256:trace',
+      extras: {},
+      error: /preview row/,
+      mutate: (identity: ReturnType<typeof persistedIdentity>) => {
+        const next = { ...identity, taskId: 'task-other' };
+        const { canonicalIdentityHash: _stored, ...unsigned } = next;
+        return { ...unsigned, canonicalIdentityHash: canonicalIdentityHash(unsigned) };
+      },
+    },
+  ])('handles $name', ({ owner, checksum, extras, error, mutate }) => {
+    const identity = persistedIdentity(owner, checksum);
     const run = () => assertPersistedArenaPreviewContract({
       previewUserId: 'student-1',
-      preview: previewWithIdentity(persistedIdentity(owner, checksum)),
+      preview: previewWithIdentity(mutate ? mutate(identity) : identity),
       ...extras,
     });
     if (error) expect(run).toThrow(error);
