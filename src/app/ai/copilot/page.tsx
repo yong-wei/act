@@ -34,6 +34,7 @@ import {
   getAiAuditTaskContract,
 } from '@/lib/ai-task-boundary-contracts';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
+import { buildStandaloneCopilotEntryPresentation } from '@/lib/standalone-copilot-entry';
 
 const STANDALONE_COPILOT_COURSE_ID = 'ai-assistant';
 const STANDALONE_COPILOT_PAGE_ID = '/ai/copilot';
@@ -337,54 +338,15 @@ export default function CopilotPage() {
     void refreshConversations().catch(() => undefined);
   }, [activeConversationId, refreshActiveConversation, refreshConversations]);
 
-  const quickQuestions = useMemo(() => {
-    if (context === 'portfolio-reflection') {
-      return [
-        {
-          label: '整理目标',
-          question: '请把本次 AI 协作的任务目标和输出对象整理成反思草稿。',
-        },
-        {
-          label: '保留疑问',
-          question: '请列出本次 AI 建议中仍需要我验证的疑问。',
-        },
-        { label: '下一步', question: '请把下一步验证行动写成作品集反思候选。' },
-      ];
-    }
-    if (context === 'evidence') {
-      return [
-        {
-          label: '证据来源',
-          question: '请先说明当前证据来源，再给出下一步练习建议。',
-        },
-        {
-          label: '薄弱点',
-          question: '请根据当前证据摘要指出一个最需要补强的薄弱点。',
-        },
-        {
-          label: '练习计划',
-          question: '请把补强建议转成一个候选练习计划，不要写入档案。',
-        },
-      ];
-    }
-    return [
-      { label: '仿真状态', question: '请获取当前的仿真状态' },
-      { label: 'PID原理', question: '请解释PID控制器的工作原理' },
-      {
-        label: '诺莫托模型',
-        question: '什么是诺莫托船舶模型？参数K和T代表什么？',
-      },
-      {
-        label: '调参建议',
-        question: '我的航迹误差较大，应该如何调整PID参数？',
-      },
-      {
-        label: '安全规范',
-        question: '根据CCS规范，舵角速度的安全限制是多少？',
-      },
-      { label: '海况影响', question: '不同海况等级对船舶控制有什么影响？' },
-    ];
-  }, [context]);
+  const entryPresentation = buildStandaloneCopilotEntryPresentation({
+    context,
+    evidenceStatus: evidenceProjection?.status ?? null,
+    evidenceUnavailable: evidenceProjectionError,
+    evidenceLimitations: evidenceProjection?.limitations,
+    evidenceNextAction: evidenceProjection?.nextAction,
+    portfolioHref: portfolioReflectionHref,
+  });
+  const quickQuestions = entryPresentation.suggestions;
 
   return (
     <AppShell
@@ -599,34 +561,38 @@ export default function CopilotPage() {
               </div>
               ) : null}
               {((conversationStatus === 'empty' && !recoveryFailed) || conversationStatus === 'unauthenticated') ? (
-                <div className="space-y-6">
+                <div className="space-y-6" data-copilot-entry-kind={entryPresentation.kind}>
                   <div className="rounded-xl bg-gradient-to-br from-amber-900/30 to-orange-900/20 p-6">
                     <div className="mb-3 flex items-center gap-3">
                       <KonlingAvatar size="md" />
                       <h2 className="text-lg font-semibold text-amber-300">欢迎使用 {KONLING_BRAND.name}</h2>
                     </div>
-                    <p className="text-slate-300">
-                      我是你的AI学习伴侣{KONLING_BRAND.name}
-                      ，专门负责自动控制原理的教学与答疑工作。 我可以帮助您：
-                    </p>
+                    <p className="text-slate-300">{entryPresentation.description}</p>
                     <ul className="mt-3 space-y-2 text-sm text-slate-400">
-                      <li className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        查看和分析仿真器状态
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        指导 PID 参数调整
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        解释船舶控制原理
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                        根据 CCS 规范审核您的设计
-                      </li>
+                      {entryPresentation.capabilities.map((capability) => (
+                        <li key={capability} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                          {capability}
+                        </li>
+                      ))}
                     </ul>
+                    {entryPresentation.limitations.map((limitation) => (
+                      <p key={limitation} className="mt-3 text-sm text-amber-100/80">{limitation}</p>
+                    ))}
+                    {entryPresentation.adjacentActions.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {entryPresentation.adjacentActions.map((action) => (
+                          <Link
+                            key={`${action.href}:${action.label}`}
+                            href={action.href}
+                            className="rounded border border-amber-400/40 px-3 py-1.5 text-xs text-amber-100"
+                            data-copilot-entry-action
+                          >
+                            {action.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div>
@@ -683,11 +649,11 @@ export default function CopilotPage() {
             <form onSubmit={(event) => void handleConversationSubmit(event)} className="mt-4" data-task-workspace-zone="local-primary-input">
               <div className="flex gap-3">
                 <input
-                  aria-label="请输入您的问题，例如：如何减少航迹误差？"
+                  aria-label={entryPresentation.inputAriaLabel}
                   type="text"
                   value={input}
                   onChange={handleInputChange}
-                  placeholder="请输入您的问题，例如：如何减少航迹误差？"
+                  placeholder={entryPresentation.placeholder}
                   data-primary-task-input={localTaskMode ? 'copilot-local-task' : undefined}
                   className={`${konlingPromptInputClassName} rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20`}
                   disabled={!authenticatedUserId || isLoading || recoveryFailed}
