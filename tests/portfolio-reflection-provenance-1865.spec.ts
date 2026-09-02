@@ -147,12 +147,14 @@ test('Issue 1865 classifies forged URL provenance text as student-provided inste
   // 学生自填标签可见且可编辑。
   const titleLabel = page.locator('[data-portfolio-reflection-label="title"]');
   await expect(titleLabel).toBeEditable();
+  // 清空可选任务字段：默认自由反思载荷应携带 assignment: null 并可保存。
+  await page.locator('[data-portfolio-reflection-label="assignment"]').fill('');
 
   await page.getByRole('button', { name: '保存草稿', exact: true }).click();
   await expect(page.getByText('已保存草稿', { exact: true }).first()).toBeVisible();
 
   expect(savedPayloads).toHaveLength(1);
-  expect(savedPayloads[0]).toMatchObject({ provenance: 'student-provided' });
+  expect(savedPayloads[0]).toMatchObject({ provenance: 'student-provided', assignment: null });
   expect(JSON.stringify(savedPayloads[0])).not.toContain('platform-verified');
   expect(JSON.stringify(savedPayloads[0])).not.toContain('sourceKind');
 });

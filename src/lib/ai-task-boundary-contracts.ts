@@ -150,7 +150,7 @@ const platformVerifiedDraftInputSchema = z.object({
 const studentProvidedDraftInputSchema = z.object({
   provenance: z.literal('student-provided'),
   source: boundedDescriptorString(),
-  assignment: boundedDescriptorString().optional(),
+  assignment: boundedDescriptorString().nullish(),
   intent: boundedDescriptorString(),
   title: boundedDescriptorString(),
   content: boundedDraftContent(),

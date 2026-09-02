@@ -163,6 +163,23 @@ describe('portfolio reflection drafts routes', () => {
     }));
   });
 
+  it('saves a free reflection whose optional student assignment label is empty', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue(null);
+
+    const response = await POST(request({
+      ...requestBody,
+      assignment: null,
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        provenance: 'STUDENT_PROVIDED',
+        assignment: null,
+      }),
+    }));
+  });
+
   it('creates once and leaves a repeated idempotent save unchanged', async () => {
     mocks.prisma.portfolioReflectionDraft.findUnique
       .mockResolvedValueOnce(null)
