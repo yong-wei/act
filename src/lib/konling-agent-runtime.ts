@@ -1144,6 +1144,23 @@ function includesAny(value: string, markers: readonly string[]): boolean {
   return markers.some((marker) => value.includes(marker));
 }
 
+const NORMATIVE_STANDARD_ID = /\b(?:gb\/t|gb\/z|gb[/\s.-]?\d|iso[\s.-]?\d|iec[\s.-]?\d|ieee[\s.-]?\d|en[\s.-]?\d|astm[\s.-]?[a-z]?\d)/i;
+const NORMATIVE_OBLIGATION = /(?:必须|不得|应当|严禁).{0,16}(?:标准|规定|法规|认证|条款|限值|格式|合格|遵守|符合)|(?:must|shall)\s+(?:not\s+)?(?:comply|meet|satisfy|observe|follow)/i;
+const NORMATIVE_RISK_MARKERS = [
+  '法规', '法条', '法律要求', '官方规定', '官方要求', '官方限值',
+  '认证', '考核办法', '操作规程',
+  'legal requirement', 'official rule', 'official limit',
+  'certification', 'certified', 'must not', 'shall not',
+] as const;
+
+function hasIndependentNormativeRisk(query: string | null | undefined): boolean {
+  const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
+  if (!normalized) return false;
+  return NORMATIVE_STANDARD_ID.test(normalized)
+    || includesAny(normalized, NORMATIVE_RISK_MARKERS)
+    || NORMATIVE_OBLIGATION.test(normalized);
+}
+
 function buildKonlingStudyQuestionContract(input: {
   answerIntent: KonlingAnswerIntent;
   citationContext: KonlingCitationContext | null | undefined;
@@ -1151,20 +1168,28 @@ function buildKonlingStudyQuestionContract(input: {
   currentUserQuery?: string | null;
   mathToolAvailable?: boolean;
 }): KonlingStudyQuestionContract | null {
-  if (!isStudyQuestionIntent(input.answerIntent)) return null;
+  const independentRisk = hasIndependentNormativeRisk(input.currentUserQuery);
+  let intent: KonlingStudyQuestionContract['intent'];
+  if (isStudyQuestionIntent(input.answerIntent)) {
+    intent = input.answerIntent;
+  } else if (independentRisk) {
+    intent = 'open-ended-explanation';
+  } else {
+    return null;
+  }
   const preferences = normalizeKonlingStudyAnswerPreferences(
     input.preferences,
     input.currentUserQuery,
     input.mathToolAvailable,
   );
-  const normativeGuidance = input.answerIntent === 'normative-content'
-    ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
-      ? 'verified'
-      : 'verification-required'
+  const hasAuthority = hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? []);
+  const requiresNormativeGate = input.answerIntent === 'normative-content' || independentRisk;
+  const normativeGuidance = requiresNormativeGate
+    ? (hasAuthority ? 'verified' : 'verification-required')
     : 'not-applicable';
   return {
-    intent: input.answerIntent,
-    requiredSections: studyQuestionRequiredSections(input.answerIntent),
+    intent,
+    requiredSections: studyQuestionRequiredSections(intent),
     normativeGuidance,
     preferences,
   };
