@@ -47,6 +47,8 @@ const CAPTURE_SOURCE_FILES = [
   'src/features/knowledge/graph/force-lifecycle.ts',
   'src/features/knowledge/graph/label-policy.ts',
   'src/lib/authority-locale-readiness/graph-interface-catalog.ts',
+  'src/lib/authority-locale-readiness/request.ts',
+  'course-content/authoring/knowledge/cutover/envelopes/locale-manifests/control-theory-engineering-v0.37.json',
   'src/lib/authority-domain-shards/teaching.ts',
   'src/app/api/knowledge/shards/active/route.ts',
 ];

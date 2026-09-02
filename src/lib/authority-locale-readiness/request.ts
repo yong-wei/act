@@ -159,6 +159,7 @@ export function resolveActiveLocaleQualification(
       && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
     ));
     if (!match) {
+      console.warn('[locale-qualification] historical fallback: no qualified composite registry match');
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
@@ -173,12 +174,14 @@ export function resolveActiveLocaleQualification(
     // 重跑 qualify）；不遍历分片闭包、不重建分母（#1741 design 2）。
     const pkg = readLocaleQualificationPackage(repoRoot, match.name);
     if (!pkg) {
+      console.warn('[locale-qualification] historical fallback: sealed package missing', match.name);
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
     }
     const verified = verifyLocaleQualificationPackage({ repoRoot, package: pkg });
     if (!verified.ok) {
+      console.warn('[locale-qualification] historical fallback:', verified.reason);
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
@@ -214,7 +217,11 @@ export function resolveActiveLocaleQualification(
     };
     qualificationByEvidence.set(cacheKey, ready);
     return ready;
-  } catch {
+  } catch (error) {
+    console.warn(
+      '[locale-qualification] historical fallback:',
+      error instanceof Error ? error.message : error,
+    );
     return historicalQualification();
   }
 }
