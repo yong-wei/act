@@ -1,14 +1,20 @@
 # Migration ledger — canonicalize Course Bundle runtime API (#1785)
 
-Qualification tree: `2933a288cad73d57ef99528cbd326405978f20b3`  
+Qualification tree: `2e6adc7a0cb2b17310e335516b63ce032ceffc7b`  
 Public entry blob: `src/lib/course-bundle/index.ts` @ `8aaf0c7ca781ad0bd5a17647b3997a228caec198`  
 Runtime-read owner blob: `src/lib/course-bundle/runtime-reads.ts` @ `52b26828f78b965b6c1fe910247cb659c9cb42c4`  
 Superseded aggregator: `src/lib/course-runtime.ts` is absent from this tree.
 
+`2e6adc7a0c` is the first revision that contains the public-entry migration,
+the textbook production-caller move, the dangling
+`@/lib/course-runtime` type-import repair in
+`scripts/db/generate-resource-field-completion-audit.ts`, and this ledger.
+`2933a288cad73d57ef99528cbd326405978f20b3` still imported the deleted
+aggregator and is not the qualification revision.
+
 This ledger binds caller closure, behavior comparison, deletion proof, rollback,
-and known non-blocking gaps to that single source revision.  Follow-up files in
-the same PR only add this evidence and repair one dangling type import after
-the aggregator deletion.
+and known non-blocking gaps to `2e6adc7a0c`.  A later documentation commit may
+only correct this binding text; it does not change that scanned caller set.
 
 ## Public surface
 
@@ -60,7 +66,8 @@ inventory of the retained implementation file, not a live competing reader.
 
 ## Deletion proof
 
-Static scan of `*.{ts,tsx,js,mjs}` after this tree:
+Static scan of `*.{ts,tsx,js,mjs}` on qualification tree `2e6adc7a0c`
+(and unchanged on this documentation follow-up):
 
 - Zero `from '@/lib/course-runtime'` module imports.
 - Zero `src/lib/course-runtime.ts` path in HEAD.

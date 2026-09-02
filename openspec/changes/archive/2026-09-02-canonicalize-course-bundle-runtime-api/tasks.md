@@ -35,4 +35,4 @@
   strict validation for this change; record source revision and hashes.
 - [x] 4.3 Publish a migration ledger with behavior comparison, deletion proof,
   rollback boundary, and known non-blocking test gaps
-  (`evidence/migration-ledger.md`, bound to `2933a288cad73d57ef99528cbd326405978f20b3`).
+  (`evidence/migration-ledger.md`, bound to `2e6adc7a0cb2b17310e335516b63ce032ceffc7b`).
