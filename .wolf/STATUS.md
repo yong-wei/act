@@ -10,6 +10,8 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-09-02：#1819 在 `act-dev2` 完成。PR #1848 squash 合入 `33f6df4706`（head `85f91011d6`）；Codex 三轮 findings（P1×3、P2×2）全修复，最终 Retry 窗口 Completed 无 findings，5 threads resolve；OpenSpec 归档 `2026-09-02-upgrade-konling-traceable-study-qa`。Issue CLOSED / `status:archived`。缺映射标记已补（issue body `<!-- openspec-buddy change_id: ... -->`）。未关 #1033，未生产部署。
+
 - 2026-09-02：#1817 在 `act-dev2` 完成。PR #1843 squash 合入 `93d21833ab`；Codex 清场绑定 `506a96d492`；OpenSpec 归档 `unify-konling-study-question-structure-contract`。Issue CLOSED / `status:archived`。未关 #1033，未生产部署。
 
 - 2026-09-01：#1032 已合入 `origin/integration`（PR #1752，merge `2ead59506`）。Next 16.3.4 / Prisma 7.10.0 / Sharp 0.35.4；官方 audit 0 findings。OpenSpec 已归档。已关 #1032/#1035/#291；#1033 仍开。未生产部署。
@@ -73,7 +75,8 @@
 
 ## 🚀 Next phase
 
-- 2026-09-02：#1819 已补映射（issue body marker → `upgrade-konling-traceable-study-qa`）并在 `act-dev2` 认领实现：章节 citationPolicy 映射（evidence-required/model-derived）、guard 按章节绑定回答单元并输出追溯覆盖率、无效/越界 `[n]` 在流式 finalize 与 session 消息两路持久化前清除、推导章节显式标识；提示词写入逐单元引用映射规则。新增 `konling-study-question-citation-coverage-1819.test.ts`（6 用例）并更新既有断言；typecheck tsc 错误清零、openspec strict 校验通过。`konling-session-detail-route` 与 `konling-conversation-library-ui` 各有 1 个基线红（stash 对比确认既有）。待 PR + Codex 清场后收尾。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+- 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 13 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、并发锁）。fixture 端到端演示通过（首轮注入失败 exit 1 → 续跑 complete exit 0）。typecheck 0 错误、strict 校验通过。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+
 
 - 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 

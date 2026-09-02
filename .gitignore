@@ -82,6 +82,7 @@ course-content/slides-ref
 # Run-specific QA screenshots and traces. Representative fixtures stay force-added.
 # Diagnosis benchmark run outputs (runtime artifacts, not source of truth)
 artifacts/diagnosis-benchmark/
+artifacts/konling-blind-audit/
 artifacts/**/*.png
 artifacts/**/*.jpg
 artifacts/**/*.jpeg
