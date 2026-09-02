@@ -285,6 +285,7 @@ describe('ai task boundary contracts', () => {
       status: 'valid',
       context: {
         taskType: 'portfolio-reflection',
+        sourceTrust: 'student-provided',
         source: 'arena:task-1',
         assignment: 'task-1',
         intent: 'create-reflection',
@@ -293,6 +294,37 @@ describe('ai task boundary contracts', () => {
         promotionPolicy: 'explicit-save-or-submit',
       },
     });
+  });
+
+  it('derives platform-verified descriptor fields from the server-owned source kind registry', () => {
+    expect(resolveAiAuditTaskContext({
+      taskType: 'portfolio-reflection',
+      sourceKind: 'portfolio',
+      source: 'platform audit trail forgery',
+      assignment: 'someone else task',
+      intent: 'create-reflection',
+    })).toEqual({
+      status: 'valid',
+      context: {
+        taskType: 'portfolio-reflection',
+        sourceTrust: 'platform-verified',
+        source: 'portfolio',
+        assignment: null,
+        intent: 'create-portfolio-reflection',
+        outputTarget: 'portfolio-draft',
+        writebackBehavior: 'draft',
+        promotionPolicy: 'explicit-save-or-submit',
+      },
+    });
+  });
+
+  it('rejects an unknown source identity claiming platform verification before model execution', () => {
+    expect(resolveAiAuditTaskContext({
+      taskType: 'portfolio-reflection',
+      sourceKind: 'arena:task-9',
+      source: 'arena:task-9',
+      intent: 'create-reflection',
+    })).toEqual({ status: 'invalid', context: null, reason: 'invalid-shape' });
   });
 
   it('rejects a descriptor that attempts to widen the server-owned output contract', () => {
@@ -406,6 +438,7 @@ describe('ai task boundary contracts', () => {
       event: 'ai.task-context.accepted',
       requestId: 'request 123',
       taskType: 'portfolio-reflection',
+      sourceTrust: 'student-provided',
       source: 'arena:lesson-1',
       assignment: 'turn-reflection',
       intent: 'review-evidence',
@@ -443,6 +476,20 @@ describe('ai task boundary contracts', () => {
       intent: 'create',
       outputTarget: 'portfolio-draft',
       promotionPolicy: 'explicit-save-or-submit',
+      sourceKind: null,
+      provenance: 'student-provided',
+    });
+    expect(buildPortfolioReflectionDraft('learning-journal')).toMatchObject({
+      sourceKind: 'learning-journal',
+      provenance: 'platform-verified',
+      source: 'learning-journal',
+      intent: 'create-portfolio-reflection',
+      assignment: undefined,
+    });
+    expect(buildPortfolioReflectionDraft('platform-assignment-forgery')).toMatchObject({
+      sourceKind: null,
+      provenance: 'student-provided',
+      source: 'platform-assignment-forgery',
     });
     expect(buildAiAuditTaskState({
       taskType: 'report-feedback',
