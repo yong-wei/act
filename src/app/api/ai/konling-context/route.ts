@@ -11,6 +11,7 @@ import { authOptions } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
+  createPrismaLearnerStateRuntime,
   isAdaptiveLearnerStateServiceEnabled,
   readLearnerState,
 } from '@/features/personalization/learner-state/public-api';
@@ -87,10 +88,12 @@ export async function GET(request: NextRequest) {
       return null;
     });
 
-    // Fetch optimized profile summary (should be < 100ms)
-    const profile = await prisma.studentProfileSummary.findUnique({
-      where: { userId },
-    });
+    // Fetch optimized profile summary (should be < 100ms) through the
+    // personalization owner port instead of a direct Prisma model read.
+    const learnerRecordPort = createPrismaLearnerStateRuntime().learningRecord;
+    const profile = narrowProfileSummary(
+      await learnerRecordPort.readProfileSummary(userId),
+    );
 
     if (!profile) {
       // Return default context if no profile exists yet
@@ -132,10 +135,9 @@ export async function GET(request: NextRequest) {
       && learnerState?.primaryPortraitAvailability === 'available'
     );
     const snapshot = hasTrustedPortraitForLegacyVector
-      ? await prisma.studentCompetencySnapshot.findFirst({
-          where: { userId },
-          orderBy: { snapshotAt: 'desc' },
-        })
+      ? narrowCompetencySnapshot(
+          await learnerRecordPort.readLatestCompetencySnapshot(userId),
+        )
       : null;
 
     const response = {
@@ -177,6 +179,31 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Owner port 返回中性 record；本 route 只声明自己消费的投影字段。
+interface KonlingProfileSummaryProjection {
+  overallLevel: string;
+  overallScore: number;
+  strengthsJson: unknown;
+  weaknessesJson: unknown;
+  recentTrend: string;
+  trendDirection: string;
+  riskFlagsJson: unknown;
+  riskLevel: string;
+  recommendedScaffolding: string;
+}
+
+function narrowProfileSummary(
+  value: Record<string, unknown> | null,
+): KonlingProfileSummaryProjection | null {
+  return (value as KonlingProfileSummaryProjection | null) ?? null;
+}
+
+function narrowCompetencySnapshot(
+  value: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  return value ?? null;
 }
 
 function buildKnowledgeWorkspaceHint(searchParams: URLSearchParams): KonlingKnowledgeWorkspaceHint | null {

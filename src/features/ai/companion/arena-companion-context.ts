@@ -1,11 +1,11 @@
 import {
   getArenaChallengeTask,
   getArenaMetricProfile,
-} from '@/features/arena/data/seed-challenges';
+} from '@/features/arena/domain';
 import type {
   ControllerMethod,
   MetricDefinition,
-} from '@/features/arena/types';
+} from '@/features/arena/domain';
 
 export interface ArenaCompanionParameter {
   id: string;

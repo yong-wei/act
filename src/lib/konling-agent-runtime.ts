@@ -11,11 +11,11 @@ import {
 import {
   CANDIDATE_GRAPH_SUPPORT,
   CANDIDATE_RELEASE_SELECTOR,
-} from '@/features/knowledge/candidate-graph-contracts';
+} from '@/features/knowledge/public-api';
 import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
-} from '@/features/knowledge/candidate-graph-policy';
+} from '@/features/knowledge/public-api';
 
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import {
@@ -42,12 +42,6 @@ import {
 } from '@/lib/governed-copilot-profile-context';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
-  CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
-  persistLearningPathRound,
-  recordPathChoiceEvidence,
-  recordPathIntervention,
-} from '@/features/personalization/path-planning/control-correction-path-rounds';
-import {
   AdaptivePathCandidateBatchConflictError,
   assertAdaptivePathCandidateBatchMatchesInput,
   buildAdaptivePathCandidateDifferenceSummary,
@@ -56,6 +50,10 @@ import {
   readAdaptivePathCandidateBatchByGenerationRequest,
   resolveAdaptivePathCandidateSelection,
   type AdaptivePathCandidateBatchView,
+  CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+  persistLearningPathRound,
+  recordPathChoiceEvidence,
+  recordPathIntervention,
 } from '@/features/personalization/path-planning/public-api';
 import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
