@@ -1,4 +1,5 @@
 import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
+import { detectOverallSubgroupPseudoConflict } from '@/lib/diagnosis-pseudo-conflict';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -301,6 +302,15 @@ function buildAvailability(
       EVIDENCE_CONFLICT_WORDING.test(limitation)
     ));
     if (conflictDeclared && evidenceCoverageComplete(report, evidenceGroups)) {
+      // 总体—子群伪冲突（Issue #1872）：历史报告不可变，但不得把班级总体
+      // 与部分学生的不可比信号继续显示为证据冲突，标注需重新生成。
+      if (detectOverallSubgroupPseudoConflict(report.reportBody).length > 0) {
+        return {
+          label: '报告需重新生成',
+          description: '该报告把班级总体表现与部分学生进度表述为证据冲突；两者学生范围不同、可以同时成立，不属于可比证据冲突。',
+          recoveryAction: '重新生成诊断以获得可比证据冲突判定。',
+        };
+      }
       return {
         label: '证据存在冲突',
         description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',

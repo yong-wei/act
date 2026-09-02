@@ -75,6 +75,8 @@
 
 ## 🚀 Next phase
 
+- 2026-09-02：#1872 已新建 change `fix-diagnosis-overall-subgroup-pseudo-conflict` 并在 `act-dev2` 认领实现：总体—子群伪冲突确定性识别（`src/lib/diagnosis-pseudo-conflict.ts`）、提示词证据可比性约束、持久化前 `DiagnosisPseudoConflictError` 可重试拦截（worker 分类 `diagnosis-pseudo-conflict`）、历史投影伪冲突标注「报告需重新生成」（真实可比冲突保留「证据存在冲突」）、benchmark 冲突场景绑定同批学生+时间窗。lib 67/67、投影 20/20、typecheck 0。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+
 - 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 18 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、代次目录锁：mkdir 单胜 + 初始化宽限 + 前代复验 + 实例标记 wx 发布）。fixture 端到端演示通过。Codex 六轮 findings 全修复，待最终清场合并。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-02：#1743 `verify-active-authority-graph-parity` 进行中（claim 分支已含 #1846 合并）。#1742 已完整闭环（PR #1846 squash merge `b484cffe69`，Issue 已关并标 status:archived；三项 review P2 修复后 head `0220ebbf92` Codex 显式清场）。经验：本机 Prisma client 过期会造成 typecheck 假失败（先 `npx prisma generate`）；`npm run build` 本机失败于 /ai collect（teacher-assignment-review-derivative-storage 字体 URL，预存在债务，待单独跟踪）。
