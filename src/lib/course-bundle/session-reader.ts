@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { prisma } from '@/lib/prisma';
-import { loadLessonRuntimeEntry, type RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry, type RuntimeLessonEntryBundle } from './runtime-reads';
 import type { CourseBundleRevision } from '@prisma/client';
 import {
   classifySessionBundleBinding,

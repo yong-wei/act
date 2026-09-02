@@ -14,7 +14,7 @@ import {
   teachingRoleLabel,
   type StepDrawerResolution,
 } from '@/features/knowledge/layered-graph-workspace-contracts';
-import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-bundle';
 
 function buildStepNodeMap(
   runtime: RuntimeLessonEntryBundle,

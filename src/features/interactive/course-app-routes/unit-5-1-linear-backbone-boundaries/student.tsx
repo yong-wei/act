@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { UNIT_5_1StudentPage } from '@/features/interactive/unit-5-1-linear-backbone-boundaries/student-page';
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 

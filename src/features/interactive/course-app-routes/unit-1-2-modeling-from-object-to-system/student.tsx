@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { UNIT_1_2StudentPage } from '@/features/interactive/unit-1-2-modeling-from-object-to-system/student-page';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { UNIT_5_2StudentPage } from '@/features/interactive/unit-5-2-nonlinear-analysis-entry/student-page';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';
 

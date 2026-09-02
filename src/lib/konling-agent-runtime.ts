@@ -63,7 +63,7 @@ import {
   bindKonlingCandidateSelectionToolRun,
   buildKonlingCandidateSelectionToolResult,
 } from '@/lib/konling-candidate-selection-tool-run';
-import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
+import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-bundle';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,

@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_1_4CourseEntryPage } from '@/features/interactive/unit-1-4-time-frequency-views/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

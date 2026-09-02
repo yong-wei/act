@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_4_7CourseEntryPage } from '@/features/interactive/unit-4-7-destroyer-hifi-design-closure/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

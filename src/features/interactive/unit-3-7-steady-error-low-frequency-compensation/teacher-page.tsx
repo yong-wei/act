@@ -16,7 +16,7 @@ import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import {
   finalizeUNIT_3_7TeacherSession,
   getUNIT_3_7MediaSrc,

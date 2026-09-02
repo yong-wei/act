@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { UNIT_2_4CourseEntryPage } from '@/features/interactive/unit-2-4-nyquist-margin-entry/entry-page';
 
 export const dynamic = 'force-dynamic';

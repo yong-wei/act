@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { UNIT_4_4CourseEntryPage } from '@/features/interactive/unit-4-4-fixed-structure-optimization-modeling/entry-page';
 
 export const dynamic = 'force-dynamic';

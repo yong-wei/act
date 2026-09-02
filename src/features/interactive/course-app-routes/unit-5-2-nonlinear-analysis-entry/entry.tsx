@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_5_2CourseEntryPage } from '@/features/interactive/unit-5-2-nonlinear-analysis-entry/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

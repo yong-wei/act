@@ -1,4 +1,4 @@
-import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-bundle';
 
 type KnowledgeMapGroup = RuntimeLessonEntryBundle['graphOverlay']['groups'][number];
 type KnowledgeMapLink = RuntimeLessonEntryBundle['graphOverlay']['links'][number];

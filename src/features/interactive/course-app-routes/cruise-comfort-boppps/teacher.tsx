@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { CruiseStandardTeacherPage } from '@/features/interactive/cruise-comfort-standard-course/teacher-page';
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 
 interface PageProps {

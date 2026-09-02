@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 
 import { UNIT_1_3CourseEntryPage } from '@/features/interactive/unit-1-3-parameter-pole-migration/entry-page';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { UNIT_5_4CourseEntryPage } from '@/features/interactive/unit-5-4-data-driven-mpc-transition/entry-page';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 

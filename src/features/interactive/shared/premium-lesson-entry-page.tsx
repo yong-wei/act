@@ -14,7 +14,7 @@ import {
 import { LessonEntryMediaHub } from '@/features/interactive/shared/lesson-entry-media-hub';
 import { LessonEntryRuntimeSections } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 
 type NormalizedRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | null;
 

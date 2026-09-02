@@ -8,7 +8,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
   type RuntimeLessonResourceCatalogEntry,
-} from '@/lib/course-runtime';
+} from '@/lib/course-bundle';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,
   type TextbookStructureRuntimeCatalogEntry,

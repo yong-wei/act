@@ -11,7 +11,7 @@ import path from 'node:path';
 
 import { DEFAULT_AUTHORITY_ROOT_RELATIVE } from '@/lib/authoritative-knowledge/authority-snapshot';
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { buildLessonHandoutPrintPath } from '@/lib/handout-pdf';
 import {
   resolveInteractiveLessonIdentity,

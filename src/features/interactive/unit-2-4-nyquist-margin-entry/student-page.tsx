@@ -17,7 +17,7 @@ import {
   useManifestSubmissionController,
 } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   getUNIT_2_4MediaSrc,

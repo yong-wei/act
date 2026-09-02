@@ -18,7 +18,7 @@ import {
   LessonRuntimeShell,
 } from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { getCruiseStepAIContext } from '@/lib/cruise-ai-contexts';
 import {
   CRUISE_LESSON_KEY,

@@ -38,11 +38,8 @@ import {
   tryResolveRuntimeContentPath,
 } from '@/lib/runtime-content-path';
 import { findRuntimeMediaReleaseObject, readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
-import {
-  CourseBundleDriftError,
-  type SessionBundleBinding,
-} from '@/lib/course-bundle/contract';
-import { readBoundResourceBytes } from '@/lib/course-bundle/blob-reader';
+import { CourseBundleDriftError, type SessionBundleBinding } from './contract';
+import { readBoundResourceBytes } from './blob-reader';
 
 type RuntimeNode = {
   id: string;
@@ -394,7 +391,7 @@ async function loadFrontContentForNode(
     const markdown = boundCards
       ? await readBoundCardContent(resourcePath, boundCards)
       : await readReadableContentText(resourcePath);
-    return extractSection(markdown, '首页') ?? fallbackFrontContent(markdown) ?? node.description;
+    return extractSection(markdown, '首页') ?? fallbackFrontContent(markdown);
   } catch (error) {
     if (error instanceof CourseBundleDriftError) throw error;
     return node.description;

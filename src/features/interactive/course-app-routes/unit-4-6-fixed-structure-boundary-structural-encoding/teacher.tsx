@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { UNIT_4_6TeacherPage } from '@/features/interactive/unit-4-6-fixed-structure-boundary-structural-encoding/teacher-page';
 import { authOptions } from '@/lib/auth';
-import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle/session-reader';
+import { loadSessionBoundLessonRuntime } from '@/lib/course-bundle';
 import { CourseBundleDriftState } from '@/features/lesson-engine/course-bundle-drift-state';
 
 export default async function UNIT_4_6TeacherRoute(

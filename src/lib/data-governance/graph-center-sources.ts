@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
   type RuntimeLessonResourceCatalogEntry,
-} from '@/lib/course-runtime';
+} from '@/lib/course-bundle';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
   loadAllTextbookStructureRuntimeCatalogEntries,

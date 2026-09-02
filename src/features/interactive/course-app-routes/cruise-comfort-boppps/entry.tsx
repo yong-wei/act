@@ -1,7 +1,7 @@
 import { CruiseStandardCourseEntryPage } from '@/features/interactive/cruise-comfort-standard-course/entry-page';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 export const dynamic = 'force-dynamic';
 
