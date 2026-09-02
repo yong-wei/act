@@ -9,6 +9,7 @@ import {
 } from './controller-artifact-builder';
 import { assertSupportedArenaPreviewMethod } from '@/lib/control-engine';
 import { computeAnalysisBrowser } from '@/lib/control-engine/client';
+import { PREVIEW_DISPLAY_BOUNDARY } from '@/lib/practice-lab-run-contract/types';
 
 export interface ArenaWorkbenchMetricDelta {
   metricId: string;
@@ -26,9 +27,9 @@ export interface ArenaWorkbenchPreview {
   artifact: ControllerArtifact;
   evaluation: ArenaEvaluationResult;
   comparison?: ArenaWorkbenchPreviewComparison;
-  persisted: false;
-  evaluationVisibility: 'preview';
-  officialEligible: false;
+  persisted: typeof PREVIEW_DISPLAY_BOUNDARY.persisted;
+  evaluationVisibility: typeof PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility;
+  officialEligible: typeof PREVIEW_DISPLAY_BOUNDARY.officialEligible;
 }
 
 function createBrowserPreviewAnalysisService(): ControlAnalysisService {
@@ -103,15 +104,15 @@ export async function buildArenaWorkbenchPreview({
       ],
       metadata: {
         ...evaluation.metadata,
-        evaluationVisibility: 'preview',
-        officialEligible: false,
-        persisted: false,
+        evaluationVisibility: PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility,
+        officialEligible: PREVIEW_DISPLAY_BOUNDARY.officialEligible,
+        persisted: PREVIEW_DISPLAY_BOUNDARY.persisted,
         authoritySource: analysisService ? 'control-engine-server-facade' : 'control-engine-browser-facade',
       },
     },
     comparison: buildComparison(task, evaluation, previousSubmission),
-    persisted: false,
-    evaluationVisibility: 'preview',
-    officialEligible: false,
+    persisted: PREVIEW_DISPLAY_BOUNDARY.persisted,
+    evaluationVisibility: PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility,
+    officialEligible: PREVIEW_DISPLAY_BOUNDARY.officialEligible,
   };
 }

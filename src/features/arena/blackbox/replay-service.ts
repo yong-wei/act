@@ -6,6 +6,10 @@ import {
   type SimulationTaskSpecV1,
   type SimulationTraceRecordV1,
 } from '@/resources/simulations/core/run-contract';
+import {
+  assertPreviewOrPracticeNotOfficial,
+  projectSimulationRunIdentity,
+} from '@/lib/practice-lab-run-contract';
 
 import {
   buildArenaVirtualSimulationPreview,
@@ -348,6 +352,23 @@ export const prismaArenaReplayRunStore: ArenaReplayRunStore = {
     const canonicalTraces = Array.isArray(canonicalRecord?.traces) ? canonicalRecord.traces : [];
     const simulationRun = canonicalRecord ? simulationRunFromRow(canonicalRecord) : null;
     const simulationTrace = simulationTraceFromRow(readObject(canonicalTraces[0]));
+    if (simulationRun) {
+      assertPreviewOrPracticeNotOfficial(projectSimulationRunIdentity({
+        sourceId: simulationRun.id,
+        ownerUserId: row.userId,
+        taskId: simulationRun.taskSpec.sceneId || simulationRun.sourceRefId,
+        specHash: simulationRun.taskSpec.specHash,
+        artifactHash: simulationRun.controllerSnapshotRef ?? simulationRun.id,
+        controllerSnapshotRef: simulationRun.controllerSnapshotRef ?? simulationRun.id,
+        protocolVersion: simulationRun.protocolVersion,
+        runtimeVersion: simulationRun.runtimeVersion,
+        modelVersion: simulationRun.modelVersion,
+        executor: 'server',
+        authoritySource: 'control-engine-server-facade',
+        seed: simulationRun.seed ?? null,
+        checksum: simulationTrace?.checksum ?? null,
+      }));
+    }
 
     return {
       id: row.id,

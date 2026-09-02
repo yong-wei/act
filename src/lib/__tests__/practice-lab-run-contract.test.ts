@@ -7,6 +7,8 @@ import {
   ArtifactRunContractError,
   CONTRACT_SCHEMA,
   OWNER_MATRIX,
+  PRACTICE_DISPLAY_BOUNDARY,
+  PREVIEW_DISPLAY_BOUNDARY,
   ROUTE_DENOMINATOR,
   assertEvaluationBoundToAcceptedSubmission,
   assertNoOfficialPromotion,
@@ -51,8 +53,10 @@ describe('practice lab artifact/run contract', () => {
   it('seals a preview envelope as non-official surrogate', () => {
     const { identity, publicProjection } = projectArenaPreviewIdentity(identityInput());
     expect(identity.schemaVersion).toBe(CONTRACT_SCHEMA);
-    expect(identity.evaluationVisibility).toBe('preview');
-    expect(identity.officialEligible).toBe(false);
+    expect(identity.evaluationVisibility).toBe(PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility);
+    expect(identity.officialEligible).toBe(PREVIEW_DISPLAY_BOUNDARY.officialEligible);
+    expect(PREVIEW_DISPLAY_BOUNDARY.officialEligible).toBe(false);
+    expect(PRACTICE_DISPLAY_BOUNDARY.officialEligible).toBe(false);
     expect(identity.executor).toBe('server');
     expect(identity.authoritySource).toBe('control-engine-server-facade');
     expect(identity.modelRelation).toBe('surrogate');
@@ -123,6 +127,17 @@ describe('practice lab artifact/run contract', () => {
     expect(writer).toContain('payload: {');
     expect(writer).toContain('metadata: previewBoundary');
     expect(writer).toContain('runContract: existing?.runContract');
+    const persist = readFileSync(path.join(repoRoot, 'src/lib/data-governance/simulation-scene-run-persistence.ts'), 'utf8');
+    expect(persist).toContain('projectSimulationRunIdentity');
+    expect(persist).toContain('projectPracticeOutcomeIdentity');
+    expect(persist).toContain('officialEligible');
+    const preview = readFileSync(path.join(repoRoot, 'src/features/arena/submissions/workbench-preview.ts'), 'utf8');
+    expect(preview).toContain("from '@/lib/practice-lab-run-contract/types'");
+    expect(preview).toContain('PREVIEW_DISPLAY_BOUNDARY');
+    expect(preview).not.toContain('canonicalIdentityHash');
+    const replay = readFileSync(path.join(repoRoot, 'src/features/arena/blackbox/replay-service.ts'), 'utf8');
+    expect(replay).toContain('projectSimulationRunIdentity');
+    expect(replay).toContain('assertPreviewOrPracticeNotOfficial');
   });
 
   it('keeps sealed identity field order deterministic', () => {

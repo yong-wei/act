@@ -2,6 +2,12 @@ import { createHash } from 'node:crypto';
 
 import type { Prisma } from '@prisma/client';
 
+import {
+  assertPreviewOrPracticeNotOfficial,
+  projectPracticeOutcomeIdentity,
+  projectSimulationRunIdentity,
+  type ArtifactRunIdentity,
+} from '@/lib/practice-lab-run-contract';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import type { OptimizationResult } from '@/resources/simulations/lib/monte-carlo-optimizer';
 import type { CruiseTelemetryBridgeSummary } from '@/resources/simulations/simulations/cruise/telemetry-bridge';
@@ -103,6 +109,19 @@ async function upsertTaskSpec(
   return { id: taskSpec.id, payload, specHash };
 }
 
+function practiceRunContractProjection(identity: ArtifactRunIdentity) {
+  assertPreviewOrPracticeNotOfficial(identity);
+  return {
+    schemaVersion: identity.schemaVersion,
+    sourceKind: identity.sourceKind,
+    evaluationVisibility: identity.evaluationVisibility,
+    officialEligible: identity.officialEligible,
+    canonicalIdentityHash: identity.canonicalIdentityHash,
+    executor: identity.executor,
+    authoritySource: identity.authoritySource,
+  };
+}
+
 function controlSummary(result: ControlAnalysisResult) {
   const poles = result.rootLocus.currentPoles;
   const stable = poles.length > 0 && poles.every((pole) => pole.re < 0);
@@ -160,7 +179,26 @@ export async function persistControlWorkbenchSimulationRun(
   })}`;
   const now = new Date();
   const controllerSnapshotRef = sha256Ref(input.request.structures);
-  const summary = controlSummary(result);
+  const checksum = sha256Ref(result);
+  const runContractIdentity = projectSimulationRunIdentity({
+    sourceId: sourceRefId,
+    ownerUserId,
+    taskId: input.capabilityId,
+    specHash: taskSpec.specHash,
+    artifactHash: controllerSnapshotRef,
+    controllerSnapshotRef,
+    protocolVersion: '1.0',
+    runtimeVersion: 'control-engine-wasm-server-v1',
+    modelVersion: input.request.caseId ?? 'control-analysis-v1',
+    executor: 'server',
+    authoritySource: 'control-engine-server-facade',
+    seed: null,
+    checksum,
+  });
+  const summary = {
+    ...controlSummary(result),
+    runContract: practiceRunContractProjection(runContractIdentity),
+  };
   const run = await db.simulationRun.upsert({
     where: {
       sourceDomain_sourceRefId: {
@@ -202,7 +240,7 @@ export async function persistControlWorkbenchSimulationRun(
       protocolVersion: '1.0',
       runtimeVersion: 'control-engine-wasm-server-v1',
       modelVersion: input.request.caseId ?? 'control-analysis-v1',
-      checksum: sha256Ref(result),
+      checksum,
       summaryMetrics: summary.metrics as Prisma.InputJsonValue,
       sampleCount: result.stepResponse.points.length,
       sampleCadence: input.request.timeRange.samples > 1
@@ -271,7 +309,26 @@ export async function persistSceneTraceSimulationRun(
     runId: trace.envelope.runId,
   })}`;
   const controllerSnapshotRef = sha256Ref(controller);
-  const summary = sceneTraceSummary(evaluation);
+  const checksum = sha256Ref(evaluation);
+  const runContractIdentity = projectPracticeOutcomeIdentity({
+    sourceId: sourceRefId,
+    ownerUserId,
+    taskId: trace.envelope.sceneId,
+    specHash: taskSpec.specHash,
+    artifactHash: controllerSnapshotRef,
+    controllerSnapshotRef,
+    protocolVersion: '1.0',
+    runtimeVersion: 'control-engine-wasm-server-v1',
+    modelVersion: 'nomoto-quick-sim-v1',
+    executor: 'server',
+    authoritySource: 'control-engine-server-facade',
+    seed: null,
+    checksum,
+  });
+  const summary = {
+    ...sceneTraceSummary(evaluation),
+    runContract: practiceRunContractProjection(runContractIdentity),
+  };
   const now = new Date();
   const run = await db.simulationRun.upsert({
     where: {
@@ -315,7 +372,7 @@ export async function persistSceneTraceSimulationRun(
       protocolVersion: '1.0',
       runtimeVersion: 'control-engine-wasm-server-v1',
       modelVersion: 'nomoto-quick-sim-v1',
-      checksum: sha256Ref(evaluation),
+      checksum,
       summaryMetrics: summary.metrics as Prisma.InputJsonValue,
       sampleCount: 241,
       sampleCadence: 0.5,
