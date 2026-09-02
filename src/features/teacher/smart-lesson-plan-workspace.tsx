@@ -239,7 +239,7 @@ export function SmartLessonPlanWorkspace({
         }
       }
       setTasks((current) => current.some((task) => task.id === detail.taskId)
-        ? mergeTasksByIdentity(current, [nextTask!])
+        ? mergeIncomingTask(current, nextTask!)
         : [nextTask!, ...current]);
       setSelectedTaskId(detail.taskId);
       const stageId = detail.affectedStageId ?? 'topic-goals';
@@ -276,7 +276,7 @@ export function SmartLessonPlanWorkspace({
       if (taskResponse) {
         const taskPayload = await taskResponse.json();
         if (taskResponse.ok) {
-          setTasks((current) => mergeTasksByIdentity(current, [taskPayload.task as Task]));
+          setTasks((current) => mergeIncomingTask(current, taskPayload.task as Task));
         }
       }
     };
@@ -402,7 +402,7 @@ export function SmartLessonPlanWorkspace({
       const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
-      setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
+      setTasks((current) => mergeIncomingTask(current, payload.task as Task));
       setMessage('任务状态已刷新。');
     } catch {
       setMessage('任务刷新失败，请检查网络后重试。');
@@ -472,7 +472,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? `任务约束已确认，当前修订 ${payload.task.revision}。` : errorText(payload));
-    if (response.ok) setTasks((currentTasks) => mergeTasksByIdentity(currentTasks, [payload.task as Task]));
+    if (response.ok) setTasks((currentTasks) => mergeIncomingTask(currentTasks, payload.task as Task));
   }
 
   async function updateClassDiagnosis(task: Task, classId: string) {
@@ -488,7 +488,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '班级学情选择已更新；已有生成内容会保留并按需标记待重生成。' : errorText(payload));
-    if (response.ok) setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
+    if (response.ok) setTasks((current) => mergeIncomingTask(current, payload.task as Task));
   }
 
   async function updateSourceDecision(
@@ -531,7 +531,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '来源决策已保存。' : errorText(payload));
-    if (response.ok) setTasks((current) => mergeTasksByIdentity(current, [payload.task as Task]));
+    if (response.ok) setTasks((current) => mergeIncomingTask(current, payload.task as Task));
   }
 
   function editPausedOutline(task: Task) {
@@ -965,11 +965,8 @@ function acceptFresherTask(current: Task, incoming: Task): Task {
   return taskRevisionOf(incoming) >= taskRevisionOf(current) ? incoming : current;
 }
 
-function mergeTasksByIdentity(current: Task[], incoming: Task[]): Task[] {
-  return current.map((task) => {
-    const next = incoming.find((item) => item.id === task.id);
-    return next ? acceptFresherTask(task, next) : task;
-  });
+function mergeIncomingTask(current: Task[], incoming: Task): Task[] {
+  return current.map((task) => task.id === incoming.id ? acceptFresherTask(task, incoming) : task);
 }
 
 const BOPPPS_STAGE_LABELS = Object.fromEntries(BOPPPS_STAGES) as Record<string, string>;
