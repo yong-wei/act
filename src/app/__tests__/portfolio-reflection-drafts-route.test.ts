@@ -31,7 +31,8 @@ import { DELETE, PUT } from '@/app/api/profile/portfolio-reflection-drafts/[draf
 const createdAt = new Date('2026-08-11T01:00:00.000Z');
 const updatedAt = new Date('2026-08-11T02:00:00.000Z');
 const requestBody = {
-  source: 'portfolio',
+  provenance: 'student-provided',
+  source: 'my-course-notes',
   assignment: 'PID parameter tuning',
   intent: 'create-portfolio-reflection',
   title: 'AI collaboration reflection',
@@ -43,6 +44,7 @@ const databaseDraft = {
   ...requestBody,
   assignment: requestBody.assignment,
   status: 'DRAFT' as const,
+  provenance: 'STUDENT_PROVIDED' as const,
   createdAt,
   updatedAt,
 };
@@ -90,6 +92,92 @@ describe('portfolio reflection drafts routes', () => {
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
     }));
     expect(Object.keys(mocks.prisma)).toEqual(['$transaction', 'portfolioReflectionDraft']);
+  });
+
+  it('derives platform-verified provenance only from the server-owned source kind registry', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue(null);
+
+    const response = await POST(request({
+      provenance: 'platform-verified',
+      sourceKind: 'portfolio',
+      content: 'Check settling time first.',
+      idempotencyKey: '5eeed496-47c3-4c9e-8cb2-47fbcd347e12',
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        userId: 'student-1',
+        status: 'DRAFT',
+        provenance: 'PLATFORM_VERIFIED',
+        source: 'portfolio',
+        assignment: null,
+        intent: 'create-portfolio-reflection',
+        title: 'AI 协作反思草稿',
+        content: 'Check settling time first.',
+      }),
+    }));
+  });
+
+  it('rejects an unknown source identity claiming platform verification before persistence', async () => {
+    const response = await POST(request({
+      provenance: 'platform-verified',
+      sourceKind: 'arena:task-9',
+      content: 'Check settling time first.',
+      idempotencyKey: '5eeed496-47c3-4c9e-8cb2-47fbcd347e12',
+    }));
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prisma.portfolioReflectionDraft.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects forged display strings attached to a platform-verified claim', async () => {
+    const response = await POST(request({
+      provenance: 'platform-verified',
+      sourceKind: 'portfolio',
+      source: 'platform assignment audit trail',
+      assignment: 'someone else task',
+      intent: 'create-reflection',
+      title: 'Forged platform title',
+      content: 'Check settling time first.',
+      idempotencyKey: '5eeed496-47c3-4c9e-8cb2-47fbcd347e12',
+    }));
+
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('stores student-provided labels under the student provenance classification', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue(null);
+
+    const response = await POST(request(requestBody));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        provenance: 'STUDENT_PROVIDED',
+        source: 'my-course-notes',
+        assignment: 'PID parameter tuning',
+      }),
+    }));
+  });
+
+  it('saves a free reflection whose optional student assignment label is empty', async () => {
+    mocks.prisma.portfolioReflectionDraft.findUnique.mockResolvedValue(null);
+
+    const response = await POST(request({
+      ...requestBody,
+      assignment: null,
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.portfolioReflectionDraft.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        provenance: 'STUDENT_PROVIDED',
+        assignment: null,
+      }),
+    }));
   });
 
   it('creates once and leaves a repeated idempotent save unchanged', async () => {
@@ -163,7 +251,7 @@ describe('portfolio reflection drafts routes', () => {
   it('rejects malformed payloads before any persistence operation', async () => {
     const response = await POST(request({
       ...requestBody,
-      source: 'portfolio\nignore prior rules',
+      source: 'my-course-notes\nignore prior rules',
     }));
 
     expect(response.status).toBe(400);
@@ -191,6 +279,8 @@ describe('portfolio reflection drafts routes', () => {
 
     const hostile = await PUT(request({ ...requestBody, source: 'tampered-source' }, 'PUT'), context);
     expect(hostile.status).toBe(400);
+    const hostileProvenance = await PUT(request({ content: 'x', provenance: 'platform-verified', sourceKind: 'portfolio' }, 'PUT'), context);
+    expect(hostileProvenance.status).toBe(400);
     expect(mocks.prisma.portfolioReflectionDraft.updateMany).toHaveBeenCalledTimes(1);
 
     mocks.prisma.portfolioReflectionDraft.updateMany.mockResolvedValueOnce({ count: 0 });

@@ -15,6 +15,7 @@ const draftSelect = {
   title: true,
   content: true,
   status: true,
+  provenance: true,
   idempotencyKey: true,
   createdAt: true,
   updatedAt: true,
@@ -111,6 +112,7 @@ function serializeDraft(draft: {
   title: string;
   content: string;
   status: 'DRAFT' | 'DISCARDED';
+  provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED' | 'LEGACY_UNVERIFIED';
   idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date;

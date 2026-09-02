@@ -356,6 +356,7 @@ describe('Konling smart-prep production routes', () => {
         event: 'ai.task-context.accepted',
         requestId: 'reflection-request-1',
         taskType: 'portfolio-reflection',
+        sourceTrust: 'student-provided',
         source: 'arena:pid-turn',
         assignment: 'pid-turn-reflection',
         intent: 'review-control-evidence',

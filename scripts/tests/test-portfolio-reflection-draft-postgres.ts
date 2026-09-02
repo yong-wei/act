@@ -4,6 +4,10 @@ import { randomUUID } from 'node:crypto';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import {
+  resolvePortfolioReflectionDraftRecord,
+  type PortfolioReflectionDraftRecordInput,
+} from '../../src/lib/ai-task-boundary-contracts';
+import {
   DiscardedDraftReplayError,
   savePortfolioReflectionDraft,
 } from '../../src/lib/portfolio-reflection-drafts';
@@ -12,6 +16,27 @@ const prisma = createPrismaClient();
 const suffix = randomUUID();
 const userId = `portfolio-draft-test-${suffix}`;
 const idempotencyKey = randomUUID();
+
+function platformRecord(): PortfolioReflectionDraftRecordInput {
+  return resolvePortfolioReflectionDraftRecord({
+    provenance: 'platform-verified',
+    sourceKind: 'portfolio',
+    content: 'Check the settling time first.',
+    idempotencyKey,
+  });
+}
+
+function studentRecord(): PortfolioReflectionDraftRecordInput {
+  return resolvePortfolioReflectionDraftRecord({
+    provenance: 'student-provided',
+    source: 'my-course-notes',
+    assignment: 'PID parameter tuning',
+    intent: 'create-portfolio-reflection',
+    title: 'AI collaboration reflection',
+    content: 'Check the settling time first.',
+    idempotencyKey,
+  });
+}
 
 async function main() {
   try {
@@ -24,14 +49,16 @@ async function main() {
       },
     });
 
-    const input = {
-      source: 'portfolio',
-      assignment: 'PID parameter tuning',
-      intent: 'create-portfolio-reflection',
-      title: 'AI collaboration reflection',
-      content: 'Check the settling time first.',
-      idempotencyKey,
-    };
+    // 平台核验：URL/请求展示文本不参与，canonical 字段只能来自注册表。
+    const platform = platformRecord();
+    assert.equal(platform.provenance, 'PLATFORM_VERIFIED');
+    assert.equal(platform.source, 'portfolio');
+    assert.equal(platform.assignment, null);
+    assert.equal(platform.intent, 'create-portfolio-reflection');
+
+    const input = studentRecord();
+    assert.equal(input.provenance, 'STUDENT_PROVIDED');
+    assert.equal(input.source, 'my-course-notes');
     const [first, concurrent] = await Promise.all([
       savePortfolioReflectionDraft(prisma, userId, input),
       savePortfolioReflectionDraft(prisma, userId, input),
@@ -44,6 +71,7 @@ async function main() {
     assert.equal(active.length, 1);
     assert.equal(active[0]?.content, first.content);
     assert.equal(active[0]?.source, first.source);
+    assert.equal(active[0]?.provenance, 'STUDENT_PROVIDED');
     assert.equal(await prisma.learningFact.count({ where: { userId } }), 0);
 
     await prisma.portfolioReflectionDraft.updateMany({

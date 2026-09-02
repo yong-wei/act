@@ -19,6 +19,12 @@ enum PortfolioReflectionDraftStatus {
   DISCARDED
 }
 
+enum PortfolioReflectionProvenance {
+  PLATFORM_VERIFIED
+  STUDENT_PROVIDED
+  LEGACY_UNVERIFIED
+}
+
 enum LearnerFactTransitionOperation {
   UPSERT
   CORRECT
@@ -4577,6 +4583,7 @@ model PortfolioReflectionDraft {
   title          String
   content        String                         @db.Text
   status         PortfolioReflectionDraftStatus @default(DRAFT)
+  provenance     PortfolioReflectionProvenance  @default(LEGACY_UNVERIFIED)
   idempotencyKey String
   createdAt      DateTime                       @default(now())
   updatedAt      DateTime                       @updatedAt

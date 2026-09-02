@@ -120,6 +120,7 @@ export default function CopilotPage() {
       context === 'portfolio-reflection' && reflectionDraft
         ? {
             taskType: 'portfolio-reflection' as const,
+            sourceKind: reflectionDraft.sourceKind ?? undefined,
             source: reflectionDraft.source,
             assignment: reflectionDraft.assignment,
             intent: reflectionDraft.intent,
@@ -515,7 +516,7 @@ export default function CopilotPage() {
                   <div className="font-medium">{reflectionDraft.title}</div>
                   <p className="mt-1 text-violet-100/80">{reflectionDraft.detail}</p>
                   <div className="mt-2 rounded border border-violet-400/40 px-2 py-1 text-xs text-violet-100/70">
-                    来源：{reflectionDraft.source} · 任务：
+                    来源：{reflectionDraft.source}（{reflectionDraft.provenance === 'platform-verified' ? '平台核验' : '学生提供'}） · 任务：
                     {reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent} · 输出：
                     {reflectionDraft.outputTarget}
                   </div>
