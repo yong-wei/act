@@ -15,8 +15,9 @@ const OVERALL_NORMAL_PATTERN = /(班级|全班|整体|总体)[^。；;\n]{0,24}(
 const SUBGROUP_WEAK_PATTERN = /(部分|少数|个别|某些)[^。；;\n]{0,16}(学生|同学)[^。；;\n]{0,24}(薄弱|滞后|落后|未开始|进度偏低|低于)/;
 // 与历史投影的冲突措辞判定保持一致（Issue #1755 review）。
 export const EVIDENCE_CONFLICT_WORDING_PATTERN = /冲突|矛盾|不一致/;
-// 否定措辞把冲突词中和为「不存在冲突」的合规表述；判定只作用于所在子句。
-const NEGATED_CONFLICT_PATTERN = /不(?:存在|构成)?[^。；;\n]{0,6}(?:冲突|矛盾|不一致)|并非[^。；;\n]{0,12}(?:冲突|矛盾|不一致)|没有[^。；;\n]{0,12}(?:冲突|矛盾|不一致)/;
+// 否定连接：冲突词紧邻前缀中的否定形态（否定词与冲突词之间不允许
+// 逗号/句读隔断），仅中和该冲突词实例而非整个子句。
+const NEGATED_CONFLICT_PREFIX_PATTERN = /(不(?:存在|构成)?|并非|没有)[^，,。；;\n]{0,6}$/;
 // 指代词：冲突声明子句显式指回前文（含前一子句）的总体—子群组合。
 const COMBINATION_REFERENCE_PATTERN = /二者|两者|上述|前述|这(?:两|三)?种|该(?:两|三)?者/;
 
@@ -29,10 +30,13 @@ export function splitDiagnosisClauses(text: string): string[] {
   return text.split(/(?<=[。；;])/).map((clause) => clause.trim()).filter(Boolean);
 }
 
-/** 子句是否为非否定的冲突声明（供检测与历史投影共用）。 */
+/** 子句是否含至少一个未被否定连接修饰的冲突词（供检测与历史投影共用）。 */
 export function diagnosisClauseDeclaresConflict(clause: string): boolean {
-  return EVIDENCE_CONFLICT_WORDING_PATTERN.test(clause)
-    && !NEGATED_CONFLICT_PATTERN.test(clause);
+  for (const match of clause.matchAll(/冲突|矛盾|不一致/g)) {
+    const prefix = clause.slice(Math.max(0, (match.index ?? 0) - 10), match.index);
+    if (!NEGATED_CONFLICT_PREFIX_PATTERN.test(prefix)) return true;
+  }
+  return false;
 }
 
 function clauseHasOverallNormal(clause: string): boolean {
