@@ -376,9 +376,9 @@ describe('issue #1819 answer-unit citation coverage', () => {
       '积分项没有限幅。',
       '**最小修复**',
       '加抗饱和 [1]。',
-      '```ts',
-      'output = clamp(pid.compute(err), -limit, limit);',
-      '```',
+      '  ```ts',
+      '  output = clamp(pid.compute(err), -limit, limit);',
+      '  ```',
       '**验证方法**',
       '看阶跃超调是否回落。',
     ].join('\n');

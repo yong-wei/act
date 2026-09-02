@@ -9677,7 +9677,12 @@ function scanKonlingAnswerUnits(
         }
       }
       // Fenced/inline code and its fence lines are not substantive answer
-      // units and never require per-unit citations (#1819).
+      // units and never require per-unit citations (#1819). The fence regex
+      // also catches indented fences whose line start falls outside the code
+      // range (which begins at the backticks, not the indentation).
+      if (/^\s*```/.test(line)) {
+        continue;
+      }
       if (codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)) {
         continue;
       }
