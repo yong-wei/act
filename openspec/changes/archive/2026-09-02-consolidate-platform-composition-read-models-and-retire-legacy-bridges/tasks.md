@@ -9,7 +9,7 @@
 
 - [x] 2.1 Select the established platform composition owners (platform UI contracts, role navigation, AppShell, role workspace shell) as the composition surfaces of record; no parallel composition authority introduced.
 - [x] 2.2 Keep AppShell, role workspace and navigation surfaces on their established C9/C16 owners; the unified multi-domain composition contract for knowledge/resource, teaching and AI presentation surfaces is explicitly out of this change's delivered scope (recorded in retirement-receipt.md as a follow-up, not a delivered capability).
-- [ ] 2.3 Preserve source/release/manifest/revision provenance, role filtering, privacy, cache/refresh, SSR and R3F dynamic boundaries.
+- [x] 2.3 Preserve source/release/manifest/revision provenance, role filtering, privacy, cache/refresh, SSR and R3F dynamic boundaries.
 - [x] 2.4 Delete duplicate mappers, aliases, fallback bridges and route-local read models only after before/after tests pass.
 
 ## 3. Verify no authority expansion
@@ -21,4 +21,4 @@
 ## 4. Handoff
 
 - [x] 4.1 Record before/after read-model map, deleted bridges and retained ingress adapters with deletion conditions.
-- [ ] 4.2 Run `openspec validate consolidate-platform-composition-read-models-and-retire-legacy-bridges --type change --strict` before C34.
+- [x] 4.2 Run `openspec validate consolidate-platform-composition-read-models-and-retire-legacy-bridges --type change --strict` before C34.

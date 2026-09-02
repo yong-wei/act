@@ -7,7 +7,7 @@
 ## What Changes
 
 - 保持既有 platform composition owners（platform UI contracts、role navigation、AppShell、role workspace shell）为组合面事实源，退役无 authority 的 legacy bridge；统一多领域组合合同（单一入口组合 projection/revision/privacy/unavailable）明确不在本 change 交付范围，由后续 change 承接。
-- 让 AppShell、role workspace shell、知识/资源入口、AI presentation 和教学 surfaces 通过同一只读 composition contract，删除重复 mapper、alias、route-local read model 和 legacy bridge。
+- AppShell、role workspace shell 保持既有组合面（C9/C16 owner）；本轮删除零消费者 legacy bridge、死 barrel 与死导出。知识/资源入口、AI presentation 和教学 surfaces 的统一组合迁移与重复 mapper/route-local read model 清理不在本 change 交付范围（见 retirement-receipt.md 移交声明）。
 - 保持 Active/Legacy、teacher/student/admin、SSR/R3F、resource/Authority/Teaching Projection 等既有边界；不把组合结果写回任何业务或知识真源。
 - 保留显式的 source/release/manifest/revision identity、权限过滤、失败关闭和缓存/刷新语义；缺失 owner projection 不由平台层猜测补齐。
 - 增加 before/after projection、角色隐私、revision drift、SSR/hydration、R3F dynamic boundary 和 no-write 回归证据。
