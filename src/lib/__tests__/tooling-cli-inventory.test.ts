@@ -1,6 +1,8 @@
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, beforeAll, expect, it } from 'vitest';
 
 type InventoryEntry = {
   status: 'active' | 'compatibility' | 'unknown';
@@ -8,6 +10,7 @@ type InventoryEntry = {
 };
 
 type Inventory = {
+  sourceIdentity: { scriptsCanonicalSha256: string; note: string };
   canonicalGates: {
     'verify:commit': string;
     'verify:push': string;
@@ -15,6 +18,7 @@ type Inventory = {
     ciEntryPoints: string[];
   };
   namespaces: Record<string, { commands: Record<string, InventoryEntry> }>;
+  documentedDirectEntries: Array<{ command: string; status: string; target: string; evidence: string }>;
   retired: Array<{ command: string; canonical: string; evidence: string }>;
   compatibility: Array<{ command: string; canonical: string; reason: string; sunset: string }>;
   unknown: Array<{ command: string; reason: string }>;
@@ -26,7 +30,14 @@ function readJson(relativePath: string) {
   return JSON.parse(readFileSync(join(process.cwd(), relativePath), 'utf8'));
 }
 
-const packageJson = readJson('package.json') as { scripts: Record<string, string> };
+function scriptsCanonicalSha256(rawPackageJson: string) {
+  const scripts = (JSON.parse(rawPackageJson) as { scripts: Record<string, string> }).scripts;
+  const canonical = JSON.stringify(Object.keys(scripts).sort().map((key) => [key, scripts[key]]));
+  return createHash('sha256').update(canonical).digest('hex');
+}
+
+const packageJsonRaw = readFileSync(join(process.cwd(), 'package.json'), 'utf8');
+const packageJson = JSON.parse(packageJsonRaw) as { scripts: Record<string, string> };
 const inventory = readJson('docs/architecture/tooling-cli-inventory.json') as Inventory;
 
 function classifiedCommandNames(): Map<string, InventoryEntry> {
@@ -131,6 +142,58 @@ describe('tooling CLI delivery and graph gates', () => {
     for (const command of releaseContractCommands) {
       expect(packageJson.scripts[command], `${command} must remain defined`).toBeDefined();
       expect(classified.get(command)?.status, `${command} must stay active`).toBe('active');
+    }
+  });
+});
+
+describe('tooling CLI inventory source identity', () => {
+  it('fails closed when the workspace or committed package.json scripts drift from the captured inventory identity', () => {
+    const captured = inventory.sourceIdentity.scriptsCanonicalSha256;
+    expect(captured).toMatch(/^[0-9a-f]{64}$/);
+    expect(
+      scriptsCanonicalSha256(packageJsonRaw),
+      'workspace package.json scripts drifted from the inventory; regenerate the inventory identity',
+    ).toBe(captured);
+    const headPackageJson = execFileSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' });
+    expect(
+      scriptsCanonicalSha256(headPackageJson),
+      'committed HEAD package.json scripts drifted from the inventory; regenerate the inventory identity',
+    ).toBe(captured);
+  });
+});
+
+describe('tooling CLI documented direct entries', () => {
+  const allTargets = new Set<string>();
+
+  beforeAll(() => {
+    for (const group of Object.values(inventory.namespaces)) {
+      for (const entry of Object.values(group.commands)) {
+        if (entry.target) allTargets.add(entry.target);
+      }
+    }
+    for (const entry of inventory.documentedDirectEntries) allTargets.add(entry.target);
+  });
+
+  it('classifies every documented direct-invoke entry with an existing target', () => {
+    expect(inventory.documentedDirectEntries.length).toBeGreaterThan(0);
+    for (const entry of inventory.documentedDirectEntries) {
+      expect(entry.status).toBe('active');
+      expect(entry.evidence.length).toBeGreaterThan(0);
+      expect(existsSync(join(process.cwd(), entry.target)), `${entry.command} target ${entry.target} is missing`).toBe(true);
+    }
+  });
+
+  it('covers every directly invoked script path documented in scripts/README.md and AGENTS.md', () => {
+    const documentedPaths = new Set<string>();
+    for (const doc of ['scripts/README.md', 'AGENTS.md']) {
+      const text = readFileSync(join(process.cwd(), doc), 'utf8');
+      for (const match of text.matchAll(/\b(?:scripts|tools)\/[A-Za-z0-9_./-]+\.(?:ts|tsx|mjs|js|py|sh)\b/g)) {
+        documentedPaths.add(match[0]);
+      }
+    }
+    expect(documentedPaths.size).toBeGreaterThan(0);
+    for (const path of documentedPaths) {
+      expect(allTargets.has(path), `${path} is documented but missing from the inventory targets`).toBe(true);
     }
   });
 });

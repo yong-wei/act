@@ -1,11 +1,11 @@
 # Active tooling CLI inventory
 
-真源：`docs/architecture/tooling-cli-inventory.json`（revision-bound，文件所在 Git 修订即 source identity）。
-回归：`src/lib/__tests__/tooling-cli-inventory.test.ts`（completeness、retired 防复活、compatibility 转发等价、unknown 可见性、target 存在性、门禁语义、graph 独立、privacy）。
+真源：`docs/architecture/tooling-cli-inventory.json`（revision-bound）。source identity 通过 `sourceIdentity.scriptsCanonicalSha256` 绑定捕获时的完整 `package.json` scripts 内容（sorted-key 规范 JSON 的 sha256）；工作区与 git HEAD 双比对，命令体或命令名漂移而清单未更新时测试 fail closed。
+回归：`src/lib/__tests__/tooling-cli-inventory.test.ts`（completeness、retired 防复活、compatibility 转发等价、unknown 可见性、target 存在性、门禁语义、graph 独立、privacy、source identity 双比对、documented direct entries 反向覆盖）。
 
 ## 分类规则
 
-- `active`：有活调用证据（CI、docs、测试、复合命令、git hooks）或属于 owner CLI 的显式模式入口族。
+- `active`：有活调用证据（CI、docs、测试、复合命令、git hooks）或属于 owner CLI 的显式模式入口族；无 npm 包装的文档化直接调用入口（`scripts/README.md`、`AGENTS.md` 记录的 `node`/`tsx`/`bash`/`python3` 直接调用）登记在 `documentedDirectEntries`。
 - `compatibility`：与 canonical 完全等价的薄转发 adapter，仅保留有 operator compatibility 价值的入口，必须带 sunset 条件。
 - `retired`：零语义重复 alias，已从 `package.json` 删除；evidence 记录等价证明与 canonical。
 - `unknown`：无当前调用证据、删除需 owner 确认的入口；不得转发、不得标 active。

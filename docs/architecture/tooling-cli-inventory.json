@@ -1207,5 +1207,77 @@
       "reason": "Local container build cache probe with no current caller; keep until a deployment owner confirms the cache probe is obsolete."
     }
   ],
-  "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation."
+  "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
+  "sourceIdentity": {
+    "note": "scriptsCanonicalSha256 binds this inventory to the exact package.json scripts object it was generated from (sorted-key canonical JSON, sha256). Any command-body change without an inventory update fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison.",
+    "scriptsCanonicalSha256": "65d2b9cd18002c06051535875aebc6ca93e5f248af2791301cec6e5d25b57429"
+  },
+  "documentedDirectEntries": [
+    {
+      "command": "node scripts/db/seed-all-knowledge.mjs",
+      "status": "active",
+      "target": "scripts/db/seed-all-knowledge.mjs",
+      "evidence": "scripts/README.md: local knowledge seeding runs the script directly; the npm seed:knowledge alias routes the same target through the migration-backfill gate."
+    },
+    {
+      "command": "node scripts/db/update-fixed-account-passwords.mjs",
+      "status": "active",
+      "target": "scripts/db/update-fixed-account-passwords.mjs",
+      "evidence": "scripts/README.md: fixed-account password update invoked directly for local writes."
+    },
+    {
+      "command": "node scripts/db/ensure-verified-test-accounts.mjs",
+      "status": "active",
+      "target": "scripts/db/ensure-verified-test-accounts.mjs",
+      "evidence": "scripts/README.md: local test-account provisioning invoked directly."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts",
+      "status": "active",
+      "target": "scripts/db/backfill-learning-facts-from-event-batches.ts",
+      "evidence": "scripts/README.md: learning-facts backfill invoked directly for local writes."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts",
+      "status": "active",
+      "target": "scripts/db/backfill-class-session-attribution.ts",
+      "evidence": "scripts/README.md: class-session attribution repair invoked directly with explicit session/class ids; canonical npm alias db:backfill-class-attribution routes the same target."
+    },
+    {
+      "command": "bash scripts/db/ensure-production-test-accounts.sh",
+      "status": "active",
+      "target": "scripts/db/ensure-production-test-accounts.sh",
+      "evidence": "scripts/README.md: production test-account provisioning entry."
+    },
+    {
+      "command": "node scripts/ops/clear-logs.mjs",
+      "status": "active",
+      "target": "scripts/ops/clear-logs.mjs",
+      "evidence": "scripts/README.md log section; also embedded in npm run dev/start."
+    },
+    {
+      "command": "python3 scripts/figures/generate_control_plots.py",
+      "status": "active",
+      "target": "scripts/figures/generate_control_plots.py",
+      "evidence": "scripts/README.md figure-script section for legacy teaching plots."
+    },
+    {
+      "command": "python3 scripts/figures/control_diagrams_matplotlib.py",
+      "status": "active",
+      "target": "scripts/figures/control_diagrams_matplotlib.py",
+      "evidence": "scripts/README.md figure-script section for legacy control diagrams."
+    },
+    {
+      "command": "bash scripts/build.sh",
+      "status": "active",
+      "target": "scripts/build.sh",
+      "evidence": "AGENTS.md Git/CI/release boundary: default image build entry."
+    },
+    {
+      "command": "bash scripts/dev/sync-local-worktree-config.sh",
+      "status": "active",
+      "target": "scripts/dev/sync-local-worktree-config.sh",
+      "evidence": "AGENTS.md: managed git hook installation and repair entry."
+    }
+  ]
 }
