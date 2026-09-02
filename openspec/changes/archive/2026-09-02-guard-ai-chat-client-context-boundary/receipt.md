@@ -33,3 +33,10 @@ route 集成：
 ## 4. Scope guard
 
 未改 Konling runtime 主路径授权、工具 scope、模型 grounding、诊断持久化或既有教学语义；仅收紧 legacy 无会话路径的信任边界。
+
+
+## 5. Codex P1 修复（路由 url 推断不可作为身份）
+
+- 事实：`/interactive-learning/` 等注册规则是宽泛前缀正则，不存在的 `/interactive-learning/courses/definitely-not-registered` 与 `/data-center` 均可经 url 推断得到 ok——客户端可把任意虚假页面身份写入系统提示词，违反「unknown/unauthorized → 400」验收。
+- 修复：`resolveServerOwnedChatPageContext` 删除 url 推断路径（及换行校验、`pageContextFromRegistered`），仅接受 (courseId, stepId) 在课程步骤注册表的**精确命中**；服务端字段投影不变。前端盘点：两个 sidebar 调用方均带 courseId+pageId 走 Konling 分支，legacy url 路径零消费者。
+- 回归：伪造/不存在路由 url（含 /data-center）→ INVALID_AI_CONTEXT；课程步骤命中用例保留；route guard 断言 resolver 不再引用 `resolveRegisteredAIContextFromPath`。

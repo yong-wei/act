@@ -499,8 +499,9 @@ describe('AI chat route Konling runtime guard', () => {
       join(process.cwd(), 'src/lib/ai/chat-context-boundary.ts'),
       'utf8',
     );
-    expect(boundarySource).toContain('resolveRegisteredAIContextFromPath');
     expect(boundarySource).toContain('getStepAIContext');
+    // 路由 url 宽泛推断不得作为页面身份来源（#1885 复审收紧）。
+    expect(boundarySource).not.toContain('resolveRegisteredAIContextFromPath');
     const lessonPromptsSource = readFileSync(
       join(process.cwd(), 'src/lib/ai/lesson-prompts.ts'),
       'utf8',

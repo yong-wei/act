@@ -1,5 +1,4 @@
 import { getStepAIContext } from '@/lib/course-ai-contexts';
-import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
 import type { PageContext } from '@/types/ai-context';
 
 /**
@@ -24,18 +23,8 @@ export function resolveServerOwnedChatPageContext(
 ): ServerOwnedChatPageResolution {
   if (!isRecord(pageContext)) return { ok: false, code: 'INVALID_AI_CONTEXT' };
 
-  // 优先用客户端提供的路由路径做注册表解析（注册字段由服务端规则给出）。
-  const url = typeof pageContext.url === 'string' ? pageContext.url : '';
-  // 路径提示必须是单行合法路径：含换行/控制字符的 instruction 注入直接 fail-closed。
-  const urlLooksLikePath = url.startsWith('/') && !/[\r\n\t\u0000-\u001f]/.test(url);
-  if (urlLooksLikePath) {
-    const registered = resolveRegisteredAIContextFromPath(url);
-    if (registered) {
-      return { ok: true, page: pageContextFromRegistered(registered, url) };
-    }
-  }
-
-  // 其次用 (courseId, stepId) 查课程步骤注册表（含互动课键别名归一）。
+  // 仅接受课程步骤注册表精确命中（含互动课键别名归一）：路由 url 的宽泛
+  // 前缀推断会把客户端选择的虚假页面身份写进系统提示词，不得作为身份来源。
   const courseId = typeof pageContext.courseId === 'string' ? pageContext.courseId.trim() : '';
   const stepId = typeof pageContext.stepId === 'string' ? pageContext.stepId.trim() : '';
   if (courseId && stepId) {
@@ -59,18 +48,3 @@ export function resolveServerOwnedChatPageContext(
   return { ok: false, code: 'INVALID_AI_CONTEXT' };
 }
 
-function pageContextFromRegistered(
-  registered: NonNullable<ReturnType<typeof resolveRegisteredAIContextFromPath>>,
-  url: string,
-): PageContext {
-  return {
-    courseId: registered.courseId ?? 'unknown',
-    courseTitle: registered.courseTitle ?? '学习页面',
-    pageType: registered.pageType ?? 'theory',
-    stepId: registered.stepId ?? url,
-    topic: registered.topic ?? registered.courseTitle ?? '学习页面',
-    learningObjectives: registered.learningObjectives ?? [],
-    knowledgeType: registered.knowledgeType ?? 'C',
-    url,
-  };
-}
