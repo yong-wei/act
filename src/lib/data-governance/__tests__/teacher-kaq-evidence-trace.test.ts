@@ -37,10 +37,6 @@ const teacherTraceServerSource = readFileSync(
   join(process.cwd(), 'src/lib/data-governance/teacher-kaq-evidence-trace-server.ts'),
   'utf8',
 );
-const graphCenterPageSource = readFileSync(
-  join(process.cwd(), 'src/app/graph-center/page.tsx'),
-  'utf8',
-);
 
 describe('teacher K/A/Q evidence trace payload', () => {
   it('projects a teacher-safe node trace with SAR evidence, gaps, candidates, and return links', () => {
@@ -85,7 +81,7 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(payload.candidateResources.length).toBeGreaterThan(0);
     expect(payload.returnLinks.map((link) => link.id)).toEqual(expect.arrayContaining([
       'class-analytics',
-      'graph-center',
+      'knowledge-workspace',
       'resource-governance',
     ]));
   });
@@ -171,7 +167,7 @@ describe('teacher K/A/Q evidence trace payload', () => {
     expect(teacherAnalyticsSource).toContain('/kaq-evidence-trace?domain=');
     expect(teacherAnalyticsSource).toContain('resolveGraphCenterTraceDomain');
     expect(teacherTraceServerSource).toContain('trustedScope: true');
-    expect(graphCenterPageSource).not.toContain('trustedScope: true');
+    expect(teacherAnalyticsSource).not.toContain('trustedScope: true');
   });
 });
 

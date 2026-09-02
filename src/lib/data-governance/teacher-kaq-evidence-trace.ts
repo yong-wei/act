@@ -214,14 +214,6 @@ function buildTeacherKaqReturnLinks(input: {
   domain: GraphCenterDomain;
   objectiveId: string | null;
 }): TeacherKaqEvidenceTracePayload['returnLinks'] {
-  const graphQuery = new URLSearchParams({
-    domain: input.domain,
-    classId: input.classId,
-  });
-  if (input.nodeId) graphQuery.set('nodeId', input.nodeId);
-  if (input.objectiveId) graphQuery.set('objectiveId', input.objectiveId);
-  if (input.studentId) graphQuery.set('learnerId', input.studentId);
-
   return [
     {
       id: 'class-analytics',
@@ -236,9 +228,9 @@ function buildTeacherKaqReturnLinks(input: {
         }]
       : []),
     {
-      id: 'graph-center',
-      label: '打开图谱中心',
-      href: `/graph-center?${graphQuery.toString()}`,
+      id: 'knowledge-workspace',
+      label: '打开知识图谱工作区',
+      href: '/knowledge',
     },
     {
       id: 'resource-governance',

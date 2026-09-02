@@ -78,7 +78,7 @@ describe('GET /api/teacher/classes/[classId]/kaq-evidence-trace', () => {
       name: '自动控制 1 班',
     });
     expect(payload.node.id).toBe('kn:autocontrol:controller-correction');
-    expect(payload.returnLinks.map((link: { id: string }) => link.id)).toContain('graph-center');
+    expect(payload.returnLinks.map((link: { id: string }) => link.id)).toContain('knowledge-workspace');
   });
 
   it('allows student-scoped traces only for students in the class', async () => {

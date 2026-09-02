@@ -210,16 +210,6 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
     visualAuditStatus: 'required',
   },
   {
-    category: 'graph',
-    href: '/graph-center',
-    sourceFile: 'src/app/graph-center/page.tsx',
-    viewerRole: 'student',
-    shellEvidence: 'direct-appshell',
-    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
-    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
-    visualAuditStatus: 'required',
-  },
-  {
     category: 'data-center',
     href: '/data-center',
     sourceFile: 'src/app/data-center/page.tsx',
