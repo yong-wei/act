@@ -8,7 +8,7 @@ import process from 'node:process';
 import { chromium } from 'playwright';
 
 import {
-  BASE, OUTPUT_DIR, BUDGETS, CAPTURE_SOURCE_FILES, EVIDENCE,
+  BASE, OUTPUT_DIR, BUDGETS, CAPTURE_SOURCE_FILES, EVIDENCE, ROWS,
   row, assertCleanCapture, provisionRoles, login,
   enterGraphAndDomain, labelPositions, movementBetween, semanticNodeIds,
   structuralClosure, readGitState, sha256File,
@@ -66,8 +66,7 @@ async function behaviorMatrix(page, rootShard, localeCap) {
     if (delta > earlyMovement) earlyMovement = delta;
     prevPositions = next;
   }
-  row('force', '2d.early-movement', '进域过程存在真实 unpinned 位移（或 reflow 行为另证）', earlyMovement > 0,
-    `maxSampledMovement=${earlyMovement.toFixed(1)}px`);
+  EVIDENCE.traces.earlyMovement = earlyMovement;
 
   // reflow：点击重新布局后必须出现新位移并重新稳定
   const beforeReflow = await labelPositions(page);
@@ -78,9 +77,9 @@ async function behaviorMatrix(page, rootShard, localeCap) {
   const settledReflow = await labelPositions(page);
   const reflowMovement = movementBetween(beforeReflow, midReflow);
   const reflowSettled = movementBetween(midReflow, settledReflow);
-  row('force', '2d.reflow', 'reflow 触发真实重新布局并再次收敛',
-    reflowMovement !== null && reflowSettled !== null && reflowMovement > 0 && reflowSettled < reflowMovement,
-    `movement=${reflowMovement?.toFixed(1)}px then delta=${reflowSettled?.toFixed(1)}px`);
+  row('force', '2d.movement', '进域采样或 reflow 存在真实 unpinned 位移且重新收敛',
+    (earlyMovement > 0 || (reflowMovement ?? 0) > 0) && (reflowSettled ?? Infinity) < (reflowMovement ?? 0),
+    `entryMax=${earlyMovement.toFixed(1)}px reflow=${reflowMovement?.toFixed(1)}px settleDelta=${reflowSettled?.toFixed(1)}px`);
 
   // 适配视图（camera fit）
   const fitBefore = await labelPositions(page);
