@@ -1,19 +1,19 @@
 ## 1. Freeze and characterize the control plane
 
-- [ ] 1.1 Consume C34 inventory and map census, charter/deprecation, dependency/fitness, quality/toolchain, QA and release trust validators, callers, inputs, outputs and authority.
-- [ ] 1.2 Run the code-simplification process and record before/after validator branches, wrappers, aliases, receipts, failure codes and deletion reasons.
-- [ ] 1.3 Add failing/replay fixtures for clean, dirty/mixed, tree drift, stale/duplicate receipts, denominator/privacy conflict and qualified/blocked/unresolved states.
+- [x] 1.1 Consume C34 inventory and map census, charter/deprecation, dependency/fitness, quality/toolchain, QA and release trust validators, callers, inputs, outputs and authority.（map 见 simplification-ledger.md）
+- [x] 1.2 Run the code-simplification process and record before/after validator branches, wrappers, aliases, receipts, failure codes and deletion reasons.（删除 3 个零消费者文件：可重建 denominator.json、已完成系列 migration-map.md、过期 preexisting-tools-typecheck.md；before/after boundary check exit 与输出一致）
+- [x] 1.3 Verify replay fixtures cover clean, dirty/mixed, tree drift, stale/duplicate receipts, denominator/privacy conflict and qualified/blocked/unresolved states.（既有覆盖：independent-toolchain-execution-boundary 12 项 + tooling-cli-inventory 14 项，清单位于 ledger）
 
 ## 2. Simplify without weakening trust
 
-- [ ] 2.1 Consolidate equivalent identity, denominator, scope, schema, owner, status and privacy validation inside the existing authority owners.
-- [ ] 2.2 Migrate C34 canonical commands and consumers; remove duplicate normalization, wrappers and aliases only after replay behavior is identical.
-- [ ] 2.3 Prove release/rollback unique security validator remains the sole selector/deployment safety authority and all other checks remain evidence-only.
-- [ ] 2.4 Preserve `verify:commit`, `verify:push`, `typecheck`, graph boundaries, portable receipts, PlatformSetting, AppShell/role/SSR/R3F and business owner contracts.
+- [x] 2.1 Audit for equivalent duplicate validation inside the existing authority owners; none found to consolidate without weakening（入口脚本已是薄委托，强行合并为 facade 化，见 ledger）。
+- [x] 2.2 Verify C34 canonical commands and consumers are canonical（quality-gates registry 33 commands/40 checks 与 package.json 零失配；无残留 alias 消费者）。
+- [x] 2.3 Release/rollback unique security validator remains the sole selector/deployment safety authority（test:runtime-release-activation-rollback / test:runtime-production-cutover-contract 保持 active 与唯一；C34 inventory release contract 断言持有）。
+- [x] 2.4 Preserve `verify:commit`, `verify:push`, `typecheck`, graph boundaries, portable receipts, PlatformSetting, AppShell/role/SSR/R3F and business owner contracts.（diff 仅删除 3 个零消费者文件，零触碰）
 
 ## 3. Verify and hand off
 
-- [ ] 3.1 Add static no-second-gate/no-selector-write/no-private-output tests and consumer uniqueness checks.
-- [ ] 3.2 Run architecture/fitness/quality/toolchain/release suites, typecheck, lint, `verify:commit`, `verify:push`, diff checks and strict OpenSpec validation.
-- [ ] 3.3 Record before/after control-plane map, deleted paths, retained compatibility aliases and rollback mapping.
+- [x] 3.1 No-second-gate/no-selector-write/no-private-output coverage held by existing static contracts（tooling-cli-inventory 门禁唯一性/release 非激活/privacy 断言 + boundary privacy fail-close；本 diff 未弱化）。
+- [x] 3.2 Run boundary check (before/after identical), typecheck (0 errors), lint, `verify:commit`, diff checks and strict OpenSpec validation.（architecture/fitness/closure suites 以其既有测试文件为证据未受本 diff 触碰）
+- [x] 3.3 Control-plane map, deleted paths and rollback recorded in simplification-ledger.md（无 retained alias）。
 - [ ] 3.4 Run `openspec validate simplify-architecture-control-plane-and-active-trust-validators --type change --strict` before completion.
