@@ -1,13 +1,18 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { ReactElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
+import { createManifestContentModuleRegistry } from '../shared/manifest-runtime/content-renderers';
 import {
   composeManifestPluginRegistry,
   ManifestPluginRegistryError,
   type AnyManifestModulePlugin,
   type ManifestModulePlugin,
 } from '../shared/manifest-runtime/plugins/plugin-contract';
+import { controlWorkbenchPluginSet } from '../shared/manifest-runtime/plugins/control-workbench-module';
+import { interactiveFigurePluginSet } from '../shared/manifest-runtime/plugins/interactive-figure-module';
 import {
   staticSurface3DModulePlugin,
   staticSurface3DPanelProps,
@@ -283,6 +288,108 @@ describe('central renderer shrink proof', () => {
   it('passes the unparsed capability reference into registry lookup', () => {
     expect(source).toContain('lookupModule({');
     expect(source).toContain('capabilityRef: computeCapabilityRef(module.payload)');
+  });
+
+  it('composes the three owned plugin sets as the only production registry', () => {
+    expect(source).toContain('composeManifestPluginRegistry([staticSurface3DPluginSet, controlWorkbenchPluginSet, interactiveFigurePluginSet])');
+    expect(source).not.toContain("from '@/lib/resource-registry");
+    expect(source).not.toContain("'interactive-figure':");
+  });
+});
+
+describe('registration retirement', () => {
+  const extra = { revealProgress: 0, allowInlineReveal: false };
+
+  function computePanelHtml(payload: Record<string, unknown>) {
+    const registry = createManifestContentModuleRegistry(extra);
+    const step = {
+      id: 'step-01',
+      title: 'Step 01',
+      contentBlocks: {},
+    } as never;
+    const runtimeModule = {
+      id: 'compute-module',
+      kind: 'compute.panel',
+      region: 'main',
+      mustBeVisible: true,
+      title: '计算面板',
+      payload,
+    } as never;
+    const manifest = {
+      lessonId: 'fixture',
+      steps: [step],
+    } as never;
+    return renderToStaticMarkup(registry['compute.panel']({
+      manifest,
+      step,
+      module: runtimeModule,
+      extra,
+    }) as ReactElement);
+  }
+
+  it('fail-closes a declared plugin with an unregistered contract version instead of the central kind path', () => {
+    const html = computePanelHtml({
+      capabilityRef: 'static-surface-3d',
+      contractVersion: 'v99',
+    });
+    expect(html).toContain('data-manifest-plugin-missing="manifest-plugin-version-missing:compute.panel:static-surface-3d:v99"');
+    expect(html).not.toContain('data-static-surface-3d-panel');
+  });
+
+  it('leaves undeclared compute panels on the central unclaimed path', () => {
+    const html = computePanelHtml({ text: '未声明能力走中心卡片' });
+    expect(html).not.toContain('data-manifest-plugin-missing');
+    expect(html).toContain('未声明能力走中心卡片');
+  });
+
+  it('keeps the image helper for course-owned figure intercepts and drops the unused plugin-kind alias', () => {
+    const registry = createManifestContentModuleRegistry(extra);
+    expect(registry['interactive-figure']).toBeUndefined();
+    expect(registry['interactive-figure-panel']).toBeTypeOf('function');
+  });
+
+  it('deletes zero-caller compatibility re-exports', () => {
+    const shared = join(process.cwd(), 'src/features/interactive/shared');
+    expect(existsSync(join(shared, 'manifest-content-renderers.tsx'))).toBe(false);
+    expect(existsSync(join(shared, 'manifest-activity-renderers.tsx'))).toBe(false);
+    expect(existsSync(join(shared, 'interactive-manifest-renderer.tsx'))).toBe(false);
+  });
+
+  it('keeps course-local registries from composing a second plugin registry', () => {
+    const root = join(process.cwd(), 'src/features/interactive');
+    const offenders: string[] = [];
+    const stack = [root];
+    while (stack.length) {
+      const dir = stack.pop();
+      if (!dir) break;
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== 'node_modules' && entry.name !== 'shared') stack.push(path);
+          continue;
+        }
+        if (entry.name !== 'step-panels.tsx') continue;
+        const source = readFileSync(path, 'utf8');
+        if (source.includes('composeManifestPluginRegistry')) offenders.push(`${path}:composeManifestPluginRegistry`);
+        if (/capabilityRef\s*===\s*['"]interactive-figure['"]/.test(source)
+          || /moduleCapabilityRef\([^)]*\)\s*===\s*['"]interactive-figure['"]/.test(source)) {
+          offenders.push(`${path}:capabilityRef-interactive-figure`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('resolves the production plugin identities through one composed registry', () => {
+    const registry = composeManifestPluginRegistry([
+      staticSurface3DPluginSet,
+      controlWorkbenchPluginSet,
+      interactiveFigurePluginSet,
+    ]);
+    for (const capabilityRef of ['static-surface-3d', 'control-workbench', 'interactive-figure']) {
+      expect(registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef }).status).toBe('rendered');
+    }
+    expect(registry.lookupModule({ moduleKind: 'compute.panel', capabilityRef: 'rust-analysis' }).status).toBe('unclaimed');
   });
 });
 

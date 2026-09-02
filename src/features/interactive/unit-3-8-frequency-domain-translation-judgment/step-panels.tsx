@@ -1062,7 +1062,7 @@ function createUNIT_3_8ModuleRegistry(input: {
       if (legacyKind === 'rust-analysis-panel' || capabilityRef === 'rust-analysis') {
         return <Unit38RustAnalysisPanel module={props.module} />;
       }
-      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+      if (legacyKind === 'interactive-figure-panel') {
         return sharedRegistry['interactive-figure-panel'](props);
       }
       return sharedRegistry['compute.panel'](props);

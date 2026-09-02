@@ -597,7 +597,7 @@ export function UNIT_4_2StepContentPanel({
           );
         }
       }
-      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+      if (legacyKind === 'interactive-figure-panel') {
         return renderInteractiveFigurePanel(props);
       }
       return sharedRegistry['compute.panel']?.(props) ?? null;

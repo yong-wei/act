@@ -1164,7 +1164,7 @@ describe('interactive module registry gate', () => {
 
   it('captures shared control workbench input values before state update callbacks', () => {
     const source = readFileSync(
-      join(process.cwd(), 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      join(process.cwd(), 'src/features/interactive/shared/manifest-runtime/control-workbench-compute-panel.tsx'),
       'utf8',
     );
 
