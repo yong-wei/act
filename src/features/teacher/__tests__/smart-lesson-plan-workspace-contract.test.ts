@@ -152,8 +152,16 @@ describe('smart lesson plan workspace request contracts', () => {
   });
 
   it('does not offer recovery controls for a superseded generation job', () => {
-    expect(workspaceSource).toContain("job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state)");
-    expect(workspaceSource).toContain("job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state)");
+    expect(workspaceSource).not.toContain("['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state)");
+    expect(workspaceSource).not.toContain("['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state)");
+    expect(workspaceSource).toContain('SMART_JOB_RECOVERY_STATES.includes(job.state');
+    expect(workspaceSource).toContain('SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state');
+    const libSource = readFileSync(
+      join(process.cwd(), 'src/lib/smart-lesson-plan/workspace.ts'),
+      'utf8',
+    );
+    expect(libSource).toContain("export const SMART_JOB_RECOVERY_STATES = ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] as const;");
+    expect(libSource).toContain("export const SMART_JOB_EDIT_BLOCKING_STATES = ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'] as const;");
   });
 
   it('uses the stable courseware draft and approved-plan revision URL contract', () => {
