@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -7,6 +7,22 @@ import { BATCH_B_CANONICAL_IDS, resolveBatchBLesson } from '../shared/batch-b-cl
 import { resolveBatchALesson } from '../shared/batch-a-classroom-shell';
 
 const repoRoot = process.cwd();
+const BATCH_B_SEGMENTS = [
+  'unit-4-1-design-task-expression',
+  'unit-4-2-controller-selection-first-start',
+  'unit-4-3-initial-scheme-practice-first-validation',
+  'unit-4-4-fixed-structure-optimization-modeling',
+  'unit-4-5-constraint-aware-parameter-optimization',
+  'unit-4-6-fixed-structure-boundary-structural-encoding',
+  'unit-4-7-destroyer-hifi-design-closure',
+  'unit-5-1-linear-backbone-boundaries',
+  'unit-5-2-nonlinear-analysis-entry',
+  'unit-5-3-mass-coordination-chain',
+  'unit-5-4-data-driven-mpc-transition',
+  'unit-5-5-policy-learning-entry-risk',
+  'unit-5-6-method-comparison-cold-chain',
+  'cruise-comfort-boppps',
+] as const;
 
 describe('batch-B shared classroom shell', () => {
   it('covers the closed canonical denominator and does not take Batch A', () => {
@@ -21,6 +37,16 @@ describe('batch-B shared classroom shell', () => {
     expect(resolveBatchALesson('unit-4-1-design-task-expression')).toBeNull();
   });
 
+  it('renders Batch B waiting through the shared lessonConfig', () => {
+    const source = readFileSync(join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'), 'utf8');
+    const waiting = source.slice(
+      source.indexOf('export async function renderBatchAWaiting'),
+      source.indexOf('export async function renderBatchADemo'),
+    );
+    expect(waiting).toContain('lessonConfig(input.routeSegment)');
+    expect(waiting).not.toContain('resolveBatchALesson(');
+  });
+
   it('deletes private batch-B course-app-route authorities', () => {
     const root = join(repoRoot, 'src/features/interactive/course-app-routes');
     const leftovers = existsSync(root)
@@ -28,22 +54,7 @@ describe('batch-B shared classroom shell', () => {
       : [];
     expect(leftovers).toEqual([]);
     expect(existsSync(join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'))).toBe(true);
-    for (const segment of [
-      'unit-4-1-design-task-expression',
-      'unit-4-2-controller-selection-first-start',
-      'unit-4-3-initial-scheme-practice-first-validation',
-      'unit-4-4-fixed-structure-optimization-modeling',
-      'unit-4-5-constraint-aware-parameter-optimization',
-      'unit-4-6-fixed-structure-boundary-structural-encoding',
-      'unit-4-7-destroyer-hifi-design-closure',
-      'unit-5-1-linear-backbone-boundaries',
-      'unit-5-2-nonlinear-analysis-entry',
-      'unit-5-3-mass-coordination-chain',
-      'unit-5-4-data-driven-mpc-transition',
-      'unit-5-5-policy-learning-entry-risk',
-      'unit-5-6-method-comparison-cold-chain',
-      'cruise-comfort-boppps',
-    ]) {
+    for (const segment of BATCH_B_SEGMENTS) {
       expect(existsSync(join(root, segment, 'entry.tsx')), segment).toBe(false);
       expect(existsSync(join(root, segment, 'student.tsx')), segment).toBe(false);
       expect(existsSync(join(root, segment, 'teacher.tsx')), segment).toBe(false);

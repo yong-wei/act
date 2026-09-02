@@ -590,7 +590,7 @@ export async function renderBatchATeacher(input: { routeSegment: string; session
 }
 
 export async function renderBatchAWaiting(input: { routeSegment: string; sessionId: string }) {
-  if (!resolveBatchALesson(input.routeSegment)) return null;
+  if (!lessonConfig(input.routeSegment)) return null;
   const session = await getServerSession(authOptions);
   if (!session?.user || !isTeacherOrAdminRole(session.user.role)) {
     redirect(buildLoginRedirectForPath(
