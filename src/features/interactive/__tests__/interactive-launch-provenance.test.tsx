@@ -167,10 +167,9 @@ describe('InteractiveProvider standalone launch persistence (Issue #1914)', () =
     await act(async () => vi.advanceTimersByTimeAsync(1000));
     await act(async () => vi.advanceTimersByTimeAsync(100000));
     expect(interactiveEventSyncCalls()).toHaveLength(0);
-    const stored = JSON.parse(
-      localStorage.getItem('interactive_events_res-standalone-1:no-session:teacher-1') ?? '[]',
-    );
-    expect(stored).toHaveLength(1);
+    // 临时化预览完全不写可同步队列：教师稍后从独立入口打开同资源时
+    // 不会恢复并提交任何预览事件（Issue #1914 Codex R2）。
+    expect(localStorage.getItem('interactive_events_res-standalone-1:no-session:teacher-1')).toBeNull();
     await act(async () => root.unmount());
     vi.useRealTimers();
   });

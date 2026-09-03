@@ -59,6 +59,11 @@ export function InteractiveProvider({
     sessionId,
     launchContext,
   }) === 'standalone';
+  const isEphemeralLaunch = resolveInteractiveLaunchProvenance({
+    embedded,
+    sessionId,
+    launchContext,
+  }) === 'preview';
 
   // 初始化追踪钩子
   const tracking = useInteractiveTracking({
@@ -67,6 +72,7 @@ export function InteractiveProvider({
     userId,
     sessionId,
     persistWithoutSession: isStandaloneResource,
+    ephemeral: isEphemeralLaunch,
     syncInterval: config.config.tracking?.syncInterval,
   });
 

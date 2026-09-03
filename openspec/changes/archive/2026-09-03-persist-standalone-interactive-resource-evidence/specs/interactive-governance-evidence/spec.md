@@ -22,6 +22,7 @@ Interactive classroom and standalone interactive evidence SHALL be classified th
 - **WHEN** a teacher or admin previews an interactive resource from the orchestration builder without a classroom session
 - **THEN** the runtime SHALL launch with an explicit non-persistent preview provenance
 - **AND** the preview SHALL NOT create server-persisted learner events through the interactive event API.
+- **AND** the preview SHALL NOT enter the synchronizable local event queue under a key a later standalone launch can restore.
 
 #### Scenario: Classroom launch preserves classroom provenance
 
