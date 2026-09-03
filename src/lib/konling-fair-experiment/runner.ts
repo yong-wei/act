@@ -70,7 +70,8 @@ export async function runKonlingFairExperiment(input: {
   // 公平实验的正式产物只允许恰好三个标准臂（spec: exactly three arms）；
   // 缺臂/重复臂的数据不得被标记为正式公平实验。
   const uniqueArms = new Set(arms);
-  if (uniqueArms.size !== KONLING_FAIR_EXPERIMENT_ARMS.length
+  if (arms.length !== KONLING_FAIR_EXPERIMENT_ARMS.length
+    || uniqueArms.size !== arms.length
     || !KONLING_FAIR_EXPERIMENT_ARMS.every((arm) => uniqueArms.has(arm))) {
     throw new Error(
       `fair experiment requires exactly the three standard arms: ${KONLING_FAIR_EXPERIMENT_ARMS.join(', ')}`,

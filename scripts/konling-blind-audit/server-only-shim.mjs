@@ -3,15 +3,21 @@
  * 下加载：把 server-only / client-only 解析为空模块。仅用于诊断基准
  * 评测与公平基线实验入口，不影响应用运行时。
  *
- * 新 Node 用同步 registerHooks；尚无 registerHooks 的受支持 Node 20
- * 回退到 module.register + 独立 resolve hook 模块（同一解析行为）。
+ * 两条拦截路径必须同时安装：
+ * - ESM：新 Node 用同步 registerHooks；尚无该 API 的受支持 Node 20
+ *   回退 module.register + 独立 resolve hook 模块。
+ * - CommonJS：tsx 在 CJS 模式下经 Module._resolveFilename 加载
+ *   server-only，register/registerHooks 的 ESM 钩子链都不覆盖该路径
+ *   （Node 20 实测），必须补丁 _resolveFilename 指向空 CJS 替身。
  */
+import Module from 'node:module';
 import * as nodeModule from 'node:module';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const emptyModuleUrl = pathToFileURL(path.join(here, 'empty-module.mjs')).href;
+const emptyModuleCjsPath = path.join(here, 'empty-module.cjs');
 
 if (typeof nodeModule.registerHooks === 'function') {
   nodeModule.registerHooks({
@@ -24,4 +30,14 @@ if (typeof nodeModule.registerHooks === 'function') {
   });
 } else {
   nodeModule.register(new URL('./server-only-resolve-hook.mjs', import.meta.url));
+}
+
+const originalResolveFilename = Module._resolveFilename;
+if (typeof originalResolveFilename === 'function') {
+  Module._resolveFilename = function patchedResolveFilename(request, ...args) {
+    if (request === 'server-only' || request === 'client-only') {
+      return emptyModuleCjsPath;
+    }
+    return originalResolveFilename.call(this, request, ...args);
+  };
 }

@@ -300,6 +300,13 @@ describe('端到端：断点续跑与 fail closed', () => {
       arms: ['plain-baseline', 'plain-baseline', 'full-feature'],
       generateProvider, auditProvider,
     })).rejects.toThrow(/exactly the three standard arms/);
+    // 四元素含重复：Set 大小为 3 但数组长度超限，同样拒绝。
+    await expect(runKonlingFairExperiment({
+      root, runId: 'arms-extra', bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: fixtureConfig(), calibers: ['structure-alias.v1'],
+      arms: ['plain-baseline', 'enhanced-baseline', 'full-feature', 'plain-baseline'],
+      generateProvider, auditProvider,
+    })).rejects.toThrow(/exactly the three standard arms/);
   });
 });
 
