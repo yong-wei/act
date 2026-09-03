@@ -68,7 +68,7 @@ const result = classifyPackage({
 if (sha256Text(readFileSync(baselinePath, 'utf8')) !== subjectBefore) {
   throw new Error('subject-mutated');
 }
-if (result.status !== 'qualified' || !result.files) {
+if (!result.files || result.status === 'blocked') {
   process.stderr.write(`repository-payload-classification:${result.status}:${result.reason ?? 'unknown'}\n`);
   process.exit(1);
 }

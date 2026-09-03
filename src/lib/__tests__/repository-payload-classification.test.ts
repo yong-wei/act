@@ -137,7 +137,8 @@ describe('repository payload classification', () => {
       entry('src/lib/a.ts'),
     ];
     const result = classifyPackage(input({ entries }));
-    expect(result.status).toBe('qualified');
+    expect(result.status).toBe('package-unqualified');
+    expect(result.reason).toBe('unknown-privacy');
     expect(result.slices.map((slice) => slice.slice)).toEqual([...PAYLOAD_SLICES]);
     expect(result.slices.reduce((sum, slice) => sum + slice.discovered, 0)).toBe(entries.length);
     expect(result.files?.['summary.md']).not.toMatch(/5\.97|1\.19/);
@@ -235,6 +236,8 @@ describe('repository payload classification', () => {
     const result = classifyPackage(input({
       entries: [entry('artifacts/qa/session.json')],
     }));
+    expect(result.status).toBe('package-unqualified');
+    expect(result.reason).toBe('unknown-privacy');
     expect(result.members[0]?.memberDisposition).toBe('unresolved');
     expect(result.members[0]?.primaryClass).toBeNull();
     expect(result.members[0]?.unresolvedReason).toBe('unknown-privacy');
@@ -337,6 +340,24 @@ describe('repository payload classification', () => {
       subjectSourceBytes: subject,
     }));
     expect(result.subjectSourceBytesAfter).toBe(subject);
+  });
+
+  it('does not invent candidate authority from a releases path and changes digest when evidence changes', () => {
+    const release = classifyPackage(input({
+      entries: [entry('course-content/runtime/releases/v1/manifest.json')],
+    }));
+    expect(release.members[0]?.authority).toBe('');
+    expect(release.members[0]?.memberDisposition).toBe('unresolved');
+    expect(release.members[0]?.unresolvedReason).toBe('missing-authority-manifest');
+
+    const base = input({ entries: [entry('src/lib/a.ts')] });
+    const first = classifyPackage(base);
+    const second = classifyPackage({
+      ...base,
+      overrides: [completeOverride('src/lib/a.ts', { privacy: 'internal', authorship: 'generated', reproducibility: 'reproducible' })],
+    });
+    expect(first.packageDigest).not.toBe(second.packageDigest);
+    expect(first.frozenInputDigest).not.toBe(second.frozenInputDigest);
   });
 
   it('parses the committed A envelope without rewriting it', () => {

@@ -334,9 +334,15 @@ function defaultConsumers(path: string): string[] {
   return uniqueSorted(consumers);
 }
 
-function defaultAuthority(path: string, subjectIdentity: string, hash: string): string {
-  if (path.includes('/releases/')) return `candidate:content-hash:${hash}`;
-  return `git-blob:${subjectIdentity}:${hash}`;
+function defaultAuthority(path: string, _subjectIdentity: string, hash: string): string {
+  if (
+    path.includes('/releases/')
+    || path.startsWith('course-content/runtime/')
+    || path.startsWith('artifacts/')
+  ) {
+    return '';
+  }
+  return `canonical-source:git-blob:${hash}`;
 }
 
 function futureGates(member: Omit<PayloadMember, 'futureEligible' | 'futureEligibilityMissing'>): readonly string[] {
@@ -531,9 +537,18 @@ function packageInputEnvelope(
     captureDigest: handoff.packageDigest,
     frozenInputDigest,
     members: members.map((member) => ({
+      authority: member.authority,
+      consumers: member.consumers,
       disposition: member.memberDisposition,
+      facets: member.facets,
       hash: member.hash,
+      materialization: member.materialization,
+      primaryClass: member.primaryClass,
+      producer: member.producer,
       recordId: member.recordId,
+      recovery: member.recovery,
+      rollback: member.rollback,
+      unresolvedReason: member.unresolvedReason,
     })),
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
     subjectIdentity: handoff.successorCaptureId,
@@ -557,6 +572,16 @@ function frozenDigest(input: ClassifyInput, handoff: AHandoff, entries: readonly
   return sha256Text(serializeDeterministic({
     entryBundleDigest: input.tool.entryBundleDigest,
     fullInventorySha256: handoff.fullInventorySha256,
+    overrides: (input.overrides ?? []).map((item) => ({
+      authority: item.authority ?? null,
+      consumers: item.consumers ?? [],
+      facets: item.facets ?? {},
+      materialization: item.materialization ?? null,
+      path: item.path,
+      producer: item.producer ?? null,
+      recovery: item.recovery ?? null,
+      rollback: item.rollback ?? null,
+    })),
     members: entries.map((entry) => ({ hash: entry.hash, path: entry.path, sizeBytes: entry.sizeBytes })),
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
     successorCaptureId: handoff.successorCaptureId,
@@ -936,6 +961,9 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   const futureRows = groupBy(members, (member) => (
     member.futureEligible === true ? 'futureEligible' : `unresolved:${member.futureEligibilityMissing.join(',') || 'unknown'}`
   ));
+  const unknownPrivacy = members.some((member) => member.unresolvedReason === 'unknown-privacy');
+  const packageStatus: ClassifyResult['status'] = unknownPrivacy ? 'package-unqualified' : 'qualified';
+  const packageReason = unknownPrivacy ? 'unknown-privacy' : null;
   const filesBase = {
     'summary.md': '',
     'policy-matrix.md': policyMatrix(),
@@ -946,8 +974,8 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     'future-eligibility.md': groupedLines('Future eligibility', futureRows),
   };
   filesBase['summary.md'] = renderSummary({
-    status: 'qualified',
-    reason: null,
+    status: packageStatus,
+    reason: packageReason,
     handoff,
     tool: input.tool,
     frozenInputDigest,
@@ -984,7 +1012,7 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     slices,
     sourceCommit: handoff.sourceCommit,
     sourceTree: handoff.sourceTree,
-    status: 'qualified',
+    status: packageStatus,
     subjectIdentity: handoff.successorCaptureId,
     tool: input.tool,
     trackedFileCount: members.length,
@@ -1033,8 +1061,8 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   }
 
   filesBase['summary.md'] = renderSummary({
-    status: 'qualified',
-    reason: null,
+    status: packageStatus,
+    reason: packageReason,
     handoff,
     tool: input.tool,
     frozenInputDigest,
@@ -1054,8 +1082,8 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   };
 
   return {
-    status: 'qualified',
-    reason: null,
+    status: packageStatus,
+    reason: packageReason,
     handoff,
     tool: input.tool,
     frozenInputDigest,
@@ -1070,7 +1098,13 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   };
 }
 
+export function assertCleanWorktree(repoRoot: string): void {
+  const dirty = execFileSync('git', ['-C', repoRoot, 'status', '--porcelain'], { encoding: 'utf8' }).trim();
+  if (dirty) throw new Error('dirty-worktree-tool-checkpoint');
+}
+
 export function toolCheckpointFromGit(repoRoot: string, extraFiles: readonly string[] = []): ToolCheckpoint {
+  assertCleanWorktree(repoRoot);
   const toolCommit = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const toolTree = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim();
   const files = [
@@ -1098,9 +1132,11 @@ export function readIssueGateFromGh(issue: number): IssueGate {
   try {
     const graphql = execFileSync('gh', ['api', 'graphql', '-f', `query=query { repository(owner:"yong-wei", name:"act") { issue(number:${issue}) { blockedBy(first:20) { nodes { ... on Issue { number state } } } } } }`], { encoding: 'utf8' });
     const body = JSON.parse(graphql) as { data?: { repository?: { issue?: { blockedBy?: { nodes?: { number?: number; state?: string }[] } } } } };
-    blockedByOpen = (body.data?.repository?.issue?.blockedBy?.nodes ?? []).some((node) => node.state === 'OPEN');
+    const nodes = body.data?.repository?.issue?.blockedBy?.nodes;
+    if (!nodes) blockedByOpen = true;
+    else blockedByOpen = nodes.some((node) => node.state === 'OPEN');
   } catch {
-    blockedByOpen = false;
+    blockedByOpen = true;
   }
   return {
     issue,
