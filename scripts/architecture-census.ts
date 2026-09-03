@@ -24,8 +24,8 @@ import {
 import {
   generatePostConvergenceSuccessor,
   loadChangeFrequencyCounts,
+  loadGitEntryInfo,
   loadSuccessorPredecessors,
-  loadTrackedBlobIndex,
 } from '../src/lib/architecture-census/post-convergence';
 import { captureTypecheckReceipt, captureVitestReceipt, writeReceipt } from '../src/lib/architecture-census/measure';
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
@@ -130,7 +130,9 @@ function runPostConvergence(repoRoot: string): void {
   const vitest = captureVitestReceipt(repoRoot, snapshot.identity.sourceCommit, snapshot.identity.sourceTree);
   const receipts = [typecheck, vitest];
 
-  const blobIndex = loadTrackedBlobIndex(repoRoot);
+  const entryInfo = loadGitEntryInfo(repoRoot);
+  const blobIndex = new Map([...entryInfo].map(([path, entry]) => [path, entry.blobSha] as const));
+  const gitBytes = new Map([...entryInfo].map(([path, entry]) => [path, entry.byteCount] as const));
   const changeCounts = loadChangeFrequencyCounts(repoRoot);
   const generated = generatePostConvergenceSuccessor({
     snapshot,
@@ -138,6 +140,7 @@ function runPostConvergence(repoRoot: string): void {
     predecessors,
     receipts,
     blobIndex,
+    gitBytes,
     changeCounts,
   });
   const after = loadGitSourceSnapshot(repoRoot);

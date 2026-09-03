@@ -40,6 +40,7 @@ export {
   classifyMaterialLayer,
   generatePostConvergenceSuccessor,
   loadChangeFrequencyCounts,
+  loadGitEntryInfo,
   loadSuccessorPredecessors,
   loadTrackedBlobIndex,
   predecessorOverwriteFailures,

@@ -166,6 +166,7 @@ function coreFixtureFiles(): CensusSourceFile[] {
 function makeInput(files: readonly CensusSourceFile[], overrides: Partial<PostConvergenceInput> = {}): PostConvergenceInput {
   const snapshot = snapshotFromFiles(identity, [...files]);
   const blobIndex = new Map(snapshot.files.map((item) => [item.path, sha256Text(item.content || item.path)]));
+  const gitBytes = new Map(snapshot.files.map((item) => [item.path, item.byteLength]));
   blobIndex.set('course-content/runtime/lessons/1-1/media/intro.png', blobIndex.get('course-content/authoring/lessons/1-1/media/intro.png')!);
   blobIndex.set('artifacts/qa-evidence/session2.png', blobIndex.get('artifacts/qa-evidence/session.png')!);
   return {
@@ -174,6 +175,7 @@ function makeInput(files: readonly CensusSourceFile[], overrides: Partial<PostCo
     predecessors: makePredecessors(),
     receipts: [makeReceipt()],
     blobIndex,
+    gitBytes,
     changeCounts: new Map([['src/features/assessment/public-api.ts', 7]]),
     ...overrides,
   };
@@ -376,6 +378,7 @@ describe('post-convergence successor capture', () => {
 
     const changed = makeInput([...coreFixtureFiles(), file('src/features/new-surface.ts', 'export const fresh = 1;\n')]);
     changed.blobIndex.set('src/features/new-surface.ts', sha256Text('src/features/new-surface.ts'));
+    changed.gitBytes.set('src/features/new-surface.ts', 31);
     const third = generatePostConvergenceSuccessor(changed);
     qualifyPostConvergence(third.pack, third.failures);
     expect(third.pack.successorCaptureId).not.toBe(first.pack.successorCaptureId);
@@ -555,6 +558,34 @@ describe('post-convergence successor capture', () => {
     };
     expect(successorPackageDigest(tamperedSummaryRow)).not.toBe(result.pack.packageDigest);
     expect(result.files['summary.md']).not.toContain(result.pack.packageDigest);
+  });
+
+  it('derives byte counts from Git objects, normalizing gitlinks and symlinks to zero', () => {
+    const files = [
+      ...coreFixtureFiles(),
+      { path: 'evaluate/test_repos/express', content: '', byteLength: 4096 },
+      { path: '.claude/skills/demo-link', content: '', byteLength: 64 },
+      file('src/lib/stat-vs-git.ts', 'export const x = 1;\n'),
+    ];
+    const input = makeInput(files);
+    input.gitBytes.set('evaluate/test_repos/express', 0);
+    input.gitBytes.set('.claude/skills/demo-link', 0);
+    input.gitBytes.set('src/lib/stat-vs-git.ts', 21);
+    const result = generatePostConvergenceSuccessor(input);
+    qualifyPostConvergence(result.pack, result.failures);
+    const inventoryRecord = (path: string) => result.detail
+      .find((artifact) => artifact.name === 'full-inventory.ndjson')!
+      .content.split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as { path: string; byteCount: number })
+      .find((record) => record.path === path);
+    expect(inventoryRecord('evaluate/test_repos/express')?.byteCount).toBe(0);
+    expect(inventoryRecord('.claude/skills/demo-link')?.byteCount).toBe(0);
+    expect(inventoryRecord('src/lib/stat-vs-git.ts')?.byteCount).toBe(21);
+
+    input.gitBytes.delete('src/lib/stat-vs-git.ts');
+    const missing = generatePostConvergenceSuccessor(input);
+    expect(missing.failures.map((failure) => failure.code)).toContain('missing-git-byte-identity');
   });
 
   it('loads the real predecessor baseline and current-head delta with matching kind lineage', () => {

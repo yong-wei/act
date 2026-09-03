@@ -117,6 +117,7 @@ export interface PostConvergenceInput {
   readonly predecessors: SuccessorPredecessors;
   readonly receipts: readonly MeasurementReceipt[];
   readonly blobIndex: ReadonlyMap<string, string>;
+  readonly gitBytes: ReadonlyMap<string, number>;
   readonly changeCounts: ReadonlyMap<string, number>;
   readonly census?: { core: CensusCore; failures: QualificationFailure[] };
 }
@@ -184,6 +185,7 @@ export function buildMaterialLayers(
   snapshot: CensusSourceSnapshot,
   blobIndex: ReadonlyMap<string, string>,
   core: CensusCore,
+  gitBytes: ReadonlyMap<string, number>,
 ): MaterialLayerResult {
   const inDegree = new Map<string, number>();
   const outDegree = new Map<string, number>();
@@ -215,17 +217,14 @@ export function buildMaterialLayers(
         duplicate: 0,
         unresolved: 0,
       },
-      byteTotal: representedPaths.reduce(
-        (sum, path) => sum + (snapshot.files.find((file) => file.path === path)?.byteLength ?? 0),
-        0,
-      ),
+      byteTotal: representedPaths.reduce((sum, path) => sum + (gitBytes.get(path) ?? 0), 0),
     };
   });
   const inventory: FullInventoryRecord[] = snapshot.files
     .map((file) => ({
       path: file.path,
       layer: assignments.get(file.path) ?? 'hand-authored-production',
-      byteCount: file.byteLength,
+      byteCount: gitBytes.get(file.path) ?? 0,
       blobSha: blobIndex.get(file.path) ?? '',
       inDegree: inDegree.get(file.path) ?? 0,
       outDegree: outDegree.get(file.path) ?? 0,
@@ -529,6 +528,7 @@ export function classifyBlobPayloadClass(paths: readonly string[]): PayloadClass
 export function buildPayloadClasses(
   snapshot: CensusSourceSnapshot,
   blobIndex: ReadonlyMap<string, string>,
+  gitBytes: ReadonlyMap<string, number>,
 ): PayloadClassResult {
   const byBlob = new Map<string, { paths: string[]; bytes: number }>();
   for (const file of snapshot.files) {
@@ -536,7 +536,7 @@ export function buildPayloadClasses(
     if (!blobSha) continue;
     const entry = byBlob.get(blobSha) ?? { paths: [], bytes: 0 };
     entry.paths.push(file.path);
-    entry.bytes += file.byteLength;
+    entry.bytes += gitBytes.get(file.path) ?? 0;
     byBlob.set(blobSha, entry);
   }
   const classCounts = new Map<string, { blobCount: number; duplicateBlobCount: number; pathCount: number; byteTotal: number }>();
@@ -571,7 +571,7 @@ export function buildPayloadClasses(
 }
 
 export const HOTSPOT_METRIC_SCOPE = [
-  'sourceBytes: file.byteLength',
+  'sourceBytes: Git object byte size for the path (gitlink/symlink normalized to 0)',
   'functionCount: count of /\\bfunction\\b/ in source content',
   'branchCount: count of /\\b(?:if|for|while|switch|case|catch)\\b/ in source content',
   'importBreadth: distinct src/<top-dir> prefixes of census dependency-edge targets',
@@ -656,6 +656,7 @@ export function buildHotspots(
   snapshot: CensusSourceSnapshot,
   core: CensusCore,
   changeCounts: ReadonlyMap<string, number>,
+  gitBytes: ReadonlyMap<string, number>,
 ): HotspotResult {
   const changeCenters = new Set(
     core.observations.filter((row) => row.kind === 'change-center').map((row) => row.identity),
@@ -672,7 +673,7 @@ export function buildHotspots(
     }
     candidates.push({
       identity: file.path,
-      metrics: hotspotMetrics(file.path, file.content, file.byteLength, core, changeCounts),
+      metrics: hotspotMetrics(file.path, file.content, gitBytes.get(file.path) ?? 0, core, changeCounts),
     });
   }
   const ranked = candidates
@@ -912,6 +913,52 @@ export function loadTrackedBlobIndex(repoRoot: string): Map<string, string> {
     if (match?.[1] && match[2]) index.set(match[2], match[1]);
   }
   return index;
+}
+
+export interface GitEntryInfo {
+  readonly mode: string;
+  readonly blobSha: string;
+  readonly byteCount: number;
+}
+
+// Byte counts come from Git objects, not filesystem stat: gitlink (160000) and
+// symlink (120000) entries are normalized to 0 so the package is byte-identical
+// across platforms and fresh clones.
+export function loadGitEntryInfo(repoRoot: string): Map<string, GitEntryInfo> {
+  const output = execFileSync('git', ['ls-files', '-s', '-z'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    maxBuffer: 128 * 1024 * 1024,
+  });
+  const entries = new Map<string, { mode: string; sha: string }>();
+  for (const record of output.split('\0')) {
+    const match = record.match(/^([0-9]+) ([0-9a-f]{40}) \d+\t(.+)$/u);
+    if (match?.[2] && match[3]) entries.set(match[3], { mode: match[1], sha: match[2] });
+  }
+  const regularModes = new Set(['100644', '100755']);
+  const shas = [...new Set([...entries.values()].filter((entry) => regularModes.has(entry.mode)).map((entry) => entry.sha))];
+  const sizes = new Map<string, number>();
+  if (shas.length > 0) {
+    const batch = execFileSync('git', ['cat-file', '--batch-check=%(objectname) %(objectsize)'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 128 * 1024 * 1024,
+      input: `${shas.join('\n')}\n`,
+    });
+    for (const line of batch.split('\n')) {
+      const match = line.match(/^([0-9a-f]{40}) (\d+)$/u);
+      if (match?.[1]) sizes.set(match[1], Number(match[2]));
+    }
+  }
+  const info = new Map<string, GitEntryInfo>();
+  for (const [path, entry] of entries) {
+    info.set(path, {
+      mode: entry.mode,
+      blobSha: entry.sha,
+      byteCount: regularModes.has(entry.mode) ? (sizes.get(entry.sha) ?? 0) : 0,
+    });
+  }
+  return info;
 }
 
 export function loadChangeFrequencyCounts(repoRoot: string): Map<string, number> {
@@ -1242,9 +1289,12 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     if (!input.blobIndex.has(file.path)) {
       failures.push({ code: 'missing-blob-identity', identity: file.path });
     }
+    if (!input.gitBytes.has(file.path)) {
+      failures.push({ code: 'missing-git-byte-identity', identity: file.path });
+    }
   }
 
-  const layers = buildMaterialLayers(input.snapshot, input.blobIndex, generated.core);
+  const layers = buildMaterialLayers(input.snapshot, input.blobIndex, generated.core, input.gitBytes);
   if (layers.reconciliation.unassignedCount !== 0
     || layers.reconciliation.layerAssignedCount !== layers.reconciliation.trackedFileCount) {
     failures.push({ code: 'layer-reconciliation', identity: String(layers.reconciliation.unassignedCount) });
@@ -1263,8 +1313,8 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     }
   }
 
-  const payload = buildPayloadClasses(input.snapshot, input.blobIndex);
-  const hotspots = buildHotspots(input.snapshot, generated.core, input.changeCounts);
+  const payload = buildPayloadClasses(input.snapshot, input.blobIndex, input.gitBytes);
+  const hotspots = buildHotspots(input.snapshot, generated.core, input.changeCounts, input.gitBytes);
   const residue = buildOwnerResidue(input.predecessors, generated.core, input.snapshot);
   const residueTotals = {
     total: residue.length,
