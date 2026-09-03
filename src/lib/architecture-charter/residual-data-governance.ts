@@ -208,7 +208,9 @@ export function evaluateCoordinationGate(issue: Issue1876Snapshot): string[] {
   return reasons;
 }
 
-export function classifyCallerPath(path: string): CallerClass {
+export function classifyCallerPath(path: string, relationship = ''): CallerClass {
+  if (relationship === 'dynamic') return 'dynamic';
+  if (relationship === 're-export') return 're-export';
   if (path.startsWith('openspec/changes/archive/')) return 'historical';
   if (path.startsWith('openspec/') || path.startsWith('docs/')) return 'documentation';
   if (path.includes('/__tests__/') || /\.test\.[cm]?[tj]sx?$/u.test(path)) return 'test';
@@ -216,7 +218,6 @@ export function classifyCallerPath(path: string): CallerClass {
   if (path.includes('scheduler')) return 'scheduler';
   if (path.startsWith('scripts/')) return 'tooling';
   if (path.includes('prisma/')) return 'prisma';
-  if (path.includes('dynamic') || path.includes('await import(')) return 'dynamic';
   return 'production';
 }
 
@@ -515,7 +516,7 @@ export function adjudicateResidualDataGovernance(
     const bucket = callersByMember.get(caller.memberPath) ?? [];
     bucket.push({
       path: caller.callerPath,
-      callerClass: classifyCallerPath(caller.callerPath),
+      callerClass: classifyCallerPath(caller.callerPath, caller.relationship),
       relationship: caller.relationship,
     });
     callersByMember.set(caller.memberPath, bucket);

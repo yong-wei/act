@@ -4,6 +4,7 @@ import {
   REQUIRED_SUCCESSOR,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
+  classifyCallerPath,
   collectRelativeCallers,
   directoryPathReadCaller,
   evaluateCoordinationGate,
@@ -89,6 +90,19 @@ describe('residual data-governance adjudication', () => {
         relationship: 're-export',
       },
     ]);
+    expect(classifyCallerPath(
+      'scripts/data-governance/teacher-ai-grading-lab-cli.ts',
+      'dynamic',
+    )).toBe('dynamic');
+    const dynamic = asAdjudication(adjudicateResidualDataGovernance(input({
+      members: [{ path: 'src/lib/data-governance/teacher-ai-grading-lab-core.ts' }],
+      callers: [{
+        memberPath: 'src/lib/data-governance/teacher-ai-grading-lab-core.ts',
+        callerPath: 'scripts/data-governance/teacher-ai-grading-lab-cli.ts',
+        relationship: 'dynamic',
+      }],
+    })));
+    expect(dynamic.records[0]?.callerClasses).toEqual(['dynamic']);
     expect(directoryPathReadCaller(
       'scripts/tests/test-new-resource-semantic-completeness-command.mjs',
       "fs.cpSync(path.join(root, 'src/lib/data-governance'), dest, { recursive: true });",

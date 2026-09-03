@@ -143,9 +143,11 @@ function loadCallers(members: readonly ResidualMemberInput[]): ResidualCallerInp
           ? 'documentation'
           : /export .* from/u.test(text)
             ? 're-export'
-            : text.includes('cpSync') || text.includes('readFile') || text.includes('path.join')
-              ? 'path-read'
-              : 'import';
+            : /import\s*\(/u.test(text)
+              ? 'dynamic'
+              : text.includes('cpSync') || text.includes('readFile') || text.includes('path.join')
+                ? 'path-read'
+                : 'import';
       add({ memberPath, callerPath, relationship });
     }
   }
