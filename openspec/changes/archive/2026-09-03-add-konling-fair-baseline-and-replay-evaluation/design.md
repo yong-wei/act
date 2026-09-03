@@ -22,7 +22,8 @@
 - 三臂共用同一用户消息：`问题：…\n参考材料：<referenceAnswer>`；证据以共享参考材料文本提供，不构造 citationContext 编号，引用绑定差异因此不是本实验的测量对象。
 - `plain-baseline`：基础控灵系统提示（角色+课程+画像+格式要求），无任何结构合同——即 #1817 之前的基线形态。
 - `enhanced-baseline`：同一基础提示 + 与功能组相同的篇幅/结构要求行（`buildStudyQuestionOutputContractLines` 同款三行，纯文本注入，意图取题库标注），不经过专用意图分类、逐单元引用映射、规范 fail-closed 门禁与 calculate 展开规则。
-- `full-feature`：真实产品链——`buildKonlingTeachingAssistantRuntimeContract(modeId='generic-chat')` 产出合同（含对题面的真实意图分类），`buildKonlingSystemPrompt` 渲染；分类与题库标注意图的一致率单独报告，结构评分统一以题库标注意图为唯一口径（误分类表现为结构失败）。
+- `full-feature`：产品运行时合同（`buildKonlingTeachingAssistantRuntimeContract(modeId='generic-chat')`，对题面做真实意图分类）+ 产品 prompt builder 渲染。**公平固定**：交付的章节/篇幅合同始终按题库标注意图组装（偏好取 standard/default/full-answer），保证 enhanced 与 full 两臂要求恒等；分类器输出只进入分类一致率指标，不得改变功能组的章节要求。结构评分统一以题库标注意图为唯一口径。
+- 臂集合校验：正式实验只接受恰好三个唯一标准臂，缺臂/重复臂在写 manifest 前拒绝。
 - 产品默认路径不新增任何分支或 flag；"臂"只存在于实验配置中。
 
 ### D3. 题库派生自既有盲审基准
@@ -34,6 +35,8 @@
 - `structure-alias.v1`：现行语义别名匹配（产品默认，行为不变）。
 - `structure-strict-title.v0`：旧式口径——只接受与 canonical 标题规范化后完全相等的标题行，不接受别名与前缀匹配。
 - 两种口径都通过 `evaluateStudyQuestionStructure` 的可选 `caliber` 参数表达；回放命令从快照目录读回答，按请求的口径集合重新评分，不触碰生成 provider。
+- 评分记录按 `scores/<caliber>/<scorerRevision>/<arm>/` 隔离命名空间：跨评分器修订回放互不覆盖；聚合只读取当前配置修订命名空间，并在评分记录 `gitRevision` 与配置不一致时 fail closed（混配置）。
+- 盲审 judge 输出必须通过语义校验（verdict 精确属于 pass/needs-improvement/fail，ruleScore 为有限 0-1 数值），否则记为 parse-failure，不进入冻结记录。
 - 盲审阶段复用 `runKonlingBlindAudit`：每臂构造派生 manifest（`benchmarkVersion = <bankVersion>--<arm>`），candidateAnswer 取自该臂冻结快照，runId 派生自实验 runId；盲审记录仍落在 `artifacts/konling-blind-audit/` 下，由实验聚合读取。
 
 ### D5. 配对差值用记录种子的确定性 bootstrap
@@ -48,12 +51,12 @@
 artifacts/konling-fair-experiment/<runId>/
   manifest.snapshot.json        # 含 bank 哈希、模型、采样参数、臂、口径、种子、修订
   answers/<arm>/<bankVersion>--<arm>--<itemId>--<replicate>.json   # 冻结回答
-  scores/<caliber>/<arm>/<taskKey>.json                             # 确定性评分结果
+  scores/<caliber>/<scorerRevision>/<arm>/<taskKey>.json            # 确定性评分结果（按修订隔离）
   failures/…                                                       # 逐 attempt 失败史
   summary/official.json / summary/replay-*.json
 ```
 
-- 生成阶段任务键 `bankVersion--arm--itemId--replicate`；评分阶段同键，按口径分子目录，天然幂等。
+- 生成阶段任务键 `bankVersion--arm--itemId--replicate`；评分阶段同键，按口径与评分器修订分子目录，天然幂等。
 - 聚合阶段做完整性门禁：缺键/多键、混配置（模型/采样/修订不一致）、manifest 漂移一律不产出正式汇总。
 
 ## Risks / Trade-offs

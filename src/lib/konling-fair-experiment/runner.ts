@@ -35,6 +35,7 @@ import {
   writeKonlingFairExperimentAnswer,
   writeKonlingFairExperimentScore,
 } from './store';
+import { KONLING_FAIR_EXPERIMENT_ARMS } from './types';
 import type {
   KonlingFairExperimentAggregateResult,
   KonlingFairExperimentAnswerRecord,
@@ -66,6 +67,15 @@ export async function runKonlingFairExperiment(input: {
 }): Promise<KonlingFairExperimentRunSummary & { aggregate: KonlingFairExperimentAggregateResult }> {
   const arms: readonly KonlingFairExperimentArm[] = input.arms
     ?? ['plain-baseline', 'enhanced-baseline', 'full-feature'];
+  // 公平实验的正式产物只允许恰好三个标准臂（spec: exactly three arms）；
+  // 缺臂/重复臂的数据不得被标记为正式公平实验。
+  const uniqueArms = new Set(arms);
+  if (uniqueArms.size !== KONLING_FAIR_EXPERIMENT_ARMS.length
+    || !KONLING_FAIR_EXPERIMENT_ARMS.every((arm) => uniqueArms.has(arm))) {
+    throw new Error(
+      `fair experiment requires exactly the three standard arms: ${KONLING_FAIR_EXPERIMENT_ARMS.join(', ')}`,
+    );
+  }
   const manifestPayload = buildKonlingFairExperimentManifestPayload({
     bank: input.bank,
     arms,
@@ -169,7 +179,8 @@ export async function runKonlingFairExperiment(input: {
       };
     }
 
-    // 口径评分：确定性本地计算，对全部冻结快照补齐缺失记录。
+    // 口径评分：确定性本地计算，对全部冻结快照补齐缺失记录；
+    // 评分记录按评分器修订隔离命名空间（跨修订回放互不覆盖）。
     for (const caliber of input.calibers) {
       for (const arm of arms) {
         for (const record of loadKonlingFairExperimentAnswers(runDir, arm)) {
@@ -180,7 +191,7 @@ export async function runKonlingFairExperiment(input: {
             intent: item.intent,
             caliber,
           });
-          writeKonlingFairExperimentScore(runDir, caliber, arm, {
+          writeKonlingFairExperimentScore(runDir, caliber, input.config.scorerRevision, arm, {
             taskKey: record.taskKey,
             caliber,
             arm,
@@ -202,7 +213,7 @@ export async function runKonlingFairExperiment(input: {
     let scoringTotal = 0;
     for (const caliber of input.calibers) {
       for (const arm of arms) {
-        scoringTotal += loadKonlingFairExperimentScores(runDir, caliber, arm).length;
+        scoringTotal += loadKonlingFairExperimentScores(runDir, caliber, input.config.scorerRevision, arm).length;
       }
     }
     const scoring = {

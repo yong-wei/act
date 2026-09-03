@@ -20,6 +20,7 @@ import {
 } from '@/lib/ai-client';
 import {
   KONLING_FAIR_EXPERIMENT_BANK_V1,
+  parseKonlingFairExperimentJudgeVerdict,
   runKonlingFairExperiment,
   type KonlingFairExperimentErrorCode,
 } from '@/lib/konling-fair-experiment';
@@ -130,20 +131,16 @@ async function main() {
           maxOutputTokens: 512,
           abortSignal: AbortSignal.timeout(120_000),
         });
-        const parsed = JSON.parse(response.text.trim().replace(/^```(?:json)?|```$/g, '')) as {
-          verdict?: unknown;
-          ruleScore?: unknown;
-          notes?: unknown;
-        };
-        if (typeof parsed.verdict !== 'string' || typeof parsed.ruleScore !== 'number') {
+        const verdict = parseKonlingFairExperimentJudgeVerdict(response.text);
+        if (!verdict) {
           return {
             ok: false,
-            error: { code: 'parse-failure' as KonlingBlindAuditErrorCode, message: `unparseable verdict: ${response.text.slice(0, 200)}` },
+            error: { code: 'parse-failure' as KonlingBlindAuditErrorCode, message: `unparseable or invalid verdict: ${response.text.slice(0, 200)}` },
           };
         }
         return {
           ok: true,
-          result: { verdict: parsed.verdict, ruleScore: parsed.ruleScore, notes: parsed.notes ?? null, elapsedMs: Date.now() - started },
+          result: { verdict: verdict.verdict, ruleScore: verdict.ruleScore, notes: verdict.notes, elapsedMs: Date.now() - started },
         };
       } catch (error) {
         return { ok: false, error: { code: classifyProviderError(error), message: error instanceof Error ? error.message : String(error) } };

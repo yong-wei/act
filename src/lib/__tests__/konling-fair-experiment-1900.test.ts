@@ -22,6 +22,7 @@ import {
   buildKonlingFairExperimentUserPrompt,
   buildKonlingFairExperimentPromptContext,
   konlingFairExperimentRunDir,
+  parseKonlingFairExperimentJudgeVerdict,
 } from '@/lib/konling-fair-experiment';
 import {
   evaluateStudyQuestionStructure,
@@ -157,9 +158,20 @@ describe('三臂 prompt 公平合同', () => {
         full.contractIntent === null
         || (STUDY_QUESTION_INTENTS as readonly string[]).includes(full.contractIntent),
       ).toBe(true);
-      if (full.contractIntent !== null) {
-        expect(full.systemPrompt).toContain('专业问答类型');
-      }
+      expect(full.systemPrompt).toContain('专业问答类型');
+    }
+  });
+
+  it('分类未命中时两臂章节要求仍恒等（公平固定）', () => {
+    // code-antiwindup 的题面会被关键词分类器判为 open-ended-explanation；
+    // 交付的章节合同必须仍按题库标注意图组装，两臂要求一致。
+    for (const bankItem of KONLING_FAIR_EXPERIMENT_BANK_V1.items) {
+      const enhanced = buildKonlingFairExperimentSystemPrompt({ arm: 'enhanced-baseline', item: bankItem, context });
+      const full = buildKonlingFairExperimentSystemPrompt({ arm: 'full-feature', item: bankItem, context });
+      const labeledTitles = STUDY_QUESTION_SECTIONS[bankItem.intent].map((section) => section.title).join('、');
+      expect(enhanced.systemPrompt).toContain(labeledTitles);
+      expect(full.systemPrompt).toContain(labeledTitles);
+      expect(full.systemPrompt).toContain(`专业问答类型: ${bankItem.intent}`);
     }
   });
 });
@@ -274,6 +286,21 @@ describe('端到端：断点续跑与 fail closed', () => {
     expect(drifted.status).toBe('mixed-configuration');
     expect(drifted.mixedConfigurationDetail?.dimension).toBe('sampling');
   });
+
+  it('缺臂或重复臂的配置被拒绝（exactly three arms）', async () => {
+    await expect(runKonlingFairExperiment({
+      root, runId: 'arms-subset', bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: fixtureConfig(), calibers: ['structure-alias.v1'],
+      arms: ['plain-baseline', 'full-feature'],
+      generateProvider, auditProvider,
+    })).rejects.toThrow(/exactly the three standard arms/);
+    await expect(runKonlingFairExperiment({
+      root, runId: 'arms-duplicate', bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: fixtureConfig(), calibers: ['structure-alias.v1'],
+      arms: ['plain-baseline', 'plain-baseline', 'full-feature'],
+      generateProvider, auditProvider,
+    })).rejects.toThrow(/exactly the three standard arms/);
+  });
 });
 
 describe('评分器口径回放', () => {
@@ -313,6 +340,19 @@ describe('评分器口径回放', () => {
     );
     expect(fullDelta?.percentagePointDifference).toBe(0);
     expect(fs.existsSync(path.join(runDir, 'summary', 'replay-structure-alias.v1+structure-strict-title.v0.json'))).toBe(true);
+
+    // 评分记录按评分器修订隔离：回放修订的命名空间独立存在，
+    // 原修订评分不受影响，原配置聚合仍从原命名空间读取。
+    expect(fs.existsSync(path.join(runDir, 'scores', 'structure-strict-title.v0', 'replay-revision', 'enhanced-baseline'))).toBe(true);
+    expect(fs.existsSync(path.join(runDir, 'scores', 'structure-alias.v1', 'test-revision', 'enhanced-baseline'))).toBe(true);
+    const originalAggregate = aggregateKonlingFairExperiment({
+      root, runId: 'replay', bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      arms: ['plain-baseline', 'enhanced-baseline', 'full-feature'],
+      config: fixtureConfig(),
+      calibers: ['structure-alias.v1'],
+      writeOfficial: false,
+    });
+    expect(originalAggregate.status).toBe('complete');
   });
 
   it('同种子同数据得到相同 CI（确定性 bootstrap）', async () => {
@@ -325,5 +365,19 @@ describe('评分器口径回放', () => {
       return JSON.stringify(summary.aggregate.officialSummary!.generationDeltas);
     };
     expect(await run()).toBe(await run());
+  });
+});
+
+describe('盲审 judge 判定解析', () => {
+  it('接受合法枚举与 0-1 ruleScore；拒绝非法语义', () => {
+    expect(parseKonlingFairExperimentJudgeVerdict('{"verdict":"pass","ruleScore":0.9}'))
+      .toEqual({ verdict: 'pass', ruleScore: 0.9, notes: null });
+    expect(parseKonlingFairExperimentJudgeVerdict('```json\n{"verdict":"needs-improvement","ruleScore":0.5,"notes":"弱"}\n```'))
+      .toEqual({ verdict: 'needs-improvement', ruleScore: 0.5, notes: '弱' });
+    expect(parseKonlingFairExperimentJudgeVerdict('{"verdict":"PASS","ruleScore":0.9}')).toBeNull();
+    expect(parseKonlingFairExperimentJudgeVerdict('{"verdict":"pass","ruleScore":8}')).toBeNull();
+    expect(parseKonlingFairExperimentJudgeVerdict('{"verdict":"pass","ruleScore":NaN}')).toBeNull();
+    expect(parseKonlingFairExperimentJudgeVerdict('{"verdict":"pass"}')).toBeNull();
+    expect(parseKonlingFairExperimentJudgeVerdict('not json')).toBeNull();
   });
 });

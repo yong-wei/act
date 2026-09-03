@@ -148,14 +148,18 @@ export function listKonlingFairExperimentFailureKeys(
     .sort();
 }
 
-/** 写入口径评分记录；已存在时跳过（确定性结果，重复评分无意义）。 */
+/** 写入口径评分记录；路径含评分器修订，跨修订回放互不覆盖。 */
 export function writeKonlingFairExperimentScore(
   runDir: string,
   caliber: StudyQuestionScoringCaliber,
+  scorerRevision: string,
   arm: KonlingFairExperimentArm,
   record: KonlingFairExperimentScoreRecord,
 ): boolean {
-  const target = path.join(runDir, SCORES_DIR, caliber, arm, safeFileName(record.taskKey));
+  if (/[/\\]|\.\./.test(scorerRevision)) {
+    throw new Error(`unsafe scorer revision: ${scorerRevision}`);
+  }
+  const target = path.join(runDir, SCORES_DIR, caliber, scorerRevision, arm, safeFileName(record.taskKey));
   if (fs.existsSync(target)) return false;
   return kernel.writeAtomic(target, JSON.stringify(record, null, 2));
 }
@@ -163,9 +167,10 @@ export function writeKonlingFairExperimentScore(
 export function loadKonlingFairExperimentScores(
   runDir: string,
   caliber: StudyQuestionScoringCaliber,
+  scorerRevision: string,
   arm: KonlingFairExperimentArm,
 ): KonlingFairExperimentScoreRecord[] {
-  const dir = path.join(runDir, SCORES_DIR, caliber, arm);
+  const dir = path.join(runDir, SCORES_DIR, caliber, scorerRevision, arm);
   return readJsonDir(dir).map((file) => JSON.parse(
     fs.readFileSync(path.join(dir, file), 'utf8'),
   ) as KonlingFairExperimentScoreRecord);

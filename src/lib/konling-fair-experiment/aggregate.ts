@@ -185,11 +185,26 @@ export function aggregateKonlingFairExperiment(input: {
     answersByArm.set(arm, records);
 
     for (const caliber of input.calibers) {
-      const scores = loadKonlingFairExperimentScores(runDir, caliber, arm);
+      const scores = loadKonlingFairExperimentScores(runDir, caliber, input.config.scorerRevision, arm);
       const scoreKeys = new Set(scores.map((score) => score.taskKey));
       const scoreMissing = expectedKeys.filter((key) => !scoreKeys.has(key));
       if (scoreMissing.length > 0 || scores.length !== expectedKeys.length) {
         return incomplete({ phase: 'score', arm, missingTaskKeys: scoreMissing });
+      }
+      const foreignRevision = scores.find((score) => score.gitRevision !== input.config.scorerRevision);
+      if (foreignRevision) {
+        return {
+          runId: input.runId,
+          status: 'mixed-configuration',
+          expected: expectedPerArm,
+          officialSummary: null,
+          mixedConfigurationDetail: {
+            dimension: 'scorerRevision',
+            expected: input.config.scorerRevision,
+            observed: foreignRevision.gitRevision,
+            taskKey: foreignRevision.taskKey,
+          },
+        };
       }
       scoresByCaliberArm.set(`${caliber}--${arm}`, scores);
     }
@@ -395,7 +410,7 @@ export function replayKonlingFairExperimentScoring(input: {
             intent: item.intent,
             caliber,
           });
-          writeKonlingFairExperimentScore(runDir, caliber, arm, {
+          writeKonlingFairExperimentScore(runDir, caliber, input.scorerRevision, arm, {
             taskKey: record.taskKey,
             caliber,
             arm,
@@ -417,7 +432,9 @@ export function replayKonlingFairExperimentScoring(input: {
       runId: input.runId,
       bank: input.bank,
       arms,
-      config: snapshot.payload.config,
+      // 回放按自身 scorerRevision 定位评分命名空间；生成侧配置仍来自
+      // 冻结 manifest（answers 校验用 gitRevision，不受影响）。
+      config: { ...snapshot.payload.config, scorerRevision: input.scorerRevision },
       calibers: input.calibers,
       writeOfficial: false,
     });

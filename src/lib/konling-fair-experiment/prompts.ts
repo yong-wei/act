@@ -23,7 +23,8 @@ import type {
  * - plain-baseline：基础提示，无任何结构要求（合同化之前的基线形态）。
  * - enhanced-baseline：基础提示 + 与功能组相同的篇幅/结构要求行，纯文本
  *   注入，不经过专用意图分类、逐单元引用映射与规范 fail-closed 门禁。
- * - full-feature：真实产品链——运行时合同 + 产品 prompt builder 渲染。
+ * - full-feature：产品运行时合同 + prompt builder 渲染；其中章节/篇幅
+ *   要求公平固定为题库标注意图（两臂要求恒等），分类器输出只进指标。
  */
 
 export interface KonlingFairExperimentPromptContext {
@@ -131,12 +132,32 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
     scope,
     currentUserQuery: item.question,
   });
+  // 公平固定（#1900）：交付的章节合同始终使用题库标注意图，保证
+  // enhanced-baseline 与 full-feature 两臂收到相同章节/篇幅要求——分类
+  // 未命中不得改变功能组的章节要求。分类器输出单独进入分类一致率指标。
+  const labeledTitles = STUDY_QUESTION_SECTIONS[item.intent].map((section) => section.title);
+  const teachingAssistantMode = {
+    ...contract,
+    studyQuestion: {
+      intent: item.intent,
+      requiredSections: labeledTitles,
+      normativeGuidance: item.intent === 'normative-content'
+        ? ('verification-required' as const)
+        : ('not-applicable' as const),
+      preferences: {
+        depth: 'standard',
+        format: 'default',
+        hintStrength: 'full-answer',
+        exampleContext: null,
+      },
+    },
+  };
   const systemPrompt = buildKonlingSystemPrompt({
     page: context.page,
     user: context.user,
     sessionHistory: [],
     adaptiveRuntime: {
-      teachingAssistantMode: contract,
+      teachingAssistantMode,
       knowledgeCapabilityContext: contract.groundingContext,
     },
   });
