@@ -19,10 +19,11 @@
 
 ### D2. 三臂 prompt 只在实验侧组装，产品代码零开关
 
+- 三臂共用同一用户消息：`问题：…\n参考材料：<referenceAnswer>`；证据以共享参考材料文本提供，不构造 citationContext 编号，引用绑定差异因此不是本实验的测量对象。
 - `plain-baseline`：基础控灵系统提示（角色+课程+画像+格式要求），无任何结构合同——即 #1817 之前的基线形态。
-- `enhanced-baseline`：同一基础提示 + 纯文本要求行（按已知意图列出必需章节小标题、同一证据片段以普通参考文本提供、同一输出预算），不经过意图分类、逐单元引用映射、规范 fail-closed 门禁与 calculate 展开规则。
-- `full-feature`：真实产品链——`buildKonlingTeachingAssistantRuntimeContract(modeId='generic-chat')` 产出合同，`buildKonlingSystemPrompt` 渲染。
-- 三臂共用同一 `AIContext`（页面/画像/证据上下文/输出预算），差异只来自臂定义。产品默认路径不新增任何分支或 flag；"臂"只存在于实验配置中。
+- `enhanced-baseline`：同一基础提示 + 与功能组相同的篇幅/结构要求行（`buildStudyQuestionOutputContractLines` 同款三行，纯文本注入，意图取题库标注），不经过专用意图分类、逐单元引用映射、规范 fail-closed 门禁与 calculate 展开规则。
+- `full-feature`：真实产品链——`buildKonlingTeachingAssistantRuntimeContract(modeId='generic-chat')` 产出合同（含对题面的真实意图分类），`buildKonlingSystemPrompt` 渲染；分类与题库标注意图的一致率单独报告，结构评分统一以题库标注意图为唯一口径（误分类表现为结构失败）。
+- 产品默认路径不新增任何分支或 flag；"臂"只存在于实验配置中。
 
 ### D3. 题库派生自既有盲审基准
 

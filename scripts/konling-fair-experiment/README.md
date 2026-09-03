@@ -1,0 +1,51 @@
+# 知识问答公平基线实验（Issue #1900）
+
+三臂公平对比实验：`plain-baseline`（普通基线）、`enhanced-baseline`（强化提示
+基线）、`full-feature`（完整功能组）。三臂共用同一题库、模型、采样参数、证据
+上下文与输出预算；强化基线仅缺少专用意图分类、逐单元引用映射与规范
+fail-closed 门禁等运行时能力。
+
+## 用法
+
+```bash
+# 确定性 fixture（无网络；演示断点续跑可加 --inject <taskKey>=insufficient-balance）
+npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
+  scripts/konling-fair-experiment/run-fixture.ts --run-id demo
+
+# live（显式 opt-in；三臂一致采样参数；盲审复用 #1820 judge）
+KONLING_FAIR_EXPERIMENT_LIVE=1 npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
+  scripts/konling-fair-experiment/run-live.ts --run-id fair-240-round1
+
+# 评分器口径回放（不重新生成；对同一批冻结快照换口径重评）
+npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
+  scripts/konling-fair-experiment/replay-scoring.ts --run-id demo \
+  --calibers structure-alias.v1,structure-strict-title.v0
+```
+
+## 产物与合同
+
+- 目录：`artifacts/konling-fair-experiment/<runId>/`，含
+  `manifest.snapshot.json`（生成修订、评分器修订、题库哈希、模型、采样
+  参数、各臂 prompt 版本）、`answers/<arm>/`（冻结回答快照）、
+  `scores/<caliber>/<arm>/`（确定性结构评分）、`failures/`（逐 attempt
+  失败史）、`summary/official.json` 与 `summary/replay-*.json`。
+- 断点续跑：同一 `runId` 重复执行即从断点继续；已完成回答永不重新生成
+  或覆盖；失败项每轮至多重试一次，累计 attempt 超过一次的留待人工裁决。
+- fail closed：缺键/多键、混配置（模型/采样/prompt 版本/修订不一致）、
+  manifest 漂移或盲审不完整时，不产出正式汇总，脚本以非零码退出。
+- 指标：每臂结构通过率（按口径）、盲审判定率与均分、综合（结构∧盲审，
+  必列分项）；臂间差值输出绝对值、百分点差、配对 bootstrap 95% CI
+  （种子记入 manifest，结果可复现）与方向；生成行为差值与评分器口径
+  差值分节报告。
+- 盲审阶段产物落在 `artifacts/konling-blind-audit/<runId>--audit--<arm>--r<n>/`，
+  被审对象是各臂冻结快照（`candidateAnswer` 即该次回答原文）。
+
+## 与既有能力的关系
+
+- 运行目录锁、原子落盘与清单漂移检查复用 `src/lib/ai-eval-run-store/`
+  （与 #1820 盲审 store 共享同一实现）。
+- `structure-strict-title.v0` 是按 #1817 记载的旧计分规则（固定 canonical
+  标题命中）重建的近似口径，不是旧脚本原文；报告不得表述为对旧数据的
+  追溯重放。
+- 固定回答快照含模型完整回答与题面，属于实验工件，不入 Git（artifacts/
+  已忽略）；仅哈希与指标进入正式汇总。

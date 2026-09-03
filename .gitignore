@@ -83,6 +83,7 @@ course-content/slides-ref
 # Diagnosis benchmark run outputs (runtime artifacts, not source of truth)
 artifacts/diagnosis-benchmark/
 artifacts/konling-blind-audit/
+artifacts/konling-fair-experiment/
 artifacts/**/*.png
 artifacts/**/*.jpg
 artifacts/**/*.jpeg
