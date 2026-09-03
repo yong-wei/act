@@ -56,22 +56,30 @@ export function useInteractiveTracking(
   const resolvedResourceKey = configuredResourceIdentity.resourceKey;
   const isDemoSession = sessionId === 'demo';
   const storageKey = `${STORAGE_KEY_PREFIX}${resolvedResourceKey}:${sessionId ?? 'no-session'}:${userId ?? 'no-user'}`;
+  const storageKeyRef = useRef(storageKey);
+  useEffect(() => {
+    storageKeyRef.current = storageKey;
+  }, [storageKey]);
 
-  // 从 localStorage 恢复事件
+  // 从 localStorage 恢复事件：身份键变化时必须整队重置为新键的存储态。
+  // 新键无已存数据时清空旧身份队列，防止访客或前一个用户的事件被新
+  // 身份的同步通道提交（Issue #1913）；同身份刷新仍完整恢复待同步事件。
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    let restored: TrackingEvent[] = [];
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          eventsRef.current = parsed as TrackingEvent[];
+          restored = parsed as TrackingEvent[];
         }
       }
     } catch (e) {
       console.warn('[InteractiveTracking] Failed to restore events:', e);
     }
+    eventsRef.current = restored;
   }, [storageKey]);
 
   // 保存事件到 localStorage
@@ -90,14 +98,19 @@ export function useInteractiveTracking(
     const run = syncQueueRef.current.then(async () => {
       const events = [...eventsRef.current];
       if (events.length === 0) return;
+      const snapshotStorageKey = storageKeyRef.current;
+      // 同步在途时身份键已切换：快照过期，不得回写任何存储键或队列，
+      // 防止新身份数组写入旧身份键、旧身份未同步事件被误清（Issue #1913）。
+      const snapshotIsStale = () => storageKeyRef.current !== snapshotStorageKey;
 
       // Skip server sync in demo mode (no sessionId)
       if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
-        saveToStorage();
+        if (!snapshotIsStale()) saveToStorage();
         return;
       }
 
       const removeSyncedSnapshot = () => {
+        if (snapshotIsStale()) return;
         const syncedIds = new Set(events.map((event) => event.id));
         eventsRef.current = eventsRef.current.filter((event) => !syncedIds.has(event.id));
         saveToStorage();
@@ -108,7 +121,7 @@ export function useInteractiveTracking(
           await onSync(events);
           removeSyncedSnapshot();
         } catch (e) {
-          saveToStorage();
+          if (!snapshotIsStale()) saveToStorage();
           console.error('[InteractiveTracking] Sync failed:', e);
         }
       } else {
@@ -122,11 +135,11 @@ export function useInteractiveTracking(
 
           if (response.ok) {
             removeSyncedSnapshot();
-          } else {
+          } else if (!snapshotIsStale()) {
             saveToStorage();
           }
         } catch (e) {
-          saveToStorage();
+          if (!snapshotIsStale()) saveToStorage();
           console.error('[InteractiveTracking] API sync failed:', e);
         }
       }

@@ -189,6 +189,44 @@ describe('POST /api/interactive/events', () => {
     );
   });
 
+  it('rejects unauthenticated writes and never touches persistence (Issue #1913)', async () => {
+    mocks.getServerSession.mockResolvedValue(null);
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-guest',
+        type: 'view',
+        timestamp: Date.parse('2026-09-03T04:00:00.000Z'),
+        resourceKey: 'standalone-resource',
+        data: {},
+      }],
+    }));
+
+    expect(response.status).toBe(401);
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.submissionEvidenceRuntime.acceptClassifiedSubmission).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).not.toHaveBeenCalled();
+  });
+
+  it('attributes persisted ownership to the authenticated session, ignoring client identity fields (Issue #1913)', async () => {
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-spoofed-identity',
+        type: 'view',
+        timestamp: Date.parse('2026-09-03T04:00:00.000Z'),
+        resourceKey: 'standalone-resource',
+        userId: 'someone-else',
+        data: {},
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    const createArg = mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0];
+    expect(createArg.data).toHaveLength(1);
+    expect(createArg.data[0].userId).toBe('student-1');
+    expect(createArg.data[0].eventData.userId).toBeUndefined();
+  });
+
   it('deduplicates client events and removes invalid session ids before writing logs', async () => {
     const response = await POST(createPostRequest({
         events: [
