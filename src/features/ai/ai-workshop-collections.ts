@@ -57,16 +57,31 @@ export interface AiAchievementItem {
   sourceLabel: string;
 }
 
+export type AiExperimentSourceType =
+  | 'PID_TUNING'
+  | 'ETHICS_SANDBOX'
+  | 'ANOMALY_EVENT'
+  | 'ARENA_SUBMISSION'
+  | 'SCENE_SIMULATION'
+  | 'CONTROL_WORKBENCH'
+  | 'ODYSSEY_RUN';
+
 export interface AiExperimentItem {
   id: string;
   title: string;
-  type: 'PID_TUNING' | 'ETHICS_SANDBOX' | 'ANOMALY_EVENT' | 'ARENA_SUBMISSION';
+  type: AiExperimentSourceType;
   /** 无正式分数的记录为 null，面板不得显示伪造分值。 */
   score: number | null;
   createdAt: string;
   sourceLabel: string;
   /** 结果权威性：official 正式 / preview 预览或无效。 */
   resultAuthority: 'official' | 'preview';
+  /** 稳定来源记录类别（Issue #1912）：标准运行 / 兼容日志 / Arena 提交。 */
+  sourceKind: 'simulation_run' | 'simulation_log' | 'arena';
+  /** 已验证导航目标；null 表示目标不可验证，按受限状态展示，不生成死链。 */
+  navigation: { href: string; label: string } | null;
+  /** 被归并进本活动的其余已验证来源链路（Codex R2 review）：不因合并丢失。 */
+  bridgedSources?: Array<{ sourceLabel: string; navigation: { href: string; label: string } | null }>;
   parameters?: Record<string, number>;
 }
 
@@ -105,7 +120,8 @@ const AI_WORKSHOP_RETRY_ACTION: AiCollectionAction = { href: '/ai', label: '刷�
 
 export function availableCollection<T>(
   items: T[],
-  total: number,
+  /** 已知合格记录总数；无法在不全量扫描前提下精确去重时为 null，不伪造。 */
+  total: number | null,
   action: AiCollectionAction,
 ): AiCollectionEnvelope<T> {
   return { state: 'available', total, items, action };

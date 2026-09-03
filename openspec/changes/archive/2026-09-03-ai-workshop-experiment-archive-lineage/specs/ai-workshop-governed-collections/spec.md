@@ -11,7 +11,7 @@ The experiment collection SHALL include only current-student simulation, control
 - **AND** the item SHALL include a verified navigation target for the corresponding control-workbench or simulation learning context
 - **AND** it SHALL NOT serialize raw trajectory, trace samples, or unrestricted task payloads.
 
-#### Scenario: Student has an unbridged legacy simulation record
+#### Scenario: Student has a qualifying simulation record
 
 - **WHEN** a persisted `SimulationLog` owned by the authenticated student has no corresponding canonical run but meets the legacy display eligibility rule
 - **THEN** the experiment collection MAY expose it as a compatibility item with its original stable identity and source type

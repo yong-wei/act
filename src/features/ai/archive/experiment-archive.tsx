@@ -4,7 +4,7 @@
  * ExperimentArchive - 实验档案（右侧面板）
  */
 
-import { Archive, Beaker, Scale, AlertTriangle, Star, Trophy } from 'lucide-react';
+import { Archive, Beaker, Scale, AlertTriangle, Star, Trophy, Activity, Wrench, Compass, Link2, Link2Off } from 'lucide-react';
 import Link from 'next/link';
 import type { AiCollectionEnvelope, AiExperimentItem } from '../ai-workshop-collections';
 
@@ -17,6 +17,9 @@ const typeConfig = {
   ETHICS_SANDBOX: { icon: Scale, label: '伦理沙盘', color: 'text-foreground', bg: 'bg-muted' },
   ANOMALY_EVENT: { icon: AlertTriangle, label: '异常事件', color: 'text-foreground', bg: 'bg-muted' },
   ARENA_SUBMISSION: { icon: Trophy, label: 'Arena 提交', color: 'text-foreground', bg: 'bg-muted' },
+  SCENE_SIMULATION: { icon: Activity, label: '场景仿真', color: 'text-foreground', bg: 'bg-muted' },
+  CONTROL_WORKBENCH: { icon: Wrench, label: '控制工作台', color: 'text-foreground', bg: 'bg-muted' },
+  ODYSSEY_RUN: { icon: Compass, label: '控制奥德赛', color: 'text-foreground', bg: 'bg-muted' },
 };
 
 export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
@@ -43,7 +46,8 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
         <div className="rounded border border-border bg-background p-3 text-center">
           <div className="text-2xl font-bold text-foreground" data-ai-workshop-metric="experiment-count">
             {collection.state === 'available'
-              ? collection.total ?? experiments.length
+              // 未知总数（截断）显示 N+，不得把窗口数伪装成精确总数（Codex R3 review）。
+              ? collection.total ?? `${experiments.length}+`
               : collection.state === 'unavailable'
                 ? '不可用'
                 : '暂无'}
@@ -65,12 +69,8 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
         {collection.state === 'available' ? experiments.map((experiment) => {
           const config = typeConfig[experiment.type];
           const Icon = config.icon;
-
-          return (
-            <div
-              key={experiment.id}
-              className="cursor-pointer rounded border border-border bg-background p-4 transition-all hover:border-primary hover:bg-accent"
-            >
+          const body = (
+            <>
               <div className="mb-2 flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <div className={`rounded-lg p-1.5 ${config.bg}`}>
@@ -114,6 +114,59 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
                   ))}
                 </div>
               ) : null}
+
+              {/* 导航状态：已验证目标可进入；不可验证时受限展示，不生成死链（Issue #1912）。
+                  卡片本身不是链接——主导航与被归并来源链接分别渲染，避免嵌套 <a>
+                  破坏解析与 hydration（Codex R3 review）。 */}
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                {experiment.navigation ? (
+                  <Link
+                    href={experiment.navigation.href}
+                    aria-label={`${experiment.title}，${experiment.navigation.label}`}
+                    className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    data-ai-workshop-experiment-navigation={experiment.navigation.href}
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    {experiment.navigation.label}
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-1" data-ai-workshop-experiment-navigation="restricted">
+                    <Link2Off className="h-3.5 w-3.5" />
+                    入口不可用
+                  </span>
+                )}
+                {/* 被归并来源的已验证链路（Codex R2 review）：不因合并丢失 */}
+                {(experiment.bridgedSources ?? []).map((bridged, index) => (
+                  bridged.navigation ? (
+                    <Link
+                      key={`${bridged.sourceLabel}-${index}`}
+                      href={bridged.navigation.href}
+                      className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground underline-offset-2 hover:underline"
+                      data-ai-workshop-experiment-bridged-source={bridged.sourceLabel}
+                    >
+                      {bridged.sourceLabel}
+                    </Link>
+                  ) : (
+                    <span
+                      key={`${bridged.sourceLabel}-${index}`}
+                      className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-muted-foreground"
+                      data-ai-workshop-experiment-bridged-source={bridged.sourceLabel}
+                    >
+                      {bridged.sourceLabel}
+                    </span>
+                  )
+                ))}
+              </div>
+            </>
+          );
+
+          return (
+            <div
+              key={experiment.id}
+              data-ai-workshop-experiment-item={experiment.id}
+              className="rounded border border-border bg-background p-4"
+            >
+              {body}
             </div>
           );
         }) : (

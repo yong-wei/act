@@ -9,7 +9,9 @@ import { ReviewedDerivativeError, type ReviewedDerivativePlan, type ReviewedDeri
 
 type PutClient = Pick<S3Client, 'send'>;
 type StorageLimits = { maxSourceBytes: number; maxZipEntries: number; maxZipEntryBytes: number; maxZipExpandedBytes: number; maxXmlBytes: number; maxXmlNodes: number; maxXmlDepth: number; maxPdfPages: number; maxPdfObjects: number; pdfTimeoutMs: number; pdfMaxOldGenerationMb: number; pdfMaxYoungGenerationMb: number; pdfStackMb: number };
-const CJK_FONT_PATH = fileURLToPath(new URL('./assets/NotoSansSC-Regular.ttf', import.meta.url));
+function resolveCjkFontPath(): string {
+  return fileURLToPath(new URL('./assets/NotoSansSC-Regular.ttf', String(import.meta.url)).href);
+}
 
 export type FrozenPdfCoordinateProvenance = {
   origin: 'TOP_LEFT' | 'BOTTOM_LEFT';
@@ -468,7 +470,7 @@ async function runPdfWorker(input: {
       annotations: input.annotations,
       summaryLines: input.summaryLines,
       identity: input.identity,
-      cjkFontPath: CJK_FONT_PATH,
+      cjkFontPath: resolveCjkFontPath(),
       maxPdfPages: input.limits.maxPdfPages,
     },
     resourceLimits: { maxOldGenerationSizeMb: input.limits.pdfMaxOldGenerationMb, maxYoungGenerationSizeMb: input.limits.pdfMaxYoungGenerationMb, stackSizeMb: input.limits.pdfStackMb },

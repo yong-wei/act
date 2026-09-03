@@ -62,3 +62,41 @@ describe('PersonalLearningCenter governed collections', () => {
     expect(html).not.toContain('>0<');
   });
 });
+
+describe('ExperimentArchive navigation states (Issue #1912)', () => {
+  function experimentsCollection(items: AiWorkshopCollections['experiments']['items']): AiWorkshopCollections['experiments'] {
+    return availableCollection(items, items.length, AI_WORKSHOP_COLLECTION_ACTIONS.experiments);
+  }
+
+  it('renders verified items as navigation links and restricted items without dead links', () => {
+    const html = renderToStaticMarkup(
+      <PersonalLearningCenter
+        evidence={createUnavailableAiWorkshopEvidence()}
+        collections={{
+          ...mixedCollections(),
+          experiments: experimentsCollection([
+            {
+              id: 'simulation-run:run-1', title: '场景仿真实验（sim-scene-cruise）', type: 'SCENE_SIMULATION',
+              score: 77, createdAt: '2026-09-01T08:00:00.000Z', sourceLabel: '场景仿真',
+              resultAuthority: 'preview', sourceKind: 'simulation_run',
+              navigation: { href: '/interactive-learning/resources/sim-scene-cruise', label: '进入对应学习入口' },
+            },
+            {
+              id: 'simulation:log-1', title: '仿真实验（MPC）', type: 'SCENE_SIMULATION',
+              score: null, createdAt: '2026-09-01T09:00:00.000Z', sourceLabel: '仿真训练',
+              resultAuthority: 'preview', sourceKind: 'simulation_log', navigation: null,
+            },
+          ]),
+        }}
+      />,
+    );
+
+    // 已验证目标渲染为可访问导航链接；受限条目标注入口不可用且不产生 href。
+    expect(html).toContain('href="/interactive-learning/resources/sim-scene-cruise"');
+    expect(html).toContain('data-ai-workshop-experiment-item="simulation-run:run-1"');
+    expect(html).toContain('data-ai-workshop-experiment-navigation="restricted"');
+    expect(html).toContain('入口不可用');
+    expect(html).not.toContain('href="simulation:log-1"');
+    expect(html).toContain('场景仿真');
+  });
+});
