@@ -8,6 +8,11 @@ The adaptive learning center SHALL render one primary workspace per route intent
 - **THEN** the page SHALL prioritize continuing the current path, generating a new path, or reviewing evidence
 - **AND** it SHALL NOT render unselectable preset goals or all downstream states as the main scroll content.
 
+#### Scenario: Path execution intent is opened
+- **WHEN** a student opens `intent=path-execution` with a path id
+- **THEN** the page SHALL render the selected path map, current node, node detail, and evidence summary as the primary workspace
+- **AND** the generation panel SHALL be closed unless the student explicitly opens an adjustment action.
+
 #### Scenario: Path execution intent is opened for a specified node
 - **WHEN** a student opens `intent=path-execution` with a valid goal, path ID, and node ID
 - **THEN** the page SHALL render the selected path map, the specified node detail, its authoritative current or locked state, and the evidence summary as the primary workspace

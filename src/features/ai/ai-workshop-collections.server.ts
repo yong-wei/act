@@ -3,6 +3,7 @@ import 'server-only';
 import type { PrismaClient } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { buildAdaptivePracticePathExecutionHref } from '@/lib/adaptive-practice-path-navigation';
 import { studentListAssignments, type StudentAssignmentDto } from '@/lib/assignments/public-api';
 import {
   AI_WORKSHOP_COLLECTION_ACTIONS,
@@ -56,6 +57,7 @@ export async function assembleAiWorkshopCollections(
 type AdoptedPathRow = {
   id: string;
   title: string;
+  goalId: string | null;
   nodeIds: unknown;
   currentNodeId: string | null;
   lastExecutionMetadata: unknown;
@@ -70,7 +72,7 @@ async function readAdoptedPath(userId: string, db: PrismaClient): Promise<Adopte
     const path = await db.learningPath.findFirst({
       where: { userId, pathStatus: 'active' },
       orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
-      select: { id: true, title: true, nodeIds: true, currentNodeId: true, lastExecutionMetadata: true },
+      select: { id: true, title: true, goalId: true, nodeIds: true, currentNodeId: true, lastExecutionMetadata: true },
     });
     const nodeIds = Array.isArray(path?.nodeIds)
       ? path.nodeIds.filter((id): id is string => typeof id === 'string')
@@ -122,7 +124,8 @@ async function readTaskCollection(
   }
 }
 
-/** 已采用路径的任务投影：当前节点进行中、未到达节点未解锁，完成节点不再列为任务。 */
+/** 已采用路径的任务投影：当前节点进行中、未到达节点未解锁，完成节点不再列为任务。
+ * 导航链接按服务端确认的 goal/path/node 与 path-execution 意图编码，目标页据此恢复执行上下文（#1910）。 */
 function pathTaskItems(adoptedPath: Extract<AdoptedPathResult, { ok: true }>): AiTaskItem[] {
   const path = adoptedPath.path!;
   const completed = adoptedPath.completedNodeIds ?? new Set<string>();
@@ -136,7 +139,11 @@ function pathTaskItems(adoptedPath: Extract<AdoptedPathResult, { ok: true }>): A
       progress: 0,
       sourceKind: 'path' as const,
       sourceLabel: path.title,
-      href: `/assessment/adaptive-practice?pathId=${path.id}`,
+      href: buildAdaptivePracticePathExecutionHref({
+        goalId: path.goalId,
+        pathId: path.id,
+        nodeId,
+      }),
     }));
 }
 
