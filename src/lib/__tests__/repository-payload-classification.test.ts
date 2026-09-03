@@ -906,6 +906,37 @@ describe('payload classification evidence adapters', () => {
     expect(bundle.identities[0]?.unresolved).toBe(1);
   });
 
+  it('includes indirect producer dependencies in the toolchain digest', () => {
+    const writerHash = 'cd'.repeat(20);
+    const storeHashV1 = 'ab'.repeat(20);
+    const storeHashV2 = 'ba'.repeat(20);
+    const entries: InventoryEntry[] = [
+      entry('course-content/runtime/knowledge/projection/payload.json', 'f1'.repeat(10)),
+    ];
+    function build(storeHash: string) {
+      const tree: InventoryEntry[] = [
+        ...KNOWLEDGE_CUTOVER_WRITER_CLOSURE.map((file) => entry(file, writerHash)),
+        ...Array.from({ length: KNOWLEDGE_CUTOVER_FROZEN_COUNT - KNOWLEDGE_CUTOVER_WRITER_CLOSURE.length }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
+        entry('src/lib/teaching-projection/store.ts', storeHash),
+      ];
+      const contents = new Map<string, string>([
+        [writerHash, "import { save } from '@/lib/teaching-projection/store';\nconst out = 'runtime/knowledge/projection';\n"],
+        [storeHash, 'export function save() { return true; }\n'],
+      ]);
+      const reader: SubjectTreeReader = {
+        blobBytes: (hash: string) => Buffer.from(contents.get(hash) ?? '{}', 'utf8'),
+        listEntries: (prefix: string) => tree.filter((item) => item.path.startsWith(prefix)),
+      };
+      return buildKnowledgeCutoverAdapter(reader, entries);
+    }
+    const first = build(storeHashV1);
+    const second = build(storeHashV2);
+    expect(first.identities[0]?.drift).toBeNull();
+    expect(second.identities[0]?.drift).toBeNull();
+    // Only the indirect store implementation changed; the digest must change.
+    expect(first.identities[0]?.inputDigest).not.toBe(second.identities[0]?.inputDigest);
+  });
+
   it('keeps resource-governance out of the knowledge-cutover family and gates per-slice byte conservation', () => {
     const entries = [entry('course-content/runtime/resource-governance/summary.json', 'aa'.repeat(20), 40)];
     const reader: SubjectTreeReader = {

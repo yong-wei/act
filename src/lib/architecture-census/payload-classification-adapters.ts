@@ -278,11 +278,10 @@ function releaseIdentityOverride(path: string, authority: string): EvidenceOverr
  */
 export function buildContentCompilerAdapter(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): AdapterBundle {
   const toolchainEntries = reader.listEntries(CONTENT_COMPILER_TOOLCHAIN_ROOT);
+  // Digest the whole toolchain directory so python helpers and any other
+  // indirect producer inside it are covered, not just the two entry scripts.
   const inputDigest = sha256Bytes(Buffer.from(
-    CONTENT_COMPILER_CHARACTERIZATION_FILES.map((file) => {
-      const entry = toolchainEntries.find((row) => row.path === file);
-      return `${file}:${entry?.hash ?? 'missing'}`;
-    }).join('\n'),
+    toolchainEntries.map((row) => `${row.path}:${row.hash}`).sort((left, right) => left.localeCompare(right)).join('\n'),
     'utf8',
   ));
   const drift = toolchainEntries.length !== CONTENT_COMPILER_FROZEN_COUNT
@@ -364,13 +363,21 @@ export function buildKnowledgeCutoverAdapter(reader: SubjectTreeReader, entries:
   const frozenClosure = [...KNOWLEDGE_CUTOVER_WRITER_CLOSURE].sort((left, right) => left.localeCompare(right));
   const closureMatches = discoveredWriters.length === frozenClosure.length
     && discoveredWriters.every((path, index) => path === frozenClosure[index]);
-  const inputDigest = sha256Bytes(Buffer.from(
-    discoveredWriters.map((file) => {
-      const entry = toolchainEntries.find((row) => row.path === file);
-      return `${file}:${entry?.hash ?? 'missing'}`;
-    }).join('\n'),
-    'utf8',
-  ));
+  // Digest the whole toolchain directory plus every file in the writers'
+  // static import closure (shared stores and helpers under src/), so changing
+  // any indirect producer implementation changes the characterization digest.
+  const allEntries = reader.listEntries('');
+  const importClosure = resolveImportClosure({
+    reader,
+    allEntries,
+    startPaths: discoveredWriters,
+    resolveSpec: (spec, fromPath) => resolveRelativeSpec(spec, fromPath, allEntries),
+  });
+  const digestRows = [
+    ...toolchainEntries.map((row) => `${row.path}:${row.hash}`),
+    ...importClosure.map((path) => `${path}:${allEntries.find((row) => row.path === path)?.hash ?? 'missing'}`),
+  ].sort((left, right) => left.localeCompare(right));
+  const inputDigest = sha256Bytes(Buffer.from(digestRows.join('\n'), 'utf8'));
   let drift = toolchainEntries.length !== KNOWLEDGE_CUTOVER_FROZEN_COUNT
     ? `toolchain-count-drift:${toolchainEntries.length}!=${KNOWLEDGE_CUTOVER_FROZEN_COUNT}`
     : null;
@@ -686,6 +693,73 @@ function uniqueConsumerKinds(kinds: readonly ConsumerReferenceKind[]): string[] 
   const consumers = new Set<string>();
   for (const kind of kinds) consumers.add(kind === 'test' ? 'test:path-read' : 'production:path-read');
   return [...consumers].sort();
+}
+
+/** Resolves a relative or @/-aliased import spec to a tracked subject path. */
+export function resolveRelativeSpec(spec: string, fromPath: string, allEntries: readonly InventoryEntry[]): string | null {
+  const tracked = new Set(allEntries.map((entry) => entry.path));
+  const baseParts = fromPath.split('/').slice(0, -1);
+  let target: string[];
+  if (spec.startsWith('@/')) {
+    target = ['src', ...spec.slice(2).split('/')];
+  } else if (spec.startsWith('./') || spec.startsWith('../')) {
+    const parts = [...baseParts];
+    for (const segment of spec.split('/')) {
+      if (segment === '.' || segment === '') continue;
+      if (segment === '..') parts.pop();
+      else parts.push(segment);
+    }
+    target = parts;
+  } else {
+    return null;
+  }
+  const base = target.join('/');
+  const candidates = [
+    base,
+    ...['ts', 'tsx', 'js', 'mjs', 'cjs'].map((extension) => `${base}.${extension}`),
+    ...['ts', 'tsx', 'js'].map((extension) => `${base}/index.${extension}`),
+  ];
+  return candidates.find((candidate) => tracked.has(candidate)) ?? null;
+}
+
+const IMPORT_SPEC_PATTERN = /(?:from\s+|import\(\s*|require\(\s*)['"]([^'"]+)['"]/gu;
+
+/**
+ * Resolves the static import closure of a set of TypeScript entry files over a
+ * frozen subject tree. External packages resolve to null and are skipped. The
+ * closure covers the indirect producer dependencies (shared stores, helpers)
+ * so a characterization digest changes whenever any of them changes.
+ */
+export function resolveImportClosure(params: {
+  readonly reader: SubjectTreeReader;
+  readonly allEntries: readonly InventoryEntry[];
+  readonly startPaths: readonly string[];
+  readonly resolveSpec: (spec: string, fromPath: string) => string | null;
+  readonly maxDepth?: number;
+}): string[] {
+  const { reader, allEntries, startPaths, resolveSpec, maxDepth = 12 } = params;
+  const byPath = new Map(allEntries.map((entry) => [entry.path, entry]));
+  const visited = new Set<string>();
+  const queue = [...startPaths];
+  let depthGuard = 0;
+  while (queue.length > 0) {
+    depthGuard += 1;
+    if (depthGuard > maxDepth * 200) break;
+    const current = queue.shift();
+    if (!current || visited.has(current)) continue;
+    const entry = byPath.get(current);
+    if (!entry) continue;
+    visited.add(current);
+    const text = reader.blobBytes(entry.hash).toString('utf8');
+    for (const match of text.matchAll(IMPORT_SPEC_PATTERN)) {
+      const spec = match[1];
+      if (!spec || /^[a-z@][a-z0-9._-]*\/?/iu.test(spec) && !spec.startsWith('.') && !spec.startsWith('@/') && !spec.startsWith('/')) continue;
+      const resolved = resolveSpec(spec, current);
+      if (!resolved || visited.has(resolved)) continue;
+      queue.push(resolved);
+    }
+  }
+  return [...visited].sort((left, right) => left.localeCompare(right));
 }
 
 export function combineAdapters(bundles: readonly AdapterBundle[]): AdapterBundle {
