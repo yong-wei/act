@@ -90,8 +90,13 @@ export const KNOWLEDGE_CUTOVER_OUTPUT_FAMILIES = [
 ] as const;
 
 export const KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT = 'scripts/knowledge-cutover';
-/** Frozen toolchain inventory count from tools/content-knowledge-runtime-release (committed contract). */
-export const KNOWLEDGE_CUTOVER_FROZEN_COUNT = 76;
+/**
+ * Frozen knowledge-cutover toolchain inventory count at this change's claim-time subject.
+ * The content-knowledge-runtime-release FROZEN_COUNTS entry (76) predates four
+ * successor-cutover writers (#1509/#1741); this change freezes the current
+ * tracked count so any later toolchain growth fails closed here too.
+ */
+export const KNOWLEDGE_CUTOVER_FROZEN_COUNT = 80;
 
 /** Identity patterns that must keep a payload privacy-unresolved even inside committed evidence. */
 export const PRIVACY_IDENTITY_PATTERN = /(?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)/iu;

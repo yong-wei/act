@@ -498,18 +498,46 @@ export function loadCommittedAHandoff(repoRoot: string): AHandoff {
   return parseAHandoff(envelope);
 }
 
+/** Decodes git's C-style quoted path form ("..." with \ooo octal escapes) back to raw bytes. */
+export function gitUnquotePath(path: string): string {
+  if (!path.startsWith('"') || !path.endsWith('"') || path.length < 2) return path;
+  const body = path.slice(1, -1);
+  let result = '';
+  for (let index = 0; index < body.length; index += 1) {
+    const char = body[index]!;
+    if (char !== '\\') {
+      result += char;
+      continue;
+    }
+    const next = body[index + 1];
+    if (next === undefined) break;
+    if (next === 'n') { result += '\n'; index += 1; continue; }
+    if (next === 't') { result += '\t'; index += 1; continue; }
+    if (next === '"' || next === '\\') { result += next; index += 1; continue; }
+    const octal = body.slice(index + 1, index + 4);
+    if (/^[0-7]{3}$/u.test(octal)) {
+      result += String.fromCharCode(Number.parseInt(octal, 8));
+      index += 3;
+      continue;
+    }
+    result += next;
+    index += 1;
+  }
+  return result;
+}
+
 export function loadSourceTreeEntries(repoRoot: string, sourceTree: string): InventoryEntry[] {
-  const output = execFileSync('git', ['-C', repoRoot, 'ls-tree', '-r', '-l', sourceTree], {
+  const output = execFileSync('git', ['-C', repoRoot, 'ls-tree', '-r', '-l', '-z', sourceTree], {
     encoding: 'utf8',
     maxBuffer: 128 * 1024 * 1024,
   });
   const entries: InventoryEntry[] = [];
-  for (const line of output.split('\n')) {
-    if (!line) continue;
-    const tab = line.indexOf('\t');
+  for (const record of output.split('\0')) {
+    if (!record) continue;
+    const tab = record.indexOf('\t');
     if (tab < 0) continue;
-    const meta = line.slice(0, tab).trim().split(/\s+/u);
-    const path = line.slice(tab + 1);
+    const meta = record.slice(0, tab).trim().split(/\s+/u);
+    const path = gitUnquotePath(record.slice(tab + 1));
     const hash = meta[2] ?? '';
     const sizeToken = meta[3] ?? '0';
     const sizeBytes = sizeToken === '-' ? 0 : Number(sizeToken);
@@ -1423,7 +1451,7 @@ export function loadPredecessorEntries(repoRoot: string): InventoryEntry[] {
     .filter((row): row is { path: string; hash: string; sizeBytes: number } => (
       typeof row.path === 'string' && typeof row.hash === 'string' && Number.isSafeInteger(row.sizeBytes)
     ))
-    .map((row) => ({ path: row.path, hash: row.hash, sizeBytes: row.sizeBytes }));
+    .map((row) => ({ path: gitUnquotePath(row.path), hash: row.hash, sizeBytes: row.sizeBytes }));
 }
 
 export function toolCheckpointFromGit(repoRoot: string, extraFiles: readonly string[] = []): ToolCheckpoint {

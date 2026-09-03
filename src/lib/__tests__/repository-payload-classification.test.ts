@@ -822,7 +822,7 @@ describe('payload classification evidence adapters', () => {
     const cutoverScripts = [
       entry('scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts', writerHash),
       entry('scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts', 'ce'.repeat(20)),
-      ...Array.from({ length: 74 }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
+      ...Array.from({ length: 78 }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
     ];
     const listed = [...toolchainScripts, ...cutoverScripts];
     const reader: SubjectTreeReader = {
@@ -852,7 +852,7 @@ describe('payload classification evidence adapters', () => {
       listEntries: (prefix: string) => listed.filter((item) => item.path.startsWith(prefix)).slice(0, 70),
     }, entries);
     expect(drifted.overrides).toHaveLength(0);
-    expect(drifted.identities[0]?.drift).toBe('toolchain-count-drift:70!=76');
+    expect(drifted.identities[0]?.drift).toBe('toolchain-count-drift:70!=80');
   });
 
   it('keeps artifact text with user identifiers unresolved despite a non-private QA class label', () => {
