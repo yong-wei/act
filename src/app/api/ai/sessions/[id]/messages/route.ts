@@ -539,6 +539,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
           studyQuestion: citationGuard.studyQuestion ?? null,
           answerUnits: citationGuard.answerUnits ?? [],
           answerUnitCoverage: citationGuard.answerUnitCoverage ?? null,
+          answerCitationDriftCount: citationGuard.answerCitationDriftCount ?? 0,
+          answerCitationStackCount: citationGuard.answerCitationStackCount ?? 0,
           derivedSectionIds: citationGuard.derivedSectionIds ?? [],
           unverifiedCitationMarkers: citationGuard.unverifiedCitationMarkers ?? [],
           missingContext: modeContract.groundingContext.missingContext,
