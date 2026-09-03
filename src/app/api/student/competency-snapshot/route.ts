@@ -137,11 +137,15 @@ function buildSafeEvidenceSummary(state: CumulativePortraitReadModel) {
 
 function buildRecommendations(state: CumulativePortraitReadModel) {
   if (!state.payload) return [];
+  // 正式互动课程目录是已验证的学生学习入口（Issue #1930）：无法定位
+  // 具体课程/资源时默认进入目录自选，不臆造任务、不返回空地址。
+  const formalLearningEntry = '/interactive-learning/courses';
   const recommendations: Array<{
     type: 'immediate' | 'weekly';
     title: string;
     description: string;
     priority: number;
+    actionUrl: string;
   }> = state.lastRisk.map((risk) => ({
     type: 'immediate',
     title: risk.type === 'constraint'
@@ -151,6 +155,7 @@ function buildRecommendations(state: CumulativePortraitReadModel) {
         : '加强跨域迁移练习',
     description: toSafeRisk(risk).description,
     priority: risk.severity === 'high' ? 90 : risk.severity === 'medium' ? 70 : 50,
+    actionUrl: formalLearningEntry,
   }));
   const weakest = state.payload.dimensions
     .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
@@ -161,6 +166,7 @@ function buildRecommendations(state: CumulativePortraitReadModel) {
       title: `巩固${weakest.label}`,
       description: '根据已有累计学习证据继续完成对应能力练习。',
       priority: 40,
+      actionUrl: formalLearningEntry,
     });
   }
   return recommendations;
@@ -223,7 +229,7 @@ function buildCumulativeDiagnosis(
       nextActions: [{
         kind: 'learning-path',
         label: '继续学习',
-        href: '/courses',
+        href: '/interactive-learning/courses',
       }],
       privacyClass: 'student-visible',
       materializationVersion: 'role-based-learning-diagnosis.v1',
