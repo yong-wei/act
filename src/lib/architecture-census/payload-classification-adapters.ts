@@ -310,26 +310,34 @@ function qaOverride(path: string, blobHash: string, outcome: QaLifecycleOutcome)
       ? 'retain-in-git'
       : outcome.retentionDecision === 'externalize-then-delete' ? 'existing-external-lifecycle' : 'retain-in-git',
   };
+  let consumers: readonly string[];
   if (outcome.evidenceClass === 'representative-fixture') {
     facets.authorship = 'generated';
     facets.reproducibility = 'non-reproducible';
     facets.qaRoles = ['representative-fixture'];
+    // The retain set is extracted from production source referencing the fixture path.
+    consumers = ['production:representative-fixture', 'qa-evidence-lifecycle:retain-in-repo'];
   } else if (outcome.evidenceClass === 'run-specific-output') {
     facets.authorship = 'generated';
     facets.reproducibility = 'non-reproducible';
     facets.qaRoles = ['run-specific-output'];
+    consumers = ['qa-evidence-lifecycle:externalize-then-delete'];
   } else if (outcome.evidenceClass === 'audit-closure-document') {
     // Audit closure documents are kept as a ledger, not ephemeral run output:
     // hand-authored retention authority, no ephemeral QA role facet.
     facets.authorship = 'hand-authored';
+    facets.reproducibility = 'not-applicable';
+    consumers = ['qa-evidence-lifecycle:audit-closure'];
   } else {
     facets.authorship = 'generated';
     facets.reproducibility = 'reproducible';
+    consumers = ['qa-evidence-lifecycle:portable-manifest'];
   }
   return {
     path,
     facets,
     producer: `producer:qa-evidence-lifecycle:${outcome.owner}`,
+    consumers,
     authority: `qa-evidence-lifecycle:git-blob:${blobHash}`,
     materialization: 'not-applicable',
     recovery: 'git-checkout-source-tree',
