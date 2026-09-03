@@ -327,10 +327,12 @@ function qaOverride(path: string, blobHash: string, outcome: QaLifecycleOutcome)
     // hand-authored retention authority, no ephemeral QA role facet.
     facets.authorship = 'hand-authored';
     facets.reproducibility = 'not-applicable';
+    facets.qaRoles = [];
     consumers = ['qa-evidence-lifecycle:audit-closure'];
   } else {
     facets.authorship = 'generated';
     facets.reproducibility = 'reproducible';
+    facets.qaRoles = [];
     consumers = ['qa-evidence-lifecycle:portable-manifest'];
   }
   return {
