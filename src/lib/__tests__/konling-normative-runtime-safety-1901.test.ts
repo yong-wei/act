@@ -180,6 +180,18 @@ describe('issue #1901 answer-level normative safety degradation', () => {
       answer: '考核办法必须包含平时成绩占比，这是行业认证要求的格式。',
       violations: ['unhedged-normative-assertion'],
     },
+    {
+      // Codex review finding 1: capitalized English markers must not slip
+      // through the lowercase marker lists.
+      answer: 'Official requirement: the report must list the standard format items.',
+      violations: ['unhedged-normative-assertion'],
+    },
+    {
+      // Codex review finding 2: CRLF separators must not drift line offsets
+      // into the code range and skip the assertion after the code block.
+      answer: '示例代码：\r\n```\r\nprint("report")\r\n```\r\n官方规定实验报告必须使用蓝黑墨水书写。',
+      violations: ['unhedged-normative-assertion'],
+    },
   ];
   const query = '实验报告封面必须写哪些项才算合格？';
 

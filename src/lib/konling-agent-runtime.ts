@@ -9921,17 +9921,21 @@ export interface KonlingNormativeCompliance {
 function scanKonlingNormativeCompliance(assistantMessage: string): KonlingNormativeCompliance {
   const violations = new Set<KonlingNormativeComplianceViolationClass>();
   const codeRanges = markdownCodeRanges(assistantMessage);
-  let lineStart = 0;
-  for (const line of assistantMessage.split(/\r?\n/)) {
-    try {
-      const normalizedLine = line.trim();
-      if (
-        !normalizedLine
-        || /^\s*```/.test(line)
-        || codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)
-      ) {
-        continue;
-      }
+  // Per-line matchAll keeps exact absolute offsets: no separator arithmetic,
+  // so CRLF bodies cannot drift a line into a code range and skip the scan.
+  for (const match of assistantMessage.matchAll(/[^\r\n]*/g)) {
+    const rawLine = match[0];
+    const lineStart = match.index ?? 0;
+    // English markers are lowercase; normalize like query detection so a
+    // capitalized “Official requirement: … must …” cannot slip through.
+    const normalizedLine = rawLine.trim().toLowerCase().normalize('NFKC');
+    if (
+      !normalizedLine
+      || /^\s*```/.test(rawLine)
+      || codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)
+    ) {
+      continue;
+    }
       if (includesAny(normalizedLine, NORMATIVE_ANSWER_HEDGE_MARKERS)) continue;
       // A standard identifier is itself an authority claim: “根据 GB/T 7713 的
       // 规定，…必须…” asserts that standard's obligation without verification.
@@ -9946,10 +9950,7 @@ function scanKonlingNormativeCompliance(assistantMessage: string): KonlingNormat
       if ((authority || obligation) && /https?:\/\//i.test(normalizedLine)) {
         violations.add('authority-link');
       }
-    } finally {
-      lineStart += line.length + 1;
     }
-  }
   return {
     status: violations.size > 0 ? 'degraded' : 'compliant',
     violations: [...violations],
