@@ -227,11 +227,13 @@ export type PayloadClassName =
   | 'current-runtime-referenced'
   | 'archive-only'
   | 'authoring-only'
-  | 'mixed-unresolved';
+  | 'mixed-unresolved'
+  | 'other-tracked';
 
 export interface PayloadClassAggregate {
   readonly className: PayloadClassName;
   readonly blobCount: number;
+  readonly duplicateBlobCount: number;
   readonly pathCount: number;
   readonly byteTotal: number;
 }
@@ -256,16 +258,26 @@ export interface HotspotEntry {
   readonly evidence: readonly string[];
 }
 
+export interface OwnerResidueConsumer {
+  readonly path: string;
+  readonly kind: string;
+  readonly relationship: string;
+}
+
 export interface OwnerResidueRecord {
   readonly id: string;
   readonly source: 'current-head-delta' | 'census-duplicate-owner' | 'census-public-entrypoint';
   readonly identity: string;
   readonly currentOwnerEvidence: readonly string[];
   readonly candidateTargetOwners: readonly string[];
+  readonly consumers: readonly OwnerResidueConsumer[];
   readonly consumerClass: string;
+  readonly deletionCondition: string;
+  readonly trustBoundary: string | null;
   readonly state: 'observation' | 'ambiguous' | 'unresolved';
   readonly evidence: readonly string[];
   readonly rollbackReference: string;
+  readonly notes: readonly string[];
 }
 
 export interface SuccessorHandoff {

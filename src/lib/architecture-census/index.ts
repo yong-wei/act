@@ -36,6 +36,7 @@ export {
   buildMaterialLayers,
   buildOwnerResidue,
   buildPayloadClasses,
+  classifyBlobPayloadClass,
   classifyMaterialLayer,
   generatePostConvergenceSuccessor,
   loadChangeFrequencyCounts,
@@ -43,6 +44,7 @@ export {
   loadTrackedBlobIndex,
   predecessorOverwriteFailures,
   qualifyPostConvergence,
+  successorOverwriteFailures,
   successorPackageDigest,
   successorPreconditionFailures,
   successorWriteGate,
@@ -78,6 +80,7 @@ export type {
 export type {
   DerivedSlice,
   HotspotEntry,
+  OwnerResidueConsumer,
   HotspotMetricVector,
   MaterialLayer,
   MaterialLayerManifest,

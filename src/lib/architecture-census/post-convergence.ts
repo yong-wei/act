@@ -18,6 +18,7 @@ import {
   MATERIAL_LAYERS,
   POST_CONVERGENCE_COMMAND_SCOPE,
   POST_CONVERGENCE_DETAIL_DIR,
+  POST_CONVERGENCE_OUTPUT_DIR,
   POST_CONVERGENCE_SCHEMA_VERSION,
   POST_CONVERGENCE_STATUSES,
 } from './types';
@@ -43,6 +44,8 @@ import type {
 } from './types';
 
 const BINARY_EXTENSIONS = new Set<string>(BINARY_MEDIA_MODEL_EXTENSIONS);
+
+const DELETION_CONDITION_UNRESOLVED = 'zero-production-consumers-and-canonical-owner-replacement-proven';
 
 export interface SuccessorPredecessors {
   readonly baseline: SuccessorPredecessorBaseline;
@@ -499,6 +502,30 @@ export function buildDerivedSlices(
   };
 }
 
+function archiveScopePath(path: string): boolean {
+  return path.startsWith('openspec/changes/archive/') || path.startsWith('artifacts/');
+}
+
+export function classifyBlobPayloadClass(paths: readonly string[]): PayloadClassAggregate['className'] {
+  const runtime = paths.filter((path) => path.startsWith('course-content/runtime/'));
+  const archive = paths.filter(archiveScopePath);
+  const authoring = paths.filter((path) => path.startsWith('course-content/authoring/'));
+  const other = paths.filter((path) => (
+    !path.startsWith('course-content/runtime/')
+    && !archiveScopePath(path)
+    && !path.startsWith('course-content/authoring/')
+  ));
+  // authoring+runtime is the normal pipeline state (source + materialized view): runtime wins.
+  // runtime+archive, or archive mixed with live material, is a genuine authority conflict for C.
+  if (runtime.length > 0 && archive.length > 0) return 'mixed-unresolved';
+  if (runtime.length > 0) return 'current-runtime-referenced';
+  if (archive.length === paths.length) return 'archive-only';
+  if (archive.length > 0) return 'mixed-unresolved';
+  if (authoring.length > 0 && other.length === 0) return 'authoring-only';
+  if (authoring.length > 0) return 'mixed-unresolved';
+  return 'other-tracked';
+}
+
 export function buildPayloadClasses(
   snapshot: CensusSourceSnapshot,
   blobIndex: ReadonlyMap<string, string>,
@@ -512,32 +539,17 @@ export function buildPayloadClasses(
     entry.bytes += file.byteLength;
     byBlob.set(blobSha, entry);
   }
-  const duplicates = [...byBlob.entries()]
-    .filter(([, entry]) => entry.paths.length > 1)
-    .sort(([left], [right]) => left.localeCompare(right));
-  const classCounts = new Map<string, { blobCount: number; pathCount: number; byteTotal: number }>();
+  const classCounts = new Map<string, { blobCount: number; duplicateBlobCount: number; pathCount: number; byteTotal: number }>();
+  let duplicateBlobCount = 0;
   let unresolvedCount = 0;
-  for (const [, entry] of duplicates) {
-    const inRuntime = entry.paths.some((path) => path.startsWith('course-content/runtime/'));
-    const inArchiveOnlyScope = (path: string): boolean => (
-      path.startsWith('openspec/changes/archive/') || path.startsWith('artifacts/')
-    );
-    const allArchive = entry.paths.every(inArchiveOnlyScope);
-    const inAuthoring = entry.paths.some((path) => path.startsWith('course-content/authoring/'));
-    const mixed = entry.paths.some(inArchiveOnlyScope) && !allArchive;
-    let className: string;
-    if (inRuntime) {
-      className = 'current-runtime-referenced';
-    } else if (allArchive) {
-      className = 'archive-only';
-    } else if (inAuthoring && !mixed) {
-      className = 'authoring-only';
-    } else {
-      className = 'mixed-unresolved';
-      unresolvedCount += 1;
-    }
-    const aggregate = classCounts.get(className) ?? { blobCount: 0, pathCount: 0, byteTotal: 0 };
+  for (const [, entry] of [...byBlob.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    const duplicate = entry.paths.length > 1;
+    if (duplicate) duplicateBlobCount += 1;
+    const className = classifyBlobPayloadClass(entry.paths);
+    if (className === 'mixed-unresolved') unresolvedCount += 1;
+    const aggregate = classCounts.get(className) ?? { blobCount: 0, duplicateBlobCount: 0, pathCount: 0, byteTotal: 0 };
     aggregate.blobCount += 1;
+    aggregate.duplicateBlobCount += duplicate ? 1 : 0;
     aggregate.pathCount += entry.paths.length;
     aggregate.byteTotal += entry.bytes;
     classCounts.set(className, aggregate);
@@ -546,12 +558,13 @@ export function buildPayloadClasses(
     .map(([className, aggregate]) => ({
       className: className as PayloadClassAggregate['className'],
       blobCount: aggregate.blobCount,
+      duplicateBlobCount: aggregate.duplicateBlobCount,
       pathCount: aggregate.pathCount,
       byteTotal: aggregate.byteTotal,
     }))
     .sort((left, right) => left.className.localeCompare(right.className));
   return {
-    duplicateBlobCount: duplicates.length,
+    duplicateBlobCount,
     classes,
     unresolvedCount,
   };
@@ -694,10 +707,18 @@ export function buildOwnerResidue(
     identity: row.identity,
     currentOwnerEvidence: [...row.currentOwnerEvidence],
     candidateTargetOwners: [...row.candidateTargetOwners],
+    consumers: row.consumers.map((consumer) => ({
+      path: consumer.path,
+      kind: consumer.kind,
+      relationship: consumer.relationship,
+    })),
     consumerClass: row.consumerClass,
+    deletionCondition: row.deletionCondition,
+    trustBoundary: row.trustBoundary,
     state: row.observationVsFinding === 'unresolved' ? 'unresolved' : 'observation',
     evidence: [...row.evidence],
     rollbackReference,
+    notes: [...row.notes],
   }));
   for (const row of core.observations) {
     if (row.ownership.state !== 'ambiguous') continue;
@@ -707,10 +728,14 @@ export function buildOwnerResidue(
       identity: row.identity,
       currentOwnerEvidence: [...row.ownership.currentOwnerEvidence],
       candidateTargetOwners: [],
+      consumers: [],
       consumerClass: 'unresolved',
+      deletionCondition: DELETION_CONDITION_UNRESOLVED,
+      trustBoundary: null,
       state: 'ambiguous',
       evidence: [...row.ownership.conflictingEvidence],
       rollbackReference,
+      notes: ['owner-adjudication-belongs-to-B'],
     });
   }
   for (const file of snapshot.files) {
@@ -722,10 +747,18 @@ export function buildOwnerResidue(
       identity: file.path,
       currentOwnerEvidence: ownerEvidenceFromPath(file.path),
       candidateTargetOwners: domains,
+      consumers: domains.map((domain) => ({
+        path: `src/features/${domain}/`,
+        kind: 'production',
+        relationship: 'import',
+      })),
       consumerClass: domains.length > 0 ? 'production' : 'none-discovered',
+      deletionCondition: DELETION_CONDITION_UNRESOLVED,
+      trustBoundary: 'domain-public-api',
       state: 'observation',
       evidence: domains.map((domain) => `src/features/${domain}/`),
       rollbackReference,
+      notes: [],
     });
   }
   const seen = new Set<string>();
@@ -843,6 +876,25 @@ export function predecessorOverwriteFailures(
   }
   if (before.deltaSha256 !== after.deltaSha256) {
     failures.push({ code: 'historical-overwrite', identity: 'current-head/delta.json' });
+  }
+  return failures;
+}
+
+export function successorOverwriteFailures(
+  files: Readonly<Record<string, string>>,
+  readExisting: (name: string) => string | null,
+): QualificationFailure[] {
+  const failures: QualificationFailure[] = [];
+  for (const name of Object.keys(files).sort()) {
+    let existing: string | null = null;
+    try {
+      existing = readExisting(name);
+    } catch {
+      existing = null;
+    }
+    if (existing !== null && existing !== files[name]) {
+      failures.push({ code: 'successor-overwrite', identity: `${POST_CONVERGENCE_OUTPUT_DIR}/${name}` });
+    }
   }
   return failures;
 }
@@ -1015,15 +1067,21 @@ function projectOwnerResidue(records: readonly OwnerResidueRecord[]): string {
     '',
     'Ambiguity is retained. Owner adjudication belongs to B; this projection selects no owner and migrates no caller.',
     'Directory placement, file size, an archived proposal, or a closed Issue is never consumer or deletion proof.',
+    'Per-consumer evidence, deletion conditions, and trust boundaries are preserved verbatim in the',
+    '`owner-residue.ndjson` detail artifact indexed by `baseline.json`.',
     '',
     table(
-      ['id', 'source', 'identity', 'state', 'consumer class', 'candidate owners'],
+      ['id', 'source', 'identity', 'state', 'consumer class', 'consumers', 'deletion condition', 'candidate owners'],
       records.map((row) => [
         row.id,
         row.source,
         row.identity,
         row.state,
         row.consumerClass,
+        row.consumers.map((consumer) => `${consumer.path}(${consumer.kind}/${consumer.relationship})`).slice(0, 5).join('; ')
+          + (row.consumers.length > 5 ? ` (+${row.consumers.length - 5} more)` : '')
+          || '_none_',
+        row.deletionCondition,
         row.candidateTargetOwners.join('; ') || '_none_',
       ]),
     ),
@@ -1072,17 +1130,20 @@ function projectPayloadClasses(payload: PayloadClassResult): string {
   return [
     '# Payload class observations',
     '',
-    'Payload classes observe tracked bytes and blob identities only. Authority, materialization, retention,',
-    'and deletion decisions belong to C and the existing data-governance owners; nothing here authorizes deletion.',
+    'Payload classes observe tracked bytes and blob identities only — every tracked blob is classified exactly once',
+    '(unique runtime/archive/authoring payloads included), with duplicate blobs counted per class. Authority,',
+    'materialization, retention, and deletion decisions belong to C and the existing data-governance owners;',
+    'nothing here authorizes deletion.',
     '',
     `- duplicate blobs: ${payload.duplicateBlobCount}`,
     `- unresolved classes: ${payload.unresolvedCount}`,
     '',
     table(
-      ['class', 'blobs', 'paths', 'bytes'],
+      ['class', 'blobs', 'duplicates', 'paths', 'bytes'],
       payload.classes.map((entry) => [
         entry.className,
         String(entry.blobCount),
+        String(entry.duplicateBlobCount),
         String(entry.pathCount),
         String(entry.byteTotal),
       ]),
@@ -1214,6 +1275,12 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
       content: ndlines(slices.records),
     },
     {
+      name: 'owner-residue.ndjson',
+      logicalLocator: `${detailBase}/owner-residue.ndjson`,
+      mediaType: 'application/x-ndjson',
+      content: ndlines(residue),
+    },
+    {
       name: 'census-core.json',
       logicalLocator: `${detailBase}/census-core.json`,
       mediaType: 'application/json',
@@ -1290,12 +1357,12 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     requiredDigest: packageDigest,
   };
   const handoff: PostConvergenceEnvelope['handoff'] = [
-    {
-      ...handoffBase,
-      consumer: 'B-owner-residue',
-      locators: ['owner-residue.md'],
-      failClosedRule: 'require exact successorCaptureId+packageDigest; reject missing/stale/mixed/drifted inputs; A adjudicates nothing',
-    },
+      {
+        ...handoffBase,
+        consumer: 'B-owner-residue',
+        locators: ['owner-residue.md', `${detailBase}/owner-residue.ndjson`],
+        failClosedRule: 'require exact successorCaptureId+packageDigest; reject missing/stale/mixed/drifted inputs; A adjudicates nothing',
+      },
     {
       ...handoffBase,
       consumer: 'C-payload-classes',

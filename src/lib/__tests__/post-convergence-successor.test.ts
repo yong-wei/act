@@ -4,11 +4,13 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  classifyBlobPayloadClass,
   classifyMaterialLayer,
   generatePostConvergenceSuccessor,
   loadSuccessorPredecessors,
   predecessorOverwriteFailures,
   qualifyPostConvergence,
+  successorOverwriteFailures,
   successorPackageDigest,
   successorPreconditionFailures,
   successorWriteGate,
@@ -153,6 +155,8 @@ function coreFixtureFiles(): CensusSourceFile[] {
     file('course-content/runtime/lessons/1-1/manifest.json', '{}\n'),
     binary('course-content/authoring/lessons/1-1/media/intro.png', 2048),
     binary('course-content/runtime/lessons/1-1/media/intro.png', 2048),
+    binary('course-content/runtime/lessons/2-1/media/unique-runtime.png', 256),
+    binary('course-content/authoring/lessons/2-2/media/unique-authoring.png', 128),
     binary('artifacts/qa-evidence/session.png', 512),
     binary('artifacts/qa-evidence/session2.png', 512),
     file('.github/workflows/ci.yml', 'name: ci\n'),
@@ -211,7 +215,7 @@ describe('post-convergence successor capture', () => {
     });
     const byLayer = new Map(result.pack.materialLayers.map((layer) => [layer.layer, layer]));
     expect(byLayer.get('tests')!.totals.represented).toBe(1);
-    expect(byLayer.get('binary-media-model')!.totals.represented).toBe(4);
+    expect(byLayer.get('binary-media-model')!.totals.represented).toBe(6);
     expect(byLayer.get('archived-openspec')!.totals.represented).toBe(1);
     expect(byLayer.get('generated-runtime-release')!.totals.represented).toBeGreaterThanOrEqual(1);
     const representedSum = result.pack.materialLayers.reduce((sum, layer) => sum + layer.totals.represented, 0);
@@ -270,18 +274,35 @@ describe('post-convergence successor capture', () => {
     expect(() => qualifyPostConvergence(bad.pack, bad.failures)).toThrow(/kind-set-mismatch/);
   });
 
-  it('observes payload classes over duplicate blobs without adjudicating authority', () => {
-    const result = generatePostConvergenceSuccessor(makeInput(coreFixtureFiles()));
+  it('classifies every tracked blob (unique payloads included) without adjudicating authority', () => {
+    expect(classifyBlobPayloadClass(['course-content/runtime/lessons/2-1/media/unique.png'])).toBe('current-runtime-referenced');
+    expect(classifyBlobPayloadClass(['openspec/changes/archive/2026-01-01-a/media/x.png'])).toBe('archive-only');
+    expect(classifyBlobPayloadClass(['course-content/authoring/lessons/2-2/media/x.png'])).toBe('authoring-only');
+    expect(classifyBlobPayloadClass(['src/lib/x.ts'])).toBe('other-tracked');
+    expect(classifyBlobPayloadClass([
+      'course-content/runtime/lessons/1-1/media/intro.png',
+      'openspec/changes/archive/2026-01-01-a/media/intro.png',
+    ])).toBe('mixed-unresolved');
+
+    const input = makeInput(coreFixtureFiles());
+    const result = generatePostConvergenceSuccessor(input);
     qualifyPostConvergence(result.pack, result.failures);
     const payload = result.pack.payloadClassTotals;
     expect(payload.duplicateBlobCount).toBe(2);
-    const classNames = payload.classes.map((entry) => entry.className);
-    expect(classNames).toContain('current-runtime-referenced');
-    expect(classNames).toContain('archive-only');
-    for (const entry of payload.classes) {
-      expect(entry.blobCount).toBeGreaterThan(0);
-      expect(entry.pathCount).toBeGreaterThanOrEqual(entry.blobCount);
-    }
+    const byClass = new Map(payload.classes.map((entry) => [entry.className, entry]));
+    expect(byClass.get('current-runtime-referenced')!.blobCount).toBe(3);
+    expect(byClass.get('current-runtime-referenced')!.duplicateBlobCount).toBe(1);
+    expect(byClass.get('current-runtime-referenced')!.pathCount).toBe(4);
+    expect(byClass.get('archive-only')!.blobCount).toBe(2);
+    expect(byClass.get('archive-only')!.duplicateBlobCount).toBe(1);
+    expect(byClass.get('archive-only')!.pathCount).toBe(3);
+    expect(byClass.get('authoring-only')!.blobCount).toBe(2);
+    expect(byClass.get('authoring-only')!.duplicateBlobCount).toBe(0);
+    expect(byClass.get('other-tracked')!.blobCount).toBeGreaterThan(0);
+    const classifiedBlobTotal = payload.classes.reduce((sum, entry) => sum + entry.blobCount, 0);
+    expect(classifiedBlobTotal).toBe(new Set(input.blobIndex.values()).size);
+    expect(payload.classes.every((entry) => entry.pathCount >= entry.blobCount)).toBe(true);
+    expect(result.files['payload-classes.md']).toContain('unique runtime/archive/authoring payloads included');
     expect(result.files['payload-classes.md']).toContain('nothing here authorizes deletion');
   });
 
@@ -309,6 +330,23 @@ describe('post-convergence successor capture', () => {
     expect(residueDoc).toContain('census-duplicate-owner:src/lib/legacy-bridge.ts');
     expect(residueDoc).toContain('census-public-entrypoint:');
     expect(residueDoc).toContain('Ambiguity is retained');
+    expect(residueDoc).toContain('src/app/page.tsx(production/import)');
+    expect(residueDoc).toContain('zero-production-consumers');
+    const residueDetail = result.detail.find((artifact) => artifact.name === 'owner-residue.ndjson')!;
+    const detailRecords = residueDetail.content.split('\n').filter(Boolean).map(
+      (line) => JSON.parse(line) as {
+        id: string;
+        consumers: Array<{ path: string; kind: string; relationship: string }>;
+        deletionCondition: string;
+        trustBoundary: string | null;
+      },
+    );
+    const deltaRecord = detailRecords.find((row) => row.id === 'current-head-delta:retirement:src/features/adaptive/legacy-ui.tsx');
+    expect(deltaRecord?.consumers).toEqual([{ path: 'src/app/page.tsx', kind: 'production', relationship: 'import' }]);
+    expect(deltaRecord?.deletionCondition).toBe('zero-production-consumers');
+    expect(deltaRecord?.trustBoundary).toBeNull();
+    expect(result.pack.handoff.find((entry) => entry.consumer === 'B-owner-residue')!.locators)
+      .toContain(result.detail.find((artifact) => artifact.name === 'owner-residue.ndjson')!.logicalLocator);
     const parsed = JSON.parse(result.files['baseline.json']) as { ownerResidueTotals: { total: number; unresolved: number; ambiguous: number } };
     expect(parsed.ownerResidueTotals.total).toBeGreaterThan(3);
     expect(parsed.ownerResidueTotals.unresolved).toBeGreaterThanOrEqual(1);
@@ -417,6 +455,15 @@ describe('post-convergence successor capture', () => {
     expect(predecessorOverwriteFailures(before, before)).toEqual([]);
     expect(predecessorOverwriteFailures(before, { baselineCensusSha256: 'c'.repeat(64), deltaSha256: 'b'.repeat(64) })
       .map((failure) => failure.code)).toEqual(['historical-overwrite']);
+  });
+
+  it('rejects overwriting an existing successor package while allowing byte-identical reruns', () => {
+    const files = { 'baseline.json': '{"a":1}\n', 'summary.md': '# s\n' };
+    expect(successorOverwriteFailures(files, () => null)).toEqual([]);
+    expect(successorOverwriteFailures(files, (name) => files[name] ?? null)).toEqual([]);
+    expect(successorOverwriteFailures(files, () => { throw new Error('missing'); })).toEqual([]);
+    expect(successorOverwriteFailures(files, (name) => (name === 'summary.md' ? '# different\n' : files[name] ?? null))
+      .map((failure) => failure.code)).toEqual(['successor-overwrite']);
   });
 
   it('keeps qualification observational and tamper-evident: no active-baseline, digest covers the envelope', () => {

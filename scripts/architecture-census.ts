@@ -16,6 +16,7 @@ import {
   qualifyPostConvergence,
   serializeDeterministic,
   sha256Text,
+  successorOverwriteFailures,
   successorPreconditionFailures,
   successorWriteGate,
   verifySuccessorArtifacts,
@@ -149,6 +150,17 @@ function runPostConvergence(repoRoot: string): void {
   const commit = git(repoRoot, ['rev-parse', 'HEAD']);
   const tree = git(repoRoot, ['rev-parse', 'HEAD^{tree}']);
   failures.push(...successorWriteGate(pack.captureIdentity, originCommit, porcelain, commit, tree));
+  const normalizedFiles: Record<string, string> = {};
+  for (const [name, content] of Object.entries(files)) {
+    normalizedFiles[name] = content.endsWith('\n') ? content : `${content}\n`;
+  }
+  failures.push(...successorOverwriteFailures(normalizedFiles, (name) => {
+    try {
+      return readFileSync(join(repoRoot, POST_CONVERGENCE_OUTPUT_DIR, name), 'utf8');
+    } catch {
+      return null;
+    }
+  }));
   qualifyPostConvergence(pack, failures);
 
   for (const artifact of detail) {
