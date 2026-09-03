@@ -957,8 +957,8 @@ describe('payload classification evidence adapters', () => {
 
   it('binds real production consumers from code references so live assets never read future-eligible', () => {
     const entries = [entry('public/assets/destroyer.glb', 'aa'.repeat(20), 2048)];
-    const references = new Map<string, readonly ('production' | 'test')[]>([
-      ['/assets/destroyer.glb', ['production']],
+    const references = new Map<string, ReadonlySet<'production' | 'test'>>([
+      ['/assets/destroyer.glb', new Set(['production'] as const)],
     ]);
     const bundle = buildConsumerReferenceAdapter(entries, references);
     expect(bundle.overrides[0]?.consumers).toEqual(['production:path-read']);

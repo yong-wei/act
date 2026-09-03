@@ -663,7 +663,7 @@ const ASSET_EXTENSION_PATTERN = /\.(?:png|jpe?g|webp|gif|svg|glb|gltf|wasm|onnx|
 
 export function buildConsumerReferenceAdapter(
   entries: readonly InventoryEntry[],
-  references: ReadonlyMap<string, readonly ConsumerReferenceKind[]>,
+  references: ReadonlyMap<string, ReadonlySet<ConsumerReferenceKind>>,
   dynamicReferencesObserved = false,
 ): AdapterBundle {
   const overrides: EvidenceOverride[] = [];
@@ -674,7 +674,7 @@ export function buildConsumerReferenceAdapter(
     if (entry.path.startsWith('artifacts/')) continue; // QA evidence lifecycle owns artifacts consumers
     const normalized = entry.path.startsWith('public/') ? `/${entry.path.slice('public/'.length)}` : entry.path;
     const kinds = references.get(entry.path) ?? references.get(normalized);
-    if (kinds && kinds.length > 0) {
+    if (kinds && kinds.size > 0) {
       candidates += 1;
       overrides.push({
         path: entry.path,
@@ -711,7 +711,7 @@ export function buildConsumerReferenceAdapter(
   };
 }
 
-function uniqueConsumerKinds(kinds: readonly ConsumerReferenceKind[]): string[] {
+function uniqueConsumerKinds(kinds: Iterable<ConsumerReferenceKind>): string[] {
   const consumers = new Set<string>();
   for (const kind of kinds) consumers.add(kind === 'test' ? 'test:path-read' : 'production:path-read');
   return [...consumers].sort();
