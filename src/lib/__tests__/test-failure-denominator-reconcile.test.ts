@@ -15,6 +15,8 @@ import {
   REQUIRED_CHARTER,
   compactPackageDigest,
   coordinationGateFailures,
+  sealCompactPackage,
+  subjectCheckoutFailures,
   createPlannedDisposition,
   createToolIdentity,
   discoverTests,
@@ -370,6 +372,7 @@ describe('current clean-head failure denominator', () => {
       }),
     });
     expect(leaked.failures.some((item) => item.code.includes('absolute-path') || item.code.includes('privacy'))).toBe(true);
+    expect(leaked.compact).toBeNull();
 
     expect(validatePlannedDisposition(createPlannedDisposition({
       command: 'test:unit',
@@ -440,4 +443,28 @@ describe('current clean-head failure denominator', () => {
     expect(validatePlannedDisposition({ ...record, namedLane: 'default' }).some((item) => item.code === 'planned-quarantine-default-lane')).toBe(true);
     expect(record.closureCondition.includes('validates')).toBe(true);
   });
+
+  it('seals compact artifacts from the actual file bytes that will be written', () => {
+    const output = run();
+    expect(output.compact).not.toBeNull();
+    const { artifacts: _a, packageDigest: _d, ...draft } = output.compact!;
+    const files = {
+      'lanes.md': '# lanes\n',
+      'result-cores.json': '{"ok":true}\n',
+    };
+    const sealed = sealCompactPackage(draft, files);
+    expect(sealed.artifacts.map((item) => item.logicalLocator)).toEqual(['lanes.md', 'result-cores.json']);
+    for (const artifact of sealed.artifacts) {
+      const content = files[artifact.logicalLocator as keyof typeof files];
+      expect(artifact.byteCount).toBe(Buffer.byteLength(content, 'utf8'));
+    }
+    expect(sealed.packageDigest).toBe(compactPackageDigest(sealed));
+    expect(subjectCheckoutFailures(subjectFrom(envelope()), {
+      commit: '9'.repeat(40),
+      tree: SUBJECT_TREE,
+      dirty: true,
+      mixedWorktree: false,
+    }).map((item) => item.code)).toEqual(expect.arrayContaining(['subject-commit-drift', 'dirty-worktree']));
+  });
 });
+

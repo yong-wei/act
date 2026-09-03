@@ -68,6 +68,7 @@ export {
   investigateCurrentDenominator,
   projectCompactPackage,
   reprojectCompactPackage,
+  sealCompactPackage,
 } from './investigation';
 export {
   assertFailureClosureReceipt,

@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -32,6 +33,8 @@ import {
   projectReceiptsDoc,
   readCheckoutState,
   releaseCommandFailures,
+  sealCompactPackage,
+  subjectCheckoutFailures,
   type GovernedCommandId,
   type LaneExecutionInput,
   type VitestExecutionSummary,
@@ -228,13 +231,22 @@ function toLaneExecution(
   };
 }
 
+function investigationHandoffDir(repoRoot: string): string {
+  const archived = join(repoRoot, 'openspec/changes/archive/2026-09-03-reconcile-current-clean-head-test-failure-denominator/handoff');
+  if (existsSync(join(archived, '..'))) return archived;
+  return join(repoRoot, 'openspec/changes/reconcile-current-clean-head-test-failure-denominator/handoff');
+}
+
+function requireSubjectCheckout(subject: Parameters<typeof subjectCheckoutFailures>[0], checkoutPath: string): void {
+  const failures = subjectCheckoutFailures(subject, readCheckoutState(checkoutPath));
+  if (failures.length > 0) {
+    throw new Error(failures.map((item) => `${item.code}:${item.identity}`).join(','));
+  }
+}
+
 function writeInvestigationHandoff(repoRoot: string, output: ReturnType<typeof investigateCurrentDenominator>): void {
   if (!output.compact) throw new Error('investigation-compact-missing');
-  const outDir = join(repoRoot, 'openspec/changes/reconcile-current-clean-head-test-failure-denominator/handoff');
-  mkdirSync(outDir, { recursive: true });
-  const manifestText = serializeDeterministic(output.compact);
-  writeFileSync(join(outDir, 'manifest.json'), manifestText);
-  writeFileSync(join(outDir, 'lanes.md'), [
+  const lanesMd = [
     '# Per-lane denominator',
     '',
     `- subject: \`${output.compact.subject.successorCaptureId}\``,
@@ -246,8 +258,8 @@ function writeInvestigationHandoff(repoRoot: string, output: ReturnType<typeof i
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...output.compact.lanes.map((lane) => `| ${lane.lane} | \`${lane.command}\` | ${lane.status} | ${lane.passed} | ${lane.failed} | ${lane.skipped} | ${lane.unhandledErrors} | ${lane.unresolved} | ${lane.defaultMandatory ? 'yes' : 'no'} |`),
     '',
-  ].join('\n'));
-  writeFileSync(join(outDir, 'dispositions.md'), [
+  ].join('\n');
+  const dispositionsMd = [
     '# Planned dispositions',
     '',
     'These records are investigation plans. This change does not execute FIX, DELETE, or QUARANTINE.',
@@ -259,25 +271,53 @@ function writeInvestigationHandoff(repoRoot: string, output: ReturnType<typeof i
     output.compact.failureDispositionSummary.length > 200
       ? `Truncated to 200 of ${output.compact.failureDispositionSummary.length} fingerprints. Full inventory is in manifest.json.\n`
       : '',
-  ].join('\n'));
-  writeFileSync(join(outDir, 'notes.md'), [
+  ].join('\n');
+  const resultCoresText = serializeDeterministic(output.resultCores);
+  const measurementText = serializeDeterministic(output.measurementReceipts);
+  const { artifacts: _ignoredArtifacts, packageDigest: _ignoredDigest, ...draft } = output.compact;
+  const notesMd = [
     '# Investigation notes',
     '',
     `- schemaVersion: \`${output.compact.schemaVersion}\``,
-    `- packageDigest: \`${output.compact.packageDigest}\``,
     `- defaultConclusion: \`${output.compact.defaultConclusion}\``,
-    `- compactDigestCheck: \`${compactPackageDigest(output.compact)}\``,
-    `- deterministicProjection: see manifest.json; measurements are separate receipt identities`,
+    '- packageDigest: see `manifest.json`',
+    '- deterministicProjection: see manifest.json; measurements are separate receipt identities',
     '',
     'Follow-up FIX/DELETE/QUARANTINE execution is out of scope. Do not write this package into REQUIRED_BASELINE or any active selector.',
     '',
-  ].join('\n'));
+  ].join('\n');
+  const files = {
+    'lanes.md': lanesMd,
+    'dispositions.md': dispositionsMd,
+    'notes.md': notesMd,
+    'result-cores.json': resultCoresText,
+    'measurement-receipts.json': measurementText,
+  };
+  const finalPack = sealCompactPackage(draft, files);
+  const manifestText = serializeDeterministic(finalPack);
+  for (const [name, content] of Object.entries({ ...files, 'manifest.json': manifestText })) {
+    const privacy = privacyViolation(content);
+    if (privacy) throw new Error(`${privacy}:${name}`);
+  }
+  const outDir = investigationHandoffDir(repoRoot);
   const detailDir = join(repoRoot, 'artifacts/test-denominator', output.compact.subject.successorCaptureId);
+  mkdirSync(outDir, { recursive: true });
   mkdirSync(detailDir, { recursive: true });
-  writeFileSync(join(detailDir, 'result-cores.json'), serializeDeterministic(output.resultCores));
-  writeFileSync(join(detailDir, 'measurement-receipts.json'), serializeDeterministic(output.measurementReceipts));
-  const privacy = privacyViolation(projectCompactPackage(output.compact));
-  if (privacy) throw new Error(`${privacy}:compact-package`);
+  writeFileSync(join(outDir, 'manifest.json'), manifestText);
+  writeFileSync(join(outDir, 'lanes.md'), lanesMd);
+  writeFileSync(join(outDir, 'dispositions.md'), dispositionsMd);
+  writeFileSync(join(outDir, 'notes.md'), notesMd);
+  writeFileSync(join(detailDir, 'result-cores.json'), resultCoresText);
+  writeFileSync(join(detailDir, 'measurement-receipts.json'), measurementText);
+  for (const artifact of finalPack.artifacts) {
+    const path = artifact.logicalLocator === 'result-cores.json' || artifact.logicalLocator === 'measurement-receipts.json'
+      ? join(detailDir, artifact.logicalLocator)
+      : join(outDir, artifact.logicalLocator);
+    const written = readFileSync(path, 'utf8');
+    if (Buffer.byteLength(written, 'utf8') !== artifact.byteCount || createHash('sha256').update(written).digest('hex') !== artifact.sha256) {
+      throw new Error(`artifact-digest-mismatch:${artifact.logicalLocator}`);
+    }
+  }
 }
 
 function investigate(repoRoot: string): void {
@@ -311,6 +351,7 @@ function investigate(repoRoot: string): void {
     charterSha256: REQUIRED_CHARTER.sha256,
   });
   const subjectCheckout = ensureSubjectCheckout(repoRoot, loaded.subject.sourceCommit, argValue('--subject-checkout'));
+  requireSubjectCheckout(loaded.subject, subjectCheckout);
   const manifest = argValue('--manifest');
   const executions: LaneExecutionInput[] = COMMAND_CONTRACTS.map((command) => {
     if (command.id === 'test:nightly' && !hasFlag('--execute-nightly')) {
@@ -338,6 +379,7 @@ function investigate(repoRoot: string): void {
     executions,
     firstIdentity: { subject: loaded.subject, tool },
   });
+  requireSubjectCheckout(loaded.subject, subjectCheckout);
   if (hasFlag('--write')) writeInvestigationHandoff(repoRoot, output);
   console.log(serializeDeterministic({
     command: 'investigate',

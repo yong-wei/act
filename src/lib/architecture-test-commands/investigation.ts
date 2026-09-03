@@ -229,7 +229,7 @@ export function investigateCurrentDenominator(input: InvestigationInput): Invest
     .filter((lane) => !lane.defaultMandatory)
     .map((lane) => ({ lane: lane.lane, status: lane.status }));
 
-  const compactDraft = {
+  const compactDraft: Omit<CompactPackage, 'artifacts' | 'packageDigest'> = {
     schemaVersion: COMPACT_PACKAGE_SCHEMA_VERSION,
     subject: loaded.subject,
     tool: input.tool,
@@ -255,23 +255,18 @@ export function investigateCurrentDenominator(input: InvestigationInput): Invest
     failureDispositionSummary: clustered,
     defaultConclusion,
     nonDefaultConclusions,
-    artifacts: [] as CompactPackage['artifacts'],
   };
-  const compact: CompactPackage = {
-    ...compactDraft,
-    artifacts: [{
-      logicalLocator: 'manifest.json',
-      byteCount: Buffer.byteLength(serializeDeterministic({ ...compactDraft, packageDigest: '' }), 'utf8'),
-      sha256: sha256Text(serializeDeterministic({ ...compactDraft, packageDigest: '' })),
-    }],
-    packageDigest: '',
-  };
-  const withDigest: CompactPackage = {
-    ...compact,
-    packageDigest: sha256Text(serializeDeterministic({ ...compact, packageDigest: '' })),
-  };
-  const privacy = privacyViolation(serializeDeterministic(withDigest));
+  const sealed = sealCompactPackage(compactDraft, {
+    'result-cores.json': serializeDeterministic(resultCores),
+    'measurement-receipts.json': serializeDeterministic(measurementReceipts),
+  });
+  const privacy = privacyViolation(serializeDeterministic(sealed));
   if (privacy) failures.push({ code: `privacy-${privacy}`, identity: 'compact-package' });
+  const blocking = uniqueFailures(failures).some((item) => (
+    item.code.startsWith('a-gate-')
+    || item.code.startsWith('successor-')
+    || item.code.startsWith('privacy-')
+  ));
 
   return {
     failures: uniqueFailures(failures),
@@ -281,9 +276,27 @@ export function investigateCurrentDenominator(input: InvestigationInput): Invest
     resultCores,
     measurementReceipts,
     dispositions: clustered,
-    compact: failures.some((item) => item.code.startsWith('a-gate-') || item.code.startsWith('successor-'))
-      ? null
-      : withDigest,
+    compact: blocking ? null : sealed,
+  };
+}
+
+export function sealCompactPackage(
+  draft: Omit<CompactPackage, 'artifacts' | 'packageDigest'>,
+  files: Readonly<Record<string, string>>,
+): CompactPackage {
+  const artifacts = Object.keys(files).sort().map((logicalLocator) => ({
+    logicalLocator,
+    byteCount: Buffer.byteLength(files[logicalLocator]!, 'utf8'),
+    sha256: sha256Text(files[logicalLocator]!),
+  }));
+  const withArtifacts: CompactPackage = {
+    ...draft,
+    artifacts,
+    packageDigest: '',
+  };
+  return {
+    ...withArtifacts,
+    packageDigest: sha256Text(serializeDeterministic({ ...withArtifacts, packageDigest: '' })),
   };
 }
 

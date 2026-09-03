@@ -243,18 +243,16 @@ export function readCheckoutState(
 export function subjectCheckoutFailures(
   subject: SubjectIdentity,
   checkout: InvestigationCheckoutState,
-  expectedCommit?: string,
 ): QualificationFailure[] {
   const failures: QualificationFailure[] = [];
-  const commit = expectedCommit ?? checkout.commit;
-  if (commit !== subject.sourceCommit) {
-    failures.push({ code: 'subject-commit-drift', identity: commit });
+  if (checkout.commit !== subject.sourceCommit) {
+    failures.push({ code: 'subject-commit-drift', identity: checkout.commit });
   }
-  if (checkout.tree !== subject.sourceTree && commit === subject.sourceCommit) {
+  if (checkout.tree !== subject.sourceTree) {
     failures.push({ code: 'subject-tree-drift', identity: checkout.tree });
   }
-  if (checkout.dirty) failures.push({ code: 'dirty-worktree', identity: commit });
-  if (checkout.mixedWorktree) failures.push({ code: 'mixed-worktree', identity: commit });
+  if (checkout.dirty) failures.push({ code: 'dirty-worktree', identity: checkout.commit });
+  if (checkout.mixedWorktree) failures.push({ code: 'mixed-worktree', identity: checkout.commit });
   return failures;
 }
 
