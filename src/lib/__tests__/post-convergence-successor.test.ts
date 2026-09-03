@@ -486,7 +486,15 @@ describe('post-convergence successor capture', () => {
       expect(doc).toContain(result.pack.schemaVersions.censusCore);
       expect(doc).toContain(result.pack.schemaVersions.measurementReceipt);
       expect(doc).toContain(result.pack.schemaVersions.currentHeadDelta);
+      for (const receiptId of result.pack.frozenReceiptIds) {
+        expect(doc).toContain(receiptId);
+      }
       expect(doc).not.toContain(result.pack.packageDigest);
+    }
+    const empty = generatePostConvergenceSuccessor(makeInput(coreFixtureFiles(), { receipts: [] }));
+    qualifyPostConvergence(empty.pack, empty.failures);
+    for (const doc of [empty.files['summary.md'], empty.files['hotspots.md']]) {
+      expect(doc).toContain('frozenReceiptIds: _none_');
     }
   });
 

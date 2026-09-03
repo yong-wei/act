@@ -972,6 +972,7 @@ function identityHeader(pack: PostConvergenceEnvelope): string[] {
     `- predecessorBaseline.censusCoreSha256: \`${pack.predecessorBaseline.censusCoreSha256}\``,
     `- predecessorCurrentHead.sourceCommit: \`${pack.predecessorCurrentHead.sourceCommit}\``,
     `- predecessorCurrentHead.packageSha256: \`${pack.predecessorCurrentHead.packageSha256}\``,
+    `- frozenReceiptIds: ${pack.frozenReceiptIds.length === 0 ? '_none_' : pack.frozenReceiptIds.map((id) => `\`${id}\``).join(', ')}`,
     '',
   ];
 }
@@ -1000,6 +1001,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
     `- schemaVersions.censusCore: \`${pack.schemaVersions.censusCore ?? ''}\``,
     `- schemaVersions.measurementReceipt: \`${pack.schemaVersions.measurementReceipt ?? ''}\``,
     `- schemaVersions.currentHeadDelta: \`${pack.schemaVersions.currentHeadDelta ?? ''}\``,
+    `- frozenReceiptIds: ${pack.frozenReceiptIds.length === 0 ? '_none_' : pack.frozenReceiptIds.map((id) => `\`${id}\``).join(', ')}`,
     '',
     'This is an immutable A2 successor observation. It never becomes the active baseline:',
     '`captured`, `digest-verified`, and `qualified-for-investigation` are distinct from `active-baseline`,',
