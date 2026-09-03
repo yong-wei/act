@@ -99,42 +99,44 @@ const packageDirty = execFileSync(
 ).trim().length > 0;
 if (packageDirty) fail('candidate package paths have uncommitted changes; commit or restore them before receiving');
 
-// 4. 在同文件系统暂存目录复制并核验，全部通过后带回滚地交换目标目录
-const stagingDir = path.join(root, PACKAGE_RELATIVE, `.staging-v2.0.0-${process.pid}-${Date.now()}`);
-rmSync(stagingDir, { recursive: true, force: true });
-mkdirSync(stagingDir, { recursive: true });
+// 4. 接收不变量：已合格的包目录一旦验证就永不移动。
+//   - 目标已存在：逐文件复核与发布 manifest 完全一致 → 幂等 no-op；任何漂移 → fail closed。
+//   - 目标不存在：暂存目录完成全部复制与校验后，单次 rename 原子入位（无旧目录可损）。
+const releaseFiles = ['manifest.json', ...ROLES.map((role) => manifest.artifacts[role].file)];
+const targetDir = path.join(root, TARGET_DIR);
 const copied = [];
-try {
-  for (const file of ['manifest.json', ...ROLES.map((role) => manifest.artifacts[role].file)]) {
-    const from = path.join(sourceDir, file);
-    const to = path.join(stagingDir, file);
-    cpSync(from, to);
-    // 复制前后字节一致：以哈希 + 大小复核暂存文件
-    const before = sha256(from);
-    const after = sha256(to);
-    if (before !== after || statSync(to).size !== statSync(from).size) fail(`copy drift on ${file}`);
-    copied.push({ file, sha256: after, bytes: statSync(to).size });
-  }
-  const targetDir = path.join(root, TARGET_DIR);
-  const backupDir = path.join(root, PACKAGE_RELATIVE, `.replaced-v2.0.0-${process.pid}-${Date.now()}`);
-  let movedOld = false;
-  try {
-    if (existsSync(targetDir)) {
-      renameSync(targetDir, backupDir);
-      movedOld = true;
+if (existsSync(targetDir)) {
+  for (const file of releaseFiles) {
+    const to = path.join(targetDir, file);
+    if (!statSync(to, { throwIfNoEntry: false })?.isFile()) fail(`existing package incomplete: ${file}`);
+    const digest = sha256(to);
+    const declared = file === 'manifest.json' ? EXPECTED_MANIFEST_SHA
+      : ROLES.map((role) => manifest.artifacts[role]).find((artifact) => artifact.file === file).sha256;
+    if (digest !== declared || statSync(to).size !== statSync(path.join(sourceDir, file)).size) {
+      fail(`existing package drifted from the release identity: ${file}`);
     }
-    try {
-      renameSync(stagingDir, targetDir);
-    } catch (error) {
-      // 交换失败：恢复旧合格目录，保持当前候选可用（失败关闭而非半删除）
-      if (movedOld) renameSync(backupDir, targetDir);
-      throw error;
-    }
-  } finally {
-    rmSync(backupDir, { recursive: true, force: true });
+    copied.push({ file, sha256: digest, bytes: statSync(to).size });
   }
-} finally {
+  console.log('identical package already received; keeping verified directory in place (no-op)');
+} else {
+  const stagingDir = path.join(root, PACKAGE_RELATIVE, `.staging-v2.0.0-${process.pid}-${Date.now()}`);
   rmSync(stagingDir, { recursive: true, force: true });
+  mkdirSync(stagingDir, { recursive: true });
+  try {
+    for (const file of releaseFiles) {
+      const from = path.join(sourceDir, file);
+      const to = path.join(stagingDir, file);
+      cpSync(from, to);
+      // 复制前后字节一致：以哈希 + 大小复核暂存文件
+      const before = sha256(from);
+      const after = sha256(to);
+      if (before !== after || statSync(to).size !== statSync(from).size) fail(`copy drift on ${file}`);
+      copied.push({ file, sha256: after, bytes: statSync(to).size });
+    }
+    renameSync(stagingDir, targetDir);
+  } finally {
+    rmSync(stagingDir, { recursive: true, force: true });
+  }
 }
 
 // 5. 写接收收据（绑定源身份、逐文件哈希与复制核验；不含本机绝对路径）
