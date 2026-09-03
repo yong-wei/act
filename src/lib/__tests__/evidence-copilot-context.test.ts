@@ -269,5 +269,17 @@ describe('evidence copilot context', () => {
       taskType: 'evidence-copilot',
       intent: 'ok'.repeat(200),
     })).toMatchObject({ status: 'invalid' });
+    // trim 不得吞掉首尾控制字符后放行（review finding）。
+    for (const disguised of ['\nvalid', 'valid\t', '\u2028valid', 'valid\u000b', ' valid\r\n']) {
+      const result = parseEvidenceCopilotRequest({
+        taskType: 'evidence-copilot',
+        source: disguised,
+      });
+      if (/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(disguised)) {
+        expect(result).toMatchObject({ status: 'invalid' });
+      } else {
+        expect(result).toMatchObject({ status: 'valid' });
+      }
+    }
   });
 });

@@ -60,6 +60,8 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function parseHint(value: unknown): string | null {
   if (typeof value !== 'string') return null;
+  // trim 前先拒绝控制字符：首尾控制字符不得因空白规范化被吞掉（#1919）。
+  if (/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(value)) return null;
   const trimmed = value.trim();
   if (!trimmed || !DESCRIPTOR_PATTERN.test(trimmed)) return null;
   return trimmed;
