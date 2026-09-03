@@ -1,13 +1,13 @@
 ## 1. A gate and identity locking
 
-- [ ] 1.1 Before claim, apply, implementation, test, or capture, verify from live GitHub state that Issue #1876 is closed, carries `status:archived`, and has native `blockedBy` dependencies resolved; otherwise leave this change blocked and do not fabricate the relationship.
-- [ ] 1.2 Load A's immutable successor envelope and verify the subject identity (`successorCaptureId`, `sourceCommit`, `sourceTree`, successor digest), schema/version, complete artifact locator, byte count, and SHA-256; confirm it is not `REQUIRED_BASELINE`, `REQUIRED_FITNESS_BUDGET`, or an active baseline selector.
+- [x] 1.1 Before claim, apply, implementation, test, or capture, verify from live GitHub state that Issue #1876 is closed, carries `status:archived`, and has native `blockedBy` dependencies resolved; otherwise leave this change blocked and do not fabricate the relationship.
+- [x] 1.2 Load A's immutable successor envelope and verify the subject identity (`successorCaptureId`, `sourceCommit`, `sourceTree`, successor digest), schema/version, complete artifact locator, byte count, and SHA-256; confirm it is not `REQUIRED_BASELINE`, `REQUIRED_FITNESS_BUDGET`, or an active baseline selector.
 - [ ] 1.3 If B changes a collector, projector, or validator, create a clean tool implementation checkpoint and record `toolCommit`, `toolTree`, schema/version, and entry-bundle digest; if no tool code changes, explicitly record tool identity equal to subject identity rather than leaving it implicit.
 - [ ] 1.4 Run governed commands in an independent clean subject checkout or have the clean tool checkout consume subject-checkout output; reject dirty/mixed/unresolved worktrees, perform a second subject/tool identity read before writing any receipt or conclusion, and fail closed on subject/tool or artifact drift. The final artifact commit must not be recorded as the subject identity.
 
 ## 2. Universe and declaration closure
 
-- [ ] 2.1 Re-read the qualified command/discovery contracts and map the existing `scripts/test-command-contracts.ts` and `src/lib/architecture-test-commands/**` universe, declaration, result, receipt, disposition, and release authorities without creating a parallel registry or runner.
+- [x] 2.1 Re-read the qualified command/discovery contracts and map the existing `scripts/test-command-contracts.ts` and `src/lib/architecture-test-commands/**` universe, declaration, result, receipt, disposition, and release authorities without creating a parallel registry or runner.
 - [ ] 2.2 Independently enumerate the version-controlled test universe from the supported naming conventions and explicit exclusions, then reconcile it forward and reverse against every actually registered default, unit, contract, integration, critical E2E, release, nightly, Rust/WASM, OpenSpec, commercial-UI, and other governed root/classification.
 - [ ] 2.3 Record discovered, represented, excluded, duplicate, and unresolved totals from the generator output; require stable repository-relative identities and make missing roots, classifications, declarations, or exclusions blocking rather than silently omitting them.
 
@@ -44,7 +44,7 @@
 
 ## 8. Focused verification and delivery checks
 
-- [ ] 8.1 Add or update focused contract fixtures for A-gate blocking, subject/tool identity and source drift, bidirectional denominator closure, per-lane isolation and explicit dependencies, deterministic re-projection, privacy rejection, measurement separation, disposition validation, and clean/non-clean conclusion rules.
+- [x] 8.1 Add or update focused contract fixtures for A-gate blocking, subject/tool identity and source drift, bidirectional denominator closure, per-lane isolation and explicit dependencies, deterministic re-projection, privacy rejection, measurement separation, disposition validation, and clean/non-clean conclusion rules.
 - [ ] 8.2 Run the focused command/discovery/receipt/disposition contract tests and all governed lane commands required by the registered matrix; retain bounded receipts for pass, failure, skip, unhandled, unresolved, and external-blocker outcomes.
-- [ ] 8.3 If TypeScript implementation files changed, run `rtk npm run typecheck`; otherwise document that no TypeScript code was changed and do not claim a typecheck was performed.
+- [x] 8.3 If TypeScript implementation files changed, run `rtk npm run typecheck`; otherwise document that no TypeScript code was changed and do not claim a typecheck was performed.
 - [ ] 8.4 Run `rtk openspec validate reconcile-current-clean-head-test-failure-denominator --type change --strict` and `rtk git diff --check`; verify the final diff contains only this change directory and no active baseline, fitness budget, CI, product, test, release, or GitHub state mutation.

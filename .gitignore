@@ -138,3 +138,4 @@ public/assets/models-opt/
 
 # Architecture census successor detail artifacts (local/CI only; digests live in the committed package)
 artifacts/architecture-census/
+artifacts/test-denominator/

@@ -30,6 +30,46 @@ export {
 export { parseReleaseManifest, RELEASE_SCHEMA_REGISTRY, validateReleaseManifest } from './release';
 export { parseUnhandledSidecar, parseVitestJson } from './results';
 export {
+  COMPACT_PACKAGE_SCHEMA_VERSION,
+  CONSUMABLE_SUCCESSOR_STATUSES,
+  INVESTIGATION_RESULT_CORE_SCHEMA_VERSION,
+  INVESTIGATION_SCHEMA_VERSION,
+  PLANNED_DISPOSITION_SCHEMA_VERSION,
+  coordinationGateFailures,
+  createToolIdentity,
+  defaultMandatoryCommands,
+  entryBundleDigest,
+  identityPairFailures,
+  isDefaultMandatory,
+  laneIdFor,
+  listSubjectPaths,
+  loadSuccessorSubject,
+  readCheckoutState,
+  secondIdentityReadFailures,
+  subjectCheckoutFailures,
+  successorArtifactLocator,
+  toolCheckoutFailures,
+} from './investigation-identity';
+export {
+  BLOCKED_REASONS,
+  FORBIDDEN_PLANNED_VALUES,
+  PLANNED_DISPOSITIONS,
+  QUARANTINE_SUBTYPES,
+  clusterPlannedDispositions,
+  createPlannedDisposition,
+  fingerprintPlannedFailure,
+  plannedDispositionBlocksDefault,
+  validatePlannedDisposition,
+} from './planned-disposition';
+export {
+  buildInvestigationDiscovery,
+  commandDocsDigest,
+  compactPackageDigest,
+  investigateCurrentDenominator,
+  projectCompactPackage,
+  reprojectCompactPackage,
+} from './investigation';
+export {
   assertFailureClosureReceipt,
   assertFailureDisposition,
   createFailureClosureReceipt,
@@ -64,7 +104,34 @@ export type {
   ReleaseQualificationManifest,
   TestMeasurementReceipt,
 } from './types';
-export type { VitestExecutionSummary } from './results';
+export type { VitestExecutionSummary, VitestFailureRecord } from './results';
+export type {
+  CoordinationGate,
+  InvestigationCheckoutState,
+  InvestigationFs,
+  InvestigationGit,
+  LoadedSuccessorSubject,
+  SubjectIdentity,
+  ToolIdentity,
+} from './investigation-identity';
+export type {
+  BlockedReason,
+  PlannedDisposition,
+  PlannedDispositionInput,
+  PlannedDispositionRecord,
+  QuarantineSubtype,
+} from './planned-disposition';
+export type {
+  CompactPackage,
+  DefaultConclusion,
+  InvestigationInput,
+  InvestigationOutput,
+  InvestigationResultCore,
+  LaneDenominator,
+  LaneExecutionInput,
+  LaneFailureObservation,
+  LaneStatus,
+} from './investigation';
 export type {
   ExternalBlockerEvidence,
   FailureClass,

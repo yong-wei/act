@@ -5,6 +5,14 @@ export interface VitestExecutionSummary {
   readonly failed: number;
   readonly skipped: readonly string[];
   readonly unhandledErrors: number;
+  readonly failures: readonly VitestFailureRecord[];
+}
+
+export interface VitestFailureRecord {
+  readonly testIdentity: string;
+  readonly failureStage: string;
+  readonly errorClass: string;
+  readonly errorSummary: string;
 }
 
 interface VitestJsonReport {
@@ -17,6 +25,7 @@ interface VitestJsonReport {
       readonly status?: string;
       readonly fullName?: string;
       readonly title?: string;
+      readonly failureMessages?: readonly string[];
     }>;
   }>;
 }
@@ -24,6 +33,7 @@ interface VitestJsonReport {
 export function parseVitestJson(text: string, repoRoot = process.cwd()): VitestExecutionSummary {
   const report = JSON.parse(text) as VitestJsonReport;
   const skipped: string[] = [];
+  const failures: VitestFailureRecord[] = [];
   let failed = report.numFailedTests ?? 0;
   for (const file of report.testResults ?? []) {
     const filePath = toRepoPath(repoRoot, file.name ?? 'file');
@@ -32,7 +42,15 @@ export function parseVitestJson(text: string, repoRoot = process.cwd()): VitestE
       if (assertion.status === 'skipped' || assertion.status === 'pending' || assertion.status === 'todo') {
         skipped.push(identity);
       }
-      if (assertion.status === 'failed' && (report.numFailedTests ?? 0) === 0) failed += 1;
+      if (assertion.status === 'failed') {
+        if ((report.numFailedTests ?? 0) === 0) failed += 1;
+        failures.push({
+          testIdentity: identity,
+          failureStage: 'assertion',
+          errorClass: 'assertion-failure',
+          errorSummary: boundedSummary(assertion.failureMessages?.[0] ?? 'assertion failed'),
+        });
+      }
     }
   }
   return {
@@ -40,7 +58,12 @@ export function parseVitestJson(text: string, repoRoot = process.cwd()): VitestE
     failed,
     skipped: [...new Set(skipped)].sort(),
     unhandledErrors: 0,
+    failures: failures.sort((left, right) => left.testIdentity.localeCompare(right.testIdentity)),
   };
+}
+
+function boundedSummary(value: string): string {
+  return value.replace(/\s+/gu, ' ').replace(/(?:\/Users\/|\/home\/|\/private\/|\/var\/folders\/)[^\s]+/gu, '<path>').trim().slice(0, 200);
 }
 
 export function parseUnhandledSidecar(text: string): number {
