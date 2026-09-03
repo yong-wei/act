@@ -179,6 +179,20 @@ describe('test command contracts', () => {
     expect(closed({ unregisteredSkips: summary.skipped }).ok).toBe(false);
   });
 
+  it('maps macOS private-prefix vitest paths back to repository-relative identities', () => {
+    const summary = parseVitestJson(JSON.stringify({
+      numPassedTests: 0,
+      numFailedTests: 1,
+      testResults: [{
+        name: '/private/var/folders/x/T/repo/src/lib/__tests__/example.test.ts',
+        assertionResults: [
+          { status: 'failed', fullName: 'red', failureMessages: ['expected 1'] },
+        ],
+      }],
+    }), '/var/folders/x/T/repo');
+    expect(summary.failures[0]?.testIdentity).toBe('src/lib/__tests__/example.test.ts::red');
+  });
+
   it('does not allow integration remainder to hide uncovered members, and nightly is not a successful no-op', () => {
     expect(commandContract('test:integration').remainderExecution).toBe(false);
     expect(commandContract('test:nightly').remainderExecution).toBe(true);
