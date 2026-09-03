@@ -10,7 +10,7 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
-- 2026-09-03：#1916 在 `act-resource` 实现当前 integration 载荷资格分类 v2（schema v2，subject `da0a360ba82e`，78,605 members）。unresolved 从 #1881 的 52,159 收敛到 175（158 无身份 release root + 17 privacy 命中）；digest-bound adapters：release SHA256SUMS / content-compiler toolchain / QA evidence lifecycle / privacy 内容扫描；inventory 73MB 外置 + 独立字节验证回执。状态 `package-unqualified`（fail closed），非激活规划证据。#1881 归档产物字节未动；v2 输出在 `repository-payload-classification/current/`。
+- 2026-09-03：#1916 在 `act-resource` 实现当前 integration 载荷资格分类 v2 并按 Codex P1/P2 修复后重算（subject `2b7e67a6b341`，78,619 members）。runtime 家族按实际生产者拆分（export 输出 B 2,120 / knowledge-cutover 物化视图 E 46,222，冻结计数 80）；QA 与 privacy 内容扫描命中 447 个用户标识/forbidden 文本保持 unresolved。终态 unresolved 612（251 QA 扫描命中 + 196 privacy 命中 + 158 无身份 release root + 7 archived），`package-unqualified` fail closed；compatibility 暴露既有契约过期 `content-knowledge-runtime count-drift:80!=76`（残余风险，非本 diff 引入）。#1881 归档产物字节未动；v2 输出在 `repository-payload-classification/current/`。
 
 - 2026-09-03：#1881 在 `act-resource` 完成。PR #1908 squash 合入 `79c62887b7`（清场 head `f846e46256`）。OpenSpec 归档 `2026-09-03-classify-repository-payload-authority-and-materialization`。Issue CLOSED / `status:archived`。分类包因 unknown-privacy 保持 `package-unqualified`。未移动载荷，未改 selector，未生产部署。
 
