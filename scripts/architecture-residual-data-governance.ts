@@ -92,7 +92,10 @@ function gitGrep(pattern: string, subjectCommit: string): string {
       '--',
       '*.ts',
       '*.tsx',
+      '*.mts',
+      '*.cts',
       '*.mjs',
+      '*.cjs',
       '*.js',
       '*.md',
       '*.json',
@@ -198,6 +201,15 @@ function toolIdentity(): { toolCommit: string; toolTree: string; entryBundleDige
 
 const repoRoot = process.cwd();
 
+// 0. Execution-checkpoint guards: a real branch (not detached) and a clean work
+//    tree are required before any adjudication input is read.
+const currentBranch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
+if (currentBranch === 'HEAD') {
+  process.stderr.write('detached-worktree-rejected\n');
+  process.exit(2);
+}
+const worktreeDirty = git(['status', '--porcelain']).length > 0;
+
 // 1. Freeze the claim-time current subject (independent from #1876/#1883 history).
 execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
 const currentSubject = resolveResidualCurrentSubject(repoRoot);
@@ -256,7 +268,7 @@ function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerific
     members,
     callers,
     ledgerVerification,
-    dirtySource: false,
+    dirtySource: worktreeDirty,
     mixedSource: isMixedWorktree(repoRoot),
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
@@ -280,8 +292,6 @@ const receipt = verifyResidualLedgerArtifact({
   expectedSha256: firstPass.fullLedger.sha256,
   expectedByteCount: firstPass.fullLedger.byteCount,
   expectedMemberDenominator: firstPass.summaries.memberCount,
-  subjectCommit: currentSubject.subjectCommit,
-  toolCommit: tool.toolCommit,
 });
 if ('error' in receipt) {
   process.stderr.write(`ledger-verification:${receipt.error}\n`);
@@ -290,7 +300,22 @@ if ('error' in receipt) {
 
 const result = adjudicate(receipt);
 
-// 6. Compact decision outputs under current/ (the archived #1883 files stay untouched).
+// 6. Post guards run BEFORE any qualified projection is published, so a drifted
+//    run never leaves an apparently-qualified migration input behind.
+const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
+if (subjectCommitAfter !== currentSubject.subjectCommit) {
+  process.stderr.write('subject-drifted-during-run\n');
+  process.exit(1);
+}
+for (const [name, path] of readOnlyInputs) {
+  const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
+  if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
+    process.stderr.write(`read-only-input-mutated:${name}\n`);
+    process.exit(1);
+  }
+}
+
+// 7. Compact decision outputs under current/ (the archived #1883 files stay untouched).
 const outDir = join(repoRoot, OUTPUT_DIR);
 mkdirSync(outDir, { recursive: true });
 const compact = serializeDeterministic({
@@ -315,20 +340,6 @@ for (const [name, content] of Object.entries(documents)) {
   const violation = privacyViolation(normalized);
   if (violation) throw new Error(`privacy:${violation}:${name}`);
   writeFileSync(join(outDir, name), normalized);
-}
-
-// 7. Read-only post guards: subject and comparison inputs unchanged.
-const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
-if (subjectCommitAfter !== currentSubject.subjectCommit) {
-  process.stderr.write('subject-drifted-during-run\n');
-  process.exit(1);
-}
-for (const [name, path] of readOnlyInputs) {
-  const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
-  if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
-    process.stderr.write(`read-only-input-mutated:${name}\n`);
-    process.exit(1);
-  }
 }
 
 process.stdout.write(`${result.qualified ? 'qualified' : 'blocker'} ${result.decisionIdentity} members=${result.summaries.memberCount} unresolved=${result.summaries.unresolvedCount} subject=${currentSubject.subjectCommit.slice(0, 12)} blockers=${result.blockers.join(',') || 'none'}\n`);

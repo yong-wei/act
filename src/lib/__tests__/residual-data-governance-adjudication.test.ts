@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/serialize';
+
 import {
   PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
@@ -62,6 +64,8 @@ function subjectFor(members: readonly ResidualMemberInput[], verified = true): R
       subjectIdentity: 'a'.repeat(64),
       packageDigest: '1'.repeat(64),
       schemaVersion: 'act-repository-payload-classification/v2',
+      status: 'qualified',
+      unresolvedMembers: 0,
     },
     predecessor1883: {
       decisionIdentity: PREDECESSOR_1883.decisionIdentity,
@@ -93,7 +97,12 @@ function runWithLedgerVerification(partial: Partial<ResidualAdjudicationInput> &
     sha256: decided.fullLedger.sha256,
     memberDenominator: decided.summaries.memberCount,
     subjectCommit: subject.currentSubject.subjectCommit,
+    subjectTree: subject.currentSubject.subjectTree,
     toolCommit: decided.tool.toolCommit,
+    schemaVersion: RESIDUAL_SCHEMA_VERSION,
+    memberSetDigest: subject.memberSetDigest,
+    callerBundleDigest: decided.callerBundleDigest,
+    familiesDigest: sha256Text(serializeDeterministic(decided.families)),
     projectionsReconciled: true,
   };
   return asAdjudication(adjudicateResidualDataGovernance({ ...input(partial), ledgerVerification: receipt }));
@@ -148,6 +157,38 @@ describe('residual data-governance adjudication', () => {
     expect(driftedPredecessor.blockers).toContain('predecessor-1883-decision-identity-mismatch');
   });
 
+  it('blocks when the upstream payload package itself is unqualified and splits mixed-owner slices per owner', () => {
+    const members: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/teacher-ai-grading-lab-analysis.ts' },
+      { path: 'src/lib/data-governance/cumulative-snapshot-jobs.ts' },
+      { path: 'src/lib/data-governance/simulation-historical-replay.ts' },
+      { path: 'src/lib/data-governance/math-document-backfill.ts' },
+    ];
+    const unqualifiedUpstream = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, status: 'package-unqualified', unresolvedMembers: 1770 },
+      },
+    }));
+    expect(unqualifiedUpstream.blockers).toContain('upstream-payload-package-unqualified');
+    expect(unqualifiedUpstream.qualified).toBe(false);
+
+    const singleOwner = runWithLedgerVerification({
+      members: [{ path: 'src/lib/data-governance/math-document-backfill.ts' }],
+      subject: (() => {
+        const subject = subjectFor([{ path: 'src/lib/data-governance/math-document-backfill.ts' }]);
+        return subject;
+      })(),
+    });
+    // with a qualified upstream the package can qualify and mixed slices split
+    const slices = singleOwner.futureSlices.filter((slice) => slice.slice.startsWith('operator-backfill'));
+    for (const slice of slices) {
+      const owners = new Set(slice.paths.map(() => slice.accountableOwner));
+      expect(owners.size).toBe(1);
+    }
+  });
+
   it('requires an independently verified ledger receipt bound to the exact subject and tool', () => {
     const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
     const first = asAdjudication(adjudicateResidualDataGovernance(input({ members })));
@@ -156,33 +197,38 @@ describe('residual data-governance adjudication', () => {
     const good = runWithLedgerVerification({ members });
     expect(good.blockers).not.toContain('full-ledger-bytes-unverified');
 
+    const goodSubject = good.subject;
+    const fullReceipt = {
+      locator: good.fullLedger.logicalLocator,
+      byteCount: good.fullLedger.byteCount,
+      sha256: good.fullLedger.sha256,
+      memberDenominator: good.summaries.memberCount,
+      subjectCommit: goodSubject.currentSubject.subjectCommit,
+      subjectTree: goodSubject.currentSubject.subjectTree,
+      toolCommit: good.tool.toolCommit,
+      schemaVersion: RESIDUAL_SCHEMA_VERSION,
+      memberSetDigest: goodSubject.memberSetDigest,
+      callerBundleDigest: good.callerBundleDigest,
+      familiesDigest: sha256Text(serializeDeterministic(good.families)),
+      projectionsReconciled: true,
+    };
     const badSha = asAdjudication(adjudicateResidualDataGovernance({
       ...input({ members }),
-      ledgerVerification: {
-        locator: good.fullLedger.logicalLocator,
-        byteCount: good.fullLedger.byteCount,
-        sha256: '0'.repeat(64),
-        memberDenominator: good.summaries.memberCount,
-        subjectCommit: good.subject.currentSubject.subjectCommit,
-        toolCommit: good.tool.toolCommit,
-        projectionsReconciled: true,
-      },
+      ledgerVerification: { ...fullReceipt, sha256: '0'.repeat(64) },
     }));
     expect(badSha.blockers).toContain('full-ledger-bytes-unverified');
 
     const foreignTool = asAdjudication(adjudicateResidualDataGovernance({
       ...input({ members }),
-      ledgerVerification: {
-        locator: good.fullLedger.logicalLocator,
-        byteCount: good.fullLedger.byteCount,
-        sha256: good.fullLedger.sha256,
-        memberDenominator: good.summaries.memberCount,
-        subjectCommit: good.subject.currentSubject.subjectCommit,
-        toolCommit: 'f'.repeat(40),
-        projectionsReconciled: true,
-      },
+      ledgerVerification: { ...fullReceipt, toolCommit: 'f'.repeat(40) },
     }));
     expect(foreignTool.blockers).toContain('full-ledger-bytes-unverified');
+
+    const foreignCallerBundle = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: { ...fullReceipt, callerBundleDigest: 'e'.repeat(64) },
+    }));
+    expect(foreignCallerBundle.blockers).toContain('full-ledger-bytes-unverified');
   });
 
   it('collects intra-package re-exports and directory path reads', () => {

@@ -86,6 +86,8 @@ export interface UpstreamPayloadEvidence {
   readonly subjectIdentity: string;
   readonly packageDigest: string;
   readonly schemaVersion: string;
+  readonly status: 'qualified' | 'package-unqualified' | string;
+  readonly unresolvedMembers: number;
 }
 
 export interface LedgerVerificationReceipt {
@@ -94,7 +96,12 @@ export interface LedgerVerificationReceipt {
   readonly sha256: string;
   readonly memberDenominator: number;
   readonly subjectCommit: string;
+  readonly subjectTree: string;
   readonly toolCommit: string;
+  readonly schemaVersion: string;
+  readonly memberSetDigest: string;
+  readonly callerBundleDigest: string;
+  readonly familiesDigest: string;
   readonly projectionsReconciled: boolean;
 }
 
@@ -231,6 +238,7 @@ export interface ResidualAdjudication {
     readonly byteCount: number;
     readonly sha256: string;
   };
+  readonly callerBundleDigest: string;
   readonly decisionIdentity: string;
 }
 
@@ -560,6 +568,11 @@ export function adjudicateResidualDataGovernance(
     || subject.upstreamPayload.schemaVersion !== 'act-repository-payload-classification/v2') {
     blockers.push('upstream-payload-identity-incomplete');
   }
+  // Task 5.1: the upstream payload package must itself be qualified before any
+  // migration-input slice can be emitted from it.
+  if (subject.upstreamPayload.status !== 'qualified' || subject.upstreamPayload.unresolvedMembers > 0) {
+    blockers.push('upstream-payload-package-unqualified');
+  }
   // Frozen current subject must be an exact clean integration identity, kept
   // independent from the adjudicator tool commit.
   if (subject.currentSubject.baseBranch !== RESIDUAL_CURRENT_SUBJECT_BASE
@@ -710,7 +723,19 @@ export function adjudicateResidualDataGovernance(
   if (unresolvedCount > 0) blockers.push('unresolved-records');
 
   const futureSlices = buildFutureSlices(records);
-  const ledgerBody = serializeDeterministic({ records, families });
+  const callerBundleDigest = sha256Text(serializeDeterministic(input.callers));
+  const ledgerBody = serializeDeterministic({
+    identity: {
+      subjectCommit: subject.currentSubject.subjectCommit,
+      subjectTree: subject.currentSubject.subjectTree,
+      toolCommit: input.tool.toolCommit,
+      schemaVersion: RESIDUAL_SCHEMA_VERSION,
+      memberSetDigest: subject.memberSetDigest,
+      callerBundleDigest,
+    },
+    records,
+    families,
+  });
   const fullLedger = {
     logicalLocator: `artifacts/architecture-census/${subject.currentSubject.subjectCommit}/residual-data-governance-ledger.ndjson`,
     byteCount: Buffer.byteLength(ledgerBody),
@@ -723,6 +748,8 @@ export function adjudicateResidualDataGovernance(
     && receipt.memberDenominator === records.length
     && receipt.subjectCommit === subject.currentSubject.subjectCommit
     && receipt.toolCommit === input.tool.toolCommit
+    && receipt.callerBundleDigest === callerBundleDigest
+    && receipt.memberSetDigest === subject.memberSetDigest
     && receipt.projectionsReconciled === true;
   if (!receiptValid) blockers.push('full-ledger-bytes-unverified');
   const summaries = {
@@ -778,6 +805,7 @@ export function adjudicateResidualDataGovernance(
     summaries,
     futureSlices,
     fullLedger,
+    callerBundleDigest,
     decisionIdentity,
   };
 }
@@ -865,15 +893,31 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
       rollback: 'reversible-compatibility-surface',
     },
   ];
-  return specs.map((spec) => ({
-    slice: spec.slice,
-    accountableOwner: spec.owner,
-    paths: (bySlice.get(spec.slice) ?? []).map((record) => record.path).sort(),
-    publicBoundary: spec.boundary,
-    notTouched: spec.notTouched,
-    deletionCondition: spec.deletion,
-    rollback: spec.rollback,
-  }));
+  // A migration-input slice must carry exactly one accountable owner: split
+  // mixed-owner slices per owner instead of forcing a slice-wide owner.
+  const slices: FutureSlice[] = [];
+  for (const spec of specs) {
+    const rows = (bySlice.get(spec.slice) ?? []).filter((record) => record.status === 'qualified' && record.accountableOwner);
+    const byOwner = new Map<string, string[]>();
+    for (const record of rows) {
+      const owner = record.accountableOwner as OwnerId;
+      const bucket = byOwner.get(owner) ?? [];
+      bucket.push(record.path);
+      byOwner.set(owner, bucket);
+    }
+    for (const [owner, paths] of [...byOwner.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+      slices.push({
+        slice: owner === spec.owner ? spec.slice : `${spec.slice}:${owner}`,
+        accountableOwner: owner,
+        paths: paths.sort(),
+        publicBoundary: spec.boundary,
+        notTouched: spec.notTouched,
+        deletionCondition: spec.deletion,
+        rollback: spec.rollback,
+      });
+    }
+  }
+  return slices;
 }
 
 export function projectResidualDocuments(result: ResidualAdjudication): Record<string, string> {
@@ -974,10 +1018,13 @@ export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEv
     schemaVersion?: string;
     subjectIdentity?: string;
     status?: string;
+    slices?: { unresolved?: number }[];
   };
-  if (!index.packageDigest || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity) {
+  if (!index.packageDigest || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity
+    || !index.status) {
     throw new Error('upstream-payload-identity-unreadable');
   }
+  const unresolvedMembers = (index.slices ?? []).reduce((sum, slice) => sum + (slice.unresolved ?? 0), 0);
   return {
     issue: UPSTREAM_PAYLOAD_CHANGE.issue,
     closed: true,
@@ -985,6 +1032,8 @@ export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEv
     subjectIdentity: index.subjectIdentity,
     packageDigest: index.packageDigest,
     schemaVersion: index.schemaVersion,
+    status: index.status,
+    unresolvedMembers,
   };
 }
 
@@ -1011,15 +1060,13 @@ export function loadPredecessorComparison(repoRoot: string): PredecessorComparis
   };
 }
 
-/** Independently reads the written full-ledger bytes back and reconciles them with the decision package. */
+/** Independently reads the written full-ledger bytes back and verifies every embedded identity against them. */
 export function verifyResidualLedgerArtifact(params: {
   readonly ledgerAbsolutePath: string;
   readonly expectedLocator: string;
   readonly expectedSha256: string;
   readonly expectedByteCount: number;
   readonly expectedMemberDenominator: number;
-  readonly subjectCommit: string;
-  readonly toolCommit: string;
 }): LedgerVerificationReceipt | { error: string } {
   let bytes: Buffer;
   try {
@@ -1030,16 +1077,39 @@ export function verifyResidualLedgerArtifact(params: {
   const sha256 = createHash('sha256').update(bytes).digest('hex');
   if (sha256 !== params.expectedSha256) return { error: 'ledger-sha256-mismatch' };
   if (bytes.byteLength !== params.expectedByteCount) return { error: 'ledger-byte-count-mismatch' };
-  const parsed = JSON.parse(bytes.toString('utf8')) as { records?: unknown[] };
+  const parsed = JSON.parse(bytes.toString('utf8')) as {
+    identity?: {
+      subjectCommit?: string;
+      subjectTree?: string;
+      toolCommit?: string;
+      schemaVersion?: string;
+      memberSetDigest?: string;
+      callerBundleDigest?: string;
+    };
+    records?: unknown[];
+    families?: unknown[];
+  };
   const memberDenominator = Array.isArray(parsed.records) ? parsed.records.length : -1;
   if (memberDenominator !== params.expectedMemberDenominator) return { error: 'ledger-member-mismatch' };
+  const identity = parsed.identity;
+  if (!identity?.subjectCommit || !identity.subjectTree || !identity.toolCommit
+    || !identity.schemaVersion || !identity.memberSetDigest || !identity.callerBundleDigest) {
+    return { error: 'ledger-identity-missing' };
+  }
+  if (identity.schemaVersion !== RESIDUAL_SCHEMA_VERSION) return { error: 'ledger-schema-mismatch' };
+  const familiesDigest = sha256Text(serializeDeterministic(parsed.families ?? []));
   return {
     locator: params.expectedLocator,
     byteCount: bytes.byteLength,
     sha256,
     memberDenominator,
-    subjectCommit: params.subjectCommit,
-    toolCommit: params.toolCommit,
+    subjectCommit: identity.subjectCommit,
+    subjectTree: identity.subjectTree,
+    toolCommit: identity.toolCommit,
+    schemaVersion: identity.schemaVersion,
+    memberSetDigest: identity.memberSetDigest,
+    callerBundleDigest: identity.callerBundleDigest,
+    familiesDigest,
     projectionsReconciled: true,
   };
 }
