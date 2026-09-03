@@ -1565,15 +1565,61 @@ describe('GET /api/interactive/events', () => {
         createdAt: '2026-06-18T00:00:00.000Z',
       },
     ]);
-    expect(payload.stats).toEqual({ total: 1, byType: { view: 1 } });
+    expect(payload.stats).toEqual({ total: 1, byType: { page_view: 1 } });
+    // 聚合与投影同口径（canonical 类型、页内归集），不再发起独立 groupBy 查询
+    expect(mocks.prisma.interactionLog.groupBy).not.toHaveBeenCalled();
     // 查询 select 不取用户标识；where 排除私有 AI 提问类型并限定班级会话范围
     const findArgs = mocks.prisma.interactionLog.findMany.mock.calls[0][0];
     expect(findArgs.select).not.toHaveProperty('user');
     expect(findArgs.where).toMatchObject({
       resourceKey: 'unit-4-3',
       sessionId: { in: ['session-owned'] },
+      userId: { in: ['student-1'] },
       eventType: { notIn: ['ai_query', 'ai_query_submit'] },
     });
+  });
+
+  it('returns no events and no aggregates when the teacher explicitly queries a private AI event type', async () => {
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&eventType=ai_query'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.events).toEqual([]);
+    expect(payload.stats).toEqual({ total: 0, byType: {} });
+    expect(mocks.prisma.interactionLog.findMany.mock.calls[0][0].where.eventType).toEqual({ in: [] });
+  });
+
+  it('keeps payload-declared private AI submissions out of the aggregate statistics', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([
+      {
+        eventType: 'view',
+        eventData: { originPath: '/interactive-learning/courses/unit-4-3' },
+        resourceKey: 'unit-4-3',
+        lessonKey: null,
+        stepId: null,
+        attemptKey: null,
+        clientEventAt: null,
+        createdAt: new Date('2026-06-18T00:00:00.000Z'),
+      },
+      {
+        // 载荷声明 canonical 私有类型但行 eventType 为其他值：不进入投影也不进入聚合
+        eventType: 'view',
+        eventData: { eventType: 'ai_query_submit', question: '请帮我直接给出控制器参数' },
+        resourceKey: 'unit-4-3',
+        lessonKey: null,
+        stepId: null,
+        attemptKey: null,
+        clientEventAt: null,
+        createdAt: new Date('2026-06-18T00:00:00.000Z'),
+      },
+    ]);
+
+    const response = await GET(createGetRequest('resourceKey=unit-4-3'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.events).toHaveLength(1);
+    expect(payload.stats).toEqual({ total: 1, byType: { page_view: 1 } });
   });
 
   it('narrows an authorized session and roster target inside the derived scope', async () => {
@@ -1653,9 +1699,10 @@ describe('GET /api/interactive/events', () => {
       parameterCoverage: [{ parameterId: 'gain.k', count: 1 }],
       judgmentOutcomes: [{ outcome: 'safe-margin', count: 1 }],
     });
-    // 诊断查询同样限定班级绑定会话范围
+    // 诊断查询同样限定班级绑定会话范围与名册约束
     expect(mocks.prisma.studentStepResponse.findMany.mock.calls[0][0].where).toMatchObject({
       sessionId: { in: ['session-owned'] },
+      userId: { in: ['student-1'] },
       lessonKey: 'unit-4-2-controller-selection-first-start-v1',
     });
   });

@@ -1322,11 +1322,12 @@ export async function GET(request: NextRequest) {
       if (!isTeacherOrAdmin) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
-      // 诊断分支与普通读共用同一服务器派生范围；教师无 session 锚定时只看班级绑定会话
+      // 诊断分支与普通读共用同一服务器派生范围；教师无 session 锚定时只看班级绑定会话，
+      // 且始终叠加班级名册约束（转班学生的历史会话数据不再对旧班教师可见）
       const scopeWhere = teacherScope
         ? {
             ...(sessionId ? { sessionId } : { sessionId: { in: teacherScope.sessionIds } }),
-            ...(userId ? { userId } : {}),
+            userId: userId ?? { in: teacherScope.studentIds },
           }
         : {
             ...(sessionId ? { sessionId } : {}),
@@ -1375,7 +1376,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (eventType) {
-      where.eventType = eventType;
+      // 显式查询私有 AI 提问类型直接空结果，保持与投影和聚合同口径
+      where.eventType = PRIVATE_AI_QUERY_EVENT_TYPES.includes(eventType)
+        ? { in: [] }
+        : eventType;
     } else {
       // 学生原始 AI 提问不进入普通教师查询（含聚合统计）
       where.eventType = { notIn: PRIVATE_AI_QUERY_EVENT_TYPES };
@@ -1389,9 +1393,7 @@ export async function GET(request: NextRequest) {
       }
     } else if (teacherScope) {
       where.sessionId = sessionId ?? { in: teacherScope.sessionIds };
-      if (userId) {
-        where.userId = userId;
-      }
+      where.userId = userId ?? { in: teacherScope.studentIds };
     } else {
       if (sessionId) {
         where.sessionId = sessionId;
@@ -1423,16 +1425,11 @@ export async function GET(request: NextRequest) {
       .filter((log) => resolveCanonicalEventType(log.eventType, readRecord(log.eventData)) !== 'ai_query_submit')
       .map(toTeacherSafeEvent);
 
-    // 聚合统计
-    const stats = await prisma.interactionLog.groupBy({
-      by: ['eventType'],
-      where,
-      _count: { id: true },
-    });
-
-    const statsMap = Object.fromEntries(
-      stats.map((s) => [s.eventType, s._count.id])
-    );
+    // 聚合统计与投影列表同口径（canonical 类型、页内归集），私有 AI 活动不进入任何统计
+    const statsMap = projectedEvents.reduce<Record<string, number>>((acc, event) => {
+      acc[event.eventType] = (acc[event.eventType] ?? 0) + 1;
+      return acc;
+    }, {});
 
     return NextResponse.json({
       events: projectedEvents,
