@@ -10,7 +10,8 @@
  * pre/post guards. The archived #1876/#1881 packages stay byte-for-byte untouched.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import {
@@ -31,6 +32,7 @@ import {
 } from '../src/lib/architecture-census/payload-classification';
 import {
   buildContentCompilerAdapter,
+  buildIdentityInventoryScan,
   buildKnowledgeCutoverAdapter,
   buildPrivacyScanAdapter,
   buildQaEvidenceAdapter,
@@ -124,21 +126,42 @@ const privacyContract = {
 };
 
 // 5. Digest-bound evidence adapters over the frozen subject.
-const adapterBundle = combineAdapters([
+const identityScan = buildIdentityInventoryScan(treeReader, entries);
+const evidenceBundle = combineAdapters([
   buildReleaseAdapter(treeReader, entries),
   buildContentCompilerAdapter(treeReader, entries),
   buildKnowledgeCutoverAdapter(treeReader, entries),
   buildQaEvidenceAdapter(treeReader, entries, qaContract, privacyContract),
   buildPrivacyScanAdapter(treeReader, entries, privacyContract),
 ]);
+// An identity-value hit vetoes any weaker privacy override another adapter produced.
+const adapterBundle = combineAdapters([{
+  overrides: evidenceBundle.overrides.filter((item) => !identityScan.hitPaths.has(item.path)),
+  identities: evidenceBundle.identities,
+}, identityScan]);
 
 // 6. Tool checkpoint on this clean implementation HEAD, independent of the subject.
 const tool = toolCheckpointFromGit(repoRoot);
 
-const compatibilityChecks = [
-  compatibilityFrom('qa-evidence-lifecycle', () => checkEvidenceLifecycle(repoRoot)),
-  compatibilityFrom('content-knowledge-runtime', () => checkContentKnowledgeRuntimeRelease(repoRoot)),
-];
+// Compatibility gates must qualify the frozen subject, not this tool HEAD:
+// run them inside an independent clean checkout of the subject commit.
+const subjectCheckoutRoot = mkdtempSync(join(tmpdir(), 'payload-subject-'));
+execFileSync('git', ['-C', repoRoot, 'worktree', 'add', '--detach', subjectCheckoutRoot, subjectCommit], { stdio: 'ignore' });
+let compatibilityChecks: { name: string; status: 'ok' | 'unresolved'; detail: string }[];
+try {
+  const checkedSubjectCommit = execFileSync('git', ['-C', subjectCheckoutRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const checkedSubjectTree = execFileSync('git', ['-C', subjectCheckoutRoot, 'rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim();
+  if (checkedSubjectCommit !== subjectCommit || checkedSubjectTree !== subjectTree) {
+    throw new Error('subject-checkout-identity-mismatch');
+  }
+  compatibilityChecks = [
+    compatibilityFrom('qa-evidence-lifecycle', () => checkEvidenceLifecycle(subjectCheckoutRoot)),
+    compatibilityFrom('content-knowledge-runtime', () => checkContentKnowledgeRuntimeRelease(subjectCheckoutRoot)),
+  ];
+} finally {
+  execFileSync('git', ['-C', repoRoot, 'worktree', 'remove', '--force', subjectCheckoutRoot], { stdio: 'ignore' });
+  rmSync(subjectCheckoutRoot, { recursive: true, force: true });
+}
 
 function runClassification(verification: Parameters<typeof classifyPackage>[0]['inventoryVerification']) {
   return classifyPackage({

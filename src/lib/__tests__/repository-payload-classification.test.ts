@@ -32,6 +32,7 @@ import {
 } from '@/lib/architecture-census/payload-classification';
 import {
   buildContentCompilerAdapter,
+  buildIdentityInventoryScan,
   buildKnowledgeCutoverAdapter,
   buildPrivacyScanAdapter,
   buildQaEvidenceAdapter,
@@ -889,6 +890,49 @@ describe('payload classification evidence adapters', () => {
     // private run evidence stays with its explicit F-class handling and is not content-scanned
     expect(paths.has('artifacts/audit/private-shot.json')).toBe(true);
     expect(bundle.identities[0]?.unresolved).toBe(1);
+  });
+
+  it('keeps resource-governance out of the knowledge-cutover family and gates per-slice byte conservation', () => {
+    const entries = [entry('course-content/runtime/resource-governance/summary.json', 'aa'.repeat(20), 40)];
+    const reader: SubjectTreeReader = {
+      blobBytes: () => Buffer.from('{}', 'utf8'),
+      listEntries: () => [],
+    };
+    const bundle = buildKnowledgeCutoverAdapter(reader, entries);
+    expect(bundle.overrides).toHaveLength(0);
+    expect(bundle.identities[0]?.candidates).toBe(0);
+
+    const result = classifyPackage(input({ entries }));
+    expect(result.slices.find((slice) => slice.slice === 'course-content-runtime')?.byteBytes).toBe(40);
+    const tampered = classifyPackage(input({
+      entries: [{ ...entry('src/lib/a.ts', 'f0'.repeat(20), 10), sizeBytes: 99 }],
+    }));
+    expect(tampered.slices.reduce((sum, slice) => sum + slice.byteBytes, 0)).toBe(99);
+  });
+
+  it('scans the whole inventory for identifier values regardless of path and vetoes weaker overrides', () => {
+    const cleanHash = 'aa'.repeat(20);
+    const journeyHash = 'bb'.repeat(20);
+    const typedSourceHash = 'cc'.repeat(20);
+    const entries = [
+      entry('openspec/changes/archive/2026-08-28-x/evidence/browser/journey.json', journeyHash),
+      entry('src/lib/student-state.ts', typedSourceHash),
+      entry('docs/plain-note.md', cleanHash),
+    ];
+    const blobs: Record<string, string> = {
+      [journeyHash]: '{"events":[{"sessionId":"cs-live-2026-08-28-17"}]}',
+      [typedSourceHash]: 'export interface StudentState { studentId: string; sessionId: string | null }',
+      [cleanHash]: 'no identifiers here',
+    };
+    const reader: SubjectTreeReader = {
+      blobBytes: (hash: string) => Buffer.from(blobs[hash] ?? '', 'utf8'),
+      listEntries: () => entries,
+    };
+    const scan = buildIdentityInventoryScan(reader, entries);
+    expect(scan.hitPaths.has('openspec/changes/archive/2026-08-28-x/evidence/browser/journey.json')).toBe(true);
+    // typed source mentions identifiers without concrete values: not a hit
+    expect(scan.hitPaths.has('src/lib/student-state.ts')).toBe(false);
+    expect(scan.overrides.map((item) => item.path)).toEqual(['src/lib/student-state.ts', 'docs/plain-note.md']);
   });
 
   it('proves internal privacy from scanned content and keeps forbidden payloads unresolved', () => {

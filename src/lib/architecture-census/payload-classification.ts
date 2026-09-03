@@ -236,6 +236,7 @@ export interface SliceTotals {
   readonly qualified: number;
   readonly 'justified-excluded': number;
   readonly unresolved: number;
+  readonly byteBytes: number;
   readonly duplicateGroups: number;
   readonly duplicateMemberRefs: number;
   readonly identityDigest: string;
@@ -654,6 +655,7 @@ function sliceTotals(members: readonly PayloadMember[], duplicates: readonly Dup
       qualified: rows.filter((row) => row.memberDisposition === 'qualified').length,
       'justified-excluded': rows.filter((row) => row.memberDisposition === 'justified-excluded').length,
       unresolved: rows.filter((row) => row.memberDisposition === 'unresolved').length,
+      byteBytes: rows.reduce((sum, row) => sum + row.sizeBytes, 0),
       duplicateGroups: groups.length,
       duplicateMemberRefs: memberRefs,
       identityDigest: sha256Text(serializeDeterministic(rows.map((row) => ({
@@ -925,13 +927,14 @@ function renderSummary(params: {
     '## Slices',
     '',
     table(
-      ['slice', 'discovered', 'qualified', 'unresolved', 'justified-excluded', 'dup-groups', 'dup-refs'],
+      ['slice', 'discovered', 'qualified', 'unresolved', 'justified-excluded', 'bytes', 'dup-groups', 'dup-refs'],
       params.slices.map((slice) => [
         slice.slice,
         String(slice.discovered),
         String(slice.qualified),
         String(slice.unresolved),
         String(slice['justified-excluded']),
+        String(slice.byteBytes),
         String(slice.duplicateGroups),
         String(slice.duplicateMemberRefs),
       ]),
@@ -1161,6 +1164,12 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     sum + slice.qualified + slice.unresolved + slice['justified-excluded']
   ), 0);
   if (accounted !== members.length) return blocked('slice-denominator-mismatch');
+  const sliceBytes = slices.reduce((sum, slice) => sum + slice.byteBytes, 0);
+  const entryBytes = input.entries.reduce((sum, entry) => sum + entry.sizeBytes, 0);
+  const memberBytes = members.reduce((sum, member) => sum + member.sizeBytes, 0);
+  if (sliceBytes !== entryBytes || memberBytes !== entryBytes) {
+    return blocked(`slice-byte-denominator-mismatch:${sliceBytes}:${memberBytes}:${entryBytes}`);
+  }
 
   const generatedInputs = input.generatedInputs ?? [];
   const generatedPaths = new Set(generatedInputs.map((item) => item.path));

@@ -86,7 +86,6 @@ export const KNOWLEDGE_CUTOVER_OUTPUT_FAMILIES = [
   'course-content/runtime/knowledge/prerequisites/',
   'course-content/runtime/knowledge/teaching-projection/',
   'course-content/runtime/knowledge/authority-domain-catalog/',
-  'course-content/runtime/resource-governance/',
 ] as const;
 
 export const KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT = 'scripts/knowledge-cutover';
@@ -98,8 +97,13 @@ export const KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT = 'scripts/knowledge-cutover';
  */
 export const KNOWLEDGE_CUTOVER_FROZEN_COUNT = 80;
 
-/** Identity patterns that must keep a payload privacy-unresolved even inside committed evidence. */
-export const PRIVACY_IDENTITY_PATTERN = /(?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)/iu;
+/**
+ * Identity value shapes that must keep a payload privacy-unresolved even inside
+ * committed evidence. Keyed occurrences with concrete non-empty values indicate
+ * real identifiers; bare identifier mentions in typed source stay outside this
+ * pattern on purpose.
+ */
+export const PRIVACY_IDENTITY_VALUE_PATTERN = /["'](?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)["']\s*[:=]\s*["']?[^\s"']{4,}/iu;
 
 function sha256Bytes(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
@@ -307,8 +311,8 @@ function isContentCompilerCandidate(path: string): boolean {
 
 /**
  * Knowledge-cutover adapter: runtime families materialized by the frozen
- * knowledge-cutover toolchain (authority shards, selectors, projections,
- * resource-governance reviews). They are materialized views of authority
+ * knowledge-cutover toolchain (authority shards, selectors, projections).
+ * They are materialized views of authority
  * data — E-class observations, never hand-authored sources — and the adapter
  * fails closed on toolchain inventory count drift.
  */
@@ -387,7 +391,7 @@ export function buildQaEvidenceAdapter(
     if (scan && outcome.privacyClass !== 'private-run-evidence' && isScannableTextPath(entry.path)) {
       const text = reader.blobBytes(entry.hash).toString('utf8');
       const hits = scan.scanText(text) ?? [];
-      if (hits.length > 0 || PRIVACY_IDENTITY_PATTERN.test(text)) continue;
+      if (hits.length > 0 || PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) continue;
     }
     overrides.push(qaOverride(entry.path, entry.hash, outcome));
     proven += 1;
@@ -498,7 +502,7 @@ export function buildPrivacyScanAdapter(
       unscannable += 1;
       continue;
     }
-    if (hitsForText.length > 0 || PRIVACY_IDENTITY_PATTERN.test(text)) {
+    if (hitsForText.length > 0 || PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) {
       hits += 1;
       continue;
     }
@@ -521,6 +525,56 @@ export function buildPrivacyScanAdapter(
       candidates: candidates.length,
       proven,
       unresolved: hits + unscannable,
+      drift: null,
+    }],
+  };
+}
+
+/**
+ * Whole-inventory identity scan: every scannable text member is scanned for
+ * concrete identifier values regardless of its path, so privacy safety is
+ * proved from content instead of inferred from a path name. Members hit by the
+ * identity value shape are returned as hitPaths so the caller can veto any
+ * weaker privacy override from another adapter; the adapter never fabricates
+ * privacy evidence for a hit.
+ */
+export interface IdentityScanBundle extends AdapterBundle {
+  readonly hitPaths: ReadonlySet<string>;
+}
+
+export function buildIdentityInventoryScan(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): IdentityScanBundle {
+  const overrides: EvidenceOverride[] = [];
+  const hitPaths = new Set<string>();
+  let candidates = 0;
+  for (const entry of entries) {
+    if (entry.path.startsWith('artifacts/')) continue; // covered by the QA evidence lifecycle adapter
+    if (!isScannableTextPath(entry.path)) continue;
+    candidates += 1;
+    const text = reader.blobBytes(entry.hash).toString('utf8');
+    if (PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) {
+      hitPaths.add(entry.path);
+      continue;
+    }
+    overrides.push({
+      path: entry.path,
+      facets: { privacy: 'internal' },
+      authority: `content-scan:git-blob:${entry.hash}`,
+    });
+  }
+  const inputDigest = sha256Bytes(Buffer.from(
+    entries.filter((entry) => !entry.path.startsWith('artifacts/') && isScannableTextPath(entry.path))
+      .map((entry) => `${entry.path}:${entry.hash}`).join('\n'),
+    'utf8',
+  ));
+  return {
+    overrides,
+    hitPaths,
+    identities: [{
+      name: 'privacy-content-scan',
+      inputDigest,
+      candidates,
+      proven: candidates - hitPaths.size,
+      unresolved: hitPaths.size,
       drift: null,
     }],
   };
