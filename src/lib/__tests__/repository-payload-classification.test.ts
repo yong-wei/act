@@ -933,6 +933,7 @@ describe('payload classification evidence adapters', () => {
     // typed source mentions identifiers without concrete values: not a hit
     expect(scan.hitPaths.has('src/lib/student-state.ts')).toBe(false);
     expect(scan.overrides.map((item) => item.path)).toEqual(['src/lib/student-state.ts', 'docs/plain-note.md']);
+    expect(scan.overrides.every((item) => item.authority === undefined)).toBe(true);
   });
 
   it('proves internal privacy from scanned content and keeps forbidden payloads unresolved', () => {
