@@ -506,10 +506,11 @@ export function buildPrivacyScanAdapter(
       hits += 1;
       continue;
     }
+    // Content-scan proof covers privacy only; it must never stand in for
+    // authority evidence, so no authority field is set here.
     overrides.push({
       path: entry.path,
       facets: { privacy: 'internal' },
-      authority: `content-scan:git-blob:${entry.hash}`,
     });
     proven += 1;
   }
