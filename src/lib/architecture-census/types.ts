@@ -283,7 +283,6 @@ export interface OwnerResidueRecord {
 export interface SuccessorHandoff {
   readonly consumer: 'B-owner-residue' | 'C-payload-classes' | 'D-test-baseline' | 'N5-activation';
   readonly requiredIdentity: string;
-  readonly requiredDigest: string;
   readonly locators: readonly string[];
   readonly failClosedRule: string;
 }

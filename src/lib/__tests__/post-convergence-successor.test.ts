@@ -485,7 +485,6 @@ describe('post-convergence successor capture', () => {
     ]);
     for (const entry of result.pack.handoff) {
       expect(entry.requiredIdentity).toBe(result.pack.successorCaptureId);
-      expect(entry.requiredDigest).toBe(result.pack.packageDigest);
     }
 
     const tamperedStatus = { ...result.pack, status: 'active-baseline' as unknown as typeof result.pack.status };
@@ -493,6 +492,29 @@ describe('post-convergence successor capture', () => {
     expect(successorPackageDigest(tamperedStatus)).not.toBe(result.pack.packageDigest);
     const tamperedOrigin = { ...result.pack, originIntegrationCommit: 'f'.repeat(40) };
     expect(successorPackageDigest(tamperedOrigin)).not.toBe(result.pack.packageDigest);
+    const tamperedArtifactRow = {
+      ...result.pack,
+      artifacts: result.pack.artifacts.map((artifact) => (
+        artifact.logicalLocator === 'hotspots.md' ? { ...artifact, sha256: '0'.repeat(64) } : artifact
+      )),
+    };
+    expect(successorPackageDigest(tamperedArtifactRow)).not.toBe(result.pack.packageDigest);
+    const tamperedDetailRow = {
+      ...result.pack,
+      artifacts: result.pack.artifacts.map((artifact) => (
+        artifact.logicalLocator.endsWith('full-inventory.ndjson')
+          ? { ...artifact, byteCount: artifact.byteCount + 1 }
+          : artifact
+      )),
+    };
+    expect(successorPackageDigest(tamperedDetailRow)).not.toBe(result.pack.packageDigest);
+    const tamperedHandoff = {
+      ...result.pack,
+      handoff: result.pack.handoff.map((entry) => (
+        entry.consumer === 'N5-activation' ? { ...entry, failClosedRule: `${entry.failClosedRule}x` } : entry
+      )),
+    };
+    expect(successorPackageDigest(tamperedHandoff)).not.toBe(result.pack.packageDigest);
   });
 
   it('loads the real predecessor baseline and current-head delta with matching kind lineage', () => {

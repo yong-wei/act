@@ -929,14 +929,13 @@ export function loadChangeFrequencyCounts(repoRoot: string): Map<string, number>
   return counts;
 }
 
-export const SUCCESSOR_DIGEST_SCOPE = 'sha256 over serializeDeterministic(envelope with packageDigest="", handoff=[], artifacts=[])';
+export const SUCCESSOR_DIGEST_SCOPE = 'sha256 over serializeDeterministic(envelope with packageDigest="" and without the summary.md artifact row); covers every remaining artifact index row (locator/mediaType/bytes/sha256), the full handoff contract, and all other envelope fields';
 
 export function successorPackageDigest(pack: PostConvergenceEnvelope): string {
   return sha256Text(serializeDeterministic({
     ...pack,
     packageDigest: '',
-    handoff: [],
-    artifacts: [],
+    artifacts: pack.artifacts.filter((artifact) => artifact.logicalLocator !== 'summary.md'),
   }));
 }
 
@@ -1047,7 +1046,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
       pack.handoff.map((entry) => [
         entry.consumer,
         entry.requiredIdentity,
-        entry.requiredDigest,
+        'this envelope\'s packageDigest above',
         entry.locators.join('; '),
         entry.failClosedRule,
       ]),
@@ -1177,7 +1176,8 @@ function projectTestBaseline(receipts: readonly MeasurementReceipt[]): string {
     '',
     '- Receipts are environment-sensitive: platform, cache mode, and captured time are recorded per receipt.',
     '- Re-running a measurement creates a new receipt identity; re-projection from the same frozen receipt set is byte-identical.',
-    '- Bounded fingerprints live in the receipt artifacts indexed by `baseline.json`, not in this projection.',
+    '- Bounded fingerprints and aggregates are committed here; the full receipt JSON artifacts are local/CI-only per the design compact-package boundary and cannot be byte-regenerated from a different environment. A reader without the local detail directory fails closed by contract.',
+    '- Source-derived detail artifacts (full-inventory, denominator-slices, owner-residue, census-core) are byte-reproducible from the recorded source commit with the committed generator; digest mismatch still fails closed.',
     '',
   ].join('\n');
 }
@@ -1346,39 +1346,28 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     frozenReceiptIds: input.receipts.map((receipt) => receipt.receiptId).sort(),
     digestScope: SUCCESSOR_DIGEST_SCOPE,
   };
-  const packageDigest = sha256Text(serializeDeterministic({
-    ...envelopeCore,
-    packageDigest: '',
-    handoff: [],
-    artifacts: [],
-  }));
-
-  const handoffBase = {
-    requiredIdentity: successorCaptureId,
-    requiredDigest: packageDigest,
-  };
   const handoff: PostConvergenceEnvelope['handoff'] = [
-      {
-        ...handoffBase,
-        consumer: 'B-owner-residue',
-        locators: ['owner-residue.md', `${detailBase}/owner-residue.ndjson`],
-        failClosedRule: 'require exact successorCaptureId+packageDigest; reject missing/stale/mixed/drifted inputs; A adjudicates nothing',
-      },
     {
-      ...handoffBase,
+      consumer: 'B-owner-residue',
+      requiredIdentity: successorCaptureId,
+      locators: ['owner-residue.md', `${detailBase}/owner-residue.ndjson`],
+      failClosedRule: 'require exact successorCaptureId+packageDigest from this envelope; reject missing/stale/mixed/drifted inputs; A adjudicates nothing',
+    },
+    {
       consumer: 'C-payload-classes',
+      requiredIdentity: successorCaptureId,
       locators: ['payload-classes.md', `${detailBase}/full-inventory.ndjson`],
-      failClosedRule: 'require exact successorCaptureId+packageDigest; authority/materialization/retention decisions stay with C',
+      failClosedRule: 'require exact successorCaptureId+packageDigest from this envelope; authority/materialization/retention decisions stay with C',
     },
     {
-      ...handoffBase,
       consumer: 'D-test-baseline',
+      requiredIdentity: successorCaptureId,
       locators: ['test-baseline.md', ...input.receipts.map((receipt) => `${detailBase}/receipts/${receipt.receiptId}.json`)],
-      failClosedRule: 'require exact successorCaptureId+packageDigest; red commands stay observations; test qualification unchanged',
+      failClosedRule: 'require exact successorCaptureId+packageDigest from this envelope; red commands stay observations; test qualification unchanged',
     },
     {
-      ...handoffBase,
       consumer: 'N5-activation',
+      requiredIdentity: successorCaptureId,
       locators: ['baseline.json'],
       failClosedRule: 'only N5 may recapture/prove equivalence and atomically activate baseline+charter+fitness+test qualification; HEAD drift requires N5 recapture',
     },
@@ -1391,6 +1380,12 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     artifactEntry('test-baseline.md', 'text/markdown', testBaselineMd),
     ...detail.map((artifact) => artifactEntry(artifact.logicalLocator, artifact.mediaType, artifact.content)),
   ];
+  const packageDigest = successorPackageDigest({
+    ...envelopeCore,
+    handoff,
+    artifacts: indexedArtifacts,
+    packageDigest: '',
+  } as PostConvergenceEnvelope);
   const summaryMd = projectSummary({
     ...envelopeCore,
     packageDigest,
