@@ -3,10 +3,12 @@
  * 接收 3DModels 的 type055-nanchang-101 v2.0.0 版本化模型发布包。
  *
  * 失败优先：源目录 manifest/六文件任一缺失、SHA-256 或大小与 manifest 声明不符、
- * 角色重复、复制后字节不一致，都拒绝整个包（不登记部分通过的子集）。
+ * 角色重复、复制后字节不一致、或候选包路径存在未提交变更，都拒绝整个包
+ * （不登记部分通过的子集）。目标目录先在暂存目录完成全部校验，再原子重命名替换。
  *
  * 用法：
  *   node scripts/models/receive-type055-nanchang-101-v2.mjs --source <3DModels>/assets/type_055_destroyer/exports/v2.0.0
+ *   node scripts/models/receive-type055-nanchang-101-v2.mjs --source=<同上>
  *
  * 输出：
  *   public/assets/model-releases/type055-nanchang-101/v2.0.0/<七文件>
@@ -15,12 +17,14 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, mkdirSync, readFileSync, statSync, writeFileSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const ROLES = ['ship_lod0', 'ship_lod1', 'ship_lod2', 'collision', 'payload', 'demo'];
-const TARGET_DIR = 'public/assets/model-releases/type055-nanchang-101/v2.0.0';
+const PACKAGE_RELATIVE = 'public/assets/model-releases/type055-nanchang-101';
+const TARGET_DIR = `${PACKAGE_RELATIVE}/v2.0.0`;
 const RECEIPT_PATH = 'artifacts/model-releases/type055-nanchang-101-v2.0.0/receipt.json';
+const DEFAULT_SOURCE = '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.0.0';
 
 function fail(message) {
   console.error(`receive rejected: ${message}`);
@@ -32,13 +36,18 @@ function sha256(file) {
 }
 
 function repoRoot() {
-  const root = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf-8' }).trim();
-  return root;
+  return execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf-8' }).trim();
 }
 
-const sourceArg = process.argv.find((arg) => arg.startsWith('--source='));
-const sourceDir = sourceArg ? sourceArg.slice('--source='.length)
-  : '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.0.0';
+// --source <目录> 与 --source=<目录> 两种形式都接受；缺省仅当作者机器默认路径存在时生效
+const argv = process.argv.slice(2);
+const sourceEq = argv.find((arg) => arg.startsWith('--source='));
+const sourceIdx = argv.indexOf('--source');
+const sourceDir = sourceEq ? sourceEq.slice('--source='.length)
+  : sourceIdx >= 0 ? argv[sourceIdx + 1]
+  : DEFAULT_SOURCE;
+if (!sourceDir || !existsSync(sourceDir)) fail(`source release directory not found: ${sourceDir || '(missing --source value)'}`);
+
 const root = repoRoot();
 
 // 1. 读取并核验源 manifest 身份
@@ -83,34 +92,47 @@ const nonShipKinds = ROLES.filter((role) => manifest.artifacts[role].kind !== 's
   .map((role) => manifest.artifacts[role].kind);
 if (new Set(nonShipKinds).size !== nonShipKinds.length) fail(`non-ship role kinds collapsed: ${nonShipKinds.join(',')}`);
 
-// 3. 复制到 ACT 版本化候选目录（manifest + 六文件；校验和与验证报告留在源侧）
-const targetDir = path.join(root, TARGET_DIR);
-rmSync(targetDir, { recursive: true, force: true });
-mkdirSync(targetDir, { recursive: true });
+// 3. 收据必须绑定干净、可复现的 Git 修订：候选包路径存在未提交变更时 fail closed
+const packageDirty = execFileSync(
+  'git', ['status', '--porcelain', '--', PACKAGE_RELATIVE],
+  { encoding: 'utf-8', cwd: root },
+).trim().length > 0;
+if (packageDirty) fail('candidate package paths have uncommitted changes; commit or restore them before receiving');
+
+// 4. 在同文件系统暂存目录复制并核验，全部通过后原子替换目标目录
+const stagingDir = path.join(root, PACKAGE_RELATIVE, `.staging-v2.0.0-${process.pid}-${Date.now()}`);
+rmSync(stagingDir, { recursive: true, force: true });
+mkdirSync(stagingDir, { recursive: true });
 const copied = [];
-for (const file of ['manifest.json', ...ROLES.map((role) => manifest.artifacts[role].file)]) {
-  const from = path.join(sourceDir, file);
-  const to = path.join(targetDir, file);
-  cpSync(from, to);
-  // 复制前后字节一致：以哈希 + 大小复核目标文件
-  const before = sha256(from);
-  const after = sha256(to);
-  if (before !== after || statSync(to).size !== statSync(from).size) fail(`copy drift on ${file}`);
-  copied.push({ file, sha256: after, bytes: statSync(to).size });
+try {
+  for (const file of ['manifest.json', ...ROLES.map((role) => manifest.artifacts[role].file)]) {
+    const from = path.join(sourceDir, file);
+    const to = path.join(stagingDir, file);
+    cpSync(from, to);
+    // 复制前后字节一致：以哈希 + 大小复核暂存文件
+    const before = sha256(from);
+    const after = sha256(to);
+    if (before !== after || statSync(to).size !== statSync(from).size) fail(`copy drift on ${file}`);
+    copied.push({ file, sha256: after, bytes: statSync(to).size });
+  }
+  const targetDir = path.join(root, TARGET_DIR);
+  rmSync(targetDir, { recursive: true, force: true });
+  renameSync(stagingDir, targetDir);
+} finally {
+  rmSync(stagingDir, { recursive: true, force: true });
 }
 
-// 4. 写接收收据（绑定源身份、逐文件哈希与复制核验）
+// 5. 写接收收据（绑定源身份、逐文件哈希与复制核验；不含本机绝对路径）
 const capturedAt = new Date().toISOString();
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim();
-const dirty = execFileSync('git', ['status', '--porcelain'], { encoding: 'utf-8', cwd: root }).trim().length > 0;
 const receipt = {
   schema: 'act-model-release-receipt/1',
   packageId: 'type055-nanchang-101',
   modelVersion: '2.0.0',
   capturedAt,
   sourceCommit: head,
-  dirty,
-  sourceDirectory: sourceDir,
+  packageDirty,
+  sourceRelease: '3DModels:assets/type_055_destroyer/exports/v2.0.0',
   manifestSha256: manifestSha,
   sourceBlendSha256: manifest.source.sha256,
   modelSideValidation: manifest.validation.status,
@@ -129,4 +151,4 @@ writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
 
 console.log(`received type055-nanchang-101 v2.0.0 (${copied.length - 1} GLBs + manifest)`);
 console.log(`target: ${TARGET_DIR}`);
-console.log(`receipt: ${RECEIPT_PATH}`);
+console.log(`receipt: ${RECEIPT_PATH} (sourceCommit ${head}, packageDirty ${packageDirty})`);

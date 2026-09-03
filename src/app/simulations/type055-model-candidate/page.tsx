@@ -117,7 +117,7 @@ function QaShip({ url }: { url: string }) {
   }, [animations, mixer, mounted, url]);
 
   return (
-    <group rotation-y={TYPE055_V2_BASIS_YAW_RAD}>
+    <group rotation-y={url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0}>
       <primitive object={mounted} />
     </group>
   );

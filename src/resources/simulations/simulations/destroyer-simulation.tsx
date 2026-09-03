@@ -478,7 +478,14 @@ function DestroyerModel({
       descriptor={TYPE055_NANCHANG_101_V2}
       tier={tier}
       legacyCandidates={MODEL.candidates}
-      renderScene={(url) => <DestroyerModelScene url={url} simRef={simRef} basisYawRad={TYPE055_V2_BASIS_YAW_RAD} />}
+      renderScene={(url) => (
+        <DestroyerModelScene
+          url={url}
+          simRef={simRef}
+          // 坐标基适配只对模型包内资产生效；候选失败回退到旧 GLB 时不施加（旧模型已是 +Z 艏）
+          basisYawRad={url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0}
+        />
+      )}
     />
   );
 }

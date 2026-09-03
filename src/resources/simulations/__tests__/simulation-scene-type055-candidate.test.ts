@@ -14,16 +14,13 @@ import { TYPE055_NANCHANG_101_V2 } from '../model-packages/type055-nanchang-101-
 
 const DESTROYER = path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx');
 const LEGACY_DESTROYER = path.join(process.cwd(), 'src/resources/simulations/destroyer-simulation.tsx');
+const QA_PAGE = path.join(process.cwd(), 'src/app/simulations/type055-model-candidate/page.tsx');
+
+// 受保护旧式场景文件在集成基线（19c0dd3880）上的 blob 哈希：
+// 用内容钉死替代 diff 范围检查，浅克隆/无远端引用环境同样可判
+const LEGACY_DESTROYER_BASE_BLOB = '2237fa504b69f71ea3a0e566d4a982b1ec2eb5f8';
 
 const read = (file: string) => readFileSync(file, 'utf-8');
-
-function changedFiles(): string[] {
-  const mergeBase = execSync('git merge-base HEAD origin/integration', { encoding: 'utf-8' }).trim();
-  const output = execSync(`git diff --name-only ${mergeBase} HEAD`, { encoding: 'utf-8' });
-  const unstaged = execSync('git diff --name-only', { encoding: 'utf-8' });
-  const staged = execSync('git diff --name-only --cached', { encoding: 'utf-8' });
-  return [...new Set([...output.split('\n'), ...unstaged.split('\n'), ...staged.split('\n')])].filter(Boolean);
-}
 
 describe('type055 candidate wiring keeps the legacy default', () => {
   it('keeps the seven-model registry resolution unchanged', () => {
@@ -44,12 +41,17 @@ describe('type055 candidate wiring keeps the legacy default', () => {
     expect(source).toContain('isType055V2CandidateSearch');
     // 默认分支：现有候选链 + 既有渲染语义（保留 FallbackGltfModel 标记，驱动链测试也依赖）
     expect(source).toContain("candidates={MODEL.candidates}\n        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}");
-    // 坐标基适配只在候选挂载处应用一次
-    expect(source).toContain('basisYawRad={TYPE055_V2_BASIS_YAW_RAD}');
-    // 定义（props 类型 + 解构默认）+ 候选挂载应用，不散落其它补偿旋转
+  });
+
+  it('applies the basis yaw only to package assets, never to legacy fallback candidates', () => {
+    const source = read(DESTROYER);
+    const conditional = 'url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0';
+    // 坐标基适配：只对模型包内资产生效；候选失败回退旧 GLB 时零旋转
+    expect(source).toContain(conditional);
+    // 定义（props 类型 + 解构默认）+ 条件应用，不散落其它补偿旋转
     expect(source.match(/basisYawRad/g)?.length).toBeGreaterThanOrEqual(3);
-    // 旧模型路径不应用基旋转
-    expect(source).not.toContain('basisYawRad={0}');
+    const qaSource = read(QA_PAGE);
+    expect(qaSource, 'QA route must use the same conditional basis adapter').toContain(conditional);
   });
 
   it('applies the coordinate basis exactly once at the candidate mount', () => {
@@ -75,8 +77,9 @@ describe('type055 candidate wiring keeps the legacy default', () => {
   });
 
   it('leaves the protected legacy simulation file untouched', () => {
-    const changed = changedFiles();
-    expect(changed, `protected legacy file changed: ${LEGACY_DESTROYER}`).not.toContain('src/resources/simulations/destroyer-simulation.tsx');
+    // 与集成基线 blob 哈希比对（本地可判定，不依赖远端跟踪引用）
+    const blob = execSync(`git hash-object ${LEGACY_DESTROYER}`, { encoding: 'utf-8' }).trim();
+    expect(blob, 'protected legacy file content changed').toBe(LEGACY_DESTROYER_BASE_BLOB);
     expect(read(LEGACY_DESTROYER)).toContain('DestroyerSimulation');
   });
 

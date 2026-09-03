@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -60,12 +61,18 @@ describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
     );
   });
 
-  it('binds a receive receipt with the same identities as the descriptor', () => {
+  it('binds a receive receipt with the same identities as the descriptor on a clean revision', () => {
     expect(existsSync(RECEIPT_PATH)).toBe(true);
-    const receipt = JSON.parse(readFileSync(RECEIPT_PATH, 'utf-8'));
+    const receiptRaw = readFileSync(RECEIPT_PATH, 'utf-8');
+    expect(receiptRaw, 'receipt must not contain local absolute paths').not.toContain('/Users/');
+    const receipt = JSON.parse(receiptRaw);
     expect(receipt.schema).toBe('act-model-release-receipt/1');
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
     expect(receipt.sourceBlendSha256).toBe(TYPE055_NANCHANG_101_V2.sourceBlendSha256);
+    // 收据必须绑定干净、可复现的 Git 修订（脏工作区收据 fail closed）
+    expect(receipt.packageDirty).toBe(false);
+    expect(receipt.sourceCommit).toMatch(/^[0-9a-f]{40}$/);
+    expect(() => execSync(`git cat-file -e ${receipt.sourceCommit}^{commit}`)).not.toThrow();
     for (const [role, artifact] of Object.entries(TYPE055_NANCHANG_101_V2.roles)) {
       expect(receipt.roles[role]).toMatchObject({ file: artifact.file, sha256: artifact.sha256, bytes: artifact.bytes });
     }
