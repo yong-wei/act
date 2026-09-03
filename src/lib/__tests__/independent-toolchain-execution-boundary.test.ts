@@ -137,36 +137,53 @@ describe('independent toolchain execution boundary', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('distinguishes a receipt bound to a stale source tree after HEAD moves', () => {
-    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-stale-'));
-    execFileSync('git', ['init'], { cwd: root });
-    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
-    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
-    writeFileSync(join(root, 'README'), 'first\n');
-    execFileSync('git', ['add', 'README'], { cwd: root });
-    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'first'], { cwd: root });
+  it('fail-closes a stale inventory receipt through the real migration-backfill consumer', async () => {
+    const { checkMigrationBackfillCompetition } = await import('../../../tools/migration-backfill/check');
+    const root = mkdtempSync(join(tmpdir(), 'migration-backfill-stale-'));
+    const foreignRoot = mkdtempSync(join(tmpdir(), 'migration-backfill-stale-foreign-'));
+    for (const repo of [root, foreignRoot]) {
+      execFileSync('git', ['init'], { cwd: repo });
+      execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: repo });
+      execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: repo });
+    }
+    // Distinct commit content per repo: identical trees + timestamps would make
+    // git's deterministic commit SHAs collide across the two repositories.
+    writeFileSync(join(root, 'README'), 'root init\n');
+    writeFileSync(join(foreignRoot, 'README'), 'foreign init\n');
+    for (const repo of [root, foreignRoot]) {
+      execFileSync('git', ['add', 'README'], { cwd: repo });
+      execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'init'], { cwd: repo });
+    }
+    // The root repo also needs a minimal package.json for the package-script scan.
+    writeFileSync(join(root, 'package.json'), '{"scripts":{}}\n');
+    execFileSync('git', ['add', 'package.json'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'pkg'], { cwd: root });
+    const foreign = captureSourceIdentity(foreignRoot);
     const bound = captureSourceIdentity(root);
-    const receipt = buildCommandReceipt({
-      commandId: 'toolchain:boundary-check',
+    const inventoryDir = join(root, 'docs/architecture/migration-backfill-competition');
+    mkdirSync(inventoryDir, { recursive: true });
+
+    // A receipt bound to a revision from a different history is rejected by the
+    // real consumer as not-an-ancestor.
+    writeFileSync(join(inventoryDir, 'inventory.json'), `${JSON.stringify({
+      sourceRevision: foreign.sourceRevision,
+      sourceTree: foreign.sourceTree,
+      commands: [],
+    })}\n`);
+    const foreignResult = checkMigrationBackfillCompetition(root);
+    expect(foreignResult.failures).toContain('inventory-revision-not-ancestor');
+    expect(foreignResult.ok).toBe(false);
+
+    // A receipt whose recorded tree no longer matches its own recorded revision
+    // (tampered/stale capture) is rejected as a source-tree mismatch.
+    writeFileSync(join(inventoryDir, 'inventory.json'), `${JSON.stringify({
       sourceRevision: bound.sourceRevision,
-      sourceTree: bound.sourceTree,
-      inputDigest: '1',
-      outputDigest: '2',
-      validatorVersion: TOOLCHAIN_BOUNDARY_SCHEMA_VERSION,
-      exitStatus: 0,
-      graphId: 'tools',
-      privacyClass: 'none',
-      safetyMode: 'read-only',
-    });
-    writeFileSync(join(root, 'README'), 'second\n');
-    execFileSync('git', ['add', 'README'], { cwd: root });
-    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'second'], { cwd: root });
-    const current = captureSourceIdentity(root);
-    // The receipt stays internally valid, but its bound tree no longer matches the
-    // live tree, so consumers comparing sourceTree must treat it as stale drift.
-    expect(validateReceipt(receipt)).toEqual([]);
-    expect(receipt.sourceTree === current.sourceTree).toBe(false);
-    expect(receipt.sourceRevision === current.sourceRevision).toBe(false);
+      sourceTree: foreign.sourceTree,
+      commands: [],
+    })}\n`);
+    const mismatchResult = checkMigrationBackfillCompetition(root);
+    expect(mismatchResult.failures).toContain('inventory-source-tree-mismatch');
+    expect(mismatchResult.ok).toBe(false);
   });
 
   it('changes the receipt digest when a registry contract field changes', () => {
