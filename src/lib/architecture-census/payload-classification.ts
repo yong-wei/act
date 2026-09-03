@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -8,11 +9,13 @@ import { privacyViolation } from './privacy';
 import { serializeDeterministic, sha256Text } from './serialize';
 import type { PostConvergenceEnvelope } from './types';
 
-export const PAYLOAD_CLASSIFICATION_SCHEMA_VERSION = 'act-repository-payload-classification/v1' as const;
+export const PAYLOAD_CLASSIFICATION_SCHEMA_VERSION = 'act-repository-payload-classification/v2' as const;
 export const PAYLOAD_CLASSIFICATION_COMMAND_SCOPE = 'repository-payload-classification:classify' as const;
-export const PAYLOAD_CLASSIFICATION_OUTPUT_DIR = 'docs/architecture/repository-payload-classification';
+export const PAYLOAD_CLASSIFICATION_OUTPUT_DIR = 'docs/architecture/repository-payload-classification/current';
 export const PAYLOAD_CLASSIFICATION_ISSUE = 1881;
 export const A_ISSUE = 1876;
+export const PREDECESSOR_ISSUE = 1881;
+export const CURRENT_SUBJECT_BASE_BRANCH = 'origin/integration';
 
 export const PRIMARY_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 export type PrimaryClass = (typeof PRIMARY_CLASSES)[number];
@@ -69,6 +72,52 @@ export interface ToolCheckpoint {
   readonly toolTree: string;
   readonly schemaVersion: typeof PAYLOAD_CLASSIFICATION_SCHEMA_VERSION;
   readonly entryBundleDigest: string;
+}
+
+/** The frozen claim-time current classification subject: an exact, clean integration commit/tree. */
+export interface CurrentSubject {
+  readonly baseBranch: typeof CURRENT_SUBJECT_BASE_BRANCH;
+  readonly subjectCommit: string;
+  readonly subjectTree: string;
+}
+
+/** Immutable #1881 classification package identity kept as predecessor evidence. */
+export interface PredecessorPackage {
+  readonly changeId: string;
+  readonly issue: number;
+  readonly subjectIdentity: string;
+  readonly packageDigest: string;
+  readonly sourceCommit: string;
+  readonly sourceTree: string;
+  readonly trackedFileCount: number;
+}
+
+export interface PredecessorDelta {
+  readonly predecessorTrackedCount: number;
+  readonly currentTrackedCount: number;
+  readonly addedCount: number;
+  readonly removedCount: number;
+  readonly unchangedCount: number;
+  readonly addedSample: readonly string[];
+}
+
+export interface InventoryVerificationReceipt {
+  readonly locator: string;
+  readonly byteCount: number;
+  readonly sha256: string;
+  readonly memberDenominator: number;
+  readonly subjectIdentity: string;
+  readonly toolCommit: string;
+  readonly projectionsReconciled: boolean;
+}
+
+export interface AdapterEvidenceIdentity {
+  readonly name: string;
+  readonly inputDigest: string;
+  readonly candidates: number;
+  readonly proven: number;
+  readonly unresolved: number;
+  readonly drift: string | null;
 }
 
 export interface AHandoff {
@@ -150,14 +199,23 @@ export interface DuplicateGroup {
 
 export interface ClassifyInput {
   readonly issueGate: IssueGate;
+  readonly predecessorIssueGate: IssueGate;
   readonly handoff: AHandoff | null;
+  readonly subject: CurrentSubject;
+  readonly predecessor: PredecessorPackage | null;
+  readonly predecessorPaths: readonly string[] | null;
   readonly tool: ToolCheckpoint;
   readonly entries: readonly InventoryEntry[];
+  readonly adapterIdentities?: readonly AdapterEvidenceIdentity[];
+  readonly inventoryVerification?: InventoryVerificationReceipt | null;
   readonly generatedInputs?: readonly GeneratedInputObservation[];
   readonly overrides?: readonly EvidenceOverride[];
   readonly expectedIdentities?: {
     readonly successorCaptureId?: string;
     readonly packageDigest?: string;
+    readonly subjectCommit?: string;
+    readonly subjectTree?: string;
+    readonly predecessorPackageDigest?: string;
     readonly toolCommit?: string;
     readonly toolTree?: string;
     readonly schemaVersion?: string;
@@ -195,6 +253,10 @@ export interface ClassifyResult {
   readonly status: 'blocked' | 'package-unqualified' | 'qualified';
   readonly reason: string | null;
   readonly handoff: AHandoff | null;
+  readonly subject: CurrentSubject;
+  readonly subjectIdentity: string;
+  readonly predecessor: PredecessorPackage | null;
+  readonly delta: PredecessorDelta | null;
   readonly tool: ToolCheckpoint;
   readonly frozenInputDigest: string;
   readonly packageDigest: string;
@@ -202,9 +264,48 @@ export interface ClassifyResult {
   readonly slices: readonly SliceTotals[];
   readonly duplicateGroups: readonly DuplicateGroup[];
   readonly generatedInputs: readonly GeneratedInputObservation[];
+  readonly adapterIdentities: readonly AdapterEvidenceIdentity[];
+  readonly inventoryVerification: InventoryVerificationReceipt | null;
   readonly files: CompactFiles | null;
   readonly privacyViolations: readonly { identity: string; code: string }[];
   readonly subjectSourceBytesAfter?: string;
+}
+
+export function subjectIdentityOf(subject: CurrentSubject): string {
+  return sha256Text(`${subject.subjectCommit}:${subject.subjectTree}`);
+}
+
+function predecessorDeltaOf(predecessorPaths: readonly string[] | null, entries: readonly InventoryEntry[]): PredecessorDelta | null {
+  if (!predecessorPaths) return null;
+  const currentPaths = entries.map((entry) => entry.path);
+  const currentSet = new Set(currentPaths);
+  // The predecessor inventory redacts privacy-unknown paths; recover them by
+  // matching their redaction digest against current paths so the delta counts
+  // real additions instead of redaction artifacts.
+  const redactionIndexOfCurrent = new Map<string, string>();
+  for (const path of currentPaths) {
+    redactionIndexOfCurrent.set(`redacted:${sha256Text(path).slice(0, 16)}`, path);
+  }
+  const predecessorReal = new Set<string>();
+  for (const path of predecessorPaths) {
+    if (!path.startsWith('redacted:')) {
+      predecessorReal.add(path);
+      continue;
+    }
+    const recovered = redactionIndexOfCurrent.get(path);
+    if (recovered) predecessorReal.add(recovered);
+    else predecessorReal.add(path);
+  }
+  const added = currentPaths.filter((path) => !predecessorReal.has(path));
+  const removed = [...predecessorReal].filter((path) => !currentSet.has(path));
+  return {
+    predecessorTrackedCount: predecessorPaths.length,
+    currentTrackedCount: entries.length,
+    addedCount: added.length,
+    removedCount: removed.length,
+    unchangedCount: currentSet.size - added.length,
+    addedSample: added.sort((left, right) => left.localeCompare(right)).slice(0, 20),
+  };
 }
 
 const REQUIRED_SLICES: readonly PayloadSlice[] = PAYLOAD_SLICES;
@@ -535,6 +636,11 @@ function packageInputEnvelope(
 ): Record<string, unknown> {
   const envelope: Record<string, unknown> = {
     captureDigest: handoff.packageDigest,
+    currentSubject: {
+      baseBranch: input.subject.baseBranch,
+      subjectCommit: input.subject.subjectCommit,
+      subjectTree: input.subject.subjectTree,
+    },
     frozenInputDigest,
     members: members.map((member) => ({
       authority: member.authority,
@@ -550,8 +656,9 @@ function packageInputEnvelope(
       rollback: member.rollback,
       unresolvedReason: member.unresolvedReason,
     })),
+    predecessor: input.predecessor,
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
-    subjectIdentity: handoff.successorCaptureId,
+    subjectIdentity: subjectIdentityOf(input.subject),
     toolCommit: input.tool.toolCommit,
     toolTree: input.tool.toolTree,
   };
@@ -570,10 +677,18 @@ export function computePackageDigest(
 
 function frozenDigest(input: ClassifyInput, handoff: AHandoff, entries: readonly InventoryEntry[]): string {
   return sha256Text(serializeDeterministic({
+    adapterIdentities: input.adapterIdentities ?? [],
+    compatibilityChecks: input.compatibilityChecks ?? [],
+    currentSubject: {
+      baseBranch: input.subject.baseBranch,
+      subjectCommit: input.subject.subjectCommit,
+      subjectTree: input.subject.subjectTree,
+    },
     entryBundleDigest: input.tool.entryBundleDigest,
     fullInventorySha256: handoff.fullInventorySha256,
-    compatibilityChecks: input.compatibilityChecks ?? [],
     generatedInputs: input.generatedInputs ?? [],
+    inventoryVerification: input.inventoryVerification ?? null,
+    members: entries.map((entry) => ({ hash: entry.hash, path: entry.path, sizeBytes: entry.sizeBytes })),
     nearDuplicateGroups: input.nearDuplicateGroups ?? [],
     overrides: (input.overrides ?? []).map((item) => ({
       authority: item.authority ?? null,
@@ -585,7 +700,8 @@ function frozenDigest(input: ClassifyInput, handoff: AHandoff, entries: readonly
       recovery: item.recovery ?? null,
       rollback: item.rollback ?? null,
     })),
-    members: entries.map((entry) => ({ hash: entry.hash, path: entry.path, sizeBytes: entry.sizeBytes })),
+    predecessor: input.predecessor,
+    predecessorPathsDigest: input.predecessorPaths === null ? null : sha256Text([...input.predecessorPaths].sort().join('\n')),
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
     successorCaptureId: handoff.successorCaptureId,
     toolCommit: input.tool.toolCommit,
@@ -702,6 +818,10 @@ function renderSummary(params: {
   status: ClassifyResult['status'];
   reason: string | null;
   handoff: AHandoff;
+  subject: CurrentSubject;
+  subjectIdentity: string;
+  predecessor: PredecessorPackage;
+  delta: PredecessorDelta | null;
   tool: ToolCheckpoint;
   frozenInputDigest: string;
   packageDigest: string;
@@ -709,6 +829,8 @@ function renderSummary(params: {
   slices: readonly SliceTotals[];
   duplicates: readonly DuplicateGroup[];
   generatedInputs: readonly GeneratedInputObservation[];
+  adapterIdentities: readonly AdapterEvidenceIdentity[];
+  verification: InventoryVerificationReceipt | null;
   compatibilityChecks: readonly { name: string; status: string; detail: string }[];
   inventoryLocator: string;
   inventorySha: string;
@@ -721,12 +843,19 @@ function renderSummary(params: {
     String(params.members.filter((member) => member.primaryClass === item).length),
   ] as const);
   return [
-    '# Repository payload classification',
+    '# Repository payload classification (current completion run)',
     '',
     `- schemaVersion: \`${PAYLOAD_CLASSIFICATION_SCHEMA_VERSION}\``,
     `- commandScope: \`${PAYLOAD_CLASSIFICATION_COMMAND_SCOPE}\``,
     `- status: \`${params.status}\``,
     `- reason: \`${params.reason ?? 'none'}\``,
+    `- current subject base: \`${params.subject.baseBranch}\``,
+    `- current subjectCommit: \`${params.subject.subjectCommit}\``,
+    `- current subjectTree: \`${params.subject.subjectTree}\``,
+    `- current subjectIdentity: \`${params.subjectIdentity}\``,
+    `- predecessor change: \`${params.predecessor.changeId}\` (#${params.predecessor.issue})`,
+    `- predecessor subjectIdentity: \`${params.predecessor.subjectIdentity}\``,
+    `- predecessor packageDigest: \`${params.predecessor.packageDigest}\``,
     `- A successorCaptureId: \`${params.handoff.successorCaptureId}\``,
     `- A packageDigest: \`${params.handoff.packageDigest}\``,
     `- A sourceCommit: \`${params.handoff.sourceCommit}\``,
@@ -737,8 +866,9 @@ function renderSummary(params: {
     `- frozenInputDigest: \`${params.frozenInputDigest}\``,
     `- packageDigest: \`${params.packageDigest}\``,
     `- full inventory: \`${params.inventoryLocator}\` sha256 \`${params.inventorySha}\``,
+    `- inventory verification: \`${params.verification ? `${params.verification.sha256}@reconciled=${params.verification.projectionsReconciled}` : 'not-verified'}\``,
     '',
-    'This package is an observation. It does not authorize deletion, movement, externalization, materialization, or selector change.',
+    'This package is non-active planning evidence. It does not authorize deletion, movement, externalization, materialization, or selector change.',
     '',
     '## Counts',
     '',
@@ -784,6 +914,11 @@ function renderSummary(params: {
     table(
       ['field', 'value'],
       [
+        ['current.subjectIdentity', params.subjectIdentity],
+        ['current.subjectCommit', params.subject.subjectCommit],
+        ['current.subjectTree', params.subject.subjectTree],
+        ['predecessor.subjectIdentity', params.predecessor.subjectIdentity],
+        ['predecessor.packageDigest', params.predecessor.packageDigest],
         ['A.successorCaptureId', params.handoff.successorCaptureId],
         ['A.packageDigest', params.handoff.packageDigest],
         ['C.toolCommit', params.tool.toolCommit],
@@ -791,6 +926,38 @@ function renderSummary(params: {
         ['fullInventory', `${params.inventoryLocator}@${params.inventorySha}`],
       ],
     ),
+    '',
+    '## Predecessor delta',
+    '',
+    params.delta
+      ? table(
+        ['metric', 'value'],
+        [
+          ['predecessor tracked', String(params.delta.predecessorTrackedCount)],
+          ['current tracked', String(params.delta.currentTrackedCount)],
+          ['added', String(params.delta.addedCount)],
+          ['removed', String(params.delta.removedCount)],
+          ['unchanged', String(params.delta.unchangedCount)],
+          ['added sample', params.delta.addedSample.slice(0, 5).join(', ') || 'none'],
+        ],
+      )
+      : table(['metric', 'value'], [['delta', 'unavailable']]),
+    '',
+    '## Evidence adapters',
+    '',
+    params.adapterIdentities.length > 0
+      ? table(
+        ['adapter', 'candidates', 'proven', 'unresolved', 'drift', 'inputDigest'],
+        params.adapterIdentities.map((adapter) => [
+          adapter.name,
+          String(adapter.candidates),
+          String(adapter.proven),
+          String(adapter.unresolved),
+          adapter.drift ?? 'none',
+          adapter.inputDigest.slice(0, 16),
+        ]),
+      )
+      : table(['adapter', 'status'], [['adapter', 'none']]),
     '',
   ].join('\n');
 }
@@ -831,10 +998,15 @@ function scanFiles(files: CompactFiles): { identity: string; code: string }[] {
 
 export function classifyPackage(input: ClassifyInput): ClassifyResult {
   assertReadOnly(input.mutationRequest);
+  const subjectIdentity = subjectIdentityOf(input.subject);
   const blocked = (reason: string): ClassifyResult => ({
     status: 'blocked',
     reason,
     handoff: input.handoff,
+    subject: input.subject,
+    subjectIdentity,
+    predecessor: input.predecessor,
+    delta: null,
     tool: input.tool,
     frozenInputDigest: '',
     packageDigest: '',
@@ -842,6 +1014,8 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     slices: [],
     duplicateGroups: [],
     generatedInputs: input.generatedInputs ?? [],
+    adapterIdentities: input.adapterIdentities ?? [],
+    inventoryVerification: input.inventoryVerification ?? null,
     files: null,
     privacyViolations: [],
     subjectSourceBytesAfter: input.subjectSourceBytes,
@@ -849,6 +1023,9 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
 
   if (!input.issueGate.closed || !input.issueGate.archived || input.issueGate.blockedByOpen) {
     return blocked('a-issue-gate-incomplete');
+  }
+  if (!input.predecessorIssueGate.closed || !input.predecessorIssueGate.archived || input.predecessorIssueGate.blockedByOpen) {
+    return blocked('predecessor-issue-gate-incomplete');
   }
   if (!input.handoff) return blocked('a-handoff-missing');
   const handoff = input.handoff;
@@ -859,11 +1036,43 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     return blocked('a-handoff-identity-incomplete');
   }
   if (!handoff.fullInventoryLocator || !handoff.fullInventorySha256) return blocked('a-inventory-locator-missing');
+  if (!input.predecessor) return blocked('predecessor-package-missing');
+  const predecessor = input.predecessor;
+  if (predecessor.issue !== PREDECESSOR_ISSUE
+    || !predecessor.subjectIdentity
+    || !predecessor.packageDigest
+    || !predecessor.sourceCommit
+    || !predecessor.sourceTree
+    || !Number.isSafeInteger(predecessor.trackedFileCount)) {
+    return blocked('predecessor-identity-incomplete');
+  }
+  if (input.subject.baseBranch !== CURRENT_SUBJECT_BASE_BRANCH
+    || !/^[0-9a-f]{40}$/iu.test(input.subject.subjectCommit)
+    || !/^[0-9a-f]{40}$/iu.test(input.subject.subjectTree)) {
+    return blocked('current-subject-identity-incomplete');
+  }
+  if (input.subject.subjectCommit === input.tool.toolCommit) {
+    return blocked('subject-is-implementation-commit');
+  }
+  if (input.predecessorPaths === null) return blocked('predecessor-inventory-missing');
+  if (input.predecessorPaths.length !== predecessor.trackedFileCount) {
+    return blocked(`predecessor-denominator-mismatch:${input.predecessorPaths.length}!=${predecessor.trackedFileCount}`);
+  }
   if (input.expectedIdentities?.successorCaptureId && input.expectedIdentities.successorCaptureId !== handoff.successorCaptureId) {
     return blocked('a-subject-identity-drift');
   }
   if (input.expectedIdentities?.packageDigest && input.expectedIdentities.packageDigest !== handoff.packageDigest) {
     return blocked('a-capture-digest-drift');
+  }
+  if (input.expectedIdentities?.subjectCommit && input.expectedIdentities.subjectCommit !== input.subject.subjectCommit) {
+    return blocked('current-subject-commit-drift');
+  }
+  if (input.expectedIdentities?.subjectTree && input.expectedIdentities.subjectTree !== input.subject.subjectTree) {
+    return blocked('current-subject-tree-drift');
+  }
+  if (input.expectedIdentities?.predecessorPackageDigest
+    && input.expectedIdentities.predecessorPackageDigest !== predecessor.packageDigest) {
+    return blocked('predecessor-package-digest-drift');
   }
   if (input.expectedIdentities?.toolCommit && input.expectedIdentities.toolCommit !== input.tool.toolCommit) {
     return blocked('tool-identity-drift');
@@ -884,7 +1093,7 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
 
   const overrides = new Map((input.overrides ?? []).map((item) => [item.path, item]));
   const members = input.entries
-    .map((entry) => classifyOne(entry, handoff.successorCaptureId, overrides.get(entry.path)))
+    .map((entry) => classifyOne(entry, subjectIdentity, overrides.get(entry.path)))
     .sort((left, right) => left.path.localeCompare(right.path));
   if (members.length !== input.entries.length) return blocked('denominator-unaccounted-member');
   for (const member of members) {
@@ -924,25 +1133,32 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   mixedFamilyFailures(members);
 
   const packageDigest = computePackageDigest(input, handoff, members, frozenInputDigest);
+  const unqualifiedOnly = (reason: string, privacyViolations: readonly { identity: string; code: string }[] = []): ClassifyResult => ({
+    status: 'package-unqualified',
+    reason,
+    handoff,
+    subject: input.subject,
+    subjectIdentity,
+    predecessor,
+    delta: predecessorDeltaOf(input.predecessorPaths, input.entries),
+    tool: input.tool,
+    frozenInputDigest,
+    packageDigest,
+    members,
+    slices,
+    duplicateGroups: duplicates,
+    generatedInputs,
+    adapterIdentities: input.adapterIdentities ?? [],
+    inventoryVerification: input.inventoryVerification ?? null,
+    files: null,
+    privacyViolations,
+    subjectSourceBytesAfter: input.subjectSourceBytes,
+  });
   if (input.includeIndexInDigest) {
-    return {
-      status: 'package-unqualified',
-      reason: 'self-referential-index-digest',
-      handoff,
-      tool: input.tool,
-      frozenInputDigest,
-      packageDigest,
-      members,
-      slices,
-      duplicateGroups: duplicates,
-      generatedInputs,
-      files: null,
-      privacyViolations: [],
-      subjectSourceBytesAfter: input.subjectSourceBytes,
-    };
+    return unqualifiedOnly('self-referential-index-digest');
   }
 
-  const inventoryLocator = `artifacts/architecture-census/${handoff.successorCaptureId}/payload-classification-inventory.ndjson`;
+  const inventoryLocator = `artifacts/architecture-census/${subjectIdentity}/payload-classification-inventory.ndjson`;
   const inventoryNdjson = `${members.map((member) => JSON.stringify({
     authority: member.authority,
     consumers: member.consumers,
@@ -964,11 +1180,41 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   const futureRows = groupBy(members, (member) => (
     member.futureEligible === true ? 'futureEligible' : `unresolved:${member.futureEligibilityMissing.join(',') || 'unknown'}`
   ));
-  const unknownPrivacy = members.some((member) => member.unresolvedReason === 'unknown-privacy');
-  const packageStatus: ClassifyResult['status'] = unknownPrivacy ? 'package-unqualified' : 'qualified';
-  const packageReason = unknownPrivacy ? 'unknown-privacy' : null;
+
+  const adapterIdentities = input.adapterIdentities ?? [];
+  const adapterDrift = adapterIdentities.filter((adapter) => adapter.drift);
+  const compatibilityFailures = (input.compatibilityChecks ?? []).filter((item) => item.status !== 'ok');
+  const verification = input.inventoryVerification ?? null;
+  const verificationInvalid = !verification
+    || verification.sha256 !== inventorySha
+    || verification.locator !== inventoryLocator
+    || verification.memberDenominator !== members.length
+    || verification.byteCount !== Buffer.byteLength(inventoryNdjson)
+    || verification.subjectIdentity !== subjectIdentity
+    || verification.toolCommit !== input.tool.toolCommit
+    || verification.projectionsReconciled !== true;
+
+  let packageStatus: ClassifyResult['status'];
+  let packageReason: string | null = null;
+  if (unresolvedMembers.length > 0) {
+    packageStatus = 'package-unqualified';
+    const reasonCounts = [...new Set(unresolvedMembers.map((member) => member.unresolvedReason ?? 'unknown'))].sort();
+    packageReason = `unresolved-members:${unresolvedMembers.length}:${reasonCounts.join(',')}`;
+  } else if (adapterDrift.length > 0) {
+    packageStatus = 'package-unqualified';
+    packageReason = `adapter-drift:${adapterDrift.map((adapter) => adapter.drift).join('|')}`;
+  } else if (compatibilityFailures.length > 0) {
+    packageStatus = 'package-unqualified';
+    packageReason = `compatibility:${compatibilityFailures[0]?.name ?? 'unknown'}`;
+  } else if (verificationInvalid) {
+    packageStatus = 'package-unqualified';
+    packageReason = 'inventory-bytes-unverified';
+  } else {
+    packageStatus = 'qualified';
+    packageReason = null;
+  }
+  const delta = predecessorDeltaOf(input.predecessorPaths, input.entries);
   const filesBase = {
-    'summary.md': '',
     'policy-matrix.md': policyMatrix(),
     'unresolved.md': groupedLines(
       'Unresolved records',
@@ -976,10 +1222,14 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     ),
     'future-eligibility.md': groupedLines('Future eligibility', futureRows),
   };
-  filesBase['summary.md'] = renderSummary({
+  const summaryParams = {
     status: packageStatus,
     reason: packageReason,
     handoff,
+    subject: input.subject,
+    subjectIdentity,
+    predecessor,
+    delta,
     tool: input.tool,
     frozenInputDigest,
     packageDigest,
@@ -987,23 +1237,43 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     slices,
     duplicates,
     generatedInputs,
+    adapterIdentities,
+    verification,
     compatibilityChecks: input.compatibilityChecks ?? [],
     inventoryLocator,
     inventorySha,
-  });
+  };
 
   const indexObject = {
+    adapterIdentities,
     captureDigest: handoff.packageDigest,
     commandScope: PAYLOAD_CLASSIFICATION_COMMAND_SCOPE,
+    currentSubject: {
+      baseBranch: input.subject.baseBranch,
+      subjectCommit: input.subject.subjectCommit,
+      subjectTree: input.subject.subjectTree,
+    },
     frozenInputDigest,
     fullInventory: {
       byteCount: Buffer.byteLength(inventoryNdjson),
       logicalLocator: inventoryLocator,
       sha256: inventorySha,
     },
+    inventoryVerification: verification,
     packageDigest,
+    predecessor: {
+      changeId: predecessor.changeId,
+      issue: predecessor.issue,
+      packageDigest: predecessor.packageDigest,
+      sourceCommit: predecessor.sourceCommit,
+      sourceTree: predecessor.sourceTree,
+      subjectIdentity: predecessor.subjectIdentity,
+      trackedFileCount: predecessor.trackedFileCount,
+    },
+    predecessorDelta: delta,
     projections: compactProjectionList({
       ...filesBase,
+      'summary.md': renderSummary(summaryParams),
       inventoryBytes: Buffer.byteLength(inventoryNdjson),
       inventoryLocator,
       inventorySha,
@@ -1013,81 +1283,35 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     }),
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
     slices,
-    sourceCommit: handoff.sourceCommit,
-    sourceTree: handoff.sourceTree,
     status: packageStatus,
-    subjectIdentity: handoff.successorCaptureId,
+    subjectIdentity,
     tool: input.tool,
     trackedFileCount: members.length,
   };
   let files: CompactFiles = {
     ...filesBase,
+    'summary.md': renderSummary(summaryParams),
     'index.json': serializeDeterministic(indexObject),
     inventoryNdjson,
   };
   files = applyInjections(files, input.injectForbidden);
   const parsedIndex = JSON.parse(files['index.json']) as { projections?: { logicalLocator?: string }[]; packageDigest?: string };
   if ((parsedIndex.projections ?? []).some((item) => item.logicalLocator === 'index.json')) {
-    return {
-      status: 'package-unqualified',
-      reason: 'self-referential-index-digest',
-      handoff,
-      tool: input.tool,
-      frozenInputDigest,
-      packageDigest,
-      members,
-      slices,
-      duplicateGroups: duplicates,
-      generatedInputs,
-      files: null,
-      privacyViolations: [],
-      subjectSourceBytesAfter: input.subjectSourceBytes,
-    };
+    return unqualifiedOnly('self-referential-index-digest');
   }
   const privacyViolations = scanFiles(files).map((item) => ({ identity: item.identity, code: item.code }));
   if (privacyViolations.length > 0) {
-    return {
-      status: 'package-unqualified',
-      reason: `privacy:${privacyViolations[0]?.code}`,
-      handoff,
-      tool: input.tool,
-      frozenInputDigest,
-      packageDigest,
-      members,
-      slices,
-      duplicateGroups: duplicates,
-      generatedInputs,
-      files: null,
-      privacyViolations,
-      subjectSourceBytesAfter: input.subjectSourceBytes,
-    };
+    return unqualifiedOnly(`privacy:${privacyViolations[0]?.code}`, privacyViolations);
   }
-
-  filesBase['summary.md'] = renderSummary({
-    status: packageStatus,
-    reason: packageReason,
-    handoff,
-    tool: input.tool,
-    frozenInputDigest,
-    packageDigest,
-    members,
-    slices,
-    duplicates,
-    generatedInputs,
-    compatibilityChecks: input.compatibilityChecks ?? [],
-    inventoryLocator,
-    inventorySha,
-  });
-  files = {
-    ...filesBase,
-    'index.json': serializeDeterministic(indexObject),
-    inventoryNdjson,
-  };
 
   return {
     status: packageStatus,
     reason: packageReason,
     handoff,
+    subject: input.subject,
+    subjectIdentity,
+    predecessor,
+    delta,
     tool: input.tool,
     frozenInputDigest,
     packageDigest,
@@ -1095,6 +1319,8 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     slices,
     duplicateGroups: duplicates,
     generatedInputs,
+    adapterIdentities,
+    inventoryVerification: verification,
     files,
     privacyViolations: [],
     subjectSourceBytesAfter: input.subjectSourceBytes,
@@ -1104,6 +1330,83 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
 export function assertCleanWorktree(repoRoot: string): void {
   const dirty = execFileSync('git', ['-C', repoRoot, 'status', '--porcelain'], { encoding: 'utf8' }).trim();
   if (dirty) throw new Error('dirty-worktree-tool-checkpoint');
+}
+
+/**
+ * Independently reads the written full-inventory artifact bytes back from disk
+ * and reconciles them with the compact projections. Classification qualification
+ * requires this receipt; a locator or historical digest is never a substitute.
+ */
+export function verifyInventoryArtifact(params: {
+  readonly inventoryAbsolutePath: string;
+  readonly expectedLocator: string;
+  readonly expectedSha256: string;
+  readonly expectedMemberDenominator: number;
+  readonly subjectIdentity: string;
+  readonly toolCommit: string;
+}): InventoryVerificationReceipt | { error: string } {
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(params.inventoryAbsolutePath);
+  } catch {
+    return { error: 'inventory-unreadable' };
+  }
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  const memberDenominator = bytes.length === 0 ? 0 : bytes.toString('utf8').trimEnd().split('\n').length;
+  const byteCount = bytes.byteLength;
+  if (sha256 !== params.expectedSha256) return { error: 'inventory-sha256-mismatch' };
+  if (memberDenominator !== params.expectedMemberDenominator) return { error: 'inventory-member-mismatch' };
+  return {
+    locator: params.expectedLocator,
+    byteCount,
+    sha256,
+    memberDenominator,
+    subjectIdentity: params.subjectIdentity,
+    toolCommit: params.toolCommit,
+    projectionsReconciled: true,
+  };
+}
+
+/** Loads the immutable #1881 predecessor package identity from the archived v1 compact index. */
+export function loadCommittedPredecessorPackage(repoRoot: string): PredecessorPackage {
+  const raw = readFileSync(join(repoRoot, 'docs/architecture/repository-payload-classification/index.json'), 'utf8');
+  const index = JSON.parse(raw) as {
+    packageDigest?: string;
+    schemaVersion?: string;
+    sourceCommit?: string;
+    sourceTree?: string;
+    subjectIdentity?: string;
+    trackedFileCount?: number;
+  };
+  if (index.schemaVersion !== 'act-repository-payload-classification/v1') {
+    throw new Error('predecessor-schema-mismatch');
+  }
+  if (!index.packageDigest || !index.sourceCommit || !index.sourceTree || !index.subjectIdentity
+    || !Number.isSafeInteger(index.trackedFileCount)) {
+    throw new Error('predecessor-identity-incomplete');
+  }
+  return {
+    changeId: 'classify-repository-payload-authority-and-materialization',
+    issue: PREDECESSOR_ISSUE,
+    subjectIdentity: index.subjectIdentity,
+    packageDigest: index.packageDigest,
+    sourceCommit: index.sourceCommit,
+    sourceTree: index.sourceTree,
+    trackedFileCount: index.trackedFileCount,
+  };
+}
+
+/** Reads and digest-verifies the predecessor full-inventory artifact to recover its tracked path set. */
+export function loadPredecessorPaths(repoRoot: string, handoff: AHandoff): string[] {
+  const locator = handoff.fullInventoryLocator;
+  if (!locator.startsWith('artifacts/architecture-census/')) throw new Error('predecessor-inventory-locator-invalid');
+  const bytes = readFileSync(join(repoRoot, locator));
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  if (sha256 !== handoff.fullInventorySha256) throw new Error('predecessor-inventory-digest-mismatch');
+  return bytes.toString('utf8').trimEnd().split('\n')
+    .map((line) => JSON.parse(line) as { path?: string })
+    .filter((row): row is { path: string } => typeof row.path === 'string')
+    .map((row) => row.path);
 }
 
 export function toolCheckpointFromGit(repoRoot: string, extraFiles: readonly string[] = []): ToolCheckpoint {
