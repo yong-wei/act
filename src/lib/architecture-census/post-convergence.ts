@@ -615,14 +615,17 @@ function hotspotMetrics(
   const fanIn: string[] = [];
   const fanOut: string[] = [];
   const trustEvidence = new Set<string>();
-  const testBasenames = new Set<string>();
+  const testBasenames = new Map<string, number>();
   for (const row of core.observations) {
     if (row.kind === 'dependency-edge' && row.attributes.context === 'production') {
       if (String(row.attributes.to ?? '') === path) fanIn.push(String(row.attributes.from ?? ''));
       if (String(row.attributes.from ?? '') === path) fanOut.push(String(row.attributes.to ?? ''));
     }
     if (row.trustClass && row.evidence.includes(path)) trustEvidence.add(row.id);
-    if (row.kind === 'test') testBasenames.add(testSubjectBasename(row.identity));
+    if (row.kind === 'test') {
+      const subject = testSubjectBasename(row.identity);
+      testBasenames.set(subject, (testBasenames.get(subject) ?? 0) + 1);
+    }
   }
   return {
     sourceBytes: byteLength,
@@ -632,7 +635,7 @@ function hotspotMetrics(
     fanIn: fanIn.length,
     fanOut: fanOut.length,
     changeFrequency: changeCounts.get(path) ?? 0,
-    testDensity: testBasenames.has(basenameWithoutExtension(path)) ? 1 : 0,
+    testDensity: testBasenames.get(basenameWithoutExtension(path)) ?? 0,
     trustDensity: trustEvidence.size,
   };
 }

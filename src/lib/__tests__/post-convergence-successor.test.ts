@@ -593,6 +593,7 @@ describe('post-convergence successor capture', () => {
       ...coreFixtureFiles(),
       file('src/lib/konling-agent-runtime.ts', 'export const runtime = 1;\n'),
       file('src/lib/__tests__/konling-agent-runtime.test.ts', 'import { runtime } from "@/lib/konling-agent-runtime";\ntest("runtime", () => { expect(runtime).toBe(1); });\n'),
+      file('src/lib/other-place/konling-agent-runtime.spec.ts', 'test("runtime again", () => { expect(true).toBe(true); });\n'),
     ];
     const input = makeInput(files);
     const result = generatePostConvergenceSuccessor(input);
@@ -603,7 +604,7 @@ describe('post-convergence successor capture', () => {
       .split('|')
       .map((cellText) => cellText.trim());
     const konling = cellsOf('src/lib/konling-agent-runtime.ts');
-    expect(konling[konling.length - 4]).toBe('1');
+    expect(konling[konling.length - 4]).toBe('2');
     const orphan = cellsOf('src/lib/orphan/orphan.ts');
     expect(orphan[orphan.length - 4]).toBe('1');
   });
