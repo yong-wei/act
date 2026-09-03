@@ -125,26 +125,32 @@ async function readTaskCollection(
 }
 
 /** 已采用路径的任务投影：当前节点进行中、未到达节点未解锁，完成节点不再列为任务。
- * 导航链接按服务端确认的 goal/path/node 与 path-execution 意图编码，目标页据此恢复执行上下文（#1910）。 */
+ * 导航链接按服务端确认的 goal/path/node 与 path-execution 意图编码；goal 无效时
+ * 目标页无法恢复执行上下文，该路径不投影任务（#1910）。 */
 function pathTaskItems(adoptedPath: Extract<AdoptedPathResult, { ok: true }>): AiTaskItem[] {
   const path = adoptedPath.path!;
   const completed = adoptedPath.completedNodeIds ?? new Set<string>();
   return adoptedPath.nodeIds
     .filter((nodeId) => !completed.has(nodeId))
-    .map((nodeId) => ({
-      id: `path:${path.id}:${nodeId}`,
-      title: adoptedPath.nodeTitle(nodeId),
-      category: 'theory' as const,
-      status: nodeId === path.currentNodeId ? 'in_progress' as const : 'locked' as const,
-      progress: 0,
-      sourceKind: 'path' as const,
-      sourceLabel: path.title,
-      href: buildAdaptivePracticePathExecutionHref({
+    .map((nodeId): AiTaskItem | null => {
+      const href = buildAdaptivePracticePathExecutionHref({
         goalId: path.goalId,
         pathId: path.id,
         nodeId,
-      }),
-    }));
+      });
+      if (!href) return null;
+      return {
+        id: `path:${path.id}:${nodeId}`,
+        title: adoptedPath.nodeTitle(nodeId),
+        category: 'theory' as const,
+        status: nodeId === path.currentNodeId ? 'in_progress' as const : 'locked' as const,
+        progress: 0,
+        sourceKind: 'path' as const,
+        sourceLabel: path.title,
+        href,
+      };
+    })
+    .filter((item): item is AiTaskItem => item !== null);
 }
 
 function assignmentToTaskItem(assignment: StudentAssignmentDto): AiTaskItem {

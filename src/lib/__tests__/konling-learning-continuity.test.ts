@@ -59,17 +59,14 @@ describe('Konling learning continuity', () => {
     expect(store.adaptiveAssessmentAnswer.findFirst).not.toHaveBeenCalled();
   });
 
-  it('omits the goal from the continue-learning href when the path has no valid adaptive practice goal', async () => {
+  it('falls through to honest states when the unfinished path has no valid adaptive practice goal', async () => {
     const store = db({
       path: { id: 'path-9', title: '旧路径', goalId: null, currentNodeId: 'node-1', updatedAt: new Date('2026-08-01T08:00:00Z') },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
-    expect(snapshot).toMatchObject({
-      state: 'unfinished_task',
-      unfinishedTask: {
-        href: '/assessment/adaptive-practice?pathId=path-9&nodeId=node-1&intent=path-execution',
-      },
-    });
+    // goal 无效时目标页无法恢复执行上下文：不进入 unfinished_task，落入后续诚实状态
+    expect(snapshot.state).not.toBe('unfinished_task');
+    expect(snapshot.unfinishedTask).toBeUndefined();
   });
 
   it('uses a governed recent mistake without inventing a missing cause', async () => {

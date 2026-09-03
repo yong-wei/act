@@ -98,22 +98,27 @@ export async function resolveKonlingContinuitySnapshot(
   });
 
   if (unfinishedTask?.currentNodeId) {
-    return {
-      snapshotId: snapshotId(input.userId, 'unfinished_task', `${unfinishedTask.id}:${unfinishedTask.currentNodeId}:${unfinishedTask.updatedAt.toISOString()}`),
-      state: 'unfinished_task',
-      evidenceAsOf: unfinishedTask.updatedAt.toISOString(),
-      unfinishedTask: {
-        pathId: unfinishedTask.id,
-        title: unfinishedTask.title,
-        nodeId: unfinishedTask.currentNodeId,
-        // 与 AI 工坊路径任务同一导航口径：goal/path/node + path-execution 意图（#1910）
-        href: buildAdaptivePracticePathExecutionHref({
-          goalId: unfinishedTask.goalId,
+    // 与 AI 工坊路径任务同一导航口径：goal/path/node + path-execution 意图；
+    // goal 无效时目标页无法恢复执行上下文，不进入 unfinished_task，
+    // 落入后续诚实状态（#1910）
+    const continueHref = buildAdaptivePracticePathExecutionHref({
+      goalId: unfinishedTask.goalId,
+      pathId: unfinishedTask.id,
+      nodeId: unfinishedTask.currentNodeId,
+    });
+    if (continueHref) {
+      return {
+        snapshotId: snapshotId(input.userId, 'unfinished_task', `${unfinishedTask.id}:${unfinishedTask.currentNodeId}:${unfinishedTask.updatedAt.toISOString()}`),
+        state: 'unfinished_task',
+        evidenceAsOf: unfinishedTask.updatedAt.toISOString(),
+        unfinishedTask: {
           pathId: unfinishedTask.id,
+          title: unfinishedTask.title,
           nodeId: unfinishedTask.currentNodeId,
-        }),
-      },
-    };
+          href: continueHref,
+        },
+      };
+    }
   }
 
   const recentMistake = await db.adaptiveAssessmentAnswer.findFirst({

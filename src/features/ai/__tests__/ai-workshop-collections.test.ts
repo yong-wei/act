@@ -170,7 +170,7 @@ describe('assembleAiWorkshopCollections', () => {
     const db = createDb();
     // 跳过/改道：currentNodeId 移到 node-c，但执行记录只确认 node-b 完成。
     db.learningPath.findFirst.mockResolvedValue({
-      id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-c',
+      id: 'path-1', title: '控制矫正路径', goalId: 'control-correction', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-c',
       lastExecutionMetadata: { completedNodeIds: ['node-b'] },
     });
     db.knowledgeNode.findMany.mockResolvedValue([
@@ -200,10 +200,14 @@ describe('assembleAiWorkshopCollections', () => {
     );
   });
 
-  it('omits the goal parameter when the adopted path has no valid adaptive practice goal', async () => {
-    studentListAssignments.mockResolvedValue([]);
+  it('does not project path tasks when the adopted path has no valid adaptive practice goal', async () => {
+    studentListAssignments.mockResolvedValue([{
+      id: 'assignment-1', title: '普通作业', contextStatus: 'CURRENT', state: 'NOT_STARTED',
+      submittedRequiredCount: 0, requiredQuestionCount: 1,
+    }]);
     const db = createDb();
-    // goalId 缺失或不在合法自适应练习目标集合内时，不得把非法 goal 注入路由
+    // goalId 缺失或不在合法自适应练习目标集合内时，目标页无法恢复执行上下文；
+    // 不得生成看似可执行的路径任务链接（#1910 review）
     db.learningPath.findFirst.mockResolvedValueOnce({
       id: 'path-1', title: '无目标路径', goalId: null, nodeIds: ['node-a'], currentNodeId: 'node-a',
       lastExecutionMetadata: { completedNodeIds: [] },
@@ -214,14 +218,10 @@ describe('assembleAiWorkshopCollections', () => {
     });
 
     const noGoal = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
-    expect(noGoal.tasks.items[0]?.href).toBe(
-      '/assessment/adaptive-practice?pathId=path-1&nodeId=node-a&intent=path-execution',
-    );
+    expect(noGoal.tasks.items.map((item) => item.sourceKind)).toEqual(['assignment']);
 
     const invalidGoal = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
-    expect(invalidGoal.tasks.items[0]?.href).toBe(
-      '/assessment/adaptive-practice?pathId=path-2&nodeId=node-a&intent=path-execution',
-    );
+    expect(invalidGoal.tasks.items.map((item) => item.sourceKind)).toEqual(['assignment']);
   });
 
   it('path-encodes goal, path and node values in path task navigation hrefs', async () => {
