@@ -46,7 +46,8 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
         <div className="rounded border border-border bg-background p-3 text-center">
           <div className="text-2xl font-bold text-foreground" data-ai-workshop-metric="experiment-count">
             {collection.state === 'available'
-              ? collection.total ?? experiments.length
+              // 未知总数（截断）显示 N+，不得把窗口数伪装成精确总数（Codex R3 review）。
+              ? collection.total ?? `${experiments.length}+`
               : collection.state === 'unavailable'
                 ? '不可用'
                 : '暂无'}
@@ -114,13 +115,20 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
                 </div>
               ) : null}
 
-              {/* 导航状态：已验证目标可进入；不可验证时受限展示，不生成死链（Issue #1912） */}
+              {/* 导航状态：已验证目标可进入；不可验证时受限展示，不生成死链（Issue #1912）。
+                  卡片本身不是链接——主导航与被归并来源链接分别渲染，避免嵌套 <a>
+                  破坏解析与 hydration（Codex R3 review）。 */}
               <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 {experiment.navigation ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-foreground" data-ai-workshop-experiment-navigation={experiment.navigation.href}>
+                  <Link
+                    href={experiment.navigation.href}
+                    aria-label={`${experiment.title}，${experiment.navigation.label}`}
+                    className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    data-ai-workshop-experiment-navigation={experiment.navigation.href}
+                  >
                     <Link2 className="h-3.5 w-3.5" />
                     {experiment.navigation.label}
-                  </span>
+                  </Link>
                 ) : (
                   <span className="inline-flex items-center gap-1" data-ai-workshop-experiment-navigation="restricted">
                     <Link2Off className="h-3.5 w-3.5" />
@@ -151,22 +159,10 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
               </div>
             </>
           );
-          const className = 'block rounded border border-border bg-background p-4 transition-all hover:border-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
-          return experiment.navigation ? (
-            <Link
-              key={experiment.id}
-              href={experiment.navigation.href}
-              aria-label={`${experiment.title}，${experiment.navigation.label}`}
-              data-ai-workshop-experiment-item={experiment.id}
-              className={className}
-            >
-              {body}
-            </Link>
-          ) : (
+          return (
             <div
               key={experiment.id}
-              aria-label={`${experiment.title}，入口不可用`}
               data-ai-workshop-experiment-item={experiment.id}
               className="rounded border border-border bg-background p-4"
             >

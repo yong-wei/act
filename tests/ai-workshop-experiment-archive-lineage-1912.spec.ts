@@ -25,18 +25,21 @@ for (const viewport of [
     if (state === 'available') {
       const itemCount = await panel.locator('[data-ai-workshop-experiment-item]').count();
       expect(itemCount).toBeGreaterThan(0);
-      // 已验证导航的条目本身就是链接（容器即 <a>）；受限条目无 href 且带受限标记。
-      const linkedItems = panel.locator('a[data-ai-workshop-experiment-item][href]');
+      // 每个条目：主导航是卡内独立链接（卡片本身非链接，避免嵌套 <a>），
+      // 或受限展示；被归并来源链接同样是卡内链接。
+      const primaryNavLinks = panel.locator('a[data-ai-workshop-experiment-navigation][href]');
       const restrictedItems = panel.locator(
         '[data-ai-workshop-experiment-item]:has([data-ai-workshop-experiment-navigation="restricted"])',
       );
-      const linkedCount = await linkedItems.count();
+      const linkedCount = await primaryNavLinks.count();
       const restrictedCount = await restrictedItems.count();
       expect(linkedCount + restrictedCount).toBe(itemCount);
       for (let index = 0; index < linkedCount; index += 1) {
-        const href = await linkedItems.nth(index).getAttribute('href');
+        const href = await primaryNavLinks.nth(index).getAttribute('href');
         expect(href?.startsWith('/')).toBe(true);
       }
+      // 嵌套链接防护：卡片容器不是 <a>（Codex R3 review）。
+      expect(await panel.locator('a[data-ai-workshop-experiment-item]').count()).toBe(0);
     }
 
     // 水平溢出检查。
@@ -70,7 +73,7 @@ test('verified experiment navigation enters its learning destination (Issue #191
   const state = await panel.getAttribute('data-ai-workshop-collection-state');
   test.skip(state !== 'available', 'experiment archive has no populated items in this environment');
 
-  const firstLink = panel.locator('a[data-ai-workshop-experiment-item][href]').first();
+  const firstLink = panel.locator('a[data-ai-workshop-experiment-navigation][href]').first();
   test.skip((await firstLink.count()) === 0, 'no verified navigation target in this environment');
   const href = await firstLink.getAttribute('href');
   await firstLink.click();
