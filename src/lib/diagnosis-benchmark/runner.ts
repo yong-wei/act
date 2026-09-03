@@ -30,6 +30,7 @@ import {
   type DiagnosisBenchmarkScenarioRun,
 } from '@/lib/diagnosis-benchmark/metrics';
 import type {
+  DiagnosisBenchmarkCandidateCoverage,
   DiagnosisBenchmarkCandidateFinding,
   DiagnosisBenchmarkCandidateReport,
   DiagnosisBenchmarkGovernedInput,
@@ -129,8 +130,12 @@ export function replayBenchmarkGovernance(
     limitations: report.limitations,
   });
   // 限制×覆盖一致性（Issue #1904）：复用生产校验函数，违例同样视为治理拒绝。
+  // 生产路径在持久化前会用确定性投影覆盖 assignment/assessment 覆盖事实
+  //（Codex R1 review）：重放同构归一化，live 候选对覆盖声明的误报不得
+  // 弱化或绕过该门；顶层 coverage 事实仍以候选声明为准（与生产一致）。
+  const normalizedCoverage = normalizeCandidateCoverage(report.sourceCoverage, governedInput);
   const limitationCoverageViolations = enforceLimitationCoverageConsistency({
-    sourceCoverage: report.sourceCoverage,
+    sourceCoverage: normalizedCoverage,
     limitations: report.limitations,
   });
   const governanceFailed = languageViolations.length > 0
@@ -150,7 +155,7 @@ export function replayBenchmarkGovernance(
     evidenceRefsValid,
     attributionValid: attributionViolations.length === 0,
     coverageClaimAccurate: report.sourceCoverage.progressRows === governedInput.knowledgeProgress.length
-      && boundaryRespected(scenario, report),
+      && boundaryRespected(scenario, report, normalizedCoverage),
     failureReason: governanceFailed
       ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'},riskCoverage=${riskFlagCoverageViolations.join(',') || 'none'},limitationCoverage=${limitationCoverageViolations.join(',') || 'none'}`
       : undefined,
@@ -159,14 +164,32 @@ export function replayBenchmarkGovernance(
 
 const CONFIDENCE_ORDER = ['unavailable', 'low', 'medium', 'high'] as const;
 
+function normalizeCandidateCoverage(
+  coverage: DiagnosisBenchmarkCandidateCoverage,
+  governedInput: DiagnosisBenchmarkGovernedInput,
+): DiagnosisBenchmarkCandidateCoverage {
+  const memberCount = governedInput.studentIds.length;
+  const outcomeCoverage = (rows: ReadonlyArray<{ userId: string }>) => {
+    const includedStudents = new Set(rows.map((row) => row.userId)).size;
+    return { includedStudents, missingStudents: Math.max(memberCount - includedStudents, 0) };
+  };
+  return {
+    ...coverage,
+    assignment: outcomeCoverage(governedInput.assignmentSubmissions ?? []),
+    assessment: outcomeCoverage(governedInput.assessmentSessions ?? []),
+  };
+}
+
 /**
- * 场景结论边界（Issue #1729 review）：证据冲突或覆盖缺失的场景要求
- * 报告携带 limitations 且置信不超过声明的最高档；违反即覆盖/降级
- * 主张不准确，计入合规率并在阈值门禁中失败。
+ * 场景结论边界（Issue #1729 review）：报告置信度不得超过声明的最高档；
+ * 证据冲突或覆盖缺失的场景还要求携带 limitations；违反即覆盖/降级主张
+ * 不准确，计入合规率并在阈值门禁中失败。置信度上限对所有场景生效，
+ * 不因 requireLimitations 提前放行（Codex R1 review，Issue #1904）。
  */
 function boundaryRespected(
   scenario: DiagnosisBenchmarkScenario,
   report: DiagnosisBenchmarkCandidateReport,
+  normalizedCoverage: DiagnosisBenchmarkCandidateCoverage,
 ): boolean {
   const boundary = scenario.allowedConclusionBoundary;
   // 稀疏风险标志语义（Issue #1755 review）：命中数被表述为覆盖不足即违反边界，
@@ -176,16 +199,16 @@ function boundaryRespected(
     return false;
   }
   // 限制×覆盖一致性（Issue #1904）：完整覆盖下声称学生证据可能缺失即违反边界，
-  // 复用生产确定性校验的同一判定。
+  // 复用生产确定性校验的同一判定（覆盖事实经生产同构归一化）。
   if (boundary.forbidHypotheticalMissingData
-    && enforceLimitationCoverageConsistency({ sourceCoverage: report.sourceCoverage, limitations: report.limitations }).length > 0) {
+    && enforceLimitationCoverageConsistency({ sourceCoverage: normalizedCoverage, limitations: report.limitations }).length > 0) {
     return false;
   }
-  if (!boundary.requireLimitations) return true;
-  if (report.limitations.length === 0) return false;
   const observed = CONFIDENCE_ORDER.indexOf(report.confidence as typeof CONFIDENCE_ORDER[number]);
   const allowed = CONFIDENCE_ORDER.indexOf(boundary.maxConfidence);
-  return observed >= 0 && allowed >= 0 && observed <= allowed;
+  if (observed < 0 || allowed < 0 || observed > allowed) return false;
+  if (!boundary.requireLimitations) return true;
+  return report.limitations.length > 0;
 }
 
 function evidenceRefFor(governedInput: DiagnosisBenchmarkGovernedInput, nodeId: string, take: number): string[] {

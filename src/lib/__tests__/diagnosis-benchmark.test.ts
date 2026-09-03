@@ -484,6 +484,29 @@ describe('diagnosis benchmark fixture run', () => {
     );
     expect(boundaryReplayed.status).toBe('ok');
     expect(boundaryReplayed.coverageClaimAccurate).toBe(true);
+
+    // 置信度上限对所有场景生效：requireLimitations=false 不得提前放行
+    // high 置信度（Codex R1 review）。
+    const overconfident: DiagnosisBenchmarkCandidateReport = {
+      ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report,
+      confidence: 'high',
+    };
+    const overconfidentReplayed = replayBenchmarkGovernance(scenario, materialized.governedInput, overconfident);
+    expect(overconfidentReplayed.coverageClaimAccurate).toBe(false);
+
+    // 重放前按生产同构归一化 assignment/assessment 覆盖：live 候选误报
+    // 子组缺失不得弱化限制×覆盖一致性门（Codex R1 review）。
+    const misreportingCoverage: DiagnosisBenchmarkCandidateReport = {
+      ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report,
+      sourceCoverage: {
+        ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report.sourceCoverage,
+        assignment: { includedStudents: 90, missingStudents: 10 },
+      },
+      limitations: ['知识节点薄弱判定严格依赖进度数据，若部分学生数据缺失可能影响弱势人数统计的精确性。'],
+    };
+    const misreportReplayed = replayBenchmarkGovernance(scenario, materialized.governedInput, misreportingCoverage);
+    expect(misreportReplayed.status).toBe('calibration-rejected');
+    expect(misreportReplayed.failureReason).toContain('limitationCoverage=limitations[0]');
   });
 
   it('passes all ten scenarios end to end with the fixture stub', async () => {
