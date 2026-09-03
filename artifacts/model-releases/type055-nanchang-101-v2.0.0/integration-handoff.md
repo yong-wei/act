@@ -6,7 +6,9 @@
 - 发布 manifest SHA-256：`5901a821f7f955d4cafb0cd7c40420df506e24914de4abfa12678c7643f594b6`
 - 源 .blend SHA-256：`c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357`
 - 接收脚本：`scripts/models/receive-type055-nanchang-101-v2.mjs`（复制前后哈希/大小核验、暂存目录原子替换、候选包路径脏工作区 fail closed、收据不含本机绝对路径）
-- 接收收据：`receipt.json`（同目录；绑定干净 Git 修订，`packageDirty=false`）
+- 接收收据：`receipt.json`（同目录；可验证主绑定为候选包目录 git tree digest
+  `packageTreeDigest`——任意克隆（含浅克隆/squash 合并）都可用 `git rev-parse HEAD:<包路径>`
+  复核；捕获时 `packageDirty=false`）
 - ACT 候选目录：`public/assets/model-releases/type055-nanchang-101/v2.0.0/`（manifest + 六 GLB）
 - ACT 描述符：`src/resources/simulations/model-packages/type055-nanchang-101-v2.ts`
 
