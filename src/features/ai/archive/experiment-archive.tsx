@@ -4,7 +4,7 @@
  * ExperimentArchive - 实验档案（右侧面板）
  */
 
-import { Archive, Beaker, Scale, AlertTriangle, Star, Trophy } from 'lucide-react';
+import { Archive, Beaker, Scale, AlertTriangle, Star, Trophy, Activity, Wrench, Compass, Link2, Link2Off } from 'lucide-react';
 import Link from 'next/link';
 import type { AiCollectionEnvelope, AiExperimentItem } from '../ai-workshop-collections';
 
@@ -17,6 +17,9 @@ const typeConfig = {
   ETHICS_SANDBOX: { icon: Scale, label: '伦理沙盘', color: 'text-foreground', bg: 'bg-muted' },
   ANOMALY_EVENT: { icon: AlertTriangle, label: '异常事件', color: 'text-foreground', bg: 'bg-muted' },
   ARENA_SUBMISSION: { icon: Trophy, label: 'Arena 提交', color: 'text-foreground', bg: 'bg-muted' },
+  SCENE_SIMULATION: { icon: Activity, label: '场景仿真', color: 'text-foreground', bg: 'bg-muted' },
+  CONTROL_WORKBENCH: { icon: Wrench, label: '控制工作台', color: 'text-foreground', bg: 'bg-muted' },
+  ODYSSEY_RUN: { icon: Compass, label: '控制奥德赛', color: 'text-foreground', bg: 'bg-muted' },
 };
 
 export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
@@ -65,12 +68,8 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
         {collection.state === 'available' ? experiments.map((experiment) => {
           const config = typeConfig[experiment.type];
           const Icon = config.icon;
-
-          return (
-            <div
-              key={experiment.id}
-              className="cursor-pointer rounded border border-border bg-background p-4 transition-all hover:border-primary hover:bg-accent"
-            >
+          const body = (
+            <>
               <div className="mb-2 flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <div className={`rounded-lg p-1.5 ${config.bg}`}>
@@ -114,6 +113,43 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
                   ))}
                 </div>
               ) : null}
+
+              {/* 导航状态：已验证目标可进入；不可验证时受限展示，不生成死链（Issue #1912） */}
+              <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                {experiment.navigation ? (
+                  <span className="inline-flex items-center gap-1 font-medium text-foreground" data-ai-workshop-experiment-navigation={experiment.navigation.href}>
+                    <Link2 className="h-3.5 w-3.5" />
+                    {experiment.navigation.label}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1" data-ai-workshop-experiment-navigation="restricted">
+                    <Link2Off className="h-3.5 w-3.5" />
+                    入口不可用
+                  </span>
+                )}
+              </div>
+            </>
+          );
+          const className = 'block rounded border border-border bg-background p-4 transition-all hover:border-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+          return experiment.navigation ? (
+            <Link
+              key={experiment.id}
+              href={experiment.navigation.href}
+              aria-label={`${experiment.title}，${experiment.navigation.label}`}
+              data-ai-workshop-experiment-item={experiment.id}
+              className={className}
+            >
+              {body}
+            </Link>
+          ) : (
+            <div
+              key={experiment.id}
+              aria-label={`${experiment.title}，入口不可用`}
+              data-ai-workshop-experiment-item={experiment.id}
+              className="rounded border border-border bg-background p-4"
+            >
+              {body}
             </div>
           );
         }) : (

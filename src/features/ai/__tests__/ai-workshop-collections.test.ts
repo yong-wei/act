@@ -13,12 +13,14 @@ import {
   assembleAiWorkshopCollections,
 } from '@/features/ai/ai-workshop-collections.server';
 import { orderByOccurrence } from '@/features/ai/ai-workshop-collections';
+import { sceneTraceSourceRefId } from '@/lib/data-governance/simulation-scene-run-persistence';
 
 function createDb() {
   return {
     learningPath: { findFirst: vi.fn().mockResolvedValue(null) },
     knowledgeNode: { findMany: vi.fn().mockResolvedValue([]) },
     growthRecord: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
+    simulationRun: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
     simulationLog: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
     arenaSubmission: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
     ethicalLog: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(0) },
@@ -53,12 +55,14 @@ describe('assembleAiWorkshopCollections', () => {
     ]);
     db.simulationLog.findMany.mockResolvedValue([{
       id: 'sim-1', controlMode: 'PID', inputParams: { kp: 1.2, ki: 0.3, kd: 0.05, raw: 'x' },
-      score: 86, isEthicalViolation: false, odysseyCompletedAt: new Date('2026-08-20T08:00:00Z'),
+      score: 86, isEthicalViolation: false, odysseyRunId: null,
+      odysseyCompletedAt: new Date('2026-08-20T08:00:00Z'),
       createdAt: new Date('2026-08-20T08:00:00Z'),
     }]);
     db.simulationLog.count.mockResolvedValue(1);
     db.arenaSubmission.findMany.mockResolvedValue([{
-      id: 'arena-1', method: 'PID', score: 42, valid: false, submittedAt: new Date('2026-08-21T08:00:00Z'),
+      id: 'arena-1', taskId: 'task-1', method: 'PID', score: 42, valid: false, submittedAt: new Date('2026-08-21T08:00:00Z'),
+      controllerArtifact: { payload: {} },
     }]);
     db.arenaSubmission.count.mockResolvedValue(1);
     db.growthRecord.findMany.mockImplementation(({ where }: { where: { recordType: { in: string[] } } }) => (
@@ -208,6 +212,130 @@ describe('assembleAiWorkshopCollections', () => {
     const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
 
     expect(collections.milestones.items.map((item) => item.status)).toEqual(['CURRENT', 'PENDING']);
+  });
+});
+
+describe('experiment archive lineage (Issue #1912)', () => {
+  beforeEach(() => {
+    studentListAssignments.mockResolvedValue([]);
+  });
+
+  it('merges one odyssey activity across canonical run, legacy log and arena submission into a single item', async () => {
+    const db = createDb();
+    db.simulationRun.findMany.mockResolvedValue([{
+      id: 'run-1', runKind: 'scene_simulation', sourceDomain: 'simulation_scene',
+      sourceRefId: sceneTraceSourceRefId('student-1', 'run-od-1'),
+      resourceId: 'sim-scene-cruise', summary: { metrics: { score: 77, kp: 1.5 } },
+      completedAt: new Date('2026-09-01T08:00:00Z'),
+    }]);
+    db.simulationRun.count.mockResolvedValue(1);
+    db.simulationLog.findMany.mockResolvedValue([{
+      id: 'log-bridged', controlMode: 'PID', inputParams: {}, score: 90, isEthicalViolation: false,
+      odysseyRunId: 'run-od-1', odysseyCompletedAt: new Date('2026-09-01T08:00:00Z'),
+      createdAt: new Date('2026-09-01T08:00:00Z'),
+    }]);
+    db.simulationLog.count.mockResolvedValue(1);
+    db.arenaSubmission.findMany.mockResolvedValue([{
+      id: 'arena-bridged', taskId: 'task-od', method: 'pid', score: 91, valid: true,
+      submittedAt: new Date('2026-09-01T08:00:00Z'),
+      controllerArtifact: { payload: { odysseyRunId: 'run-od-1' } },
+    }]);
+    db.arenaSubmission.count.mockResolvedValue(1);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    // 同一次奥德赛活动只展示一次、只计数一次：以标准运行为代表。
+    expect(collections.experiments.items).toHaveLength(1);
+    expect(collections.experiments.total).toBe(1);
+    const item = collections.experiments.items[0];
+    expect(item).toMatchObject({
+      id: 'simulation-run:run-1',
+      sourceKind: 'simulation_run',
+      type: 'SCENE_SIMULATION',
+      score: 77,
+      resultAuthority: 'preview',
+      navigation: { href: '/interactive-learning/resources/sim-scene-cruise' },
+    });
+  });
+
+  it('keeps an odyssey log as the representative when no canonical run exists and merges its arena bridge', async () => {
+    const db = createDb();
+    db.simulationLog.findMany.mockResolvedValue([{
+      id: 'log-od', controlMode: 'PID', inputParams: { kp: 2 }, score: 88, isEthicalViolation: false,
+      odysseyRunId: 'run-od-2', odysseyCompletedAt: new Date('2026-09-01T09:00:00Z'),
+      createdAt: new Date('2026-09-01T09:00:00Z'),
+    }]);
+    db.simulationLog.count.mockResolvedValue(1);
+    db.arenaSubmission.findMany.mockResolvedValue([{
+      id: 'arena-od', taskId: 'task-od-2', method: 'pid', score: 92, valid: true,
+      submittedAt: new Date('2026-09-01T09:05:00Z'),
+      controllerArtifact: { payload: { odysseyRunId: 'run-od-2' } },
+    }]);
+    db.arenaSubmission.count.mockResolvedValue(1);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    expect(collections.experiments.items).toHaveLength(1);
+    expect(collections.experiments.items[0]).toMatchObject({
+      id: 'simulation:log-od',
+      type: 'ODYSSEY_RUN',
+      resultAuthority: 'official',
+      navigation: { href: '/interactive-learning/control-odyssey' },
+    });
+    expect(collections.experiments.total).toBe(1);
+  });
+
+  it('derives source type and navigation from the source contract instead of defaulting to PID', async () => {
+    const db = createDb();
+    db.simulationRun.findMany.mockResolvedValue([
+      {
+        id: 'run-cw', runKind: 'scene_simulation', sourceDomain: 'simulation_scene',
+        sourceRefId: 'control-workbench:abc', resourceId: null, summary: {},
+        completedAt: new Date('2026-09-01T10:00:00Z'),
+      },
+      {
+        id: 'run-unknown', runKind: 'scene_simulation', sourceDomain: 'simulation_scene',
+        sourceRefId: 'scene-trace:def', resourceId: 'not-registered-resource',
+        summary: {}, completedAt: new Date('2026-09-01T11:00:00Z'),
+      },
+    ]);
+    db.simulationRun.count.mockResolvedValue(2);
+    db.simulationLog.findMany.mockResolvedValue([{
+      id: 'log-mpc', controlMode: 'MPC', inputParams: {}, score: 70, isEthicalViolation: false,
+      odysseyRunId: null, odysseyCompletedAt: null,
+      createdAt: new Date('2026-09-01T12:00:00Z'),
+    }]);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    const byId = new Map(collections.experiments.items.map((item) => [item.id, item]));
+    expect(byId.get('simulation-run:run-cw')).toMatchObject({
+      type: 'CONTROL_WORKBENCH',
+      navigation: { href: '/interactive-learning/control-workbench' },
+    });
+    // 注册表无法验证目标时受限展示，不生成死链。
+    expect(byId.get('simulation-run:run-unknown')?.navigation).toBeNull();
+    // 非伦理、非 PID 家族的日志按通用仿真记录表达，不再伪造 PID 类型。
+    expect(byId.get('simulation:log-mpc')).toMatchObject({ type: 'SCENE_SIMULATION' });
+    expect(byId.get('simulation:log-mpc')?.navigation).toBeNull();
+    expect(collections.experiments.total).toBe(3);
+  });
+
+  it('keeps unrelated runs, logs and arena submissions separate with bounded lower-bound totals', async () => {
+    const db = createDb();
+    db.simulationRun.count.mockResolvedValue(20);
+    db.simulationLog.count.mockResolvedValue(5);
+    db.arenaSubmission.count.mockResolvedValue(2);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    // 窗口为空：总诚实下界 = 各来源窗口外剩余记录数之和。
+    expect(collections.experiments.state).toBe('empty');
+    expect(collections.experiments.total).toBe(0);
+    expect(db.simulationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ ownerUserId: 'student-1', status: 'completed' }),
+      take: 12,
+    }));
   });
 });
 

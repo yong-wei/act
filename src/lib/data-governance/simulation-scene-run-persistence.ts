@@ -73,6 +73,15 @@ function hashValue(value: unknown) {
     .digest('hex');
 }
 
+/**
+ * 场景轨迹运行的标准身份键（Issue #1912）：与持久化写入时同源同法，
+ * 供跨来源投影（如 AI 工坊实验档案）按 runId 确定性重算桥接身份，
+ * 不得各自实现第二套哈希口径。
+ */
+export function sceneTraceSourceRefId(ownerUserId: string, runId: string) {
+  return `scene-trace:${hashValue({ ownerUserId, runId })}`;
+}
+
 function sha256Ref(value: unknown) {
   return `sha256:${hashValue(value)}`;
 }
@@ -304,10 +313,7 @@ export async function persistSceneTraceSimulationRun(
     controller,
     launchContext,
   });
-  const sourceRefId = `scene-trace:${hashValue({
-    ownerUserId,
-    runId: trace.envelope.runId,
-  })}`;
+  const sourceRefId = sceneTraceSourceRefId(ownerUserId, trace.envelope.runId);
   const controllerSnapshotRef = sha256Ref(controller);
   const checksum = sha256Ref(evaluation);
   const runContractIdentity = projectPracticeOutcomeIdentity({
