@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
@@ -49,6 +50,24 @@ function subjectFor(members: readonly ResidualMemberInput[], verified = true): R
     fullInventorySha256: REQUIRED_SUCCESSOR.fullInventorySha256,
     memberSetDigest: memberSetDigest(members.map((member) => member.path)),
     fullInventoryBytesVerified: verified,
+    currentSubject: {
+      baseBranch: 'origin/integration',
+      subjectCommit: 'e'.repeat(40),
+      subjectTree: 'f'.repeat(40),
+    },
+    upstreamPayload: {
+      issue: 1916,
+      closed: true,
+      archived: true,
+      subjectIdentity: 'a'.repeat(64),
+      packageDigest: '1'.repeat(64),
+      schemaVersion: 'act-repository-payload-classification/v2',
+    },
+    predecessor1883: {
+      decisionIdentity: PREDECESSOR_1883.decisionIdentity,
+      recordCount: 262,
+      qualified: false,
+    },
   };
 }
 
@@ -63,12 +82,109 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
   };
 }
 
+/** Runs the adjudication once, derives a valid ledger receipt, then produces the final decision. */
+function runWithLedgerVerification(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): ResidualAdjudication {
+  const first = adjudicateResidualDataGovernance(input(partial));
+  const decided = asAdjudication(first);
+  const subject = decided.subject;
+  const receipt = {
+    locator: decided.fullLedger.logicalLocator,
+    byteCount: decided.fullLedger.byteCount,
+    sha256: decided.fullLedger.sha256,
+    memberDenominator: decided.summaries.memberCount,
+    subjectCommit: subject.currentSubject.subjectCommit,
+    toolCommit: decided.tool.toolCommit,
+    projectionsReconciled: true,
+  };
+  return asAdjudication(adjudicateResidualDataGovernance({ ...input(partial), ledgerVerification: receipt }));
+}
+
 function asAdjudication(result: ReturnType<typeof adjudicateResidualDataGovernance>): ResidualAdjudication {
   expect(result.kind).toBe('residual-adjudication');
   return result as ResidualAdjudication;
 }
 
 describe('residual data-governance adjudication', () => {
+  it('gates on the archived upstream payload change and an independent current subject', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const base = runWithLedgerVerification({ members });
+    expect(base.qualified).toBe(true);
+    expect(base.subject.currentSubject.subjectCommit).toBe('e'.repeat(40));
+
+    const notArchived = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, archived: false },
+      },
+    }));
+    expect(notArchived.blockers).toContain('upstream-payload-change-not-archived');
+
+    const wrongSchema = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, schemaVersion: 'act-repository-payload-classification/v1' },
+      },
+    }));
+    expect(wrongSchema.blockers).toContain('upstream-payload-identity-incomplete');
+
+    const toolCollision = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        currentSubject: { ...subjectFor(members).currentSubject, subjectCommit: tool.toolCommit },
+      },
+    }));
+    expect(toolCollision.blockers).toContain('tool-subject-identity-collision');
+
+    const driftedPredecessor = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        predecessor1883: { decisionIdentity: '0'.repeat(64), recordCount: 262, qualified: false },
+      },
+    }));
+    expect(driftedPredecessor.blockers).toContain('predecessor-1883-decision-identity-mismatch');
+  });
+
+  it('requires an independently verified ledger receipt bound to the exact subject and tool', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const first = asAdjudication(adjudicateResidualDataGovernance(input({ members })));
+    expect(first.blockers).toContain('full-ledger-bytes-unverified');
+
+    const good = runWithLedgerVerification({ members });
+    expect(good.blockers).not.toContain('full-ledger-bytes-unverified');
+
+    const badSha = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: {
+        locator: good.fullLedger.logicalLocator,
+        byteCount: good.fullLedger.byteCount,
+        sha256: '0'.repeat(64),
+        memberDenominator: good.summaries.memberCount,
+        subjectCommit: good.subject.currentSubject.subjectCommit,
+        toolCommit: good.tool.toolCommit,
+        projectionsReconciled: true,
+      },
+    }));
+    expect(badSha.blockers).toContain('full-ledger-bytes-unverified');
+
+    const foreignTool = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: {
+        locator: good.fullLedger.logicalLocator,
+        byteCount: good.fullLedger.byteCount,
+        sha256: good.fullLedger.sha256,
+        memberDenominator: good.summaries.memberCount,
+        subjectCommit: good.subject.currentSubject.subjectCommit,
+        toolCommit: 'f'.repeat(40),
+        projectionsReconciled: true,
+      },
+    }));
+    expect(foreignTool.blockers).toContain('full-ledger-bytes-unverified');
+  });
+
   it('collects intra-package re-exports and directory path reads', () => {
     const relative = collectRelativeCallers([
       {
@@ -208,12 +324,8 @@ describe('residual data-governance adjudication', () => {
     expect(drifted.blockers).toEqual(expect.arrayContaining([
       'dirty-source',
       'mixed-source',
-      'subject-capture-mismatch',
-      'subject-commit-mismatch',
-      'subject-package-digest-mismatch',
-      'owner-residue-digest-mismatch',
-      'full-inventory-digest-mismatch',
-      'full-inventory-bytes-unverified',
+      'predecessor-1883-identity-mismatch',
+      'full-ledger-bytes-unverified',
     ]));
   });
 
@@ -329,14 +441,14 @@ describe('residual data-governance adjudication', () => {
     const members: ResidualMemberInput[] = [
       { path: 'src/lib/data-governance/portrait-v2-model.ts' },
     ];
-    const qualified = asAdjudication(adjudicateResidualDataGovernance(input({
+    const qualified = runWithLedgerVerification({
       members,
       callers: [{
         memberPath: 'src/lib/data-governance/portrait-v2-model.ts',
         callerPath: 'src/features/personalization/portrait.ts',
         relationship: 'import',
       }],
-    })));
+    });
     expect(qualified.records).toHaveLength(1);
     expect(qualified.records[0]?.accountableOwner).toBe('personalization');
     expect(qualified.records[0]?.outcome).toBe('business-domain');

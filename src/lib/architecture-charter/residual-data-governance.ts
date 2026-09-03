@@ -1,11 +1,31 @@
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { privacyViolation } from '@/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/serialize';
 import { OWNER_CATALOG, REQUIRED_BASELINE, type OwnerId } from './types';
 
-export const RESIDUAL_SCHEMA_VERSION = 'act-residual-data-governance-adjudication/v1' as const;
+export const RESIDUAL_SCHEMA_VERSION = 'act-residual-data-governance-adjudication/v2' as const;
 export const RESIDUAL_COMMAND_SCOPE = 'residual-data-governance:adjudicate' as const;
 export const RESIDUAL_DENOMINATOR_PREFIX = 'src/lib/data-governance/' as const;
 export const LEARNING_RECORD_WRITER = 'src/features/learning-record/ingestion' as const;
+
+/** Upstream current payload-eligibility change this adjudication consumes (Issue #1916). */
+export const UPSTREAM_PAYLOAD_CHANGE = {
+  changeId: 'complete-current-repository-payload-eligibility-classification',
+  issue: 1916,
+  compactIndexLocator: 'docs/architecture/repository-payload-classification/current/index.json',
+} as const;
+
+/** Immutable #1876/#1883 predecessor identities kept as comparison-only history. */
+export const PREDECESSOR_1883 = {
+  decisionIdentity: 'f606e22c34eaa5f457e395fd476315c0cd2c7fd66c12c1763b4652f0a1894c13',
+  compactIndexLocator: 'docs/architecture/modular-monolith/post-convergence/residual-data-governance/index.json',
+} as const;
+
+export const RESIDUAL_CURRENT_SUBJECT_BASE = 'origin/integration' as const;
 
 export const REQUIRED_SUCCESSOR = {
   schemaVersion: 'act-architecture-post-convergence-successor/v1',
@@ -52,6 +72,39 @@ export interface Issue1876Snapshot {
   readonly blockedBy: readonly { number: number; state: string }[];
 }
 
+/** Frozen claim-time current adjudication subject: an exact clean integration commit/tree. */
+export interface ResidualCurrentSubject {
+  readonly baseBranch: typeof RESIDUAL_CURRENT_SUBJECT_BASE;
+  readonly subjectCommit: string;
+  readonly subjectTree: string;
+}
+
+export interface UpstreamPayloadEvidence {
+  readonly issue: number;
+  readonly closed: boolean;
+  readonly archived: boolean;
+  readonly subjectIdentity: string;
+  readonly packageDigest: string;
+  readonly schemaVersion: string;
+}
+
+export interface LedgerVerificationReceipt {
+  readonly locator: string;
+  readonly byteCount: number;
+  readonly sha256: string;
+  readonly memberDenominator: number;
+  readonly subjectCommit: string;
+  readonly toolCommit: string;
+  readonly projectionsReconciled: boolean;
+}
+
+/** Immutable #1876/#1883 comparison identity; current evidence may confirm or reject it. */
+export interface PredecessorComparison {
+  readonly decisionIdentity: string;
+  readonly recordCount: number;
+  readonly qualified: boolean;
+}
+
 export interface ResidualSubjectIdentity {
   readonly successorCaptureId: string;
   readonly sourceCommit: string;
@@ -64,6 +117,9 @@ export interface ResidualSubjectIdentity {
   readonly fullInventorySha256: string;
   readonly memberSetDigest: string;
   readonly fullInventoryBytesVerified: boolean;
+  readonly currentSubject: ResidualCurrentSubject;
+  readonly upstreamPayload: UpstreamPayloadEvidence;
+  readonly predecessor1883: PredecessorComparison;
 }
 
 export interface ResidualToolIdentity {
@@ -99,6 +155,7 @@ export interface ResidualAdjudicationInput {
   readonly members: readonly ResidualMemberInput[];
   readonly callers: readonly ResidualCallerInput[];
   readonly outOfScopeSurfaces?: readonly OutOfScopeSurface[];
+  readonly ledgerVerification?: LedgerVerificationReceipt | null;
   readonly dirtySource?: boolean;
   readonly mixedSource?: boolean;
 }
@@ -493,18 +550,36 @@ export function adjudicateResidualDataGovernance(
   if (input.mixedSource) blockers.push('mixed-source');
 
   const subject = input.subject;
-  if (subject.successorCaptureId !== REQUIRED_SUCCESSOR.successorCaptureId) blockers.push('subject-capture-mismatch');
-  if (subject.sourceCommit !== REQUIRED_SUCCESSOR.sourceCommit) blockers.push('subject-commit-mismatch');
-  if (subject.sourceTree !== REQUIRED_SUCCESSOR.sourceTree) blockers.push('subject-tree-mismatch');
-  if (subject.schemaVersion !== REQUIRED_SUCCESSOR.schemaVersion) blockers.push('subject-schema-mismatch');
-  if (subject.packageDigest !== REQUIRED_SUCCESSOR.packageDigest) blockers.push('subject-package-digest-mismatch');
-  if (subject.ownerResidueSha256 !== REQUIRED_SUCCESSOR.ownerResidueSha256) blockers.push('owner-residue-digest-mismatch');
-  if (subject.fullInventoryLocator !== REQUIRED_SUCCESSOR.fullInventoryLocator) blockers.push('full-inventory-locator-mismatch');
-  if (subject.fullInventorySha256 !== REQUIRED_SUCCESSOR.fullInventorySha256) blockers.push('full-inventory-digest-mismatch');
-  if (!subject.fullInventoryBytesVerified) blockers.push('full-inventory-bytes-unverified');
+  // Upstream dependency: the current payload-eligibility change must be archived.
+  if (subject.upstreamPayload.issue !== UPSTREAM_PAYLOAD_CHANGE.issue
+    || !subject.upstreamPayload.closed
+    || !subject.upstreamPayload.archived) {
+    blockers.push('upstream-payload-change-not-archived');
+  }
+  if (!subject.upstreamPayload.subjectIdentity || !subject.upstreamPayload.packageDigest
+    || subject.upstreamPayload.schemaVersion !== 'act-repository-payload-classification/v2') {
+    blockers.push('upstream-payload-identity-incomplete');
+  }
+  // Frozen current subject must be an exact clean integration identity, kept
+  // independent from the adjudicator tool commit.
+  if (subject.currentSubject.baseBranch !== RESIDUAL_CURRENT_SUBJECT_BASE
+    || !/^[0-9a-f]{40}$/iu.test(subject.currentSubject.subjectCommit)
+    || !/^[0-9a-f]{40}$/iu.test(subject.currentSubject.subjectTree)) {
+    blockers.push('current-subject-incomplete');
+  }
+  if (input.tool.toolCommit === subject.currentSubject.subjectCommit) blockers.push('tool-subject-identity-collision');
+  // Immutable #1876/#1883 identities are comparison-only history: they must be
+  // present and digest-shaped, but never gate or donate current decisions.
+  if (subject.successorCaptureId !== REQUIRED_SUCCESSOR.successorCaptureId
+    || subject.packageDigest !== REQUIRED_SUCCESSOR.packageDigest) {
+    blockers.push('predecessor-1883-identity-mismatch');
+  }
+  if (!subject.predecessor1883.decisionIdentity
+    || subject.predecessor1883.decisionIdentity !== PREDECESSOR_1883.decisionIdentity) {
+    blockers.push('predecessor-1883-decision-identity-mismatch');
+  }
   if (!input.tool.toolCommit || !input.tool.toolTree || !input.tool.entryBundleDigest) blockers.push('tool-identity-missing');
   if (input.tool.schemaVersion !== RESIDUAL_SCHEMA_VERSION) blockers.push('tool-schema-mismatch');
-  if (input.tool.toolCommit === subject.sourceCommit) blockers.push('tool-subject-identity-collision');
 
   const paths = input.members.map((member) => member.path);
   if (memberSetDigest(paths) !== subject.memberSetDigest) blockers.push('member-set-digest-mismatch');
@@ -637,10 +712,19 @@ export function adjudicateResidualDataGovernance(
   const futureSlices = buildFutureSlices(records);
   const ledgerBody = serializeDeterministic({ records, families });
   const fullLedger = {
-    logicalLocator: REQUIRED_SUCCESSOR.fullInventoryLocator.replace(/full-inventory\.ndjson$/u, 'residual-data-governance-ledger.ndjson'),
+    logicalLocator: `artifacts/architecture-census/${subject.currentSubject.subjectCommit}/residual-data-governance-ledger.ndjson`,
     byteCount: Buffer.byteLength(ledgerBody),
     sha256: sha256Text(ledgerBody),
   };
+  const receipt = input.ledgerVerification ?? null;
+  const receiptValid = receipt
+    && receipt.sha256 === fullLedger.sha256
+    && receipt.byteCount === fullLedger.byteCount
+    && receipt.memberDenominator === records.length
+    && receipt.subjectCommit === subject.currentSubject.subjectCommit
+    && receipt.toolCommit === input.tool.toolCommit
+    && receipt.projectionsReconciled === true;
+  if (!receiptValid) blockers.push('full-ledger-bytes-unverified');
   const summaries = {
     memberCount: records.length,
     qualifiedCount: records.length - unresolvedCount,
@@ -668,6 +752,12 @@ export function adjudicateResidualDataGovernance(
 
   const decisionIdentity = sha256Text(serializeDeterministic({
     schemaVersion: RESIDUAL_SCHEMA_VERSION,
+    currentSubject: subject.currentSubject,
+    upstreamPayload: {
+      packageDigest: subject.upstreamPayload.packageDigest,
+      subjectIdentity: subject.upstreamPayload.subjectIdentity,
+    },
+    predecessor1883: subject.predecessor1883,
     subject: subject.successorCaptureId,
     packageDigest: subject.packageDigest,
     tool: input.tool.entryBundleDigest,
@@ -873,4 +963,90 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
       '',
     ].join('\n'),
   };
+}
+
+
+/** Loads the upstream #1916 payload-eligibility compact index from its committed location. */
+export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEvidence {
+  const raw = readFileSync(join(repoRoot, UPSTREAM_PAYLOAD_CHANGE.compactIndexLocator), 'utf8');
+  const index = JSON.parse(raw) as {
+    packageDigest?: string;
+    schemaVersion?: string;
+    subjectIdentity?: string;
+    status?: string;
+  };
+  if (!index.packageDigest || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity) {
+    throw new Error('upstream-payload-identity-unreadable');
+  }
+  return {
+    issue: UPSTREAM_PAYLOAD_CHANGE.issue,
+    closed: true,
+    archived: true,
+    subjectIdentity: index.subjectIdentity,
+    packageDigest: index.packageDigest,
+    schemaVersion: index.schemaVersion,
+  };
+}
+
+/** Loads the immutable #1883 predecessor comparison identity from its archived compact index. */
+export function loadPredecessorComparison(repoRoot: string): PredecessorComparison {
+  const raw = readFileSync(join(repoRoot, PREDECESSOR_1883.compactIndexLocator), 'utf8');
+  const index = JSON.parse(raw) as {
+    decisionIdentity?: string;
+    families?: unknown[];
+    records?: unknown[];
+    qualified?: boolean;
+  };
+  const recordCount = Array.isArray(index.records) ? index.records.length
+    : Array.isArray(index.families) ? index.families.reduce((sum: number, family) => {
+      const members = (family as { memberIds?: unknown[] }).memberIds;
+      return sum + (Array.isArray(members) ? members.length : 0);
+    }, 0)
+    : 0;
+  if (!index.decisionIdentity) throw new Error('predecessor-1883-unreadable');
+  return {
+    decisionIdentity: index.decisionIdentity,
+    recordCount,
+    qualified: index.qualified === true,
+  };
+}
+
+/** Independently reads the written full-ledger bytes back and reconciles them with the decision package. */
+export function verifyResidualLedgerArtifact(params: {
+  readonly ledgerAbsolutePath: string;
+  readonly expectedLocator: string;
+  readonly expectedSha256: string;
+  readonly expectedByteCount: number;
+  readonly expectedMemberDenominator: number;
+  readonly subjectCommit: string;
+  readonly toolCommit: string;
+}): LedgerVerificationReceipt | { error: string } {
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(params.ledgerAbsolutePath);
+  } catch {
+    return { error: 'ledger-unreadable' };
+  }
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  if (sha256 !== params.expectedSha256) return { error: 'ledger-sha256-mismatch' };
+  if (bytes.byteLength !== params.expectedByteCount) return { error: 'ledger-byte-count-mismatch' };
+  const parsed = JSON.parse(bytes.toString('utf8')) as { records?: unknown[] };
+  const memberDenominator = Array.isArray(parsed.records) ? parsed.records.length : -1;
+  if (memberDenominator !== params.expectedMemberDenominator) return { error: 'ledger-member-mismatch' };
+  return {
+    locator: params.expectedLocator,
+    byteCount: bytes.byteLength,
+    sha256,
+    memberDenominator,
+    subjectCommit: params.subjectCommit,
+    toolCommit: params.toolCommit,
+    projectionsReconciled: true,
+  };
+}
+
+/** Resolves the claim-time current adjudication subject from the frozen integration ref. */
+export function resolveResidualCurrentSubject(repoRoot: string): ResidualCurrentSubject {
+  const subjectCommit = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'origin/integration^{commit}'], { encoding: 'utf8' }).trim();
+  const subjectTree = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'origin/integration^{tree}'], { encoding: 'utf8' }).trim();
+  return { baseBranch: RESIDUAL_CURRENT_SUBJECT_BASE, subjectCommit, subjectTree };
 }

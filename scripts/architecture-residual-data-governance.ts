@@ -1,4 +1,16 @@
 #!/usr/bin/env tsx
+/**
+ * Current residual Data Governance owner/outcome requalification (#1917).
+ *
+ * Runs on a clean implementation HEAD. Freezes the claim-time origin/integration
+ * commit/tree as an adjudication subject independent from the #1876/#1883
+ * predecessor identities (comparison-only), requires the upstream payload
+ * eligibility change (#1916) to be archived, rebuilds the complete current
+ * src/lib/data-governance member and caller denominator, writes the full ledger
+ * as an external artifact, independently verifies its bytes, and emits compact
+ * decision outputs under residual-data-governance/current/. Action-neutral:
+ * no file moves, no import rewrites, no compatibility retirement.
+ */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,20 +19,27 @@ import { privacyViolation } from '../src/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '../src/lib/architecture-census/serialize';
 import { isMixedWorktree } from '../src/lib/architecture-census/identity';
 import {
+  PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
   RESIDUAL_SCHEMA_VERSION,
+  UPSTREAM_PAYLOAD_CHANGE,
   adjudicateResidualDataGovernance,
   collectRelativeCallers,
   directoryPathReadCaller,
+  loadPredecessorComparison,
+  loadUpstreamPayloadEvidence,
   memberSetDigest,
   projectResidualDocuments,
+  resolveResidualCurrentSubject,
+  verifyResidualLedgerArtifact,
   type Issue1876Snapshot,
   type ResidualAdjudication,
+  type ResidualAdjudicationInput,
   type ResidualCallerInput,
   type ResidualMemberInput,
 } from '../src/lib/architecture-charter/residual-data-governance';
 
-const OUTPUT_DIR = 'docs/architecture/modular-monolith/post-convergence/residual-data-governance';
+const OUTPUT_DIR = 'docs/architecture/modular-monolith/post-convergence/residual-data-governance/current';
 const TOOL_FILES = [
   'src/lib/architecture-charter/residual-data-governance.ts',
   'scripts/architecture-residual-data-governance.ts',
@@ -30,17 +49,16 @@ function git(args: string[]): string {
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).trim();
 }
 
-function ghIssue(): Issue1876Snapshot {
+function ghIssueSnapshot(number: number): { state: string; labels: string[]; blockedBy: { number: number; state: string }[] } {
   const payload = JSON.parse(execFileSync('gh', [
     'api',
     'graphql',
     '-f',
-    'query={ repository(owner:"yong-wei", name:"act") { issue(number:1876) { number state labels(first:20) { nodes { name } } blockedBy(first:20) { nodes { number state } } } } }',
+    `query={ repository(owner:"yong-wei", name:"act") { issue(number:${number}) { number state labels(first:20) { nodes { name } } blockedBy(first:20) { nodes { number state } } } } }`,
   ], { encoding: 'utf8' })) as {
     data: {
       repository: {
         issue: {
-          number: number;
           state: string;
           labels: { nodes: { name: string }[] };
           blockedBy: { nodes: { number: number; state: string }[] };
@@ -50,28 +68,27 @@ function ghIssue(): Issue1876Snapshot {
   };
   const issue = payload.data.repository.issue;
   return {
-    number: 1876,
     state: issue.state,
     labels: issue.labels.nodes.map((node) => node.name),
     blockedBy: issue.blockedBy.nodes,
   };
 }
 
-function loadMembers(): ResidualMemberInput[] {
-  return git(['ls-tree', '-r', '--name-only', REQUIRED_SUCCESSOR.sourceCommit, '--', 'src/lib/data-governance'])
-    .split('\n')
+function loadMembers(subjectCommit: string, subjectTree: string): ResidualMemberInput[] {
+  return git(['ls-tree', '-r', '--name-only', '-z', subjectCommit, '--', 'src/lib/data-governance'])
+    .split('\0')
     .filter(Boolean)
     .sort()
-    .map((path) => ({ path, currentOwnerEvidence: [`sourceTree:${REQUIRED_SUCCESSOR.sourceTree}`] }));
+    .map((path) => ({ path, currentOwnerEvidence: [`sourceTree:${subjectTree}`] }));
 }
 
-function gitGrep(pattern: string): string {
+function gitGrep(pattern: string, subjectCommit: string): string {
   try {
     return git([
       'grep',
       '-F',
       pattern,
-      REQUIRED_SUCCESSOR.sourceCommit,
+      subjectCommit,
       '--',
       '*.ts',
       '*.tsx',
@@ -94,16 +111,16 @@ function parseGrepLine(line: string): { callerPath: string; text: string } | nul
   return { callerPath: rest.slice(0, second), text: rest.slice(second + 1) };
 }
 
-function loadMemberFiles(members: readonly ResidualMemberInput[]): { path: string; content: string }[] {
+function loadMemberFiles(members: readonly ResidualMemberInput[], subjectCommit: string): { path: string; content: string }[] {
   return members
     .filter((member) => member.path.endsWith('.ts') || member.path.endsWith('.tsx') || member.path.endsWith('.js'))
     .map((member) => ({
       path: member.path,
-      content: git(['show', `${REQUIRED_SUCCESSOR.sourceCommit}:${member.path}`]),
+      content: git(['show', `${subjectCommit}:${member.path}`]),
     }));
 }
 
-function loadCallers(members: readonly ResidualMemberInput[]): ResidualCallerInput[] {
+function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: string): ResidualCallerInput[] {
   const memberPaths = members.map((member) => member.path);
   const barrel = 'src/lib/data-governance/index.ts';
   const tokens = new Map<string, string[]>();
@@ -115,7 +132,7 @@ function loadCallers(members: readonly ResidualMemberInput[]): ResidualCallerInp
       tokens.set(token, bucket);
     }
   }
-  const grep = [gitGrep('lib/data-governance/'), gitGrep('src/lib/data-governance')].join('\n');
+  const grep = [gitGrep('lib/data-governance/', subjectCommit), gitGrep('src/lib/data-governance', subjectCommit)].join('\n');
   const callers: ResidualCallerInput[] = [];
   const seen = new Set<string>();
   const add = (caller: ResidualCallerInput): void => {
@@ -151,7 +168,7 @@ function loadCallers(members: readonly ResidualMemberInput[]): ResidualCallerInp
       add({ memberPath, callerPath, relationship });
     }
   }
-  for (const caller of collectRelativeCallers(loadMemberFiles(members), memberPaths)) add(caller);
+  for (const caller of collectRelativeCallers(loadMemberFiles(members, subjectCommit), memberPaths)) add(caller);
   return callers.sort((left, right) => (
     left.memberPath.localeCompare(right.memberPath)
     || left.callerPath.localeCompare(right.callerPath)
@@ -167,22 +184,6 @@ function verifyOwnerResidue(): void {
   }
 }
 
-function verifySourceTree(): void {
-  const tree = git(['rev-parse', `${REQUIRED_SUCCESSOR.sourceCommit}^{tree}`]);
-  if (tree !== REQUIRED_SUCCESSOR.sourceTree) throw new Error(`source-tree-mismatch:${tree}`);
-}
-
-function fullInventoryVerified(): boolean {
-  const locator = join(process.cwd(), REQUIRED_SUCCESSOR.fullInventoryLocator);
-  try {
-    const bytes = readFileSync(locator);
-    return sha256Text(bytes.toString('utf8')) === REQUIRED_SUCCESSOR.fullInventorySha256
-      || sha256Text(bytes.toString('binary')) === REQUIRED_SUCCESSOR.fullInventorySha256;
-  } catch {
-    return false;
-  }
-}
-
 function toolIdentity(): { toolCommit: string; toolTree: string; entryBundleDigest: string } {
   const dirtyTool = git(['status', '--porcelain', '--', ...TOOL_FILES]);
   if (dirtyTool.length > 0) throw new Error(`tool-dirty:${dirtyTool}`);
@@ -195,14 +196,37 @@ function toolIdentity(): { toolCommit: string; toolTree: string; entryBundleDige
   };
 }
 
-function main(): void {
-  verifyOwnerResidue();
-  verifySourceTree();
-  const members = loadMembers();
-  const callers = loadCallers(members);
-  const tool = toolIdentity();
+const repoRoot = process.cwd();
+
+// 1. Freeze the claim-time current subject (independent from #1876/#1883 history).
+execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
+const currentSubject = resolveResidualCurrentSubject(repoRoot);
+
+// 2. Native dependency gate: the upstream payload-eligibility change must be archived.
+const upstreamIssue = ghIssueSnapshot(UPSTREAM_PAYLOAD_CHANGE.issue);
+if (String(upstreamIssue.state).toUpperCase() !== 'CLOSED' || !upstreamIssue.labels.includes('status:archived')) {
+  process.stderr.write(`upstream-payload-change-not-archived:${UPSTREAM_PAYLOAD_CHANGE.issue}:${upstreamIssue.state}:${upstreamIssue.labels.join(',')}\n`);
+  process.exit(2);
+}
+const upstreamPayload = { ...loadUpstreamPayloadEvidence(repoRoot), closed: true, archived: true };
+const predecessor = loadPredecessorComparison(repoRoot);
+
+// 3. Read-only comparison evidence: the archived #1883 identity must stay byte-stable.
+const readOnlyInputs = [
+  ['owner-residue.md', join(repoRoot, 'docs/architecture/modular-monolith/post-convergence/owner-residue.md')],
+  ['upstream-index.json', join(repoRoot, UPSTREAM_PAYLOAD_CHANGE.compactIndexLocator)],
+  ['predecessor-index.json', join(repoRoot, PREDECESSOR_1883.compactIndexLocator)],
+] as const;
+const readOnlySnapshots = readOnlyInputs.map(([name, path]) => [name, sha256Text(readFileSync(path, 'utf8'))] as const);
+
+// 4. Current member and caller closure over the frozen subject.
+const members = loadMembers(currentSubject.subjectCommit, currentSubject.subjectTree);
+const callers = loadCallers(members, currentSubject.subjectCommit);
+const tool = toolIdentity();
+
+function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerification']): ResidualAdjudication {
   const result = adjudicateResidualDataGovernance({
-    gate: ghIssue(),
+    gate: { number: 1876, ...ghIssueSnapshot(1876) },
     subject: {
       successorCaptureId: REQUIRED_SUCCESSOR.successorCaptureId,
       sourceCommit: REQUIRED_SUCCESSOR.sourceCommit,
@@ -214,7 +238,10 @@ function main(): void {
       fullInventoryLocator: REQUIRED_SUCCESSOR.fullInventoryLocator,
       fullInventorySha256: REQUIRED_SUCCESSOR.fullInventorySha256,
       memberSetDigest: memberSetDigest(members.map((member) => member.path)),
-      fullInventoryBytesVerified: fullInventoryVerified(),
+      fullInventoryBytesVerified: false,
+      currentSubject,
+      upstreamPayload,
+      predecessor1883: predecessor,
     },
     tool: {
       toolCommit: tool.toolCommit,
@@ -228,48 +255,80 @@ function main(): void {
     },
     members,
     callers,
+    ledgerVerification,
     dirtySource: false,
-    mixedSource: isMixedWorktree(process.cwd()),
+    mixedSource: isMixedWorktree(repoRoot),
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
     process.stderr.write(`${JSON.stringify(result)}\n`);
     process.exit(2);
   }
-  writeOutputs(result);
-  process.stdout.write(`${result.qualified ? 'qualified' : 'blocker'} ${result.decisionIdentity} members=${result.summaries.memberCount} unresolved=${result.summaries.unresolvedCount}\n`);
+  return result;
 }
 
-function writeOutputs(result: ResidualAdjudication): void {
-  const repoRoot = process.cwd();
-  const outDir = join(repoRoot, OUTPUT_DIR);
-  mkdirSync(outDir, { recursive: true });
-  const compact = serializeDeterministic({
-    schemaVersion: result.schemaVersion,
-    qualified: result.qualified,
-    blockers: result.blockers,
-    subject: result.subject,
-    tool: result.tool,
-    summaries: result.summaries,
-    families: result.families,
-    futureSlices: result.futureSlices,
-    fullLedger: result.fullLedger,
-    decisionIdentity: result.decisionIdentity,
-  });
-  const compactPrivacy = privacyViolation(compact);
-  if (compactPrivacy) throw new Error(`privacy:${compactPrivacy}:index.json`);
-  writeFileSync(join(outDir, 'index.json'), compact);
-  const documents = projectResidualDocuments(result);
-  for (const [name, content] of Object.entries(documents)) {
-    const normalized = content.replace(/\n+$/u, '\n');
-    const violation = privacyViolation(normalized);
-    if (violation) throw new Error(`privacy:${violation}:${name}`);
-    writeFileSync(join(outDir, name), normalized);
+// 5. First pass writes the external full ledger, then an independent read-and-hash
+//    receipt gates the final compact decision package.
+const firstPass = adjudicate(null);
+const ledgerDir = join(repoRoot, 'artifacts/architecture-census', currentSubject.subjectCommit);
+mkdirSync(ledgerDir, { recursive: true });
+const ledgerPath = join(ledgerDir, 'residual-data-governance-ledger.ndjson');
+const ledgerBody = serializeDeterministic({ records: firstPass.records, families: firstPass.families });
+writeFileSync(ledgerPath, ledgerBody);
+const receipt = verifyResidualLedgerArtifact({
+  ledgerAbsolutePath: ledgerPath,
+  expectedLocator: firstPass.fullLedger.logicalLocator,
+  expectedSha256: firstPass.fullLedger.sha256,
+  expectedByteCount: firstPass.fullLedger.byteCount,
+  expectedMemberDenominator: firstPass.summaries.memberCount,
+  subjectCommit: currentSubject.subjectCommit,
+  toolCommit: tool.toolCommit,
+});
+if ('error' in receipt) {
+  process.stderr.write(`ledger-verification:${receipt.error}\n`);
+  process.exit(1);
+}
+
+const result = adjudicate(receipt);
+
+// 6. Compact decision outputs under current/ (the archived #1883 files stay untouched).
+const outDir = join(repoRoot, OUTPUT_DIR);
+mkdirSync(outDir, { recursive: true });
+const compact = serializeDeterministic({
+  schemaVersion: result.schemaVersion,
+  qualified: result.qualified,
+  blockers: result.blockers,
+  subject: result.subject,
+  tool: result.tool,
+  summaries: result.summaries,
+  families: result.families,
+  futureSlices: result.futureSlices,
+  fullLedger: result.fullLedger,
+  ledgerVerification: receipt,
+  decisionIdentity: result.decisionIdentity,
+});
+const compactPrivacy = privacyViolation(compact);
+if (compactPrivacy) throw new Error(`privacy:${compactPrivacy}:index.json`);
+writeFileSync(join(outDir, 'index.json'), compact);
+const documents = projectResidualDocuments(result);
+for (const [name, content] of Object.entries(documents)) {
+  const normalized = content.replace(/\n+$/u, '\n');
+  const violation = privacyViolation(normalized);
+  if (violation) throw new Error(`privacy:${violation}:${name}`);
+  writeFileSync(join(outDir, name), normalized);
+}
+
+// 7. Read-only post guards: subject and comparison inputs unchanged.
+const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
+if (subjectCommitAfter !== currentSubject.subjectCommit) {
+  process.stderr.write('subject-drifted-during-run\n');
+  process.exit(1);
+}
+for (const [name, path] of readOnlyInputs) {
+  const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
+  if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
+    process.stderr.write(`read-only-input-mutated:${name}\n`);
+    process.exit(1);
   }
-  const ledgerDir = join(repoRoot, 'artifacts/architecture-census', result.subject.successorCaptureId);
-  mkdirSync(ledgerDir, { recursive: true });
-  const ledger = serializeDeterministic({ records: result.records, families: result.families });
-  if (sha256Text(ledger) !== result.fullLedger.sha256) throw new Error('ledger-digest-mismatch');
-  writeFileSync(join(ledgerDir, 'residual-data-governance-ledger.ndjson'), ledger);
 }
 
-main();
+process.stdout.write(`${result.qualified ? 'qualified' : 'blocker'} ${result.decisionIdentity} members=${result.summaries.memberCount} unresolved=${result.summaries.unresolvedCount} subject=${currentSubject.subjectCommit.slice(0, 12)} blockers=${result.blockers.join(',') || 'none'}\n`);
