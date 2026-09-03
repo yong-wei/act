@@ -483,6 +483,9 @@ describe('post-convergence successor capture', () => {
       expect(doc).toContain(result.pack.captureIdentity.commitTime);
       expect(doc).toContain(result.pack.predecessorBaseline.sourceCommit);
       expect(doc).toContain(result.pack.predecessorCurrentHead.sourceCommit);
+      expect(doc).toContain(result.pack.schemaVersions.censusCore);
+      expect(doc).toContain(result.pack.schemaVersions.measurementReceipt);
+      expect(doc).toContain(result.pack.schemaVersions.currentHeadDelta);
       expect(doc).not.toContain(result.pack.packageDigest);
     }
   });
