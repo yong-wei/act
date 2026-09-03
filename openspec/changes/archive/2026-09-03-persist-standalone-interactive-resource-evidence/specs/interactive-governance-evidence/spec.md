@@ -30,7 +30,7 @@ Interactive classroom and standalone interactive evidence SHALL be classified th
 - **AND** its open/interaction events SHALL retain the applicable classroom learning context
 - **AND** the events SHALL NOT be classified as `standalone_resource` solely because the tracker was created without the caller's session identity.
 
-#### Scenario: Canonical event type remains stable
+#### Scenario: Interactive evidence uses canonical event type
 
 - **WHEN** interactive event rows use legacy wrapper types such as `view`, `interact`, `submit`, or `complete`
 - **THEN** governance consumers SHALL resolve the canonical type from the payload when present
