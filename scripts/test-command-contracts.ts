@@ -57,12 +57,24 @@ function hasFlag(flag: string): boolean {
   return process.argv.includes(flag);
 }
 
-function run(command: string, args: readonly string[], env?: NodeJS.ProcessEnv, cwd = process.cwd()): number {
+const COMMAND_TIMEOUT_MS: Record<GovernedCommandId, number> = {
+  test: 10 * 60 * 1000,
+  'test:unit': 10 * 60 * 1000,
+  'test:contract': 8 * 60 * 1000,
+  'test:integration': 8 * 60 * 1000,
+  'test:e2e:critical': 10 * 60 * 1000,
+  'test:release': 2 * 60 * 1000,
+  'test:nightly': 60 * 1000,
+};
+
+function run(command: string, args: readonly string[], env?: NodeJS.ProcessEnv, cwd = process.cwd(), timeoutMs?: number): number {
   const result = spawnSync(command, [...args], {
     cwd,
     env: env ?? process.env,
     stdio: 'inherit',
+    timeout: timeoutMs,
   });
+  if (result.error && (result.error as NodeJS.ErrnoException).code === 'ETIMEDOUT') return 124;
   return result.status ?? 1;
 }
 
@@ -78,7 +90,7 @@ function emptySummary(status: number): VitestExecutionSummary & { status: number
   return { status, passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0, failures: [] };
 }
 
-function runVitest(extraArgs: readonly string[], cwd = process.cwd()): VitestExecutionSummary & { status: number } {
+function runVitest(extraArgs: readonly string[], cwd = process.cwd(), timeoutMs?: number): VitestExecutionSummary & { status: number } {
   const dir = mkdtempSync(join(tmpdir(), 'test-command-contracts-'));
   const outputFile = join(dir, 'vitest.json');
   const sidecarFile = join(dir, 'unhandled.json');
@@ -93,7 +105,7 @@ function runVitest(extraArgs: readonly string[], cwd = process.cwd()): VitestExe
     ], {
       ...vitestEnv(),
       ARCHITECTURE_CENSUS_VITEST_SIDECAR: sidecarFile,
-    }, cwd);
+    }, cwd, timeoutMs);
     let summary: VitestExecutionSummary = { passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0, failures: [] };
     try {
       summary = parseVitestJson(readFileSync(outputFile, 'utf8'), process.cwd());
@@ -116,6 +128,7 @@ function executeCommand(
   manifest: string | null,
   cwd = process.cwd(),
 ): VitestExecutionSummary & { status: number } {
+  const timeoutMs = COMMAND_TIMEOUT_MS[commandId];
   if (commandId === 'test') {
     const prelude: Array<[string, string[]]> = [
       ['npm', ['run', 'test:smart-courseware']],
@@ -124,17 +137,17 @@ function executeCommand(
       ['node', ['./scripts/tests/test-arena-routes.mjs']],
     ];
     for (const [bin, args] of prelude) {
-      const status = run(bin, args, process.env, cwd);
+      const status = run(bin, args, process.env, cwd, timeoutMs);
       if (status !== 0) return emptySummary(status);
     }
-    return runVitest(['src/lib/__tests__/test-command-contracts.test.ts'], cwd);
+    return runVitest(['src/lib/__tests__/test-command-contracts.test.ts'], cwd, timeoutMs);
   }
-  if (commandId === 'test:unit') return runVitest([], cwd);
-  if (commandId === 'test:contract') return runVitest(['--config', 'vitest.contract.config.ts'], cwd);
-  if (commandId === 'test:integration') return runVitest(['--config', 'vitest.integration.config.ts'], cwd);
+  if (commandId === 'test:unit') return runVitest([], cwd, timeoutMs);
+  if (commandId === 'test:contract') return runVitest(['--config', 'vitest.contract.config.ts'], cwd, timeoutMs);
+  if (commandId === 'test:integration') return runVitest(['--config', 'vitest.integration.config.ts'], cwd, timeoutMs);
   if (commandId === 'test:e2e:critical') {
     const files = [...commandContract('test:e2e:critical').executionIdentities];
-    return emptySummary(run('npx', ['playwright', 'test', ...files], process.env, cwd));
+    return emptySummary(run('npx', ['playwright', 'test', ...files], process.env, cwd, timeoutMs));
   }
   if (commandId === 'test:release') {
     const failures = releaseCommandFailures(cwd, manifest);
@@ -308,6 +321,13 @@ function investigate(repoRoot: string): void {
       });
     }
     const summary = executeCommand(command.id, manifest, subjectCheckout);
+    if (summary.status === 124) {
+      return toLaneExecution(command.id, summary, {
+        responseClass: 'timeout',
+        resolutionCondition: `rerun-${command.id}-when-the-external-or-runtime-prerequisite-is-available`,
+        owner: 'platform',
+      });
+    }
     return toLaneExecution(command.id, summary);
   });
   const output = investigateCurrentDenominator({
