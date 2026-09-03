@@ -15,13 +15,13 @@
 - A packageDigest: `259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12`
 - A sourceCommit: `698cb2f4cd6d001bcbeee95bca9be58c56c1cca3`
 - A sourceTree: `41d6b3f5966493911d6ce9c1f299015189778d53`
-- toolCommit: `d461043b44352b6e8a773ce91f2d9962b4fc675d`
-- toolTree: `8c644f1210f6781bf3848aed345e4ca8e539755f`
+- toolCommit: `fc1486733240068d026be869e8e8f0ef24821a96`
+- toolTree: `95c26fa9fd157126857cacbf561098acf03f8fd6`
 - entryBundleDigest: `d5815b438e3c6d52781b49fb1ae70ca001b5f504f754fa6a5c43464f27ea56e7`
-- frozenInputDigest: `534646c2337e56978a0995ef3f2b04ed856ff3c949b1938e66a00ff4fa0bc5ea`
-- packageDigest: `a309a523adbabf455c6ef1d54f80fab8bec9834367a279aaa78d0f09ae7915b9`
-- full inventory: `artifacts/architecture-census/cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc/payload-classification-inventory.ndjson` sha256 `6facb141bdf9a449088ade16ed0911a54874202588e73fe4dedd5680374019c1`
-- inventory verification: `6facb141bdf9a449088ade16ed0911a54874202588e73fe4dedd5680374019c1@reconciled=true`
+- frozenInputDigest: `5a428249d02217d926cc7844e476ddaab562b9761cb438cb247acb6bcb2a5b52`
+- packageDigest: `6f4fc1cd2c24956a4070183ba7b18e67ae88c79c11dd4b123b5d67ac1f80b1f3`
+- full inventory: `artifacts/architecture-census/cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc/payload-classification-inventory.ndjson` sha256 `ec2de62b017ef868cc0771657cfb13ade867caa26292db6a2855a9c0bd664a62`
+- inventory verification: `ec2de62b017ef868cc0771657cfb13ade867caa26292db6a2855a9c0bd664a62@reconciled=true`
 
 This package is non-active planning evidence. It does not authorize deletion, movement, externalization, materialization, or selector change.
 
@@ -79,9 +79,9 @@ This package is non-active planning evidence. It does not authorize deletion, mo
 | predecessor.packageDigest | 3dfc0b74d38780a52fe046994cd1354079efb524d19a79eced9cfd5d1a42ad03 |
 | A.successorCaptureId | fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02 |
 | A.packageDigest | 259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12 |
-| C.toolCommit | d461043b44352b6e8a773ce91f2d9962b4fc675d |
-| C.packageDigest | a309a523adbabf455c6ef1d54f80fab8bec9834367a279aaa78d0f09ae7915b9 |
-| fullInventory | artifacts/architecture-census/cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc/payload-classification-inventory.ndjson@6facb141bdf9a449088ade16ed0911a54874202588e73fe4dedd5680374019c1 |
+| C.toolCommit | fc1486733240068d026be869e8e8f0ef24821a96 |
+| C.packageDigest | 6f4fc1cd2c24956a4070183ba7b18e67ae88c79c11dd4b123b5d67ac1f80b1f3 |
+| fullInventory | artifacts/architecture-census/cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc/payload-classification-inventory.ndjson@ec2de62b017ef868cc0771657cfb13ade867caa26292db6a2855a9c0bd664a62 |
 
 ## Predecessor delta
 
@@ -100,8 +100,8 @@ This package is non-active planning evidence. It does not authorize deletion, mo
 | adapter | candidates | proven | unresolved | drift | inputDigest |
 | --- | --- | --- | --- | --- | --- |
 | release-manifest | 1667 | 1666 | 1 | none | 4973cc07bd91e9f1 |
-| content-compiler-toolchain | 2120 | 2120 | 0 | none | aad171f72722fe9e |
-| knowledge-cutover-runtime | 46117 | 46117 | 0 | none | a5b4f5560b072cbb |
+| content-compiler-toolchain | 2120 | 2120 | 0 | none | b90356cb33325da2 |
+| knowledge-cutover-runtime | 46117 | 46117 | 0 | none | 622e9696b4a66208 |
 | qa-evidence-lifecycle | 2422 | 2233 | 189 | none | cd5da3eb22dd5ef9 |
 | privacy-content-scan | 579 | 534 | 45 | none | d44fa47dfad9e979 |
 | consumer-reference | 1496 | 1496 | 0 | none | fd3c97463da34165 |
