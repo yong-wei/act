@@ -571,7 +571,7 @@ export function buildPayloadClasses(
 }
 
 export const HOTSPOT_METRIC_SCOPE = [
-  'sourceBytes: Git object byte size for the path (gitlink/symlink normalized to 0)',
+  'sourceBytes: Git object byte size for the path (gitlink entries carry no blob bytes and count 0)',
   'functionCount: count of /\\bfunction\\b/ in source content',
   'branchCount: count of /\\b(?:if|for|while|switch|case|catch)\\b/ in source content',
   'importBreadth: distinct src/<top-dir> prefixes of census dependency-edge targets',

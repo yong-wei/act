@@ -560,7 +560,7 @@ describe('post-convergence successor capture', () => {
     expect(result.files['summary.md']).not.toContain(result.pack.packageDigest);
   });
 
-  it('derives byte counts from Git objects, normalizing gitlinks and symlinks to zero', () => {
+  it('derives byte counts from Git objects, counting symlink blobs and zeroing gitlinks', () => {
     const files = [
       ...coreFixtureFiles(),
       { path: 'evaluate/test_repos/express', content: '', byteLength: 4096 },
