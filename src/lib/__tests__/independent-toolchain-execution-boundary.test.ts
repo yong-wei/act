@@ -186,6 +186,43 @@ describe('independent toolchain execution boundary', () => {
     expect(mismatchResult.ok).toBe(false);
   });
 
+  it('fails closed when HEAD advanced past a receipt whose captured command set is stale', async () => {
+    const { checkMigrationBackfillCompetition } = await import('../../../tools/migration-backfill/check');
+    const root = mkdtempSync(join(tmpdir(), 'migration-backfill-advance-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'first\n');
+    writeFileSync(join(root, 'package.json'), '{"scripts":{}}\n');
+    execFileSync('git', ['add', 'README', 'package.json'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'first'], { cwd: root });
+    const bound = captureSourceIdentity(root);
+    const inventoryDir = join(root, 'docs/architecture/migration-backfill-competition');
+    mkdirSync(inventoryDir, { recursive: true });
+    const writeInventory = (commands: unknown[]) => writeFileSync(
+      join(inventoryDir, 'inventory.json'),
+      `${JSON.stringify({ sourceRevision: bound.sourceRevision, sourceTree: bound.sourceTree, commands })}\n`,
+    );
+
+    // Same history, unchanged command set: the ancestor receipt with a correct
+    // historical tree stays acceptable by design; the fingerprint is the drift guard.
+    writeInventory([]);
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'inventory'], { cwd: root });
+    const unchanged = checkMigrationBackfillCompetition(root);
+    expect(unchanged.failures.some((item) => item.startsWith('inventory-'))).toBe(false);
+
+    // HEAD advanced AND the scanned command set grew after the receipt was
+    // captured: the stale receipt is rejected via command-set fingerprint drift.
+    mkdirSync(join(root, 'scripts/db'), { recursive: true });
+    writeFileSync(join(root, 'scripts/db/new-tool.ts'), 'export const tool = 1;\n');
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'new tool'], { cwd: root });
+    const stale = checkMigrationBackfillCompetition(root);
+    expect(stale.failures).toContain('inventory-command-set-drift');
+    expect(stale.ok).toBe(false);
+  });
+
   it('changes the receipt digest when a registry contract field changes', () => {
     const denominator = stubDenominator();
     const registry = buildToolRegistry(denominator, [stubEntry({})]);
