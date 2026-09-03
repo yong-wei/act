@@ -17,6 +17,7 @@ import {
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
+  DiagnosisLimitationCoverageError,
   DiagnosisPseudoConflictError, DiagnosisRiskFlagCoverageError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
@@ -86,6 +87,15 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-pseudo-conflict',
+      message: error.message,
+    };
+  }
+  // 限制×覆盖一致性（Issue #1904）：完整覆盖下声称学生证据可能缺失的
+  // 假设性限制与结构化事实矛盾，与伪冲突同语义（模型行为缺陷）。
+  if (error instanceof DiagnosisLimitationCoverageError) {
+    return {
+      validation: false,
+      code: 'diagnosis-limitation-coverage-contradiction',
       message: error.message,
     };
   }

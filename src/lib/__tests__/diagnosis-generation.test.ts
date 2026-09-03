@@ -38,12 +38,14 @@ import {
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
+  DiagnosisLimitationCoverageError,
   DiagnosisPseudoConflictError,
   DiagnosisRiskFlagCoverageError,
   buildDiagnosisProviderSystemPrompt,
   buildDiagnosisProviderToolResults,
   buildKnowledgeNodeByEvidenceRef,
   enforceDiagnosisFindingNodeAttribution,
+  enforceLimitationCoverageConsistency,
   enforceRiskFlagCoverageSemantics,
   generateGovernedDiagnosisReport,
   isSimplifiedChineseNaturalLanguageText,
@@ -2003,5 +2005,147 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     expect(conflictScenario?.description).toContain('同一批学生');
     expect(conflictScenario?.description).toContain('同一时间窗');
     expect(sparseScenario?.description).toContain('同批学生');
+  });
+});
+
+describe('limitation-vs-coverage consistency (Issue #1904)', () => {
+  const completeCoverage = {
+    classMembers: 100,
+    includedStudents: 100,
+    coverage: 1,
+    assignment: { includedStudents: 100, missingStudents: 0 },
+    assessment: { includedStudents: 100, missingStudents: 0 },
+  };
+  const contradictoryLimitation = '知识节点薄弱判定严格依赖进度数据，若部分学生数据缺失可能影响弱势人数统计的精确性。';
+  const boundaryLimitation = '风险标志数据基于特定触发条件，未命中风险的学生不代表无学习障碍，仅表示未触发该特定约束规则。';
+
+  const fullCoverageInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+    classId: 'class-1',
+    studentIds: Array.from({ length: 10 }, (_value, index) => `student-${index + 1}`),
+    assignmentSubmissions: Array.from({ length: 10 }, (_value, index) => ({
+      id: `assignment-${index}`,
+      userId: `student-${index + 1}`,
+      assignmentRevisionId: 'revision-1',
+      contentHash: `hash-${index}`,
+      score: 80,
+      totalPoints: 100,
+      reviewedAt: now.toISOString(),
+    })),
+    assessmentSessions: Array.from({ length: 10 }, (_value, index) => ({
+      id: `assessment-${index}`,
+      userId: `student-${index + 1}`,
+      assessmentId: 'assessment-1',
+      contentDigest: `digest-${index}`,
+      itemCount: 20,
+      correctCount: 15,
+      score: 75,
+      completedAt: now.toISOString(),
+    })),
+    riskFlags: [],
+    competencySnapshots: [],
+    knowledgeProgress: Array.from({ length: 10 }, (_value, index) => ({
+      id: `progress-${index}`,
+      userId: `student-${index + 1}`,
+      nodeId: 'node-1',
+      status: 'IN_PROGRESS' as const,
+      progress: 55,
+      timeSpent: 120,
+      lastVisited: now.toISOString(),
+    })),
+  };
+
+  it('rejects hypothetical missing-data limitations only when coverage is complete', () => {
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: completeCoverage,
+      limitations: [boundaryLimitation, contradictoryLimitation],
+    })).toEqual(['limitations[1]']);
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: completeCoverage,
+      limitations: [boundaryLimitation],
+    })).toEqual([]);
+    // 覆盖确实不完整：缺失声明是真实降级原因，一律放行。
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: { ...completeCoverage, coverage: 0.8, includedStudents: 80 },
+      limitations: [contradictoryLimitation],
+    })).toEqual([]);
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: { ...completeCoverage, assignment: { includedStudents: 90, missingStudents: 10 } },
+      limitations: [contradictoryLimitation],
+    })).toEqual([]);
+    // 可选覆盖字段缺省不得当作完整（与历史投影 evidenceCoverageComplete 同语义）。
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: { classMembers: 100, progressRows: 200 },
+      limitations: [contradictoryLimitation],
+    })).toEqual([]);
+  });
+
+  it('keeps sparse risk-flag misread and direct subgroup-missing wordings distinct', () => {
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: completeCoverage,
+      limitations: ['风险数据仅覆盖 52 名学生，样本覆盖度有限。'],
+    })).toEqual([]);
+    expect(enforceLimitationCoverageConsistency({
+      sourceCoverage: completeCoverage,
+      limitations: ['少数同学缺少学习行为记录，结论强度已降低。'],
+    })).toEqual(['limitations[0]']);
+  });
+
+  it('declares the coverage-consistency constraint in the production system prompt', () => {
+    const prompt = buildDiagnosisProviderSystemPrompt(now.toISOString());
+
+    expect(prompt).toContain('不得生成「若部分学生数据缺失」等假设性学生证据缺失限制');
+  });
+
+  it('rejects a persisted-bound report whose limitation contradicts complete coverage', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '班级诊断完成，薄弱知识点与证据范围已在发现中列出。',
+        findings: [],
+        evidenceRefs: ['knowledge-progress:progress-0'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 10, includedStudents: 10, coverage: 1 },
+        confidence: 'medium',
+        limitations: [boundaryLimitation, contradictoryLimitation],
+      },
+      normalizedResponseId: 'provider-response-limitation-coverage',
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-limitation-coverage',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: fullCoverageInput,
+      inputDigest: digestDiagnosisGovernedInput(fullCoverageInput),
+    })).rejects.toMatchObject({
+      name: 'DiagnosisLimitationCoverageError',
+      violations: ['limitations[1]'],
+    });
+  });
+
+  it('records limitation-coverage contradiction as retryable instead of terminal validation', async () => {
+    const limitationCoverageError = new DiagnosisLimitationCoverageError(['limitations[1]']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw limitationCoverageError; },
+    )).rejects.toBe(limitationCoverageError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-limitation-coverage-contradiction',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
   });
 });

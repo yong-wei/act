@@ -166,6 +166,25 @@ export const DIAGNOSIS_BENCHMARK_SCENARIOS: DiagnosisBenchmarkScenario[] = [
       forbidRiskCoverageMisread: true,
     },
   },
+  {
+    // Issue #1904：完整覆盖 + 中置信度 + 非冲突判断边界。覆盖完整时
+    // 不得声明假设性学生数据缺失；风险规则解释边界是合法限制。
+    id: 'full-coverage-medium-boundary',
+    scenarioVersion: SCENARIO_VERSION,
+    seed: 20260840,
+    description: '完整覆盖判断边界：52 人命中风险，覆盖完整，中置信度上限，限制只能是一般判断边界。',
+    studentCount: BENCHMARK_STUDENT_COUNT,
+    nodeCount: BENCHMARK_NODE_COUNT,
+    weaknessInjection: [{ nodeId: 'bench-node-06', weakStudents: 26, primary: true }],
+    progressCoverage: 1,
+    assignmentAssessmentConflict: false,
+    riskFlagHits: 52,
+    allowedConclusionBoundary: {
+      requireLimitations: false,
+      maxConfidence: 'medium',
+      forbidHypotheticalMissingData: true,
+    },
+  },
 ];
 
 export function scenarioById(scenarioId: string): DiagnosisBenchmarkScenario {
