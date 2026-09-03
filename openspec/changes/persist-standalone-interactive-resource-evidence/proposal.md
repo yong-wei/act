@@ -8,6 +8,7 @@ This breaks the learning-process companion loop for students who study from an i
 
 - Pass an explicit launch context from the independent resource page through the shared resource renderer into `InteractiveProvider`.
 - Preserve the distinction between classroom and standalone interactive resources at the runtime boundary; do not infer learning provenance from a presentation-only `embedded` flag.
+- Preserve classroom session provenance for the knowledge-card tracker created by the shared renderer; a classroom knowledge-card event must not fall back to standalone classification merely because the tracker omitted the caller's `sessionId`.
 - Persist authenticated standalone-resource events through the existing interactive event ingestion path, including view, interaction, and completion events.
 - Classify direct-resource events with the canonical standalone surface and event types, including `interactive_resource` and `resource_view`, while preserving classroom behavior.
 - Keep unauthenticated, demo, and classroom-session behavior unchanged; do not treat views or completion participation as mastery without the existing evidence policy.

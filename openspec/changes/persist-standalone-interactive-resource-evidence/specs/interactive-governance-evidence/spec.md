@@ -23,6 +23,13 @@ Interactive classroom and standalone interactive evidence SHALL be classified th
 - **THEN** the runtime SHALL preserve the classroom session context and classify events as the applicable classroom live, review, pre-class, or post-class context
 - **AND** changing standalone context propagation SHALL NOT turn classroom events into standalone events or bypass classroom access checks.
 
+#### Scenario: Classroom knowledge-card tracking preserves classroom provenance
+
+- **WHEN** a classroom resource renders a knowledge card through the shared resource renderer with an authorized classroom `sessionId`
+- **THEN** the knowledge-card tracker SHALL receive that same classroom session context
+- **AND** its open/interaction events SHALL retain the applicable classroom learning context
+- **AND** the events SHALL NOT be classified as `standalone_resource` solely because the tracker was created without the caller's session identity.
+
 #### Scenario: Canonical event type remains stable
 
 - **WHEN** interactive event rows use legacy wrapper types such as `view`, `interact`, `submit`, or `complete`

@@ -2,7 +2,7 @@
 
 The direct resource route at `/interactive-learning/resources/[id]` loads a database resource and invokes the shared `ResourceRenderer` without a classroom session. The renderer already creates a `ResourceRendererLaunchContext` whose `provenance` is `standalone` when no course context exists, but it currently passes `embedded={true}` to every `InteractiveProvider` and does not pass the launch context to the provider. The provider therefore derives `isStandaloneResource` from a presentation flag and disables the standalone persistence path.
 
-The server ingestion boundary already accepts authenticated events with `learningContext: 'standalone_resource'`, stores them in `InteractionLog`, and routes governed event records to the learning-record pipeline. The change should connect the existing contracts rather than introduce a second ingestion path or a new evidence table.
+The server ingestion boundary already accepts authenticated events with `learningContext: 'standalone_resource'`, stores them in `InteractionLog`, and routes governed event records to the learning-record pipeline. The change should connect the existing contracts rather than introduce a second ingestion path or a new evidence table. The same shared renderer also creates a knowledge-card tracker; that tracker must receive the renderer's `sessionId` so classroom knowledge-card events retain classroom provenance instead of being treated as standalone activity.
 
 ## Goals / Non-Goals
 
@@ -27,11 +27,13 @@ The server ingestion boundary already accepts authenticated events with `learnin
 
 2. **Keep presentation and learning context separate.** `embedded` remains a layout/header input. Standalone detection and persistence eligibility will use explicit launch provenance plus the absence of a classroom session. Classroom callers continue to pass their session context and retain classroom event semantics.
 
-3. **Reuse the current tracking hook and ingestion endpoint.** The provider will enable `persistWithoutSession` only for an authenticated standalone launch and will include the explicit standalone context in event data. The existing hook will continue to queue events locally until sync and remove them only after a successful API response.
+3. **Carry classroom session identity into every tracker created by the shared renderer.** The renderer's resource tracker and knowledge-card tracker use the same tracking hook, so both must receive the caller's `sessionId`. The absence of a session is meaningful only for a genuinely independent launch; it must not be introduced by an omitted hook argument.
 
-4. **Keep server ownership of learner identity and evidence eligibility.** The client may identify the resource and launch surface, but the server continues to derive the authenticated user from the session and applies the existing event allowlist, canonical event resolution, and profile-contribution policy.
+4. **Reuse the current tracking hook and ingestion endpoint.** The provider will enable `persistWithoutSession` only for an authenticated standalone launch and will include the explicit standalone context in event data. The existing hook will continue to queue events locally until sync and remove them only after a successful API response.
 
-5. **Test both sides of the boundary.** Contract tests will prove that direct resources pass standalone context and that classroom resources still pass classroom context. Tracking and route tests will prove authenticated standalone persistence/classification, demo and anonymous non-persistence, and that low-value view events do not become mastery evidence.
+5. **Keep server ownership of learner identity and evidence eligibility.** The client may identify the resource and launch surface, but the server continues to derive the authenticated user from the session and applies the existing event allowlist, canonical event resolution, and profile-contribution policy.
+
+6. **Test both sides of the boundary.** Contract tests will prove that direct resources pass standalone context and that classroom resources still pass classroom context, including knowledge-card tracking. Tracking and route tests will prove authenticated standalone persistence/classification, demo and anonymous non-persistence, and that low-value view events do not become mastery evidence.
 
 ## Risks / Trade-offs
 

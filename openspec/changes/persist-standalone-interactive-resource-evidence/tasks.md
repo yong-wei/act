@@ -2,7 +2,7 @@
 
 - [ ] 1.1 Add a typed explicit launch-context contract for classroom and standalone interactive resource launches.
 - [ ] 1.2 Pass the existing direct-resource launch descriptor from `ResourceRenderer` into `InteractiveProvider` without using `embedded` as provenance.
-- [ ] 1.3 Preserve classroom-session, demo, anonymous, and generated-courseware behavior at the boundary.
+- [ ] 1.3 Pass the classroom `sessionId` into the shared renderer's knowledge-card tracker and preserve classroom-session, demo, anonymous, and generated-courseware behavior at the boundary.
 
 ## 2. Durable standalone event flow
 
@@ -13,6 +13,6 @@
 ## 3. Verification and delivery
 
 - [ ] 3.1 Add failing unit/source-contract tests for direct launch context and classroom compatibility.
-- [ ] 3.2 Add tracking/route regression coverage for authenticated standalone persistence, canonical classification, anonymous/demo non-persistence, and duplicate event handling.
+- [ ] 3.2 Add tracking/route regression coverage for authenticated standalone persistence, canonical classification, anonymous/demo non-persistence, duplicate event handling, and classroom knowledge-card provenance.
 - [ ] 3.3 Run focused interactive tests, related learning-record tests, typecheck, strict OpenSpec validation, and `git diff --check`.
 - [ ] 3.4 Record the direct-resource route and persisted evidence path as Issue acceptance evidence; do not claim mastery or score effects.
