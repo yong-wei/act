@@ -1204,17 +1204,91 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// 学生原始 AI 提问所在事件类型（原始与 canonical 两种写法）；普通读路径整体排除
+const PRIVATE_AI_QUERY_EVENT_TYPES = ['ai_query', 'ai_query_submit'];
+
+type TeacherClassReadScope = {
+  sessionIds: string[];
+  studentIds: string[];
+};
+
+// 教师可读范围只来自服务器拥有的关系：Class.teacherId → ClassSession.classId / StudentProfile.classId；
+// 请求中的 sessionId/userId 只是已授权范围内的过滤条件，绝不扩大范围
+async function resolveAuthorizedTeacherScope(
+  teacherId: string,
+  sessionId: string | null,
+  userId: string | null,
+): Promise<TeacherClassReadScope | 'forbidden'> {
+  const classes = await prisma.class.findMany({
+    where: { teacherId },
+    select: { id: true },
+  });
+  const classIds = classes.map((cls) => cls.id);
+  if (classIds.length === 0) {
+    if (sessionId || userId) return 'forbidden';
+    return { sessionIds: [], studentIds: [] };
+  }
+  const [sessions, students] = await Promise.all([
+    prisma.classSession.findMany({
+      where: { classId: { in: classIds } },
+      select: { id: true },
+    }),
+    prisma.studentProfile.findMany({
+      where: { classId: { in: classIds } },
+      select: { userId: true },
+    }),
+  ]);
+  const scope: TeacherClassReadScope = {
+    sessionIds: sessions.map((session) => session.id),
+    studentIds: students.map((student) => student.userId),
+  };
+  if (sessionId && !scope.sessionIds.includes(sessionId)) return 'forbidden';
+  if (userId && !scope.studentIds.includes(userId)) return 'forbidden';
+  return scope;
+}
+
+// 普通 API 只返回 allowlist 投影；eventData 仅在服务端用于 canonical 解析，不进入响应
+function toTeacherSafeEvent(log: {
+  eventType: string;
+  eventData: Prisma.JsonValue;
+  resourceKey: string | null;
+  lessonKey: string | null;
+  stepId: string | null;
+  attemptKey: string | null;
+  clientEventAt: Date | null;
+  createdAt: Date;
+}): {
+  eventType: string;
+  resourceKey: string | null;
+  lessonKey: string | null;
+  stepId: string | null;
+  attemptKey: string | null;
+  clientEventAt: string | null;
+  createdAt: string;
+} {
+  return {
+    eventType: resolveCanonicalEventType(log.eventType, readRecord(log.eventData)),
+    resourceKey: log.resourceKey,
+    lessonKey: log.lessonKey,
+    stepId: log.stepId,
+    attemptKey: log.attemptKey,
+    clientEventAt: log.clientEventAt ? log.clientEventAt.toISOString() : null,
+    createdAt: log.createdAt.toISOString(),
+  };
+}
+
 /**
  * GET /api/interactive/events
  *
- * 查询资源的互动事件（教师端）
+ * 查询资源的互动事件（教师端；普通响应只返回教师安全投影）
  *
  * Query params:
    * - resourceId: 资源 ID（可选）
    * - resourceKey: 资源逻辑标识（可选，推荐）
- * - sessionId: 课堂会话 ID（可选）
- * - userId: 用户 ID（可选）
+ * - sessionId: 课堂会话 ID（可选，须属于教师拥有的班级）
+ * - userId: 用户 ID（可选，须属于教师班级名册）
  * - eventType: 事件类型（可选）
+ * - diagnostics: control-workbench | annotated-media（教师/管理员）
  * - limit: 返回数量（默认 100）
  */
 export async function GET(request: NextRequest) {
@@ -1224,8 +1298,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 只有教师和管理员可以查询所有用户的事件
-    const isTeacherOrAdmin = session.user.role === 'TEACHER' || session.user.role === 'ADMIN';
+    const isTeacher = session.user.role === 'TEACHER';
+    const isTeacherOrAdmin = isTeacher || session.user.role === 'ADMIN';
 
     const { searchParams } = new URL(request.url);
     const resourceId = searchParams.get('resourceId');
@@ -1236,41 +1310,32 @@ export async function GET(request: NextRequest) {
     const diagnostics = searchParams.get('diagnostics');
     const limit = parseInt(searchParams.get('limit') || '100', 10);
 
-    if (diagnostics === 'control-workbench') {
-      if (!isTeacherOrAdmin) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
-      const responses = await prisma.studentStepResponse.findMany({
-        where: {
-          ...(sessionId ? { sessionId } : {}),
-          ...(resourceKey ? { lessonKey: resourceKey } : {}),
-          ...(userId ? { userId } : {}),
-        },
-        orderBy: { submittedAt: 'desc' },
-        take: limit,
-        select: {
-          userId: true,
-          responseData: true,
-        },
-      });
-      return NextResponse.json({
-        diagnostics: buildControlWorkbenchTeacherDiagnostics(
-          responses
-            .map((response) => controlWorkbenchDiagnosticEventFromResponse(response.userId, response.responseData))
-            .filter((event): event is ControlWorkbenchDiagnosticEvent => Boolean(event)),
-        ),
-      });
+    // 教师可读范围先于任何事件/响应表读取解析；显式越权目标直接拒绝
+    const teacherScope = isTeacher
+      ? await resolveAuthorizedTeacherScope(session.user.id, sessionId, userId)
+      : null;
+    if (teacherScope === 'forbidden') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (diagnostics === 'annotated-media') {
+    if (diagnostics === 'control-workbench' || diagnostics === 'annotated-media') {
       if (!isTeacherOrAdmin) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
+      // 诊断分支与普通读共用同一服务器派生范围；教师无 session 锚定时只看班级绑定会话
+      const scopeWhere = teacherScope
+        ? {
+            ...(sessionId ? { sessionId } : { sessionId: { in: teacherScope.sessionIds } }),
+            ...(userId ? { userId } : {}),
+          }
+        : {
+            ...(sessionId ? { sessionId } : {}),
+            ...(userId ? { userId } : {}),
+          };
       const responses = await prisma.studentStepResponse.findMany({
         where: {
-          ...(sessionId ? { sessionId } : {}),
+          ...scopeWhere,
           ...(resourceKey ? { lessonKey: resourceKey } : {}),
-          ...(userId ? { userId } : {}),
         },
         orderBy: { submittedAt: 'desc' },
         take: limit,
@@ -1280,11 +1345,17 @@ export async function GET(request: NextRequest) {
         },
       });
       return NextResponse.json({
-        diagnostics: buildAnnotatedMediaTeacherDiagnostics(
-          responses
-            .map((response) => annotatedMediaDiagnosticEventFromResponse(response.userId, response.responseData))
-            .filter((event): event is AnnotatedMediaDiagnosticEvent => Boolean(event)),
-        ),
+        diagnostics: diagnostics === 'control-workbench'
+          ? buildControlWorkbenchTeacherDiagnostics(
+            responses
+              .map((response) => controlWorkbenchDiagnosticEventFromResponse(response.userId, response.responseData))
+              .filter((event): event is ControlWorkbenchDiagnosticEvent => Boolean(event)),
+          )
+          : buildAnnotatedMediaTeacherDiagnostics(
+            responses
+              .map((response) => annotatedMediaDiagnosticEventFromResponse(response.userId, response.responseData))
+              .filter((event): event is AnnotatedMediaDiagnosticEvent => Boolean(event)),
+          ),
       });
     }
 
@@ -1303,36 +1374,54 @@ export async function GET(request: NextRequest) {
       where.resourceKey = resourceKey;
     }
 
-    if (sessionId) {
-      where.sessionId = sessionId;
-    }
-
     if (eventType) {
       where.eventType = eventType;
+    } else {
+      // 学生原始 AI 提问不进入普通教师查询（含聚合统计）
+      where.eventType = { notIn: PRIVATE_AI_QUERY_EVENT_TYPES };
     }
 
-    // 非教师/管理员只能查看自己的事件
+    // 非教师/管理员只能查看自己的事件；教师读取范围由服务器派生的班级会话与名册限定
     if (!isTeacherOrAdmin) {
       where.userId = session.user.id;
-    } else if (userId) {
-      where.userId = userId;
+      if (sessionId) {
+        where.sessionId = sessionId;
+      }
+    } else if (teacherScope) {
+      where.sessionId = sessionId ?? { in: teacherScope.sessionIds };
+      if (userId) {
+        where.userId = userId;
+      }
+    } else {
+      if (sessionId) {
+        where.sessionId = sessionId;
+      }
+      if (userId) {
+        where.userId = userId;
+      }
     }
 
-    // 查询事件
+    // 查询事件（select 只取投影所需字段；eventData 仅用于服务端 canonical 解析）
     const events = await prisma.interactionLog.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: limit,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+      select: {
+        eventType: true,
+        eventData: true,
+        resourceKey: true,
+        lessonKey: true,
+        stepId: true,
+        attemptKey: true,
+        clientEventAt: true,
+        createdAt: true,
       },
     });
+
+    // 兜底：载荷声明的私有 AI 提问事件即使以其他原始类型落库也不进入投影
+    const projectedEvents = events
+      .filter((log) => resolveCanonicalEventType(log.eventType, readRecord(log.eventData)) !== 'ai_query_submit')
+      .map(toTeacherSafeEvent);
 
     // 聚合统计
     const stats = await prisma.interactionLog.groupBy({
@@ -1346,9 +1435,9 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({
-      events,
+      events: projectedEvents,
       stats: {
-        total: events.length,
+        total: projectedEvents.length,
         byType: statsMap,
       },
     });

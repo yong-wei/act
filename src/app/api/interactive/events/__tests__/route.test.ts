@@ -4,12 +4,19 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   prisma: {
+    class: {
+      findMany: vi.fn(),
+    },
     classSession: {
+      findMany: vi.fn(),
+    },
+    studentProfile: {
       findMany: vi.fn(),
     },
     interactionLog: {
       findMany: vi.fn(),
       createManyAndReturn: vi.fn(),
+      groupBy: vi.fn(),
     },
     studentStepResponse: {
       createMany: vi.fn(),
@@ -1458,11 +1465,158 @@ describe('POST /api/interactive/events', () => {
     expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
   });
+});
 
-  it('returns teacher-only control workbench diagnostics from materialized responses', async () => {
+function createGetRequest(query: string): NextRequest {
+  return new NextRequest(`http://localhost/api/interactive/events?${query}`);
+}
+
+describe('GET /api/interactive/events', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // 教师 teacher-1 拥有 class-1：会话 session-owned，名册学生 student-1
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
+    mocks.prisma.class.findMany.mockResolvedValue([{ id: 'class-1' }]);
+    mocks.prisma.classSession.findMany.mockResolvedValue([{ id: 'session-owned' }]);
+    mocks.prisma.studentProfile.findMany.mockResolvedValue([{ userId: 'student-1' }]);
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.groupBy.mockResolvedValue([]);
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
+  });
+
+  it('returns 401 without a session', async () => {
+    mocks.getServerSession.mockResolvedValue(null);
+
+    const response = await GET(createGetRequest('resourceKey=unit-4-3'));
+
+    expect(response.status).toBe(401);
+    expect(mocks.prisma.interactionLog.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects a cross-class session target before reading event rows', async () => {
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&sessionId=session-other'));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.interactionLog.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.interactionLog.groupBy).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-roster student target before reading event rows', async () => {
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&userId=student-other'));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.interactionLog.findMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.interactionLog.groupBy).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.findMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects an out-of-scope target even when the teacher owns no class', async () => {
+    mocks.prisma.class.findMany.mockResolvedValue([]);
+
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&sessionId=session-other'));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.interactionLog.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns teacher events through the allowlist projection and excludes private AI questions', async () => {
+    const createdAt = new Date('2026-06-18T00:00:00.000Z');
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([
+      {
+        eventType: 'view',
+        eventData: { originPath: '/interactive-learning/courses/unit-4-3' },
+        resourceKey: 'unit-4-3',
+        lessonKey: 'unit-4-3-v1',
+        stepId: 'step-02',
+        attemptKey: null,
+        clientEventAt: new Date('2026-06-18T00:00:01.000Z'),
+        createdAt,
+      },
+      {
+        eventType: 'ai_query',
+        eventData: { eventType: 'ai_query_submit', question: '请帮我直接给出控制器参数' },
+        resourceKey: 'unit-4-3',
+        lessonKey: 'unit-4-3-v1',
+        stepId: 'step-03',
+        attemptKey: null,
+        clientEventAt: null,
+        createdAt,
+      },
+    ]);
+    mocks.prisma.interactionLog.groupBy.mockResolvedValue([
+      { eventType: 'view', _count: { id: 1 } },
+    ]);
+
+    const response = await GET(createGetRequest('resourceKey=unit-4-3'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.events).toEqual([
+      {
+        eventType: 'page_view',
+        resourceKey: 'unit-4-3',
+        lessonKey: 'unit-4-3-v1',
+        stepId: 'step-02',
+        attemptKey: null,
+        clientEventAt: '2026-06-18T00:00:01.000Z',
+        createdAt: '2026-06-18T00:00:00.000Z',
+      },
+    ]);
+    expect(payload.stats).toEqual({ total: 1, byType: { view: 1 } });
+    // 查询 select 不取用户标识；where 排除私有 AI 提问类型并限定班级会话范围
+    const findArgs = mocks.prisma.interactionLog.findMany.mock.calls[0][0];
+    expect(findArgs.select).not.toHaveProperty('user');
+    expect(findArgs.where).toMatchObject({
+      resourceKey: 'unit-4-3',
+      sessionId: { in: ['session-owned'] },
+      eventType: { notIn: ['ai_query', 'ai_query_submit'] },
+    });
+  });
+
+  it('narrows an authorized session and roster target inside the derived scope', async () => {
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&sessionId=session-owned&userId=student-1'));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.findMany.mock.calls[0][0].where).toMatchObject({
+      sessionId: 'session-owned',
+      userId: 'student-1',
+      resourceKey: 'unit-4-3',
+    });
+  });
+
+  it('limits non-teacher readers to their own projected events', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await GET(createGetRequest('resourceKey=unit-4-3&sessionId=session-owned&userId=student-other'));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.findMany.mock.calls[0][0].where).toMatchObject({
+      userId: 'student-1',
+      sessionId: 'session-owned',
+      resourceKey: 'unit-4-3',
+    });
+  });
+
+  it('applies the same teacher scope to control-workbench diagnostics', async () => {
+    const response = await GET(createGetRequest('diagnostics=control-workbench&userId=student-other'));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.studentStepResponse.findMany).not.toHaveBeenCalled();
+  });
+
+  it('applies the same teacher scope to annotated-media diagnostics with a foreign session', async () => {
+    const response = await GET(createGetRequest('diagnostics=annotated-media&sessionId=session-other'));
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.studentStepResponse.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns teacher-only control workbench diagnostics from materialized responses', async () => {
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
       {
         userId: 'student-1',
@@ -1488,9 +1642,7 @@ describe('POST /api/interactive/events', () => {
       },
     ]);
 
-    const response = await GET(new NextRequest(
-      'http://localhost/api/interactive/events?diagnostics=control-workbench&resourceKey=unit-4-2-controller-selection-first-start-v1',
-    ));
+    const response = await GET(createGetRequest('diagnostics=control-workbench&resourceKey=unit-4-2-controller-selection-first-start-v1'));
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -1501,12 +1653,14 @@ describe('POST /api/interactive/events', () => {
       parameterCoverage: [{ parameterId: 'gain.k', count: 1 }],
       judgmentOutcomes: [{ outcome: 'safe-margin', count: 1 }],
     });
+    // 诊断查询同样限定班级绑定会话范围
+    expect(mocks.prisma.studentStepResponse.findMany.mock.calls[0][0].where).toMatchObject({
+      sessionId: { in: ['session-owned'] },
+      lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+    });
   });
 
   it('returns teacher-only annotated media diagnostics from materialized responses', async () => {
-    mocks.getServerSession.mockResolvedValue({
-      user: { id: 'teacher-1', role: 'TEACHER' },
-    });
     mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
       {
         userId: 'student-1',
@@ -1545,9 +1699,7 @@ describe('POST /api/interactive/events', () => {
       },
     ]);
 
-    const response = await GET(new NextRequest(
-      'http://localhost/api/interactive/events?diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture',
-    ));
+    const response = await GET(createGetRequest('diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture'));
     const payload = await response.json();
 
     expect(response.status).toBe(200);
@@ -1566,9 +1718,7 @@ describe('POST /api/interactive/events', () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
-    const forbidden = await GET(new NextRequest(
-      'http://localhost/api/interactive/events?diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture',
-    ));
+    const forbidden = await GET(createGetRequest('diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture'));
     expect(forbidden.status).toBe(403);
   });
 });
