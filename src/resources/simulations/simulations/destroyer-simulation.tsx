@@ -13,6 +13,12 @@ import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
 import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
+import {
+  TYPE055_NANCHANG_101_V2,
+  TYPE055_V2_BASIS_YAW_RAD,
+  isType055V2CandidateSearch,
+} from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
 import {
   Play,
   Pause,
@@ -439,16 +445,40 @@ function WakeTrailRig({
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型（优先 meshopt 压缩资产，失败回退原始 GLB） */
+/**
+ * 候选开关（issue #1898）：`?model=type055-v2` 显式启用南昌舰 v2.0.0 版本化模型包。
+ * 默认不启用时走现有 browser-delivery 候选链，请求与渲染行为保持不变。
+ */
+function useType055V2CandidateEnabled(): boolean {
+  const [enabled] = useState(() => (
+    typeof window !== 'undefined' && isType055V2CandidateSearch(window.location.search)
+  ));
+  return enabled;
+}
+
+/** 驱逐舰3D模型：候选模型包按质量档位选 LOD；默认/回退走 meshopt 压缩资产 + 原始 GLB。 */
 function DestroyerModel({
   simRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
 }) {
+  const candidateEnabled = useType055V2CandidateEnabled();
+  const { tier } = useSceneQuality();
+
+  if (!candidateEnabled) {
+    return (
+      <FallbackGltfModel
+        candidates={MODEL.candidates}
+        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+      />
+    );
+  }
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+    <VersionedShipModel
+      descriptor={TYPE055_NANCHANG_101_V2}
+      tier={tier}
+      legacyCandidates={MODEL.candidates}
+      renderScene={(url) => <DestroyerModelScene url={url} simRef={simRef} basisYawRad={TYPE055_V2_BASIS_YAW_RAD} />}
     />
   );
 }
@@ -456,9 +486,12 @@ function DestroyerModel({
 function DestroyerModelScene({
   url,
   simRef,
+  basisYawRad = 0,
 }: {
   url: string;
   simRef: React.MutableRefObject<SimulationState>;
+  /** 坐标基适配（唯一应用点）：v2 候选模型 +X 舰艏 → 场景 +Z 舰艏。 */
+  basisYawRad?: number;
 }) {
   const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
@@ -504,12 +537,18 @@ function DestroyerModelScene({
 
   return (
     <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
+      <group rotation-y={basisYawRad}>
+        <primitive object={model} scale={scale} />
+      </group>
     </group>
   );
 }
 
-useGLTF.preload(MODEL.primary);
+// 默认路径保持原有的旧模型模块级预载；候选启用时首屏只请求一个 ship LOD，
+// 不再预取旧模型（旧候选链仍作为运行时回退保留）。
+if (typeof window === 'undefined' || !isType055V2CandidateSearch(window.location.search)) {
+  useGLTF.preload(MODEL.primary);
+}
 
 
 /** 仿真物理引擎 */

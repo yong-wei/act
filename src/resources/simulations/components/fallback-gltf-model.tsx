@@ -2,7 +2,7 @@
 
 import { Component, type ReactNode } from 'react';
 
-class ModelAssetErrorBoundary extends Component<
+export class ModelAssetErrorBoundary extends Component<
   { fallback: ReactNode; children: ReactNode },
   { failed: boolean }
 > {
