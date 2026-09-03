@@ -76,6 +76,14 @@ describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
       { encoding: 'utf-8' },
     ).trim();
     expect(headTree, 'receipt packageTreeDigest must equal the committed package tree').toBe(receipt.packageTreeDigest);
+    // digest 语义钉死：由文件直接构造（mktree）与提交后 tree 完全一致——
+    // 证明首次接收（包目录尚未提交）产出的收据与提交后重跑等价
+    const entries = readdirSync(PACKAGE_DIR).sort().map((file) => {
+      const blob = execSync(`git hash-object '${path.join(PACKAGE_DIR, file)}'`, { encoding: 'utf-8' }).trim();
+      return `100644 blob ${blob}\t${file}`;
+    });
+    const mktree = execSync('git mktree', { input: `${entries.join('\n')}\n`, encoding: 'utf-8' }).trim();
+    expect(mktree).toBe(headTree);
     // 捕获时工作区必须干净（脏收据 fail closed）
     expect(receipt.packageDirty).toBe(false);
     for (const [role, artifact] of Object.entries(TYPE055_NANCHANG_101_V2.roles)) {

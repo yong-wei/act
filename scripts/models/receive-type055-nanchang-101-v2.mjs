@@ -142,13 +142,18 @@ if (existsSync(targetDir)) {
 // 5. 写接收收据（绑定源身份、逐文件哈希与复制核验；不含本机绝对路径）
 // 可验证主绑定是 packageTreeDigest：候选包目录的 git tree 哈希随任意克隆（含浅克隆
 // 与 squash 合并）传输，`git rev-parse HEAD:<包路径>` 即可复核；sourceCommit 仅作
-// 捕获时的参考信息，不作为可达性依据。
+// 捕获时的参考信息，不作为可达性依据。digest 从已验证文件直接构造（git mktree），
+// 首次接收（包目录尚未提交）同样可产出完整收据。
+function dirTreeDigest(dir) {
+  const entries = readdirSync(dir).sort().map((file) => {
+    const blob = execFileSync('git', ['hash-object', '-w', path.join(dir, file)], { encoding: 'utf-8', cwd: root }).trim();
+    return `100644 blob ${blob}\t${file}`;
+  });
+  return execFileSync('git', ['mktree'], { input: `${entries.join('\n')}\n`, cwd: root, encoding: 'utf-8' }).trim();
+}
 const capturedAt = new Date().toISOString();
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim();
-const packageTreeDigest = execFileSync(
-  'git', ['rev-parse', `HEAD:${TARGET_DIR}`],
-  { encoding: 'utf-8', cwd: root },
-).trim();
+const packageTreeDigest = dirTreeDigest(targetDir);
 const receipt = {
   schema: 'act-model-release-receipt/1',
   packageId: 'type055-nanchang-101',
