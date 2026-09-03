@@ -1397,12 +1397,17 @@ export function loadCommittedPredecessorPackage(repoRoot: string): PredecessorPa
 }
 
 /** Reads and digest-verifies the predecessor full-inventory artifact to recover its tracked path set. */
-export function loadPredecessorPaths(repoRoot: string, handoff: AHandoff): string[] {
-  const locator = handoff.fullInventoryLocator;
-  if (!locator.startsWith('artifacts/architecture-census/')) throw new Error('predecessor-inventory-locator-invalid');
+export function loadPredecessorPaths(repoRoot: string): string[] {
+  const raw = readFileSync(join(repoRoot, 'docs/architecture/repository-payload-classification/index.json'), 'utf8');
+  const index = JSON.parse(raw) as { fullInventory?: { logicalLocator?: string; sha256?: string } };
+  const locator = index.fullInventory?.logicalLocator;
+  const expectedSha = index.fullInventory?.sha256;
+  if (!locator || !expectedSha || !locator.startsWith('artifacts/architecture-census/')) {
+    throw new Error('predecessor-inventory-locator-invalid');
+  }
   const bytes = readFileSync(join(repoRoot, locator));
   const sha256 = createHash('sha256').update(bytes).digest('hex');
-  if (sha256 !== handoff.fullInventorySha256) throw new Error('predecessor-inventory-digest-mismatch');
+  if (sha256 !== expectedSha) throw new Error('predecessor-inventory-digest-mismatch');
   return bytes.toString('utf8').trimEnd().split('\n')
     .map((line) => JSON.parse(line) as { path?: string })
     .filter((row): row is { path: string } => typeof row.path === 'string')

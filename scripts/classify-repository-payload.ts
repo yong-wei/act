@@ -79,7 +79,7 @@ const issueGate = readIssueGateFromGh(A_ISSUE);
 const predecessorIssueGate = readIssueGateFromGh(1881);
 const handoff = loadCommittedAHandoff(repoRoot);
 const predecessor = loadCommittedPredecessorPackage(repoRoot);
-const predecessorPaths = loadPredecessorPaths(repoRoot, handoff);
+const predecessorPaths = loadPredecessorPaths(repoRoot);
 
 // 3. Subject-tree reader: every adapter reads Git object bytes from the frozen subject only.
 const entries = loadSourceTreeEntries(repoRoot, subjectTree);
