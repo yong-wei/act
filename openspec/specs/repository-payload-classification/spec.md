@@ -5,105 +5,120 @@ TBD - created by archiving change classify-repository-payload-authority-and-mate
 ## Requirements
 ### Requirement: Classification is gated by A's immutable successor capture
 
-The change SHALL permit claim, apply, implementation, and classification only
-after the parent coordination layer verifies from live Issue state that Issue
-#1876 is closed, carries `status:archived`, and has its native `blockedBy`
-dependency resolved. The classifier SHALL consume A's exact immutable
-successor subject identity and capture digest. A local change name, a directory
-listing, or a working-tree snapshot SHALL NOT substitute for that handoff.
+The capability SHALL preserve the archived #1876 successor capture and #1881
+classification package as immutable predecessor evidence. A completion run
+SHALL capture one clean, exact claim-time `integration` commit/tree as a new
+classification subject, record the predecessor subject and package digests,
+and keep the subject identity independent from the implementation and final
+artifact commits. A local change name, mutable directory listing, dirty or
+mixed working tree, or the final artifact commit SHALL NOT substitute for the
+frozen subject.
 
 #### Scenario: A gate or successor handoff is incomplete
 
-- **WHEN** Issue #1876 is open, lacks `status:archived`, retains its native
-  `blockedBy`, or A's successor subject identity or digest is missing, stale, or
-  unreadable
-- **THEN** C claim/apply/implementation/classification SHALL be blocked before
-  a qualified output is written
-- **AND** the result SHALL identify a bounded gate or handoff reason without
-  inventing a successor identity
+- **WHEN** the archived predecessor identity/digest is missing or invalid, or
+  the selected current subject is dirty, mixed, detached-unresolved, not the
+  resolved integration revision, or changes during capture
+- **THEN** completion SHALL be blocked before a qualified output is written
+- **AND** the result SHALL identify a bounded predecessor, subject, or drift
+  reason without inventing or inheriting a current identity
 
 #### Scenario: A handoff is complete
 
-- **WHEN** the parent gate proves all required Issue state and supplies one
-  schema-valid A successor capture with its subject identity and digest
-- **THEN** every C output SHALL bind that exact identity and digest
-- **AND** C SHALL read the declared capture artifacts without rewriting A or
-  treating C as a replacement capture
+- **WHEN** the archived predecessor is digest-valid and one clean integration
+  commit/tree is frozen as the current subject
+- **THEN** every new output SHALL bind both identities in their distinct roles
+- **AND** the capability SHALL NOT rewrite either archived package, activate a
+  baseline, or describe the final artifact commit as the subject
 
 ### Requirement: The scope denominator is closed and revision-bound
 
-The classifier SHALL use the exact entry set and family declarations from A's
-captured subject, source revision/tree, and denominator digest. The minimum
-scope SHALL include `course-content/**/releases/**`,
+The classifier SHALL use the complete tracked-blob entry set from the frozen
+current subject and SHALL retain an explicit predecessor-to-current delta. The
+minimum scope SHALL include `course-content/**/releases/**`,
 `course-content/runtime/**`, `artifacts/**`, `docs/architecture/*.json`,
 `openspec/changes/archive/**/evidence/**`, WASM/package/generated assets,
 large fixtures/snapshots, and every large infograph, PPTX, PPM, EMF, GLB, and
-JSON family actually discovered by A. It SHALL record discovered,
-`qualified`, `justified-excluded`, and `unresolved` member totals for each
-slice, with duplicate groups/member references reported separately, and those
-totals SHALL reconcile.
+JSON family actually present in the current subject. It SHALL record
+discovered, `qualified`, `justified-excluded`, and `unresolved` member counts
+and Git-object byte totals for each slice. Path counts and bytes SHALL
+reconcile independently, while duplicate groups/member references remain
+separate observations.
 
 #### Scenario: A scoped entry is classified
 
-- **WHEN** an entry belongs to a declared A scope slice
-- **THEN** it SHALL occur exactly once with exactly one member disposition from
-  `qualified | unresolved | justified-excluded`, a stable identity, and a
-  content hash/size
-- **AND** duplicate membership SHALL be a separate observation and SHALL NOT
-  become a fourth disposition or reduce the denominator
+- **WHEN** a tracked blob belongs to a declared current-subject scope slice
+- **THEN** it SHALL occur exactly once with one member disposition from
+  `qualified | unresolved | justified-excluded`, a stable path identity, Git
+  object identity, content hash, and non-negative safe-integer byte size
+- **AND** duplicate membership SHALL NOT become another disposition or reduce
+  the path or byte denominator
+
+#### Scenario: The current subject contains a post-predecessor payload
+
+- **WHEN** a tracked entry is absent from the predecessor denominator but
+  present in the frozen current subject
+- **THEN** it SHALL be classified under the current denominator and recorded in
+  the predecessor delta
+- **AND** it SHALL NOT inherit a class, privacy state, authority, consumer, or
+  eligibility decision from a neighboring or equal-hash predecessor record
 
 #### Scenario: Generated or untracked input is observed
 
-- **WHEN** a generated, ignored, untracked, or runtime-created input is needed
-  by a scoped record
-- **THEN** it SHALL be recorded separately as a generated-input observation
-  with producer/version, class, digest, and source identity
-- **AND** it SHALL not change the captured tracked denominator or its count
+- **WHEN** a generated, ignored, untracked, materialized, or remotely
+  discovered input is needed by a scoped record
+- **THEN** it SHALL be recorded separately with producer/version, class,
+  digest, source identity, and evidence status
+- **AND** it SHALL not change the frozen tracked path or byte denominator
 
 #### Scenario: Proposal-time size observations differ from the capture
 
-- **WHEN** observed byte totals or duplicate-candidate counts differ between
-  the proposal and A's successor capture
-- **THEN** qualification SHALL use the captured denominator and evidence only
-- **AND** no proposal-time size or duplicate value SHALL be treated as a
-  hardcoded acceptance threshold
+- **WHEN** proposal-time file, byte, duplicate, or unresolved observations
+  differ from the implementation-time frozen subject
+- **THEN** qualification SHALL use only the frozen subject and digest-bound
+  evidence
+- **AND** no proposal-time count, size, path, or commit SHALL be a hardcoded
+  acceptance value
 
 ### Requirement: Classifier and subject identities are independent and drift-fenced
 
-When a classifier or validator is implemented, it SHALL first record one clean
-tool checkpoint containing `toolCommit`, `toolTree`, `schemaVersion`, and an
-entry-bundle digest. It SHALL then classify the independent A subject artifact
-using frozen input digests. Deterministic output SHALL be required only when
-the subject identity, classifier/tool identity, schema, and frozen inputs all
-match. Drift of either identity or any frozen input SHALL fail closed.
+The implementation SHALL record one clean tool checkpoint containing
+`toolCommit`, `toolTree`, `schemaVersion`, and entry-bundle digest, then use
+that tool to classify the independent frozen current subject with immutable
+predecessor and evidence-input digests. Deterministic output SHALL be required
+only when subject, predecessor, tool, schema, and frozen inputs all match.
+Drift of any identity or input SHALL fail closed.
 
 #### Scenario: The same frozen subject and tool are classified twice
 
-- **WHEN** the A subject identity/digest, tool commit/tree, schema, entry-bundle
-  digest, and all frozen input digests are equal
-- **THEN** canonical records and compact projections SHALL be byte-identical
-- **AND** the second run SHALL not require a new authority or alter the first
-  result
+- **WHEN** current-subject commit/tree, predecessor identities, tool
+  commit/tree, schema, entry-bundle digest, and all frozen evidence digests are
+  equal
+- **THEN** canonical records and compact deterministic projections SHALL be
+  byte-identical
+- **AND** the second run SHALL neither create a new authority nor alter the
+  predecessor or first result
 
 #### Scenario: Subject or tool identity drifts
 
-- **WHEN** the A subject, capture digest, tool commit/tree, schema,
-  entry-bundle digest, or frozen evidence input differs during classification
-- **THEN** the run SHALL fail closed before a qualified result is published
-- **AND** it SHALL not relabel the drifted result as an update to the previous
-  package
+- **WHEN** any current-subject, predecessor, tool, schema, entry-bundle, or
+  frozen evidence identity differs during classification or projection
+- **THEN** the run SHALL fail closed before a qualified package is published
+- **AND** it SHALL not relabel the drifted output as an update to an archived
+  package or as the active baseline
 
 ### Requirement: Qualified records use one primary class and retain orthogonal facets
 
 Every record SHALL bind a stable path or homogeneous family identity, member
-content hash or family digest, non-negative safe-integer size, A subject
-identity, producer/reproducibility evidence, production/test/tool/documentation
-and dynamic consumers, authority/manifest evidence, retention/privacy state,
-and materialization/recovery/rollback conditions. Every denominator member SHALL
+content hash or family digest, non-negative safe-integer size, frozen current
+subject identity, predecessor identity, producer/reproducibility evidence,
+production/test/tool/documentation and dynamic consumers,
+authority/manifest evidence, retention/privacy state, and
+materialization/recovery/rollback conditions. Every denominator member SHALL
 have exactly one `memberDisposition` from `qualified | unresolved |
 justified-excluded`. Only a `qualified` member SHALL have a primary class;
 unresolved and justified-excluded members SHALL keep `primaryClass: null` and
-their bounded evidence/reason.
+their bounded evidence or reason.
 
 A qualified record SHALL have exactly one mutually exclusive `primaryClass`
 from this closed set: **A** hand-authored source of truth; **B** reproducible
@@ -118,14 +133,14 @@ After privacy and all critical evidence are known, primary selection SHALL use
 the deterministic priority `F > C > D > E > A > B`: confirmed sensitive or
 regulated privacy selects F; a proven immutable release/rollback role selects
 C; ephemeral QA selects D; cache/materialized selects E; hand-authored
-authority selects A; and reproducible generated output selects B when no higher
-signal exists. Existing QA/runtime contracts remain independent dimensions and
-do not define a cross-class precedence.
+authority selects A; and reproducible generated output selects B when no
+higher signal exists. Existing QA/runtime contracts remain independent
+dimensions and do not define a cross-class precedence.
 
 #### Scenario: Evidence supports one class
 
-- **WHEN** all required evidence for a record supports one member of A-F and
-  privacy/critical evidence is known
+- **WHEN** all required current-subject evidence for a record supports one
+  member of A-F and privacy and other critical evidence are known
 - **THEN** the record SHALL be `qualified` with exactly one `primaryClass` and
   SHALL retain every non-primary facet and authority/rollback fact
 - **AND** the compact index SHALL preserve evidence references without copying
@@ -133,9 +148,10 @@ do not define a cross-class precedence.
 
 #### Scenario: Overlapping roles use fixed precedence
 
-- **WHEN** fixtures contain D+F, B+C, B+E, or A+F evidence combinations
+- **WHEN** current-subject fixtures contain D+F, B+C, B+E, or A+F evidence
+  combinations
 - **THEN** their primary classes SHALL be F, C, E, and F respectively
-- **AND** the facets SHALL still retain both source roles, reproducibility,
+- **AND** their facets SHALL retain both source roles, reproducibility,
   release/rollback, QA, cache/materialized, privacy, and retention facts
 
 #### Scenario: Evidence is insufficient or conflicting
@@ -145,8 +161,8 @@ do not define a cross-class precedence.
   conflicting
 - **THEN** the member SHALL be `unresolved` with `primaryClass: null` and a
   bounded reason code before class precedence is applied
-- **AND** `unresolved` SHALL be a status that blocks the affected slice, not a
-  seventh class and not a forced A-F assignment
+- **AND** unresolved status SHALL block its slice and the completion package
+  from qualification rather than becoming a seventh class
 
 ### Requirement: Authority, provenance, and consumers are explicit
 
@@ -236,27 +252,31 @@ selector mutation.
 
 ### Requirement: Future eligibility requires complete independent proof
 
-The classifier SHALL mark a record or homogeneous family `futureEligible` only
-when all of these are proved together: a canonical source; a complete consumer
-list; an explicit retention/deletion condition; a zero-required-consumer proof;
-an immutable locator and hash; materialization/recovery/rollback proof; and
-privacy approval. Missing, unknown, or drifted proof SHALL keep the affected
-decision unresolved. `futureEligible` SHALL be an observation and SHALL not
-authorize an action.
+The classifier SHALL mark a current-subject record or homogeneous family
+`futureEligible` only when all of these are proved together against the same
+frozen identities: a canonical source; a complete consumer list; an explicit
+retention/deletion condition; zero-required-consumer proof; an immutable
+locator and hash; materialization/recovery/rollback proof; and privacy
+approval. Missing, unknown, conflicting, or drifted proof SHALL keep the
+decision unresolved. `futureEligible` SHALL remain an observation and SHALL
+not authorize an action.
 
 #### Scenario: All future-eligibility gates pass
 
-- **WHEN** every required proof is bound to the same A subject and frozen
-  classifier inputs
+- **WHEN** every required proof binds the same current subject, predecessor,
+  tool, schema, and frozen evidence inputs
 - **THEN** the record MAY be reported `futureEligible: true`
-- **AND** no payload, selector, release, or lifecycle state SHALL be changed
+- **AND** no payload, selector, release, evidence, or lifecycle state SHALL be
+  changed
 
 #### Scenario: One future-eligibility gate is absent
 
 - **WHEN** any source, consumer, retention, zero-consumer, locator/hash,
-  materialization/recovery/rollback, or privacy proof is absent or stale
+  materialization/recovery/rollback, privacy, or identity proof is absent or
+  stale
 - **THEN** the record SHALL remain `futureEligible: unresolved`
-- **AND** it SHALL remain blocked from migration, deletion, or externalization
+- **AND** it SHALL remain blocked from migration, deletion, externalization,
+  or source replacement
 
 ### Requirement: Policy and privacy outputs are compact and fail closed
 
@@ -309,18 +329,18 @@ identity/digest; it SHALL not list or hash itself.
 ### Requirement: Package digest excludes the index's own bytes
 
 The classifier SHALL compute `packageDigest` only from a canonical, sorted
-package-input envelope containing A's subject identity and capture digest,
-classifier tool identity, schema, frozen input/directory digests, and
-normalized denominator member identity+digest+disposition tuples. The digest
-input SHALL exclude the bytes of `index.json`, any field containing its own
-digest, and any self-reference. The index's byte identity SHALL be bound
-outside the index by its immutable Git blob identity or an outer
-locator/receipt.
+package-input envelope containing the frozen current-subject identity, archived
+predecessor subject/package identities, classifier tool identity, schema,
+frozen input/directory digests, and normalized denominator member
+identity+digest+disposition tuples. The digest input SHALL exclude the bytes of
+`index.json`, any field containing its own digest, and any self-reference. The
+index byte identity SHALL be bound outside the index by its immutable Git blob
+identity or an outer locator/receipt.
 
 #### Scenario: Equivalent frozen inputs produce a deterministic package
 
-- **WHEN** two runs use the same subject, tool, schema, frozen inputs, and
-  normalized member identity/digest/disposition tuples
+- **WHEN** two runs use the same current subject, predecessor, tool, schema,
+  frozen inputs, and normalized member identity/digest/disposition tuples
 - **THEN** they SHALL produce the same `packageDigest` and byte-identical index
   bytes
 - **AND** the index SHALL list sibling projection and full-inventory digests
@@ -328,8 +348,8 @@ locator/receipt.
 
 #### Scenario: Self-referential index digest is attempted
 
-- **WHEN** an index input or package digest calculation includes an `index.json`
-  self-member, self-hash, or hash of the serialized index bytes
+- **WHEN** an index input or package digest calculation includes an
+  `index.json` self-member, self-hash, or hash of the serialized index bytes
 - **THEN** index validation SHALL reject the package before qualification
 - **AND** no self-referential index SHALL satisfy the handoff contract
 
@@ -360,24 +380,99 @@ or classification output SHALL not activate a selector or current authority.
 
 ### Requirement: Classification is payload-read-only and mutation-tested
 
-The classifier SHALL read only A's immutable subject artifact, declared frozen
-evidence, Git metadata, and existing read contracts. It MAY write its own
-compact outputs and full-inventory artifact, but SHALL not delete, move, rename,
-upload, download, or mutate source payloads, existing evidence, release blobs,
-selectors, database/schema, CI, Git history, OSS objects, or production state.
+The classifier SHALL read only the frozen current-subject Git snapshot,
+immutable predecessor artifacts, declared frozen evidence, Git metadata, and
+existing read contracts. It MAY write its own compact outputs and external
+full-inventory artifact, but SHALL not delete, move, rename, upload, download,
+externalize, materialize, or mutate source payloads, existing evidence,
+release blobs, selectors, database/schema, CI, Git history, OSS objects,
+production state, test commands, or active architecture authorities.
 
 #### Scenario: A classification run completes
 
-- **WHEN** the classifier emits a qualified or unresolved package
-- **THEN** pre/post hashes, sizes, and metadata for the subject and existing
-  contract inputs SHALL be unchanged
-- **AND** no release, runtime, QA, knowledge, selector, or production mutation
-  SHALL be observable
+- **WHEN** the classifier emits a qualified or unqualified current package
+- **THEN** pre/post hashes, sizes, and metadata for the current subject,
+  predecessor, and existing contract inputs SHALL be unchanged
+- **AND** no release, runtime, QA, knowledge, selector, baseline, test, or
+  production mutation SHALL be observable
 
 #### Scenario: A mutation path is attempted
 
 - **WHEN** a test or caller requests deletion, relocation, external storage,
-  materialization, activation, rollback, GC, or selector change through C
+  materialization, activation, rollback, GC, selector change, baseline update,
+  or test-command change through this capability
 - **THEN** the classifier SHALL reject the operation before mutation
 - **AND** it SHALL report a bounded read-only boundary failure
+
+### Requirement: Current completion qualification is all-or-unqualified
+
+The completion package SHALL report `qualified` only when every current
+denominator member has a qualified or justified-excluded disposition, the
+unresolved count is zero, all per-slice and global path/byte equations
+reconcile, all detail and compact artifact digests validate, lifecycle
+compatibility checks pass, and package-wide privacy validation passes. It SHALL
+otherwise emit one explicit unqualified package with bounded reason counts and
+no migration-ready handoff.
+
+#### Scenario: Every completion gate passes
+
+- **WHEN** current path and byte denominators reconcile, unresolved is zero,
+  all required evidence and artifact digests validate, and privacy and
+  compatibility checks pass
+- **THEN** the package SHALL report `qualified` for its exact subject/tool
+  identity
+- **AND** downstream proposals MAY inspect its action-neutral eligibility
+  records but SHALL still perform their own scoped drift and authorization
+  gates
+
+#### Scenario: A completion gate does not pass
+
+- **WHEN** any current member is unresolved, any path or byte is unaccounted,
+  an artifact is missing or digest-invalid, a lifecycle check is non-clean, or
+  privacy validation fails
+- **THEN** the whole package SHALL report `unqualified` with bounded reasons
+- **AND** per-slice progress SHALL NOT be presented as package qualification or
+  migration authorization
+
+### Requirement: Active architecture and production authorities remain separate
+
+A qualified completion package SHALL remain an investigation and planning
+input. Only the later N5 closure change may recapture and atomically activate
+the repository baseline, charter, fitness budget, and test qualification. This
+capability SHALL NOT change any production authority or selector.
+
+#### Scenario: A qualified current package is emitted
+
+- **WHEN** all completion gates pass and the package is written
+- **THEN** `REQUIRED_BASELINE`, `REQUIRED_FITNESS_BUDGET`, active test
+  qualification, production selectors, and runtime/OSS state SHALL remain
+  byte-identical
+- **AND** the package SHALL identify itself as non-active and action-neutral
+
+### Requirement: Complete inventory bytes are independently verified
+
+The full current inventory SHALL have a logical or repository-relative
+locator, safe byte count, SHA-256, subject identity, tool identity, and an
+independent read-and-hash verification receipt. Package qualification SHALL
+require the referenced bytes to be actually readable and to reconcile with
+the compact projections; a locator, historical digest, summary-only check, or
+regenerated member set without byte verification SHALL NOT satisfy this gate.
+
+#### Scenario: Full inventory bytes are available and valid
+
+- **WHEN** an independent verifier reads the complete inventory at its declared
+  locator and confirms byte count, SHA-256, subject/tool identities, member
+  denominator, and projection totals
+- **THEN** the inventory byte gate SHALL pass for that exact package
+- **AND** the verification receipt SHALL be indexed without copying the full
+  inventory into Git
+
+#### Scenario: Full inventory bytes cannot be verified
+
+- **WHEN** the inventory is missing, unreadable, truncated, regenerated under
+  another identity, or differs in byte count, digest, members, or projections
+- **THEN** the package SHALL remain unqualified with a bounded inventory-byte
+  reason
+- **AND** no historical locator or compact summary SHALL be accepted as a
+  substitute
 

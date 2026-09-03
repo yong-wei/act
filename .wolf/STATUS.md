@@ -10,6 +10,10 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-09-03：#1916 在 `act-resource` 实现当前 integration 载荷资格分类 v2（schema v2，subject `da0a360ba82e`，78,605 members）。unresolved 从 #1881 的 52,159 收敛到 175（158 无身份 release root + 17 privacy 命中）；digest-bound adapters：release SHA256SUMS / content-compiler toolchain / QA evidence lifecycle / privacy 内容扫描；inventory 73MB 外置 + 独立字节验证回执。状态 `package-unqualified`（fail closed），非激活规划证据。#1881 归档产物字节未动；v2 输出在 `repository-payload-classification/current/`。
+
+- 2026-09-03：#1881 在 `act-resource` 完成。PR #1908 squash 合入 `79c62887b7`（清场 head `f846e46256`）。OpenSpec 归档 `2026-09-03-classify-repository-payload-authority-and-materialization`。Issue CLOSED / `status:archived`。分类包因 unknown-privacy 保持 `package-unqualified`。未移动载荷，未改 selector，未生产部署。
+
 - 2026-09-03：熵减启动父项 #1875 与 #1876/#1880/#1881/#1883 已全部 `status:archived`。根据归档产物的真实资格状态，Buddy propose 新建交付父项 #1915，只登记两个可执行重资格化变更：#1916 `complete-current-repository-payload-eligibility-classification` 与 #1917 `requalify-current-residual-data-governance-owner-migration-inputs`。提案最终修订 `6eb5334602` 已推送 `integration`；两个 change 4/4 工件、全量 changes strict、canonical spec、归档/同步演练、managed commit/push 门禁和独立终审通过。原生关系为 #1915 → #1916/#1917，#1917 blockedBy #1916；唯一映射已复核。未 claim、迁移/删除/外置载荷、移动 Data Governance 文件、创建下游迁移/热点/N5 Issue、修改 selector 或部署。
 
 - 2026-09-03：按 `post-convergence-entropy-reduction-2026-09` 方案完成 Buddy propose 启动系列。tracking parent #1875 下只建立四个 executable changes：#1876 post-convergence successor capture、#1880 clean-head 测试失败分母、#1881 仓库载荷权威/物化分类、#1883 Data Governance 残余 owner 裁决。四项 OpenSpec 均 apply-ready、strict valid，proposal commits 依次为 `330bf5defd`、`9e8e94f6f`、`edb99dbafd`、`747e72a51f`；独立/领域审查 findings 已按根因整改并清场。原生关系已批量回读：#1876 blockedBy #1805–#1810，#1880/#1881/#1883 blockedBy #1876。未 claim、实现、外置/删除载荷、修改 selector、部署或创建其余 24 个候选项。
