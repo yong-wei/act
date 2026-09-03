@@ -95,6 +95,11 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("request.headers.get('x-request-id') ?? crypto.randomUUID()");
     expect(chatRouteSource.indexOf('parseEvidenceCopilotRequest(auditTaskContext)'))
       .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
+    // #1919：Evidence Copilot 非法请求在模型调用前 400 fail closed。
+    expect(chatRouteSource.indexOf("evidenceTaskResolution.status === 'invalid'"))
+      .toBeLessThan(chatRouteSource.indexOf('const responseModel = await getConfiguredAIModel'));
+    // #1919：Evidence Copilot 事实上下文只来自认证身份的服务端解析。
+    expect(chatRouteSource).toContain('role: mapEvidenceCopilotRole(session.user.role),');
   });
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
     expect(chatRouteSource).toContain('const hasRuntimeContext = Boolean');
