@@ -5,11 +5,13 @@ import { join } from 'node:path';
 
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
 import { serializeDeterministic, sha256Text } from '../src/lib/architecture-census/serialize';
+import { isMixedWorktree } from '../src/lib/architecture-census/identity';
 import {
   REQUIRED_SUCCESSOR,
-  RESIDUAL_DENOMINATOR_PREFIX,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
+  collectRelativeCallers,
+  directoryPathReadCaller,
   memberSetDigest,
   projectResidualDocuments,
   type Issue1876Snapshot,
@@ -63,57 +65,95 @@ function loadMembers(): ResidualMemberInput[] {
     .map((path) => ({ path, currentOwnerEvidence: [`sourceTree:${REQUIRED_SUCCESSOR.sourceTree}`] }));
 }
 
+function gitGrep(pattern: string): string {
+  try {
+    return git([
+      'grep',
+      '-F',
+      pattern,
+      REQUIRED_SUCCESSOR.sourceCommit,
+      '--',
+      '*.ts',
+      '*.tsx',
+      '*.mjs',
+      '*.js',
+      '*.md',
+      '*.json',
+    ]);
+  } catch {
+    return '';
+  }
+}
+
+function parseGrepLine(line: string): { callerPath: string; text: string } | null {
+  const first = line.indexOf(':');
+  if (first < 0) return null;
+  const rest = line.slice(first + 1);
+  const second = rest.indexOf(':');
+  if (second < 0) return null;
+  return { callerPath: rest.slice(0, second), text: rest.slice(second + 1) };
+}
+
+function loadMemberFiles(members: readonly ResidualMemberInput[]): { path: string; content: string }[] {
+  return members
+    .filter((member) => member.path.endsWith('.ts') || member.path.endsWith('.tsx') || member.path.endsWith('.js'))
+    .map((member) => ({
+      path: member.path,
+      content: git(['show', `${REQUIRED_SUCCESSOR.sourceCommit}:${member.path}`]),
+    }));
+}
+
 function loadCallers(members: readonly ResidualMemberInput[]): ResidualCallerInput[] {
+  const memberPaths = members.map((member) => member.path);
+  const barrel = 'src/lib/data-governance/index.ts';
   const tokens = new Map<string, string[]>();
-  for (const member of members) {
-    const relative = member.path.replace(/^src\/lib\//u, '');
-    for (const token of [member.path, relative]) {
+  for (const path of memberPaths) {
+    const relative = path.replace(/^src\/lib\//u, '');
+    for (const token of [path, relative]) {
       const bucket = tokens.get(token) ?? [];
-      bucket.push(member.path);
+      bucket.push(path);
       tokens.set(token, bucket);
     }
   }
-  const grep = git([
-    'grep',
-    '-F',
-    'lib/data-governance/',
-    REQUIRED_SUCCESSOR.sourceCommit,
-    '--',
-    '*.ts',
-    '*.tsx',
-    '*.mjs',
-    '*.md',
-  ]);
+  const grep = [gitGrep('lib/data-governance/'), gitGrep('src/lib/data-governance')].join('\n');
   const callers: ResidualCallerInput[] = [];
   const seen = new Set<string>();
+  const add = (caller: ResidualCallerInput): void => {
+    const key = `${caller.memberPath}|${caller.callerPath}|${caller.relationship}`;
+    if (seen.has(key) || caller.callerPath === caller.memberPath) return;
+    seen.add(key);
+    callers.push(caller);
+  };
   for (const line of grep.split('\n')) {
-    const match = line.match(/^[^:]+:([^:]+):(.*)$/u);
-    if (!match) continue;
-    const callerPath = match[1] ?? '';
-    const text = match[2] ?? '';
+    const parsed = parseGrepLine(line);
+    if (!parsed) continue;
+    const { callerPath, text } = parsed;
     if (!callerPath) continue;
+    const directory = directoryPathReadCaller(callerPath, text, barrel);
+    if (directory && memberPaths.includes(barrel)) add(directory);
     const hits = new Set<string>();
-    for (const [token, memberPaths] of tokens) {
+    for (const [token, paths] of tokens) {
       if (!text.includes(token)) continue;
-      for (const memberPath of memberPaths) hits.add(memberPath);
+      for (const path of paths) hits.add(path);
     }
     for (const memberPath of hits) {
-      if (callerPath === memberPath) continue;
-      const key = `${memberPath}|${callerPath}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
       const relationship = callerPath.startsWith('openspec/changes/archive/')
         ? 'historical'
         : callerPath.startsWith('openspec/') || callerPath.startsWith('docs/')
           ? 'documentation'
           : /export .* from/u.test(text)
             ? 're-export'
-            : 'import';
-      callers.push({ memberPath, callerPath, relationship });
+            : text.includes('cpSync') || text.includes('readFile') || text.includes('path.join')
+              ? 'path-read'
+              : 'import';
+      add({ memberPath, callerPath, relationship });
     }
   }
+  for (const caller of collectRelativeCallers(loadMemberFiles(members), memberPaths)) add(caller);
   return callers.sort((left, right) => (
-    left.memberPath.localeCompare(right.memberPath) || left.callerPath.localeCompare(right.callerPath)
+    left.memberPath.localeCompare(right.memberPath)
+    || left.callerPath.localeCompare(right.callerPath)
+    || left.relationship.localeCompare(right.relationship)
   ));
 }
 
@@ -142,10 +182,13 @@ function fullInventoryVerified(): boolean {
 }
 
 function toolIdentity(): { toolCommit: string; toolTree: string; entryBundleDigest: string } {
-  const files = Object.fromEntries(TOOL_FILES.map((path) => [path, readFileSync(join(process.cwd(), path), 'utf8')]));
+  const dirtyTool = git(['status', '--porcelain', '--', ...TOOL_FILES]);
+  if (dirtyTool.length > 0) throw new Error(`tool-dirty:${dirtyTool}`);
+  const commit = git(['rev-parse', 'HEAD']);
+  const files = Object.fromEntries(TOOL_FILES.map((path) => [path, git(['show', `${commit}:${path}`])]));
   return {
-    toolCommit: git(['rev-parse', 'HEAD']),
-    toolTree: git(['rev-parse', 'HEAD^{tree}']),
+    toolCommit: commit,
+    toolTree: git(['rev-parse', `${commit}^{tree}`]),
     entryBundleDigest: sha256Text(serializeDeterministic(files)),
   };
 }
@@ -184,7 +227,7 @@ function main(): void {
     members,
     callers,
     dirtySource: false,
-    mixedSource: false,
+    mixedSource: isMixedWorktree(process.cwd()),
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
     process.stderr.write(`${JSON.stringify(result)}\n`);

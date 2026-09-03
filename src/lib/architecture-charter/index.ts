@@ -8,6 +8,8 @@ export {
   adjudicateResidualDataGovernance,
   classifyCallerPath,
   classifyResidualPath,
+  collectRelativeCallers,
+  directoryPathReadCaller,
   evaluateCoordinationGate,
   memberSetDigest,
   projectResidualDocuments,

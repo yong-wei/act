@@ -424,6 +424,55 @@ export function memberSetDigest(paths: readonly string[]): string {
   return sha256Text(serializeDeterministic([...paths].sort()));
 }
 
+const RELATIVE_SPEC = /(?:export\s+\*\s+from|from|import)\s*\(?\s*['"](\.[^'"]+)['"]/gu;
+
+function resolveRelativeSpecs(fromPath: string, spec: string): string[] {
+  const parts = fromPath.split('/').slice(0, -1);
+  for (const segment of spec.split('/')) {
+    if (segment === '.' || segment === '') continue;
+    if (segment === '..') parts.pop();
+    else parts.push(segment);
+  }
+  const base = parts.join('/');
+  return [base, `${base}.ts`, `${base}.tsx`, `${base}.js`, `${base}/index.ts`];
+}
+
+export function collectRelativeCallers(
+  files: readonly { path: string; content: string }[],
+  memberPaths: readonly string[],
+): ResidualCallerInput[] {
+  const members = new Set(memberPaths);
+  const callers: ResidualCallerInput[] = [];
+  const seen = new Set<string>();
+  for (const file of files) {
+    RELATIVE_SPEC.lastIndex = 0;
+    let match: RegExpExecArray | null = RELATIVE_SPEC.exec(file.content);
+    while (match) {
+      const candidates = resolveRelativeSpecs(file.path, match[1] ?? '');
+      for (const candidate of candidates) {
+        if (!members.has(candidate) || candidate === file.path) continue;
+        const key = `${candidate}|${file.path}|re-export-or-import`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        callers.push({
+          memberPath: candidate,
+          callerPath: file.path,
+          relationship: /export\s+\*\s+from/u.test(match[0] ?? '') ? 're-export' : 'import',
+        });
+      }
+      match = RELATIVE_SPEC.exec(file.content);
+    }
+  }
+  return callers;
+}
+
+export function directoryPathReadCaller(callerPath: string, text: string, barrelPath: string): ResidualCallerInput | null {
+  if (!/(?:^|['"`=\s])src\/lib\/data-governance(?!\/)/u.test(text) && ! /['"`]src\/lib\/data-governance['"`]/u.test(text)) {
+    return null;
+  }
+  return { memberPath: barrelPath, callerPath, relationship: 'path-read' };
+}
+
 export function adjudicateResidualDataGovernance(
   input: ResidualAdjudicationInput,
 ): ResidualAdjudicationResult {

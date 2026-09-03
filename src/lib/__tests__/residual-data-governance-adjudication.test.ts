@@ -4,6 +4,8 @@ import {
   REQUIRED_SUCCESSOR,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
+  collectRelativeCallers,
+  directoryPathReadCaller,
   evaluateCoordinationGate,
   memberSetDigest,
   projectResidualDocuments,
@@ -66,6 +68,38 @@ function asAdjudication(result: ReturnType<typeof adjudicateResidualDataGovernan
 }
 
 describe('residual data-governance adjudication', () => {
+  it('collects intra-package re-exports and directory path reads', () => {
+    const relative = collectRelativeCallers([
+      {
+        path: 'src/lib/data-governance/index.ts',
+        content: "export * from './event-protocol';\n",
+      },
+      {
+        path: 'src/lib/data-governance/event-protocol.ts',
+        content: 'export const x = 1;\n',
+      },
+    ], [
+      'src/lib/data-governance/index.ts',
+      'src/lib/data-governance/event-protocol.ts',
+    ]);
+    expect(relative).toEqual([
+      {
+        memberPath: 'src/lib/data-governance/event-protocol.ts',
+        callerPath: 'src/lib/data-governance/index.ts',
+        relationship: 're-export',
+      },
+    ]);
+    expect(directoryPathReadCaller(
+      'scripts/tests/test-new-resource-semantic-completeness-command.mjs',
+      "fs.cpSync(path.join(root, 'src/lib/data-governance'), dest, { recursive: true });",
+      'src/lib/data-governance/index.ts',
+    )).toEqual({
+      memberPath: 'src/lib/data-governance/index.ts',
+      callerPath: 'scripts/tests/test-new-resource-semantic-completeness-command.mjs',
+      relationship: 'path-read',
+    });
+  });
+
   it('rejects the parent gate without consuming A', () => {
     const open = evaluateCoordinationGate({
       number: 1876,
