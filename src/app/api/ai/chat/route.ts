@@ -72,6 +72,7 @@ import {
   mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   serializeKonlingCitationMetadata,
+  applyKonlingNormativeSafetyDegradation,
   stripUnverifiedKonlingCitationMarkers,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -206,6 +207,7 @@ function buildCitationGuardMetadataPayload(
     answerCitationStackCount: citationGuardMetadata.answerCitationStackCount ?? 0,
     derivedSectionIds: asPrismaJsonValue(citationGuardMetadata.derivedSectionIds ?? []),
     unverifiedCitationMarkers: asPrismaJsonValue(citationGuardMetadata.unverifiedCitationMarkers ?? []),
+    normativeCompliance: asPrismaJsonValue(citationGuardMetadata.normativeCompliance ?? null),
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map(serializeKonlingCitationMetadata),
@@ -755,7 +757,10 @@ export async function POST(request: Request) {
         const guard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent);
         return {
           guard,
-          body: stripUnverifiedKonlingCitationMarkers(assistantContent, guard),
+          body: applyKonlingNormativeSafetyDegradation(
+            stripUnverifiedKonlingCitationMarkers(assistantContent, guard),
+            guard,
+          ),
         };
       };
       buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(

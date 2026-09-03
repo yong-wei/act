@@ -1107,14 +1107,21 @@ function classifyKonlingAnswerIntent(
   return 'fact-explanation';
 }
 
+// Shared vocabulary so the independent normative-risk detector can never be
+// weaker than the primary intent classifier (#1901): modes whose answer intent
+// bypasses the generic classifier must not bypass the fail-closed gate.
+const KONLING_NORMATIVE_QUERY_MARKERS = [
+  '法律', '法条', '法规', '法律要求', '官方规定', '官方要求', '官方限值',
+  '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '国标格式', '化学方程式',
+  '必须写', '才算合格', '操作规程', '考核办法', '认证',
+  'official rule', 'official requirement', 'official limit', 'legal requirement',
+  'standard format', 'certification', 'certified', 'must not', 'shall not',
+] as const;
+
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, [
-    '法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写',
-    '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format',
-    '必须写', '才算合格', '操作规程', '考核办法', '国标格式',
-  ])) {
+  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)) {
     return 'normative-content';
   }
   if (
@@ -1153,18 +1160,12 @@ function includesAny(value: string, markers: readonly string[]): boolean {
 
 const NORMATIVE_STANDARD_ID = /\b(?:gb\/t|gb\/z|gb[/\s.-]?\d|iso[\s.-]?\d|iec[\s.-]?\d|ieee[\s.-]?\d|en[\s.-]?\d|astm[\s.-]?[a-z]?\d)/i;
 const NORMATIVE_OBLIGATION = /(?:必须|不得|应当|严禁).{0,16}(?:标准|规定|法规|认证|条款|限值|格式|合格|遵守|符合)|(?:must|shall)\s+(?:not\s+)?(?:comply|meet|satisfy|observe|follow)/i;
-const NORMATIVE_RISK_MARKERS = [
-  '法规', '法条', '法律要求', '官方规定', '官方要求', '官方限值',
-  '认证', '考核办法', '操作规程',
-  'legal requirement', 'official rule', 'official limit',
-  'certification', 'certified', 'must not', 'shall not',
-] as const;
 
 function hasIndependentNormativeRisk(query: string | null | undefined): boolean {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return false;
   return NORMATIVE_STANDARD_ID.test(normalized)
-    || includesAny(normalized, NORMATIVE_RISK_MARKERS)
+    || includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
     || NORMATIVE_OBLIGATION.test(normalized);
 }
 
@@ -1841,6 +1842,7 @@ export interface KonlingCitationGuard {
   answerCitationStackCount?: number;
   derivedSectionIds?: string[];
   unverifiedCitationMarkers?: number[];
+  normativeCompliance?: KonlingNormativeCompliance | null;
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
@@ -9549,6 +9551,13 @@ export function buildKonlingCitationGuard(
   const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
     ? []
     : collectUnverifiedCitationMarkers(assistantMessage, citations);
+  const normativeCompliance = assistantMessage !== undefined
+    && modeContract?.studyQuestion?.normativeGuidance === 'verification-required'
+    ? scanKonlingNormativeCompliance(assistantMessage)
+    : null;
+  if (normativeCompliance?.status === 'degraded') {
+    lowConfidenceReasons.push(`normative-answer-degraded:${normativeCompliance.violations.join('+')}`);
+  }
   if (modeContract) {
     if (modeContract.status === 'unavailable') {
       lowConfidenceReasons.push(`assistant-mode-unavailable:${modeContract.mode.id}`);
@@ -9646,6 +9655,7 @@ export function buildKonlingCitationGuard(
     answerCitationStackCount: answerScan ? answerScan.stackedMarkerCount : 0,
     derivedSectionIds,
     unverifiedCitationMarkers,
+    normativeCompliance,
   };
 }
 
@@ -9984,6 +9994,87 @@ export function applyKonlingCitationFallback(
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
     citations ? `可用引用：${citations}` : '',
   ].filter(Boolean).join('\n');
+}
+
+const NORMATIVE_ANSWER_AUTHORITY_MARKERS = [
+  '法规', '法条', '法律', '官方规定', '官方要求', '官方限值', '官方标准', '官方规范',
+  '国家标准', '国标', '行业标准', '标准要求', '规范要求', '标准格式', '规范格式',
+  '规范书写', '国标格式', '操作规程', '考核办法', '认证要求',
+  'official rule', 'official requirement', 'official limit', 'legal requirement',
+] as const;
+const NORMATIVE_ANSWER_OBLIGATION_MARKERS = [
+  '必须', '不得', '应当', '严禁', '禁止', '务必', '一定要', '才算合格', 'must', 'shall',
+] as const;
+const NORMATIVE_ANSWER_HEDGE_MARKERS = [
+  '需核验', '待核验', '无法核验', '未能核验', '未经核验', '不可核验', '无法确认',
+  '无法确定', '不确定', '待确认', '请以', '为准', '建议以', '建议向', '通常', '一般',
+  '可能', '原则上', '不能保证', '无法保证',
+  'cannot verify', 'unable to verify', 'needs verification', 'unverified',
+] as const;
+
+export type KonlingNormativeComplianceViolationClass =
+  | 'unhedged-normative-assertion'
+  | 'unverified-standard-identifier'
+  | 'authority-link';
+
+export interface KonlingNormativeCompliance {
+  status: 'compliant' | 'degraded';
+  violations: KonlingNormativeComplianceViolationClass[];
+}
+
+function scanKonlingNormativeCompliance(assistantMessage: string): KonlingNormativeCompliance {
+  const violations = new Set<KonlingNormativeComplianceViolationClass>();
+  const codeRanges = markdownCodeRanges(assistantMessage);
+  // Per-line matchAll keeps exact absolute offsets: no separator arithmetic,
+  // so CRLF bodies cannot drift a line into a code range and skip the scan.
+  for (const match of assistantMessage.matchAll(/[^\r\n]*/g)) {
+    const rawLine = match[0];
+    const lineStart = match.index ?? 0;
+    // English markers are lowercase; normalize like query detection so a
+    // capitalized “Official requirement: … must …” cannot slip through.
+    const normalizedLine = rawLine.trim().toLowerCase().normalize('NFKC');
+    if (
+      !normalizedLine
+      || /^\s*```/.test(rawLine)
+      || codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)
+    ) {
+      continue;
+    }
+      if (includesAny(normalizedLine, NORMATIVE_ANSWER_HEDGE_MARKERS)) continue;
+      // A standard identifier is itself an authority claim: “根据 GB/T 7713 的
+      // 规定，…必须…” asserts that standard's obligation without verification.
+      const standardId = NORMATIVE_STANDARD_ID.test(normalizedLine);
+      const authority = standardId || includesAny(normalizedLine, NORMATIVE_ANSWER_AUTHORITY_MARKERS);
+      const obligation = includesAny(normalizedLine, NORMATIVE_ANSWER_OBLIGATION_MARKERS);
+      // The gate only runs in verification-required state, where no
+      // server-verified official-reference citation exists, so any standard
+      // identifier or authority link in the answer is unsourced by definition.
+      if (authority && obligation) violations.add('unhedged-normative-assertion');
+      if (standardId) violations.add('unverified-standard-identifier');
+      if ((authority || obligation) && /https?:\/\//i.test(normalizedLine)) {
+        violations.add('authority-link');
+      }
+    }
+  return {
+    status: violations.size > 0 ? 'degraded' : 'compliant',
+    violations: [...violations],
+  };
+}
+
+const KONLING_NORMATIVE_DEGRADED_ANSWER = [
+  '本次回答涉及规范、标准或官方要求类内容，但当前没有可核验的权威来源，无法确认其中的确定性结论，已按「需核验」降级处理。',
+  '',
+  '证据缺口：缺少服务端已核验的官方标准文本、法规条款或课程正式规定。',
+  '可回答边界：与官方规范效力、具体条款、标准编号或强制要求相关的结论均未经核验，不应作为规范依据。',
+  '核验建议：请以课程正式文本、教师确认的书写要求或官方发布渠道为准；如需继续讨论一般原理，可以换一种不依赖官方条款的问法。',
+].join('\n');
+
+export function applyKonlingNormativeSafetyDegradation(
+  assistantMessage: string,
+  guard: KonlingCitationGuard,
+): string {
+  if (guard.normativeCompliance?.status !== 'degraded') return assistantMessage;
+  return KONLING_NORMATIVE_DEGRADED_ANSWER;
 }
 
 function assistantMentionsCitation(message: string, citations: KonlingCitation[]): boolean {

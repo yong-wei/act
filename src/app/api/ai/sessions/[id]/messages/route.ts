@@ -17,6 +17,7 @@ import { toLegacyMessage, toModelMessages } from '@/lib/ai/message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   applyKonlingCitationFallback,
+  applyKonlingNormativeSafetyDegradation,
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
   buildKonlingDualDomainProvenanceMetadataPayload,
@@ -506,7 +507,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       toolRuntime.getAssignedCitations(),
     );
     const citationGuard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent);
-    const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
+    const guardedAssistantContent = applyKonlingNormativeSafetyDegradation(
+      applyKonlingCitationFallback(assistantContent, citationGuard),
+      citationGuard,
+    );
     const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
       modeContract.groundingContext.sarAssociatedGrounding,
     );
@@ -543,6 +547,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           answerCitationStackCount: citationGuard.answerCitationStackCount ?? 0,
           derivedSectionIds: citationGuard.derivedSectionIds ?? [],
           unverifiedCitationMarkers: citationGuard.unverifiedCitationMarkers ?? [],
+          normativeCompliance: citationGuard.normativeCompliance ?? null,
           missingContext: modeContract.groundingContext.missingContext,
           retrievalSources: buildKonlingCitationRetrievalSources(citationGuard),
           citations: citationGuard.citations.map(serializeKonlingCitationMetadata),
