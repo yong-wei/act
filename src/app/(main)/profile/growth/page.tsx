@@ -767,40 +767,65 @@ export default function GrowthPage() {
           <div className="mb-8">
             <h3 className="mb-4 text-lg font-semibold text-foreground">下一步建议</h3>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {snapshot.recommendations.slice(0, 6).map((rec, index) => (
-                <Link
-                  key={index}
-                  href={rec.actionUrl || '#'}
-                  className="surface-card-soft group flex flex-col gap-3 p-4 transition-all hover:border-amber-500/30 hover:bg-accent/70"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs ${
-                          rec.type === 'immediate'
-                            ? 'bg-red-500/20 text-red-500'
-                            : 'bg-blue-500/20 text-blue-500'
-                        }`}
-                      >
-                        {rec.type === 'immediate' ? '优先关注' : '持续建议'}
-                      </span>
-                      <span className="text-xs text-subtle">优先级 {rec.priority}</span>
+              {snapshot.recommendations.slice(0, 6).map((rec, index) => {
+                // 缺失行动地址时 fail-closed（Issue #1930）：渲染不可用状态，
+                // 不产生 `#` 空链接或当前页链接。
+                const cardBody = (
+                  <>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs ${
+                            rec.type === 'immediate'
+                              ? 'bg-red-500/20 text-red-500'
+                              : 'bg-blue-500/20 text-blue-500'
+                          }`}
+                        >
+                          {rec.type === 'immediate' ? '优先关注' : '持续建议'}
+                        </span>
+                        <span className="text-xs text-subtle">优先级 {rec.priority}</span>
+                      </div>
+                      {rec.actionUrl ? (
+                        <svg
+                          className="h-5 w-5 text-subtle transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      ) : (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                          暂不可进入
+                        </span>
+                      )}
                     </div>
-                    <svg
-                      className="h-5 w-5 text-subtle transition-transform group-hover:translate-x-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <div>
+                      <p className="font-medium text-foreground">{rec.title}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-subtle">{rec.description}</p>
+                    </div>
+                  </>
+                );
+                return rec.actionUrl ? (
+                  <Link
+                    key={index}
+                    href={rec.actionUrl}
+                    data-growth-recommendation={rec.title}
+                    className="surface-card-soft group flex flex-col gap-3 p-4 transition-all hover:border-amber-500/30 hover:bg-accent/70"
+                  >
+                    {cardBody}
+                  </Link>
+                ) : (
+                  <div
+                    key={index}
+                    data-growth-recommendation={rec.title}
+                    data-growth-recommendation-unavailable
+                    className="surface-card-soft flex flex-col gap-3 p-4 opacity-80"
+                  >
+                    {cardBody}
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{rec.title}</p>
-                    <p className="mt-1 line-clamp-2 text-sm text-subtle">{rec.description}</p>
-                  </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

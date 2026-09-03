@@ -133,6 +133,28 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(mocks.readCurrentCumulativePortrait).not.toHaveBeenCalled();
   });
 
+  it('emits formal student learning action URLs for recommendations and diagnosis next actions (Issue #1930)', async () => {
+    const response = await GET(new NextRequest(
+      'http://localhost/api/student/competency-snapshot',
+    ));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    // 每条证据支撑的建议都携带已验证学生学习入口，不返回空地址（Issue #1930）。
+    expect(body.recommendations.length).toBeGreaterThan(0);
+    for (const recommendation of body.recommendations) {
+      expect(recommendation.actionUrl).toBe('/interactive-learning/courses');
+    }
+    // 诊断"继续学习"不再使用失效旧路由 /courses。
+    const nextActions = body.diagnosis.claims.flatMap(
+      (claim: { nextActions: Array<{ href: string }> }) => claim.nextActions,
+    );
+    expect(nextActions.length).toBeGreaterThan(0);
+    for (const action of nextActions) {
+      expect(action.href).toBe('/interactive-learning/courses');
+    }
+  });
+
   it('keeps a historical cumulative portrait visible without recent-window checks', async () => {
     const response = await GET(new NextRequest(
       'http://localhost/api/student/competency-snapshot',
