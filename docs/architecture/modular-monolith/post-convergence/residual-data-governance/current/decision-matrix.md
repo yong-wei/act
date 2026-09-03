@@ -9,10 +9,10 @@
 - fullInventoryLocator: `artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/full-inventory.ndjson`
 - fullInventorySha256: `0291c93d41de223f1698ee500cfe3b9024c4af42cfa04e4cc9a06d24b94bfc43`
 - memberSetDigest: `ae22cb75a43d821fbc29147f37337f00ddfaeab1044ff838dc1b85aa21008a88`
-- tool.entryBundleDigest: `b13210e9f5c21a011b87be1d86ccd44c75fbd9c412da92576ac0a730e898ef1f`
+- tool.entryBundleDigest: `20d7393248c72f074a00780f66e970506936b6d478959c71acf9e21f37d430fe`
 - predecessorBaseline.sourceCommit: `58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac`
-- qualified: `yes`
-- decisionIdentity: `df640fb0a6be5183d47c2213efd80bb8f5bd1f2b08ce407eb8e43f06b150d711`
+- qualified: `no`
+- decisionIdentity: `bc4e692cfeba99033ab9e703128a7618196a30b3c0c8a504b138cad885da6e89`
 
 | familyId | accountableOwner | outcome | count | memberIds |
 | --- | --- | --- | --- | --- |

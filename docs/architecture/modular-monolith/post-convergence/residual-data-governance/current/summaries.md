@@ -2,9 +2,9 @@
 
 - members: 262
 - recordQualified: 262
-- packageQualified: yes
+- packageQualified: no
 - unresolved: 0
-- blockers: none
+- blockers: upstream-payload-package-unqualified
 
 | outcome | count |
 | --- | --- |
