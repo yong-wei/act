@@ -5,7 +5,7 @@ import {
   type IngestionWriteDb,
   type ProjectionTriggerDescriptor,
 } from './types';
-import { inspectIngestionBoundary, minimizedFailureRecord } from './sanitizer';
+import { inspectIngestionBoundary } from './sanitizer';
 
 export function buildProjectionTrigger(input: {
   subjectUserId: string;
@@ -56,5 +56,3 @@ export async function recordProjectionTriggerIntent(
     },
   });
 }
-
-export { minimizedFailureRecord };

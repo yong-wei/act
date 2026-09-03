@@ -35,6 +35,7 @@ export function toActiveRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNo
       decoration: node.decoration,
     },
     richTitle: node.presentation.richTitle,
+    mathematics: node.presentation.mathematics,
   }));
 }
 

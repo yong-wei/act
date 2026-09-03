@@ -22,7 +22,7 @@ import {
   getControlCorrectionCenterEntryRoutes,
   getLearnerDataSurfaceRoutes,
   getAdaptiveLearningCenterCompatibilityRoutes,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
@@ -35,14 +35,14 @@ import type { AdaptiveLearningPathPlan } from '@/features/personalization/path-p
 import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
-} from '@/lib/adaptive-path-option-display';
+} from '@/features/personalization/path-planning/adaptive-path-option-display';
 import {
   buildPathGenerationGoalHref,
   defaultPathGenerationPanel,
   pathGenerationPanelFromSearchParams,
-} from '@/lib/adaptive-path-generation-panel';
-import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
-import { getAdaptivePracticeGoalOptions } from '@/lib/adaptive-path-goal-options';
+} from '@/features/personalization/path-planning/adaptive-path-generation-panel';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/features/personalization/path-planning/adaptive-path-round-restore';
+import { getAdaptivePracticeGoalOptions } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -671,10 +671,10 @@ describe('adaptive learning center UI contracts', () => {
     expect(display.riskNote).toBe('只保留实质不同的学习路径，相近文案方案已合并');
     expect(display.riskNote).not.toContain('title-or-score-only-duplicates-removed');
 
-    const displaySource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-option-display.ts'), 'utf8');
+    const displaySource = readFileSync(join(repoRoot, 'src/features/personalization/path-planning/adaptive-path-option-display.ts'), 'utf8');
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
-    const contractSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-learning-center-contracts.ts'), 'utf8');
-    expect(displaySource).toContain("from '@/lib/adaptive-path-candidate-limitation-copy'");
+    const contractSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/adaptive-learning-center-contracts.ts'), 'utf8');
+    expect(displaySource).toContain("from '@/features/personalization/path-planning/adaptive-path-candidate-limitation-copy'");
     expect(displaySource).toContain("from '@/lib/cold-start-evidence-collection-copy'");
     expect(displaySource).not.toContain('adaptive-path-candidate-batches');
     expect(pageSource).not.toContain('adaptive-path-candidate-batches');
@@ -985,15 +985,16 @@ describe('adaptive learning center UI contracts', () => {
 
   it('keeps the adaptive practice browser entrypoint free of server-only catalog imports', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
-    const bridgeSource = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
-    const restoreSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-round-restore.ts'), 'utf8');
+    const bridgeSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+    const restoreSource = readFileSync(join(repoRoot, 'src/features/personalization/path-planning/adaptive-path-round-restore.ts'), 'utf8');
 
-    expect(pageSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
-    expect(pageSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
-    expect(restoreSource).toContain("from '@/lib/adaptive-path-goal-options-client'");
-    expect(restoreSource).not.toContain("from '@/lib/adaptive-path-goal-options'");
-    expect(bridgeSource).toContain("import type { AdaptivePathAdvisorGoalContext } from '@/lib/adaptive-path-goal-options'");
-    expect(bridgeSource).not.toContain("from '@/lib/adaptive-path-goal-options-client'");
+    expect(pageSource).toContain("from '@/features/personalization/path-planning/public-api.client'");
+    expect(pageSource).not.toContain("from '@/features/personalization/path-planning/public-api'");
+    expect(pageSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");
+    expect(restoreSource).toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
+    expect(restoreSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options'");
+    expect(bridgeSource).toContain("import type { AdaptivePathAdvisorGoalContext } from '@/features/personalization/path-planning/adaptive-path-goal-options'");
+    expect(bridgeSource).not.toContain("from '@/features/personalization/path-planning/adaptive-path-goal-options-client'");
     expect(bridgeSource).toContain('goalContexts: Partial<Record<string, AdaptivePathAdvisorGoalContext>>');
     expect(bridgeSource).toContain('requestedGoal && goalContexts[requestedGoal]');
   });
@@ -1002,7 +1003,7 @@ describe('adaptive learning center UI contracts', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
     const sidebarSource = readFileSync(join(repoRoot, 'src/components/ai/global-ai-sidebar.tsx'), 'utf8');
-    const helperSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-generation-panel.ts'), 'utf8');
+    const helperSource = readFileSync(join(repoRoot, 'src/features/personalization/path-planning/adaptive-path-generation-panel.ts'), 'utf8');
 
     expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
     expect(pageSource).toContain('data-adaptive-path-generation-mobile-sheet="bottom-sheet"');
@@ -1178,7 +1179,7 @@ describe('adaptive learning center UI contracts', () => {
   });
 
   it('registers path-advisor entry point for every explicit catalog goal', () => {
-    const source = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+    const source = readFileSync(join(repoRoot, 'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx'), 'utf8');
     const layoutSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/layout.tsx'), 'utf8');
 
     expect(source).toContain("import { useSearchParams } from 'next/navigation';");
@@ -1200,9 +1201,9 @@ describe('adaptive learning center UI contracts', () => {
 
   it('renders adaptive path execution, skip warning, and evidence history in student-facing language', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
-    const timelineSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-path-timeline.tsx'), 'utf8');
-    const moduleSource = readFileSync(join(repoRoot, 'src/features/adaptive/path-workspace-module.tsx'), 'utf8');
-    const journeyControlSource = readFileSync(join(repoRoot, 'src/features/adaptive/adaptive-path-journey-control.tsx'), 'utf8');
+    const timelineSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/adaptive-path-timeline.tsx'), 'utf8');
+    const moduleSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/path-workspace-module.tsx'), 'utf8');
+    const journeyControlSource = readFileSync(join(repoRoot, 'src/features/personalization/experience/adaptive-path-journey-control.tsx'), 'utf8');
 
     expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
     expect(source).toContain("? 'avoid-learning-record' : undefined");

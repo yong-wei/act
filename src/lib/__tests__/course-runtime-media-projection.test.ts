@@ -11,7 +11,7 @@ vi.mock('@/lib/runtime-active-release', () => ({
   readActiveRuntimeReleaseManifest: mocks.readActiveRuntimeReleaseManifest,
 }));
 
-import { projectRuntimeMediaResources } from '../course-runtime';
+import { projectRuntimeMediaResources } from '../course-bundle';
 
 describe('projectRuntimeMediaResources', () => {
   beforeEach(() => {

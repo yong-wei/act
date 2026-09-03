@@ -173,6 +173,7 @@ export type AssignmentQuestionSnapshot = z.infer<typeof questionSnapshotSchema> 
 
 export const solutionReleasePolicySchema = z.discriminatedUnion('mode', [
   z.object({ version: z.literal(1), mode: z.literal('PRIVATE') }).strict(),
+  z.object({ version: z.literal(1), mode: z.literal('TEACHER_CONFIRMED_RESULT') }).strict(),
   z.object({
     version: z.literal(1),
     mode: z.literal('AT_TIME'),

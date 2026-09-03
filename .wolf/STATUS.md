@@ -2,13 +2,22 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-08-31
+> Last updated: 2026-09-03
 
 ---
 
 ## ✅ Done
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
+
+- 2026-09-03：按 `post-convergence-entropy-reduction-2026-09` 方案完成 Buddy propose 启动系列。tracking parent #1875 下只建立四个 executable changes：#1876 post-convergence successor capture、#1880 clean-head 测试失败分母、#1881 仓库载荷权威/物化分类、#1883 Data Governance 残余 owner 裁决。四项 OpenSpec 均 apply-ready、strict valid，proposal commits 依次为 `330bf5defd`、`9e8e94f6f`、`edb99dbafd`、`747e72a51f`；独立/领域审查 findings 已按根因整改并清场。原生关系已批量回读：#1876 blockedBy #1805–#1810，#1880/#1881/#1883 blockedBy #1876。未 claim、实现、外置/删除载荷、修改 selector、部署或创建其余 24 个候选项。
+
+- 2026-09-02：#1872 在 `act-dev2` 完成。PR #1874 squash 合入 `56c45f016a`（清场 head `5d4390084`）；Codex 9 轮审查（P1×10）全修复——检测器收敛为子句粒度 + 封闭连接集结构判定；OpenSpec 归档 `2026-09-02-fix-diagnosis-overall-subgroup-pseudo-conflict`，主 spec 新增证据可比性 requirement。Issue CLOSED / `status:archived`。未关 #1033，未生产部署。
+- 2026-09-02：#1819 在 `act-dev2` 完成。PR #1848 squash 合入 `33f6df4706`（head `85f91011d6`）；Codex 三轮 findings（P1×3、P2×2）全修复，最终 Retry 窗口 Completed 无 findings，5 threads resolve；OpenSpec 归档 `2026-09-02-upgrade-konling-traceable-study-qa`。Issue CLOSED / `status:archived`。缺映射标记已补（issue body `<!-- openspec-buddy change_id: ... -->`）。未关 #1033，未生产部署。
+
+- 2026-09-02：#1817 在 `act-dev2` 完成。PR #1843 squash 合入 `93d21833ab`；Codex 清场绑定 `506a96d492`；OpenSpec 归档 `unify-konling-study-question-structure-contract`。Issue CLOSED / `status:archived`。未关 #1033，未生产部署。
+
+- 2026-09-01：#1032 已合入 `origin/integration`（PR #1752，merge `2ead59506`）。Next 16.3.4 / Prisma 7.10.0 / Sharp 0.35.4；官方 audit 0 findings。OpenSpec 已归档。已关 #1032/#1035/#291；#1033 仍开。未生产部署。
 
 - 2026-08-31：生产 Teaching overlay 已切到 v0.37 指针，`latestCutover.ready=true` / `combination=successor`。ossfs 全量 verify 在停服窗口超时，不得再跑。领域 `teachingRelations` 仍为空（shard 密封 unavailable）。PR #1727 已落地 live overlay loader。旧三条 P1 已修并 resolve；第二轮 P1（领域投影哈希、失败不发布 success receipt）已修，待新 HEAD Codex 清场。未合入带 overlay 的应用前不得在现网 apply domain-fragments。6.5–6.7 未勾，未 archive，未关 #1683。
 
@@ -68,6 +77,18 @@
 ---
 
 ## 🚀 Next phase
+
+- 2026-09-03：#1880 `reconcile-current-clean-head-test-failure-denominator` 已在 `act-dev1` 完成调查合同、受管 lane 执行与 compact handoff。subject 为 A successor `fa6e618d…` / source `698cb2f4cd`；tool `7bef35c1fb`；default PR lane `test` 为 clean；unit 71 失败 + 47 skip、contract timeout、integration 16 skip、e2e symlink、release-manifest-missing、nightly-not-run 均为非默认 lane。下一步：归档进同一 PR、Codex 清场后合入。不要执行 FIX/DELETE/QUARANTINE，不要写入 `REQUIRED_BASELINE`，不要生产 `deploy:app` / `deploy:runtime`。
+
+- 2026-09-03：#1898 `integrate-type055-nanchang-v2-model-release` 已在 `act-dev2` 认领并完成实现：接收 3DModels v2.0.0 六文件包（`public/assets/model-releases/type055-nanchang-101/v2.0.0/` + 收据）、ACT 描述符/验证器（`src/resources/simulations/model-packages/`）、共享 `VersionedShipModel`（档位→LOD、就绪前保留、失败回退旧候选链）、destroyer 场景 `?model=type055-v2` 候选开关 + 唯一坐标基适配（+X 艏→+Z 艏）、QA 路由 `/simulations/type055-model-candidate`。单测 18+5、Playwright 7 项全过；typecheck/lint 0；未生产发布、未切默认模型。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+
+- 2026-09-03：熵减启动系列以 #1875 为跟踪父项。#1876 已归档；#1881 已合入 `origin/integration`。#1880 本树收尾中；#1883 须先 claim 再实现。不得提前创建 payload migration、Data Governance 搬迁、hotspot pass 2 或 N5 closure，不得把重复字节当删除授权，不得生产 `deploy:app` / `deploy:runtime`。
+
+- 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 18 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、代次目录锁：mkdir 单胜 + 初始化宽限 + 前代复验 + 实例标记 wx 发布）。fixture 端到端演示通过。Codex 六轮 findings 全修复，待最终清场合并。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
+
+- 2026-09-02：#1743 `verify-active-authority-graph-parity` 进行中（claim 分支已含 #1846 合并）。#1742 已完整闭环（PR #1846 squash merge `b484cffe69`，Issue 已关并标 status:archived；三项 review P2 修复后 head `0220ebbf92` Codex 显式清场）。经验：本机 Prisma client 过期会造成 typecheck 假失败（先 `npx prisma generate`）；`npm run build` 本机失败于 /ai collect（teacher-assignment-review-derivative-storage 字体 URL，预存在债务，待单独跟踪）。
+
+- 2026-09-01：#1736 已在 `act-dev1` 实现并归档 OpenSpec。下一步：PR 进 `integration`、Codex 清场后合入并关 Issue。不要认领 1739+ 图谱系列。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-08-31：#1683 身份已绿，教学关系仍空。下一步：PR #1727 新 HEAD 清场后合入 `origin/integration`，再合 main、发 `v0.6.1`、`deploy:app --skip-build`，停服只 overlay（含必填 domain-fragments 且校验领域投影哈希），再验 6.5–6.7。不要 archive，不要再跑 10.7，不要 `deploy:runtime`，不要在停服窗口跑全量 blob-view verify。
 

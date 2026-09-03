@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { Worker } from 'node:worker_threads';
+import { fileURLToPath } from 'node:url';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DOMParser, XMLSerializer, type Document as XmlDocument, type Element as XmlElement, type Node as XmlNode } from '@xmldom/xmldom';
 import JSZip from 'jszip';
@@ -8,6 +9,65 @@ import { ReviewedDerivativeError, type ReviewedDerivativePlan, type ReviewedDeri
 
 type PutClient = Pick<S3Client, 'send'>;
 type StorageLimits = { maxSourceBytes: number; maxZipEntries: number; maxZipEntryBytes: number; maxZipExpandedBytes: number; maxXmlBytes: number; maxXmlNodes: number; maxXmlDepth: number; maxPdfPages: number; maxPdfObjects: number; pdfTimeoutMs: number; pdfMaxOldGenerationMb: number; pdfMaxYoungGenerationMb: number; pdfStackMb: number };
+const CJK_FONT_PATH = fileURLToPath(new URL('./assets/NotoSansSC-Regular.ttf', import.meta.url));
+
+export type FrozenPdfCoordinateProvenance = {
+  origin: 'TOP_LEFT' | 'BOTTOM_LEFT';
+  unit: 'PDF_POINT' | 'NORMALIZED' | 'PIXEL';
+  pageWidth: number;
+  pageHeight: number;
+  rotation: 0 | 90 | 180 | 270;
+};
+
+export type FrozenPdfAnnotationInput = {
+  id: string;
+  pageNumber: number | null;
+  bbox?: [number, number, number, number] | null;
+  coordinateProvenance?: FrozenPdfCoordinateProvenance | null;
+  marker: string;
+  contents: string;
+  fallbackPrecision?: 'PAGE' | 'QUESTION' | 'REGION' | 'BLOCK';
+  questionId?: string | null;
+  blockId?: string | null;
+  allowPageFallback: boolean;
+};
+
+export type FrozenPdfPlacement = {
+  id: string;
+  pageNumber: number;
+  rect: [number, number, number, number];
+  precision: 'EXACT' | 'PAGE' | 'QUESTION' | 'REGION' | 'BLOCK';
+  degradationReason: string | null;
+};
+
+export type FrozenPdfRenderResult = {
+  bytes: Uint8Array;
+  sourcePageCount: number;
+  outputPageCount: number;
+  summaryPageNumber: number | null;
+  placements: FrozenPdfPlacement[];
+};
+
+export async function renderFrozenPdfDerivative(input: {
+  source: Uint8Array;
+  annotations: FrozenPdfAnnotationInput[];
+  summaryLines?: string[];
+  identity: string;
+  limits?: Partial<Pick<StorageLimits, 'maxPdfPages' | 'maxPdfObjects' | 'pdfTimeoutMs' | 'pdfMaxOldGenerationMb' | 'pdfMaxYoungGenerationMb' | 'pdfStackMb'>>;
+}): Promise<FrozenPdfRenderResult> {
+  const limits = { ...DEFAULT_LIMITS, ...input.limits };
+  const header = new TextDecoder('latin1').decode(input.source.subarray(0, Math.min(input.source.byteLength, 1024)));
+  if (!header.includes('%PDF-')) throw new ReviewedDerivativeError('reviewed-derivative-pdf-invalid', { blocked: true });
+  const objectCount = (new TextDecoder('latin1').decode(input.source).match(/\b\d+\s+\d+\s+obj\b/g) ?? []).length;
+  if (objectCount > limits.maxPdfObjects) throw new ReviewedDerivativeError('reviewed-derivative-pdf-object-limit', { blocked: true });
+  try {
+    return await runPdfWorker({ source: input.source, annotations: input.annotations, summaryLines: input.summaryLines ?? [], identity: input.identity, limits });
+  } catch (error) {
+    const code = error instanceof Error ? error.message : String(error);
+    if (code.startsWith('fallback:')) throw new NativeFallbackError(code.slice('fallback:'.length));
+    throw new ReviewedDerivativeError(code.startsWith('blocked:') ? code.slice('blocked:'.length) : 'reviewed-derivative-pdf-worker-failed', { blocked: true });
+  }
+}
 
 export class S3AnnotatedMarkdownDerivativeRenderer implements ReviewedDerivativeRenderer {
   private readonly client: PutClient;
@@ -37,7 +97,17 @@ export class S3AnnotatedMarkdownDerivativeRenderer implements ReviewedDerivative
     } else {
       const source = await this.readVerifiedSource(plan);
       try {
-        body = plan.outputKind === 'REVIEWED_DOCX' ? await renderDocx(plan, source, this.limits()) : await renderPdf(plan, source, this.limits());
+        if (plan.outputKind === 'REVIEWED_DOCX') {
+          body = await renderDocx(plan, source, this.limits());
+        } else {
+          const renderedPdf = await renderPdf(plan, source, this.limits());
+          body = renderedPdf.bytes;
+          if (renderedPdf.placements.some((placement) => placement.precision !== 'EXACT')) {
+            actualNative = false;
+            actualPrecision = 'PAGE';
+            limitations = [...new Set([...limitations, 'reviewed-pdf-position-degraded'])];
+          }
+        }
       } catch (error) {
         if (!(error instanceof NativeFallbackError)) throw error;
         actualKind = 'ANNOTATED_MARKDOWN'; actualMimeType = 'text/markdown'; actualNative = false; actualPrecision = 'GENERAL';
@@ -133,20 +203,17 @@ export async function readReviewedDerivativeObject(objectKey: string) {
 }
 
 function renderMarkdown(plan: ReviewedDerivativePlan) {
-  const limitations = plan.limitations.length > 0
-    ? `\n## Limitations\n\n${plan.limitations.map((value) => `- ${value}`).join('\n')}\n`
-    : '';
   const annotations = plan.annotations.length > 0
     ? plan.annotations.map((annotation, index) => {
       const anchor = annotation.anchor ?? {};
       const precision = String(anchor.precision ?? 'GENERAL');
-      const location = precision === 'SPAN' ? `span ${String(anchor.spanStart)}-${String(anchor.spanEnd)}`
-        : precision === 'BLOCK' ? `block ${String(anchor.blockId)}`
-          : precision === 'PAGE' ? `page ${String(anchor.pageNumber)}` : 'general comment';
+      const location = precision === 'SPAN' ? '对应文字处'
+        : precision === 'BLOCK' ? '对应段落处'
+          : precision === 'PAGE' ? `第 ${String(anchor.pageNumber)} 页` : '对应位置';
       return `${index + 1}. [${location}] ${String(annotation.comment ?? '')}`;
     }).join('\n')
-    : 'No inline annotations.';
-  return `# Reviewed submission\n\nSource checksum: ${plan.sourceChecksum}\nReview checksum: ${plan.reviewSnapshotChecksum}\nAnchor precision: ${plan.anchorPrecision}\n${limitations}\n## Reviewed content\n\n${plan.canonicalMarkdown}\n\n## Teacher annotations\n\n${annotations}\n\n## Overall comment\n\n${plan.overallComment ?? ''}\n`;
+    : '暂无批注。';
+  return `# 批改后的提交\n\n## 批改内容\n\n${plan.canonicalMarkdown}\n\n## 教师批注\n\n${annotations}\n\n## 总体评价\n\n${plan.overallComment ?? ''}\n`;
 }
 
 async function renderDocx(plan: ReviewedDerivativePlan, source: Uint8Array, limits: StorageLimits) {
@@ -193,17 +260,32 @@ async function renderDocx(plan: ReviewedDerivativePlan, source: Uint8Array, limi
 }
 
 async function renderPdf(plan: ReviewedDerivativePlan, source: Uint8Array, limits: StorageLimits) {
-  const header = new TextDecoder('latin1').decode(source.subarray(0, Math.min(source.byteLength, 1024)));
-  if (!header.includes('%PDF-')) throw new ReviewedDerivativeError('reviewed-derivative-pdf-invalid', { blocked: true });
-  const objectCount = (new TextDecoder('latin1').decode(source).match(/\b\d+\s+\d+\s+obj\b/g) ?? []).length;
-  if (objectCount > limits.maxPdfObjects) throw new ReviewedDerivativeError('reviewed-derivative-pdf-object-limit', { blocked: true });
-  try {
-    return await runPdfWorker({ source, plan, limits });
-  } catch (error) {
-    const code = error instanceof Error ? error.message : String(error);
-    if (code.startsWith('fallback:')) throw new NativeFallbackError(code.slice('fallback:'.length));
-    throw new ReviewedDerivativeError(code.startsWith('blocked:') ? code.slice('blocked:'.length) : 'reviewed-derivative-pdf-worker-failed', { blocked: true });
-  }
+  const inlineAnnotations = plan.annotations.flatMap((annotation, index) => {
+    if (!Number.isInteger(annotation.anchor?.pageNumber)) return [];
+    return [{
+      id: String(annotation.id ?? `${plan.snapshotId}:${index}`),
+      pageNumber: Number(annotation.anchor.pageNumber),
+      bbox: Array.isArray(annotation.anchor?.bbox) ? annotation.anchor.bbox as [number, number, number, number] : null,
+      coordinateProvenance: annotation.anchor?.coordinateProvenance as FrozenPdfCoordinateProvenance | undefined,
+      marker: '',
+      contents: String(annotation.comment ?? ''),
+      allowPageFallback: true,
+      fallbackPrecision: String(annotation.anchor?.precision ?? '').toUpperCase() === 'BLOCK' ? 'BLOCK' as const : 'PAGE' as const,
+      blockId: typeof annotation.anchor?.blockId === 'string' ? annotation.anchor.blockId : null,
+    }];
+  });
+  const rendered = await renderFrozenPdfDerivative({
+    source,
+    identity: plan.idempotencyKey,
+    limits,
+    annotations: inlineAnnotations,
+    summaryLines: pdfSummaryLines(plan),
+  });
+  return rendered;
+}
+
+function pdfSummaryLines(plan: ReviewedDerivativePlan) {
+  return [`总体评价：${plan.overallComment ?? ''}`];
 }
 
 function insertWordCommentRange(document: XmlDocument, start: number, end: number, id: number) {
@@ -372,10 +454,23 @@ function uniqueRelationshipId(document: XmlDocument) {
   return `rId${index}`;
 }
 
-async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativePlan; limits: StorageLimits }): Promise<Uint8Array> {
+async function runPdfWorker(input: {
+  source: Uint8Array;
+  annotations: FrozenPdfAnnotationInput[];
+  summaryLines: string[];
+  identity: string;
+  limits: StorageLimits;
+}): Promise<FrozenPdfRenderResult> {
   const worker = new Worker(PDF_WORKER_SOURCE, {
     eval: true,
-    workerData: { source: input.source, plan: { snapshotId: input.plan.snapshotId, nativeCapable: input.plan.nativeCapable, annotations: input.plan.annotations }, maxPdfPages: input.limits.maxPdfPages },
+    workerData: {
+      source: input.source,
+      annotations: input.annotations,
+      summaryLines: input.summaryLines,
+      identity: input.identity,
+      cjkFontPath: CJK_FONT_PATH,
+      maxPdfPages: input.limits.maxPdfPages,
+    },
     resourceLimits: { maxOldGenerationSizeMb: input.limits.pdfMaxOldGenerationMb, maxYoungGenerationSizeMb: input.limits.pdfMaxYoungGenerationMb, stackSizeMb: input.limits.pdfStackMb },
   });
   return new Promise((resolve, reject) => {
@@ -383,7 +478,13 @@ async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativ
     worker.once('message', (message: any) => {
       clearTimeout(timer); void worker.terminate();
       if (message?.error) reject(new Error(message.error));
-      else resolve(new Uint8Array(message.bytes));
+      else resolve({
+        bytes: new Uint8Array(message.bytes),
+        sourcePageCount: message.sourcePageCount,
+        outputPageCount: message.outputPageCount,
+        summaryPageNumber: message.summaryPageNumber,
+        placements: message.placements,
+      });
     });
     worker.once('error', () => { clearTimeout(timer); reject(new Error('blocked:reviewed-derivative-pdf-worker-failed')); });
     worker.once('exit', (code) => { if (code !== 0) { clearTimeout(timer); reject(new Error('blocked:reviewed-derivative-pdf-worker-resource-limit')); } });
@@ -392,9 +493,12 @@ async function runPdfWorker(input: { source: Uint8Array; plan: ReviewedDerivativ
 
 const PDF_WORKER_SOURCE = String.raw`
 const { parentPort, workerData } = require('node:worker_threads');
-const { PDFArray, PDFDocument, PDFName } = require('pdf-lib');
+const { PDFArray, PDFDocument, PDFHexString, PDFName, StandardFonts, degrees, rgb } = require('pdf-lib');
+const fontkit = require('@pdf-lib/fontkit');
+const { existsSync, readFileSync, readdirSync } = require('node:fs');
+const { dirname, join } = require('node:path');
 function fallback(code) { throw new Error('fallback:' + code); }
-function rect(bbox, p, width, height, rotation) {
+function rect(bbox, p, width, height, rotation, originX, originY) {
   if (!p || p.rotation !== rotation || ![0,90,180,270].includes(rotation)) fallback('pdf-coordinate-provenance-mismatch');
   const dw = rotation === 90 || rotation === 270 ? height : width;
   const dh = rotation === 90 || rotation === 270 ? width : height;
@@ -403,23 +507,241 @@ function rect(bbox, p, width, height, rotation) {
   else if (p.unit === 'PIXEL') { x1*=dw/p.pageWidth;x2*=dw/p.pageWidth;y1*=dh/p.pageHeight;y2*=dh/p.pageHeight; }
   else if (p.unit !== 'PDF_POINT' || p.pageWidth !== dw || p.pageHeight !== dh) fallback('pdf-coordinate-provenance-mismatch');
   if (p.origin === 'TOP_LEFT') [y1,y2]=[dh-y2,dh-y1]; else if (p.origin !== 'BOTTOM_LEFT') fallback('pdf-coordinate-provenance-mismatch');
-  if (rotation === 90) return [width-y2,x1,width-y1,x2];
-  if (rotation === 180) return [width-x2,height-y2,width-x1,height-y1];
-  if (rotation === 270) return [y1,height-x2,y2,height-x1];
-  return [x1,y1,x2,y2];
+  if (rotation === 90) return [originX+width-y2,originY+x1,originX+width-y1,originY+x2];
+  if (rotation === 180) return [originX+width-x2,originY+height-y2,originX+width-x1,originY+height-y1];
+  if (rotation === 270) return [originX+y1,originY+height-x2,originX+y2,originY+height-x1];
+  return [originX+x1,originY+y1,originX+x2,originY+y2];
 }
-function valid(r,w,h) { return Array.isArray(r)&&r.length===4&&r.every(Number.isFinite)&&r[0]>=0&&r[1]>=0&&r[0]<r[2]&&r[1]<r[3]&&r[2]<=w&&r[3]<=h; }
+function valid(r,box) { return Array.isArray(r)&&r.length===4&&r.every(Number.isFinite)&&r[0]>=box.x&&r[1]>=box.y&&r[0]<r[2]&&r[1]<r[3]&&r[2]<=box.x+box.width&&r[3]<=box.y+box.height; }
+function safeMarker(value) { return String(value||'').replace(/[^\x20-\x7E]/g,'?').slice(0,48); }
+function marginRect(page,index) {
+  const box=page.getMediaBox(); const markerWidth=Math.min(96,Math.max(36,box.width*0.18));
+  const top=box.y+box.height-18-(index%30)*18; const y1=Math.max(box.y+4,top-14); return [Math.max(box.x+4,box.x+box.width-markerWidth-4),y1,box.x+box.width-4,y1+14];
+}
+function markerRect(anchorRect,page) {
+  const box=page.getMediaBox(); const pageLeft=box.x; const pageBottom=box.y; const pageRight=box.x+box.width; const pageTop=box.y+box.height;
+  const width=Math.min(96,Math.max(36,anchorRect[2]-anchorRect[0])); const height=14; const gap=4;
+  const y=Math.min(pageTop-height,Math.max(pageBottom,anchorRect[3]-height));
+  if(anchorRect[2]+gap+width<=pageRight) return [anchorRect[2]+gap,y,anchorRect[2]+gap+width,y+height];
+  if(anchorRect[0]-gap-width>=pageLeft) return [anchorRect[0]-gap-width,y,anchorRect[0]-gap,y+height];
+  const x=Math.min(pageRight-width,Math.max(pageLeft,anchorRect[0]));
+  if(anchorRect[3]+gap+height<=pageTop) return [x,anchorRect[3]+gap,x+width,anchorRect[3]+gap+height];
+  if(anchorRect[1]-gap-height>=pageBottom) return [x,anchorRect[1]-gap-height,x+width,anchorRect[1]-gap];
+  return [Math.max(pageLeft,pageRight-width),Math.max(pageBottom,pageTop-height),pageRight,pageTop];
+}
+function sidebarText(value) {
+  return String(value||'').normalize('NFKC').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim();
+}
+function sidebarLines(value, maxChars) {
+  const text=Array.from(sidebarText(value)); const lines=[];
+  for(let i=0;i<text.length;i+=maxChars) lines.push(text.slice(i,i+maxChars).join(''));
+  return lines.length ? lines : [''];
+}
+function truncateText(value, maxChars) { return Array.from(sidebarText(value)).slice(0,maxChars).join(''); }
+function canEncode(font, character) {
+  try { font.encodeText(character); return true; } catch { return false; }
+}
+async function sidebarFonts(pdf, values, standardFont, symbolFont) {
+  const characters=[...new Set(values.flatMap(value=>Array.from(value)).filter(value=>value.codePointAt(0)>127))];
+  if(!characters.length) return new Map();
+  pdf.registerFontkit(fontkit);
+  const files=workerData.cjkFontPath&&existsSync(workerData.cjkFontPath)
+    ? [workerData.cjkFontPath]
+    : readdirSync(dirname(require.resolve('@fontsource-variable/noto-sans-sc/files/noto-sans-sc-100-wght-normal.woff2')))
+      .filter(name=>/^noto-sans-sc-\d+-wght-normal\.woff2$/.test(name))
+      .map(name=>join(dirname(require.resolve('@fontsource-variable/noto-sans-sc/files/noto-sans-sc-100-wght-normal.woff2')),name));
+  const candidates=files.map(name=>({bytes:readFileSync(name),font:null}));
+  for(const candidate of candidates) candidate.font=fontkit.create(candidate.bytes);
+  const fonts=new Map();
+  for(const character of characters){
+    const candidate=candidates.find(value=>value.font.hasGlyphForCodePoint(character.codePointAt(0)));
+    if(candidate){
+      let embedded=fonts.get(candidate);
+      if(!embedded){embedded=await pdf.embedFont(candidate.bytes,{subset:false});fonts.set(candidate,embedded);}
+      fonts.set(character,embedded);
+    } else if(canEncode(standardFont,character)) fonts.set(character,standardFont);
+    else if(canEncode(symbolFont,character)) fonts.set(character,symbolFont);
+    else fallback('pdf-sidebar-font-unsupported');
+  }
+  return fonts;
+}
+function drawSidebarText(page, value, x, y, size, standardFont, cjkFonts) {
+  let cursor=x; let run=''; let runFont=null;
+  const flush=()=>{if(run){page.drawText(run,{x:cursor,y,size,font:runFont,color:rgb(0.15,0.15,0.15)});cursor+=runFont.widthOfTextAtSize(run,size);run='';}};
+  for(const character of Array.from(value)){
+    const font=cjkFonts.get(character)||standardFont;
+    if(runFont&&runFont!==font) flush();
+    runFont=font; run+=character;
+  }
+  flush();
+}
+function wrapSidebarText(value, maxWidth, size, standardFont, cjkFonts) {
+  const lines=[]; let line=''; let width=0;
+  for(const character of Array.from(value)){
+    const font=cjkFonts.get(character)||standardFont;
+    const nextWidth=font.widthOfTextAtSize(character,size);
+    if(line && width+nextWidth>maxWidth){ lines.push(line); line=''; width=0; }
+    line+=character; width+=nextWidth;
+  }
+  if(line || !lines.length) lines.push(line);
+  return lines;
+}
+async function drawSidebar(pdf, page, font, symbolFont, annotations, placements) {
+  if(!annotations.length) return;
+  const media={...page.getMediaBox()}; const crop={...page.getCropBox()}; const rotation=page.getRotation().angle;
+  const sidebar=Math.max(180,Math.min(260,media.width*0.55)); const padding=12;
+  let panelX=crop.x+crop.width; let panelY=crop.y; let panelWidth=sidebar; let panelHeight=crop.height;
+  let nextCrop={x:crop.x,y:crop.y,width:crop.width+sidebar,height:crop.height};
+  if(rotation===180){panelX=crop.x-sidebar;nextCrop={x:crop.x-sidebar,y:crop.y,width:crop.width+sidebar,height:crop.height};}
+  else if(rotation===90){panelX=crop.x;panelY=crop.y+crop.height;panelWidth=crop.width;panelHeight=sidebar;nextCrop={x:crop.x,y:crop.y,width:crop.width,height:crop.height+sidebar};}
+  else if(rotation===270){panelX=crop.x;panelY=crop.y-sidebar;panelWidth=crop.width;panelHeight=sidebar;nextCrop={x:crop.x,y:crop.y-sidebar,width:crop.width,height:crop.height+sidebar};}
+  const mediaLeft=Math.min(media.x,nextCrop.x); const mediaBottom=Math.min(media.y,nextCrop.y);
+  const mediaRight=Math.max(media.x+media.width,nextCrop.x+nextCrop.width); const mediaTop=Math.max(media.y+media.height,nextCrop.y+nextCrop.height);
+  const nextMedia={x:mediaLeft,y:mediaBottom,width:mediaRight-mediaLeft,height:mediaTop-mediaBottom};
+  const rawPrepared=annotations.map((a,index)=>[String(index+1)+'. '+sidebarText(a.marker).slice(0,48),...sidebarLines(a.contents,120)]);
+  const cjkFonts=await sidebarFonts(pdf,[...rawPrepared.flat(),'批注','批注（续）'],font,symbolFont);
+  const paintPanel=(target, title)=>{
+    target.drawRectangle({x:panelX,y:panelY,width:panelWidth,height:panelHeight,color:rgb(0.97,0.97,0.95),borderColor:rgb(0.72,0.72,0.68),borderWidth:0.8});
+    drawSidebarText(target,title,panelX+padding,panelY+panelHeight-22,11,font,cjkFonts);
+  };
+  page.setMediaBox(nextMedia.x,nextMedia.y,nextMedia.width,nextMedia.height);
+  const cropLeft=nextCrop.x; const cropBottom=nextCrop.y;
+  const cropRight=nextCrop.x+nextCrop.width; const cropTop=nextCrop.y+nextCrop.height;
+  page.node.set(PDFName.of('CropBox'),pdf.context.obj([cropLeft,cropBottom,cropRight,cropTop]));
+  paintPanel(page,'批注');
+  const prepared=rawPrepared.map((lines)=>lines.flatMap((line)=>wrapSidebarText(line,panelWidth-padding*2-12,8,font,cjkFonts)));
+  let activePage=page; let y=panelY+panelHeight-42; let continued=false;
+  const order=annotations.map((_,index)=>index).sort((left,right)=>{
+    const leftRect=placements[left]?.rect; const rightRect=placements[right]?.rect;
+    const leftY=leftRect ? (leftRect[1]+leftRect[3])/2 : -Infinity;
+    const rightY=rightRect ? (rightRect[1]+rightRect[3])/2 : -Infinity;
+    return rightY-leftY || left-right;
+  });
+  for(const i of order){
+    const a=annotations[i]; const placement=placements[i];
+    const lines=prepared[i];
+    let offset=0;
+    while(offset<lines.length){
+      if(y-(panelY+12)<42){
+        activePage=pdf.addPage([nextMedia.width,nextMedia.height]);
+        activePage.setMediaBox(nextMedia.x,nextMedia.y,nextMedia.width,nextMedia.height);
+        activePage.node.set(PDFName.of('CropBox'),pdf.context.obj([cropLeft,cropBottom,cropRight,cropTop]));
+        activePage.setRotation(degrees(rotation));
+        paintPanel(activePage,'批注（续）');
+        y=panelY+panelHeight-42; continued=true;
+      }
+      const available=y-(panelY+12);
+      const lineCount=Math.max(1,Math.floor((available-14)/11));
+      const chunk=lines.slice(offset,offset+lineCount);
+      const boxHeight=Math.max(42,chunk.length*11+14);
+      let boxY=y-boxHeight;
+      if(offset===0 && !continued && rotation===0 && placement?.rect){
+        const [x1,y1,x2,y2]=placement.rect;
+        const anchorY=Math.max(nextMedia.y+8,Math.min(nextMedia.y+nextMedia.height-8,(y1+y2)/2));
+        const alignedY=anchorY-boxHeight/2;
+        const topLimit=panelY+panelHeight-42-boxHeight;
+        const bottomLimit=panelY+12;
+        const candidate=Math.max(bottomLimit,Math.min(topLimit,Math.min(alignedY,y-boxHeight)));
+        if(candidate>=bottomLimit && candidate<=topLimit) boxY=candidate;
+      }
+      activePage.drawRectangle({x:panelX+padding,y:boxY,width:panelWidth-padding*2,height:boxHeight,color:rgb(1,1,1),borderColor:rgb(0.78,0.78,0.74),borderWidth:0.6});
+      let textY=boxY+boxHeight-16;
+      for(const line of chunk){ drawSidebarText(activePage,line,panelX+padding+6,textY,8,font,cjkFonts); textY-=11; }
+      if(offset===0 && !continued && rotation===0 && placement && placement.rect){
+        const [x1,y1,x2,y2]=placement.rect; const anchorY=Math.max(nextMedia.y+8,Math.min(nextMedia.y+nextMedia.height-8,(y1+y2)/2));
+        activePage.drawLine({start:{x:x2,y:anchorY},end:{x:panelX+padding,y:boxY+boxHeight/2},thickness:0.6,color:rgb(0.45,0.45,0.42),dashArray:[3,2],dashPhase:0});
+      }
+      offset+=chunk.length;
+      y=boxY-8;
+    }
+  }
+  return [cropLeft,cropBottom,cropRight,cropTop];
+}
+function clipOriginalAnnotationsToCrop(pdf,page,crop) {
+  const annots=page.node.lookupMaybe(PDFName.of('Annots'),PDFArray);
+  if(!annots) return;
+  const retained=[];
+  for(const ref of annots.asArray()){
+    const annotation=pdf.context.lookup(ref);
+    const raw=annotation&&annotation.lookupMaybe?annotation.lookupMaybe(PDFName.of('Rect'),PDFArray):null;
+    if(!raw){retained.push(ref);continue;}
+    const values=raw.asArray().map(value=>value.asNumber());
+    if(values.length!==4||!values.every(Number.isFinite)){retained.push(ref);continue;}
+    const left=Math.max(values[0],crop.x); const bottom=Math.max(values[1],crop.y);
+    const right=Math.min(values[2],crop.x+crop.width); const top=Math.min(values[3],crop.y+crop.height);
+    if(left>=right||bottom>=top) continue;
+    if(left!==values[0]||bottom!==values[1]||right!==values[2]||top!==values[3]) annotation.set(PDFName.of('Rect'),pdf.context.obj([left,bottom,right,top]));
+    retained.push(ref);
+  }
+  page.node.set(PDFName.of('Annots'),pdf.context.obj(retained));
+}
+function appendAnnotation(pdf,page,ref) {
+  let annots=page.node.lookupMaybe(PDFName.of('Annots'),PDFArray);
+  if(!annots){annots=pdf.context.obj([]);page.node.set(PDFName.of('Annots'),annots);} annots.push(ref);
+}
+function appearance(pdf,font,marker,width,height) {
+  const escaped=marker.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+  const stream=pdf.context.flateStream('q 1 0.96 0.72 rg 0 0 '+width+' '+height+' re f 0.35 0.16 0 rg BT /F1 8 Tf 3 '+Math.max(2,height-10)+' Td ('+escaped+') Tj ET Q',{
+    Type:'XObject',Subtype:'Form',BBox:[0,0,width,height],Resources:{Font:{F1:font.ref}},
+  });
+  return pdf.context.register(stream);
+}
 (async()=>{try{
   const pdf=await PDFDocument.load(workerData.source,{updateMetadata:false});
-  if(pdf.getPageCount()>workerData.maxPdfPages) throw new Error('blocked:reviewed-derivative-pdf-page-limit');
-  for(const [i,a] of workerData.plan.annotations.entries()){
-    const anchor=a.anchor||{}; const n=workerData.plan.nativeCapable?Number(anchor.pageNumber):1; const page=pdf.getPages()[n-1]; if(!page) fallback('reviewed-derivative-pdf-page-invalid');
-    const r=workerData.plan.nativeCapable?rect(anchor.bbox,anchor.coordinateProvenance,page.getWidth(),page.getHeight(),page.getRotation().angle):[12,Math.max(12,page.getHeight()-32),32,Math.max(32,page.getHeight()-12)];
-    if(!valid(r,page.getWidth(),page.getHeight())) fallback('reviewed-derivative-pdf-geometry-mismatch');
-    const d=pdf.context.obj({Type:'Annot',Subtype:'Text',Rect:r,Contents:String(a.comment||''),T:'Teacher review',NM:workerData.plan.snapshotId+':'+i,F:4}); const ref=pdf.context.register(d);
-    let annots=page.node.lookupMaybe(PDFName.of('Annots'),PDFArray); if(!annots){annots=pdf.context.obj([]);page.node.set(PDFName.of('Annots'),annots);} annots.push(ref);
+  const sourcePageCount=pdf.getPageCount();
+  if(sourcePageCount>workerData.maxPdfPages) throw new Error('blocked:reviewed-derivative-pdf-page-limit');
+  const font=await pdf.embedFont(StandardFonts.Helvetica); const symbolFont=await pdf.embedFont(StandardFonts.Symbol); const placements=[];
+  for(const page of pdf.getPages()) clipOriginalAnnotationsToCrop(pdf,page,page.getCropBox());
+  for(const [i,a] of workerData.annotations.entries()){
+    const n=Number(a.pageNumber); const page=Number.isInteger(n)&&n>0?pdf.getPages()[n-1]:null;
+    if(!page) fallback('reviewed-derivative-pdf-page-invalid');
+    const originalWidth=page.getWidth();
+    const originalHeight=page.getHeight();
+    let r=null; let precision='EXACT'; let degradationReason=null;
+    if(Array.isArray(a.bbox)&&a.coordinateProvenance){
+      try { const media=page.getMediaBox(); const candidate=rect(a.bbox,a.coordinateProvenance,originalWidth,originalHeight,page.getRotation().angle,media.x,media.y); if(!valid(candidate,media)) throw new Error('geometry'); r=candidate; }
+      catch { if(!a.allowPageFallback) fallback('reviewed-derivative-pdf-geometry-mismatch'); degradationReason='bbox-or-coordinate-provenance-invalid'; }
+    } else { degradationReason='frozen-bbox-or-coordinate-provenance-missing'; }
+    if(!r){ if(!a.allowPageFallback) fallback('reviewed-derivative-pdf-coordinate-provenance-missing'); r=marginRect(page,i); precision=['PAGE','QUESTION','REGION','BLOCK'].includes(a.fallbackPrecision)?a.fallbackPrecision:'PAGE'; }
+    const marker=safeMarker(a.marker);
+    const markerLocation=marker&&precision==='EXACT'?markerRect(r,page):r;
+    if(marker){
+      const mr=markerLocation; const ap=appearance(pdf,font,marker,mr[2]-mr[0],mr[3]-mr[1]);
+      const markerDict=pdf.context.obj({Type:'Annot',Subtype:'FreeText',Rect:mr,Contents:PDFHexString.fromText(marker),NM:PDFHexString.fromText(a.id+':marker'),F:4,DA:PDFHexString.fromText('/Helvetica 8 Tf 0 g'),AP:{N:ap},ACTIdentity:PDFHexString.fromText(workerData.identity),ACTPrecision:PDFName.of(precision),ACTAnchorRect:r});
+      appendAnnotation(pdf,page,pdf.context.register(markerDict));
+    }
+    placements.push({id:a.id,pageNumber:n,rect:r,precision,degradationReason});
   }
-  const bytes=await pdf.save(); parentPort.postMessage({bytes},[bytes.buffer]);
+  const sidebarCropBoxes=[];
+  for(const page of pdf.getPages()){
+    const pageAnnotations=workerData.annotations.filter(a=>Number(a.pageNumber)===pdf.getPages().indexOf(page)+1);
+    const pagePlacements=placements.filter(p=>p.pageNumber===pdf.getPages().indexOf(page)+1);
+    if(pageAnnotations.length) sidebarCropBoxes.push([pdf.getPages().indexOf(page),await drawSidebar(pdf,page,font,symbolFont,pageAnnotations,pagePlacements)]);
+  }
+  let summaryPageNumber=null;
+  if(workerData.summaryLines.length){
+    const summaryWidth=516; const summaryFonts=await sidebarFonts(pdf,[...workerData.summaryLines,'总体评价','总体评价（续）'],font,symbolFont);
+    const startSummaryPage=(continued)=>{
+      const page=pdf.addPage([612,792]); if(summaryPageNumber===null) summaryPageNumber=pdf.getPageCount();
+      drawSidebarText(page,continued?'总体评价（续）':'总体评价',48,756,18,font,summaryFonts);
+      return {page,y:724};
+    };
+    let current=startSummaryPage(false);
+    for(const line of workerData.summaryLines){
+      for(const wrapped of wrapSidebarText(line,summaryWidth,11,font,summaryFonts)){
+        if(current.y<48) current=startSummaryPage(true);
+        drawSidebarText(current.page,wrapped,48,current.y,11,font,summaryFonts);
+        current.y-=18;
+      }
+    }
+  }
+  let bytes=await pdf.save();
+  if(sidebarCropBoxes.length){
+    const finalPdf=await PDFDocument.load(bytes,{updateMetadata:false});
+    for(const [pageIndex,cropBox] of sidebarCropBoxes) finalPdf.getPages()[pageIndex].node.set(PDFName.of('CropBox'),finalPdf.context.obj(cropBox));
+    bytes=await finalPdf.save();
+  }
+  parentPort.postMessage({bytes,sourcePageCount,outputPageCount:pdf.getPageCount(),summaryPageNumber,placements},[bytes.buffer]);
 }catch(e){const m=String(e&&e.message||e);parentPort.postMessage({error:m.startsWith('fallback:')||m.startsWith('blocked:')?m:'blocked:reviewed-derivative-pdf-invalid'});}})();`;
 
 async function boundedZipText(file: JSZip.JSZipObject, limits: StorageLimits) {

@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { assignmentDraftPersistenceSchema } from '@/lib/assignments/assignment-domain';
 import { assignmentErrorResponse, readBoundedAssignmentJson, requireAssignmentActor, requireAssignmentMutation } from '@/lib/assignments/assignment-route-guards';
-import { teacherCreateDraft, teacherListAssignments } from '@/lib/assignments/public-api';
+import { assignmentDraftPersistenceSchema, teacherCreateDraft, teacherListAssignments } from '@/lib/assignments/public-api';
 
 export const dynamic = 'force-dynamic';
 

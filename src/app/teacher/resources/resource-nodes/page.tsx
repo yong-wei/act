@@ -6,7 +6,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
   type RuntimeLessonResourceCatalogEntry,
-} from '@/lib/course-runtime';
+} from '@/lib/course-bundle';
 import { prisma } from '@/lib/prisma';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { RESOURCE_NODE_TYPES, type RuntimeResourceProjectionInput } from '@/lib/resource-node-registry';

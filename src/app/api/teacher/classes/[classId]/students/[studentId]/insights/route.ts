@@ -10,11 +10,11 @@ import {
   createPrismaDiagnosisReportSnapshotStore,
   hasDiagnosisReportSnapshotPersistenceTable,
   readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
-} from '@/lib/data-governance/control-correction-diagnosis-profile';
+} from '@/features/personalization/diagnosis/control-correction-diagnosis-profile';
 import {
   materializeRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosis,
-} from '@/lib/data-governance/role-based-learning-diagnosis';
+} from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 import {
   isAuthoritativeConsumerRead,
   isConsumerUnauthorized,

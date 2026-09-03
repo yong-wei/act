@@ -7,14 +7,16 @@
  */
 
 import { consumeStream, createUIMessageStreamResponse, generateText, streamText, stepCountIs } from 'ai';
-import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
+import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
+import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
 import {
   getMessageContent,
   toLegacyMessage,
   toModelMessages,
   toUIMessage,
   type IncomingMessage,
-} from '@/lib/ai-message-compat';
+} from '@/lib/ai/message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
 import { getServerAuthSession } from '@/lib/auth';
 import {
@@ -70,6 +72,7 @@ import {
   mergeCandidateAssignedCitations,
   normalizeKonlingKnowledgeWorkspaceHint,
   serializeKonlingCitationMetadata,
+  stripUnverifiedKonlingCitationMarkers,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
@@ -78,6 +81,7 @@ import {
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
   KonlingConversationTurnConflictError,
+  konlingLibraryRetentionWhere,
   normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
@@ -85,6 +89,10 @@ import {
   resolveKonlingContextEventScope,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
+import {
+  extractInteractiveSessionHint,
+  resolveInteractiveTutoringState,
+} from '@/lib/konling-interactive-tutoring-state';
 import {
   findLatestPinnedTextbookIdentity,
   pinTextbookCoachIdentity,
@@ -193,6 +201,9 @@ function buildCitationGuardMetadataPayload(
     personalizationAvailability: citationGuardMetadata.personalizationAvailability,
     studyQuestion: asPrismaJsonValue(citationGuardMetadata.studyQuestion ?? null),
     answerUnits: asPrismaJsonValue(citationGuardMetadata.answerUnits ?? []),
+    answerUnitCoverage: asPrismaJsonValue(citationGuardMetadata.answerUnitCoverage ?? null),
+    derivedSectionIds: asPrismaJsonValue(citationGuardMetadata.derivedSectionIds ?? []),
+    unverifiedCitationMarkers: asPrismaJsonValue(citationGuardMetadata.unverifiedCitationMarkers ?? []),
     missingContext,
     retrievalSources: buildKonlingCitationRetrievalSources(citationGuardMetadata),
     citations: citationGuardMetadata.citations.map(serializeKonlingCitationMetadata),
@@ -354,8 +365,7 @@ export async function POST(request: Request) {
         where: {
           id: conversationId,
           userId: session.user.id,
-          libraryVisible: true,
-          expiresAt: { gt: new Date() },
+          ...konlingLibraryRetentionWhere(),
         },
       })
       : null;
@@ -459,6 +469,10 @@ export async function POST(request: Request) {
     let sarAssociatedGroundingMetadataPayload: ReturnType<typeof buildKonlingSarAssociatedGroundingMetadataPayload> | null = null;
     let dualDomainProvenanceMetadataPayload: ReturnType<typeof buildKonlingDualDomainProvenanceMetadataPayload> | null = null;
     let buildFinalCitationGuardMetadataPayload: ((assistantContent: string) => ReturnType<typeof buildCitationGuardMetadataPayload>) | null = null;
+    let buildFinalCitationGuardOutcome: ((
+      assistantContent: string,
+      assignedCitations?: readonly KonlingAssignedCitation[],
+    ) => { guard: ReturnType<typeof buildKonlingCitationGuard>; body: string }) | null = null;
     let getAssignedCitationTable: (() => KonlingAssignedCitation[]) | null = null;
     let getTextbookOptimizations:
       | ReturnType<typeof buildKonlingToolRuntime>['getTextbookOptimizations']
@@ -551,6 +565,13 @@ export async function POST(request: Request) {
             candidateGraph: serverCandidateScope.candidateGraph,
           }
         : resolvedScope;
+      const interactiveTutoring = await resolveInteractiveTutoringState(prisma, {
+        authenticatedUserId: session.user.id,
+        role: session.user.role,
+        courseId: authorizedScope.courseId,
+        pageId: authorizedScope.pageId,
+        sessionIdHint: extractInteractiveSessionHint(pageContext),
+      });
       const candidateOnly = Boolean(authorizedScope.candidateGraph);
       const effectiveModeId = candidateOnly ? null : teachingAssistantModeId;
       const effectiveModeClientContextHints = candidateOnly ? undefined : modeClientContextHints;
@@ -668,9 +689,12 @@ export async function POST(request: Request) {
           },
         });
       }
-      const permittedTools = authorizedScope.candidateGraph
+      let permittedTools = authorizedScope.candidateGraph
         ? KONLING_CANDIDATE_READ_TOOLS
         : modeContract.permittedTools;
+      if (interactiveTutoring && !interactiveTutoring.checkAnswerAllowed) {
+        permittedTools = permittedTools.filter((toolName) => toolName !== 'analyze_attempt');
+      }
       forceStructuredSmartPrepTool = modeContract.mode.id === 'prep-coauthor'
         && Boolean(modeContract.smartPreparation);
       const modeRuntimeContext = {
@@ -701,6 +725,9 @@ export async function POST(request: Request) {
         ...aiContext,
         adaptiveRuntime: modeRuntimeContext,
       });
+      if (interactiveTutoring) {
+        systemPrompt = `${systemPrompt}\n\n${interactiveTutoring.promptSection}`;
+      }
       citationGuardMetadata = buildKonlingStreamingCitationGuard(modeRuntimeContext);
       citationGuardMetadataContext = {
         missingContext: modeContract.groundingContext.missingContext,
@@ -715,16 +742,24 @@ export async function POST(request: Request) {
       dualDomainProvenanceMetadataPayload = buildKonlingDualDomainProvenanceMetadataPayload(
         modeRuntimeContext,
       );
-      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => {
+      buildFinalCitationGuardOutcome = (
+        assistantContent: string,
+        assignedCitations: readonly KonlingAssignedCitation[] = getAssignedCitationTable?.() ?? [],
+      ) => {
         const finalRuntimeContext = mergeCandidateAssignedCitations(
           modeRuntimeContext,
-          getAssignedCitationTable?.() ?? [],
+          assignedCitations,
         );
-        return buildCitationGuardMetadataPayload(
-          buildKonlingCitationGuard(finalRuntimeContext, assistantContent),
-          citationGuardMetadataContext?.missingContext ?? [],
-        );
+        const guard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent);
+        return {
+          guard,
+          body: stripUnverifiedKonlingCitationMarkers(assistantContent, guard),
+        };
       };
+      buildFinalCitationGuardMetadataPayload = (assistantContent: string) => buildCitationGuardMetadataPayload(
+        buildFinalCitationGuardOutcome!(assistantContent).guard,
+        citationGuardMetadataContext?.missingContext ?? [],
+      );
       modelRequirements = {
         ...modelRequirements,
         tools: true,
@@ -870,8 +905,18 @@ export async function POST(request: Request) {
             displayName: '同学',
             unavailable: true,
           });
+      // 客户端 pageContext 一律视为不可信提示：只有服务端注册表能解析出的
+      // 页面身份才进入系统提示词，且字段全部来自服务端投影；部分、未注册
+      // 或无法归属的上下文 fail-closed（#1885）。
+      const resolvedPage = resolveServerOwnedChatPageContext(pageContext);
+      if (!resolvedPage.ok) {
+        return new Response(JSON.stringify({ error: 'INVALID_AI_CONTEXT', code: 'INVALID_AI_CONTEXT' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       const aiContext: AIContext = {
-        page: pageContext,
+        page: resolvedPage.page,
         user: resolveCopilotPromptUser({
           authenticatedUserId: session?.user?.id,
           authenticatedDisplayName: session?.user?.name,
@@ -1150,7 +1195,12 @@ export async function POST(request: Request) {
                 return parseCitationRepairMappings(repaired.text);
               },
             });
-            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const finalOutcome = buildFinalCitationGuardOutcome!(normalized.body, assignedCitations);
+            const finalAssistantBody = finalOutcome.body;
+            const baseMetadata = buildCitationGuardMetadataPayload(
+              finalOutcome.guard,
+              citationGuardMetadataContext?.missingContext ?? [],
+            );
             const finalCitationMetadata = {
               ...baseMetadata,
               status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
@@ -1192,7 +1242,7 @@ export async function POST(request: Request) {
                   ...completingTurn,
                   assistantMessage: buildPersistedAssistantRevision(
                     messageId,
-                    normalized.body,
+                    finalAssistantBody,
                     metadata,
                   ),
                 });
@@ -1208,7 +1258,7 @@ export async function POST(request: Request) {
               }
             }
             return {
-              body: normalized.body,
+              body: finalAssistantBody,
               citations: normalized.citations,
               status: normalized.verificationStatus,
               userNotice: normalized.userNotice,
@@ -1282,7 +1332,12 @@ export async function POST(request: Request) {
                     return parseCitationRepairMappings(repaired.text);
                   },
             });
-            const baseMetadata = buildFinalCitationGuardMetadataPayload(normalized.body);
+            const optimizedOutcome = buildFinalCitationGuardOutcome!(normalized.body, finalCitationTable);
+            const optimizedBody = optimizedOutcome.body;
+            const baseMetadata = buildCitationGuardMetadataPayload(
+              optimizedOutcome.guard,
+              citationGuardMetadataContext?.missingContext ?? [],
+            );
             const finalCitationMetadata = {
               ...baseMetadata,
               status: baseMetadata.status === 'verified' && normalized.verificationStatus === 'verified'
@@ -1319,7 +1374,7 @@ export async function POST(request: Request) {
                 ownerUserId: session.user.id,
                 assistantMessage: buildPersistedAssistantRevision(
                   messageId,
-                  normalized.body,
+                  optimizedBody,
                   metadata,
                 ),
                 expectedRevision: 1,
@@ -1330,7 +1385,7 @@ export async function POST(request: Request) {
             return {
               messageId,
               revision: 2,
-              body: normalized.body,
+              body: optimizedBody,
               citations: normalized.citations,
               status: normalized.verificationStatus,
               userNotice: normalized.userNotice,

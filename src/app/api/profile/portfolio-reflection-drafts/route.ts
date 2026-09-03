@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { parsePortfolioReflectionDraftInput } from '@/lib/ai-task-boundary-contracts';
+import {
+  parsePortfolioReflectionDraftInput,
+  resolvePortfolioReflectionDraftRecord,
+} from '@/lib/ai-task-boundary-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { DiscardedDraftReplayError, savePortfolioReflectionDraft } from '@/lib/portfolio-reflection-drafts';
 import { prisma } from '@/lib/prisma';
@@ -16,6 +19,7 @@ const draftSelect = {
   title: true,
   content: true,
   status: true,
+  provenance: true,
   idempotencyKey: true,
   createdAt: true,
   updatedAt: true,
@@ -50,10 +54,14 @@ export async function POST(request: Request) {
 
     const input = parsePortfolioReflectionDraftInput(await request.json().catch(() => null));
     if (input.status === 'invalid') {
-      return NextResponse.json({ error: '草稿内容无效' }, { status: 400 });
+      return NextResponse.json({ error: '草稿来源或内容无效' }, { status: 400 });
     }
 
-    const draft = await savePortfolioReflectionDraft(prisma, session.user.id, input.input);
+    const draft = await savePortfolioReflectionDraft(
+      prisma,
+      session.user.id,
+      resolvePortfolioReflectionDraftRecord(input.input),
+    );
 
     return NextResponse.json({ draft: serializeDraft(draft) });
   } catch (error) {
@@ -85,6 +93,7 @@ function serializeDraft(draft: {
   title: string;
   content: string;
   status: 'DRAFT' | 'DISCARDED';
+  provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED' | 'LEGACY_UNVERIFIED';
   idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date;

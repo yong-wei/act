@@ -97,9 +97,13 @@ export interface FormulaRenderRecord {
   display_mode: 'inline' | 'block';
   render_engine: string;
   render_engine_contract: string;
+  /** 'locale_bound' rows localize the render latex per locale. */
+  language_mode?: string;
   normalized_latex: string;
   original_latex: string;
   render_latex: string | null;
+  /** Governed per-locale render expressions for locale-bound formulas (#1740). */
+  render_latex_by_locale?: Partial<Record<GovernedMathLocale, string>>;
   original_hash: string;
   render_hash: string;
   validation: Record<string, string>;
@@ -238,7 +242,7 @@ export function expectedSidecarHashesFromBundleManifest(bundleDir: string): {
   duplicatePaths: string[];
 } {
   const manifest = JSON.parse(
-    readFileSync(join(bundleDir, GOVERNED_MATH_SIDECAR_FILES.bundleManifest), 'utf8'),
+    readFileSync(/*turbopackIgnore: true*/ join(/*turbopackIgnore: true*/ bundleDir, GOVERNED_MATH_SIDECAR_FILES.bundleManifest), 'utf8'),
   ) as BundleManifest;
   const hashes: Record<string, string> = {};
   const duplicatePaths: string[] = [];

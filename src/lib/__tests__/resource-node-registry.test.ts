@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
+
+import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
 import {
   GOVERNED_PATH_NODE_TYPES,
   PATH_NODE_SEMANTICS,
@@ -37,9 +39,9 @@ function isResolvableSeedTarget(target: string): boolean {
   if (pathOnly.startsWith('/interactive-learning/courses/')) {
     const parts = pathOnly.split('/');
     const courseSlug = parts[3];
-    return Boolean(courseSlug) &&
-      existsSync(path.join(process.cwd(), `src/features/interactive/course-app-routes/${courseSlug}/student.tsx`)) &&
-      existsSync(path.join(process.cwd(), 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx'));
+    return Boolean(courseSlug)
+      && isManifestCourseRouteSegment(courseSlug)
+      && existsSync(path.join(process.cwd(), 'src/app/interactive-learning/courses/[routeSegment]/student/[sessionId]/page.tsx'));
   }
   if (pathOnly.startsWith('/arena/challenges/')) {
     return existsSync(path.join(process.cwd(), 'src/app/arena/challenges/[taskId]/page.tsx'));

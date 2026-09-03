@@ -13,8 +13,8 @@ function readSha(value: string | undefined): string | null {
 
 function readRevisionFile(cwd: string, env: NodeJS.ProcessEnv): string | null {
   const revisionPath = path.resolve(cwd, env.APP_REVISION_FILE || '.app-revision');
-  if (!existsSync(revisionPath)) return null;
-  return readSha(readFileSync(revisionPath, 'utf8'));
+  if (!existsSync(/*turbopackIgnore: true*/ revisionPath)) return null;
+  return readSha(readFileSync(/*turbopackIgnore: true*/ revisionPath, 'utf8'));
 }
 
 function git(cwd: string, args: string[]): string {

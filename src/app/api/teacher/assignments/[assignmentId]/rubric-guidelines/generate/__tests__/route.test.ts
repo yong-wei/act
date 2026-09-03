@@ -3,21 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
   generate: vi.fn(),
-  resolveProvider: vi.fn(),
 }));
 
 vi.mock('@/lib/auth', () => ({
   getServerAuthSession: mocks.getServerAuthSession,
 }));
-vi.mock('@/lib/assignments/assignment-rubric-generation', async (importOriginal) => ({
-  ...await importOriginal<typeof import('@/lib/assignments/assignment-rubric-generation')>(),
-  generateAssignmentRubricGuidelines: mocks.generate,
-  resolveAssignmentRubricGenerationProvider: mocks.resolveProvider,
+vi.mock('@/lib/assignments/public-api', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/lib/assignments/public-api')>(),
+  teacherGenerateRubricGuidelines: mocks.generate,
 }));
-vi.mock('@/lib/prisma', () => ({ prisma: {} }));
 
 import { rateLimiter } from '@/lib/rate-limiter';
-import { AssignmentDomainError } from '@/lib/assignments/assignment-domain';
+import { AssignmentDomainError } from '@/lib/assignments/public-api';
 import { POST } from '../route';
 
 const actor = { id: 'rubric-route-teacher', role: 'TEACHER' as const };
@@ -51,11 +48,6 @@ describe('assignment rubric guideline generation route', () => {
     rateLimiter.reset(`assignment-mutation:${actor.id}`);
     rateLimiter.reset(`assignment-rubric-generation:${actor.id}`);
     mocks.getServerAuthSession.mockResolvedValue({ user: actor });
-    mocks.resolveProvider.mockResolvedValue({
-      provider: 'fixture',
-      model: 'fixture',
-      generate: vi.fn(),
-    });
     mocks.generate.mockResolvedValue({
       levels: [
         { levelId: 'level-high', guideline: '高档准则。' },
@@ -81,15 +73,7 @@ describe('assignment rubric guideline generation route', () => {
   it('passes the bound draft identities and selected basis to the service', async () => {
     const response = await POST(request(), context);
     expect(response.status).toBe(200);
-    expect(mocks.generate).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        actor,
-        assignmentId: 'assignment-1',
-        request: body,
-      },
-      expect.objectContaining({ provider: 'fixture' }),
-    );
+    expect(mocks.generate).toHaveBeenCalledWith(actor, 'assignment-1', body);
   });
 
   it('rate limits rubric generation independently from ordinary draft saves', async () => {
@@ -106,7 +90,7 @@ describe('assignment rubric guideline generation route', () => {
   });
 
   it('returns a safe unavailable response when no structured provider can be resolved', async () => {
-    mocks.resolveProvider.mockRejectedValueOnce(
+    mocks.generate.mockRejectedValueOnce(
       new AssignmentDomainError('rubric-generation-unavailable'),
     );
     const response = await POST(request(), context);
@@ -115,6 +99,6 @@ describe('assignment rubric guideline generation route', () => {
       error: 'rubric-generation-unavailable',
       details: [],
     });
-    expect(mocks.generate).not.toHaveBeenCalled();
+    expect(mocks.generate).toHaveBeenCalledWith(actor, 'assignment-1', body);
   });
 });

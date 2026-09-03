@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/assessment/adaptive-assessment-catalog-selector';
 import {
   verifyCompanionPracticeMetadata,
   verifyCompanionPracticeSubmissionMetadata,

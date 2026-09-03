@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
+import { toLegacyMessage, toModelMessages } from '@/lib/ai/message-compat';
 
 describe('AI SDK message compatibility', () => {
   it('normalizes legacy content messages to UIMessage parts', async () => {

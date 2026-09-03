@@ -1,3 +1,5 @@
+import { prisma } from '@/lib/prisma';
+
 import { createPrismaAssessmentRuntime } from './adapters/prisma-runtime';
 import {
   readAbilityReport as readAbilityReportUseCase,
@@ -17,6 +19,12 @@ import type {
 import type { AbilityReport, DiagnosticResult } from './adaptive-engine';
 import type { AdaptiveAttemptContext } from './adaptive-attempt-context';
 
+export type { CompanionPracticeMetadata } from './adaptive-engine';
+export {
+  resolveAdaptiveDiagnosisContext,
+  type AdaptiveDiagnosisContext,
+  type AdaptiveDiagnosisContextDb,
+} from './adaptive-diagnosis-context';
 export type {
   SelectNextPathQuestionInput,
   SelectNextPathQuestionResult,
@@ -61,4 +69,48 @@ export async function readMasteryUpdates(userId: string): Promise<Array<Record<s
 
 export async function readLatestAbilityEstimate(userId: string): Promise<Record<string, unknown> | null> {
   return readLatestAbilityEstimateUseCase(runtime(), userId);
+}
+
+export {
+  materializeKaqEvidenceWriteback,
+  projectKaqEvidenceWritebackForConsumer,
+} from './kaq-evidence-writeback';
+export type {
+  KaqEvidenceWritebackInput,
+  KaqEvidenceWritebackResult,
+} from './kaq-evidence-writeback';
+export type { AdaptiveAssessmentCatalogItem } from './adaptive-assessment-item-catalog';
+
+export type AdaptiveAssessmentItemRefRead = {
+  id: string;
+  questionId: string;
+  contentHash: string;
+  algorithmVersion: string;
+};
+
+const ITEM_REF_SELECT = {
+  id: true,
+  questionId: true,
+  contentHash: true,
+  algorithmVersion: true,
+} as const;
+
+export async function listAdaptiveAssessmentItemRefs(
+  questionIds: readonly string[],
+): Promise<AdaptiveAssessmentItemRefRead[]> {
+  if (questionIds.length === 0) return [];
+  return prisma.adaptiveAssessmentItemRef.findMany({
+    where: { questionId: { in: [...questionIds] } },
+    orderBy: { createdAt: 'desc' },
+    select: ITEM_REF_SELECT,
+  });
+}
+
+export async function readAdaptiveAssessmentItemRef(
+  id: string,
+): Promise<AdaptiveAssessmentItemRefRead | null> {
+  return prisma.adaptiveAssessmentItemRef.findUnique({
+    where: { id },
+    select: ITEM_REF_SELECT,
+  });
 }

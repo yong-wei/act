@@ -11,6 +11,7 @@ import { useRef, useCallback, useMemo, useEffect, useLayoutEffect, useState, typ
 import ForceGraph3D from 'react-force-graph-3d';
 import * as THREE from 'three';
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
+import { GovernedFormulaLabel } from './semantic-label-layer';
 import type { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   getNodeColor,
@@ -42,6 +43,9 @@ import {
   type KnowledgeGraphLayoutState,
 } from './layout-state';
 import {
+  freezeKnowledgeGraphUnaffectedScope,
+  releaseKnowledgeGraphFrozenScope,
+  releaseKnowledgeGraphDragFrame,
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
@@ -51,9 +55,17 @@ import {
   resolveFocusedExpansionRevealTarget,
   selectFocusedExpansionGraphNodes,
   freezeKnowledgeGraphDragFrame,
+  selectKnowledgeGraphReheatAffectedNodeIds,
+  scopeKnowledgeGraphRenderChange,
+  advanceKnowledgeGraphFrameIdentity,
   translateKnowledgeGraphCameraPose,
   type KnowledgeGraphPositionedNode,
 } from './layout-engine';
+import {
+  KNOWLEDGE_FORCE_ALPHA_DECAY,
+  KNOWLEDGE_FORCE_ALPHA_MIN,
+  resolveKnowledgeForceLifecycle,
+} from './force-lifecycle';
 import {
   createKnowledgeGraphMotionScopeKey,
   bindKnowledgeGraphMotionEnvironment,
@@ -170,6 +182,7 @@ interface KnowledgeGraphCanvasProps {
   onCameraManipulation?: (scopeKey: string) => void;
   onCameraPoseChange?: (scopeKey: string, pose: KnowledgeGraphCameraPose) => void;
   relayoutVersion: number;
+  engineReheatRevision?: number;
   width?: number;
   height?: number;
   expandedNodeIds: readonly string[];
@@ -508,6 +521,7 @@ export function KnowledgeGraphCanvas({
   onCameraManipulation,
   onCameraPoseChange,
   relayoutVersion,
+  engineReheatRevision = 0,
   width,
   height,
   expandedNodeIds,
@@ -579,6 +593,14 @@ export function KnowledgeGraphCanvas({
   const rightPanRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const layoutStateRef = useRef(layoutState);
   const runtimePositionsByNodeIdRef = useRef(new Map<string, Partial<RuntimeKnowledgeGraphNode>>());
+  // 与 2D 相同：react-force-graph-3d 的 ref 也不暴露 graphData 方法，memo 节点
+  // 数组即 d3 原地变异的活对象，用 ref 保留上一代续承沉降坐标（#1739）。
+  const liveNodesRef = useRef<RuntimeKnowledgeGraphNode[]>([]);
+  // 历史见过的全部节点身份（只增不减）：区分筛选投影（增删皆见过）与真实新披露。
+  const everSeenNodeIdsRef = useRef<Set<string>>(new Set());
+  const knownNodeIdsRef = useRef<Set<string> | null>(null);
+  const knownLinksRef = useRef<Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>>(new Map());
+  const changeScopeRef = useRef<{ frozenNodeIds: Set<string>; reheat: boolean }>({ frozenNodeIds: new Set(), reheat: false });
   const committedRelayoutVersionRef = useRef(relayoutVersion);
 
   useEffect(() => () => nodeObjectsByIdRef.current.clear(), []);
@@ -598,8 +620,15 @@ export function KnowledgeGraphCanvas({
   const [viewportRevision, setViewportRevision] = useState(0);
   const [layoutSettledRevision, setLayoutSettledRevision] = useState(0);
   const settledLayoutSignatureRef = useRef('');
-  const [reducedMotion, setReducedMotion] = useState(false);
+  // 首渲染即读系统减弱动态偏好（#1739）：惰性初始化避免 reduced-motion
+  // 用户首帧按完整动态渲染。
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedKnowledgeGraphMotion);
   const [motionEnvironmentActive, setMotionEnvironmentActive] = useState(false);
+  const forceLifecycle = resolveKnowledgeForceLifecycle({
+    dimension: '3d',
+    liveEngine: true,
+    reducedMotion,
+  });
   useEffect(() => {
     const handleResize = () => setViewportRevision((value) => value + 1);
     window.addEventListener('resize', handleResize);
@@ -697,7 +726,7 @@ export function KnowledgeGraphCanvas({
         }).nodes as RuntimeKnowledgeGraphNode[];
     const baseLayoutNodes = resolveKnowledgeGraphRuntimeNodeCoordinates({
       nodes: clonedBaseLayoutNodes,
-      liveNodes: fgRef.current?.graphData?.()?.nodes as RuntimeKnowledgeGraphNode[] | undefined,
+      liveNodes: liveNodesRef.current,
       runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
       preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
@@ -720,30 +749,41 @@ export function KnowledgeGraphCanvas({
     });
     const focusedThreeDimensionalNodes = focusedLayoutNodes.map((node) => {
       const focusedZ = focusedDepthByNodeId.get(node.id);
-      if (focusedZ === undefined) return {
-        ...node,
-        fx: node.x,
-        fy: node.y,
-        fz: node.z ?? 0,
-      };
+      if (focusedZ === undefined) return node;
+      // Focused depth is a z seed, not a fixed coordinate: ordinary nodes
+      // stay under force ownership in every dimension (#1739).
       return {
         ...node,
         z: focusedZ,
         positionZ: focusedZ,
-        fx: node.x,
-        fy: node.y,
-        fz: focusedZ,
         __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor
           ? { ...node.__knowledgeAutomaticAnchor, z: focusedZ }
           : node.__knowledgeAutomaticAnchor,
       };
     });
 
-    return {
+    // 纯筛选/移除在渲染期（force-graph 摄入前）固定坐标，与 2D 相同
+    // （摄入的 warmup ticks 先于被动 effect，#1739 task 3.3）。
+    // #1739 变更范围不变量（渲染期统一决策，完整三分支：筛选投影/仅
+    // 关系变化/真实新增节点）：冻结集与重热标志由共享簿记函数给出，
+    // effect 只消费结果。
+    const changeScope = scopeKnowledgeGraphRenderChange({
       nodes: focusedThreeDimensionalNodes,
+      links: transformedLinks,
+      previousNodeIds: knownNodeIdsRef.current,
+      everSeenNodeIds: everSeenNodeIdsRef.current,
+      knownLinks: knownLinksRef.current,
+    });
+    // 渲染期只做幂等的纯决策写入（StrictMode 重放下同输入同结果）；
+    // 有损的历史身份推进在摄入后的 effect 中完成（#1739）。
+    changeScopeRef.current = changeScope;
+    const scopedNodes = changeScope.nodes;
+    return {
+      nodes: scopedNodes,
       links: transformedLinks
     };
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
+  liveNodesRef.current = graphData.nodes as RuntimeKnowledgeGraphNode[];
   const structuralForegroundEdgeIdSet = useMemo(() => new Set(
     selectKnowledgeGraphStructuralForegroundEdgeIds(graphData.links),
   ), [graphData.links]);
@@ -920,10 +960,11 @@ export function KnowledgeGraphCanvas({
       disposeKnowledgeGraphPresentationLinkGroup(object);
       linkObjectsByIdRef.current.delete(linkId);
     });
-    fgRef.current?.graphData?.(graphData);
     fgRef.current?.refresh?.();
     const refreshFrame = window.requestAnimationFrame(() => {
-      const liveLinks = (fgRef.current?.graphData?.()?.links ?? []) as any[];
+      // d3 在摄入后会把 memo 链接对象的 source/target 原地解析为节点引用；
+      // ref 上没有 graphData 方法，直接读 memo 数组即活对象（#1739）。
+      const liveLinks = graphData.links as any[];
       liveLinks.forEach((link) => {
         const source = typeof link.source === 'object' ? link.source : null;
         const target = typeof link.target === 'object' ? link.target : null;
@@ -1115,13 +1156,43 @@ export function KnowledgeGraphCanvas({
     const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
     graphNodes.forEach(rememberRuntimeNodePosition);
   }, [graphData.nodes, rememberRuntimeNodePosition]);
+  // Component-scoped reheat (#1739): newly disclosed nodes settle while
+  // unaffected nodes hold their settled coordinates; the frame is released
+  // at the engine-stop settle milestone.
+  const unaffectedFrozenNodeIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    // 消费渲染期（摄入前）的变更范围决策：登记冻结集并在存在真实新增
+    // （新节点或新关系）时重热；仅移除关系不重热（#1739）。
+    if (forceLifecycle.staticLayout) return;
+    // 历史身份推进（幂等）放在摄入后：useMemo 在 StrictMode 重放下会
+    // 多次执行，渲染期推进会把同一批变化误判为稳定帧（#1739）。
+    advanceKnowledgeGraphFrameIdentity({
+      nodes: graphData.nodes,
+      links: graphData.links,
+      nodeIdsRef: knownNodeIdsRef,
+      everSeenNodeIdsRef,
+      knownLinksRef,
+    });
+    const scope = changeScopeRef.current;
+    unaffectedFrozenNodeIdsRef.current = scope.frozenNodeIds;
+    if (scope.reheat) fgRef.current?.d3ReheatSimulation?.();
+  }, [forceLifecycle.staticLayout, graphData.links, graphData.nodes]);
+
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
+    if (unaffectedFrozenNodeIdsRef.current.size > 0) {
+      const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+      releaseKnowledgeGraphFrozenScope(graphNodes, {
+        frozenNodeIds: unaffectedFrozenNodeIdsRef.current,
+        pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+      });
+      unaffectedFrozenNodeIdsRef.current = new Set();
+    }
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setCameraProjectionRevision((revision) => revision + 1);
     setLayoutSettledRevision((revision) => revision + 1);
-  }, [layoutSignature, snapshotRuntimePositions]);
+  }, [graphData.nodes, layoutSignature, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -1197,7 +1268,7 @@ export function KnowledgeGraphCanvas({
       const rendererWidth = renderer?.domElement?.width;
       const rendererHeight = renderer?.domElement?.height;
       const graphNodes = [
-        ...((fgRef.current?.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
+        ...((fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
         ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number; z?: number }>),
       ];
       return graphNodes
@@ -2118,9 +2189,11 @@ export function KnowledgeGraphCanvas({
   ) => updatePresentationLinkObjectRef.current(object, positions, link), []);
   const getAccessibleNodeLabel = useCallback(
     (node: any) => (
-      node.richTitle?.state === 'available'
-        ? node.richTitle.accessibleName
-        : layoutKnowledgeNodeLabel(node.name).accessibleName
+      node.mathematics?.state === 'available'
+        ? node.mathematics.accessibleLabel
+        : node.richTitle?.state === 'available'
+          ? node.richTitle.accessibleName
+          : layoutKnowledgeNodeLabel(node.name).accessibleName
     ),
     [],
   );
@@ -2405,11 +2478,19 @@ export function KnowledgeGraphCanvas({
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
   useEffect(() => {
-    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+    const currentNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as
       | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
       | undefined;
     syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
   }, [graphData, layoutState]);
+
+  const lastEngineReheatRevisionRef = useRef(engineReheatRevision);
+  useEffect(() => {
+    if (engineReheatRevision <= lastEngineReheatRevisionRef.current) return;
+    lastEngineReheatRevisionRef.current = engineReheatRevision;
+    if (forceLifecycle.staticLayout) return;
+    fgRef.current?.d3ReheatSimulation?.();
+  }, [engineReheatRevision, forceLifecycle.staticLayout]);
 
   // 6. 节点点击处理
   const handleNodeClick = useCallback((node: any) => {
@@ -2424,9 +2505,14 @@ export function KnowledgeGraphCanvas({
   const handleNodeDragEnd = useCallback((node: any) => {
     scheduleProjectionRefresh();
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    releaseKnowledgeGraphDragFrame(graphNodes, {
+      draggedId: String(node?.id ?? ''),
+      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
+    });
     onNodeDragEnd(node as KnowledgeNodeData);
     flushCameraPose(autoFitScopeKey);
-  }, [autoFitScopeKey, flushCameraPose, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, flushCameraPose, graphData.nodes, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
 
   const handleNodeDrag = useCallback((node: any) => {
     scheduleProjectionRefresh();
@@ -2729,6 +2815,13 @@ export function KnowledgeGraphCanvas({
       id: node.id,
       lines: layout.lines.map((line) => line.text),
       richTitle: node.richTitle,
+      mathematics: node.mathematics,
+      // 公式主标签下的有界人名上下文：仅受治理人类标题可用时展示，
+      // 无治理标题时省略（Formula 的 prose 名是 TeX 源码，#1740）。
+      humanContext: node.mathematics && node.mathematics.state !== 'missing'
+        && node.richTitle?.state === 'available'
+        ? node.richTitle.accessibleName
+        : undefined,
       x: Number(point.x) + (isRootBubble ? 0 : placement.offsetX),
       y: Number(point.y) + (isRootBubble ? 0 : placement.offsetY),
       width: layout.width * placement.fontSize / policyFontSize,
@@ -2875,10 +2968,13 @@ export function KnowledgeGraphCanvas({
         onEngineTick={scheduleProjectionRefresh}
         enableNodeDrag={true}
 
-        // 物理引擎
+        // 物理引擎：有界力生命周期（#1739）
         d3VelocityDecay={0.3}
-        warmupTicks={0}
-        cooldownTicks={0}
+        d3AlphaDecay={KNOWLEDGE_FORCE_ALPHA_DECAY}
+        d3AlphaMin={KNOWLEDGE_FORCE_ALPHA_MIN}
+        warmupTicks={forceLifecycle.warmupTicks}
+        cooldownTicks={forceLifecycle.cooldownTicks}
+        cooldownTime={forceLifecycle.cooldownTimeMs}
 
         // 背景透明（使用CSS渐变背景）
         backgroundColor="rgba(0,0,0,0)"
@@ -2911,7 +3007,13 @@ export function KnowledgeGraphCanvas({
               transform: 'translate(-50%, -50%)',
             }}
           >
-            {label.richTitle ? (
+            {label.mathematics && label.mathematics.state !== 'missing' ? (
+              <GovernedFormulaLabel
+                projection={label.mathematics}
+                humanContext={label.humanContext}
+                theme={isLightTheme ? 'light' : 'dark'}
+              />
+            ) : label.richTitle ? (
               <GovernedRichText projection={label.richTitle} density="canvas" theme={isLightTheme ? 'light' : 'dark'} />
             ) : label.lines.map((line, index) => <span key={`${label.id}:${index}`}>{line}</span>)}
           </div>

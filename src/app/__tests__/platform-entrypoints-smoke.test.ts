@@ -148,6 +148,7 @@ describe('platform entrypoint smoke contracts', () => {
   it('keeps login error states tied to the same callback destination contract', () => {
     const loginSource = readSource('src/app/(auth)/login/page.tsx');
     const loginFormSource = readSource('src/components/shared/credential-login-form.tsx');
+    const nextConfigSource = readSource('next.config.js');
 
     expect(loginSource).toContain('getCommercialStudentEntryIntentGroups');
     expect(loginSource).toContain('callbackUrl=%2Fprofile');
@@ -157,6 +158,9 @@ describe('platform entrypoint smoke contracts', () => {
     expect(loginFormSource).toContain("setError('账号或密码错误')");
     expect(loginFormSource).toContain('callbackUrl');
     expect(loginFormSource).toContain('resolvePostLoginRedirect');
+    expect(loginFormSource).toContain('action="/login"');
+    expect(loginFormSource).toContain('method="post"');
+    expect(nextConfigSource).toContain("allowedDevOrigins: ['127.0.0.1']");
   });
 
   it('keeps product entry routes on the commercial entry-surface contract', () => {

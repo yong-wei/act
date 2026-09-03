@@ -13,13 +13,16 @@ import {
 } from '@/lib/authority-domain-catalog/contracts';
 
 import {
+  AUTHORITY_SHARD_COVERAGE_CONTRACT,
   AUTHORITY_SHARD_SET_CONTRACT,
   isEngineeringRelationFamily,
+  type AuthorityDomainSearchIndexShard,
   type AuthorityDomainDefaultShard,
   type AuthorityNodeDetailShard,
   type AuthorityNodeNeighborhoodShard,
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
+  type AuthorityShardCoverageReceipt,
   type AuthorityShardSetManifest,
   type EngineeringRelationFamily,
 } from './contracts';
@@ -144,10 +147,15 @@ function reconcileTeachingEnvelope<T extends {
       const overlay = createTeachingOverlay(teachingPointer, {
         artifacts: teachingArtifacts,
       });
+      // Same overview bounding as materialization: only teaching edges whose
+      // endpoints are both members of this bounded concept overview (#1738).
+      const overviewIds = new Set(domainShard.objects.map((object) => object.id));
       return {
         ...domainShard,
         envelope,
-        teachingRelations: overlay.relations(domainShard.domainId),
+        teachingRelations: overlay.relations(domainShard.domainId)
+          .filter((relation) => overviewIds.has(relation.sourceId) && overviewIds.has(relation.targetId))
+          .sort((left, right) => left.id.localeCompare(right.id)),
         teachingCoverage: overlay.coverage(domainShard.domainId),
       } as unknown as T;
     }
@@ -219,6 +227,19 @@ export function loadRootShard(
   );
 }
 
+/**
+ * Root entry publication gate (#1738): the root shard is only served when the
+ * shard-set coverage receipt closes the catalog denominator under the same
+ * identity. A deployment or mount that omits the receipt fails closed here
+ * instead of exposing clickable domain entries that 404/503 on first click.
+ */
+export function loadRootShardWithCoverage(
+  options: LoadAuthorityShardOptions = {},
+): AuthorityRootShard {
+  loadShardSetCoverage(options);
+  return loadRootShard(options);
+}
+
 export function loadDomainDefaultShard(
   domainKey: string,
   options: LoadAuthorityShardOptions = {},
@@ -285,6 +306,55 @@ export function loadNodeDetailShard(
     throw new AuthorityShardStoreError('node-id-mismatch', 'detail shard does not match requested node');
   }
   return shard;
+}
+
+/**
+ * Sealed identity-safe search rows for one domain (#1738). Internal artifact:
+ * callers must serve it only through a bounded, paged search projection and
+ * never return the complete index to the browser.
+ */
+export function loadDomainSearchIndexShard(
+  domainKey: string,
+  options: LoadAuthorityShardOptions = {},
+): AuthorityDomainSearchIndexShard {
+  const context = loadContext(options);
+  const domainId = resolveShardDomainKey(domainKey, context.identity.catalog.domains);
+  const shard = readVerifiedShard<AuthorityDomainSearchIndexShard>(
+    context,
+    shardRelativePaths({ domainId }).searchIndex!,
+    'domain-search-index',
+  );
+  if (shard.domainId !== domainId) {
+    throw new AuthorityShardStoreError('domain-id-mismatch', 'search index shard does not match requested domain');
+  }
+  return shard;
+}
+
+/**
+ * Sealed coverage receipt for the active shard set (#1738). Root navigation
+ * may only expose domains whose default/search/neighborhood/detail closure
+ * is recorded here under the same shard-set identity.
+ */
+export function loadShardSetCoverage(
+  options: LoadAuthorityShardOptions = {},
+): AuthorityShardCoverageReceipt {
+  const context = loadContext(options);
+  const coverage = readVerifiedShard<AuthorityShardCoverageReceipt>(
+    context,
+    shardRelativePaths({}).coverage,
+    'coverage-receipt',
+  );
+  if (coverage.contract !== AUTHORITY_SHARD_COVERAGE_CONTRACT) {
+    throw new AuthorityShardStoreError('coverage-contract-invalid', 'unsupported coverage receipt contract');
+  }
+  if (
+    coverage.catalogDomainCount !== coverage.defaultShardCount
+    || coverage.catalogDomainCount !== coverage.searchIndexCount
+    || !coverage.closure.complete
+  ) {
+    throw new AuthorityShardStoreError('coverage-denominator-mismatch', 'coverage receipt does not close the catalog denominator');
+  }
+  return coverage;
 }
 
 export function loadActiveShardContext(

@@ -400,7 +400,9 @@ describe('knowledge graph viewport fit', () => {
       .map((placement) => `${placement.offsetX}:${placement.offsetY}`)).size).toBe(2);
   });
 
-  it('keeps compact-priority labels visible when no collision-free viewport placement remains', () => {
+  it('defers compact-priority labels when no collision-free viewport placement remains', () => {
+    // #1739：keyNode 钳位回退移除后，放不下的重点标签必须延迟而不是
+    // 堆叠；selected/hovered 仍保留钳位兜底。
     const nodes = ['key-a', 'key-b'].map((id) => ({
       id,
       x: -240,
@@ -418,8 +420,9 @@ describe('knowledge graph viewport fit', () => {
       scale: 1,
       labelMode: 'focus',
     });
-    expect(placements.get('key-a')?.visible).toBe(true);
-    expect(placements.get('key-b')?.visible).toBe(true);
+    // 两个同位重点节点至多一个能获得无碰撞位置；另一个延迟而非堆叠。
+    const visibleCount = ['key-a', 'key-b'].filter((id) => placements.get(id)?.visible).length;
+    expect(visibleCount).toBeLessThanOrEqual(1);
   });
 
   it('uses packing state rather than chapter ids when placing root labels', () => {

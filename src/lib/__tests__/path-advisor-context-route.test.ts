@@ -23,7 +23,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { GET } from '@/app/api/adaptive/path-advisor-context/route';
-import { getAdaptivePracticeGoalOptions } from '@/lib/adaptive-path-goal-options';
+import { getAdaptivePracticeGoalOptions } from '@/features/personalization/path-planning/adaptive-path-goal-options';
 
 function request(query: string) {
   return GET(new Request(`http://localhost/api/adaptive/path-advisor-context?${query}`));

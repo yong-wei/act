@@ -6,8 +6,8 @@ import {
   getPathNodeSemanticsForResourceType,
   type ResourceNode,
 } from '@/lib/resource-node-registry';
-import type { ControlCorrectionTeacherReport } from '../control-correction-teacher-report';
-import type { RoleBasedLearningDiagnosis } from '../role-based-learning-diagnosis';
+import type { ControlCorrectionTeacherReport } from '@/features/teacher/control-correction-teacher-report';
+import type { RoleBasedLearningDiagnosis } from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 import {
   activateCourseEnhancementPack,
   activatePersistedCourseEnhancementPack,

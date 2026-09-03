@@ -1,5 +1,5 @@
-import { parseAdaptivePathJourneyResponse } from '@/features/adaptive/adaptive-path-journey-control';
-import { canonicalizeAdaptivePathInternalHref } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { parseAdaptivePathJourneyResponse } from '@/features/personalization/experience/adaptive-path-journey-control';
+import { canonicalizeAdaptivePathInternalHref } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 
 export function resolveAdaptivePathCompletionContinueHref(input: {
   payload: unknown;

@@ -159,3 +159,37 @@ The active-domain return action, the ordinary `新版`/`旧版` switch, and the 
 - **THEN** its compact responsive treatment SHALL keep return, version, and dimension actions reachable without covering the primary canvas
 - **AND** the graph title SHALL not create a second overlapping control surface
 
+### Requirement: Navigation levels are backed by distinct bounded server responses
+Root, domain overview and selected semantic neighborhood SHALL each use a distinct version-matched bounded response. Client filtering of a previously fetched complete domain MUST NOT satisfy a navigation level.
+
+#### Scenario: Product QA inspects domain traffic
+- **WHEN** QA enters a domain and then selects one concept
+- **THEN** the request sequence SHALL contain a bounded domain overview followed by a bounded one-hop request
+- **AND** no ordinary request SHALL return the complete domain object set
+
+#### Scenario: Search locates an undisclosed object
+- **WHEN** search resolves an eligible object outside the current overview
+- **THEN** selection SHALL load only its owning-domain context and bounded one-hop network
+- **AND** search SHALL not promote every matching type into the domain overview
+
+### Requirement: Active semantic filters live in one dedicated panel
+The active workspace SHALL provide one responsive filter panel containing reversible multi-select node-type and relation-family controls with registered visual samples. The global workspace toolbar SHALL contain only graph-version, language, dimension, fit, reflow and domain-return actions.
+
+#### Scenario: Viewer opens filters on desktop
+- **WHEN** the viewer opens the active filter control
+- **THEN** one bounded panel SHALL show node types and relation families with their current states and visual meanings
+- **AND** search or layout controls SHALL not be duplicated inside unrelated floating rows
+
+#### Scenario: Viewer opens filters on mobile
+- **WHEN** the same control is opened on a compact viewport
+- **THEN** an accessible drawer SHALL expose the same state and actions
+- **AND** closing it SHALL restore focus without changing the graph
+
+### Requirement: Ordinary active graph has no visible all-node directory
+The active canvas SHALL NOT render a visible grid or list containing all materialized nodes as a fallback for missing Teaching relations, zero visible edges or formula availability. Semantic node controls SHALL remain screen-reader accessible and bounded discovery SHALL remain available through search.
+
+#### Scenario: Teaching projection is unavailable
+- **WHEN** a domain concept overview has no Teaching edges
+- **THEN** the canvas and explicit empty-state/filter controls SHALL remain the visible product surface
+- **AND** no bottom all-node directory SHALL appear
+

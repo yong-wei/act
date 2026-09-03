@@ -19,7 +19,7 @@ import {
 } from '@/features/interactive/shared/lesson-runtime-shell';
 import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledge-drawer';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { getUnit44StepAIContext } from '@/lib/course-ai-contexts';
 import { buildUNIT44SubmissionTelemetry } from '@/lib/data-governance/unit-4-4-submission-telemetry';
 import {

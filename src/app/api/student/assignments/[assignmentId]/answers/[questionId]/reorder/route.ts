@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 
-import { reorderAssetsSchema } from '@/lib/assignments/submission-domain';
 import {
   guardSubmissionMutation,
   readBoundedSubmissionJson,
   requireStudentActor,
   submissionErrorResponse,
 } from '@/lib/assignments/submission-route-guards';
-import { studentReorderQuestionAssets } from '@/lib/assignments/public-api';
+import { reorderAssetsSchema, studentReorderQuestionAssets } from '@/lib/assignments/public-api';
 
 export async function PUT(
   request: Request,

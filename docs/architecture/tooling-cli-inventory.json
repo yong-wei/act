@@ -1,0 +1,1289 @@
+{
+  "$comment": "Revision-bound active tooling CLI inventory. Source identity is the Git revision containing this file. Classifies every package.json script plus the CI and git-hook gates. Directory presence or command name alone never qualifies an entry as active; unknown entries block deletion until an owner confirms.",
+  "canonicalGates": {
+    "verify:commit": "npm run typecheck && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
+    "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
+    "typecheck": "tsx ./scripts/typescript-graphs/run.ts --graph production",
+    "ciEntryPoints": [
+      "lint",
+      "test",
+      "build",
+      "wasm:build:control-engine"
+    ],
+    "uniqueSecurityValidator": "release/rollback safety validation stays with the existing runtime-release validator chain (test:runtime-release-activation-rollback, test:runtime-production-cutover-contract); inventory adds no second validator"
+  },
+  "namespaces": {
+    "build": {
+      "meta": {
+        "owner": "scripts/build-next-with-trace-check.mjs, scripts/wasm/build-control-engine.mjs, scripts/assets/, eslint",
+        "authority": "production build pipeline incl. WASM build and prisma generate",
+        "graph": "production",
+        "verification": "npm run build",
+        "receiptPrivacyClass": "exit-code and trace boundary report"
+      },
+      "commands": {
+        "build": {
+          "status": "active",
+          "target": "scripts/wasm/build-control-engine.mjs"
+        },
+        "lint": {
+          "status": "active"
+        },
+        "models:produce": {
+          "status": "active"
+        },
+        "models:validate": {
+          "status": "active",
+          "target": "scripts/assets/validate-optimized-models.mjs"
+        },
+        "wasm:build:control-engine": {
+          "status": "active",
+          "target": "scripts/wasm/build-control-engine.mjs"
+        }
+      }
+    },
+    "database": {
+      "meta": {
+        "owner": "tools/migration-backfill/cli.ts and scripts/db/",
+        "authority": "gated apply: default runs gate checks only, explicit apply writes; DATABASE_URL required; no implicit selector or business-fact mutation outside the migration transaction",
+        "graph": "tools",
+        "verification": "npm run migration-backfill:check",
+        "receiptPrivacyClass": "database evidence excluded from public receipts"
+      },
+      "commands": {
+        "db:adaptive-assessment-item-catalog": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:adaptive-assessment-lifecycle-coverage": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:apply-simulation-task-evidence-plan": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:assessment-item-semantic-review": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-assignment-attachment-order": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-class-attribution": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-course-evidence": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-cumulative-attainment": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-facts": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-growth-evaluations": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:backfill-unit-4-1-growth": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:complete-longform-textbook-reference-resource-semantics": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:complete-runtime-lesson-media-resource-semantics": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:compute-actkg-release-set-delta": {
+          "status": "active",
+          "target": "scripts/db/compute-actkg-release-set-delta.ts"
+        },
+        "db:core-textbook-section-path-roles": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:course-bundle-revision-quality": {
+          "status": "unknown",
+          "target": "scripts/db/report-course-bundle-revision-quality.ts"
+        },
+        "db:data-completeness-audit": {
+          "status": "active",
+          "target": "scripts/db/report-data-completeness-audit.ts"
+        },
+        "db:dry-run-course-basis-lifecycle": {
+          "status": "active",
+          "target": "scripts/db/dry-run-course-basis-lifecycle.ts"
+        },
+        "db:dry-run-simulation-task-evidence": {
+          "status": "active",
+          "target": "scripts/db/dry-run-simulation-task-evidence.ts"
+        },
+        "db:evidence-source-coverage": {
+          "status": "active",
+          "target": "scripts/db/report-evidence-source-coverage.ts"
+        },
+        "db:export-textbook-resources": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "db:graph-resource-coverage-overlay": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:import-authoritative-actkg-release": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:import-canonical-resource-binding-shadow": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:import-compatible-actkg-public-bundle": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:import-course-coverage-overlay": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:kaq-quiz-foundation": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:learning-goal-assessment-coverage": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:materialize-historical-learning-facts": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:materialize-runtime-lesson-media-semantic-review-source": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:migrate-assignment-attachment-understanding": {
+          "status": "active",
+          "target": "scripts/assignments/migrate-legacy-assignment-attachment-understanding.ts"
+        },
+        "db:rag-citation-anchor-coverage": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:rebuild-student-evidence-feature-cache": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:recompute-interactive-scoring": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:reconcile-teacher-default-classes": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:reference-section-path-roles": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:refresh-simulation-task-catalog-portraits": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:repair-assignment-publication-duplicates": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:repair-resource-identity-bindings": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:report-assignment-rubric-v2-migration": {
+          "status": "active",
+          "target": "scripts/db/report-assignment-rubric-v2-migration.ts"
+        },
+        "db:resource-field-completion-audit": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:run-aggregate-course-resource-governance": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:runtime-lesson-planning-units": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:runtime-media-handout-dispositions": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:seed-yangfan-diagnostic-learning-state": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:session-data-quality": {
+          "status": "active",
+          "target": "scripts/db/report-session-data-quality.ts"
+        },
+        "db:set-ai-provider-qwen-default": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:sync-remote": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:textbook-media-grounding": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:textbook-search-document-citation-shard": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "db:validate-textbook-runtime-v2": {
+          "status": "active",
+          "target": "scripts/release/validate-textbook-runtime-v2.mjs"
+        },
+        "migrate:events": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "migrate:facts": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "migrate:snapshots": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "migration-backfill:apply": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "migration-backfill:check": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "migration-backfill:dry-run": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:admin": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:demo": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:fixed-passwords": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:knowledge": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:missions": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:semester-usage": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        },
+        "seed:test-accounts": {
+          "status": "active",
+          "target": "tools/migration-backfill/cli.ts"
+        }
+      }
+    },
+    "delivery-gates": {
+      "meta": {
+        "owner": "package.json scripts + managed git hooks (scripts/dev/sync-local-worktree-config.sh --install-hooks)",
+        "authority": "commit/push delivery gate; failures propagate verbatim",
+        "graph": "production plus governance checks",
+        "verification": "npm run verify:commit / npm run verify:push",
+        "receiptPrivacyClass": "exit-code only"
+      },
+      "commands": {
+        "verify:canonical-learning-fact-identity": {
+          "status": "active",
+          "target": "scripts/data-governance/verify-canonical-learning-fact-identity.mjs"
+        },
+        "verify:commit": {
+          "status": "active"
+        },
+        "verify:micro-tutoring-coverage": {
+          "status": "active",
+          "target": "scripts/data-governance/check-micro-tutoring-coverage.ts"
+        },
+        "verify:micro-tutoring-coverage:v2": {
+          "status": "active",
+          "target": "scripts/data-governance/check-micro-tutoring-coverage.ts"
+        },
+        "verify:new-resource-semantics": {
+          "status": "active",
+          "target": "scripts/data-governance/check-new-resource-semantic-completeness.ts"
+        },
+        "verify:portrait-v2-primary": {
+          "status": "active",
+          "target": "scripts/data-governance/check-portrait-v2-primary-usage.ts"
+        },
+        "verify:push": {
+          "status": "active"
+        },
+        "verify:teacher-ai-grading-sensitive-files": {
+          "status": "active",
+          "target": "scripts/data-governance/check-teacher-ai-grading-sensitive-files.ts"
+        },
+        "verify:test-account-login": {
+          "status": "active",
+          "target": "scripts/db/verify-test-account-login.mjs"
+        }
+      }
+    },
+    "feature-tooling": {
+      "meta": {
+        "owner": "scattered per-domain scripts under scripts/ (analysis, course-coverage, data-governance, knowledge-governance, diagnosis-benchmark, figures, assignments)",
+        "authority": "per-script; read-only reports or explicitly gated evidence generation",
+        "graph": "tools",
+        "verification": "per-script exit code",
+        "receiptPrivacyClass": "evidence writers follow the commercial-ui redaction contract"
+      },
+      "commands": {
+        "capture:adaptive-path-unlock-chain-evidence": {
+          "status": "active",
+          "target": "scripts/tests/capture-adaptive-path-unlock-chain-evidence.mjs"
+        },
+        "capture:prompt-assessment-history-evidence": {
+          "status": "unknown",
+          "target": "artifacts/commercial-ui/issue-1422-prompt-assessment-history/capture-prompt-assessment-history-evidence.mjs"
+        },
+        "capture:simulation-command-deck-qa": {
+          "status": "active",
+          "target": "scripts/tests/capture-simulation-command-deck-qa.ts"
+        },
+        "capture:teacher-diagnosis-report-history-evidence": {
+          "status": "active"
+        },
+        "course-coverage:current-review": {
+          "status": "active",
+          "target": "scripts/course-coverage/generate-current-course-coverage-review.ts"
+        },
+        "course-coverage:review-batch": {
+          "status": "active",
+          "target": "scripts/course-coverage/review-current-course-coverage-batch.ts"
+        },
+        "diagnosis:benchmark:fixture": {
+          "status": "active",
+          "target": "scripts/diagnosis-benchmark/server-only-shim.mjs"
+        },
+        "diagnosis:benchmark:live": {
+          "status": "active",
+          "target": "scripts/diagnosis-benchmark/server-only-shim.mjs"
+        },
+        "generate:micro-tutoring-option-attributions": {
+          "status": "active",
+          "target": "scripts/data-governance/generate-micro-tutoring-option-attributions.ts"
+        },
+        "generate:micro-tutoring-resource-projection": {
+          "status": "active",
+          "target": "scripts/data-governance/generate-micro-tutoring-resource-projection.ts"
+        },
+        "generate:micro-tutoring-v2-option-attributions": {
+          "status": "active",
+          "target": "scripts/data-governance/generate-micro-tutoring-v2-option-attributions.ts"
+        },
+        "generate:micro-tutoring-validation-registry": {
+          "status": "active",
+          "target": "scripts/data-governance/generate-micro-tutoring-validation-registry.ts"
+        },
+        "health:submission-storage": {
+          "status": "active",
+          "target": "scripts/assignments/check-submission-object-health.ts"
+        },
+        "inventory:course-knowledge-inputs": {
+          "status": "active",
+          "target": "scripts/knowledge-governance/input-inventory/cli.ts"
+        },
+        "inventory:export-course-knowledge-db": {
+          "status": "active",
+          "target": "scripts/knowledge-governance/input-inventory/database-export-cli.ts"
+        },
+        "qualify:micro-tutoring": {
+          "status": "active",
+          "target": "scripts/data-governance/qualify-micro-tutoring.ts"
+        },
+        "qualify:micro-tutoring:v2": {
+          "status": "active",
+          "target": "scripts/data-governance/qualify-micro-tutoring.ts"
+        },
+        "teacher-ai-grading-lab": {
+          "status": "active",
+          "target": "scripts/data-governance/teacher-ai-grading-lab-cli.ts"
+        },
+        "traffic-cost:inventory": {
+          "status": "active",
+          "target": "scripts/runtime-traffic-cost.ts"
+        },
+        "traffic-cost:observe": {
+          "status": "active",
+          "target": "scripts/runtime-traffic-cost.ts"
+        }
+      }
+    },
+    "governance": {
+      "meta": {
+        "owner": "scripts/quality-gates.ts, scripts/architecture-fitness.ts, scripts/architecture-census.ts, scripts/architecture-charter.ts, scripts/architecture-closure.ts, tools/boundary, scripts/security/audit-governance.mjs, react-doctor gates",
+        "authority": "architecture and quality evidence; non-authoritative observation that must not impersonate activation permission",
+        "graph": "tools + test",
+        "verification": "npm run quality-gates:validate && npm run toolchain:boundary:check",
+        "receiptPrivacyClass": "published evidence redacted; no absolute paths or raw payloads"
+      },
+      "commands": {
+        "audit:governance": {
+          "status": "active",
+          "target": "scripts/security/audit-governance.mjs"
+        },
+        "census:architecture": {
+          "status": "active",
+          "target": "scripts/architecture-census.ts"
+        },
+        "charter:architecture": {
+          "status": "active",
+          "target": "scripts/architecture-charter.ts"
+        },
+        "check:knowledge-relation-coverage": {
+          "status": "active",
+          "target": "scripts/knowledge/check-runtime-relation-coverage.ts"
+        },
+        "fitness:architecture": {
+          "status": "active",
+          "target": "scripts/architecture-fitness.ts"
+        },
+        "fitness:architecture:write": {
+          "status": "active",
+          "target": "scripts/architecture-fitness.ts"
+        },
+        "fitness:architecture:write-ledger": {
+          "status": "active",
+          "target": "scripts/architecture-fitness.ts"
+        },
+        "quality-gates:run": {
+          "status": "active",
+          "target": "scripts/quality-gates.ts"
+        },
+        "quality-gates:validate": {
+          "status": "active",
+          "target": "scripts/quality-gates.ts"
+        },
+        "quality-gates:write-protection-receipt": {
+          "status": "active",
+          "target": "scripts/quality-gates.ts"
+        },
+        "quality-gates:write-registry": {
+          "status": "active",
+          "target": "scripts/quality-gates.ts"
+        },
+        "react-doctor:owned-warnings": {
+          "status": "active",
+          "target": "scripts/tests/react-doctor-owned-surface-gate.mjs"
+        },
+        "toolchain:boundary:check": {
+          "status": "active",
+          "target": "tools/boundary/cli.ts"
+        },
+        "toolchain:boundary:write": {
+          "status": "active",
+          "target": "tools/boundary/cli.ts"
+        },
+        "verify:architecture-closure": {
+          "status": "active",
+          "target": "scripts/architecture-closure.ts"
+        }
+      }
+    },
+    "ops": {
+      "meta": {
+        "owner": "scripts/ops/, scripts/*.sh, scripts/workers/, scripts/runtime-release/",
+        "authority": "local and operator runtime lifecycle; deploy entries require explicit operator action; worker entries run data governance and grading loops",
+        "graph": "web + worker runtime",
+        "verification": "npm run startup then /api/readyz",
+        "receiptPrivacyClass": "logs stay local under .logs/"
+      },
+      "commands": {
+        "deploy:all": {
+          "status": "active",
+          "target": "scripts/deploy-all-with-runtime-blobs.sh"
+        },
+        "deploy:app": {
+          "status": "active",
+          "target": "scripts/remote-deploy.sh"
+        },
+        "deploy:runtime": {
+          "status": "active",
+          "target": "scripts/deploy-runtime-blob-release.sh"
+        },
+        "dev": {
+          "status": "active",
+          "target": "scripts/ops/clear-logs.mjs"
+        },
+        "logs": {
+          "status": "active"
+        },
+        "logs:background-error": {
+          "status": "active"
+        },
+        "logs:error": {
+          "status": "active"
+        },
+        "runtime:dev-install-credential": {
+          "status": "active",
+          "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "runtime:dev-preflight": {
+          "status": "active",
+          "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "runtime:dev-validate-policy": {
+          "status": "active",
+          "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "shutdown": {
+          "status": "active",
+          "target": "scripts/ops/stop.sh"
+        },
+        "shutdown:oss-runtime": {
+          "status": "active",
+          "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "start": {
+          "status": "active",
+          "target": "scripts/ops/clear-logs.mjs"
+        },
+        "startup": {
+          "status": "active",
+          "target": "scripts/ops/start.sh"
+        },
+        "startup:oss-runtime": {
+          "status": "active",
+          "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "worker:dev": {
+          "status": "active",
+          "target": "scripts/workers/data-governance-worker.ts"
+        },
+        "worker:math-document-grading": {
+          "status": "active",
+          "target": "scripts/workers/math-document-grading-worker.ts"
+        },
+        "worker:scheduler": {
+          "status": "active",
+          "target": "scripts/workers/scheduler.ts"
+        },
+        "worker:submission-gc": {
+          "status": "active",
+          "target": "scripts/assignments/gc-submission-objects.ts"
+        },
+        "worker:submission-scan": {
+          "status": "active",
+          "target": "scripts/assignments/scan-submission-objects.ts"
+        }
+      }
+    },
+    "release-publication": {
+      "meta": {
+        "owner": "tools/content-knowledge-runtime-release, tools/teaching-projection-publishing, tools/evidence-lifecycle, scripts/actkg-release, scripts/browser-delivery.ts, scripts/static-esa-delivery.ts, scripts/source-pack",
+        "authority": "immutable source/release-bound candidates and receipts; publication is non-activating; production selector/cutover requires the existing explicit operator transaction",
+        "graph": "tools",
+        "verification": "npm run content-knowledge-runtime:check / teaching-projection:check / qa-evidence:check",
+        "receiptPrivacyClass": "portable receipts; no credentials, user identifiers or machine absolute paths"
+      },
+      "commands": {
+        "actkg:mirror-v022": {
+          "status": "active",
+          "target": "scripts/actkg-release/actkg-v022-release-mirror.ts"
+        },
+        "actkg:prepare-v022-candidate": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "browser-delivery:apply": {
+          "status": "active",
+          "target": "scripts/browser-delivery.ts"
+        },
+        "browser-delivery:inventory": {
+          "status": "active",
+          "target": "scripts/browser-delivery.ts"
+        },
+        "browser-delivery:manifest": {
+          "status": "active",
+          "target": "scripts/browser-delivery.ts"
+        },
+        "browser-delivery:plan": {
+          "status": "active",
+          "target": "scripts/browser-delivery.ts"
+        },
+        "browser-delivery:qualify-routing": {
+          "status": "active",
+          "target": "scripts/browser-delivery.ts"
+        },
+        "content-knowledge-runtime:apply": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "content-knowledge-runtime:check": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "content-knowledge-runtime:dry-run": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "content-knowledge-runtime:run": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "content-knowledge-runtime:write": {
+          "status": "active",
+          "target": "tools/content-knowledge-runtime-release/cli.ts"
+        },
+        "esa-delivery:inventory": {
+          "status": "active",
+          "target": "scripts/static-esa-delivery.ts"
+        },
+        "esa-delivery:plan-object": {
+          "status": "active",
+          "target": "scripts/static-esa-delivery.ts"
+        },
+        "esa-delivery:preflight": {
+          "status": "active",
+          "target": "scripts/static-esa-delivery.ts"
+        },
+        "esa-delivery:qualify": {
+          "status": "active",
+          "target": "scripts/static-esa-delivery.ts"
+        },
+        "qa-evidence:check": {
+          "status": "active",
+          "target": "tools/evidence-lifecycle/cli.ts"
+        },
+        "qa-evidence:write": {
+          "status": "active",
+          "target": "tools/evidence-lifecycle/cli.ts"
+        },
+        "source:pack": {
+          "status": "active",
+          "target": "scripts/source-pack/source-pack-cli.ts"
+        },
+        "teaching-projection:check": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        },
+        "teaching-projection:publish": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        },
+        "teaching-projection:qualify": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        },
+        "teaching-projection:rebase": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        },
+        "teaching-projection:verify": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        },
+        "teaching-projection:write": {
+          "status": "active",
+          "target": "tools/teaching-projection-publishing/cli.ts"
+        }
+      }
+    },
+    "test": {
+      "meta": {
+        "owner": "scripts/test-command-contracts.ts, scripts/tests/, vitest, playwright",
+        "authority": "governed test contracts for test/test:unit/test:contract/test:integration/test:e2e:critical/test:release/test:nightly; other entries are on-demand acceptance or evidence commands",
+        "graph": "test",
+        "verification": "npm run test",
+        "receiptPrivacyClass": "measurement receipts via architecture-test-commands; redaction enforced"
+      },
+      "commands": {
+        "test": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:account-passwords": {
+          "status": "active",
+          "target": "scripts/tests/test-account-password-overrides.mjs"
+        },
+        "test:active-graph-acceptance": {
+          "status": "unknown",
+          "target": "scripts/tests/test-active-graph-migration-acceptance.mjs"
+        },
+        "test:actkg-release-set-delta-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-actkg-release-set-delta-postgres.ts"
+        },
+        "test:admin-states": {
+          "status": "active",
+          "target": "scripts/tests/test-admin-states-mock-data.ts"
+        },
+        "test:aggregate-governance-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-aggregate-governance-postgres.ts"
+        },
+        "test:appshell-governance": {
+          "status": "active"
+        },
+        "test:appshell-governance:browser": {
+          "status": "active"
+        },
+        "test:arena-official-followup-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-arena-official-followup-postgres.ts"
+        },
+        "test:assessment-semantic-generation-command": {
+          "status": "active",
+          "target": "scripts/tests/test-assessment-semantic-generation-command.mjs"
+        },
+        "test:assignment-attachment-understanding-postgres": {
+          "status": "active"
+        },
+        "test:assignment-rubric-v2-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-assignment-rubric-v2-postgres.ts"
+        },
+        "test:commercial-ui-governance": {
+          "status": "active",
+          "target": "scripts/tests/test-commercial-ui-governance.ts"
+        },
+        "test:competition-baseline": {
+          "status": "active",
+          "target": "scripts/tests/competition-baseline-acceptance.ts"
+        },
+        "test:container-build-context": {
+          "status": "unknown",
+          "target": "scripts/tests/test-container-build-context.mjs"
+        },
+        "test:contract": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:contracts:write": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:control-correction-demo": {
+          "status": "active",
+          "target": "scripts/tests/control-correction-demo-acceptance.ts"
+        },
+        "test:core-textbook-section-path-roles": {
+          "status": "active",
+          "target": "scripts/tests/test-core-textbook-section-path-role-review.ts"
+        },
+        "test:course-basis-lifecycle-postgres": {
+          "status": "active"
+        },
+        "test:course-data-quality-gates": {
+          "status": "active",
+          "target": "scripts/tests/test-assessment-semantic-generation-command.mjs"
+        },
+        "test:course-knowledge-input-inventory": {
+          "status": "active",
+          "target": "scripts/knowledge-governance/input-inventory/vitest.config.ts"
+        },
+        "test:cruise-class-code": {
+          "status": "active",
+          "target": "scripts/tests/test-cruise-class-code-display.mjs"
+        },
+        "test:cruise-sensitivity": {
+          "status": "active",
+          "target": "scripts/tests/test-cruise-control-sensitivity.ts"
+        },
+        "test:cruise-teaching": {
+          "status": "active",
+          "target": "scripts/tests/test-cruise-teaching-evaluation.ts"
+        },
+        "test:cumulative-attainment-postgres-redis": {
+          "status": "active"
+        },
+        "test:data-governance": {
+          "status": "active",
+          "target": "scripts/tests/test-knowledge-link-postgres-e2e.ts"
+        },
+        "test:database-compatibility": {
+          "status": "active"
+        },
+        "test:developer-oss-runtime": {
+          "status": "active",
+          "target": "scripts/tests/test_developer_oss_runtime.py"
+        },
+        "test:diagnosis-generation-migration-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-diagnosis-generation-migration-postgres.ts"
+        },
+        "test:discover": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:docker-migration-readiness": {
+          "status": "active",
+          "target": "scripts/tests/test-docker-migration-readiness.mjs"
+        },
+        "test:e2e:critical": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:e2e:playwright": {
+          "status": "active",
+          "target": "scripts/tests/integration-test.mjs"
+        },
+        "test:generated-content-authority": {
+          "status": "active",
+          "target": "scripts/tests/test-generated-content-authority-gate.ts"
+        },
+        "test:graph-resource-coverage-overlay": {
+          "status": "active",
+          "target": "scripts/tests/test-graph-resource-coverage-overlay.ts"
+        },
+        "test:integration": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:intelligent-teaching-assistant-demo": {
+          "status": "active",
+          "target": "scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts"
+        },
+        "test:knowledge-filters": {
+          "status": "active",
+          "target": "scripts/tests/test-knowledge-graph-filters.ts"
+        },
+        "test:knowledge-graph-direct-manipulation-governance": {
+          "status": "active",
+          "target": "scripts/tests/test-knowledge-graph-direct-manipulation-governance.ts"
+        },
+        "test:knowledge-panel": {
+          "status": "active",
+          "target": "scripts/tests/test-knowledge-resource-panel-format.ts"
+        },
+        "test:knowledge-theme": {
+          "status": "active",
+          "target": "scripts/tests/test-knowledge-graph-theme.ts"
+        },
+        "test:konling-http-e2e": {
+          "status": "active",
+          "target": "scripts/tests/test-konling-http-e2e.mjs"
+        },
+        "test:konling-math-real-smoke": {
+          "status": "active",
+          "target": "scripts/tests/test-konling-math-real-smoke.ts"
+        },
+        "test:local-container-build-cache": {
+          "status": "unknown",
+          "target": "scripts/tests/test-local-container-build-cache.mjs"
+        },
+        "test:longform-textbook-reference-resource-semantics": {
+          "status": "active"
+        },
+        "test:longform-textbook-reference-resource-semantics:delivery-clean": {
+          "status": "active",
+          "target": "scripts/tests/test-longform-textbook-reference-resource-semantics-delivery-clean.ts"
+        },
+        "test:longform-textbook-reference-resource-semantics:live-full": {
+          "status": "active",
+          "target": "scripts/tests/test-longform-textbook-reference-resource-semantics.ts"
+        },
+        "test:math-document-grading-migration": {
+          "status": "active",
+          "target": "scripts/tests/test-math-document-grading-migration.mjs"
+        },
+        "test:math-document-grading-readyz": {
+          "status": "compatibility",
+          "target": "scripts/tests/test-readyz-json.py"
+        },
+        "test:memory-framework": {
+          "status": "active",
+          "target": "scripts/tests/test-memory-framework-contract.mjs"
+        },
+        "test:micro-intervention-migration-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-micro-intervention-migration-postgres.ts"
+        },
+        "test:micro-tutoring-coverage-command": {
+          "status": "active",
+          "target": "scripts/tests/test-micro-tutoring-coverage-command.mjs"
+        },
+        "test:micro-tutoring-qualification": {
+          "status": "active"
+        },
+        "test:micro-tutoring-qualification-command": {
+          "status": "active",
+          "target": "scripts/tests/test-micro-tutoring-qualification-command.mjs"
+        },
+        "test:micro-tutoring-qualification-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-micro-tutoring-qualification-postgres.ts"
+        },
+        "test:micro-tutoring-qualification:v2": {
+          "status": "active"
+        },
+        "test:migration-rehearsal": {
+          "status": "active",
+          "target": "scripts/quality-gates/migration-rehearsal.mjs"
+        },
+        "test:model-render-policy": {
+          "status": "active",
+          "target": "scripts/tests/test-model-render-policy.ts"
+        },
+        "test:navigation": {
+          "status": "active",
+          "target": "scripts/tests/test-no-hardcoded-localhost-navigation.mjs"
+        },
+        "test:nightly": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:optimized-model-assets": {
+          "status": "active",
+          "target": "scripts/tests/test-optimized-model-assets-validator.mjs"
+        },
+        "test:portrait-v2-primary-usage-command": {
+          "status": "active",
+          "target": "scripts/tests/test-portrait-v2-primary-usage-command.mjs"
+        },
+        "test:provider-runtime-smoke": {
+          "status": "active",
+          "target": "scripts/tests/provider-runtime-smoke.ts"
+        },
+        "test:rag-citation-anchor-coverage": {
+          "status": "active",
+          "target": "scripts/tests/test-rag-citation-anchor-coverage.ts"
+        },
+        "test:react-doctor:owned-errors": {
+          "status": "active",
+          "target": "scripts/tests/react-doctor-owned-surface-gate.mjs"
+        },
+        "test:react-doctor:owned-security": {
+          "status": "active",
+          "target": "scripts/tests/react-doctor-owned-surface-gate.mjs"
+        },
+        "test:react-doctor:ui-errors": {
+          "status": "active"
+        },
+        "test:reference-section-path-roles": {
+          "status": "active",
+          "target": "scripts/tests/test-reference-section-path-role-review.ts"
+        },
+        "test:release": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:runtime-knowledge": {
+          "status": "active",
+          "target": "scripts/tests/test-seed-all-knowledge-runtime-safety.mjs"
+        },
+        "test:runtime-lesson-media-resource-semantics": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-lesson-media-resource-semantics.ts"
+        },
+        "test:runtime-lesson-planning-units": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-lesson-planning-unit-review.ts"
+        },
+        "test:runtime-log-delta": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-log-delta.mjs"
+        },
+        "test:runtime-media-handout-dispositions": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-media-handout-disposition-review.ts"
+        },
+        "test:runtime-production-cutover-contract": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-production-cutover-contract.mjs"
+        },
+        "test:runtime-production-readyz": {
+          "status": "active",
+          "target": "scripts/tests/test-readyz-json.py"
+        },
+        "test:runtime-release-activation-rollback": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-release-activation-rollback.mjs"
+        },
+        "test:runtime-release-deployment-contract": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-release-deployment-contract.mjs"
+        },
+        "test:runtime-release-oss-publisher-bridge": {
+          "status": "active",
+          "target": "scripts/tests/test-runtime-release-oss-publisher-bridge.mjs"
+        },
+        "test:semester-usage": {
+          "status": "active",
+          "target": "scripts/tests/verify-semester-usage-for-test-students.mjs"
+        },
+        "test:server-ops-skill": {
+          "status": "active",
+          "target": "scripts/tests/test-server-ops-skill.mjs"
+        },
+        "test:simulation-runtime-noise": {
+          "status": "active",
+          "target": "scripts/tests/capture-simulation-runtime-noise.ts"
+        },
+        "test:simulation-task-portrait-postgres-redis": {
+          "status": "active"
+        },
+        "test:skillopt-sleep": {
+          "status": "active",
+          "target": "scripts/tests/test-skillopt-sleep.mjs"
+        },
+        "test:smart-courseware": {
+          "status": "active"
+        },
+        "test:smart-lesson-real-e2e": {
+          "status": "active",
+          "target": "scripts/tests/run-smart-lesson-real-e2e.ts"
+        },
+        "test:standard-actkg-bundle-import-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-standard-actkg-bundle-import-postgres.ts"
+        },
+        "test:teacher-default-class-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-teacher-default-class-postgres.ts"
+        },
+        "test:teacher-diagnosis-report-history-evidence": {
+          "status": "active",
+          "target": "scripts/tests/teacher-diagnosis-report-history-evidence.ts"
+        },
+        "test:teacher-launch-producer-inventory": {
+          "status": "active"
+        },
+        "test:textbook-search-document-citation-shard": {
+          "status": "active",
+          "target": "scripts/tests/test-textbook-search-document-citation-shard.ts"
+        },
+        "test:theme": {
+          "status": "active",
+          "target": "scripts/tests/test-theme-toggle.ts"
+        },
+        "test:theme-bridge": {
+          "status": "active",
+          "target": "scripts/tests/test-theme-bridge.ts"
+        },
+        "test:theme-coverage": {
+          "status": "active",
+          "target": "scripts/tests/test-theme-coverage.ts"
+        },
+        "test:theme-workflow": {
+          "status": "active",
+          "target": "scripts/tests/test-theme-workflow-pages.ts"
+        },
+        "test:trusted-portrait-migration-pglite": {
+          "status": "active",
+          "target": "scripts/tests/test-trusted-portrait-migration-postgres.ts"
+        },
+        "test:trusted-portrait-migration-postgres": {
+          "status": "active",
+          "target": "scripts/tests/test-trusted-portrait-migration-postgres.ts"
+        },
+        "test:turbopack-trace-boundary": {
+          "status": "active",
+          "target": "scripts/tests/test-turbopack-trace-boundary.mjs"
+        },
+        "test:unit": {
+          "status": "active",
+          "target": "scripts/test-command-contracts.ts"
+        },
+        "test:unit:watch": {
+          "status": "active"
+        },
+        "test:user-menu-theme": {
+          "status": "active",
+          "target": "scripts/tests/test-user-menu-theme.mjs"
+        }
+      }
+    },
+    "typescript-graphs": {
+      "meta": {
+        "owner": "scripts/typescript-graphs/run.ts",
+        "authority": "TypeScript zero-error gate per independent graph; a tool/test graph failure never relabels as a production pass",
+        "graph": "per-command: production | test | tools | web | worker",
+        "verification": "npm run typecheck && npm run typecheck:tools && npm run typecheck:test",
+        "receiptPrivacyClass": "exit-code only; no receipt payloads"
+      },
+      "commands": {
+        "typecheck": {
+          "status": "active",
+          "target": "scripts/typescript-graphs/run.ts"
+        },
+        "typecheck:test": {
+          "status": "active",
+          "target": "scripts/typescript-graphs/run.ts"
+        },
+        "typecheck:tools": {
+          "status": "active",
+          "target": "scripts/typescript-graphs/run.ts"
+        },
+        "typecheck:web": {
+          "status": "active",
+          "target": "scripts/typescript-graphs/run.ts"
+        },
+        "typecheck:worker": {
+          "status": "active",
+          "target": "scripts/typescript-graphs/run.ts"
+        }
+      }
+    }
+  },
+  "retired": [
+    {
+      "command": "db:materialize-core-semantic-review",
+      "canonical": "db:resource-field-completion-audit",
+      "evidence": "Identical target scripts/db/generate-resource-field-completion-audit.ts via tools/migration-backfill/cli.ts apply; no env divergence; live callers (delivery-clean test, resource-field-completion-audit.test.ts) all use the canonical name.",
+      "removedInChange": "inventory-and-consolidate-active-tooling-cli-surface"
+    },
+    {
+      "command": "db:repair-class-session-attribution",
+      "canonical": "db:backfill-class-attribution",
+      "evidence": "Identical target scripts/db/backfill-class-session-attribution.ts via tools/migration-backfill/cli.ts apply; no env or argv divergence; only frozen census baseline snapshots referenced it. scripts/README.md documents the canonical entry.",
+      "removedInChange": "inventory-and-consolidate-active-tooling-cli-surface"
+    },
+    {
+      "command": "db:validate-longform-textbook-reference-resource-semantics",
+      "canonical": "db:complete-longform-textbook-reference-resource-semantics",
+      "evidence": "Identical target scripts/db/generate-longform-textbook-reference-resource-semantics.ts; LONGFORM_VALIDATION_MODE defaults to auto for both names and neither alias sets it; only frozen census baseline snapshots referenced the removed name.",
+      "removedInChange": "inventory-and-consolidate-active-tooling-cli-surface"
+    },
+    {
+      "command": "db:verify-authoritative-knowledge-deployment",
+      "canonical": "db:import-authoritative-actkg-release",
+      "evidence": "Identical target scripts/db/import-authoritative-actkg-release.ts via tools/migration-backfill/cli.ts apply; the name claimed verify-only but the operation performs the gated import apply; only frozen census baseline snapshots referenced it.",
+      "removedInChange": "inventory-and-consolidate-active-tooling-cli-surface"
+    }
+  ],
+  "compatibility": [
+    {
+      "command": "test:math-document-grading-readyz",
+      "canonical": "test:runtime-production-readyz",
+      "reason": "Thin forwarding adapter onto the same python3 scripts/tests/test-readyz-json.py target; kept because the math document grading delivery chain (test:math-document-grading-migration), math-document-grading-deploy.test.ts and docs/architecture/trust-boundary-matrix.md reference it by name.",
+      "sunset": "Remove together with the math document grading migration chain when that delivery is retired, or when the deploy test and trust-boundary matrix are re-pointed at the canonical entry."
+    }
+  ],
+  "unknown": [
+    {
+      "command": "capture:prompt-assessment-history-evidence",
+      "reason": "One-shot evidence capture bound to archived artifacts/commercial-ui/issue-1422-prompt-assessment-history; no current caller outside the archived evidence; deletion or replay needs owner confirmation."
+    },
+    {
+      "command": "db:course-bundle-revision-quality",
+      "reason": "Read-only course bundle revision quality report with no current caller in CI, docs or scripts; keep until the course coverage owner confirms the report is retired."
+    },
+    {
+      "command": "test:active-graph-acceptance",
+      "reason": "One-shot acceptance runner for the closed active-graph migration series (#1737-#1743); no current caller; keep until the graph migration series owner confirms the acceptance evidence no longer needs replay."
+    },
+    {
+      "command": "test:container-build-context",
+      "reason": "One-shot container build context assertion; no current caller in CI or docs; keep until a deployment owner confirms it is superseded by test:local-container-build-cache or the CI build."
+    },
+    {
+      "command": "test:local-container-build-cache",
+      "reason": "Local container build cache probe with no current caller; keep until a deployment owner confirms the cache probe is obsolete."
+    }
+  ],
+  "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
+  "sourceIdentity": {
+    "captureDenominatorSha256": "99b86c0b9bc4e2d3ca907c181717831a857ab8bcf11f71342c277e947dd3a25a",
+    "note": "captureDenominatorSha256 binds this inventory to its full capture denominator: the package.json scripts object (sorted), the git blob sha1 of every declared target file, the documented direct-invoke command list, and the direct-invoke operator identities parsed from scripts/README.md and AGENTS.md. Any later change to command bodies, target script contents, documented invocations, or inventory classification without an identity refresh fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison. Refresh with: npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts"
+  },
+  "documentedDirectEntries": [
+    {
+      "command": "node scripts/db/seed-all-knowledge.mjs",
+      "status": "active",
+      "target": "scripts/db/seed-all-knowledge.mjs",
+      "evidence": "scripts/README.md: local knowledge seeding runs the script directly; the npm seed:knowledge alias routes the same target through the migration-backfill gate."
+    },
+    {
+      "command": "node scripts/db/update-fixed-account-passwords.mjs",
+      "status": "active",
+      "target": "scripts/db/update-fixed-account-passwords.mjs",
+      "evidence": "scripts/README.md: fixed-account password update invoked directly for local writes."
+    },
+    {
+      "command": "node scripts/db/ensure-verified-test-accounts.mjs",
+      "status": "active",
+      "target": "scripts/db/ensure-verified-test-accounts.mjs",
+      "evidence": "scripts/README.md: local test-account provisioning invoked directly."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-learning-facts-from-event-batches.ts",
+      "status": "active",
+      "target": "scripts/db/backfill-learning-facts-from-event-batches.ts",
+      "evidence": "scripts/README.md: learning-facts backfill invoked directly for local writes."
+    },
+    {
+      "command": "bash scripts/db/ensure-production-test-accounts.sh",
+      "status": "active",
+      "target": "scripts/db/ensure-production-test-accounts.sh",
+      "evidence": "scripts/README.md: production test-account provisioning entry."
+    },
+    {
+      "command": "node scripts/ops/clear-logs.mjs",
+      "status": "active",
+      "target": "scripts/ops/clear-logs.mjs",
+      "evidence": "scripts/README.md log section; also embedded in npm run dev/start."
+    },
+    {
+      "command": "python3 scripts/figures/generate_control_plots.py",
+      "status": "active",
+      "target": "scripts/figures/generate_control_plots.py",
+      "evidence": "scripts/README.md figure-script section for legacy teaching plots."
+    },
+    {
+      "command": "python3 scripts/figures/control_diagrams_matplotlib.py",
+      "status": "active",
+      "target": "scripts/figures/control_diagrams_matplotlib.py",
+      "evidence": "scripts/README.md figure-script section for legacy control diagrams."
+    },
+    {
+      "command": "bash scripts/build.sh",
+      "status": "active",
+      "target": "scripts/build.sh",
+      "evidence": "AGENTS.md Git/CI/release boundary: default image build entry."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts",
+      "status": "active",
+      "target": "scripts/db/backfill-class-session-attribution.ts",
+      "evidence": "scripts/README.md: class-session attribution review (dry-run only, prints redacted summary)."
+    },
+    {
+      "command": "npx tsx scripts/db/backfill-class-session-attribution.ts --apply",
+      "status": "active",
+      "target": "scripts/db/backfill-class-session-attribution.ts",
+      "evidence": "scripts/README.md: class-session attribution apply variant; --apply performs the gated updateMany write after dry-run confirmation."
+    },
+    {
+      "command": "bash scripts/dev/sync-local-worktree-config.sh --apply --install-hooks",
+      "status": "active",
+      "target": "scripts/dev/sync-local-worktree-config.sh",
+      "evidence": "AGENTS.md: installs/repairs managed pre-commit and pre-push git hooks (verify:commit / verify:push)."
+    }
+  ]
+}

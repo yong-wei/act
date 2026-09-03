@@ -114,10 +114,11 @@ describe('unit 1-3 parameter pole migration course', () => {
   it('provides entry, teacher and student routes for the canonical identity', () => {
     const routeRoot = join(repoRoot, 'src/features/interactive/course-app-routes', UNIT_1_3_ROUTE_SEGMENT);
 
-    expect(existsSync(join(routeRoot, 'entry.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'teacher.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'waiting.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'entry.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'teacher.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'waiting.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(false);
   });
 
   it('renders the block diagram and both shared control workbenches from the runtime manifest', () => {

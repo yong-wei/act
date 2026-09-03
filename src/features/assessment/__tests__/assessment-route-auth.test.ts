@@ -39,7 +39,7 @@ import { POST as submitAnswer } from '@/app/api/assessment/submit-answer/route';
 import { POST as getNextQuestion } from '@/app/api/assessment/next-question/route';
 import { GET as getDiagnostic } from '@/app/api/assessment/diagnostic/route';
 import { GET as getAbilityReport } from '@/app/api/assessment/ability-report/[userId]/route';
-import { AdaptiveAssessmentCatalogSelectionError } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { AdaptiveAssessmentCatalogSelectionError } from '@/features/assessment/adaptive-assessment-catalog-selector';
 
 function submitRequest(body: unknown) {
   return submitAnswer(new Request('http://localhost/api/assessment/submit-answer', {

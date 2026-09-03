@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-d55053a568e9eda3df39eff3",
+    "canonicalType": "KnowledgeStatement",
+    "label": "奈奎斯特图显示了与幅值=1圆的三个穿越频率，对应三个相角裕度（PM）值。伯德图显示在0.75、9.0和10.1 rad/sec处有三次幅值=1的穿越，相角裕度分别为37°、80°和40°。关键的稳定性指标是奈奎斯特图与-1点的接近程度。存在一次实轴穿越，因而有一个幅值裕度（GM）。由伯德图可知，在幅值=0.79的ω=10.4 rad/sec处，相位穿越-180°，因此GM=1/0.79=1.26。",
+    "aliases": [],
+    "description": "The Nyquist plot shows three crossover frequencies of the magnitude=1 circle, corresponding to three PM values. The Bode plot shows three magnitude=1 crossings at 0.75, 9.0, and 10.1 rad/sec with PMs of 37°, 80°, and 40° respectively. The key stability indicator is the proximity of the Nyquist plot to the -1 point. There is one real-axis crossing, hence one GM. From the Bode plot, phase crosses -180° at ω=10.4 rad/sec where magnitude=0.79, so GM=1/0.79=1.26.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

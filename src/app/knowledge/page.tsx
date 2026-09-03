@@ -5,7 +5,7 @@ import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
 } from '@/features/knowledge/candidate-graph-policy';
-import { AdaptivePathJourneyControlFromRoute } from '@/features/adaptive/adaptive-path-journey-control';
+import { AdaptivePathJourneyControlFromRoute } from '@/features/personalization/experience/adaptive-path-journey-control';
 import { getServerAuthSession } from '@/lib/auth';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 

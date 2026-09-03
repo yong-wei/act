@@ -75,7 +75,7 @@ export function resolveAuthorityDomainShardPaths(
   return {
     runtimeRoot,
     currentPath: join(runtimeRoot, 'current.json'),
-    setsDir: join(runtimeRoot, 'sets'),
+    setsDir: join(/*turbopackIgnore: true*/ runtimeRoot, 'sets'),
   };
 }
 
@@ -101,6 +101,8 @@ export function shardRelativePaths(input: {
   family: string | null;
   neighborhood: string | null;
   detail: string | null;
+  searchIndex: string | null;
+  coverage: 'coverage.json';
 } {
   const domainDefault = input.domainId
     ? `domains/${input.domainId}/default.json`
@@ -116,6 +118,10 @@ export function shardRelativePaths(input: {
     family,
     neighborhood: token ? `neighborhoods/${token}.json` : null,
     detail: token ? `details/${token}.json` : null,
+    searchIndex: input.domainId
+      ? `domains/${input.domainId}/search-index.json`
+      : null,
+    coverage: 'coverage.json',
   };
 }
 

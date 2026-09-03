@@ -67,8 +67,6 @@ describe('expired interactive student session redirects', () => {
     const routesRoot = join(repoRoot, 'src/features/interactive/course-app-routes');
     const routeFiles = listStudentSessionRoutes(routesRoot);
 
-    expect(routeFiles.length).toBeGreaterThan(0);
-
     for (const routeFile of routeFiles) {
       const source = readFileSync(routeFile, 'utf8');
       expect(source).toContain("import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';");
@@ -76,5 +74,12 @@ describe('expired interactive student session redirects', () => {
         "await redirectInactiveStudentSessionToLessonEntry(params.sessionId, '/interactive-learning/courses/",
       );
     }
+
+    const sharedStudent = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'),
+      'utf8',
+    );
+    expect(sharedStudent).toContain("import { redirectInactiveStudentSessionToLessonEntry } from '@/lib/interactive-session-access';");
+    expect(sharedStudent).toContain('await redirectInactiveStudentSessionToLessonEntry(');
   });
 });

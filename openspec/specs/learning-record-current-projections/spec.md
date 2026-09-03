@@ -2,16 +2,19 @@
 
 ## Purpose
 LearningFact remains append-only evidence. Immutable snapshots, role-safe current read models and fenced current pointers are published separately so stale or conflicting candidates cannot overwrite a qualified current, and page responses do not scan raw events.
-
 ## Requirements
 ### Requirement: Facts, snapshots and read models are distinct
-
-LearningFact SHALL remain the append-only evidence input. Immutable snapshots SHALL represent a qualified calculation version, while role-specific read models and current pointers SHALL be rebuildable projections. Raw events MUST NOT be the normal source for a student, teacher, AI or Personalization page response.
+LearningFact SHALL remain the append-only evidence input. Immutable snapshots SHALL represent a qualified calculation version, while one declared role-specific current read model and current pointer SHALL be the online projection authority. Raw events MUST NOT be the normal source for a student, teacher, AI or Personalization page response, and a simplification MUST NOT introduce another projection authority.
 
 #### Scenario: Read model is rebuilt
-
 - **WHEN** a projection is rebuilt from its recorded fact watermark
 - **THEN** its output is derived from governed LearningFacts and its revision/provenance is retained
+- **AND** normal consumers continue to read the declared current read model rather than a second aggregation
+
+#### Scenario: Online and historical code are separated
+- **WHEN** an online projection request is served
+- **THEN** it SHALL use the current projection/read port
+- **AND** it SHALL not import, invoke or read the working state of a backfill operation
 
 ### Requirement: Projection qualification is revision-bound
 
@@ -28,37 +31,36 @@ Every candidate projection SHALL record subject/scope, source fact watermark, pr
 - **THEN** the system records a revision-bound qualified version before exposing it through a read port
 
 ### Requirement: Current pointer publication is atomic and fenced
-
-The system SHALL publish the immutable version and current pointer with an atomic transaction or equivalent durable compare-and-set receipt. A pointer MUST NOT move backward across generation, watermark, revision or cutover fence, and a conflict MUST NOT silently overwrite current.
+The system SHALL publish the immutable version and current pointer with an atomic transaction or equivalent durable compare-and-set receipt. A pointer MUST NOT move backward across generation, watermark, revision or cutover fence, and an ordinary backfill MUST NOT move the online current pointer; only the existing explicitly authorized migration/cutover contract may do so.
 
 #### Scenario: Out-of-order candidate arrives
-
-- **WHEN** an older or lower-generation candidate races with a newer current
-- **THEN** the older candidate is retained only as history/conflict and current remains unchanged
+- **WHEN** an older or lower-generation candidate or an ordinary backfill result races with a newer current
+- **THEN** the older result is retained only as history/conflict and current remains unchanged
 
 #### Scenario: Concurrent publication
-
 - **WHEN** two qualified candidates publish concurrently for one subject
 - **THEN** exactly one fence-valid current pointer is visible and the losing result is auditable
 
 #### Scenario: Authorized calculation version cutover
-
-- **WHEN** a fence-valid candidate records a new `calculationVersion` together with a strictly newer generation or cutover fence
-- **THEN** current advances to that candidate; a same-fence version split remains a conflict and does not overwrite current
+- **WHEN** a fence-valid candidate records a new `calculationVersion` together with a strictly newer generation or cutover fence and an explicit migration receipt
+- **THEN** current advances to that candidate
+- **AND** a same-fence version split or ordinary backfill result remains a conflict and does not overwrite current
 
 ### Requirement: Failure preserves qualified current
-
-Projection failure, stale input, insufficient evidence, unavailable dependency or conflict SHALL preserve the previous qualified current and expose an explicit status/reason. If no qualified current exists, the read port SHALL return unavailable rather than scanning raw events or fabricating zero values.
+Projection failure, stale input, insufficient evidence, unavailable dependency or conflict SHALL preserve the previous qualified current and expose an explicit status/reason. If no qualified current exists, the read port SHALL return unavailable rather than scanning raw events, invoking backfill or fabricating zero values.
 
 #### Scenario: Refresh crashes before pointer commit
-
 - **WHEN** a worker crashes after writing a candidate version but before pointer publication
 - **THEN** the prior qualified current remains visible and the candidate is retryable or marked failed
 
 #### Scenario: Current becomes stale
-
 - **WHEN** a newer fact exists but refresh has not qualified a replacement
 - **THEN** the read port reports stale/partial metadata and does not present the previous value as fresh
+
+#### Scenario: Backfill cannot repair an online read
+- **WHEN** an online request has no qualified current projection
+- **THEN** it returns the governed unavailable/stale status
+- **AND** it does not invoke a historical tool or move the current pointer
 
 ### Requirement: Role and privacy projections are minimal
 

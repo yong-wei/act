@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { buildAuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+import { buildAuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { canonicalizeVerifiedLegacyArenaPath } from '@/lib/verified-legacy-arena-path-canonicalization';
 import {

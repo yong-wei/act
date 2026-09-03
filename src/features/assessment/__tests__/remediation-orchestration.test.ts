@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
   type AdaptiveAssessmentCatalogSnapshot,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import type { AdaptiveAssessmentCatalogReviewState } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
+import type { AdaptiveAssessmentCatalogReviewState } from '@/features/assessment/adaptive-assessment-item-catalog';
+import { assessmentItemSemanticReviewSourceHash } from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   orchestrateRemediation,
   refreshRemediationOrchestration,
@@ -20,7 +20,7 @@ const GOVERNED_VALIDATION_HASH = '6365aadd64489eb9f4cdb7f37f2fada5f630ab508cd57e
 const GOVERNED_VALIDATION_REVISION = 'sha256:782b2f2e6af619c5cfbc92048647e942b81a12a481bc2c8562ea45b2c890202b';
 const currentCatalogSnapshots = new Map<string, AdaptiveAssessmentCatalogSnapshot>();
 
-vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', () => ({
+vi.mock('@/features/assessment/adaptive-assessment-catalog-selector', () => ({
   findAdaptiveAssessmentCatalogSnapshot: vi.fn((questionId: string) =>
     currentCatalogSnapshots.get(questionId) ?? null),
 }));

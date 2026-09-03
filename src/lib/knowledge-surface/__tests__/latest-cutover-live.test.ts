@@ -178,6 +178,10 @@ describe('live latest knowledge cutover resolver', () => {
       expect(result.combination).toBe('successor');
       expect(result.ready).toBe(true);
       expect(result.reasons).toEqual([]);
+      // #1738: the resealed fifteen-domain shard set stays qualified while
+      // the sealed predecessor set remains in the runtime closure; the
+      // drift marker stays observable until the authorized release reseals.
+      expect(result.drift).toContain('domain-shard-set-resealed');
       expect(result.identities.authorityCurrentSha256).toBe(authoritySha);
       expect(JSON.stringify(result)).not.toMatch(/\/Users|X-Amz|credential/iu);
     } finally {

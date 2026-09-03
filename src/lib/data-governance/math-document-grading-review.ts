@@ -1,5 +1,5 @@
-import type { TeacherGradingWorkbenchView } from './document-rubric-grading-workbench';
-import { DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP } from './document-rubric-grading-workbench';
+import type { TeacherGradingWorkbenchView } from '@/features/teacher/document-rubric-grading-workbench';
+import { DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP } from '@/features/teacher/document-rubric-grading-workbench';
 import { GradingMutationError, normalizeTextAnswerEvidence, sha256, stableStringify, validateEvidenceAnchor } from './math-document-grading-contracts';
 import type { SubmissionObjectStore } from '@/lib/assignments/submission-object-store';
 import { hasAtMostOneDecimal } from '@/lib/assignments/assignment-rubric-contract';

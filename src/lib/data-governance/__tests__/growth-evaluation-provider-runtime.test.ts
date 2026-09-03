@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ runtime: vi.fn(), generateText: vi.fn() }));
-vi.mock('@/lib/ai-client', () => ({ getConfiguredAIProviderRuntime: mocks.runtime }));
+vi.mock('@/lib/ai/provider-runtime', () => ({ getConfiguredAIProviderRuntime: mocks.runtime }));
 vi.mock('ai', () => ({ generateText: mocks.generateText }));
 
 import { prepareGrowthEvaluationDescription, refreshStudentGrowthEvaluation } from '../growth-evaluation';

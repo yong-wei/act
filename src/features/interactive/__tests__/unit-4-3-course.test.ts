@@ -9,7 +9,7 @@ import { parse } from 'yaml';
 import { FEATURED_LESSONS } from '@/features/interactive/learning-catalog';
 import { COURSE_AI_CONTEXT_REGISTRY, getStepQuickQuestions } from '@/lib/course-ai-contexts';
 import { resolveSessionRouteFromPlanTitle } from '@/lib/classroom-session-route';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 
 vi.mock('server-only', () => ({}));
 

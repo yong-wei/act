@@ -4,18 +4,19 @@ const mocks = vi.hoisted(() => ({
   resolve: vi.fn(),
   create: vi.fn(),
   generateText: vi.fn(),
+  outputJson: vi.fn(() => ({ type: 'json' })),
 }));
 
 vi.mock('@/lib/ai/provider-settings', () => ({ resolveConfiguredAIProviderConfig: mocks.resolve }));
 vi.mock('@/lib/ai/provider-registry', () => ({ createAIProviderFromConfig: mocks.create }));
-vi.mock('ai', () => ({ generateText: mocks.generateText }));
+vi.mock('ai', () => ({ generateText: mocks.generateText, Output: { json: mocks.outputJson } }));
 
 import {
   createProviderRuntimeGradingAdapter,
   evaluateWithProvider,
 } from '../math-document-grading-evaluator';
 import type { ExternalProcessingPolicy, FrozenQuestionContract } from '../math-document-grading-contracts';
-import { normalizeTextAnswerEvidence } from '../math-document-grading-contracts';
+import { normalizeTextAnswerEvidence, sha256 } from '../math-document-grading-contracts';
 
 function policy(overrides: Partial<ExternalProcessingPolicy> = {}): ExternalProcessingPolicy {
   return {
@@ -62,6 +63,7 @@ function validProviderOutput() {
       criterionId: 'criterion-1',
       levelId: 'full',
       score: 1,
+      maxScore: 1,
       rationale: 'The answer cites the supplied evidence clearly.',
       confidence: 0.9,
       anchors: [{ blockId: 'text-block-1', precision: 'span' as const, excerpt: 'evidence', spanStart: 0, spanEnd: 8 }],
@@ -70,6 +72,11 @@ function validProviderOutput() {
     }],
     limitations: [],
     overallComment: 'The response is supported by the submitted evidence.',
+    overallFeedback: {
+      strengths: ['The response identifies the supplied evidence.'],
+      problems: ['No material issue was identified in the supplied evidence.'],
+      suggestions: ['Keep citing the relevant evidence in the final response.'],
+    },
   };
 }
 
@@ -89,9 +96,255 @@ describe('provider-backed math grading runtime identity', () => {
     mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
     mocks.create.mockReturnValue({ getModel: vi.fn() });
     mocks.generateText.mockRejectedValueOnce(new Error('request timeout'));
-    const result = await evaluateWithProvider({ question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy() });
+    const attempts: Array<{ status: string; error?: unknown }> = [];
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy(),
+      onProviderAttempt: (attempt) => { attempts.push(attempt); },
+    });
     expect(result.state).toBe('retryable');
     expect(result.blockedReasons).toContain('provider-timeout');
+    expect(attempts).toEqual([expect.objectContaining({ status: 'failed', error: expect.any(Error) })]);
+  });
+
+  it('bounds a configured-provider request and preserves it as a retryable timeout', async () => {
+    vi.useFakeTimers();
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn() });
+    mocks.generateText.mockImplementationOnce(({ abortSignal }) => new Promise((_resolve, reject) => {
+      abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+    }));
+
+    const pending = evaluateWithProvider({ question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy() });
+    await vi.advanceTimersByTimeAsync(180_000);
+
+    await expect(pending).resolves.toMatchObject({
+      state: 'retryable',
+      blockedReasons: ['provider-timeout'],
+    });
+    vi.useRealTimers();
+  });
+
+  it('uses the visual timeout for rubric requests carrying image evidence', async () => {
+    vi.useFakeTimers();
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: true, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn() });
+    mocks.generateText.mockImplementationOnce(({ abortSignal }) => new Promise((_resolve, reject) => {
+      abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+    }));
+
+    const pending = evaluateWithProvider({
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy({ dataCategories: ['student-answer', 'student-answer-visual'] }),
+      attachments: [{ kind: 'image', mediaType: 'image/png', data: new Uint8Array([1]), checksum: sha256(new Uint8Array([1])), questionId: 'question-1' }],
+    });
+    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(180_000);
+    await expect(pending).resolves.toMatchObject({ state: 'retryable', blockedReasons: ['provider-timeout'] });
+    vi.useRealTimers();
+  });
+
+
+  it('retries an exhausted transient SiliconFlow DeepSeek request', async () => {
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn() });
+    mocks.generateText.mockRejectedValueOnce(new Error('SiliconFlow DeepSeek request failed after retries (Error).'));
+
+    const result = await evaluateWithProvider({ question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy() });
+
+    expect(result.state).toBe('retryable');
+  });
+
+  it('retries a provider response that generated no output', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw new Error('no-output-generated'); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('provider-no-output-generated');
+  });
+
+  it('does not retry a provider response that violates the frozen grading contract', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{ ...validProviderOutput().assessments[0], score: 0, annotations: [] }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('blocked');
+    expect(result.blockedReasons).toContain('deduction-annotation-missing');
+  });
+
+  it('accepts an injected runtime whose provider identity matches the frozen policy', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'siliconflow' }),
+      provider: {
+        id: 'siliconflow', provider: 'siliconflow', version: 'model.v1',
+        evaluate: async () => ({ ...validProviderOutput(), evaluatorId: 'siliconflow', evaluatorVersion: 'model.v1' }),
+      },
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(result.provider).toBe('siliconflow');
+  });
+
+  it('retries an SDK error that generated no structured object', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw new Error('No object generated: response was empty.'); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('provider-no-object-generated');
+  });
+
+  it('retries a provider error whose retryable cause was preserved through a wrapper', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw Object.assign(new Error('provider-error'), { cause: Object.assign(new Error('transport unavailable'), { retryable: true }) }); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+  });
+
+  it('classifies structured transient HTTP status as retryable without exposing response data', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw Object.assign(new Error('request failed'), { statusCode: 503, responseBody: 'secret payload' }); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('provider-http-503');
+    expect(JSON.stringify(result)).not.toContain('secret payload');
+  });
+
+  it('retries a provider error whose retryable cause was preserved through a wrapper', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw Object.assign(new Error('provider-error'), { cause: Object.assign(new Error('transport unavailable'), { retryable: true }) }); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+  });
+
+  it('blocks provider output that has no usable evidence anchors', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({ ...validProviderOutput(), assessments: [{ ...validProviderOutput().assessments[0], anchors: [] }] }),
+      },
+    });
+
+    expect(result.state).toBe('blocked');
+    expect(result.blockedReasons).toContain('schema:assessments.0.anchors:Array must contain at least 1 element(s)');
+  });
+
+  it('discards unknown provider fields before strict scoring validation', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{ ...validProviderOutput().assessments[0], s: 'provider-format-noise' }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(result.blockedReasons).toEqual([]);
+  });
+
+  it('retries structurally invalid provider output only when the forced-completion policy enables it', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      retryInvalidProviderOutput: true,
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({ ...validProviderOutput(), assessments: [{ ...validProviderOutput().assessments[0], anchors: [] }] }),
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('schema:assessments.0.anchors:Array must contain at least 1 element(s)');
+  });
+
+  it('retries an otherwise unclassified provider exception under the forced-completion policy', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      retryInvalidProviderOutput: true,
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => { throw new Error('provider-error'); },
+      },
+    });
+
+    expect(result.state).toBe('retryable');
+    expect(result.blockedReasons).toContain('provider-provider-error');
+  });
+
+  it('canonicalizes a provider page number when its selected evidence block is known', async () => {
+    const evidence = normalizeTextAnswerEvidence('evidence');
+    evidence.blocks[0].pageNumber = 1;
+    const result = await evaluateWithProvider({
+      question: question(), evidence, classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{
+            ...validProviderOutput().assessments[0],
+            anchors: [{ blockId: evidence.blocks[0].id, precision: 'span', excerpt: 'evidence', pageNumber: 2, spanStart: 0, spanEnd: 8 }],
+          }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(result.assessments[0]?.anchors[0]).toMatchObject({
+      blockId: evidence.blocks[0].id,
+      pageNumber: 1,
+      excerpt: 'evidence',
+    });
+  });
+
+  it('blocks a provider response that violates the frozen rubric contract', async () => {
+    const result = await evaluateWithProvider({
+      question: question(), evidence: normalizeTextAnswerEvidence('evidence'), classId: 'class-1', policy: policy({ provider: 'ai-evaluator' }),
+      provider: {
+        id: 'fixture-provider', version: 'fixture.v1',
+        evaluate: async () => ({
+          ...validProviderOutput(),
+          assessments: [{ ...validProviderOutput().assessments[0], criterionId: 'unknown-criterion' }],
+        }),
+      },
+    });
+
+    expect(result.state).toBe('blocked');
+    expect(result.blockedReasons).toContain('unknown-criterion');
   });
 
   it('freezes a real provider request locator without persisting a secret or payload', async () => {
@@ -137,5 +390,135 @@ describe('provider-backed math grading runtime identity', () => {
 
     expect(result.state).toBe('blocked');
     expect(result.blockedReasons).toContain('provider-deletion-locator-missing');
+  });
+
+  it('sends selected image evidence but keeps PDF evidence out of configured provider requests', async () => {
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: true, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn(() => 'configured-model') });
+    mocks.generateText.mockResolvedValueOnce({
+      text: JSON.stringify({ ...validProviderOutput(), evaluatorId: 'configured-openai', evaluatorVersion: 'model.v1' }),
+      response: { id: 'request-multimodal-1' },
+      usage: { inputTokens: 321, outputTokens: 123, totalTokens: 444 },
+    });
+    const image = new Uint8Array([1, 2, 3]);
+    const pdf = new Uint8Array([4, 5, 6]);
+
+    const result = await evaluateWithProvider({
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy({ dataCategories: ['student-answer', 'student-answer-visual'] }),
+      attachments: [
+        { kind: 'image', mediaType: 'image/png', data: image, checksum: sha256(image), questionId: 'question-1' },
+        { kind: 'document', mediaType: 'application/pdf', data: pdf, checksum: sha256(pdf), fileName: 'answer.pdf' },
+        { kind: 'image', mediaType: 'image/png', data: new Uint8Array([9]), checksum: sha256(new Uint8Array([9])), questionId: 'question-2' },
+      ],
+    });
+
+    expect(result).toMatchObject({
+      state: 'awaiting-review',
+      inputTokens: 321,
+      outputTokens: 123,
+      telemetryComplete: true,
+    });
+    expect(mocks.generateText).toHaveBeenCalledWith(expect.objectContaining({
+      messages: [{
+        role: 'user',
+        content: [
+          expect.objectContaining({ type: 'text' }),
+          expect.objectContaining({ type: 'image', image, mediaType: 'image/png' }),
+        ],
+      }],
+    }));
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).not.toEqual(expect.objectContaining({
+      messages: [expect.objectContaining({ content: expect.arrayContaining([
+        expect.objectContaining({ type: 'file', data: pdf }),
+      ]) })],
+    }));
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).not.toHaveProperty('prompt');
+  });
+
+  it('keeps image evidence out of non-vision rubric provider requests', async () => {
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: false, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn(() => 'configured-model') });
+    mocks.generateText.mockResolvedValueOnce({
+      text: JSON.stringify({ ...validProviderOutput(), evaluatorId: 'configured-openai', evaluatorVersion: 'model.v1' }),
+      response: { id: 'request-text-only-1' },
+      usage: { inputTokens: 321, outputTokens: 123, totalTokens: 444 },
+    });
+    const image = new Uint8Array([1, 2, 3]);
+
+    const result = await evaluateWithProvider({
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy(),
+      attachments: [{ kind: 'image', mediaType: 'image/png', data: image, checksum: sha256(image), questionId: 'question-1' }],
+    });
+
+    expect(result.state).toBe('awaiting-review');
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).toHaveProperty('prompt');
+    expect(mocks.generateText.mock.calls.at(-1)?.[0]).not.toHaveProperty('messages');
+  });
+
+  it('parses a string-valued SDK output for visual descriptions before local validation', async () => {
+    mocks.resolve.mockResolvedValue({ provider: 'configured-openai', providerKind: 'openai-compatible', baseURL: 'https://provider.example/v1', apiKey: 'secret', authMode: 'bearer-api-key', secretRef: 'env:CONFIGURED_OPENAI_KEY', model: 'model.v1', enabled: true, priority: 1, health: 'healthy', capabilities: { tools: false, reasoning: false, vision: true, jsonSchema: true, streaming: false, citationNormalization: false } });
+    mocks.create.mockReturnValue({ getModel: vi.fn(() => 'configured-model') });
+    mocks.generateText.mockResolvedValueOnce({
+      output: JSON.stringify({ description: 'A blank page with no visible diagram.', confidence: 0.99, pageNumber: null, bbox: null, limitations: [] }),
+      text: '',
+      response: { id: 'request-visual-string-output' },
+      usage: { inputTokens: 10, outputTokens: 12, totalTokens: 22 },
+    });
+    const adapter = await createProviderRuntimeGradingAdapter({
+      policy: policy({ provider: 'configured-openai', purpose: 'visual-description', dataCategories: ['student-answer', 'student-answer-visual'], minimizedScope: ['selected-question', 'answer-evidence', 'visual-evidence'] }),
+      classId: 'class-1',
+      purpose: 'visual-description',
+      requireVision: true,
+    });
+    const result = await adapter.evaluate({ system: 'visual', user: '{}', attachments: [{ kind: 'image', mediaType: 'image/png', data: new Uint8Array([1]), checksum: sha256(new Uint8Array([1])) }] });
+    expect(result).toMatchObject({ output: expect.objectContaining({ description: expect.any(String), confidence: 0.99 }) });
+    expect(mocks.outputJson).toHaveBeenCalledWith({ name: 'teacher_ai_grading_visual_description' });
+  });
+
+  it('binds selected attachment checksums to grading identity and blocks invalid attachments before provider access', async () => {
+    const provider = {
+      id: 'fixture-provider',
+      version: 'fixture.v1',
+      evaluate: vi.fn(async () => validProviderOutput()),
+    };
+    const firstBytes = new Uint8Array([1, 2, 3]);
+    const secondBytes = new Uint8Array([1, 2, 4]);
+    const base = {
+      question: question(),
+      evidence: normalizeTextAnswerEvidence('evidence'),
+      classId: 'class-1',
+      policy: policy({ provider: 'ai-evaluator' }),
+      provider,
+    };
+
+    const first = await evaluateWithProvider({
+      ...base,
+      attachments: [{ kind: 'document', mediaType: 'application/pdf', data: firstBytes, checksum: sha256(firstBytes), fileName: 'answer.pdf' }],
+    });
+    const second = await evaluateWithProvider({
+      ...base,
+      attachments: [{ kind: 'document', mediaType: 'application/pdf', data: secondBytes, checksum: sha256(secondBytes), fileName: 'answer.pdf' }],
+    });
+    expect(first.inputHash).not.toBe(second.inputHash);
+    expect(first.dedupeKey).not.toBe(second.dedupeKey);
+
+    provider.evaluate.mockClear();
+    const checksumMismatch = await evaluateWithProvider({
+      ...base,
+      attachments: [{ kind: 'image', mediaType: 'image/png', data: firstBytes, checksum: sha256(secondBytes), questionId: 'question-1' }],
+    });
+    const unsupported = await evaluateWithProvider({
+      ...base,
+      attachments: [{ kind: 'image', mediaType: 'image/gif', data: firstBytes, checksum: sha256(firstBytes), questionId: 'question-1' }],
+    });
+    expect(checksumMismatch).toMatchObject({ state: 'blocked', blockedReasons: ['grading-attachment-checksum-mismatch'] });
+    expect(unsupported).toMatchObject({ state: 'blocked', blockedReasons: ['grading-attachment-media-type-unsupported'] });
+    expect(provider.evaluate).not.toHaveBeenCalled();
   });
 });

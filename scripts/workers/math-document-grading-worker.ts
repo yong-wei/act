@@ -1,10 +1,13 @@
+import 'dotenv/config';
+
 import { Job, Queue, Worker } from 'bullmq';
 import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
 
 import { createSubmissionObjectStore } from '../../src/lib/assignments/submission-object-store';
-import { createMathpixClient } from '../../src/lib/data-governance/math-document-conversion';
+import { createMathpixClient, resolveLibreOfficeRuntimeVersion } from '../../src/lib/data-governance/math-document-conversion';
 import { processQuestionGradingBatch } from '../../src/lib/data-governance/math-document-grading-batch';
+import { refreshAssignmentAiGradingOperation } from '../../src/lib/assignments/public-api';
 import {
   GRADING_JOB_LEASE_MS,
   processDocumentConversionJob,
@@ -34,11 +37,17 @@ function safeWorkerStartupError(error: unknown): string {
   if (/redis|bullmq/i.test(message)) return 'math-document-grading-worker-redis-unavailable';
   if (/database|postgres|prisma/i.test(message)) return 'math-document-grading-worker-database-unavailable';
   if (/object-store/i.test(message)) return 'math-document-grading-worker-object-store-unavailable';
+  if (/libreoffice/i.test(message)) return 'math-document-grading-worker-libreoffice-unavailable';
   return 'math-document-grading-worker-start-failed';
 }
 
 async function assertWorkerRuntimeDependencies(db: any): Promise<MathDocumentGradingWorkerCapabilityStatus> {
   const config = assertMathDocumentGradingWorkerConfig();
+  try {
+    await resolveLibreOfficeRuntimeVersion();
+  } catch {
+    throw new Error('math-document-grading-worker-libreoffice-unavailable');
+  }
   try {
     await db.$queryRawUnsafe('SELECT 1');
   } catch {
@@ -73,7 +82,9 @@ export async function processMathDocumentGradingJob(job: Job<MathDocumentGrading
     return result;
   }
   if (job.data.kind === 'batch' || job.data.kind === 'retry') {
+    await refreshAssignmentAiGradingOperation({ db, batchId: job.data.batchId });
     const result = await processQuestionGradingBatch({ db, batchId: job.data.batchId, jobId: job.data.jobId, workerClaimToken, itemId: job.data.kind === 'retry' ? job.data.batchItemId : undefined, store, mathpix: createMathpixClient() });
+    await refreshAssignmentAiGradingOperation({ db, batchId: job.data.batchId });
     if (result.batch.state === 'RETRYABLE') throw new Error('grading-batch-retryable');
     return result;
   }
@@ -119,6 +130,9 @@ export async function settleMathDocumentGradingJobFailure(input: { db: any; job:
   };
   if (typeof input.db.$transaction === 'function') await input.db.$transaction((tx: any) => settle(tx));
   else await settle(input.db);
+  if (input.job.data.kind === 'batch' || input.job.data.kind === 'retry') {
+    await refreshAssignmentAiGradingOperation({ db: input.db, batchId: input.job.data.batchId, now });
+  }
 }
 
 async function claimGradingJobForFailureSettlement(model: any, id: string | undefined, workerClaimToken: string, attemptCount: number, now: Date): Promise<boolean> {

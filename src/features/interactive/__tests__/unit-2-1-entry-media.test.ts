@@ -6,17 +6,17 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
 
 const repoRoot = process.cwd();
-let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
-let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaIndex;
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaDocument;
 let loadAllLessonRuntimeResourceCatalogEntries:
-  typeof import('@/lib/course-runtime').loadAllLessonRuntimeResourceCatalogEntries;
+  typeof import('@/lib/course-bundle').loadAllLessonRuntimeResourceCatalogEntries;
 
 beforeAll(async () => {
   ({
     loadAllLessonRuntimeResourceCatalogEntries,
     parseRuntimeLessonMediaDocument,
     parseRuntimeLessonMediaIndex,
-  } = await import('@/lib/course-runtime'));
+  } = await import('@/lib/course-bundle'));
 });
 
 describe('unit 2-1 entry media runtime', () => {

@@ -938,7 +938,6 @@ describe('4. Production binding and prompt assembly', () => {
       join(root, 'src/app/api/ai/sessions/[id]/messages/route.ts'),
       'utf8',
     );
-    const context = readFileSync(join(root, 'src/app/api/ai/konling-context/route.ts'), 'utf8');
     const pathAdvisor = readFileSync(
       join(root, 'src/app/api/adaptive/path-advisor-tool/route.ts'),
       'utf8',
@@ -950,8 +949,8 @@ describe('4. Production binding and prompt assembly', () => {
     expect(chat).toContain('konlingDualDomainProvenance');
     expect(messages).toContain('buildKonlingDualDomainProvenanceMetadataPayload');
     expect(messages).toContain('konlingDualDomainProvenance');
-    expect(context).toContain('teaching_projection_context');
-    expect(context).toContain('dual_domain_provenance');
+    expect(runtime).toContain('buildKonlingDualDomainProvenanceMetadataPayload');
+    expect(runtime).toContain('teachingProjectionContext');
     expect(pathAdvisor).toContain('teachingProjectionContext: graphRuntimeContext.teachingProjectionContext');
   });
 });

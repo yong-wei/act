@@ -1,4 +1,4 @@
-import type { TextbookStructureUnitProjection } from '@/lib/structured-textbook-runtime';
+import type { TextbookStructureUnitProjection } from '@/lib/course-bundle';
 import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,

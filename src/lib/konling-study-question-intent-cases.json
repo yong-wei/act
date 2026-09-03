@@ -1,0 +1,722 @@
+[
+  {
+    "id": "formula-derivation-01-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导闭环传递函数"
+  },
+  {
+    "id": "formula-derivation-01-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "闭环传递函数是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-02-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导开环传递函数"
+  },
+  {
+    "id": "formula-derivation-02-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "开环传递函数是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-03-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导特征方程"
+  },
+  {
+    "id": "formula-derivation-03-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "特征方程是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-04-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导PID 控制律"
+  },
+  {
+    "id": "formula-derivation-04-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "PID 控制律是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-05-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导超调量公式"
+  },
+  {
+    "id": "formula-derivation-05-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "超调量公式是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-06-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导稳态误差公式"
+  },
+  {
+    "id": "formula-derivation-06-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "稳态误差公式是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-07-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导根轨迹增益"
+  },
+  {
+    "id": "formula-derivation-07-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "根轨迹增益是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-08-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导Bode 幅值表达式"
+  },
+  {
+    "id": "formula-derivation-08-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "Bode 幅值表达式是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-09-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导Nyquist 包围圈数"
+  },
+  {
+    "id": "formula-derivation-09-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "Nyquist 包围圈数是怎么一步步得到的？"
+  },
+  {
+    "id": "formula-derivation-10-standard",
+    "intent": "formula-derivation",
+    "phrasing": "standard",
+    "query": "请推导零阶保持器离散化"
+  },
+  {
+    "id": "formula-derivation-10-implicit",
+    "intent": "formula-derivation",
+    "phrasing": "implicit",
+    "query": "零阶保持器离散化是怎么一步步得到的？"
+  },
+  {
+    "id": "code-debugging-01-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "这段 TypeScript 仿真代码报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-01-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "这段 TypeScript 仿真代码改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-02-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "PID 积分饱和这段实现报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-02-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "PID 积分饱和这段实现改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-03-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "采样周期这段循环报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-03-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "采样周期这段循环改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-04-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "WASM 步进这段逻辑报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-04-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "WASM 步进这段逻辑改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-05-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "超调曲线绘图这段报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-05-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "超调曲线绘图这段改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-06-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "控制器饱和这段报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-06-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "控制器饱和这段改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-07-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "噪声滤波这段报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-07-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "噪声滤波这段改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-08-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "符号解这段 Octave 脚本报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-08-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "符号解这段 Octave 脚本改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-09-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "状态空间离散化这段报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-09-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "状态空间离散化这段改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "code-debugging-10-standard",
+    "intent": "code-debugging",
+    "phrasing": "standard",
+    "query": "抗积分饱和这段报错了，帮我调试"
+  },
+  {
+    "id": "code-debugging-10-implicit",
+    "intent": "code-debugging",
+    "phrasing": "implicit",
+    "query": "抗积分饱和这段改了参数还是下不来，一直这样"
+  },
+  {
+    "id": "concept-comparison-01-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较开环控制和闭环控制的区别"
+  },
+  {
+    "id": "concept-comparison-01-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "开环控制和闭环控制我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-02-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较P 控制和PI 控制的区别"
+  },
+  {
+    "id": "concept-comparison-02-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "P 控制和PI 控制我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-03-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较超调量和调节时间的区别"
+  },
+  {
+    "id": "concept-comparison-03-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "超调量和调节时间我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-04-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较根轨迹和Bode 图的区别"
+  },
+  {
+    "id": "concept-comparison-04-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "根轨迹和Bode 图我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-05-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较超前校正和滞后校正的区别"
+  },
+  {
+    "id": "concept-comparison-05-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "超前校正和滞后校正我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-06-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较连续系统和离散系统的区别"
+  },
+  {
+    "id": "concept-comparison-06-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "连续系统和离散系统我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-07-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较稳定性和鲁棒性的区别"
+  },
+  {
+    "id": "concept-comparison-07-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "稳定性和鲁棒性我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-08-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较设定值响应和扰动抑制的区别"
+  },
+  {
+    "id": "concept-comparison-08-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "设定值响应和扰动抑制我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-09-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较PD 控制和PID 控制的区别"
+  },
+  {
+    "id": "concept-comparison-09-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "PD 控制和PID 控制我该怎么选？"
+  },
+  {
+    "id": "concept-comparison-10-standard",
+    "intent": "concept-comparison",
+    "phrasing": "standard",
+    "query": "比较时域指标和频域指标的区别"
+  },
+  {
+    "id": "concept-comparison-10-implicit",
+    "intent": "concept-comparison",
+    "phrasing": "implicit",
+    "query": "时域指标和频域指标我该怎么选？"
+  },
+  {
+    "id": "normative-content-01-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对控制实验报告封面的规范格式"
+  },
+  {
+    "id": "normative-content-01-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "控制实验报告封面必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-02-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对成绩评定规定的规范格式"
+  },
+  {
+    "id": "normative-content-02-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "成绩评定规定必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-03-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对实验室安全操作规程的规范格式"
+  },
+  {
+    "id": "normative-content-03-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "实验室安全操作规程必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-04-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对图号标注规范的规范格式"
+  },
+  {
+    "id": "normative-content-04-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "图号标注规范必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-05-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对公式编号规定的规范格式"
+  },
+  {
+    "id": "normative-content-05-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "公式编号规定必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-06-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对课程考核办法的规范格式"
+  },
+  {
+    "id": "normative-content-06-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "课程考核办法必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-07-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对实验数据记录表格的规范格式"
+  },
+  {
+    "id": "normative-content-07-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "实验数据记录表格必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-08-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对参考文献国标格式的规范格式"
+  },
+  {
+    "id": "normative-content-08-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "参考文献国标格式必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-09-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对报告装订要求的规范格式"
+  },
+  {
+    "id": "normative-content-09-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "报告装订要求必须写哪些项才算合格？"
+  },
+  {
+    "id": "normative-content-10-standard",
+    "intent": "normative-content",
+    "phrasing": "standard",
+    "query": "请给出国家标准对仪器使用登记规定的规范格式"
+  },
+  {
+    "id": "normative-content-10-implicit",
+    "intent": "normative-content",
+    "phrasing": "implicit",
+    "query": "仪器使用登记规定必须写哪些项才算合格？"
+  },
+  {
+    "id": "open-ended-explanation-01-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释超调，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-01-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲超调？"
+  },
+  {
+    "id": "open-ended-explanation-02-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释PID，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-02-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲PID？"
+  },
+  {
+    "id": "open-ended-explanation-03-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释稳态误差，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-03-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲稳态误差？"
+  },
+  {
+    "id": "open-ended-explanation-04-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释根轨迹，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-04-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲根轨迹？"
+  },
+  {
+    "id": "open-ended-explanation-05-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释相位裕度，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-05-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲相位裕度？"
+  },
+  {
+    "id": "open-ended-explanation-06-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释反馈，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-06-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲反馈？"
+  },
+  {
+    "id": "open-ended-explanation-07-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释积分项，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-07-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲积分项？"
+  },
+  {
+    "id": "open-ended-explanation-08-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释Bode 图，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-08-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲Bode 图？"
+  },
+  {
+    "id": "open-ended-explanation-09-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释采样，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-09-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲采样？"
+  },
+  {
+    "id": "open-ended-explanation-10-standard",
+    "intent": "open-ended-explanation",
+    "phrasing": "standard",
+    "query": "请用生活化例子解释鲁棒性，并换一种格式"
+  },
+  {
+    "id": "open-ended-explanation-10-implicit",
+    "intent": "open-ended-explanation",
+    "phrasing": "implicit",
+    "query": "能不能用更直白的说法讲鲁棒性？"
+  },
+  {
+    "id": "fact-explanation-01-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是超调量？"
+  },
+  {
+    "id": "fact-explanation-01-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "超调量大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-02-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是传递函数？"
+  },
+  {
+    "id": "fact-explanation-02-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "传递函数大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-03-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是PID？"
+  },
+  {
+    "id": "fact-explanation-03-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "PID大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-04-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是稳态误差？"
+  },
+  {
+    "id": "fact-explanation-04-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "稳态误差大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-05-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是相位裕度？"
+  },
+  {
+    "id": "fact-explanation-05-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "相位裕度大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-06-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是根轨迹？"
+  },
+  {
+    "id": "fact-explanation-06-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "根轨迹大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-07-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是Bode 图？"
+  },
+  {
+    "id": "fact-explanation-07-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "Bode 图大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-08-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是采样周期？"
+  },
+  {
+    "id": "fact-explanation-08-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "采样周期大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-09-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是鲁棒性？"
+  },
+  {
+    "id": "fact-explanation-09-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "鲁棒性大概表示什么？"
+  },
+  {
+    "id": "fact-explanation-10-standard",
+    "intent": "fact-explanation",
+    "phrasing": "standard",
+    "query": "什么是特征根？"
+  },
+  {
+    "id": "fact-explanation-10-implicit",
+    "intent": "fact-explanation",
+    "phrasing": "implicit",
+    "query": "特征根大概表示什么？"
+  }
+]

@@ -16,7 +16,7 @@ import {
   type AdaptiveOptimizationMetricSummary,
   type AdaptiveOptimizationVariant,
   type LongTermMemoryGateResult,
-} from '@/lib/adaptive-learning-optimization-experiments';
+} from '@/features/personalization/path-planning/public-api';
 import type { TeacherResourceNodeOperationsReadiness } from '@/lib/teacher-resource-node-management';
 
 export const ADAPTIVE_EXPERIMENT_OPERATIONS_UI_FEATURE_FLAG = 'ADAPTIVE_EXPERIMENT_OPERATIONS_UI_ENABLED';

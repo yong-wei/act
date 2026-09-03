@@ -167,3 +167,30 @@ Replay SHALL require scope, purpose, ticket, short-lived elevated authority and 
 - **WHEN** a queue, fact or normal consumer role requests restricted replay or raw artifact access
 - **THEN** authorization fails closed and no raw payload or replay capability is inherited
 
+### Requirement: Boundary reconciliation does not create a second event contract
+The write-boundary reconciliation SHALL reuse the existing versioned Learning Record event registry, payload allowlist, source anchors, trusted temporal fields and compatibility adapter. It MUST NOT introduce a parallel discriminator, schema registry, envelope or dedupe authority for the same logical event.
+
+#### Scenario: An existing registered event is reconciled
+- **WHEN** a producer is classified during the current-revision write inventory
+- **THEN** the reconciliation SHALL reference its existing discriminator, schema, owner, privacy and authority policy
+- **AND** it SHALL change only the producer routing or exception record when required
+
+#### Scenario: Internal application call is classified
+- **WHEN** a trusted same-transaction use case already invokes canonical ingestion
+- **THEN** it SHALL remain an application call rather than being wrapped in a duplicate event
+- **AND** its accepted fact SHALL retain the same anchors, times and dedupe semantics
+
+### Requirement: Ingestion implementation simplification cannot change the event protocol
+Simplifying ingestion SHALL preserve the existing registered discriminator/schema, source and dedupe identity, immutable anchor set, trusted temporal fields, privacy allowlist, retention/replay rules and compatibility behavior. No second event contract or inferred identity MAY be introduced.
+
+#### Scenario: Registered event is processed after refactoring
+- **WHEN** an existing supported event reaches the simplified pipeline
+- **THEN** it SHALL resolve the same contract, authority, privacy policy, anchors, timestamps and effective result
+- **AND** unknown schema/version behavior SHALL remain fail-closed
+
+#### Scenario: Legacy input is replayed
+- **WHEN** an authorized legacy adapter supplies an input to the simplified ingestion path
+- **THEN** its original provenance and decoder/materializer versions SHALL remain explicit
+- **AND** changing a decoder or revision SHALL still require explicit rematerialization or rebase
+
+

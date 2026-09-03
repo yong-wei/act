@@ -1,0 +1,169 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:c782502fe412ef828c662650",
+      "canonicalType": "DomainConcept",
+      "label": "合同明确要求 composite/has_formula。现有 Canonical 是 Formula，权威来源成员锚定式 (2-73)，同一原始公式块还完整给出式 (2-74)；正文直接说明闭环传递函数的输入、输出和扰动语义。应补建 DomainConcept/representation_kind 伴随对象，不能把 Formula 误作无具体 SystemModel 的 ModelRepresentation。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-69118dc66489d66b1732901b",
+      "canonicalType": "DomainConcept",
+      "label": "闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "canonicalType": "Formula",
+      "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{p(s)}{q(s)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1e-bridge-relation-b496048ed7c4a0e4c19dabc8",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:v12g-gold-relation-dcadd02e87a6619b148f31a5",
+      "predicate": "has_representation",
+      "sourceId": "ctc:v11g-69118dc66489d66b1732901b",
+      "targetId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:v13g-26b537d5c827e089abecabfc",
+      "predicate": "association",
+      "sourceId": "ctc:v11g-69118dc66489d66b1732901b",
+      "targetId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

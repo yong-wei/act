@@ -1430,10 +1430,10 @@ const ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS =
 const ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES = [
   'src/app/assessment/adaptive-practice/',
   'src/app/api/learning-paths/',
-  'src/features/adaptive/',
+  'src/features/personalization/experience/',
   'src/features/personalization/path-planning/internal/assemble-plan.ts',
-  'src/lib/adaptive-path-option-display.ts',
-  'src/lib/control-correction-path-rounds.ts',
+  'src/features/personalization/path-planning/adaptive-path-option-display.ts',
+  'src/features/personalization/path-planning/control-correction-path-rounds.ts',
   'src/lib/konling-agent-runtime.ts',
 ] as const;
 

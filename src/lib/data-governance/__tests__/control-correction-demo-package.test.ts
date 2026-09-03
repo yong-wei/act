@@ -11,7 +11,7 @@ import {
   installControlCorrectionDemoFixtures,
   validateControlCorrectionDemoPackage,
 } from '../control-correction-demo-package';
-import { validateControlCorrectionPathPlanForPersistence } from '../../control-correction-path-rounds';
+import { validateControlCorrectionPathPlanForPersistence } from '@/features/personalization/path-planning/control-correction-path-rounds';
 
 describe('control-correction evaluation demo package', () => {
   it('defines resettable synthetic fixtures for the full control-correction loop', () => {

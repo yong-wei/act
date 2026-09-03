@@ -371,7 +371,13 @@ describe('act-canonical-teaching-relations', () => {
       process.cwd(),
       'course-content/runtime/knowledge/authority-domain-shards/current.json',
     ), 'utf8'));
-    expect(current.teachingProjectionId).toBeNull();
+    // #1738 resealed the shard set under the qualified Teaching binding; the
+    // guard keeps its original intent — the sealed pointer must never claim
+    // the unmatched legacy four-prerequisite projection.
+    if (current.teachingProjectionId !== null) {
+      expect(current.teachingProjectionId).not.toBe(LEGACY_FOUR_PREREQUISITE_PROJECTION_ID);
+      expect(current.teachingProjectionHash).toBeTruthy();
+    }
     expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
     const artifacts = qualifiedArtifacts();
     expect(artifacts.receipt.projectionId).not.toBe(LEGACY_FOUR_PREREQUISITE_PROJECTION_ID);

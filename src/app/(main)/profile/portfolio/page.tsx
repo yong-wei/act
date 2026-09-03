@@ -59,10 +59,17 @@ interface PortfolioData {
     title: string;
     content: string;
     status: 'DRAFT';
+    provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED' | 'LEGACY_UNVERIFIED';
     idempotencyKey: string;
     createdAt: string;
     updatedAt: string;
   }>;
+}
+
+function provenanceLabel(provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED' | 'LEGACY_UNVERIFIED') {
+  if (provenance === 'PLATFORM_VERIFIED') return '平台核验';
+  if (provenance === 'STUDENT_PROVIDED') return '学生提供';
+  return '历史未核验';
 }
 
 export default function PortfolioPage() {
@@ -609,6 +616,7 @@ function ReflectionsTab({
             <span className="text-xs text-subtle">{new Date(reflection.updatedAt).toLocaleDateString('zh-CN')}</span>
           </div>
           <h3 className="mt-3 font-medium text-foreground">{reflection.title}</h3>
+          <p className="mt-1 text-xs text-subtle">来源：{reflection.source}（{provenanceLabel(reflection.provenance)}）</p>
           <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-subtle">{reflection.content}</p>
           <button
             type="button"
@@ -631,10 +639,15 @@ function PortfolioReflectionCandidate({
   onDraftSaved: (draftId: string) => void;
 }) {
   const [content, setContent] = useState(draft.detail);
+  const [title, setTitle] = useState(draft.title);
+  const [source, setSource] = useState(draft.source);
+  const [intent, setIntent] = useState(draft.intent);
+  const [assignment, setAssignment] = useState(draft.assignment ?? '');
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [isSaving, setIsSaving] = useState(false);
   const [isDiscarded, setIsDiscarded] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const isPlatformVerified = draft.provenance === 'platform-verified';
   const state = buildAiAuditTaskState({
     taskType: 'portfolio-reflection',
     status: isDiscarded ? 'blocked' : 'pending',
@@ -652,14 +665,24 @@ function PortfolioReflectionCandidate({
       const response = await fetch('/api/profile/portfolio-reflection-drafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: draft.source,
-          assignment: draft.assignment,
-          intent: draft.intent,
-          title: draft.title,
-          content,
-          idempotencyKey,
-        }),
+        body: JSON.stringify(
+          isPlatformVerified
+            ? {
+                provenance: 'platform-verified',
+                sourceKind: draft.sourceKind,
+                content,
+                idempotencyKey,
+              }
+            : {
+                provenance: 'student-provided',
+                source,
+                assignment: assignment.trim() ? assignment : null,
+                intent,
+                title,
+                content,
+                idempotencyKey,
+              },
+        ),
       });
       const payload = (await response.json()) as { draft?: { id: string }; error?: string };
       if (!response.ok || !payload.draft?.id) {
@@ -673,24 +696,85 @@ function PortfolioReflectionCandidate({
     }
   };
 
+  const labelInputClassName =
+    'mt-1 w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground';
+
   return (
     <div className="space-y-4">
       <ActionStatusPanel state={state} />
       <div
         className="surface-card-soft p-5"
         data-ai-task-boundary="portfolio-reflection-draft"
+        data-portfolio-reflection-provenance={draft.provenance}
         data-task-workspace-zone="local-primary-input"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">{isDiscarded ? 'discarded' : draft.status}</span>
-          <span className="text-xs text-subtle">来源：{draft.source}</span>
+          <span className="text-xs text-subtle" data-portfolio-reflection-provenance-label>
+            来源：{isPlatformVerified ? draft.source : source}（{isPlatformVerified ? '平台核验' : '学生提供'}）
+          </span>
         </div>
-        <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
-        <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
-          任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：
-          {draft.intent} · 输出：{draft.outputTarget} · 晋升策略：
-          {draft.promotionPolicy}
-        </div>
+        {isPlatformVerified ? (
+          <>
+            <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
+            <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">
+              任务：{draft.assignment ?? 'portfolio-reflection'} · 意图：
+              {draft.intent} · 输出：{draft.outputTarget} · 晋升策略：
+              {draft.promotionPolicy}
+            </div>
+          </>
+        ) : (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2" data-portfolio-reflection-student-labels>
+            <label className="block text-sm text-subtle">
+              标题（学生提供）
+              <input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                maxLength={160}
+                disabled={isDiscarded || isSaving}
+                className={labelInputClassName}
+                data-portfolio-reflection-label="title"
+              />
+            </label>
+            <label className="block text-sm text-subtle">
+              来源（学生提供）
+              <input
+                type="text"
+                value={source}
+                onChange={(event) => setSource(event.target.value)}
+                maxLength={160}
+                disabled={isDiscarded || isSaving}
+                className={labelInputClassName}
+                data-portfolio-reflection-label="source"
+              />
+            </label>
+            <label className="block text-sm text-subtle">
+              意图（学生提供）
+              <input
+                type="text"
+                value={intent}
+                onChange={(event) => setIntent(event.target.value)}
+                maxLength={160}
+                disabled={isDiscarded || isSaving}
+                className={labelInputClassName}
+                data-portfolio-reflection-label="intent"
+              />
+            </label>
+            <label className="block text-sm text-subtle">
+              任务（学生提供，可选）
+              <input
+                type="text"
+                value={assignment}
+                onChange={(event) => setAssignment(event.target.value)}
+                maxLength={160}
+                disabled={isDiscarded || isSaving}
+                className={labelInputClassName}
+                data-portfolio-reflection-label="assignment"
+              />
+            </label>
+          </div>
+        )}
         <label className="mt-4 block text-sm font-medium text-foreground" htmlFor="portfolio-reflection-content">
           反思内容
         </label>
@@ -806,7 +890,7 @@ function SavedReflectionDraft({
       <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary">已保存草稿</span>
-          <span className="text-xs text-subtle">来源：{draft.source}</span>
+          <span className="text-xs text-subtle">来源：{draft.source}（{provenanceLabel(draft.provenance)}）</span>
         </div>
         <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
         <div className="mt-3 rounded border border-border/70 bg-background/70 px-3 py-2 text-xs text-subtle">

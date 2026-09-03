@@ -9,7 +9,7 @@ import {
   editCriterionGrade,
   textFixtureMarkItDownRunner,
   type RubricDefinition,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 
 export function demoDocumentRubric() {
   return {

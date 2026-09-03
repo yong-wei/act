@@ -8,6 +8,14 @@ import {
 import { generateSessionSummaryReports } from './session-reports';
 import { summarizeSubmissionEvidencePayload } from './submission-evidence-quality';
 import { refreshStudentEvidenceFeatureCache } from './student-evidence-feature-cache';
+import {
+  beginAuthorizedBackfillApply,
+  buildBackfillTerminalReceipt,
+  computeBackfillInputDigest,
+  type BackfillReceiptStore,
+  type BackfillTerminalReceipt,
+} from '@/features/learning-record/backfill-lane/public-api';
+import type { HistoricalApplyAuthorization } from '@/features/learning-record/write-boundary/public-api';
 
 export const COURSE_EVIDENCE_BACKFILL_VERSION = 'course-evidence-backfill-v1';
 
@@ -164,6 +172,7 @@ export interface CourseEvidenceBackfillApplyResult {
   factRowsUpdated: number;
   alreadyEnrichedRows: number;
   alreadyUnrecoverableRows: number;
+  receipt: BackfillTerminalReceipt;
 }
 
 export interface CourseEvidenceReportRegenerationResult {
@@ -807,6 +816,13 @@ export async function collectCourseEvidenceBackfillPlan(
           sessionId: { in: sessionIds },
           userId: { in: userIds },
           NOT: { stateKey: { startsWith: 'teacher' } },
+          ...(filters.to ? {
+            submittedAt: { lte: filters.to },
+            OR: [
+              { lastClientEventAt: null },
+              { lastClientEventAt: { lte: filters.to } },
+            ],
+          } : {}),
         },
         orderBy: [{ lastClientEventAt: 'desc' }, { submittedAt: 'desc' }],
         select: {
@@ -844,6 +860,12 @@ export async function collectCourseEvidenceBackfillPlan(
             sessionId: { in: sessionIds },
             userId: { in: userIds },
             ...(filters.lessonKeys?.length ? { lessonKey: { in: filters.lessonKeys } } : {}),
+            ...((filters.from || filters.to) ? {
+              submittedAt: compactRecord({
+                ...(filters.from ? { gte: filters.from } : {}),
+                ...(filters.to ? { lte: filters.to } : {}),
+              }),
+            } : {}),
           }),
           orderBy: { submittedAt: 'asc' },
           select: {
@@ -880,7 +902,36 @@ export async function collectCourseEvidenceBackfillPlan(
 export async function applyCourseEvidenceBackfillPlan(
   db: CourseEvidenceBackfillApplyDb,
   plan: CourseEvidenceBackfillPlan,
+  authorization: HistoricalApplyAuthorization,
+  store?: BackfillReceiptStore,
 ): Promise<CourseEvidenceBackfillApplyResult> {
+  const cutoff = Date.parse(authorization.frozenCutoff);
+  if (!Number.isFinite(cutoff)) {
+    throw new Error('frozen-cutoff-invalid');
+  }
+  if (plan.filters.to && plan.filters.to.getTime() > cutoff) {
+    throw new Error('plan-exceeds-frozen-cutoff');
+  }
+  const inputDigest = computeBackfillInputDigest({
+    lane: 'course-evidence',
+    frozenCutoff: authorization.frozenCutoff,
+    scope: {
+      filters: plan.filters,
+      responseIds: plan.responseActions.map((action) => action.responseId).sort(),
+      factIds: plan.factActions.map((action) => action.factId).sort(),
+    },
+  });
+  const { auth, existing } = beginAuthorizedBackfillApply(authorization, inputDigest, store);
+  if (existing?.status === 'applied' || existing?.status === 'resumed') {
+    return {
+      responseRowsUpdated: 0,
+      factRowsUpdated: 0,
+      alreadyEnrichedRows: plan.totals.alreadyEnrichedRows,
+      alreadyUnrecoverableRows: plan.totals.alreadyUnrecoverableRows,
+      receipt: { ...existing, status: 'resumed' },
+    };
+  }
+
   let responseRowsUpdated = 0;
   let factRowsUpdated = 0;
 
@@ -909,11 +960,25 @@ export async function applyCourseEvidenceBackfillPlan(
     factRowsUpdated += 1;
   }
 
+  const receipt = buildBackfillTerminalReceipt(auth, {
+    lane: 'course-evidence',
+    captureRevision: '',
+    inputDigest,
+    status: 'applied',
+    outcomes: {
+      accepted: responseRowsUpdated + factRowsUpdated,
+      duplicate: plan.totals.alreadyEnrichedRows,
+      terminal: plan.totals.alreadyUnrecoverableRows,
+    },
+    factsUpdated: factRowsUpdated,
+  });
+  store?.put(receipt);
   return {
     responseRowsUpdated,
     factRowsUpdated,
     alreadyEnrichedRows: plan.totals.alreadyEnrichedRows,
     alreadyUnrecoverableRows: plan.totals.alreadyUnrecoverableRows,
+    receipt,
   };
 }
 

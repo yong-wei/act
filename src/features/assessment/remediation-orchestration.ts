@@ -1,8 +1,8 @@
 import {
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   type AssessmentEvidenceCatalogSnapshot,
-} from '@/features/adaptive-assessment/assessment-evidence-authority';
-import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+} from '@/features/assessment/assessment-evidence-authority';
+import { findAdaptiveAssessmentCatalogSnapshot } from '@/features/assessment/adaptive-assessment-catalog-selector';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';

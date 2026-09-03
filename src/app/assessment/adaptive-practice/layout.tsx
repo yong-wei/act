@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { PathAdvisorEntryPointBridge } from '@/features/adaptive/path-advisor-entrypoint-bridge';
-import { getAdaptivePracticeGoalOptions } from '@/lib/adaptive-path-goal-options';
+import { PathAdvisorEntryPointBridge } from '@/features/personalization/experience/path-advisor-entrypoint-bridge';
+import { getAdaptivePracticeGoalOptions } from '@/features/personalization/path-planning/public-api';
 import { getServerAuthSession } from '@/lib/auth';
 import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
 

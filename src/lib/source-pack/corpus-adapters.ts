@@ -38,7 +38,7 @@ import {
 
 import type {
   TextbookStructureUnitProjection,
-} from '../structured-textbook-runtime';
+} from '../course-bundle';
 
 import type {
   RuntimeResourceProjectionArtifactRow,

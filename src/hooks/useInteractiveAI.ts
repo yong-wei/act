@@ -11,8 +11,8 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import type { PageContext, UserProfile, StepAIContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
-import { toLegacyMessage } from '@/lib/ai-message-compat';
-import { readAITextStream } from '@/lib/ai-stream-compat';
+import { toLegacyMessage } from '@/lib/ai/message-compat';
+import { readAITextStream } from '@/lib/ai/stream-compat';
 import { KONLING_BRAND } from '@/lib/ai-branding';
 import { useLocalKonlingSession } from './useKonlingSession';
 

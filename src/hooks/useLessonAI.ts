@@ -9,8 +9,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
-import type { LessonContext } from '@/lib/ai-client';
-import { readAITextStream } from '@/lib/ai-stream-compat';
+import type { LessonContext } from '@/lib/ai/lesson-prompts';
+import { readAITextStream } from '@/lib/ai/stream-compat';
 
 interface Message {
   id: string;

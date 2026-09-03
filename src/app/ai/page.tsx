@@ -4,6 +4,8 @@ import {
   createUnavailableAiWorkshopEvidence,
   projectAiWorkshopEvidence,
 } from '@/features/ai/ai-workshop-evidence';
+import { createUnavailableAiWorkshopCollections } from '@/features/ai/ai-workshop-collections';
+import { assembleAiWorkshopCollections } from '@/features/ai/ai-workshop-collections.server';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   isAdaptiveLearnerStateServiceEnabled,
@@ -28,6 +30,7 @@ export default async function AiPage({
   const session = await getServerAuthSession();
   const viewerRole = resolveAiViewerRole(session?.user?.role);
   const evidence = await readAiWorkshopEvidence(session?.user?.id, session?.user?.role);
+  const collections = await readAiWorkshopCollections(session?.user?.id);
   const hasLocalTask = Boolean(params?.task);
   return (
     <AppShell
@@ -46,6 +49,7 @@ export default async function AiPage({
       >
         <PersonalLearningCenter
           evidence={evidence}
+          collections={collections}
           userName={session?.user?.name ?? '学习者'}
           taskIntent={params?.task}
           taskSource={params?.source}
@@ -71,6 +75,18 @@ async function readAiWorkshopEvidence(userId?: string | null, role?: string | nu
   } catch (error) {
     console.error('[AiWorkshop] learner-state projection failed:', error);
     return createUnavailableAiWorkshopEvidence();
+  }
+}
+
+async function readAiWorkshopCollections(userId?: string | null) {
+  if (!userId) {
+    return createUnavailableAiWorkshopCollections();
+  }
+  try {
+    return await assembleAiWorkshopCollections(userId);
+  } catch (error) {
+    console.error('[AiWorkshop] collection assembly failed:', error);
+    return createUnavailableAiWorkshopCollections();
   }
 }
 

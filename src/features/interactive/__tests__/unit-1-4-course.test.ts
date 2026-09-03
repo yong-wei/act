@@ -41,8 +41,7 @@ const graphOverlayPath = join(repoRoot, 'course-content/runtime/lessons/1-4/grap
 const runtimeShellPath = join(repoRoot, 'src/features/interactive/shared/lesson-runtime-shell.tsx');
 const studentPagePath = join(repoRoot, 'src/features/interactive/unit-1-4-time-frequency-views/student-page.tsx');
 const teacherPagePath = join(repoRoot, 'src/features/interactive/unit-1-4-time-frequency-views/teacher-page.tsx');
-const teacherRoutePath = join(repoRoot, 'src/features/interactive/course-app-routes/unit-1-4-time-frequency-views/teacher.tsx');
-const waitingRoutePath = join(repoRoot, 'src/features/interactive/course-app-routes/unit-1-4-time-frequency-views/waiting.tsx');
+const teacherRoutePath = join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx');
 const bopppsPath = join(repoRoot, 'course-content/authoring/lessons/1-4/design/1-4-boppps.md');
 
 function readManifest() {
@@ -463,13 +462,11 @@ describe('unit 1-4 time frequency views course', () => {
 
   it('preserves the complete teacher session path when redirecting to login', () => {
     const teacherRoute = readFileSync(teacherRoutePath, 'utf8');
-    const waitingRoute = readFileSync(waitingRoutePath, 'utf8');
 
-    for (const [source, suffix] of [[teacherRoute, ''], [waitingRoute, '/waiting']] as const) {
-      expect(source).toContain('buildLoginRedirectForPath');
-      expect(source).toContain(`unit-1-4-time-frequency-views/teacher/\${params.sessionId}${suffix}`);
-      expect(source).not.toContain("redirect('/login')");
-    }
+    expect(teacherRoute).toContain('buildLoginRedirectForPath');
+    expect(teacherRoute).toContain('`/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}`');
+    expect(teacherRoute).toContain('`/interactive-learning/courses/${input.routeSegment}/teacher/${input.sessionId}/waiting`');
+    expect(teacherRoute).not.toContain("redirect('/login')");
   });
 
   it('binds every knowledge-card group to valid interactive steps', () => {
@@ -512,9 +509,10 @@ describe('unit 1-4 time frequency views course', () => {
   it('provides entry, teacher, student, and waiting routes', () => {
     const routeRoot = join(repoRoot, 'src/features/interactive/course-app-routes', UNIT_1_4_ROUTE_SEGMENT);
 
-    expect(existsSync(join(routeRoot, 'entry.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'teacher.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'waiting.tsx'))).toBe(true);
-    expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(true);
+    expect(existsSync(join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'))).toBe(true);
+    expect(existsSync(join(routeRoot, 'entry.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'teacher.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'waiting.tsx'))).toBe(false);
+    expect(existsSync(join(routeRoot, 'student.tsx'))).toBe(false);
   });
 });

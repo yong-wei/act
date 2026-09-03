@@ -151,9 +151,174 @@ describe('smart lesson plan workspace request contracts', () => {
     container.remove();
   });
 
+  it('drops an out-of-order poll response so an older projection cannot overwrite a newer one', async () => {
+    const runningTask = {
+      id: 'task-race',
+      courseBasisId: 'basis-1',
+      revision: 4,
+      topic: '竞态任务',
+      audience: '本科生',
+      durationMinutes: 45,
+      drafts: [{
+        id: 'draft-race',
+        state: 'GENERATING',
+        version: 2,
+        jobs: [{ id: 'job-race', state: 'RUNNING', stages: [] }],
+        reviews: [],
+      }],
+      revisions: [],
+      workspace: {
+        currentStage: 'lesson-generation',
+        statusLabel: '正在生成',
+        resumable: false,
+        unsupportedPayload: false,
+        stages: ['course-basis', 'topic-goals', 'class-attainment', 'lesson-generation', 'courseware-generation'].map((id) => ({
+          id,
+          title: id,
+          state: 'current',
+          statusLabel: '进行中',
+          complete: false,
+        })),
+      },
+    };
+    const completedTask = {
+      ...runningTask,
+      workspace: { ...runningTask.workspace, statusLabel: '生成完成' },
+      drafts: [{
+        ...runningTask.drafts[0],
+        state: 'READY',
+        jobs: [{ id: 'job-race', state: 'COMPLETED', stages: [] }],
+      }],
+    };
+    let resolveFirst: (value: Response) => void = () => {};
+    const firstFetch = new Promise<Response>((resolve) => { resolveFirst = resolve; });
+    const fetchMock = vi.fn()
+      .mockReturnValueOnce(firstFetch)
+      .mockReturnValueOnce(Promise.resolve(new Response(JSON.stringify({ task: completedTask }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })));
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const container = document.createElement('div');
+      document.body.append(container);
+      const root = createRoot(container);
+      await act(async () => root.render(createElement(SmartLessonPlanWorkspace, {
+        courseBases: [],
+        classDiagnosisOptions: [],
+        textbookCatalog: [],
+        initialTasks: [runningTask],
+        initialSelectedTaskId: 'task-race',
+      })));
+      const refresh = [...container.querySelectorAll('button')]
+        .find((button) => button.textContent === '刷新进度');
+      // 两次重叠刷新：第二次（COMPLETED，同 revision）先返回并被应用。
+      await act(async () => { refresh?.click(); });
+      await act(async () => { refresh?.click(); });
+      await act(async () => {});
+      // 第一次（较早发出的 RUNNING 投影）最后返回，必须被丢弃。
+      await act(async () => {
+        resolveFirst(new Response(JSON.stringify({ task: runningTask }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }));
+        await firstFetch;
+      });
+      await act(async () => {});
+      expect(container.textContent).toContain('生成完成');
+      expect(container.textContent).not.toContain('正在生成');
+      act(() => root.unmount());
+      container.remove();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('drops an out-of-order failed poll before it can overwrite the terminal status message', async () => {
+    const runningTask = {
+      id: 'task-race-2',
+      courseBasisId: 'basis-1',
+      revision: 4,
+      topic: '竞态失败提示',
+      audience: '本科生',
+      durationMinutes: 45,
+      drafts: [{
+        id: 'draft-race-2',
+        state: 'GENERATING',
+        version: 2,
+        jobs: [{ id: 'job-race-2', state: 'RUNNING', stages: [] }],
+        reviews: [],
+      }],
+      revisions: [],
+      workspace: {
+        currentStage: 'lesson-generation',
+        statusLabel: '正在生成',
+        resumable: false,
+        unsupportedPayload: false,
+        stages: ['course-basis', 'topic-goals', 'class-attainment', 'lesson-generation', 'courseware-generation'].map((id) => ({
+          id,
+          title: id,
+          state: 'current',
+          statusLabel: '进行中',
+          complete: false,
+        })),
+      },
+    };
+    const completedTask = {
+      ...runningTask,
+      workspace: { ...runningTask.workspace, statusLabel: '生成完成' },
+      drafts: [{ ...runningTask.drafts[0], state: 'READY', jobs: [{ id: 'job-race-2', state: 'COMPLETED', stages: [] }] }],
+    };
+    let rejectFirst: (reason?: unknown) => void = () => {};
+    const firstFetch = new Promise<Response>((_, reject) => { rejectFirst = reject; });
+    const fetchMock = vi.fn()
+      .mockReturnValueOnce(firstFetch)
+      .mockReturnValueOnce(Promise.resolve(new Response(JSON.stringify({ task: completedTask }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })));
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const container = document.createElement('div');
+      document.body.append(container);
+      const root = createRoot(container);
+      await act(async () => root.render(createElement(SmartLessonPlanWorkspace, {
+        courseBases: [],
+        classDiagnosisOptions: [],
+        textbookCatalog: [],
+        initialTasks: [runningTask],
+        initialSelectedTaskId: 'task-race-2',
+      })));
+      const refresh = [...container.querySelectorAll('button')]
+        .find((button) => button.textContent === '刷新进度');
+      await act(async () => { refresh?.click(); });
+      await act(async () => { refresh?.click(); });
+      await act(async () => {});
+      await act(async () => {
+        rejectFirst(new TypeError('network dropped'));
+        await firstFetch.catch(() => undefined);
+      });
+      await act(async () => {});
+      expect(container.textContent).toContain('生成完成');
+      expect(container.textContent).not.toContain('任务刷新失败');
+      act(() => root.unmount());
+      container.remove();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('does not offer recovery controls for a superseded generation job', () => {
-    expect(workspaceSource).toContain("job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state)");
-    expect(workspaceSource).toContain("job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state)");
+    expect(workspaceSource).not.toContain("['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state)");
+    expect(workspaceSource).not.toContain("['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state)");
+    expect(workspaceSource).toContain('SMART_JOB_RECOVERY_STATES.includes(job.state');
+    expect(workspaceSource).toContain('SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state');
+    const libSource = readFileSync(
+      join(process.cwd(), 'src/lib/smart-lesson-plan/workspace.ts'),
+      'utf8',
+    );
+    expect(libSource).toContain("export const SMART_JOB_RECOVERY_STATES = ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] as const;");
+    expect(libSource).toContain("export const SMART_JOB_EDIT_BLOCKING_STATES = ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'] as const;");
   });
 
   it('uses the stable courseware draft and approved-plan revision URL contract', () => {

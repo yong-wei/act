@@ -7,7 +7,7 @@ const PROJECT_ROOT = process.cwd();
 const RUNTIME_PREFIX = 'course-content/runtime/';
 
 export const RUNTIME_BLOB_HELPER_NAME = '.act-runtime-blobs';
-export const RUNTIME_CONTENT_ROOT = path.join(PROJECT_ROOT, 'course-content', 'runtime');
+export const RUNTIME_CONTENT_ROOT = path.join(/*turbopackIgnore: true*/ PROJECT_ROOT, 'course-content', 'runtime');
 
 export type RuntimeContentPath = {
   absolutePath: string;

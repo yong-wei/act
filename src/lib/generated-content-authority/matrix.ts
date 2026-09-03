@@ -16,13 +16,13 @@ export const ASSESSMENT_DEPENDENCY_ARCHIVE = 'openspec/changes/archive/2026-08-2
 
 /** #1564 资格核验所需的实现/测试/回执契约文件（缺失即 NOT_QUALIFIED）。 */
 export const ASSESSMENT_DEPENDENCY_EVIDENCE: readonly string[] = [
-  'src/features/adaptive-assessment/generated-candidate-governance.ts',
-  'src/features/adaptive-assessment/generated-candidate-persistence.ts',
-  'src/features/adaptive-assessment/generated-candidate-catalog.ts',
+  'src/features/assessment/generated-candidate-governance.ts',
+  'src/features/assessment/generated-candidate-persistence.ts',
+  'src/features/assessment/generated-candidate-catalog.ts',
   'src/app/api/assessment/generated-candidates/route.ts',
   'src/app/api/assessment/generated-candidates/[id]/review/route.ts',
   'src/app/api/assessment/generated-candidates/[id]/publish/route.ts',
-  'src/features/adaptive-assessment/__tests__/generated-candidate-governance.test.ts',
+  'src/features/assessment/__tests__/generated-candidate-governance.test.ts',
 ];
 
 /** LearningFact 权威写入器（任何域的生成/提供方模块都禁止 import）。 */
@@ -55,26 +55,26 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '864b8e7d897b7eb4811f36bd7e409bd628b2d634cc506860f559fe6af42ae5d3',
+  evidenceDigest: '31206f4bbe6e242809cdd328972f7795c3a603a71d13a9dbeafe1ec0e749043a',
   rows: [
     {
       domain: 'assessment',
       owner: 'src/features/adaptive-assessment（Assessment/adaptive-assessment 治理，#1564 实现）',
       sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
       draftIdentity: {
-        creationReference: 'src/app/api/assessment/generated-candidates/route.ts → createGeneratedCandidate (src/features/adaptive-assessment/generated-candidate-governance.ts)',
+        creationReference: 'src/app/api/assessment/generated-candidates/route.ts → createGeneratedCandidate (src/features/assessment/generated-candidate-governance.ts)',
         notes: 'provider/model/prompt 哈希作为私有审计证据入 envelope（:257-258），载荷本体不入库',
       },
       validationEvidence: [
-        'src/features/adaptive-assessment/generated-candidate-governance.ts runGeneratedCandidatePrecheck（确定性 precheck）',
-        'src/features/adaptive-assessment/adaptive-assessment-semantic-review.ts validateAssessmentItemSemanticReviewSource（来源哈希校验）',
+        'src/features/assessment/generated-candidate-governance.ts runGeneratedCandidatePrecheck（确定性 precheck）',
+        'src/features/assessment/adaptive-assessment-semantic-review.ts validateAssessmentItemSemanticReviewSource（来源哈希校验）',
       ],
       humanAcceptance: [
         'src/app/api/assessment/generated-candidates/[id]/review/route.ts → reviewGeneratedCandidate（TEACHER/ADMIN；AI/自动 precheck 不可自批）',
       ],
       immutableRevision: {
         model: 'AdaptiveAssessmentGeneratedCandidateRevision',
-        driftGuardReference: 'src/features/adaptive-assessment/generated-candidate-persistence.ts（contentHash 漂移抛 immutable-revision-drift）',
+        driftGuardReference: 'src/features/assessment/generated-candidate-persistence.ts（contentHash 漂移抛 immutable-revision-drift）',
       },
       publicationReceipt: {
         kind: 'RECEIPT',
@@ -94,20 +94,20 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/features/assessment/adaptive-engine.ts',
       ],
       authorityWriteSites: [
-        'src/features/adaptive-assessment/generated-candidate-persistence.ts（候选/修订/事件/评审/回执唯一持久化入口）',
-        'src/features/adaptive-assessment/generated-candidate-catalog.ts（writeGeneratedCatalogRelease：目录 sidecar 发布写点）',
-        'src/features/adaptive-assessment/adaptive-assessment-semantic-review.ts（人审决策 artifact 落盘）',
+        'src/features/assessment/generated-candidate-persistence.ts（候选/修订/事件/评审/回执唯一持久化入口）',
+        'src/features/assessment/generated-candidate-catalog.ts（writeGeneratedCatalogRelease：目录 sidecar 发布写点）',
+        'src/features/assessment/adaptive-assessment-semantic-review.ts（人审决策 artifact 落盘）',
         'src/features/assessment/adaptive-persistence.ts（学生作答持久化权威路径：submitAnswerDurably）',
       ],
       forbiddenSinkModules: [
-        'src/features/adaptive-assessment/generated-candidate-catalog.ts',
-        'src/features/adaptive-assessment/generated-catalog-runtime.ts',
+        'src/features/assessment/generated-candidate-catalog.ts',
+        'src/features/assessment/generated-catalog-runtime.ts',
         ...LEARNING_FACT_SINK_MODULES,
       ],
       sinkPolicyNotes: '候选草稿持久化（persistGeneratedCandidateStore）属草稿写入而非权威 sink；目录发布与运行时 overlay 仅 ADMIN publish 路由可达',
       sinkScanExemptions: [
-        'src/features/adaptive-assessment/adaptive-assessment-catalog-selector.ts（已发布产物的运行时消费者，denominator.callers 已声明）',
-        'src/features/adaptive-assessment/generated-catalog-runtime.ts（声明 sink 模块自身，发布路由专属消费）',
+        'src/features/assessment/adaptive-assessment-catalog-selector.ts（已发布产物的运行时消费者，denominator.callers 已声明）',
+        'src/features/assessment/generated-catalog-runtime.ts（声明 sink 模块自身，发布路由专属消费）',
         'src/features/assessment/adaptive-persistence.ts（学生作答持久化权威路径：submitAnswerDurably；非 AI 生成器，作答写入与 LearningFact 物化属既有域内契约）',
         'src/app/api/assessment/remediation/route.ts（补救干预路径，generated-catalog-runtime 的合法消费方）',
       ],
@@ -129,11 +129,11 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         workers: [],
         scripts: ['data/generated-assessment-catalog（发布 sidecar，由 writeGeneratedCatalogRelease 写出）'],
         tests: [
-          'src/features/adaptive-assessment/__tests__/generated-candidate-governance.test.ts',
+          'src/features/assessment/__tests__/generated-candidate-governance.test.ts',
         ],
         callers: [
-          'src/features/adaptive-assessment/generated-catalog-runtime.ts（运行时 overlay 消费）',
-          'src/features/adaptive-assessment/adaptive-assessment-catalog-selector.ts（选题消费）',
+          'src/features/assessment/generated-catalog-runtime.ts（运行时 overlay 消费）',
+          'src/features/assessment/adaptive-assessment-catalog-selector.ts（选题消费）',
           'src/features/assessment/adaptive-persistence.ts（submitAnswerDurably：作答持久化权威路径）',
         ],
       },
@@ -372,7 +372,7 @@ export const LEARNING_FACT_WRITE_SITES: readonly string[] = [
   'src/lib/canonical-learning-fact-identity/writer.ts',
   'src/lib/data-governance/learning-fact-materialization.ts',
   'src/lib/data-governance/simulation-task-learning-fact.ts',
-  'src/lib/data-governance/document-rubric-grading-workbench.ts',
+  'src/features/teacher/document-rubric-grading-workbench.ts',
   'src/lib/data-governance/historical-evidence-materialization.ts',
   'src/lib/data-governance/interactive-evidence-scoring-recompute.ts',
   'src/lib/data-governance/simulation-agent-evidence-materialization.ts',
@@ -399,7 +399,7 @@ export const AUTHORITY_WRITE_MODEL_PATTERN = /\.(learningFact|adaptiveAssessment
  * 写点发现不受此限制——全域 default-deny。
  */
 export const GENERATED_CONTENT_DOMAIN_ROOTS: Readonly<Record<GeneratedContentDomain, readonly string[]>> = {
-  assessment: ['src/features/adaptive-assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
+  assessment: ['src/features/assessment/', 'src/features/assessment/', 'src/app/api/assessment/'],
   'assignment-rubric': ['src/lib/assignments/', 'src/app/api/teacher/assignments/'],
   'smart-lesson': ['src/lib/smart-lesson-plan/', 'src/app/api/teacher/smart-lesson-tasks/'],
   'smart-courseware': ['src/lib/smart-courseware/', 'src/app/api/teacher/smart-courseware/'],

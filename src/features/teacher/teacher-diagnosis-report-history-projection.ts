@@ -1,4 +1,9 @@
 import type { DiagnosisReportApiItem } from '@/features/teacher/diagnosis/public-api';
+import {
+  detectOverallSubgroupPseudoConflict,
+  diagnosisClauseDeclaresConflict,
+  splitDiagnosisClauses,
+} from '@/lib/diagnosis-pseudo-conflict';
 
 type EvidenceGroupId = 'assignment' | 'assessment' | 'learning-behavior';
 type CoverageState = 'available' | 'partial' | 'unavailable';
@@ -98,7 +103,7 @@ export function projectReportHistoryCard(
     evidenceCutoffLabel: formatShortDate(report.evidenceCutoff),
     generationReason: formatGenerationReason(report),
     mainWeaknessLabel: mainWeaknessLabel(report),
-    availability: buildAvailability(report, confidenceReasons, attributionOnly),
+    availability: buildAvailability(report, confidenceReasons, attributionOnly, evidenceGroups),
     evidenceGroups,
     confidenceReasons,
     comparison: compareAdjacentReports(report, adjacentOlderReport),
@@ -189,6 +194,23 @@ function outcomeEvidenceGroup(
   };
 }
 
+function evidenceCoverageComplete(
+  report: DiagnosisReportApiItem,
+  evidenceGroups: EvidenceCoverageGroup[],
+) {
+  const coverage = report.reportBody.sourceCoverage;
+  // 要求显式完整覆盖信号（Issue #1755 review）：可选字段缺省不得当作完整。
+  const membershipComplete = typeof coverage.classMembers === 'number'
+    && typeof coverage.includedStudents === 'number'
+    && coverage.includedStudents >= coverage.classMembers;
+  return coverage.coverage === 1
+    && membershipComplete
+    && evidenceGroups.every((group) => group.state === 'available');
+}
+
+// 声明限制确含跨来源冲突语义时才允许"证据存在冲突"表述（Issue #1755 review）。
+const EVIDENCE_CONFLICT_WORDING = /冲突|矛盾|不一致/;
+
 function buildConfidenceReasons(
   report: DiagnosisReportApiItem,
   evidenceGroups: EvidenceCoverageGroup[],
@@ -225,13 +247,22 @@ function buildConfidenceReasons(
       recoveryAction: '补齐未纳入学生的学习证据后，重新生成诊断。',
     });
   }
+  // 覆盖完整时，模型声明的自定义限制（如跨来源证据冲突）就是真实降级原因，
+  // 如实展示并指向教师复核，不得回退为笼统的"补充证据"（Issue #1755）。
+  const coverageComplete = evidenceCoverageComplete(report, evidenceGroups);
   for (const limitation of report.reportBody.limitations) {
     const formatted = formatLimitation(limitation);
-    if (formatted === limitation) continue;
-    reasons.push({
-      reason: formatted,
-      recoveryAction: '等待对应数据恢复完整后，重新生成诊断。',
-    });
+    if (formatted !== limitation) {
+      reasons.push({
+        reason: formatted,
+        recoveryAction: '等待对应数据恢复完整后，重新生成诊断。',
+      });
+    } else if (coverageComplete) {
+      reasons.push({
+        reason: `报告声明了影响结论强度的判断边界：${limitation}`,
+        recoveryAction: '教师复核声明的判断边界；如需更新结论，重新生成诊断。',
+      });
+    }
   }
   if (attributionLimited) {
     reasons.push({
@@ -252,6 +283,7 @@ function buildAvailability(
   report: DiagnosisReportApiItem,
   confidenceReasons: ConfidenceReason[],
   attributionOnly: boolean,
+  evidenceGroups: EvidenceCoverageGroup[],
 ): ReportAvailability {
   if (report.reportBody.confidence === 'unavailable') {
     return {
@@ -266,6 +298,31 @@ function buildAvailability(
       description: '可以查看发现项，但需结合判断边界进行人工复核。',
       recoveryAction: confidenceReasons[0]?.recoveryAction ?? '补充证据后重新生成诊断。',
     };
+  }
+  if (report.reportBody.confidence === 'medium' && evidenceCoverageComplete(report, evidenceGroups)) {
+    // 总体—子群伪冲突（Issue #1872）：历史报告不可变，但不得把班级总体
+    // 与部分学生的不可比信号继续显示为证据冲突，标注需重新生成；检测
+    // 独立进行，summary 内的伪冲突声明同样覆盖。
+    if (detectOverallSubgroupPseudoConflict(report.reportBody).length > 0) {
+      return {
+        label: '报告需重新生成',
+        description: '该报告把班级总体表现与部分学生进度表述为证据冲突；两者学生范围不同、可以同时成立，不属于可比证据冲突。',
+        recoveryAction: '重新生成诊断以获得可比证据冲突判定。',
+      };
+    }
+    // 显式完整覆盖且声明限制确含冲突语义：如实表述为证据冲突并指向教师
+    // 复核；缺省可选覆盖字段或非冲突限制不得套用该状态（Issue #1755 review）。
+    const conflictDeclared = [
+      report.reportBody.summary,
+      ...report.reportBody.limitations,
+    ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
+    if (conflictDeclared) {
+      return {
+        label: '证据存在冲突',
+        description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',
+        recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
+      };
+    }
   }
   if (report.reportBody.confidence === 'medium') {
     return {
@@ -416,7 +473,7 @@ function includedStudentsLabel(report: DiagnosisReportApiItem) {
 }
 
 function mainWeaknessLabel(report: DiagnosisReportApiItem) {
-  return report.reportBody.findings[0]?.title ?? '未形成可稳定识别的主要薄弱点';
+  return report.reportBody.findings[0]?.title ?? '未发现明确薄弱节点';
 }
 
 function formatLimitation(value: string) {

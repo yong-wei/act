@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildKaqQuizQuestionMetadata } from '@/features/adaptive-assessment/kaq-quiz-foundation';
-import * as adaptiveAssessmentCatalogSelector from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+import { buildKaqQuizQuestionMetadata } from '@/features/assessment/kaq-quiz-foundation';
+import * as adaptiveAssessmentCatalogSelector from '@/features/assessment/adaptive-assessment-catalog-selector';
 import {
   checkpointAuthoredQuestionRuntimeId,
   REVIEWED_LEARNING_GOAL_CHECKPOINT_QUESTIONS,
   sourceIdFromCheckpointAuthoredQuestionRuntimeId,
-} from '@/features/adaptive-assessment/learning-goal-checkpoint-question-sets';
+} from '@/features/assessment/learning-goal-checkpoint-question-sets';
 
 import { PRESET_QUESTIONS } from '../adaptive-question-bank';
 import * as resourceRegistryMetadata from '@/lib/resource-registry-metadata';

@@ -14,6 +14,21 @@ export function familyLabel(locale: AdmittedLocale, family: EngineeringRelationF
   return graphInterfaceText(`filter.family.${family}`, locale);
 }
 
+// 注册节点类型的呈现层词汇：与画布 glyph 同一身份（canonicalType），
+// locale 切换时随面板整体换语言（#1742）。
+const NODE_TYPE_INTERFACE_KEYS: Readonly<Record<string, GraphInterfaceKey>> = {
+  DomainConcept: 'nodeType.DomainConcept',
+  Formula: 'nodeType.Formula',
+  KnowledgeStatement: 'nodeType.KnowledgeStatement',
+  SystemModel: 'nodeType.SystemModel',
+  ModelRepresentation: 'nodeType.ModelRepresentation',
+};
+
+export function nodeTypeLabel(locale: AdmittedLocale, canonicalType: string, fallback: string): string {
+  const key = NODE_TYPE_INTERFACE_KEYS[canonicalType];
+  return key ? graphInterfaceText(key, locale) : fallback;
+}
+
 export function shardUrl(path: string, locale: AdmittedLocale): string {
   if (locale === 'zh-CN') return path;
   const separator = path.includes('?') ? '&' : '?';
@@ -55,6 +70,10 @@ export function formatLoadMore(locale: AdmittedLocale, count: number): string {
 
 export function formatLoadMoreAria(locale: AdmittedLocale, count: number): string {
   return formatGraphInterfaceText('search.loadMoreAria', locale, { count });
+}
+
+export function formatUnpinAllAria(locale: AdmittedLocale, count: number): string {
+  return formatGraphInterfaceText('controls.unpinAllAria', locale, { count });
 }
 
 export function formatSearchShownCount(

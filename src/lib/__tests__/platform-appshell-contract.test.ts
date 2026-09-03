@@ -141,11 +141,17 @@ function isDefaultExport(node: ts.Node) {
   return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Default);
 }
 
+function isExported(node: ts.Node) {
+  return Boolean(ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export);
+}
+
 function getFunctionBodyForComponent(sourceFile: ts.SourceFile, componentName?: string): ts.ConciseBody | undefined {
+  const exportedFunctions: ts.FunctionDeclaration[] = [];
   for (const statement of sourceFile.statements) {
     if (ts.isFunctionDeclaration(statement)) {
       if (!componentName && isDefaultExport(statement)) return statement.body;
       if (componentName && statement.name?.text === componentName) return statement.body;
+      if (!componentName && isExported(statement) && statement.body) exportedFunctions.push(statement);
     }
 
     if (
@@ -169,6 +175,7 @@ function getFunctionBodyForComponent(sourceFile: ts.SourceFile, componentName?: 
     }
   }
 
+  if (!componentName && exportedFunctions.length === 1) return exportedFunctions[0].body;
   return undefined;
 }
 
@@ -349,8 +356,11 @@ function findRouteCoverage(file: string): RouteCoverage | undefined {
   if (isManifestCourseDispatcher(file)) {
     const source = readFileSync(file, 'utf8');
     if (
-      source.includes("from '@/features/interactive/shared/manifest-course-app-loaders'") &&
-      source.includes('notFound()')
+      source.includes('notFound()') &&
+      (
+        source.includes("from '@/features/interactive/shared/manifest-course-app-loaders'")
+        || source.includes("from '@/features/interactive/shared/batch-a-classroom-pages'")
+      )
     ) {
       return { kind: 'compatible-wrapper', evidence: 'manifest-course-shared-dispatcher' };
     }
@@ -679,7 +689,6 @@ describe('universal AppShell frame contract', () => {
       '/classroom',
       '/interactive-learning/courses',
       '/ai',
-      '/graph-center',
       '/knowledge',
       '/assessment',
       '/playlists',
@@ -731,7 +740,6 @@ describe('universal AppShell frame contract', () => {
         'teacher',
         'teacher-classes',
         'admin',
-        'graph',
         'data-center',
         'course',
         'course-student-session',

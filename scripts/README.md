@@ -66,7 +66,7 @@ npx tsx scripts/db/backfill-class-session-attribution.ts --session-id=<session-i
 npx tsx scripts/db/backfill-class-session-attribution.ts --session-id=<session-id> --class-id=<class-id> --apply
 ```
 
-兼容入口 `db:backfill-class-attribution` 指向同一脚本，但 npm 入口同样走 apply 门禁、默认不写库。不再按参与者画像或当前
+npm 入口 `db:backfill-class-attribution` 指向同一脚本，但同样走 apply 门禁、默认不写库。不再按参与者画像或当前
 默认班级自动推断，也不支持批量筛选。可选 `--teacher-id=<teacher-id>` 仅用于复核
 课堂教师是否与审核记录一致。
 
@@ -95,6 +95,7 @@ node scripts/ops/clear-logs.mjs
 
 ## 相关文档
 
+- [活动 Tooling CLI 清单](../docs/architecture/tooling-cli-inventory.md)
 - [项目说明](../docs/ProjectDescription.md)
 - [仿真规范](../docs/Simulation_Guidelines.md)
 - [文档索引](../docs/README.md)

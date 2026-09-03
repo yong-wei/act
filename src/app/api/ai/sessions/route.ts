@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import {
+  createKonlingAssistantBindingEvent,
   createKonlingContextEvent,
   KONLING_DEFAULT_CONVERSATION_TITLE,
+  konlingLibraryRetentionWhere,
+  normalizeKonlingConversationAssistantBinding,
   resolveKonlingContextEventScope,
   serializeKonlingConversation,
 } from '@/lib/konling-conversation-library';
+import { loadTextbookCoachContext } from '@/lib/textbook-resource-coach/loader';
 import { verifyKonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
-const SESSION_EXPIRY_DAYS = 7;
 const SEARCH_MAX_LENGTH = 64;
 
 export const dynamic = 'force-dynamic';
@@ -30,8 +34,7 @@ export async function GET(request: NextRequest) {
     const conversations = await prisma.konlingSession.findMany({
       where: {
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
         ...(search ? {
           title: {
             contains: search,
@@ -106,23 +109,85 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const conversationId = crypto.randomUUID();
-    const expiresAt = new Date(now);
-    expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
     const initialContext = createKonlingContextEvent(contextEventScope);
-    const conversation = await prisma.konlingSession.create({
-      data: {
-        id: conversationId,
-        userId: session.user.id,
-        courseId: contextEventScope.courseId,
-        pageId: contextEventScope.pageId,
-        title: KONLING_DEFAULT_CONVERSATION_TITLE,
-        titleIsManual: false,
-        migrationSourceId: `native:${conversationId}`,
-        messages: [initialContext] as unknown as import('@prisma/client').Prisma.InputJsonValue,
-        lastActivityAt: now,
-        expiresAt,
-      },
+
+    // 资源辅导首轮提问时的创建：服务端重新验证完整资源身份后才落库绑定；
+    // 以用户与完整身份的确定性来源键保证并发首问幂等复用同一会话。
+    const requestedBinding = normalizeKonlingConversationAssistantBinding({
+      modeId: typeof body.assistantBinding?.modeId === 'string' ? body.assistantBinding.modeId : null,
+      clientContextHints: body.assistantBinding?.clientContextHints
+        && typeof body.assistantBinding.clientContextHints === 'object'
+        && !Array.isArray(body.assistantBinding.clientContextHints)
+        ? body.assistantBinding.clientContextHints as Record<string, unknown>
+        : null,
     });
+    let boundConversation: {
+      binding: NonNullable<ReturnType<typeof normalizeKonlingConversationAssistantBinding>>;
+      sourceKey: string;
+    } | null = null;
+    if (requestedBinding?.teachingAssistantModeId === 'resource-coach') {
+      const loaded = await loadTextbookCoachContext({
+        actorUserId: session.user.id,
+        declared: requestedBinding.modeClientContextHints,
+      });
+      if (loaded.status !== 'ready') {
+        return NextResponse.json({
+          error: 'KONLING_MODE_UNAVAILABLE',
+          mode: 'resource-coach',
+          status: 'unavailable',
+          unavailableReasons: [`textbook-coach:${loaded.reason}`],
+        }, { status: 409 });
+      }
+      const identity = loaded.identity;
+      boundConversation = {
+        binding: { ...requestedBinding, pinnedTextbookResourceIdentity: identity },
+        sourceKey: [
+          'resource-coach',
+          session.user.id,
+          identity.unitId,
+          identity.sourceRevision,
+          identity.contentHash,
+          identity.anchorId ?? '-',
+        ].join(':'),
+      };
+    }
+
+    let conversation;
+    try {
+      conversation = await prisma.konlingSession.create({
+        data: {
+          id: conversationId,
+          userId: session.user.id,
+          courseId: contextEventScope.courseId,
+          pageId: contextEventScope.pageId,
+          title: KONLING_DEFAULT_CONVERSATION_TITLE,
+          titleIsManual: false,
+          migrationSourceId: boundConversation?.sourceKey ?? `native:${conversationId}`,
+          messages: [
+            initialContext,
+            ...(boundConversation
+              ? [createKonlingAssistantBindingEvent(boundConversation.binding)]
+              : []),
+          ] as unknown as import('@prisma/client').Prisma.InputJsonValue,
+          lastActivityAt: now,
+        },
+      });
+    } catch (error) {
+      const isIdentityRace = boundConversation !== null
+        && error instanceof Prisma.PrismaClientKnownRequestError
+        && error.code === 'P2002';
+      if (!boundConversation || !isIdentityRace) throw error;
+      // 并发首问竞争：复用已落库的胜者会话，不产生重复空会话
+      const winner = await prisma.konlingSession.findFirst({
+        where: {
+          migrationSourceId: boundConversation.sourceKey,
+          userId: session.user.id,
+          ...konlingLibraryRetentionWhere(),
+        },
+      });
+      if (!winner) throw error;
+      return NextResponse.json(serializeKonlingConversation(winner), { status: 200 });
+    }
 
     return NextResponse.json(serializeKonlingConversation(conversation), { status: 201 });
   } catch (error) {

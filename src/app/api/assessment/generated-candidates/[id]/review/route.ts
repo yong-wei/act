@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { reviewGeneratedCandidate } from '@/features/adaptive-assessment/generated-candidate-governance';
+import { reviewGeneratedCandidate } from '@/features/assessment/generated-candidate-governance';
 import {
   loadGeneratedCandidateStore,
   persistGeneratedCandidateStore,
-} from '@/features/adaptive-assessment/generated-candidate-persistence';
+} from '@/features/assessment/generated-candidate-persistence';
 
 export const dynamic = 'force-dynamic';
 

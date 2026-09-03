@@ -197,4 +197,152 @@ describe('useInteractiveAI governed session', () => {
     expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/sessions')).toBe(false);
     expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/chat')).toBe(false);
   });
+
+  it('projects generic non-2xx responses as student-safe failures without raw body leakage', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        return jsonResponse({ conversations: [] });
+      }
+      if (url === '/api/ai/sessions') {
+        return jsonResponse({ id: 'conv-1870' }, { status: 201 });
+      }
+      if (url === '/api/ai/chat') {
+        return jsonResponse({
+          error: 'AI_SERVICE_UNAVAILABLE',
+          trace: 'INTERNAL-STACK-CANARY-1870 SiliconFlow',
+        }, { status: 503 });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'ready');
+
+    await expect(act(async () => {
+      await latest?.sendMessage('服务不可用时的问题');
+    })).rejects.toThrow('智能助手暂时无法完成请求，请稍后再试。');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'service-unavailable',
+      message: '智能助手暂时无法完成请求，请稍后再试。',
+    });
+    expect(JSON.stringify(latest?.error)).not.toContain('503');
+    expect(JSON.stringify(latest?.error)).not.toContain('AI_SERVICE_UNAVAILABLE');
+    expect(JSON.stringify(latest?.error)).not.toContain('INTERNAL-STACK-CANARY-1870');
+    expect(JSON.stringify(latest?.error)).not.toContain('SiliconFlow');
+  });
+
+  it('projects network rejections as student-safe temporary-unavailability failures', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        return jsonResponse({ conversations: [] });
+      }
+      if (url === '/api/ai/sessions') {
+        return jsonResponse({ id: 'conv-1870' }, { status: 201 });
+      }
+      if (url === '/api/ai/chat') {
+        throw new TypeError('Failed to fetch');
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'ready');
+
+    await expect(act(async () => {
+      await latest?.sendMessage('断网时的问题');
+    })).rejects.toThrow('网络连接不可用，请检查网络后重试。');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'network-unavailable',
+      message: '网络连接不可用，请检查网络后重试。',
+    });
+    expect(JSON.stringify(latest?.error)).not.toContain('Failed to fetch');
+  });
+
+  it('classifies an expired server session on conversation creation as auth-required', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        return jsonResponse({ conversations: [] });
+      }
+      if (url === '/api/ai/sessions') {
+        return jsonResponse({ error: 'UNAUTHORIZED' }, { status: 401 });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'ready');
+
+    await expect(act(async () => {
+      await latest?.sendMessage('会话过期时的问题');
+    })).rejects.toThrow('登录状态已失效，请重新登录后再继续。');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'auth-required',
+      message: '登录状态已失效，请重新登录后再继续。',
+    });
+  });
+
+  it('classifies a recovery-list network rejection as network-unavailable instead of session loss', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        throw new TypeError('Failed to fetch');
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'unavailable');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'network-unavailable',
+      message: '网络连接不可用，请检查网络后重试。',
+    });
+    expect(JSON.stringify(latest?.error)).not.toContain('Failed to fetch');
+    expect(fetchMock.mock.calls.some(([input]) => String(input) === '/api/ai/sessions')).toBe(false);
+  });
+
+  it('keeps the 409 session-isolation recovery semantics with a safe message', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/ai/sessions?')) {
+        return jsonResponse({ conversations: [] });
+      }
+      if (url === '/api/ai/sessions') {
+        return jsonResponse({ id: 'conv-fresh' }, { status: 201 });
+      }
+      if (url === '/api/ai/chat') {
+        return jsonResponse({ error: 'INTERACTIVE_AI_RESOURCE_MISMATCH' }, { status: 409 });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    await mount();
+    await waitFor(() => latest?.recoveryStatus === 'ready');
+
+    await expect(act(async () => {
+      await latest?.sendMessage('会被隔离的问题');
+    })).rejects.toThrow('当前资源的对话已隔离，请重新提问。');
+    await waitFor(() => latest?.error !== null);
+
+    expect(latest?.error).toEqual({
+      category: 'state-conflict',
+      message: '当前资源的对话已隔离，请重新提问。',
+    });
+    await waitFor(() => latest?.messages.length === 1 && latest.messages[0]?.content === '会被隔离的问题');
+  });
 });

@@ -1,8 +1,8 @@
 import {
   PATH_CONSTRAINT_REPAIR_VERSION,
   deterministicPathConstraintRepairAdapter,
-} from '@/lib/adaptive-planning/path-constraint-repair';
-import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
+} from '@/features/personalization/path-planning/path-constraint-repair';
+import { rankResourceLearnerCandidates } from '@/features/personalization/path-planning/resource-ranker';
 
 import { personalizationPluginRegistry } from '@/features/personalization/plugins/public-api';
 import {

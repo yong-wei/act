@@ -1,0 +1,4572 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "nonlinear-system-analysis",
+  "entries": [
+    {
+      "id": "ctkg:m3-v2p:canonical-object:64f6e66a201f62a98db0ee79",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相交时自振稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2p:canonical-object:c036e4246a4032cd20e9decd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "不相交时非线性系统稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0079fafb4b8e0579bedea1a6",
+      "canonicalType": "DomainConcept",
+      "label": "外部稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-011f4f06a713953af0daf122",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相轨迹在某些特定情况下，也可以通过积分法，直接由微分方程获得ẋ（t）和x（t）的解析关系式。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-014763c51fc76b93d2e36363",
+      "canonicalType": "SystemModel",
+      "label": "ddot{theta} + (g/l) sin theta = T_c/(m l^2)；状态变量形式，其中 x = [theta, dot{theta}]^T。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+      "canonicalType": "DomainConcept",
+      "label": "稳定焦点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-01c46e7882202bb14342354b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "加入串联超前校正网络消除自振并提高相角裕度",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+      "canonicalType": "DomainConcept",
+      "label": "基于根轨迹的等效增益分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-02add349d1d8b2f3be79d0a5",
+      "canonicalType": "Formula",
+      "label": "L=-\\frac{1}{K_{e q}(a)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0336f68bae1eebc5545ee2f8",
+      "canonicalType": "Formula",
+      "label": "A_{0}=\\frac{1}{2 \\pi} \\int_{0}^{2 \\pi} y(t) \\mathrm{d} \\omega t",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-042ed878bf4005ac55cb96fc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相平面法适用于分析常见非线性特性和一阶、二阶线性环节组合而成的非线性系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-048b46fc600674ac29b5cc0c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "首先确定平衡值 x_o、u_o 使得 dot{x}_o = 0 = f(x_o, u_o)，令 x = x_o + delta x 且 u = u_o + delta u，然后关于扰动展开非线性方程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-06eff10239586b5ea3a8dbab",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性特性可视为变增益比例环节",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-07fb25cb3dd84ed03a637ba2",
+      "canonicalType": "Formula",
+      "label": "c(t)=c_{10} \\mathrm{e}^{-s_{1} t}+c_{20} \\mathrm{e}^{-s_{2} t}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-08cd1d12153cadb89717f830",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由初始点出发，按照该点所处等倾线的短直线方向作一条小线段，并与相邻一条等倾线相交；由该交点起，并按该交点所在等倾线的短直线方向作一条小线段，再与其相邻的一条等倾线相交；循此步骤依次进行，就可以获得一条从初始点出发，由各小线段组成的折线，最后对该折线作光滑处理，即得到所求系统的相轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-093e69f52a564305cb43330f",
+      "canonicalType": "Formula",
+      "label": "K_{e q}(a)=\\left\\{\\begin{array}{cl}\\frac{2}{\\pi}\\left(k \\sin ^{-1}\\left(\\frac{N}{a k}\\right)+\\frac{N}{a} \\sqrt{1-\\left(\\frac{N}{k a}\\right)^{2}}\\right), & \\frac{k a}{N}>1,  \\\\k, & \\frac{k a}{N} \\leq 1 .\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "canonicalType": "DomainConcept",
+      "label": "极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-09ba7fa7e4937484ee0ed17c",
+      "canonicalType": "Formula",
+      "label": "\\alpha=-2 \\zeta \\omega_{n}-\\frac{\\omega_{n}^{2}}{k}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "canonicalType": "DomainConcept",
+      "label": "迟滞非线性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0c3ede0472972e1f7447f3f6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "ζ>1时，系统特征根为两个互异负实根，存在两条特殊的等倾线，相轨迹最终沿斜率较大的等倾线方向收敛至原点（稳定节点）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0de3835f8e7a0dd3f7265202",
+      "canonicalType": "SystemModel",
+      "label": "描述线性一阶系统自由运动的微分方程为Tċ+c=0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-11c92ef871fed8117cb073e2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "饱和特性使系统开环增益在饱和区下降",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-12a2d825bf2495cb5b66f740",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于根轨迹的极限环分析与设计步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-12e3a662d3fc1444343fa005",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性摆的平衡条件对应于 theta_o = 0（下垂位置）与 theta_o = pi（倒立位置）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-13572d6e4997e4bea3c6a45a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数假设",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-141aa30eb0cfde37ebc72fcd",
+      "canonicalType": "Formula",
+      "label": "k=\\frac{y}{x}=\\frac{f(x)}{x}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-14b61e56571539bbfb630ae7",
+      "canonicalType": "DomainConcept",
+      "label": "小偏差线性化法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+      "canonicalType": "DomainConcept",
+      "label": "施密特触发器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-194320cb8f7321b946f01891",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统的频率特性是输入正弦信号频率 ω 的函数，与幅值 A 无关；而非线性环节的描述函数是输入正弦信号幅值 A 的函数，表现为关于 A 的复变增益放大器。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1ca4635beaad42eaac5ec29e",
+      "canonicalType": "DomainConcept",
+      "label": "正弦输入下的非线性环节",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1e1efb7ae4bf219533f83cb3",
+      "canonicalType": "Formula",
+      "label": "|G(\\mathrm{j} \\omega)|=\\left|\\frac{1}{N(A)}\\right|, \\quad \\angle[G(\\mathrm{j} \\omega)]=-\\pi-\\angle[N(A)]",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+      "canonicalType": "KnowledgeStatement",
+      "label": "考虑图9.14中的反馈系统。利用奈奎斯特图求极限环的幅值与频率。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "canonicalType": "DomainConcept",
+      "label": "相平面图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "canonicalType": "DomainConcept",
+      "label": "等倾线法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-220fcd1bb4ad4dfdcfb9ab69",
+      "canonicalType": "KnowledgeStatement",
+      "label": "平衡点位于 theta_o = 0, pi；状态空间矩阵 A = [[0,1],[-omega_o^2 cos theta_o, 0]], B = [[0],[1]]；当 theta_o=0 时特征值为 pm j omega_o，当 theta_o=pi 时特征值为 pm omega_o。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-22c81cdd772685a93be84656",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统闭环特征方程模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-236a4059be6d4d9e61809e9e",
+      "canonicalType": "Formula",
+      "label": "\\dot{c}(t)=-\\frac{b c(t)}{\\alpha+a}=k c(t)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-238f13fe1b16779db3c24826",
+      "canonicalType": "KnowledgeStatement",
+      "label": "半稳定极限环的周期运动可能稳定或不稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2472530b842ec00599809720",
+      "canonicalType": "DomainConcept",
+      "label": "继电器非线性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-25e5cfccdeafc21d2ae5d51b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统平衡状态的稳定性不仅与系统的结构和参数有关，而且与系统的初始条件有直接的关系。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-26a342404e73f9b8fdd89bd5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "已知非线性系统的微分方程为 ẍ + 0.5 ẋ + 2x + x² = 0，试求系统的奇点，并绘制系统的相平面图。求得两个奇点：（0,0）为稳定焦点，（-2,0）为鞍点。相平面图中相交于鞍点的两条相轨迹为奇线，将相平面划分为两个区域，阴影线内区域为系统的稳定区域，阴影线外区域为系统的不稳定区域。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2879ea6855067129d40ada65",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相平面法由庞加莱1885年首先提出。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-28801db713d68935b5f583f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "ζ=0时，系统特征根为一对纯虚根，相轨迹为围绕坐标原点的一簇椭圆，系统自由运动为等幅正弦振荡。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-28a4483d79410aadb04da482",
+      "canonicalType": "SystemModel",
+      "label": "系统结构如图8-28所示，系统初始状态为零，输入r(t)=R·1(t)。微分方程为T c̈(t)+ċ(t)=K m(t)，其中m(t)为死区非线性函数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2931d7152e82f97bf9e2074d",
+      "canonicalType": "Formula",
+      "label": "\\frac{k_{2}-k_{1}}{2 k_{1} k_{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2a4561c6956b09de8b9128d2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "间隙特性导致能量积累和系统自振",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2ab1cdbf70eb9a0efc39449b",
+      "canonicalType": "SystemModel",
+      "label": "系统结构如图8-30所示，图中T=1, K=4, e₀=M₀=0.2，系统初始状态为零。取状态变量为e(t)和ė(t)，按饱和特性可列写三个线性微分方程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+      "canonicalType": "DomainConcept",
+      "label": "基于频率响应的稳定性分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "canonicalType": "DomainConcept",
+      "label": "等倾线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+      "canonicalType": "DomainConcept",
+      "label": "带死区增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2d0d156ee85fa03e07a70698",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于具有含记忆非线性的系统，我们也可以使用奈奎斯特方法，如下例所示。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2d3e13db4965d78a3919bba8",
+      "canonicalType": "DomainConcept",
+      "label": "MATLAB绘制相轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2dfba04147dbfb44d217f3d8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "如果小信号线性模型在平衡点附近有效且稳定，则存在一个包含该平衡点的区域，在该区域内非线性系统是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2f6c1763ec0a315a31b4c05c",
+      "canonicalType": "Formula",
+      "label": "T \\dot{c}+c=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2f70eb8ffd0c1d76abf57783",
+      "canonicalType": "Formula",
+      "label": "k_{1} \\leq \\frac{f(x)}{x} \\leq k_{2}, \\quad x \\neq 0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-30300559e14f3dfa9f909625",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有饱和特性的非线性控制系统相平面分析步骤（斜坡输入）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-306d287d31425e1927d6cae9",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{2 K}{\\pi}\\left[\\arcsin \\frac{a}{A}-\\arcsin \\frac{\\Delta}{A}+\\frac{a}{A} \\sqrt{1-\\left(\\frac{a}{A}\\right)^{2}}-\\frac{\\Delta}{A} \\sqrt{1-\\left(\\frac{\\Delta}{A}\\right)^{2}}\\right], \\quad A \\geqslant a",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3081a12432e3350faafb5d15",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该系统自由运动的相轨迹为以坐标原点为圆心、√（x₀²+ẋ₀²）为半径的圆。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-32f7f45c03eee4f9e77af2da",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于A区内任意一条k=kA的等倾线，由于0>kA>s1>s2，故αA>kA，相轨迹趋近于特殊等倾线ċ=s1c；对于B区内任一条k=kB的等倾线，由于s1>kB>s2，故αB<kB，相轨迹亦趋近于特殊等倾线ċ=s1c，偏离特殊等倾线ċ=s2c；而当等倾线位于C区时，kC<s2<s1，则αC>kC，相轨迹偏离ċ=s2c。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-34858238cf62e9a84e3ac4de",
+      "canonicalType": "KnowledgeStatement",
+      "label": "考虑图 9.34 所示具有滞环非线性的系统。判断系统是否稳定，并求极限环的振幅与频率。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-37427c0ceefae90634f93312",
+      "canonicalType": "DomainConcept",
+      "label": "扇形条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+      "canonicalType": "DomainConcept",
+      "label": "极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-37b25c3708b534d2973c18b6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统的工作状态取决于初始条件和扰动",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3920bf6f035d886ec204c28b",
+      "canonicalType": "Formula",
+      "label": "\\int_{\\dot{x}_{0}}^{x} g(\\dot{x}) \\mathrm{d} \\dot{x}=\\int_{x_{0}}^{x} h(x) \\mathrm{d} x",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-395ec0aaca62e5fb28ef7fb1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环是非线性系统中的特有现象，它只发生在非守恒系统中，这种周期运动的原因不在于系统无阻尼，而是系统的非线性特性，它导致系统的能量作交替变化，这样就有可能从某种非周期性的能源中获取能量，从而维持周期运动。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-39a19ab34af5f821a8327e42",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-1 弹簧-质量系统微分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3a25b5df1363f7c7342964d6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "K_x 为恒定电流 i2 下力关于 x 的斜率（约 14 N/m）；K_i 为恒定位置 x1 下力随电流的变化量（约 0.4 N/A）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3a2b2f1b597e48ff7b91da1f",
+      "canonicalType": "Formula",
+      "label": "\\dot{x}=\\frac{f(x, \\dot{x})}{\\alpha}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3be608f84e3f8fdd94f202e7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统频率响应含有高次谐波分量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3c1e6d12b44ae48ebba1708a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有饱和非线性特性的控制系统（k=2, a=1），线性部分G（s）=K/[s（0.1s+1）（0.2s+1）]，K=15。分析结果：Γ_G曲线和-1/N（A）曲线存在交点（-1, j0），且在该交点处-1/N（A）沿A增大方向由不稳定区域进入稳定区域，系统存在稳定的周期运动，振荡频率ω=7.07，振幅A=2.5。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3c900c3488120fca6e4abb06",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统的频率响应除了含有与输入同频率的正弦信号分量（基频分量）外，还含有关于ω的高次谐波分量，使输出波形发生非线性畸变。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3d2ccde28da57ac4c9bc2bb0",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{sgn}(x)=\\left\\{\\begin{array}{cl}\n+1 & \\text { 当 } x>0, \\\\\n0 & \\text { 当 } x=0, \\\\\n-1 & \\text { 当 } x<0 .\n\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3d5a9d8f16d63c0b102f7113",
+      "canonicalType": "Formula",
+      "label": "\\delta \\dot{\\mathbf{x}}=\\mathbf{A} \\delta \\mathbf{x}+\\mathbf{B} \\delta u",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3d6928886eefeb8d1b5528b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相平面法通过图解法将一阶和二阶系统的运动过程转化为位置和速度平面上的相轨迹，从而比较直观、准确地反映系统的稳定性、平衡状态和稳态精度以及初始条件及参数对系统运动的影响。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "canonicalType": "DomainConcept",
+      "label": "等效增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3df7c1f9c905624ef0ff743d",
+      "canonicalType": "Formula",
+      "label": "\\frac{\\mathrm{d} \\dot{c}}{\\mathrm{~d} c}=-a",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3e0ca114a94bf8f96a315fba",
+      "canonicalType": "Formula",
+      "label": "\\frac{\\mathrm{d} \\dot{x}}{\\mathrm{~d} x}=\\frac{f(x, \\dot{x})}{\\dot{x}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+      "canonicalType": "DomainConcept",
+      "label": "等效增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3e33400583e87ea689ace9ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "符号函数的扇区范围为 [0, ∞]。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3e6e564c000b7566109d14b3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于非线性系统的各个平衡点，若描述非线性过程的非线性函数解析时，可以通过平衡点处的线性化方程，基于线性系统特征根的分布，确定奇点的类型，进而确定平衡点附近相轨迹的运动形式。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3f76c64fbe2e0d908caf7032",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-7中死区继电特性极值点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3fbb617c7eb9f1fefc2fa2c2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统的运动及其稳定性与初始条件有关。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-403b44ee54be823a17c5b607",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-7中死区继电特性描述函数导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-411b4330ef1d812cf20b125d",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统的根轨迹法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-414cc9d925bf44ef8ab90d20",
+      "canonicalType": "Formula",
+      "label": "\\frac{\\mathrm{d} \\dot{c}}{\\mathrm{~d} c}=\\frac{-a \\dot{c}-b c}{\\dot{c}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4350a1c6843b26cc6bc3b07b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "继电非线性描述函数的计算",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-43b492926decd5f93b115536",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数法稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-44abb05a48944f9fee9a9d01",
+      "canonicalType": "DomainConcept",
+      "label": "相平面法分析非线性系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+      "canonicalType": "DomainConcept",
+      "label": "无记忆非线性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-45839ec1c18767c983774a4e",
+      "canonicalType": "Formula",
+      "label": "K_{e q}(a)=\\frac{4 N}{\\pi a}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-45cafb1eb60b43f0092adf86",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+\\omega_{n}^{2} x=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-45fbb81d4885e8a79394e68b",
+      "canonicalType": "Formula",
+      "label": "\\dot{c}(t)-\\dot{c}_{0}=-a\\left(c(t)-c_{0}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-46e0a585d4faf2a59e4aa6de",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相轨迹沿ċ=s2c的运动是不稳定的，稍有扰动则偏离该相轨迹，最终沿等倾线ċ=s1c的方向收敛至原点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-473ac37bb9aa1faa9ade8a3d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "迟滞非线性具有记忆性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4a3a70893b29c697e796c849",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环解析方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4d68fd87047ddfdc2472cda3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "作为最常见非线性的饱和特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4db66480621d9dabdf8a5425",
+      "canonicalType": "SystemModel",
+      "label": "被控对象传递函数为 (s+1)/s^2 且具有饱和特性的闭环动态系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4fa1f586242f7676a1aa3fb4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-1 相轨迹方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4fca9dc2c7954ccca5ff4157",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于具有无记忆非线性的系统，可通过用等效增益替代非线性环节，利用根轨迹法启发式研究其稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4ffeec5d480f614837d359a8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "间隙的存在，相当于死区的影响，降低系统的跟踪精度。由于间隙为非单值函数，对于相同的输入值x（t），输出y（t）的取值还取决于ẋ（t）的符号，因而受其影响负载系统的运动变化剧烈。若间隙过大，则蓄能过多，将会造成系统自振。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5095c25482f696997f716c73",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性特性并联等效描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-516717bd2d1e3ffcb3cfe29e",
+      "canonicalType": "Formula",
+      "label": "\\ddot{c}+a \\dot{c}+b c=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-525a26fbaaa5f3382b48fcfe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "奈氏判据在变增益线性系统中的应用",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-527ca09cb476f0f78424b798",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}-2 \\rho\\left(1-x^{2}\\right) \\dot{x}+x=0, \\quad \\rho>0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-540b9f572ebc6d146ff4eb90",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 加入速度反馈控制以后，列写非线性系统在无输入作用下的微分方程。2. 设直线L₁: c+τċ=h, L₂: c+τċ=-h。3. 分析相轨迹点位于第IV象限且位于L₁上方以及L₁上时的运动。4. 分析相轨迹点位于第II象限且位于L₂下方以及L₂上时的运动。5. 确定三条开关线将相平面划分为左右两个区域。6. 绘制相平面图。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+      "canonicalType": "DomainConcept",
+      "label": "平衡状态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-551346c07dd0adc110d95089",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定节点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "canonicalType": "DomainConcept",
+      "label": "继电特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5741381ea8f750a69e1afc33",
+      "canonicalType": "Formula",
+      "label": "k_{1} x^{2} \\leq f(x) x \\leq k_{2} x^{2}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-577cc1115475d5105d222f49",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统自激振荡的有条件性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5826bf8651ad6e2bcec108da",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性一阶系统时间响应",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-590eb76093e2b37117147e51",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统只有一个平衡状态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "canonicalType": "DomainConcept",
+      "label": "半稳定极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-596c8876e2c73d3fb3686586",
+      "canonicalType": "Formula",
+      "label": "1+N(A) G(\\mathrm{j} \\omega)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-598d3c7f304d1f01d5d4d200",
+      "canonicalType": "SystemModel",
+      "label": "m ddot{x} = f_m(x, i) - m g，其中 f_m 为磁力。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5a0d45fde6432bdbdaf5b8ef",
+      "canonicalType": "KnowledgeStatement",
+      "label": "死区饱和非线性描述函数计算步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5a3d7f1bd0734000a5591642",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{4 M}{\\pi A} \\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}-\\mathrm{j} \\frac{4 M h}{\\pi A^{2}}, \\quad A \\geqslant h",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+      "canonicalType": "DomainConcept",
+      "label": "小信号分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5c98f438e7e0136a710dc9c3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "α-k关系式（标准形式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5d6641614a346bd4a4359fe8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "输入信号较大对应饱和特性等效增益较小",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5db30b4eb87c9ff87e791d52",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统周期运动依赖于初始条件且不能维持",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5db9ba87164603465d09ed5d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于奈奎斯特曲线与描述函数交点的极限环判定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5e99bf8039857d14ec70c993",
+      "canonicalType": "Formula",
+      "label": "\\ddot{c}+2 \\zeta \\omega_{n} \\dot{c}+\\omega_{n}^{2} c=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "canonicalType": "DomainConcept",
+      "label": "双极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-603f3f714333b813ef2b10ea",
+      "canonicalType": "KnowledgeStatement",
+      "label": "减小线性部分增益消除自振会降低响应快速性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-611af84a9d5eef59ec13561f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "艾泽曼猜想不成立",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6170db07aaa4ca4a8b33bf89",
+      "canonicalType": "KnowledgeStatement",
+      "label": "坐标轴x和ẋ应选用相同的比例尺；等倾线分布越密，则所作的相轨迹越准确，但绘图工作量增加，同时也使作图产生的积累误差增大。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-619c308c7d2c787ad36d496d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性部分低通滤波要求",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-61b1956caafa4db97c739eab",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环可能是有利的",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-62409518c4dd4def0b0a7a92",
+      "canonicalType": "SystemModel",
+      "label": "dot{x} = f(x, u)，其中 x = h，u = w_in，f(x,u) = -1/(R A rho) sqrt(p_1 - p_a) + 1/(A rho) w_in。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-62d6aa2c8f87f857dde6838d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "求解两个方程以确定极限环频率和幅值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-62dd15f48555059bdb6534e5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数物理意义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-63207226e4b7bbf55850ff1c",
+      "canonicalType": "Formula",
+      "label": "N(A)=N(u)=\\frac{4 M}{\\pi h} u \\sqrt{1-u^{2}}, \\quad u \\geqslant 1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-635a8d616706a6a719ab2b81",
+      "canonicalType": "KnowledgeStatement",
+      "label": "奈奎斯特判据可推广至带有描述函数的非线性系统：特征方程变为 1 + K_eq(a)L = 0，稳定性由 L 与 -1/K_eq(a) 的交点确定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "canonicalType": "DomainConcept",
+      "label": "饱和非线性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-639b62d2a812cbfa4ce86d6d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "适用于具记忆特性非线性的奈奎斯特方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-63c4d86ef784bded73af3dd8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数法可为改善系统不稳定性提供途径",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-64041b4928258344e65dd87c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "鞍点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6441d041ca0dc15c704f60d7",
+      "canonicalType": "Formula",
+      "label": "k=\\frac{-\\omega_{n}^{2}}{\\alpha+2 \\zeta \\omega_{n}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-65cddc99938be80d91f87297",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统可能存在多个平衡状态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-66011c5823f5b3d47e60e552",
+      "canonicalType": "Formula",
+      "label": "\\dot{\\mathbf{x}}=\\mathbf{f}(\\mathbf{x}, u)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6652a24ad0e35d2937e7fe6e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当取初始条件使c10=0（或c20=0），则相轨迹为ċ=s2c（或ċ=s1c）；而在其他情况下，由于特征根s2远离虚轴，故c20e^{-s2t}相对于c10e^{-s1t}很快衰减，系统运动过程特别是过渡过程的后期主要取决于c10e^{-s1t}项。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-67dc604f0eae4a32795c33ba",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环是相平面上的分隔线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-68b7f9e57b286b9d0038ad00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "特征根在s平面上的分布，决定了系统自由运动的形式，因而可由此划分线性二阶系统奇点（0,0）的类型：焦点、节点、鞍点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-693ee2fc9d675a5d5b6a5015",
+      "canonicalType": "KnowledgeStatement",
+      "label": "饱和时间定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "canonicalType": "DomainConcept",
+      "label": "死区",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6da02dcf6874483482231162",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统在产生极限环时不具备渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6dbce19197eba01bf26331f9",
+      "canonicalType": "Formula",
+      "label": "A_{n}=\\frac{1}{\\pi} \\int_{0}^{2 \\pi} y(t) \\cos n \\omega t \\mathrm{~d} \\omega t, \\quad B_{n}=\\frac{1}{\\pi} \\int_{0}^{2 \\pi} y(t) \\sin n \\omega t \\mathrm{~d} \\omega t \\quad(n=1,2, \\cdots)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6f3b55b2f8b29a5c75ac62bf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "特殊的等倾线的斜率等于位于该等倾线上相轨迹任一点的切线斜率，即当相轨迹运动至特殊的等倾线上时，将沿着等倾线收敛或发散，而不可能脱离该等倾线。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6fc815726ab1f310fb4e9176",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-6中饱和非线性描述函数导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-715ad87e9a671e6554cfd57b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于某些非线性微分方程，为研究各平衡状态附近的运动特性，可在平衡点附近作增量线性化处理，即对非线性微分方程两端的各非线性函数作泰勒级数展开，并取一次项近似，获得平衡点处的增量线性微分方程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-715d5815a4d2902849d2499a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "饱和区相轨迹微分方程（导数形式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-723dc3694060e5582522e6b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "摩擦对系统性能的影响最主要的是造成系统低速运动的不平滑性，即当系统的输入轴作低速平稳运转时，输出轴的旋转呈现跳跃式的变化。这种低速爬行现象是由静摩擦到动摩擦的跳变产生的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-731886d321df870377dcea4c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "圆判据考量系统端口处的能量；若能量始终流入端口，则认为系统是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7626dfd0cea01086a55d51f2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数法主要用途",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-76578fcb379234c4b4c23cba",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1） 非线性系统应简化为一个非线性环节和一个线性部分闭环连接的典型结构；2） 非线性环节的输入输出特性应是 x 的奇函数或正弦输入下的输出为 t 的奇对称函数；3） 系统的线性部分应具有较好的低通滤波性能。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第一方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-76a70a38b4ffa81dbd604c01",
+      "canonicalType": "KnowledgeStatement",
+      "label": "b<0时，系统特征根一正一负，相平面图中有两条特殊的等倾线作为渐近线，将相平面划分为四个区域，系统运动不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-76ec808ec89014325ba72d75",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若系统增益使得根位于右半平面（RHP），响应会由于不稳定而逐渐增大，直到幅值足够大以使等效增益降低到临界稳定点，从而产生极限环。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-779547c4e08e7f7a04c657fe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "某弹簧－质量运动系统，m为质量，k为弹性系数，初始条件 x（0）=x₀, ẋ（0）=ẋ₀，系统自由运动的相轨迹为以坐标原点为圆心、√（x₀²+ẋ₀²） 为半径的圆。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-77f7f8f0055de752ad8e9928",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在Γ_G曲线和-1/N（A）曲线的交点处，若-1/N（A）曲线沿着振幅A增加的方向由不稳定区域进入稳定区域时，该交点对应的周期运动是稳定的。反之，若-1/N（A）曲线沿着振幅A增加的方向在交点处由稳定区域进入不稳定区域时，该交点对应的周期运动是不稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-78aceee1453c8c629dcfdd7e",
+      "canonicalType": "DomainConcept",
+      "label": "低速爬行现象",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-79911a4ab3fad77e1265aa3f",
+      "canonicalType": "Formula",
+      "label": "y=N \\text { sat }\\left(\\frac{k}{N} x\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-79daed4058741267fc312c7f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性二阶系统特征根在 s 平面上的分布，决定了系统自由运动的形式，因而可由此划分线性二阶系统奇点 （0,0） 的类型：焦点、节点、鞍点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7ac0d73a5663550b16ee6cca",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶系统的相轨迹可应用MATLAB软件，运行相应的程序，在相平面上精确绘制，并可方便地给出相应的时间响应曲线，便于对比分析。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7e0980b0eab0790e9a1a0a18",
+      "canonicalType": "Formula",
+      "label": "X(s)=\\frac{s x_{0}+\\dot{x}_{0}}{s^{2}+\\omega_{n}^{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7eaf252eaeee6507a438cdc4",
+      "canonicalType": "Formula",
+      "label": "\\gamma(A)=180^{\\circ}-\\angle\\left[G_{c}\\left(\\mathrm{j} \\omega_{c}\\right) G\\left(\\mathrm{j} \\omega_{c}\\right)\\right]",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "canonicalType": "DomainConcept",
+      "label": "相轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-80c7d8f59e1ad1850271350c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统简化步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-80d226d08d089c2c8bbd2219",
+      "canonicalType": "DomainConcept",
+      "label": "直接积分法求相轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "canonicalType": "DomainConcept",
+      "label": "稳定极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-82808b8d7e61456ba8f53feb",
+      "canonicalType": "Formula",
+      "label": "y=\\left\\{\\begin{array}{lll}\nk_{0}(x-b), & \\dot{x}>0, & x>-(a-2 b)  \\\\\nk_{0}(a-b), & \\dot{x}<0, & x>(a-2 b) \\\\\nk_{0}(x+b), & \\dot{x}<0, & x<(a-2 b) \\\\\nk_{0}(-a+b), & \\dot{x}>0, & x<-(a-2 b)\n\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-83105de44e601ff929bac264",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定积分公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-838eb9b109e57a65240b1858",
+      "canonicalType": "KnowledgeStatement",
+      "label": "等倾线法的基本思想是，先确定相轨迹的等倾线，进而绘出相轨迹的切线方向场，然后从初始条件出发，沿方向场逐步绘制相轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8650dc013a3cbb85597d2d20",
+      "canonicalType": "Formula",
+      "label": "K_{e q}(a) =\\frac{2}{\\pi a} \\int_{0}^{\\pi} f(a \\sin (\\omega t)) \\sin (\\omega t) d(\\omega t) \\leq \\frac{2 k_{2}}{\\pi} \\int_{0}^{\\pi} \\sin ^{2}(\\omega t) d(\\omega t)=k_{2}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-868cdcdd22cf6d7b46ac2aa8",
+      "canonicalType": "DomainConcept",
+      "label": "线性叠加原理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-87c64ca15a76f20f2a0bc953",
+      "canonicalType": "KnowledgeStatement",
+      "label": "计算饱和非线性描述函数的步骤：定义输入正弦信号，通过半周期积分计算傅里叶系数 b1，将积分拆分为线性部分和饱和部分，并利用三角恒等式化简。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-895b8da7bde844a8331ca09e",
+      "canonicalType": "Formula",
+      "label": "-\\frac{1}{K_{e q}(a)}=-\\frac{1}{\\frac{4 N}{\\pi a}\\left(\\sqrt{1-\\left(\\frac{h}{a}\\right)^{2}}-j \\frac{h}{a}\\right)}=-\\frac{\\pi}{4 N}\\left[\\sqrt{a^{2}-h^{2}}+j h\\right] .",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "canonicalType": "DomainConcept",
+      "label": "基于陷波校正的相位镇定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8a85bf9b7674c5f58796f8ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有滞环继电特性的非线性控制系统相平面分析步骤（单位反馈）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8a9cb0b365091f52ead74390",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{4 M}{\\pi A}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8c54ca053a068df5789148df",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若 k1=0，则临界圆退化为由 Re{G} ≥ -1/k2 定义的半平面。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8c8382df5b3b82653b7813bb",
+      "canonicalType": "Formula",
+      "label": "A_{1}=\\frac{2}{\\pi} \\int_{0}^{\\pi} y(t) \\cos \\omega t \\mathrm{~d} \\omega t, \\quad B_{1}=\\frac{2}{\\pi} \\int_{0}^{\\pi} y(t) \\sin \\omega t \\mathrm{~d} \\omega t",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8cc6c072d0b2a494287d66b4",
+      "canonicalType": "Formula",
+      "label": "x(t)=\\sqrt{x_{0}^{2}+\\left(\\frac{\\dot{x}_{0}}{\\omega_{n}}\\right)^{2}} \\sin \\left(\\omega_{n} t+\\arctan \\frac{\\omega_{n} x_{0}}{\\dot{x}_{0}}\\right)=A \\sin \\left(\\omega_{n} t+\\varphi\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+      "canonicalType": "DomainConcept",
+      "label": "带死区的继电器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8f56f1935a8caafd31e8f924",
+      "canonicalType": "KnowledgeStatement",
+      "label": "死区滞环继电非线性描述函数计算步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8f58c1ded043204fe276845a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统是非线性系统的特例，对于许多非线性一阶和二阶系统，常可以分成多个区间进行研究，而在各个区间内，非线性系统的运动特性可用线性微分方程描述。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8fea15ba3f636b101cc1bb93",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统周期运动与极限环的关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-916a55401c4fcc2dec566e14",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性特性串联简化方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-92cfeac546f130566ac609c4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "奇点（-2,0）处增量线性化方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-932126f348dddc6ba9a40088",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用根轨迹法说明具有饱和特性系统的稳定性特征的示例。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-93c68e9fcd53d79ba1915a63",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-4：多项式非线性描述函数计算",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "canonicalType": "DomainConcept",
+      "label": "相平面",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9581ae46c5b411c0d37c0d18",
+      "canonicalType": "SystemModel",
+      "label": "具有振荡模态的控制系统，包含一个饱和环节、一个二阶传递函数1/(s^2 + 0.2s + 1)以及一个积分器1/s。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-95a040599a7ce1d0b97f6eb3",
+      "canonicalType": "Formula",
+      "label": "y(t)=A_{0}+\\sum_{n=1}^{\\infty}\\left(A_{n} \\cos n \\omega t+B_{n} \\sin n \\omega t\\right)=A_{0}+\\sum_{n=1}^{\\infty} Y_{n} \\sin \\left(n \\omega t+\\varphi_{n}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-960ccdcd8f8c9a108d6134f8",
+      "canonicalType": "Formula",
+      "label": "\\dot{x} \\frac{\\mathrm{~d} \\dot{x}}{\\mathrm{~d} x}=f(x, \\dot{x})",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-97b3c4b5b8f97a0046579626",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于根轨迹的 K_eq 方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9839bd8d2d36d69d853b1d46",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 用等效增益 K 替代无记忆非线性环节。2. 绘制随该增益变化的根轨迹。3. 对于一定范围内的输入信号幅值，等效增益将取相应范围内的值。4. 将增益视作固定值，考察该范围内的闭环根。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-986a61e47e9fe354429a34a9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 整理式（8-43）得式（8-44）。2. 确定饱和区形如Të+ė+A=0的相轨迹。3. 由相轨迹微分方程得等倾线方程。4. 令α=0得特殊的等倾线ė=-A。5. 代入给定参数求得线性区的奇点为原点，且为实奇点，稳定焦点。6. 由零初始条件和输入r（t）=R·1（t）得e（0）=R, ė（0）=0。7. 绘制系统的相轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-991518182b0a97198c736c37",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统周期运动稳定性分析前提",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-999eff53984aebc2d647670f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该线性系统在分别对应 theta_o=0 和 pi 时具有特征值 ±j omega_o 和 ±omega_o，其中后一种倒置情形是不稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-99e2b54e9474379206799dfa",
+      "canonicalType": "DomainConcept",
+      "label": "正阻尼",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-99f4968958785fa4fecdc00f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1） 将非线性系统简化为典型结构；2） 计算非线性环节的描述函数 N（A）；3） 绘制线性部分 G（jω） 的奈奎斯特曲线和负倒描述函数 -1/N（A） 曲线；4） 根据两曲线是否包围判断系统稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9c4c82dd34208ff36ec2a99c",
+      "canonicalType": "Formula",
+      "label": "DF=K_{eq}(a, \\omega)=\\frac{b_{1}+j a_{1}}{a}=\\frac{Y_{1}(a, \\omega)}{a} e^{j \\theta_{1}}=\\frac{Y_{1}(a, \\omega)}{a} \\angle \\theta_{1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9c96e0541d2f4e5314646677",
+      "canonicalType": "Formula",
+      "label": "\\frac{\\dot{c}^{2}}{\\dot{c}_{0}^{2}+\\omega_{n}^{2} c_{0}^{2}}+\\frac{\\omega_{n}^{2} c^{2}}{\\dot{c}_{0}^{2}+\\omega_{n}^{2} c_{0}^{2}}=1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9d922ed54821a30a87cd2f6e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "稳定焦点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "canonicalType": "DomainConcept",
+      "label": "分隔线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9ec056887d7b9dea4752f86c",
+      "canonicalType": "Formula",
+      "label": "s_{1,2}=\\frac{-a \\pm \\sqrt{a^{2}-4 b}}{2}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9f267f42312998d2909fd492",
+      "canonicalType": "KnowledgeStatement",
+      "label": "k=1、N=0.1 时饱和特性的负倒数描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9f61785adec23f05043a9077",
+      "canonicalType": "KnowledgeStatement",
+      "label": "如果非线性系统的线性近似是严格稳定的（所有根均位于左半平面），则该非线性系统在平衡点附近存在一个稳定区域。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a006a76a7e0bcccabddd6398",
+      "canonicalType": "Formula",
+      "label": "K_{\\mathrm{eq}}(a)=\\left\\{\\begin{array}{cc}\\frac{4 N}{\\pi a}\\left(\\sqrt{1-\\left(\\frac{h}{a}\\right)^{2}}-j \\frac{h}{a}\\right), & a \\geq h,  \\\\0, & a<h .\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a062413c8aa34b368efdbde4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无记忆奇非线性的描述函数为实数且与频率无关",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "canonicalType": "DomainConcept",
+      "label": "相平面法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a1965d8269bf205a2b0bf408",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在相平面的上半平面，由于ẋ>0，则x随t增大而增加，相轨迹的走向应是由左向右；在相平面的下半平面，由于ẋ<0，则x随t增大而减小，相轨迹的走向应由右向左。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+      "canonicalType": "DomainConcept",
+      "label": "奇线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a21bf9714ef096463309f7ef",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{2 K}{\\pi}\\left[\\frac{\\pi}{2}-\\arcsin \\frac{\\Delta}{A}-\\frac{\\Delta}{A} \\sqrt{1-\\left(\\frac{\\Delta}{A}\\right)^{2}}\\right], \\quad A \\geqslant \\Delta",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a241f1b04d77793cee60f9d5",
+      "canonicalType": "DomainConcept",
+      "label": "无记忆非线性环节",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "canonicalType": "DomainConcept",
+      "label": "平衡点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a542d2009adb877cbbd19da4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相轨迹位于过原点，斜率为-1/T的直线上。当T>0时，相轨迹沿该直线收敛于原点；当T<0时，相轨迹沿该直线发散至无穷。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于磁悬浮小球系统，在平衡状态下磁力 f_m 恰好与重力 mg 相抵消。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a657a8cc6faaf2839d460e8f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据微分方程解的存在与唯一性定理，对于任一给定的初始条件，相平面上有一条相轨迹与之对应。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a83f5e22355c7ab8ab076695",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统如图8-50所示，死区继电特性（M=1, h=0.5），线性部分G（s）=10/[s（0.5s+1）（0.125s+1）]，Gc（s）=1。分析结果：Γ_G曲线和-1/N（A）曲线有两个交点，解得（ω1=4, A1=0.556）对应不稳定周期运动，（ω2=4, A2=1.146）对应稳定周期运动。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "canonicalType": "DomainConcept",
+      "label": "摩擦特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-aa04cceb2e27ad64469034af",
+      "canonicalType": "KnowledgeStatement",
+      "label": "-1<ζ<0时，系统特征根为一对具有正实部的共轭复根，相轨迹为离心螺旋线，最终发散至无穷（不稳定焦点）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "canonicalType": "DomainConcept",
+      "label": "继电器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ab7244ddd97e9ff1c9f34ba7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "ζ<-1时，系统特征根为两个正实根，存在两条特殊的等倾线，相轨迹发散至无穷（不稳定节点）；ζ=-1时，特征根为两个相等的正实根，存在一条特殊的等倾线，相轨迹发散。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "canonicalType": "DomainConcept",
+      "label": "自激振荡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "canonicalType": "DomainConcept",
+      "label": "速度反馈",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "canonicalType": "DomainConcept",
+      "label": "间隙特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b14dc4b73279e65d06ea97b7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环是随时间趋于无穷大而趋近的具有固定振幅的周期解",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b16306052cbaea0119b5b760",
+      "canonicalType": "KnowledgeStatement",
+      "label": "然后我们可以求解这两个方程，得到极限环频率 ω_l 及其对应振幅 a_l 这两个可能的未知量，正如随后的例题所示。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b18425ae2954535680ce5232",
+      "canonicalType": "KnowledgeStatement",
+      "label": "圆判据是艾泽曼猜想的一种变体",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b33bd1394e22462ecf029b72",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有滞环的继电器描述函数计算",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b38d456d3d1c0065290f0c67",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性因素通过开环增益变化改变闭环极点位置",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b3caa046cb20ebc66e46717b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "条件稳定系统在大增益下稳定，但在较小增益下不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b48f83084fa0b8717819e56e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-5中负倒描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b77339b103e6bd8652f39b1e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "速度反馈可改善滞环系统品质",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b7c18607617d83f2e806fce1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "多个初始条件下的运动对应多条相轨迹，形成相轨迹簇。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b7ef66bd8ca85c7c2eb5af3e",
+      "canonicalType": "SystemModel",
+      "label": "非线性系统结构如图8-33所示，H(s)=1+τs (0<τ<T)。加入速度反馈控制以后，非线性系统在无输入作用下的微分方程为式(8-49)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ba4ea5071fc7b2eb5b8267e8",
+      "canonicalType": "Formula",
+      "label": "\\mathbf{A}=\\left[\\frac{\\partial \\mathbf{f}}{\\partial \\mathbf{x}}\\right]_{x_{o}, u_{o}} \\quad \\text { 及 } \\quad \\mathbf{B}=\\left[\\frac{\\partial \\mathbf{f}}{\\partial u}\\right]_{x_{o}, u_{o}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "canonicalType": "DomainConcept",
+      "label": "奇点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bb81c2d9027b6c5b89b3b505",
+      "canonicalType": "Formula",
+      "label": "\\begin{array}{r}\n\\operatorname{Re}\\{L(j \\omega)\\} \\operatorname{Re}\\left\\{K_{e q}(a)\\right\\}-\\operatorname{Im}\\{L(j \\omega)\\} \\operatorname{Im}\\left\\{K_{e q}(a)\\right\\}+1=0  \\tag{9.37}\\\\\n\\operatorname{Re}\\{L(j \\omega)\\} \\operatorname{Im}\\left\\{K_{e q}(a)\\right\\}+\\operatorname{Im}\\{L(j \\omega)\\} \\operatorname{Re}\\left\\{K_{e q}(a)\\right\\}=0\n\\end{array}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bbd85dc04cc698edfca646ad",
+      "canonicalType": "Formula",
+      "label": "\\begin{aligned}\n-\\frac{1}{K_{\\mathrm{eq}}(a)} & =-\\frac{1}{\\frac{2}{\\pi}\\left(k \\sin ^{-1}\\left(\\frac{N}{a k}\\right)+\\frac{N}{a} \\sqrt{1-\\left(\\frac{N}{k a}\\right)^{2}}\\right)} \\\\\n& =-\\frac{1}{\\frac{2}{\\pi}\\left(\\sin ^{-1}\\left(\\frac{0.1}{a}\\right)+\\frac{0.1}{a} \\sqrt{1-\\left(\\frac{0.1}{a}\\right)^{2}}\\right)},\n\\end{aligned}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bc31b9635f468f0e5b127a28",
+      "canonicalType": "Formula",
+      "label": "k_{1} \\leq K_{e q}(a) \\leq k_{2} \\quad \\text { for all } a",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bd69eb8f2d6ed12f3f9233d7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "与等效增益方法不同，圆判据允许系统包含时变非线性特性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bd8dd1acc2c9db2952eabacf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "摩擦特性造成系统低速运动不平滑",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "canonicalType": "DomainConcept",
+      "label": "自振荡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bdaac6586945ffbce37eb5a5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "等效增益分析与描述函数法得出相同结果",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bde16b66d9aaadb775ae345e",
+      "canonicalType": "Formula",
+      "label": "G(\\mathrm{j} \\omega)=-\\frac{1}{N(A)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bdfe45e59aecd79442ff809d",
+      "canonicalType": "SystemModel",
+      "label": "当b>0时，线性二阶系统微分方程可表示为č+2ζωₙċ+ωₙ²c=0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-be8cdc80a7bbd0425adc2b5d",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{2 M}{\\pi A}\\left[\\sqrt{1-\\left(\\frac{m h}{A}\\right)^{2}}+\\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}\\right]+\\mathrm{j} \\frac{2 M h}{\\pi A^{2}}(m-1), \\quad A \\geqslant h",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bf8975dc5e450c29825cca6f",
+      "canonicalType": "Formula",
+      "label": "k_{1,2}=\\alpha_{1,2}=s_{1,2}=\\frac{-a \\pm \\sqrt{a^{2}-4 b}}{2}=-\\zeta \\omega_{n} \\pm \\omega_{n} \\sqrt{\\zeta^{2}-1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c34c435419433d52dcca23c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "陷波滤波器校正衰减被控对象谐振频率附近的输入以防止不稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c43cdc29ed0d6e9f578784a0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 设（x₀,ẋ₀）为非线性系统的某个奇点；2. 将f（x,ẋ）在奇点处展开成泰勒级数；3. 在奇点的小邻域内，略去Δx和Δẋ的高次项，取一次近似；4. 得到奇点附近关于x增量Δx的线性二阶微分方程；5. 基于线性系统特征根的分布，确定奇点的类型。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c50bebfdb738fc6a0f0493c4",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{2 k}{\\pi}\\left[\\arcsin \\frac{a}{A}+\\frac{a}{A} \\sqrt{1-\\left(\\frac{a}{A}\\right)^{2}}\\right], \\quad A \\geqslant a",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c5378b7a079164c556bd7851",
+      "canonicalType": "KnowledgeStatement",
+      "label": "陷波滤波器校正传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c79b35057db50e65cfbef57a",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{4 M}{\\pi A} \\sqrt{1-\\left(\\frac{h}{A}\\right)^{2}}, \\quad A \\geqslant h",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c7afebd82a4a7968e83b34d7",
+      "canonicalType": "DomainConcept",
+      "label": "卢里叶问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定极限环",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+      "canonicalType": "DomainConcept",
+      "label": "圆判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cbfe80d3da0902843e4ec358",
+      "canonicalType": "DomainConcept",
+      "label": "稳定节点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "canonicalType": "DomainConcept",
+      "label": "饱和特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ce225495deee3bb7b8c4ab9a",
+      "canonicalType": "SystemModel",
+      "label": "描述线性二阶系统自由运动的微分方程为č+aċ+bc=0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ce52d38f8573521b966f285e",
+      "canonicalType": "Formula",
+      "label": "-\\frac{1}{k_{1}} \\leq-\\frac{1}{K_{e q}(a)} \\leq-\\frac{1}{k_{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ce92af1ec69fe484d30a500e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "速度反馈下相轨迹切换条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cebe12b764cfb463b7e5fac3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若Γ_G曲线不包围-1/N（A）曲线，则非线性系统稳定；若Γ_G曲线包围-1/N（A）曲线，则非线性系统不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cf05c0524f87a6ed6fb2e8f9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "α-k关系式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cf43d45a8ccc846db244613a",
+      "canonicalType": "SystemModel",
+      "label": "具有饱和非线性和被控对象传递函数 (s+1)^2 / s^3 的条件稳定系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cf7d024c7b3e0b1588cda992",
+      "canonicalType": "KnowledgeStatement",
+      "label": "饱和非线性的扇区为 [0, 1]。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cfd98dee3afa5c44a0f0c44f",
+      "canonicalType": "Formula",
+      "label": "\\Delta \\ddot{x}=\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial x}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta x+\\left.\\frac{\\partial f(x, \\dot{x})}{\\partial \\dot{x}}\\right|_{\\substack{x=x_{0} \\\\ \\dot{x}=x_{0}}} \\Delta \\dot{x}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d0377987279a6d02991248c9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "Gc（s）=（（0.25s+1）/（0.03s+1））*（1/8.3）为无源超前网络，系统线性部分为G（s）Gc（s）。分析结果：Γ_G曲线不包围-1/N（A）曲线，系统稳定，且具有一定的相角裕度。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d0bbd47344ce89d1aa32ba41",
+      "canonicalType": "KnowledgeStatement",
+      "label": "继电特性常常使系统产生振荡现象。当系统受扰使|x（t）|≠0，从而输出c（t）偏离原平衡状态，随后由于|x（t）|的减小，k随之增大，在力图使输出回到原平衡状态的过程中，因为实际系统中的继电特性具有一定的开关速度，c（t）呈现为零附近的高频小幅度振荡。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d132e697735aa799c1e2761a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "应用描述函数近似后，非线性系统的闭环特征方程为 1 + N（A） G（jω） = 0，或等价为 G（jω） = -1/N（A）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d193b6e8d31cd34677110ff5",
+      "canonicalType": "DomainConcept",
+      "label": "谐波平衡分析",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d20eefb8386fae314f000491",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 将微分方程ẍ=f（x,ẋ）转化为ẋ dẋ/dx = f（x,ẋ）；2. 若能分解为g（ẋ）dẋ = h（x）dx的形式；3. 两端积分∫g（ẋ）dẋ = ∫h（x）dx；4. 得到ẋ和x的解析关系式。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d2e4a3aea7a4f1c0ed5dd427",
+      "canonicalType": "Formula",
+      "label": "y(t)=f(A \\sin \\omega t)=-y\\left(t+\\frac{\\pi}{\\omega}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d36ea274eedf7751b57684e8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "死区特性导致系统存在稳态误差",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d388b3679e30032b86298735",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统微分方程（例8-2）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4284b7d54a7f59beee02111",
+      "canonicalType": "Formula",
+      "label": "DF=K_{\\mathrm{eq}}(a)=\\frac{b_{1}}{a}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4364a9018078d7c87d9826a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "稳定极限环对应自振荡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d465ab41f01196926d0f7673",
+      "canonicalType": "SystemModel",
+      "label": "采用陷波滤波器校正的系统，包含一个饱和环节、传递函数分别为 1/(s^2 + 0.2s + 1) 与 1/s 的被控对象，以及含陷波滤波器的反馈通道。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4a444f1c5899124d3e0ffe9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "不稳定极限环的周期运动不稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4af599e4aad7757db02daec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-5中线性部分在穿越频率处的幅值公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4e994e83801bfcca363b375",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定焦点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d5084c6744dd481182fca603",
+      "canonicalType": "KnowledgeStatement",
+      "label": "除系统的平衡点外，相轨迹与x轴的相交点处切线斜率应为+∞或-∞，即相轨迹与x轴垂直相交。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "canonicalType": "DomainConcept",
+      "label": "实奇点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "canonicalType": "DomainConcept",
+      "label": "库仑加粘性摩擦",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d5560da69c46b2ba359ec081",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-3：理想继电特性描述函数计算",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "canonicalType": "DomainConcept",
+      "label": "相变量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d698303dd83606b4aee11e1f",
+      "canonicalType": "Formula",
+      "label": "B_{1}=\\frac{4}{\\pi} \\int_{0}^{\\frac{\\pi}{2}} y(t) \\sin \\omega t \\mathrm{~d} \\omega t",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d75b1a0f0201167c18a61432",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若线性近似系统在右半平面（RHP）中至少存在一个根，则非线性系统在平衡点附近不可能存在任何稳定区域。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d7602be4656a9b53d2576d58",
+      "canonicalType": "KnowledgeStatement",
+      "label": "只有稳定的极限环才能在实验中观察到，不稳定或半稳定的极限环是无法在实验中观察到的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d8441c5aaab97cc824227aae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "已知非线性系统结构如图8-45所示，线性部分传递函数为10/[s（s+1）（4s+1）]，非线性环节为库仑摩擦加黏性摩擦（k=0.5, M=1）。分析结果：Γ_G曲线包围-1/N（A）曲线，系统不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d85e0a34aa388cff9b7e4f24",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于例 9.7 中的系统，临界圆退化为半平面 Re(G) ≤ -1；由于奈奎斯特图完全位于该半平面右侧，系统是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "canonicalType": "DomainConcept",
+      "label": "死区特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d979da645af3721fe77267da",
+      "canonicalType": "KnowledgeStatement",
+      "label": "N=1、h=0.1 时的特定负倒数特性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-da1b3998d61acbcba9214754",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相轨迹的绘制方法步骤简单、计算量小，用MATLAB软件绘制特别方便。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-db908e825a0ddfc797619c89",
+      "canonicalType": "SystemModel",
+      "label": "某弹簧－质量运动系统，图中m为物体的质量，k为弹簧的弹性系数，若初始条件为x(0)=x₀, ẋ(0)=ẋ₀，描述系统自由运动的微分方程式为ẍ+x=0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-dbc6dadafb7b66d118b6a41d",
+      "canonicalType": "Formula",
+      "label": "g(\\dot{x}) \\mathrm{d} \\dot{x}=h(x) \\mathrm{d} x",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-dd83c852f8ae95a9d7f5041f",
+      "canonicalType": "DomainConcept",
+      "label": "艾泽曼猜想",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-df274b62048cb20a7525941a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数法基本思想",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-dfb9ca4b74d3ff8a627d8c94",
+      "canonicalType": "Formula",
+      "label": "f\\left(t, \\frac{\\mathrm{~d}^{n} y}{\\mathrm{~d} t^{n}}, \\cdots, \\frac{\\mathrm{~d} y}{\\mathrm{~d} t}, y\\right)=g\\left(t, \\frac{\\mathrm{~d}^{m} r}{\\mathrm{~d} t^{m}}, \\cdots, \\frac{\\mathrm{~d} r}{\\mathrm{~d} t}, r\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-dfee73650a6774ccc3e07a67",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞环特性恶化了系统品质",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e08081995a48d5b69bee5b76",
+      "canonicalType": "Formula",
+      "label": "K_{e q}(a) =\\frac{2}{\\pi a} \\int_{0}^{\\pi} f(a \\sin (\\omega t)) \\sin (\\omega t) d(\\omega t) \\geq \\frac{2 k_{1}}{\\pi} \\int_{0}^{\\pi} \\sin ^{2}(\\omega t) d(\\omega t)=k_{1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e1cd9eb3f37d162ab6fcf9a1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "N=1、h=0.1 时迟滞特性的描述函数负倒数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e217821b715bae7f6b352a0f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例8-5中线性部分穿越频率公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "canonicalType": "DomainConcept",
+      "label": "虚奇点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e30570498696e63d639864ea",
+      "canonicalType": "KnowledgeStatement",
+      "label": "不稳定的周期运动在系统中不可能出现",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e514c0dd1b652eef30650072",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后时间定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e527a6afb20bda9b9620c400",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1）坐标轴 x 和 ẋ 应选用相同的比例尺；2）在相平面的上半平面，相轨迹的走向应是由左向右；在下半平面，应由右向左；3）除系统的平衡点外，相轨迹与 x 轴的相交点处切线斜率应为 +∞ 或 -∞，即相轨迹与 x 轴垂直相交；4）等倾线分布越密，则所作的相轨迹越准确。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e762e5f1e832971b0a911f5b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统简化原则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e80ecac5690c1d2af5314ea1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "死区特性最直接的影响是使系统存在稳态误差。当|x（t）|<Δ时，由于k=0，系统处于开环状态，失去调节作用。当系统输入为速度信号时，受死区的影响，在|r-c|<Δ时，系统无调节作用，因此导致系统输出在时间上的滞后，降低了系统的跟踪精度。而在另一方面，当系统输入端存在小扰动信号时，在系统动态过程的稳态值附近，死区的作用可减少扰动信号的影响。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "canonicalType": "DomainConcept",
+      "label": "负倒描述函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e962e99d12023d989fa91600",
+      "canonicalType": "KnowledgeStatement",
+      "label": "ζ=1时，系统特征根为两个相等的负实根，特殊等倾线蜕化为一条，不同初始条件的相轨迹最终将沿着这条特殊的等倾线趋于原点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e9c7c6b34e64a774d1d88c0e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "圆判据条件是充分非必要的",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ea23dae902eaaf45e073f1c5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "小偏差线性化步骤（泰勒展开取一次项）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "canonicalType": "DomainConcept",
+      "label": "量化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eb4c868276634ac3b10584d2",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{Re}[G(\\mathrm{j} \\omega) N(A)]=-1, \\quad \\operatorname{Im}[G(\\mathrm{j} \\omega) N(A)]=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eb814a59fea170deb5fdf223",
+      "canonicalType": "KnowledgeStatement",
+      "label": "取ΔH=H-H_0, ΔQ_i=Q_i-Q_{i0}，对√H作泰勒级数展开，取一次项近似，得到小偏差线性方程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eba96e17fde7800f8f9c04a5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞环特性的负倒描述函数是平行于实轴的直线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ebae53fe552177ee1b57cd74",
+      "canonicalType": "DomainConcept",
+      "label": "平衡点附近增量线性化方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ec5c814d08e046bef4d598e8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数有助于确定导致不稳定的条件，甚至可以为消除不稳定提供改进措施，正如接下来的例子所示：图中叠加绘制了线性回路增益 L 的奈奎斯特图以及描述函数的负倒数 -1/K_eq(a)。两者的交点对应于极限环。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ed1d9acad613123aae662c80",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数法分析结果的准确性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+      "canonicalType": "DomainConcept",
+      "label": "谐波线性化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-edcb21b88a649992cab7aea0",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}=f(x, \\dot{x})",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eea2f471c58a3b5707672f25",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数的负倒数是负实轴上的一条直线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ef6fc9931fcf63871a394970",
+      "canonicalType": "DomainConcept",
+      "label": "含非线性的闭环系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-efa6233fdfef7c4cc084a8ec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该曲线与奈奎斯特图的交点给出了稳定极限环的频率以及相应的幅值。我们也可以通过解析法确定极限环的信息：",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f0b749dd3db10071949e5faa",
+      "canonicalType": "Formula",
+      "label": "N(A)=|N(A)| \\mathrm{e}^{\\mathrm{j} \\angle N(A)}=\\frac{Y_{1}}{A} \\mathrm{e}^{\\mathrm{j} \\varphi_{1}}=\\frac{B_{1}+\\mathrm{j} A_{1}}{A}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f2eb413c2a6077bcee71a1fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相轨迹微分方程（例8-2）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+      "canonicalType": "DomainConcept",
+      "label": "预加载弹簧",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f3e9cb7f00ddadcc827400ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "奇点（0,0）处增量线性化方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f51f955d452e0b27acb5992f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "非线性系统周期运动与初始条件的关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f6086a3afcc56499faf766ef",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 根据图8-28列写系统的微分方程。2. 取e（t）, ė（t）作为状态变量，并按特性曲线分区域列写微分方程式。3. 根据线性系统相轨迹分析结果，可得各区域奇点类型。4. 由零初始条件和输入r（t）=R·1（t）得e（0）=R, ė（0）=0。5. 根据区域奇点类型及对应的运动形式，作相轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f7101119c556d102280adccf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用非线性系统产生不受扰动影响的自激振荡应选图8-47（a）所示系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f7f34cb8448dae018bb74aef",
+      "canonicalType": "KnowledgeStatement",
+      "label": "饱和现象将使系统的开环增益在饱和区时下降。控制系统设计时，为使功能元件得到充分利用，应力求使功放级首先进入饱和；为获得较好的动态性能，应通过选择合适线性区增益和饱和电压，使系统既能获得较小的超调量，又能保证较大的开环增益，减小稳态误差。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f941a94568ade43ca42e8d7e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "圆判据与描述函数密切相关；对于扇形区域内具有实描述函数的时不变奇非线性特性，描述函数的负倒数位于临界圆内部。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fb8dc039e6131487892bc2ba",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{sat}(x)=\\left\\{\\begin{array}{cc}\n+1, & x>1 \\\\\nx, & |x| \\leq 1 \\\\\n-1, & x<-1\n\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fc150ca5e1bd5e02becc7024",
+      "canonicalType": "Formula",
+      "label": "y=f(x)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "canonicalType": "DomainConcept",
+      "label": "开关线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fd8702be24517299dfde6b3b",
+      "canonicalType": "SystemModel",
+      "label": "非线性系统结构如图8-33所示，H(s)为反馈网络，r(t)=0。单位反馈H(s)=1。根据滞环继电特性分区间列写微分方程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fd929ca94776999ceafde35e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环是相互孤立的封闭曲线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fde16f4ebcfeb8138598df6c",
+      "canonicalType": "Formula",
+      "label": "c=\\frac{1}{2}\\left[-\\frac{1}{k_{1}}-\\frac{1}{k_{2}}\\right]=-\\frac{k_{1}+k_{2}}{2 k_{1} k_{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

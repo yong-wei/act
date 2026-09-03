@@ -6,16 +6,16 @@ import {
 } from '../adaptive-engine';
 import {
   buildAdaptiveAssessmentItemCatalog,
-} from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+} from '@/features/assessment/adaptive-assessment-item-catalog';
 import {
   generatedQuestionsFromStore,
   generatedReviewDecisionsFromStore,
-} from '@/features/adaptive-assessment/generated-candidate-catalog';
+} from '@/features/assessment/generated-candidate-catalog';
 import {
   replaceGeneratedRuntimeOverlay,
   resetGeneratedRuntimeOverlay,
   selectCatalogBackedAssessmentItem,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
 import {
   createGeneratedCandidate,
   createGeneratedCandidateStore,
@@ -24,7 +24,7 @@ import {
   type GeneratedCandidateContent,
   type GeneratedCandidateEnvelopeInput,
   type GeneratedCandidateStore,
-} from '@/features/adaptive-assessment/generated-candidate-governance';
+} from '@/features/assessment/generated-candidate-governance';
 
 function persistenceDbFromStore(store: GeneratedCandidateStore) {
   return {
@@ -254,10 +254,10 @@ describe('generated runtime question resolution', () => {
     expect(getAdaptiveQuestionById(created.revision.revisionId)).not.toBeNull();
 
     const { ensureGeneratedCatalogHydrated } = await import(
-      '@/features/adaptive-assessment/generated-catalog-runtime'
+      '@/features/assessment/generated-catalog-runtime'
     );
     const { isGeneratedRuntimeOverlayReady } = await import(
-      '@/features/adaptive-assessment/adaptive-assessment-catalog-selector'
+      '@/features/assessment/adaptive-assessment-catalog-selector'
     );
     resetGeneratedRuntimeOverlay();
     await ensureGeneratedCatalogHydrated(persistenceDbFromStore({

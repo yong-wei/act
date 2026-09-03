@@ -1,7 +1,7 @@
 import {
   resolveAdaptivePathLaunchReturnContext,
   type AdaptivePathLaunchContext,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
 
 export const ARENA_PUBLICATION_CONTEXT_KEYS = ['publicationId', 'classId', 'seasonId'] as const;
 type SearchParamReader = Pick<URLSearchParams, 'get'>;

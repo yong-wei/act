@@ -5,7 +5,12 @@ import type {
   ActiveNodeAdjacency,
   ActiveNodeDetailResponse,
 } from './active-authority-graph-contracts';
-import type { GovernedRichTextProjection } from '@/lib/governed-math';
+import type { GovernedFormulaProjection, GovernedRichTextProjection } from '@/lib/governed-math';
+import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
+import {
+  graphInterfaceText,
+  type GraphInterfaceKey,
+} from '@/lib/authority-locale-readiness/graph-interface-catalog';
 import { governedSearchHaystack, matchesGovernedSearch, titleIsProductHidden } from '@/lib/governed-math';
 
 /**
@@ -47,6 +52,7 @@ export interface ActiveNodePresentation {
   richDescription?: GovernedRichTextProjection;
   searchText?: string;
   accessibleName?: string;
+  mathematics?: GovernedFormulaProjection;
 }
 
 export interface ActiveRelationView {
@@ -171,17 +177,20 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
   },
 };
 
-const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/iu;
+// 大小写敏感：machine token 是固定形式（小写谓词 / 大写 PREREQUISITE）。
+// 忽略大小写会把受治理英文 label（如 Prerequisite）误判为机器 token
+// 而回退中文（#1741）。
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/u;
 
-const GOVERNANCE_LABELS: Readonly<Record<string, string>> = {
-  approved: '已审核',
-  published: '已发布',
-  active: '当前有效',
-  CORE: '核心内容',
-  EXTENSION: '扩展内容',
-  UNCLASSIFIED: '未分类内容',
-  gold: '高置信内容',
-  silver: '一般置信内容',
+const GOVERNANCE_KEYS: Readonly<Record<string, GraphInterfaceKey>> = {
+  approved: 'inspector.governance.approved',
+  published: 'inspector.governance.published',
+  active: 'inspector.governance.active',
+  CORE: 'inspector.governance.core',
+  EXTENSION: 'inspector.governance.extension',
+  UNCLASSIFIED: 'inspector.governance.unclassified',
+  gold: 'inspector.governance.gold',
+  silver: 'inspector.governance.silver',
 };
 
 function nonEmpty(value: string | null | undefined): string | null {
@@ -303,19 +312,28 @@ export function presentActiveDirection(direction: string | null): ActiveDirectio
   };
 }
 
-export function presentGovernanceLabel(value: string | null | undefined): string {
+export function presentGovernanceLabel(
+  value: string | null | undefined,
+  locale: AdmittedLocale = 'zh-CN',
+): string {
   const normalized = nonEmpty(value);
-  return normalized ? GOVERNANCE_LABELS[normalized] ?? '状态暂不可解释' : '状态暂不可用';
+  if (!normalized) return graphInterfaceText('inspector.governance.unavailable', locale);
+  const key = GOVERNANCE_KEYS[normalized];
+  return graphInterfaceText(key ?? 'inspector.governance.unknown', locale);
 }
 
 export function presentSourceCitation(
   sources: ActiveNodeDetailResponse['node']['sources'] | undefined,
+  locale: AdmittedLocale = 'zh-CN',
 ): string {
   const labels = (sources ?? [])
     .map((source) => nonEmpty(source.label))
     .filter((label): label is string => Boolean(label));
   if (labels.length > 0) return labels.join(' · ');
-  return sources && sources.length > 0 ? '来源定位暂不可用' : '暂无公开来源';
+  return graphInterfaceText(
+    sources && sources.length > 0 ? 'inspector.source.locateUnavailable' : 'inspector.source.none',
+    locale,
+  );
 }
 
 function safeNodeLabel(node: ActiveCanvasNode): string | null {
@@ -381,6 +399,7 @@ export function createActiveAuthorityGraphModel(
       richDescription: sourceNode.richDescription,
       searchText: sourceNode.searchText,
       accessibleName: sourceNode.accessibleName,
+      mathematics: sourceNode.mathematics,
     } satisfies ActiveNodePresentation))
     .sort(compareKey);
   const nodeByKey = new Map(candidates.map((node) => [node.key, node]));
@@ -496,6 +515,24 @@ export function selectInitialPrimaryDomainScope(
 
 export function isPrimaryDomainObject(node: ActiveNodePresentation): boolean {
   return PRIMARY_DOMAIN_OBJECT_TYPES.has(node.type.canonicalType);
+}
+
+/**
+ * Deterministic level-two scope: exactly the server-bounded domain-default
+ * overview ids that are currently materialized in the model (#1738).
+ * Returning to the overview restores the same scope without flattening
+ * disclosed secondary nodes.
+ */
+export function selectAuthorityDomainOverviewScope(
+  model: ActiveAuthorityGraphModel,
+  overviewIds: readonly string[],
+): Set<string> {
+  const overview = new Set(overviewIds);
+  return new Set(
+    model.nodes
+      .filter((node) => overview.has(node.key))
+      .map((node) => node.key),
+  );
 }
 
 export function buildActiveAdjacencyIndex(

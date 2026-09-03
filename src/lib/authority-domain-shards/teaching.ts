@@ -197,8 +197,8 @@ function readComposedArtifacts(
     const fragmentFile = readFirstExisting(io, [
       join(releaseDir, 'fragments', `${ref.fragmentId}.json`),
       join(releaseDir, 'fragments', `${ref.fragmentKey}.json`),
-      join(releaseDir, `${ref.fragmentId}.json`),
-      join(releaseDir, `${ref.fragmentKey}.json`),
+      join(/*turbopackIgnore: true*/ releaseDir, `${ref.fragmentId}.json`),
+      join(/*turbopackIgnore: true*/ releaseDir, `${ref.fragmentKey}.json`),
     ]);
     if (!fragmentFile || !isRecord(fragmentFile.value)) {
       throw new Error(`immutable composed Teaching fragment ${ref.fragmentId} is unavailable`);

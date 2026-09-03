@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { computeCanonicalReleaseHash } from '../../../../scripts/actkg-release/actkg-canonical-digests';
+import { computeCanonicalReleaseHash } from '@/lib/authoritative-knowledge/canonical-json';
 import { projectionCanonicalJson, projectionSha256 } from '../hash';
 import {
   DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE,
@@ -706,7 +706,7 @@ export function loadActkgSourceLocatorInventory(input?: {
   const boundRelative = authority.sourceInventory.componentPath
     || DEFAULT_ACTKG_SOURCE_STUBS_RELATIVE;
   const stubsPath = input?.stubsPath
-    ?? path.join(root, boundRelative);
+    ?? path.join(/*turbopackIgnore: true*/ root, boundRelative);
 
   const stubsBytes = readBinaryFile(stubsPath);
   let stubsPayload: unknown;
@@ -750,7 +750,7 @@ export function loadV012BundleIdentity(input?: {
 } {
   const root = input?.repoRoot ?? process.cwd();
   const manifestPath = input?.manifestPath
-    ?? path.join(root, DEFAULT_V012_BUNDLE_MANIFEST_RELATIVE);
+    ?? path.join(/*turbopackIgnore: true*/ root, DEFAULT_V012_BUNDLE_MANIFEST_RELATIVE);
   const raw = readJsonFile(manifestPath);
   if (!isRecord(raw)) {
     throw new TextbookLocatorInventoryError('schema-invalid', 'bundle-manifest must be an object');

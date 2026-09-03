@@ -13,7 +13,7 @@ import {
   normalizeDocumentRubricGoalDimension,
   textFixtureMarkItDownRunner,
   type RubricDefinition,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { legacyDocumentGradingRouteDisabled } from '@/lib/data-governance/math-document-grading-api';

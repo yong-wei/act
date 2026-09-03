@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { listStudentAssignments, presentRevision, presentStudentAssignmentFeedback, submitQuestionAnswer } from '@/lib/assignments/submission-service';
+import { listStudentAssignments, presentRevision, presentStudentAssignmentFeedback, presentStudentAssignmentResult, submitQuestionAnswer } from '@/lib/assignments/submission-service';
 import { submissionHash } from '@/lib/assignments/submission-integrity';
 
 const question = { id: 'question-1', promptSnapshot: { prompt: '解释闭环稳定性' } };
@@ -134,6 +134,70 @@ describe('student assignment approved feedback projection', () => {
   it('keeps feedback hidden before release and on owner mismatch', () => {
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-1', approvalSnapshots: [{ ...snapshot, outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'PENDING' }] }] }, [question], new Date())).toEqual([]);
     expect(presentStudentAssignmentFeedback({ studentId: 'student-1', frozenStudentId: 'student-2', approvalSnapshots: [snapshot] }, [question], new Date())).toEqual([]);
+  });
+
+  it('returns the released result package together with its reviewed asset for the confirmation release policy', () => {
+    const detail = presentRevision({
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' }, solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+    }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'REVIEWED', reviewedAt: new Date('2026-08-14T13:30:00Z'), studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
+      answers: [], approvalSnapshots: [snapshot], resubmissionGrants: [], gradingSnapshots: [{ createdAt: new Date('2026-08-14T12:00:00Z'), items: [{ questionId: 'question-1', attemptId: null }] }],
+    }, true, new Date('2026-08-14T14:00:00Z'));
+
+    expect(detail).toMatchObject({ approvedTotal: 8, feedbackStatus: 'PUBLISHED', feedback: [expect.objectContaining({ snapshotId: 'snapshot-1', reviewedAssets: [expect.objectContaining({ label: '下载批注说明' })] })], resultPackage: { totalScore: 8, overallComment: '第 1 题：继续完善工程解释。', questions: [{ questionId: 'question-1', score: 8, comment: '继续完善工程解释。' }] } });
+    expect(detail.resultPackage?.questions[0]).not.toHaveProperty('source');
+  });
+
+  it('hides all result content before a confirmation release package exists', () => {
+    const detail = presentRevision({
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' }, solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+    }, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'REVIEWED', approvedTotal: 8, studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
+      answers: [], approvalSnapshots: [snapshot], resubmissionGrants: [], gradingSnapshots: [],
+    }, true, new Date('2026-08-14T14:00:00Z'));
+
+    expect(detail).toMatchObject({ approvedTotal: null, feedbackStatus: 'HIDDEN', feedback: [], resultPackage: null });
+  });
+
+  it('projects the current grading snapshot state without exposing internal grading records', () => {
+    const revision = {
+      assignmentId: 'assignment-1', id: 'revision-1', title: '作业', instructions: '', latePolicy: { mode: 'CLOSED' }, solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' },
+      questions: [{ ...question, stableQuestionId: 'stable-1', orderIndex: 0, responseType: 'SUBJECTIVE_TEXT', points: 10 }],
+    };
+    const base = {
+      id: 'submission-1', state: 'SUBMITTED', reviewState: 'PENDING', studentId: 'student-1', frozenStudentId: 'student-1', submittedRequiredCount: 1,
+      answers: [{ assignmentQuestionId: 'question-1', state: 'SUBMITTED', currentAttemptNumber: 1, attempts: [{ id: 'attempt-1', attemptNumber: 1 }], assets: [] }], approvalSnapshots: [], resubmissionGrants: [],
+    };
+    const running = presentRevision(revision, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      ...base, gradingSnapshots: [{ createdAt: new Date('2026-07-11T00:00:00Z'), operation: { state: 'RUNNING' }, items: [{ questionId: 'question-1', attemptId: 'attempt-1' }], grade: { state: 'PENDING_GRADING' } }],
+    }, true, new Date('2026-07-11T01:00:00Z'));
+    const failed = presentRevision(revision, { availableAt: new Date('2026-07-01T00:00:00Z'), dueAt: new Date('2026-07-10T00:00:00Z') }, {
+      ...base, gradingSnapshots: [{ createdAt: new Date('2026-07-11T00:00:00Z'), operation: { state: 'PARTIAL' }, items: [{ questionId: 'question-1', attemptId: 'attempt-1' }], grade: { state: 'PARTIAL_FAILURE' } }],
+    }, true, new Date('2026-07-11T01:00:00Z'));
+
+    expect(running).toMatchObject({ state: 'IN_REVIEW', feedback: [], resultPackage: null });
+    expect(failed).toMatchObject({ state: 'PARTIAL_GRADING_FAILURE', feedback: [], resultPackage: null });
+  });
+
+  it('hides an old released package after a resubmission changes the current attempt vector', () => {
+    const result = presentStudentAssignmentResult({
+      studentId: 'student-1', frozenStudentId: 'student-1',
+      answers: [{ assignmentQuestionId: 'question-1', currentAttemptNumber: 2, attempts: [{ id: 'attempt-1', attemptNumber: 1 }, { id: 'attempt-2', attemptNumber: 2 }] }],
+      approvalSnapshots: [{
+        questionId: 'question-1',
+        attemptId: 'attempt-1',
+        questionTotal: 8,
+        criterionSnapshot: [],
+        annotationSnapshot: [],
+        outboxCommands: [{ command: 'RELEASE_STUDENT_FEEDBACK', state: 'SUCCEEDED' }],
+        feedbackRelease: { ownerStudentId: 'student-1', releasedAt: new Date('2026-08-14T13:00:00Z') },
+      }],
+      gradingSnapshots: [{ createdAt: new Date('2026-08-14T12:00:00Z'), items: [{ questionId: 'question-1', attemptId: 'attempt-1' }] }],
+    }, [{ id: 'question-1', answerSnapshot: null, rubricSnapshot: null }]);
+
+    expect(result).toBeNull();
   });
 
   it('keeps a returned submitted question editable from its active grant without requiring published feedback', () => {

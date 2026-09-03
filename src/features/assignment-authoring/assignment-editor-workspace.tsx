@@ -106,6 +106,7 @@ export function AssignmentEditorWorkspace({
     assignmentId ? 'loading' : 'ready',
   );
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveFailure, setSaveFailure] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -184,6 +185,13 @@ export function AssignmentEditorWorkspace({
       .catch(() => setLoadState('error'));
   }, [assignmentId]);
 
+  // 统一的本地文档提交入口：绕过它的平行写入会让 dirty 判定与
+  // documentRef 镜像失同步（#1792）。
+  const commitDocument = useCallback((next: AssignmentEditorDocument) => {
+    documentRef.current = next;
+    setDocument(next);
+    setSaveState('dirty');
+  }, []);
   const updateDraft = useCallback(
     (updater: (draft: AssignmentDraftInput) => AssignmentDraftInput) => {
       if (published) return;
@@ -198,11 +206,9 @@ export function AssignmentEditorWorkspace({
       ) {
         return;
       }
-      documentRef.current = next;
-      setDocument(next);
-      setSaveState('dirty');
+      commitDocument(next);
     },
-    [published],
+    [commitDocument, published],
   );
 
   const save = useCallback((): Promise<SaveResult | null> => {
@@ -215,8 +221,9 @@ export function AssignmentEditorWorkspace({
       const snapshot = documentRef.current;
       const draftFingerprint = canonicalFingerprint(snapshot.draft);
       setSaveState('saving');
+      setSaveFailure('');
       try {
-        const existing = snapshot.assignmentId && snapshot.revisionId;
+        const existing = hasSaveBaseline(snapshot);
         const response = await fetch(
           existing
             ? `/api/teacher/assignments/${snapshot.assignmentId}`
@@ -240,6 +247,10 @@ export function AssignmentEditorWorkspace({
           return null;
         }
         if (!response.ok) {
+          const payload = await response.json().catch(() => ({})) as {
+            error?: string;
+          };
+          setSaveFailure(saveFailureMessage(payload.error));
           setSaveState('error');
           return null;
         }
@@ -257,6 +268,7 @@ export function AssignmentEditorWorkspace({
         );
         return { document: saved, draftFingerprint };
       } catch {
+        setSaveFailure('保存请求未完成，请检查网络后重试。');
         setSaveState('error');
         return null;
       }
@@ -333,6 +345,10 @@ export function AssignmentEditorWorkspace({
     if (publishMessage) publishMessageRef.current?.focus();
   }, [publishMessage]);
 
+  // 发布状态文案：sr-only 与可见横幅共用同一表达式（#1792 去重）。
+  const publicationStatusMessage = saveState === 'error' && saveFailure
+    ? saveFailure
+    : publicationRecoveryMessage(saveState);
   const blockers = useMemo(() => {
     const parsed = assignmentDraftSchema.safeParse(document.draft);
     const issues = parsed.success
@@ -444,7 +460,7 @@ export function AssignmentEditorWorkspace({
       return;
     }
     const saved = documentRef.current;
-    if (!saved.assignmentId || !saved.revisionId || !saved.contentDigest) {
+    if (!hasSaveBaseline(saved) || !saved.contentDigest) {
       setPublishMessage('保存基线不完整，请重新保存后再发布。');
       window.setTimeout(() => publishMessageRef.current?.focus(), 0);
       return;
@@ -545,14 +561,10 @@ export function AssignmentEditorWorkspace({
     }
     const preparedDraft = {
       ...current.draft,
-      questions: current.draft.questions.map((item, index) =>
-        index === questionIndex ? input.question : item,
-      ),
+      questions: replaceAt(current.draft.questions, questionIndex, input.question),
     };
     const prepared = { ...current, draft: preparedDraft };
-    documentRef.current = prepared;
-    setDocument(prepared);
-    setSaveState('dirty');
+    commitDocument(prepared);
 
     const saved = await save();
     if (!saved) {
@@ -562,7 +574,7 @@ export function AssignmentEditorWorkspace({
       };
     }
     const baseline = saved.document;
-    if (!baseline.assignmentId || !baseline.revisionId) {
+    if (!hasSaveBaseline(baseline)) {
       return { status: 'error', message: '保存基线不完整，无法生成评分细则。' };
     }
     const savedQuestion = baseline.draft.questions.find(
@@ -579,7 +591,7 @@ export function AssignmentEditorWorkspace({
     }
     const levelIds = savedCriterion.levels.map((level) => level.id);
     const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion);
-    if (!savedCriterion.scoringStandard.trim() && !savedCriterion.label.trim()) {
+    if (rubricBasisMissing(savedCriterion)) {
       return {
         status: 'error',
         message: '请填写评分标准或评分项名称后再生成。',
@@ -669,14 +681,10 @@ export function AssignmentEditorWorkspace({
       ...latest,
       draft: {
         ...latest.draft,
-        questions: latest.draft.questions.map((item, index) =>
-          index === latestQuestionIndex ? nextQuestion : item,
-        ),
+        questions: replaceAt(latest.draft.questions, latestQuestionIndex, nextQuestion),
       },
     };
-    documentRef.current = nextDocument;
-    setDocument(nextDocument);
-    setSaveState('dirty');
+    commitDocument(nextDocument);
     return { status: 'applied' };
   };
 
@@ -753,9 +761,7 @@ export function AssignmentEditorWorkspace({
             <h1 className="mt-2 text-2xl font-semibold text-white">编辑作业</h1>
             <p className="mt-1 text-xs text-slate-500">
               版本 v{document.version}·解答发布策略{' '}
-              {document.draft.solutionReleasePolicy.mode === 'PRIVATE'
-                ? '仅教师可见'
-                : '按时发布'}
+              教师确认后发布
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -801,11 +807,11 @@ export function AssignmentEditorWorkspace({
         <p id="assignment-publication-state" className="sr-only">
           {saveState === 'saved'
             ? '当前内容已保存，可以发布'
-            : publicationRecoveryMessage(saveState)}
+            : publicationStatusMessage}
         </p>
         {saveState !== 'saved' && (
           <p className="mb-4 text-sm text-amber-200">
-            {publicationRecoveryMessage(saveState)}
+            {publicationStatusMessage}
           </p>
         )}
         {saveState === 'conflict' && (
@@ -1038,9 +1044,7 @@ export function AssignmentEditorWorkspace({
                 onChange={(next) =>
                   updateDraft((draft) => ({
                     ...draft,
-                    questions: draft.questions.map((item, index) =>
-                      index === activeIndex ? next : item,
-                    ),
+                    questions: replaceAt(draft.questions, activeIndex, next),
                   }))
                 }
               />
@@ -1126,17 +1130,6 @@ export function AssignmentEditorWorkspace({
                   onChange={(event) => {
                     const value = event.target.value;
                     setClassId(value);
-                    updateDraft((draft) =>
-                      draft.solutionReleasePolicy.mode === 'AT_TIME'
-                        ? {
-                            ...draft,
-                            solutionReleasePolicy: {
-                              ...draft.solutionReleasePolicy,
-                              audienceClassIds: value ? [value] : [],
-                            },
-                          }
-                        : draft,
-                    );
                   }}
                   className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
                 >
@@ -1287,112 +1280,9 @@ export function AssignmentEditorWorkspace({
               />
               仅截止前允许重交
             </label>
-            <label className="block text-xs text-slate-400">
-              参考答案发布
-              <select
-                value={document.draft.solutionReleasePolicy.mode}
-                onChange={(event) =>
-                  updateDraft((draft) => ({
-                    ...draft,
-                    solutionReleasePolicy:
-                      event.target.value === 'PRIVATE'
-                        ? { version: 1, mode: 'PRIVATE' }
-                        : {
-                            version: 1,
-                            mode: 'AT_TIME',
-                            releaseAt: new Date(
-                              Date.now() + 86_400_000,
-                            ).toISOString(),
-                            audienceClassIds: classId ? [classId] : [],
-                            includeReferenceAnswer: true,
-                            includeStudentVisibleGuidance: true,
-                          },
-                  }))
-                }
-                className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3"
-              >
-                <option value="PRIVATE">仅教师可见</option>
-                <option value="AT_TIME">按时发布</option>
-              </select>
-            </label>
-            {document.draft.solutionReleasePolicy.mode === 'AT_TIME' && (
-              <>
-                <label className="block text-xs text-slate-400">
-                  解答发布时间
-                  <input
-                    aria-label="解答发布时间"
-                    type="datetime-local"
-                    value={toLocalDateTime(
-                      document.draft.solutionReleasePolicy.releaseAt,
-                    )}
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                releaseAt: new Date(
-                                  event.target.value,
-                                ).toISOString(),
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    aria-label="发布参考答案"
-                    type="checkbox"
-                    checked={
-                      document.draft.solutionReleasePolicy
-                        .includeReferenceAnswer
-                    }
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                includeReferenceAnswer: event.target.checked,
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                  发布参考答案
-                </label>
-                <label className="flex items-center gap-2 text-xs">
-                  <input
-                    aria-label="发布学生指导"
-                    type="checkbox"
-                    checked={
-                      document.draft.solutionReleasePolicy
-                        .includeStudentVisibleGuidance
-                    }
-                    onChange={(event) =>
-                      updateDraft((draft) =>
-                        draft.solutionReleasePolicy.mode === 'AT_TIME'
-                          ? {
-                              ...draft,
-                              solutionReleasePolicy: {
-                                ...draft.solutionReleasePolicy,
-                                includeStudentVisibleGuidance:
-                                  event.target.checked,
-                              },
-                            }
-                          : draft,
-                      )
-                    }
-                  />
-                  发布学生指导
-                </label>
-              </>
-            )}
+            <div className="rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
+              截止后可选择 AI 或人工批改。教师确认并逐份发布结果时，学生将同时看到分数、批注、参考答案和评分标准。
+            </div>
             <div
               id="assignment-validation-errors"
               ref={blockerRef}
@@ -1599,31 +1489,41 @@ function QuestionEditor({
         : []);
     }),
   ));
-  const updateCriterion = (
-    index: number,
-    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
-  ) =>
-    onChange({
-      ...editableQuestion,
-      rubric: {
-        ...editableQuestion.rubric,
-        criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
-          itemIndex === index ? update(criterion) : criterion,
-        ),
-      },
-    });
-  const questionWithCriterion = (
+  const withCriterion = (
     index: number,
     update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
   ): EditableQuestionV2 => ({
     ...editableQuestion,
     rubric: {
       ...editableQuestion.rubric,
-      criteria: editableQuestion.rubric.criteria.map((criterion, itemIndex) =>
-        itemIndex === index ? update(criterion) : criterion,
+      criteria: replaceAt(
+        editableQuestion.rubric.criteria,
+        index,
+        update(editableQuestion.rubric.criteria[index]),
       ),
     },
   });
+  const updateCriterion = (
+    index: number,
+    update: (criterion: ScoringCriterionV2) => ScoringCriterionV2,
+  ) => onChange(withCriterion(index, update));
+  // 级别三胞胎（label/maxPoints/guideline）仅字段不同；maxPoints 变化后
+  // 需要保持级别有序（#1792）。
+  const updateLevel = (
+    criterionIndex: number,
+    levelIndex: number,
+    update: (level: ScoringCriterionV2['levels'][number]) => ScoringCriterionV2['levels'][number],
+    resort = false,
+  ) =>
+    updateCriterion(criterionIndex, (item) => ({
+      ...item,
+      levels: resort
+        ? sortRubricLevels(
+            replaceAt(item.levels, levelIndex, update(item.levels[levelIndex])),
+            item.maxPoints,
+          )
+        : replaceAt(item.levels, levelIndex, update(item.levels[levelIndex])),
+    }));
   const focusGenerationBasis = (
     index: number,
     focus: 'scoring-item-name' | 'scoring-standard',
@@ -1659,13 +1559,12 @@ function QuestionEditor({
   const requestRubricGeneration = (index: number) => {
     const criterion = editableQuestion.rubric.criteria[index];
     if (!criterion) return;
-    const standard = criterion.scoringStandard.trim();
-    const name = criterion.label.trim();
-    if (!standard && !name) {
+    if (rubricBasisMissing(criterion)) {
       setRubricGenerationMessage('请先填写评分标准或评分项名称。');
       focusGenerationBasis(index, 'scoring-item-name');
       return;
     }
+    const standard = criterion.scoringStandard.trim();
     if (!standard) {
       setRubricDialog({
         mode: 'missing-standard',
@@ -2153,13 +2052,9 @@ function QuestionEditor({
                   onChange={(event) =>
                     {
                       markFieldEdited('label');
-                      updateCriterion(index, (item) => ({
-                        ...item,
-                        levels: item.levels.map((entry, itemIndex) =>
-                          itemIndex === levelIndex
-                            ? { ...entry, label: event.target.value }
-                            : entry,
-                        ),
+                      updateLevel(index, levelIndex, (entry) => ({
+                        ...entry,
+                        label: event.target.value,
                       }));
                     }
                   }
@@ -2183,17 +2078,12 @@ function QuestionEditor({
                     onChange={(event) =>
                       {
                         markFieldEdited('maxPoints');
-                        updateCriterion(index, (item) => ({
-                          ...item,
-                          levels: sortRubricLevels(
-                            item.levels.map((entry, itemIndex) =>
-                              itemIndex === levelIndex
-                                ? { ...entry, maxPoints: Number(event.target.value) }
-                                : entry,
-                            ),
-                            item.maxPoints,
-                          ),
-                        }));
+                        updateLevel(
+                          index,
+                          levelIndex,
+                          (entry) => ({ ...entry, maxPoints: Number(event.target.value) }),
+                          true,
+                        );
                       }
                     }
                   />
@@ -2213,13 +2103,9 @@ function QuestionEditor({
                     onChange={(event) =>
                       {
                         markFieldEdited('guideline');
-                        updateCriterion(index, (item) => ({
-                          ...item,
-                          levels: item.levels.map((entry, itemIndex) =>
-                            itemIndex === levelIndex
-                              ? { ...entry, guideline: event.target.value }
-                              : entry,
-                          ),
+                        updateLevel(index, levelIndex, (entry) => ({
+                          ...entry,
+                          guideline: event.target.value,
                         }));
                       }
                     }
@@ -2369,7 +2255,7 @@ function QuestionEditor({
                       type="button"
                       disabled={!rubricDialog.standardDraft.trim()}
                       onClick={() => {
-                        const preparedQuestion = questionWithCriterion(
+                        const preparedQuestion = withCriterion(
                           rubricDialog.criterionIndex,
                           (item) => ({
                             ...item,
@@ -2493,6 +2379,19 @@ function moveItem<T>(items: T[], index: number, delta: number): T[] {
   [next[index], next[target]] = [next[target], next[index]];
   return next;
 }
+function replaceAt<T>(items: readonly T[], index: number, next: T): T[] {
+  return items.map((item, itemIndex) => (itemIndex === index ? next : item));
+}
+/** 评分生成依据缺失：评分标准与评分项名称都为空（服务端 basis-missing 同语义）。 */
+function rubricBasisMissing(criterion: { scoringStandard: string; label: string }): boolean {
+  return criterion.scoringStandard.trim() === '' && criterion.label.trim() === '';
+}
+/** CAS 保存基线：已有 assignmentId+revisionId 才能走 PATCH/发布/生成。 */
+function hasSaveBaseline<T extends { assignmentId?: string; revisionId?: string }>(
+  document: T,
+): document is T & { assignmentId: string; revisionId: string } {
+  return Boolean(document.assignmentId && document.revisionId);
+}
 function moveQuestion(
   index: number,
   delta: number,
@@ -2502,14 +2401,8 @@ function moveQuestion(
   ) => void,
   setActive: (index: number) => void,
 ) {
-  const nextIndex = index + delta;
-  const questions = [...draft.questions];
-  [questions[index], questions[nextIndex]] = [
-    questions[nextIndex],
-    questions[index],
-  ];
-  update((current) => ({ ...current, questions }));
-  setActive(nextIndex);
+  update((current) => ({ ...current, questions: moveItem(current.questions, index, delta) }));
+  setActive(index + delta);
 }
 function saveLabel(state: SaveState) {
   return (
@@ -2530,11 +2423,6 @@ function embeddedSaveState(state: SaveState): AssignmentEmbeddedSaveState {
   if (state === 'error') return 'failed';
   if (state === 'conflict') return 'conflict';
   return 'editing';
-}
-function toLocalDateTime(value: string) {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 function blockerLabel(value: string, draft: AssignmentDraftInput) {
   if (value.startsWith('validation:')) {
@@ -2753,6 +2641,22 @@ function publicationRecoveryMessage(state: SaveState): string {
   if (state === 'conflict') return '存在版本冲突，请重新加载并解决冲突后再发布。';
   if (state === 'dirty') return '当前修改尚未保存，请先保存后再发布。';
   return '请先保存当前作业，再执行发布。';
+}
+
+function saveFailureMessage(error: string | undefined): string {
+  if (error === 'invalid-origin') {
+    return '当前页面的保存来源未获确认。请刷新页面后重试。';
+  }
+  if (error === 'invalid-payload') {
+    return '作业内容未通过保存校验，请检查题目和评分标准后重试。';
+  }
+  if (error === 'payload-too-large') {
+    return '作业内容过长，请精简后重试保存。';
+  }
+  if (error === '请求过于频繁') {
+    return '保存请求过于频繁，请稍后重试。';
+  }
+  return '保存服务暂时不可用，请稍后重试。';
 }
 
 function publicationErrorMessage(error: string | undefined, details: string[] | undefined): string {

@@ -26,9 +26,9 @@ import {
 import {
   activeModelRelationSummaries,
   activeNodeRelationSummaries,
-  activeNodeSearch,
   createActiveAuthorityGraphModel,
   expandActiveAuthorityOneHop,
+  knownActiveNodeTypes,
   materializeActiveNodeScope,
   presentActiveNodeType,
   presentActiveRelation,
@@ -36,6 +36,7 @@ import {
   presentGovernanceLabel,
   presentSourceCitation,
   isPrimaryDomainObject,
+  selectAuthorityDomainOverviewScope,
   selectInitialPrimaryDomainScope,
   visibleActiveGraph,
   ACTIVE_GRAPH_NODE_LIMIT,
@@ -47,6 +48,7 @@ import {
   disableAuthorityShardFamily,
   enableAuthorityShardFamily,
   invalidateTeachingBearingShards,
+  isTeachingBearingShard,
   mergeAuthorityShard,
   completeAuthorityLocaleRefresh,
   resetAuthorityShardDomain,
@@ -56,6 +58,8 @@ import {
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
 import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
+import { ActiveAuthorityFilterPanel } from './active-authority-filter-panel';
+import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
 import { useKnowledgeGraphRuntimeLayout } from './graph/use-knowledge-graph-runtime-layout';
 import { KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH } from './graph/viewport-fit';
@@ -64,16 +68,19 @@ import {
   defaultEnabledTeachingFamilies,
 } from './authority-graph-view-model';
 import type { GraphDimension } from './graph-runtime-session';
-import type {
-  AuthorityShardPublicEnvelope,
-  AuthorityShardMembership,
-  EngineeringRelationFamily,
+import {
+  AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+  type AuthorityShardPublicEnvelope,
+  type AuthorityShardMembership,
+  type AuthorityDomainSearchHit,
+  type EngineeringRelationFamily,
 } from '@/lib/authority-domain-shards/contracts';
 import { REGISTERED_PEER_DOMAIN_IDS } from '@/lib/authority-domain-catalog/contracts';
-import { ENGINEERING_RELATION_FAMILIES } from '@/lib/authority-domain-shards/contracts';
 import {
   isPublicAuthorityLearnerShard,
   publicEnvelopesShareAuthorityAndCatalog,
+  publicEnvelopesShareLocaleProfile,
+  publicTeachingIdentityMatches,
 } from '@/lib/authority-domain-shards/envelope';
 import type { AdmittedLocale } from '@/lib/authority-locale-readiness/contracts';
 import {
@@ -83,9 +90,9 @@ import {
 } from '@/lib/authority-locale-readiness/presentation-state';
 import {
   boundaryEnterCopy,
-  familyLabel,
   formatLoadMore,
   formatLoadMoreAria,
+  formatUnpinAllAria,
   formatSearchShownCount,
   graphCopy,
   shardUrl,
@@ -102,6 +109,7 @@ interface ActiveAuthorityGraphProps {
   runtimeControlsRef?: { current: {
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
+    requestUnpin: (nodeId?: string) => void;
   } | null };
 }
 
@@ -169,7 +177,12 @@ async function fetchAuthorityShard(
   return payload as IncomingAuthorityShard;
 }
 
-function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
+function useActiveAuthorityWorkspace(
+  retry: number,
+  requestedLocale: AdmittedLocale,
+  onLocaleTransactionFailure?: (previousLocale: AdmittedLocale) => void,
+  onLocaleTransactionSuccess?: (nextLocale: AdmittedLocale) => void,
+): {
   state: WorkspaceLoadState;
   workspace: AuthorityShardWorkspaceState;
   enterDomain: (visualRole: string) => Promise<boolean>;
@@ -178,6 +191,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
   familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
   requestNeighborhood: (nodeId: string) => void;
   neighborhoodFailures: Record<string, string>;
+  localeRefreshFailure: string | null;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
   onIdentityFailure: () => void;
@@ -186,12 +200,13 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
   const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
   const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const [localeRefreshFailure, setLocaleRefreshFailure] = useState<string | null>(null);
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
   const requestControllersRef = useRef(new Set<AbortController>());
   const failClosedRef = useRef(false);
-  const localeRef = useRef(locale);
-  localeRef.current = locale;
+  const localeRef = useRef<AdmittedLocale>(workspace.selectedLocale);
+  localeRef.current = workspace.selectedLocale;
   workspaceRef.current = workspace;
 
   function updateWorkspace(
@@ -221,7 +236,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     setWorkspace(empty);
     setFamilyFailures({});
     setNeighborhoodFailures({});
-    setState({ status: 'error', message: errorMessage(409, locale) });
+    setState({ status: 'error', message: errorMessage(409, localeRef.current) });
   }
 
   function fetchDomainDefault(visualRole: string, generation: number, domainRevision: number): Promise<boolean> {
@@ -241,7 +256,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(locale, 'error.domainShard'),
+          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.domainShard'),
         });
         return false;
       })
@@ -318,7 +333,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
         }
         setState({
           status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(locale, 'error.generic'),
+          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.generic'),
         });
       });
     return () => {
@@ -335,7 +350,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
   useEffect(() => {
     const current = workspaceRef.current;
     if (state.status !== 'ready' || !current.envelope) return;
-    if (current.selectedLocale === locale) return;
+    if (current.selectedLocale === requestedLocale) return;
     const visualRole = current.activeVisualRole;
     const families = [...current.enabledFamilies];
     const selectedId = current.selectedCanonicalId;
@@ -345,60 +360,104 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
         .map((key) => key.slice(key.indexOf(':') + 1)),
       ...selectedId ? [selectedId] : [],
     ])];
-    updateWorkspace((workspace) => ({ ...workspace, selectedLocale: locale }));
+    const previousLocale = current.selectedLocale;
+    setLocaleRefreshFailure(null);
     const generation = nextRequestGeneration();
     const domainRevision = current.domainRevision;
     const controller = new AbortController();
     const requestControllers = requestControllersRef.current;
     requestControllers.add(controller);
-    fetchAuthorityShard(shardUrl('/api/knowledge/shards/active', locale), 'root', controller.signal)
-      .then(async (shard) => {
-        const applyRequired = (next: IncomingAuthorityShard): boolean => (
-          applyShard(next, generation, domainRevision) && !controller.signal.aborted
-        );
-        if (!applyRequired(shard)) return;
-        if (visualRole) {
-          const domainOk = await fetchDomainDefault(visualRole, generation, domainRevision);
-          if (!domainOk || controller.signal.aborted) return;
+
+    function abortLocaleRefresh(): void {
+      onLocaleTransactionFailure?.(previousLocale);
+      setLocaleRefreshFailure(graphCopy(previousLocale, 'error.generic'));
+    }
+
+    // 事务性 locale 刷新（#1741）：一次代内并行取回当前已加载的全部逻辑
+    // 分片，全部成功后同一批提交——中途失败或代过期则整体丢弃并回滚到
+    // 旧 locale 完整帧，绝不出现混合语言帧。
+    type ShardPlan = { url: string; kind: Parameters<typeof fetchAuthorityShard>[1] };
+    const plan: ShardPlan[] = [
+      { url: shardUrl('/api/knowledge/shards/active', requestedLocale), kind: 'root' },
+      ...(visualRole ? [{
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}`, requestedLocale),
+        kind: 'domain-default' as const,
+      }] : []),
+      ...(visualRole ? families.map((family) => ({
+        url: shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, requestedLocale),
+        kind: 'relation-family' as const,
+      })) : []),
+      ...loadedNodeIds.flatMap((nodeId): ShardPlan[] => [
+        {
+          url: shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, requestedLocale),
+          kind: 'node-neighborhood',
+        },
+        {
+          url: shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, requestedLocale),
+          kind: 'node-detail',
+        },
+      ]),
+    ];
+    const CONCURRENCY = 4;
+    const results: IncomingAuthorityShard[] = [];
+    let failed = false;
+    let cursor = 0;
+    async function worker(): Promise<void> {
+      while (cursor < plan.length && !failed && !controller.signal.aborted) {
+        const item = plan[cursor++]!;
+        const shard = await fetchAuthorityShard(item.url, item.kind, controller.signal);
+        results.push(shard);
+      }
+    }
+    void (async () => {
+      try {
+        await Promise.all(Array.from({ length: Math.min(CONCURRENCY, plan.length) }, () => worker()));
+        if (controller.signal.aborted || generation !== requestGenerationRef.current) return;
+        // 原子提交：在本地快照上串行 merge 全部响应，任何漂移即整体放弃；
+        // 只有一次 setState 把完整的新 locale 帧写入工作区（#1741）。
+        let next = workspaceRef.current;
+        const targetEnvelope = results[0]?.envelope;
+        if (!targetEnvelope) {
+          abortLocaleRefresh();
+          return;
         }
-        for (const family of families) {
-          if (!visualRole) break;
-          const familyShard = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/families/${encodeURIComponent(family)}`, locale),
-            'relation-family',
-            controller.signal,
-          );
-          if (!applyRequired(familyShard)) return;
+        for (const shard of results) {
+          const catalogDrift = shardIdentityDrift(next, shard) === 'authority-catalog';
+          const localeDrift = !publicEnvelopesShareLocaleProfile(targetEnvelope, shard.envelope);
+          const teachingDrift = isTeachingBearingShard(shard)
+            && !publicTeachingIdentityMatches(targetEnvelope, shard.envelope);
+          if (catalogDrift || localeDrift || teachingDrift) {
+            abortLocaleRefresh();
+            return;
+          }
+          if (generation !== requestGenerationRef.current || controller.signal.aborted) return;
+          next = mergeAuthorityShard(next, shard);
         }
-        for (const nodeId of loadedNodeIds) {
-          const neighborhood = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/neighborhoods/${encodeURIComponent(nodeId)}`, locale),
-            'node-neighborhood',
-            controller.signal,
-          );
-          if (!applyRequired(neighborhood)) return;
-          const detail = await fetchAuthorityShard(
-            shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeId)}`, locale),
-            'node-detail',
-            controller.signal,
-          );
-          if (!applyRequired(detail)) return;
-        }
+        next = {
+          ...completeAuthorityLocaleRefresh(next),
+          selectedLocale: requestedLocale,
+        };
         if (generation === requestGenerationRef.current) {
-          updateWorkspace(completeAuthorityLocaleRefresh);
+          updateWorkspace(() => next);
+          setState({ status: 'ready', workspace: next });
+          onLocaleTransactionSuccess?.(requestedLocale);
         }
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted || isIdentityFailure(error)) return;
-      })
-      .finally(() => requestControllers.delete(controller));
+      } catch {
+        if (controller.signal.aborted) return;
+        // HTTP 409 与其它 shard 失败同属“切换失败”：保留旧 locale 完整帧，
+        // 回滚 selectedLocale 与外层 locale。不得走 onIdentityFailure() 清空图。
+        abortLocaleRefresh();
+      } finally {
+        requestControllers.delete(controller);
+      }
+    })();
     return () => {
       controller.abort();
       requestControllers.delete(controller);
     };
     // Locale changes refresh display only; retry remains the identity reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, state.status]);
+  }, [requestedLocale, state.status]);
 
   function enterDomain(visualRole: string): Promise<boolean> {
     const current = workspaceRef.current;
@@ -538,6 +597,7 @@ function useActiveAuthorityWorkspace(retry: number, locale: AdmittedLocale): {
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
+    localeRefreshFailure,
     resetDomain,
     applyShard,
     onIdentityFailure,
@@ -879,6 +939,8 @@ function ActiveNodeDetail({
   compact,
   onActivateNeighbor,
   locale,
+  pinned = false,
+  onUnpin,
 }: {
   nodeKey: string;
   fallbackNode: ActiveNodePresentation | undefined;
@@ -890,6 +952,8 @@ function ActiveNodeDetail({
   compact: boolean;
   onActivateNeighbor: (key: string) => void;
   locale: AdmittedLocale;
+  pinned?: boolean;
+  onUnpin?: () => void;
 }) {
   const { detail, failure, loading } = useActiveNodeDetail(nodeKey, envelope, onShard, onIdentityFailure, locale);
   const panelRef = useRef<HTMLElement>(null);
@@ -942,14 +1006,27 @@ function ActiveNodeDetail({
           <div className="text-xs font-medium text-platform-fg-muted">{graphCopy(locale, 'inspector.label')}</div>
           <div className="mt-1 text-sm text-platform-fg-secondary">{graphCopy(locale, 'inspector.subtitle')}</div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={graphCopy(locale, 'inspector.close')}
-          className="rounded-md border border-platform-border p-2 text-platform-fg-secondary hover:bg-platform-action-subtle"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          {pinned && onUnpin ? (
+            <button
+              type="button"
+              onClick={onUnpin}
+              data-active-authority-unpin={nodeKey}
+              aria-label={graphCopy(locale, 'controls.unpinAria')}
+              className="rounded-md border border-platform-border px-2 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+            >
+              {graphCopy(locale, 'controls.unpin')}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={graphCopy(locale, 'inspector.close')}
+            className="rounded-md border border-platform-border p-2 text-platform-fg-secondary hover:bg-platform-action-subtle"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -1103,14 +1180,14 @@ function ActiveNodeDetail({
           </section>
           <section aria-labelledby="active-detail-sources">
             <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources)}</p>
+            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
           </section>
           {node?.governance ? (
             <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
               <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus)}</dd>
-                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus)}</dd>
+                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
+                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
               </dl>
             </section>
           ) : null}
@@ -1120,50 +1197,130 @@ function ActiveNodeDetail({
   );
 }
 
+interface DomainSearchState {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  queryKey: string;
+  pageSize: number;
+  total: number;
+  hits: readonly AuthorityDomainSearchHit[];
+}
+
+const IDLE_DOMAIN_SEARCH: DomainSearchState = {
+  status: 'idle',
+  queryKey: '',
+  pageSize: SEARCH_RESULT_PAGE_SIZE,
+  total: 0,
+  hits: [],
+};
+
+function isAuthorityDomainSearchResponse(value: unknown): value is {
+  contract: typeof AUTHORITY_DOMAIN_SEARCH_CONTRACT;
+  envelope?: unknown;
+  domainId: string;
+  total: number;
+  pageSize: number;
+  hits: AuthorityDomainSearchHit[];
+} {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as {
+    contract?: unknown;
+    domainId?: unknown;
+    total?: unknown;
+    page?: unknown;
+    pageSize?: unknown;
+    hits?: unknown;
+  };
+  if (record.contract !== AUTHORITY_DOMAIN_SEARCH_CONTRACT) return false;
+  if (typeof record.domainId !== 'string') return false;
+  if (typeof record.total !== 'number' || typeof record.page !== 'number') return false;
+  if (typeof record.pageSize !== 'number' || !Array.isArray(record.hits)) return false;
+  return record.hits.every((hit) => (
+    hit && typeof hit === 'object'
+    && typeof (hit as { id?: unknown }).id === 'string'
+    && typeof (hit as { label?: unknown }).label === 'string'
+    && typeof (hit as { canonicalType?: unknown }).canonicalType === 'string'
+  ));
+}
+
+/**
+ * Fail closed: a domain-search response from another Authority, Teaching or
+ * locale generation must not enter the current workspace.
+ */
+function searchResponseSharesEnvelope(
+  workspaceEnvelope: AuthorityShardPublicEnvelope,
+  payload: { envelope?: unknown },
+): boolean {
+  const responseEnvelope = payload.envelope as AuthorityShardPublicEnvelope | undefined;
+  return Boolean(
+    responseEnvelope
+    && publicEnvelopesShareAuthorityAndCatalog(workspaceEnvelope, responseEnvelope)
+    && publicTeachingIdentityMatches(workspaceEnvelope, responseEnvelope)
+    && publicEnvelopesShareLocaleProfile(workspaceEnvelope, responseEnvelope),
+  );
+}
+
 function SearchResults({
-  results,
+  state,
   onSelect,
+  onLoadMore,
   locale,
 }: {
-  results: readonly ActiveNodePresentation[];
-  onSelect: (key: string) => void;
+  state: DomainSearchState;
+  onSelect: (hit: AuthorityDomainSearchHit) => void;
+  onLoadMore: () => void;
   locale: AdmittedLocale;
 }) {
-  const [visibleCount, setVisibleCount] = useState(SEARCH_RESULT_PAGE_SIZE);
-  if (results.length === 0) return null;
-  const visibleResults = results.slice(0, Math.min(visibleCount, results.length));
-  const remainingCount = results.length - visibleResults.length;
+  if (state.status === 'error') {
+    return (
+      <p
+        role="alert"
+        data-active-search-failed="true"
+        className="mt-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+      >
+        {graphCopy(locale, 'search.failed')}
+      </p>
+    );
+  }
+  const loadingNextPage = state.status === 'loading';
+  if (state.status !== 'ready' || state.hits.length === 0) return null;
+  const remainingCount = Math.max(0, state.total - state.hits.length);
   return (
-    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={results.length}>
+    <div className="mt-2 max-h-44 overflow-y-auto rounded-md border border-platform-border bg-platform-surface" data-active-search-results data-active-search-result-total={state.total}>
       <div className="border-b border-platform-border px-3 py-2 text-[11px] text-platform-fg-muted" role="status" aria-live="polite">
-        {formatSearchShownCount(locale, visibleResults.length, results.length)}
+        {loadingNextPage
+          ? graphCopy(locale, 'search.searching')
+          : formatSearchShownCount(locale, state.hits.length, state.total)}
       </div>
-      {visibleResults.map((node) => (
+      {state.hits.map((hit) => (
         <button
-          key={node.key}
+          key={hit.id}
           type="button"
-          onClick={() => onSelect(node.key)}
-          aria-label={`定位${node.label}`}
-          data-active-authority-search-result={node.key}
+          onClick={() => onSelect(hit)}
+          aria-label={`${graphCopy(locale, 'search.locate')}${hit.mathematics?.state === 'available' ? hit.mathematics.accessibleLabel : hit.label}`}
+          data-active-authority-search-result={hit.id}
           className="flex w-full items-center justify-between gap-2 border-b border-platform-border px-3 py-2 text-left text-xs last:border-b-0 hover:bg-platform-action-subtle"
         >
-          <span className="truncate text-platform-fg-primary">
-            {node.richTitle
-              ? <GovernedRichText projection={node.richTitle} density="preview" />
-              : node.label}
+          <span className="min-w-0 truncate text-platform-fg-primary" data-active-authority-search-result-label={hit.id}>
+            {hit.mathematics && hit.mathematics.state !== 'missing' ? (
+              <GovernedFormulaLabel projection={hit.mathematics} theme="dark" />
+            ) : hit.label}
           </span>
-          <span className="shrink-0 text-platform-fg-muted">{node.type.label}</span>
+          <span className="shrink-0 text-platform-fg-muted">
+            {hit.typeLabel ?? presentActiveNodeType(hit.canonicalType).label}
+          </span>
         </button>
       ))}
       {remainingCount > 0 ? (
         <button
           type="button"
-          onClick={() => setVisibleCount((current) => Math.min(results.length, current + SEARCH_RESULT_PAGE_SIZE))}
+          onClick={onLoadMore}
           aria-label={formatLoadMoreAria(locale, remainingCount)}
           data-active-authority-search-load-more
           className="w-full border-t border-platform-border px-3 py-2 text-left text-xs text-platform-action-primary hover:bg-platform-action-subtle"
         >
-          {formatLoadMore(locale, remainingCount)}
+          {loadingNextPage
+            ? graphCopy(locale, 'search.searching')
+            : formatLoadMore(locale, remainingCount)}
         </button>
       ) : null}
     </div>
@@ -1182,6 +1339,7 @@ export function ActiveAuthorityGraph({
   const runtimeLayout = useKnowledgeGraphRuntimeLayout({ dimension });
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
+  const [requestedLocale, setRequestedLocale] = useState<AdmittedLocale>('zh-CN');
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const {
@@ -1193,10 +1351,19 @@ export function ActiveAuthorityGraph({
     familyFailures,
     requestNeighborhood,
     neighborhoodFailures,
+    localeRefreshFailure,
     resetDomain,
     applyShard,
     onIdentityFailure,
-  } = useActiveAuthorityWorkspace(retry, locale);
+  } = useActiveAuthorityWorkspace(
+  retry,
+  requestedLocale,
+  (previousLocale) => {
+    setRequestedLocale(previousLocale);
+    setLocale(previousLocale);
+  },
+  (nextLocale) => setLocale(nextLocale),
+);
   const languageState = selectGraphLanguage(
     createGraphLanguageState(workspace.localeCapability),
     locale,
@@ -1204,10 +1371,15 @@ export function ActiveAuthorityGraph({
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  // 独立可逆的节点类型筛选：集合保存被隐藏的注册类型身份（canonicalType），
+  // 与 locale/维度无关，切换筛选不重建模型、坐标或相机（#1742）。
+  const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(new Set());
+  // 教学关系层默认可见、独立可逆，便于单独观察工程关系（#1742 review）。
+  const [teachingRelationsVisible, setTeachingRelationsVisible] = useState(true);
   const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
   const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
+  const mobileToolsRef = useRef<HTMLDivElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const isCompactViewport = viewportWidth !== null
@@ -1230,6 +1402,16 @@ export function ActiveAuthorityGraph({
     setBoundaryDirectoryExpanded(false);
     setMobileGraphControlsExpanded(false);
   }, [workspace.activeDomainId]);
+
+  // Mobile 折叠抽屉（mobileTools）卸载后，焦点可能残留在已移除的筛选
+  // 控件上而丢到 body；还原到折叠开关，键盘会话不中断（#1742）。
+  useEffect(() => {
+    if (graphControlsVisible) return;
+    if (document.activeElement && document.activeElement !== document.body) return;
+    document
+      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
+      ?.focus();
+  }, [graphControlsVisible]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1254,6 +1436,18 @@ export function ActiveAuthorityGraph({
   const teachingCoverage = workspace.activeDomainId
     ? workspace.teachingCoverageByDomain[workspace.activeDomainId]
     : null;
+  // 状态映射 i18n（而非匹配 note 字符串）：available 是正常态不打扰，其余
+  // 状态在筛选面板教学行内显式提示（#1742 移除 legend 行后的空态出口）。
+  const teachingCoverageNote = !teachingCoverage || teachingCoverage.status === 'available'
+    ? null
+    : graphCopy(
+      locale,
+      teachingCoverage.status === 'partial'
+        ? 'legend.teachingPartial'
+        : teachingCoverage.status === 'empty'
+          ? 'legend.teachingEmpty'
+          : 'legend.teachingUnavailable',
+    );
   const latestCutoverReady = workspace.latestCutover?.ready === true
     && teachingCoverage?.note !== '教学关系暂不可用';
   const boundaryCues = useMemo(() => {
@@ -1289,6 +1483,9 @@ export function ActiveAuthorityGraph({
   }, [workspace, locale]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
+  // locale 事务刷新会重建 domainOverviewIds 数组引用但内容不变；deps 用
+  // 内容 key，过滤/选择/查询状态只在真正换域时重置（#1742）。
+  const domainOverviewKey = workspace.domainOverviewIds.join('\u0000');
   const modelReady = Boolean(model);
   // This reset is intentionally tied to readiness rather than model identity:
   // filtering and selection rebuild the derived model without resetting view state.
@@ -1296,24 +1493,34 @@ export function ActiveAuthorityGraph({
   useEffect(() => {
     if (!model) return;
     const pending = pendingCrossDomainSelectionRef.current;
-    if (pending && pending.intent === selectionIntentRef.current && model.nodeByKey.has(pending.key)) {
-      setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
-      setSelectedNodeKey(pending.key);
+    if (pending && pending.intent !== selectionIntentRef.current) {
       pendingCrossDomainSelectionRef.current = null;
-    } else {
-      pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys(isCompactViewport
-        ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
-        : new Set(model.nodes.map((node) => node.key)));
-      setSelectedNodeKey(null);
     }
+    // Desktop and mobile enter the same server-bounded DomainConcept
+    // overview; the desktop all-model-nodes initialization path is gone.
+    setVisibleKeys(isCompactViewport
+      ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+      : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
+    setSelectedNodeKey(null);
     setQuery('');
-    setTypeFilter('');
+    setHiddenNodeTypes(new Set());
+    setTeachingRelationsVisible(true);
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit]);
+  }, [domainEpoch, modelReady, isCompactViewport, visibleNodeLimit, domainOverviewKey]);
   /* eslint-enable react-hooks/exhaustive-deps */
+
+  // A cross-domain selection waits until its owning domain response and, for
+  // secondary objects, the one-hop disclosure have materialized the node.
+  useEffect(() => {
+    const pending = pendingCrossDomainSelectionRef.current;
+    if (!model || !pending || pending.intent !== selectionIntentRef.current) return;
+    if (!model.nodeByKey.has(pending.key)) return;
+    pendingCrossDomainSelectionRef.current = null;
+    setVisibleKeys(materializeActiveNodeScope(model, pending.key, visibleNodeLimit));
+    setSelectedNodeKey(pending.key);
+  }, [model, visibleNodeLimit]);
 
   useEffect(() => {
     if (!model) return;
@@ -1365,12 +1572,14 @@ export function ActiveAuthorityGraph({
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       const key = selectedNodeKey;
-      setSelectedNodeKey(null);
+      leaveSelectedNeighborhood();
       window.setTimeout(() => restoreFocus(key), 0);
     };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [selectedNodeKey]);
+    // Leave/restore semantics read the current model and overview ids.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNodeKey, model, workspace.domainOverviewIds, isCompactViewport, visibleNodeLimit]);
 
   useEffect(() => {
     const main = graphMainRef.current;
@@ -1379,17 +1588,116 @@ export function ActiveAuthorityGraph({
     return () => main.removeAttribute('inert');
   }, [isCompactViewport, selectedNodeKey]);
 
-  const searchResults = useMemo(
-    () => model ? activeNodeSearch(model, query, typeFilter || undefined) : [],
-    [model, query, typeFilter],
-  );
+  const [domainSearch, setDomainSearch] = useState<DomainSearchState>(IDLE_DOMAIN_SEARCH);
+  const trimmedQuery = query.trim();
+  const searchQueryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}`;
+  const domainSearchRef = useRef(domainSearch);
+  domainSearchRef.current = domainSearch;
+
+  // Bounded server search over the sealed per-domain index: secondary types
+  // stay undisclosed on the canvas until their one-hop neighborhood loads.
+  useEffect(() => {
+    if (!workspace.activeVisualRole || !workspace.envelope || !trimmedQuery) {
+      setDomainSearch(IDLE_DOMAIN_SEARCH);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      const queryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}`;
+      setDomainSearch((current) => (
+        current.queryKey === queryKey
+          ? { ...current, status: 'loading' }
+          : { ...IDLE_DOMAIN_SEARCH, status: 'loading', queryKey, pageSize: SEARCH_RESULT_PAGE_SIZE }
+      ));
+      requestDomainSearch({ page: 0, append: false, signal: controller.signal });
+    }, 250);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+    // Search keys track the active domain, query, type and locale only.
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, [searchQueryKey, locale, workspace.activeVisualRole]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  /** One bounded search request shared by the debounced query and load-more. */
+  function requestDomainSearch(options: { page: number; append: boolean; signal?: AbortSignal }) {
+    const visualRole = workspace.activeVisualRole;
+    const workspaceEnvelope = workspace.envelope;
+    if (!visualRole || !workspaceEnvelope || !trimmedQuery) return;
+    const queryKey = `${workspace.activeDomainId ?? ''}\u0000${trimmedQuery}`;
+    const params = new URLSearchParams({ q: trimmedQuery, limit: String(SEARCH_RESULT_PAGE_SIZE) });
+    if (options.page > 0) params.set('page', String(options.page));
+    fetch(
+      shardUrl(
+        `/api/knowledge/shards/active/domains/${encodeURIComponent(visualRole)}/search?${params.toString()}`,
+        locale,
+      ),
+      { signal: options.signal, headers: { accept: 'application/json' } },
+    )
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`search failed: ${response.status}`);
+        return response.json() as Promise<unknown>;
+      })
+      .then((payload: unknown) => {
+        if (options.signal?.aborted) return;
+        if (!isAuthorityDomainSearchResponse(payload)) return;
+        if (!searchResponseSharesEnvelope(workspaceEnvelope, payload)) return;
+        setDomainSearch((current) => {
+          if (current.queryKey !== queryKey) return current;
+          if (!options.append) {
+            return {
+              status: 'ready',
+              queryKey,
+              pageSize: payload.pageSize,
+              total: payload.total,
+              hits: payload.hits,
+            };
+          }
+          return { ...current, status: 'ready', hits: [...current.hits, ...payload.hits] };
+        });
+      })
+      .catch(() => {
+        if (options.signal?.aborted) return;
+        setDomainSearch((current) => (
+          current.queryKey === queryKey ? { ...current, status: 'error' } : current
+        ));
+      });
+  }
+
+  function loadMoreSearchResults() {
+    const current = domainSearchRef.current;
+    if (current.status !== 'ready' || current.hits.length >= current.total) return;
+    setDomainSearch((state) => ({ ...state, status: 'loading' }));
+    requestDomainSearch({
+      page: Math.floor(current.hits.length / Math.max(1, current.pageSize)),
+      append: true,
+    });
+  }
+
   const scopedGraph = useMemo(() => {
     if (!model) return null;
     const scoped = visibleActiveGraph(model, visibleKeys);
-    if (!typeFilter) return scoped;
-    const filteredKeys = new Set(scoped.nodes.filter((node) => node.type.canonicalType === typeFilter).map((node) => node.key));
+    if (hiddenNodeTypes.size === 0) return scoped;
+    const filteredKeys = new Set(scoped.nodes.filter((node) => !hiddenNodeTypes.has(node.type.canonicalType)).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
-  }, [model, typeFilter, visibleKeys]);
+  }, [model, hiddenNodeTypes, visibleKeys]);
+  // 面板只列当前有界逻辑图中已物化的注册类型；隐藏类型保留控件可逆（#1742）。
+  const materializedNodeTypes = useMemo(() => {
+    if (!model) return [];
+    const byType = new Map(model.nodes.map((node) => [node.type.canonicalType, node]));
+    return knownActiveNodeTypes()
+      .filter((type) => byType.has(type.canonicalType))
+      .map((type) => {
+        const materialized = byType.get(type.canonicalType)!;
+        return {
+          canonicalType: type.canonicalType,
+          shape: materialized.type.shape,
+          tone: materialized.type.tone,
+          fallbackLabel: materialized.type.label,
+        };
+      });
+  }, [model]);
   const authorityView = useMemo(() => {
     if (!scopedGraph) return null;
     const haloIds = Object.keys(workspace.boundaryRefsByCanonicalId);
@@ -1398,11 +1706,21 @@ export function ActiveAuthorityGraph({
       relations: scopedGraph.relations.map((row) => row.sourceRelation),
       crossDomainCanonicalIds: haloIds,
       enabledRelationFamilies: [
-        ...defaultEnabledTeachingFamilies(),
+        ...(teachingRelationsVisible ? defaultEnabledTeachingFamilies() : []),
         ...workspace.enabledFamilies,
       ],
     });
-  }, [scopedGraph, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
+  }, [scopedGraph, teachingRelationsVisible, workspace.boundaryRefsByCanonicalId, workspace.enabledFamilies]);
+  const overviewDirectoryEntries = useMemo(() => {
+    if (!model) return undefined;
+    const entries = workspace.domainOverviewIds
+      .map((id) => model.nodeByKey.get(id))
+      .filter((node): node is NonNullable<typeof node> => node !== undefined)
+      // mobile 大域目录与画布共用同一类型可见性（#1742 review）。
+      .filter((node) => !hiddenNodeTypes.has(node.type.canonicalType))
+      .map((node) => ({ id: node.key, label: node.label, mathematics: node.mathematics }));
+    return entries.length > 0 ? entries : undefined;
+  }, [model, hiddenNodeTypes, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
   const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
     ? {
@@ -1411,24 +1729,30 @@ export function ActiveAuthorityGraph({
       summary: model.nodeByKey.get(hoveredNodeId)!.description ?? graphCopy(locale, 'empty.domain'),
       richTitle: model.nodeByKey.get(hoveredNodeId)!.richTitle,
       richDescription: model.nodeByKey.get(hoveredNodeId)!.richDescription,
+      mathematics: model.nodeByKey.get(hoveredNodeId)!.mathematics,
     }
     : null;
 
-  function resolveNodeSelection(key: string, mode: 'canvas' | 'search'): void {
-    if (!model && !workspace.objectsByCanonicalId[key]) return;
+  function resolveNodeSelection(
+    key: string,
+    mode: 'canvas' | 'search',
+    knownMemberships?: readonly AuthorityShardMembership[],
+  ): void {
+    if (!model && !workspace.objectsByCanonicalId[key] && !knownMemberships) return;
     const intent = selectionIntentRef.current + 1;
     selectionIntentRef.current = intent;
     if (mode === 'search') {
       // The result button is removed when the query is cleared; restore focus
       // to the newly materialized semantic node or the canvas instead.
       setQuery('');
-      setTypeFilter('');
+      setHiddenNodeTypes(new Set());
+      setTeachingRelationsVisible(true);
     }
 
     const object = workspace.objectsByCanonicalId[key];
-    const memberships = object?.memberships.filter((membership) => (
+    const memberships = (object?.memberships ?? knownMemberships ?? []).filter((membership) => (
       workspace.root?.domains.some((domain) => domain.visualRole === membership.visualRole) ?? false
-    )) ?? [];
+    ));
     const membership = selectActiveAuthorityMembership(memberships, workspace.activeDomainId);
     const owningDomain = membership
       ? workspace.root?.domains.find((domain) => domain.visualRole === membership.visualRole)
@@ -1439,9 +1763,14 @@ export function ActiveAuthorityGraph({
     )) {
       if (!model) return;
       pendingCrossDomainSelectionRef.current = null;
-      setVisibleKeys((current) => mode === 'search'
-        ? materializeActiveNodeScope(model, key, visibleNodeLimit)
-        : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit));
+      setVisibleKeys((current) => {
+        // An undisclosed same-domain hit keeps the current scope until its
+        // bounded one-hop neighborhood materializes the node.
+        if (!model.nodeByKey.has(key)) return current;
+        return mode === 'search'
+          ? materializeActiveNodeScope(model, key, visibleNodeLimit)
+          : expandActiveAuthorityOneHop(model, current, key, visibleNodeLimit);
+      });
       setSelectedNodeKey(key);
       requestNeighborhood(key);
       return;
@@ -1459,33 +1788,61 @@ export function ActiveAuthorityGraph({
     });
   }
 
+  function toggleTeachingRelations() {
+    setTeachingRelationsVisible((visible) => !visible);
+  }
+
+  function toggleNodeTypeFilter(canonicalType: string) {
+    setHiddenNodeTypes((current) => {
+      const next = new Set(current);
+      if (next.has(canonicalType)) next.delete(canonicalType);
+      else next.add(canonicalType);
+      return next;
+    });
+  }
+
   function resetOverview() {
     selectionIntentRef.current += 1;
     pendingCrossDomainSelectionRef.current = null;
     resetDomain();
     setSelectedNodeKey(null);
     setQuery('');
-    setTypeFilter('');
+    setHiddenNodeTypes(new Set());
+    setTeachingRelationsVisible(true);
   }
   if (returnToRootRef) returnToRootRef.current = resetOverview;
   if (runtimeControlsRef) {
     runtimeControlsRef.current = {
       requestFitView: runtimeLayout.requestFitView,
       requestRelayout: runtimeLayout.requestRelayout,
+      requestUnpin: runtimeLayout.unpinNode,
     };
   }
 
-  function focusSearchResult(key: string) {
-    resolveNodeSelection(key, 'search');
+  function focusSearchResult(hit: AuthorityDomainSearchHit) {
+    resolveNodeSelection(hit.id, 'search', hit.memberships);
   }
 
   function followBoundary(nodeId: string) {
     resolveNodeSelection(nodeId, 'canvas');
   }
 
+  /**
+   * Leaving a selected neighborhood deterministically restores the same
+   * domain's level-two overview; filters and viewport state are preserved
+   * and disclosed secondary nodes are not left flattened into the overview.
+   */
+  function leaveSelectedNeighborhood() {
+    setSelectedNodeKey(null);
+    if (!model) return;
+    setVisibleKeys(isCompactViewport
+      ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+      : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
+  }
+
   function closeDetail() {
     const key = selectedNodeKey;
-    setSelectedNodeKey(null);
+    leaveSelectedNeighborhood();
     window.setTimeout(() => restoreFocus(key), 0);
   }
 
@@ -1502,7 +1859,7 @@ export function ActiveAuthorityGraph({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale}>
+    <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale} data-workspace-locale={workspace.selectedLocale}>
       <div
         className="pointer-events-none absolute left-3 top-3 z-40 max-[639px]:top-14"
         data-active-authority-header="true"
@@ -1519,7 +1876,7 @@ export function ActiveAuthorityGraph({
               type="button"
               data-graph-language="zh-CN"
               aria-pressed={locale === 'zh-CN'}
-              onClick={() => setLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
+              onClick={() => setRequestedLocale(selectGraphLanguage(languageState, 'zh-CN').selectedLocale)}
               className={`rounded px-2 py-1 text-xs ${locale === 'zh-CN' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'}`}
             >
               {graphCopy(locale, 'language.zh')}
@@ -1531,7 +1888,7 @@ export function ActiveAuthorityGraph({
               aria-disabled={!languageState.englishAvailable}
               disabled={!languageState.englishAvailable}
               title={languageState.englishUnavailableReason ?? undefined}
-              onClick={() => setLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
+              onClick={() => setRequestedLocale(selectGraphLanguage(languageState, 'en').selectedLocale)}
               className={`rounded px-2 py-1 text-xs ${locale === 'en' ? 'bg-platform-action-primary text-platform-fg-inverse' : 'text-platform-fg-secondary'} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {graphCopy(locale, 'language.en')}
@@ -1542,6 +1899,15 @@ export function ActiveAuthorityGraph({
               {languageState.englishUnavailableReason}
             </p>
           )}
+          {localeRefreshFailure ? (
+            <p
+              role="alert"
+              data-locale-refresh-failed="true"
+              className="max-w-56 text-[11px] text-red-100"
+            >
+              {localeRefreshFailure}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -1559,7 +1925,7 @@ export function ActiveAuthorityGraph({
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
-        <div className="flex min-h-0 flex-1 flex-col pt-12 max-[639px]:pt-14">
+        <div className="flex min-h-0 flex-1 flex-col">
           <p className="sr-only">{graphCopy(locale, 'root.chooseDomain')}</p>
           <ActiveAuthorityRuntimeView
             kind="root"
@@ -1582,7 +1948,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden pt-12 max-[639px]:p-2 max-[639px]:pt-14" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
             <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
               <button
@@ -1597,93 +1963,66 @@ export function ActiveAuthorityGraph({
                 <ChevronDown className={`h-4 w-4 transition-transform ${mobileGraphControlsExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
               </button>
               {graphControlsVisible ? (
-              <div id="active-authority-mobile-tools" className="mt-2 flex flex-wrap items-end justify-between gap-3">
+              <div
+                id="active-authority-mobile-tools"
+                ref={mobileToolsRef}
+                data-active-authority-mobile-drawer={isCompactViewport ? 'true' : undefined}
+                onKeyDown={(event) => {
+                  if (!isCompactViewport) return;
+                  // compact 折叠抽屉：Escape 关闭并把焦点还给折叠开关；Tab
+                  // 在抽屉内循环。桌面常驻面板保持自然 Tab 序（#1742）。
+                  if (event.key === 'Escape') {
+                    // 抽屉内 Escape 只关抽屉，不再冒泡触发全局的退出邻域。
+                    event.stopPropagation();
+                    setMobileGraphControlsExpanded(false);
+                    document
+                      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
+                      ?.focus();
+                    return;
+                  }
+                  trapInspectorFocus(event, mobileToolsRef.current);
+                }}
+                className="mt-2 flex flex-wrap items-end justify-between gap-3"
+              >
               <div className="min-w-[15rem] flex-1">
                 <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
                 <div className="relative max-[639px]:shrink-0">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
                   <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
                 </div>
-                {query || typeFilter ? <SearchResults key={`${typeFilter}\u0000${query}`} results={searchResults} onSelect={focusSearchResult} locale={locale} /> : null}
+                {query ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-                <label className="sr-only" htmlFor="active-authority-type-filter">{graphCopy(locale, 'filter.type')}</label>
-                <div className="relative">
-                  <select
-                    id="active-authority-type-filter"
-                    aria-label={graphCopy(locale, 'filter.type')}
-                    value={typeFilter}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      setTypeFilter(value);
-                      if (value === 'Formula' || value === 'KnowledgeStatement') {
-                        setVisibleKeys((current) => new Set([
-                          ...current,
-                          ...model.nodes.filter((node) => node.type.canonicalType === value).map((node) => node.key),
-                        ]));
-                      }
-                    }}
-                    className="appearance-none rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-3 pr-8 text-xs text-platform-fg-secondary"
+                {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => runtimeLayout.unpinNode()}
+                    data-active-authority-unpin-all="true"
+                    aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
+                    className="shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"
                   >
-                    <option value="">{graphCopy(locale, 'filter.allTypes')}</option>
-                    {model.nodes.reduce<string[]>((types, node) => types.includes(node.type.canonicalType) ? types : [...types, node.type.canonicalType], []).sort().map((canonicalType) => <option key={canonicalType} value={canonicalType}>{model.nodes.find((node) => node.type.canonicalType === canonicalType)?.type.label ?? presentActiveNodeType(canonicalType).label}</option>)}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 text-platform-fg-muted" aria-hidden="true" />
-                </div>
-                <span
-                  data-authority-relation-family="teaching-order"
-                  className="rounded-md border border-sky-300/50 bg-sky-400/10 px-2.5 py-2 text-xs text-sky-100 max-[639px]:shrink-0"
-                >
-                  {graphCopy(locale, 'filter.teachingOrder')}
-                </span>
-                {ENGINEERING_RELATION_FAMILIES.map((family) => {
-                  const enabled = workspace.enabledFamilies.includes(family);
-                  const failure = familyFailures[family];
-                  return (
-                    <div key={family} className="flex items-center gap-1 max-[639px]:shrink-0">
-                    <button
-                      type="button"
-                      data-authority-relation-family={family}
-                      data-authority-family-enabled={enabled ? 'true' : 'false'}
-                      aria-pressed={enabled}
-                      aria-label={failure ? `${familyLabel(locale, family)}${graphCopy(locale, 'filter.family.loadFailed')}` : undefined}
-                      onClick={() => (enabled ? disableFamily(family) : enableFamily(family))}
-                      className={`rounded-md border px-2.5 py-2 text-xs ${enabled ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary' : 'border-platform-border text-platform-fg-secondary hover:bg-platform-action-subtle'}`}
-                    >
-                      {familyLabel(locale, family)}
-                    </button>
-                    {failure ? (
-                      <span
-                        role="alert"
-                        aria-live="polite"
-                        data-authority-family-failure={family}
-                        className="max-w-44 text-[11px] text-red-200"
-                      >
-                        {failure}
-                        <button
-                          type="button"
-                          onClick={() => enableFamily(family)}
-                          aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
-                          data-authority-family-retry={family}
-                          className="ml-1 underline underline-offset-2"
-                        >{graphCopy(locale, 'filter.family.retry')}</button>
-                      </span>
-                    ) : null}
-                    </div>
-                  );
-                })}
+                    {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
+                  </button>
+                ) : null}
               </div>
+              {materializedNodeTypes.length > 0 ? (
+                <ActiveAuthorityFilterPanel
+                  locale={locale}
+                  materializedTypes={materializedNodeTypes}
+                  hiddenNodeTypes={hiddenNodeTypes}
+                  onToggleNodeType={toggleNodeTypeFilter}
+                  enabledFamilies={workspace.enabledFamilies}
+                  onToggleFamily={(family) => (workspace.enabledFamilies.includes(family) ? disableFamily(family) : enableFamily(family))}
+                  familyFailures={familyFailures}
+                  onRetryFamily={enableFamily}
+                  teachingCoverageNote={teachingCoverageNote}
+                  teachingRelationsVisible={teachingRelationsVisible}
+                  onToggleTeachingRelations={toggleTeachingRelations}
+                />
+              ) : null}
               </div>
               ) : null}
             </div>
-
-            {graphControlsVisible ? (
-            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-platform-fg-secondary max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1" data-authority-relation-legend="true">
-              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 bg-sky-300" />{graphCopy(locale, 'legend.teachingOrder')}</span>
-              <span className="inline-flex items-center gap-1"><span aria-hidden="true" className="h-px w-6 border-t border-dashed border-slate-400" />{graphCopy(locale, 'legend.engineering')}</span>
-              <span data-authority-teaching-coverage="true">{latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用' ? null : (teachingCoverage?.note ?? graphCopy(locale, 'legend.teachingUnavailable'))}</span>
-            </div>
-            ) : null}
             </KnowledgeWorkspaceChromePortal>
             {boundaryCues.length > 0 ? (
               <section className="pointer-events-auto absolute left-3 right-3 top-14 z-20 rounded-lg border border-platform-border bg-platform-canvas-muted/95 p-3 max-[639px]:top-16 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
@@ -1748,7 +2087,8 @@ export function ActiveAuthorityGraph({
                   }}
                   hoverPreview={hoverPreview}
                   canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
-                  showUnavailableTeachingDirectory={!latestCutoverReady && teachingCoverage?.note === '教学关系暂不可用'}
+                  overviewCount={workspace.domainOverviewIds.length}
+                  overviewEntries={overviewDirectoryEntries}
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />
@@ -1756,9 +2096,10 @@ export function ActiveAuthorityGraph({
             ) : null}
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
             {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
-            {searchResults.length === 0 && (query || typeFilter) ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, 'search.empty')}</p> : null}
+            {query && (domainSearch.status === 'ready' && domainSearch.hits.length === 0
+              || domainSearch.status === 'error') ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
           </main>
-          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} /> : null}
+          {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>
       )}
     </div>

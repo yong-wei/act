@@ -21,7 +21,6 @@ describe('ai task boundary UI source contracts', () => {
     const messageContent = readSource('src/components/ai/ai-message-content.tsx');
     const globalSidebar = readSource('src/components/ai/global-ai-sidebar.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
-    const konlingSidebar = readSource('src/components/ai/konling-sidebar.tsx');
     const sharedRenderer = readSource('src/components/ai/konling-chat-renderer.tsx');
     const copilotPanel = readSource('src/features/ai/copilot-panel.tsx');
     const interactiveAiPanel = readSource('src/features/interactive/InteractiveAIPanel.tsx');
@@ -57,11 +56,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).not.toContain('userProfile');
     expect(copilotPanel).not.toContain('userProfile');
     expect(globalSidebar).not.toContain('userProfile');
-    expect(konlingSidebar).not.toContain('userProfile');
     expect(copilot).not.toContain('taskContext: evidenceSummary');
     expect(copilot).not.toContain('证据来源：${evidenceSummary.source}');
-    expect(konlingSidebar).toContain('<KonlingChatMessageList messages={messages} styles={styles} />');
-    expect(konlingSidebar).toContain('konlingPromptInputClassName');
     expect(copilotPanel).toContain('<KonlingChatMessageList messages={messages} />');
     expect(copilotPanel).toContain('konlingPromptInputClassName');
     expect(interactiveAiPanel).toContain('<KonlingChatMessageList messages={ai.messages} />');
@@ -71,7 +67,6 @@ describe('ai task boundary UI source contracts', () => {
       sharedRenderer,
       globalSidebar,
       copilot,
-      konlingSidebar,
       copilotPanel,
       interactiveAiPanel,
     ].forEach((source) => {
@@ -122,6 +117,7 @@ describe('ai task boundary UI source contracts', () => {
   it('maps AI workshop and portfolio reflection intents to candidate-only states with explicit durable draft saves', () => {
     const aiPage = readSource('src/app/ai/page.tsx');
     const copilot = readSource('src/app/ai/copilot/page.tsx');
+    const copilotEntry = readSource('src/lib/standalone-copilot-entry.ts');
     const learningCenter = readSource('src/features/ai/personal-learning-center.tsx');
     const portfolio = readSource('src/app/(main)/profile/portfolio/page.tsx');
 
@@ -142,7 +138,8 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('data-primary-task-input={localTaskMode ? \'copilot-local-task\' : undefined}');
     expect(copilot).toContain("context === 'portfolio-reflection'");
     expect(copilot).toContain("context === 'evidence'");
-    expect(copilot).toContain('clearLocalConversation');
+    expect(copilot).toContain('createConversation(null)');
+    expect(copilot).toContain('deleteConversation(conversationId)');
     expect(copilot).toContain('buildPortfolioReflectionDraft(source, {');
     expect(copilot).toContain('intent: taskIntent');
     expect(copilot).toContain('auditTaskContext: portfolioReflectionTaskContext');
@@ -159,8 +156,13 @@ describe('ai task boundary UI source contracts', () => {
     expect(copilot).toContain('href={portfolioReflectionHref}');
     expect(copilot).toContain('任务：');
     expect(copilot).toContain("{reflectionDraft.assignment ?? 'portfolio-reflection'} · 意图：{reflectionDraft.intent}");
-    expect(copilot).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
-    expect(copilot).toContain('请先说明当前证据来源，再给出下一步练习建议。');
+    expect(copilot).toContain('buildStandaloneCopilotEntryPresentation');
+    expect(copilot).toContain('entryPresentation.limitations[0]');
+    expect(copilot).not.toContain("?? '已加载服务端核对的学习证据，建议仅作参考。'");
+    expect(copilot).not.toContain('请获取当前的仿真状态');
+    expect(copilotEntry).toContain('请把本次 AI 协作的任务目标和输出对象整理成反思草稿。');
+    expect(copilotEntry).toContain('请先说明当前证据来源，再给出下一步练习建议。');
+    expect(copilotEntry).toContain("question: '请用自动控制原理的语言解释一个基础概念");
     expect(learningCenter).not.toContain('练习任务候选已写回学习任务');
     expect(portfolio).toContain('data-ai-task-boundary="portfolio-reflection-draft"');
     expect(portfolio).toContain('buildPortfolioReflectionDraft');

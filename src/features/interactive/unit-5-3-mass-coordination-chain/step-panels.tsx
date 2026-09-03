@@ -617,8 +617,7 @@ export function UNIT_5_3StepContentPanel({
     ...baseRegistry,
     'compute.panel': (props) => {
       const legacyKind = typeof props.module.payload.legacyKind === 'string' ? props.module.payload.legacyKind : '';
-      const capabilityRef = typeof props.module.payload.capabilityRef === 'string' ? props.module.payload.capabilityRef : '';
-      if (legacyKind === 'interactive-figure-panel' || capabilityRef === 'interactive-figure') {
+      if (legacyKind === 'interactive-figure-panel') {
         return renderInteractiveFigurePanel(props);
       }
       return baseRegistry['compute.panel'](props);

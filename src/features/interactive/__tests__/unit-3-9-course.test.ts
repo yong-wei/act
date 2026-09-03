@@ -32,12 +32,12 @@ const workspaceFile = join(
   'src/features/interactive/unit-3-9-cross-domain-mapping-lab/workspace.ts',
 );
 
-let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaDocument;
-let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-runtime').parseRuntimeLessonMediaIndex;
-let loadLessonRuntimeEntry: typeof import('@/lib/course-runtime').loadLessonRuntimeEntry;
+let parseRuntimeLessonMediaDocument: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaDocument;
+let parseRuntimeLessonMediaIndex: typeof import('@/lib/course-bundle').parseRuntimeLessonMediaIndex;
+let loadLessonRuntimeEntry: typeof import('@/lib/course-bundle').loadLessonRuntimeEntry;
 
 beforeAll(async () => {
-  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex, loadLessonRuntimeEntry } = await import('@/lib/course-runtime'));
+  ({ parseRuntimeLessonMediaDocument, parseRuntimeLessonMediaIndex, loadLessonRuntimeEntry } = await import('@/lib/course-bundle'));
 });
 
 describe('unit 3-9 interactive course', () => {

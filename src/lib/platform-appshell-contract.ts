@@ -210,16 +210,6 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
     visualAuditStatus: 'required',
   },
   {
-    category: 'graph',
-    href: '/graph-center',
-    sourceFile: 'src/app/graph-center/page.tsx',
-    viewerRole: 'student',
-    shellEvidence: 'direct-appshell',
-    acceptanceIds: ['AC-3', 'AC-4', 'AC-6'],
-    requiredWidths: UNIVERSAL_APP_SHELL_PRIMARY_ROUTE_RESPONSIVE_WIDTHS,
-    visualAuditStatus: 'required',
-  },
-  {
     category: 'data-center',
     href: '/data-center',
     sourceFile: 'src/app/data-center/page.tsx',
@@ -337,28 +327,28 @@ export const APP_SHELL_GOVERNANCE_REPRESENTATIVE_ROUTE_MATRIX: readonly AppShell
 export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRouteContract[] = [
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/student.tsx',
+    sourceFile: 'src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/teacher/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/teacher.tsx',
+    sourceFile: 'src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/student.tsx',
+    sourceFile: 'src/features/interactive/unit-4-1-design-task-expression/student-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
   },
   {
     routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/*',
-    sourceFile: 'src/features/interactive/course-app-routes/unit-4-1-design-task-expression/teacher.tsx',
+    sourceFile: 'src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],
@@ -372,8 +362,7 @@ export const DEEP_PRODUCT_APP_SHELL_ROUTE_MATRIX: readonly DeepProductAppShellRo
   },
   {
     routePattern: '/interactive-learning/courses/*/teacher/*/waiting',
-    sourceFile:
-      'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/waiting.tsx',
+    sourceFile: 'src/features/interactive/shared/teacher-classroom-waiting-route.tsx',
     shellEvidence: 'compatible-wrapper',
     routeFamily: 'course-runtime',
     acceptanceIds: ['AC1', 'AC2', 'AC5'],

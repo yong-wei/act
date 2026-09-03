@@ -5,7 +5,7 @@ import {
   buildControlCorrectionTeacherReport,
   buildControlCorrectionTeacherReportExport,
   CONTROL_CORRECTION_REPORT_GOAL_ID,
-} from '@/lib/data-governance/control-correction-teacher-report';
+} from '@/features/teacher/control-correction-teacher-report';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import { createDatabaseUnavailableResponse, isDatabaseConnectivityError } from '@/lib/service-availability';

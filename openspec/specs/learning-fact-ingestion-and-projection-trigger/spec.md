@@ -145,3 +145,86 @@ Replay SHALL require scope, purpose, ticket, short-lived elevated authority and 
 - **WHEN** a queue, fact or consumer role invokes restricted replay or raw artifact access without the approved operation
 - **THEN** authorization fails closed and no raw payload or replay capability is granted
 
+### Requirement: Learning Record writes have one reconciled owner boundary
+All supported Learning Record writes SHALL resolve to one named canonical application/write boundary. Same-transaction domain operations SHALL call the existing typed boundary directly or be recorded as an explicit, owner-approved migration exception; cross-process operations SHALL stage one allowlisted input and submit it to that boundary. A producer MUST NOT independently write a fact and stage a second representation of the same logical action.
+
+#### Scenario: Same-transaction producer writes a fact
+- **WHEN** a trusted Assessment, Arena, Personalization or other domain operation writes a fact in its transaction
+- **THEN** it SHALL call the canonical ingestion API and commit the fact plus its idempotent projection-trigger intent as one logical operation
+- **AND** it SHALL NOT emit a synthetic event solely to reach the API
+
+#### Scenario: Cross-process producer stages a fact
+- **WHEN** a producer crosses a worker or process boundary
+- **THEN** it SHALL stage one allowlisted outbox input with stable identity and anchors
+- **AND** the worker SHALL submit that input to the canonical boundary without a second direct fact write
+
+#### Scenario: Domain writer is not yet migrated
+- **WHEN** an existing same-transaction domain writer has not yet moved to the canonical boundary
+- **THEN** the reconciliation ledger SHALL record its owner, entry, identity, anchors, privacy policy, replacement and deletion condition
+- **AND** the exception SHALL not be treated as permission for a parallel outbox or duplicate materialization
+
+### Requirement: The write producer denominator is closed before deletion
+The migration SHALL enumerate every online route, domain writer, worker, outbox, scheduler, historical backfill, report and test that can write or trigger Learning Record state. Each row SHALL identify owner, transport, dedupe identity, immutable anchors, trusted/server times, privacy class, consumer, verification evidence and deletion condition.
+
+#### Scenario: A writer has no owner or replacement
+- **WHEN** a producer or writer is missing from the current-revision denominator or lacks a replacement and rollback condition
+- **THEN** reconciliation SHALL fail closed
+- **AND** the path SHALL remain available or explicitly isolated until its status is resolved
+
+#### Scenario: A duplicate writer is proven
+- **WHEN** two paths materialize the same logical source identity
+- **THEN** the ledger SHALL identify one canonical path and classify the other as deleted, isolated or retained audit-only
+- **AND** database uniqueness MUST NOT be the sole evidence that the paths are safe together
+
+### Requirement: Backfill writes remain explicit historical operations
+Backfill, correction and replay writers SHALL carry an explicit operation identity, frozen input/cutoff and source anchors, and SHALL be prevented from silently publishing an online current projection or changing the original fact identity.
+
+#### Scenario: Backfill runs without apply authorization
+- **WHEN** a historical command runs in dry-run or without its required authorization and frozen input
+- **THEN** it SHALL report candidates and limitations without writing facts, snapshots, pointers or online triggers
+
+#### Scenario: Backfill derives a correction
+- **WHEN** an authorized backfill derives a new result from an immutable source
+- **THEN** it SHALL reference the original anchor and record an explicit correction/rematerialization relation
+- **AND** it SHALL preserve append-only history and existing watermark semantics
+
+### Requirement: Ingestion simplification retains one canonical behavior
+The canonical Learning Record ingestion implementation SHALL express normalization, authority/quality validation, anchor/time resolution, allowlist sanitization, deduplication, persistence and projection-trigger derivation through one behaviorally equivalent pipeline. Direct and staged/outbox transport MAY differ only at their transport boundary.
+
+#### Scenario: Direct and outbox inputs are equivalent
+- **WHEN** the same trusted logical input is delivered synchronously and through staging
+- **THEN** both paths SHALL produce the same normalized identity, input/trusted-set digest, anchors, status and effective trigger
+- **AND** neither path SHALL create a second fact or trigger
+
+#### Scenario: Duplicate and conflicting replay is simplified
+- **WHEN** an already applied identity is replayed identically or with a different immutable payload
+- **THEN** the pipeline SHALL retain the existing deterministic duplicate or collision result
+- **AND** it SHALL not weaken conflict detection or double-count state
+
+### Requirement: Simplification preserves reliable transaction and outbox delivery
+Refactoring or deleting ingestion helpers MUST preserve fact-plus-trigger transaction semantics, non-destructive recoverability, lease/ack ordering, retryable/terminal outcomes and append-only history.
+
+#### Scenario: Worker crashes before acknowledgement
+- **WHEN** a staged input is claimed and the worker crashes before fact and trigger intent commit or acknowledgement
+- **THEN** the input SHALL remain recoverable for retry
+- **AND** a replay SHALL converge by stable dedupe without losing or duplicating the fact
+
+#### Scenario: Validation fails after simplification
+- **WHEN** authority, privacy, revision, time or persistence validation rejects an input
+- **THEN** the pipeline SHALL return the same minimized failure class and receipt behavior as before
+- **AND** it SHALL not persist a partial fact or silently drop the input
+
+### Requirement: Ingestion simplification is characterized before obsolete paths are deleted
+Every implementation simplification SHALL have before/after evidence covering outputs, errors, side effects, ordering, anchors, trusted/server times, privacy, retention and backfill isolation. Code MUST NOT be removed solely because it is longer or appears duplicated.
+
+#### Scenario: Candidate helper has an independent compatibility role
+- **WHEN** before analysis shows a parser or guard handles a distinct schema/version, authority or audit boundary
+- **THEN** the helper SHALL remain an explicit adapter or the change SHALL be deferred
+- **AND** the simplification SHALL not merge away that behavior
+
+#### Scenario: Candidate helper is proven redundant
+- **WHEN** call graph, tests and runtime canaries show a helper adds no distinct behavior and has no required caller
+- **THEN** it MAY be deleted after equivalent tests pass
+- **AND** the final evidence SHALL show a net reduction in duplicate paths without a new facade
+
+

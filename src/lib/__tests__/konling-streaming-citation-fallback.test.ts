@@ -29,7 +29,7 @@ describe('Konling streaming citation fallback', () => {
       }],
     });
 
-    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('【控灵开发诊断｜仅排障，非学习内容】');
     expect(notice).toContain('根轨迹补救路径');
     expect(notice).toContain('learning-path');
     expect(notice).toContain('streaming-final-text-unverified');
@@ -62,7 +62,7 @@ describe('Konling streaming citation fallback', () => {
       debugInjectionOverride: true,
     });
 
-    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('【控灵开发诊断｜仅排障，非学习内容】');
     expect(notice).toContain('assistant-citations-unverified-stream');
   });
 
@@ -89,7 +89,7 @@ describe('Konling streaming citation fallback', () => {
       nodeEnv: 'development',
     });
 
-    expect(notice).toContain('【控灵证据提示】');
+    expect(notice).toContain('【控灵开发诊断｜仅排障，非学习内容】');
     expect(notice).toContain('PID 参数整定');
     expect(notice).toContain('learner-state');
     expect(notice).toContain('path-execution');
@@ -113,6 +113,23 @@ describe('Konling streaming citation fallback', () => {
 
     expect(notice).toContain('assistant-citations-unverified-stream');
     expect(notice).toContain('learner-state');
+  });
+
+  it('labels injected diagnostics as development-mode and keeps them distinct from the student citation notice', () => {
+    const guard = {
+      status: 'unverified',
+      missingCitationClasses: ['learner-state'],
+      lowConfidenceReasons: [],
+      diagnosticReasons: ['missing-learner-state', 'missing-path-execution'],
+      citations: [],
+    };
+    const devNotice = buildStreamingCitationFallbackNotice(guard as never, { nodeEnv: 'development' });
+    expect(devNotice).toContain('【控灵开发诊断｜仅排障，非学习内容】');
+    expect(devNotice).toContain('missing-learner-state');
+    const prodNotice = buildStreamingCitationFallbackNotice(guard as never, { nodeEnv: 'production' });
+    expect(prodNotice).not.toContain('missing-learner-state');
+    expect(prodNotice).toContain('【控灵证据提示】');
+    expect(prodNotice).not.toContain('开发诊断');
   });
 
   it('injects the fallback as text-delta content after the stream start chunk', async () => {

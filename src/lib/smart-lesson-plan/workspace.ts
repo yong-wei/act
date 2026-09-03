@@ -46,6 +46,52 @@ export function smartPreparationStatusLabel(value: string | null | undefined) {
   return TASK_STATE_LABELS[value] ?? '状态不可用';
 }
 
+/** 仍在推进的生成 job 状态：工作区轮询只需覆盖这些。 */
+export const SMART_JOB_ACTIVE_STATES = ['QUEUED', 'RUNNING'] as const;
+/** 可恢复/重试的 job 状态；是否可恢复还要求未被 superseded。 */
+export const SMART_JOB_RECOVERY_STATES = ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'] as const;
+/** 任务约束修订被锁定的 job 状态。 */
+export const SMART_JOB_EDIT_BLOCKING_STATES = ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'] as const;
+
+const GENERATION_STAGE_LABELS: Record<string, string> = {
+  OUTLINE: '提纲',
+  BRIDGE_IN: '导入',
+  OBJECTIVES: '学习目标',
+  PRE_ASSESSMENT: '前测',
+  PARTICIPATORY_LEARNING: '参与式学习',
+  POST_ASSESSMENT: '后测',
+  SUMMARY: '总结',
+};
+
+const DRAFT_STATE_LABELS: Record<string, string> = {
+  EDITABLE: '可编辑',
+  GENERATING: '生成中',
+  READY: '待审核',
+  APPROVED: '已批准',
+};
+
+const JOB_STATE_LABELS: Record<string, string> = {
+  PENDING: '等待处理',
+  RUNNING: '正在生成',
+  PAUSED: '等待确认',
+  RETRYABLE: '可以重试',
+  FAILED: '生成失败',
+  CANCELLED: '已取消',
+  COMPLETED: '已完成',
+};
+
+export function smartGenerationStageLabel(value: string) {
+  return GENERATION_STAGE_LABELS[value] ?? '未知阶段';
+}
+
+export function smartDraftStateLabel(value: string | null | undefined) {
+  return DRAFT_STATE_LABELS[value ?? ''] ?? '未创建';
+}
+
+export function smartGenerationStateLabel(value: string) {
+  return JOB_STATE_LABELS[value] ?? '状态不可用';
+}
+
 export function projectSmartPreparationTask(task: Record<string, unknown>): SmartPreparationTaskProjection {
   const sources = records(task.sources).filter((item) => item.state === 'SELECTED' && item.sourceValid !== false);
   const points = records(task.knowledgePoints).filter((item) => item.state !== 'REMOVED');

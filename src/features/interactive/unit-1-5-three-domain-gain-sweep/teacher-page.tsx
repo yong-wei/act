@@ -17,7 +17,7 @@ import { StepKnowledgeDrawer } from '@/features/interactive/shared/step-knowledg
 import { TeacherJoinQrDialog } from '@/features/interactive/shared/teacher-join-qr-dialog';
 import { requestClassroomEndConfirmation } from '@/features/classroom/classroom-lifecycle-dialog';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import {
   buildUNIT_1_5TeacherAnalyticsItems,
   finalizeUNIT_1_5TeacherSession,

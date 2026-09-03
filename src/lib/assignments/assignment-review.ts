@@ -309,7 +309,7 @@ export async function approveTeacherAssignmentReview(db: any, input: {
     if (reviewCas?.count !== 1) throw conflict();
     const runCas = await tx.gradingRun.updateMany({
       where: { id: review.gradingRunId, state: 'AWAITING_REVIEW', teacherReviewedAt: null },
-      data: { state: 'APPROVED', teacherReviewedAt: now, draftTotalScore: total, overallComment: review.overallComment, updatedAt: now },
+      data: { state: 'APPROVED', teacherReviewedAt: now, approvedTotalScore: total, overallComment: review.overallComment, updatedAt: now },
     });
     if (runCas?.count !== 1) throw conflict();
     for (const assessment of review.gradingRun.assessments) {
@@ -367,7 +367,12 @@ export async function approveTeacherAssignmentReview(db: any, input: {
         },
       });
     }
-    const commands = approvalOutboxRows(snapshot, review, now);
+    const resultGated = review.revision?.solutionReleasePolicy?.mode === 'TEACHER_CONFIRMED_RESULT';
+    const commands = approvalOutboxRows(snapshot, review, now).map((row: any) => (
+      row.command === 'RELEASE_STUDENT_FEEDBACK'
+        ? { ...row, payload: { ...row.payload, assignmentResultReleaseGate: resultGated } }
+        : row
+    ));
     const appended = await tx.teacherAssignmentReviewOutbox.createMany({ data: commands, skipDuplicates: true });
     if (appended?.count !== commands.length) throw new TeacherAssignmentReviewError('teacher-review-outbox-conflict', 409);
 
@@ -907,7 +912,8 @@ export async function createTeacherAssignmentReview(db: any, input: { actor: Tea
   });
   const submission = run?.answerAttempt?.answer?.submission;
   const assignment = submission?.revision?.assignment;
-  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW' || run.answerEvidence?.readiness !== 'READY') {
+  if (!run || !submission || !assignment || run.state !== 'AWAITING_REVIEW'
+    || (run.source !== 'MANUAL' && run.answerEvidence?.readiness !== 'READY')) {
     throw new TeacherAssignmentReviewError('teacher-review-run-not-ready', 409);
   }
   const reviewScope = {
@@ -1002,7 +1008,7 @@ export async function getTeacherAssignmentReview(db: any, input: { actor: Teache
   return review;
 }
 
-export function deriveTeacherReviewQueueStatus(run: any) {
+export function deriveTeacherReviewQueueStatus(run: any, hasSubmittedAttempt = false) {
   const review = run?.teacherAssignmentReview;
   return review?.state === 'WORKING' ? 'IN_REVIEW'
     : run?.approvalSnapshot || review?.state === 'APPROVED' || run?.state === 'APPROVED' ? 'APPROVED'
@@ -1010,7 +1016,36 @@ export function deriveTeacherReviewQueueStatus(run: any) {
         : run?.state === 'AWAITING_REVIEW' ? 'READY'
           : run && ['QUEUED', 'RUNNING', 'RETRYABLE'].includes(run.state) ? 'PROCESSING'
             : run && ['BLOCKED', 'FAILED', 'CONTENT_UNAVAILABLE'].includes(run.state) ? 'BLOCKED'
-              : 'NOT_SUBMITTED';
+              : hasSubmittedAttempt ? 'READY'
+                : 'NOT_SUBMITTED';
+}
+
+export type TeacherAssignmentGradingDiagnosticCode =
+  | 'DEADLINE_NOT_REACHED'
+  | 'NO_SUBMITTED_ANSWER'
+  | 'GRADING_SNAPSHOT_EXISTS'
+  | 'VISUAL_EVIDENCE_REVIEW'
+  | 'CONVERSION_RETRY_AVAILABLE'
+  | 'MANUAL_REVIEW_REQUIRED'
+  | 'READY_FOR_AI_GRADING';
+
+export function deriveTeacherAssignmentGradingDiagnostic(input: {
+  now: Date;
+  dueAt: Date | null | undefined;
+  submittedRequiredCount: number;
+  hasGradingSnapshot: boolean;
+  status: string;
+  failureStage?: string | null;
+  errorCode?: string | null;
+}): { code: TeacherAssignmentGradingDiagnosticCode; message: string; canStartAi: boolean } {
+  if (input.dueAt && input.now.getTime() < input.dueAt.getTime()) return { code: 'DEADLINE_NOT_REACHED', message: '尚未到批改时间，截止后才能开始批改。', canStartAi: false };
+  if (input.submittedRequiredCount <= 0) return { code: 'NO_SUBMITTED_ANSWER', message: '暂无已提交的作答，暂时不能开始批改。', canStartAi: false };
+  if (input.hasGradingSnapshot) return { code: 'GRADING_SNAPSHOT_EXISTS', message: '这份作业已有批改快照，请进入审阅或查看已确认结果。', canStartAi: false };
+  const failure = `${input.failureStage ?? ''} ${input.errorCode ?? ''}`.toLowerCase();
+  if (failure.includes('visual') || failure.includes('evidence')) return { code: 'VISUAL_EVIDENCE_REVIEW', message: '视觉证据待复核，自动批改已暂停，可重试或转人工批改。', canStartAi: false };
+  if (failure.includes('conversion')) return { code: 'CONVERSION_RETRY_AVAILABLE', message: '作答转换失败，可重试转换或转人工批改。', canStartAi: false };
+  if (input.status === 'BLOCKED' || input.status === 'PROCESSING') return { code: 'MANUAL_REVIEW_REQUIRED', message: '当前批改尚未形成可确认结果，可重试或转人工批改。', canStartAi: false };
+  return { code: 'READY_FOR_AI_GRADING', message: '已到批改时间且有已提交作答，可以开始自动批改。', canStartAi: true };
 }
 
 export async function listTeacherAssignmentSubmissions(db: any, input: { actor: TeacherReviewActor; assignmentId: string; now?: Date }) {
@@ -1029,7 +1064,28 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
       revision: { include: { assignment: { include: { reviewGrants: true } }, questions: true } },
       audience: { include: { class: true } },
       student: { include: { profile: true } },
-      answers: { include: { attempts: { include: { gradingRuns: { include: { teacherAssignmentReview: true, approvalSnapshot: true } } } } } },
+      questionExemptions: true,
+      gradingSnapshots: { select: { id: true, source: true, createdAt: true, operation: { select: { state: true } }, items: { include: { question: { select: { id: true } }, attempt: { select: { id: true } } } } }, orderBy: { createdAt: 'desc' } },
+      answers: {
+        include: {
+          attempts: {
+            include: {
+              gradingRuns: {
+                include: {
+                  teacherAssignmentReview: true,
+                  approvalSnapshot: {
+                    include: {
+                      outboxCommands: { where: { command: 'RELEASE_STUDENT_FEEDBACK' } },
+                      feedbackRelease: { select: { ownerStudentId: true } },
+                    },
+                  },
+                },
+              },
+              gradingBatchItems: { include: { batch: { select: { questionId: true } } } },
+            },
+          },
+        },
+      },
     },
     orderBy: [{ updatedAt: 'asc' }, { id: 'asc' }],
   });
@@ -1050,12 +1106,36 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
         latestRunByQuestion.set(run.questionId, run);
       }
     }
+    const latestBatchItemByQuestion = new Map<string, any>();
+    for (const answer of submission.answers) {
+      const currentAttempt = answer.attempts.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber);
+      for (const item of currentAttempt?.gradingBatchItems ?? []) {
+        const questionId = item.batch?.questionId;
+        if (!questionId) continue;
+        const current = latestBatchItemByQuestion.get(questionId);
+        if (!current || new Date(item.updatedAt ?? item.createdAt).getTime() > new Date(current.updatedAt ?? current.createdAt).getTime()) {
+          latestBatchItemByQuestion.set(questionId, item);
+        }
+      }
+    }
+    const submissionDiagnostic = deriveTeacherAssignmentGradingDiagnostic({
+      now,
+      dueAt: submission.audience?.dueAt,
+      submittedRequiredCount: submission.submittedRequiredCount,
+      hasGradingSnapshot: Boolean((submission.gradingSnapshots ?? []).some((row: any) => row.source !== 'MANUAL')),
+      status: submission.submittedRequiredCount > 0 ? 'READY' : 'NOT_SUBMITTED',
+      failureStage: [...latestRunByQuestion.values()].find((run: any) => run.failureStage)?.failureStage ?? null,
+      errorCode: [...latestRunByQuestion.values()].find((run: any) => run.errorCode)?.errorCode ?? [...latestBatchItemByQuestion.values()].find((item: any) => item.failureCode)?.failureCode ?? null,
+    });
     const questions = [...submission.revision.questions]
       .sort((left: any, right: any) => left.orderIndex - right.orderIndex || String(left.id).localeCompare(String(right.id)))
       .map((question: any) => {
         const run = latestRunByQuestion.get(question.id);
+        const batchItem = run ? null : latestBatchItemByQuestion.get(question.id) ?? null;
         const review = run?.teacherAssignmentReview;
-        const status = deriveTeacherReviewQueueStatus(run);
+        const answer = submission.answers.find((row: any) => row.assignmentQuestionId === question.id);
+        const currentAttempt = answer?.attempts.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber);
+        const status = deriveTeacherReviewQueueStatus(run ?? batchItem, Boolean(currentAttempt));
         return {
           id: question.id,
           questionId: question.id,
@@ -1084,10 +1164,48 @@ export async function listTeacherAssignmentSubmissions(db: any, input: { actor: 
       pendingReviewCount: runs.filter((run: any) => run.state === 'AWAITING_REVIEW').length,
       approvedQuestionCount: runs.filter((run: any) => run.approvalSnapshot).length,
       questions,
+      grading: deriveSubmissionGradingSummary(submission, runs),
+      gradingDiagnostic: submissionDiagnostic,
       updatedAt: submission.updatedAt,
     });
   }
   return visible;
+}
+
+// 教师列表的作业级批改摘要：从当前快照、题级审批覆盖与发布 outbox 派生，
+// 不读取任何作业级物化状态机；snapshotId 供整份审阅工作台跳转使用。
+function deriveSubmissionGradingSummary(submission: any, runs: any[]) {
+  const currentAttemptByQuestion = new Map(submission.answers.map((answer: any) => [
+    answer.assignmentQuestionId,
+    answer.attempts?.find((attempt: any) => attempt.attemptNumber === answer.currentAttemptNumber)?.id ?? null,
+  ]));
+  const snapshot = [...(submission.gradingSnapshots ?? [])]
+    .filter((row: any) => (row.items ?? []).every((item: any) => (currentAttemptByQuestion.get(item.questionId) ?? null) === item.attemptId))
+    .sort((left: any, right: any) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
+  if (!snapshot) return null;
+  const settledQuestions = new Set((submission.questionExemptions ?? []).map((row: any) => row.questionId));
+  const releasedQuestions = new Set<string>();
+  for (const run of runs) {
+    const approval = run.approvalSnapshot;
+    if (!approval) continue;
+    const attemptId = currentAttemptByQuestion.get(run.questionId) ?? null;
+    if (attemptId != null && approval.attemptId !== attemptId) continue;
+    settledQuestions.add(run.questionId);
+    const release = (approval.outboxCommands ?? []).find((row: any) => row.command === 'RELEASE_STUDENT_FEEDBACK');
+    if (release?.state === 'SUCCEEDED' && approval.feedbackRelease?.ownerStudentId === submission.frozenStudentId) {
+      releasedQuestions.add(run.questionId);
+    }
+  }
+  const items = snapshot.items ?? [];
+  const latestSource = runs.find((run: any) => run.approvalSnapshot)?.source ?? null;
+  const complete = items.length > 0 && items.every((item: any) => settledQuestions.has(item.questionId));
+  const released = complete && items.every((item: any) => releasedQuestions.has(item.questionId) || (submission.questionExemptions ?? []).some((row: any) => row.questionId === item.questionId));
+  const state = complete
+    ? released ? 'RELEASED' : 'AWAITING_CONFIRMATION'
+    : ['PARTIAL', 'FAILED'].includes(snapshot.operation?.state)
+      ? 'PARTIAL_FAILURE'
+      : 'PENDING_GRADING';
+  return { snapshotId: snapshot.id, source: latestSource, state, operationState: snapshot.operation?.state ?? null };
 }
 
 function approvalOutboxRows(snapshot: any, review: any, now: Date) {
@@ -1166,15 +1284,16 @@ function assertReviewRunLineage(review: any) {
   const answer = attempt?.answer;
   const evidence = run?.answerEvidence;
   const question = run?.question;
-  if (!run || !attempt || !answer || !evidence || !question
+  if (!run || !attempt || !answer || !question
+    || (!evidence && run.source !== 'MANUAL')
     || review.gradingRunId !== run.id
     || review.attemptId !== run.answerAttemptId
     || review.attemptId !== attempt.id
     || review.answerId !== answer.id
     || answer.submissionId !== review.submissionId
     || review.answerEvidenceId !== run.answerEvidenceId
-    || review.answerEvidenceId !== evidence.id
-    || evidence.attemptId !== review.attemptId
+    || (evidence && (review.answerEvidenceId !== evidence.id
+      || evidence.attemptId !== review.attemptId))
     || review.questionId !== run.questionId
     || review.questionId !== question.id
     || answer.assignmentQuestionId !== review.questionId

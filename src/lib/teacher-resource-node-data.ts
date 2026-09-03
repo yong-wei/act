@@ -14,8 +14,8 @@ import {
   type TextbookSectionResourceNodeInput,
   type TeachingResourceNodeInput,
 } from './resource-node-registry';
-import type { RuntimeLessonResourceCatalogEntry } from './course-runtime';
-import type { TextbookStructureRuntimeCatalogEntry } from './structured-textbook-runtime';
+import type { RuntimeLessonResourceCatalogEntry } from './course-bundle';
+import type { TextbookStructureRuntimeCatalogEntry } from './course-bundle';
 import {
   RESOURCE_NODE_REGISTRY_VERSION,
   RESOURCE_SEMANTIC_PROJECTION_VERSION,

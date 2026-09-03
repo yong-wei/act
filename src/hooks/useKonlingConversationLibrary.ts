@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  KonlingChatFailureError,
+  classifyKonlingChatFailure,
+} from '@/lib/konling-chat-failure';
 import type { PageContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 
@@ -16,7 +20,8 @@ export interface KonlingConversationSummary {
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
-  expiresAt: string;
+  // null 表示当前没有已安排的治理到期，而非“永久保证”
+  expiresAt: string | null;
 }
 
 export interface KonlingConversation extends KonlingConversationSummary {
@@ -39,6 +44,8 @@ interface UseKonlingConversationLibraryOptions {
   resourceId?: string;
   pathNodeId?: string;
   assistantBinding?: KonlingConversationAssistantBinding | null;
+  // 资源辅导等按身份恢复的入口在等待精确匹配期间不得自动选中无关会话
+  autoSelectFirstConversation?: boolean;
 }
 
 const ASSISTANT_BINDING_STORAGE_PREFIX = 'konling:conversation-assistant-binding:';
@@ -75,10 +82,20 @@ export function writeKonlingConversationAssistantBinding(
 
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const body = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(body?.error || '控灵会话请求失败');
+    const bodyText = await response.text().catch(() => '');
+    throw new KonlingChatFailureError(classifyKonlingChatFailure(response.status, bodyText));
   }
   return response.json() as Promise<T>;
+}
+
+// 网络层 fetch 拒绝（断网/DNS）同样归一化为学生安全失败，避免原始
+// TypeError 文案经 conversationError/actionStatus 进入界面
+async function konlingConversationFetch(input: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch {
+    throw new KonlingChatFailureError('network-unavailable');
+  }
 }
 
 export function buildKonlingConversationListUrl(search: string): string {
@@ -101,6 +118,7 @@ export function useKonlingConversationLibrary({
   resourceId,
   pathNodeId,
   assistantBinding = null,
+  autoSelectFirstConversation = true,
 }: UseKonlingConversationLibraryOptions) {
   const [conversations, setConversations] = useState<KonlingConversationSummary[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -109,6 +127,7 @@ export function useKonlingConversationLibrary({
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  const [hasHydratedList, setHasHydratedList] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const listRequestRef = useRef(0);
   const activeRequestRef = useRef(0);
@@ -120,16 +139,19 @@ export function useKonlingConversationLibrary({
     listRequestRef.current = requestId;
     setIsLoading(true);
     try {
-      const response = await fetch(buildKonlingConversationListUrl(search));
+      const response = await konlingConversationFetch(buildKonlingConversationListUrl(search));
       const body = await readJson<{ conversations: KonlingConversationSummary[] }>(response);
       if (listRequestRef.current !== requestId) return body.conversations;
       setConversations(body.conversations);
       setError(null);
-      setActiveConversationId((current) => {
-        const next = current ?? body.conversations[0]?.id ?? null;
-        selectedConversationIdRef.current = next;
-        return next;
-      });
+      setHasHydratedList(true);
+      if (autoSelectFirstConversation) {
+        setActiveConversationId((current) => {
+          const next = current ?? body.conversations[0]?.id ?? null;
+          selectedConversationIdRef.current = next;
+          return next;
+        });
+      }
       return body.conversations;
     } catch (cause) {
       if (listRequestRef.current !== requestId) return [];
@@ -139,7 +161,7 @@ export function useKonlingConversationLibrary({
     } finally {
       if (listRequestRef.current === requestId) setIsLoading(false);
     }
-  }, [enabled, search]);
+  }, [autoSelectFirstConversation, enabled, search]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -147,7 +169,7 @@ export function useKonlingConversationLibrary({
   }, [enabled, refreshConversations]);
 
   useEffect(() => {
-    if (!enabled || !activeConversationId) {
+    if (!activeConversationId) {
       setActiveConversation(null);
       setActiveAssistantBinding(null);
       return;
@@ -156,7 +178,7 @@ export function useKonlingConversationLibrary({
     const requestId = activeRequestRef.current + 1;
     activeRequestRef.current = requestId;
     setIsLoading(true);
-    void fetch(`/api/ai/sessions/${activeConversationId}`)
+    void konlingConversationFetch(`/api/ai/sessions/${activeConversationId}`)
       .then((response) => readJson<KonlingConversation>(response))
       .then((conversation) => {
         if (activeRequestRef.current !== requestId) return;
@@ -171,7 +193,7 @@ export function useKonlingConversationLibrary({
       .finally(() => {
         if (activeRequestRef.current === requestId) setIsLoading(false);
       });
-  }, [activeConversationId, enabled]);
+  }, [activeConversationId]);
 
   const refreshActiveConversation = useCallback(async () => {
     const conversationId = selectedConversationIdRef.current;
@@ -180,7 +202,7 @@ export function useKonlingConversationLibrary({
     activeRequestRef.current = requestId;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`);
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`);
       const conversation = await readJson<KonlingConversation>(response);
       if (
         activeRequestRef.current !== requestId
@@ -210,7 +232,7 @@ export function useKonlingConversationLibrary({
     }
     setIsMutating(true);
     try {
-      const response = await fetch('/api/ai/sessions', {
+      const response = await konlingConversationFetch('/api/ai/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -220,6 +242,12 @@ export function useKonlingConversationLibrary({
           classId,
           resourceId,
           pathNodeId,
+          ...(binding ? {
+            assistantBinding: {
+              modeId: binding.teachingAssistantModeId,
+              clientContextHints: binding.modeClientContextHints,
+            },
+          } : {}),
         }),
       });
       const conversation = await readJson<KonlingConversation>(response);
@@ -233,9 +261,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('新建控灵会话失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('新建控灵会话失败');
     } finally {
       setIsMutating(false);
     }
@@ -249,10 +275,19 @@ export function useKonlingConversationLibrary({
     setActiveConversationId(conversationId);
   }, []);
 
+  // 进入未落库空白态：仅清除选择，不创建任何会话
+  const enterBlankConversation = useCallback(() => {
+    activeRequestRef.current += 1;
+    selectedConversationIdRef.current = null;
+    setActiveConversationId(null);
+    setActiveConversation(null);
+    setActiveAssistantBinding(null);
+  }, []);
+
   const renameConversation = useCallback(async (conversationId: string, title: string) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
@@ -263,9 +298,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('对话重命名失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('对话重命名失败');
     } finally {
       setIsMutating(false);
     }
@@ -274,7 +307,7 @@ export function useKonlingConversationLibrary({
   const setConversationPinned = useCallback(async (conversationId: string, pinned: boolean) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pinned }),
@@ -285,9 +318,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return conversation;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('对话置顶状态更新失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('对话置顶状态更新失败');
     } finally {
       setIsMutating(false);
     }
@@ -296,7 +327,7 @@ export function useKonlingConversationLibrary({
   const deleteConversation = useCallback(async (conversationId: string) => {
     setIsMutating(true);
     try {
-      const response = await fetch(`/api/ai/sessions/${conversationId}`, {
+      const response = await konlingConversationFetch(`/api/ai/sessions/${conversationId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ confirmed: true }),
@@ -313,9 +344,7 @@ export function useKonlingConversationLibrary({
       setError(null);
       return wasActive;
     } catch (cause) {
-      const nextError = cause instanceof Error ? cause : new Error('删除控灵会话失败');
-      setError(nextError);
-      throw nextError;
+      throw cause instanceof Error ? cause : new Error('删除控灵会话失败');
     } finally {
       setIsMutating(false);
     }
@@ -325,7 +354,7 @@ export function useKonlingConversationLibrary({
     const selectedConversationId = selectedConversationIdRef.current;
     if (activeConversation?.id === selectedConversationId) return activeConversation;
     if (selectedConversationId) {
-      const response = await fetch(`/api/ai/sessions/${selectedConversationId}`);
+      const response = await konlingConversationFetch(`/api/ai/sessions/${selectedConversationId}`);
       const conversation = await readJson<KonlingConversation>(response);
       if (selectedConversationIdRef.current !== selectedConversationId) {
         throw new Error('控灵会话已切换，请重新发送。');
@@ -346,12 +375,14 @@ export function useKonlingConversationLibrary({
     setSearch,
     isLoading,
     isMutating,
+    hasHydratedList,
     error,
     refreshConversations,
     refreshActiveConversation,
     createConversation,
     ensureConversation,
     selectConversation,
+    enterBlankConversation,
     renameConversation,
     setConversationPinned,
     deleteConversation,

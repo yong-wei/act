@@ -63,6 +63,12 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
 - `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
 
+作业批改以已发布修订版和提交快照为边界。教师仅可处理本人班级的提交，作业作者、管理员和有效复核授权可跨班级处理；每次 AI 批改冻结提交与作答向量，幂等重放必须匹配同一冻结范围。题目批次与作业操作通过 `GradingBatch.assignmentGradingOperationId` 关联，队列 worker 在成功或失败结算后汇总操作为 `RUNNING`、`SUCCEEDED`、`PARTIAL`、`FAILED` 或 `BLOCKED`，教师端据此显示真实进度。
+
+教师 AI 批改实验室位于 `/teacher/ai-grading-lab`，用于在脱敏、访问控制和审计约束下管理受控样本、隐藏评估集、重复评分、人工盲审、稳定性与覆盖率指标，以及可下载的审计和 PDF 证据。实验数据、原始作答和可识别信息不进入公开指标或学生侧接口；实验室结论与正式作业评分闭环相互隔离。
+
+当前阶段 A 的受控闭环和 G.8 独立审核已完成；对象存储读取重验当前因端点不可达而保留为 `DEFER`，恢复端点和受限读取凭据后只能原样执行只读验证。阶段 B 的 V1–V3 均未达到门槛；负责人覆盖原调优版本上限后，V4 已使 28 份调优样本的 336 条 executions 全部获得可持久化结果。V4 的 MAE 为 `4.7470`、三次完全稳定率为 `76.79%`，不构成自动批改能力合格结论。隐藏集仍保持 `SEALED`，不得读取、运行、揭示或以任何方式宣称通过。
+
 教师创建课堂后，系统生成 `ClassSession`、课堂码、lesson version、manifest hash 和总步骤数。课堂结束后，session report、提交事件和治理摘要进入教师报告链路。班级洞察不应从前端状态重建，而应消费治理后的能力、证据和报告指标。
 
 ### 管理员端
@@ -89,7 +95,7 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 知识图谱壳层迁移已经完成实现：`/knowledge` 使用可收起 `AppShell`，公开态、学生登录态和教师登录态都走中心角色导航；章节目录、关系筛选、图例、2D/3D 切换和资源面板保持知识图谱局部工具语义，不再作为平台导航。`artifacts/commercial-ui/knowledge-map-unified-shell-415/` 保存 light/dark、展开/收起/移动命令面板证据。当前 Authority presentation 包 `control-theory-engineering-v0.37-r3` 的富文本/数学 sidecar 由只读适配器投影为 `GovernedRichTextProjection`，图谱 2D/3D DOM 标签、悬浮预览、搜索、详情、知识卡、讲义和教材共用严格 KaTeX（`trust:false`、HTML+MathML、宏配置 `ctmacro:katex-default-v1`）。资格命令读取离线账本 `course-content/authoring/knowledge/governance/governed-math/`，该目录不得进入运行 API 或部署镜像。
 
-`/knowledge` 新版与旧版共用同一套 Force Graph 运行时（布局、手势、相机、筛选、会话隔离），active 路径只消费 Authority shard 与 Teaching 投影，不回退 Legacy 数据。产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用 `v0.6.0` 已部署；Teaching/shards/catalog/activation 指针已 overlay 到 v0.37，`latestCutover` 为 `successor/ready`。领域 `teachingRelations` 仍为空：`ads-c462da19` 密封为 teaching unavailable，v0.6.0 loader 在 live envelope 不一致时会清成「教学关系暂不可用」。补齐路径是读取时套上后继 domain-fragments overlay，并把该指针当作必填控制面输入且核对其 `projectionHash`；不得重物化 shard set。PR #1727 承载该 loader 与安装器（缺 domain-fragments 失败关闭、锁后校验 selected view、失败回滚 overlay 且不发布 success receipt）。未把该应用发到生产前，不得在现网单独 apply domain-fragments。不得把 latest-cutover 绿当成 6.5/6.6 完成。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `deploy:runtime`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
+`/knowledge` 新版与旧版共用同一套 Force Graph 运行时（布局、手势、相机、筛选、会话隔离），active 路径只消费 Authority shard 与 Teaching 投影，不回退 Legacy 数据。产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用已发布 `v0.6.1`（`93a70aed…`，GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.1），经 `scripts/build.sh`（`BUILD_SCOPE=app-only`）与 `deploy:app --skip-build` 部署。读取时 successor overlay 已把 Teaching Projection（`c9a6f33e…`）与 composed domain-fragments（`eb4d2d63…`）装到后继 blob-view；密封 shard set 仍为 `ads-c462da19`，未重物化。生产 `latestCutover` 为 `successor/ready`；合格领域（如根轨迹、频域）展示非空教学关系，不再出现「教学关系暂不可用」。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `deploy:runtime`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
 
 数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
 

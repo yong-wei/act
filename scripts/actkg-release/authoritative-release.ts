@@ -1,10 +1,13 @@
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { Prisma, PrismaClient } from '@prisma/client';
 import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
+
+import { canonicalJson, sha256 } from '../../src/lib/authoritative-knowledge/canonical-json';
+
+export { canonicalJson, sha256 };
 
 // Historical CTKG 0.1 adapter. This module validates and imports only the
 // immutable `root-locus-engineering-v0.1` package against its preserved
@@ -113,26 +116,6 @@ function records(release: JsonObject, key: ReleaseArrayKey): JsonObject[] {
   const value = release[key];
   if (!Array.isArray(value)) fail(`${key} must be an array`);
   return value.map((item, index) => object(item, `${key}[${index}]`));
-}
-
-export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string') return JSON.stringify(value);
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) fail('canonical JSON cannot contain a non-finite number');
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.entries(value as JsonObject)
-      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
-      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`)
-      .join(',')}}`;
-  }
-  fail('canonical JSON contains an unsupported value');
-}
-
-export function sha256(value: string | Buffer): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function assertRawHash(bytes: Buffer, expected: string, label: string): void {
@@ -500,7 +483,7 @@ export async function loadAndValidateRelease(options: {
   lineageClaims?: LineageClaims;
   captureRevision?: string;
 } = {}): Promise<ValidatedRelease> {
-  const root = path.resolve(options.root ?? process.cwd());
+  const root = path.resolve(/*turbopackIgnore: true*/ options.root ?? process.cwd());
   const lockPath = path.join(root, HISTORICAL_RELEASE_SET_LOCK_PATH);
   const lockBytes = await readFile(lockPath);
   const lock = object(JSON.parse(lockBytes.toString('utf8')), 'release-set lock') as unknown as ReleaseSetLock;
@@ -512,14 +495,14 @@ export async function loadAndValidateRelease(options: {
   const entry = lock.releases.find((candidate) => candidate.release_id === releaseId);
   if (!entry) fail(`release ${releaseId} is not explicitly locked`);
 
-  const controlledDirectory = path.join(root, entry.controlled_path);
+  const controlledDirectory = path.join(/*turbopackIgnore: true*/ root, entry.controlled_path);
   const requestedDirectory = path.resolve(root, options.releasePath ?? entry.controlled_path);
-  if (await realpath(requestedDirectory) !== await realpath(controlledDirectory)) fail('requested package path is not the controlled locked path');
-  const releasePath = path.join(requestedDirectory, `${entry.release_version}.json`);
+  if (await realpath(/*turbopackIgnore: true*/ requestedDirectory) !== await realpath(/*turbopackIgnore: true*/ controlledDirectory)) fail('requested package path is not the controlled locked path');
+  const releasePath = path.join(/*turbopackIgnore: true*/ requestedDirectory, `${entry.release_version}.json`);
   const schemaPath = path.join(requestedDirectory, 'ctkg.schema.json');
   const notesPath = path.join(requestedDirectory, 'RELEASE-NOTES.md');
   const [releaseBytes, schemaBytes, notesBytes] = await Promise.all([
-    readFile(releasePath),
+    readFile(/*turbopackIgnore: true*/ releasePath),
     readFile(schemaPath),
     readFile(notesPath),
   ]);

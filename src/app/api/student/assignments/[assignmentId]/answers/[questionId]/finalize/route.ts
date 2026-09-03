@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { finalizeSchema } from '@/lib/assignments/submission-domain';
-import { studentFinalizeQuestionAsset, studentGetQuestionUploadStatus } from '@/lib/assignments/public-api';
+import { finalizeSchema, studentFinalizeQuestionAsset, studentGetQuestionUploadStatus } from '@/lib/assignments/public-api';
 import { guardSubmissionMutation, readBoundedSubmissionJson, requireStudentActor, submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import type { ControllerMethod } from '@/features/arena/types';
+import type { ControllerMethod } from '@/features/arena/domain';
 import {
   getArenaCompanionAllowedMethods,
   resolveArenaCompanionContext,
@@ -15,7 +15,7 @@ import {
   type AttemptOutcome,
   type FeedbackSubmissionState,
 } from './attempt-feedback-state';
-import type { StudentState } from '@/features/personalization/interventions/policy';
+import type { StudentState } from '@/features/personalization/interventions/public-api';
 
 interface InputField {
   id: string;

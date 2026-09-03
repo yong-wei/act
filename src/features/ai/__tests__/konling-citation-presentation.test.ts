@@ -498,12 +498,31 @@ describe('Konling verified citation presentation', () => {
               citationId: 'content:formula:derivation',
               citationTargetId: 'formula:derivation',
               limitation: null,
+              sectionId: 'transform',
+              sectionTitle: '关键变形',
             }, {
               unit: '伪造来源',
               citationId: 'content:unknown',
               citationTargetId: 'unknown',
               limitation: null,
             }],
+            answerUnitCoverage: {
+              intent: 'normative-content',
+              sections: [{
+                sectionId: 'rule',
+                sectionTitle: '规范结论',
+                citationPolicy: 'evidence-required',
+                covered: false,
+              }, {
+                sectionId: 'source',
+                sectionTitle: '核验来源',
+                citationPolicy: 'evidence-required',
+                covered: false,
+              }],
+              coveredCount: 0,
+              requiredCount: 2,
+              ratio: 0,
+            },
           },
         },
       }),
@@ -512,8 +531,65 @@ describe('Konling verified citation presentation', () => {
     expect(html).toContain('data-konling-study-question-contract');
     expect(html).toContain('规范内容需核验');
     expect(html).toContain('data-konling-answer-unit-bindings');
+    expect(html).toContain('「关键变形」');
     expect(html).toContain('关键变形：分母为 1 + G(s)H(s)');
     expect(html).toContain('闭环传递函数教材片段');
+    expect(html).not.toContain('data-konling-derived-sections');
     expect(html).not.toContain('伪造来源');
+  });
+
+  it('labels model-derived sections so derivation content is not presented as source text', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingCitationPanel, {
+        metadata: {
+          konlingCitationGuard: {
+            status: 'verified',
+            studyQuestion: {
+              intent: 'formula-derivation',
+              requiredSections: ['前提与符号', '关键变形', '适用条件', '结果校验'],
+            },
+            citations: [{
+              id: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              sourceType: 'content',
+              displayTitle: '闭环传递函数教材片段',
+              href: '/course-runtime/resources/control.md#closed-loop',
+              confidence: 'high',
+              evidenceBasis: 'source-pack',
+            }],
+            answerUnits: [{
+              unit: 'G(s) 为前向通道',
+              citationId: 'content:formula:derivation',
+              citationTargetId: 'formula:derivation',
+              limitation: null,
+              sectionId: 'assumptions',
+              sectionTitle: '前提与符号',
+            }],
+            answerUnitCoverage: {
+              intent: 'formula-derivation',
+              sections: [{
+                sectionId: 'assumptions',
+                sectionTitle: '前提与符号',
+                citationPolicy: 'evidence-required',
+                covered: true,
+              }, {
+                sectionId: 'transform',
+                sectionTitle: '关键变形',
+                citationPolicy: 'model-derived',
+                covered: false,
+              }],
+              coveredCount: 1,
+              requiredCount: 1,
+              ratio: 1,
+            },
+            derivedSectionIds: ['transform'],
+          },
+        },
+      }),
+    );
+
+    expect(html).toContain('data-konling-derived-sections');
+    expect(html).toContain('模型推导章节：关键变形');
+    expect(html).toContain('非来源原文');
   });
 });

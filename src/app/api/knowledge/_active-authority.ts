@@ -40,15 +40,21 @@ import {
   AuthorityShardIdentityError,
   AuthorityShardStoreError,
   loadDomainDefaultShard,
+  loadDomainSearchIndexShard,
   loadNodeDetailShard,
   loadNodeNeighborhoodShard,
   loadRelationFamilyShard,
-  loadRootShard,
+  loadRootShardWithCoverage,
   readActiveAuthorityInfograph,
   attachActiveAuthorityLearningContent,
   projectAuthorityLearnerShard,
+  publicAuthorityShardEnvelope,
+  AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+  AUTHORITY_DOMAIN_SEARCH_MIN_QUERY_CHARS,
+  AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT,
   type AuthorityLearnerShard,
   type AuthorityDomainDefaultShard,
+  type AuthorityDomainSearchResponse,
   type AuthorityNodeDetailShard,
   type PublicAuthorityNodeDetailShard,
   type AuthorityNodeNeighborhoodShard,
@@ -57,13 +63,18 @@ import {
 } from '@/lib/authority-domain-shards';
 import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
-import { applyLocaleToLearnerShard, localeBindingForCapability } from '@/lib/authority-locale-readiness/project-shard';
+import {
+  applyLocaleToLearnerShard,
+  applyLocaleToSearchHits,
+  localeBindingForCapability,
+  localeProjectedObjectLabel,
+} from '@/lib/authority-locale-readiness/project-shard';
 import {
   resolveActiveLocaleQualification,
   resolveActiveLocaleRequest,
 } from '@/lib/authority-locale-readiness/request';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
-import { attachGovernedMathToLearnerShard } from '@/lib/governed-math/attach';
+import { attachGovernedMathToLearnerShard, attachGovernedMathToSearchHits, governedFormulaSearchTerms } from '@/lib/governed-math/attach';
 import {
   closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
@@ -658,7 +669,10 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
 }
 
 export function readActiveRootShard(): AuthorityRootShard {
-  return loadRootShard();
+  // 根入口在发布前必须确认分片集闭包合格（spec：default/search/
+  // neighborhood/detail 闭包缺失或身份失配时不得发布根入口）；部署或
+  // 挂载遗漏 coverage 收据时 fail closed，而不是等后续点击再失败。
+  return loadRootShardWithCoverage();
 }
 
 export function readActiveDomainDefaultShard(domainKey: string): AuthorityDomainDefaultShard {
@@ -683,4 +697,158 @@ export function readActiveDetailShard(nodeId: string): AuthorityNodeDetailShard 
 export function readActiveDetailInfograph(nodeId: string): Buffer | null {
   const shard = loadNodeDetailShard(nodeId);
   return readActiveAuthorityInfograph(shard);
+}
+
+function normalizedSearchNeedle(value: string): string {
+  return value.trim().toLocaleLowerCase('zh-CN');
+}
+
+function searchEntryMatches(
+  entry: { label: string; aliases: readonly string[] },
+  needle: string,
+): boolean {
+  if (!needle) return false;
+  if (entry.label.trim().toLocaleLowerCase('zh-CN').includes(needle)) return true;
+  return entry.aliases.some((alias) => (
+    alias.trim().toLocaleLowerCase('zh-CN').includes(needle)
+  ));
+}
+
+/**
+ * Bounded domain search over the sealed identity-safe index (#1738). The
+ * complete index never leaves the server; responses carry the same public
+ * envelope as learner shards so clients can fail closed on identity drift.
+ */
+export function activeDomainSearchResponse(
+  input: {
+    domainKey: string;
+    query: string;
+    canonicalType: string | null;
+    page: number;
+    pageSize: number;
+    request: Request;
+  },
+): NextResponse {
+  const rejected = knowledgeSurfaceSelectorRejection(input.request);
+  if (rejected) return rejected;
+  try {
+    const query = input.query.trim().slice(0, 120);
+    const canonicalType = input.canonicalType && input.canonicalType.length <= 60
+      ? input.canonicalType
+      : null;
+    const pageSize = Math.min(
+      Math.max(1, Math.floor(input.pageSize || AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT)),
+      AUTHORITY_DOMAIN_SEARCH_PAGE_LIMIT,
+    );
+    const page = Math.max(0, Math.floor(input.page));
+    const index = loadDomainSearchIndexShard(input.domainKey);
+
+    const qualification = resolveActiveLocaleQualification();
+    const capability = qualification?.capability ?? historicalLocaleCapability();
+    const resolved = resolveActiveLocaleRequest(input.request, capability);
+    if (!resolved.ok) return resolved.response;
+    const activeIdentity = resolveActiveShardIdentity();
+    // One version-matched envelope for empty and matched responses alike.
+    const envelope = publicAuthorityShardEnvelope(
+      activeIdentity.envelope,
+      localeBindingForCapability(
+        resolved.locale,
+        capability,
+        `acv-${activeIdentity.envelope.authority.snapshotHash}`,
+      ),
+    );
+
+    if (query.length < AUTHORITY_DOMAIN_SEARCH_MIN_QUERY_CHARS) {
+      return NextResponse.json({
+        contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+        envelope,
+        domainId: index.domainId,
+        query,
+        canonicalType,
+        page: 0,
+        pageSize,
+        total: 0,
+        hits: [],
+      } satisfies AuthorityDomainSearchResponse);
+    }
+    const needle = normalizedSearchNeedle(query);
+    // 受治理搜索词先于过滤参与匹配：公式按请求 locale 的可访问名可被发现
+    // （#1740 spec：Search matches mathematical content），原始索引标签不动。
+    const formulaSearchTerms = governedFormulaSearchTerms(
+      index.entries.flatMap((entry) => (entry.canonicalType === 'Formula' ? [entry.id] : [])),
+      resolved.locale,
+      activeIdentity.envelope.authority.releaseId,
+    );
+    // 完整 locale 模式下，对象名按请求语言的投影参与匹配（#1741）：英文
+    // 查询命中英文对象名，sealed 索引的 zh 标签不再是唯一匹配面。
+    const localeLabels = capability.mode === 'complete-locale' && qualification?.manifest
+      ? new Map(index.entries.flatMap((entry) => {
+        const projected = localeProjectedObjectLabel(
+          entry.id,
+          resolved.locale,
+          qualification.manifest,
+        );
+        return projected ? [[entry.id, projected] as const] : [];
+      }))
+      : null;
+    const entryLabelFor = (entry: { id: string; label: string }): string => (
+      localeLabels?.get(entry.id) ?? entry.label
+    );
+    const matched = index.entries
+      .filter((entry) => !canonicalType || entry.canonicalType === canonicalType)
+      .filter((entry) => {
+        // 完整 locale 模式下 uncovered 对象（无当前语言对象名）不参与
+        // 匹配——绝不让中文占位符出现在外文搜索结果里（#1741 P1）。
+        if (localeLabels && !localeLabels.has(entry.id) && !formulaSearchTerms.has(entry.id)) {
+          return false;
+        }
+        return searchEntryMatches(
+          localeLabels?.has(entry.id)
+            ? { ...entry, label: entryLabelFor(entry), aliases: [] }
+            : entry,
+          needle,
+        )
+          || (formulaSearchTerms.has(entry.id)
+            && normalizedSearchNeedle(formulaSearchTerms.get(entry.id)!).includes(needle));
+      })
+      .sort((left, right) => (
+        entryLabelFor(left).localeCompare(entryLabelFor(right), 'zh-CN')
+        || left.id.localeCompare(right.id)
+      ));
+    const start = page * pageSize;
+    const pageEntries = matched.slice(start, start + pageSize);
+
+    const receipt = capability.mode === 'complete-locale' && qualification?.qualification
+      ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
+      : null;
+    const hits = attachGovernedMathToSearchHits(
+      applyLocaleToSearchHits(
+        pageEntries,
+        resolved.locale,
+        capability.mode === 'complete-locale' ? qualification?.manifest ?? null : null,
+        receipt,
+      ),
+      resolved.locale,
+      // 同版绑定：搜索命中只在命中对象属于当前 Authority release 时携带公式投影
+      activeIdentity.envelope.authority.releaseId,
+    );
+    const response: AuthorityDomainSearchResponse = {
+      contract: AUTHORITY_DOMAIN_SEARCH_CONTRACT,
+      envelope,
+      domainId: index.domainId,
+      query,
+      canonicalType,
+      page,
+      pageSize,
+      total: matched.length,
+      hits,
+    };
+    return NextResponse.json(response);
+  } catch (error) {
+    const failure = shardFailureCode(error);
+    return NextResponse.json(
+      { error: failure.message, code: failure.code },
+      { status: failure.status },
+    );
+  }
 }

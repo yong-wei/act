@@ -53,6 +53,7 @@ function renderQuestion(input?: {
       onUploadFiles={vi.fn()}
       onRetryUpload={vi.fn()}
       onDiscardUpload={vi.fn()}
+      onConfirmQuarantinedAsset={vi.fn()}
       onRemove={vi.fn()}
       onReorder={vi.fn()}
       onSubmit={vi.fn()}
@@ -197,6 +198,23 @@ describe('student unified response editor', () => {
     expect(markup).toContain('aria-label="上移附件 2"');
     expect(markup).toContain('aria-label="下移附件 1"');
     expect(markup).toContain('aria-live="polite"');
+  });
+
+  it('makes quarantined attachments visibly removable', () => {
+    const markup = renderQuestion({
+      question: question({
+        assets: [{
+          id: 'quarantined-asset',
+          displayName: '待扫描.pdf',
+          role: 'ATTACHMENT',
+          state: 'QUARANTINED',
+          orderIndex: 0,
+        }],
+      }),
+    });
+    expect(markup).toContain('等待安全扫描');
+    expect(markup).toContain('aria-label="移除附件 1"');
+    expect(markup).toContain('>移除</span>');
   });
 
   it('keeps mobile controls reachable without fixed horizontal layout', () => {

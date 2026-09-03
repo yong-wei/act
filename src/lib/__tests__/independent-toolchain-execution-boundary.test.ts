@@ -9,7 +9,7 @@ import { checkToolchainBoundary } from '../../../tools/boundary/check';
 import { classifyPath } from '../../../tools/boundary/classify';
 import { digestPaths } from '../../../tools/boundary/denominator';
 import { findProductToolEdges, findProductToolPathReads } from '../../../tools/boundary/product-imports';
-import { worktreeIsClean } from '../../../tools/boundary/git-source';
+import { captureSourceIdentity, worktreeIsClean } from '../../../tools/boundary/git-source';
 import { buildCommandReceipt, digestRegistry, validateReceipt } from '../../../tools/boundary/receipt';
 import { buildToolRegistry, validateRegistry } from '../../../tools/boundary/registry';
 import { DOWNSTREAM_CHANGES, TOOLCHAIN_BOUNDARY_SCHEMA_VERSION } from '../../../tools/boundary/types';
@@ -119,6 +119,108 @@ describe('independent toolchain execution boundary', () => {
     const result = checkToolchainBoundary(root);
     expect(result.failures.some((item) => item.code === 'dirty-worktree')).toBe(true);
     expect(result.ok).toBe(false);
+  });
+
+  it('fail-closes a mixed worktree with staged and unstaged changes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-mixed-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'init\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'init'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'staged edit\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    writeFileSync(join(root, 'unstaged.txt'), 'unstaged edit\n');
+    const result = checkToolchainBoundary(root);
+    expect(result.failures.some((item) => item.code === 'dirty-worktree')).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it('fail-closes a stale inventory receipt through the real migration-backfill consumer', async () => {
+    const { checkMigrationBackfillCompetition } = await import('../../../tools/migration-backfill/check');
+    const root = mkdtempSync(join(tmpdir(), 'migration-backfill-stale-'));
+    const foreignRoot = mkdtempSync(join(tmpdir(), 'migration-backfill-stale-foreign-'));
+    for (const repo of [root, foreignRoot]) {
+      execFileSync('git', ['init'], { cwd: repo });
+      execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: repo });
+      execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: repo });
+    }
+    // Distinct commit content per repo: identical trees + timestamps would make
+    // git's deterministic commit SHAs collide across the two repositories.
+    writeFileSync(join(root, 'README'), 'root init\n');
+    writeFileSync(join(foreignRoot, 'README'), 'foreign init\n');
+    for (const repo of [root, foreignRoot]) {
+      execFileSync('git', ['add', 'README'], { cwd: repo });
+      execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'init'], { cwd: repo });
+    }
+    // The root repo also needs a minimal package.json for the package-script scan.
+    writeFileSync(join(root, 'package.json'), '{"scripts":{}}\n');
+    execFileSync('git', ['add', 'package.json'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'pkg'], { cwd: root });
+    const foreign = captureSourceIdentity(foreignRoot);
+    const bound = captureSourceIdentity(root);
+    const inventoryDir = join(root, 'docs/architecture/migration-backfill-competition');
+    mkdirSync(inventoryDir, { recursive: true });
+
+    // A receipt bound to a revision from a different history is rejected by the
+    // real consumer as not-an-ancestor.
+    writeFileSync(join(inventoryDir, 'inventory.json'), `${JSON.stringify({
+      sourceRevision: foreign.sourceRevision,
+      sourceTree: foreign.sourceTree,
+      commands: [],
+    })}\n`);
+    const foreignResult = checkMigrationBackfillCompetition(root);
+    expect(foreignResult.failures).toContain('inventory-revision-not-ancestor');
+    expect(foreignResult.ok).toBe(false);
+
+    // A receipt whose recorded tree no longer matches its own recorded revision
+    // (tampered/stale capture) is rejected as a source-tree mismatch.
+    writeFileSync(join(inventoryDir, 'inventory.json'), `${JSON.stringify({
+      sourceRevision: bound.sourceRevision,
+      sourceTree: foreign.sourceTree,
+      commands: [],
+    })}\n`);
+    const mismatchResult = checkMigrationBackfillCompetition(root);
+    expect(mismatchResult.failures).toContain('inventory-source-tree-mismatch');
+    expect(mismatchResult.ok).toBe(false);
+  });
+
+  it('fails closed when HEAD advanced past a receipt whose captured command set is stale', async () => {
+    const { checkMigrationBackfillCompetition } = await import('../../../tools/migration-backfill/check');
+    const root = mkdtempSync(join(tmpdir(), 'migration-backfill-advance-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'first\n');
+    writeFileSync(join(root, 'package.json'), '{"scripts":{}}\n');
+    execFileSync('git', ['add', 'README', 'package.json'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'first'], { cwd: root });
+    const bound = captureSourceIdentity(root);
+    const inventoryDir = join(root, 'docs/architecture/migration-backfill-competition');
+    mkdirSync(inventoryDir, { recursive: true });
+    const writeInventory = (commands: unknown[]) => writeFileSync(
+      join(inventoryDir, 'inventory.json'),
+      `${JSON.stringify({ sourceRevision: bound.sourceRevision, sourceTree: bound.sourceTree, commands })}\n`,
+    );
+
+    // Same history, unchanged command set: the ancestor receipt with a correct
+    // historical tree stays acceptable by design; the fingerprint is the drift guard.
+    writeInventory([]);
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'inventory'], { cwd: root });
+    const unchanged = checkMigrationBackfillCompetition(root);
+    expect(unchanged.failures.some((item) => item.startsWith('inventory-'))).toBe(false);
+
+    // HEAD advanced AND the scanned command set grew after the receipt was
+    // captured: the stale receipt is rejected via command-set fingerprint drift.
+    mkdirSync(join(root, 'scripts/db'), { recursive: true });
+    writeFileSync(join(root, 'scripts/db/new-tool.ts'), 'export const tool = 1;\n');
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'new tool'], { cwd: root });
+    const stale = checkMigrationBackfillCompetition(root);
+    expect(stale.failures).toContain('inventory-command-set-drift');
+    expect(stale.ok).toBe(false);
   });
 
   it('changes the receipt digest when a registry contract field changes', () => {

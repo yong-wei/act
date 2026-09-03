@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ArenaCompanionContextError,
+  isClientAuthoredArenaCompanionScope,
   resolveArenaCompanionContext,
 } from '../companion/arena-companion-context';
 
@@ -71,5 +72,20 @@ describe('Arena companion context', () => {
     expect(() => resolveArenaCompanionContext('task-ship-roll-mpc-hidden-scenarios', 'pid')).toThrow(
       ArenaCompanionContextError,
     );
+  });
+
+  it('recognizes retired companion identities without requiring the client to name a task', () => {
+    expect(isClientAuthoredArenaCompanionScope({
+      courseId: 'simulation-companion',
+      pageId: 'arena-companion:task-third-order-block-diagram',
+      resourceId: 'arena-companion:task-third-order-block-diagram',
+      pathNodeId: 'ai-companion:arena-companion:task-third-order-block-diagram',
+    })).toBe(true);
+    expect(isClientAuthoredArenaCompanionScope({
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+    })).toBe(false);
   });
 });

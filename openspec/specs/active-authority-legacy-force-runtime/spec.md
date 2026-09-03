@@ -129,3 +129,58 @@ Legacy mode SHALL send only its existing explicit formula fields through the sha
 - **THEN** it SHALL remain ordinary escaped text
 - **AND** the runtime SHALL NOT infer or persist a mathematics span
 
+### Requirement: Formula labels share the force-owned semantic label layer
+The shared 2D and 3D Force Graph runtime SHALL render active Formula expressions through the same semantic DOM label layer used for governed titles. Expression, bounded human context, accessibility and LOD SHALL remain one node-owned presentation.
+
+#### Scenario: Formula is visible in 2D and 3D
+- **WHEN** the same Formula node is materialized in either dimension
+- **THEN** both dimensions SHALL render the same governed expression and accessible meaning
+- **AND** switching dimension SHALL not fetch detail, change formula identity or create a second graph node
+
+### Requirement: Ordinary active nodes remain under live force ownership
+Ordinary domain and neighborhood nodes SHALL enter the shared Force Graph runtime as movable seeded nodes. Automatic layout code MUST NOT assign `fx`, `fy` or `fz`; fixed coordinates are reserved for governed root packing and explicit user pins.
+
+#### Scenario: Domain overview settles
+- **WHEN** a bounded concept overview enters 2D or 3D
+- **THEN** force ticks SHALL move at least one unpinned node and separate collisions before settlement
+- **AND** the resulting coordinates SHALL remain within the configured time and viewport budgets
+
+#### Scenario: User pins and unpins a node
+- **WHEN** the user drags a node to a fixed location and later removes the pin
+- **THEN** only the explicit pin SHALL own fixed coordinates while active
+- **AND** unpinning SHALL return the node to force ownership without resetting unrelated nodes
+
+### Requirement: Force reflow is bounded and behaviorally verified
+Reflow SHALL reheat the current bounded force scope, preserve user pins, settle under explicit tick/time budgets and update camera fit only after a valid layout milestone. Tests MUST verify movement and settlement and MUST NOT accept zero-tick source-string assertions as parity evidence.
+
+#### Scenario: One-hop nodes arrive
+- **WHEN** a selected concept loads a bounded neighborhood
+- **THEN** only the affected connected scope SHALL reheat and settle
+- **AND** filters, selection, camera and unrelated coordinates SHALL remain stable
+
+#### Scenario: Reflow is requested
+- **WHEN** the viewer chooses reflow
+- **THEN** the runtime SHALL produce a newly settled movable layout within budget
+- **AND** it SHALL not merely regenerate the same fixed automatic anchors
+
+### Requirement: Filter changes preserve force session state
+Enabling or disabling any active node type or relation family SHALL preserve coordinates, user pins, force-settlement state, camera, selection, loaded shards and inspector state for every still-visible identity. Filter-only changes MUST NOT restart the entire simulation.
+
+#### Scenario: Viewer toggles one relation family
+- **WHEN** one loaded engineering family is hidden and restored
+- **THEN** only that family's visible edges SHALL change
+- **AND** node coordinates, camera and selected detail SHALL remain stable
+
+#### Scenario: Viewer enables an unloaded family
+- **WHEN** the panel requests a missing family shard
+- **THEN** the runtime SHALL keep the current graph usable while the bounded shard loads
+- **AND** only the affected scope MAY reheat after verified nodes and edges arrive
+
+### Requirement: Force migration completion requires integrated browser evidence
+The Force runtime migration SHALL remain incomplete until real 2D and 3D browser probes pass the exact movement, pin, reflow, camera and performance matrix defined by the migration acceptance capability.
+
+#### Scenario: Unit tests pass without browser force evidence
+- **WHEN** component and unit tests pass but the integrated force trace is absent or failing
+- **THEN** migration completion SHALL be rejected
+- **AND** tasks SHALL not be marked complete from implementation inspection alone
+

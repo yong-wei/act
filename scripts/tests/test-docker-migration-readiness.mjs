@@ -704,6 +704,17 @@ function main() {
     'worker 生产入口使用 tsx 时必须走镜像内显式生产依赖'
   );
 
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/app\/tsconfig\.base\.json \.\/tsconfig\.base\.json/,
+    '镜像必须包含 tsconfig.base.json，tsx worker 才能解析 @/ 路径别名'
+  );
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/app\/tsconfig\.worker\.json \.\/tsconfig\.worker\.json/,
+    '镜像必须包含 tsconfig.worker.json，tsx worker 入口才能按 worker graph include 解析'
+  );
+
   runImageWolframSmoke();
   runImageKnowledgeDeployContract();
   assertMissingWolframImageFailsClosed();
@@ -722,13 +733,13 @@ function main() {
 
   assert.equal(
     packageJson.dependencies.prisma,
-    '^7.8.0',
+    '^7.10.0',
     'docker-entrypoint.sh 运行 Prisma 7 migrate deploy，prisma CLI 必须归类为 dependencies'
   );
 
   assert.equal(
     packageJson.dependencies['@prisma/adapter-pg'],
-    '^7.8.0',
+    '^7.10.0',
     'Prisma 7 PostgreSQL adapter 必须归类为 dependencies，production-only install 才能创建客户端'
   );
 

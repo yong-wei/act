@@ -153,6 +153,10 @@ export function buildTeacherSubmissionQueueUrl(
   return `/api/teacher/assignments/${encodeURIComponent(assignmentId)}/submissions?${params.toString()}`;
 }
 
+export function buildTeacherAssignmentGradingHref(assignmentId: string): string {
+  return `/teacher/assignments/${encodeURIComponent(assignmentId)}/grading`;
+}
+
 export function buildTeacherReviewApiUrl(
   assignmentId: string,
   submissionId: string,
@@ -213,15 +217,11 @@ export function buildDeterministicReviewQueue(
     const questions =
       mode === "student"
         ? [
-            statusScopedQuestions.find(
-              (question) =>
-                question.id === selectedQuestionId ||
-                question.stableQuestionId === selectedQuestionId,
+            statusScopedQuestions.find((question) =>
+              matchesSelectedQuestionId(question, selectedQuestionId),
             ) ??
-              statusScopedQuestions.find(
-                (question) =>
-                  question.status === "READY" ||
-                  question.status === "IN_REVIEW",
+              statusScopedQuestions.find((question) =>
+                isReviewableStatus(question.status),
               ) ??
               statusScopedQuestions[0],
           ].filter(
@@ -252,42 +252,44 @@ export function buildDeterministicReviewQueue(
 
   const scoped =
     mode === "question" && selectedQuestionId
-      ? items.filter(
-          (item) =>
-            item.questionId === selectedQuestionId ||
-            item.stableQuestionId === selectedQuestionId,
+      ? items.filter((item) =>
+          matchesSelectedQuestionId(item, selectedQuestionId),
         )
       : items;
 
-  return scoped.sort((left, right) => {
-    if (mode === "question") {
-      return (
-        compareText(left.studentName, right.studentName) ||
-        compareText(left.studentNumber ?? "", right.studentNumber ?? "") ||
-        compareText(left.submissionId, right.submissionId)
-      );
-    }
-    return (
+  return scoped.sort(
+    (left, right) =>
       compareText(left.studentName, right.studentName) ||
       compareText(left.studentNumber ?? "", right.studentNumber ?? "") ||
-      compareText(left.submissionId, right.submissionId)
-    );
-  });
+      compareText(left.submissionId, right.submissionId),
+  );
 }
 
 export function filterTeacherReviewQueue(
   items: TeacherReviewQueueItem[],
   status: string,
 ): TeacherReviewQueueItem[] {
-  if (status === "ALL") return items;
-  if (status === "PENDING")
-    return items.filter((item) => ["READY", "IN_REVIEW"].includes(item.status));
-  return items.filter((item) => item.status === status);
+  return items.filter((item) => matchesReviewStatus(item.status, status));
+}
+
+function isReviewableStatus(status: TeacherReviewStatus) {
+  return status === "READY" || status === "IN_REVIEW";
+}
+
+function matchesSelectedQuestionId(
+  item: { id?: string; questionId?: string; stableQuestionId: string },
+  selectedQuestionId?: string,
+) {
+  return (
+    item.id === selectedQuestionId ||
+    item.questionId === selectedQuestionId ||
+    item.stableQuestionId === selectedQuestionId
+  );
 }
 
 function matchesReviewStatus(status: TeacherReviewStatus, filter: string) {
   if (filter === "ALL") return true;
-  if (filter === "PENDING") return status === "READY" || status === "IN_REVIEW";
+  if (filter === "PENDING") return isReviewableStatus(status);
   return status === filter;
 }
 
@@ -303,11 +305,7 @@ export function findQueueNeighbours(
 }
 
 export function firstReviewableQueueItem(items: TeacherReviewQueueItem[]) {
-  return (
-    items.find(
-      (item) => item.status === "READY" || item.status === "IN_REVIEW",
-    ) ?? null
-  );
+  return items.find((item) => isReviewableStatus(item.status)) ?? null;
 }
 
 export function deriveReviewTotal(

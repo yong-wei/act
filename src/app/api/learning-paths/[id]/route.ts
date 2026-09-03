@@ -5,7 +5,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   readControlCorrectionPathRound,
   toControlCorrectionPathRoundView,
-} from '@/lib/control-correction-path-rounds';
+} from '@/features/personalization/path-planning/control-correction-path-rounds';
 import { assertCanReadPath, getLearningPathRequester, readPathForAccess } from '../route-helpers';
 
 export const dynamic = 'force-dynamic';

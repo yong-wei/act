@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, Loader2, X, Sparkles } from 'lucide-react';
 import { KonlingChatMessageList, konlingPromptInputClassName } from '@/components/ai/konling-chat-renderer';
+import type { KonlingChatFailureCategory } from '@/lib/konling-chat-failure';
 import type { InteractiveAIContextValue } from './types';
 
 interface InteractiveAIPanelProps {
@@ -10,6 +11,51 @@ interface InteractiveAIPanelProps {
   title?: string;
   onClose?: () => void;
   position?: 'right' | 'bottom' | 'floating';
+}
+
+// 恢复动作与失败类别匹配：只改变下一次请求条件，不重放已失败请求原文。
+function InteractiveAIErrorAction({
+  category,
+  ai,
+  inputRef,
+}: {
+  category: KonlingChatFailureCategory;
+  ai: InteractiveAIContextValue;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+  if (category === 'auth-required') {
+    return (
+      <button type="button" onClick={() => window.location.assign('/login')} className="mt-1 underline text-xs text-red-300">
+        重新登录
+      </button>
+    );
+  }
+  if (category === 'conversation-missing') {
+    return (
+      <button
+        type="button"
+        onClick={() => { void ai.retryRecovery(); }}
+        className="mt-1 underline text-xs text-red-300"
+      >
+        恢复会话
+      </button>
+    );
+  }
+  if (category === 'state-conflict') {
+    return (
+      <button type="button" onClick={focusInput} className="mt-1 underline text-xs text-red-300">
+        重新提问
+      </button>
+    );
+  }
+  return (
+    <button type="button" onClick={focusInput} className="mt-1 underline text-xs text-red-300">
+      稍后重试
+    </button>
+  );
 }
 
 /**
@@ -141,10 +187,15 @@ export function InteractiveAIPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 错误提示 */}
+      {/* 错误提示：仅渲染共享失败契约的安全文案与匹配恢复动作 */}
       {ai.error && (
-        <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20">
+        <div
+          className="px-4 py-2 bg-red-500/10 border-t border-red-500/20"
+          role="alert"
+          data-interactive-ai-error={ai.error.category}
+        >
           <p className="text-xs text-red-400">{ai.error.message}</p>
+          <InteractiveAIErrorAction category={ai.error.category} ai={ai} inputRef={inputRef} />
         </div>
       )}
 

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import {
   conversationMessages,
+  konlingLibraryRetentionWhere,
   konlingStructuredActionToolRunIds,
   mergeLegacyKonlingStructuredActionToolRuns,
   normalizeKonlingManualTitle,
@@ -13,6 +14,8 @@ import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+
+class KonlingConversationDeleteConflictError extends Error {}
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -81,8 +84,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       where: {
         id,
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
       },
     });
     if (!conversation) {
@@ -137,8 +139,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       where: {
         id,
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
       },
       data,
     });
@@ -173,9 +174,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Deletion confirmation required' }, { status: 400 });
     }
     const { id } = await context.params;
+    // 事务内使用同一资格时点，避免到期边界在预读与删除之间被重新计算
+    const retentionNow = new Date();
     const deleted = await prisma.$transaction(async (tx) => {
       const conversation = await tx.konlingSession.findFirst({
-        where: { id, userId: session.user.id },
+        where: { id, userId: session.user.id, ...konlingLibraryRetentionWhere(retentionNow) },
         select: { id: true },
       });
       if (!conversation) return { count: 0 };
@@ -187,9 +190,14 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
           actorUserId: session.user.id,
         },
       });
-      return tx.konlingSession.deleteMany({
-        where: { id, userId: session.user.id },
+      const removed = await tx.konlingSession.deleteMany({
+        where: { id, userId: session.user.id, ...konlingLibraryRetentionWhere(retentionNow) },
       });
+      if (removed.count !== 1) {
+        // 并发删除竞争：抛错回滚整个事务，避免父行仍在而关联数据已丢失
+        throw new KonlingConversationDeleteConflictError();
+      }
+      return removed;
     });
     if (deleted.count !== 1) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
@@ -197,6 +205,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true, deletedConversationId: id });
   } catch (error) {
     rethrowIfNextDynamicError(error);
+    if (error instanceof KonlingConversationDeleteConflictError) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
+    }
     console.error('Error in DELETE /api/ai/sessions/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

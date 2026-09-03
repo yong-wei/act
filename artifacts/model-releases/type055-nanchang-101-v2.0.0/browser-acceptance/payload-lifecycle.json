@@ -1,0 +1,15 @@
+{
+  "templates": [
+    "MUNITION_HHQ9_FAMILY_TEMPLATE",
+    "MUNITION_LAND_ATTACK_FAMILY_TEMPLATE",
+    "MUNITION_UNSPECIFIED_LOADED_TEMPLATE",
+    "MUNITION_YJ18_FAMILY_TEMPLATE",
+    "MUNITION_YJ20_OPTIONAL_TEMPLATE",
+    "MUNITION_YU8_FAMILY_TEMPLATE"
+  ],
+  "first": "MUNITION_HHQ9_FAMILY_TEMPLATE",
+  "spawnResult": "spawned:43dae546-d536-4a59-a86b-82944e959b8e",
+  "spawnedCount": 1,
+  "destroyed": 1,
+  "remainingCount": 0
+}

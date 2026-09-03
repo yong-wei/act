@@ -15,7 +15,7 @@ import {
   type AuthoritativeKnowledgeSnapshot,
   type AuthorityStorePaths,
 } from '../authoritative-knowledge';
-import type { RuntimeLessonEntryBundle } from '../course-runtime';
+import type { RuntimeLessonEntryBundle } from '../course-bundle';
 import {
   assertNoLayerIdentityMixing,
   buildCoursePackageLayeredScope,
@@ -1348,18 +1348,8 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
       path.join(repoRoot, 'src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx'),
       'utf8',
     );
-    const studentRoute = readFileSync(
-      path.join(
-        repoRoot,
-        'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/student.tsx',
-      ),
-      'utf8',
-    );
-    const teacherRoute = readFileSync(
-      path.join(
-        repoRoot,
-        'src/features/interactive/course-app-routes/unit-1-1-see-the-full-picture/teacher.tsx',
-      ),
+    const sharedRoute = readFileSync(
+      path.join(repoRoot, 'src/features/interactive/shared/batch-a-classroom-pages.tsx'),
       'utf8',
     );
 
@@ -1372,16 +1362,14 @@ describe('Course page layered drawer entry (#1273 P1)', () => {
       expect(source).toContain('resourceRegistryIds: layeredResourceRegistryIds');
       expect(source).toContain('buildCoursePackageLayeredScope');
     }
-    // Shipped App Router entries resolve Teaching Projection server-side.
-    for (const route of [studentRoute, teacherRoute]) {
-      expect(route).toContain('resolveCoursePageLayeredGraphContext');
-      expect(route).toContain('layeredGraphPayload={layeredGraphContext.payload}');
-      expect(route).toContain('layeredResourceLaunchTargets=');
-      expect(route).toContain('layeredResourceRegistryIds=');
-    }
-    expect(studentRoute).toContain('UNIT_1_1StudentPage');
-    expect(studentRoute).toContain("loadSessionBoundLessonRuntime");
-    expect(teacherRoute).toContain('UNIT_1_1TeacherPage');
+    expect(sharedRoute).toContain('resolveCoursePageLayeredGraphContext');
+    expect(sharedRoute).toContain('layeredGraphPayload={layered?.payload}');
+    expect(sharedRoute).toContain('layeredResourceLaunchTargets=');
+    expect(sharedRoute).toContain('layeredResourceRegistryIds=');
+    expect(sharedRoute).toContain('UNIT_1_1StudentPage');
+    expect(sharedRoute).toContain('loadSessionBoundLessonRuntime');
+    expect(sharedRoute).toContain('UNIT_1_1TeacherPage');
+    expect(sharedRoute).toContain('layeredGraph: true');
   });
 
   it('server page context resolves non-empty active Teaching Projection payload with launch targets', () => {

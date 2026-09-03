@@ -160,23 +160,15 @@ async function runTests() {
     failed++;
   }
 
-  // Test 4: Konling Context API Response Time
-  console.log('Test 4: Konling Context API Response Time');
+  // Test 4: Konling internal context endpoint stays retired
+  console.log('Test 4: Konling internal context endpoint stays retired');
   try {
-    const start = Date.now();
     const response = await fetch('http://localhost:3001/api/ai/konling-context?userId=' + TEST_USER_ID);
-    const duration = Date.now() - start;
-
-    if (response.ok && duration < 200) {
-      console.log(`  ✅ API responded in ${duration}ms (< 200ms target)\n`);
+    if (response.status === 404) {
+      console.log('  ✅ 内部控灵运行时上下文端点保持退役（404）\n');
       passed++;
-    } else if (response.ok) {
-      console.log(`  ⚠️ API responded in ${duration}ms (slower than 200ms target)\n`);
-      passed++; // Still pass but warn
-    } else if (response.status === 401) {
-      console.log('  ⚠️ API 需要鉴权，匿名集成测试跳过\n');
     } else {
-      console.log(`  ❌ API returned ${response.status}\n`);
+      console.log(`  ❌ 已退役端点返回 ${response.status}，内部上下文不应可达\n`);
       failed++;
     }
   } catch (error) {

@@ -4,7 +4,7 @@
  * 使用 Siliconflow API 服务检查学生的微分方程建模
  */
 
-import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai-client';
+import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 import { generateText } from 'ai';
 
 export const runtime = 'nodejs';

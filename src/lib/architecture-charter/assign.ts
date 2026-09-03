@@ -14,6 +14,14 @@ const RULES: ReadonlyArray<{ owner: OwnerId; pattern: RegExp }> = [
   { owner: 'identity', pattern: /(?:^|\/)(?:auth|identity|nextauth)(?:\/|$)|NEXTAUTH|getServerAuthSession/u },
 ];
 
+export function matchingOwners(haystack: string): OwnerId[] {
+  const owners: OwnerId[] = [];
+  for (const rule of RULES) {
+    if (rule.pattern.test(haystack) && !owners.includes(rule.owner)) owners.push(rule.owner);
+  }
+  return owners.length > 0 ? owners : ['platform'];
+}
+
 export function assignOwner(observation: Pick<CensusObservation, 'id' | 'kind' | 'identity' | 'evidence'>): OwnerId {
   const haystack = `${observation.kind} ${observation.identity} ${observation.evidence.join(' ')}`;
   for (const rule of RULES) {

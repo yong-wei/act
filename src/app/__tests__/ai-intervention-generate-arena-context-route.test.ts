@@ -77,28 +77,59 @@ describe('POST /api/ai/intervention/generate Arena context', () => {
     });
 
     expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
     expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
   });
 
-  it('re-resolves registered Arena context on the server before generating guidance', async () => {
+  it('rejects client-authored Arena studentState even when the method is registered', async () => {
     const response = await postJson({
       studentState,
       arenaTaskId: 'task-ship-roll-mpc-hidden-scenarios',
       method: 'mpc',
     });
 
-    expect(response.status).toBe(200);
-    expect(mocks.createGovernedKonlingIntervention).toHaveBeenCalledWith(
-      { marker: 'prisma' },
-      expect.objectContaining({
-        arenaContext: expect.objectContaining({
-          taskId: 'task-ship-roll-mpc-hidden-scenarios',
-          method: 'mpc',
-          metrics: expect.arrayContaining([
-            expect.objectContaining({ id: 'hiddenScenarioWorst', unacceptableValue: 2.4 }),
-          ]),
-        }),
-      }),
-    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
+    expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
+  });
+
+  it('rejects retired companion identities even when arenaTaskId and method are omitted', async () => {
+    const response = await postJson({
+      studentState,
+      courseId: 'simulation-companion',
+      pageId: 'arena-companion:task-third-order-block-diagram',
+      resourceId: 'arena-companion:task-third-order-block-diagram',
+      pathNodeId: 'ai-companion:arena-companion:task-third-order-block-diagram',
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
+    expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
+  });
+
+  it('rejects client-authored generate writes even when the caller uses a non-Arena scope', async () => {
+    const response = await postJson({
+      studentState,
+      courseId: 'unit-4-5',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      error: '竞技场受治理陪伴只能由正式评测提交创建',
+    });
+    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
+    expect(mocks.createGovernedKonlingIntervention).not.toHaveBeenCalled();
   });
 });

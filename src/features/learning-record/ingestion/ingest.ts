@@ -17,9 +17,11 @@ import type { CourseAdapterMapInput } from '@/features/personalization/plugins/l
 import {
   INGESTION_STATUS,
   ingestionDedupeKey,
+  readExistingInputDigest,
   type IngestLearningFactInput,
   type IngestLearningFactResult,
   type IngestionAnchors,
+  type RebaseReceipt,
   type TrustedTimeSet,
 } from './types';
 
@@ -74,7 +76,7 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
       ?? readPayloadNumber(payload, envelopePayload, 'normalizedResult'),
     confidence: readPayloadNumber(payload, envelopePayload, 'confidence'),
     trustedOccurredAt: anchorsTrustedOccurredAt(input),
-    receivedAt: (input.now ?? new Date()).toISOString(),
+    receivedAt: receivedAtIso(input),
     subjectRef: opaqueSubjectRef(input.actorUserId),
     idempotencyKey: ingestionDedupeKey({
       sourceEventId: input.event.eventId,
@@ -87,12 +89,18 @@ function adapterHint(input: IngestLearningFactInput): CourseAdapterMapInput {
   };
 }
 
-async function resolveCourseAdapter(input: IngestLearningFactInput): Promise<{
+function rebaseAllowsRevision(receipt: RebaseReceipt | undefined, from: string, to: string): boolean {
+  return Boolean(receipt && receipt.sourceRevision === from && receipt.targetRevision === to);
+}
+
+async function resolveCourseAdapter(
+  input: IngestLearningFactInput,
+  hint = adapterHint(input),
+): Promise<{
   receipt: NonNullable<IngestLearningFactResult['adapter']>;
   persistEvent: LearningEvent;
   rejected?: { code: string };
 }> {
-  const hint = adapterHint(input);
   if (!hint.goalId && !hint.pluginId) {
     return { receipt: { status: 'not-applicable' }, persistEvent: input.event };
   }
@@ -168,7 +176,7 @@ export function computeDigests(input: IngestLearningFactInput): { inputDigest: s
     }),
     trustedSetDigest: sha256Canonical({
       trustedOccurredAt: anchorsTrustedOccurredAt(input),
-      receivedAt: (input.now ?? new Date()).toISOString(),
+      receivedAt: receivedAtIso(input),
       subjectRef: opaqueSubjectRef(input.actorUserId),
       sessionRef: input.event.sessionId ?? null,
       sourceEventId: input.event.eventId,
@@ -195,8 +203,12 @@ export function resolveAnchors(input: IngestLearningFactInput): IngestionAnchors
   };
 }
 
+export function receivedAtIso(input: Pick<IngestLearningFactInput, 'envelope' | 'receivedAt' | 'now'>): string {
+  return input.envelope?.receivedAt ?? input.receivedAt ?? (input.now ?? new Date()).toISOString();
+}
+
 function resolveTimes(input: IngestLearningFactInput, materializedAt?: string): TrustedTimeSet {
-  const receivedAt = input.envelope?.receivedAt ?? (input.now ?? new Date()).toISOString();
+  const receivedAt = receivedAtIso(input);
   return {
     trustedOccurredAt: anchorsTrustedOccurredAt(input),
     receivedAt,
@@ -214,15 +226,15 @@ async function ingestInCurrentHandle(
   const now = input.now ?? new Date();
   const anchors = resolveAnchors(input);
   const times = resolveTimes(input);
-  const adapterHintFields = adapterHint(input);
-  if (adapterHintFields.goalId || adapterHintFields.pluginId) {
+  const hint = adapterHint(input);
+  if (hint.goalId || hint.pluginId) {
     const payloadHits = inspectIngestionBoundary(input.event.payload);
     if (payloadHits.length > 0) {
       return failed(input, 'forbidden-field', { anchors, times });
     }
   }
 
-  const adapterResolution = await resolveCourseAdapter(input);
+  const adapterResolution = await resolveCourseAdapter(input, hint);
   if (adapterResolution.rejected) {
     return failed(input, adapterResolution.rejected.code, {
       anchors,
@@ -237,18 +249,11 @@ async function ingestInCurrentHandle(
     if (boundaryHits.length > 0) {
       return failed(input, 'forbidden-field', { anchors, times });
     }
+    const envelopeRevision = input.envelope.anchors.captureRevision;
     if (
-      input.envelope.anchors.captureRevision !== input.captureRevision
-      && !(
-        input.rebaseReceipt
-        && input.rebaseReceipt.sourceRevision === input.envelope.anchors.captureRevision
-        && input.rebaseReceipt.targetRevision === input.captureRevision
-      )
-      && !(
-        input.captureRebaseReceipt
-        && input.captureRebaseReceipt.sourceRevision === input.envelope.anchors.captureRevision
-        && input.captureRebaseReceipt.targetRevision === input.captureRevision
-      )
+      envelopeRevision !== input.captureRevision
+      && !rebaseAllowsRevision(input.rebaseReceipt, envelopeRevision, input.captureRevision)
+      && !rebaseAllowsRevision(input.captureRebaseReceipt, envelopeRevision, input.captureRevision)
     ) {
       return failed(input, 'cross-revision', { anchors, times });
     }
@@ -285,11 +290,9 @@ async function ingestInCurrentHandle(
     const existing = await input.db.evidenceOutbox.findFirst({
       where: { dedupeKey },
     });
-    const existingDigest = existing?.payload && typeof existing.payload === 'object'
-      ? (existing.payload as { inputDigest?: unknown }).inputDigest
-      : undefined;
+    const existingDigest = readExistingInputDigest(existing?.payload);
     const settled = existing?.status === 'projected' || existing?.status === 'superseded';
-    if (settled && typeof existingDigest === 'string' && existingDigest !== inputDigest) {
+    if (settled && existingDigest && existingDigest !== inputDigest) {
       return failed(input, 'dedupe-collision', { anchors, times });
     }
     if (settled && existingDigest === inputDigest) {

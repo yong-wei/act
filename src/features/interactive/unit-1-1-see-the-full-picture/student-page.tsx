@@ -16,7 +16,7 @@ import {
   useManifestSubmissionController,
 } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import { resolveCoursePageLayeredDrawerEntries } from '@/lib/layered-graph/course-page-drawer';
 import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';

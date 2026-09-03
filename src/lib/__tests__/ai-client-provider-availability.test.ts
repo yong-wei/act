@@ -58,7 +58,7 @@ describe('AI client provider availability', () => {
       health: 'healthy',
       capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
     });
-    const { isConfiguredAIServiceAvailable } = await import('@/lib/ai-client');
+    const { isConfiguredAIServiceAvailable } = await import('@/lib/ai/provider-runtime');
 
     await expect(isConfiguredAIServiceAvailable()).resolves.toBe(true);
   });
@@ -67,7 +67,7 @@ describe('AI client provider availability', () => {
     mocks.resolveConfiguredAIProviderConfig.mockRejectedValue(
       new MockAIProviderCapabilityUnavailableError('No enabled provider can satisfy the requested capabilities.'),
     );
-    const { isConfiguredAIServiceAvailable } = await import('@/lib/ai-client');
+    const { isConfiguredAIServiceAvailable } = await import('@/lib/ai/provider-runtime');
 
     await expect(isConfiguredAIServiceAvailable({ tools: true })).resolves.toBe(false);
   });

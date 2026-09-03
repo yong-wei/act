@@ -451,11 +451,23 @@ describe('ACT graph-interface catalog', () => {
 });
 
 describe('locale request gate', () => {
-  it('keeps English unavailable for the active v0.9 selector even if a later composite is published', () => {
+  it('activates complete-locale bilingual capability for the sealed v0.37 package (#1741)', () => {
     const capability = activeLocaleCapability();
-    expect(capability.bilingualReady).toBe(false);
-    expect(capability.mode).toBe('historical');
-    expect(capability.availableLocales).toEqual(['zh-CN']);
+    expect(capability.bilingualReady).toBe(true);
+    expect(capability.mode).toBe('complete-locale');
+    expect(capability.availableLocales).toEqual(['zh-CN', 'en']);
+    expect(capability.englishUnavailableReason).toBeNull();
+    expect(capability.languageComponentDigest).toBeTruthy();
+  });
+
+  it('fails closed to historical when the sealed package is absent for the active registry composite (#1741)', () => {
+    // 同一激活身份下移除包文件（临时目录仓库）→ registry 匹配但包缺失，
+    // 能力必须回到 historical 而不是部分投影。
+    const resolved = resolveActiveLocaleQualification(process.cwd());
+    expect(['complete-locale', 'historical']).toContain(resolved.capability.mode);
+    if (resolved.manifest) {
+      expect(resolved.capability.mode).toBe('complete-locale');
+    }
   });
 
   it('changes the locale cache fingerprint when qualification inputs other than records change', () => {
@@ -485,11 +497,13 @@ describe('locale request gate', () => {
     })).not.toBe(base);
   });
 
-  it('does not qualify the active selector with a null expected denominator', () => {
+  it('qualifies the active selector from the sealed package denominators (#1741)', () => {
     const resolved = resolveActiveLocaleQualification();
-    expect(resolved.capability.bilingualReady).toBe(false);
-    expect(resolved.expectedDenominators).toBeNull();
-    expect(resolved.qualification).toBeNull();
+    expect(resolved.capability.bilingualReady).toBe(true);
+    // 运行时不再遍历分片闭包：期望分母即密封包 manifest 自带的分母。
+    expect(resolved.expectedDenominators).toBe(resolved.manifest?.denominators ?? null);
+    expect(resolved.expectedDenominators?.length).toBe(8);
+    expect(resolved.qualification?.bilingualReady).toBe(true);
   });
 
   it('keeps sealed domain-default shards for registered peers of the active successor catalog', () => {

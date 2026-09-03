@@ -374,17 +374,24 @@ Konling SHALL expose adaptive path-advisor entrypoints for every registered `pat
 - **AND** it SHALL NOT mint a mode context token for the unknown goal.
 
 ### Requirement: Konling streaming citation diagnostics are environment-gated
-Konling SHALL separate user-visible streaming answer text from citation-guard debugging diagnostics.
+
+Konling SHALL separate user-visible streaming answer text from citation-guard debugging diagnostics. Detailed diagnostics MAY be visible only when the environment or an explicitly authorized support override enables injection, and any injected diagnostic block SHALL identify itself as development or support diagnostics and remain distinct from formal citation presentation.
 
 #### Scenario: Development diagnostic injection is enabled
 - **WHEN** Konling streams an answer in development and citation-debug injection is enabled
 - **THEN** the runtime MAY inject complete citation guard diagnostics into the stream for debugging
-- **AND** the visible notice SHALL explicitly identify itself as development-mode diagnostics.
+- **AND** the visible notice SHALL explicitly identify itself as development-mode diagnostics
+- **AND** the notice SHALL not present internal reason codes as verified teaching citations.
 
 #### Scenario: Production diagnostic injection is disabled
 - **WHEN** Konling streams an answer in production and citation-debug injection is not explicitly enabled
 - **THEN** the runtime SHALL NOT inject raw citation guard diagnostics into user-visible answer text
 - **AND** raw tokens such as `assistant-citations-unverified-stream`, `missing-learner-state`, and `missing-path-execution` SHALL remain outside the visible assistant message.
+
+#### Scenario: Authorized support diagnostics are injected
+- **WHEN** a separately authorized support-debug override permits detailed diagnostics outside development
+- **THEN** the visible block SHALL identify itself as support or development diagnostics
+- **AND** it SHALL remain visually and semantically distinct from formal verified citation presentation.
 
 #### Scenario: Citation diagnostics are persisted
 - **WHEN** a Konling answer is generated
@@ -638,23 +645,48 @@ personalizing explanations, scope, style, and evidence diagnostics.
 - **AND** it SHALL treat portrait incompleteness as a personalization limitation rather than a retrieval failure.
 
 ### Requirement: Konling conversations belong to the authenticated user
-Readable Konling conversations SHALL be owned by one authenticated user and SHALL remain available across supported pages until the user deletes them or existing global retention governance removes them.
+Readable Konling conversations, including conversations created or continued from the standalone `/ai/copilot` page, SHALL be owned by one authenticated user and SHALL remain available across supported pages until the user deletes them or explicit global retention governance removes or expires them. A library conversation SHALL NOT become unreadable solely because a fixed product-level seven-day interval elapsed. Every list, read, update, delete and message operation SHALL enforce the same owner and governed-retention eligibility. Every message write SHALL verify conversation ownership and current authorized context before persistence.
 
 #### Scenario: Owner lists conversations
 - **WHEN** an authenticated user opens the Konling conversation library
 - **THEN** the system SHALL return only that user's readable conversations ordered by pinned state and recent activity.
 
+#### Scenario: Owner lists an older conversation
+- **WHEN** an authenticated user opens the Konling conversation library and an owned visible conversation is older than seven days without a governed expiry
+- **THEN** the system SHALL return that conversation according to pinned state and recent activity
+- **AND** the user SHALL be able to open and continue it.
+
+#### Scenario: Global governance has not scheduled expiry
+- **WHEN** a new user conversation enters the readable library
+- **THEN** it SHALL have no product-level fixed expiry
+- **AND** the absence of a scheduled governance expiry SHALL be represented separately from an expired record.
+
+#### Scenario: Explicit governed expiry has elapsed
+- **WHEN** global retention governance has assigned an expiry and that time has elapsed
+- **THEN** the conversation SHALL be excluded or removed according to that governance policy
+- **AND** the client SHALL NOT treat the result as an empty new conversation with successful recovery.
+
 #### Scenario: Another user requests a conversation
 - **WHEN** a user requests a conversation owned by another user without an authorized governance role
-- **THEN** the system SHALL deny access to its title, messages, context records, and tool runs.
+- **THEN** the system SHALL deny access to its title, messages, context records and tool runs.
 
 #### Scenario: Conversation produces a structured task action
 - **WHEN** a conversation proposes or applies a smart-preparation task change
 - **THEN** the proposal, tool run, and applied artifact SHALL retain exact task and task-revision lineage
 - **AND** user-level conversation ownership SHALL NOT replace domain artifact ownership or revision binding.
 
+#### Scenario: Owner continues a conversation from standalone Copilot
+- **WHEN** an authenticated user selects an owned conversation on `/ai/copilot` and sends a new message
+- **THEN** the runtime SHALL persist the exchange in that conversation
+- **AND** the updated conversation SHALL remain available through the shared conversation library.
+
+#### Scenario: Another user requests a standalone Copilot conversation
+- **WHEN** a user supplies a conversation identity owned by another user
+- **THEN** the runtime SHALL deny access to its title, messages, context records and tool runs
+- **AND** it SHALL NOT persist the attempted message.
+
 ### Requirement: Conversation library supports deliberate organization
-The library SHALL support new conversation, title search, manual rename, pin or unpin, and confirmed deletion.
+The library SHALL support new conversation, title search, manual rename, pin or unpin, and confirmed deletion for every owner-readable conversation that has not reached an explicit governed expiry.
 
 #### Scenario: First exchange completes
 - **WHEN** the first complete user question and assistant answer are persisted and the title has not been manually edited
@@ -670,13 +702,18 @@ The library SHALL support new conversation, title search, manual rename, pin or 
 - **THEN** the library SHALL filter by conversation title
 - **AND** full message-content search SHALL NOT be required.
 
+#### Scenario: Owner organizes an older retained conversation
+- **WHEN** an owned conversation is older than seven days and has no governed expiry
+- **THEN** the user SHALL still be able to rename, pin, unpin and delete it
+- **AND** each operation SHALL preserve the existing conversation identity until deletion.
+
 #### Scenario: Current conversation is deleted
 - **WHEN** the user confirms deletion of the active conversation
 - **THEN** the conversation and its owned message and tool-run records SHALL be removed according to retention rules
 - **AND** the UI SHALL open a new blank conversation while independently persisted platform artifacts remain.
 
 ### Requirement: Cross-page continuation appends context without rewriting history
-The runtime SHALL preserve the initiating page context and SHALL append one server-authored current-page context record immediately before a new user message when the conversation continues from a materially different page context.
+The runtime SHALL preserve the initiating page context and SHALL append one server-authored current-page context record immediately before a new user message when a shared conversation continues from `/ai/copilot` or another materially different authorized page context. A standalone Copilot task descriptor SHALL be revalidated for the current request and MUST NOT rewrite prior context or expand conversation authority.
 
 #### Scenario: Conversation continues on the same page context
 - **WHEN** the current authorized page-context identity matches the latest recorded context
@@ -692,8 +729,17 @@ The runtime SHALL preserve the initiating page context and SHALL append one serv
 - **WHEN** client hints contain data outside the user's current authorized page scope
 - **THEN** the server SHALL omit or reject those fields before persisting the context record.
 
+#### Scenario: Conversation continues on standalone Copilot with a new task context
+- **WHEN** an owned conversation continues on `/ai/copilot` with a currently supported portfolio-reflection or evidence task descriptor
+- **THEN** the runtime SHALL validate and append the current authorized context before the user message
+- **AND** prior system context, messages and task boundaries SHALL remain unchanged.
+
+#### Scenario: Client supplies unauthorized standalone task context
+- **WHEN** client hints or historical messages claim evidence, writeback or learner authority outside the current user's authorized task contract
+- **THEN** the server SHALL omit or reject those claims before persisting context or invoking the model.
+
 ### Requirement: Existing usable conversations migrate into the library
-The system SHALL migrate existing readable Konling sessions idempotently while preserving chronological messages, readable tool records, and original timestamps.
+The system SHALL migrate and retain existing readable Konling sessions idempotently while preserving chronological messages, readable tool records and original timestamps. Existing rows already marked `libraryVisible=true` but hidden only by the obsolete fixed seven-day expiry SHALL be restored without creating duplicate conversations. Rows excluded as empty, failed initialization or non-library technical sessions SHALL remain excluded.
 
 #### Scenario: Existing session has usable history
 - **WHEN** a session contains at least one readable exchange or meaningful tool record and is not expired
@@ -707,6 +753,20 @@ The system SHALL migrate existing readable Konling sessions idempotently while p
 - **WHEN** the migration is rerun
 - **THEN** it SHALL reuse prior migration identity
 - **AND** it SHALL NOT duplicate conversations, messages, or tool runs.
+
+#### Scenario: Previously visible conversation crossed the old seven-day boundary
+- **WHEN** a user-owned row is `libraryVisible=true`, still exists in storage and was hidden only because its old fixed expiry elapsed
+- **THEN** the migration SHALL restore it to the readable conversation library
+- **AND** it SHALL preserve messages, title, pin state, creation time and activity time.
+
+#### Scenario: Legacy session was excluded from the library
+- **WHEN** a legacy row is `libraryVisible=false` because it was empty, expired before the original migration or contained only failed initialization
+- **THEN** the retention migration SHALL NOT promote it into the conversation library.
+
+#### Scenario: Retention migration runs again
+- **WHEN** the migration is rerun
+- **THEN** it SHALL leave already restored identities and message history unchanged
+- **AND** it SHALL NOT duplicate conversations, messages or tool runs.
 
 ### Requirement: Konling supports side and maximized presentation modes
 Konling SHALL open in the existing side-panel mode by default and SHALL provide controls to maximize into a full-screen workspace and restore to the side panel.
@@ -1034,4 +1094,263 @@ When explaining a persisted batch, Konling SHALL use the server-owned batch proj
 #### Scenario: Explanation uses stored candidates
 - **WHEN** Konling explains or links to a candidate from a successful batch
 - **THEN** it references the persisted candidate and does not independently re-rank, regenerate, or rewrite the candidate set
+
+### Requirement: Arena intervention persistence requires official submission evidence
+The Konling runtime SHALL create a governed Arena control-workbench intervention only when the request carries a server-verified official submission reference owned by the authenticated student and scoped to the current task. Client-authored `StudentState`, parameters, metrics, outcome, task id or method MUST NOT be sufficient to create intervention evidence, Memory, feedback identity or cooldown state.
+
+#### Scenario: Runtime receives only client-authored state
+- **WHEN** the Arena intervention path receives attempt history or current state without a verified official submission reference
+- **THEN** the runtime SHALL fail before creating an intervention, evidence record, Memory or feedback identity.
+
+#### Scenario: Official submission scope does not match
+- **WHEN** the referenced official submission belongs to another student or task, or its method cannot be resolved from the registered task
+- **THEN** the runtime SHALL reject the request
+- **AND** it SHALL not fall back to client-supplied state.
+
+#### Scenario: Legacy row lacks official evidence
+- **WHEN** an existing intervention was created without a verifiable official submission reference
+- **THEN** the runtime SHALL exclude it from official baseline, follow-up and cooldown resolution
+- **AND** it SHALL preserve the row for authorized historical audit unless separate retention governance removes it.
+
+### Requirement: Konling exposes server-owned assistant-binding lookup
+The Konling conversation runtime SHALL expose a bounded owner-scoped way to identify conversations whose persisted teaching-assistant binding exactly matches a currently authorized resource-coach identity. The lookup SHALL NOT expose raw messages, private mode context or another user's conversation metadata.
+
+#### Scenario: Exact persisted binding matches
+- **WHEN** an authenticated user requests a conversation for an authorized resource-coach identity that exactly matches an owned persisted binding
+- **THEN** the runtime SHALL return or select that conversation as the matching session
+- **AND** the client SHALL be able to recover its visible messages without creating a replacement.
+
+#### Scenario: Client-only binding is supplied
+- **WHEN** the requested identity exists only in `sessionStorage`, URL state or other client hints and cannot be revalidated on the server
+- **THEN** the runtime SHALL NOT treat it as a persisted match or grant resource access.
+
+#### Scenario: Binding belongs to another user or version
+- **WHEN** a candidate conversation belongs to another user or differs in revision, unit, content hash or normalized anchor
+- **THEN** the runtime SHALL exclude it from the match.
+
+### Requirement: Resource-coach creation does not leave visible unbound sessions
+When no matching resource-coach conversation exists, the runtime SHALL establish the new owned conversation and validated binding no earlier than the user's first intentional question and before model execution. Creation retries SHALL be idempotent for the same user and exact resource identity, and a failed first-turn setup MUST NOT leave a `libraryVisible=true` conversation without a recoverable binding.
+
+#### Scenario: User submits the first resource question
+- **WHEN** the authorized user submits the first question from an unpersisted blank resource-coach state
+- **THEN** the runtime SHALL create or reuse one owned conversation and persist the verified binding before invoking the model.
+
+#### Scenario: Two first questions race
+- **WHEN** two requests concurrently attempt to start coaching for the same user and exact resource identity
+- **THEN** the runtime SHALL select one recoverable conversation identity or otherwise prevent duplicate visible empty sessions.
+
+#### Scenario: Binding setup fails
+- **WHEN** authorization, version validation or persistence fails before the first answer
+- **THEN** the runtime SHALL return an explicit failure
+- **AND** it SHALL not leave a visible unbound conversation in the user's library.
+
+### Requirement: Public Konling conversation responses exclude internal context records
+Every student-facing Konling conversation API SHALL project messages on the server before serialization. The public `messages` collection MUST contain only student-visible `user` and `assistant` messages with approved public metadata and parts. Persisted `system` context records, assistant-binding records, their content and their metadata MUST NOT be returned to the browser. A bounded public `assistantBinding` MAY be derived separately from the complete server-owned history.
+
+#### Scenario: Owner loads a conversation containing page context
+- **WHEN** an authenticated owner loads a conversation whose persisted history contains a system page-context record with class, resource, path, release, projection, dataset or Canonical identifiers
+- **THEN** the response SHALL preserve the ordered student-visible user and assistant messages
+- **AND** the raw response SHALL contain no system message or value copied from that internal context record.
+
+#### Scenario: Conversation contains an assistant-binding record
+- **WHEN** the persisted history contains a server-authored assistant-binding system record
+- **THEN** the raw response SHALL omit that message and its metadata from `messages`
+- **AND** the response MAY include only the separately normalized public `assistantBinding` fields allowed by the existing binding contract.
+
+#### Scenario: Browser code inspects the unrendered response
+- **WHEN** student-owned page code, browser developer tools or another same-origin script reads the conversation JSON before React rendering
+- **THEN** no client-side visibility filter SHALL be required to protect internal system context
+- **AND** the response SHALL already satisfy the student-safe projection boundary.
+
+#### Scenario: Public structured assistant content is restored
+- **WHEN** a visible assistant message contains approved citations, revision state, correction state or public structured actions
+- **THEN** the public projection SHALL retain the allowed student-facing representation
+- **AND** private tool parts and non-public metadata SHALL remain excluded.
+
+### Requirement: Konling presents student-safe failures with state-appropriate recovery
+Every active student-facing Konling chat surface SHALL convert transport, HTTP, stream and network failures into a bounded student failure category before rendering. The visible error MUST use Simplified Chinese product copy and MUST NOT include raw response bodies, JSON, browser or SDK exception text, provider details, stack traces, route names or internal machine codes. Recovery actions SHALL match the state transition required by the failure rather than replaying every failed request.
+
+#### Scenario: Chat API returns a structured non-success response
+- **WHEN** the AI chat API returns a non-2xx JSON response containing a stable code and public message
+- **THEN** the shared client boundary SHALL classify the failure using only allowlisted status and code values
+- **AND** the UI SHALL render the bounded student copy rather than the serialized JSON body.
+
+#### Scenario: Browser fetch fails before receiving a response
+- **WHEN** DNS, connection or browser transport failure rejects the chat request without an HTTP response
+- **THEN** the UI SHALL show a Chinese network-unavailable state
+- **AND** it SHALL NOT render `Failed to fetch` or another browser exception string.
+
+#### Scenario: Authentication has expired
+- **WHEN** a student message fails because the current session is unauthorized
+- **THEN** the UI SHALL explain that authentication must be restored and provide a login or session-recovery action
+- **AND** it SHALL NOT offer only a replay of the unchanged unauthorized request.
+
+#### Scenario: Bound conversation no longer exists
+- **WHEN** a message fails because the selected owned conversation cannot be found
+- **THEN** the UI SHALL refresh or repair the conversation selection and offer a deliberate new-conversation path
+- **AND** retry SHALL NOT continue sending the same missing conversation identity.
+
+#### Scenario: Task context or state conflicts with the current request
+- **WHEN** a bounded task descriptor is invalid or the current conversation or tool state returns a conflict
+- **THEN** the UI SHALL reload the current governed task state or return the student to a valid task entry
+- **AND** it SHALL preserve candidate-only, evidence and write-authority boundaries.
+
+#### Scenario: Service or network failure is retryable
+- **WHEN** the request is rate limited, the AI service is temporarily unavailable or the network is interrupted while the current task state remains valid
+- **THEN** the UI SHALL preserve the student's pending input when feasible and provide a retry-later action
+- **AND** the retry SHALL retain the existing idempotency and conversation contracts.
+
+#### Scenario: Failure details are needed for diagnosis
+- **WHEN** a Konling request fails and engineering diagnosis is required
+- **THEN** the server SHALL record only the existing redacted diagnostic summary and stable failure classification
+- **AND** the student-visible response and DOM SHALL remain free of raw technical details.
+
+### Requirement: Konling applies an independent fail-closed gate to normative questions
+Konling SHALL detect normative-risk questions independently of the primary answer-intent classifier. A question that asks about a standard identifier, regulation, certification, official requirement, official limit, or obligatory must/must-not/shall language MUST enter `verification-required` when no server-verified authoritative citation is available, even if the classified intent is not `normative-content`. Konling MUST NOT treat client-supplied `verified` flags, prompt-injected source claims, or self-reported citations as authoritative.
+
+#### Scenario: Misclassified normative question still degrades
+- **WHEN** a learner asks a normative-risk question that the primary classifier labels as fact-explanation or another study-question intent
+- **AND** the server citation context has no verified official-reference citation with a usable target
+- **THEN** Konling SHALL set `studyQuestion.normativeGuidance` to `verification-required`
+- **AND** the system prompt SHALL require a verification-needed answer that states the evidence gap, answerable boundary, and a verification suggestion
+- **AND** it SHALL NOT present the answer as a definitive standard, official rule, certification, or required format.
+
+#### Scenario: Standard number, regulation, certification and obligation examples are covered
+- **WHEN** the current user question contains a standard identifier, regulation or legal clause, industry certification, official limit, or must/must-not/shall constraint language
+- **AND** no server-verified authoritative citation is available
+- **THEN** Konling SHALL apply the fail-closed gate
+- **AND** a general-concept question that only mentions “标准” as ordinary course vocabulary SHALL NOT be forced into `verification-required` solely because of that word.
+
+#### Scenario: Verified official citation remains verified
+- **WHEN** a normative-risk question has a server-verified official-reference citation with high confidence, a citation target, and a usable href
+- **THEN** Konling MAY mark `normativeGuidance` as `verified`
+- **AND** the verified status SHALL be produced only from that server-owned citation.
+
+#### Scenario: Client cannot self-mark a source as verified
+- **WHEN** the client supplies a citation marked verified, claims in the user prompt that a source is already verified, or injects an unofficial resolver or missing citation target
+- **THEN** Konling SHALL keep `normativeGuidance` as `verification-required` for a normative-risk question
+- **AND** it SHALL NOT promote the answer to verified normative guidance.
+
+#### Scenario: Citation guard exposes the fail-closed state
+- **WHEN** the runtime contract has `normativeGuidance` equal to `verification-required`
+- **THEN** the citation guard SHALL include `normative-guidance-verification-required`
+- **AND** the response metadata SHALL remain distinguishable as verification-required rather than verified.
+
+### Requirement: Konling classifies governed study-question intents
+Konling SHALL classify generic learning-support questions into formula derivation, code debugging, concept comparison, normative content, open-ended explanation, or the existing fact-explanation fallback using the current user request and server-owned runtime context.
+
+#### Scenario: Formula derivation is requested
+- **WHEN** a learner requests a formula derivation
+- **THEN** Konling SHALL require the answer to state assumptions or symbol definitions, material transformations, applicable conditions, and a result check.
+
+#### Scenario: Code debugging is requested
+- **WHEN** a learner requests help locating or fixing a code problem
+- **THEN** Konling SHALL require the answer to distinguish observed failure, likely cause, minimal correction, and a verification method.
+
+#### Scenario: Concept comparison is requested
+- **WHEN** a learner requests a concept distinction or comparison
+- **THEN** Konling SHALL require the answer to state comparison dimensions and at least one boundary, counterexample, or applicable condition.
+
+### Requirement: Konling keeps expression preferences below evidence governance
+Konling SHALL accept supported explanation-depth, example, formatting, and hint-strength preferences only as presentation constraints.
+
+#### Scenario: Learner requests a custom explanation format
+- **WHEN** a learner asks for a shorter explanation, a domain-specific example, a structured format, or hints instead of a full answer
+- **THEN** Konling SHALL adapt the answer presentation
+- **AND** it SHALL NOT relax the evidence, citation, or normative-content requirements of the resolved answer intent.
+
+### Requirement: Konling marks normative answers as verified or verification-required
+Konling SHALL treat requests for standards, prescribed formats, official rules, legal requirements, or other normative content as authoritative only when the answer is supported by server-verified eligible authority citations.
+
+#### Scenario: Normative content has eligible authority evidence
+- **WHEN** a normative-content answer has a server-verified authoritative citation with a usable target
+- **THEN** Konling SHALL identify the answer as verified normative guidance and expose its source information through platform citation metadata.
+
+#### Scenario: Normative content lacks eligible authority evidence
+- **WHEN** a normative-content answer lacks a server-verified authoritative citation with a usable target
+- **THEN** Konling SHALL mark the answer as verification-required
+- **AND** it SHALL NOT present the content as a definitive standard, official rule, or required format.
+
+### Requirement: Konling binds material answer units to governed citations
+Konling SHALL bind material conclusions, derivation transformations, and code repair recommendations to server-verified citation targets when content citations are available for the resolved study-question intent.
+
+#### Scenario: A material answer unit cites evidence
+- **WHEN** Konling produces a cited material conclusion, transformation, or repair recommendation
+- **THEN** the response metadata SHALL identify the answer unit, its supported citation target, and any source limitation.
+
+#### Scenario: A proposed citation is not server-verified
+- **WHEN** model output contains a citation marker that cannot be mapped to an eligible server-verified citation target
+- **THEN** the marker SHALL NOT become a verified citation link or evidence binding.
+
+### Requirement: Konling maps answer units to citations through governed section policies
+Konling SHALL map every study-question answer section to an evidence-required or model-derived citation policy, bind per-unit citation markers to the section they appear in, and report per-section traceability coverage in citation metadata.
+
+#### Scenario: Evidence-required section carries per-unit citations
+- **WHEN** a study-question answer includes an evidence-required section that is present in the answer
+- **THEN** the citation guard SHALL report whether that section's answer units carry server-verified citations, counting the section as covered only when every substantive answer unit in it carries a citation
+- **AND** an uncovered evidence-required section SHALL downgrade the answer confidence with a section-scoped reason.
+
+#### Scenario: Model-derived sections stay distinguishable from source text
+- **WHEN** a study-question answer includes model-derived sections such as derivation transformations or teaching elaborations
+- **THEN** the response metadata SHALL identify those sections as model-derived so they are not presented as source quotations.
+
+#### Scenario: Normative fail-closed answers keep coverage measurement honest
+- **WHEN** a normative-content answer lacks eligible authority evidence and is marked verification-required
+- **THEN** its sections SHALL NOT count toward traceability coverage requirements.
+
+### Requirement: Konling removes invalid citation markers from persisted answers
+Konling SHALL report numeric citation markers that resolve to missing, out-of-range, or unverified citation numbers, and SHALL remove them from the persisted answer body whenever a study-question contract is active.
+
+#### Scenario: An invalid numeric marker appears in the answer
+- **WHEN** model output contains a numeric citation marker that is not a server-assigned, verified, target-bearing citation
+- **THEN** the marker SHALL be listed in citation metadata as unverified
+- **AND** it SHALL be removed from the persisted answer text while valid markers are preserved.
+
+### Requirement: Student-facing Konling context endpoints expose only bounded public projections
+
+Every Konling endpoint reachable by a student browser SHALL either return no runtime context or return an explicit allowlisted student-safe projection. Complete learner-state, plan, knowledge-workspace, teaching-projection, dual-domain provenance, scoped-memory, permitted-tool and missing-context structures SHALL remain server-side.
+
+#### Scenario: Student requests the internal context endpoint
+- **WHEN** an authenticated student requests a Konling context endpoint that previously returned the complete runtime DTO
+- **THEN** the endpoint SHALL be unavailable to that student or return only a separately defined bounded public projection
+- **AND** the raw response SHALL contain no private memory, internal provenance, permitted-tool list, missing-context code or raw domain context.
+
+#### Scenario: A product surface needs context availability
+- **WHEN** a student-facing product surface has a verified need to explain Konling availability or limitations
+- **THEN** the server SHALL map only the required state into product-safe language and approved public fields
+- **AND** it SHALL NOT serialize the internal DTO and rely on browser filtering or field omission after receipt.
+
+#### Scenario: Server invokes the model with governed context
+- **WHEN** a supported Konling mode builds server-owned model grounding
+- **THEN** private learner context and permitted tools MAY remain available inside the authorized service boundary
+- **AND** removing the public endpoint SHALL NOT remove that server-side grounding.
+
+#### Scenario: Tests inspect runtime context
+- **WHEN** automated tests need to verify internal context construction
+- **THEN** they SHALL inspect server-owned builders or restricted diagnostics
+- **AND** a production student-readable endpoint SHALL NOT be retained solely for test introspection.
+
+### Requirement: Interactive lesson AI failures use student-safe recovery presentation
+
+The embedded interactive lesson AI SHALL normalize transport and service failures before they reach student-visible UI. The interactive surface SHALL expose only an allowlisted student-safe message and, when applicable, a recovery action matched to the failure state.
+
+#### Scenario: Interactive AI receives a generic non-success response
+- **WHEN** an authenticated student asks the embedded interactive AI and the request receives a non-success response without a supported recovery state
+- **THEN** the hook SHALL classify the failure through the shared student-safe failure contract
+- **AND** the panel SHALL not render the raw HTTP status, response body, provider detail or English exception text.
+
+#### Scenario: Interactive AI request fails at the network boundary
+- **WHEN** the embedded interactive AI request is rejected by the browser or network
+- **THEN** the panel SHALL show a student-safe temporary-unavailability message
+- **AND** it SHALL offer the existing retry path without exposing the original exception message.
+
+#### Scenario: Interactive conversation state is invalid
+- **WHEN** the service reports an isolated or unavailable interactive conversation
+- **THEN** the panel SHALL preserve the specialized session recovery state and action
+- **AND** it SHALL not replace that state with a generic raw error.
+
+#### Scenario: Interactive AI succeeds after a failure
+- **WHEN** the student completes the matching recovery action and a later request succeeds
+- **THEN** the panel SHALL render the assistant response and current conversation history normally
+- **AND** no prior raw transport or service error SHALL remain in the student-visible message list.
 

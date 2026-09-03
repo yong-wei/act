@@ -16,6 +16,8 @@ export default defineConfig([
       'react-hooks/purity': 'off',
       'react-hooks/refs': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      // eslint-config-next 16.3 newly flags existing full-page navigations.
+      '@next/next/no-location-assign-relative-destination': 'off',
     },
   },
   globalIgnores([

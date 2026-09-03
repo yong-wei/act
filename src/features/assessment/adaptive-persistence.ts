@@ -10,18 +10,18 @@ import type { LearningEvent } from '@/lib/data-governance/event-protocol';
 import {
   buildKaqQuizQuestionMetadata,
   materializeKaqQuizOutcomeEvidence,
-} from '@/features/adaptive-assessment/kaq-quiz-foundation';
+} from '@/features/assessment/kaq-quiz-foundation';
 import {
   findAdaptiveAssessmentCatalogSnapshot,
   type AdaptiveAssessmentCatalogSnapshot,
-} from '@/features/adaptive-assessment/adaptive-assessment-catalog-selector';
-import { ensureGeneratedCatalogHydrated } from '@/features/adaptive-assessment/generated-catalog-runtime';
+} from '@/features/assessment/adaptive-assessment-catalog-selector';
+import { ensureGeneratedCatalogHydrated } from '@/features/assessment/generated-catalog-runtime';
 import {
   evaluateAssessmentEvidenceSnapshotAuthority,
   evaluateAssessmentEvidenceSnapshotWithCurrentCatalogAuthority,
   isAssessmentSnapshotBeforeEnforcementEpoch,
   type AssessmentEvidenceCatalogSnapshot,
-} from '@/features/adaptive-assessment/assessment-evidence-authority';
+} from '@/features/assessment/assessment-evidence-authority';
 import { adaptiveAssessmentItemContentHash } from './adaptive-assessment-item-content-hash';
 import { isMicroInterventionEvidenceConsumerEnabled } from './micro-intervention-evidence-policy';
 import { applyMicroInterventionMasteryPolicy } from './micro-intervention-learning-evidence';

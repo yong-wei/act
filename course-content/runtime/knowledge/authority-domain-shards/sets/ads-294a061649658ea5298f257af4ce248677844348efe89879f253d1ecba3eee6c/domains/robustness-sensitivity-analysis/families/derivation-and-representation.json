@@ -1,0 +1,381 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+      "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "robustness-sensitivity-analysis",
+  "family": "derivation-and-representation",
+  "objects": [
+    {
+      "id": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "canonicalType": "DomainConcept",
+      "label": "回路传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "canonicalType": "Formula",
+      "label": "闭环传递函数幅值（由Nichols图获得）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:471c9775fec005b51eb28722",
+      "canonicalType": "Formula",
+      "label": "三阶特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+      "canonicalType": "Formula",
+      "label": "特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m3-v2k:relation:3080c35fd41e5aca639fd817",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2k:canonical-object:09a4d34ede5a20c32cf327a3",
+      "targetId": "ctkg:m3-v2k:canonical-object:a6cb408c837941b9b3722dcb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2k:relation:7b02b9b1ee8b20dba0126258",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2k:canonical-object:346fd894a2c3cc5fc66ca767",
+      "targetId": "ctkg:m3-v2k:canonical-object:90cacda823ed918e9d9d2e68",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2k:relation:9034b0450610f63ff4f66b9e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2k:canonical-object:363faba0924a6c24e4cb3c1c",
+      "targetId": "ctkg:m3-v2k:canonical-object:ae382d12eced4568d9407844",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2k:statement-formula-link:4f9bf994ca495ca470be28fa",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:m3-v2k:canonical-object:875ce0768128aea8a8f4a204",
+      "targetId": "ctkg:m3-v2k:canonical-object:363faba0924a6c24e4cb3c1c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:5f416485d9dafc94c4f17cd6",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:4542bc9df696fdcfe78bd9a8",
+      "targetId": "ctkg:m3-v2l:source-object:bd2dde5ba6fb1fc7cc28e7d6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:baba10bd6f3490e64d7afad5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:ec3c4df3eaf64ada1b279c0f",
+      "targetId": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:c3fb7692298097f8b9589ed9",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+      "targetId": "ctkg:m3-v2l:source-object:89665f26a72f66c6a6afff6a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:de510d8fb95215538f782ef1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:4542bc9df696fdcfe78bd9a8",
+      "targetId": "ctkg:m3-v2l:source-object:471c9775fec005b51eb28722",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:0ce14fbbde6253ef1aa2f481",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2m:source-object:1705e6ba04d3c3e36ada2d64",
+      "targetId": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:85c926fedc4a4a32958af1b7",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+      "targetId": "ctkg:m3-v2l:source-object:89665f26a72f66c6a6afff6a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1p:v7r-rel-67963d81faa2683c3c23673f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+      "targetId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "label": "回路传递函数",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "label": "闭环传递函数幅值（由Nichols图获得）",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "frequency-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:source-object:471c9775fec005b51eb28722",
+      "label": "三阶特征方程",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+      "label": "特征方程",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    }
+  ]
+}

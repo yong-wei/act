@@ -178,7 +178,6 @@ describe('learner-state reducer', () => {
 describe('personalization learner-state boundary', () => {
   const productionCallers = [
     'src/app/api/adaptive/learner-state/route.ts',
-    'src/app/api/ai/konling-context/route.ts',
     'src/app/ai/page.tsx',
     'src/lib/konling-agent-runtime.ts',
     'src/lib/evidence-copilot-context.ts',

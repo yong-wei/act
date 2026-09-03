@@ -1,12 +1,15 @@
+vi.mock('server-only', () => ({}));
 import { describe, expect, it, vi } from 'vitest';
-import { toModelMessages } from '@/lib/ai-message-compat';
+import { toModelMessages } from '@/lib/ai/message-compat';
 import {
   buildKonlingContextIdentity,
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
+  createKonlingAssistantBindingEvent,
   createKonlingContextEvent,
   createKonlingMessageId,
   deriveKonlingConversationTitle,
+  konlingLibraryRetentionWhere,
   normalizeKonlingConversationAssistantBinding,
   KonlingConversationTurnConflictError,
   mergeLegacyKonlingStructuredActionToolRuns,
@@ -43,12 +46,23 @@ function conversation(overrides: Record<string, unknown> = {}) {
 
 function statefulConversationDb(initial = conversation()) {
   let state = { ...initial };
+  const retentionEligible = (where: {
+    libraryVisible?: boolean;
+    OR?: Array<{ expiresAt?: null | { gt?: Date } }>;
+  }) => {
+    if (where.libraryVisible === true && !state.libraryVisible) return false;
+    if (!Array.isArray(where.OR)) return true;
+    return where.OR.some((branch) => branch.expiresAt === null
+      ? state.expiresAt === null
+      : Boolean(branch.expiresAt?.gt)
+        && state.expiresAt !== null
+        && state.expiresAt > branch.expiresAt!.gt!);
+  };
   const db = {
     konlingSession: {
       findFirst: vi.fn(async ({ where }) => {
         if (where.id !== state.id || where.userId !== state.userId) return null;
-        if (where.libraryVisible === true && !state.libraryVisible) return null;
-        if (where.expiresAt?.gt && state.expiresAt <= where.expiresAt.gt) return null;
+        if (!retentionEligible(where)) return null;
         return { ...state };
       }),
       updateMany: vi.fn(async ({ where, data }) => {
@@ -72,6 +86,17 @@ function statefulConversationDb(initial = conversation()) {
 }
 
 describe('Konling conversation library', () => {
+  it('shares one retention condition across no expiry, future and elapsed governed expiry', () => {
+    const where = konlingLibraryRetentionWhere(now);
+    expect(where).toEqual({
+      libraryVisible: true,
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gt: now } },
+      ],
+    });
+  });
+
   it('restores a persisted diagnosis binding in a new client', () => {
     const binding = normalizeKonlingConversationAssistantBinding({
       modeId: 'diagnosis-explainer',
@@ -108,6 +133,57 @@ describe('Konling conversation library', () => {
     expect(serializeKonlingConversation(conversation({ messages: diagnosis.modelMessages as never })).assistantBinding)
       .not.toBeNull();
     expect(ordinary.assistantBinding).toBeNull();
+  });
+
+  it('keeps internal system context and binding records out of the public serialization', () => {
+    const persisted = conversation({
+      messages: [
+        createKonlingContextEvent({
+          courseId: 'course-a',
+          pageId: 'page-a',
+          classId: 'CANARY-CLASS-1',
+          resourceId: 'CANARY-RES-1',
+          pathNodeId: 'CANARY-NODE-1',
+          candidateGraph: {
+            authorityState: 'candidate' as const,
+            releaseSetId: 'CANARY-RSET-1',
+            releaseId: 'CANARY-REL-1',
+            projectionDigest: 'CANARY-DIGEST-1',
+            sourceDatasetHash: 'CANARY-HASH-1',
+            selectedCanonicalId: 'CANARY-CANON-1',
+            selectedCanonicalType: 'DomainConcept',
+            governanceFilter: 'EXTENSION' as const,
+            canonicalTypeFilter: null,
+            coverageStatus: 'ready' as const,
+            objectCount: 10,
+            relationCount: 12,
+          },
+        }, 'context-canary'),
+        createKonlingAssistantBindingEvent(normalizeKonlingConversationAssistantBinding({
+          modeId: 'resource-coach',
+          clientContextHints: { resourceId: 'textbook-res-9' },
+        }), 'binding-canary'),
+        { id: 'user-1', role: 'user', content: '帮我看看这道题', parts: [{ type: 'text', text: '帮我看看这道题' }] },
+        { id: 'assistant-1', role: 'assistant', content: '好的，我们来看这道题。', parts: [{ type: 'text', text: '好的，我们来看这道题。' }] },
+      ] as never,
+    });
+
+    const serialized = serializeKonlingConversation(persisted);
+    const raw = JSON.stringify(serialized);
+
+    expect(serialized.messages.map((message) => message.id)).toEqual(['user-1', 'assistant-1']);
+    expect(serialized.messages.map((message) => message.role)).toEqual(['user', 'assistant']);
+    for (const canary of [
+      'CANARY-CLASS-1', 'CANARY-RES-1', 'CANARY-NODE-1', 'CANARY-RSET-1', 'CANARY-REL-1',
+      'CANARY-DIGEST-1', 'CANARY-HASH-1', 'CANARY-CANON-1',
+      '[控灵当前页面上下文]', '[控灵助手绑定]', 'konlingContextEvent', 'konlingAssistantBindingEvent',
+    ]) {
+      expect(raw).not.toContain(canary);
+    }
+    expect(serialized.assistantBinding).toMatchObject({
+      teachingAssistantModeId: 'resource-coach',
+      modeClientContextHints: { resourceId: 'textbook-res-9' },
+    });
   });
 
   it('does not persist client hints for teacher diagnosis', () => {
@@ -1257,9 +1333,68 @@ describe('Konling conversation library', () => {
         id: 'conversation-other',
         userId: 'user-1',
         libraryVisible: true,
-        expiresAt: { gt: now },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: now } },
+        ],
       },
     });
+  });
+
+  it.each([
+    ['no governed expiry on a month-old conversation', {
+      createdAt: new Date('2026-06-01T00:00:00.000Z'),
+      lastActivityAt: new Date('2026-06-01T00:00:00.000Z'),
+      expiresAt: null,
+    }, true],
+    ['governed expiry still in the future', {
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    }, true],
+    ['governed expiry already elapsed', {
+      expiresAt: new Date('2026-07-01T00:00:00.000Z'),
+    }, false],
+  ])('claims a turn only within retention eligibility: %s', async (_label, overrides, eligible) => {
+    const store = statefulConversationDb(conversation(overrides));
+    const claimed = await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-retention', role: 'user', content: '保留边界上的提问' },
+      now,
+    });
+    expect(Boolean(claimed)).toBe(eligible);
+  });
+
+  it('does not write back or release a turn after governed expiry elapses mid-request', async () => {
+    const store = statefulConversationDb(conversation({
+      expiresAt: new Date('2026-08-02T00:00:00.000Z'),
+    }));
+    const claimed = await claimKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      currentScope: { courseId: 'course-a', pageId: 'page-a' },
+      userMessage: { id: 'turn-crossing', role: 'user', content: '到期前开始的问题' },
+      now,
+    });
+    expect(claimed?.turnId).toBe('turn-crossing');
+
+    // 治理到期在模型执行期间生效
+    (store.current() as { expiresAt: Date | null }).expiresAt = new Date('2026-07-01T00:00:00.000Z');
+    await expect(completeKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-crossing',
+      assistantMessage: { id: 'late-answer', role: 'assistant', content: '迟到回答' },
+      now,
+    })).resolves.toBeNull();
+    await expect(releaseKonlingConversationTurn(store.db as never, {
+      conversationId: 'conversation-1',
+      ownerUserId: 'user-1',
+      turnId: 'turn-crossing',
+      now,
+    })).resolves.toEqual({ count: 0 });
+    const persisted = store.current().messages as unknown as Array<{ id: string }>;
+    expect(persisted.some((message) => message.id === 'late-answer')).toBe(false);
   });
 
   it('allows only one of four concurrent requests to claim model execution and never loses the delivered exchange', async () => {
@@ -1308,6 +1443,7 @@ describe('Konling conversation library', () => {
       conversationId: 'conversation-1',
       ownerUserId: 'user-1',
       turnId: 'failed-turn',
+      now,
     });
     expect(store.current().messages).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'failed-turn' }),

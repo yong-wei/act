@@ -38,6 +38,19 @@ const baseline: DiagnosisReportApiItem = {
 };
 
 describe('teacher diagnosis report history projection', () => {
+  it('labels a findings-free healthy report as having no clear weakness', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      riskSummary: { total: 0, byType: {}, bySeverity: {} },
+      reportBody: {
+        ...baseline.reportBody,
+        findings: [],
+      },
+    });
+
+    expect(projection.mainWeaknessLabel).toBe('未发现明确薄弱节点');
+  });
+
   it('keeps unsupported top-level sources unavailable instead of fabricating zero coverage', () => {
     const projection = projectReportHistoryCard(baseline);
 
@@ -473,5 +486,168 @@ describe('teacher diagnosis report history projection', () => {
       incomparableSeverityTransitions: 1,
     });
     expect(compareAdjacentReports(current, baseline).description).toContain('缺少风险等级');
+  });
+});
+
+describe('sparse risk-flag conflict projection (Issue #1755)', () => {
+  const completeCoverageReport: DiagnosisReportApiItem = {
+    ...baseline,
+    id: 'report-sparse-risk',
+    reportBody: {
+      ...baseline.reportBody,
+      summary: '班级作业与测评整体表现正常，部分学生知识进度长期滞后。',
+      evidenceRefs: ['knowledge-progress:progress-1'],
+      sourceCoverage: {
+        classMembers: 100,
+        includedStudents: 100,
+        coverage: 1,
+        progressRows: 200,
+        assignment: {
+          availability: 'available',
+          includedStudents: 100,
+          missingStudents: 0,
+          evidenceCount: 100,
+          scoredCount: 100,
+        },
+        assessment: {
+          availability: 'available',
+          includedStudents: 100,
+          missingStudents: 0,
+          evidenceCount: 100,
+          scoredCount: 100,
+        },
+      },
+      confidence: 'medium',
+      limitations: ['作业、测评整体表现正常，与部分学生知识进度长期滞后存在冲突。'],
+    },
+  };
+
+  it('marks an overall-vs-subgroup pseudo conflict as needing regeneration (Issue #1872)', () => {
+    const projection = projectReportHistoryCard(completeCoverageReport);
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.description).toContain('学生范围不同');
+    expect(projection.availability.recoveryAction).toContain('重新生成诊断');
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+  });
+
+  it('marks a summary-only pseudo conflict as needing regeneration (Issue #1872)', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，但与部分学生知识进度长期滞后存在矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.label).not.toBe('证据部分可用');
+  });
+
+  it('does not treat a negated summary conflict wording as a real conflict', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级整体表现正常，部分学生知识进度长期滞后，二者并不矛盾。',
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+  });
+
+  it('keeps a comparable cross-source conflict presentation when the cohort matches', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '班级诊断完成，node-06 弱势学生作业与测评方向相反。',
+        limitations: ['同一批学生（node-06 的 26 名弱势学生，同一时间窗）作业高分、测评低分，存在来源间冲突。'],
+      },
+    });
+
+    expect(projection.availability).toMatchObject({ label: '证据存在冲突' });
+    expect(projection.availability.recoveryAction).toContain('教师复核');
+    expect(JSON.stringify(projection.confidenceReasons)).not.toContain('补充可核验证据');
+  });
+
+  it('keeps the generic fallback only when no known reason applies', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        limitations: [],
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: '报告没有提供可验证的置信度原因。' }),
+    ]));
+  });
+
+  it('keeps genuine coverage-gap wording when coverage is incomplete', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        sourceCoverage: {
+          ...completeCoverageReport.reportBody.sourceCoverage,
+          includedStudents: 80,
+          coverage: 0.8,
+        },
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: '仅纳入 80/100 名学生的可用证据。' }),
+    ]));
+  });
+});
+
+describe('evidence-conflict wording guardrails (Issue #1755 review)', () => {
+  it('does not label non-conflict limitations as evidence conflict', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        sourceCoverage: {
+          classMembers: 100,
+          includedStudents: 100,
+          coverage: 1,
+          progressRows: 200,
+          assignment: {
+            availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+          },
+          assessment: {
+            availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+          },
+        },
+        confidence: 'medium',
+        limitations: ['部分结论的样本时间窗较短，需要结合后续表现复核。'],
+      },
+    });
+
+    expect(projection.availability.label).not.toBe('证据存在冲突');
+    expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
+      expect.objectContaining({ reason: expect.stringContaining('判断边界') }),
+    ]));
+  });
+
+  it('does not treat omitted optional coverage fields as complete coverage', () => {
+    const projection = projectReportHistoryCard({
+      ...baseline,
+      reportBody: {
+        ...baseline.reportBody,
+        sourceCoverage: { progressRows: 200 },
+        confidence: 'medium',
+        limitations: ['作业与测评表现与知识进度存在冲突。'],
+      },
+    });
+
+    expect(projection.availability.label).toBe('证据部分可用');
   });
 });

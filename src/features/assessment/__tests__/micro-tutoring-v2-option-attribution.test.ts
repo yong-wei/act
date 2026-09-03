@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 
 import baselineSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import attributionSource from '../../../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   defaultMicroTutoringOptionAttributions,
   findMicroTutoringOptionAttribution,

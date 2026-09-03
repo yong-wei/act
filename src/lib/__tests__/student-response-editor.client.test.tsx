@@ -55,6 +55,7 @@ describe('student response editor interactions', () => {
   it('keeps save, retry, keyboard reorder, and submit actions independently reachable', async () => {
     const onSave = vi.fn();
     const onRetryUpload = vi.fn();
+    const onConfirmQuarantinedAsset = vi.fn();
     const onReorder = vi.fn();
     const onSubmit = vi.fn();
     const failed: PendingUpload = {
@@ -91,6 +92,7 @@ describe('student response editor interactions', () => {
                 displayName: 'A.pdf',
                 role: 'ATTACHMENT',
                 orderIndex: 0,
+                state: 'QUARANTINED',
               },
               {
                 id: 'asset-b',
@@ -113,6 +115,7 @@ describe('student response editor interactions', () => {
           onUploadFiles={vi.fn()}
           onRetryUpload={onRetryUpload}
           onDiscardUpload={vi.fn()}
+          onConfirmQuarantinedAsset={onConfirmQuarantinedAsset}
           onRemove={vi.fn()}
           onReorder={onReorder}
           onSubmit={onSubmit}
@@ -137,11 +140,13 @@ describe('student response editor interactions', () => {
     await act(async () => {
       fireEvent.click(getByRole(container, 'button', { name: '保存' }));
       fireEvent.click(getByRole(container, 'button', { name: '重试' }));
+      fireEvent.click(getByRole(container, 'button', { name: '继续确认' }));
       fireEvent.click(getByRole(container, 'button', { name: '上移附件 2' }));
       fireEvent.click(getByRole(container, 'button', { name: '提交本题' }));
     });
     expect(onSave).toHaveBeenCalledOnce();
     expect(onRetryUpload).toHaveBeenCalledWith(failed);
+    expect(onConfirmQuarantinedAsset).toHaveBeenCalledWith(expect.objectContaining({ id: 'asset-a' }));
     expect(onReorder).toHaveBeenCalledWith('asset-b', 0);
     expect(onSubmit).toHaveBeenCalledOnce();
   });

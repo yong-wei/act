@@ -93,8 +93,8 @@ function discoverLearningFactSinkPaths(repositoryRoot: string): string[] {
   const roots = ['src', 'scripts'];
   const discovered = new Set<string>();
   for (const rootName of roots) {
-    const base = path.join(repositoryRoot, rootName);
-    if (!existsSync(base) || !statSync(base).isDirectory()) continue;
+    const base = path.join(/*turbopackIgnore: true*/ repositoryRoot, rootName);
+    if (!existsSync(/*turbopackIgnore: true*/ base) || !statSync(/*turbopackIgnore: true*/ base).isDirectory()) continue;
     for (const rel of walkSourceFiles(repositoryRoot, rootName)) {
       const source = readFileSync(path.join(repositoryRoot, rel), 'utf8');
       DIRECT_SINK_RE.lastIndex = 0;

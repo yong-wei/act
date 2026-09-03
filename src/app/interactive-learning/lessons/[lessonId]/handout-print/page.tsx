@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import 'katex/dist/katex.min.css';
 
 import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
-import { loadLessonRuntimeEntry } from '@/lib/course-runtime';
+import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { resolveHandoutAssetUrl } from '@/lib/handout-pdf';
 import { readReadableContentText } from '@/lib/runtime-content-path';
 

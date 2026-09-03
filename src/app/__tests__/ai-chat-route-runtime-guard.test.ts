@@ -48,7 +48,7 @@ const adaptivePracticeLayoutSource = readFileSync(
   'utf8',
 );
 const pathAdvisorEntryPointBridgeSource = readFileSync(
-  join(process.cwd(), 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'),
+  join(process.cwd(), 'src/features/personalization/experience/path-advisor-entrypoint-bridge.tsx'),
   'utf8',
 );
 const aiContextResolverSource = readFileSync(
@@ -84,6 +84,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).not.toContain('user: userProfile');
     expect(chatRouteSource).not.toContain('prisma.learningFact');
     expect(chatRouteSource).not.toContain('LearningFact.create');
+    expect(chatRouteSource).toContain('if (conversationId && !conversation)');
+    expect(chatRouteSource).toContain("error: 'Conversation not found'");
+    expect(chatRouteSource).toContain('userId: session.user.id');
     expect(chatRouteSource).toContain('INVALID_AI_TASK_CONTEXT');
     expect(chatRouteSource).toContain('buildAiAuditTaskPrompt');
     expect(chatRouteSource).toContain('X-Evidence-Copilot-Status');
@@ -137,18 +140,19 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('normalizeKonlingStructuredText');
   });
 
-  it('rejects expired or hidden legacy sessions before agent, tool, or model side effects', () => {
+  it('rejects governed-expired or hidden legacy sessions before agent, tool, or model side effects', () => {
     const sessionLookup = sessionMessagesRouteSource.indexOf('const konlingSession = await prisma.konlingSession.findFirst');
-    const visibilityGate = sessionMessagesRouteSource.indexOf('libraryVisible: true', sessionLookup);
-    const expiryGate = sessionMessagesRouteSource.indexOf('expiresAt: { gt: new Date() }', sessionLookup);
+    const retentionGate = sessionMessagesRouteSource.indexOf('konlingLibraryRetentionWhere', sessionLookup);
     const notFound = sessionMessagesRouteSource.indexOf("error: 'Session not found'", sessionLookup);
     const agentSession = sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession');
     const model = sessionMessagesRouteSource.indexOf('const result = await streamText');
     expect(sessionLookup).toBeGreaterThanOrEqual(0);
-    expect(visibilityGate).toBeGreaterThan(sessionLookup);
-    expect(expiryGate).toBeGreaterThan(sessionLookup);
+    expect(retentionGate).toBeGreaterThan(sessionLookup);
     expect(notFound).toBeLessThan(agentSession);
     expect(notFound).toBeLessThan(model);
+    expect(sessionMessagesRouteSource).not.toContain('expiresAt: { gt: new Date() }');
+    expect(chatRouteSource).toContain('konlingLibraryRetentionWhere');
+    expect(chatRouteSource).not.toContain('expiresAt: { gt: new Date() }');
   });
 
   it('uses collision-resistant message ids and claims a conversation before model or tool execution', () => {
@@ -193,7 +197,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('agentSessionId?: string');
     expect(chatRouteSource).toContain("'X-Konling-Agent-Session-Id': agentSession.id");
     expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
-    expect(chatRouteSource).toContain('const permittedTools = authorizedScope.candidateGraph');
+    expect(chatRouteSource).toContain('let permittedTools = authorizedScope.candidateGraph');
     expect(chatRouteSource).toContain('permittedTools,');
     expect(sessionMessagesRouteSource).toContain('getOrCreateKonlingAgentSession');
     expect(sessionMessagesRouteSource).toContain('agentSessionId');
@@ -225,7 +229,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("error: 'KONLING_MODE_UNAVAILABLE'");
     expect(chatRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
       .toBeLessThan(chatRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
-    expect(chatRouteSource).toContain('const permittedTools = authorizedScope.candidateGraph');
+    expect(chatRouteSource).toContain('let permittedTools = authorizedScope.candidateGraph');
     expect(chatRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools }');
     expect(chatRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
@@ -468,6 +472,42 @@ describe('AI chat route Konling runtime guard', () => {
     );
     expect(interactiveProvider).toContain('classroomSessionId: sessionId');
     expect(interactiveProvider).not.toContain('contextData');
+  });
+
+  it('grounds interactive tutoring state on server-persisted responses only', () => {
+    expect(chatRouteSource).toContain('await resolveInteractiveTutoringState(prisma, {');
+    expect(chatRouteSource).toContain('sessionIdHint: extractInteractiveSessionHint(pageContext)');
+    expect(chatRouteSource).toContain('interactiveTutoring.promptSection');
+    expect(chatRouteSource).toContain(".filter((toolName) => toolName !== 'analyze_attempt')");
+    // 客户端自报的作答/揭示字段不得进入授权或提示词。
+    expect(chatRouteSource).not.toContain('answerVisible');
+    expect(chatRouteSource).not.toContain('savedResponse');
+    const tutoringStateSource = readFileSync(
+      join(process.cwd(), 'src/lib/konling-interactive-tutoring-state.ts'),
+      'utf8',
+    );
+    expect(tutoringStateSource).toContain("stateKey: 'teacher-sync'");
+    expect(tutoringStateSource).toContain("stateKey: 'course'");
+    expect(tutoringStateSource).not.toContain('.answerVisible');
+  });
+
+  it('treats client page and lesson context as untrusted hints at the chat boundary', () => {
+    expect(chatRouteSource).toContain('resolveServerOwnedChatPageContext(pageContext)');
+    expect(chatRouteSource).toContain('INVALID_AI_CONTEXT');
+    expect(chatRouteSource).not.toContain('page: pageContext,');
+    const boundarySource = readFileSync(
+      join(process.cwd(), 'src/lib/ai/chat-context-boundary.ts'),
+      'utf8',
+    );
+    expect(boundarySource).toContain('getStepAIContext');
+    // 路由 url 宽泛推断不得作为页面身份来源（#1885 复审收紧）。
+    expect(boundarySource).not.toContain('resolveRegisteredAIContextFromPath');
+    const lessonPromptsSource = readFileSync(
+      join(process.cwd(), 'src/lib/ai/lesson-prompts.ts'),
+      'utf8',
+    );
+    expect(lessonPromptsSource).not.toContain('lessonContext.resourceTitle');
+    expect(lessonPromptsSource).not.toContain('lessonContext.customPrompt');
   });
 
   it('hides the public simulation AI companion entry when no user is authenticated', () => {

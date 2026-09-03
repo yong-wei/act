@@ -14,7 +14,7 @@ import { createLessonKnowledgeMapLayout } from '@/features/interactive/shared/le
 import {
   LessonEntryKnowledgeMap,
 } from '@/features/interactive/shared/lesson-entry-knowledge-map';
-import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle, RuntimeLessonEntryNode } from '@/lib/course-bundle';
 
 const surfaceClassName =
   'premium-lesson-panel p-4';

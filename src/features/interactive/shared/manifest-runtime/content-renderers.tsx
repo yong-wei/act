@@ -4354,6 +4354,79 @@ function defaultManifestPluginRegistry(): ManifestPluginRegistry {
   return defaultManifestPluginRegistrySingleton.registry;
 }
 
+
+function renderSummaryModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  const content = summaryContent(step, module);
+  return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+}
+
+function renderSummaryCardGrid(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+  columns?: string,
+) {
+  const content = summaryContent(step, module);
+  const items = [content.text, ...content.bullets].filter(Boolean) as string[];
+  if (columns) return <CardGrid title={titleFromModule(module)} items={items} columns={columns} />;
+  return <CardGrid title={titleFromModule(module)} items={items} />;
+}
+
+function renderNativeTableModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  const table = tableFor(step, module);
+  if (!table) return null;
+  return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
+}
+
+function renderPayloadTextSummary(module: InteractiveRuntimeModuleManifest) {
+  return (
+    <SummaryCard
+      title={titleFromModule(module)}
+      text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
+      bullets={asStringArray(module.payload.items)}
+    />
+  );
+}
+
+function renderFormulaModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  return (
+    <FormulaCard
+      title={titleFromModule(module)}
+      formulas={getFormulaItems(step, module)}
+      notes={formulaNotes(step, module)}
+      symbols={formulaSymbols(step, module)}
+    />
+  );
+}
+
+function renderStepRevealModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+  extra: { revealProgress: number; allowInlineReveal: boolean; onInlineReveal?: () => void; revealLocked?: boolean },
+) {
+  const items = revealItems(step, module);
+  if (!items.length) return null;
+  return (
+    <StepReveal
+      key={stepRevealIdentityKey(step, module, extra.revealProgress)}
+      title={titleFromModule(module)}
+      items={items}
+      revealProgress={extra.revealProgress}
+      allowInlineReveal={extra.allowInlineReveal}
+      onInlineReveal={extra.onInlineReveal}
+      revealLocked={extra.revealLocked}
+    />
+  );
+}
+
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
@@ -4438,8 +4511,7 @@ export function createManifestContentModuleRegistry(extra: {
           />
         );
       }
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return renderSummaryModule(step, module);
     },
     'content.stageMap': ({ step, module }) => {
       const intro = asRecord(step.contentBlocks.page_intro);
@@ -4493,16 +4565,12 @@ export function createManifestContentModuleRegistry(extra: {
           </div>
         );
       }
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return renderSummaryModule(step, module);
     },
     'analytics.summary': ({ step, module, extra: renderExtra }) => (
       <CardGrid title={titleFromModule(module)} items={renderExtra.analyticsSummary?.length ? renderExtra.analyticsSummary : learningStatItems(step, module)} columns="md:grid-cols-2" />
     ),
-    'layout.support': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'layout.support': ({ step, module }) => renderSummaryModule(step, module),
     'stage-map': ({ step }) => {
       const intro = asRecord(step.contentBlocks.page_intro);
       const title = typeof intro.title === 'string' ? intro.title : '路径定位';
@@ -4527,53 +4595,18 @@ export function createManifestContentModuleRegistry(extra: {
       const items = listFromKnownBlocks(step, ['question_cards']);
       return <CardGrid title="问题组" items={items} />;
     },
-    'formula-card': ({ step, module }) => (
-      <FormulaCard
-        title={titleFromModule(module)}
-        formulas={getFormulaItems(step, module)}
-        notes={formulaNotes(step, module)}
-        symbols={formulaSymbols(step, module)}
-      />
-    ),
-    'formula-card-row': ({ step, module }) => (
-      <FormulaCard
-        title={titleFromModule(module)}
-        formulas={getFormulaItems(step, module)}
-        notes={formulaNotes(step, module)}
-        symbols={formulaSymbols(step, module)}
-      />
-    ),
-    'formula-chain': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'summary-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'summary-card-row': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-2" />;
-    },
+    'formula-card': ({ step, module }) => renderFormulaModule(step, module),
+    'formula-card-row': ({ step, module }) => renderFormulaModule(step, module),
+    'formula-chain': ({ step, module }) => renderSummaryModule(step, module),
+    'summary-card': ({ step, module }) => renderSummaryModule(step, module),
+    'summary-card-row': ({ step, module }) => renderSummaryCardGrid(step, module, 'md:grid-cols-2'),
     'summary-card-grid': ({ step, module }) => (
       <CardGrid title={titleFromModule(module)} items={cardGridItems(step, module)} columns="md:grid-cols-2" />
     ),
-    'question-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'question-card-row': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
-    },
-    'boundary-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'process-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'question-card': ({ step, module }) => renderSummaryModule(step, module),
+    'question-card-row': ({ step, module }) => renderSummaryCardGrid(step, module),
+    'boundary-card': ({ step, module }) => renderSummaryModule(step, module),
+    'process-card': ({ step, module }) => renderSummaryModule(step, module),
     'objective-list': ({ step, module }) => {
       const content = summaryContent(step, module);
       const items = content.bullets.length
@@ -4581,154 +4614,53 @@ export function createManifestContentModuleRegistry(extra: {
         : [content.text].filter((item): item is string => Boolean(item));
       return <CourseObjectiveList items={items} />;
     },
-    'bullet-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'reason-record': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'notice-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'comparison-table': ({ step, module }) => {
-      const table = tableFor(step, module);
-      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'structured-compare': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'row-focus-toggle': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'tab-selector': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'overlay-strip': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'graphic': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'interactive-figure': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'bullet-card': ({ step, module }) => renderSummaryModule(step, module),
+    'reason-record': ({ step, module }) => renderSummaryModule(step, module),
+    'notice-card': ({ step, module }) => renderSummaryModule(step, module),
+    'comparison-table': ({ step, module }) => renderNativeTableModule(step, module) ?? renderSummaryModule(step, module),
+    'structured-compare': ({ step, module }) => renderSummaryModule(step, module),
+    'row-focus-toggle': ({ step, module }) => renderSummaryModule(step, module),
+    'tab-selector': ({ step, module }) => renderSummaryModule(step, module),
+    'overlay-strip': ({ step, module }) => renderSummaryModule(step, module),
+    'graphic': ({ step, module }) => renderSummaryModule(step, module),
     'interactive-figure-panel': ({ manifest, step, module }) => {
       const galleryItems = imageItemsFromPayload(manifest, module.payload);
       if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module)} items={galleryItems} />;
       const src = getImageSrc(manifest, step, module);
       if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return renderSummaryModule(step, module);
     },
-    'rule-card-row': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
-    },
-    'card-bank': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} />;
-    },
-    'evidence-bank': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="grid-cols-1" />;
-    },
-    'example-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'worked-example-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'condition-list': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'reference-answer-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'rule-card-row': ({ step, module }) => renderSummaryCardGrid(step, module),
+    'card-bank': ({ step, module }) => renderSummaryCardGrid(step, module),
+    'evidence-bank': ({ step, module }) => renderSummaryCardGrid(step, module, 'grid-cols-1'),
+    'example-card': ({ step, module }) => renderSummaryModule(step, module),
+    'worked-example-card': ({ step, module }) => renderSummaryModule(step, module),
+    'condition-list': ({ step, module }) => renderSummaryModule(step, module),
+    'reference-answer-card': ({ step, module }) => renderSummaryModule(step, module),
     'comparison-graphic': ({ manifest, step, module }) => {
       const src = getImageSrc(manifest, step, module);
       if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return renderSummaryModule(step, module);
     },
-    'band-focus-panel': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'ai-compare-workspace': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'revision-note': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'case-context-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'metric-strip': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-4" />;
-    },
-    'teacher-strip': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'next-step-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'reflection-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'key-task-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'next-step-card-row': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <CardGrid title={titleFromModule(module)} items={[content.text, ...content.bullets].filter(Boolean) as string[]} columns="md:grid-cols-3" />;
-    },
-    'bullet-list-card': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'band-focus-panel': ({ step, module }) => renderSummaryModule(step, module),
+    'ai-compare-workspace': ({ step, module }) => renderSummaryModule(step, module),
+    'revision-note': ({ step, module }) => renderSummaryModule(step, module),
+    'case-context-card': ({ step, module }) => renderSummaryModule(step, module),
+    'metric-strip': ({ step, module }) => renderSummaryCardGrid(step, module, 'md:grid-cols-4'),
+    'teacher-strip': ({ step, module }) => renderSummaryModule(step, module),
+    'next-step-card': ({ step, module }) => renderSummaryModule(step, module),
+    'reflection-card': ({ step, module }) => renderSummaryModule(step, module),
+    'key-task-card': ({ step, module }) => renderSummaryModule(step, module),
+    'next-step-card-row': ({ step, module }) => renderSummaryCardGrid(step, module, 'md:grid-cols-3'),
+    'bullet-list-card': ({ step, module }) => renderSummaryModule(step, module),
     'equation-card-row': ({ step, module }) => {
       const block = blockFor(step, module.payload) ?? blockByModuleId(step, module) ?? step.contentBlocks.target_cards;
       const items = listFromRecordItems(block);
       return <CardGrid title={titleFromModule(module)} items={items} columns="md:grid-cols-4" />;
     },
-    'native-table': ({ step, module }) => {
-      const table = tableFor(step, module);
-      if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
-    },
-    'native-formula-table': ({ step, module }) => {
-      const table = tableFor(step, module);
-      if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
-    },
-    'table-card': ({ step, module }) => {
-      const table = tableFor(step, module);
-      if (!table) return null;
-      return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
-    },
+    'native-table': ({ step, module }) => renderNativeTableModule(step, module),
+    'native-formula-table': ({ step, module }) => renderNativeTableModule(step, module),
+    'table-card': ({ step, module }) => renderNativeTableModule(step, module),
     'template-card': ({ step, module }) => {
       const block = blockFor(step, module.payload) ?? blockByModuleId(step, module);
       const source = valueAtField(block, module.payload.field);
@@ -4752,8 +4684,7 @@ export function createManifestContentModuleRegistry(extra: {
     'media-card': ({ manifest, step, module }) => {
       const src = getImageSrc(manifest, step, module);
       if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return renderSummaryModule(step, module);
     },
     'native-figure': ({ step, module }) => {
       const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
@@ -4762,31 +4693,10 @@ export function createManifestContentModuleRegistry(extra: {
       const source = typeof block.source === 'string' ? `图源：${block.source}` : undefined;
       return <SummaryCard title={caption} text={conclusion ?? source} bullets={conclusion && source ? [source] : []} />;
     },
-    'figure-note': ({ step, module }) => {
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
-    'rust-analysis-panel': ({ module }) => (
-      <SummaryCard
-        title={titleFromModule(module)}
-        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
-        bullets={asStringArray(module.payload.items)}
-      />
-    ),
-    'rust-time-compare-panel': ({ module }) => (
-      <SummaryCard
-        title={titleFromModule(module)}
-        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
-        bullets={asStringArray(module.payload.items)}
-      />
-    ),
-    'rust-bode-compare-panel': ({ module }) => (
-      <SummaryCard
-        title={titleFromModule(module)}
-        text={typeof module.payload.text === 'string' ? module.payload.text : undefined}
-        bullets={asStringArray(module.payload.items)}
-      />
-    ),
+    'figure-note': ({ step, module }) => renderSummaryModule(step, module),
+    'rust-analysis-panel': ({ module }) => renderPayloadTextSummary(module),
+    'rust-time-compare-panel': ({ module }) => renderPayloadTextSummary(module),
+    'rust-bode-compare-panel': ({ module }) => renderPayloadTextSummary(module),
     'stat-panel': ({ step, module }) => {
       const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
       const fields = asStringArray(block.fields);
@@ -4821,69 +4731,11 @@ export function createManifestContentModuleRegistry(extra: {
       const text = stringFromKnownBlocks(step, ['next_route']);
       return text ? <SummaryCard title={titleFromModule(module)} text={text} /> : null;
     },
-    'step-reveal': ({ step, module, extra: renderExtra }) => {
-      const items = revealItems(step, module);
-      if (!items.length) return null;
-      return (
-        <StepReveal
-          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
-          title={titleFromModule(module)}
-          items={items}
-          revealProgress={renderExtra.revealProgress}
-          allowInlineReveal={renderExtra.allowInlineReveal}
-          onInlineReveal={renderExtra.onInlineReveal}
-          revealLocked={renderExtra.revealLocked}
-        />
-      );
-    },
-    'reveal-chain': ({ step, module, extra: renderExtra }) => {
-      const items = revealItems(step, module);
-      if (!items.length) return null;
-      return (
-        <StepReveal
-          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
-          title={titleFromModule(module)}
-          items={items}
-          revealProgress={renderExtra.revealProgress}
-          allowInlineReveal={renderExtra.allowInlineReveal}
-          onInlineReveal={renderExtra.onInlineReveal}
-          revealLocked={renderExtra.revealLocked}
-        />
-      );
-    },
-    'step-reveal-chain': ({ step, module, extra: renderExtra }) => {
-      const items = revealItems(step, module);
-      if (!items.length) return null;
-      return (
-        <StepReveal
-          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
-          title={titleFromModule(module)}
-          items={items}
-          revealProgress={renderExtra.revealProgress}
-          allowInlineReveal={renderExtra.allowInlineReveal}
-          onInlineReveal={renderExtra.onInlineReveal}
-          revealLocked={renderExtra.revealLocked}
-        />
-      );
-    },
-    'step-reveal-column': ({ step, module, extra: renderExtra }) => {
-      const items = revealItems(step, module);
-      if (items.length) {
-        return (
-          <StepReveal
-            key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
-            title={titleFromModule(module)}
-            items={items}
-            revealProgress={renderExtra.revealProgress}
-            allowInlineReveal={renderExtra.allowInlineReveal}
-            onInlineReveal={renderExtra.onInlineReveal}
-            revealLocked={renderExtra.revealLocked}
-          />
-        );
-      }
-      const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
-    },
+    'step-reveal': ({ step, module, extra: renderExtra }) => renderStepRevealModule(step, module, renderExtra),
+    'reveal-chain': ({ step, module, extra: renderExtra }) => renderStepRevealModule(step, module, renderExtra),
+    'step-reveal-chain': ({ step, module, extra: renderExtra }) => renderStepRevealModule(step, module, renderExtra),
+    'step-reveal-column': ({ step, module, extra: renderExtra }) =>
+      renderStepRevealModule(step, module, renderExtra) ?? renderSummaryModule(step, module),
   };
 }
 

@@ -1,11 +1,11 @@
 import {
   getArenaChallengeTask,
   getArenaMetricProfile,
-} from '@/features/arena/data/seed-challenges';
+} from '@/features/arena/domain';
 import type {
   ControllerMethod,
   MetricDefinition,
-} from '@/features/arena/types';
+} from '@/features/arena/domain';
 
 export interface ArenaCompanionParameter {
   id: string;
@@ -119,6 +119,30 @@ const methodDefinitions: Record<ControllerMethod, MethodCompanionDefinition> = {
     learningActions: ['先验证控制器在资源边界内的确定性行为，再比较练习指标。'],
   },
 };
+
+const CLIENT_AUTHORED_ARENA_COMPANION_COURSE_ID = 'simulation-companion';
+const CLIENT_AUTHORED_ARENA_COMPANION_ID_PREFIXES = [
+  'arena:',
+  'arena-companion:',
+  'arena-official:',
+  'ai-companion:',
+] as const;
+
+export function isClientAuthoredArenaCompanionScope(input: {
+  courseId?: string | null;
+  pageId?: string | null;
+  resourceId?: string | null;
+  pathNodeId?: string | null;
+  arenaTaskId?: string | null;
+  method?: string | null;
+}): boolean {
+  if (input.arenaTaskId || input.method) return true;
+  if (input.courseId === CLIENT_AUTHORED_ARENA_COMPANION_COURSE_ID) return true;
+  return [input.pageId, input.resourceId, input.pathNodeId].some((value) => (
+    typeof value === 'string'
+    && CLIENT_AUTHORED_ARENA_COMPANION_ID_PREFIXES.some((prefix) => value.startsWith(prefix))
+  ));
+}
 
 function requireTask(taskId: string) {
   const task = getArenaChallengeTask(taskId);

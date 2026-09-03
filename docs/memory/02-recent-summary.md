@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-08-18
-摘要: 初始化时优先读取的最近上下文入口。当前平台主线已经覆盖统一壳层、标准互动课、控制工作台、Arena、资源语义治理、知识图谱、数据治理和智能助教；31 课闲聊自控导入片已发布到生产 OSS blob-view `runtime-7b907428f…`。Issue #1125 已完成 CTKG 0.2 聚合协议变基的实现与文档同步，候选底座锁定 `control-theory-engineering-v0.2`，Legacy 仍为生产权威。
+最后更新: 2026-08-31
+摘要: 生产知识面已切到 Authority v0.37 + 应用 `v0.6.1`。`latestCutover` 为 successor/ready；合格领域有非空教学关系。Runtime 仍为 `runtime-150a505a…`。#1683 产品验收已完成，待 archive 与关 Issue。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-08-31 #1683 生产应用 `v0.6.1-93a70ae`（`deploymentScope=app-only`）已 `deploy:app --skip-build`。successor Teaching/domain-fragments overlay 已安装；密封 shard set 未重物化。公网 `/knowledge` 合格领域不再显示「教学关系暂不可用」。独立 Runtime receipt generation=30。不要再 apply overlay，不要 `deploy:runtime`，不要重跑 10.7。
 - 2026-08-27 #1554 纠正：PR 质量门禁是本地可审计证据，不是 GitHub Actions PR CI。`integration` PR 不增加 `pull_request` 触发器，也不要求 GitHub status check。GitHub Actions 只保留现有 `main` push、明确授权的 `workflow_dispatch`，以及后续单独授权的发布验证。已删除 `.github/workflows/quality-gates.yml`，并恢复 `ci.yml` 的 main 基线。
 - 2026-08-18 31 课导入片已增量发布到生产 v2 blob-view。active `runtime-7b907428f…`（source `71bbc2db4`），rollback `runtime-3dcc716…`；v0.18 选择器通过 parent overlay 保留。公网媒体走 `/api/course-runtime/assets/lessons/<unit>/media/<unit>-intro-video.mp4`，验收为 307。`remote-deploy.sh` 的 `legacy-rsync` 已退役，不得再 rsync `course-content/runtime`。
 - 2026-08-18 SiliconFlow 主力模型已切到 `Qwen/Qwen3.5-35B-A3B`。运行时真源是 `PlatformSetting.ai_provider_settings.selectedModel`，不是容器里残留的 `AI_MODEL`。切换前本地和生产 siliconflow 实际都是 `deepseek-ai/DeepSeek-V4-Flash`；代码回退默认此前是 Qwen3.6。未因这次切模型重建生产镜像。

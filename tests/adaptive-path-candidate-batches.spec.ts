@@ -9,7 +9,7 @@ const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1
 const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/lib/adaptive-path-candidate-batches.ts',
+  'src/features/personalization/path-planning/adaptive-path-candidate-batches.ts',
   'src/lib/konling-agent-runtime.ts',
   'tests/adaptive-path-candidate-batches.spec.ts',
 ];

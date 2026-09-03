@@ -1,4 +1,4 @@
-import { materializeKaqEvidenceWriteback, projectKaqEvidenceWritebackForConsumer } from '@/lib/data-governance/kaq-evidence-writeback';
+import { materializeKaqEvidenceWriteback, projectKaqEvidenceWritebackForConsumer } from '@/features/assessment/public-api';
 import { buildKaqArtifactVersionRefs } from '@/lib/kaq-artifact-versioning';
 
 import type {

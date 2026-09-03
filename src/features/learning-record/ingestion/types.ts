@@ -113,6 +113,7 @@ export interface IngestLearningFactInput {
   captureRevision: string;
   classId?: string;
   now?: Date;
+  receivedAt?: string;
   rebaseReceipt?: RebaseReceipt;
   captureRebaseReceipt?: RebaseReceipt;
 }
@@ -139,6 +140,12 @@ export function ingestionDedupeKey(input: {
   captureRevision: string;
 }): string {
   return `learning-fact-ingestion:${input.sourceEventId}:${input.captureRevision}`;
+}
+
+export function readExistingInputDigest(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+  const digest = (payload as { inputDigest?: unknown }).inputDigest;
+  return typeof digest === 'string' ? digest : undefined;
 }
 
 export function currentCaptureRevision(env: NodeJS.ProcessEnv = process.env): string {

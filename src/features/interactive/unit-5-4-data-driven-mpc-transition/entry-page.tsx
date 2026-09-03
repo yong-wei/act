@@ -1,7 +1,8 @@
 'use client';
 
+import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
 import { CourseEntryShell } from '@/features/interactive/shared/course-entry-shell';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import {
   UNIT_5_4_COURSE_DESCRIPTION,
   UNIT_5_4_COURSE_TITLE,
@@ -17,17 +18,20 @@ export function UNIT_5_4CourseEntryPage({
   lessonRuntime: RuntimeLessonEntryBundle;
 }) {
   return (
-    <CourseEntryShell
-      initialRole={initialRole}
-      lessonRuntime={lessonRuntime}
-      config={{
-        title: UNIT_5_4_COURSE_TITLE,
-        description: UNIT_5_4_COURSE_DESCRIPTION,
-        presetKey: UNIT_5_4_PRESET_KEY,
-        routeSegment: UNIT_5_4_ROUTE_SEGMENT,
-        overviewKicker: lessonRuntime.lesson.lesson_id + ' · Course Entry',
-        mediaCourseLabel: lessonRuntime.lesson.lesson_id + ' · Pre-study',
-      }}
-    />
+    <>
+      <CourseEntryShell
+        initialRole={initialRole}
+        lessonRuntime={lessonRuntime}
+        config={{
+          title: UNIT_5_4_COURSE_TITLE,
+          description: UNIT_5_4_COURSE_DESCRIPTION,
+          presetKey: UNIT_5_4_PRESET_KEY,
+          routeSegment: UNIT_5_4_ROUTE_SEGMENT,
+          overviewKicker: lessonRuntime.lesson.lesson_id + ' · Course Entry',
+          mediaCourseLabel: lessonRuntime.lesson.lesson_id + ' · Pre-study',
+        }}
+      />
+      <ArenaWorkbenchSubmissionMount workspaceMode="predictive-control" />
+    </>
   );
 }

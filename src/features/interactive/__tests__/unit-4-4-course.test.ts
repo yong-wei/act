@@ -126,31 +126,6 @@ describe('unit 4-4 interactive course', () => {
 
     expect(presetModule.UNIT_4_4_FIXED_STRUCTURE_OPTIMIZATION_MODELING_PRESET).toBeDefined();
     expect(presetModule.ALL_PRESETS.some((preset: { key: string }) => preset.key === 'unit-4-4-fixed-structure-optimization-modeling-v1')).toBe(true);
-
-    expect(
-      existsSync(
-        join(
-          repoRoot,
-          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/entry.tsx',
-        ),
-      ),
-    ).toBe(true);
-    expect(
-      existsSync(
-        join(
-          repoRoot,
-          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/student.tsx',
-        ),
-      ),
-    ).toBe(true);
-    expect(
-      existsSync(
-        join(
-          repoRoot,
-          'src/features/interactive/course-app-routes/unit-4-4-fixed-structure-optimization-modeling/teacher.tsx',
-        ),
-      ),
-    ).toBe(true);
     expect(existsSync(join(repoRoot, 'src/app/interactive-learning/courses/[routeSegment]/page.tsx'))).toBe(true);
   });
 

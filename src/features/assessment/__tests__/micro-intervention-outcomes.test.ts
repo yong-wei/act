@@ -499,6 +499,134 @@ describe('micro intervention outcomes', () => {
     expect(JSON.stringify(question)).not.toContain('source-question-private');
   });
 
+  it('normalizes checkpoint-authored source IDs through start, fetch, and submit', async () => {
+    const authoredSourceId = 'root-locus-analysis-foundations-checkpoint-01';
+    const runtimeQuestionId = `checkpoint-authored-question:${authoredSourceId}`;
+    const authoredQuestion = {
+      id: runtimeQuestionId,
+      stem: '根轨迹的分离点由什么条件确定？',
+      options: [
+        { label: 'A', text: '特征方程对增益求导为零', isCorrect: true },
+        { label: 'B', text: '仅看开环极点个数', isCorrect: false },
+      ],
+    };
+    const authoredSource = {
+      ...SOURCE,
+      task: {
+        ...SOURCE.task,
+        validationQuestion: {
+          ...SOURCE.task.validationQuestion,
+          questionId: authoredSourceId,
+        },
+      },
+    };
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue(authoredSource);
+    mocks.getAdaptiveQuestionById.mockImplementation((questionId: string) => (
+      questionId === authoredSourceId || questionId === runtimeQuestionId ? authoredQuestion : null
+    ));
+    const { db, interventions } = createDb();
+
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    expect(interventions[0].sourceSnapshot).toEqual(expect.objectContaining({
+      validationRuntimeHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+    }));
+    expect(interventions[0].sourceSnapshot.task.validationQuestion.questionId).toBe(runtimeQuestionId);
+    expect(mocks.getAdaptiveQuestionById).toHaveBeenCalledWith(authoredSourceId);
+
+    await recordMicroInterventionEvent({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'complete-1',
+      eventType: 'COMPLETED',
+      durationSeconds: 180,
+    });
+
+    const fetched = await readMicroInterventionValidationQuestion({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+    });
+    expect(fetched).toEqual({
+      id: runtimeQuestionId,
+      prompt: authoredQuestion.stem,
+      options: authoredQuestion.options.map(({ label, text }) => ({ label, text })),
+    });
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: authoredSourceId,
+      selectedOption: 'A',
+      durationSeconds: 45,
+    })).resolves.toMatchObject({
+      status: 'VALIDATED',
+      validation: { isCorrect: true },
+    });
+  });
+
+  it('does not backfill a null runtime hash on a legacy intervention', async () => {
+    const authoredSourceId = 'root-locus-analysis-foundations-checkpoint-01';
+    const runtimeQuestionId = `checkpoint-authored-question:${authoredSourceId}`;
+    const authoredSource = {
+      ...SOURCE,
+      task: {
+        ...SOURCE.task,
+        validationQuestion: {
+          ...SOURCE.task.validationQuestion,
+          questionId: authoredSourceId,
+        },
+      },
+    };
+    mocks.readAvailableRemediationInterventionSource.mockResolvedValue(authoredSource);
+    mocks.getAdaptiveQuestionById.mockReturnValue(null);
+    const { db, interventions } = createDb();
+
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+    expect(interventions[0].sourceSnapshot.validationRuntimeHash).toBeNull();
+    expect(interventions[0].sourceSnapshot.task.validationQuestion.questionId).toBe(authoredSourceId);
+
+    mocks.getAdaptiveQuestionById.mockReturnValue({
+      id: runtimeQuestionId,
+      stem: '根轨迹的分离点由什么条件确定？',
+      options: [
+        { label: 'A', text: '特征方程对增益求导为零', isCorrect: true },
+        { label: 'B', text: '仅看开环极点个数', isCorrect: false },
+      ],
+    });
+
+    await expect(readMicroInterventionValidationQuestion({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+    })).resolves.toEqual({
+      id: started.id,
+      status: 'UNAVAILABLE',
+      unavailableReason: 'REFERENCE_DRIFT',
+    });
+    expect(interventions[0].sourceSnapshot.validationRuntimeHash).toBeNull();
+  });
+
+  it('rejects a checkpoint-authored alias for a non-authored validation question', async () => {
+    const { db } = createDb();
+    const started = await start(db);
+    if (!started || started.status === 'UNAVAILABLE') throw new Error('expected intervention');
+
+    await expect(submitMicroInterventionValidation({
+      db,
+      authenticatedUserId: 'learner-1',
+      interventionId: started.id,
+      eventKey: 'validation-1',
+      questionId: 'checkpoint-authored-question:validation-question',
+      selectedOption: 'B',
+      durationSeconds: 45,
+    })).rejects.toMatchObject({ code: 'VALIDATION_INVALID' });
+  });
+
   it('recommends an existing governed transfer practice after a passing validation', async () => {
     const { db, mocks: dbMocks } = createDb();
     mocks.readAvailableRemediationInterventionSource.mockResolvedValue({

@@ -41,7 +41,7 @@ import {
   type ControlConfigSnapshot
 } from '@/app/actions/control-odyssey';
 import { cn } from '@/lib/utils';
-import { readAITextStream } from '@/lib/ai-stream-compat';
+import { readAITextStream } from '@/lib/ai/stream-compat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useArenaPathSubmissionCompletion } from '@/features/arena/arena-path-journey-control';
 import { resolveArenaPathLaunchParams } from '@/features/arena/arena-path-journey';

@@ -27,7 +27,8 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
     const admin = new URL(baseUrl); admin.searchParams.delete('schema'); adminUrl = admin.toString();
     const scoped = new URL(adminUrl); scoped.searchParams.set('schema', schemaName);
     const pool = new Pool({ connectionString: adminUrl });
-    try { await pool.query(`CREATE SCHEMA "${schemaName}"`); process.env.DATABASE_URL = scoped.toString(); execFileSync('npx', ['prisma', 'db', 'push', '--url', scoped.toString()], { cwd: process.cwd(), env: process.env, stdio: 'pipe' }); } finally { await pool.end(); }
+    try { await pool.query(`CREATE SCHEMA "${schemaName}"`); process.env.DATABASE_URL = scoped.toString(); execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['prisma', 'db', 'push', '--url', scoped.toString()], { cwd: process.cwd(), env: process.env, stdio: 'pipe', shell: process.platform === 'win32' }); } finally { await pool.end(); }
+    await prisma.gradingLifecyclePolicy.createMany({ data: ['source-asset', 'answer-evidence'].map((dataClass) => ({ dataClass, version: 'test.v1', retentionSeconds: 3600, governedRecordRule: null, deleteStrategy: 'delete-content', providerRetentionSeconds: 0, enabled: true })) });
     await prisma.user.createMany({ data: [{ id: teacherId, role: 'TEACHER' }, { id: studentId, role: 'STUDENT' }, { id: otherStudentId, role: 'STUDENT' }] });
     await prisma.class.create({ data: { id: classId, name: '902班', code: 'A902IT', teacherId } });
     await prisma.studentProfile.createMany({ data: [{ userId: studentId, classId }, { userId: otherStudentId, classId }] });
@@ -133,6 +134,9 @@ describe.runIf(enabled)('student assignment isolated PostgreSQL integration', ()
     const file = await prisma.submissionAnswer.findFirstOrThrow({ where: { submission: { studentId }, assignmentQuestionId: fileQuestionId } });
     const final = await submitQuestionAnswer(prisma, { studentId, assignmentId, questionId: fileQuestionId, answerVersion: file.version, idempotencyKey: 'submit-902-file-0001' });
     expect(final.aggregate).toMatchObject({ state: 'SUBMITTED', submittedRequiredCount: 2, requiredQuestionCount: 2 });
+    const frozenSubmission = await prisma.assignmentSubmission.findFirstOrThrow({ where: { assignmentRevisionId: firstRevisionId, studentId }, include: { audience: true } });
+    expect(frozenSubmission.frozenAudienceClassId).toBe(classId);
+    expect(frozenSubmission.frozenAudienceDueAt).toEqual(frozenSubmission.audience.dueAt);
   });
 
   it('preserves the exact historical revision after class leave and a newer publication', async () => {

@@ -5,7 +5,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import {
   LearningPathMutationBlockedError,
 } from '@/lib/canonical-learning-path-transition/mutation-guard';
-import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
+import { recordPathIntervention } from '@/features/personalization/path-planning/control-correction-path-rounds';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {

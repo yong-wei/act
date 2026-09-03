@@ -9,10 +9,10 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3002';
 const generatorFile = 'tests/adaptive-path-recommendation-provenance-evidence.spec.ts';
 const productionSourceFiles = [
   'src/app/assessment/adaptive-practice/page.tsx',
-  'src/features/adaptive/adaptive-learning-center-contracts.ts',
+  'src/features/personalization/experience/adaptive-learning-center-contracts.ts',
   'src/features/personalization/path-planning/internal/assemble-plan.ts',
-  'src/lib/adaptive-path-round-restore.ts',
-  'src/lib/adaptive-path-option-display.ts',
+  'src/features/personalization/path-planning/adaptive-path-round-restore.ts',
+  'src/features/personalization/path-planning/adaptive-path-option-display.ts',
 ];
 const trackedSourceFiles = [generatorFile, ...productionSourceFiles];
 const evidenceDir = path.resolve(

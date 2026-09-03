@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { NextResponse } from 'next/server';
@@ -26,9 +28,11 @@ import {
 import { localeDigest } from './digest';
 import { contentDigestFor, denominatorDigestFor, isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
-import { loadActivePresentationInventory } from './active-presentation-inventory';
-import { expectedDenominatorsFromInventory } from './presentation-denominator';
-import { readPublishedLocaleManifest } from './published';
+import {
+  LOCALE_MANIFESTS_DIR_RELATIVE,
+  readLocaleQualificationPackage,
+  verifyLocaleQualificationPackage,
+} from './qualification-package';
 
 export interface LocaleRequestResolution {
   readonly ok: true;
@@ -114,14 +118,25 @@ function localeEvidenceFingerprint(
   ) {
     throw new Error('active shard-set seal drifted from the current pointer');
   }
-  const localeManifest = readPublishedLocaleManifest(repoRoot);
+  // 证据指纹包含密封资格包的内容 digest：包字节漂移即失效缓存。包目录
+  // 按仓库契约只承载有限个 composite 包（当前仅 v0.37）。
+  const pkgDir = join(repoRoot, LOCALE_MANIFESTS_DIR_RELATIVE);
+  let packageDigest = 'missing';
+  if (existsSync(pkgDir)) {
+    const names = readdirSync(pkgDir).filter((file) => file.endsWith('.json')).sort();
+    const perFile = names.map((file) => {
+      const bytes = readFileSync(join(pkgDir, file));
+      return `${file}:${createHash('sha256').update(bytes).digest('hex')}`;
+    });
+    packageDigest = localeDigest(perFile);
+  }
   return [
     snapshotHash,
     releaseId,
     catalogHash,
     recomputedSetHash,
     pointer.shardSetId,
-    localeManifest ? localeManifestQualificationDigest(localeManifest) : 'missing',
+    packageDigest,
   ].join(':');
 }
 
@@ -144,6 +159,7 @@ export function resolveActiveLocaleQualification(
       && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
     ));
     if (!match) {
+      console.warn('[locale-qualification] historical fallback: no qualified composite registry match');
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
@@ -154,22 +170,33 @@ export function resolveActiveLocaleQualification(
       authoritySnapshotId: match.authoritySnapshotId,
       authoritySnapshotHash: match.authoritySnapshotHash,
     };
-    const manifest = readPublishedLocaleManifest(repoRoot);
-    if (!manifest || manifest.identity.compositeReleaseName !== match.name) {
+    // 运行时只读密封资格包并做小体量核验（identity/registry/digest + 内存
+    // 重跑 qualify）；不遍历分片闭包、不重建分母（#1741 design 2）。
+    const pkg = readLocaleQualificationPackage(repoRoot, match.name);
+    if (!pkg) {
+      console.warn('[locale-qualification] historical fallback: sealed package missing', match.name);
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
     }
-    const expectedDenominators = expectedDenominatorsFromInventory(
-      loadActivePresentationInventory(repoRoot, active),
+    const verified = verifyLocaleQualificationPackage({ repoRoot, package: pkg });
+    if (!verified.ok) {
+      console.warn('[locale-qualification] historical fallback:', verified.reason);
+      const historical = historicalQualification();
+      qualificationByEvidence.set(cacheKey, historical);
+      return historical;
+    }
+    const qualification = qualifyReleaseLocales(
+      verified.manifest,
+      verified.envelope,
+      verified.manifest.denominators,
     );
-    const qualification = qualifyReleaseLocales(manifest, envelope, expectedDenominators);
     if (!qualification.bilingualReady) {
       const result: ActiveLocaleQualification = {
         capability: historicalLocaleCapability(),
-        manifest,
+        manifest: verified.manifest,
         envelope,
-        expectedDenominators,
+        expectedDenominators: verified.manifest.denominators,
         qualification,
       };
       qualificationByEvidence.set(cacheKey, result);
@@ -183,14 +210,18 @@ export function resolveActiveLocaleQualification(
         mode: 'complete-locale',
         languageComponentDigest: qualification.zhCN?.identity.languageComponentDigest ?? null,
       },
-      manifest,
+      manifest: verified.manifest,
       envelope,
-      expectedDenominators,
+      expectedDenominators: verified.manifest.denominators,
       qualification,
     };
     qualificationByEvidence.set(cacheKey, ready);
     return ready;
-  } catch {
+  } catch (error) {
+    console.warn(
+      '[locale-qualification] historical fallback:',
+      error instanceof Error ? error.message : error,
+    );
     return historicalQualification();
   }
 }

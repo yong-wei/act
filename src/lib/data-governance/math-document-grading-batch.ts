@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION,
   assembleAssignmentAnswerEvidence,
   assignmentAttachmentRoute,
   type AssignmentAttachmentUnderstanding,
@@ -53,7 +54,11 @@ export interface BatchRequest {
   conversionPolicyId?: string | null;
   conversionImagePolicyId?: string | null;
   conversionDocumentPolicyId?: string | null;
+  visualPolicyId?: string | null;
   rerunReason?: string;
+  studentIds?: string[];
+  attemptIds?: string[];
+  assignmentGradingOperationId?: string;
   maxItems?: number;
   now?: Date;
 }
@@ -148,6 +153,13 @@ export async function createQuestionScopedGradingBatch(input: {
   const conversionPolicySnapshotHash = conversionPolicyBundle
     ? sha256(stableStringify(conversionPolicyBundle))
     : externalProcessingPolicyHash(conversionPolicy);
+  const visualPolicyRow = input.request.visualPolicyId
+    ? await input.db.gradingProviderPolicy.findUnique({ where: { id: input.request.visualPolicyId }, select: GRADING_PROVIDER_POLICY_SELECT })
+    : null;
+  if (input.request.visualPolicyId && !visualPolicyRow) throw new Error('grading-provider-policy-not-found');
+  const visualPolicy = toGradingProviderPolicySnapshot(visualPolicyRow);
+  if (visualPolicy && visualPolicy.purpose !== 'visual-description') throw new Error('provider-policy-purpose-mismatch');
+  const visualPolicySnapshotHash = externalProcessingPolicyHash(visualPolicy);
   const evaluatorIdentity = {
     id: policy?.provider ?? 'configured-provider',
     version: policy?.model ?? policy?.version ?? 'runtime-resolved',
@@ -160,10 +172,15 @@ export async function createQuestionScopedGradingBatch(input: {
     conversionPolicyId: input.request.conversionPolicyId ?? null,
     conversionImagePolicyId: input.request.conversionImagePolicyId ?? null,
     conversionDocumentPolicyId: input.request.conversionDocumentPolicyId ?? null,
+    visualPolicyId: input.request.visualPolicyId ?? null,
     policySnapshotHash,
     conversionPolicySnapshotHash,
+    visualPolicySnapshotHash,
     evaluatorId: input.request.evaluatorId?.trim() || null,
     evaluatorVersion: input.request.evaluatorVersion?.trim() || null,
+    studentIds: [...new Set(input.request.studentIds ?? [])].sort(),
+    attemptIds: [...new Set(input.request.attemptIds ?? [])].sort(),
+    assignmentGradingOperationId: input.request.assignmentGradingOperationId ?? null,
     maxItems: input.request.maxItems ?? MATH_DOCUMENT_GRADING_LIMITS.batchItems,
     rerunReason: input.request.rerunReason?.trim() || null,
   });
@@ -181,6 +198,11 @@ export async function createQuestionScopedGradingBatch(input: {
     conversionImagePolicyId: input.request.conversionImagePolicyId ?? null,
     conversionDocumentPolicyId: input.request.conversionDocumentPolicyId ?? null,
     conversionPolicySnapshotHash,
+    visualPolicyId: input.request.visualPolicyId ?? null,
+    visualPolicySnapshotHash,
+    studentIds: [...new Set(input.request.studentIds ?? [])].sort(),
+    attemptIds: [...new Set(input.request.attemptIds ?? [])].sort(),
+    assignmentGradingOperationId: input.request.assignmentGradingOperationId ?? null,
     rerunReason: input.request.rerunReason ?? null,
     rerunIdempotencyKey: input.request.rerunReason ? input.request.idempotencyKey : null,
   });
@@ -188,7 +210,10 @@ export async function createQuestionScopedGradingBatch(input: {
     assignmentRevisionId: input.request.assignmentRevisionId,
     questionId: input.request.questionId,
     classId: input.request.classId,
+    studentIds: input.request.studentIds,
+    attemptIds: input.request.attemptIds,
     maxItems: input.request.maxItems ?? MATH_DOCUMENT_GRADING_LIMITS.batchItems,
+    includeActiveGradingRuns: Boolean(input.request.rerunReason?.trim()),
   });
   const requestResult = await withGradingRequestIdempotency({
     db: input.db,
@@ -210,6 +235,7 @@ export async function createQuestionScopedGradingBatch(input: {
         data: {
           id: batchId,
           assignmentRevisionId: input.request.assignmentRevisionId,
+          assignmentGradingOperationId: input.request.assignmentGradingOperationId ?? null,
           questionId: input.request.questionId,
           classId: input.request.classId,
           requesterUserId: input.request.actor.id,
@@ -219,6 +245,9 @@ export async function createQuestionScopedGradingBatch(input: {
           conversionPolicyId: conversionPolicyBundle ? null : input.request.conversionPolicyId ?? null,
           conversionPolicySnapshot: frozenConversionSnapshot ?? null,
           conversionPolicySnapshotHash,
+          visualPolicyId: input.request.visualPolicyId ?? null,
+          visualPolicySnapshot: visualPolicy ?? null,
+          visualPolicySnapshotHash,
           dedupeKey,
           idempotencyKey: input.request.idempotencyKey,
           questionSnapshotHash: frozenQuestion.contentHash,
@@ -308,7 +337,7 @@ export async function processQuestionGradingBatch(input: {
   now?: Date;
 }): Promise<{ batch: any; itemResults: Array<{ itemId: string; state: string; error?: string }> }> {
   const now = input.now ?? new Date();
-  const batch = await input.db.gradingBatch.findUnique({ where: { id: input.batchId }, include: { items: true, question: true, policy: true, conversionPolicy: true } });
+  const batch = await input.db.gradingBatch.findUnique({ where: { id: input.batchId }, include: { items: true, question: true, policy: true, conversionPolicy: true, visualPolicy: true } });
   if (!batch) throw new Error('grading-batch-not-found');
   if (batch.assignmentRevisionId === null || batch.questionId === null || batch.classId === null) throw new Error('batch-content-unavailable:parent-lineage-missing');
   if (batch.state && !['CONTENT_UNAVAILABLE', 'CANCELLED', 'FAILED', 'BLOCKED', 'SUCCEEDED', 'PARTIAL'].includes(batch.state)) {
@@ -666,8 +695,39 @@ async function processBatchItem(input: {
         include: { blocks: true, conversion: true },
       })
     : null;
+  let refreshedVisualEvidence = false;
+  if (!evidence && input.db.answerEvidence?.findFirst) {
+    evidence = await input.db.answerEvidence.findFirst({
+      where: { attemptId: attempt.id, readiness: 'READY' },
+      orderBy: { version: 'desc' },
+      include: { blocks: true, conversion: true },
+    });
+  }
+  if (evidence
+    && attempt.answer.assets.length > 0
+    && evidence.anchorVersion !== ASSIGNMENT_ATTACHMENT_MANIFEST_VERSION) evidence = null;
+  // A prior conversion may have persisted BLOCKED evidence because visual
+  // attachments were not yet described. Treat that evidence as stale for a
+  // rerun so the current batch's frozen visual policy can create a fresh
+  // conversion/evidence pair instead of permanently reusing the blocked row.
+  if (evidence && input.batch.visualPolicyId && attempt.answer.assets.length > 0) {
+    const conversionVisualEvidence = evidence.conversion?.visualEvidence ?? [];
+    const visualEvidenceIncomplete = conversionVisualEvidence.some((visual: any) => visual.readiness !== 'READY');
+    // Assignment-level materialization can produce READY text evidence without
+    // a conversion relation. It is not sufficient for a document batch that
+    // must carry visual evidence, so force a fresh conversion in that case.
+    if (evidence.readiness !== 'READY' || !evidence.conversion || visualEvidenceIncomplete) {
+      evidence = null;
+      refreshedVisualEvidence = true;
+    }
+  }
+  const sourceAsset = attempt.answer.assets.find((asset: any) => asset.id === evidence?.sourceAssetId);
+  const trustedWordDualRepresentation = evidence?.conversion?.adapter === 'local-markitdown'
+    && Boolean(evidence.conversion.renderedObjectKey)
+    && isWordDocumentAsset(sourceAsset);
   if (evidence?.conversion
-    && ['local-fallback', 'local-markitdown'].includes(evidence.conversion.adapter)) {
+    && ['local-fallback', 'local-markitdown'].includes(evidence.conversion.adapter)
+    && !trustedWordDualRepresentation) {
     throw new Error('batch-evidence-legacy-local-binary-ineligible');
   }
   if (!evidence && attempt.answer.assets.length === 0 && attempt.textSnapshot?.trim()) {
@@ -715,6 +775,9 @@ async function processBatchItem(input: {
         policySnapshotHash: route === 'binary-mathpix'
           ? conversionPolicySnapshotHash
           : null,
+        visualPolicyId: input.batch.visualPolicyId ?? null,
+        visualPolicySnapshot: input.batch.visualPolicySnapshot ?? null,
+        visualPolicySnapshotHash: input.batch.visualPolicySnapshotHash ?? null,
         allowDefaultPolicyDiscovery: false,
         idempotencyKey: `batch:${input.batch.id}:${input.item.id}:conversion:${asset.id}${executionSuffix}`,
         rerunIdentity: input.rerunIdentity ?? null,
@@ -749,8 +812,12 @@ async function processBatchItem(input: {
         converted = processedConversion.conversion;
         if (processedConversion.conversion.state === 'CANCELLED') throw new Error('batch-cancelled');
       }
-      const ready = converted.state === 'SUCCEEDED'
-        && Boolean(converted.canonicalMarkdown?.trim());
+      const ready = Boolean(converted.canonicalMarkdown?.trim())
+        && (converted.state === 'SUCCEEDED'
+          || (converted.state === 'FALLBACK'
+            && converted.adapter === 'local-markitdown'
+            && Boolean(converted.renderedObjectKey)
+            && isWordDocumentAsset(asset)));
       const convertedBlocks = Array.isArray(converted.normalizedBlocks)
         ? converted.normalizedBlocks
         : [];
@@ -811,11 +878,11 @@ async function processBatchItem(input: {
     evidence = result.evidence;
   }
   if (!evidence || evidence.readiness !== 'READY') throw new Error('batch-evidence-not-ready');
-  if (input.item.evidenceVersion != null && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
-  if (input.item.evidenceHash && evidence.sourceHash !== input.item.evidenceHash) throw new Error('batch-frozen-evidence-hash-mismatch');
+  if (!refreshedVisualEvidence && input.item.evidenceVersion != null && evidence.version !== input.item.evidenceVersion) throw new Error('batch-frozen-evidence-version-mismatch');
+  if (!refreshedVisualEvidence && input.item.evidenceHash && evidence.sourceHash !== input.item.evidenceHash) throw new Error('batch-frozen-evidence-hash-mismatch');
   await assertBatchWorkerLease(input);
   await assertBatchNotCancelled(input.db, input.batch.id);
-  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { evidenceId: evidence.id, evidenceHash: evidence.sourceHash, evidenceVersion: evidence.version, state: 'GRADING', progress: 60, updatedAt: input.now });
+  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { evidenceId: evidence.id, evidenceHash: evidence.sourceHash, evidenceVersion: evidence.version, conversionId: evidence.conversionId ?? evidence.conversion?.id ?? input.item.conversionId ?? null, state: 'GRADING', progress: 60, updatedAt: input.now });
   await assertBatchWorkerLease(input);
   const executionSuffix = input.rerunIdentity ? `:${input.rerunIdentity}` : '';
   const rerunReason = input.rerunReason
@@ -823,21 +890,41 @@ async function processBatchItem(input: {
     : input.batch.rerunReason ?? undefined;
   const enqueued = await enqueueGradingRun({ db: input.db, attemptId: attempt.id, evidenceId: evidence.id, actor: { id: 'grading-worker', role: 'SERVICE' }, idempotencyKey: `batch:${input.batch.id}:${input.item.id}:grading${executionSuffix}`, batchId: input.batch.id, batchItemId: input.item.id, policyId: input.batch.policyId, policySnapshot: input.batch.policySnapshot ?? null, policySnapshotHash: input.batch.policySnapshotHash ?? null, evaluatorId: input.batch.evaluatorId, evaluatorVersion: input.batch.evaluatorVersion, frozenQuestion, rerunReason, now: input.now });
   await assertBatchWorkerLease(input);
-  const processed = enqueued.job ? await processGradingRunJob({ db: input.db, jobId: enqueued.job.id, workerClaimToken: input.workerClaimToken, provider: input.provider, policy: input.batch.policySnapshot ?? input.batch.policy ?? null, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now }) : null;
+  const processed = enqueued.job ? await processGradingRunJob({ db: input.db, jobId: enqueued.job.id, workerClaimToken: input.workerClaimToken, store: input.store, provider: input.provider, policy: input.batch.policySnapshot ?? input.batch.policy ?? null, parentLeaseLost: input.parentLeaseLost, signal: input.signal, now: input.now }) : null;
   const runState = processed?.run.state ?? enqueued.run.state;
   const finalState = runState === 'AWAITING_REVIEW' ? 'SUCCEEDED' : runState === 'CANCELLED' ? 'CANCELLED' : runState === 'BLOCKED' ? 'BLOCKED' : runState === 'RETRYABLE' ? 'RETRYABLE' : 'FAILED';
   await assertBatchWorkerLease(input);
-  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { gradingRunId: enqueued.run.id, inputHash: enqueued.run.inputHash, state: finalState, progress: finalState === 'RETRYABLE' ? 60 : 100, workerClaimToken: null, workerClaimedAt: null, updatedAt: input.now });
+  await updateClaimedBatchItem(input.db.gradingBatchItem, input.item.id, input.workerClaimToken, { gradingRunId: enqueued.run.id, inputHash: enqueued.run.inputHash, state: finalState, failureCode: null, progress: finalState === 'RETRYABLE' ? 60 : 100, workerClaimToken: null, workerClaimedAt: null, updatedAt: input.now });
   return { itemId: input.item.id, state: finalState };
+}
+
+function isWordDocumentAsset(asset: { mimeType?: string | null; originalName?: string | null; displayName?: string | null } | undefined): boolean {
+  if (!asset) return false;
+  const mimeType = asset.mimeType?.trim().toLowerCase();
+  if (mimeType === 'application/msword' || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return true;
+  return /\.docx?$/iu.test(asset.originalName ?? asset.displayName ?? '');
 }
 
 async function assertBatchWorkerLease(input: { parentLeaseLost?: () => Promise<boolean> | boolean; signal?: AbortSignal }): Promise<void> {
   if (input.signal?.aborted || (input.parentLeaseLost && await input.parentLeaseLost())) throw new Error('batch-worker-fenced');
 }
 
-async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignmentRevisionId: string; questionId: string; classId: string; maxItems: number }) {
+async function findEligibleQuestionAttempts(db: MathGradingDb, input: { assignmentRevisionId: string; questionId: string; classId: string; studentIds?: string[]; attemptIds?: string[]; maxItems: number; includeActiveGradingRuns?: boolean }) {
   const attempts = await db.submissionAttempt.findMany({
-    where: { answer: { assignmentQuestionId: input.questionId, state: 'SUBMITTED', submission: { assignmentRevisionId: input.assignmentRevisionId, frozenAudienceClassId: input.classId, state: 'SUBMITTED' } } },
+    where: {
+      ...(input.attemptIds !== undefined ? { id: { in: input.attemptIds } } : {}),
+      answer: {
+        assignmentQuestionId: input.questionId,
+        state: 'SUBMITTED',
+        submission: {
+          assignmentRevisionId: input.assignmentRevisionId,
+          frozenAudienceClassId: input.classId,
+          state: { in: ['SUBMITTED', 'IN_PROGRESS'] },
+          ...(input.studentIds?.length ? { studentId: { in: input.studentIds } } : {}),
+        },
+      },
+      ...(input.includeActiveGradingRuns ? {} : { gradingRuns: { none: { state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED'] } } } }),
+    },
     orderBy: { submittedAt: 'desc' },
     distinct: ['answerId'],
     take: input.maxItems,

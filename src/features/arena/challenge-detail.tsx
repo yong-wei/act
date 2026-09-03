@@ -14,7 +14,7 @@ import { ARENA_VISUAL_ASSETS } from '@/components/platform/visual-world-assets';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from './leaderboards/honors-showcase';
 import { AdaptivePathJourneyControlForArenaTask } from './arena-path-journey-control';
-import type { AdaptivePathLaunchContext } from '@/features/adaptive/adaptive-learning-center-contracts';
+import type { AdaptivePathLaunchContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import {
   ARENA_TRAINING_CAPABILITY_LABELS,
   ARENA_TRAINING_STAGE_LABELS,

@@ -64,6 +64,20 @@ function isHttpsUrl(value: string): boolean {
   return isUrl(value, ['https:']);
 }
 
+function isDevelopmentLoopbackHttpUrl(value: string, env: NodeJS.ProcessEnv): boolean {
+  if (env.NODE_ENV === 'production') return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isObjectStoreUrl(value: string, env: NodeJS.ProcessEnv): boolean {
+  return isHttpsUrl(value) || isDevelopmentLoopbackHttpUrl(value, env);
+}
+
 export function getMathDocumentGradingWorkerCapabilityStatus(
   env: NodeJS.ProcessEnv = process.env,
 ): MathDocumentGradingWorkerCapabilityStatus {
@@ -74,6 +88,9 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
   const requireHttpsUrl = (name: string, value: string) => {
     if (!isHttpsUrl(nonEmpty(value))) missing.add(name);
   };
+  const requireObjectStoreUrl = (name: string, value: string) => {
+    if (!isObjectStoreUrl(nonEmpty(value), env)) missing.add(name);
+  };
 
   const database = isUrl(nonEmpty(env.DATABASE_URL), ['postgres:', 'postgresql:']);
   const redis = isUrl(nonEmpty(env.REDIS_URL), ['redis:', 'rediss:']);
@@ -81,13 +98,13 @@ export function getMathDocumentGradingWorkerCapabilityStatus(
   if (!redis) missing.add('REDIS_URL');
 
   const objectStore = env.SUBMISSION_OBJECT_STORE === 's3'
-    && isHttpsUrl(nonEmpty(env.SUBMISSION_S3_ENDPOINT))
+    && isObjectStoreUrl(nonEmpty(env.SUBMISSION_S3_ENDPOINT), env)
     && Boolean(nonEmpty(env.SUBMISSION_S3_BUCKET))
     && Boolean(nonEmpty(env.SUBMISSION_S3_ACCESS_KEY))
     && Boolean(nonEmpty(env.SUBMISSION_S3_SECRET_KEY));
   if (!objectStore) {
     if (env.SUBMISSION_OBJECT_STORE !== 's3') missing.add('SUBMISSION_OBJECT_STORE');
-    requireHttpsUrl('SUBMISSION_S3_ENDPOINT', env.SUBMISSION_S3_ENDPOINT ?? '');
+    requireObjectStoreUrl('SUBMISSION_S3_ENDPOINT', env.SUBMISSION_S3_ENDPOINT ?? '');
     requireValue('SUBMISSION_S3_BUCKET', env.SUBMISSION_S3_BUCKET ?? '');
     requireValue('SUBMISSION_S3_ACCESS_KEY', env.SUBMISSION_S3_ACCESS_KEY ?? '');
     requireValue('SUBMISSION_S3_SECRET_KEY', env.SUBMISSION_S3_SECRET_KEY ?? '');

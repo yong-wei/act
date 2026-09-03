@@ -12,10 +12,12 @@ import {
   failDiagnosisGenerationAttempt,
 } from '@/lib/diagnosis-generation';
 import {
+  DiagnosisFindingCalibrationError,
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
+  DiagnosisPseudoConflictError, DiagnosisRiskFlagCoverageError,
   generateGovernedDiagnosisReport,
 } from '@/lib/diagnosis-generation-provider';
 import { prisma } from '@/lib/prisma';
@@ -57,6 +59,33 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-finding-attribution-invalid',
+      message: error.message,
+    };
+  }
+  // 薄弱判定未满足最小绝对弱势证据或覆盖降级约束，与空输出同类
+  // （模型行为缺陷，Issue #1728），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisFindingCalibrationError) {
+    return {
+      validation: false,
+      code: 'diagnosis-finding-calibration-invalid',
+      message: error.message,
+    };
+  }
+  // 稀疏风险标志覆盖误读（Issue #1755），与空输出同类（模型行为缺陷），
+  // 在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisRiskFlagCoverageError) {
+    return {
+      validation: false,
+      code: 'diagnosis-risk-flag-coverage-misread',
+      message: error.message,
+    };
+  }
+  // 总体—子群伪冲突（Issue #1872）：与风险标志误读同语义（模型行为
+  // 缺陷），在既有尝试预算内重试而非直接终止。
+  if (error instanceof DiagnosisPseudoConflictError) {
+    return {
+      validation: false,
+      code: 'diagnosis-pseudo-conflict',
       message: error.message,
     };
   }

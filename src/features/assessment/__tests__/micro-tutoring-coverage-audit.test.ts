@@ -3,11 +3,11 @@ import path from 'node:path';
 
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
 import {
   assessmentItemSemanticReviewSourceHash,
   type AssessmentItemSemanticReviewDecision,
-} from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   buildMicroTutoringCoverageAuditReport,
   microTutoringCoverageAuditIsGitContentComplete,

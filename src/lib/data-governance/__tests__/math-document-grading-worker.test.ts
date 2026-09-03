@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   conversion: vi.fn(),
   grading: vi.fn(),
   batch: vi.fn(),
+  operationRefresh: vi.fn(),
   store: vi.fn(() => ({})),
   writer: vi.fn(),
 }));
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../../../src/lib/assignments/submission-object-store', () => ({ createSubmissionObjectStore: mocks.store }));
 vi.mock('../../../../src/lib/data-governance/math-document-grading-persistence', () => ({ GRADING_JOB_LEASE_MS: 5 * 60_000, processDocumentConversionJob: mocks.conversion, processGradingRunJob: mocks.grading, writeRenderedObjectToSubmissionStore: mocks.writer }));
 vi.mock('../../../../src/lib/data-governance/math-document-grading-batch', () => ({ processQuestionGradingBatch: mocks.batch }));
+vi.mock('../../../../src/lib/assignments/public-api', () => ({ refreshAssignmentAiGradingOperation: mocks.operationRefresh }));
 vi.mock('../../../../src/lib/prisma-client', () => ({ createPrismaClient: vi.fn() }));
 
 import { processMathDocumentGradingJob, settleMathDocumentGradingJobFailure } from '../../../../scripts/workers/math-document-grading-worker';
@@ -44,6 +46,33 @@ function mutableModel(row: Record<string, any>, updates?: Array<{ where: any; da
 }
 
 describe('math-document grading worker recovery dispatch', () => {
+  it('refreshes the linked assignment grading operation after a batch job', async () => {
+    mocks.operationRefresh.mockClear();
+    mocks.batch.mockResolvedValue({ batch: { id: 'batch-1', state: 'SUCCEEDED' }, itemResults: [] });
+    const job = { data: { kind: 'batch', batchId: 'batch-1', jobId: 'job-1' } } as any;
+
+    await processMathDocumentGradingJob(job, {});
+
+    expect(mocks.operationRefresh).toHaveBeenNthCalledWith(1, { db: {}, batchId: 'batch-1' });
+    expect(mocks.operationRefresh).toHaveBeenNthCalledWith(2, { db: {}, batchId: 'batch-1' });
+  });
+
+  it('marks the linked operation running before batch processing completes', async () => {
+    mocks.operationRefresh.mockClear();
+    let resolveBatch: (value: any) => void = () => undefined;
+    mocks.batch.mockImplementation(() => new Promise((resolve) => { resolveBatch = resolve; }));
+    const job = { data: { kind: 'batch', batchId: 'batch-pending', jobId: 'job-pending' } } as any;
+
+    const processing = processMathDocumentGradingJob(job, {});
+    await Promise.resolve();
+    expect(mocks.operationRefresh).toHaveBeenCalledTimes(1);
+    expect(mocks.operationRefresh).toHaveBeenLastCalledWith({ db: {}, batchId: 'batch-pending' });
+
+    resolveBatch({ batch: { id: 'batch-pending', state: 'SUCCEEDED' }, itemResults: [] });
+    await processing;
+    expect(mocks.operationRefresh).toHaveBeenCalledTimes(2);
+  });
+
   it('fails worker capability readiness when production dependencies are incomplete', () => {
     const status = getMathDocumentGradingWorkerCapabilityStatus({
       NODE_ENV: 'production',
@@ -69,6 +98,40 @@ describe('math-document grading worker recovery dispatch', () => {
 
     expect(status.capabilities.auditSecret).toBe(false);
     expect(status.missing).toContain('GRADING_AUDIT_SECRET');
+  });
+
+  it('allows HTTP object storage only on the local development loopback', () => {
+    const local = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'development',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://127.0.0.1:9000',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+    const remote = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'development',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://objects.example',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+    const production = getMathDocumentGradingWorkerCapabilityStatus({
+      NODE_ENV: 'production',
+      SUBMISSION_OBJECT_STORE: 's3',
+      SUBMISSION_S3_ENDPOINT: 'http://127.0.0.1:9000',
+      SUBMISSION_S3_BUCKET: 'submissions',
+      SUBMISSION_S3_ACCESS_KEY: 'access',
+      SUBMISSION_S3_SECRET_KEY: 'secret',
+    });
+
+    expect(local.capabilities.objectStore).toBe(true);
+    expect(local.missing).not.toContain('SUBMISSION_S3_ENDPOINT');
+    expect(remote.capabilities.objectStore).toBe(false);
+    expect(remote.missing).toContain('SUBMISSION_S3_ENDPOINT');
+    expect(production.capabilities.objectStore).toBe(false);
+    expect(production.missing).toContain('SUBMISSION_S3_ENDPOINT');
   });
 
   it('reports all non-secret worker capabilities when the environment contract is complete', () => {

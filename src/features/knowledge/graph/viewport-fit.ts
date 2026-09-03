@@ -224,7 +224,10 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
   const ordered = [...input.nodes].sort((left, right) => priority(left) - priority(right)
     || compareUnicodeScalars(left.id, right.id));
   const accepted: Array<{ id: string; left: number; right: number; top: number; bottom: number }> = [];
-  const maximumVisibleLabels = Math.min(24, Math.max(4, Math.floor(input.width / 96) * 3));
+  // 可见上限由视口可读密度给出（标签占位约 96×26），不再武断封顶 24：
+  // 真实域概览的重点标签（keyNode/selected/hovered）规模可远超 24，
+  // 普通标签仍由 LOD 与碰撞求解把关（#1739）。
+  const maximumVisibleLabels = Math.max(4, Math.floor((input.width * input.height) / (96 * 26)));
   const result = new Map<string, ReturnType<typeof getKnowledgeNodeLabelPresentation> & {
     offsetX: number;
     offsetY: number;
@@ -299,7 +302,10 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
       : collisionFree.find((rect) => (!input.enforceViewport
       || (rect.left >= safeInsets.left && rect.right <= input.width - safeInsets.right
         && rect.top >= safeInsets.top && rect.bottom <= input.height - safeInsets.bottom)));
-    if (!candidate && input.enforceViewport && (priority(node) <= 1 || node.isKeyNode)) {
+    // 视口钳位回退只保留 selected/hovered：keyNode 强制钳位会在大规模
+    // 概览产生成百对重叠标签（273 概念实测桌面 452 对、移动端 1979 对），
+    // keyNode 放不下时必须走延迟而不是堆叠（#1739）。
+    if (!candidate && input.enforceViewport && priority(node) <= 1) {
       const point = center(node);
       const safeLeft = safeInsets.left;
       const safeRight = input.width - safeInsets.right;
@@ -343,7 +349,10 @@ export interface KnowledgeViewportFitInput {
 }
 
 function projectedBounds(input: KnowledgeViewportFitInput, scale: number) {
-  const placements = placeKnowledgeGraphLabels({ ...input, scale });
+  // 取景只按节点结构与重点标签（selected/hovered/keyNode）估界：普通
+  // 标签的 LOD 可见性跟随缩放，若参与取景会把大规模概览的 fit 绑架到
+  // 蚂蚁图（#1739：fit 与渲染标签预算解耦）。
+  const placements = placeKnowledgeGraphLabels({ ...input, scale, labelMode: 'focus' });
   const items = input.nodes.map((node) => {
     const label = placements.get(node.id)!;
     const body = node.bodyRadius * scale;

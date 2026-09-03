@@ -1,7 +1,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
+import { getMessageContent, toLegacyMessage, toUIMessage, type IncomingMessage } from '@/lib/ai/message-compat';
 import { resolveRegisteredAIContextFromPath } from '@/lib/ai-context-resolver';
-import { isAdaptivePracticeGoalId } from '@/lib/adaptive-path-goal-options';
+import { isAdaptivePracticeGoalId } from '@/features/personalization/path-planning/public-api';
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import type { Message } from '@/types/ai-message';
 import type { KonlingTeachingAssistantModeId } from '@/lib/konling-agent-runtime';
@@ -34,8 +34,23 @@ type PersistedConversation = {
   messages: Prisma.JsonValue;
   createdAt: Date;
   updatedAt: Date;
-  expiresAt: Date;
+  expiresAt: Date | null;
 };
+
+/**
+ * 会话库统一可读保留条件：属于当前用户、在会话库中可见，
+ * 且没有治理到期或治理到期仍在未来。
+ * 列表、详情、修改、消息写入和回合声明必须使用同一条件。
+ */
+export function konlingLibraryRetentionWhere(now: Date = new Date()): Prisma.KonlingSessionWhereInput {
+  return {
+    libraryVisible: true,
+    OR: [
+      { expiresAt: null },
+      { expiresAt: { gt: now } },
+    ],
+  };
+}
 
 export interface KonlingAuthorizedPageScope {
   authenticatedUserId?: string;
@@ -178,7 +193,11 @@ export function serializeKonlingConversation(
     pinned: Boolean(conversation.pinnedAt),
     pinnedAt: conversation.pinnedAt,
     lastActivityAt: conversation.lastActivityAt,
-    messages: messages.map(projectPublicKonlingMessage),
+    // 内部 system 上下文/绑定记录只留在服务端：公开 DTO 仅返回学生可见的
+    // user/assistant 消息，assistantBinding 已从完整历史单独派生。
+    messages: messages
+      .filter((message) => message.role === 'user' || message.role === 'assistant')
+      .map(projectPublicKonlingMessage),
     assistantBinding: findLatestKonlingAssistantBinding(messages),
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
@@ -659,8 +678,7 @@ export async function claimKonlingConversationTurn(
       where: {
         id: input.conversationId,
         userId: input.ownerUserId,
-        libraryVisible: true,
-        expiresAt: { gt: now },
+        ...konlingLibraryRetentionWhere(now),
       },
     });
     if (!current) return null;
@@ -736,6 +754,7 @@ export async function completeKonlingConversationTurn(
     where: {
       id: input.conversationId,
       userId: input.ownerUserId,
+      ...konlingLibraryRetentionWhere(now),
     },
   });
   if (!current) return null;
@@ -764,6 +783,7 @@ export async function completeKonlingConversationTurn(
       id: current.id,
       userId: input.ownerUserId,
       activeTurnId: input.turnId,
+      ...konlingLibraryRetentionWhere(now),
     },
     data: {
       messages: [
@@ -932,12 +952,15 @@ export async function releaseKonlingConversationTurn(
     conversationId: string;
     ownerUserId: string;
     turnId: string;
+    now?: Date;
   },
 ) {
+  const now = input.now ?? new Date();
   const current = await db.konlingSession.findFirst({
     where: {
       id: input.conversationId,
       userId: input.ownerUserId,
+      ...konlingLibraryRetentionWhere(now),
     },
   });
   if (!current || current.activeTurnId !== input.turnId) {
@@ -948,6 +971,7 @@ export async function releaseKonlingConversationTurn(
       id: input.conversationId,
       userId: input.ownerUserId,
       activeTurnId: input.turnId,
+      ...konlingLibraryRetentionWhere(now),
     },
     data: {
       messages: removeKonlingTurnMessages(

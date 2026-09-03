@@ -11,9 +11,9 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { generateText, streamText, stepCountIs } from 'ai';
-import { getConfiguredAIModel } from '@/lib/ai-client';
+import { getConfiguredAIModel } from '@/lib/ai/provider-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
-import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
+import { toLegacyMessage, toModelMessages } from '@/lib/ai/message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
   applyKonlingCitationFallback,
@@ -49,6 +49,7 @@ import {
   completeKonlingConversationTurn,
   createKonlingMessageId,
   KonlingConversationTurnConflictError,
+  konlingLibraryRetentionWhere,
   normalizeKonlingConversationAssistantBinding,
   prepareKonlingConversationTurn,
   releaseKonlingConversationTurn,
@@ -126,8 +127,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       where: {
         id: sessionId,
         userId: session.user.id,
-        libraryVisible: true,
-        expiresAt: { gt: new Date() },
+        ...konlingLibraryRetentionWhere(),
       },
     });
 
@@ -536,6 +536,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
           lowConfidenceReasons: citationGuard.lowConfidenceReasons,
           diagnosticReasons: citationGuard.diagnosticReasons ?? [],
           personalizationAvailability: citationGuard.personalizationAvailability,
+          studyQuestion: citationGuard.studyQuestion ?? null,
+          answerUnits: citationGuard.answerUnits ?? [],
+          answerUnitCoverage: citationGuard.answerUnitCoverage ?? null,
+          derivedSectionIds: citationGuard.derivedSectionIds ?? [],
+          unverifiedCitationMarkers: citationGuard.unverifiedCitationMarkers ?? [],
           missingContext: modeContract.groundingContext.missingContext,
           retrievalSources: buildKonlingCitationRetrievalSources(citationGuard),
           citations: citationGuard.citations.map(serializeKonlingCitationMetadata),

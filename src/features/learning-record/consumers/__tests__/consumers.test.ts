@@ -13,6 +13,7 @@ import {
   readSafeFeaturePort,
   readStudentEvidencePort,
   readTeacherClassEvidencePort,
+  readTeacherStudentEvidencePort,
   redactedProjectionFailure,
   sanitizeLegacyConsumerPayload,
   successfulPayloadExpired,
@@ -305,6 +306,22 @@ describe('learning-record consumers', () => {
     });
   });
 
+  it('reuses the class-port student read for a teacher-student request', async () => {
+    const result = await readTeacherStudentEvidencePort({
+      db: {},
+      viewer: { role: 'admin', subjectUserId: 'admin-1' },
+      classId: 'class-1',
+      studentId: 'student-1',
+    });
+    expect(mocks.readCurrentCumulativePortrait).toHaveBeenCalledTimes(1);
+    expect(mocks.readCurrentCumulativeClassPortrait).toHaveBeenCalledTimes(1);
+    expect(result.student.status).toBe(PROJECTION_STATUS.qualified);
+    expect(result.student.portrait.overallScore).toBe(72);
+    expect(result.student.knownZero).toBe(false);
+    expect(result.classRead.status).toBe(PROJECTION_STATUS.qualified);
+    expect(result.student.read.fields.provenanceRevision).toBe('2026-08-20T00:00:00.000Z');
+  });
+
   it('does not fall back to raw events when the projection is unavailable', async () => {
     mocks.readCurrentCumulativePortrait.mockResolvedValue(snapshotPortrait({
       stateKind: 'UNAVAILABLE',
@@ -413,5 +430,22 @@ describe('learning-record consumers', () => {
     expect(governedCopilot).not.toContain('readCurrentCumulativePortrait');
     expect(governedCopilot).not.toContain('prisma.learningFact');
     expect(governedCopilot).not.toContain('interactionLog');
+  });
+
+  it('keeps online projection modules off historical backfill tools', () => {
+    for (const file of [
+      'src/features/learning-record/consumers/ports.ts',
+      'src/features/learning-record/projections/read-ports.ts',
+      'src/features/learning-record/projections/pointer.ts',
+    ]) {
+      const source = readFileSync(file, 'utf8');
+      expect(source, file).not.toContain('course-evidence-backfill');
+      expect(source, file).not.toContain('historical-evidence-materialization');
+      expect(source, file).not.toContain('backfill-lane');
+      expect(source, file).not.toContain('createFileReceiptStore');
+    }
+    const batches = readFileSync('scripts/db/backfill-learning-facts-from-event-batches.ts', 'utf8');
+    expect(batches).toContain('--operation-id');
+    expect(batches).toContain('createFileReceiptStore');
   });
 });

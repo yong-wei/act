@@ -11,11 +11,11 @@ import {
 import {
   CANDIDATE_GRAPH_SUPPORT,
   CANDIDATE_RELEASE_SELECTOR,
-} from '@/features/knowledge/candidate-graph-contracts';
+} from '@/features/knowledge/public-api';
 import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
-} from '@/features/knowledge/candidate-graph-policy';
+} from '@/features/knowledge/public-api';
 
 import { getStepAIContext } from '@/lib/course-ai-contexts';
 import {
@@ -42,12 +42,6 @@ import {
 } from '@/lib/governed-copilot-profile-context';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
-  CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
-  persistLearningPathRound,
-  recordPathChoiceEvidence,
-  recordPathIntervention,
-} from '@/lib/control-correction-path-rounds';
-import {
   AdaptivePathCandidateBatchConflictError,
   assertAdaptivePathCandidateBatchMatchesInput,
   buildAdaptivePathCandidateDifferenceSummary,
@@ -56,18 +50,30 @@ import {
   readAdaptivePathCandidateBatchByGenerationRequest,
   resolveAdaptivePathCandidateSelection,
   type AdaptivePathCandidateBatchView,
-} from '@/lib/adaptive-path-candidate-batches';
-import { authorizeAdaptivePathComparisonIdentity } from '@/lib/adaptive-path-comparison';
+  CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+  persistLearningPathRound,
+  recordPathChoiceEvidence,
+  recordPathIntervention,
+} from '@/features/personalization/path-planning/public-api';
+import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,
   buildKonlingCandidateSelectionToolResult,
 } from '@/lib/konling-candidate-selection-tool-run';
-import { loadAllLessonRuntimeResourceCatalogEntries } from '@/lib/course-runtime';
 import {
+  loadAllLessonRuntimeResourceCatalogEntries,
   loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
-} from '@/lib/structured-textbook-runtime';
+} from '@/lib/course-bundle';
+import {
+  detectStudyQuestionSectionHeading,
+  isStudyQuestionIntent as isKnownStudyQuestionIntent,
+  STUDY_QUESTION_SECTIONS,
+  studyQuestionSectionTitles,
+  type StudyQuestionIntent,
+} from '@/lib/konling-study-question-structure';
+import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
 import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
@@ -150,7 +156,10 @@ import {
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile } from '@/types/ai-context';
-import type { ArenaCompanionContext } from '@/features/ai/companion/arena-companion-context';
+import {
+  type ArenaCompanionContext,
+  isClientAuthoredArenaCompanionScope,
+} from '@/features/ai/companion/arena-companion-context';
 import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
 import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
@@ -319,6 +328,8 @@ export interface KonlingAnswerUnitCitationBinding {
   citationId: string;
   citationTargetId: string | null;
   limitation: string | null;
+  sectionId?: string | null;
+  sectionTitle?: string | null;
 }
 
 export interface KonlingTeachingAssistantModeContract {
@@ -1099,26 +1110,62 @@ function classifyKonlingAnswerIntent(
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, ['法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format'])) {
+  if (includesAny(normalized, [
+    '法律', '法条', '法规', '官方规定', '国家标准', '行业标准', '标准格式', '规范书写',
+    '规范格式', '化学方程式', 'official rule', 'legal requirement', 'standard format',
+    '必须写', '才算合格', '操作规程', '考核办法', '国标格式',
+  ])) {
     return 'normative-content';
   }
-  if (includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove'])) {
+  if (
+    includesAny(normalized, ['推导', '证明', '演算', 'derive', 'derivation', 'prove', '一步步得到'])
+    || (
+      includesAny(normalized, ['怎么得到', '如何得到'])
+      && includesAny(normalized, ['传递函数', '特征方程', '控制律', '公式', '离散化', '根轨迹增益', 'bode', 'nyquist', '包围圈'])
+    )
+  ) {
     return 'formula-derivation';
   }
-  if (includesAny(normalized, ['报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback'])) {
+  if (includesAny(normalized, [
+    '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
+  ])) {
     return 'code-debugging';
   }
-  if (includesAny(normalized, ['区别', '辨析', '比较', '联系与区别', 'difference', 'compare', 'versus', ' vs '])) {
+  if (includesAny(normalized, [
+    '区别', '辨析', '比较', '联系与区别', 'difference', 'compare', 'versus', ' vs ', '该怎么选',
+  ])) {
     return 'concept-comparison';
   }
-  if (includesAny(normalized, ['举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in'])) {
+  if (includesAny(normalized, [
+    '举例', '换一种说法', '换一种格式', '自定义', 'example', 'explain in', '生活化例子', '更直白', '为什么',
+  ])) {
     return 'open-ended-explanation';
   }
-  return 'fact-explanation';
+  if (includesAny(normalized, ['什么是', '是什么', '定义', '含义', '大概表示什么', 'what is', 'meaning of'])) {
+    return 'fact-explanation';
+  }
+  return 'open-ended-explanation';
 }
 
 function includesAny(value: string, markers: readonly string[]): boolean {
   return markers.some((marker) => value.includes(marker));
+}
+
+const NORMATIVE_STANDARD_ID = /\b(?:gb\/t|gb\/z|gb[/\s.-]?\d|iso[\s.-]?\d|iec[\s.-]?\d|ieee[\s.-]?\d|en[\s.-]?\d|astm[\s.-]?[a-z]?\d)/i;
+const NORMATIVE_OBLIGATION = /(?:必须|不得|应当|严禁).{0,16}(?:标准|规定|法规|认证|条款|限值|格式|合格|遵守|符合)|(?:must|shall)\s+(?:not\s+)?(?:comply|meet|satisfy|observe|follow)/i;
+const NORMATIVE_RISK_MARKERS = [
+  '法规', '法条', '法律要求', '官方规定', '官方要求', '官方限值',
+  '认证', '考核办法', '操作规程',
+  'legal requirement', 'official rule', 'official limit',
+  'certification', 'certified', 'must not', 'shall not',
+] as const;
+
+function hasIndependentNormativeRisk(query: string | null | undefined): boolean {
+  const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
+  if (!normalized) return false;
+  return NORMATIVE_STANDARD_ID.test(normalized)
+    || includesAny(normalized, NORMATIVE_RISK_MARKERS)
+    || NORMATIVE_OBLIGATION.test(normalized);
 }
 
 function buildKonlingStudyQuestionContract(input: {
@@ -1128,20 +1175,28 @@ function buildKonlingStudyQuestionContract(input: {
   currentUserQuery?: string | null;
   mathToolAvailable?: boolean;
 }): KonlingStudyQuestionContract | null {
-  if (!isStudyQuestionIntent(input.answerIntent)) return null;
+  const independentRisk = hasIndependentNormativeRisk(input.currentUserQuery);
+  let intent: KonlingStudyQuestionContract['intent'];
+  if (isStudyQuestionIntent(input.answerIntent)) {
+    intent = input.answerIntent;
+  } else if (independentRisk) {
+    intent = 'open-ended-explanation';
+  } else {
+    return null;
+  }
   const preferences = normalizeKonlingStudyAnswerPreferences(
     input.preferences,
     input.currentUserQuery,
     input.mathToolAvailable,
   );
-  const normativeGuidance = input.answerIntent === 'normative-content'
-    ? hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? [])
-      ? 'verified'
-      : 'verification-required'
+  const hasAuthority = hasVerifiedNormativeCitation(input.citationContext?.contentCitations ?? []);
+  const requiresNormativeGate = input.answerIntent === 'normative-content' || independentRisk;
+  const normativeGuidance = requiresNormativeGate
+    ? (hasAuthority ? 'verified' : 'verification-required')
     : 'not-applicable';
   return {
-    intent: input.answerIntent,
-    requiredSections: studyQuestionRequiredSections(input.answerIntent),
+    intent,
+    requiredSections: studyQuestionRequiredSections(intent),
     normativeGuidance,
     preferences,
   };
@@ -1157,20 +1212,7 @@ function isStudyQuestionIntent(answerIntent: KonlingAnswerIntent): answerIntent 
 }
 
 function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['intent']): string[] {
-  switch (intent) {
-    case 'formula-derivation':
-      return ['前提与符号', '关键变形', '适用条件', '结果校验'];
-    case 'code-debugging':
-      return ['故障定位', '原因', '最小修复', '验证方法'];
-    case 'concept-comparison':
-      return ['判别维度', '联系与差异', '边界或反例'];
-    case 'normative-content':
-      return ['适用范围', '规范结论', '核验来源'];
-    case 'open-ended-explanation':
-      return ['核心结论', '定制化讲解', '适用边界'];
-    default:
-      return ['核心结论', '解释', '适用边界'];
-  }
+  return studyQuestionSectionTitles(intent);
 }
 
 function normalizeKonlingStudyAnswerPreferences(
@@ -1751,6 +1793,21 @@ export interface KonlingSourcePackCitationSummary {
   answerRelevanceBases?: string[];
 }
 
+export interface KonlingAnswerUnitCoverageSectionState {
+  sectionId: string;
+  sectionTitle: string;
+  citationPolicy: 'evidence-required' | 'model-derived';
+  covered: boolean;
+}
+
+export interface KonlingAnswerUnitCitationCoverage {
+  intent: string;
+  sections: KonlingAnswerUnitCoverageSectionState[];
+  coveredCount: number;
+  requiredCount: number;
+  ratio: number;
+}
+
 export interface KonlingCitationGuard {
   status: 'verified' | 'low-confidence';
   citations: KonlingCitation[];
@@ -1765,6 +1822,9 @@ export interface KonlingCitationGuard {
   };
   studyQuestion?: KonlingStudyQuestionContract | null;
   answerUnits?: KonlingAnswerUnitCitationBinding[];
+  answerUnitCoverage?: KonlingAnswerUnitCitationCoverage | null;
+  derivedSectionIds?: string[];
+  unverifiedCitationMarkers?: number[];
 }
 
 export function buildKonlingCitationRetrievalSources(guard: KonlingCitationGuard) {
@@ -7958,6 +8018,9 @@ export async function createGovernedKonlingIntervention(
   db: KonlingRuntimeDb,
   input: KonlingInterventionInput,
 ): Promise<KonlingInterventionRecord> {
+  if (input.arenaContext || isClientAuthoredArenaCompanionScope(input.scope)) {
+    throw new Error('Arena 受治理干预不能由客户端尝试状态创建');
+  }
   const now = input.now ?? new Date();
   const interventionSessionId = buildKonlingInterventionSessionId(input.scope, input.arenaContext);
   const evidence = buildInterventionEvidence(input.studentState, input.arenaContext);
@@ -9403,11 +9466,64 @@ export function buildKonlingCitationGuard(
     ...citationContext.contentCitations,
     ...citationContext.evidenceCitations,
   ];
-  const answerUnits = assistantMessage === undefined
-    ? []
-    : buildKonlingAnswerUnitCitationBindings(assistantMessage, citations);
+  const studyIntent = modeContract?.studyQuestion && isKnownStudyQuestionIntent(modeContract.studyQuestion.intent)
+    ? modeContract.studyQuestion.intent as StudyQuestionIntent
+    : null;
+  const answerScan = assistantMessage === undefined
+    ? null
+    : scanKonlingAnswerUnits(assistantMessage, citations, studyIntent ?? undefined);
+  const answerUnits = answerScan?.bindings ?? [];
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
+  let answerUnitCoverage: KonlingAnswerUnitCitationCoverage | null = null;
+  let derivedSectionIds: string[] = [];
+  if (studyIntent && answerScan) {
+    // Coverage is measured per substantive answer unit (#1819): an
+    // evidence-required section counts as covered only when every one of
+    // its answer units carries a bindable citation marker.
+    const sectionUnits = (sectionId: string) => answerScan.units.filter(
+      (unitRecord) => unitRecord.sectionId === sectionId,
+    );
+    const presentSectionIds = new Set(answerScan.units
+      .map((unitRecord) => unitRecord.sectionId)
+      .filter((sectionId): sectionId is string => Boolean(sectionId)));
+    derivedSectionIds = STUDY_QUESTION_SECTIONS[studyIntent]
+      .filter((section) => section.citationPolicy === 'model-derived' && presentSectionIds.has(section.id))
+      .map((section) => section.id);
+    const normativeFailClosed = modeContract?.studyQuestion?.normativeGuidance === 'verification-required';
+    const sections = normativeFailClosed && studyIntent === 'normative-content'
+      ? []
+      : STUDY_QUESTION_SECTIONS[studyIntent].map((section) => {
+        const unitRecords = sectionUnits(section.id);
+        return {
+          sectionId: section.id,
+          sectionTitle: section.title,
+          citationPolicy: section.citationPolicy,
+          covered: unitRecords.length > 0 && unitRecords.every((unitRecord) => unitRecord.bound),
+        };
+      });
+    const applicable = sections.filter((section) => (
+      section.citationPolicy === 'evidence-required'
+      && presentSectionIds.has(section.sectionId)
+    ));
+    const requiredUnits = applicable.flatMap((section) => sectionUnits(section.sectionId));
+    const coveredUnits = requiredUnits.filter((unitRecord) => unitRecord.bound);
+    answerUnitCoverage = requiredUnits.length > 0
+      ? {
+        intent: studyIntent,
+        sections,
+        coveredCount: coveredUnits.length,
+        requiredCount: requiredUnits.length,
+        ratio: coveredUnits.length / requiredUnits.length,
+      }
+      : null;
+    for (const uncovered of applicable.filter((section) => !section.covered)) {
+      lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
+    }
+  }
+  const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
+    ? []
+    : collectUnverifiedCitationMarkers(assistantMessage, citations);
   if (modeContract) {
     if (modeContract.status === 'unavailable') {
       lowConfidenceReasons.push(`assistant-mode-unavailable:${modeContract.mode.id}`);
@@ -9498,6 +9614,9 @@ export function buildKonlingCitationGuard(
     ),
     studyQuestion: modeContract?.studyQuestion ?? null,
     answerUnits,
+    answerUnitCoverage,
+    derivedSectionIds,
+    unverifiedCitationMarkers,
   };
 }
 
@@ -9505,30 +9624,97 @@ function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
   return citation.verified === true && Boolean(citation.citationTargetId);
 }
 
-function buildKonlingAnswerUnitCitationBindings(
+export interface KonlingAnswerUnitRecord {
+  unit: string;
+  sectionId: string | null;
+  bound: boolean;
+}
+
+function assignedCitationNumbers(citations: readonly KonlingCitation[]): ReadonlySet<number> {
+  return new Set(
+    citations
+      .map((citation) => citation.displayNumber)
+      .filter((number): number is number => Number.isInteger(number)),
+  );
+}
+
+function isCitationMarkerPosition(
+  assistantMessage: string,
+  codeRanges: readonly { start: number; end: number }[],
+  offset: number,
+  number: number,
+  assignedNumbers: ReadonlySet<number>,
+): boolean {
+  if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
+  // Unassigned numbers keep the helper's wide technical-index reading (any
+  // identifier directly before the bracket, e.g. controller[2]); only
+  // server-assigned numbers use the narrow single-letter/collection reading
+  // so Chinese prose before a real citation still counts (#1819).
+  return !isTechnicalIndexContext(assistantMessage, offset, assignedNumbers.has(number));
+}
+
+function scanKonlingAnswerUnits(
   assistantMessage: string,
   citations: readonly KonlingCitation[],
-): KonlingAnswerUnitCitationBinding[] {
+  intent?: StudyQuestionIntent,
+): { bindings: KonlingAnswerUnitCitationBinding[]; units: KonlingAnswerUnitRecord[] } {
   const bindings: KonlingAnswerUnitCitationBinding[] = [];
+  const units: KonlingAnswerUnitRecord[] = [];
   const marker = /\[(\d+)\]/g;
-  for (const match of assistantMessage.matchAll(marker)) {
-    const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
-    if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
-    const markerIndex = match.index ?? 0;
-    const lineStart = assistantMessage.lastIndexOf('\n', markerIndex) + 1;
-    const unit = assistantMessage.slice(lineStart, markerIndex)
-      .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
-      .trim()
-      .slice(0, 180);
-    if (!unit || bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) continue;
-    bindings.push({
-      unit,
-      citationId: citation.id,
-      citationTargetId: citation.citationTargetId,
-      limitation: citation.href ? null : 'unavailable-address',
-    });
+  const codeRanges = markdownCodeRanges(assistantMessage);
+  const assignedNumbers = assignedCitationNumbers(citations);
+  let currentSection: { id: string; title: string } | null = null;
+  let lineStart = 0;
+  for (const line of assistantMessage.split(/\r?\n/)) {
+    try {
+      if (intent) {
+        const headingSection = detectStudyQuestionSectionHeading(line, intent);
+        if (headingSection) {
+          currentSection = { id: headingSection.id, title: headingSection.title };
+          continue;
+        }
+      }
+      // Fenced/inline code and its fence lines are not substantive answer
+      // units and never require per-unit citations (#1819). The fence regex
+      // also catches indented fences whose line start falls outside the code
+      // range (which begins at the backticks, not the indentation).
+      if (/^\s*```/.test(line)) {
+        continue;
+      }
+      if (codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)) {
+        continue;
+      }
+      const trimmedUnit = line.replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '').trim();
+      if (!trimmedUnit) continue;
+      let bound = false;
+      for (const match of line.matchAll(marker)) {
+        const markerOffset = lineStart + (match.index ?? 0);
+        if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset, Number(match[1]), assignedNumbers)) continue;
+        const citation = citations.find((candidate) => candidate.displayNumber === Number(match[1]));
+        if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
+        const unit = line.slice(0, match.index ?? 0)
+          .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
+          .trim()
+          .slice(0, 180);
+        if (!unit) continue;
+        if (!bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) {
+          bindings.push({
+            unit,
+            citationId: citation.id,
+            citationTargetId: citation.citationTargetId,
+            limitation: citation.href ? null : 'unavailable-address',
+            sectionId: currentSection?.id ?? null,
+            sectionTitle: currentSection?.title ?? null,
+          });
+        }
+        bound = true;
+      }
+      units.push({ unit: trimmedUnit.slice(0, 180), sectionId: currentSection?.id ?? null, bound });
+    } finally {
+      lineStart += line.length + 1;
+    }
   }
-  return bindings;
+  return { bindings, units };
 }
 
 function isPersonalizationCitationClass(value: string): boolean {
@@ -9632,11 +9818,55 @@ export function buildKonlingStreamingCitationGuard(
   };
 }
 
+function collectUnverifiedCitationMarkers(
+  assistantMessage: string,
+  citations: readonly KonlingCitation[],
+): number[] {
+  const bindableNumbers = new Set(
+    citations.filter(isBindableAnswerUnitCitation).map((citation) => citation.displayNumber),
+  );
+  const assignedNumbers = assignedCitationNumbers(citations);
+  const codeRanges = markdownCodeRanges(assistantMessage);
+  const invalid: number[] = [];
+  for (const match of assistantMessage.matchAll(/\[(\d+)\]/g)) {
+    const number = Number(match[1]);
+    if (!isCitationMarkerPosition(assistantMessage, codeRanges, match.index ?? 0, number, assignedNumbers)) continue;
+    if (!bindableNumbers.has(number) && !invalid.includes(number)) {
+      invalid.push(number);
+    }
+  }
+  return invalid;
+}
+
+export function stripUnverifiedKonlingCitationMarkers(
+  assistantMessage: string,
+  guard: KonlingCitationGuard,
+): string {
+  const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
+  if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
+  const invalidSet = new Set(invalidNumbers);
+  const assignedNumbers = assignedCitationNumbers(guard.citations);
+  const codeRanges = markdownCodeRanges(assistantMessage);
+  return assistantMessage
+    .replace(/ ?\[(\d+)\]/g, (raw, digits: string, offset: number) => {
+      if (!invalidSet.has(Number(digits))) return raw;
+      // offset points at the optional leading space; the technical-index
+      // check must see the text right before the bracket itself.
+      const bracketOffset = offset + raw.indexOf('[');
+      return isCitationMarkerPosition(assistantMessage, codeRanges, bracketOffset, Number(digits), assignedNumbers)
+        ? ''
+        : raw;
+    })
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
 export function applyKonlingCitationFallback(
   assistantMessage: string,
   guard: KonlingCitationGuard,
 ): string {
-  if (!guard.fallbackRequired) return assistantMessage;
+  const sanitizedMessage = stripUnverifiedKonlingCitationMarkers(assistantMessage, guard);
+  if (!guard.fallbackRequired) return sanitizedMessage;
   const limitation = [
     ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
     ...guard.lowConfidenceReasons,
@@ -9645,7 +9875,7 @@ export function applyKonlingCitationFallback(
     .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)
     .join('；');
   return [
-    assistantMessage.trim(),
+    sanitizedMessage.trim(),
     '',
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
     citations ? `可用引用：${citations}` : '',

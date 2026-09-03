@@ -54,6 +54,21 @@ export interface StudentAnswerAttempt extends Omit<StudentQuestionDto['history']
 export interface StudentAssignmentDetail extends StudentAssignmentSummary {
   history?: Record<string, StudentAnswerAttempt[]>;
   approvedTotal?: number | null;
+  resultPackage?: {
+    version: 'assignment-student-result.v1';
+    totalScore: number;
+    overallComment?: string | null;
+    releasedAt: string;
+    questions: Array<{
+      questionId: string;
+      score: number;
+      comment: string;
+      criteria: Array<{ criterionId?: string; levelId?: string; score?: number; comment?: string }>;
+      annotations: Array<{ criterionId?: string; comment?: string; anchor?: { precision?: string } }>;
+      referenceAnswer: string | null;
+      scoringStandard: string | null;
+    }>;
+  } | null;
   feedbackStatus?: 'HIDDEN' | 'PUBLISHING' | 'BLOCKED' | 'PUBLISHED';
   feedback?: Array<{
     snapshotId: string;
@@ -75,8 +90,9 @@ export const assignmentStateLabels: Record<StudentAssignmentState, string> = {
   IN_PROGRESS: '作答中',
   SUBMITTED: '已提交',
   PARSING: '解析中',
-  AWAITING_REVIEW: '待批阅',
-  IN_REVIEW: '批阅中',
+  AWAITING_REVIEW: '待批改',
+  IN_REVIEW: '批改中',
+  PARTIAL_GRADING_FAILURE: '部分失败',
   AWAITING_TEACHER_CONFIRMATION: '待教师确认',
   REVIEWED: '已批阅',
   RESUBMISSION_REQUIRED: '需重交',

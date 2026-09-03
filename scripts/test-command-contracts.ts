@@ -1,27 +1,42 @@
 #!/usr/bin/env tsx
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
 import { serializeDeterministic } from '../src/lib/architecture-census/serialize';
 import {
+  COMMAND_CONTRACTS,
   commandContract,
+  compactPackageDigest,
   createTestMeasurementReceipt,
+  createToolIdentity,
   defaultProductCommandsReadReleaseEvidence,
   deterministicDiscoveryText,
+  discoverTests,
   discoveryCoreHash,
+  entryBundleDigest,
   evaluateFailClosed,
   generateLiveDiscovery,
+  investigateCurrentDenominator,
+  listSubjectPaths,
+  loadSuccessorSubject,
+  REQUIRED_CHARTER,
   parseUnhandledSidecar,
   parseVitestJson,
   projectCiMappingDoc,
   projectCommandContractsDoc,
+  projectCompactPackage,
   projectHandoffDoc,
   projectReceiptsDoc,
+  readCheckoutState,
   releaseCommandFailures,
+  sealCompactPackage,
+  subjectCheckoutFailures,
   type GovernedCommandId,
+  type LaneExecutionInput,
   type VitestExecutionSummary,
 } from '../src/lib/architecture-test-commands';
 
@@ -45,12 +60,24 @@ function hasFlag(flag: string): boolean {
   return process.argv.includes(flag);
 }
 
-function run(command: string, args: readonly string[], env?: NodeJS.ProcessEnv): number {
+const COMMAND_TIMEOUT_MS: Record<GovernedCommandId, number> = {
+  test: 10 * 60 * 1000,
+  'test:unit': 10 * 60 * 1000,
+  'test:contract': 8 * 60 * 1000,
+  'test:integration': 8 * 60 * 1000,
+  'test:e2e:critical': 10 * 60 * 1000,
+  'test:release': 2 * 60 * 1000,
+  'test:nightly': 60 * 1000,
+};
+
+function run(command: string, args: readonly string[], env?: NodeJS.ProcessEnv, cwd = process.cwd(), timeoutMs?: number): number {
   const result = spawnSync(command, [...args], {
-    cwd: process.cwd(),
+    cwd,
     env: env ?? process.env,
     stdio: 'inherit',
+    timeout: timeoutMs,
   });
+  if (result.error && (result.error as NodeJS.ErrnoException).code === 'ETIMEDOUT') return 124;
   return result.status ?? 1;
 }
 
@@ -63,10 +90,10 @@ function vitestEnv(): NodeJS.ProcessEnv {
 }
 
 function emptySummary(status: number): VitestExecutionSummary & { status: number } {
-  return { status, passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0 };
+  return { status, passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0, failures: [] };
 }
 
-function runVitest(extraArgs: readonly string[]): VitestExecutionSummary & { status: number } {
+function runVitest(extraArgs: readonly string[], cwd = process.cwd(), timeoutMs?: number): VitestExecutionSummary & { status: number } {
   const dir = mkdtempSync(join(tmpdir(), 'test-command-contracts-'));
   const outputFile = join(dir, 'vitest.json');
   const sidecarFile = join(dir, 'unhandled.json');
@@ -81,10 +108,10 @@ function runVitest(extraArgs: readonly string[]): VitestExecutionSummary & { sta
     ], {
       ...vitestEnv(),
       ARCHITECTURE_CENSUS_VITEST_SIDECAR: sidecarFile,
-    });
-    let summary: VitestExecutionSummary = { passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0 };
+    }, cwd, timeoutMs);
+    let summary: VitestExecutionSummary = { passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0, failures: [] };
     try {
-      summary = parseVitestJson(readFileSync(outputFile, 'utf8'), process.cwd());
+      summary = parseVitestJson(readFileSync(outputFile, 'utf8'), cwd);
     } catch {
       summary = { ...summary, failed: Math.max(summary.failed, 1) };
     }
@@ -99,7 +126,12 @@ function runVitest(extraArgs: readonly string[]): VitestExecutionSummary & { sta
   }
 }
 
-function executeCommand(commandId: GovernedCommandId, manifest: string | null): VitestExecutionSummary & { status: number } {
+function executeCommand(
+  commandId: GovernedCommandId,
+  manifest: string | null,
+  cwd = process.cwd(),
+): VitestExecutionSummary & { status: number } {
+  const timeoutMs = COMMAND_TIMEOUT_MS[commandId];
   if (commandId === 'test') {
     const prelude: Array<[string, string[]]> = [
       ['npm', ['run', 'test:smart-courseware']],
@@ -108,20 +140,20 @@ function executeCommand(commandId: GovernedCommandId, manifest: string | null): 
       ['node', ['./scripts/tests/test-arena-routes.mjs']],
     ];
     for (const [bin, args] of prelude) {
-      const status = run(bin, args);
+      const status = run(bin, args, process.env, cwd, timeoutMs);
       if (status !== 0) return emptySummary(status);
     }
-    return runVitest(['src/lib/__tests__/test-command-contracts.test.ts']);
+    return runVitest(['src/lib/__tests__/test-command-contracts.test.ts'], cwd, timeoutMs);
   }
-  if (commandId === 'test:unit') return runVitest([]);
-  if (commandId === 'test:contract') return runVitest(['--config', 'vitest.contract.config.ts']);
-  if (commandId === 'test:integration') return runVitest(['--config', 'vitest.integration.config.ts']);
+  if (commandId === 'test:unit') return runVitest([], cwd, timeoutMs);
+  if (commandId === 'test:contract') return runVitest(['--config', 'vitest.contract.config.ts'], cwd, timeoutMs);
+  if (commandId === 'test:integration') return runVitest(['--config', 'vitest.integration.config.ts'], cwd, timeoutMs);
   if (commandId === 'test:e2e:critical') {
     const files = [...commandContract('test:e2e:critical').executionIdentities];
-    return emptySummary(run('npx', ['playwright', 'test', ...files]));
+    return emptySummary(run('npx', ['playwright', 'test', ...files], process.env, cwd, timeoutMs));
   }
   if (commandId === 'test:release') {
-    const failures = releaseCommandFailures(process.cwd(), manifest);
+    const failures = releaseCommandFailures(cwd, manifest);
     if (failures.length > 0) {
       console.error(failures);
       return emptySummary(1);
@@ -145,8 +177,224 @@ function writeDocs(outDir: string, coreText: string, docs: Record<string, string
   }
 }
 
+function loadEntryBundleDigest(repoRoot: string): string {
+  const files: Record<string, string> = {};
+  const dir = join(repoRoot, 'src/lib/architecture-test-commands');
+  for (const name of readdirSync(dir).sort()) {
+    if (!name.endsWith('.ts')) continue;
+    const path = `src/lib/architecture-test-commands/${name}`;
+    files[path] = readFileSync(join(repoRoot, path), 'utf8');
+  }
+  files['scripts/test-command-contracts.ts'] = readFileSync(join(repoRoot, 'scripts/test-command-contracts.ts'), 'utf8');
+  return entryBundleDigest(files);
+}
+
+function ensureSubjectCheckout(repoRoot: string, sourceCommit: string, requested: string | null): string {
+  const checkout = requested ?? join(tmpdir(), `act-1880-subject-${sourceCommit.slice(0, 12)}`);
+  if (!existsSync(checkout)) {
+    const added = spawnSync('git', ['worktree', 'add', '--detach', checkout, sourceCommit], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+    if (added.status !== 0 && !existsSync(checkout)) {
+      throw new Error(`subject-checkout-failed:${added.stderr || added.stdout}`);
+    }
+  }
+  const modules = join(checkout, 'node_modules');
+  if (!existsSync(modules) && existsSync(join(repoRoot, 'node_modules'))) {
+    symlinkSync(join(repoRoot, 'node_modules'), modules);
+  }
+  return checkout;
+}
+
+function toLaneExecution(
+  commandId: GovernedCommandId,
+  summary: VitestExecutionSummary & { status: number },
+  unavailable?: LaneExecutionInput['unavailable'],
+): LaneExecutionInput {
+  return {
+    command: commandId,
+    exitStatus: summary.status,
+    passed: summary.passed,
+    failed: summary.failed,
+    skipped: summary.skipped,
+    unhandledErrors: summary.unhandledErrors,
+    failures: summary.failures.map((item) => ({
+      testIdentity: item.testIdentity,
+      failureStage: item.failureStage,
+      errorClass: item.errorClass,
+      errorSummary: item.errorSummary,
+    })),
+    capturedAt: new Date().toISOString(),
+    platform: `${process.platform}-${process.arch}`,
+    ...(unavailable ? { unavailable } : {}),
+  };
+}
+
+function investigationHandoffDir(repoRoot: string): string {
+  const archived = join(repoRoot, 'openspec/changes/archive/2026-09-03-reconcile-current-clean-head-test-failure-denominator/handoff');
+  if (existsSync(join(archived, '..'))) return archived;
+  return join(repoRoot, 'openspec/changes/reconcile-current-clean-head-test-failure-denominator/handoff');
+}
+
+function requireSubjectCheckout(subject: Parameters<typeof subjectCheckoutFailures>[0], checkoutPath: string): void {
+  const failures = subjectCheckoutFailures(subject, readCheckoutState(checkoutPath));
+  if (failures.length > 0) {
+    throw new Error(failures.map((item) => `${item.code}:${item.identity}`).join(','));
+  }
+}
+
+function writeInvestigationHandoff(repoRoot: string, output: ReturnType<typeof investigateCurrentDenominator>): void {
+  if (!output.compact) throw new Error('investigation-compact-missing');
+  const lanesMd = [
+    '# Per-lane denominator',
+    '',
+    `- subject: \`${output.compact.subject.successorCaptureId}\``,
+    `- sourceCommit: \`${output.compact.subject.sourceCommit}\``,
+    `- toolCommit: \`${output.compact.tool.toolCommit}\``,
+    `- defaultConclusion: \`${output.compact.defaultConclusion}\``,
+    '',
+    '| lane | command | status | passed | failed | skipped | unhandled | unresolved | default |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    ...output.compact.lanes.map((lane) => `| ${lane.lane} | \`${lane.command}\` | ${lane.status} | ${lane.passed} | ${lane.failed} | ${lane.skipped} | ${lane.unhandledErrors} | ${lane.unresolved} | ${lane.defaultMandatory ? 'yes' : 'no'} |`),
+    '',
+  ].join('\n');
+  const dispositionsMd = [
+    '# Planned dispositions',
+    '',
+    'These records are investigation plans. This change does not execute FIX, DELETE, or QUARANTINE.',
+    '',
+    `| fingerprint | command | lane | disposition | owner | identity |`,
+    `| --- | --- | --- | --- | --- | --- |`,
+    ...output.compact.failureDispositionSummary.slice(0, 200).map((item) => `| \`${item.fingerprint.slice(0, 12)}\` | \`${item.command}\` | ${item.lane} | ${item.disposition}${item.subtype ? `/${item.subtype}` : ''} | ${item.owner} | ${item.testIdentity} |`),
+    '',
+    output.compact.failureDispositionSummary.length > 200
+      ? `Truncated to 200 of ${output.compact.failureDispositionSummary.length} fingerprints. Full inventory is in manifest.json.\n`
+      : '',
+  ].join('\n');
+  const resultCoresText = serializeDeterministic(output.resultCores);
+  const measurementText = serializeDeterministic(output.measurementReceipts);
+  const { artifacts: _ignoredArtifacts, packageDigest: _ignoredDigest, ...draft } = output.compact;
+  const notesMd = [
+    '# Investigation notes',
+    '',
+    `- schemaVersion: \`${output.compact.schemaVersion}\``,
+    `- defaultConclusion: \`${output.compact.defaultConclusion}\``,
+    '- packageDigest: see `manifest.json`',
+    '- deterministicProjection: see manifest.json; measurements are separate receipt identities',
+    '',
+    'Follow-up FIX/DELETE/QUARANTINE execution is out of scope. Do not write this package into REQUIRED_BASELINE or any active selector.',
+    '',
+  ].join('\n');
+  const files = {
+    'lanes.md': lanesMd,
+    'dispositions.md': dispositionsMd,
+    'notes.md': notesMd,
+    'result-cores.json': resultCoresText,
+    'measurement-receipts.json': measurementText,
+  };
+  const finalPack = sealCompactPackage(draft, files);
+  const manifestText = serializeDeterministic(finalPack);
+  for (const [name, content] of Object.entries({ ...files, 'manifest.json': manifestText })) {
+    const privacy = privacyViolation(content);
+    if (privacy) throw new Error(`${privacy}:${name}`);
+  }
+  const outDir = investigationHandoffDir(repoRoot);
+  mkdirSync(outDir, { recursive: true });
+  writeFileSync(join(outDir, 'manifest.json'), manifestText);
+  writeFileSync(join(outDir, 'lanes.md'), lanesMd);
+  writeFileSync(join(outDir, 'dispositions.md'), dispositionsMd);
+  writeFileSync(join(outDir, 'notes.md'), notesMd);
+  writeFileSync(join(outDir, 'result-cores.json'), resultCoresText);
+  writeFileSync(join(outDir, 'measurement-receipts.json'), measurementText);
+  for (const artifact of finalPack.artifacts) {
+    const written = readFileSync(join(outDir, artifact.logicalLocator), 'utf8');
+    if (Buffer.byteLength(written, 'utf8') !== artifact.byteCount || createHash('sha256').update(written).digest('hex') !== artifact.sha256) {
+      throw new Error(`artifact-digest-mismatch:${artifact.logicalLocator}`);
+    }
+  }
+}
+
+function investigate(repoRoot: string): void {
+  if (!hasFlag('--gate-verified')) {
+    throw new Error('a-gate-unverified:pass --gate-verified only after live GitHub confirmation that #1876 is closed, status:archived, and native blockedBy is resolved');
+  }
+  const loaded = loadSuccessorSubject(repoRoot);
+  if (loaded.failures.length > 0) {
+    console.error(loaded.failures.slice(0, 20));
+    throw new Error(loaded.failures.map((item) => item.code).join(','));
+  }
+  const checkout = readCheckoutState(repoRoot);
+  if (checkout.dirty || checkout.mixedWorktree) {
+    throw new Error(checkout.dirty ? 'dirty-worktree' : 'mixed-worktree');
+  }
+  const bundleDigest = loadEntryBundleDigest(repoRoot);
+  const tool = createToolIdentity({
+    toolCommit: checkout.commit,
+    toolTree: checkout.tree,
+    subject: loaded.subject,
+    entryBundleDigest: bundleDigest,
+  });
+  const listed = listSubjectPaths(repoRoot, loaded.subject);
+  if (listed.failures.length > 0) {
+    throw new Error(listed.failures.map((item) => item.code).join(','));
+  }
+  const subjectCore = discoverTests({
+    paths: listed.paths,
+    sourceCommit: loaded.subject.sourceCommit,
+    sourceTree: loaded.subject.sourceTree,
+    charterSha256: REQUIRED_CHARTER.sha256,
+  });
+  const subjectCheckout = ensureSubjectCheckout(repoRoot, loaded.subject.sourceCommit, argValue('--subject-checkout'));
+  requireSubjectCheckout(loaded.subject, subjectCheckout);
+  const manifest = argValue('--manifest');
+  const executions: LaneExecutionInput[] = COMMAND_CONTRACTS.map((command) => {
+    if (command.id === 'test:nightly' && !hasFlag('--execute-nightly')) {
+      return toLaneExecution(command.id, emptySummary(1), {
+        responseClass: 'nightly-not-run',
+        resolutionCondition: 'execute-the-registered-nightly-lane',
+        owner: 'platform',
+      });
+    }
+    const summary = executeCommand(command.id, manifest, subjectCheckout);
+    if (summary.status === 124) {
+      return toLaneExecution(command.id, summary, {
+        responseClass: 'timeout',
+        resolutionCondition: `rerun-${command.id}-when-the-external-or-runtime-prerequisite-is-available`,
+        owner: 'platform',
+      });
+    }
+    return toLaneExecution(command.id, summary);
+  });
+  const output = investigateCurrentDenominator({
+    repoRoot,
+    gate: { issueClosed: true, statusArchived: true, blockedByResolved: true },
+    tool,
+    discovery: subjectCore,
+    executions,
+    firstIdentity: { subject: loaded.subject, tool },
+  });
+  requireSubjectCheckout(loaded.subject, subjectCheckout);
+  if (hasFlag('--write')) writeInvestigationHandoff(repoRoot, output);
+  console.log(serializeDeterministic({
+    command: 'investigate',
+    subject: loaded.subject,
+    tool,
+    defaultConclusion: output.compact?.defaultConclusion ?? 'blocked',
+    lanes: output.compact?.lanes.map((lane) => ({ lane: lane.lane, status: lane.status, failed: lane.failed })) ?? [],
+    failures: output.failures.map((item) => item.code),
+    packageDigest: output.compact?.packageDigest ?? null,
+    subjectCheckout,
+  }).trim());
+  process.exitCode = output.failures.length > 0 || output.compact?.defaultConclusion !== 'clean' ? 1 : 0;
+}
+
 function main(): void {
   const repoRoot = process.cwd();
+  if (hasFlag('--investigate')) {
+    investigate(repoRoot);
+    return;
+  }
   const write = hasFlag('--write');
   const execute = hasFlag('--execute');
   const commandArg = argValue('--command');

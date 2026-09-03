@@ -304,9 +304,9 @@ export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGra
     const vx = readFiniteCoordinate(node.vx);
     const vy = readFiniteCoordinate(node.vy);
     const vz = readFiniteCoordinate(node.vz);
-    const fx = readFiniteCoordinate(node.fx);
-    const fy = readFiniteCoordinate(node.fy);
-    const fz = readFiniteCoordinate(node.fz);
+    // 只续承位置与速度；fx/fy/fz 是固定坐标所有权，不能随增量重算隐式
+    // 复活——用户 pin 的 fx 由 sync 从布局 store 恢复，治理锚点由种子
+    // 布局重新给出（#1739 unpin 不回冻）。
     livePositionsByNodeId.set(node.id, {
       x,
       y,
@@ -314,9 +314,6 @@ export function preserveKnowledgeGraphLiveNodeCoordinates<T extends KnowledgeGra
       ...(vx === null ? {} : { vx }),
       ...(vy === null ? {} : { vy }),
       ...(vz === null ? {} : { vz }),
-      ...(fx === null ? {} : { fx }),
-      ...(fy === null ? {} : { fy }),
-      ...(fz === null ? {} : { fz }),
       ...(node.__knowledgeAutomaticAnchor
         ? { __knowledgeAutomaticAnchor: node.__knowledgeAutomaticAnchor }
         : {}),
@@ -838,14 +835,14 @@ export function applyFocusedExpansionLayout<T extends KnowledgeGraphPositionedNo
     }
 
     if (!focused) return node;
+    // Focused expansion positions are deterministic seeds, not fixed
+    // coordinates: one-hop nodes stay under force ownership (#1739).
     return {
       ...node,
       x: focused.x,
       y: focused.y,
       positionX: focused.x,
       positionY: focused.y,
-      fx: focused.x,
-      fy: focused.y,
       __knowledgeAutomaticAnchor: {
         id: node.id,
         x: focused.x,
@@ -886,6 +883,372 @@ export function freezeKnowledgeGraphDragFrame<T extends KnowledgeGraphPositioned
     node.fy = y;
     const z = readFiniteCoordinate(node.fz ?? node.z ?? node.positionZ);
     if (z !== null) node.fz = z;
+  });
+}
+
+/**
+ * Release the drag-isolation frame after a drag ends (#1739): every
+ * non-dragged node that owns no pin and no governed root anchor returns to
+ * force ownership; the dragged node keeps its coordinates as the basis for
+ * the explicit pin the runtime layout stores.
+ */
+export function releaseKnowledgeGraphDragFrame<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  options: { draggedId: string; pinnedNodeIds: ReadonlySet<string> }
+): void {
+  nodes.forEach((node) => {
+    if (node.id === options.draggedId) return;
+    if (options.pinnedNodeIds.has(node.id)) return;
+    if ((node as T & { __knowledgeRootPacking?: unknown }).__knowledgeRootPacking) return;
+    if ((node as T & { __knowledgeUserPinned?: true }).__knowledgeUserPinned) return;
+    delete node.fx;
+    delete node.fy;
+    delete node.fz;
+  });
+}
+
+/**
+ * Component-scoped reheat support (#1739): while newly disclosed nodes
+ * settle, every unaffected node keeps its settled coordinates as a
+ * temporary fixed frame so the physics only reflows the affected scope.
+ */
+export function freezeKnowledgeGraphUnaffectedScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  affectedNodeIds: ReadonlySet<string>
+): void {
+  nodes.forEach((node) => {
+    if (affectedNodeIds.has(node.id)) return;
+    const x = readFiniteCoordinate(node.x ?? node.positionX);
+    const y = readFiniteCoordinate(node.y ?? node.positionY);
+    if (x === null || y === null) return;
+    node.fx = x;
+    node.fy = y;
+    const z = readFiniteCoordinate(node.z ?? node.positionZ);
+    if (z !== null) node.fz = z;
+  });
+}
+
+/**
+ * Render-time (pre-ingest) freeze for link-only growth (#1739): when the
+ * node set is unchanged but new edges arrive, every node outside the new
+ * edges' connected neighborhood enters the frame with fixed coordinates so
+ * force-graph's synchronous warmup ticks cannot move the settled rest.
+ * Returns the input array unchanged when the change is not link-only.
+ */
+export function freezeKnowledgeGraphEdgeGrowthScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+  previousIds: ReadonlySet<string> | null,
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+): { nodes: T[]; frozenNodeIds: Set<string> | null; reheats: boolean } {
+  if (previousIds === null
+    || nodes.length !== previousIds.size
+    || nodes.some((node) => !previousIds.has(String(node.id)))) {
+    return { nodes, frozenNodeIds: null, reheats: false };
+  }
+  const { addedEdgeEndpointIds, removedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(links, knownLinks);
+  if (addedEdgeEndpointIds.size === 0 && removedEdgeEndpointIds.size === 0) {
+    return { nodes, frozenNodeIds: null, reheats: false };
+  }
+  if (addedEdgeEndpointIds.size === 0) {
+    // 仅移除关系（禁用关系族）：投影变化不重热，全部剩余节点冻结。
+    return {
+      nodes: nodes.map((node) => ({
+        ...node,
+        fx: node.x,
+        fy: node.y,
+        ...(node.z !== undefined ? { fz: node.z } : {}),
+      })),
+      frozenNodeIds: new Set(nodes.map((node) => String(node.id))),
+      reheats: false,
+    };
+  }
+  // 新增关系（含混合移除）：新边端点及其邻域参与局部重排，其余冻结。
+  const affectedEndpoints = new Set([...addedEdgeEndpointIds, ...removedEdgeEndpointIds]);
+  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(links, affectedEndpoints)) {
+    affectedEndpoints.add(id);
+  }
+  const frozenNodeIds = new Set<string>();
+  const scopedNodes = nodes.map((node) => {
+    if (affectedEndpoints.has(String(node.id))) return node;
+    frozenNodeIds.add(String(node.id));
+    return {
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    };
+  });
+  return { nodes: scopedNodes, frozenNodeIds, reheats: true };
+}
+
+/**
+ * Post-ingest identity advance (#1739)：把上一帧/历史身份与边表推进到
+ * 当前帧（幂等，StrictMode 重放下安全）。两画布 effect 各调用一次。
+ */
+export function advanceKnowledgeGraphFrameIdentity<T extends { id: unknown }, L extends { id: unknown }>(input: {
+  nodes: readonly T[];
+  links: readonly L[];
+  nodeIdsRef: { current: ReadonlySet<string> | null };
+  everSeenNodeIdsRef: { current: Set<string> };
+  knownLinksRef: { current: Map<string, L> };
+}): void {
+  const nextIds = new Set(input.nodes.map((node) => String(node.id)));
+  input.nodeIdsRef.current = nextIds;
+  for (const id of nextIds) input.everSeenNodeIdsRef.current.add(id);
+  input.knownLinksRef.current = new Map(input.links.map((link) => [String(link.id), link]));
+}
+
+/**
+ * Shared render-time change-scope bookkeeping (#1739 不变量，完整三分支):
+ *
+ *   1. 筛选投影（增删皆见过身份）→ 全部剩余节点冻结，不重热；
+ *   2. 仅关系变化：仅移除 → 全冻结不重热；含新增边 → 变化边端点的连
+ *      通邻域重排，其余冻结并重热；
+ *   3. 真实新增节点 → 新节点连同变化边端点及其连通邻域重排，其余冻
+ *      结并重热。
+ *
+ * 画布 memo 各调用一次，effect 只消费冻结集与重热标志。
+ */
+export function scopeKnowledgeGraphRenderChange<T extends KnowledgeGraphPositionedNode>(input: {
+  nodes: T[];
+  links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+  previousNodeIds: ReadonlySet<string> | null;
+  everSeenNodeIds: ReadonlySet<string>;
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+}): { nodes: T[]; frozenNodeIds: Set<string>; reheat: boolean } {
+  const filterOutcome = freezeKnowledgeGraphFilterProjectionScope(input.nodes, input.previousNodeIds, input.everSeenNodeIds);
+  const edgeOutcome = freezeKnowledgeGraphEdgeGrowthScope(
+    filterOutcome.nodes,
+    input.links,
+    input.previousNodeIds,
+    input.knownLinks,
+  );
+  const previousNodeIds = input.previousNodeIds;
+  const realNewNodeIds: Set<string> = new Set(
+    previousNodeIds === null
+      ? []
+      : input.nodes
+        .filter((node) => !previousNodeIds.has(String(node.id)) && !input.everSeenNodeIds.has(String(node.id)))
+        .map((node) => String(node.id)),
+  );
+  if (realNewNodeIds.size === 0) {
+    return {
+      nodes: edgeOutcome.nodes,
+      frozenNodeIds: edgeOutcome.frozenNodeIds ?? filterOutcome.frozenNodeIds ?? new Set<string>(),
+      reheat: edgeOutcome.reheats,
+    };
+  }
+  // 真实新增节点：新节点连同变化边端点及其连通邻域重排，其余冻结。
+  const { addedEdgeEndpointIds, removedEdgeEndpointIds } = selectKnowledgeGraphChangedEdgeEndpoints(input.links, input.knownLinks);
+  const affected = new Set<string>([...realNewNodeIds, ...addedEdgeEndpointIds, ...removedEdgeEndpointIds]);
+  for (const id of selectKnowledgeGraphReheatAffectedNodeIds(input.links, affected)) {
+    affected.add(id);
+  }
+  const frozenNodeIds = new Set<string>();
+  const scopedNodes = edgeOutcome.nodes.map((node) => {
+    if (affected.has(String(node.id))) return node;
+    frozenNodeIds.add(String(node.id));
+    return {
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    };
+  });
+  return { nodes: scopedNodes, frozenNodeIds, reheat: true };
+}
+
+/**
+ * Derive the endpoint ids of links that changed against the previous frame
+ * (link-only shard changes: an enabled relation family adds edges, a
+ * disabled one removes them) so only their neighborhood reheats (#1739).
+ */
+export function selectKnowledgeGraphChangedEdgeEndpoints(
+  links: ReadonlyArray<{ id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+  knownLinks: ReadonlyMap<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>,
+): {
+  nextLinks: Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>;
+  addedEdgeEndpointIds: Set<string>;
+  removedEdgeEndpointIds: Set<string>;
+} {
+  const nextLinks = new Map<string, { id: unknown; source: string | { id: string }; target: string | { id: string } }>();
+  const addedEdgeEndpointIds = new Set<string>();
+  const removedEdgeEndpointIds = new Set<string>();
+  const endpointOf = (link: { source: string | { id: string }; target: string | { id: string } }, side: 'source' | 'target') => (
+    typeof link[side] === 'object' ? (link[side] as { id: string }).id : link[side] as string
+  );
+  for (const link of links) {
+    const key = String(link.id);
+    nextLinks.set(key, link);
+    if (knownLinks.has(key)) continue;
+    addedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    addedEdgeEndpointIds.add(endpointOf(link, 'target'));
+  }
+  // 被移除的边（如禁用关系族）：其端点同样进入受影响范围。
+  for (const [key, link] of knownLinks) {
+    if (nextLinks.has(key)) continue;
+    removedEdgeEndpointIds.add(endpointOf(link, 'source'));
+    removedEdgeEndpointIds.add(endpointOf(link, 'target'));
+  }
+  return { nextLinks, addedEdgeEndpointIds, removedEdgeEndpointIds };
+}
+
+/**
+ * Render-time (pre-ingest) freeze for filter-only node-set changes (#1739):
+ * when every node id was seen before (no genuinely new disclosure), the
+ * change is a filter projection (removal or restoration) — output fixed
+ * coordinates so force-graph's synchronous warmup ticks cannot move the
+ * settled nodes before any effect runs. Distinguishing by full historical
+ * identity keeps real shard disclosures on the newcomer reheat path.
+ */
+export function freezeKnowledgeGraphFilterProjectionScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  previousIds: ReadonlySet<string> | null,
+  everSeenIds: ReadonlySet<string>,
+): { nodes: T[]; frozenNodeIds: Set<string> | null } {
+  // 筛选投影 = 上一帧集合确实变化（增删皆是见过身份）；集合未变的
+  // 稳定重算（如 pin 写入触发的 memo）必须原样返回，否则全图 fx 副本
+  // 会被 force-graph 摄入并打断进行中的拖拽（#1739）。
+  const changed = previousIds !== null
+    && (nodes.length !== previousIds.size
+      || nodes.some((node) => !previousIds.has(String(node.id))));
+  const allSeen = !nodes.some((node) => !everSeenIds.has(String(node.id)));
+  if (!changed || !allSeen) {
+    return { nodes, frozenNodeIds: null };
+  }
+  return {
+    nodes: nodes.map((node) => ({
+      ...node,
+      fx: node.x,
+      fy: node.y,
+      ...(node.z !== undefined ? { fz: node.z } : {}),
+    })),
+    frozenNodeIds: new Set(nodes.map((node) => String(node.id))),
+  };
+}
+
+/**
+ * The reheat scope is the connected neighborhood of the newcomers: every
+ * existing node sharing an edge with a newcomer participates in the
+ * resettlement (collision separation, link forces), not just the new
+ * nodes themselves (#1739 连通域局部重热).
+ */
+export function selectKnowledgeGraphReheatAffectedNodeIds(
+  links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>,
+  newcomerIds: ReadonlySet<string>,
+): Set<string> {
+  const affected = new Set<string>(newcomerIds);
+  for (const link of links) {
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+    const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+    if (newcomerIds.has(sourceId)) affected.add(targetId);
+    if (newcomerIds.has(targetId)) affected.add(sourceId);
+  }
+  return affected;
+}
+
+/**
+ * Shared newcomer-reheat step for both canvases (#1739). Handles two scopes:
+ *
+ * - real newcomers (ids never seen before): freeze everything outside their
+ *   connected neighborhood, the caller reheats; later batches that pull
+ *   previously frozen nodes into the affected scope release the old frame
+ *   first so no frozen fx survives as an implicit pin.
+ * - filter projections (frame change whose ids were all seen before —
+ *   removal or restoration): freeze and REGISTER every node so engine-stop
+ *   releases them; no reheat, so filtering never restarts the simulation.
+ *
+ * `previousIds` is the previous frame's identity set (drives change and
+ * newcomer detection); `everSeenIds` is the full historical identity set;
+ * `changedEdgeEndpointIds` covers link-only changes (an enabled or disabled
+ * relation family adding/removing edges between existing nodes): those
+ * endpoints join the affected scope so only their neighborhood reheats
+ * while the settled rest stays frozen.
+ * Returns the frozen id set plus whether a reheat should run, or null when
+ * nothing changed.
+ */
+export function reheatKnowledgeGraphNewcomerScope<T extends KnowledgeGraphPositionedNode>(input: {
+  nodes: T[];
+  links: ReadonlyArray<{ source: string | { id: string }; target: string | { id: string } }>;
+  previousIds: ReadonlySet<string> | null;
+  everSeenIds: ReadonlySet<string>;
+  previousFrozenNodeIds: ReadonlySet<string>;
+  pinnedNodeIds: ReadonlySet<string>;
+  changedEdgeEndpointIds?: ReadonlySet<string>;
+}): { frozenNodeIds: Set<string>; hasNewcomers: boolean } | null {
+  const nextIds = new Set(input.nodes.map((node) => String(node.id)));
+  if (input.previousIds === null) return null;
+  const changed = nextIds.size !== input.previousIds.size
+    || [...nextIds].some((id) => !input.previousIds!.has(id));
+  const edgeOnlyGrowth = !changed && (input.changedEdgeEndpointIds?.size ?? 0) > 0;
+  if (!changed && !edgeOnlyGrowth) return null;
+  if (edgeOnlyGrowth) {
+    // 仅关系变化的分片：节点集不变，变化边（新增或移除）端点及其邻域
+    // 参与局部重热。
+    if (input.previousFrozenNodeIds.size > 0) {
+      releaseKnowledgeGraphFrozenScope(input.nodes, {
+        frozenNodeIds: input.previousFrozenNodeIds,
+        pinnedNodeIds: input.pinnedNodeIds,
+      });
+    }
+    const affectedEndpoints = new Set(input.changedEdgeEndpointIds!);
+    for (const id of selectKnowledgeGraphReheatAffectedNodeIds(input.links, input.changedEdgeEndpointIds!)) {
+      affectedEndpoints.add(id);
+    }
+    freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedEndpoints);
+    return {
+      frozenNodeIds: new Set(
+        input.nodes
+          .filter((node) => !affectedEndpoints.has(String(node.id)))
+          .map((node) => String(node.id)),
+      ),
+      hasNewcomers: true,
+    };
+  }
+  const realNewcomerIds = new Set([...nextIds].filter((id) => !input.everSeenIds.has(id)));
+
+  // 释放上一轮冻结（pin/root 豁免）：后续批次中进入受影响区的节点不得
+  // 保留旧冻结 fx，否则 engine-stop 释放不到而变成隐式 pin（#1739）。
+  if (input.previousFrozenNodeIds.size > 0) {
+    releaseKnowledgeGraphFrozenScope(input.nodes, {
+      frozenNodeIds: input.previousFrozenNodeIds,
+      pinnedNodeIds: input.pinnedNodeIds,
+    });
+  }
+
+  if (realNewcomerIds.size === 0) {
+    // 筛选投影（移除或恢复）：全部节点临时冻结并登记，engine-stop 后
+    // 释放；不触发 reheat（#1739 task 3.3）。
+    freezeKnowledgeGraphUnaffectedScope(input.nodes, new Set());
+    return { frozenNodeIds: new Set(input.nodes.map((node) => String(node.id))), hasNewcomers: false };
+  }
+
+  const affectedNodeIds = selectKnowledgeGraphReheatAffectedNodeIds(input.links, realNewcomerIds);
+  freezeKnowledgeGraphUnaffectedScope(input.nodes, affectedNodeIds);
+  return {
+    frozenNodeIds: new Set(
+      input.nodes
+        .filter((node) => input.previousIds!.has(String(node.id)) && !affectedNodeIds.has(String(node.id)))
+        .map((node) => String(node.id)),
+    ),
+    hasNewcomers: true,
+  };
+}
+
+/** Release a previously frozen scope; pins, roots and dragged nodes stay fixed. */
+export function releaseKnowledgeGraphFrozenScope<T extends KnowledgeGraphPositionedNode>(
+  nodes: T[],
+  options: { frozenNodeIds: ReadonlySet<string>; pinnedNodeIds: ReadonlySet<string> }
+): void {
+  nodes.forEach((node) => {
+    if (!options.frozenNodeIds.has(node.id)) return;
+    if (options.pinnedNodeIds.has(node.id)) return;
+    if ((node as T & { __knowledgeUserPinned?: true }).__knowledgeUserPinned) return;
+    if ((node as T & { __knowledgeRootPacking?: unknown }).__knowledgeRootPacking) return;
+    delete node.fx;
+    delete node.fy;
+    delete node.fz;
   });
 }
 

@@ -1,12 +1,30 @@
 'use client';
 
+/**
+ * Bounded ingress adapter（legacy-chat-bridge-retirement spec）：
+ * 把既有消费方的 legacy Message/handleSubmit 形状接到 canonical
+ * @ai-sdk/react useChat + /api/ai/chat 服务端合同（C28 canonical runtime）。
+ *
+ * 非权威：不持有会话 store、不解析 provider 流、不做 provider 选择、
+ * 不写业务事实。全部会话与 provider 语义由服务端 route 与
+ * src/lib/ai owner 持有。
+ *
+ * 删除条件：四个保留 surface（copilot page/panel、global/konling sidebar）
+ * 迁移到原生 useChat 契约后本文件删除；不得以另一个 facade 替代。
+ */
+
 import {
   DefaultChatTransport,
 } from 'ai';
 import { useChat as useAiSdkChat } from '@ai-sdk/react';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { toLegacyMessage, toUIMessage } from '@/lib/ai-message-compat';
+import { toLegacyMessage, toUIMessage } from '@/lib/ai/message-compat';
+import {
+  KonlingChatFailureError,
+  createKonlingSafeFetch,
+  normalizeKonlingChatFailure,
+} from '@/lib/konling-chat-failure';
 import {
   applyKonlingMessageRevision,
   applyKonlingOptimizationStatus,
@@ -25,6 +43,7 @@ interface UseLegacyChatOptions {
 export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyChatOptions) {
   const [input, setInput] = useState('');
   const bodyRef = useRef(body);
+  const lastSubmittedTextRef = useRef<string | null>(null);
   const setChatMessagesRef = useRef<
     ReturnType<typeof useAiSdkChat<KonlingUIMessage>>['setMessages'] | null
   >(null);
@@ -38,11 +57,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       new DefaultChatTransport({
         api,
         body: () => bodyRef.current ?? {},
-        fetch: async (input, init) => {
-          const response = await fetch(input, init);
-          onResponse?.(response.clone());
-          return response;
-        },
+        fetch: createKonlingSafeFetch(onResponse),
       }),
     [api, onResponse],
   );
@@ -64,6 +79,21 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
   });
   setChatMessagesRef.current = chat.setMessages;
 
+  // 发送失败时尽量保留未送达的问题文本，供恢复动作后重发
+  useEffect(() => {
+    if (!chat.error) return;
+    const pending = lastSubmittedTextRef.current;
+    lastSubmittedTextRef.current = null;
+    if (pending && !input) setInput(pending);
+  }, [chat.error, input]);
+
+  const safeError = useMemo(
+    () => chat.error
+      ? new KonlingChatFailureError(normalizeKonlingChatFailure(chat.error).category)
+      : chat.error,
+    [chat.error],
+  );
+
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
       setInput(event.target.value);
@@ -76,6 +106,8 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       message: Pick<Message, 'role' | 'content'>,
       requestBody?: Record<string, unknown>,
     ) => {
+      // 快捷问题等 append 发送同样绑定待恢复文本，避免失败后恢复上一次的陈旧问题
+      lastSubmittedTextRef.current = message.content;
       await chat.sendMessage(
         { text: message.content },
         requestBody ? { body: { ...bodyRef.current, ...requestBody } } : undefined,
@@ -94,6 +126,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
       if (!text || chat.status === 'submitted' || chat.status === 'streaming') {
         return;
       }
+      lastSubmittedTextRef.current = text;
       setInput('');
       await chat.sendMessage(
         { text },
@@ -119,7 +152,7 @@ export function useChat({ api, body, onError, onFinish, onResponse }: UseLegacyC
     handleInputChange,
     handleSubmit,
     isLoading: chat.status === 'submitted' || chat.status === 'streaming',
-    error: chat.error,
+    error: safeError,
     reload: chat.regenerate,
     stop: chat.stop,
     append,

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-import type { PortfolioReflectionDraftInput } from '@/lib/ai-task-boundary-contracts';
+import type { PortfolioReflectionDraftRecordInput } from '@/lib/ai-task-boundary-contracts';
 
 const draftSelect = {
   id: true,
@@ -10,6 +10,7 @@ const draftSelect = {
   title: true,
   content: true,
   status: true,
+  provenance: true,
   idempotencyKey: true,
   createdAt: true,
   updatedAt: true,
@@ -23,6 +24,7 @@ type DraftRecord = {
   title: string;
   content: string;
   status: 'DRAFT' | 'DISCARDED';
+  provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED' | 'LEGACY_UNVERIFIED';
   idempotencyKey: string;
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +53,7 @@ type DraftDatabase = {
         title: string;
         content: string;
         status: 'DRAFT';
+        provenance: 'PLATFORM_VERIFIED' | 'STUDENT_PROVIDED';
         idempotencyKey: string;
       };
       select: typeof draftSelect;
@@ -67,7 +70,7 @@ export class DiscardedDraftReplayError extends Error {
 export async function savePortfolioReflectionDraft(
   database: DraftDatabase,
   userId: string,
-  input: PortfolioReflectionDraftInput,
+  input: PortfolioReflectionDraftRecordInput,
 ): Promise<DraftRecord> {
   try {
     return await withSerializableRetry(() => database.$transaction(async (tx) => {
@@ -101,6 +104,7 @@ export async function savePortfolioReflectionDraft(
           title: input.title,
           content: input.content,
           status: 'DRAFT',
+          provenance: input.provenance,
           idempotencyKey: input.idempotencyKey,
         },
         select: draftSelect,

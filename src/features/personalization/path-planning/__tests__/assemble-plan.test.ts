@@ -17,8 +17,8 @@ import {
   type AdaptiveLearningPathPlannerInput,
 } from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionThreeStylePathBundle } from '@/features/personalization/path-planning/internal/assemble-plan';
-import { deterministicPathConstraintRepairAdapter } from '@/lib/adaptive-planning/path-constraint-repair';
-import { rankResourceLearnerCandidates } from '@/lib/adaptive-planning/resource-ranker';
+import { deterministicPathConstraintRepairAdapter } from '@/features/personalization/path-planning/path-constraint-repair';
+import { rankResourceLearnerCandidates } from '@/features/personalization/path-planning/resource-ranker';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import { createEmptyCompetencyVector } from '@/lib/data-governance/competency-model';
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';

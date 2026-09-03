@@ -9,7 +9,7 @@ import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-
 import type {
   ControlCorrectionTeacherReport,
   ControlCorrectionReportMetric,
-} from './control-correction-teacher-report';
+} from '@/features/teacher/control-correction-teacher-report';
 import type {
   LearningEvidenceCitationChipPayload,
   LearningEvidenceConfidence,
@@ -20,7 +20,7 @@ import type {
   RoleBasedLearningDiagnosis,
   RoleBasedLearningDiagnosisGraphContext,
   RoleBasedLearningDiagnosisRootCauseCluster,
-} from './role-based-learning-diagnosis';
+} from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 
 export const TEACHER_PREP_PACK_GENERATION_VERSION = 'teacher-prep-pack-generation.v1';
 export const COURSE_ENHANCEMENT_PACK_VERSION = 'course-enhancement-pack.v1';

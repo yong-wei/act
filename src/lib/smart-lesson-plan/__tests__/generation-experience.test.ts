@@ -82,7 +82,7 @@ describe('smart lesson generation experience', () => {
       join(process.cwd(), 'src/features/teacher/smart-lesson-plan-workspace.tsx'),
       'utf8',
     );
-    expect(source).toContain("!['QUEUED', 'RUNNING'].includes(activeJobState)");
+    expect(source).toContain("!SMART_JOB_ACTIVE_STATES.includes(activeJobState");
     expect(source).not.toContain("!['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(activeJobState)");
     expect(source).toContain('<GeneratedStageContent');
     expect(source).not.toContain('JSON.stringify(stage.output');

@@ -4,14 +4,14 @@ import path from 'node:path';
 import {
   buildAdaptiveAssessmentItemCatalog,
   loadAdaptiveAssessmentCatalogSources,
-} from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import { loadAssessmentItemSemanticReviewSource } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+} from '@/features/assessment/adaptive-assessment-item-catalog';
+import { loadAssessmentItemSemanticReviewSource } from '@/features/assessment/adaptive-assessment-semantic-review';
 import {
   buildAdaptiveAssessmentLifecycleCoverage,
   buildTerminalValidationOverlayCatalog,
   buildTerminalValidationReviewDecisions,
   lifecycleCoverageArtifactsToFiles,
-} from '@/features/adaptive-assessment/adaptive-assessment-lifecycle-coverage';
+} from '@/features/assessment/adaptive-assessment-lifecycle-coverage';
 
 const OUTPUT_DIR = path.join(process.cwd(), 'course-content/runtime/resource-governance');
 

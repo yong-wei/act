@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { restoreAdaptiveLearningPathPlanFromRound } from '@/lib/adaptive-path-round-restore';
+import { restoreAdaptiveLearningPathPlanFromRound } from '@/features/personalization/path-planning/adaptive-path-round-restore';
 
 describe('adaptive path round restore', () => {
   it('restores non-control LearningGoal rounds without falling back to control-correction', () => {

@@ -9,17 +9,17 @@ import {
   AdaptivePathJourneyControl,
   buildAdaptivePathJourneyReadHref,
   parseAdaptivePathJourneyResponse,
-} from '@/features/adaptive/adaptive-path-journey-control';
+} from '@/features/personalization/experience/adaptive-path-journey-control';
 import {
   buildAdaptivePathCompletionRequest,
   buildAdaptivePathLaunchContext,
-} from '@/features/adaptive/adaptive-learning-center-contracts';
-import type { AuthorizedAdaptivePathJourney } from '@/features/adaptive/adaptive-path-journey-contracts';
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
+import type { AuthorizedAdaptivePathJourney } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import {
   buildAuthorizedAdaptivePathJourney,
   resolveAdaptivePathCenterOwnedTargetHref,
   resolveAdaptivePathJourneyTargetDisposition,
-} from '@/features/adaptive/adaptive-path-journey-contracts';
+} from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import { GOVERNED_PATH_NODE_TYPES } from '@/lib/resource-node-registry';
 
 const rootDir = path.resolve(__dirname, '../../..');

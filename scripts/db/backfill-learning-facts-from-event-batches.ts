@@ -11,10 +11,23 @@ import {
   resolveLearningFactActionType,
 } from '@/lib/data-governance/learning-fact-materialization';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { assertExplicitHistoricalApply } from '@/features/learning-record/write-boundary/public-api';
+import {
+  beginAuthorizedBackfillApply,
+  buildBackfillTerminalReceipt,
+  computeBackfillInputDigest,
+  createFileReceiptStore,
+  isAtOrBeforeFrozenCutoff,
+} from '@/features/learning-record/backfill-lane/public-api';
 
 const prisma = createPrismaClient();
-const isDryRun = process.argv.includes('--dry-run');
+const isApply = process.argv.includes('--apply');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
+
+function readArg(flag: string): string {
+  const prefix = `${flag}=`;
+  return process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length)?.trim() ?? '';
+}
 
 async function main() {
   if (shouldEnqueueSnapshots) {
@@ -38,12 +51,16 @@ async function main() {
       .filter((value): value is string => typeof value === 'string' && value.length > 0),
   );
 
+  const frozenCutoff = readArg('--frozen-cutoff');
   const factsToInsert: Prisma.LearningFactCreateManyInput[] = [];
+  const windowEventIds: string[] = [];
   const countsByActionType = new Map<string, number>();
 
   for (const batch of batches) {
     const events = Array.isArray(batch.events) ? (batch.events as LearningEvent[]) : [];
     for (const rawEvent of events) {
+      if (frozenCutoff && !isAtOrBeforeFrozenCutoff(rawEvent.occurredAt, frozenCutoff)) continue;
+      if (rawEvent.eventId) windowEventIds.push(rawEvent.eventId);
       const canonicalActionType = resolveLearningFactActionType(rawEvent);
 
       countsByActionType.set(
@@ -62,7 +79,7 @@ async function main() {
   }
 
   console.log(
-    `[BackfillFacts] batches=${batches.length} candidates=${factsToInsert.length} dryRun=${isDryRun}`,
+    `[BackfillFacts] batches=${batches.length} candidates=${factsToInsert.length} dryRun=${!isApply}`,
   );
   console.log(
     '[BackfillFacts] actionTypes=' +
@@ -73,26 +90,52 @@ async function main() {
       ),
   );
 
-  if (isDryRun || factsToInsert.length === 0) {
+  if (!isApply) {
     return;
   }
 
-  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
-  const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
-    {
-      learningFact: {
-        createMany: async (args) => prisma.learningFact.createMany({
-          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
-          skipDuplicates: args.skipDuplicates,
-        }),
+  const auth = assertExplicitHistoricalApply({
+    operationId: readArg('--operation-id'),
+    authorizedBy: readArg('--authorize'),
+    frozenCutoff,
+  });
+  const store = createFileReceiptStore();
+  const inputDigest = computeBackfillInputDigest({
+    lane: 'event-batches',
+    frozenCutoff: auth.frozenCutoff,
+    scope: { sourceEventIds: [...new Set(windowEventIds)].sort() },
+  });
+  const { existing } = beginAuthorizedBackfillApply(auth, inputDigest, store);
+  if (existing?.status === 'applied' || existing?.status === 'resumed') {
+    console.log(`[BackfillFacts] resumed operation=${auth.operationId}`);
+    return;
+  }
+
+  let written = 0;
+  if (factsToInsert.length > 0) {
+    const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+    const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => prisma.learningFact.createMany({
+            data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
       },
-    },
-    factsToInsert as LearningFactWriteRow[],
-    { knowledgeRevisionRef: activeRevision.id },
-  );
-
-  console.log(`[BackfillFacts] inserted=${writeResult.written}`);
-
+      factsToInsert as LearningFactWriteRow[],
+      { knowledgeRevisionRef: activeRevision.id },
+    );
+    written = writeResult.written;
+    console.log(`[BackfillFacts] inserted=${written}`);
+  }
+  store.put(buildBackfillTerminalReceipt(auth, {
+    lane: 'event-batches',
+    inputDigest,
+    status: 'applied',
+    outcomes: { accepted: written },
+    factsCreated: written,
+  }));
 }
 
 main()

@@ -90,6 +90,13 @@ describe('simulation scene run persistence', () => {
         resourceId: 'module-1',
         summary: expect.objectContaining({
           qualityTargetMet: true,
+          runContract: expect.objectContaining({
+            sourceKind: 'simulation-run',
+            evaluationVisibility: 'practice',
+            officialEligible: false,
+            executor: 'server',
+            authoritySource: 'control-engine-server-facade',
+          }),
         }),
       }),
     }));
@@ -249,6 +256,11 @@ describe('simulation scene run persistence', () => {
         status: 'completed',
         summary: expect.objectContaining({
           qualityTargetMet: true,
+          runContract: expect.objectContaining({
+            sourceKind: 'practice-outcome',
+            evaluationVisibility: 'practice',
+            officialEligible: false,
+          }),
         }),
       }),
     }));

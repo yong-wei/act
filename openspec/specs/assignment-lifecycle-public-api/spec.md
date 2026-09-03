@@ -148,3 +148,42 @@ score/evidence authority, or QA artifact source.
   repository receipt SHALL contain only source/revision hash, output hash or
   reference, and conclusion
 
+### Requirement: Assignment owner closure has one consumer migration and deletion gate
+
+The change SHALL close the Assignment owner denominator without introducing a
+new lifecycle API.  All production routes, UI features, server actions,
+workers, scripts, tests, dynamic imports, Assessment adapters, Learning Record
+consumers, and Data Governance handoffs SHALL be mapped to the existing
+Assignment public API or an explicitly owned cross-domain port.  A legacy
+implementation SHALL be deleted only after its replacement, behavior/privacy
+evidence, and zero-required-caller proof are bound to the same source
+revision.
+
+#### Scenario: An Assignment consumer is migrated
+
+- **WHEN** a route, feature, worker, script, test, Assessment adapter,
+  Learning Record consumer, or governance handoff needs Assignment behavior
+- **THEN** it SHALL use the existing Assignment public API or a documented
+  owner-approved port
+- **AND** the migration ledger SHALL record its old path, replacement, owner,
+  preserved behavior, and deletion condition
+
+#### Scenario: The legacy consumer inventory reaches zero
+
+- **WHEN** static, dynamic, worker, script, and test inventories find no
+  required caller of a superseded Assignment implementation
+- **THEN** the superseded entrypoint SHALL be removed in the qualified
+  revision
+- **AND** no forwarding facade, duplicate repository, or hidden state machine
+  SHALL remain
+
+#### Scenario: A caller crosses an Assessment or Learning Record boundary
+
+- **WHEN** Assignment needs attempt semantics, current projection data, or
+  governed evidence writeback
+- **THEN** it SHALL use the existing Assessment or Learning Record owner and
+  preserve revision, snapshot, authorization, privacy, and idempotency
+  identity
+- **AND** it SHALL not copy that domain's state machine or write its records
+  directly
+

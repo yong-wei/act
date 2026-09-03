@@ -20,7 +20,7 @@ vi.mock('@/lib/prisma', () => ({
     learningPathCorrectionDecision: { findFirst: mocks.rootDecisionFindFirst },
   },
 }));
-vi.mock('@/lib/control-correction-path-rounds', () => ({
+vi.mock('@/features/personalization/path-planning/control-correction-path-rounds', () => ({
   isControlCorrectionPathRoundPersistenceEnabled: () => true,
 }));
 vi.mock('@/lib/canonical-learning-path-transition/write-fence', () => ({
@@ -32,7 +32,7 @@ vi.mock('@/lib/canonical-learning-path-transition/write-fence', () => ({
     },
   }),
 }));
-vi.mock('@/features/adaptive/adaptive-path-journey-contracts', () => ({
+vi.mock('@/features/personalization/experience/adaptive-path-journey-contracts', () => ({
   buildAuthorizedAdaptivePathJourney: mocks.buildJourney,
 }));
 

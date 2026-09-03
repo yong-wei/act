@@ -17,7 +17,7 @@ import {
   useManifestSubmissionController,
 } from '@/features/interactive/shared/manifest-runtime/submission-controller';
 import { useInteractiveTracking } from '@/features/interactive/hooks/useInteractiveTracking';
-import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
+import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
   getUNIT_2_4MediaSrc,
@@ -303,7 +303,7 @@ export function UNIT_2_4StudentPage({
 
         {isUNIT_2_4AiPageType(step.pageType) ? (
           <div className="mt-4">
-            <UNIT_2_4StepAiAssistant step={step} onAiEvent={handleAiEvent} />
+            <UNIT_2_4StepAiAssistant step={step} onAiEvent={handleAiEvent} classroomSessionId={isDemo ? undefined : sessionId} />
           </div>
         ) : null}
 

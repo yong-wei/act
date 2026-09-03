@@ -28,7 +28,7 @@ describe('course runtime loader error boundaries', () => {
     const missingDirectory = Object.assign(new Error('missing runtime lessons'), { code: 'ENOENT' });
     mocks.readdir.mockRejectedValue(missingDirectory);
 
-    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-runtime');
+    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-bundle');
 
     await expect(loadAllLessonRuntimeResourceCatalogEntries()).resolves.toEqual([]);
   });
@@ -38,7 +38,7 @@ describe('course runtime loader error boundaries', () => {
     const permissionDenied = Object.assign(new Error('permission denied'), { code: 'EACCES' });
     mocks.readdir.mockRejectedValue(permissionDenied);
 
-    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-runtime');
+    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-bundle');
 
     await expect(loadAllLessonRuntimeResourceCatalogEntries()).rejects.toThrow('permission denied');
   });
@@ -47,7 +47,7 @@ describe('course runtime loader error boundaries', () => {
     mocks.readFile.mockResolvedValue('{not-json');
     mocks.readdir.mockResolvedValue([]);
 
-    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-runtime');
+    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-bundle');
 
     await expect(loadAllLessonRuntimeResourceCatalogEntries()).rejects.toThrow();
   });
@@ -61,7 +61,7 @@ describe('course runtime loader error boundaries', () => {
     const permissionDenied = Object.assign(new Error('lesson json permission denied'), { code: 'EACCES' });
     mocks.access.mockRejectedValue(permissionDenied);
 
-    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-runtime');
+    const { loadAllLessonRuntimeResourceCatalogEntries } = await import('@/lib/course-bundle');
 
     await expect(loadAllLessonRuntimeResourceCatalogEntries()).rejects.toThrow('lesson json permission denied');
   });

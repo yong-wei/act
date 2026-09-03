@@ -1,0 +1,31 @@
+{
+  "shardSetId": "ads-294a061649658ea5298f257af4ce248677844348efe89879f253d1ecba3eee6c",
+  "catalogDomains": 15,
+  "requests": [
+    {
+      "test": "desktop",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active",
+      "bytes": 6324
+    },
+    {
+      "test": "desktop",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/nonlinear-analysis",
+      "bytes": 49336
+    },
+    {
+      "test": "desktop",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/modeling",
+      "bytes": 306176
+    },
+    {
+      "test": "desktop",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/domains/modeling/search?q=%5Cmathc&limit=12",
+      "bytes": 1122
+    },
+    {
+      "test": "desktop",
+      "url": "http://127.0.0.1:3200/api/knowledge/shards/active/neighborhoods/ctf%3A009fbd7c751d1cefc7bc33f4",
+      "bytes": 3290
+    }
+  ]
+}

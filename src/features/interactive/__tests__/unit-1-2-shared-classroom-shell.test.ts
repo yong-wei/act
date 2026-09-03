@@ -37,20 +37,17 @@ describe('unit-1-2 shared classroom shell characterization', () => {
   });
 
   it('keeps classroom routes on shared shell and session application boundaries', () => {
-    const entryRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/entry.tsx');
-    const studentRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/student.tsx');
-    const teacherRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/teacher.tsx');
-    const waitingRoute = read('src/features/interactive/course-app-routes/unit-1-2-modeling-from-object-to-system/waiting.tsx');
+    const sharedRoute = read('src/features/interactive/shared/batch-a-classroom-pages.tsx');
     const entryPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page.tsx');
     const studentPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx');
     const teacherPage = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx');
     const stepPanels = read('src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx');
 
-    expect(entryRoute).toContain("loadLessonRuntimeEntry('1-2')");
-    expect(studentRoute).toContain("expectedCanonicalId: '1-2'");
-    expect(studentRoute).toContain('loadSessionBoundLessonRuntime');
-    expect(teacherRoute).toContain("expectedCanonicalId: '1-2'");
-    expect(waitingRoute).toContain('TeacherClassroomWaitingRoute');
+    expect(sharedRoute).toContain('loadLessonRuntimeEntry(lesson.canonicalId)');
+    expect(sharedRoute).toContain("expectedCanonicalId: lesson.canonicalId");
+    expect(sharedRoute).toContain('loadSessionBoundLessonRuntime');
+    expect(sharedRoute).toContain('TeacherClassroomWaitingRoute');
+    expect(sharedRoute).toContain("canonicalId: '1-2'");
     expect(entryPage).toContain('CourseEntryShell');
     expect(studentPage).toContain('LessonRuntimeShell');
     expect(teacherPage).toContain('LessonRuntimeShell');
@@ -61,7 +58,7 @@ describe('unit-1-2 shared classroom shell characterization', () => {
     expect(stepPanels).toContain('createManifestStudentActivityRegistry');
     expect(stepPanels).toContain('createManifestTeacherActivityRegistry');
 
-    for (const source of [entryRoute, studentRoute, teacherRoute, waitingRoute, entryPage, studentPage, teacherPage, stepPanels]) {
+    for (const source of [sharedRoute, entryPage, studentPage, teacherPage, stepPanels]) {
       expect(source).not.toContain('course-content/authoring');
       expect(source).not.toContain('/api/session');
       expect(source).not.toContain('LessonPlan.title');
@@ -70,7 +67,7 @@ describe('unit-1-2 shared classroom shell characterization', () => {
 
     expect(existsSync(join(featureDir, 'course-header.tsx'))).toBe(false);
     expect(existsSync(join(privateAppDir, 'page.tsx'))).toBe(false);
-    expect(existsSync(join(adapterDir, 'entry.tsx'))).toBe(true);
+    expect(existsSync(join(adapterDir, 'entry.tsx'))).toBe(false);
     expect(existsSync(join(dispatcherDir, 'page.tsx'))).toBe(true);
     expect(read('src/app/interactive-learning/courses/[routeSegment]/page.tsx')).toContain('notFound()');
     expect(LEGACY_LESSON_RUNTIME_ROUTE_SLUGS).not.toContain('unit-1-2-modeling-from-object-to-system');

@@ -710,4 +710,95 @@ describe('teacher assignment review persistence', () => {
   it('exposes structured review errors for API conflict mapping', () => {
     expect(new TeacherAssignmentReviewError('teacher-review-version-conflict', 409)).toMatchObject({ code: 'teacher-review-version-conflict', status: 409 });
   });
+
+  it('persists the teacher-confirmed total in the isolation column instead of the AI draft column', async () => {
+    const review = reviewFixture();
+    const runUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review), updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      teacherAssignmentApprovalSnapshot: { create: vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-x' })), findMany: vi.fn().mockResolvedValue([]) },
+      teacherAssignmentReviewOutbox: { createMany: vi.fn().mockResolvedValue({ count: 3 }), updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      gradingRun: { updateMany: runUpdateMany },
+      gradingCriterionAssessment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      gradingAuditEvent: { create: vi.fn().mockResolvedValue({ id: 'audit-1' }) },
+      assignmentSubmission: {
+        findUnique: vi.fn().mockResolvedValue({
+          revision: { questions: [{ id: review.questionId }] },
+          answers: [{ id: review.answerId, assignmentQuestionId: review.questionId, currentAttemptNumber: 1, attempts: [{ id: review.attemptId, attemptNumber: 1 }] }],
+          resubmissionGrants: [],
+          questionExemptions: [],
+        }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+    await approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: review.version, idempotencyKey: 'approve-isolation-1', now,
+    });
+    const data = runUpdateMany.mock.calls[0][0].data as Record<string, unknown>;
+    expect(data.approvedTotalScore).toBeDefined();
+    expect(data).not.toHaveProperty('draftTotalScore');
+  });
+
+  it('gates release commands behind the assignment-level result release for teacher-confirmed revisions', async () => {
+    const review = reviewFixture();
+    review.revision = { ...review.revision, solutionReleasePolicy: { mode: 'TEACHER_CONFIRMED_RESULT' } } as any;
+    const outboxCreateMany = vi.fn().mockResolvedValue({ count: 3 });
+    const db: any = {
+      $transaction: (callback: (tx: any) => Promise<any>) => callback(db),
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(review), updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      teacherAssignmentApprovalSnapshot: { create: vi.fn(async ({ data }: any) => ({ ...data, id: 'snapshot-x' })), findMany: vi.fn().mockResolvedValue([]) },
+      teacherAssignmentReviewOutbox: { createMany: outboxCreateMany, updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      gradingRun: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      gradingCriterionAssessment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      gradingAuditEvent: { create: vi.fn().mockResolvedValue({ id: 'audit-1' }) },
+      assignmentSubmission: {
+        findUnique: vi.fn().mockResolvedValue({
+          revision: { questions: [{ id: review.questionId }] },
+          answers: [{ id: review.answerId, assignmentQuestionId: review.questionId, currentAttemptNumber: 1, attempts: [{ id: review.attemptId, attemptNumber: 1 }] }],
+          resubmissionGrants: [],
+          questionExemptions: [],
+        }),
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+    await approveTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId,
+      reviewId: review.id, expectedVersion: review.version, idempotencyKey: 'approve-gated-1', now,
+    });
+    const rows = outboxCreateMany.mock.calls[0][0].data as any[];
+    const releaseRow = rows.find((row) => row.command === 'RELEASE_STUDENT_FEEDBACK');
+    expect(releaseRow.payload).toMatchObject({ assignmentResultReleaseGate: true });
+    const ungated = rows.filter((row) => row.command !== 'RELEASE_STUDENT_FEEDBACK');
+    for (const row of ungated) expect(row.payload).not.toHaveProperty('assignmentResultReleaseGate');
+  });
+
+  it('creates reviews for manual runs without conversion evidence', async () => {
+    const review = reviewFixture();
+    const manualRun: any = {
+      ...review.gradingRun,
+      source: 'MANUAL',
+      answerEvidenceId: null,
+      answerEvidence: null,
+      annotations: [],
+      answerAttempt: {
+        ...review.gradingRun.answerAttempt,
+        answer: {
+          ...review.gradingRun.answerAttempt.answer,
+          submission: { ...review.submission, revision: { assignment: review.assignment } },
+        },
+      },
+    };
+    const reviewCreate = vi.fn(async ({ data }: any) => ({ ...data, id: 'review-manual-1' }));
+    const db: any = {
+      teacherAssignmentReview: { findUnique: vi.fn().mockResolvedValue(null), create: reviewCreate },
+      gradingRun: { findUnique: vi.fn().mockResolvedValue(manualRun) },
+    };
+    const created = await createTeacherAssignmentReview(db, {
+      actor: { id: 'teacher-1', role: 'TEACHER' }, assignmentId: review.assignmentId, submissionId: review.submissionId, gradingRunId: manualRun.id, now,
+    });
+    expect(created).toMatchObject({ review: { id: 'review-manual-1' }, replay: false });
+    expect(reviewCreate).toHaveBeenCalled();
+  });
 });

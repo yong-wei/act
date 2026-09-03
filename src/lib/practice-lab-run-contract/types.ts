@@ -42,6 +42,17 @@ export const DEFAULT_TOLERANCE_PROFILE = {
   relative: 1e-3,
 } as const;
 
+export const PREVIEW_DISPLAY_BOUNDARY = {
+  evaluationVisibility: 'preview',
+  officialEligible: false,
+  persisted: false,
+} as const;
+
+export const PRACTICE_DISPLAY_BOUNDARY = {
+  evaluationVisibility: 'practice',
+  officialEligible: false,
+} as const;
+
 export interface ArtifactRunOwnerRef {
   readonly kind: 'student' | 'teacher-batch' | 'class' | 'system';
   readonly id: string;

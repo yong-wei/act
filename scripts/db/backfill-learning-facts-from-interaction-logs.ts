@@ -12,11 +12,20 @@ import {
 import type { LearningEvent, PageType, UserRole } from '@/lib/data-governance/event-protocol';
 import { isCoreEvent } from '@/lib/data-governance/event-types';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
+import { assertExplicitHistoricalApply } from '@/features/learning-record/write-boundary/public-api';
+import {
+  beginAuthorizedBackfillApply,
+  buildBackfillTerminalReceipt,
+  computeBackfillInputDigest,
+  createFileReceiptStore,
+  isAtOrBeforeFrozenCutoff,
+  isAuxiliaryStateAtOrBeforeFrozenCutoff,
+} from '@/features/learning-record/backfill-lane/public-api';
 import { buildUNIT36SubmissionTelemetry } from '@/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry';
 import type { UNIT_3_6StepResponse } from '@/lib/unit-3-6-course';
 
 const prisma = createPrismaClient();
-const isDryRun = process.argv.includes('--dry-run');
+const isApply = process.argv.includes('--apply');
 const shouldEnqueueSnapshots = process.argv.includes('--enqueue-snapshots');
 
 function getArgValue(name: string): string | null {
@@ -169,17 +178,26 @@ async function main() {
             return { sessionId: stateSessionId, userId };
           }),
         },
-        select: { sessionId: true, userId: true, data: true },
+        select: { sessionId: true, userId: true, data: true, submittedAt: true, lastClientEventAt: true },
       })
     : [];
-  const stateBySessionAndUser = new Map(states.map((state) => [`${state.sessionId}::${state.userId}`, state]));
+  const frozenCutoff = getArgValue('--frozen-cutoff') ?? '';
+  const stateBySessionAndUser = new Map(
+    states
+      .filter((state) => !frozenCutoff || isAuxiliaryStateAtOrBeforeFrozenCutoff(state.submittedAt, state.lastClientEventAt, frozenCutoff))
+      .map((state) => [`${state.sessionId}::${state.userId}`, state]),
+  );
 
   const factsToInsert: Prisma.LearningFactCreateManyInput[] = [];
+  const windowEventIds: string[] = [];
   const countsByActionType = new Map<string, number>();
   let enrichedFromState = 0;
 
   for (const log of logs) {
+    const occurredAt = (log.clientEventAt ?? log.createdAt).toISOString();
+    if (frozenCutoff && !isAtOrBeforeFrozenCutoff(occurredAt, frozenCutoff)) continue;
     const sourceEventId = `interaction-log:${log.id}`;
+    windowEventIds.push(sourceEventId);
     if (existingEventIds.has(sourceEventId)) {
       continue;
     }
@@ -233,31 +251,59 @@ async function main() {
   }
 
   console.log(
-    `[BackfillInteractionLogs] logs=${logs.length} candidates=${factsToInsert.length} enrichedFromState=${enrichedFromState} dryRun=${isDryRun}`,
+    `[BackfillInteractionLogs] logs=${logs.length} candidates=${factsToInsert.length} enrichedFromState=${enrichedFromState} dryRun=${!isApply}`,
   );
   console.log(
     '[BackfillInteractionLogs] actionTypes=' +
       JSON.stringify(Object.fromEntries([...countsByActionType.entries()].sort((a, b) => b[1] - a[1]))),
   );
 
-  if (isDryRun || factsToInsert.length === 0) {
+  if (!isApply) {
     return;
   }
 
-  const activeRevision = await resolveActiveKnowledgeRevision(prisma);
-  const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
-    {
-      learningFact: {
-        createMany: async (args) => prisma.learningFact.createMany({
-          data: [...args.data] as Prisma.LearningFactCreateManyInput[],
-          skipDuplicates: args.skipDuplicates,
-        }),
+  const auth = assertExplicitHistoricalApply({
+    operationId: getArgValue('--operation-id') ?? '',
+    authorizedBy: getArgValue('--authorize') ?? '',
+    frozenCutoff,
+  });
+  const store = createFileReceiptStore();
+  const inputDigest = computeBackfillInputDigest({
+    lane: 'interaction-logs',
+    frozenCutoff: auth.frozenCutoff,
+    scope: { sourceEventIds: [...new Set(windowEventIds)].sort() },
+  });
+  const { existing } = beginAuthorizedBackfillApply(auth, inputDigest, store);
+  if (existing?.status === 'applied' || existing?.status === 'resumed') {
+    console.log(`[BackfillInteractionLogs] resumed operation=${auth.operationId}`);
+    return;
+  }
+
+  let written = 0;
+  if (factsToInsert.length > 0) {
+    const activeRevision = await resolveActiveKnowledgeRevision(prisma);
+    const writeResult = await writeLegacyKnowledgeScopedLearningFacts(
+      {
+        learningFact: {
+          createMany: async (args) => prisma.learningFact.createMany({
+            data: [...args.data] as Prisma.LearningFactCreateManyInput[],
+            skipDuplicates: args.skipDuplicates,
+          }),
+        },
       },
-    },
-    factsToInsert as LearningFactWriteRow[],
-    { knowledgeRevisionRef: activeRevision.id },
-  );
-  console.log(`[BackfillInteractionLogs] inserted=${writeResult.written}`);
+      factsToInsert as LearningFactWriteRow[],
+      { knowledgeRevisionRef: activeRevision.id },
+    );
+    written = writeResult.written;
+    console.log(`[BackfillInteractionLogs] inserted=${written}`);
+  }
+  store.put(buildBackfillTerminalReceipt(auth, {
+    lane: 'interaction-logs',
+    inputDigest,
+    status: 'applied',
+    outcomes: { accepted: written },
+    factsCreated: written,
+  }));
 
 }
 

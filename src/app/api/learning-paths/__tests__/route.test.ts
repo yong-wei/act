@@ -59,8 +59,8 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/control-correction-path-rounds', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/control-correction-path-rounds')>();
+vi.mock('@/features/personalization/path-planning/control-correction-path-rounds', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/personalization/path-planning/control-correction-path-rounds')>();
   return {
     ...actual,
     isControlCorrectionPathRoundPersistenceEnabled: () => process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED !== 'false',
@@ -78,8 +78,8 @@ vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
   refreshStudentEvidenceFeatureCache: mocks.refreshStudentEvidenceFeatureCache,
 }));
 
-vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/features/adaptive-assessment/adaptive-assessment-catalog-selector')>();
+vi.mock('@/features/assessment/adaptive-assessment-catalog-selector', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/assessment/adaptive-assessment-catalog-selector')>();
   return {
     ...actual,
     findAdaptiveAssessmentCatalogSnapshot: (questionId: string) =>
@@ -87,7 +87,7 @@ vi.mock('@/features/adaptive-assessment/adaptive-assessment-catalog-selector', a
   };
 });
 
-import { assessmentItemSemanticReviewSourceHash } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import { assessmentItemSemanticReviewSourceHash } from '@/features/assessment/adaptive-assessment-semantic-review';
 
 import { POST as planPath } from '../plan/route';
 import { GET as readLatestPath } from '../latest/route';

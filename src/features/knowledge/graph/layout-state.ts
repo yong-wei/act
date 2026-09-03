@@ -24,6 +24,12 @@ interface KnowledgeGraphAutomaticAnchor {
   x: number;
   y: number;
   z?: number;
+  /**
+   * True when the seed itself arrived as a governed fixed coordinate
+   * (root packing, chapter scaffolding). Only governed anchors and
+   * explicit user pins own `fx`/`fy` after an unpin (#1739).
+   */
+  fixed?: boolean;
 }
 
 interface KnowledgeGraphMutablePositionNode extends KnowledgeNodeData {
@@ -34,6 +40,7 @@ interface KnowledgeGraphMutablePositionNode extends KnowledgeNodeData {
   fy?: number;
   fz?: number;
   __knowledgeUserPinned?: true;
+  __knowledgeRootPacking?: unknown;
   __knowledgeAutomaticAnchor?: KnowledgeGraphAutomaticAnchor;
 }
 
@@ -144,6 +151,12 @@ export function applyKnowledgeGraphStoredPositions<T extends KnowledgeNodeData>(
   });
 }
 
+/**
+ * Record the deterministic automatic seed for every node without claiming
+ * fixed-coordinate ownership (#1739). Ordinary nodes stay movable under
+ * force ownership; governed root packing and explicit user pins remain the
+ * only sources of `fx`/`fy`/`fz`.
+ */
 export function markKnowledgeGraphAutomaticNodeAnchors<T extends KnowledgeGraphMutablePositionNode>(
   nodes: T[] | undefined
 ): void {
@@ -159,10 +172,8 @@ export function markKnowledgeGraphAutomaticNodeAnchors<T extends KnowledgeGraphM
       x,
       y,
       ...(z === null ? {} : { z }),
+      ...(readCoordinate(node.fx) === null ? {} : { fixed: true }),
     };
-    node.fx = x;
-    node.fy = y;
-    if (z !== null) node.fz = z;
   });
 }
 
@@ -175,23 +186,29 @@ export function syncKnowledgeGraphMutableNodePositions<T extends KnowledgeGraphM
     const stored = state.positionsByNodeId[node.id];
     if (!stored) {
       if (node.__knowledgeUserPinned) {
+        // Unpin returns the node to force ownership: the automatic anchor
+        // becomes a soft seed again, never a fixed coordinate (#1739).
+        // Governed root packing is the exception — it stays fixed.
         const automaticAnchor = node.__knowledgeAutomaticAnchor;
         if (automaticAnchor) {
           node.x = automaticAnchor.x;
           node.y = automaticAnchor.y;
           node.positionX = automaticAnchor.x;
           node.positionY = automaticAnchor.y;
-          node.fx = automaticAnchor.x;
-          node.fy = automaticAnchor.y;
           if (automaticAnchor.z === undefined) {
             delete node.z;
             delete node.fz;
           } else {
             node.z = automaticAnchor.z;
             node.positionZ = automaticAnchor.z;
-            node.fz = automaticAnchor.z;
           }
-        } else {
+          if (node.__knowledgeRootPacking || automaticAnchor.fixed) {
+            node.fx = automaticAnchor.x;
+            node.fy = automaticAnchor.y;
+            if (automaticAnchor.z !== undefined) node.fz = automaticAnchor.z;
+          }
+        }
+        if (!node.__knowledgeRootPacking && !node.__knowledgeAutomaticAnchor?.fixed) {
           delete node.fx;
           delete node.fy;
           delete node.fz;

@@ -2,21 +2,17 @@
 
 ## Purpose
 Student, teacher, AI and Personalization pages read Learning Record evidence only through role-minimum, server-authorized current projection ports. Client hints cannot expand scope; known-zero stays distinct from unavailable; teacher aggregates count independent learners; raw events remain limited to audit, debug, migration and drilldown.
-
 ## Requirements
 ### Requirement: Consumers use stable Learning Record read ports
-
-Student, teacher, AI and Personalization consumers SHALL read governed current projections through stable role-appropriate ports. Normal page/runtime code MUST NOT scan or aggregate raw events as a second evidence source.
+Student, teacher, AI and Personalization consumers SHALL read governed current projections through stable role-appropriate ports. Normal page/runtime code MUST NOT scan or aggregate raw events, invoke backfill tools or retain a second evidence source as a result of simplification.
 
 #### Scenario: Student route reads current evidence
-
 - **WHEN** an authenticated student requests evidence
 - **THEN** the route reads the student-safe port and receives revision, status and provenance metadata without raw event aggregation
 
 #### Scenario: Projection is unavailable
-
 - **WHEN** the current projection is unavailable or stale
-- **THEN** the port returns the explicit status/limitation and the consumer does not silently rebuild from raw events
+- **THEN** the port returns the explicit status/limitation and the consumer does not silently rebuild from raw events or historical tools
 
 ### Requirement: Server-derived scope and minimum fields
 
@@ -33,16 +29,13 @@ Each read port SHALL derive subject, tenant, class/course scope and role from se
 - **THEN** each receives its role-specific minimum projection and no unauthorized teacher/admin or raw private field
 
 ### Requirement: Truthful status, provenance and small-sample handling
-
-Consumer ports SHALL preserve projection status, coverage, freshness, confidence, watermark, revision and permitted provenance. Known zero SHALL remain distinct from missing, partial, stale or unavailable. Teacher aggregate suppression SHALL count independent learners, not rows or events.
+Consumer ports SHALL preserve projection status, coverage, freshness, confidence, watermark, revision and permitted provenance. Known zero SHALL remain distinct from missing, partial, stale or unavailable. Teacher aggregate suppression SHALL count independent learners, not rows or events, after any projection simplification.
 
 #### Scenario: Small teacher cohort
-
 - **WHEN** an aggregate has fewer than the independent-learner threshold
 - **THEN** sensitive values are suppressed while status and coverage remain truthful
 
 #### Scenario: Stale evidence is shown
-
 - **WHEN** a newer LearningFact exists without a qualified replacement projection
 - **THEN** the consumer marks the result stale/limited and does not label it current or fresh
 
@@ -61,22 +54,23 @@ The ground-evidence-copilot consumer SHALL continue to resolve evidence on the s
 - **THEN** ordinary Copilot behavior remains compatible and no new evidence permission is inferred
 
 ### Requirement: Raw access is restricted to explicit operations
-
-Raw events MAY be read only for authorized audit, debug, migration or drilldown operations carrying a purpose and revision-bound receipt. Pages, normal APIs, AI context and Personalization runtime MUST NOT use raw fallback to bypass a projection status.
+Raw events MAY be read only for authorized audit, debug, migration or drilldown operations carrying a purpose and revision-bound receipt. Pages, normal APIs, AI context and Personalization runtime MUST NOT use raw fallback or invoke a backfill/materialization command to bypass a projection status.
 
 #### Scenario: Raw fallback attempt
+- **WHEN** a normal consumer cannot obtain a current projection and attempts to query raw event history or invoke backfill
+- **THEN** it returns the governed unavailable/stale state and does not read raw events or historical working data
 
-- **WHEN** a normal consumer cannot obtain a current projection
-- **THEN** it returns the governed unavailable/stale state and does not query raw event history
+#### Scenario: Authorized historical operation
+- **WHEN** an authorized audit, debug, migration or drilldown operation requests historical data
+- **THEN** it MUST carry purpose, actor scope, source revision and a durable operation receipt
+- **AND** its raw permission MUST remain physically and logically separate from normal consumer permissions
 
 ### Requirement: Consumer migration denominator is closed
-
-Migration SHALL enumerate all consumer routes, pages, services, workers, backfills and reports, their current raw/legacy callers, replacement port, owner and deletion condition. A consumer is migrated only when its output, privacy, status and provenance evidence is bound to a projection revision.
+Migration SHALL enumerate all consumer routes, pages, services, workers, backfills and reports, their current raw/legacy callers, replacement port, owner and deletion condition. It SHALL distinguish normal online callers from explicit historical-operation callers before removing an entry point.
 
 #### Scenario: Legacy reader deletion
-
-- **WHEN** a legacy reader is proposed for removal
-- **THEN** the ledger proves zero required callers, replacement receipts and aligned backfill/report paths before deletion
+- **WHEN** a legacy reader or backfill fallback is proposed for removal
+- **THEN** the ledger proves zero normal callers, migrated historical callers, replacement receipts and aligned online/backfill paths before deletion
 
 ### Requirement: Consumer payloads use an allowlist and cannot inherit raw authority
 

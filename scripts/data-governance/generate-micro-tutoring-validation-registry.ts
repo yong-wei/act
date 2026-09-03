@@ -2,8 +2,8 @@ import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { AdaptiveAssessmentCatalogItem } from '@/features/adaptive-assessment/adaptive-assessment-item-catalog';
-import type { AssessmentItemSemanticReviewDecision } from '@/features/adaptive-assessment/adaptive-assessment-semantic-review';
+import type { AdaptiveAssessmentCatalogItem } from '@/features/assessment/adaptive-assessment-item-catalog';
+import type { AssessmentItemSemanticReviewDecision } from '@/features/assessment/adaptive-assessment-semantic-review';
 import optionAttributionSource from '../../course-content/runtime/resource-governance/micro-tutoring-option-attributions-v2.json';
 import practiceBaselineSource from '../../course-content/runtime/resource-governance/micro-tutoring-assessment-baseline-v2.json';
 import { resolveMicroTutoringGoalNode } from '@/features/assessment/micro-tutoring-goal-node-catalog';

@@ -86,6 +86,30 @@ describe('Arena official Konling followup', () => {
     expect(db.aIIntervention.create).not.toHaveBeenCalled();
   });
 
+  it('excludes legacy client-authored interventions from official revisit baselines', async () => {
+    const current = submission({ id: 's2', submittedAt: '2026-08-02T00:00:00.000Z', valid: true, score: 80 });
+    const db = {
+      aIIntervention: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'legacy-1',
+          createdAt: new Date('2026-08-01T00:00:00.000Z'),
+          evidence: {
+            attemptHistory: [{ attemptNumber: 1, params: { kp: 1.2 }, result: { overshoot: 42 }, isSuccessful: false }],
+          },
+        }),
+        updateMany: vi.fn(),
+      },
+    };
+
+    await expect(readArenaOfficialRevisit({ db, submission: current })).resolves.toBeNull();
+    expect(db.aIIntervention.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        sessionId: { startsWith: 'arena-official:task-1:' },
+      }),
+    }));
+    expect(db.aIIntervention.updateMany).not.toHaveBeenCalled();
+  });
+
   it('returns the concurrently created suggestion after the partial unique index rejects a duplicate', async () => {
     const current = submission({ id: 's1', submittedAt: '2026-08-01T00:00:00.000Z', valid: false, failures: ['稳定性'] });
     const duplicate = Object.assign(new Error('duplicate'), { code: 'P2002' });

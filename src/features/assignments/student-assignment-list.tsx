@@ -22,7 +22,7 @@ export function belongsToAssignmentFilter(state: StudentAssignmentState, filter:
   if (filter === 'all') return true;
   if (filter === 'open') return ['NOT_STARTED', 'IN_PROGRESS', 'RESUBMISSION_REQUIRED', 'OVERDUE'].includes(state);
   if (filter === 'reviewed') return state === 'REVIEWED';
-  return ['SUBMITTED', 'PARSING', 'AWAITING_REVIEW', 'IN_REVIEW', 'AWAITING_TEACHER_CONFIRMATION'].includes(state);
+  return ['SUBMITTED', 'PARSING', 'AWAITING_REVIEW', 'IN_REVIEW', 'PARTIAL_GRADING_FAILURE', 'AWAITING_TEACHER_CONFIRMATION'].includes(state);
 }
 
 export function studentAssignmentHref(assignment: Pick<StudentAssignmentSummary, 'id' | 'revisionId' | 'historicalOnly'>): string {

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getLocalTestSubmissionObjectStore } from '@/lib/assignments/submission-object-store';
-import { SUBMISSION_LIMITS, SubmissionError } from '@/lib/assignments/submission-domain';
+import { getLocalTestSubmissionObjectStore, SUBMISSION_LIMITS, SubmissionError } from '@/lib/assignments/public-api';
 import { submissionErrorResponse } from '@/lib/assignments/submission-route-guards';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 

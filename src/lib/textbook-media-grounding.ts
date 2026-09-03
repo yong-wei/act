@@ -1,6 +1,6 @@
 import type { RuntimeResourceProjectionArtifactRow } from './runtime-resource-projections';
 import type { RuntimeResourceProjectionReviewStatus } from './resource-node-registry';
-import type { TextbookStructureUnitProjection } from './structured-textbook-runtime';
+import type { TextbookStructureUnitProjection } from './course-bundle';
 
 export const TEXTBOOK_MEDIA_GROUNDING_ARTIFACT_VERSION = 'textbook-media-grounding.v1';
 

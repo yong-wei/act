@@ -10,6 +10,7 @@ import {
 } from '@/lib/data-governance/portrait-v2-primary-gate';
 
 const options = resolveDiffOptions(parseArgs(process.argv.slice(2)));
+const renameSources = new Map<string, string>();
 const changedFiles = readChangedFiles(options).filter(isPotentiallyScannablePath);
 const issues = changedFiles.flatMap((filePath) => inspectDiff(readGitDiff(options, filePath), filePath));
 
@@ -44,24 +45,75 @@ function resolveDiffOptions(input: { staged: boolean; base: string | null }) {
 }
 
 function readChangedFiles(input: { staged: boolean; base: string | null; stagedBase: string | null }): string[] {
-  const args = input.staged
-    ? ['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z', '--no-ext-diff', input.stagedBase!]
-    : buildUnstagedDiffArgs(input.base, true);
+  renameSources.clear();
+  if (!input.staged) {
+    try {
+      const tokens = execFileSync('git', buildUnstagedNameStatusArgs(input.base), {
+        encoding: 'utf8',
+        maxBuffer: 16 * 1024 * 1024,
+      }).split('\0').filter(Boolean);
+      return parseNameStatus(tokens);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`无法读取 portrait-v2 门禁文件列表：${message}`);
+    }
+  }
   try {
-    return execFileSync('git', args, {
+    const tokens = execFileSync('git', [
+      'diff',
+      '--cached',
+      '-M',
+      '--name-status',
+      '-z',
+      '--diff-filter=ACMR',
+      '--no-ext-diff',
+      input.stagedBase!,
+    ], {
       encoding: 'utf8',
       maxBuffer: 16 * 1024 * 1024,
     }).split('\0').filter(Boolean);
+    return parseNameStatus(tokens);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`无法读取 portrait-v2 门禁文件列表：${message}`);
   }
 }
 
+function parseNameStatus(tokens: string[]): string[] {
+  const files: string[] = [];
+  for (let index = 0; index < tokens.length; ) {
+    const status = tokens[index] ?? '';
+    if (status.startsWith('R') || status.startsWith('C')) {
+      const fromPath = tokens[index + 1] ?? '';
+      const toPath = tokens[index + 2] ?? '';
+      if (toPath) {
+        files.push(toPath);
+        if (fromPath) renameSources.set(toPath, fromPath);
+      }
+      index += 3;
+      continue;
+    }
+    const filePath = tokens[index + 1];
+    if (filePath) files.push(filePath);
+    index += 2;
+  }
+  return files;
+}
+
+function buildUnstagedNameStatusArgs(requestedBase: string | null): string[] {
+  const outputArgs = ['-M', '--name-status', '--diff-filter=ACMR', '-z', '--no-ext-diff'];
+  return requestedBase
+    ? ['diff', ...outputArgs, `${requestedBase}...HEAD`]
+    : ['diff-tree', '--root', ...outputArgs, '--no-commit-id', '-r', 'HEAD'];
+}
+
 function readGitDiff(input: { staged: boolean; base: string | null; stagedBase: string | null }, filePath: string): string {
+  const renameSource = renameSources.get(filePath);
+  const followRename = Boolean(renameSource && isPotentiallyScannablePath(renameSource));
+  const paths = followRename && renameSource ? [renameSource, filePath] : [filePath];
   const args = input.staged
-    ? ['diff', '--cached', '--unified=0', '--no-ext-diff', input.stagedBase!, '--', filePath]
-    : [...buildUnstagedDiffArgs(input.base, false), '--', filePath];
+    ? ['diff', '--cached', '-M', '--unified=0', '--no-ext-diff', input.stagedBase!, '--', ...paths]
+    : [...buildUnstagedDiffArgs(input.base, false), '--', ...paths];
   try {
     return execFileSync('git', args, {
       encoding: 'utf8',
@@ -75,8 +127,8 @@ function readGitDiff(input: { staged: boolean; base: string | null; stagedBase: 
 
 function buildUnstagedDiffArgs(requestedBase: string | null, namesOnly: boolean): string[] {
   const outputArgs = namesOnly
-    ? ['--name-only', '--diff-filter=ACMR', '-z']
-    : ['--unified=0'];
+    ? ['-M', '--name-only', '--diff-filter=ACMR', '-z']
+    : ['-M', '--unified=0'];
   return requestedBase
     ? ['diff', ...outputArgs, '--no-ext-diff', `${requestedBase}...HEAD`]
     : ['diff-tree', '--root', ...outputArgs, '--no-commit-id', '-r', 'HEAD'];

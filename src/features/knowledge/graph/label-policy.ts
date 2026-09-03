@@ -5,6 +5,38 @@ export type KnowledgeGraphLabelMode = 'focus' | 'all';
 
 export const KNOWLEDGE_LABEL_ZOOM_THRESHOLD = 1.6;
 
+/**
+ * #1739 default readable-label budgets for the bounded DomainConcept
+ * overview. After force separation, camera fit and collision deferral the
+ * ordinary (unselected, unhovered) state must keep at least this share of
+ * concept labels visible; deferred labels keep their accessible name and
+ * the deferred count is recorded against these budgets.
+ */
+export const KNOWLEDGE_LABEL_OVERVIEW_MIN_VISIBLE_RATIO = {
+  /** Measured on the settled twelve-concept overview fixture (#1739). */
+  desktop: 0.75,
+  mobile: 0.55,
+} as const;
+
+/** Visible labels never overlap one another (collision solver defers). */
+export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
+
+/**
+ * 大域（概念数超过 compact 上限）概览经重点标签通道（labelPriority）
+ * 呈现，可见率下限按无钳位碰撞几何实测给出（273 概念真实分片 + 画布
+ * 同参力学沉降 + fit + 碰撞求解，#1739）。mobile 大域 fit 后节点为
+ * 像素级，画布标签几何不可行（320×568 实测未选中可见 0/273）：
+ * spec 语义为节点目录承担无选择可读名称，画布预算仅由选中节点的
+ * 钳位兜底保证（≈1/273）。
+ */
+export const KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO = {
+  desktop: 0.15,
+  mobile: 0.003,
+} as const;
+
+/** 超过此概念数的概览适用大域标签预算。 */
+export const KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES = 48;
+
 interface KnowledgeGraphLabelPolicyInput {
   labelMode: KnowledgeGraphLabelMode;
   nodeId?: string | null;

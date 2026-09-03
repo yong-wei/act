@@ -9,8 +9,8 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, join } from 'node:path';
 
 import {
-  REGISTERED_PEER_DOMAIN_IDS,
   buildAuthorityDomainRootPresentation,
+  isRegisteredPeerDomainId,
   type AuthorityDomainCatalogRuntime,
   type RegisteredPeerDomainId,
 } from '@/lib/authority-domain-catalog';
@@ -21,7 +21,10 @@ import type {
 } from '@/lib/authoritative-knowledge/authority-snapshot';
 
 import {
+  AUTHORITY_DOMAIN_DEFAULT_OBJECT_LIMIT,
+  AUTHORITY_DOMAIN_DEFAULT_TYPES,
   AUTHORITY_SHARD_BUILDER_VERSION,
+  AUTHORITY_SHARD_COVERAGE_CONTRACT,
   AUTHORITY_SHARD_CURRENT_CONTRACT,
   AUTHORITY_SHARD_NEIGHBORHOOD_LIMIT,
   AUTHORITY_SHARD_PAYLOAD_BUDGETS,
@@ -29,12 +32,15 @@ import {
   ENGINEERING_LAYER,
   ENGINEERING_RELATION_FAMILIES,
   type AuthorityDomainDefaultShard,
+  type AuthorityDomainSearchIndexShard,
   type AuthorityNodeDetailShard,
   type AuthorityNodeNeighborhoodShard,
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
   type AuthorityShardBoundaryRef,
   type AuthorityShardCurrentPointer,
+  type AuthorityShardCoverageDomain,
+  type AuthorityShardCoverageReceipt,
   type AuthorityShardEnvelope,
   type AuthorityShardObject,
   type AuthorityShardRelation,
@@ -144,6 +150,8 @@ export interface MaterializedAuthorityDomainShards {
   root: AuthorityRootShard;
   domainDefaults: Record<RegisteredPeerDomainId, AuthorityDomainDefaultShard>;
   families: Record<string, AuthorityRelationFamilyShard>;
+  searchIndexes: Record<RegisteredPeerDomainId, AuthorityDomainSearchIndexShard>;
+  coverage: AuthorityShardCoverageReceipt;
   neighborhoods: Record<string, AuthorityNodeNeighborhoodShard>;
   details: Record<string, AuthorityNodeDetailShard>;
   files: Record<string, unknown>;
@@ -264,6 +272,22 @@ function boundaryFor(
   };
 }
 
+/** Identity-safe search row; no descriptions or payloads. */
+function searchEntryFor(
+  object: AuthorityEngineeringObject,
+  catalog: AuthorityDomainCatalogRuntime,
+  labels: AuthorityLabelResolverContext,
+): AuthorityDomainSearchIndexShard['entries'][number] {
+  const presentation = projectAuthorityObject(object, catalog, labels);
+  return {
+    id: presentation.id,
+    canonicalType: presentation.canonicalType,
+    label: presentation.label,
+    aliases: presentation.aliases,
+    memberships: presentation.memberships,
+  };
+}
+
 function assertBudget(shardClass: keyof typeof AUTHORITY_SHARD_PAYLOAD_BUDGETS, value: unknown): void {
   const serialized = `${JSON.stringify(value)}\n`;
   const budget = AUTHORITY_SHARD_PAYLOAD_BUDGETS[shardClass];
@@ -313,22 +337,65 @@ export function buildAuthorityDomainShards(
     );
   }
 
+  // The visible-domain denominator is the exact active reviewed catalog, not
+  // a historical peer-domain constant (#1738). Any advertised domain without
+  // its default/search closure fails qualification before publication.
+  const catalogDomains = [...input.catalog.domains].sort(
+    (left, right) => left.order - right.order
+      || left.domainId.localeCompare(right.domainId),
+  );
+  const seenDomainIds = new Set<string>();
+  for (const domain of catalogDomains) {
+    if (!isRegisteredPeerDomainId(domain.domainId)) {
+      throw new AuthorityShardMaterializeError(
+        'catalog-domain-id-invalid',
+        `catalog domain ${domain.domainId} is not a registered peer domain id`,
+      );
+    }
+    if (seenDomainIds.has(domain.domainId)) {
+      throw new AuthorityShardMaterializeError(
+        'catalog-domain-duplicate',
+        `catalog domain ${domain.domainId} is declared more than once`,
+      );
+    }
+    seenDomainIds.add(domain.domainId);
+  }
+
   const domainDefaults = {} as Record<RegisteredPeerDomainId, AuthorityDomainDefaultShard>;
   const families: Record<string, AuthorityRelationFamilyShard> = {};
+  const searchIndexes = {} as Record<RegisteredPeerDomainId, AuthorityDomainSearchIndexShard>;
+  const coverageDomains: AuthorityShardCoverageDomain[] = [];
   const seedIds = new Set(memberIds);
 
-  for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
+  for (const domain of catalogDomains) {
+    const domainId = domain.domainId;
     const members = domainMembers(input.catalog, domainId);
-    const objects = [...members]
-      .map((id) => projectAuthorityObject(objectsById.get(id)!, input.catalog, labels))
+    const overviewObjects = [...members]
+      .map((id) => objectsById.get(id)!)
+      .filter((object) => (
+        (AUTHORITY_DOMAIN_DEFAULT_TYPES as readonly string[]).includes(object.canonicalType)
+      ))
+      .map((object) => projectAuthorityObject(object, input.catalog, labels))
       .sort(compareId);
-    const teachingRelations = teaching.relations(domainId).slice().sort(compareId);
+    if (overviewObjects.length > AUTHORITY_DOMAIN_DEFAULT_OBJECT_LIMIT) {
+      throw new AuthorityShardMaterializeError(
+        'domain-default-object-limit-exceeded',
+        `domain ${domainId} overview exceeds the explicit object budget of ${AUTHORITY_DOMAIN_DEFAULT_OBJECT_LIMIT}`,
+      );
+    }
+    const overviewIds = new Set(overviewObjects.map((object) => object.id));
+    // Teaching edges are real published relations; in the overview only
+    // edges whose endpoints are both eligible concept-overview members.
+    const teachingRelations = teaching.relations(domainId)
+      .filter((relation) => overviewIds.has(relation.sourceId) && overviewIds.has(relation.targetId))
+      .slice()
+      .sort(compareId);
     const domainDefault: AuthorityDomainDefaultShard = {
       shardClass: 'domain-default',
       envelope: input.envelope,
       domainId,
-      visualRole: input.catalog.domains.find((domain) => domain.domainId === domainId)!.visualRole,
-      objects,
+      visualRole: domain.visualRole,
+      objects: overviewObjects,
       teachingRelations,
       teachingCoverage: teaching.coverage(domainId),
     };
@@ -339,8 +406,41 @@ export function buildAuthorityDomainShards(
         'domain-default shard must not include detail media',
       );
     }
+    for (const object of overviewObjects) {
+      if (object.canonicalType !== AUTHORITY_DOMAIN_DEFAULT_TYPES[0]) {
+        throw new AuthorityShardMaterializeError(
+          'domain-default-type-violation',
+          `domain ${domainId} overview must contain only ${AUTHORITY_DOMAIN_DEFAULT_TYPES.join('/')} objects`,
+        );
+      }
+    }
     assertBudget('domain-default', domainDefault);
     domainDefaults[domainId] = domainDefault;
+
+    // Every catalog member, including secondary types, stays reachable
+    // through this sealed identity-safe index. It is served only through the
+    // bounded domain-search API, never returned wholesale.
+    const searchEntries = [...members]
+      .map((id) => objectsById.get(id)!)
+      .map((object) => searchEntryFor(object, input.catalog, labels))
+      .sort(compareId);
+    const searchIndex: AuthorityDomainSearchIndexShard = {
+      shardClass: 'domain-search-index',
+      envelope: input.envelope,
+      domainId,
+      entries: searchEntries,
+    };
+    assertBudget('domain-search-index', searchIndex);
+    searchIndexes[domainId] = searchIndex;
+
+    coverageDomains.push({
+      domainId,
+      catalogMemberCount: members.size,
+      overviewObjectCount: overviewObjects.length,
+      overviewTypes: [...new Set(overviewObjects.map((object) => object.canonicalType))],
+      searchEntryCount: searchEntries.length,
+      teachingRelationCount: teachingRelations.length,
+    });
 
     for (const family of ENGINEERING_RELATION_FAMILIES) {
       const incident = input.engineering.relations.filter((relation) => {
@@ -481,11 +581,48 @@ export function buildAuthorityDomainShards(
     details[nodeId] = detail;
   }
 
+  const coverage: AuthorityShardCoverageReceipt = {
+    shardClass: 'coverage-receipt',
+    contract: AUTHORITY_SHARD_COVERAGE_CONTRACT,
+    builderVersion: AUTHORITY_SHARD_BUILDER_VERSION,
+    envelope: input.envelope,
+    catalogDomainCount: catalogDomains.length,
+    defaultShardCount: Object.keys(domainDefaults).length,
+    searchIndexCount: Object.keys(searchIndexes).length,
+    domains: coverageDomains,
+    closure: {
+      catalogMemberCount: memberIds.size,
+      neighborhoodCount: Object.keys(neighborhoods).length,
+      detailCount: Object.keys(details).length,
+      complete: [...memberIds].every((id) => Boolean(neighborhoods[id]) && Boolean(details[id])),
+    },
+  };
+  if (!coverage.closure.complete) {
+    throw new AuthorityShardMaterializeError(
+      'member-closure-incomplete',
+      'every catalog member must own a sealed neighborhood and detail shard',
+    );
+  }
+  if (coverage.defaultShardCount !== coverage.catalogDomainCount) {
+    throw new AuthorityShardMaterializeError(
+      'domain-default-coverage-missing',
+      'every catalog domain must seal exactly one domain-default shard',
+    );
+  }
+  if (coverage.searchIndexCount !== coverage.catalogDomainCount) {
+    throw new AuthorityShardMaterializeError(
+      'domain-search-coverage-missing',
+      'every catalog domain must seal exactly one search index shard',
+    );
+  }
+
   const files: Record<string, unknown> = {
     [shardRelativePaths({}).root]: root,
+    [shardRelativePaths({}).coverage]: coverage,
   };
-  for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
+  for (const domainId of catalogDomains.map((domain) => domain.domainId)) {
     files[shardRelativePaths({ domainId }).domainDefault!] = domainDefaults[domainId];
+    files[shardRelativePaths({ domainId }).searchIndex!] = searchIndexes[domainId];
     for (const family of ENGINEERING_RELATION_FAMILIES) {
       files[shardRelativePaths({ domainId, family }).family!] = families[`${domainId}:${family}`];
     }
@@ -516,10 +653,12 @@ export function buildAuthorityDomainShards(
     files: fileHashes,
     counts: {
       root: 1,
-      domainDefault: REGISTERED_PEER_DOMAIN_IDS.length,
-      relationFamily: REGISTERED_PEER_DOMAIN_IDS.length * ENGINEERING_RELATION_FAMILIES.length,
+      domainDefault: catalogDomains.length,
+      relationFamily: catalogDomains.length * ENGINEERING_RELATION_FAMILIES.length,
       neighborhood: Object.keys(neighborhoods).length,
       detail: Object.keys(details).length,
+      searchIndex: Object.keys(searchIndexes).length,
+      coverage: 1,
     },
   };
   files[shardRelativePaths({}).manifest] = manifest;
@@ -544,6 +683,8 @@ export function buildAuthorityDomainShards(
     root,
     domainDefaults,
     families,
+    searchIndexes,
+    coverage,
     neighborhoods,
     details,
     files,

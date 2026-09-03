@@ -5,6 +5,17 @@ import type { ReactNode } from 'react';
 import { Archive, Bot, CheckCircle2, LoaderCircle, Menu, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { capturePreparationEditorReturnState } from './preparation-document-editor/return-state';
+import { BOPPPS_STAGES } from './preparation-document-editor/lesson-document-model';
+import {
+  SMART_JOB_ACTIVE_STATES,
+  SMART_JOB_EDIT_BLOCKING_STATES,
+  SMART_JOB_RECOVERY_STATES,
+  SMART_PREPARATION_STAGE_ORDER,
+  smartDraftStateLabel,
+  smartGenerationStageLabel,
+  smartGenerationStateLabel,
+} from '@/lib/smart-lesson-plan/workspace';
+import { buildSmartTaskUpdateInput } from '@/lib/smart-lesson-plan/task-update-input';
 import type { PreparationEditorReturnState } from './preparation-document-editor/return-state';
 
 type SourceOption = {
@@ -128,6 +139,7 @@ export function SmartLessonPlanWorkspace({
   const [hydrationReady, setHydrationReady] = useState(false);
   const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null);
   const coursewareCreationInFlight = useRef(false);
+  const taskRequestSequences = useRef(new Map<string, number>());
   const highlightTimer = useRef<number | null>(null);
   const sourceOptions = useMemo<SourceOption[]>(() => availableCourseBases.flatMap((basis: any) => basis.documents.flatMap((document: any) =>
     document.versions.flatMap((version: any) => {
@@ -203,7 +215,7 @@ export function SmartLessonPlanWorkspace({
     ?? textbookRangeOptions[0];
   const visibleTasks = tasks;
   const activeTask = visibleTasks.find((task) => task.id === selectedTaskId) ?? visibleTasks[0] ?? null;
-  const detailedActiveTask = activeTask?.workspace?.stages.length === 5 ? activeTask : null;
+  const detailedActiveTask = activeTask?.workspace?.stages.length === SMART_PREPARATION_STAGE_ORDER.length ? activeTask : null;
   const activeTaskId = activeTask?.id;
   const detailedActiveTaskId = detailedActiveTask?.id;
   const activeJobState = detailedActiveTask?.drafts?.[0]?.jobs?.[0]?.state;
@@ -228,7 +240,7 @@ export function SmartLessonPlanWorkspace({
         }
       }
       setTasks((current) => current.some((task) => task.id === detail.taskId)
-        ? current.map((task) => task.id === detail.taskId ? nextTask! : task)
+        ? mergeIncomingTask(current, nextTask!)
         : [nextTask!, ...current]);
       setSelectedTaskId(detail.taskId);
       const stageId = detail.affectedStageId ?? 'topic-goals';
@@ -265,7 +277,7 @@ export function SmartLessonPlanWorkspace({
       if (taskResponse) {
         const taskPayload = await taskResponse.json();
         if (taskResponse.ok) {
-          setTasks((current) => current.map((task) => task.id === selectedTaskId ? taskPayload.task : task));
+          setTasks((current) => mergeIncomingTask(current, taskPayload.task as Task));
         }
       }
     };
@@ -287,7 +299,7 @@ export function SmartLessonPlanWorkspace({
   }, [detailedActiveTaskId, onPreparationReturnStateRestored, preparationReturnState]);
 
   useEffect(() => {
-    if (!detailedActiveTaskId || !activeJobState || !['QUEUED', 'RUNNING'].includes(activeJobState)) return;
+    if (!detailedActiveTaskId || !activeJobState || !SMART_JOB_ACTIVE_STATES.includes(activeJobState as (typeof SMART_JOB_ACTIVE_STATES)[number])) return;
     const timer = window.setInterval(() => void refreshTask(detailedActiveTaskId), 2500);
     return () => window.clearInterval(timer);
   }, [detailedActiveTaskId, activeJobState]);
@@ -307,7 +319,10 @@ export function SmartLessonPlanWorkspace({
         });
         const payload = await response.json();
         if (!response.ok) return setMessage(errorText(payload));
-        setTasks(payload.tasks);
+        setTasks((current) => (payload.tasks as Task[]).map((task) => {
+          const existing = current.find((item) => item.id === task.id);
+          return existing ? acceptFresherTask(existing, task) : task;
+        }));
         setSelectedTaskId((current) => (
           payload.tasks.some((task: Task) => task.id === current) ? current : payload.tasks[0]?.id ?? ''
         ));
@@ -384,13 +399,21 @@ export function SmartLessonPlanWorkspace({
   }
 
   async function refreshTask(taskId: string) {
+    // 重叠轮询的乱序响应按请求序号仲裁：只应用该任务最新一次请求的结果，
+    // 同 revision 下旧 RUNNING 投影也不得覆盖新 COMPLETED 投影。
+    const sequence = (taskRequestSequences.current.get(taskId) ?? 0) + 1;
+    taskRequestSequences.current.set(taskId, sequence);
+    const isLatest = () => taskRequestSequences.current.get(taskId) === sequence;
     try {
       const response = await fetch(`/api/teacher/smart-lesson-tasks/${taskId}`, { cache: 'no-store' });
       const payload = await response.json();
+      // 任何副作用（成功/HTTP 错误/异常提示）之前先丢弃过期响应。
+      if (!isLatest()) return;
       if (!response.ok) return setMessage(`任务刷新失败：${errorText(payload)}`);
-      setTasks((current) => current.map((task) => task.id === taskId ? payload.task : task));
+      setTasks((current) => mergeIncomingTask(current, payload.task as Task));
       setMessage('任务状态已刷新。');
     } catch {
+      if (!isLatest()) return;
       setMessage('任务刷新失败，请检查网络后重试。');
     }
   }
@@ -445,7 +468,7 @@ export function SmartLessonPlanWorkspace({
       return setMessage('请填写主题、授课对象和 30 至 120 分钟的整数课时。');
     }
     const next = {
-      ...taskUpdateInput(task),
+      ...buildSmartTaskUpdateInput(task),
       topic: topic.trim(),
       audience: audience.trim(),
       prerequisites: prerequisites.trim(),
@@ -458,7 +481,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? `任务约束已确认，当前修订 ${payload.task.revision}。` : errorText(payload));
-    if (response.ok) setTasks((currentTasks) => currentTasks.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((currentTasks) => mergeIncomingTask(currentTasks, payload.task as Task));
   }
 
   async function updateClassDiagnosis(task: Task, classId: string) {
@@ -466,7 +489,7 @@ export function SmartLessonPlanWorkspace({
     const response = await fetch(`/api/teacher/smart-lesson-tasks/${task.id}`, {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        ...taskUpdateInput(task),
+        ...buildSmartTaskUpdateInput(task),
         selectedClassId: option?.classId ?? null,
         expectedRevision: task.revision,
         confirmingTurnId: `structured:${crypto.randomUUID()}`,
@@ -474,7 +497,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '班级学情选择已更新；已有生成内容会保留并按需标记待重生成。' : errorText(payload));
-    if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((current) => mergeIncomingTask(current, payload.task as Task));
   }
 
   async function updateSourceDecision(
@@ -490,7 +513,7 @@ export function SmartLessonPlanWorkspace({
       ? window.prompt('请说明无可靠来源的短原因（必填）', '')
       : null;
     if (action === 'remove' && !gapReason?.trim()) return setMessage('确认无可靠来源时必须填写短原因。');
-    const next = taskUpdateInput(task);
+    const next = buildSmartTaskUpdateInput(task);
     const patchItem = <T extends { id: string }>(item: T) => item.id === itemId
       ? {
           ...item,
@@ -517,7 +540,7 @@ export function SmartLessonPlanWorkspace({
     });
     const payload = await response.json();
     setMessage(response.ok ? '来源决策已保存。' : errorText(payload));
-    if (response.ok) setTasks((current) => current.map((item) => item.id === task.id ? payload.task : item));
+    if (response.ok) setTasks((current) => mergeIncomingTask(current, payload.task as Task));
   }
 
   function editPausedOutline(task: Task) {
@@ -660,7 +683,7 @@ export function SmartLessonPlanWorkspace({
       };
       return <article key={task.id} className="min-w-0 max-w-full space-y-3 rounded-lg border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h3 className="font-medium">{task.topic}</h3><p className="text-sm text-subtle">修订 {task.revision} · {task.audience} · {task.durationMinutes} 分钟 · 草稿 {draftStateLabel(draft?.state)}{job ? ` · 生成 ${generationStateLabel(job.state)}` : ''}</p></div>
+          <div><h3 className="font-medium">{task.topic}</h3><p className="text-sm text-subtle">修订 {task.revision} · {task.audience} · {task.durationMinutes} 分钟 · 草稿 {smartDraftStateLabel(draft?.state)}{job ? ` · 生成 ${smartGenerationStateLabel(job.state)}` : ''}</p></div>
           <div className="flex flex-wrap gap-2">
             {showArchived
               ? <button type="button" onClick={() => void changeTaskLifecycle(task, 'restore')} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm"><RotateCcw className="h-4 w-4" />恢复</button>
@@ -677,21 +700,21 @@ export function SmartLessonPlanWorkspace({
           {stageDetails('topic-goals', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <KonlingEntryPointButton entryPoint={{ mode: 'prep-coauthor', promptContext: `smart-task:${task.id}`, serverContext: { smartTaskId: task.id, smartTaskRevision: String(task.revision) } }} label="与控灵共创" />
-              <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
+              <button onClick={() => void editTask(task)} disabled={Boolean(job && !job.supersededAt && SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state as (typeof SMART_JOB_EDIT_BLOCKING_STATES)[number]))} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">修订任务</button>
             </div>
             <div className="grid gap-2 md:grid-cols-2">
               <div><h4 className="text-sm font-medium">知识点与来源</h4>{task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.title} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'knowledgePoint', item.id, 'remove')}>移除</button></div></div>)}</div>
               <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.content} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'goal', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'remove')}>移除</button></div></div>)}</div>
             </div>
           </div>)}
-          {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
+          {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state as (typeof SMART_JOB_EDIT_BLOCKING_STATES)[number]))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
           {stageDetails('lesson-generation', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
               <button onClick={() => void startGeneration(task)} disabled={!draft || hasBlockingJob || draft.state === 'APPROVED'} className="inline-flex items-center gap-1 rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50"><LoaderCircle className="h-4 w-4" />开始生成</button>
               {job?.state === 'PAUSED' && !job.supersededAt ? <button onClick={() => editPausedOutline(task)} className="rounded border border-border px-3 py-1.5 text-sm">编辑提纲</button> : null}
-              {job && !job.supersededAt && ['PAUSED', 'RETRYABLE', 'FAILED', 'CANCELLED'].includes(job.state) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
-              {job && !job.supersededAt && ['QUEUED', 'RUNNING', 'PAUSED', 'RETRYABLE'].includes(job.state) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
+              {job && !job.supersededAt && SMART_JOB_RECOVERY_STATES.includes(job.state as (typeof SMART_JOB_RECOVERY_STATES)[number]) ? <button onClick={() => void runJobAction(task, job.state === 'RETRYABLE' || job.state === 'FAILED' ? 'retry' : 'resume')} className="rounded border border-border px-3 py-1.5 text-sm">{job.state === 'PAUSED' ? '确认当前提纲并继续' : '恢复/重试'}</button> : null}
+              {job && !job.supersededAt && SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state as (typeof SMART_JOB_EDIT_BLOCKING_STATES)[number]) ? <button onClick={() => void runJobAction(task, 'cancel')} className="rounded border border-border px-3 py-1.5 text-sm">取消</button> : null}
               <button onClick={() => editDraft(task)} disabled={!draft?.contentHash || task.workspace?.unsupportedPayload || draft.state === 'GENERATING' || draft.state === 'APPROVED'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">编辑教案</button>
               <button onClick={() => void requestAdvisoryReview(task)} disabled={!hydrationReady || !draft?.content || draft.state !== 'READY'} className="rounded border border-border px-3 py-1.5 text-sm disabled:opacity-50">AI 建议</button>
               <button onClick={() => void approve(task)} disabled={!draft || draft.state !== 'READY'} className="inline-flex items-center gap-1 rounded border border-primary px-3 py-1.5 text-sm text-primary disabled:opacity-50"><CheckCircle2 className="h-4 w-4" />批准版本</button>
@@ -702,9 +725,9 @@ export function SmartLessonPlanWorkspace({
               return <div key={stage.kind} className="rounded bg-muted px-3 py-2 text-xs" data-generation-stage={stage.kind} data-generation-action={stage.actionState}>
                 <strong className="inline-flex items-center gap-1.5">
                   {active ? <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" /> : null}
-                  {stage.title ?? generationStageLabel(stage.kind)}：{stage.actionLabel ?? generationStateLabel(stage.state)}
+                  {stage.title ?? smartGenerationStageLabel(stage.kind)}：{stage.actionLabel ?? smartGenerationStateLabel(stage.state)}
                 </strong>
-                {stage.output ? <GeneratedStageContent title={stage.title ?? generationStageLabel(stage.kind)} value={stage.output} /> : null}
+                {stage.output ? <GeneratedStageContent title={stage.title ?? smartGenerationStageLabel(stage.kind)} value={stage.output} /> : null}
                 {stage.output ? <p className="mt-1 text-xs text-muted-foreground">生成内容的依据由已确认知识点与教学目标继承；如需替换或移除，请在上方修改来源后重新生成。</p> : null}
                 {stage.outputTruncated ? <p>阶段输出较大，请在完整教案中查看。</p> : null}
               </div>;
@@ -726,30 +749,6 @@ export function SmartLessonPlanWorkspace({
       </div>
     </div>
   </section>;
-}
-
-function taskUpdateInput(task: Task) {
-  return {
-    courseBasisId: task.courseBasisId,
-    topic: task.topic,
-    audience: task.audience,
-    prerequisites: task.prerequisites ?? '',
-    durationMinutes: task.durationMinutes,
-    outlineConfirmationRequired: Boolean(task.outlineConfirmationRequired),
-    selectedClassId: task.selectedClassId ?? null,
-    textbookRanges: task.textbookRanges ?? [],
-    sourceVersionIds: task.sources?.filter((source) => source.state === 'SELECTED').map((source) => source.sourceVersionId) ?? [],
-    knowledgePoints: task.knowledgePoints?.filter((item) => item.state !== 'REMOVED').map((item) => ({
-      id: item.id, lineageId: item.lineageId, title: item.title, content: item.title, origin: item.origin,
-      sourceState: item.sourceState, sourceBindings: item.sourceBindings, gapReason: item.gapReason ?? null, supersedesIds: item.supersedesIds ?? [],
-    })) ?? [],
-    goals: task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => ({
-      id: item.id, lineageId: item.lineageId, content: item.content, sourceState: item.sourceState,
-      sourceBindings: item.sourceBindings, gapReason: item.gapReason ?? null, standardsMappings: item.standardsMappings ?? [],
-    })) ?? [],
-    confirmScope: true,
-    confirmGoals: true,
-  };
 }
 
 function SourceStateLabel({ state, gapReason }: { state: PublicSourceState; gapReason?: string | null }) {
@@ -963,15 +962,25 @@ function AdvisoryReviewSummary({ value }: { value: unknown }) {
   </div>;
 }
 
+/**
+ * 过期响应防覆盖：同一任务只接受不早于当前展示 revision 的响应，
+ * 延迟返回的旧轮询/旧列表不得把界面回退到旧 revision。
+ */
+function taskRevisionOf(task: Task): number {
+  return typeof task.revision === 'number' && Number.isSafeInteger(task.revision) ? task.revision : 0;
+}
+
+function acceptFresherTask(current: Task, incoming: Task): Task {
+  return taskRevisionOf(incoming) >= taskRevisionOf(current) ? incoming : current;
+}
+
+function mergeIncomingTask(current: Task[], incoming: Task): Task[] {
+  return current.map((task) => task.id === incoming.id ? acceptFresherTask(task, incoming) : task);
+}
+
+const BOPPPS_STAGE_LABELS = Object.fromEntries(BOPPPS_STAGES) as Record<string, string>;
 function bopppsStageLabel(value: string) {
-  return ({
-    bridgeIn: '导入',
-    objectives: '学习目标',
-    preAssessment: '前测',
-    participatoryLearning: '参与式学习',
-    postAssessment: '后测',
-    summary: '总结',
-  } as Record<string, string>)[value];
+  return BOPPPS_STAGE_LABELS[value];
 }
 
 function stringList(value: unknown) {
@@ -987,39 +996,6 @@ function recommendationScore(query: string, candidate: string) {
   const normalizedCandidate = normalizeRecommendationText(candidate);
   if (normalizedCandidate.includes(query)) return query.length + 100;
   return [...new Set(query)].filter((character) => normalizedCandidate.includes(character)).length;
-}
-
-function generationStageLabel(value: string) {
-  return ({
-    OUTLINE: '提纲',
-    BRIDGE_IN: '导入',
-    OBJECTIVES: '学习目标',
-    PRE_ASSESSMENT: '前测',
-    PARTICIPATORY_LEARNING: '参与式学习',
-    POST_ASSESSMENT: '后测',
-    SUMMARY: '总结',
-  } as Record<string, string>)[value] ?? '未知阶段';
-}
-
-function draftStateLabel(value: string | null | undefined) {
-  return ({
-    EDITABLE: '可编辑',
-    GENERATING: '生成中',
-    READY: '待审核',
-    APPROVED: '已批准',
-  } as Record<string, string>)[value ?? ''] ?? '未创建';
-}
-
-function generationStateLabel(value: string) {
-  return ({
-    PENDING: '等待处理',
-    RUNNING: '正在生成',
-    PAUSED: '等待确认',
-    RETRYABLE: '可以重试',
-    FAILED: '生成失败',
-    CANCELLED: '已取消',
-    COMPLETED: '已完成',
-  } as Record<string, string>)[value] ?? '状态不可用';
 }
 
 function errorText(payload: any) {

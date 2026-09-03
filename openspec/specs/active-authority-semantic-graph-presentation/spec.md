@@ -286,3 +286,76 @@ Hovering or keyboard-previewing a presentable active node SHALL expose its human
 - **THEN** equivalent bounded preview information SHALL be available through the accessible interaction contract
 - **AND** explicit activation SHALL remain the action that opens the detail drawer
 
+### Requirement: Active Authority exposes exactly three progressive graph levels
+The ordinary active workspace SHALL present three explicit levels: line-free top-level domain navigation, a selected domain's bounded DomainConcept overview, and a selected concept or search result's published one-hop semantic network. Desktop and mobile SHALL apply the same level semantics and MUST NOT flatten secondary types into the domain overview.
+
+#### Scenario: Viewer enters a domain
+- **WHEN** a viewer selects a ready root domain
+- **THEN** the canvas SHALL show only that domain's bounded DomainConcept overview
+- **AND** Formula, KnowledgeStatement, SystemModel and ModelRepresentation nodes SHALL remain undisclosed until search or one-hop exploration
+
+#### Scenario: Viewer selects a domain concept
+- **WHEN** the viewer activates one visible concept
+- **THEN** the canvas SHALL materialize its bounded published one-hop network as the third level
+- **AND** every displayed edge SHALL retain its exact source relation and endpoints
+
+#### Scenario: Viewer returns to the domain overview
+- **WHEN** the viewer leaves a selected neighborhood
+- **THEN** the same domain's concept overview, filters and viewport state SHALL be restored
+- **AND** undisclosed secondary nodes SHALL not remain flattened into the overview
+
+### Requirement: Formula canvas identity presents mathematics rather than prose substitution
+A visible Formula node SHALL present its governed mathematical expression as the primary canvas label and its governed human name as bounded supporting context. A prose-only title MUST NOT be treated as complete Formula canvas presentation.
+
+#### Scenario: Viewer discloses a Formula neighbor
+- **WHEN** a concept's published one-hop network contains a Formula
+- **THEN** the canvas SHALL show the formatted expression with its Formula glyph and bounded human context
+- **AND** search, hover, accessibility and inspector SHALL resolve the same stable object identity
+
+### Requirement: Domain concept labels are readable before selection
+The bounded domain overview SHALL present the complete governed name of ordinary DomainConcept nodes without requiring selection or hover. Force separation, camera fit and label collision SHALL jointly satisfy an explicit default visible-label ratio on desktop; on mobile the selection-independent readable-name channel for large domains is the browsable node directory, because fitting hundreds of concepts into a phone viewport leaves nodes at pixel scale where readable canvas labels are geometrically impossible.
+
+#### Scenario: Domain overview becomes usable
+- **WHEN** the force layout reaches its accepted settlement milestone
+- **THEN** the configured minimum proportion of DomainConcept labels SHALL be visible and readable on desktop
+- **AND** ordinary labels SHALL not be reduced to selected-only or hovered-only presentation on either surface
+
+#### Scenario: Mobile large-domain overview stays identifiable
+- **WHEN** a bounded overview larger than the compact threshold is fitted on a mobile viewport
+- **THEN** the browsable node directory SHALL remain the selection-independent readable-name channel
+- **AND** a selected concept's canvas label SHALL stay visible through the viewport clamp fallback
+
+#### Scenario: Density prevents one label
+- **WHEN** one label cannot fit after force separation and camera fitting
+- **THEN** the LOD policy MAY defer that label while preserving its accessible name
+- **AND** the evidence SHALL record the deferred count against the accepted budget
+
+### Requirement: Every active graph surface follows the selected qualified locale
+Root navigation, domain concepts, secondary nodes, relation terms, formula context, search, filter controls, hover, inspector, optional-content availability and accessibility SHALL use the same selected qualified locale. Stable object, relation, resource and launch identities SHALL not change with locale.
+
+#### Scenario: English frame is displayed
+- **WHEN** the active graph commits a qualified English generation
+- **THEN** no user-visible or accessible Authority/ACT interface string SHALL remain Chinese except explicitly quoted source content with declared language
+- **AND** graph topology and interaction state SHALL remain unchanged
+
+#### Scenario: Optional block lacks English
+- **WHEN** an ACT-owned card or resource body does not declare English availability
+- **THEN** the English inspector SHALL omit it or show the bounded English unavailable state
+- **AND** it SHALL not inject the Chinese body into the English graph
+
+### Requirement: Node types are independently reversible without hierarchy collapse
+Every registered node type already materialized in the current third-level network SHALL have an independent reversible filter. Toggling a secondary type SHALL NOT promote that type into the domain overview or require all objects of that type to be loaded.
+
+#### Scenario: Formula visibility is toggled
+- **WHEN** a one-hop network contains Formula nodes and the viewer hides Formula
+- **THEN** those nodes and incident visible edges SHALL be hidden while the concept overview and other types remain
+- **AND** re-enabling Formula SHALL restore the same materialized identities and state
+
+### Requirement: Semantic graph completion is checked across every domain
+Final acceptance SHALL verify each visible root domain has a bounded DomainConcept overview and at least one valid selected-neighborhood path or an explicitly verified relation-empty concept state. Seven missing-domain defaults or any client-flattened complete domain SHALL block completion.
+
+#### Scenario: Domain coverage gate runs
+- **WHEN** the active root advertises its domain catalog
+- **THEN** every entry SHALL pass default-shard, hierarchy, search and detail closure checks
+- **AND** no subset constant SHALL be accepted as the full denominator
+

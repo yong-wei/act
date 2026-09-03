@@ -16,7 +16,7 @@ import {
   createHiddenStudentGradingFeedbackView,
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
-} from '@/lib/data-governance/document-rubric-grading-workbench';
+} from '@/features/teacher/document-rubric-grading-workbench';
 
 export const dynamic = 'force-dynamic';
 
