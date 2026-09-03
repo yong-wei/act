@@ -10,6 +10,8 @@ import { inferStandaloneCompletionEventType } from './resource-interaction-utils
 interface UseResourceInteractionTrackingOptions {
   resourceKey: string;
   resourceId?: string | null;
+  /** 课堂会话身份：课堂调用方必须传入，缺失会被归一化为独立资源事件（Issue #1914） */
+  sessionId?: string | null;
   lessonKey?: string | null;
   surface: string;
   pageType: string;
@@ -25,6 +27,7 @@ interface UseResourceInteractionTrackingOptions {
 export function useResourceInteractionTracking({
   resourceKey,
   resourceId,
+  sessionId,
   lessonKey,
   surface,
   pageType,
@@ -42,6 +45,7 @@ export function useResourceInteractionTracking({
     resourceId: resourceId ?? undefined,
     resourceKey,
     userId: session?.user?.id ?? undefined,
+    sessionId: sessionId ?? undefined,
     persistWithoutSession: true,
   });
 
