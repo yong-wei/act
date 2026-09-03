@@ -142,7 +142,7 @@ const privacyContract = {
 };
 
 // 5. Digest-bound evidence adapters over the frozen subject.
-const identityScan = buildIdentityInventoryScan(treeReader, entries);
+const identityScan = buildIdentityInventoryScan(treeReader, entries, privacyContract);
 const evidenceBundle = combineAdapters([
   buildReleaseAdapter(treeReader, entries),
   buildContentCompilerAdapter(treeReader, entries),

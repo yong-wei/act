@@ -31,6 +31,8 @@ import {
   type ToolCheckpoint,
 } from '@/lib/architecture-census/payload-classification';
 import {
+  KNOWLEDGE_CUTOVER_FROZEN_COUNT,
+  KNOWLEDGE_CUTOVER_WRITER_CLOSURE,
   buildConsumerReferenceAdapter,
   buildContentCompilerAdapter,
   buildIdentityInventoryScan,
@@ -822,13 +824,15 @@ describe('payload classification evidence adapters', () => {
       ...Array.from({ length: 39 }, (_, index) => entry(`course-content/scripts/tool-${index}.py`, 'ba'.repeat(20))),
     ];
     const cutoverScripts = [
-      entry('scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts', writerHash),
-      entry('scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts', 'ce'.repeat(20)),
-      ...Array.from({ length: 78 }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
+      ...KNOWLEDGE_CUTOVER_WRITER_CLOSURE.map((file) => entry(file, writerHash)),
+      ...Array.from({ length: KNOWLEDGE_CUTOVER_FROZEN_COUNT - KNOWLEDGE_CUTOVER_WRITER_CLOSURE.length }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
     ];
     const listed = [...toolchainScripts, ...cutoverScripts];
     const reader: SubjectTreeReader = {
-      blobBytes: () => Buffer.from('{}', 'utf8'),
+      blobBytes: (hash: string) => Buffer.from(
+        hash === writerHash ? "'course-content/runtime/knowledge/projection'" : '{}',
+        'utf8',
+      ),
       listEntries: (prefix: string) => listed.filter((item) => item.path.startsWith(prefix)),
     };
     const compiler = buildContentCompilerAdapter(reader, entries);
@@ -855,6 +859,15 @@ describe('payload classification evidence adapters', () => {
     }, entries);
     expect(drifted.overrides).toHaveLength(0);
     expect(drifted.identities[0]?.drift).toBe('toolchain-count-drift:70!=80');
+
+    // A writer whose content stops referencing the output families breaks the
+    // frozen closure and fails closed even when the toolchain count holds.
+    const closureBroken = buildKnowledgeCutoverAdapter({
+      ...reader,
+      blobBytes: () => Buffer.from('{}', 'utf8'),
+    }, entries);
+    expect(closureBroken.overrides).toHaveLength(0);
+    expect(closureBroken.identities[0]?.drift).toBe('writer-closure-drift:discovered=0!=frozen=26');
   });
 
   it('keeps artifact text with user identifiers unresolved despite a non-private QA class label', () => {

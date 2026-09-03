@@ -73,9 +73,39 @@ export const CONTENT_COMPILER_TOOLCHAIN_ROOT = 'course-content/scripts';
 /** Frozen toolchain inventory count from tools/content-knowledge-runtime-release (committed contract). */
 export const CONTENT_COMPILER_FROZEN_COUNT = 41;
 
-export const KNOWLEDGE_CUTOVER_WRITER_FILES = [
-  'scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts',
+/**
+ * Complete knowledge-cutover writer closure frozen at this change's claim-time
+ * subject: every script under the toolchain root whose source references an
+ * output family path. The adapter rediscovers this closure from the subject
+ * tree on every run; any addition or removal fails closed.
+ */
+export const KNOWLEDGE_CUTOVER_WRITER_CLOSURE = [
+  'scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts',
+  'scripts/knowledge-cutover/activate-actkg-v022-production-cutover.ts',
   'scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts',
+  'scripts/knowledge-cutover/build-active-baseline-continuity-obligations.ts',
+  'scripts/knowledge-cutover/build-active-course-binding-rebindings.ts',
+  'scripts/knowledge-cutover/build-r4-c5-cutover-input.ts',
+  'scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts',
+  'scripts/knowledge-cutover/build-remediation-bound-cutover-evidence.ts',
+  'scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts',
+  'scripts/knowledge-cutover/execute-actkg-to-act-first-activation.ts',
+  'scripts/knowledge-cutover/negative-acceptance-remediation.ts',
+  'scripts/knowledge-cutover/prepare-actkg-cutover-authority-candidate.ts',
+  'scripts/knowledge-cutover/prepare-actkg-cutover-consumer-staging.ts',
+  'scripts/knowledge-cutover/prepare-actkg-cutover-teaching-projection.ts',
+  'scripts/knowledge-cutover/prepare-actkg-v018-authority-candidate.ts',
+  'scripts/knowledge-cutover/prepare-actkg-v018-teaching-projection.ts',
+  'scripts/knowledge-cutover/prepare-actkg-v022-authority-candidate.ts',
+  'scripts/knowledge-cutover/prepare-actkg-v022-display-catalog.ts',
+  'scripts/knowledge-cutover/prepare-actkg-v022-teaching-projection.ts',
+  'scripts/knowledge-cutover/production-cutover.ts',
+  'scripts/knowledge-cutover/remote-production-cutover.sh',
+  'scripts/knowledge-cutover/restage-r4-c4-consumer-activation.ts',
+  'scripts/knowledge-cutover/seal-remediation-handoff.ts',
+  'scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts',
+  'scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts',
+  'scripts/knowledge-cutover/verify-r4-authority-presentation-labels.ts',
 ] as const;
 
 /** Runtime path families materialized by the knowledge-cutover toolchain (verified against writer sources). */
@@ -316,18 +346,37 @@ function isContentCompilerCandidate(path: string): boolean {
  * data — E-class observations, never hand-authored sources — and the adapter
  * fails closed on toolchain inventory count drift.
  */
+const KNOWLEDGE_CUTOVER_FAMILY_MARKERS = [
+  ...KNOWLEDGE_CUTOVER_OUTPUT_FAMILIES,
+  'course-content/runtime/knowledge/authority-learning-content-manifest.json',
+] as readonly string[];
+
 export function buildKnowledgeCutoverAdapter(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): AdapterBundle {
   const toolchainEntries = reader.listEntries(KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT);
+  // Rediscover the writer closure from subject-tree script contents so a
+  // changed, added, or removed producer fails closed even when the toolchain
+  // file count is unchanged.
+  const discoveredWriters = toolchainEntries
+    .filter((row) => /\.(?:ts|mjs|py|sh)$/u.test(row.path))
+    .filter((row) => KNOWLEDGE_CUTOVER_FAMILY_MARKERS.some((marker) => reader.blobBytes(row.hash).toString('utf8').includes(marker.slice('course-content/'.length).replace(/\/$/u, ''))))
+    .map((row) => row.path)
+    .sort((left, right) => left.localeCompare(right));
+  const frozenClosure = [...KNOWLEDGE_CUTOVER_WRITER_CLOSURE].sort((left, right) => left.localeCompare(right));
+  const closureMatches = discoveredWriters.length === frozenClosure.length
+    && discoveredWriters.every((path, index) => path === frozenClosure[index]);
   const inputDigest = sha256Bytes(Buffer.from(
-    KNOWLEDGE_CUTOVER_WRITER_FILES.map((file) => {
+    discoveredWriters.map((file) => {
       const entry = toolchainEntries.find((row) => row.path === file);
       return `${file}:${entry?.hash ?? 'missing'}`;
     }).join('\n'),
     'utf8',
   ));
-  const drift = toolchainEntries.length !== KNOWLEDGE_CUTOVER_FROZEN_COUNT
+  let drift = toolchainEntries.length !== KNOWLEDGE_CUTOVER_FROZEN_COUNT
     ? `toolchain-count-drift:${toolchainEntries.length}!=${KNOWLEDGE_CUTOVER_FROZEN_COUNT}`
     : null;
+  if (!closureMatches && drift === null) {
+    drift = `writer-closure-drift:discovered=${discoveredWriters.length}!=frozen=${frozenClosure.length}`;
+  }
   const candidateCount = entries.filter((item) => isKnowledgeCutoverCandidate(item.path)).length;
   const identity: AdapterIdentity = {
     name: 'knowledge-cutover-runtime',
@@ -543,7 +592,11 @@ export interface IdentityScanBundle extends AdapterBundle {
   readonly hitPaths: ReadonlySet<string>;
 }
 
-export function buildIdentityInventoryScan(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): IdentityScanBundle {
+export function buildIdentityInventoryScan(
+  reader: SubjectTreeReader,
+  entries: readonly InventoryEntry[],
+  contract?: PrivacyScanContract,
+): IdentityScanBundle {
   const overrides: EvidenceOverride[] = [];
   const hitPaths = new Set<string>();
   let candidates = 0;
@@ -552,7 +605,8 @@ export function buildIdentityInventoryScan(reader: SubjectTreeReader, entries: r
     if (!isScannableTextPath(entry.path)) continue;
     candidates += 1;
     const text = reader.blobBytes(entry.hash).toString('utf8');
-    if (PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) {
+    const forbiddenHits = contract ? contract.scanText(text) ?? [] : [];
+    if (forbiddenHits.length > 0 || PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) {
       hitPaths.add(entry.path);
       continue;
     }
