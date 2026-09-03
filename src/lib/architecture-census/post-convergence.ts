@@ -929,14 +929,10 @@ export function loadChangeFrequencyCounts(repoRoot: string): Map<string, number>
   return counts;
 }
 
-export const SUCCESSOR_DIGEST_SCOPE = 'sha256 over serializeDeterministic(envelope with packageDigest="" and without the summary.md artifact row); covers every remaining artifact index row (locator/mediaType/bytes/sha256), the full handoff contract, and all other envelope fields';
+export const SUCCESSOR_DIGEST_SCOPE = 'sha256 over serializeDeterministic(envelope with packageDigest=""); covers the complete artifact index (including the summary.md row), the full handoff contract, and every envelope field. summary.md deliberately renders no packageDigest value so the digest has no self-reference';
 
 export function successorPackageDigest(pack: PostConvergenceEnvelope): string {
-  return sha256Text(serializeDeterministic({
-    ...pack,
-    packageDigest: '',
-    artifacts: pack.artifacts.filter((artifact) => artifact.logicalLocator !== 'summary.md'),
-  }));
+  return sha256Text(serializeDeterministic({ ...pack, packageDigest: '' }));
 }
 
 function ndlines(records: readonly unknown[]): string {
@@ -972,7 +968,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
     `- predecessorCurrentHead.sourceCommit: \`${pack.predecessorCurrentHead.sourceCommit}\``,
     `- predecessorCurrentHead.packageSha256: \`${pack.predecessorCurrentHead.packageSha256}\``,
     `- successorCoreSha256: \`${pack.successorCoreSha256}\``,
-    `- packageDigest: \`${pack.packageDigest}\``,
+    '- packageDigest: see `baseline.json` (the canonical envelope renders no digest value here, keeping the package digest free of self-reference)',
     `- commandScope: \`${pack.commandScope}\``,
     `- nodeVersion: \`${pack.toolVersions.nodeVersion ?? ''}\``,
     `- npmVersion: \`${pack.toolVersions.npmVersion ?? ''}\``,
@@ -1046,7 +1042,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
       pack.handoff.map((entry) => [
         entry.consumer,
         entry.requiredIdentity,
-        'this envelope\'s packageDigest above',
+        'baseline.json:packageDigest',
         entry.locators.join('; '),
         entry.failClosedRule,
       ]),
@@ -1380,15 +1376,9 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     artifactEntry('test-baseline.md', 'text/markdown', testBaselineMd),
     ...detail.map((artifact) => artifactEntry(artifact.logicalLocator, artifact.mediaType, artifact.content)),
   ];
-  const packageDigest = successorPackageDigest({
-    ...envelopeCore,
-    handoff,
-    artifacts: indexedArtifacts,
-    packageDigest: '',
-  } as PostConvergenceEnvelope);
   const summaryMd = projectSummary({
     ...envelopeCore,
-    packageDigest,
+    packageDigest: '',
     handoff,
     artifacts: indexedArtifacts,
   } as PostConvergenceEnvelope);
@@ -1396,6 +1386,12 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     artifactEntry('summary.md', 'text/markdown', summaryMd),
     ...indexedArtifacts,
   ];
+  const packageDigest = successorPackageDigest({
+    ...envelopeCore,
+    handoff,
+    artifacts,
+    packageDigest: '',
+  } as PostConvergenceEnvelope);
 
   const pack: PostConvergenceEnvelope = {
     ...envelopeCore,

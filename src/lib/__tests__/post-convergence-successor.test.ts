@@ -515,6 +515,14 @@ describe('post-convergence successor capture', () => {
       )),
     };
     expect(successorPackageDigest(tamperedHandoff)).not.toBe(result.pack.packageDigest);
+    const tamperedSummaryRow = {
+      ...result.pack,
+      artifacts: result.pack.artifacts.map((artifact) => (
+        artifact.logicalLocator === 'summary.md' ? { ...artifact, sha256: sha256Text('forged summary') } : artifact
+      )),
+    };
+    expect(successorPackageDigest(tamperedSummaryRow)).not.toBe(result.pack.packageDigest);
+    expect(result.files['summary.md']).not.toContain(result.pack.packageDigest);
   });
 
   it('loads the real predecessor baseline and current-head delta with matching kind lineage', () => {
