@@ -14,6 +14,20 @@ A handoff gate succeeds, D SHALL block claim, apply, any implementation
 (including validator or fixture), adjudication runs, normalized decision or
 evidence-record writes, and qualified projections.
 
+#### Scenario: Charter input is qualified
+- **WHEN** the predecessor baseline is clean, denominator-reconciled, and
+  identified by one source commit and tree
+- **THEN** charter generation SHALL record that identity in every generated
+  architecture document
+- **AND** later readers SHALL be able to trace each charter decision to
+  repository-relative baseline evidence.
+
+#### Scenario: Charter input is missing or drifts
+- **WHEN** the baseline is missing, dirty, mixed-worktree,
+  denominator-incomplete, or no longer matches the declared source identity
+- **THEN** charter qualification SHALL fail before writing a qualified result
+- **AND** it SHALL NOT silently recapture or substitute another revision.
+
 #### Scenario: The residual adjudication gate and subject are qualified
 - **WHEN** the qualified predecessor baseline remains available and live Issue
   #1876 is closed, carries `status:archived`, and has its native `blockedBy`
@@ -97,6 +111,13 @@ projection SHALL additionally expose a compact decision matrix,
 owner/kernel/tool/fixture/compatibility/unresolved summaries, safe privacy and
 determinism evidence, and a full-ledger locator/digest without creating a
 second owner catalog or ledger.
+
+#### Scenario: The five documents are generated
+- **WHEN** the charter record set is qualified
+- **THEN** all five documents SHALL be emitted with stable ordering and the
+  same charter identity
+- **AND** owner, gate, dependency, and compatibility references SHALL resolve
+  across projections.
 
 #### Scenario: The five documents and scoped summaries are generated
 - **WHEN** the normalized record set is denominator-complete, identity-valid,
@@ -192,6 +213,13 @@ writes, Assignment state, current pointers, watermarks, retention, or any
 existing privacy/authority contract.  It MAY write only the bounded,
 revision-bound decision evidence and compact projections defined by this
 change.
+
+#### Scenario: The charter is generated
+- **WHEN** the charter command runs
+- **THEN** it SHALL read repository-owned baseline and configuration evidence
+  only
+- **AND** it SHALL not claim work, deploy, activate, or mutate production or
+  remote coordination state.
 
 #### Scenario: The residual charter command runs
 - **WHEN** the command reads A's verified subject/full artifact, repository
