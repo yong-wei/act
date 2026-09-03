@@ -46,5 +46,5 @@
 
 ## 8. Handoff
 
-- [ ] 8.1 Produce a digest-bound handoff containing the frozen current subject, immutable historical comparisons, independent tool/schema/frozen-input identities, reconciled member/caller totals, compact locators, actual full-ledger locator/byte-count/SHA-256/verification receipt, qualification state, and bounded blockers.
-- [ ] 8.2 Confirm the final diff contains only the adjudicator, focused tests, and compact decision outputs authorized by this change and no business file move, import/export rewrite, compatibility retirement, migration Issue, or authority activation.
+- [x] 8.1 Produce a digest-bound handoff containing the frozen current subject, immutable historical comparisons, independent tool/schema/frozen-input identities, reconciled member/caller totals, compact locators, actual full-ledger locator/byte-count/SHA-256/verification receipt, qualification state, and bounded blockers.
+- [x] 8.2 Confirm the final diff contains only the adjudicator, focused tests, and compact decision outputs authorized by this change and no business file move, import/export rewrite, compatibility retirement, migration Issue, or authority activation.
