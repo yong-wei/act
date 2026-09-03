@@ -9,7 +9,7 @@ import { checkToolchainBoundary } from '../../../tools/boundary/check';
 import { classifyPath } from '../../../tools/boundary/classify';
 import { digestPaths } from '../../../tools/boundary/denominator';
 import { findProductToolEdges, findProductToolPathReads } from '../../../tools/boundary/product-imports';
-import { worktreeIsClean } from '../../../tools/boundary/git-source';
+import { captureSourceIdentity, worktreeIsClean } from '../../../tools/boundary/git-source';
 import { buildCommandReceipt, digestRegistry, validateReceipt } from '../../../tools/boundary/receipt';
 import { buildToolRegistry, validateRegistry } from '../../../tools/boundary/registry';
 import { DOWNSTREAM_CHANGES, TOOLCHAIN_BOUNDARY_SCHEMA_VERSION } from '../../../tools/boundary/types';
@@ -119,6 +119,54 @@ describe('independent toolchain execution boundary', () => {
     const result = checkToolchainBoundary(root);
     expect(result.failures.some((item) => item.code === 'dirty-worktree')).toBe(true);
     expect(result.ok).toBe(false);
+  });
+
+  it('fail-closes a mixed worktree with staged and unstaged changes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-mixed-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'init\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'init'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'staged edit\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    writeFileSync(join(root, 'unstaged.txt'), 'unstaged edit\n');
+    const result = checkToolchainBoundary(root);
+    expect(result.failures.some((item) => item.code === 'dirty-worktree')).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it('distinguishes a receipt bound to a stale source tree after HEAD moves', () => {
+    const root = mkdtempSync(join(tmpdir(), 'toolchain-boundary-stale-'));
+    execFileSync('git', ['init'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'boundary@example.com'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'boundary'], { cwd: root });
+    writeFileSync(join(root, 'README'), 'first\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'first'], { cwd: root });
+    const bound = captureSourceIdentity(root);
+    const receipt = buildCommandReceipt({
+      commandId: 'toolchain:boundary-check',
+      sourceRevision: bound.sourceRevision,
+      sourceTree: bound.sourceTree,
+      inputDigest: '1',
+      outputDigest: '2',
+      validatorVersion: TOOLCHAIN_BOUNDARY_SCHEMA_VERSION,
+      exitStatus: 0,
+      graphId: 'tools',
+      privacyClass: 'none',
+      safetyMode: 'read-only',
+    });
+    writeFileSync(join(root, 'README'), 'second\n');
+    execFileSync('git', ['add', 'README'], { cwd: root });
+    execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-m', 'second'], { cwd: root });
+    const current = captureSourceIdentity(root);
+    // The receipt stays internally valid, but its bound tree no longer matches the
+    // live tree, so consumers comparing sourceTree must treat it as stale drift.
+    expect(validateReceipt(receipt)).toEqual([]);
+    expect(receipt.sourceTree === current.sourceTree).toBe(false);
+    expect(receipt.sourceRevision === current.sourceRevision).toBe(false);
   });
 
   it('changes the receipt digest when a registry contract field changes', () => {

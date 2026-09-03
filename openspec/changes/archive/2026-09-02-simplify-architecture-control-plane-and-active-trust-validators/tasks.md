@@ -2,7 +2,7 @@
 
 - [x] 1.1 Consume C34 inventory and map census, charter/deprecation, dependency/fitness, quality/toolchain, QA and release trust validators, callers, inputs, outputs and authority.（map 见 simplification-ledger.md）
 - [x] 1.2 Run the code-simplification process and record before/after validator branches, wrappers, aliases, receipts, failure codes and deletion reasons.（删除 3 个零消费者文件：可重建 denominator.json、已完成系列 migration-map.md、过期 preexisting-tools-typecheck.md；before/after boundary check exit 与输出一致）
-- [x] 1.3 Verify replay fixtures cover clean, dirty/mixed, tree drift, stale/duplicate receipts, denominator/privacy conflict and qualified/blocked/unresolved states.（既有覆盖：independent-toolchain-execution-boundary 12 项 + tooling-cli-inventory 14 项，清单位于 ledger）
+- [x] 1.3 Verify replay fixtures cover clean, dirty/mixed, tree drift, stale/duplicate receipts, denominator/privacy conflict and qualified/blocked/unresolved states.（本轮补齐 mixed-worktree 与 stale-receipt tree-drift 两个 fixture 后：independent-toolchain-execution-boundary 13 项（dirty、mixed、stale tree-drift、duplicate owner、privacy、fail-close）+ tooling-cli-inventory 14 项（dirty-guard、workspace/HEAD 双比对 drift））
 
 ## 2. Simplify without weakening trust
 
@@ -16,4 +16,4 @@
 - [x] 3.1 No-second-gate/no-selector-write/no-private-output coverage held by existing static contracts（tooling-cli-inventory 门禁唯一性/release 非激活/privacy 断言 + boundary privacy fail-close；本 diff 未弱化）。
 - [x] 3.2 Run boundary check (before/after identical), typecheck (0 errors), lint, `verify:commit`, diff checks and strict OpenSpec validation.（architecture/fitness/closure suites 以其既有测试文件为证据未受本 diff 触碰）
 - [x] 3.3 Control-plane map, deleted paths and rollback recorded in simplification-ledger.md（无 retained alias）。
-- [ ] 3.4 Run `openspec validate simplify-architecture-control-plane-and-active-trust-validators --type change --strict` before completion.
+- [x] 3.4 Run `openspec validate simplify-architecture-control-plane-and-active-trust-validators --type change --strict` before completion.（归档前在本分支运行两次通过：tasks 勾选前与 ledger 写入后各一次）

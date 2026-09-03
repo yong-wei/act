@@ -27,7 +27,7 @@
 
 - `toolchain:boundary:check` 删除前后 exit code 相同（1=1，`frozen-callers.ts` path-read 失败为既有状态，stash 干净基线对照一致）；输出条目相同。
 - `npm run typecheck` 0 错误；`npm run lint` 通过；quality-gates registry 与 package.json 零失配。
-- 1.3 状态覆盖由既有 fixture 持有：clean/dirty/mixed（boundary dirty fail-close）、duplicate owner/denominator 冲突、privacy（absolute paths/secrets 拒绝）、receipt digest drift、qualified/blocked（boundary qualify/fail-close + C34 inventory 双比对）。
+- 1.3 状态覆盖：clean/dirty/mixed（boundary dirty + 本轮新增 mixed-worktree fail-close）、stale receipt tree-drift（本轮新增：receipt 绑定树在 HEAD 移动后与活树失配）、duplicate owner/denominator 冲突、privacy（absolute paths/secrets 拒绝）、receipt digest drift、qualified/blocked（boundary qualify/fail-close + C34 inventory workspace/HEAD 双比对）。boundary 套件现 13 项。
 
 ## 保留边界
 
