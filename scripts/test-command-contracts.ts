@@ -108,7 +108,7 @@ function runVitest(extraArgs: readonly string[], cwd = process.cwd(), timeoutMs?
     }, cwd, timeoutMs);
     let summary: VitestExecutionSummary = { passed: 0, failed: status === 0 ? 0 : 1, skipped: [], unhandledErrors: 0, failures: [] };
     try {
-      summary = parseVitestJson(readFileSync(outputFile, 'utf8'), process.cwd());
+      summary = parseVitestJson(readFileSync(outputFile, 'utf8'), cwd);
     } catch {
       summary = { ...summary, failed: Math.max(summary.failed, 1) };
     }

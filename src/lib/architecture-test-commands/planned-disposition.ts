@@ -260,7 +260,7 @@ function workaroundText(input: Record<string, unknown>): boolean {
     rootCauseEvidenceLocator: input.rootCauseEvidenceLocator,
     errorSummary: input.errorSummary,
   });
-  return /accepted|silent[-_ ]?skip|flaky[-_ ]?retry|permanent[-_ ]?quarantine|widen(?:ed)? assertions|timeout inflation/iu.test(blob);
+  return /accepted\s+(?:failure|red|test)|silent[-_ ]?skip|flaky[-_ ]?retry|permanent[-_ ]?quarantine|widen(?:ed)? assertions|timeout inflation/iu.test(blob);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

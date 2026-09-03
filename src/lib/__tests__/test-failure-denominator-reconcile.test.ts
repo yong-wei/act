@@ -371,6 +371,20 @@ describe('current clean-head failure denominator', () => {
     });
     expect(leaked.failures.some((item) => item.code.includes('absolute-path') || item.code.includes('privacy'))).toBe(true);
 
+    expect(validatePlannedDisposition(createPlannedDisposition({
+      command: 'test:unit',
+      testIdentity: 'src/lib/__tests__/authority-domain-learning-content.test.ts::accepted card bytes',
+      failureStage: 'assertion',
+      errorClass: 'assertion-failure',
+      errorSummary: 'expected accepted card bytes to match',
+      artifactIdentity: 'test:unit:accepted-card',
+      subject: subjectFrom(envelope()),
+      tool: tool(subjectFrom(envelope())),
+      disposition: 'FIX',
+      rootCauseEvidenceLocator: 'failure:accepted-card',
+      closureCondition: 'the focused command passes without this fingerprint',
+    }))).toEqual([]);
+
     const forbidden = validatePlannedDisposition(createPlannedDisposition({
       command: 'test:unit',
       testIdentity: 'src/lib/__tests__/math.test.ts::red',
