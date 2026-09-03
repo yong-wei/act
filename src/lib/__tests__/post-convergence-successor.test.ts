@@ -569,7 +569,7 @@ describe('post-convergence successor capture', () => {
     ];
     const input = makeInput(files);
     input.gitBytes.set('evaluate/test_repos/express', 0);
-    input.gitBytes.set('.claude/skills/demo-link', 0);
+    input.gitBytes.set('.claude/skills/demo-link', 11);
     input.gitBytes.set('src/lib/stat-vs-git.ts', 21);
     const result = generatePostConvergenceSuccessor(input);
     qualifyPostConvergence(result.pack, result.failures);
@@ -580,12 +580,32 @@ describe('post-convergence successor capture', () => {
       .map((line) => JSON.parse(line) as { path: string; byteCount: number })
       .find((record) => record.path === path);
     expect(inventoryRecord('evaluate/test_repos/express')?.byteCount).toBe(0);
-    expect(inventoryRecord('.claude/skills/demo-link')?.byteCount).toBe(0);
+    expect(inventoryRecord('.claude/skills/demo-link')?.byteCount).toBe(11);
     expect(inventoryRecord('src/lib/stat-vs-git.ts')?.byteCount).toBe(21);
 
     input.gitBytes.delete('src/lib/stat-vs-git.ts');
     const missing = generatePostConvergenceSuccessor(input);
     expect(missing.failures.map((failure) => failure.code)).toContain('missing-git-byte-identity');
+  });
+
+  it('matches test density through the .test/.spec suffix', () => {
+    const files = [
+      ...coreFixtureFiles(),
+      file('src/lib/konling-agent-runtime.ts', 'export const runtime = 1;\n'),
+      file('src/lib/__tests__/konling-agent-runtime.test.ts', 'import { runtime } from "@/lib/konling-agent-runtime";\ntest("runtime", () => { expect(runtime).toBe(1); });\n'),
+    ];
+    const input = makeInput(files);
+    const result = generatePostConvergenceSuccessor(input);
+    qualifyPostConvergence(result.pack, result.failures);
+    const cellsOf = (path: string) => result.files['hotspots.md']
+      .split('\n')
+      .find((line) => line.includes(path))!
+      .split('|')
+      .map((cellText) => cellText.trim());
+    const konling = cellsOf('src/lib/konling-agent-runtime.ts');
+    expect(konling[konling.length - 4]).toBe('1');
+    const orphan = cellsOf('src/lib/orphan/orphan.ts');
+    expect(orphan[orphan.length - 4]).toBe('1');
   });
 
   it('loads the real predecessor baseline and current-head delta with matching kind lineage', () => {
