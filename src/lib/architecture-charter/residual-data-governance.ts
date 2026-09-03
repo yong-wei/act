@@ -238,6 +238,7 @@ export interface ResidualAdjudication {
     readonly byteCount: number;
     readonly sha256: string;
   };
+  readonly ledgerBody: string;
   readonly callerBundleDigest: string;
   readonly decisionIdentity: string;
 }
@@ -805,6 +806,7 @@ export function adjudicateResidualDataGovernance(
     summaries,
     futureSlices,
     fullLedger,
+    ledgerBody,
     callerBundleDigest,
     decisionIdentity,
   };

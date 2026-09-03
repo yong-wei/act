@@ -284,8 +284,7 @@ const firstPass = adjudicate(null);
 const ledgerDir = join(repoRoot, 'artifacts/architecture-census', currentSubject.subjectCommit);
 mkdirSync(ledgerDir, { recursive: true });
 const ledgerPath = join(ledgerDir, 'residual-data-governance-ledger.ndjson');
-const ledgerBody = serializeDeterministic({ records: firstPass.records, families: firstPass.families });
-writeFileSync(ledgerPath, ledgerBody);
+writeFileSync(ledgerPath, firstPass.ledgerBody);
 const receipt = verifyResidualLedgerArtifact({
   ledgerAbsolutePath: ledgerPath,
   expectedLocator: firstPass.fullLedger.logicalLocator,
