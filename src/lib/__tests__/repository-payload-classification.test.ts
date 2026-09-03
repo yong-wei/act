@@ -358,6 +358,22 @@ describe('repository payload classification', () => {
     });
     expect(first.packageDigest).not.toBe(second.packageDigest);
     expect(first.frozenInputDigest).not.toBe(second.frozenInputDigest);
+
+    const withGenerated = classifyPackage({
+      ...base,
+      generatedInputs: [{
+        path: '.next/cache/x',
+        producer: 'next-build',
+        className: 'generated',
+        digest: '4'.repeat(64),
+        sourceIdentity: 'a'.repeat(64),
+      }],
+    });
+    expect(withGenerated.frozenInputDigest).not.toBe(first.frozenInputDigest);
+
+    const hidden = classifyPackage(input({ entries: [entry('artifacts/qa/session.json')] }));
+    expect(hidden.members[0]?.authority).toBe('');
+    expect(hidden.members[0]?.path.startsWith('redacted:')).toBe(true);
   });
 
   it('parses the committed A envelope without rewriting it', () => {

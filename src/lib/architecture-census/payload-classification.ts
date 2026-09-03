@@ -424,9 +424,9 @@ function classifyOne(
 ): PayloadMember {
   const facets = mergeFacets(defaultFacets(entry.path), override?.facets);
   const safePath = facets.privacy === 'unknown' ? `redacted:${sha256Text(entry.path).slice(0, 16)}` : entry.path;
-  const producer = override?.producer ?? defaultProducer(safePath, facets);
+  const producer = override?.producer ?? defaultProducer(facets.privacy === 'unknown' ? safePath : entry.path, facets);
   const consumers = override?.consumers ? [...override.consumers] : defaultConsumers(entry.path);
-  const authority = override?.authority ?? defaultAuthority(safePath, subjectIdentity, entry.hash);
+  const authority = override?.authority ?? defaultAuthority(entry.path, subjectIdentity, entry.hash);
   const materialization = override?.materialization ?? (facets.cacheMaterializedRoles.length > 0 ? 'existing-view-only' : 'not-applicable');
   const recovery = override?.recovery ?? 'git-checkout-source-tree';
   const rollback = override?.rollback ?? 'git-history-blob';
@@ -572,6 +572,9 @@ function frozenDigest(input: ClassifyInput, handoff: AHandoff, entries: readonly
   return sha256Text(serializeDeterministic({
     entryBundleDigest: input.tool.entryBundleDigest,
     fullInventorySha256: handoff.fullInventorySha256,
+    compatibilityChecks: input.compatibilityChecks ?? [],
+    generatedInputs: input.generatedInputs ?? [],
+    nearDuplicateGroups: input.nearDuplicateGroups ?? [],
     overrides: (input.overrides ?? []).map((item) => ({
       authority: item.authority ?? null,
       consumers: item.consumers ?? [],
