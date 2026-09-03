@@ -1,0 +1,820 @@
+import { privacyViolation } from '@/lib/architecture-census/privacy';
+import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/serialize';
+import { OWNER_CATALOG, REQUIRED_BASELINE, type OwnerId } from './types';
+
+export const RESIDUAL_SCHEMA_VERSION = 'act-residual-data-governance-adjudication/v1' as const;
+export const RESIDUAL_COMMAND_SCOPE = 'residual-data-governance:adjudicate' as const;
+export const RESIDUAL_DENOMINATOR_PREFIX = 'src/lib/data-governance/' as const;
+export const LEARNING_RECORD_WRITER = 'src/features/learning-record/ingestion' as const;
+
+export const REQUIRED_SUCCESSOR = {
+  schemaVersion: 'act-architecture-post-convergence-successor/v1',
+  successorCaptureId: 'fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02',
+  sourceCommit: '698cb2f4cd6d001bcbeee95bca9be58c56c1cca3',
+  sourceTree: '41d6b3f5966493911d6ce9c1f299015189778d53',
+  packageDigest: '259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12',
+  ownerResidueLocator: 'owner-residue.md',
+  ownerResidueSha256: 'faef106510d395af457f92f42dd89139e5612953625422d352fd3fa7f37d5bed',
+  fullInventoryLocator:
+    'artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/full-inventory.ndjson',
+  fullInventorySha256: '0291c93d41de223f1698ee500cfe3b9024c4af42cfa04e4cc9a06d24b94bfc43',
+  predecessorBaseline: REQUIRED_BASELINE,
+} as const;
+
+export type ResidualOutcome =
+  | 'business-domain'
+  | 'processing-kernel'
+  | 'operator-tooling'
+  | 'fixture-asset'
+  | 'compatibility'
+  | 'unresolved';
+
+export type ResidualStatus = 'qualified' | 'unresolved';
+
+export type CallerClass =
+  | 'production'
+  | 'test'
+  | 'tooling'
+  | 'dynamic'
+  | 're-export'
+  | 'documentation'
+  | 'worker'
+  | 'scheduler'
+  | 'prisma'
+  | 'historical';
+
+const OWNER_IDS = new Set<string>(OWNER_CATALOG.map((item) => item.id));
+
+export interface Issue1876Snapshot {
+  readonly number: 1876;
+  readonly state: string;
+  readonly labels: readonly string[];
+  readonly blockedBy: readonly { number: number; state: string }[];
+}
+
+export interface ResidualSubjectIdentity {
+  readonly successorCaptureId: string;
+  readonly sourceCommit: string;
+  readonly sourceTree: string;
+  readonly schemaVersion: string;
+  readonly packageDigest: string;
+  readonly ownerResidueLocator: string;
+  readonly ownerResidueSha256: string;
+  readonly fullInventoryLocator: string;
+  readonly fullInventorySha256: string;
+  readonly memberSetDigest: string;
+  readonly fullInventoryBytesVerified: boolean;
+}
+
+export interface ResidualToolIdentity {
+  readonly toolCommit: string;
+  readonly toolTree: string;
+  readonly schemaVersion: typeof RESIDUAL_SCHEMA_VERSION;
+  readonly toolVersions: Readonly<Record<string, string>>;
+  readonly entryBundleDigest: string;
+}
+
+export interface ResidualMemberInput {
+  readonly path: string;
+  readonly currentOwnerEvidence?: readonly string[];
+  readonly candidateOwnerIds?: readonly string[];
+}
+
+export interface ResidualCallerInput {
+  readonly memberPath: string;
+  readonly callerPath: string;
+  readonly relationship: string;
+}
+
+export interface OutOfScopeSurface {
+  readonly identity: string;
+  readonly accountableOwner?: OwnerId | null;
+  readonly residualOutcome?: ResidualOutcome;
+}
+
+export interface ResidualAdjudicationInput {
+  readonly gate: Issue1876Snapshot;
+  readonly subject: ResidualSubjectIdentity;
+  readonly tool: ResidualToolIdentity;
+  readonly members: readonly ResidualMemberInput[];
+  readonly callers: readonly ResidualCallerInput[];
+  readonly outOfScopeSurfaces?: readonly OutOfScopeSurface[];
+  readonly dirtySource?: boolean;
+  readonly mixedSource?: boolean;
+}
+
+export interface ResidualCaller {
+  readonly path: string;
+  readonly callerClass: CallerClass;
+  readonly relationship: string;
+}
+
+export interface ResidualRecord {
+  readonly id: string;
+  readonly familyId: string;
+  readonly path: string;
+  readonly accountableOwner: OwnerId | null;
+  readonly outcome: ResidualOutcome;
+  readonly status: ResidualStatus;
+  readonly callerClasses: readonly CallerClass[];
+  readonly callers: readonly ResidualCaller[];
+  readonly publicBoundary: string;
+  readonly currentOwnerEvidence: readonly string[];
+  readonly candidateOwnerIds: readonly string[];
+  readonly authorityFacts: readonly string[];
+  readonly privacyFacts: readonly string[];
+  readonly resolutionCondition: string;
+  readonly rollback: string;
+  readonly evidenceLocators: readonly string[];
+}
+
+export interface ResidualFamily {
+  readonly familyId: string;
+  readonly accountableOwner: OwnerId | null;
+  readonly outcome: ResidualOutcome;
+  readonly memberIds: readonly string[];
+  readonly slice: string;
+}
+
+export interface FutureSlice {
+  readonly slice: string;
+  readonly accountableOwner: OwnerId;
+  readonly paths: readonly string[];
+  readonly publicBoundary: string;
+  readonly notTouched: readonly string[];
+  readonly deletionCondition: string;
+  readonly rollback: string;
+}
+
+export interface GateRejection {
+  readonly kind: 'parent-coordination-gate-rejection';
+  readonly reasons: readonly string[];
+}
+
+export interface ResidualAdjudication {
+  readonly kind: 'residual-adjudication';
+  readonly schemaVersion: typeof RESIDUAL_SCHEMA_VERSION;
+  readonly qualified: boolean;
+  readonly blockers: readonly string[];
+  readonly subject: ResidualSubjectIdentity;
+  readonly tool: ResidualToolIdentity;
+  readonly predecessorBaseline: typeof REQUIRED_BASELINE;
+  readonly records: readonly ResidualRecord[];
+  readonly families: readonly ResidualFamily[];
+  readonly summaries: {
+    readonly memberCount: number;
+    readonly qualifiedCount: number;
+    readonly unresolvedCount: number;
+    readonly byOutcome: Readonly<Record<ResidualOutcome, number>>;
+    readonly byOwner: Readonly<Record<string, number>>;
+  };
+  readonly futureSlices: readonly FutureSlice[];
+  readonly fullLedger: {
+    readonly logicalLocator: string;
+    readonly byteCount: number;
+    readonly sha256: string;
+  };
+  readonly decisionIdentity: string;
+}
+
+export type ResidualAdjudicationResult = GateRejection | ResidualAdjudication;
+
+interface ClassifiedPath {
+  readonly slice: string;
+  readonly outcome: Exclude<ResidualOutcome, 'unresolved'>;
+  readonly owner: OwnerId;
+  readonly authorityFacts: readonly string[];
+  readonly privacyFacts: readonly string[];
+  readonly publicBoundary: string;
+  readonly kernelCandidate: boolean;
+}
+
+const QUALIFIED_OUTCOMES: ReadonlySet<ResidualOutcome> = new Set([
+  'business-domain',
+  'processing-kernel',
+  'operator-tooling',
+  'fixture-asset',
+  'compatibility',
+]);
+
+export function evaluateCoordinationGate(issue: Issue1876Snapshot): string[] {
+  const reasons: string[] = [];
+  if (issue.number !== 1876) reasons.push('gate-issue-mismatch');
+  if (String(issue.state).toUpperCase() !== 'CLOSED') reasons.push('gate-1876-not-closed');
+  const labels = issue.labels.map((label) => label.toLowerCase());
+  if (!labels.includes('status:archived')) reasons.push('gate-1876-not-archived');
+  const openBlockers = issue.blockedBy.filter((item) => String(item.state).toUpperCase() !== 'CLOSED');
+  if (openBlockers.length > 0) reasons.push('gate-1876-blockedBy-unresolved');
+  return reasons;
+}
+
+export function classifyCallerPath(path: string): CallerClass {
+  if (path.startsWith('openspec/changes/archive/')) return 'historical';
+  if (path.startsWith('openspec/') || path.startsWith('docs/')) return 'documentation';
+  if (path.includes('/__tests__/') || /\.test\.[cm]?[tj]sx?$/u.test(path)) return 'test';
+  if (path.includes('scripts/workers/') || (path.startsWith('scripts/') && /worker/iu.test(path))) return 'worker';
+  if (path.includes('scheduler')) return 'scheduler';
+  if (path.startsWith('scripts/')) return 'tooling';
+  if (path.includes('prisma/')) return 'prisma';
+  if (path.includes('dynamic') || path.includes('await import(')) return 'dynamic';
+  return 'production';
+}
+
+export function classifyResidualPath(path: string): ClassifiedPath | { outcome: 'unresolved'; slice: 'unresolved' } {
+  if (!path.startsWith(RESIDUAL_DENOMINATOR_PREFIX)) return { outcome: 'unresolved', slice: 'unresolved' };
+  const file = path.slice(RESIDUAL_DENOMINATOR_PREFIX.length);
+  const base = file.replace(/^__tests__\//u, '').replace(/\.test\.ts$/u, '.ts');
+  const isTest = file.startsWith('__tests__/');
+  const isAsset = file.startsWith('assets/');
+  const classified = classifyProductionFile(base === file ? file : base);
+  if (isAsset) {
+    return {
+      slice: 'compatibility-assets-tests',
+      outcome: 'fixture-asset',
+      owner: classified && classified.outcome !== 'unresolved' ? classified.owner : 'learning-record',
+      authorityFacts: ['non-production-asset'],
+      privacyFacts: ['font-license-only'],
+      publicBoundary: 'none',
+      kernelCandidate: false,
+    };
+  }
+  if (isTest || file === 'yangfan-diagnostic-fixture.ts' || /demo-package\.ts$/u.test(file)) {
+    const owner = classified && classified.outcome !== 'unresolved' ? classified.owner : 'learning-record';
+    return {
+      slice: 'compatibility-assets-tests',
+      outcome: 'fixture-asset',
+      owner,
+      authorityFacts: ['non-production-fixture'],
+      privacyFacts: ['synthetic-or-redacted-only'],
+      publicBoundary: 'none',
+      kernelCandidate: false,
+    };
+  }
+  if (file === 'index.ts') {
+    return {
+      slice: 'compatibility-assets-tests',
+      outcome: 'compatibility',
+      owner: 'learning-record',
+      authorityFacts: ['barrel-not-deleted-in-d'],
+      privacyFacts: ['no-payload'],
+      publicBoundary: 'src/lib/data-governance/index.ts',
+      kernelCandidate: false,
+    };
+  }
+  return classified;
+}
+
+function classifyProductionFile(file: string): ClassifiedPath | { outcome: 'unresolved'; slice: 'unresolved' } {
+  if (/^teacher-ai-grading-lab/u.test(file) || file === 'teacher-ai-grading-publication-candidate.ts' || file === 'teacher-ai-grading-visual-diagnostics.ts') {
+    return {
+      slice: 'operator-backfill',
+      outcome: 'operator-tooling',
+      owner: 'assignment',
+      authorityFacts: ['operator-only', 'no-online-writer', 'no-current-pointer'],
+      privacyFacts: ['redaction-required', 'independent-learner-suppression'],
+      publicBoundary: 'scripts/data-governance/teacher-ai-grading-lab-cli.ts',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /backfill/u.test(file)
+    || file === 'historical-evidence-materialization.ts'
+    || file === 'data-completeness-audit.ts'
+    || file === 'cumulative-snapshot-jobs.ts'
+    || /historical/u.test(file)
+  ) {
+    const owner: OwnerId = /simulation/u.test(file) ? 'practice-lab' : /portrait|cumulative|growth/u.test(file) ? 'personalization' : 'learning-record';
+    return {
+      slice: 'operator-backfill',
+      outcome: 'operator-tooling',
+      owner,
+      authorityFacts: ['operator-only', 'dry-run-or-frozen-input', 'no-online-writer', 'no-current-pointer'],
+      privacyFacts: ['no-raw-payload-in-projection'],
+      publicBoundary: 'scripts/db/**',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /^(math-document-|assignment-attachment-|teacher-assignment-)/u.test(file)
+    || file === 'submission-evidence-quality.ts'
+  ) {
+    return {
+      slice: 'assignment-evidence',
+      outcome: 'business-domain',
+      owner: 'learning-record',
+      authorityFacts: [
+        'c16-assignment-owns-orchestration',
+        'processing-policy-retained-in-governance',
+        'approved-snapshot-port-only',
+      ],
+      privacyFacts: ['no-raw-answers', 'no-contextJson'],
+      publicBoundary: 'src/lib/assignments/public-api.ts approved-snapshot port',
+      kernelCandidate: false,
+    };
+  }
+  if (file === 'competency-engine.ts' || file === 'competency-model.ts') {
+    return {
+      slice: 'portrait-profile',
+      outcome: 'compatibility',
+      owner: 'personalization',
+      authorityFacts: ['portrait-v2-primary', 'student-competency-compatibility'],
+      privacyFacts: ['profile-redaction'],
+      publicBoundary: 'Portrait V2 read/refresh ports',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /^(portrait-|profile-|competency-|cumulative-|growth-evaluation|student-evidence-feature-cache|risk-detector)/u.test(file)
+  ) {
+    return {
+      slice: 'portrait-profile',
+      outcome: 'business-domain',
+      owner: 'personalization',
+      authorityFacts: ['portrait-v2-primary', 'student-competency-compatibility'],
+      privacyFacts: ['profile-redaction', 'independent-learner-suppression'],
+      publicBoundary: 'Portrait V2/profile read and refresh ports',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /^(class-|session-(?!fact-replay)|interactive-session-finalization|course-review-prepost)/u.test(file)
+  ) {
+    return {
+      slice: 'classroom-session',
+      outcome: 'business-domain',
+      owner: 'classroom',
+      authorityFacts: ['teacher-class-authorization', 'backfill-isolated-from-online-writer'],
+      privacyFacts: ['redaction', 'independent-learner-suppression'],
+      publicBoundary: 'authorized class/session read and finalization ports',
+      kernelCandidate: false,
+    };
+  }
+  if (/^(simulation-|control-workbench-run-context|control-correction-demo-package)/u.test(file)) {
+    return {
+      slice: 'simulation-arena',
+      outcome: 'business-domain',
+      owner: 'practice-lab',
+      authorityFacts: ['ArenaSubmission-official-score', 'simulation-learningfact-auxiliary-only'],
+      privacyFacts: ['preview-open-isolated-excluded', 'profileWeight-0-excluded'],
+      publicBoundary: 'governed simulation-task evidence ports',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /^(autocontrol-kaq|kaq-|graph-center|knowledge-truth|course-evidence-specs|resource-coverage|new-resource-semantic|learning-evidence-rag|structured-associative-retrieval|sar-|openspec-change-evidence|teacher-prep-pack|teacher-kaq|visual-evidence)/u.test(file)
+  ) {
+    return {
+      slice: 'knowledge-resource-sar',
+      outcome: 'business-domain',
+      owner: 'knowledge',
+      authorityFacts: ['no-release-selector-mutation', 'canonical-resource-binding'],
+      privacyFacts: ['no-raw-corpus-payload'],
+      publicBoundary: 'knowledge/resource/SAR public adapters',
+      kernelCandidate: false,
+    };
+  }
+  if (
+    /^(event-|interactive-event-ingestion|learning-fact-|session-fact-replay|trusted-learning-fact-filter|derived-learning-materialization|worker-client|evidence-source-catalog|evidence-timeline|interactive-evidence-scoring|unit-\d+-\d+-submission-telemetry)/u.test(file)
+  ) {
+    return {
+      slice: 'learning-record-ingress',
+      outcome: 'business-domain',
+      owner: 'learning-record',
+      authorityFacts: [`sole-online-writer:${LEARNING_RECORD_WRITER}`, 'not-a-second-writer'],
+      privacyFacts: ['no-raw-event-payload', 'no-user-identifiers'],
+      publicBoundary: LEARNING_RECORD_WRITER,
+      kernelCandidate: /^(event-protocol|event-types|event-normalization|event-buffer)\.ts$/u.test(file),
+    };
+  }
+  return { outcome: 'unresolved', slice: 'unresolved' };
+}
+
+function featureDomain(path: string): string | null {
+  const match = path.match(/^src\/features\/([^/]+)\//u);
+  return match?.[1] ?? null;
+}
+
+function kernelProof(recordPath: string, callers: readonly ResidualCaller[]): string[] {
+  const missing: string[] = [];
+  const production = callers.filter((caller) => caller.callerClass === 'production');
+  const domains = [...new Set(production.map((caller) => featureDomain(caller.path)).filter(Boolean))];
+  if (domains.length < 2) missing.push('kernel-two-real-domain-consumers');
+  if (production.some((caller) => caller.path.startsWith('src/app/'))) missing.push('kernel-page-ownership');
+  if (/backfill/u.test(recordPath)) missing.push('kernel-one-off-backfill');
+  if (production.length === 0) missing.push('kernel-unique-public-api');
+  return missing;
+}
+
+function ownerOrNull(value: string | null | undefined): OwnerId | null {
+  return value && OWNER_IDS.has(value) ? (value as OwnerId) : null;
+}
+
+function emptyOutcomeCounts(): Record<ResidualOutcome, number> {
+  return {
+    'business-domain': 0,
+    'processing-kernel': 0,
+    'operator-tooling': 0,
+    'fixture-asset': 0,
+    compatibility: 0,
+    unresolved: 0,
+  };
+}
+
+export function memberSetDigest(paths: readonly string[]): string {
+  return sha256Text(serializeDeterministic([...paths].sort()));
+}
+
+export function adjudicateResidualDataGovernance(
+  input: ResidualAdjudicationInput,
+): ResidualAdjudicationResult {
+  const gateReasons = evaluateCoordinationGate(input.gate);
+  if (gateReasons.length > 0) {
+    return { kind: 'parent-coordination-gate-rejection', reasons: gateReasons };
+  }
+
+  const blockers: string[] = [];
+  if (input.dirtySource) blockers.push('dirty-source');
+  if (input.mixedSource) blockers.push('mixed-source');
+
+  const subject = input.subject;
+  if (subject.successorCaptureId !== REQUIRED_SUCCESSOR.successorCaptureId) blockers.push('subject-capture-mismatch');
+  if (subject.sourceCommit !== REQUIRED_SUCCESSOR.sourceCommit) blockers.push('subject-commit-mismatch');
+  if (subject.sourceTree !== REQUIRED_SUCCESSOR.sourceTree) blockers.push('subject-tree-mismatch');
+  if (subject.schemaVersion !== REQUIRED_SUCCESSOR.schemaVersion) blockers.push('subject-schema-mismatch');
+  if (subject.packageDigest !== REQUIRED_SUCCESSOR.packageDigest) blockers.push('subject-package-digest-mismatch');
+  if (subject.ownerResidueSha256 !== REQUIRED_SUCCESSOR.ownerResidueSha256) blockers.push('owner-residue-digest-mismatch');
+  if (subject.fullInventoryLocator !== REQUIRED_SUCCESSOR.fullInventoryLocator) blockers.push('full-inventory-locator-mismatch');
+  if (subject.fullInventorySha256 !== REQUIRED_SUCCESSOR.fullInventorySha256) blockers.push('full-inventory-digest-mismatch');
+  if (!subject.fullInventoryBytesVerified) blockers.push('full-inventory-bytes-unverified');
+  if (!input.tool.toolCommit || !input.tool.toolTree || !input.tool.entryBundleDigest) blockers.push('tool-identity-missing');
+  if (input.tool.schemaVersion !== RESIDUAL_SCHEMA_VERSION) blockers.push('tool-schema-mismatch');
+  if (input.tool.toolCommit === subject.sourceCommit) blockers.push('tool-subject-identity-collision');
+
+  const paths = input.members.map((member) => member.path);
+  if (memberSetDigest(paths) !== subject.memberSetDigest) blockers.push('member-set-digest-mismatch');
+  const seen = new Set<string>();
+  for (const path of paths) {
+    if (!path.startsWith(RESIDUAL_DENOMINATOR_PREFIX)) blockers.push(`out-of-denominator:${path}`);
+    if (seen.has(path)) blockers.push(`duplicate-id:${path}`);
+    seen.add(path);
+  }
+  if (paths.length === 0) blockers.push('empty-denominator');
+
+  const callersByMember = new Map<string, ResidualCaller[]>();
+  for (const caller of input.callers) {
+    if (!seen.has(caller.memberPath)) blockers.push(`omitted-member-for-caller:${caller.memberPath}`);
+    const bucket = callersByMember.get(caller.memberPath) ?? [];
+    bucket.push({
+      path: caller.callerPath,
+      callerClass: classifyCallerPath(caller.callerPath),
+      relationship: caller.relationship,
+    });
+    callersByMember.set(caller.memberPath, bucket);
+  }
+
+  const records: ResidualRecord[] = input.members.map((member) => {
+    const classified = classifyResidualPath(member.path);
+    const callers = (callersByMember.get(member.path) ?? [])
+      .sort((left, right) => left.path.localeCompare(right.path) || left.relationship.localeCompare(right.relationship));
+    const callerClasses = [...new Set(callers.map((item) => item.callerClass))].sort();
+    const candidates = [...new Set([
+      ...(member.candidateOwnerIds ?? []),
+      classified.outcome === 'unresolved' ? '' : classified.owner,
+    ].filter(Boolean))].sort();
+    let outcome: ResidualOutcome = classified.outcome === 'unresolved' ? 'unresolved' : classified.outcome;
+    let owner = classified.outcome === 'unresolved' ? ownerOrNull(member.candidateOwnerIds?.[0] ?? null) : classified.owner;
+    let resolutionCondition = 'none';
+    const authorityFacts = classified.outcome === 'unresolved' ? ['unresolved-authority'] : [...classified.authorityFacts];
+    const privacyFacts = classified.outcome === 'unresolved' ? ['unresolved-privacy'] : [...classified.privacyFacts];
+    const kernelMissing = classified.outcome !== 'unresolved' && classified.kernelCandidate
+      ? kernelProof(member.path, callers)
+      : ['not-kernel-candidate'];
+
+    if (classified.outcome !== 'unresolved' && classified.kernelCandidate && kernelMissing.length === 0) {
+      outcome = 'processing-kernel';
+    } else if (classified.outcome !== 'unresolved' && classified.kernelCandidate && kernelMissing.length > 0) {
+      outcome = 'business-domain';
+    }
+
+    if (candidates.length > 1) {
+      outcome = 'unresolved';
+      owner = null;
+      resolutionCondition = 'exactly-one-accountable-owner';
+    }
+    if (outcome !== 'unresolved' && !owner) {
+      outcome = 'unresolved';
+      resolutionCondition = 'missing-accountable-owner';
+    }
+    if (classified.outcome === 'unresolved') {
+      outcome = 'unresolved';
+      owner = null;
+      resolutionCondition = 'no-defensible-owner-or-outcome';
+    }
+    if (outcome === 'processing-kernel' && kernelMissing.length > 0) {
+      outcome = 'unresolved';
+      resolutionCondition = kernelMissing.join(',');
+    }
+
+    const status: ResidualStatus = outcome === 'unresolved' || !owner ? 'unresolved' : 'qualified';
+    const familyId = status === 'unresolved'
+      ? `unresolved:${member.path}`
+      : `${outcome}:${owner}:${classified.outcome === 'unresolved' ? 'unresolved' : classified.slice}:${authorityFacts.join('|')}:${privacyFacts.join('|')}`;
+
+    return {
+      id: `residual:${member.path}`,
+      familyId,
+      path: member.path,
+      accountableOwner: status === 'qualified' ? owner : null,
+      outcome: status === 'qualified' ? outcome : 'unresolved',
+      status,
+      callerClasses,
+      callers,
+      publicBoundary: classified.outcome === 'unresolved' ? 'unresolved' : classified.publicBoundary,
+      currentOwnerEvidence: member.currentOwnerEvidence ?? [`path:${member.path}`],
+      candidateOwnerIds: candidates,
+      authorityFacts,
+      privacyFacts,
+      resolutionCondition,
+      rollback: 'discard-additive-decision-package-only',
+      evidenceLocators: [
+        REQUIRED_SUCCESSOR.ownerResidueLocator,
+        REQUIRED_SUCCESSOR.fullInventoryLocator,
+        member.path,
+      ],
+    };
+  });
+
+  for (const surface of input.outOfScopeSurfaces ?? []) {
+    if (surface.identity.startsWith(RESIDUAL_DENOMINATOR_PREFIX)) continue;
+    if (surface.residualOutcome && !surface.accountableOwner) {
+      blockers.push(`out-of-scope-compatibility-without-owner:${surface.identity}`);
+    }
+  }
+
+  const familyMap = new Map<string, ResidualFamily>();
+  for (const record of records) {
+    const existing = familyMap.get(record.familyId);
+    if (existing) {
+      familyMap.set(record.familyId, { ...existing, memberIds: [...existing.memberIds, record.id] });
+    } else {
+      familyMap.set(record.familyId, {
+        familyId: record.familyId,
+        accountableOwner: record.accountableOwner,
+        outcome: record.outcome,
+        memberIds: [record.id],
+        slice: record.familyId.split(':')[2] ?? 'unresolved',
+      });
+    }
+  }
+  const families = [...familyMap.values()].sort((left, right) => left.familyId.localeCompare(right.familyId));
+
+  const byOutcome = emptyOutcomeCounts();
+  const byOwner: Record<string, number> = {};
+  for (const record of records) {
+    byOutcome[record.outcome] += 1;
+    const ownerKey = record.accountableOwner ?? 'none';
+    byOwner[ownerKey] = (byOwner[ownerKey] ?? 0) + 1;
+  }
+  const unresolvedCount = records.filter((record) => record.status === 'unresolved').length;
+  if (unresolvedCount > 0) blockers.push('unresolved-records');
+
+  const futureSlices = buildFutureSlices(records);
+  const ledgerBody = serializeDeterministic({ records, families });
+  const fullLedger = {
+    logicalLocator: REQUIRED_SUCCESSOR.fullInventoryLocator.replace(/full-inventory\.ndjson$/u, 'residual-data-governance-ledger.ndjson'),
+    byteCount: Buffer.byteLength(ledgerBody),
+    sha256: sha256Text(ledgerBody),
+  };
+  const summaries = {
+    memberCount: records.length,
+    qualifiedCount: records.length - unresolvedCount,
+    unresolvedCount,
+    byOutcome,
+    byOwner,
+  };
+  const privacyTarget = serializeDeterministic({
+    summaries,
+    families,
+    futureSlices,
+    records: records.map(({ callers: _callers, ...rest }) => rest),
+  });
+  const privacy = residualPrivacyViolation(privacyTarget) ?? residualPrivacyViolation(ledgerBody);
+  if (privacy) blockers.push(`privacy:${privacy}`);
+
+  const uniqueBlockers = [...new Set(blockers)].sort();
+  const qualified = uniqueBlockers.length === 0
+    && unresolvedCount === 0
+    && records.every((record) => (
+      Boolean(record.accountableOwner)
+      && QUALIFIED_OUTCOMES.has(record.outcome)
+      && record.status === 'qualified'
+    ));
+
+  const decisionIdentity = sha256Text(serializeDeterministic({
+    schemaVersion: RESIDUAL_SCHEMA_VERSION,
+    subject: subject.successorCaptureId,
+    packageDigest: subject.packageDigest,
+    tool: input.tool.entryBundleDigest,
+    memberSetDigest: subject.memberSetDigest,
+    ledger: fullLedger.sha256,
+  }));
+
+  return {
+    kind: 'residual-adjudication',
+    schemaVersion: RESIDUAL_SCHEMA_VERSION,
+    qualified,
+    blockers: uniqueBlockers,
+    subject,
+    tool: input.tool,
+    predecessorBaseline: REQUIRED_BASELINE,
+    records,
+    families,
+    summaries,
+    futureSlices,
+    fullLedger,
+    decisionIdentity,
+  };
+}
+
+function residualPrivacyViolation(text: string): string | null {
+  const shared = privacyViolation(text);
+  if (shared) return shared;
+  if (/"contextJson"\s*:/u.test(text) || /"rawAnswer"\s*:/u.test(text) || /"eventPayload"\s*:/u.test(text)) {
+    return 'forbidden-payload';
+  }
+  return null;
+}
+
+function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
+  const bySlice = new Map<string, ResidualRecord[]>();
+  for (const record of records) {
+    const slice = record.familyId.split(':')[2] ?? 'unresolved';
+    const bucket = bySlice.get(slice) ?? [];
+    bucket.push(record);
+    bySlice.set(slice, bucket);
+  }
+  const specs: Array<{ slice: string; owner: OwnerId; boundary: string; notTouched: string[]; deletion: string; rollback: string }> = [
+    {
+      slice: 'learning-record-ingress',
+      owner: 'learning-record',
+      boundary: LEARNING_RECORD_WRITER,
+      notTouched: ['writers', 'anchors', 'times', 'dedupe', 'outbox', 'pointer', 'watermark', 'schema', 'retention'],
+      deletion: 'zero-direct-and-staged-callers-and-one-online-writer-proven',
+      rollback: 'preserve-append-only-facts-and-original-anchors',
+    },
+    {
+      slice: 'assignment-evidence',
+      owner: 'learning-record',
+      boundary: 'Assignment public API plus approved-snapshot port',
+      notTouched: ['C16-orchestration', 'LearningFact-from-routes', 'CAS', 'idempotency'],
+      deletion: 'zero-unclassified-callers-and-complete-snapshot-lineage',
+      rollback: 'preserve-approved-snapshots-CAS-idempotency-derivatives-outbox',
+    },
+    {
+      slice: 'portrait-profile',
+      owner: 'personalization',
+      boundary: 'Portrait V2/profile read and refresh ports',
+      notTouched: ['portrait-algorithms', 'StudentCompetency-compatibility', 'freshness', 'current-pointers'],
+      deletion: 'all-readers-use-governed-ports',
+      rollback: 'keep-last-qualified-generation',
+    },
+    {
+      slice: 'classroom-session',
+      owner: 'classroom',
+      boundary: 'authorized class/session read and finalization ports',
+      notTouched: ['class-student-authorization', 'redaction', 'independent-learner-suppression', 'backfill-isolation'],
+      deletion: 'worker-scheduler-and-report-callers-closed',
+      rollback: 'preserve-immutable-session-snapshots-and-receipts',
+    },
+    {
+      slice: 'simulation-arena',
+      owner: 'practice-lab',
+      boundary: 'official Arena submission and governed simulation-task evidence ports',
+      notTouched: ['ArenaSubmission-scoring', 'preview-open-isolated-as-official', 'UI-as-writer'],
+      deletion: 'official-result-and-context-only-paths-proven',
+      rollback: 'preserve-ArenaSubmission-and-fact-identity',
+    },
+    {
+      slice: 'knowledge-resource-sar',
+      owner: 'knowledge',
+      boundary: 'knowledge/resource/SAR public adapters',
+      notTouched: ['knowledge-authority', 'release-selectors', 'resource-registry', 'teaching-admission'],
+      deletion: 'public-adapters-and-privacy-scopes-singular',
+      rollback: 'leave-release-and-catalog-identities-unchanged',
+    },
+    {
+      slice: 'operator-backfill',
+      owner: 'learning-record',
+      boundary: 'scripts/db/** scripts/ops/** scripts/data-governance/** worker/scheduler',
+      notTouched: ['online-writer', 'current-pointer'],
+      deletion: 'zero-production-consumers-and-rollback-rehearsal',
+      rollback: 'operator-receipt-and-frozen-input',
+    },
+    {
+      slice: 'compatibility-assets-tests',
+      owner: 'learning-record',
+      boundary: 'index.ts, assets/**, __tests__/**',
+      notTouched: ['barrel-deletion', 'fixture-deletion', 'asset-deletion'],
+      deletion: 'zero-consumers-and-regeneration-retention-evidence',
+      rollback: 'reversible-compatibility-surface',
+    },
+  ];
+  return specs.map((spec) => ({
+    slice: spec.slice,
+    accountableOwner: spec.owner,
+    paths: (bySlice.get(spec.slice) ?? []).map((record) => record.path).sort(),
+    publicBoundary: spec.boundary,
+    notTouched: spec.notTouched,
+    deletionCondition: spec.deletion,
+    rollback: spec.rollback,
+  }));
+}
+
+export function projectResidualDocuments(result: ResidualAdjudication): Record<string, string> {
+  const byOutcome = result.summaries.byOutcome;
+  const matrixRows = result.families.map((family) => [
+    family.familyId,
+    family.accountableOwner ?? 'none',
+    family.outcome,
+    String(family.memberIds.length),
+    family.memberIds.join(' '),
+  ]);
+  return {
+    'decision-matrix.md': [
+      '# Residual Data Governance decision matrix',
+      '',
+      `- schemaVersion: \`${result.schemaVersion}\``,
+      `- successorCaptureId: \`${result.subject.successorCaptureId}\``,
+      `- sourceCommit: \`${result.subject.sourceCommit}\``,
+      `- sourceTree: \`${result.subject.sourceTree}\``,
+      `- packageDigest: \`${result.subject.packageDigest}\``,
+      `- ownerResidueSha256: \`${result.subject.ownerResidueSha256}\``,
+      `- fullInventoryLocator: \`${result.subject.fullInventoryLocator}\``,
+      `- fullInventorySha256: \`${result.subject.fullInventorySha256}\``,
+      `- memberSetDigest: \`${result.subject.memberSetDigest}\``,
+      `- tool.entryBundleDigest: \`${result.tool.entryBundleDigest}\``,
+      `- predecessorBaseline.sourceCommit: \`${REQUIRED_BASELINE.sourceCommit}\``,
+      `- qualified: \`${result.qualified ? 'yes' : 'no'}\``,
+      `- decisionIdentity: \`${result.decisionIdentity}\``,
+      '',
+      '| familyId | accountableOwner | outcome | count | memberIds |',
+      '| --- | --- | --- | --- | --- |',
+      ...matrixRows.map((row) => `| ${row.map((cell) => cell.replaceAll('|', '\\|')).join(' | ')} |`),
+      '',
+    ].join('\n'),
+    'summaries.md': [
+      '# Residual Data Governance summaries',
+      '',
+      `- members: ${result.summaries.memberCount}`,
+      `- recordQualified: ${result.summaries.qualifiedCount}`,
+      `- packageQualified: ${result.qualified ? 'yes' : 'no'}`,
+      `- unresolved: ${result.summaries.unresolvedCount}`,
+      `- blockers: ${result.blockers.join(', ') || 'none'}`,
+      '',
+      '| outcome | count |',
+      '| --- | --- |',
+      ...Object.entries(byOutcome).map(([outcome, count]) => `| ${outcome} | ${count} |`),
+      '',
+      '| accountableOwner | count |',
+      '| --- | --- |',
+      ...Object.entries(result.summaries.byOwner).sort().map(([owner, count]) => `| ${owner} | ${count} |`),
+      '',
+      'Owner and outcome are serialized separately. Unresolved records block scoped and global charter qualification.',
+      '',
+    ].join('\n'),
+    'future-slices.md': [
+      '# Residual Data Governance future slices',
+      '',
+      'Each slice is a migration input, not authorization to act. Readers must verify subject/tool/schema identities.',
+      '',
+      ...result.futureSlices.flatMap((slice) => [
+        `## ${slice.slice}`,
+        '',
+        `- accountableOwner: \`${slice.accountableOwner}\``,
+        `- publicBoundary: ${slice.publicBoundary}`,
+        `- notTouched: ${slice.notTouched.join(', ')}`,
+        `- deletionCondition: ${slice.deletionCondition}`,
+        `- rollback: ${slice.rollback}`,
+        `- paths: ${slice.paths.length === 0 ? '_none_' : slice.paths.map((path) => `\`${path}\``).join(' ')}`,
+        '',
+      ]),
+    ].join('\n'),
+    'handoff.md': [
+      '# Residual Data Governance handoff',
+      '',
+      `- status: \`${result.qualified ? 'COMPLETE-qualified' : 'COMPLETE-non-qualified-BLOCKER'}\``,
+      `- decisionIdentity: \`${result.decisionIdentity}\``,
+      `- successorCaptureId: \`${result.subject.successorCaptureId}\``,
+      `- packageDigest: \`${result.subject.packageDigest}\``,
+      `- tool.entryBundleDigest: \`${result.tool.entryBundleDigest}\``,
+      `- fullLedger.locator: \`${result.fullLedger.logicalLocator}\``,
+      `- fullLedger.bytes: ${result.fullLedger.byteCount}`,
+      `- fullLedger.sha256: \`${result.fullLedger.sha256}\``,
+      `- unresolvedCount: ${result.summaries.unresolvedCount}`,
+      `- blockers: ${result.blockers.join(', ') || 'none'}`,
+      '',
+      'This change does not move source, alter Prisma, deploy, open an Issue, or activate a production selector.',
+      '',
+    ].join('\n'),
+  };
+}
