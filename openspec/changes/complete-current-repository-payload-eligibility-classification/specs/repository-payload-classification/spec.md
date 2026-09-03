@@ -11,7 +11,7 @@ artifact commits. A local change name, mutable directory listing, dirty or
 mixed working tree, or the final artifact commit SHALL NOT substitute for the
 frozen subject.
 
-#### Scenario: Predecessor or current-subject gate is incomplete
+#### Scenario: A gate or successor handoff is incomplete
 
 - **WHEN** the archived predecessor identity/digest is missing or invalid, or
   the selected current subject is dirty, mixed, detached-unresolved, not the
@@ -20,7 +20,7 @@ frozen subject.
 - **AND** the result SHALL identify a bounded predecessor, subject, or drift
   reason without inventing or inheriting a current identity
 
-#### Scenario: The completion gate is satisfied
+#### Scenario: A handoff is complete
 
 - **WHEN** the archived predecessor is digest-valid and one clean integration
   commit/tree is frozen as the current subject
@@ -42,7 +42,7 @@ and Git-object byte totals for each slice. Path counts and bytes SHALL
 reconcile independently, while duplicate groups/member references remain
 separate observations.
 
-#### Scenario: A current scoped entry is classified
+#### Scenario: A scoped entry is classified
 
 - **WHEN** a tracked blob belongs to a declared current-subject scope slice
 - **THEN** it SHALL occur exactly once with one member disposition from
@@ -68,7 +68,7 @@ separate observations.
   digest, source identity, and evidence status
 - **AND** it SHALL not change the frozen tracked path or byte denominator
 
-#### Scenario: Proposal-time observations differ from the frozen subject
+#### Scenario: Proposal-time size observations differ from the capture
 
 - **WHEN** proposal-time file, byte, duplicate, or unresolved observations
   differ from the implementation-time frozen subject
@@ -86,7 +86,7 @@ predecessor and evidence-input digests. Deterministic output SHALL be required
 only when subject, predecessor, tool, schema, and frozen inputs all match.
 Drift of any identity or input SHALL fail closed.
 
-#### Scenario: The same frozen inputs are classified twice
+#### Scenario: The same frozen subject and tool are classified twice
 
 - **WHEN** current-subject commit/tree, predecessor identities, tool
   commit/tree, schema, entry-bundle digest, and all frozen evidence digests are
@@ -96,7 +96,7 @@ Drift of any identity or input SHALL fail closed.
 - **AND** the second run SHALL neither create a new authority nor alter the
   predecessor or first result
 
-#### Scenario: Subject, predecessor, tool, or evidence drifts
+#### Scenario: Subject or tool identity drifts
 
 - **WHEN** any current-subject, predecessor, tool, schema, entry-bundle, or
   frozen evidence identity differs during classification or projection
@@ -226,7 +226,7 @@ externalize, materialize, or mutate source payloads, existing evidence,
 release blobs, selectors, database/schema, CI, Git history, OSS objects,
 production state, test commands, or active architecture authorities.
 
-#### Scenario: A completion run finishes
+#### Scenario: A classification run completes
 
 - **WHEN** the classifier emits a qualified or unqualified current package
 - **THEN** pre/post hashes, sizes, and metadata for the current subject,

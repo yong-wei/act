@@ -30,7 +30,7 @@ unreadable, incomplete, or drifted inputs SHALL block qualified projections.
   result
 - **AND** it SHALL NOT silently recapture or substitute another revision
 
-#### Scenario: Current residual requalification inputs are qualified
+#### Scenario: The residual adjudication gate and subject are qualified
 
 - **WHEN** the native upstream payload dependency is resolved, the historical
   predecessor identities remain digest-valid, and one clean integration
@@ -43,7 +43,7 @@ unreadable, incomplete, or drifted inputs SHALL block qualified projections.
 - **AND** a later reader SHALL trace each current decision without substituting
   a local scan, upstream subject, historical decision, or active baseline
 
-#### Scenario: A requalification gate, input, or tool identity fails
+#### Scenario: The gate, input or tool identity is missing or drifts
 
 - **WHEN** the upstream dependency is unresolved, the current source is dirty,
   mixed, non-integration, incomplete, or drifted, a historical identity is
@@ -54,7 +54,7 @@ unreadable, incomplete, or drifted inputs SHALL block qualified projections.
 - **AND** a bounded blocker SHALL be emitted without substituting another
   subject, inheriting historical owners, or activating the charter
 
-#### Scenario: The same current subject and tool are replayed
+#### Scenario: The same subject and tool are replayed
 
 - **WHEN** current subject, historical predecessor, tool checkpoint, schema,
   and frozen evidence inputs are identical
@@ -91,7 +91,7 @@ replace an accountable target domain owner.
 - **AND** the record SHALL not count as a qualified exception or permit a
   qualified charter to be emitted
 
-#### Scenario: A current fixture has multiple candidate owners
+#### Scenario: Baseline fixture has multiple candidate owners
 
 - **WHEN** a current-subject fixture reports one capability with two or more
   candidate target owners
@@ -122,7 +122,7 @@ determinism evidence, qualified future migration-input slices, and an actual
 full-ledger locator/byte-count/SHA-256/verification receipt without creating a
 second owner catalog or permanent giant Git ledger.
 
-#### Scenario: The five active documents are generated
+#### Scenario: The five documents are generated
 
 - **WHEN** the active charter record set is qualified
 - **THEN** all five documents SHALL be emitted with stable ordering and the
@@ -130,7 +130,7 @@ second owner catalog or permanent giant Git ledger.
 - **AND** owner, gate, dependency, and compatibility references SHALL resolve
   across projections
 
-#### Scenario: Current residual summaries are generated
+#### Scenario: The five documents and scoped summaries are generated
 
 - **WHEN** the current normalized record set is denominator-complete,
   identity-valid, caller-closed, payload-bound, privacy-safe, has zero
@@ -140,7 +140,7 @@ second owner catalog or permanent giant Git ledger.
 - **AND** owner, outcome, gate, caller, payload, compatibility, locator,
   byte-count, digest, and receipt references SHALL resolve across projections
 
-#### Scenario: A current scoped conflict remains
+#### Scenario: A scoped conflict remains
 
 - **WHEN** any current record is unresolved, a high-impact authority or
   payload fact is unverified, a caller/outcome proof is incomplete, or the
@@ -150,7 +150,7 @@ second owner catalog or permanent giant Git ledger.
 - **AND** it SHALL not emit or describe a qualified scoped charter or
   migration-ready input
 
-#### Scenario: A current projection diverges
+#### Scenario: A projection diverges
 
 - **WHEN** a document or compact summary contains an unknown ID, conflicting
   owner/outcome, mismatched path/caller/byte denominator, missing or invalid
@@ -170,7 +170,7 @@ They MAY write only bounded, revision-bound decision evidence, verification
 receipts, and compact projections. Only N5 may later recapture and atomically
 activate the baseline, charter, fitness budget, and test qualification.
 
-#### Scenario: The active charter is generated
+#### Scenario: The charter is generated
 
 - **WHEN** the charter command runs
 - **THEN** it SHALL read repository-owned baseline and configuration evidence
@@ -178,7 +178,7 @@ activate the baseline, charter, fitness budget, and test qualification.
 - **AND** it SHALL not claim work, deploy, activate, or mutate production or
   remote coordination state
 
-#### Scenario: The current residual command runs
+#### Scenario: The residual charter command runs
 
 - **WHEN** the command reads the frozen current subject, immutable historical
   comparisons, current source/configuration, applicable payload policy,
@@ -189,7 +189,7 @@ activate the baseline, charter, fitness budget, and test qualification.
   write facts, run backfills, alter Prisma, open Issues, change tests, deploy,
   publish, activate selectors, or mutate production/remote state
 
-#### Scenario: A current result is consumed
+#### Scenario: A qualified or non-qualified result is consumed
 
 - **WHEN** a downstream proposal or reviewer reads a qualified or non-qualified
   scoped projection
@@ -216,7 +216,7 @@ a qualified owner or exception and causes scoped and global qualification to
 fail. Historical owner/outcome records MAY be comparison evidence but SHALL
 not be inherited as current decisions.
 
-#### Scenario: A qualified current residual record has one owner and one outcome
+#### Scenario: A qualified residual record has one owner and one outcome
 
 - **WHEN** a current residual member or homogeneous family has closed caller,
   current-owner, authority, payload, privacy, and trust evidence
@@ -236,7 +236,7 @@ not be inherited as current decisions.
 - **AND** a consumer list, caller count, directory, artifact role, or archived
   owner SHALL not substitute for that unique owner/steward
 
-#### Scenario: Current owner or outcome evidence is unresolved
+#### Scenario: Residual owner or outcome evidence is unresolved
 
 - **WHEN** a current member has multiple candidate owners, no defensible owner,
   incomplete caller/authority/payload/privacy/trust evidence, or an unproved
