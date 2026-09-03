@@ -99,7 +99,7 @@ const packageDirty = execFileSync(
 ).trim().length > 0;
 if (packageDirty) fail('candidate package paths have uncommitted changes; commit or restore them before receiving');
 
-// 4. 在同文件系统暂存目录复制并核验，全部通过后原子替换目标目录
+// 4. 在同文件系统暂存目录复制并核验，全部通过后带回滚地交换目标目录
 const stagingDir = path.join(root, PACKAGE_RELATIVE, `.staging-v2.0.0-${process.pid}-${Date.now()}`);
 rmSync(stagingDir, { recursive: true, force: true });
 mkdirSync(stagingDir, { recursive: true });
@@ -116,21 +116,44 @@ try {
     copied.push({ file, sha256: after, bytes: statSync(to).size });
   }
   const targetDir = path.join(root, TARGET_DIR);
-  rmSync(targetDir, { recursive: true, force: true });
-  renameSync(stagingDir, targetDir);
+  const backupDir = path.join(root, PACKAGE_RELATIVE, `.replaced-v2.0.0-${process.pid}-${Date.now()}`);
+  let movedOld = false;
+  try {
+    if (existsSync(targetDir)) {
+      renameSync(targetDir, backupDir);
+      movedOld = true;
+    }
+    try {
+      renameSync(stagingDir, targetDir);
+    } catch (error) {
+      // 交换失败：恢复旧合格目录，保持当前候选可用（失败关闭而非半删除）
+      if (movedOld) renameSync(backupDir, targetDir);
+      throw error;
+    }
+  } finally {
+    rmSync(backupDir, { recursive: true, force: true });
+  }
 } finally {
   rmSync(stagingDir, { recursive: true, force: true });
 }
 
 // 5. 写接收收据（绑定源身份、逐文件哈希与复制核验；不含本机绝对路径）
+// 可验证主绑定是 packageTreeDigest：候选包目录的 git tree 哈希随任意克隆（含浅克隆
+// 与 squash 合并）传输，`git rev-parse HEAD:<包路径>` 即可复核；sourceCommit 仅作
+// 捕获时的参考信息，不作为可达性依据。
 const capturedAt = new Date().toISOString();
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim();
+const packageTreeDigest = execFileSync(
+  'git', ['rev-parse', `HEAD:${TARGET_DIR}`],
+  { encoding: 'utf-8', cwd: root },
+).trim();
 const receipt = {
   schema: 'act-model-release-receipt/1',
   packageId: 'type055-nanchang-101',
   modelVersion: '2.0.0',
   capturedAt,
-  sourceCommit: head,
+  packageTreeDigest,
+  sourceCommitAtCapture: head,
   packageDirty,
   sourceRelease: '3DModels:assets/type_055_destroyer/exports/v2.0.0',
   manifestSha256: manifestSha,

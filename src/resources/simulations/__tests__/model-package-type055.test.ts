@@ -69,10 +69,15 @@ describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
     expect(receipt.schema).toBe('act-model-release-receipt/1');
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
     expect(receipt.sourceBlendSha256).toBe(TYPE055_NANCHANG_101_V2.sourceBlendSha256);
-    // 收据必须绑定干净、可复现的 Git 修订（脏工作区收据 fail closed）
+    // 收据的可验证主绑定：候选包目录 tree digest（任意克隆/squash 后仍可复核）
+    expect(receipt.packageTreeDigest).toMatch(/^[0-9a-f]{40}$/);
+    const headTree = execSync(
+      'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.0.0',
+      { encoding: 'utf-8' },
+    ).trim();
+    expect(headTree, 'receipt packageTreeDigest must equal the committed package tree').toBe(receipt.packageTreeDigest);
+    // 捕获时工作区必须干净（脏收据 fail closed）
     expect(receipt.packageDirty).toBe(false);
-    expect(receipt.sourceCommit).toMatch(/^[0-9a-f]{40}$/);
-    expect(() => execSync(`git cat-file -e ${receipt.sourceCommit}^{commit}`)).not.toThrow();
     for (const [role, artifact] of Object.entries(TYPE055_NANCHANG_101_V2.roles)) {
       expect(receipt.roles[role]).toMatchObject({ file: artifact.file, sha256: artifact.sha256, bytes: artifact.bytes });
     }
