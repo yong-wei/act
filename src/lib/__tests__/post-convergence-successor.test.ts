@@ -466,6 +466,38 @@ describe('post-convergence successor capture', () => {
       .map((failure) => failure.code)).toEqual(['successor-overwrite']);
   });
 
+  it('renders the full capture identity in every projection', () => {
+    const result = generatePostConvergenceSuccessor(makeInput(coreFixtureFiles()));
+    qualifyPostConvergence(result.pack, result.failures);
+    const projections = [
+      result.files['summary.md'],
+      result.files['owner-residue.md'],
+      result.files['hotspots.md'],
+      result.files['payload-classes.md'],
+      result.files['test-baseline.md'],
+    ];
+    for (const doc of projections) {
+      expect(doc).toContain(result.pack.successorCaptureId);
+      expect(doc).toContain(result.pack.captureIdentity.sourceCommit);
+      expect(doc).toContain(result.pack.captureIdentity.sourceTree);
+      expect(doc).toContain(result.pack.captureIdentity.commitTime);
+      expect(doc).toContain(result.pack.predecessorBaseline.sourceCommit);
+      expect(doc).toContain(result.pack.predecessorCurrentHead.sourceCommit);
+      expect(doc).toContain(result.pack.schemaVersions.censusCore);
+      expect(doc).toContain(result.pack.schemaVersions.measurementReceipt);
+      expect(doc).toContain(result.pack.schemaVersions.currentHeadDelta);
+      for (const receiptId of result.pack.frozenReceiptIds) {
+        expect(doc).toContain(receiptId);
+      }
+      expect(doc).not.toContain(result.pack.packageDigest);
+    }
+    const empty = generatePostConvergenceSuccessor(makeInput(coreFixtureFiles(), { receipts: [] }));
+    qualifyPostConvergence(empty.pack, empty.failures);
+    for (const doc of [empty.files['summary.md'], empty.files['hotspots.md']]) {
+      expect(doc).toContain('frozenReceiptIds: _none_');
+    }
+  });
+
   it('keeps qualification observational and tamper-evident: no active-baseline, digest covers the envelope', () => {
     const result = generatePostConvergenceSuccessor(makeInput(coreFixtureFiles()));
     qualifyPostConvergence(result.pack, result.failures);
