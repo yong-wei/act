@@ -37,6 +37,7 @@
     "content-knowledge-runtime:run": "tsx ./tools/content-knowledge-runtime-release/cli.ts run",
     "typecheck:test": "tsx ./scripts/typescript-graphs/run.ts --graph test",
     "census:architecture": "tsx ./scripts/architecture-census.ts",
+    "census:post-convergence": "tsx ./scripts/architecture-census.ts --post-convergence",
     "charter:architecture": "tsx ./scripts/architecture-charter.ts",
     "fitness:architecture": "node --import tsx ./scripts/architecture-fitness.ts",
     "fitness:architecture:write": "node --import tsx ./scripts/architecture-fitness.ts --write-allowlist",

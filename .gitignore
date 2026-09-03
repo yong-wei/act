@@ -135,3 +135,6 @@ public/assets/models-opt/
 !src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.docx
 !src/lib/data-governance/__tests__/fixtures/teacher-ai-grading-lab-synthetic/submissions/synthetic-*.doc
 .tmp-review-evidence-gh/
+
+# Architecture census successor detail artifacts (local/CI only; digests live in the committed package)
+artifacts/architecture-census/

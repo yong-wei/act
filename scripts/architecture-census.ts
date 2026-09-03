@@ -1,24 +1,36 @@
 #!/usr/bin/env tsx
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 import {
+  POST_CONVERGENCE_DETAIL_DIR,
+  POST_CONVERGENCE_OUTPUT_DIR,
+  captureDriftFailures,
   generateCensusCore,
   loadGitSourceSnapshot,
+  predecessorOverwriteFailures,
   projectAll,
   projectWithReceipts,
   qualifyCensusCore,
+  qualifyPostConvergence,
   serializeDeterministic,
   sha256Text,
+  successorOverwriteFailures,
+  successorPreconditionFailures,
+  successorWriteGate,
+  verifySuccessorArtifacts,
 } from '../src/lib/architecture-census';
+import {
+  generatePostConvergenceSuccessor,
+  loadChangeFrequencyCounts,
+  loadSuccessorPredecessors,
+  loadTrackedBlobIndex,
+} from '../src/lib/architecture-census/post-convergence';
 import { captureTypecheckReceipt, captureVitestReceipt, writeReceipt } from '../src/lib/architecture-census/measure';
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
 
-function main(): void {
-  const repoRoot = process.cwd();
-  const measure = process.argv.includes('--measure');
+function runBaseline(repoRoot: string, measure: boolean): void {
   const outDir = join(repoRoot, 'docs/architecture/modular-monolith/baseline');
   const snapshot = loadGitSourceSnapshot(repoRoot);
   const { core, failures } = generateCensusCore(snapshot);
@@ -76,6 +88,114 @@ function main(): void {
     }
   }
   console.log(`wrote ${core.observations.length} observations to ${outDir}`);
+}
+
+function git(repoRoot: string, args: readonly string[]): string {
+  return execFileSync('git', [...args], { cwd: repoRoot, encoding: 'utf8' }).trim();
+}
+
+function readArtifactLocator(repoRoot: string, locator: string): string {
+  const resolved = locator.includes('/')
+    ? join(repoRoot, locator)
+    : join(repoRoot, POST_CONVERGENCE_OUTPUT_DIR, locator);
+  return readFileSync(resolved, 'utf8');
+}
+
+function runPostConvergence(repoRoot: string): void {
+  let originCommit: string;
+  try {
+    originCommit = git(repoRoot, ['rev-parse', 'origin/integration']);
+  } catch {
+    throw new Error('origin-integration-unresolvable');
+  }
+  if (!/^[a-f0-9]{40}$/u.test(originCommit)) {
+    throw new Error(`origin-integration-unresolvable:${originCommit}`);
+  }
+  const snapshot = loadGitSourceSnapshot(repoRoot);
+  const precondition = successorPreconditionFailures({
+    originIntegrationCommit: originCommit,
+    headCommit: snapshot.identity.sourceCommit,
+    snapshot,
+  });
+  if (precondition.length > 0) {
+    throw new Error(`${precondition[0]!.code}:${precondition[0]!.identity} (+${precondition.length - 1} more)`);
+  }
+  const predecessors = loadSuccessorPredecessors(repoRoot);
+  const beforeWrites = {
+    baselineCensusSha256: sha256Text(readFileSync(join(repoRoot, 'docs/architecture/modular-monolith/baseline/census-core.json'), 'utf8')),
+    deltaSha256: sha256Text(readFileSync(join(repoRoot, 'docs/architecture/modular-monolith/current-head/delta.json'), 'utf8')),
+  };
+
+  const typecheck = captureTypecheckReceipt(repoRoot, snapshot.identity.sourceCommit, snapshot.identity.sourceTree);
+  const vitest = captureVitestReceipt(repoRoot, snapshot.identity.sourceCommit, snapshot.identity.sourceTree);
+  const receipts = [typecheck, vitest];
+
+  const blobIndex = loadTrackedBlobIndex(repoRoot);
+  const changeCounts = loadChangeFrequencyCounts(repoRoot);
+  const generated = generatePostConvergenceSuccessor({
+    snapshot,
+    originIntegrationCommit: originCommit,
+    predecessors,
+    receipts,
+    blobIndex,
+    changeCounts,
+  });
+  const after = loadGitSourceSnapshot(repoRoot);
+  const failures = [
+    ...generated.failures,
+    ...captureDriftFailures(snapshot, after),
+  ];
+  const { pack, files, detail } = generated;
+  const porcelain = git(repoRoot, ['status', '--porcelain']);
+  const commit = git(repoRoot, ['rev-parse', 'HEAD']);
+  const tree = git(repoRoot, ['rev-parse', 'HEAD^{tree}']);
+  failures.push(...successorWriteGate(pack.captureIdentity, originCommit, porcelain, commit, tree));
+  const normalizedFiles: Record<string, string> = {};
+  for (const [name, content] of Object.entries(files)) {
+    normalizedFiles[name] = content.endsWith('\n') ? content : `${content}\n`;
+  }
+  failures.push(...successorOverwriteFailures(normalizedFiles, (name) => {
+    try {
+      return readFileSync(join(repoRoot, POST_CONVERGENCE_OUTPUT_DIR, name), 'utf8');
+    } catch {
+      return null;
+    }
+  }));
+  qualifyPostConvergence(pack, failures);
+
+  for (const artifact of detail) {
+    const target = join(repoRoot, artifact.logicalLocator);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, artifact.content);
+  }
+  const outDir = join(repoRoot, POST_CONVERGENCE_OUTPUT_DIR);
+  mkdirSync(outDir, { recursive: true });
+  for (const [name, content] of Object.entries(files)) {
+    writeFileSync(join(outDir, name), content.endsWith('\n') ? content : `${content}\n`);
+  }
+
+  const postFailures = [
+    ...verifySuccessorArtifacts(pack, (locator) => readArtifactLocator(repoRoot, locator)),
+    ...predecessorOverwriteFailures(beforeWrites, {
+      baselineCensusSha256: sha256Text(readFileSync(join(repoRoot, 'docs/architecture/modular-monolith/baseline/census-core.json'), 'utf8')),
+      deltaSha256: sha256Text(readFileSync(join(repoRoot, 'docs/architecture/modular-monolith/current-head/delta.json'), 'utf8')),
+    }),
+  ];
+  qualifyPostConvergence(pack, postFailures);
+  console.log(
+    `wrote post-convergence successor ${pack.successorCaptureId} source=${pack.captureIdentity.sourceCommit} `
+    + `status=${pack.status} committedFiles=6 detailArtifacts=${detail.length} receipts=${receipts.length} `
+    + `packageDigest=${pack.packageDigest} detailDir=${POST_CONVERGENCE_DETAIL_DIR}/${pack.successorCaptureId}`,
+  );
+}
+
+function main(): void {
+  const repoRoot = process.cwd();
+  if (process.argv.includes('--post-convergence')) {
+    runPostConvergence(repoRoot);
+    return;
+  }
+  runBaseline(repoRoot, process.argv.includes('--measure'));
 }
 
 main();
