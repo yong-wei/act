@@ -5,7 +5,7 @@ import { resolveKonlingContinuitySnapshot } from '@/lib/konling-learning-continu
 import { verifyCompanionPracticeMetadata, verifyCompanionPracticeSubmissionMetadata } from '@/lib/konling-continuity-assessment';
 
 function db(input?: {
-  path?: { id: string; title: string; currentNodeId: string; updatedAt: Date } | null;
+  path?: { id: string; title: string; goalId?: string | null; currentNodeId: string; updatedAt: Date } | null;
   mistake?: {
     id: string;
     answeredAt: Date;
@@ -20,7 +20,11 @@ function db(input?: {
   } | null;
 }) {
   return {
-    learningPath: { findFirst: vi.fn().mockResolvedValue(input?.path ?? null) },
+    learningPath: { findFirst: vi.fn().mockResolvedValue(
+      input?.path
+        ? { goalId: null, ...input.path }
+        : null,
+    ) },
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn().mockImplementation((args: { where?: { isCorrect?: boolean } }) => Promise.resolve(
         args.where?.isCorrect === false ? input?.mistake ?? null : input?.latest ?? input?.mistake ?? null,
@@ -39,12 +43,30 @@ function governedMetadata(value: Record<string, unknown> = {}) {
 describe('Konling learning continuity', () => {
   it('prioritizes an unfinished task over a recent mistake', async () => {
     const store = db({
-      path: { id: 'path-1', title: '根轨迹练习', currentNodeId: 'node-2', updatedAt: new Date('2026-08-01T08:00:00Z') },
+      path: { id: 'path-1', title: '根轨迹练习', goalId: 'control-correction', currentNodeId: 'node-2', updatedAt: new Date('2026-08-01T08:00:00Z') },
       mistake: { id: 'answer-1', answeredAt: new Date('2026-08-01T09:00:00Z'), questionRef: { knowledgeTags: ['root-locus'], metadata: governedMetadata() } },
     });
     const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
-    expect(snapshot).toMatchObject({ state: 'unfinished_task', unfinishedTask: { pathId: 'path-1', nodeId: 'node-2' } });
+    expect(snapshot).toMatchObject({
+      state: 'unfinished_task',
+      unfinishedTask: {
+        pathId: 'path-1',
+        nodeId: 'node-2',
+        // 继续学习与 AI 工坊路径任务共用同一导航口径（#1910）
+        href: '/assessment/adaptive-practice?goal=control-correction&pathId=path-1&nodeId=node-2&intent=path-execution',
+      },
+    });
     expect(store.adaptiveAssessmentAnswer.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('falls through to honest states when the unfinished path has no valid adaptive practice goal', async () => {
+    const store = db({
+      path: { id: 'path-9', title: '旧路径', goalId: null, currentNodeId: 'node-1', updatedAt: new Date('2026-08-01T08:00:00Z') },
+    });
+    const snapshot = await resolveKonlingContinuitySnapshot(store, { userId: 'student-1' });
+    // goal 无效时目标页无法恢复执行上下文：不进入 unfinished_task，落入后续诚实状态
+    expect(snapshot.state).not.toBe('unfinished_task');
+    expect(snapshot.unfinishedTask).toBeUndefined();
   });
 
   it('uses a governed recent mistake without inventing a missing cause', async () => {
