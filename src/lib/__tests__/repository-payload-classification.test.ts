@@ -1018,7 +1018,10 @@ describe('payload classification evidence adapters', () => {
     expect(scan.hitPaths.has('openspec/changes/archive/2026-08-28-x/evidence/browser/journey.json')).toBe(true);
     // typed source mentions identifiers without concrete values: not a hit
     expect(scan.hitPaths.has('src/lib/student-state.ts')).toBe(false);
-    expect(scan.overrides.map((item) => item.path)).toEqual(['src/lib/student-state.ts', 'docs/plain-note.md']);
+    const byPath = new Map(scan.overrides.map((item) => [item.path, item]));
+    expect(byPath.get('openspec/changes/archive/2026-08-28-x/evidence/browser/journey.json')?.facets.privacy).toBe('unknown');
+    expect(byPath.get('src/lib/student-state.ts')?.facets.privacy).toBe('internal');
+    expect(byPath.get('docs/plain-note.md')?.facets.privacy).toBe('internal');
     expect(scan.overrides.every((item) => item.authority === undefined)).toBe(true);
   });
 

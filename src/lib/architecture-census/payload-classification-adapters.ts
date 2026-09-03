@@ -615,6 +615,12 @@ export function buildIdentityInventoryScan(
     const forbiddenHits = contract ? contract.scanText(text) ?? [] : [];
     if (forbiddenHits.length > 0 || PRIVACY_IDENTITY_VALUE_PATTERN.test(text)) {
       hitPaths.add(entry.path);
+      // A hit must carry an explicit unknown-privacy override so the member
+      // stays unresolved even when its path name looks innocuous.
+      overrides.push({
+        path: entry.path,
+        facets: { privacy: 'unknown' },
+      });
       continue;
     }
     // Content-scan proof covers privacy only; it must never stand in for
@@ -653,24 +659,40 @@ export function buildIdentityInventoryScan(
  */
 export type ConsumerReferenceKind = 'production' | 'test';
 
+const ASSET_EXTENSION_PATTERN = /\.(?:png|jpe?g|webp|gif|svg|glb|gltf|wasm|onnx|mp3|mp4|wav|ogg|woff2?|ttf|eot|ppm|emf)$/iu;
+
 export function buildConsumerReferenceAdapter(
   entries: readonly InventoryEntry[],
   references: ReadonlyMap<string, readonly ConsumerReferenceKind[]>,
+  dynamicReferencesObserved = false,
 ): AdapterBundle {
   const overrides: EvidenceOverride[] = [];
   let candidates = 0;
   let proven = 0;
+  let dynamicGuarded = 0;
   for (const entry of entries) {
     if (entry.path.startsWith('artifacts/')) continue; // QA evidence lifecycle owns artifacts consumers
     const normalized = entry.path.startsWith('public/') ? `/${entry.path.slice('public/'.length)}` : entry.path;
     const kinds = references.get(entry.path) ?? references.get(normalized);
-    if (!kinds || kinds.length === 0) continue;
-    candidates += 1;
-    overrides.push({
-      path: entry.path,
-      consumers: uniqueConsumerKinds(kinds),
-    });
-    proven += 1;
+    if (kinds && kinds.length > 0) {
+      candidates += 1;
+      overrides.push({
+        path: entry.path,
+        consumers: uniqueConsumerKinds(kinds),
+      });
+      proven += 1;
+      continue;
+    }
+    // When code builds asset paths dynamically (template literals, constant
+    // prefixes), the absence of a static reference proves nothing: zero-
+    // required-consumer stays unprovable for unreferenced asset members.
+    if (dynamicReferencesObserved && ASSET_EXTENSION_PATTERN.test(entry.path)) {
+      dynamicGuarded += 1;
+      overrides.push({
+        path: entry.path,
+        consumers: ['unresolved:dynamic-reference-surface'],
+      });
+    }
   }
   const inputDigest = sha256Bytes(Buffer.from(
     [...references.entries()].map(([path, kinds]) => `${path}:${[...kinds].sort().join('+')}`).sort().join('\n'),

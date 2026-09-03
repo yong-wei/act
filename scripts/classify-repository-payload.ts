@@ -107,6 +107,7 @@ const retainPaths = new Set<string>();
 const productImportPattern = /['"](artifacts\/[^'"]+)['"]/g;
 const pathTokenPattern = /['"`]([^'"`\n]{3,200}?)['"`]/g;
 const consumerReferences = new Map<string, Set<'production' | 'test'>>();
+let dynamicReferencesObserved = false;
 for (const entry of entries) {
   if (!entry.path.startsWith('src/') || !/\.tsx?$/u.test(entry.path)) continue;
   const isTest = entry.path.includes('/__tests__/') || /\.(?:test|spec)\./u.test(entry.path);
@@ -118,6 +119,7 @@ for (const entry of entries) {
   }
   for (const match of text.matchAll(pathTokenPattern)) {
     const token = match[1];
+    if (token && token.includes('$')) dynamicReferencesObserved = true;
     if (!token || !/(?:^|\/)[$_@a-z0-9.~-]+\.[a-z0-9]{1,8}$/iu.test(token)) continue;
     if (/^[a-z]+:\/\//iu.test(token)) continue;
     const kind = isTest ? ('test' as const) : ('production' as const);
@@ -149,7 +151,7 @@ const evidenceBundle = combineAdapters([
   buildKnowledgeCutoverAdapter(treeReader, entries),
   buildQaEvidenceAdapter(treeReader, entries, qaContract, privacyContract),
   buildPrivacyScanAdapter(treeReader, entries, privacyContract),
-  buildConsumerReferenceAdapter(entries, consumerReferences),
+  buildConsumerReferenceAdapter(entries, consumerReferences, dynamicReferencesObserved),
 ]);
 // An identity-value hit vetoes any weaker privacy override another adapter produced.
 const adapterBundle = combineAdapters([{
