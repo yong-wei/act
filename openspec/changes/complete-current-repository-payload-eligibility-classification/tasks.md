@@ -43,5 +43,5 @@
 
 ## 8. Handoff
 
-- [ ] 8.1 Produce a digest-bound handoff containing only the frozen current subject, immutable predecessor, tool and schema identities, reconciled totals, compact projection locators, actual full-inventory locator/byte-count/SHA-256/verification receipt, qualification status, and bounded unresolved reasons.
+- [x] 8.1 Produce a digest-bound handoff containing only the frozen current subject, immutable predecessor, tool and schema identities, reconciled totals, compact projection locators, actual full-inventory locator/byte-count/SHA-256/verification receipt, qualification status, and bounded unresolved reasons.
 - [x] 8.2 Confirm the final diff contains only this change's implementation, tests, and compact outputs and no source-payload or lifecycle mutation; do not create a migration Issue or claim that classification authorizes action.
