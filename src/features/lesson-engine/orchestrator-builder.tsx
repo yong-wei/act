@@ -834,7 +834,7 @@ function OrchestratorBuilderContent({
                 </DialogHeader>
                 <div className="flex-1 overflow-auto min-h-0">
                     {previewResource && (
-                        <ResourceRenderer resource={previewResource} enableAIPanel={false} />
+                        <ResourceRenderer resource={previewResource} enableAIPanel={false} teacherPreview />
                     )}
                 </div>
             </DialogContent>

@@ -139,8 +139,11 @@ export interface InteractiveContextValue {
 
 // ========== Provider Props ==========
 
-/** 显式启动来源契约（Issue #1914）：学习来源不得由展示性 embedded 标志推断。 */
-export type InteractiveLaunchProvenance = 'classroom' | 'standalone';
+/**
+ * 显式启动来源契约（Issue #1914）：学习来源不得由展示性 embedded 标志推断。
+ * `preview` = 教师/管理员编排预览：非持久化，不得产生服务端学习者证据。
+ */
+export type InteractiveLaunchProvenance = 'classroom' | 'standalone' | 'preview';
 
 export interface InteractiveLaunchContext {
   provenance: InteractiveLaunchProvenance;

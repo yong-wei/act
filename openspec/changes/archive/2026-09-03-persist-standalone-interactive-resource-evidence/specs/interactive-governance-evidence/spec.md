@@ -17,6 +17,12 @@ Interactive classroom and standalone interactive evidence SHALL be classified th
 - **AND** view, interaction, and completion events SHALL be eligible for the existing authenticated interactive-event ingestion path with `learningContext: 'standalone_resource'`
 - **AND** the persisted event SHALL retain the source resource identity and canonical standalone surface/event classification.
 
+#### Scenario: Teacher orchestration preview does not persist learner evidence
+
+- **WHEN** a teacher or admin previews an interactive resource from the orchestration builder without a classroom session
+- **THEN** the runtime SHALL launch with an explicit non-persistent preview provenance
+- **AND** the preview SHALL NOT create server-persisted learner events through the interactive event API.
+
 #### Scenario: Classroom launch preserves classroom provenance
 
 - **WHEN** an interactive resource is rendered inside an authorized classroom session

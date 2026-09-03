@@ -34,6 +34,10 @@ describe('resolveInteractiveLaunchProvenance (Issue #1914)', () => {
       embedded: false,
       launchContext: { provenance: 'classroom' },
     })).toBe('classroom');
+    expect(resolveInteractiveLaunchProvenance({
+      embedded: false,
+      launchContext: { provenance: 'preview' },
+    })).toBe('preview');
   });
 });
 
@@ -139,6 +143,34 @@ describe('InteractiveProvider standalone launch persistence (Issue #1914)', () =
 
     await act(async () => vi.advanceTimersByTimeAsync(100000));
     expect(interactiveEventSyncCalls()).toHaveLength(0);
+    await act(async () => root.unmount());
+    vi.useRealTimers();
+  });
+
+  it('keeps authenticated teacher orchestration previews non-persistent (Issue #1914 Codex R1)', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    await act(async () => root.render(
+      <InteractiveProvider
+        config={minimalConfig()}
+        embedded={true}
+        userId="teacher-1"
+        launchContext={{ provenance: 'preview' }}
+        showHeader={false}
+        showAIPanel={false}
+      >
+        <div>preview body</div>
+      </InteractiveProvider>,
+    ));
+
+    await act(async () => vi.advanceTimersByTimeAsync(1000));
+    await act(async () => vi.advanceTimersByTimeAsync(100000));
+    expect(interactiveEventSyncCalls()).toHaveLength(0);
+    const stored = JSON.parse(
+      localStorage.getItem('interactive_events_res-standalone-1:no-session:teacher-1') ?? '[]',
+    );
+    expect(stored).toHaveLength(1);
     await act(async () => root.unmount());
     vi.useRealTimers();
   });
