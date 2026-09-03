@@ -8,7 +8,7 @@ import { InteractiveAIPanel } from './InteractiveAIPanel';
 import { useInteractiveTracking } from './hooks/useInteractiveTracking';
 import { useInteractiveProgress } from './hooks/useInteractiveProgress';
 import { useInteractiveAI } from './hooks/useInteractiveAI';
-import { inferStandaloneCompletionEventType } from './hooks/resource-interaction-utils';
+import { inferStandaloneCompletionEventType, resolveInteractiveLaunchProvenance } from './hooks/resource-interaction-utils';
 import {
   buildInteractiveCompletionPayload,
   readWidgetResultData,
@@ -36,6 +36,7 @@ export function InteractiveProvider({
   embedded = false,
   sessionId,
   userId: userIdProp,
+  launchContext,
   onComplete,
   onStateChange,
 }: InteractiveProviderProps) {
@@ -50,7 +51,19 @@ export function InteractiveProvider({
   const showHeader = showHeaderProp ?? layoutConfig?.showHeader ?? !embedded;
   const showAIPanel = showAIPanelProp ?? layoutConfig?.showAIPanel ?? true;
   const aiPanelPosition = layoutConfig?.aiPanelPosition ?? 'right';
-  const isStandaloneResource = !embedded && !sessionId;
+  // 学习来源以显式启动契约为准，不得由展示性 embedded 推断（Issue #1914）：
+  // 共享渲染器恒传 embedded=true，直开独立资源若按 embedded 推断会被误判
+  // 为课堂资源，认证事件不落库且分类错误。
+  const isStandaloneResource = resolveInteractiveLaunchProvenance({
+    embedded,
+    sessionId,
+    launchContext,
+  }) === 'standalone';
+  const isEphemeralLaunch = resolveInteractiveLaunchProvenance({
+    embedded,
+    sessionId,
+    launchContext,
+  }) === 'preview';
 
   // 初始化追踪钩子
   const tracking = useInteractiveTracking({
@@ -59,6 +72,7 @@ export function InteractiveProvider({
     userId,
     sessionId,
     persistWithoutSession: isStandaloneResource,
+    ephemeral: isEphemeralLaunch,
     syncInterval: config.config.tracking?.syncInterval,
   });
 

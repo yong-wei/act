@@ -15,6 +15,8 @@ interface UseInteractiveTrackingOptions {
   sessionId?: string;
   syncInterval?: number;
   persistWithoutSession?: boolean;
+  /** 预览等非持久化来源：事件仅保留内存，不写本地队列、不同步服务端（Issue #1914） */
+  ephemeral?: boolean;
   onSync?: (events: InteractiveEvent[]) => Promise<void>;
 }
 
@@ -33,6 +35,7 @@ export function useInteractiveTracking(
     sessionId,
     syncInterval = SYNC_INTERVAL,
     persistWithoutSession = false,
+    ephemeral = false,
     onSync,
   } = options;
 
@@ -69,6 +72,17 @@ export function useInteractiveTracking(
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // 临时化来源（预览）完全不接触可同步队列：既不恢复也不落盘，
+    // 防止预览事件进入独立入口稍后恢复并提交（Issue #1914 Codex R2）。
+    if (ephemeral) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      eventsRef.current = [];
+      return;
+    }
+
     if (previousStorageKeyRef.current !== storageKey) {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -95,18 +109,18 @@ export function useInteractiveTracking(
       console.warn('[InteractiveTracking] Failed to restore events:', e);
     }
     eventsRef.current = restored;
-  }, [storageKey]);
+  }, [ephemeral, storageKey]);
 
   // 保存事件到 localStorage
   const saveToStorage = useCallback(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || ephemeral) return;
 
     try {
       localStorage.setItem(storageKey, JSON.stringify(eventsRef.current));
     } catch (e) {
       console.warn('[InteractiveTracking] Failed to save events:', e);
     }
-  }, [storageKey]);
+  }, [ephemeral, storageKey]);
 
   // 同步事件到服务器
   const syncEvents = useCallback(() => {
@@ -120,8 +134,8 @@ export function useInteractiveTracking(
       // 防止新身份数组写入旧身份键、旧身份未同步事件被误清。
       const snapshotIsStale = () => storageKeyRef.current !== enqueueStorageKey;
 
-      // Skip server sync in demo mode (no sessionId)
-      if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
+      // Skip server sync in demo mode (no sessionId) or ephemeral launches
+      if (ephemeral || isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
         if (!snapshotIsStale()) saveToStorage();
         return;
       }
@@ -163,7 +177,7 @@ export function useInteractiveTracking(
     });
     syncQueueRef.current = run.catch(() => undefined);
     return run;
-  }, [isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, storageKey, userId]);
+  }, [ephemeral, isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, storageKey, userId]);
 
   // 设置定时同步
   useEffect(() => {

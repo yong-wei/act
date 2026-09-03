@@ -44,6 +44,8 @@ interface ResourceRendererProps {
   stage?: string | null;
   /** 是否启用 AI 面板 */
   enableAIPanel?: boolean;
+  /** 教师/管理员编排预览：显式非持久化启动，不得产生学习者证据（Issue #1914 Codex R1） */
+  teacherPreview?: boolean;
   /** 仅学生课堂运行态可以写入课堂作答。 */
   classroomActorRole?: 'student' | 'teacher';
 }
@@ -98,6 +100,7 @@ export function ResourceRenderer({
   classId,
   stage,
   enableAIPanel = true,
+  teacherPreview,
   classroomActorRole,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
@@ -105,6 +108,9 @@ export function ResourceRenderer({
   const { updatePageContext } = useGlobalAI();
   const knowledgeTracker = useResourceInteractionTracking({
     resourceKey: knowledgeNode ? `knowledge-card:${knowledgeNode.id}` : 'resource-renderer',
+    // 课堂知识卡追踪必须携带调用方的课堂会话身份（Issue #1914）：
+    // 缺失会被服务端归一化为 standalone_resource，课堂事件丢失课堂来源。
+    sessionId,
     lessonKey: null,
     surface: knowledgeNode ? 'knowledge_card' : 'interactive_resource',
     pageType: knowledgeNode ? 'knowledge' : 'resource',
@@ -347,6 +353,11 @@ export function ResourceRenderer({
           config={interactiveConfig}
           embedded={true}
           sessionId={sessionId}
+          launchContext={{
+            provenance: teacherPreview
+              ? 'preview'
+              : launchContext.provenance === 'standalone' ? 'standalone' : 'classroom',
+          }}
           showHeader={false}
           showAIPanel={enableAIPanel}
           onComplete={handleComplete}

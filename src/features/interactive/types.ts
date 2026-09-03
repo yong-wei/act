@@ -139,6 +139,16 @@ export interface InteractiveContextValue {
 
 // ========== Provider Props ==========
 
+/**
+ * 显式启动来源契约（Issue #1914）：学习来源不得由展示性 embedded 标志推断。
+ * `preview` = 教师/管理员编排预览：非持久化，不得产生服务端学习者证据。
+ */
+export type InteractiveLaunchProvenance = 'classroom' | 'standalone' | 'preview';
+
+export interface InteractiveLaunchContext {
+  provenance: InteractiveLaunchProvenance;
+}
+
 /** InteractiveProvider 组件属性 */
 export interface InteractiveProviderProps {
   children: React.ReactNode;
@@ -158,6 +168,9 @@ export interface InteractiveProviderProps {
 
   /** 用户 ID（从 session 获取） */
   userId?: string;
+
+  /** 显式启动来源：共享渲染器直开资源时必须传递（Issue #1914） */
+  launchContext?: InteractiveLaunchContext | null;
 
   /** 完成回调 */
   onComplete?: (result?: WidgetResult) => void | Promise<void>;

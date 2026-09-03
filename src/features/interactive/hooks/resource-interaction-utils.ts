@@ -1,9 +1,28 @@
 'use client';
 
+import type { InteractiveLaunchContext, InteractiveLaunchProvenance } from '../types';
+
 export type ResourceCompletionEventType =
   | 'resource_complete'
   | 'assessment_complete'
   | 'simulation_finish';
+
+/**
+ * 学习来源解析（Issue #1914）：显式启动契约优先；无契约时保持既有
+ * embedded/sessionId 推断，兼容共享渲染器之外的直用方。
+ */
+export function resolveInteractiveLaunchProvenance({
+  embedded,
+  sessionId,
+  launchContext,
+}: {
+  embedded?: boolean;
+  sessionId?: string | null;
+  launchContext?: InteractiveLaunchContext | null;
+} = {}): InteractiveLaunchProvenance {
+  if (launchContext) return launchContext.provenance;
+  return !embedded && !sessionId ? 'standalone' : 'classroom';
+}
 
 function normalizeToken(value: string | null | undefined) {
   return String(value ?? '').trim().toLowerCase();
