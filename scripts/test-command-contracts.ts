@@ -300,20 +300,15 @@ function writeInvestigationHandoff(repoRoot: string, output: ReturnType<typeof i
     if (privacy) throw new Error(`${privacy}:${name}`);
   }
   const outDir = investigationHandoffDir(repoRoot);
-  const detailDir = join(repoRoot, 'artifacts/test-denominator', output.compact.subject.successorCaptureId);
   mkdirSync(outDir, { recursive: true });
-  mkdirSync(detailDir, { recursive: true });
   writeFileSync(join(outDir, 'manifest.json'), manifestText);
   writeFileSync(join(outDir, 'lanes.md'), lanesMd);
   writeFileSync(join(outDir, 'dispositions.md'), dispositionsMd);
   writeFileSync(join(outDir, 'notes.md'), notesMd);
-  writeFileSync(join(detailDir, 'result-cores.json'), resultCoresText);
-  writeFileSync(join(detailDir, 'measurement-receipts.json'), measurementText);
+  writeFileSync(join(outDir, 'result-cores.json'), resultCoresText);
+  writeFileSync(join(outDir, 'measurement-receipts.json'), measurementText);
   for (const artifact of finalPack.artifacts) {
-    const path = artifact.logicalLocator === 'result-cores.json' || artifact.logicalLocator === 'measurement-receipts.json'
-      ? join(detailDir, artifact.logicalLocator)
-      : join(outDir, artifact.logicalLocator);
-    const written = readFileSync(path, 'utf8');
+    const written = readFileSync(join(outDir, artifact.logicalLocator), 'utf8');
     if (Buffer.byteLength(written, 'utf8') !== artifact.byteCount || createHash('sha256').update(written).digest('hex') !== artifact.sha256) {
       throw new Error(`artifact-digest-mismatch:${artifact.logicalLocator}`);
     }
