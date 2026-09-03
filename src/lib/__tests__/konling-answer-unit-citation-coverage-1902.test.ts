@@ -150,7 +150,7 @@ const STRUCTURAL_MIXED_ANSWERS: Record<StudyQuestionIntent, { answer: string; re
       '是否存在反馈回路 [1]。',
       '## 联系与差异',
       '闭环能抑制扰动 [1]。',
-      '另看稳态精度',
+      '另外看稳态精度',
       '## 边界或反例',
       '开环在模型很准时也可以。',
     ].join('\n'),
@@ -177,7 +177,7 @@ const STRUCTURAL_MIXED_ANSWERS: Record<StudyQuestionIntent, { answer: string; re
       '## 定制化讲解',
       '像船舵打得太猛。',
       '## 适用边界',
-      '先看适用边界',
+      '再看适用边界',
       '只适用于阶跃响应 [1]。',
     ].join('\n'),
     requiredCount: 2,
@@ -299,7 +299,7 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:limit');
   });
 
-  it('reports drifted markers as diagnostics without rescuing evidence-section coverage', () => {
+  it('reports drifted markers inside coverage without rescuing evidence-section coverage', () => {
     const answer = [
       '## 前提与符号',
       '输入为单位阶跃。',
@@ -314,13 +314,15 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
       coveredCount: 0,
       ratio: 0,
       missingReasons: [{ reason: 'no-marker', count: 1 }],
+      // 有效 [1] 只出现在 model-derived 章节（结果校验），计为漂移且不救回覆盖；
+      // 计数随 coverage（生产保留字段）持久化，不依赖被生产清空的 diagnosticReasons
+      driftedMarkerCount: 1,
+      stackedMarkerCount: 0,
     });
-    // 有效 [1] 只出现在 model-derived 章节（结果校验），计为漂移且不救回覆盖
-    expect(guard.diagnosticReasons).toContain('answer-citation-drift:1');
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:assumptions');
   });
 
-  it('reports stacked duplicate markers without inflating unit coverage', () => {
+  it('reports stacked duplicate markers inside coverage without inflating unit coverage', () => {
     const stackedAnswer = [
       '## 核心结论',
       '超调量是峰值相对稳态值的超出比例 [1][1]。',
@@ -331,8 +333,47 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
       requiredCount: 1,
       coveredCount: 1,
       ratio: 1,
+      driftedMarkerCount: 0,
+      stackedMarkerCount: 1,
     });
-    expect(guard.diagnosticReasons).toContain('answer-citation-duplicate:1');
+  });
+
+  it('keeps short unpunctuated conclusions inside the coverage denominator', () => {
+    // 短列表结论省略句末标点时仍是 substantive：未引用必须拉低覆盖率并触发降级，
+    // 不得凭长度与末字符把它挤出分母（#1902 review）
+    const answer = [
+      '## 适用条件',
+      '参数保持恒定',
+      '仅适用于线性系统 [1]。',
+    ].join('\n');
+
+    const guard = guardFor('formula-derivation', answer);
+
+    expect(guard.answerUnitCoverage).toMatchObject({
+      requiredCount: 2,
+      coveredCount: 1,
+      ratio: 0.5,
+      missingReasons: [{ reason: 'no-marker', count: 1 }],
+    });
+    expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:applicability');
+  });
+
+  it('treats conclusions with terminal punctuation before the marker as substantive and bound', () => {
+    // 常见格式「结论。[n]」：终止标点在编号之前，剥离编号后判定为陈述句
+    const answer = [
+      '## 适用条件',
+      '仅适用于单位负反馈。[1]',
+      '线性定常系统 [1]。',
+    ].join('\n');
+
+    const guard = guardFor('formula-derivation', answer);
+
+    expect(guard.answerUnitCoverage).toMatchObject({
+      requiredCount: 2,
+      coveredCount: 2,
+      ratio: 1,
+      missingReasons: [],
+    });
   });
 
   it('exposes every bindable citation number and the reuse rule in the study prompt', () => {

@@ -1818,6 +1818,9 @@ export interface KonlingAnswerUnitCitationCoverage {
   requiredCount: number;
   ratio: number;
   missingReasons: KonlingAnswerUnitCoverageMissingReason[];
+  // 非敏感聚合计数随 coverage 一起持久化（生产保留字段），不入 diagnosticReasons
+  driftedMarkerCount: number;
+  stackedMarkerCount: number;
 }
 
 export interface KonlingCitationGuard {
@@ -9489,7 +9492,6 @@ export function buildKonlingCitationGuard(
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
   let answerUnitCoverage: KonlingAnswerUnitCitationCoverage | null = null;
   let derivedSectionIds: string[] = [];
-  const diagnosticReasons: string[] = [];
   if (studyIntent && answerScan) {
     // Coverage is measured per substantive answer unit (#1819, #1902): an
     // evidence-required section counts as covered only when every substantive
@@ -9537,16 +9539,12 @@ export function buildKonlingCitationGuard(
         requiredCount: requiredUnits.length,
         ratio: coveredUnits.length / requiredUnits.length,
         missingReasons: [...missReasonCounts].map(([reason, count]) => ({ reason, count })),
+        driftedMarkerCount: answerScan.driftedMarkerCount,
+        stackedMarkerCount: answerScan.stackedMarkerCount,
       }
       : null;
     for (const uncovered of applicable.filter((section) => !section.covered)) {
       lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
-    }
-    if (answerScan.driftedMarkerCount > 0) {
-      diagnosticReasons.push(`answer-citation-drift:${answerScan.driftedMarkerCount}`);
-    }
-    if (answerScan.stackedMarkerCount > 0) {
-      diagnosticReasons.push(`answer-citation-duplicate:${answerScan.stackedMarkerCount}`);
     }
   }
   const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
@@ -9636,7 +9634,6 @@ export function buildKonlingCitationGuard(
     missingCitationClasses: uniqueMissingCitationClasses,
     lowConfidenceReasons: uniqueLowConfidenceReasons,
     fallbackRequired,
-    ...(diagnosticReasons.length > 0 ? { diagnosticReasons } : {}),
     personalizationAvailability: buildPersonalizationAvailability(
       personalizationMissingClasses,
       personalizationLowConfidenceReasons,
@@ -9669,21 +9666,34 @@ function assignedCitationNumbers(citations: readonly KonlingCitation[]): Readonl
   );
 }
 
-// 结构性行不进入需证据分母（#1902）：引导头、短过渡、纯数学展示行与分隔线
-// 不是 substantive 答案单元；规则保守，宁可分母略大也不误排除结论行。
+// 结构性行不进入需证据分母（#1902）：引导头、显式过渡短行、纯数学展示行与
+// 分隔线不是 substantive 答案单元。规则保守：先剥离尾部引用编号再判定，
+// 「短且无终止标点」本身不等同于过渡语——只有显式过渡词开头的短行才排除，
+// 宁可分母略大也不把未引用的短结论挤出覆盖统计（#1902 review）。
+const STRUCTURAL_TRANSITION_PREFIX = /^(?:接下来|首先|其次|然后|接着|此外|另外|下面|再看|继续|综上|总之)/;
+
+function stripTrailingCitationMarkers(value: string): string {
+  return value.replace(/(?:\s*\[\d+\])+\s*$/, '').trim();
+}
+
 function isStructuralAnswerUnitLine(trimmedUnit: string): boolean {
-  if (/^-{3,}$/.test(trimmedUnit) || /^\*{3,}$/.test(trimmedUnit) || /^_{3,}$/.test(trimmedUnit)) {
+  const withoutMarkers = stripTrailingCitationMarkers(trimmedUnit);
+  if (/^-{3,}$/.test(withoutMarkers) || /^\*{3,}$/.test(withoutMarkers) || /^_{3,}$/.test(withoutMarkers)) {
     return true;
   }
-  if (/[:：]$/.test(trimmedUnit)) return true;
-  if (!/[\u4e00-\u9fff]/.test(trimmedUnit)) {
-    if (/^\$\$[\s\S]*\$\$$/.test(trimmedUnit)) return true;
-    if (/^\\\[.*\\\]$/.test(trimmedUnit)) return true;
-    if (/^\\(begin|end)\{/.test(trimmedUnit)) return true;
-    if (/\\[a-zA-Z]+/.test(trimmedUnit)) return true;
-    if (/^[\w\s^_{}().=<>+\-*/%,.]*$/.test(trimmedUnit) && /[=^_]/.test(trimmedUnit)) return true;
+  if (/[:：]$/.test(withoutMarkers)) return true;
+  if (!/[\u4e00-\u9fff]/.test(withoutMarkers)) {
+    if (/^\$\$[\s\S]*\$\$$/.test(withoutMarkers)) return true;
+    if (/^\\\[.*\\\]$/.test(withoutMarkers)) return true;
+    if (/^\\(begin|end)\{/.test(withoutMarkers)) return true;
+    if (/\\[a-zA-Z]+/.test(withoutMarkers)) return true;
+    if (/^[\w\s^_{}().=<>+\-*/%,.]*$/.test(withoutMarkers) && /[=^_]/.test(withoutMarkers)) return true;
   }
-  if (trimmedUnit.length <= 20 && !/[。；;！!？?]$/.test(trimmedUnit)) return true;
+  if (
+    withoutMarkers.length <= 20
+    && STRUCTURAL_TRANSITION_PREFIX.test(withoutMarkers)
+    && !/[。；;！!？?]$/.test(withoutMarkers)
+  ) return true;
   return false;
 }
 
