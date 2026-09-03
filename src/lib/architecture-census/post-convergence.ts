@@ -571,14 +571,14 @@ export function buildPayloadClasses(
 }
 
 export const HOTSPOT_METRIC_SCOPE = [
-  'sourceBytes: Git object byte size for the path (gitlink/symlink normalized to 0)',
+  'sourceBytes: Git object byte size for the path (gitlink entries carry no blob bytes and count 0)',
   'functionCount: count of /\\bfunction\\b/ in source content',
   'branchCount: count of /\\b(?:if|for|while|switch|case|catch)\\b/ in source content',
   'importBreadth: distinct src/<top-dir> prefixes of census dependency-edge targets',
   'fanIn: census dependency-edge inbound count (production context)',
   'fanOut: census dependency-edge outbound count (production context)',
   `changeFrequency: commits touching the path within the last ${CHANGE_FREQUENCY_COMMIT_LIMIT} commits of HEAD`,
-  'testDensity: count of census test observations whose basename-without-extension equals the file basename-without-extension',
+  'testDensity: count of census test observations whose basename (without extension and trailing .test/.spec suffix) equals the file basename-without-extension',
   'trustDensity: count of census observations with trustClass != null whose evidence contains the path',
 ] as const;
 
@@ -601,6 +601,10 @@ function basenameWithoutExtension(path: string): string {
   return dot > 0 ? base.slice(0, dot) : base;
 }
 
+function testSubjectBasename(path: string): string {
+  return basenameWithoutExtension(path).replace(/\.(?:test|spec)$/u, '');
+}
+
 function hotspotMetrics(
   path: string,
   content: string,
@@ -611,14 +615,17 @@ function hotspotMetrics(
   const fanIn: string[] = [];
   const fanOut: string[] = [];
   const trustEvidence = new Set<string>();
-  const testBasenames = new Set<string>();
+  const testBasenames = new Map<string, number>();
   for (const row of core.observations) {
     if (row.kind === 'dependency-edge' && row.attributes.context === 'production') {
       if (String(row.attributes.to ?? '') === path) fanIn.push(String(row.attributes.from ?? ''));
       if (String(row.attributes.from ?? '') === path) fanOut.push(String(row.attributes.to ?? ''));
     }
     if (row.trustClass && row.evidence.includes(path)) trustEvidence.add(row.id);
-    if (row.kind === 'test') testBasenames.add(basenameWithoutExtension(row.identity));
+    if (row.kind === 'test') {
+      const subject = testSubjectBasename(row.identity);
+      testBasenames.set(subject, (testBasenames.get(subject) ?? 0) + 1);
+    }
   }
   return {
     sourceBytes: byteLength,
@@ -628,7 +635,7 @@ function hotspotMetrics(
     fanIn: fanIn.length,
     fanOut: fanOut.length,
     changeFrequency: changeCounts.get(path) ?? 0,
-    testDensity: testBasenames.has(basenameWithoutExtension(path)) ? 1 : 0,
+    testDensity: testBasenames.get(basenameWithoutExtension(path)) ?? 0,
     trustDensity: trustEvidence.size,
   };
 }
@@ -921,9 +928,10 @@ export interface GitEntryInfo {
   readonly byteCount: number;
 }
 
-// Byte counts come from Git objects, not filesystem stat: gitlink (160000) and
-// symlink (120000) entries are normalized to 0 so the package is byte-identical
-// across platforms and fresh clones.
+// Byte counts come from Git objects, not filesystem stat, so the package is
+// byte-identical across platforms and fresh clones. Symlinks (120000) are real
+// blobs and count their object size; only gitlinks (160000) carry no blob byte
+// semantics and are normalized to 0.
 export function loadGitEntryInfo(repoRoot: string): Map<string, GitEntryInfo> {
   const output = execFileSync('git', ['ls-files', '-s', '-z'], {
     cwd: repoRoot,
@@ -935,8 +943,9 @@ export function loadGitEntryInfo(repoRoot: string): Map<string, GitEntryInfo> {
     const match = record.match(/^([0-9]+) ([0-9a-f]{40}) \d+\t(.+)$/u);
     if (match?.[2] && match[3]) entries.set(match[3], { mode: match[1], sha: match[2] });
   }
-  const regularModes = new Set(['100644', '100755']);
-  const shas = [...new Set([...entries.values()].filter((entry) => regularModes.has(entry.mode)).map((entry) => entry.sha))];
+  const blobModes = new Set(['100644', '100755', '120000']);
+  const gitlinkMode = '160000';
+  const shas = [...new Set([...entries.values()].filter((entry) => blobModes.has(entry.mode)).map((entry) => entry.sha))];
   const sizes = new Map<string, number>();
   if (shas.length > 0) {
     const batch = execFileSync('git', ['cat-file', '--batch-check=%(objectname) %(objectsize)'], {
@@ -955,7 +964,7 @@ export function loadGitEntryInfo(repoRoot: string): Map<string, GitEntryInfo> {
     info.set(path, {
       mode: entry.mode,
       blobSha: entry.sha,
-      byteCount: regularModes.has(entry.mode) ? (sizes.get(entry.sha) ?? 0) : 0,
+      byteCount: entry.mode === gitlinkMode ? 0 : (sizes.get(entry.sha) ?? 0),
     });
   }
   return info;
