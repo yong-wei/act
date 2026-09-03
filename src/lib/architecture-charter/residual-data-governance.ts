@@ -455,10 +455,15 @@ export function collectRelativeCallers(
         const key = `${candidate}|${file.path}|re-export-or-import`;
         if (seen.has(key)) continue;
         seen.add(key);
+        const snippet = match[0] ?? '';
         callers.push({
           memberPath: candidate,
           callerPath: file.path,
-          relationship: /export\s+\*\s+from/u.test(match[0] ?? '') ? 're-export' : 'import',
+          relationship: /export\s+\*\s+from/u.test(snippet)
+            ? 're-export'
+            : /import\s*\(/u.test(snippet)
+              ? 'dynamic'
+              : 'import',
         });
       }
       match = RELATIVE_SPEC.exec(file.content);

@@ -90,6 +90,44 @@ describe('residual data-governance adjudication', () => {
         relationship: 're-export',
       },
     ]);
+    expect(collectRelativeCallers([
+      {
+        path: 'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
+        content: "const { parseMathDocumentGradingWorkerCapability } = await import('../math-document-grading-worker-readiness');\n",
+      },
+      {
+        path: 'src/lib/data-governance/math-document-grading-worker-readiness.ts',
+        content: 'export const parseMathDocumentGradingWorkerCapability = () => true;\n',
+      },
+    ], [
+      'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
+      'src/lib/data-governance/math-document-grading-worker-readiness.ts',
+    ])).toEqual([
+      {
+        memberPath: 'src/lib/data-governance/math-document-grading-worker-readiness.ts',
+        callerPath: 'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
+        relationship: 'dynamic',
+      },
+    ]);
+    expect(collectRelativeCallers([
+      {
+        path: 'src/lib/data-governance/__tests__/teacher-student-cumulative-insights.test.ts',
+        content: "vi.mock('@/lib/data-governance/cumulative-portrait-read-model', async (importOriginal) => {\n  const actual = await importOriginal<typeof import('../cumulative-portrait-read-model')>();\n  return actual;\n});\n",
+      },
+      {
+        path: 'src/lib/data-governance/cumulative-portrait-read-model.ts',
+        content: 'export const readCurrentCumulativePortrait = () => null;\n',
+      },
+    ], [
+      'src/lib/data-governance/__tests__/teacher-student-cumulative-insights.test.ts',
+      'src/lib/data-governance/cumulative-portrait-read-model.ts',
+    ])).toEqual([
+      {
+        memberPath: 'src/lib/data-governance/cumulative-portrait-read-model.ts',
+        callerPath: 'src/lib/data-governance/__tests__/teacher-student-cumulative-insights.test.ts',
+        relationship: 'dynamic',
+      },
+    ]);
     expect(classifyCallerPath(
       'scripts/data-governance/teacher-ai-grading-lab-cli.ts',
       'dynamic',
