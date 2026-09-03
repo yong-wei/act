@@ -362,7 +362,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent)');
     expect(sessionMessagesRouteSource.indexOf('const finalRuntimeContext = mergeCandidateAssignedCitations('))
       .toBeLessThan(sessionMessagesRouteSource.indexOf('const citationGuard = buildKonlingCitationGuard(finalRuntimeContext, assistantContent)'));
-    expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
+    expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingNormativeSafetyDegradation(');
+    expect(sessionMessagesRouteSource).toContain('applyKonlingCitationFallback(assistantContent, citationGuard)');
     expect(sessionMessagesRouteSource).toContain('assistantMessage: serializedConversation.messages.at(-1)');
     expect(sessionMessagesRouteSource).toContain('metadata: {');
     expect(sessionMessagesRouteSource).toContain('konlingCitationGuard: {');

@@ -15073,11 +15073,15 @@ describe('konling agent runtime', () => {
       ['GB/T 6113 是什么？', 'fact-explanation'],
       ['IEEE 519 的含义是什么？', 'fact-explanation'],
       ['这项法规条款限制了哪些指标？', 'normative-content'],
-      ['船级社行业认证需要什么材料？', 'open-ended-explanation'],
-      ['官方限值是多少？', 'open-ended-explanation'],
-      ['作业必须符合哪些官方限值？', 'open-ended-explanation'],
-      ['CE 认证需要满足哪些要求？', 'open-ended-explanation'],
-      ['What shall a certified controller comply with?', 'open-ended-explanation'],
+      // Normative keywords are shared between the classifier and the
+      // independent detector (#1901), so these classify correctly now; the
+      // misclassified path stays covered by the standard-identifier cases
+      // above and the media-guidance case below.
+      ['船级社行业认证需要什么材料？', 'normative-content'],
+      ['官方限值是多少？', 'normative-content'],
+      ['作业必须符合哪些官方限值？', 'normative-content'],
+      ['CE 认证需要满足哪些要求？', 'normative-content'],
+      ['What shall a certified controller comply with?', 'normative-content'],
     ] as const;
 
     for (const [query, intent] of cases) {
