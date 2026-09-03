@@ -26,8 +26,8 @@ import {
 } from '@/lib/diagnosis-benchmark/runner';
 
 describe('diagnosis benchmark scenarios and generation', () => {
-  it('covers the nine scenario classes with versioned ground truth', () => {
-    expect(DIAGNOSIS_BENCHMARK_SCENARIOS).toHaveLength(9);
+  it('covers the ten scenario classes with versioned ground truth', () => {
+    expect(DIAGNOSIS_BENCHMARK_SCENARIOS).toHaveLength(10);
     const healthy = scenarioById('healthy-class');
     expect(benchmarkGroundTruth(healthy).trueWeakNodes).toEqual([]);
     expect(benchmarkGroundTruth(healthy).primaryWeakNode).toBeNull();
@@ -450,7 +450,66 @@ describe('diagnosis benchmark fixture run', () => {
     expect(violated.coverageClaimAccurate).toBe(false);
   });
 
-  it('passes all nine scenarios end to end with the fixture stub', async () => {
+  it('replays the complete-coverage boundary anchor through the limitation-coverage gate (Issue #1904)', async () => {
+    const scenario = scenarioById('full-coverage-medium-boundary');
+    const materialized = materializeScenario(scenario);
+    const generate = createFixtureGenerate();
+
+    const defective = await generate({
+      scenario,
+      governedInput: materialized.governedInput,
+      groundTruth: materialized.groundTruth,
+      replicate: 2,
+    });
+    expect(defective.ok).toBe(true);
+    const replayed = replayBenchmarkGovernance(
+      scenario,
+      materialized.governedInput,
+      (defective as { report: DiagnosisBenchmarkCandidateReport }).report,
+    );
+    expect(replayed.status).toBe('calibration-rejected');
+    expect(replayed.failureReason).toContain('limitationCoverage=limitations[0]');
+
+    const boundary = await generate({
+      scenario,
+      governedInput: materialized.governedInput,
+      groundTruth: materialized.groundTruth,
+      replicate: 1,
+    });
+    expect(boundary.ok).toBe(true);
+    const boundaryReplayed = replayBenchmarkGovernance(
+      scenario,
+      materialized.governedInput,
+      (boundary as { report: DiagnosisBenchmarkCandidateReport }).report,
+    );
+    expect(boundaryReplayed.status).toBe('ok');
+    expect(boundaryReplayed.coverageClaimAccurate).toBe(true);
+
+    // 置信度上限对所有场景生效：requireLimitations=false 不得提前放行
+    // high 置信度（Codex R1 review）。
+    const overconfident: DiagnosisBenchmarkCandidateReport = {
+      ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report,
+      confidence: 'high',
+    };
+    const overconfidentReplayed = replayBenchmarkGovernance(scenario, materialized.governedInput, overconfident);
+    expect(overconfidentReplayed.coverageClaimAccurate).toBe(false);
+
+    // 重放前按生产同构归一化 assignment/assessment 覆盖：live 候选误报
+    // 子组缺失不得弱化限制×覆盖一致性门（Codex R1 review）。
+    const misreportingCoverage: DiagnosisBenchmarkCandidateReport = {
+      ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report,
+      sourceCoverage: {
+        ...(boundary as { report: DiagnosisBenchmarkCandidateReport }).report.sourceCoverage,
+        assignment: { includedStudents: 90, missingStudents: 10 },
+      },
+      limitations: ['知识节点薄弱判定严格依赖进度数据，若部分学生数据缺失可能影响弱势人数统计的精确性。'],
+    };
+    const misreportReplayed = replayBenchmarkGovernance(scenario, materialized.governedInput, misreportingCoverage);
+    expect(misreportReplayed.status).toBe('calibration-rejected');
+    expect(misreportReplayed.failureReason).toContain('limitationCoverage=limitations[0]');
+  });
+
+  it('passes all ten scenarios end to end with the fixture stub', async () => {
     const result = await runDiagnosisBenchmark({
       generate: createFixtureGenerate(),
       replicates: 3,
@@ -466,7 +525,7 @@ describe('diagnosis benchmark fixture run', () => {
       },
     });
 
-    expect(result.scenarioEvaluations).toHaveLength(9);
+    expect(result.scenarioEvaluations).toHaveLength(10);
     expect(result.aggregate.microPrecision).toBe(1);
     expect(result.aggregate.microRecall).toBe(1);
     expect(result.aggregate.macroF1).toBe(1);
@@ -476,6 +535,8 @@ describe('diagnosis benchmark fixture run', () => {
 
     const healthy = result.scenarioEvaluations.find((run) => run.scenario.id === 'healthy-class');
     expect(healthy?.evaluations.map((entry) => entry.status)).toEqual(['ok', 'calibration-rejected', 'ok']);
+    const boundary = result.scenarioEvaluations.find((run) => run.scenario.id === 'full-coverage-medium-boundary');
+    expect(boundary?.evaluations.map((entry) => entry.status)).toEqual(['ok', 'calibration-rejected', 'ok']);
   });
 
   it('writes a non-overwriting run directory with manifest, summary and replicates', async () => {

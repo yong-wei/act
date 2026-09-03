@@ -21,6 +21,8 @@ export interface DiagnosisBenchmarkAllowedConclusionBoundary {
   maxConfidence: 'high' | 'medium' | 'low' | 'unavailable';
   /** 稀疏风险标志场景（Issue #1755）：命中数不得被表述为证据覆盖不足。 */
   forbidRiskCoverageMisread?: boolean;
+  /** 完整覆盖场景（Issue #1904）：不得声明假设性学生数据缺失。 */
+  forbidHypotheticalMissingData?: boolean;
 }
 
 export interface DiagnosisBenchmarkScenario {
@@ -112,12 +114,25 @@ export interface DiagnosisBenchmarkCandidateFinding {
   evidenceRefs: string[];
 }
 
+/**
+ * 候选报告覆盖事实：live 模式携带生产嵌套结构（assignment/assessment 子组），
+ * fixture 模式可退化为扁平数字记录（Issue #1904 前的存量 stub 形态）。
+ */
+export type DiagnosisBenchmarkCandidateCoverage = {
+  classMembers?: number;
+  includedStudents?: number;
+  progressRows?: number;
+  coverage?: number;
+  assignment?: { includedStudents: number; missingStudents: number };
+  assessment?: { includedStudents: number; missingStudents: number };
+} & Record<string, unknown>;
+
 export interface DiagnosisBenchmarkCandidateReport {
   summary: string;
   findings: DiagnosisBenchmarkCandidateFinding[];
   evidenceRefs: string[];
   evidenceCutoff: string;
-  sourceCoverage: Record<string, number>;
+  sourceCoverage: DiagnosisBenchmarkCandidateCoverage;
   confidence: string;
   limitations: string[];
 }

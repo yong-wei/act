@@ -89,13 +89,6 @@ export function projectReportHistoryCard(
   );
   const declaredLimitations = report.reportBody.limitations.map(formatLimitation);
   const confidenceReasons = buildConfidenceReasons(report, evidenceGroups, attributionLimited);
-  // 归因受限是唯一置信原因 = 所有证据组均完整可用且无声明限制，仅知识点发现缺节点归因
-  // （Issue #1712）。行为组 partial（coverage<1）不产生置信原因，必须用证据组状态单独排除；
-  // LIMITATION_LABELS 之外的自定义限制文本不进入 confidenceReasons，同样单独排除。
-  const attributionOnly = attributionLimited
-    && confidenceReasons.length === 1
-    && report.reportBody.limitations.length === 0
-    && evidenceGroups.every((group) => group.state === 'available');
 
   return {
     scopeLabel: report.scopeType === 'student' ? '学生范围' : '班级范围',
@@ -103,7 +96,7 @@ export function projectReportHistoryCard(
     evidenceCutoffLabel: formatShortDate(report.evidenceCutoff),
     generationReason: formatGenerationReason(report),
     mainWeaknessLabel: mainWeaknessLabel(report),
-    availability: buildAvailability(report, confidenceReasons, attributionOnly, evidenceGroups),
+    availability: buildAvailability(report, confidenceReasons, attributionLimited, evidenceGroups),
     evidenceGroups,
     confidenceReasons,
     comparison: compareAdjacentReports(report, adjacentOlderReport),
@@ -279,10 +272,18 @@ function buildConfidenceReasons(
   return deduplicateReasons(reasons);
 }
 
+function attributionLimitedAvailability(): ReportAvailability {
+  return {
+    label: '知识节点归因受限',
+    description: '学习数据覆盖完整，但部分知识点发现尚无可核验的知识节点映射。',
+    recoveryAction: '补全题目、错因与知识节点映射后，重新生成诊断。',
+  };
+}
+
 function buildAvailability(
   report: DiagnosisReportApiItem,
   confidenceReasons: ConfidenceReason[],
-  attributionOnly: boolean,
+  attributionLimited: boolean,
   evidenceGroups: EvidenceCoverageGroup[],
 ): ReportAvailability {
   if (report.reportBody.confidence === 'unavailable') {
@@ -299,32 +300,50 @@ function buildAvailability(
       recoveryAction: confidenceReasons[0]?.recoveryAction ?? '补充证据后重新生成诊断。',
     };
   }
-  if (report.reportBody.confidence === 'medium' && evidenceCoverageComplete(report, evidenceGroups)) {
-    // 总体—子群伪冲突（Issue #1872）：历史报告不可变，但不得把班级总体
-    // 与部分学生的不可比信号继续显示为证据冲突，标注需重新生成；检测
-    // 独立进行，summary 内的伪冲突声明同样覆盖。
-    if (detectOverallSubgroupPseudoConflict(report.reportBody).length > 0) {
-      return {
-        label: '报告需重新生成',
-        description: '该报告把班级总体表现与部分学生进度表述为证据冲突；两者学生范围不同、可以同时成立，不属于可比证据冲突。',
-        recoveryAction: '重新生成诊断以获得可比证据冲突判定。',
-      };
-    }
-    // 显式完整覆盖且声明限制确含冲突语义：如实表述为证据冲突并指向教师
-    // 复核；缺省可选覆盖字段或非冲突限制不得套用该状态（Issue #1755 review）。
-    const conflictDeclared = [
-      report.reportBody.summary,
-      ...report.reportBody.limitations,
-    ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
-    if (conflictDeclared) {
-      return {
-        label: '证据存在冲突',
-        description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',
-        recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
-      };
-    }
-  }
+  // 归因受限是唯一置信原因 = 所有证据组均完整可用且无声明限制，仅知识点发现缺节点归因
+  // （Issue #1712）。行为组 partial（coverage<1）不产生置信原因，必须用证据组状态单独排除；
+  // LIMITATION_LABELS 之外的自定义限制文本不进入 confidenceReasons，同样单独排除。
+  const attributionOnly = attributionLimited
+    && confidenceReasons.length === 1
+    && report.reportBody.limitations.length === 0
+    && evidenceGroups.every((group) => group.state === 'available');
   if (report.reportBody.confidence === 'medium') {
+    if (evidenceCoverageComplete(report, evidenceGroups)) {
+      // 总体—子群伪冲突（Issue #1872）：历史报告不可变，但不得把班级总体
+      // 与部分学生的不可比信号继续显示为证据冲突，标注需重新生成；检测
+      // 独立进行，summary 内的伪冲突声明同样覆盖。
+      if (detectOverallSubgroupPseudoConflict(report.reportBody).length > 0) {
+        return {
+          label: '报告需重新生成',
+          description: '该报告把班级总体表现与部分学生进度表述为证据冲突；两者学生范围不同、可以同时成立，不属于可比证据冲突。',
+          recoveryAction: '重新生成诊断以获得可比证据冲突判定。',
+        };
+      }
+      // 显式完整覆盖且声明限制确含冲突语义：如实表述为证据冲突并指向教师
+      // 复核；缺省可选覆盖字段或非冲突限制不得套用该状态（Issue #1755 review）。
+      const conflictDeclared = [
+        report.reportBody.summary,
+        ...report.reportBody.limitations,
+      ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
+      if (conflictDeclared) {
+        return {
+          label: '证据存在冲突',
+          description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',
+          recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
+        };
+      }
+      // 完整覆盖 + 非冲突 + medium（Issue #1904）：知识节点归因缺失如实
+      // 表述为归因问题；其余只剩一般判断边界，不得回退「证据部分可用」。
+      if (attributionLimited) {
+        return attributionLimitedAvailability();
+      }
+      return {
+        label: '证据覆盖完整，结论需复核',
+        description: '各来源证据覆盖完整，报告仅保留一般判断边界，不存在覆盖或归因缺口。',
+        recoveryAction: '教师复核声明的判断边界；如需更新结论，重新生成诊断。',
+      };
+    }
+    // 覆盖确实不完整时才表述为部分可用（Issue #1904）。
     return {
       label: '证据部分可用',
       description: '已有可用证据，但覆盖或归因仍不完整。',
@@ -333,11 +352,7 @@ function buildAvailability(
   }
   // 数据覆盖完整、仅知识节点无法归因：如实表述为归因问题，不再称"覆盖受限"（Issue #1712）。
   if (attributionOnly) {
-    return {
-      label: '知识节点归因受限',
-      description: '学习数据覆盖完整，但部分知识点发现尚无可核验的知识节点映射。',
-      recoveryAction: '补全题目、错因与知识节点映射后，重新生成诊断。',
-    };
+    return attributionLimitedAvailability();
   }
   return confidenceReasons.length > 0
     ? {

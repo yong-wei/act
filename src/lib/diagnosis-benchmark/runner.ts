@@ -15,6 +15,7 @@ import {
   buildKnowledgeNodeWeaknessStats,
   enforceDiagnosisFindingCalibration,
   enforceDiagnosisFindingNodeAttribution,
+  enforceLimitationCoverageConsistency,
   enforceRiskFlagCoverageSemantics,
   validateDiagnosisReportBodyLanguage,
 } from '@/lib/diagnosis-generation-provider';
@@ -29,6 +30,7 @@ import {
   type DiagnosisBenchmarkScenarioRun,
 } from '@/lib/diagnosis-benchmark/metrics';
 import type {
+  DiagnosisBenchmarkCandidateCoverage,
   DiagnosisBenchmarkCandidateFinding,
   DiagnosisBenchmarkCandidateReport,
   DiagnosisBenchmarkGovernedInput,
@@ -127,11 +129,21 @@ export function replayBenchmarkGovernance(
     summary: report.summary,
     limitations: report.limitations,
   });
+  // 限制×覆盖一致性（Issue #1904）：复用生产校验函数，违例同样视为治理拒绝。
+  // 生产路径在持久化前会用确定性投影覆盖 assignment/assessment 覆盖事实
+  //（Codex R1 review）：重放同构归一化，live 候选对覆盖声明的误报不得
+  // 弱化或绕过该门；顶层 coverage 事实仍以候选声明为准（与生产一致）。
+  const normalizedCoverage = normalizeCandidateCoverage(report.sourceCoverage, governedInput);
+  const limitationCoverageViolations = enforceLimitationCoverageConsistency({
+    sourceCoverage: normalizedCoverage,
+    limitations: report.limitations,
+  });
   const governanceFailed = languageViolations.length > 0
     || attributionViolations.length > 0
     || !evidenceRefsValid
     || calibrationViolations.length > 0
-    || riskFlagCoverageViolations.length > 0;
+    || riskFlagCoverageViolations.length > 0
+    || limitationCoverageViolations.length > 0;
 
   return {
     status: governanceFailed ? 'calibration-rejected' : 'ok',
@@ -143,23 +155,41 @@ export function replayBenchmarkGovernance(
     evidenceRefsValid,
     attributionValid: attributionViolations.length === 0,
     coverageClaimAccurate: report.sourceCoverage.progressRows === governedInput.knowledgeProgress.length
-      && boundaryRespected(scenario, report),
+      && boundaryRespected(scenario, report, normalizedCoverage),
     failureReason: governanceFailed
-      ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'},riskCoverage=${riskFlagCoverageViolations.join(',') || 'none'}`
+      ? `language=${languageViolations.length},attribution=${attributionViolations.length},refs=${evidenceRefsValid ? 'ok' : 'invalid'},calibration=${calibrationViolations.join(',') || 'none'},riskCoverage=${riskFlagCoverageViolations.join(',') || 'none'},limitationCoverage=${limitationCoverageViolations.join(',') || 'none'}`
       : undefined,
   };
 }
 
 const CONFIDENCE_ORDER = ['unavailable', 'low', 'medium', 'high'] as const;
 
+function normalizeCandidateCoverage(
+  coverage: DiagnosisBenchmarkCandidateCoverage,
+  governedInput: DiagnosisBenchmarkGovernedInput,
+): DiagnosisBenchmarkCandidateCoverage {
+  const memberCount = governedInput.studentIds.length;
+  const outcomeCoverage = (rows: ReadonlyArray<{ userId: string }>) => {
+    const includedStudents = new Set(rows.map((row) => row.userId)).size;
+    return { includedStudents, missingStudents: Math.max(memberCount - includedStudents, 0) };
+  };
+  return {
+    ...coverage,
+    assignment: outcomeCoverage(governedInput.assignmentSubmissions ?? []),
+    assessment: outcomeCoverage(governedInput.assessmentSessions ?? []),
+  };
+}
+
 /**
- * 场景结论边界（Issue #1729 review）：证据冲突或覆盖缺失的场景要求
- * 报告携带 limitations 且置信不超过声明的最高档；违反即覆盖/降级
- * 主张不准确，计入合规率并在阈值门禁中失败。
+ * 场景结论边界（Issue #1729 review）：报告置信度不得超过声明的最高档；
+ * 证据冲突或覆盖缺失的场景还要求携带 limitations；违反即覆盖/降级主张
+ * 不准确，计入合规率并在阈值门禁中失败。置信度上限对所有场景生效，
+ * 不因 requireLimitations 提前放行（Codex R1 review，Issue #1904）。
  */
 function boundaryRespected(
   scenario: DiagnosisBenchmarkScenario,
   report: DiagnosisBenchmarkCandidateReport,
+  normalizedCoverage: DiagnosisBenchmarkCandidateCoverage,
 ): boolean {
   const boundary = scenario.allowedConclusionBoundary;
   // 稀疏风险标志语义（Issue #1755 review）：命中数被表述为覆盖不足即违反边界，
@@ -168,11 +198,17 @@ function boundaryRespected(
     && enforceRiskFlagCoverageSemantics({ summary: report.summary, limitations: report.limitations }).length > 0) {
     return false;
   }
-  if (!boundary.requireLimitations) return true;
-  if (report.limitations.length === 0) return false;
+  // 限制×覆盖一致性（Issue #1904）：完整覆盖下声称学生证据可能缺失即违反边界，
+  // 复用生产确定性校验的同一判定（覆盖事实经生产同构归一化）。
+  if (boundary.forbidHypotheticalMissingData
+    && enforceLimitationCoverageConsistency({ sourceCoverage: normalizedCoverage, limitations: report.limitations }).length > 0) {
+    return false;
+  }
   const observed = CONFIDENCE_ORDER.indexOf(report.confidence as typeof CONFIDENCE_ORDER[number]);
   const allowed = CONFIDENCE_ORDER.indexOf(boundary.maxConfidence);
-  return observed >= 0 && allowed >= 0 && observed <= allowed;
+  if (observed < 0 || allowed < 0 || observed > allowed) return false;
+  if (!boundary.requireLimitations) return true;
+  return report.limitations.length > 0;
 }
 
 function evidenceRefFor(governedInput: DiagnosisBenchmarkGovernedInput, nodeId: string, take: number): string[] {
@@ -237,6 +273,34 @@ export function createFixtureGenerate(): DiagnosisBenchmarkGenerate {
       knowledgeNodeId: nodeId,
       evidenceRefs: evidenceRefFor(governedInput, nodeId, 3),
     }));
+    // 完整覆盖判断边界（Issue #1904）：正样本携带风险规则解释边界限制 +
+    // 完整覆盖事实；第 2 次 replicate 固定输出修复前的假设性缺失限制，
+    // 锚定"矛盾输出触发限制×覆盖一致性拒绝、边界限制通过"的回归用例。
+    if (scenario.id === 'full-coverage-medium-boundary') {
+      const memberCount = governedInput.studentIds.length;
+      return {
+        ok: true,
+        durationMs: 1,
+        report: {
+          summary: '班级诊断完成，薄弱知识点与证据范围已在发现中列出。',
+          findings,
+          evidenceRefs: evidenceRefFor(governedInput, groundTruth.primaryWeakNode ?? orderedNodes[0], 2),
+          evidenceCutoff: '2026-08-31T08:00:00.000Z',
+          sourceCoverage: {
+            classMembers: memberCount,
+            includedStudents: memberCount,
+            progressRows: governedInput.knowledgeProgress.length,
+            coverage: 1,
+            assignment: { includedStudents: memberCount, missingStudents: 0 },
+            assessment: { includedStudents: memberCount, missingStudents: 0 },
+          },
+          confidence: 'medium',
+          limitations: [replicate === 2
+            ? '知识节点薄弱判定严格依赖进度数据，若部分学生数据缺失可能影响弱势人数统计的精确性。'
+            : '风险标志数据基于特定触发条件，未命中风险的学生不代表无学习障碍，仅表示未触发该特定约束规则。'],
+        },
+      };
+    }
     // 限制文案必须与场景事实一致：覆盖缺失场景声明缺失，冲突场景声明冲突，
     // 完整覆盖场景不得生成"数据缺失"式错误限制（Issue #1755 review）。
     const limitations = groundTruth.actualProgressCoverage < 1

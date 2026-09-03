@@ -573,16 +573,20 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     expect(JSON.stringify(projection.confidenceReasons)).not.toContain('补充可核验证据');
   });
 
-  it('keeps the generic fallback only when no known reason applies', () => {
+  it('presents complete-coverage boundary-only reports as needing review instead of partial availability (Issue #1904)', () => {
     const projection = projectReportHistoryCard({
       ...completeCoverageReport,
       reportBody: {
         ...completeCoverageReport.reportBody,
+        summary: '班级诊断完成，薄弱知识点与证据范围已在发现中列出。',
         limitations: [],
       },
     });
 
-    expect(projection.availability.label).toBe('证据部分可用');
+    expect(projection.availability.label).toBe('证据覆盖完整，结论需复核');
+    expect(projection.availability.description).toContain('覆盖完整');
+    expect(projection.availability.description).not.toContain('不完整');
+    expect(projection.availability.recoveryAction).toContain('教师复核');
     expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
       expect.objectContaining({ reason: '报告没有提供可验证的置信度原因。' }),
     ]));
@@ -605,6 +609,63 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
     expect(projection.confidenceReasons).toEqual(expect.arrayContaining([
       expect.objectContaining({ reason: '仅纳入 80/100 名学生的可用证据。' }),
     ]));
+  });
+});
+
+describe('complete-coverage medium status projection (Issue #1904)', () => {
+  const issueReport: DiagnosisReportApiItem = {
+    ...baseline,
+    id: 'report-issue-1904',
+    reportBody: {
+      ...baseline.reportBody,
+      summary: '班级诊断完成，薄弱知识点与证据范围已在发现中列出。',
+      sourceCoverage: {
+        classMembers: 100,
+        includedStudents: 100,
+        coverage: 1,
+        progressRows: 200,
+        assignment: {
+          availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+        },
+        assessment: {
+          availability: 'available', includedStudents: 100, missingStudents: 0, evidenceCount: 100, scoredCount: 100,
+        },
+      },
+      confidence: 'medium',
+      limitations: [
+        '风险标志数据基于特定触发条件，未命中风险的学生不代表无学习障碍，仅表示未触发该特定约束规则。',
+        '知识节点薄弱判定严格依赖进度数据，若部分学生数据缺失可能影响弱势人数统计的精确性。',
+      ],
+    },
+  };
+
+  it('projects the historical issue report as complete coverage needing teacher review, not partial availability', () => {
+    const projection = projectReportHistoryCard(issueReport);
+
+    expect(projection.availability.label).toBe('证据覆盖完整，结论需复核');
+    expect(projection.availability.description).toContain('不存在覆盖或归因缺口');
+    expect(projection.availability.recoveryAction).toContain('教师复核声明的判断边界');
+    expect(projection.availability.label).not.toBe('证据部分可用');
+    expect(projection.availability.description).not.toContain('覆盖或归因仍不完整');
+  });
+
+  it('routes attribution-limited complete-coverage medium reports to the attribution status', () => {
+    const projection = projectReportHistoryCard({
+      ...issueReport,
+      reportBody: {
+        ...issueReport.reportBody,
+        findings: [{
+          title: '稳定裕度判断',
+          riskType: 'constraint',
+          severity: 'high',
+          evidenceRefs: ['knowledge-progress:progress-1'],
+        }],
+      },
+    });
+
+    expect(projection.attributionLimited).toBe(true);
+    expect(projection.availability.label).toBe('知识节点归因受限');
+    expect(projection.availability.recoveryAction).toContain('补全题目、错因与知识节点映射');
   });
 });
 

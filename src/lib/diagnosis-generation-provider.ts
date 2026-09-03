@@ -21,7 +21,7 @@ import {
   resolveSmartLessonStructuredProvider,
   TextJsonFallbackOutputError,
 } from '@/lib/smart-lesson-plan/provider-runtime';
-import { detectOverallSubgroupPseudoConflict } from './diagnosis-pseudo-conflict';
+import { detectOverallSubgroupPseudoConflict, splitDiagnosisClauses } from './diagnosis-pseudo-conflict';
 
 const DIAGNOSIS_TOOLS = [
   'get_class_assignment_outcomes',
@@ -159,6 +159,16 @@ export class DiagnosisPseudoConflictError extends Error {
   constructor(violations: string[]) {
     super('诊断模型把班级总体表现与部分学生进度的总体—子群信号误述为证据冲突。');
     this.name = 'DiagnosisPseudoConflictError';
+    this.violations = violations;
+  }
+}
+
+export class DiagnosisLimitationCoverageError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型在结构化覆盖完整时生成了声称学生证据可能缺失的限制说明。');
+    this.name = 'DiagnosisLimitationCoverageError';
     this.violations = violations;
   }
 }
@@ -346,6 +356,57 @@ export function enforceRiskFlagCoverageSemantics(reportBody: {
     if (RISK_FLAG_COVERAGE_MISREAD_PATTERN.test(limitation)) {
       violations.push(`limitations[${index}]`);
     }
+  });
+  return violations;
+}
+
+// 限制×覆盖一致性（Issue #1904）：与 #1755 同哲学，只拦截已知缺陷措辞
+// 家族（子群主语 + 数据/证据名词 + 缺失谓词，子句粒度，兼容主谓/动宾
+// 两种语序），不做通用自然语言审查。覆盖不完整时该类限制是真实降级
+// 原因，一律放行。
+const LIMITATION_MISSING_DATA_SUBJECT_PATTERN = /(?:部分|少数|个别|某些)[^。；;\n]{0,16}(?:名)?(?:学生|同学)/;
+const LIMITATION_MISSING_DATA_NOUN_PATTERN = /(?:数据|证据|进度|记录|学习行为)/g;
+const LIMITATION_MISSING_DATA_VERB_PATTERN = /(?:缺失|缺少|未覆盖|未纳入|不完整|不全)/g;
+
+function clauseClaimsMissingStudentData(clause: string): boolean {
+  if (!LIMITATION_MISSING_DATA_SUBJECT_PATTERN.test(clause)) return false;
+  const nouns = [...clause.matchAll(LIMITATION_MISSING_DATA_NOUN_PATTERN)];
+  const verbs = [...clause.matchAll(LIMITATION_MISSING_DATA_VERB_PATTERN)];
+  return nouns.some((noun) => verbs.some((verb) => (
+    // 主谓序（数据缺失）：名词后 20 字符内出现缺失谓词；
+    // 动宾序（缺少数据）：名词前 8 字符以内紧邻缺失谓词。
+    (verb.index >= noun.index && verb.index <= noun.index + noun[0].length + 20)
+    || (verb.index + verb[0].length <= noun.index && noun.index - (verb.index + verb[0].length) <= 8)
+  )));
+}
+
+export interface DiagnosisLimitationCoverageSource {
+  sourceCoverage: {
+    classMembers?: number;
+    includedStudents?: number;
+    coverage?: number;
+    assignment?: { missingStudents: number } | undefined;
+    assessment?: { missingStudents: number } | undefined;
+  };
+  limitations: ReadonlyArray<string>;
+}
+
+export function enforceLimitationCoverageConsistency(reportBody: DiagnosisLimitationCoverageSource) {
+  const coverage = reportBody.sourceCoverage;
+  // 完整覆盖事实与历史投影 evidenceCoverageComplete 同语义：可选字段缺省
+  // 不得当作完整；assignment/assessment 子组缺省（如 benchmark 扁平记录）
+  // 时以顶层 coverage 数字为准。
+  const coverageComplete = coverage.coverage === 1
+    && typeof coverage.classMembers === 'number'
+    && typeof coverage.includedStudents === 'number'
+    && coverage.includedStudents >= coverage.classMembers
+    && (coverage.assignment?.missingStudents ?? 0) === 0
+    && (coverage.assessment?.missingStudents ?? 0) === 0;
+  if (!coverageComplete) return [];
+  const violations: string[] = [];
+  reportBody.limitations.forEach((limitation, index) => {
+    const contradicts = splitDiagnosisClauses(limitation).some(clauseClaimsMissingStudentData);
+    if (contradicts) violations.push(`limitations[${index}]`);
   });
   return violations;
 }
@@ -587,6 +648,12 @@ export async function generateGovernedDiagnosisReport(
   if (pseudoConflictViolations.length > 0) {
     throw new DiagnosisPseudoConflictError(pseudoConflictViolations);
   }
+  // 限制×覆盖一致性（Issue #1904）：sourceCoverage 完整时，声称学生证据
+  // 可能缺失的假设性限制与结构化事实矛盾，按模型行为缺陷拒绝重试。
+  const limitationCoverageViolations = enforceLimitationCoverageConsistency(reportBody);
+  if (limitationCoverageViolations.length > 0) {
+    throw new DiagnosisLimitationCoverageError(limitationCoverageViolations);
+  }
   return {
     reportBody,
     agentSessionId: agentSession.id,
@@ -610,6 +677,7 @@ const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
   '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
   '证据冲突声明必须满足可比性：只有相同学生范围、相近时间窗内方向相反的证据（如同一批学生作业高分、测评低分）才可声明冲突；「班级/整体/总体表现正常」与「部分/少数/个别学生薄弱」学生范围不同、可以同时成立，绝不可声明为证据冲突，应分别作为总体发现与子群发现呈现。',
   '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
+  'sourceCoverage 覆盖完整（coverage 为 1 且各证据组纳入齐全）时，不得生成「若部分学生数据缺失」等假设性学生证据缺失限制；数据确有缺失时才能在 limitations 声明缺失。',
   '风险标志是稀疏命中集合：governedToolResults.riskFlags.hitSummary.flaggedStudentCount 是当前命中风险的学生数，不是风险数据的覆盖人数；未命中风险的学生不缺少任何证据，不得据此生成“风险数据仅覆盖 N 名学生”或等价覆盖比例限制。',
   '报告摘要不超过 1000 字符，最多 6 条 findings；每条摘要不超过 280 字符。',
   'evidenceRefs 总数不超过 16，每条 finding 最多引用 6 条；不得罗列逐个学生或逐条证据。',
