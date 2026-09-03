@@ -5,7 +5,7 @@
 - 源发布：3DModels `assets/type_055_destroyer/exports/v2.0.0`（G08_MODEL_EXPORT_COMPLETE，model-validation PASS）
 - 发布 manifest SHA-256：`5901a821f7f955d4cafb0cd7c40420df506e24914de4abfa12678c7643f594b6`
 - 源 .blend SHA-256：`c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357`
-- 接收脚本：`scripts/models/receive-type055-nanchang-101-v2.mjs`（复制前后哈希/大小核验、暂存目录原子替换、候选包路径脏工作区 fail closed、收据不含本机绝对路径）
+- 接收脚本：`scripts/models/receive-type055-nanchang-101-v2.mjs`（接收不变量：已合格包目录一旦验证永不移动——同版本一致幂等 no-op、漂移 fail closed；首次接收经暂存目录校验后单次 rename 原子入位；候选包路径脏工作区 fail closed；收据不含本机绝对路径）
 - 接收收据：`receipt.json`（同目录；可验证主绑定为候选包目录 git tree digest
   `packageTreeDigest`——任意克隆（含浅克隆/squash 合并）都可用 `git rev-parse HEAD:<包路径>`
   复核；捕获时 `packageDirty=false`）
