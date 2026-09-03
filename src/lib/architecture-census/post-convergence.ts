@@ -953,6 +953,26 @@ function artifactEntry(logicalLocator: string, mediaType: string, content: strin
   };
 }
 
+function identityHeader(pack: PostConvergenceEnvelope): string[] {
+  return [
+    '## Capture identity',
+    '',
+    `- successorCaptureId: \`${pack.successorCaptureId}\``,
+    `- sourceCommit: \`${pack.captureIdentity.sourceCommit}\``,
+    `- sourceTree: \`${pack.captureIdentity.sourceTree}\``,
+    `- commitTime: \`${pack.captureIdentity.commitTime}\``,
+    `- schemaVersion: \`${pack.schemaVersion}\``,
+    `- nodeVersion: \`${pack.toolVersions.nodeVersion ?? ''}\``,
+    `- npmVersion: \`${pack.toolVersions.npmVersion ?? ''}\``,
+    `- typescriptVersion: \`${pack.toolVersions.typescriptVersion ?? ''}\``,
+    `- predecessorBaseline.sourceCommit: \`${pack.predecessorBaseline.sourceCommit}\``,
+    `- predecessorBaseline.censusCoreSha256: \`${pack.predecessorBaseline.censusCoreSha256}\``,
+    `- predecessorCurrentHead.sourceCommit: \`${pack.predecessorCurrentHead.sourceCommit}\``,
+    `- predecessorCurrentHead.packageSha256: \`${pack.predecessorCurrentHead.packageSha256}\``,
+    '',
+  ];
+}
+
 function projectSummary(pack: PostConvergenceEnvelope): string {
   return [
     '# Post-convergence successor capture',
@@ -962,6 +982,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
     `- status: \`${pack.status}\``,
     `- sourceCommit: \`${pack.captureIdentity.sourceCommit}\``,
     `- sourceTree: \`${pack.captureIdentity.sourceTree}\``,
+    `- commitTime: \`${pack.captureIdentity.commitTime}\``,
     `- originIntegrationCommit: \`${pack.originIntegrationCommit}\``,
     `- predecessorBaseline.sourceCommit: \`${pack.predecessorBaseline.sourceCommit}\``,
     `- predecessorBaseline.censusCoreSha256: \`${pack.predecessorBaseline.censusCoreSha256}\``,
@@ -1057,7 +1078,7 @@ function projectSummary(pack: PostConvergenceEnvelope): string {
   ].join('\n');
 }
 
-function projectOwnerResidue(records: readonly OwnerResidueRecord[]): string {
+function projectOwnerResidue(pack: PostConvergenceEnvelope, records: readonly OwnerResidueRecord[]): string {
   return [
     '# Owner residue',
     '',
@@ -1066,6 +1087,7 @@ function projectOwnerResidue(records: readonly OwnerResidueRecord[]): string {
     'Per-consumer evidence, deletion conditions, and trust boundaries are preserved verbatim in the',
     '`owner-residue.ndjson` detail artifact indexed by `baseline.json`.',
     '',
+    ...identityHeader(pack),
     table(
       ['id', 'source', 'identity', 'state', 'consumer class', 'consumers', 'deletion condition', 'candidate owners'],
       records.map((row) => [
@@ -1085,13 +1107,14 @@ function projectOwnerResidue(records: readonly OwnerResidueRecord[]): string {
   ].join('\n');
 }
 
-function projectHotspots(hotspots: HotspotResult): string {
+function projectHotspots(pack: PostConvergenceEnvelope, hotspots: HotspotResult): string {
   return [
     '# Top hotspot observation vector',
     '',
     'File size, centrality, change frequency, and trust density are prioritization evidence only.',
     'They are not defects and do not create or update a fitness budget.',
     '',
+    ...identityHeader(pack),
     `- metric scope: ${HOTSPOT_METRIC_SCOPE.join(' | ')}`,
     `- rank tuple: ${HOTSPOT_RANK_TUPLE.join(' | ')}`,
     '',
@@ -1122,7 +1145,7 @@ function projectHotspots(hotspots: HotspotResult): string {
   ].join('\n');
 }
 
-function projectPayloadClasses(payload: PayloadClassResult): string {
+function projectPayloadClasses(pack: PostConvergenceEnvelope, payload: PayloadClassResult): string {
   return [
     '# Payload class observations',
     '',
@@ -1131,6 +1154,7 @@ function projectPayloadClasses(payload: PayloadClassResult): string {
     'materialization, retention, and deletion decisions belong to C and the existing data-governance owners;',
     'nothing here authorizes deletion.',
     '',
+    ...identityHeader(pack),
     `- duplicate blobs: ${payload.duplicateBlobCount}`,
     `- unresolved classes: ${payload.unresolvedCount}`,
     '',
@@ -1148,13 +1172,14 @@ function projectPayloadClasses(payload: PayloadClassResult): string {
   ].join('\n');
 }
 
-function projectTestBaseline(receipts: readonly MeasurementReceipt[]): string {
+function projectTestBaseline(pack: PostConvergenceEnvelope, receipts: readonly MeasurementReceipt[]): string {
   return [
     '# Test baseline observations',
     '',
     'Each observation references an immutable measurement receipt. A red command remains an observation:',
     'A does not label it stale, accepted, quarantined, or implementation debt, and does not change test-command qualification.',
     '',
+    ...identityHeader(pack),
     receipts.length === 0
       ? '_No receipts captured for this run._'
       : table(
@@ -1254,10 +1279,7 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
   }));
   const detailBase = `${POST_CONVERGENCE_DETAIL_DIR}/${successorCaptureId}`;
 
-  const ownerResidueMd = projectOwnerResidue(residue);
-  const hotspotsMd = projectHotspots(hotspots);
-  const payloadMd = projectPayloadClasses(payload);
-  const testBaselineMd = projectTestBaseline(input.receipts);
+
   const detail: PostConvergenceDetailArtifact[] = [
     {
       name: 'full-inventory.ndjson',
@@ -1342,6 +1364,19 @@ export function generatePostConvergenceSuccessor(input: PostConvergenceInput): {
     frozenReceiptIds: input.receipts.map((receipt) => receipt.receiptId).sort(),
     digestScope: SUCCESSOR_DIGEST_SCOPE,
   };
+
+  const projectionView = {
+    ...envelopeCore,
+    handoff: [],
+    artifacts: [],
+    packageDigest: '',
+  } as PostConvergenceEnvelope;
+  const ownerResidueMd = projectOwnerResidue(projectionView, residue);
+  const hotspotsMd = projectHotspots(projectionView, hotspots);
+  const payloadMd = projectPayloadClasses(projectionView, payload);
+  const testBaselineMd = projectTestBaseline(projectionView, input.receipts);
+
+
   const handoff: PostConvergenceEnvelope['handoff'] = [
     {
       consumer: 'B-owner-residue',
