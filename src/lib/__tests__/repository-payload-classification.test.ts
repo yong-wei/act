@@ -31,6 +31,7 @@ import {
   type ToolCheckpoint,
 } from '@/lib/architecture-census/payload-classification';
 import {
+  buildConsumerReferenceAdapter,
   buildContentCompilerAdapter,
   buildIdentityInventoryScan,
   buildKnowledgeCutoverAdapter,
@@ -908,6 +909,47 @@ describe('payload classification evidence adapters', () => {
       entries: [{ ...entry('src/lib/a.ts', 'f0'.repeat(20), 10), sizeBytes: 99 }],
     }));
     expect(tampered.slices.reduce((sum, slice) => sum + slice.byteBytes, 0)).toBe(99);
+  });
+
+  it('binds real production consumers from code references so live assets never read future-eligible', () => {
+    const entries = [entry('public/assets/destroyer.glb', 'aa'.repeat(20), 2048)];
+    const references = new Map<string, readonly ('production' | 'test')[]>([
+      ['/assets/destroyer.glb', ['production']],
+    ]);
+    const bundle = buildConsumerReferenceAdapter(entries, references);
+    expect(bundle.overrides[0]?.consumers).toEqual(['production:path-read']);
+    expect(bundle.identities[0]?.name).toBe('consumer-reference');
+    const result = runWithVerification({
+      entries,
+      overrides: bundle.overrides,
+    });
+    const member = result.members[0]!;
+    expect(member.consumers).toContain('production:path-read');
+    expect(member.futureEligible).toBe('unresolved');
+    expect(member.futureEligibilityMissing).toContain('zero-required-consumer');
+  });
+
+  it('matches unquoted identifier keys with concrete quoted values', () => {
+    const mjsHash = 'bb'.repeat(20);
+    const entries = [entry('artifacts/issue-1168-konling-continuity/browser-acceptance.mjs', mjsHash)];
+    const blobs: Record<string, string> = {
+      [mjsHash]: "const evidence = { userId: 'student-evidence' };\n",
+    };
+    const reader: SubjectTreeReader = {
+      blobBytes: (hash: string) => Buffer.from(blobs[hash] ?? '', 'utf8'),
+      listEntries: () => entries,
+    };
+    const contract = {
+      classifyArtifact: (): QaLifecycleOutcome => ({
+        evidenceClass: 'portable-manifest',
+        privacyClass: 'none',
+        retentionDecision: 'retain-in-repo',
+        owner: 'platform',
+      }),
+    };
+    const bundle = buildQaEvidenceAdapter(reader, entries, contract, { scanText: () => [] });
+    expect(bundle.overrides).toHaveLength(0);
+    expect(bundle.identities[0]?.unresolved).toBe(1);
   });
 
   it('scans the whole inventory for identifier values regardless of path and vetoes weaker overrides', () => {

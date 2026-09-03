@@ -34,7 +34,7 @@ export interface PrivacyScanContract {
 }
 
 export interface AdapterIdentity {
-  readonly name: 'release-manifest' | 'content-compiler-toolchain' | 'knowledge-cutover-runtime' | 'qa-evidence-lifecycle' | 'privacy-content-scan';
+  readonly name: 'release-manifest' | 'content-compiler-toolchain' | 'knowledge-cutover-runtime' | 'qa-evidence-lifecycle' | 'privacy-content-scan' | 'consumer-reference';
   readonly inputDigest: string;
   readonly candidates: number;
   readonly proven: number;
@@ -103,7 +103,7 @@ export const KNOWLEDGE_CUTOVER_FROZEN_COUNT = 80;
  * real identifiers; bare identifier mentions in typed source stay outside this
  * pattern on purpose.
  */
-export const PRIVACY_IDENTITY_VALUE_PATTERN = /["'](?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)["']\s*[:=]\s*["']?[^\s"']{4,}/iu;
+export const PRIVACY_IDENTITY_VALUE_PATTERN = /["']?(?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)["']?\s*[:=]\s*["'][^"']{4,}["']/iu;
 
 function sha256Bytes(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
@@ -580,6 +580,58 @@ export function buildIdentityInventoryScan(reader: SubjectTreeReader, entries: r
       drift: null,
     }],
   };
+}
+
+/**
+ * Consumer-reference adapter: binds members to consumers actually observed in
+ * subject-tree source code, replacing path-prefix heuristics wherever a real
+ * reference exists. A referenced member gains its production/test consumer
+ * facts so future-eligibility can never mistake a live asset for a
+ * zero-required-consumer payload. Members without an observed reference keep
+ * their default consumer evidence.
+ */
+export type ConsumerReferenceKind = 'production' | 'test';
+
+export function buildConsumerReferenceAdapter(
+  entries: readonly InventoryEntry[],
+  references: ReadonlyMap<string, readonly ConsumerReferenceKind[]>,
+): AdapterBundle {
+  const overrides: EvidenceOverride[] = [];
+  let candidates = 0;
+  let proven = 0;
+  for (const entry of entries) {
+    if (entry.path.startsWith('artifacts/')) continue; // QA evidence lifecycle owns artifacts consumers
+    const normalized = entry.path.startsWith('public/') ? `/${entry.path.slice('public/'.length)}` : entry.path;
+    const kinds = references.get(entry.path) ?? references.get(normalized);
+    if (!kinds || kinds.length === 0) continue;
+    candidates += 1;
+    overrides.push({
+      path: entry.path,
+      consumers: uniqueConsumerKinds(kinds),
+    });
+    proven += 1;
+  }
+  const inputDigest = sha256Bytes(Buffer.from(
+    [...references.entries()].map(([path, kinds]) => `${path}:${[...kinds].sort().join('+')}`).sort().join('\n'),
+    'utf8',
+  ));
+  return {
+    overrides,
+    identities: [{
+      name: 'consumer-reference',
+      inputDigest,
+      candidates,
+      proven,
+      unresolved: 0,
+      drift: null,
+    }],
+  };
+}
+
+function uniqueConsumerKinds(kinds: readonly ConsumerReferenceKind[]): string[] {
+  const consumers = new Set<string>();
+  for (const kind of kinds) consumers.add(kind === 'test' ? 'test:path-read' : 'production:path-read');
+  return [...consumers].sort();
 }
 
 export function combineAdapters(bundles: readonly AdapterBundle[]): AdapterBundle {

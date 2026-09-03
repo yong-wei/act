@@ -31,6 +31,7 @@ import {
   type InventoryEntry,
 } from '../src/lib/architecture-census/payload-classification';
 import {
+  buildConsumerReferenceAdapter,
   buildContentCompilerAdapter,
   buildIdentityInventoryScan,
   buildKnowledgeCutoverAdapter,
@@ -99,15 +100,30 @@ const treeReader: SubjectTreeReader = {
   listEntries: (prefix: string): readonly InventoryEntry[] => entries.filter((entry) => entry.path.startsWith(prefix)),
 };
 
-// 4. QA evidence lifecycle contract, digest-bound to subject-tree bytes.
+// 4. QA evidence lifecycle contract and real consumer references, digest-bound
+//    to subject-tree bytes. One pass over subject source extracts both the QA
+//    retain set and every quoted path-like token referenced from code.
 const retainPaths = new Set<string>();
 const productImportPattern = /['"](artifacts\/[^'"]+)['"]/g;
+const pathTokenPattern = /['"`]([^'"`\n]{3,200}?)['"`]/g;
+const consumerReferences = new Map<string, Set<'production' | 'test'>>();
 for (const entry of entries) {
   if (!entry.path.startsWith('src/') || !/\.tsx?$/u.test(entry.path)) continue;
-  if (entry.path.includes('/__tests__/') || /\.(?:test|spec)\./u.test(entry.path)) continue;
+  const isTest = entry.path.includes('/__tests__/') || /\.(?:test|spec)\./u.test(entry.path);
   const text = blobBytes(entry.hash).toString('utf8');
-  for (const match of text.matchAll(productImportPattern)) {
-    if (match[1]) retainPaths.add(match[1]);
+  if (!isTest) {
+    for (const match of text.matchAll(productImportPattern)) {
+      if (match[1]) retainPaths.add(match[1]);
+    }
+  }
+  for (const match of text.matchAll(pathTokenPattern)) {
+    const token = match[1];
+    if (!token || !/(?:^|\/)[$_@a-z0-9.~-]+\.[a-z0-9]{1,8}$/iu.test(token)) continue;
+    if (/^[a-z]+:\/\//iu.test(token)) continue;
+    const kind = isTest ? ('test' as const) : ('production' as const);
+    const kinds = consumerReferences.get(token) ?? new Set<'production' | 'test'>();
+    kinds.add(kind);
+    consumerReferences.set(token, kinds);
   }
 }
 const qaContract = {
@@ -133,6 +149,7 @@ const evidenceBundle = combineAdapters([
   buildKnowledgeCutoverAdapter(treeReader, entries),
   buildQaEvidenceAdapter(treeReader, entries, qaContract, privacyContract),
   buildPrivacyScanAdapter(treeReader, entries, privacyContract),
+  buildConsumerReferenceAdapter(entries, consumerReferences),
 ]);
 // An identity-value hit vetoes any weaker privacy override another adapter produced.
 const adapterBundle = combineAdapters([{
