@@ -293,18 +293,21 @@ function simulationLogItem(log: {
   odysseyRunId: string | null;
   odysseyCompletedAt: Date | null;
   createdAt: Date;
-}): AiExperimentItem {
+}, resolvedOdysseyRunId: string | null): AiExperimentItem {
   const mode = String(log.controlMode ?? '').trim();
+  // 旧版日志可能只在 inputParams.runId 携带奥德赛身份（Codex R1 review）：
+  // 以外层解析出的身份为准投影类型、来源与导航。
+  const isOdyssey = Boolean(log.odysseyRunId ?? resolvedOdysseyRunId);
   const type: AiExperimentSourceType = log.isEthicalViolation
     ? 'ETHICS_SANDBOX'
-    : log.odysseyRunId
+    : isOdyssey
       ? 'ODYSSEY_RUN'
       : ['PID', 'P', 'PD', 'MANUAL'].includes(mode.toUpperCase())
         ? 'PID_TUNING'
         : 'SCENE_SIMULATION';
   const title = log.isEthicalViolation
     ? '伦理沙盘演练'
-    : log.odysseyRunId
+    : isOdyssey
       ? '控制奥德赛演练'
       : ['PID', 'P', 'PD', 'MANUAL'].includes(mode.toUpperCase())
         ? `仿真调参（${mode}）`
@@ -315,10 +318,10 @@ function simulationLogItem(log: {
     type,
     score: typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : null,
     createdAt: log.createdAt.toISOString(),
-    sourceLabel: log.odysseyRunId ? '控制奥德赛' : '仿真训练',
+    sourceLabel: isOdyssey ? '控制奥德赛' : '仿真训练',
     resultAuthority: log.odysseyCompletedAt ? 'official' : 'preview',
     sourceKind: 'simulation_log',
-    navigation: log.odysseyRunId
+    navigation: isOdyssey
       ? { href: '/interactive-learning/control-odyssey', label: '回到控制奥德赛' }
       : null,
     parameters: pidParameters(log.inputParams),
@@ -342,8 +345,12 @@ async function readExperimentCollection(
   db: PrismaClient,
 ): Promise<AiCollectionEnvelope<AiExperimentItem>> {
   try {
+    // 来源白名单（Codex R1 review）：只有场景/工作台运行是学生学习证据；
+    // arena_preview 与 agent_experiment 等其余 runKind 不得混入实验档案。
     const runWhere = {
       ownerUserId: userId,
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
       status: 'completed',
       completedAt: { not: null } as const,
     };
@@ -387,24 +394,61 @@ async function readExperimentCollection(
       identityBySourceRef.get(sceneTraceSourceRefId(userId, runId)) ?? `odyssey:${runId}`;
 
     const claimedIdentities = new Set<string>();
-    const items: AiExperimentItem[] = [];
+    const itemByIdentity = new Map<string, AiExperimentItem>();
+    const claim = (identity: string, item: AiExperimentItem) => {
+      claimedIdentities.add(identity);
+      itemByIdentity.set(identity, item);
+      return item;
+    };
+    // 桥接记录归并进代表项（Codex R1 review）：保留最高适用结果权威与
+    // 已验证导航——代表项身份不变，正式结果与可达入口不因合并丢失。
+    // 正式桥接记录的分数总是更新代表项（arena 最后归并，正式评测优先）。
+    const mergeIntoRepresentative = (
+      identity: string,
+      bridged: { official: boolean; score: number | null; navigation: { href: string; label: string } | null },
+    ) => {
+      const representative = itemByIdentity.get(identity);
+      if (!representative) return;
+      if (bridged.official) {
+        representative.resultAuthority = 'official';
+        if (typeof bridged.score === 'number') representative.score = bridged.score;
+      }
+      if (!representative.navigation && bridged.navigation) {
+        representative.navigation = bridged.navigation;
+      }
+    };
+
     for (const run of runs) {
-      claimedIdentities.add(`simulation-run:${run.id}`);
-      items.push(simulationRunItem(run));
+      claim(`simulation-run:${run.id}`, simulationRunItem(run));
     }
     for (const log of simulations) {
       const odysseyRunId = log.odysseyRunId ?? readLegacyRunId(log.inputParams);
       const identity = odysseyRunId ? resolveOdysseyIdentity(odysseyRunId) : `simulation:${log.id}`;
-      if (claimedIdentities.has(identity)) continue;
-      claimedIdentities.add(identity);
-      items.push(simulationLogItem(log));
+      if (claimedIdentities.has(identity)) {
+        mergeIntoRepresentative(identity, {
+          official: Boolean(log.odysseyCompletedAt),
+          score: typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : null,
+          navigation: odysseyRunId
+            ? { href: '/interactive-learning/control-odyssey', label: '回到控制奥德赛' }
+            : null,
+        });
+        continue;
+      }
+      claim(identity, simulationLogItem(log, odysseyRunId));
     }
     for (const submission of arenaSubmissions) {
       const odysseyRunId = readArtifactOdysseyRunId(submission.controllerArtifact?.payload);
       const identity = odysseyRunId ? resolveOdysseyIdentity(odysseyRunId) : `arena:${submission.id}`;
-      if (claimedIdentities.has(identity)) continue;
-      claimedIdentities.add(identity);
-      items.push({
+      const arenaNavigation = { href: `/arena/challenges/${encodeURIComponent(submission.taskId)}`, label: '查看挑战详情' };
+      if (claimedIdentities.has(identity)) {
+        mergeIntoRepresentative(identity, {
+          official: submission.valid,
+          score: submission.valid && Number.isFinite(submission.score) ? submission.score : null,
+          navigation: arenaNavigation,
+        });
+        continue;
+      }
+      claim(identity, {
         id: `arena:${submission.id}`,
         title: `Arena 提交（${submission.method}）`,
         type: 'ARENA_SUBMISSION',
@@ -413,17 +457,19 @@ async function readExperimentCollection(
         sourceLabel: 'Arena 竞技场',
         resultAuthority: submission.valid ? 'official' : 'preview',
         sourceKind: 'arena',
-        navigation: { href: `/arena/challenges/${encodeURIComponent(submission.taskId)}`, label: '查看挑战详情' },
+        navigation: arenaNavigation,
       });
     }
 
-    const ordered = orderByOccurrence(items, (item) => item.createdAt).slice(0, COLLECTION_ITEM_LIMIT);
-    // 总数按去重后的可展示活动计算；窗口截断时以剩余记录数为下界，
-    // 窗口外的重叠无法在不全量扫描的前提下精确去重（诚实下界，不伪造精确值）。
+    const ordered = orderByOccurrence([...itemByIdentity.values()], (item) => item.createdAt)
+      .slice(0, COLLECTION_ITEM_LIMIT);
+    // 总数按去重后的可展示活动计算（截断前的完整去重窗口），窗口截断时
+    // 以剩余记录数为增量下界——窗口外的重叠无法在不全量扫描的前提下
+    // 精确去重（诚实下界，不伪造精确值）。
     const remaining = Math.max(0, runTotal - runs.length)
       + Math.max(0, simulationTotal - simulations.length)
       + Math.max(0, arenaTotal - arenaSubmissions.length);
-    const total = ordered.length + remaining;
+    const total = itemByIdentity.size + remaining;
     return ordered.length > 0
       ? availableCollection(ordered, total, AI_WORKSHOP_COLLECTION_ACTIONS.experiments)
       : emptyCollection(AI_WORKSHOP_COLLECTION_ACTIONS.experiments);

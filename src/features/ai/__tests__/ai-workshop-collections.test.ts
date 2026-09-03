@@ -252,10 +252,11 @@ describe('experiment archive lineage (Issue #1912)', () => {
       id: 'simulation-run:run-1',
       sourceKind: 'simulation_run',
       type: 'SCENE_SIMULATION',
-      score: 77,
-      resultAuthority: 'preview',
+      resultAuthority: 'official',
       navigation: { href: '/interactive-learning/resources/sim-scene-cruise' },
     });
+    // 合并不丢最高适用权威：有效 Arena 提交的正式分数成为该活动结果（Codex R1 review）。
+    expect(item.score).toBe(91);
   });
 
   it('keeps an odyssey log as the representative when no canonical run exists and merges its arena bridge', async () => {
@@ -321,6 +322,36 @@ describe('experiment archive lineage (Issue #1912)', () => {
     expect(collections.experiments.total).toBe(3);
   });
 
+
+  it('projects legacy odyssey logs by inputParams.runId with odyssey typing and merges its arena bridge', async () => {
+    const db = createDb();
+    db.simulationLog.findMany.mockResolvedValue([{
+      id: 'log-legacy', controlMode: 'PID', inputParams: { runId: 'legacy-run-1', kp: 2 },
+      score: 80, isEthicalViolation: false, odysseyRunId: null, odysseyCompletedAt: null,
+      createdAt: new Date('2026-09-01T07:00:00Z'),
+    }]);
+    db.simulationLog.count.mockResolvedValue(1);
+    db.arenaSubmission.findMany.mockResolvedValue([{
+      id: 'arena-legacy', taskId: 'task-legacy', method: 'pid', score: 95, valid: true,
+      submittedAt: new Date('2026-09-01T07:10:00Z'),
+      controllerArtifact: { payload: { odysseyRunId: 'legacy-run-1' } },
+    }]);
+    db.arenaSubmission.count.mockResolvedValue(1);
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    expect(collections.experiments.items).toHaveLength(1);
+    // 旧版 runId 身份同样获得奥德赛类型、安全导航，其 Arena 桥接归并并升级权威。
+    expect(collections.experiments.items[0]).toMatchObject({
+      id: 'simulation:log-legacy',
+      type: 'ODYSSEY_RUN',
+      navigation: { href: '/interactive-learning/control-odyssey' },
+      resultAuthority: 'official',
+      score: 95,
+    });
+    expect(collections.experiments.total).toBe(1);
+  });
+
   it('keeps unrelated runs, logs and arena submissions separate with bounded lower-bound totals', async () => {
     const db = createDb();
     db.simulationRun.count.mockResolvedValue(20);
@@ -333,7 +364,10 @@ describe('experiment archive lineage (Issue #1912)', () => {
     expect(collections.experiments.state).toBe('empty');
     expect(collections.experiments.total).toBe(0);
     expect(db.simulationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ ownerUserId: 'student-1', status: 'completed' }),
+      // 来源白名单（Codex R1 review）：arena_preview / agent_experiment 不得混入。
+      where: expect.objectContaining({
+        ownerUserId: 'student-1', runKind: 'scene_simulation', sourceDomain: 'simulation_scene',
+      }),
       take: 12,
     }));
   });
