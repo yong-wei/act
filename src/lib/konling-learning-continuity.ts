@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+import { buildAdaptivePracticePathExecutionHref } from '@/lib/adaptive-practice-path-navigation';
+
 export type KonlingContinuityState = 'unfinished_task' | 'recent_mistake' | 'cold_start';
 
 export interface KonlingContinuitySnapshot {
@@ -31,6 +33,7 @@ export interface ContinuityDb {
     findFirst(args: unknown): Promise<{
       id: string;
       title: string;
+      goalId: string | null;
       currentNodeId: string | null;
       updatedAt: Date;
     } | null>;
@@ -91,21 +94,31 @@ export async function resolveKonlingContinuitySnapshot(
       pathStatus: { in: ['active', 'fallback', 'legacy'] },
     },
     orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
-    select: { id: true, title: true, currentNodeId: true, updatedAt: true },
+    select: { id: true, title: true, goalId: true, currentNodeId: true, updatedAt: true },
   });
 
   if (unfinishedTask?.currentNodeId) {
-    return {
-      snapshotId: snapshotId(input.userId, 'unfinished_task', `${unfinishedTask.id}:${unfinishedTask.currentNodeId}:${unfinishedTask.updatedAt.toISOString()}`),
-      state: 'unfinished_task',
-      evidenceAsOf: unfinishedTask.updatedAt.toISOString(),
-      unfinishedTask: {
-        pathId: unfinishedTask.id,
-        title: unfinishedTask.title,
-        nodeId: unfinishedTask.currentNodeId,
-        href: `/assessment/adaptive-practice?pathId=${encodeURIComponent(unfinishedTask.id)}`,
-      },
-    };
+    // 与 AI 工坊路径任务同一导航口径：goal/path/node + path-execution 意图；
+    // goal 无效时目标页无法恢复执行上下文，不进入 unfinished_task，
+    // 落入后续诚实状态（#1910）
+    const continueHref = buildAdaptivePracticePathExecutionHref({
+      goalId: unfinishedTask.goalId,
+      pathId: unfinishedTask.id,
+      nodeId: unfinishedTask.currentNodeId,
+    });
+    if (continueHref) {
+      return {
+        snapshotId: snapshotId(input.userId, 'unfinished_task', `${unfinishedTask.id}:${unfinishedTask.currentNodeId}:${unfinishedTask.updatedAt.toISOString()}`),
+        state: 'unfinished_task',
+        evidenceAsOf: unfinishedTask.updatedAt.toISOString(),
+        unfinishedTask: {
+          pathId: unfinishedTask.id,
+          title: unfinishedTask.title,
+          nodeId: unfinishedTask.currentNodeId,
+          href: continueHref,
+        },
+      };
+    }
   }
 
   const recentMistake = await db.adaptiveAssessmentAnswer.findFirst({

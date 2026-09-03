@@ -43,7 +43,7 @@ describe('assembleAiWorkshopCollections', () => {
     ]);
     const db = createDb();
     db.learningPath.findFirst.mockResolvedValue({
-      id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-b',
+      id: 'path-1', title: '控制矫正路径', goalId: 'control-correction', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-b',
       lastExecutionMetadata: { completedNodeIds: ['node-a'] },
     });
     db.knowledgeNode.findMany.mockResolvedValue([
@@ -94,9 +94,12 @@ describe('assembleAiWorkshopCollections', () => {
     expect(collections.tasks.items.filter((item) => item.sourceKind === 'path')).toEqual([
       expect.objectContaining({
         id: 'path:path-1:node-b', status: 'in_progress', title: '频域分析',
-        href: '/assessment/adaptive-practice?pathId=path-1',
+        href: '/assessment/adaptive-practice?goal=control-correction&pathId=path-1&nodeId=node-b&intent=path-execution',
       }),
-      expect.objectContaining({ id: 'path:path-1:node-c', status: 'locked', title: '校正设计' }),
+      expect.objectContaining({
+        id: 'path:path-1:node-c', status: 'locked', title: '校正设计',
+        href: '/assessment/adaptive-practice?goal=control-correction&pathId=path-1&nodeId=node-c&intent=path-execution',
+      }),
     ]);
     // 里程碑以执行记录的完成集合为权威，保留路径身份与当前节点。
     expect(collections.milestones.state).toBe('available');
@@ -167,7 +170,7 @@ describe('assembleAiWorkshopCollections', () => {
     const db = createDb();
     // 跳过/改道：currentNodeId 移到 node-c，但执行记录只确认 node-b 完成。
     db.learningPath.findFirst.mockResolvedValue({
-      id: 'path-1', title: '控制矫正路径', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-c',
+      id: 'path-1', title: '控制矫正路径', goalId: 'control-correction', nodeIds: ['node-a', 'node-b', 'node-c'], currentNodeId: 'node-c',
       lastExecutionMetadata: { completedNodeIds: ['node-b'] },
     });
     db.knowledgeNode.findMany.mockResolvedValue([
@@ -195,6 +198,50 @@ describe('assembleAiWorkshopCollections', () => {
     expect(collections.tasks.items[0]?.href).toBe(
       `/missions/assignments/${encodeURIComponent('assignment/with?reserved#chars')}`,
     );
+  });
+
+  it('does not project path tasks when the adopted path has no valid adaptive practice goal', async () => {
+    studentListAssignments.mockResolvedValue([{
+      id: 'assignment-1', title: '普通作业', contextStatus: 'CURRENT', state: 'NOT_STARTED',
+      submittedRequiredCount: 0, requiredQuestionCount: 1,
+    }]);
+    const db = createDb();
+    // goalId 缺失或不在合法自适应练习目标集合内时，目标页无法恢复执行上下文；
+    // 不得生成看似可执行的路径任务链接（#1910 review）
+    db.learningPath.findFirst.mockResolvedValueOnce({
+      id: 'path-1', title: '无目标路径', goalId: null, nodeIds: ['node-a'], currentNodeId: 'node-a',
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    db.learningPath.findFirst.mockResolvedValueOnce({
+      id: 'path-2', title: '非法目标路径', goalId: 'not-a-practice-goal', nodeIds: ['node-a'], currentNodeId: 'node-a',
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const noGoal = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+    expect(noGoal.tasks.items.map((item) => item.sourceKind)).toEqual(['assignment']);
+
+    const invalidGoal = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+    expect(invalidGoal.tasks.items.map((item) => item.sourceKind)).toEqual(['assignment']);
+  });
+
+  it('path-encodes goal, path and node values in path task navigation hrefs', async () => {
+    studentListAssignments.mockResolvedValue([]);
+    const db = createDb();
+    db.learningPath.findFirst.mockResolvedValue({
+      id: 'path 1&x', title: '特殊 ID 路径', goalId: 'control-correction', nodeIds: ['node/2?y'], currentNodeId: 'node/2?y',
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
+
+    const href = collections.tasks.items[0]?.href ?? '';
+    // 断言参数往返正确，不绑定 URLSearchParams 的具体编码风格
+    const parsed = new URL(`http://localhost${href}`).searchParams;
+    expect(parsed.get('goal')).toBe('control-correction');
+    expect(parsed.get('pathId')).toBe('path 1&x');
+    expect(parsed.get('nodeId')).toBe('node/2?y');
+    expect(parsed.get('intent')).toBe('path-execution');
+    expect(href.startsWith('/assessment/adaptive-practice?')).toBe(true);
   });
 
   it('marks milestones pending when the execution record carries no completion set', async () => {
