@@ -115,7 +115,7 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
               ) : null}
 
               {/* 导航状态：已验证目标可进入；不可验证时受限展示，不生成死链（Issue #1912） */}
-              <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 {experiment.navigation ? (
                   <span className="inline-flex items-center gap-1 font-medium text-foreground" data-ai-workshop-experiment-navigation={experiment.navigation.href}>
                     <Link2 className="h-3.5 w-3.5" />
@@ -127,6 +127,27 @@ export function ExperimentArchive({ collection }: ExperimentArchiveProps) {
                     入口不可用
                   </span>
                 )}
+                {/* 被归并来源的已验证链路（Codex R2 review）：不因合并丢失 */}
+                {(experiment.bridgedSources ?? []).map((bridged, index) => (
+                  bridged.navigation ? (
+                    <Link
+                      key={`${bridged.sourceLabel}-${index}`}
+                      href={bridged.navigation.href}
+                      className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-muted-foreground underline-offset-2 hover:underline"
+                      data-ai-workshop-experiment-bridged-source={bridged.sourceLabel}
+                    >
+                      {bridged.sourceLabel}
+                    </Link>
+                  ) : (
+                    <span
+                      key={`${bridged.sourceLabel}-${index}`}
+                      className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-muted-foreground"
+                      data-ai-workshop-experiment-bridged-source={bridged.sourceLabel}
+                    >
+                      {bridged.sourceLabel}
+                    </span>
+                  )
+                ))}
               </div>
             </>
           );

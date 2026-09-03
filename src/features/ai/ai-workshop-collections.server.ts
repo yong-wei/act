@@ -400,12 +400,18 @@ async function readExperimentCollection(
       itemByIdentity.set(identity, item);
       return item;
     };
-    // 桥接记录归并进代表项（Codex R1 review）：保留最高适用结果权威与
-    // 已验证导航——代表项身份不变，正式结果与可达入口不因合并丢失。
+    // 桥接记录归并进代表项（Codex R1/R2 review）：保留最高适用结果权威、
+    // 已验证导航与完整来源链路——代表项身份不变，被归并来源及其导航
+    // 以 bridgedSources 展示，正式结果与可达入口不因合并丢失。
     // 正式桥接记录的分数总是更新代表项（arena 最后归并，正式评测优先）。
     const mergeIntoRepresentative = (
       identity: string,
-      bridged: { official: boolean; score: number | null; navigation: { href: string; label: string } | null },
+      bridged: {
+        official: boolean;
+        score: number | null;
+        sourceLabel: string;
+        navigation: { href: string; label: string } | null;
+      },
     ) => {
       const representative = itemByIdentity.get(identity);
       if (!representative) return;
@@ -413,9 +419,10 @@ async function readExperimentCollection(
         representative.resultAuthority = 'official';
         if (typeof bridged.score === 'number') representative.score = bridged.score;
       }
-      if (!representative.navigation && bridged.navigation) {
-        representative.navigation = bridged.navigation;
-      }
+      representative.bridgedSources = [
+        ...(representative.bridgedSources ?? []),
+        { sourceLabel: bridged.sourceLabel, navigation: bridged.navigation },
+      ];
     };
 
     for (const run of runs) {
@@ -428,6 +435,7 @@ async function readExperimentCollection(
         mergeIntoRepresentative(identity, {
           official: Boolean(log.odysseyCompletedAt),
           score: typeof log.score === 'number' && Number.isFinite(log.score) ? log.score : null,
+          sourceLabel: '控制奥德赛',
           navigation: odysseyRunId
             ? { href: '/interactive-learning/control-odyssey', label: '回到控制奥德赛' }
             : null,
@@ -444,6 +452,7 @@ async function readExperimentCollection(
         mergeIntoRepresentative(identity, {
           official: submission.valid,
           score: submission.valid && Number.isFinite(submission.score) ? submission.score : null,
+          sourceLabel: 'Arena 竞技场',
           navigation: arenaNavigation,
         });
         continue;
@@ -463,13 +472,13 @@ async function readExperimentCollection(
 
     const ordered = orderByOccurrence([...itemByIdentity.values()], (item) => item.createdAt)
       .slice(0, COLLECTION_ITEM_LIMIT);
-    // 总数按去重后的可展示活动计算（截断前的完整去重窗口），窗口截断时
-    // 以剩余记录数为增量下界——窗口外的重叠无法在不全量扫描的前提下
-    // 精确去重（诚实下界，不伪造精确值）。
-    const remaining = Math.max(0, runTotal - runs.length)
-      + Math.max(0, simulationTotal - simulations.length)
-      + Math.max(0, arenaTotal - arenaSubmissions.length);
-    const total = itemByIdentity.size + remaining;
+    // 总数语义（Codex R2 review）：任一来源窗口截断时，窗口外的跨来源
+    // 重复无法在不全量扫描下去重——此时不声称精确总数（null，展示端
+    // 回退窗口数）；未截断时给出精确的去重活动总数，同一活动只计一次。
+    const truncated = runTotal > runs.length
+      || simulationTotal > simulations.length
+      || arenaTotal > arenaSubmissions.length;
+    const total = truncated ? null : itemByIdentity.size;
     return ordered.length > 0
       ? availableCollection(ordered, total, AI_WORKSHOP_COLLECTION_ACTIONS.experiments)
       : emptyCollection(AI_WORKSHOP_COLLECTION_ACTIONS.experiments);

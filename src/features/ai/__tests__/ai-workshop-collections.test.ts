@@ -257,6 +257,11 @@ describe('experiment archive lineage (Issue #1912)', () => {
     });
     // 合并不丢最高适用权威：有效 Arena 提交的正式分数成为该活动结果（Codex R1 review）。
     expect(item.score).toBe(91);
+    // 被归并来源的完整已验证链路保留（Codex R2 review）：奥德赛日志与 Arena 挑战入口可达。
+    expect(item.bridgedSources).toEqual([
+      { sourceLabel: '控制奥德赛', navigation: { href: '/interactive-learning/control-odyssey', label: '回到控制奥德赛' } },
+      { sourceLabel: 'Arena 竞技场', navigation: { href: '/arena/challenges/task-od', label: '查看挑战详情' } },
+    ]);
   });
 
   it('keeps an odyssey log as the representative when no canonical run exists and merges its arena bridge', async () => {
@@ -348,6 +353,9 @@ describe('experiment archive lineage (Issue #1912)', () => {
       navigation: { href: '/interactive-learning/control-odyssey' },
       resultAuthority: 'official',
       score: 95,
+      bridgedSources: [
+        { sourceLabel: 'Arena 竞技场', navigation: { href: '/arena/challenges/task-legacy', label: '查看挑战详情' } },
+      ],
     });
     expect(collections.experiments.total).toBe(1);
   });
@@ -360,7 +368,7 @@ describe('experiment archive lineage (Issue #1912)', () => {
 
     const collections = await assembleAiWorkshopCollections('student-1', db as unknown as PrismaClient);
 
-    // 窗口为空：总诚实下界 = 各来源窗口外剩余记录数之和。
+    // 任一来源截断时不再声称精确总数（Codex R2 review）：null，不重复计数窗口外活动。
     expect(collections.experiments.state).toBe('empty');
     expect(collections.experiments.total).toBe(0);
     expect(db.simulationRun.findMany).toHaveBeenCalledWith(expect.objectContaining({
