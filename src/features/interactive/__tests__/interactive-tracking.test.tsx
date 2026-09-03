@@ -221,6 +221,58 @@ describe('useInteractiveTracking', () => {
     vi.useRealTimers();
   });
 
+  it('never writes the new identity queue into the old identity key for syncs enqueued before the switch (Issue #1913)', async () => {
+    const firstSync = deferred<void>();
+    const onSync = vi.fn()
+      .mockImplementationOnce(() => firstSync.promise)
+      .mockImplementation(async () => undefined);
+    const identity = { userId: 'user-a' };
+    const trackingRef: { current: InteractiveTrackingContextValue | null } = { current: null };
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    function Harness() {
+      trackingRef.current = useInteractiveTracking({
+        resourceKey: 'standalone-resource',
+        sessionId: 'session-shared',
+        userId: identity.userId,
+        onSync,
+      });
+      return null;
+    }
+
+    await act(async () => root.render(<Harness />));
+    // 同步 #1 占住队列；同步 #2 在身份切换前入队、切换后才执行。
+    act(() => trackingRef.current?.emit('complete', { stepId: 'a-first' }));
+    await act(async () => Promise.resolve());
+    act(() => trackingRef.current?.emit('submit', { stepId: 'a-queued' }));
+    await act(async () => Promise.resolve());
+    expect(onSync).toHaveBeenCalledTimes(1);
+
+    identity.userId = 'user-b';
+    await act(async () => root.render(<Harness />));
+    const keyA = 'interactive_events_standalone-resource:session-shared:user-a';
+    // 切换 effect 把 A 的未落盘事件冲刷到 A 的键。
+    expect(JSON.parse(localStorage.getItem(keyA) ?? '[]').map((event: { stepId?: string }) => event.stepId))
+      .toEqual(expect.arrayContaining(['a-first', 'a-queued']));
+    act(() => trackingRef.current?.emit('complete', { stepId: 'b-event' }));
+    await act(async () => Promise.resolve());
+
+    firstSync.resolve();
+    await act(async () => firstSync.promise);
+    await act(async () => Promise.resolve());
+    await act(async () => Promise.resolve());
+
+    // 过期的 A 任务（同步 #2）执行后，A 键不得出现 B 的事件，
+    // B 键也不得被 A 的任务回写。
+    const storedA = JSON.parse(localStorage.getItem(keyA) ?? '[]');
+    expect(storedA.every((event: { userId?: string }) => event.userId === 'user-a')).toBe(true);
+    const keyB = 'interactive_events_standalone-resource:session-shared:user-b';
+    const storedB = JSON.parse(localStorage.getItem(keyB) ?? '[]');
+    expect(storedB.every((event: { userId?: string }) => event.userId === 'user-b')).toBe(true);
+    await act(async () => root.unmount());
+  });
+
   it('restores pending events for the same identity after remount (Issue #1913)', async () => {
     const identity = { userId: 'user-a' };
     const trackingRef: { current: InteractiveTrackingContextValue | null } = { current: null };

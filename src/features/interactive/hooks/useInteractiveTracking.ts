@@ -61,11 +61,26 @@ export function useInteractiveTracking(
     storageKeyRef.current = storageKey;
   }, [storageKey]);
 
-  // 从 localStorage 恢复事件：身份键变化时必须整队重置为新键的存储态。
-  // 新键无已存数据时清空旧身份队列，防止访客或前一个用户的事件被新
-  // 身份的同步通道提交（Issue #1913）；同身份刷新仍完整恢复待同步事件。
+  // 从 localStorage 恢复事件：身份键变化时先把当前队列落盘到原身份键
+  // （防抖可能尚未触发，不得丢失），清掉跨身份的防抖定时器，再整队重置
+  // 为新键的存储态；新键无已存数据时清空，防止访客或前一个用户的事件
+  // 被新身份的同步通道提交（Issue #1913）。同身份刷新仍完整恢复。
+  const previousStorageKeyRef = useRef(storageKey);
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    if (previousStorageKeyRef.current !== storageKey) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      try {
+        localStorage.setItem(previousStorageKeyRef.current, JSON.stringify(eventsRef.current));
+      } catch (e) {
+        console.warn('[InteractiveTracking] Failed to flush events before identity switch:', e);
+      }
+    }
+    previousStorageKeyRef.current = storageKey;
 
     let restored: TrackingEvent[] = [];
     try {
@@ -95,13 +110,15 @@ export function useInteractiveTracking(
 
   // 同步事件到服务器
   const syncEvents = useCallback(() => {
+    // 身份键在入队时捕获（闭包身份）：排队中的任务执行时身份可能已切换，
+    // 执行时读当前键会把新身份误判为自己的快照（Codex R1 review，#1913）。
+    const enqueueStorageKey = storageKey;
     const run = syncQueueRef.current.then(async () => {
       const events = [...eventsRef.current];
       if (events.length === 0) return;
-      const snapshotStorageKey = storageKeyRef.current;
       // 同步在途时身份键已切换：快照过期，不得回写任何存储键或队列，
-      // 防止新身份数组写入旧身份键、旧身份未同步事件被误清（Issue #1913）。
-      const snapshotIsStale = () => storageKeyRef.current !== snapshotStorageKey;
+      // 防止新身份数组写入旧身份键、旧身份未同步事件被误清。
+      const snapshotIsStale = () => storageKeyRef.current !== enqueueStorageKey;
 
       // Skip server sync in demo mode (no sessionId)
       if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
@@ -146,7 +163,7 @@ export function useInteractiveTracking(
     });
     syncQueueRef.current = run.catch(() => undefined);
     return run;
-  }, [isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, userId]);
+  }, [isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, storageKey, userId]);
 
   // 设置定时同步
   useEffect(() => {
