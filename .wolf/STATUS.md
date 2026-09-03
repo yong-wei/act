@@ -10,6 +10,8 @@
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
+- 2026-09-03：熵减启动父项 #1875 与 #1876/#1880/#1881/#1883 已全部 `status:archived`。根据归档产物的真实资格状态，Buddy propose 新建交付父项 #1915，只登记两个可执行重资格化变更：#1916 `complete-current-repository-payload-eligibility-classification` 与 #1917 `requalify-current-residual-data-governance-owner-migration-inputs`。提案最终修订 `6eb5334602` 已推送 `integration`；两个 change 4/4 工件、全量 changes strict、canonical spec、归档/同步演练、managed commit/push 门禁和独立终审通过。原生关系为 #1915 → #1916/#1917，#1917 blockedBy #1916；唯一映射已复核。未 claim、迁移/删除/外置载荷、移动 Data Governance 文件、创建下游迁移/热点/N5 Issue、修改 selector 或部署。
+
 - 2026-09-03：按 `post-convergence-entropy-reduction-2026-09` 方案完成 Buddy propose 启动系列。tracking parent #1875 下只建立四个 executable changes：#1876 post-convergence successor capture、#1880 clean-head 测试失败分母、#1881 仓库载荷权威/物化分类、#1883 Data Governance 残余 owner 裁决。四项 OpenSpec 均 apply-ready、strict valid，proposal commits 依次为 `330bf5defd`、`9e8e94f6f`、`edb99dbafd`、`747e72a51f`；独立/领域审查 findings 已按根因整改并清场。原生关系已批量回读：#1876 blockedBy #1805–#1810，#1880/#1881/#1883 blockedBy #1876。未 claim、实现、外置/删除载荷、修改 selector、部署或创建其余 24 个候选项。
 
 - 2026-09-02：#1872 在 `act-dev2` 完成。PR #1874 squash 合入 `56c45f016a`（清场 head `5d4390084`）；Codex 9 轮审查（P1×10）全修复——检测器收敛为子句粒度 + 封闭连接集结构判定；OpenSpec 归档 `2026-09-02-fix-diagnosis-overall-subgroup-pseudo-conflict`，主 spec 新增证据可比性 requirement。Issue CLOSED / `status:archived`。未关 #1033，未生产部署。
@@ -78,11 +80,11 @@
 
 ## 🚀 Next phase
 
-- 2026-09-03：#1880 `reconcile-current-clean-head-test-failure-denominator` 已在 `act-dev1` 完成调查合同、受管 lane 执行与 compact handoff。subject 为 A successor `fa6e618d…` / source `698cb2f4cd`；tool `7bef35c1fb`；default PR lane `test` 为 clean；unit 71 失败 + 47 skip、contract timeout、integration 16 skip、e2e symlink、release-manifest-missing、nightly-not-run 均为非默认 lane。下一步：归档进同一 PR、Codex 清场后合入。不要执行 FIX/DELETE/QUARANTINE，不要写入 `REQUIRED_BASELINE`，不要生产 `deploy:app` / `deploy:runtime`。
+- 2026-09-03：先 claim #1916，按 claim 时 clean `origin/integration` 重建完整 tracked payload path/byte 分母，闭合当前 authority/consumer/retention/privacy/materialization/recovery/rollback 与 full-inventory 实际字节验证。旧 #1881 的 52,159 个 unresolved 与 `package-unqualified` 只作历史比较；输出未达到 unresolved=0 时继续 fail closed。不得迁移、删除、外置、物化载荷，不得改 active baseline/fitness/test qualification 或生产状态。
 
 - 2026-09-03：#1898 `integrate-type055-nanchang-v2-model-release` 已在 `act-dev2` 认领并完成实现：接收 3DModels v2.0.0 六文件包（`public/assets/model-releases/type055-nanchang-101/v2.0.0/` + 收据）、ACT 描述符/验证器（`src/resources/simulations/model-packages/`）、共享 `VersionedShipModel`（档位→LOD、就绪前保留、失败回退旧候选链）、destroyer 场景 `?model=type055-v2` 候选开关 + 唯一坐标基适配（+X 艏→+Z 艏）、QA 路由 `/simulations/type055-model-candidate`。单测 18+5、Playwright 7 项全过；typecheck/lint 0；未生产发布、未切默认模型。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
-- 2026-09-03：熵减启动系列以 #1875 为跟踪父项。#1876 已归档；#1881 已合入 `origin/integration`。#1880 本树收尾中；#1883 须先 claim 再实现。不得提前创建 payload migration、Data Governance 搬迁、hotspot pass 2 或 N5 closure，不得把重复字节当删除授权，不得生产 `deploy:app` / `deploy:runtime`。
+- 2026-09-03：#1917 由 #1916 原生阻塞，只有 #1916 归档后才可 claim；它必须独立捕获当时 current subject，实际复验 full ledger 字节并重新闭合每个 Data Governance 成员的唯一 owner、正交 outcome、全部 caller 与高风险不变量。#1916/#1917 都 qualified 后，再依据真实输出提出最小 payload/DG 迁移子项；不要预建其余候选、Konling/Path 热点或 N5 closure。#1896 的教师范围/隐私修复及 #1904 的诊断投影语义仍需作为相关未来切片的独立门禁。不得生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 18 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、代次目录锁：mkdir 单胜 + 初始化宽限 + 前代复验 + 实例标记 wx 发布）。fixture 端到端演示通过。Codex 六轮 findings 全修复，待最终清场合并。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
