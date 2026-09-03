@@ -97,6 +97,7 @@ export interface PredecessorDelta {
   readonly currentTrackedCount: number;
   readonly addedCount: number;
   readonly removedCount: number;
+  readonly modifiedCount: number;
   readonly unchangedCount: number;
   readonly addedSample: readonly string[];
 }
@@ -203,7 +204,7 @@ export interface ClassifyInput {
   readonly handoff: AHandoff | null;
   readonly subject: CurrentSubject;
   readonly predecessor: PredecessorPackage | null;
-  readonly predecessorPaths: readonly string[] | null;
+  readonly predecessorEntries: readonly InventoryEntry[] | null;
   readonly tool: ToolCheckpoint;
   readonly entries: readonly InventoryEntry[];
   readonly adapterIdentities?: readonly AdapterEvidenceIdentity[];
@@ -275,35 +276,43 @@ export function subjectIdentityOf(subject: CurrentSubject): string {
   return sha256Text(`${subject.subjectCommit}:${subject.subjectTree}`);
 }
 
-function predecessorDeltaOf(predecessorPaths: readonly string[] | null, entries: readonly InventoryEntry[]): PredecessorDelta | null {
-  if (!predecessorPaths) return null;
-  const currentPaths = entries.map((entry) => entry.path);
-  const currentSet = new Set(currentPaths);
+function predecessorDeltaOf(predecessorEntries: readonly InventoryEntry[] | null, entries: readonly InventoryEntry[]): PredecessorDelta | null {
+  if (!predecessorEntries) return null;
+  const currentByPath = new Map(entries.map((entry) => [entry.path, entry]));
   // The predecessor inventory redacts privacy-unknown paths; recover them by
   // matching their redaction digest against current paths so the delta counts
   // real additions instead of redaction artifacts.
   const redactionIndexOfCurrent = new Map<string, string>();
-  for (const path of currentPaths) {
+  for (const path of currentByPath.keys()) {
     redactionIndexOfCurrent.set(`redacted:${sha256Text(path).slice(0, 16)}`, path);
   }
-  const predecessorReal = new Set<string>();
-  for (const path of predecessorPaths) {
-    if (!path.startsWith('redacted:')) {
-      predecessorReal.add(path);
+  const predecessorReal = new Map<string, string>();
+  for (const entry of predecessorEntries) {
+    if (!entry.path.startsWith('redacted:')) {
+      predecessorReal.set(entry.path, entry.hash);
       continue;
     }
-    const recovered = redactionIndexOfCurrent.get(path);
-    if (recovered) predecessorReal.add(recovered);
-    else predecessorReal.add(path);
+    const recovered = redactionIndexOfCurrent.get(entry.path);
+    if (recovered) predecessorReal.set(recovered, entry.hash);
+    else predecessorReal.set(entry.path, entry.hash);
   }
-  const added = currentPaths.filter((path) => !predecessorReal.has(path));
-  const removed = [...predecessorReal].filter((path) => !currentSet.has(path));
+  const added: string[] = [];
+  let modified = 0;
+  let unchanged = 0;
+  for (const [path, entry] of currentByPath) {
+    const predecessorHash = predecessorReal.get(path);
+    if (predecessorHash === undefined) added.push(path);
+    else if (predecessorHash !== entry.hash) modified += 1;
+    else unchanged += 1;
+  }
+  const removed = [...predecessorReal.keys()].filter((path) => !currentByPath.has(path));
   return {
-    predecessorTrackedCount: predecessorPaths.length,
+    predecessorTrackedCount: predecessorEntries.length,
     currentTrackedCount: entries.length,
     addedCount: added.length,
     removedCount: removed.length,
-    unchangedCount: currentSet.size - added.length,
+    modifiedCount: modified,
+    unchangedCount: unchanged,
     addedSample: added.sort((left, right) => left.localeCompare(right)).slice(0, 20),
   };
 }
@@ -701,7 +710,7 @@ function frozenDigest(input: ClassifyInput, handoff: AHandoff, entries: readonly
       rollback: item.rollback ?? null,
     })),
     predecessor: input.predecessor,
-    predecessorPathsDigest: input.predecessorPaths === null ? null : sha256Text([...input.predecessorPaths].sort().join('\n')),
+    predecessorEntriesDigest: input.predecessorEntries === null ? null : sha256Text(input.predecessorEntries.map((item) => `${item.path}:${item.hash}`).sort().join('\n')),
     schemaVersion: PAYLOAD_CLASSIFICATION_SCHEMA_VERSION,
     successorCaptureId: handoff.successorCaptureId,
     toolCommit: input.tool.toolCommit,
@@ -937,6 +946,7 @@ function renderSummary(params: {
           ['current tracked', String(params.delta.currentTrackedCount)],
           ['added', String(params.delta.addedCount)],
           ['removed', String(params.delta.removedCount)],
+          ['modified', String(params.delta.modifiedCount)],
           ['unchanged', String(params.delta.unchangedCount)],
           ['added sample', params.delta.addedSample.slice(0, 5).join(', ') || 'none'],
         ],
@@ -1054,9 +1064,9 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
   if (input.subject.subjectCommit === input.tool.toolCommit) {
     return blocked('subject-is-implementation-commit');
   }
-  if (input.predecessorPaths === null) return blocked('predecessor-inventory-missing');
-  if (input.predecessorPaths.length !== predecessor.trackedFileCount) {
-    return blocked(`predecessor-denominator-mismatch:${input.predecessorPaths.length}!=${predecessor.trackedFileCount}`);
+  if (input.predecessorEntries === null) return blocked('predecessor-inventory-missing');
+  if (input.predecessorEntries.length !== predecessor.trackedFileCount) {
+    return blocked(`predecessor-denominator-mismatch:${input.predecessorEntries.length}!=${predecessor.trackedFileCount}`);
   }
   if (input.expectedIdentities?.successorCaptureId && input.expectedIdentities.successorCaptureId !== handoff.successorCaptureId) {
     return blocked('a-subject-identity-drift');
@@ -1140,7 +1150,7 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     subject: input.subject,
     subjectIdentity,
     predecessor,
-    delta: predecessorDeltaOf(input.predecessorPaths, input.entries),
+    delta: predecessorDeltaOf(input.predecessorEntries, input.entries),
     tool: input.tool,
     frozenInputDigest,
     packageDigest,
@@ -1213,7 +1223,7 @@ export function classifyPackage(input: ClassifyInput): ClassifyResult {
     packageStatus = 'qualified';
     packageReason = null;
   }
-  const delta = predecessorDeltaOf(input.predecessorPaths, input.entries);
+  const delta = predecessorDeltaOf(input.predecessorEntries, input.entries);
   const filesBase = {
     'policy-matrix.md': policyMatrix(),
     'unresolved.md': groupedLines(
@@ -1396,8 +1406,8 @@ export function loadCommittedPredecessorPackage(repoRoot: string): PredecessorPa
   };
 }
 
-/** Reads and digest-verifies the predecessor full-inventory artifact to recover its tracked path set. */
-export function loadPredecessorPaths(repoRoot: string): string[] {
+/** Reads and digest-verifies the predecessor full-inventory artifact to recover its tracked entry set (path + blob identity). */
+export function loadPredecessorEntries(repoRoot: string): InventoryEntry[] {
   const raw = readFileSync(join(repoRoot, 'docs/architecture/repository-payload-classification/index.json'), 'utf8');
   const index = JSON.parse(raw) as { fullInventory?: { logicalLocator?: string; sha256?: string } };
   const locator = index.fullInventory?.logicalLocator;
@@ -1409,9 +1419,11 @@ export function loadPredecessorPaths(repoRoot: string): string[] {
   const sha256 = createHash('sha256').update(bytes).digest('hex');
   if (sha256 !== expectedSha) throw new Error('predecessor-inventory-digest-mismatch');
   return bytes.toString('utf8').trimEnd().split('\n')
-    .map((line) => JSON.parse(line) as { path?: string })
-    .filter((row): row is { path: string } => typeof row.path === 'string')
-    .map((row) => row.path);
+    .map((line) => JSON.parse(line) as { path?: string; hash?: string; sizeBytes?: number })
+    .filter((row): row is { path: string; hash: string; sizeBytes: number } => (
+      typeof row.path === 'string' && typeof row.hash === 'string' && Number.isSafeInteger(row.sizeBytes)
+    ))
+    .map((row) => ({ path: row.path, hash: row.hash, sizeBytes: row.sizeBytes }));
 }
 
 export function toolCheckpointFromGit(repoRoot: string, extraFiles: readonly string[] = []): ToolCheckpoint {

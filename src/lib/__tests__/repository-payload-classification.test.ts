@@ -32,6 +32,7 @@ import {
 } from '@/lib/architecture-census/payload-classification';
 import {
   buildContentCompilerAdapter,
+  buildKnowledgeCutoverAdapter,
   buildPrivacyScanAdapter,
   buildQaEvidenceAdapter,
   buildReleaseAdapter,
@@ -127,7 +128,7 @@ function input(partial: Partial<ClassifyInput> & Pick<ClassifyInput, 'entries'>)
     handoff: handoff(partial.entries.length),
     subject,
     predecessor: predecessorFixture(partial.entries.length),
-    predecessorPaths: partial.entries.map((item) => item.path),
+    predecessorEntries: partial.entries.map((item) => ({ ...item })),
     tool,
     ...partial,
   };
@@ -200,8 +201,8 @@ describe('repository payload classification', () => {
       ...base,
       subject: { ...subject, subjectCommit: tool.toolCommit },
     })).reason).toBe('subject-is-implementation-commit');
-    expect(classifyPackage(input({ ...base, predecessorPaths: null })).reason).toBe('predecessor-inventory-missing');
-    expect(classifyPackage(input({ ...base, predecessorPaths: [] })).reason).toBe('predecessor-denominator-mismatch:0!=1');
+    expect(classifyPackage(input({ ...base, predecessorEntries: null })).reason).toBe('predecessor-inventory-missing');
+    expect(classifyPackage(input({ ...base, predecessorEntries: [] })).reason).toBe('predecessor-denominator-mismatch:0!=1');
     expect(classifyPackage(input({
       ...base,
       expectedIdentities: { subjectCommit: '9'.repeat(40) },
@@ -216,7 +217,10 @@ describe('repository payload classification', () => {
     const entries = [entry('src/lib/a.ts'), entry('src/lib/new-payload.json')];
     const result = runWithVerification({
       entries,
-      predecessorPaths: ['src/lib/a.ts', 'src/lib/gone.ts'],
+      predecessorEntries: [
+        { path: 'src/lib/a.ts', hash: entry('src/lib/a.ts').hash, sizeBytes: 10 },
+        { path: 'src/lib/gone.ts', hash: 'ab'.repeat(20), sizeBytes: 10 },
+      ],
       predecessor: predecessorFixture(2),
       overrides: entries.map((item) => completeOverride(item.path)),
     });
@@ -228,9 +232,21 @@ describe('repository payload classification', () => {
       currentTrackedCount: 2,
       addedCount: 1,
       removedCount: 1,
+      modifiedCount: 0,
       unchangedCount: 1,
       addedSample: ['src/lib/new-payload.json'],
     });
+    // Same path with a different blob identity must count as modified, not unchanged.
+    const drifted = runWithVerification({
+      entries: [entry('src/lib/a.ts'), entry('src/lib/new-payload.json')],
+      predecessorEntries: [
+        { path: 'src/lib/a.ts', hash: 'ee'.repeat(20), sizeBytes: 10 },
+        { path: 'src/lib/new-payload.json', hash: 'f0'.repeat(20), sizeBytes: 10 },
+      ],
+      predecessor: predecessorFixture(2),
+      overrides: [completeOverride('src/lib/a.ts'), completeOverride('src/lib/new-payload.json')],
+    });
+    expect(drifted.delta).toMatchObject({ addedCount: 0, removedCount: 0, modifiedCount: 1, unchangedCount: 1 });
     const index = JSON.parse(result.files!['index.json']) as {
       currentSubject: { subjectCommit: string };
       predecessor: { packageDigest: string };
@@ -246,7 +262,10 @@ describe('repository payload classification', () => {
     const redactedKey = `redacted:${sha256Text(currentPath).slice(0, 16)}`;
     const result = runWithVerification({
       entries: [entry(currentPath), entry('docs/new.md')],
-      predecessorPaths: [redactedKey, 'docs/old.md'],
+      predecessorEntries: [
+        { path: redactedKey, hash: 'ab'.repeat(20), sizeBytes: 10 },
+        { path: 'docs/old.md', hash: 'ab'.repeat(20), sizeBytes: 10 },
+      ],
       predecessor: predecessorFixture(2),
       overrides: [completeOverride(currentPath), completeOverride('docs/new.md')],
     });
@@ -778,6 +797,98 @@ describe('payload classification evidence adapters', () => {
     expect(selectPrimaryClass({ ...completeFacets(), ...manifest?.facets })).toBe('B');
     expect(bundle.identities[0]?.proven).toBe(4);
     expect(bundle.identities[0]?.unresolved).toBe(0);
+  });
+
+  it('splits runtime families by real producer: export outputs stay B, cutover views become E, unbound paths stay unresolved', () => {
+    const scriptHash = 'ab'.repeat(20);
+    const writerHash = 'cd'.repeat(20);
+    const entries = [
+      entry('course-content/scripts/export-runtime.sh', scriptHash),
+      entry('course-content/scripts/export_runtime.py', 'ba'.repeat(20)),
+      entry('scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts', writerHash),
+      entry('scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts', 'ce'.repeat(20)),
+      entry('course-content/runtime/lessons/1-1/lesson.json', 'f0'.repeat(20)),
+      entry('course-content/runtime/knowledge/infographs/manifest.json', 'f1'.repeat(20)),
+      entry('course-content/runtime/knowledge/authority-domain-shards/sets/s1/shard.json', 'f2'.repeat(20)),
+      entry('course-content/runtime/knowledge/consumer-activation/current.json', 'f3'.repeat(20)),
+      entry('course-content/runtime/knowledge/authority-learning-content-manifest.json', 'f4'.repeat(20)),
+      entry('course-content/runtime/unattributed/orphan.json', 'f5'.repeat(20)),
+    ];
+    const toolchainScripts = [
+      entry('course-content/scripts/export-runtime.sh', scriptHash),
+      entry('course-content/scripts/export_runtime.py', 'ba'.repeat(20)),
+      ...Array.from({ length: 39 }, (_, index) => entry(`course-content/scripts/tool-${index}.py`, 'ba'.repeat(20))),
+    ];
+    const cutoverScripts = [
+      entry('scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts', writerHash),
+      entry('scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts', 'ce'.repeat(20)),
+      ...Array.from({ length: 74 }, (_, index) => entry(`scripts/knowledge-cutover/tool-${index}.ts`, 'ce'.repeat(20))),
+    ];
+    const listed = [...toolchainScripts, ...cutoverScripts];
+    const reader: SubjectTreeReader = {
+      blobBytes: () => Buffer.from('{}', 'utf8'),
+      listEntries: (prefix: string) => listed.filter((item) => item.path.startsWith(prefix)),
+    };
+    const compiler = buildContentCompilerAdapter(reader, entries);
+    const compilerPaths = new Set(compiler.overrides.map((item) => item.path));
+    expect(compilerPaths.has('course-content/runtime/lessons/1-1/lesson.json')).toBe(true);
+    expect(compilerPaths.has('course-content/runtime/knowledge/infographs/manifest.json')).toBe(true);
+    expect(compilerPaths.has('course-content/runtime/knowledge/authority-domain-shards/sets/s1/shard.json')).toBe(false);
+    expect(compilerPaths.has('course-content/runtime/unattributed/orphan.json')).toBe(false);
+
+    const cutover = buildKnowledgeCutoverAdapter(reader, entries);
+    const cutoverPaths = new Set(cutover.overrides.map((item) => item.path));
+    const shardOverride = cutover.overrides.find((item) => item.path === 'course-content/runtime/knowledge/authority-domain-shards/sets/s1/shard.json');
+    expect(shardOverride?.facets.cacheMaterializedRoles).toEqual(['materialized-view']);
+    expect(shardOverride?.authority).toMatch(/^toolchain:knowledge-cutover-runtime@/);
+    expect(shardOverride?.materialization).toBe('existing-view-only');
+    expect(cutoverPaths.has('course-content/runtime/knowledge/consumer-activation/current.json')).toBe(true);
+    expect(cutoverPaths.has('course-content/runtime/knowledge/authority-learning-content-manifest.json')).toBe(true);
+    expect(cutoverPaths.has('course-content/runtime/lessons/1-1/lesson.json')).toBe(false);
+    expect(cutoverPaths.has('course-content/runtime/unattributed/orphan.json')).toBe(false);
+
+    const drifted = buildKnowledgeCutoverAdapter({
+      ...reader,
+      listEntries: (prefix: string) => listed.filter((item) => item.path.startsWith(prefix)).slice(0, 70),
+    }, entries);
+    expect(drifted.overrides).toHaveLength(0);
+    expect(drifted.identities[0]?.drift).toBe('toolchain-count-drift:70!=76');
+  });
+
+  it('keeps artifact text with user identifiers unresolved despite a non-private QA class label', () => {
+    const cleanHash = 'aa'.repeat(20);
+    const identityHash = 'bb'.repeat(20);
+    const privateHash = 'cc'.repeat(20);
+    const entries = [
+      entry('artifacts/audit/clean-manifest.json', cleanHash),
+      entry('artifacts/audit/state-flows-manifest.json', identityHash),
+      entry('artifacts/audit/private-shot.json', privateHash),
+    ];
+    const blobs: Record<string, string> = {
+      [cleanHash]: '{"rows":[]}',
+      [identityHash]: '{"records":[{"userId":"u-123"}]}',
+      [privateHash]: '{"session":"redacted"}',
+    };
+    const reader: SubjectTreeReader = {
+      blobBytes: (hash: string) => Buffer.from(blobs[hash] ?? '{}', 'utf8'),
+      listEntries: () => entries,
+    };
+    const contract = {
+      classifyArtifact: (path: string): QaLifecycleOutcome => (
+        path.endsWith('private-shot.json')
+          ? { evidenceClass: 'run-specific-output', privacyClass: 'private-run-evidence', retentionDecision: 'externalize-then-delete', owner: 'platform' }
+          : { evidenceClass: 'portable-manifest', privacyClass: 'none', retentionDecision: 'retain-in-repo', owner: 'platform' }
+      ),
+    };
+    const scan = { scanText: (text: string) => (text.includes('password') ? ['forbidden:password'] : []) };
+    const bundle = buildQaEvidenceAdapter(reader, entries, contract, scan);
+    const paths = new Set(bundle.overrides.map((item) => item.path));
+    expect(paths.has('artifacts/audit/clean-manifest.json')).toBe(true);
+    // identity-bearing text is not qualified on a class label alone
+    expect(paths.has('artifacts/audit/state-flows-manifest.json')).toBe(false);
+    // private run evidence stays with its explicit F-class handling and is not content-scanned
+    expect(paths.has('artifacts/audit/private-shot.json')).toBe(true);
+    expect(bundle.identities[0]?.unresolved).toBe(1);
   });
 
   it('proves internal privacy from scanned content and keeps forbidden payloads unresolved', () => {

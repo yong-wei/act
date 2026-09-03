@@ -34,7 +34,7 @@ export interface PrivacyScanContract {
 }
 
 export interface AdapterIdentity {
-  readonly name: 'release-manifest' | 'content-compiler-toolchain' | 'qa-evidence-lifecycle' | 'privacy-content-scan';
+  readonly name: 'release-manifest' | 'content-compiler-toolchain' | 'knowledge-cutover-runtime' | 'qa-evidence-lifecycle' | 'privacy-content-scan';
   readonly inputDigest: string;
   readonly candidates: number;
   readonly proven: number;
@@ -61,9 +61,40 @@ export const CONTENT_COMPILER_CHARACTERIZATION_FILES = [
   'course-content/scripts/export_runtime.py',
 ] as const;
 
+/** Runtime path families export_runtime.py actually writes (verified against its source). */
+export const CONTENT_COMPILER_OUTPUT_FAMILIES = [
+  'course-content/runtime/lessons/',
+  'course-content/runtime/knowledge/cards/',
+  'course-content/runtime/knowledge/graph/',
+  'course-content/runtime/knowledge/infographs/',
+] as const;
+
 export const CONTENT_COMPILER_TOOLCHAIN_ROOT = 'course-content/scripts';
 /** Frozen toolchain inventory count from tools/content-knowledge-runtime-release (committed contract). */
 export const CONTENT_COMPILER_FROZEN_COUNT = 41;
+
+export const KNOWLEDGE_CUTOVER_WRITER_FILES = [
+  'scripts/knowledge-cutover/stage-r4-c4-authority-domain-shards.ts',
+  'scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts',
+] as const;
+
+/** Runtime path families materialized by the knowledge-cutover toolchain (verified against writer sources). */
+export const KNOWLEDGE_CUTOVER_OUTPUT_FAMILIES = [
+  'course-content/runtime/knowledge/authority-domain-shards/',
+  'course-content/runtime/knowledge/consumer-activation/',
+  'course-content/runtime/knowledge/projection/',
+  'course-content/runtime/knowledge/prerequisites/',
+  'course-content/runtime/knowledge/teaching-projection/',
+  'course-content/runtime/knowledge/authority-domain-catalog/',
+  'course-content/runtime/resource-governance/',
+] as const;
+
+export const KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT = 'scripts/knowledge-cutover';
+/** Frozen toolchain inventory count from tools/content-knowledge-runtime-release (committed contract). */
+export const KNOWLEDGE_CUTOVER_FROZEN_COUNT = 76;
+
+/** Identity patterns that must keep a payload privacy-unresolved even inside committed evidence. */
+export const PRIVACY_IDENTITY_PATTERN = /(?:userId|learnerId|studentId|userName|studentName|emailAddress|userEmail|sessionId)/iu;
 
 function sha256Bytes(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
@@ -200,10 +231,11 @@ function releaseIdentityOverride(path: string, authority: string): EvidenceOverr
 }
 
 /**
- * Content-compiler adapter: course-content/runtime members (outside releases)
- * are export outputs of the frozen content-compiler toolchain. The adapter
- * fails closed (proves nothing) when the toolchain inventory count drifts from
- * the committed frozen contract.
+ * Content-compiler adapter: runtime families that export_runtime.py actually
+ * writes are export outputs of the frozen content-compiler toolchain. The
+ * adapter fails closed (proves nothing) when the toolchain inventory count
+ * drifts from the committed frozen contract. Every other runtime path stays
+ * with whatever other adapter can prove it — never this one.
  */
 export function buildContentCompilerAdapter(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): AdapterBundle {
   const toolchainEntries = reader.listEntries(CONTENT_COMPILER_TOOLCHAIN_ROOT);
@@ -263,17 +295,83 @@ export function buildContentCompilerAdapter(reader: SubjectTreeReader, entries: 
 }
 
 function isContentCompilerCandidate(path: string): boolean {
-  return path.startsWith('course-content/runtime/') && !path.includes('/releases/');
+  return path.includes('/releases/')
+    ? false
+    : CONTENT_COMPILER_OUTPUT_FAMILIES.some((family) => path.startsWith(family));
+}
+
+/**
+ * Knowledge-cutover adapter: runtime families materialized by the frozen
+ * knowledge-cutover toolchain (authority shards, selectors, projections,
+ * resource-governance reviews). They are materialized views of authority
+ * data — E-class observations, never hand-authored sources — and the adapter
+ * fails closed on toolchain inventory count drift.
+ */
+export function buildKnowledgeCutoverAdapter(reader: SubjectTreeReader, entries: readonly InventoryEntry[]): AdapterBundle {
+  const toolchainEntries = reader.listEntries(KNOWLEDGE_CUTOVER_TOOLCHAIN_ROOT);
+  const inputDigest = sha256Bytes(Buffer.from(
+    KNOWLEDGE_CUTOVER_WRITER_FILES.map((file) => {
+      const entry = toolchainEntries.find((row) => row.path === file);
+      return `${file}:${entry?.hash ?? 'missing'}`;
+    }).join('\n'),
+    'utf8',
+  ));
+  const drift = toolchainEntries.length !== KNOWLEDGE_CUTOVER_FROZEN_COUNT
+    ? `toolchain-count-drift:${toolchainEntries.length}!=${KNOWLEDGE_CUTOVER_FROZEN_COUNT}`
+    : null;
+  const candidateCount = entries.filter((item) => isKnowledgeCutoverCandidate(item.path)).length;
+  const identity: AdapterIdentity = {
+    name: 'knowledge-cutover-runtime',
+    inputDigest,
+    candidates: candidateCount,
+    proven: 0,
+    unresolved: candidateCount,
+    drift,
+  };
+  if (drift) return { overrides: [], identities: [identity] };
+  const overrides: EvidenceOverride[] = [];
+  for (const entry of entries) {
+    if (!isKnowledgeCutoverCandidate(entry.path)) continue;
+    overrides.push({
+      path: entry.path,
+      facets: {
+        authorship: 'generated',
+        reproducibility: 'not-applicable',
+        cacheMaterializedRoles: ['materialized-view'],
+        privacy: 'internal',
+        retention: 'retain-in-git',
+      },
+      producer: `producer:knowledge-cutover-runtime@${inputDigest.slice(0, 16)}`,
+      authority: `toolchain:knowledge-cutover-runtime@${inputDigest}`,
+      materialization: 'existing-view-only',
+      recovery: 'existing-materializer-only',
+      rollback: 'git-history-blob',
+    });
+  }
+  return {
+    overrides,
+    identities: [{ ...identity, proven: candidateCount, unresolved: 0 }],
+  };
+}
+
+function isKnowledgeCutoverCandidate(path: string): boolean {
+  if (path.includes('/releases/')) return false;
+  if (path === 'course-content/runtime/knowledge/authority-learning-content-manifest.json') return true;
+  return KNOWLEDGE_CUTOVER_OUTPUT_FAMILIES.some((family) => path.startsWith(family));
 }
 
 /**
  * QA evidence lifecycle adapter: artifacts members are classified by the
  * committed QA lifecycle contract, digest-bound to each member's Git blob.
+ * Members the contract marks non-private still require a content scan of
+ * scannable text blobs; any forbidden or identity hit keeps the member
+ * unresolved instead of trusting the class label.
  */
 export function buildQaEvidenceAdapter(
   reader: SubjectTreeReader,
   entries: readonly InventoryEntry[],
   contract: QaLifecycleContract,
+  scan?: PrivacyScanContract,
 ): AdapterBundle {
   const artifactEntries = entries.filter((entry) => entry.path.startsWith('artifacts/'));
   const overrides: EvidenceOverride[] = [];
@@ -281,6 +379,11 @@ export function buildQaEvidenceAdapter(
   for (const entry of artifactEntries) {
     const outcome = contract.classifyArtifact(entry.path, entry.hash);
     if (!outcome) continue;
+    if (scan && outcome.privacyClass !== 'private-run-evidence' && isScannableTextPath(entry.path)) {
+      const text = reader.blobBytes(entry.hash).toString('utf8');
+      const hits = scan.scanText(text) ?? [];
+      if (hits.length > 0 || PRIVACY_IDENTITY_PATTERN.test(text)) continue;
+    }
     overrides.push(qaOverride(entry.path, entry.hash, outcome));
     proven += 1;
   }
@@ -299,6 +402,16 @@ export function buildQaEvidenceAdapter(
       drift: null,
     }],
   };
+}
+
+const PRIVACY_SCAN_TEXT_EXTENSIONS = new Set([
+  'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'md', 'json', 'jsonl', 'txt', 'py', 'sh', 'yaml', 'yml', 'toml', 'sql', 'html', 'css',
+]);
+
+function isScannableTextPath(path: string): boolean {
+  const dot = path.lastIndexOf('.');
+  if (dot < 0) return false;
+  return PRIVACY_SCAN_TEXT_EXTENSIONS.has(path.slice(dot + 1).toLowerCase());
 }
 
 function qaOverride(path: string, blobHash: string, outcome: QaLifecycleOutcome): EvidenceOverride {
@@ -347,10 +460,6 @@ function qaOverride(path: string, blobHash: string, outcome: QaLifecycleOutcome)
   };
 }
 
-const PRIVACY_SCAN_TEXT_EXTENSIONS = new Set([
-  'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'md', 'json', 'jsonl', 'txt', 'py', 'sh', 'yaml', 'yml', 'toml', 'sql', 'html', 'css',
-]);
-
 const PRIVACY_PATH_PATTERN = /(?:cookie|session|learner|student)/iu;
 
 export function isPrivacyScanCandidate(path: string): boolean {
@@ -378,13 +487,13 @@ export function buildPrivacyScanAdapter(
   let hits = 0;
   let unscannable = 0;
   for (const entry of candidates) {
-    const bytes = reader.blobBytes(entry.hash);
-    const hitsForText = contract.scanText(bytes.toString('utf8'));
+    const text = reader.blobBytes(entry.hash).toString('utf8');
+    const hitsForText = contract.scanText(text);
     if (hitsForText === null) {
       unscannable += 1;
       continue;
     }
-    if (hitsForText.length > 0) {
+    if (hitsForText.length > 0 || PRIVACY_IDENTITY_PATTERN.test(text)) {
       hits += 1;
       continue;
     }

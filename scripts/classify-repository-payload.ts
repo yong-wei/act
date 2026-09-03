@@ -20,7 +20,7 @@ import {
   classifyPackage,
   loadCommittedAHandoff,
   loadCommittedPredecessorPackage,
-  loadPredecessorPaths,
+  loadPredecessorEntries,
   loadSourceTreeEntries,
   readIssueGateFromGh,
   subjectIdentityOf,
@@ -31,6 +31,7 @@ import {
 } from '../src/lib/architecture-census/payload-classification';
 import {
   buildContentCompilerAdapter,
+  buildKnowledgeCutoverAdapter,
   buildPrivacyScanAdapter,
   buildQaEvidenceAdapter,
   buildReleaseAdapter,
@@ -79,7 +80,7 @@ const issueGate = readIssueGateFromGh(A_ISSUE);
 const predecessorIssueGate = readIssueGateFromGh(1881);
 const handoff = loadCommittedAHandoff(repoRoot);
 const predecessor = loadCommittedPredecessorPackage(repoRoot);
-const predecessorPaths = loadPredecessorPaths(repoRoot);
+const predecessorEntries = loadPredecessorEntries(repoRoot);
 
 // 3. Subject-tree reader: every adapter reads Git object bytes from the frozen subject only.
 const entries = loadSourceTreeEntries(repoRoot, subjectTree);
@@ -126,7 +127,8 @@ const privacyContract = {
 const adapterBundle = combineAdapters([
   buildReleaseAdapter(treeReader, entries),
   buildContentCompilerAdapter(treeReader, entries),
-  buildQaEvidenceAdapter(treeReader, entries, qaContract),
+  buildKnowledgeCutoverAdapter(treeReader, entries),
+  buildQaEvidenceAdapter(treeReader, entries, qaContract, privacyContract),
   buildPrivacyScanAdapter(treeReader, entries, privacyContract),
 ]);
 
@@ -145,7 +147,7 @@ function runClassification(verification: Parameters<typeof classifyPackage>[0]['
     handoff,
     subject,
     predecessor,
-    predecessorPaths,
+    predecessorEntries,
     tool,
     entries,
     overrides: adapterBundle.overrides,
