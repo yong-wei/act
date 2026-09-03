@@ -78,9 +78,11 @@
 
 ## 🚀 Next phase
 
+- 2026-09-03：#1880 `reconcile-current-clean-head-test-failure-denominator` 已在 `act-dev1` 完成调查合同、受管 lane 执行与 compact handoff。subject 为 A successor `fa6e618d…` / source `698cb2f4cd`；tool `7bef35c1fb`；default PR lane `test` 为 clean；unit 71 失败 + 47 skip、contract timeout、integration 16 skip、e2e symlink、release-manifest-missing、nightly-not-run 均为非默认 lane。下一步：归档进同一 PR、Codex 清场后合入。不要执行 FIX/DELETE/QUARANTINE，不要写入 `REQUIRED_BASELINE`，不要生产 `deploy:app` / `deploy:runtime`。
+
 - 2026-09-03：#1898 `integrate-type055-nanchang-v2-model-release` 已在 `act-dev2` 认领并完成实现：接收 3DModels v2.0.0 六文件包（`public/assets/model-releases/type055-nanchang-101/v2.0.0/` + 收据）、ACT 描述符/验证器（`src/resources/simulations/model-packages/`）、共享 `VersionedShipModel`（档位→LOD、就绪前保留、失败回退旧候选链）、destroyer 场景 `?model=type055-v2` 候选开关 + 唯一坐标基适配（+X 艏→+Z 艏）、QA 路由 `/simulations/type055-model-candidate`。单测 18+5、Playwright 7 项全过；typecheck/lint 0；未生产发布、未切默认模型。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
-- 2026-09-03：熵减启动系列以 #1875 为跟踪父项。只有 #1805–#1810 全部 closed、`status:archived` 且 #1876 native `blockedBy` 解除后，才能 claim #1876；#1880/#1881/#1883 必须继续等待 #1876 归档。先由 #1876 产出不可激活的 immutable successor capture，再分别处理测试分母、载荷分类和 owner 裁决；不得提前创建 payload migration、Data Governance 搬迁、hotspot pass 2 或 N5 closure，不得把重复字节当删除授权，不得生产 `deploy:app` / `deploy:runtime`。
+- 2026-09-03：熵减启动系列以 #1875 为跟踪父项。#1876 已归档；#1881 已合入 `origin/integration`。#1880 本树收尾中；#1883 须先 claim 再实现。不得提前创建 payload migration、Data Governance 搬迁、hotspot pass 2 或 N5 closure，不得把重复字节当删除授权，不得生产 `deploy:app` / `deploy:runtime`。
 
 - 2026-09-02：#1820 已新建 change `resume-safe-konling-blind-audit-evaluation` 并在 `act-dev2` 认领实现：`src/lib/konling-blind-audit/`（契约/清单/存储/运行器/汇总）+ fixture/live 入口 + 18 用例（原子落盘、续跑不重复计费、四类故障恢复、incomplete fail-closed、混配置拒绝、清单漂移、模式分离、代次目录锁：mkdir 单胜 + 初始化宽限 + 前代复验 + 实例标记 wx 发布）。fixture 端到端演示通过。Codex 六轮 findings 全修复，待最终清场合并。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。
 
