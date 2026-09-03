@@ -900,14 +900,15 @@ export function successorOverwriteFailures(
 }
 
 export function loadTrackedBlobIndex(repoRoot: string): Map<string, string> {
-  const output = execFileSync('git', ['ls-files', '-s'], {
+  // -z keeps non-ASCII paths unquoted; the default format octal-escapes them.
+  const output = execFileSync('git', ['ls-files', '-s', '-z'], {
     cwd: repoRoot,
     encoding: 'utf8',
     maxBuffer: 128 * 1024 * 1024,
   });
   const index = new Map<string, string>();
-  for (const line of output.split('\n')) {
-    const match = line.match(/^[0-9]+ ([0-9a-f]{40}) \d+\t(.+)$/u);
+  for (const record of output.split('\0')) {
+    const match = record.match(/^[0-9]+ ([0-9a-f]{40}) \d+\t(.+)$/u);
     if (match?.[1] && match[2]) index.set(match[2], match[1]);
   }
   return index;
