@@ -8,12 +8,12 @@
 - A packageDigest: `259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12`
 - A sourceCommit: `698cb2f4cd6d001bcbeee95bca9be58c56c1cca3`
 - A sourceTree: `41d6b3f5966493911d6ce9c1f299015189778d53`
-- toolCommit: `4fa2f0f583dac0eddedab142badc9c2f1b12c800`
-- toolTree: `d46b69b6c2b35fc821b494b89b1a41304fbc1b81`
-- entryBundleDigest: `b310edd30a28497e79505e5d79339a50ee1d54c1f6a4a9cefafcb319863b3d27`
-- frozenInputDigest: `e044294e4c62bbcd2ba1b206fdb107900769e57756c0810787bc954295f3d423`
-- packageDigest: `9f352e60f77c4edb3b3b7099d004f859054bddb6ea030c7e5ac0efdc505cf544`
-- full inventory: `artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/payload-classification-inventory.ndjson` sha256 `082dccc2c347af4d071f6c2ce099f48604ff7a97b923d99d703628428a695f99`
+- toolCommit: `8a004994c5429cc482893f0e9f2cdfc5c56f68fd`
+- toolTree: `ca6f7626aa286ea77c73852bd9cbf2e338592c21`
+- entryBundleDigest: `225efcc9f49b57bcc852ca19275021545eae48f40ff1e33a2ccd73e3be1a7334`
+- frozenInputDigest: `9d141c96f91efd9d5abe6888ac93a946dfacff820aac37292a04d7f6bcb9ef30`
+- packageDigest: `3dfc0b74d38780a52fe046994cd1354079efb524d19a79eced9cfd5d1a42ad03`
+- full inventory: `artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/payload-classification-inventory.ndjson` sha256 `07f0a9e95745cff9f933583b68b18a295bd370d0d2d087deb36a7a41a65eba50`
 
 This package is an observation. It does not authorize deletion, movement, externalization, materialization, or selector change.
 
@@ -66,6 +66,6 @@ This package is an observation. It does not authorize deletion, movement, extern
 | --- | --- |
 | A.successorCaptureId | fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02 |
 | A.packageDigest | 259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12 |
-| C.toolCommit | 4fa2f0f583dac0eddedab142badc9c2f1b12c800 |
-| C.packageDigest | 9f352e60f77c4edb3b3b7099d004f859054bddb6ea030c7e5ac0efdc505cf544 |
-| fullInventory | artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/payload-classification-inventory.ndjson@082dccc2c347af4d071f6c2ce099f48604ff7a97b923d99d703628428a695f99 |
+| C.toolCommit | 8a004994c5429cc482893f0e9f2cdfc5c56f68fd |
+| C.packageDigest | 3dfc0b74d38780a52fe046994cd1354079efb524d19a79eced9cfd5d1a42ad03 |
+| fullInventory | artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/payload-classification-inventory.ndjson@07f0a9e95745cff9f933583b68b18a295bd370d0d2d087deb36a7a41a65eba50 |
