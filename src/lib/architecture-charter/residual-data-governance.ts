@@ -449,21 +449,22 @@ export function collectRelativeCallers(
     RELATIVE_SPEC.lastIndex = 0;
     let match: RegExpExecArray | null = RELATIVE_SPEC.exec(file.content);
     while (match) {
+      const snippet = match[0] ?? '';
+      const relationship = /export\s+\*\s+from/u.test(snippet)
+        ? 're-export'
+        : /import\s*\(/u.test(snippet)
+          ? 'dynamic'
+          : 'import';
       const candidates = resolveRelativeSpecs(file.path, match[1] ?? '');
       for (const candidate of candidates) {
         if (!members.has(candidate) || candidate === file.path) continue;
-        const key = `${candidate}|${file.path}|re-export-or-import`;
+        const key = `${candidate}|${file.path}|${relationship}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        const snippet = match[0] ?? '';
         callers.push({
           memberPath: candidate,
           callerPath: file.path,
-          relationship: /export\s+\*\s+from/u.test(snippet)
-            ? 're-export'
-            : /import\s*\(/u.test(snippet)
-              ? 'dynamic'
-              : 'import',
+          relationship,
         });
       }
       match = RELATIVE_SPEC.exec(file.content);

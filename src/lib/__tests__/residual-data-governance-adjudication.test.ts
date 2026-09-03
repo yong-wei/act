@@ -93,7 +93,11 @@ describe('residual data-governance adjudication', () => {
     expect(collectRelativeCallers([
       {
         path: 'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
-        content: "const { parseMathDocumentGradingWorkerCapability } = await import('../math-document-grading-worker-readiness');\n",
+        content: [
+          "import { describeWorker } from '../math-document-grading-worker-readiness';",
+          "const { parseMathDocumentGradingWorkerCapability } = await import('../math-document-grading-worker-readiness');",
+          '',
+        ].join('\n'),
       },
       {
         path: 'src/lib/data-governance/math-document-grading-worker-readiness.ts',
@@ -103,6 +107,11 @@ describe('residual data-governance adjudication', () => {
       'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
       'src/lib/data-governance/math-document-grading-worker-readiness.ts',
     ])).toEqual([
+      {
+        memberPath: 'src/lib/data-governance/math-document-grading-worker-readiness.ts',
+        callerPath: 'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
+        relationship: 'import',
+      },
       {
         memberPath: 'src/lib/data-governance/math-document-grading-worker-readiness.ts',
         callerPath: 'src/lib/data-governance/__tests__/math-document-grading-worker.test.ts',
