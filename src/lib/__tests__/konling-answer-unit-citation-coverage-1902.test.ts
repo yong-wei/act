@@ -299,7 +299,7 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:limit');
   });
 
-  it('reports drifted markers inside coverage without rescuing evidence-section coverage', () => {
+  it('reports drifted markers on the guard without rescuing evidence-section coverage', () => {
     const answer = [
       '## 前提与符号',
       '输入为单位阶跃。',
@@ -314,15 +314,31 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
       coveredCount: 0,
       ratio: 0,
       missingReasons: [{ reason: 'no-marker', count: 1 }],
-      // 有效 [1] 只出现在 model-derived 章节（结果校验），计为漂移且不救回覆盖；
-      // 计数随 coverage（生产保留字段）持久化，不依赖被生产清空的 diagnosticReasons
-      driftedMarkerCount: 1,
-      stackedMarkerCount: 0,
     });
+    // 有效 [1] 只出现在 model-derived 章节（结果校验），计为漂移且不救回覆盖；
+    // 计数挂 guard 顶层（生产保留字段），不依赖被生产清空的 diagnosticReasons
+    expect(guard.answerCitationDriftCount).toBe(1);
+    expect(guard.answerCitationStackCount).toBe(0);
     expect(guard.lowConfidenceReasons).toContain('answer-unit-citation-missing:assumptions');
   });
 
-  it('reports stacked duplicate markers inside coverage without inflating unit coverage', () => {
+  it('keeps drift counts observable when the answer has no evidence-required units at all', () => {
+    // 全部 marker 都在 model-derived 章节或章节外、无任何需证据单元：
+    // coverage 为 null，但漂移计数仍必须进入持久化元数据（#1902 review）
+    const answer = [
+      '先给一个总起 [1]。',
+      '## 关键变形',
+      '闭环为 G/(1+GH) [1]。',
+    ].join('\n');
+
+    const guard = guardFor('formula-derivation', answer);
+
+    expect(guard.answerUnitCoverage).toBeNull();
+    expect(guard.answerCitationDriftCount).toBe(2);
+    expect(guard.answerCitationStackCount).toBe(0);
+  });
+
+  it('reports stacked duplicate markers on the guard without inflating unit coverage', () => {
     const stackedAnswer = [
       '## 核心结论',
       '超调量是峰值相对稳态值的超出比例 [1][1]。',
@@ -333,9 +349,9 @@ describe('issue #1902 answer-unit citation coverage regression', () => {
       requiredCount: 1,
       coveredCount: 1,
       ratio: 1,
-      driftedMarkerCount: 0,
-      stackedMarkerCount: 1,
     });
+    expect(guard.answerCitationStackCount).toBe(1);
+    expect(guard.answerCitationDriftCount).toBe(0);
   });
 
   it('keeps short unpunctuated conclusions inside the coverage denominator', () => {

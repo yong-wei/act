@@ -202,6 +202,8 @@ function buildCitationGuardMetadataPayload(
     studyQuestion: asPrismaJsonValue(citationGuardMetadata.studyQuestion ?? null),
     answerUnits: asPrismaJsonValue(citationGuardMetadata.answerUnits ?? []),
     answerUnitCoverage: asPrismaJsonValue(citationGuardMetadata.answerUnitCoverage ?? null),
+    answerCitationDriftCount: citationGuardMetadata.answerCitationDriftCount ?? 0,
+    answerCitationStackCount: citationGuardMetadata.answerCitationStackCount ?? 0,
     derivedSectionIds: asPrismaJsonValue(citationGuardMetadata.derivedSectionIds ?? []),
     unverifiedCitationMarkers: asPrismaJsonValue(citationGuardMetadata.unverifiedCitationMarkers ?? []),
     missingContext,

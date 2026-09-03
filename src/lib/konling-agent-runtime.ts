@@ -1818,9 +1818,6 @@ export interface KonlingAnswerUnitCitationCoverage {
   requiredCount: number;
   ratio: number;
   missingReasons: KonlingAnswerUnitCoverageMissingReason[];
-  // 非敏感聚合计数随 coverage 一起持久化（生产保留字段），不入 diagnosticReasons
-  driftedMarkerCount: number;
-  stackedMarkerCount: number;
 }
 
 export interface KonlingCitationGuard {
@@ -1838,6 +1835,10 @@ export interface KonlingCitationGuard {
   studyQuestion?: KonlingStudyQuestionContract | null;
   answerUnits?: KonlingAnswerUnitCitationBinding[];
   answerUnitCoverage?: KonlingAnswerUnitCitationCoverage | null;
+  // 非敏感聚合计数，独立于 coverage 可空条件持久化（生产保留字段）：
+  // 即使回答没有任何需证据单元，仅出现在 model-derived/章节外的漂移也必须可观测
+  answerCitationDriftCount?: number;
+  answerCitationStackCount?: number;
   derivedSectionIds?: string[];
   unverifiedCitationMarkers?: number[];
 }
@@ -9539,8 +9540,6 @@ export function buildKonlingCitationGuard(
         requiredCount: requiredUnits.length,
         ratio: coveredUnits.length / requiredUnits.length,
         missingReasons: [...missReasonCounts].map(([reason, count]) => ({ reason, count })),
-        driftedMarkerCount: answerScan.driftedMarkerCount,
-        stackedMarkerCount: answerScan.stackedMarkerCount,
       }
       : null;
     for (const uncovered of applicable.filter((section) => !section.covered)) {
@@ -9641,6 +9640,10 @@ export function buildKonlingCitationGuard(
     studyQuestion: modeContract?.studyQuestion ?? null,
     answerUnits,
     answerUnitCoverage,
+    // 计数挂在 guard 顶层而非 coverage：无任何需证据单元时 coverage 为 null，
+    // 仅出现在 model-derived/章节外的漂移与堆叠仍必须可观测（#1902 review）
+    answerCitationDriftCount: answerScan ? answerScan.driftedMarkerCount : 0,
+    answerCitationStackCount: answerScan ? answerScan.stackedMarkerCount : 0,
     derivedSectionIds,
     unverifiedCitationMarkers,
   };
