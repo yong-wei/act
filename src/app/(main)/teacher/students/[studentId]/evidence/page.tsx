@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { prisma } from '@/lib/prisma';
 import { resolveTeacherReturnTo } from '@/lib/teacher-report-grading-contracts';
 
@@ -20,7 +21,7 @@ export default async function LegacyTeacherStudentEvidencePage(
 ) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {

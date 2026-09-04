@@ -5,6 +5,7 @@ import { AppShell } from '@/components/platform/app-shell';
 import { StudentDocumentGradingFeedback } from '@/features/assessment/document-rubric-grading-ui';
 import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { prisma } from '@/lib/prisma';
 import {
   buildFeedbackTaskContext,
@@ -46,7 +47,7 @@ export default async function DocumentFeedbackPage({
 }) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
   if (session.user.role !== UserRole.STUDENT) {
     redirect('/dashboard');

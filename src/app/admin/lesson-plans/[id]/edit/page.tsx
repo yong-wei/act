@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 import { LessonPlanMissingRecovery } from '@/features/lesson-engine/lesson-plan-missing-recovery';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
 
 interface PageProps {
@@ -13,7 +14,7 @@ interface PageProps {
 
 export default async function EditLessonPlanPage(props: PageProps) {
   const session = await getServerAuthSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== UserRole.ADMIN) redirect('/');
 
   const params = await props.params;

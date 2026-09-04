@@ -2,6 +2,7 @@ import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import { loadCourseEnhancementPack } from '@/lib/data-governance/teacher-prep-pack-generation';
 import { prisma } from '@/lib/prisma';
@@ -28,7 +29,7 @@ export default async function TeacherPrepPacksPage({
 }) {
   const session = await getServerAuthSession();
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.TEACHER) {

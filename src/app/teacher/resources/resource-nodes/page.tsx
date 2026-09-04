@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 
 import { TeacherResourceNodeManagement } from '@/features/teacher/resources/teacher-resource-node-management';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import {
   loadAllLessonRuntimeResourceCatalogEntries,
   type RuntimeLessonResourceCatalogEntry,
@@ -24,7 +25,7 @@ import {
 export default async function TeacherResourceNodesPage() {
   const session = await getServerAuthSession();
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.TEACHER) {

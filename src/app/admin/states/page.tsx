@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { AdminStatesDashboard } from '@/features/admin/states/admin-states-dashboard';
 
 export default async function AdminStatesPage({
@@ -15,7 +16,7 @@ export default async function AdminStatesPage({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.ADMIN) {

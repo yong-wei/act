@@ -1242,7 +1242,7 @@ describe('document rubric grading routes', () => {
     const page = source('src/app/assessment/document-feedback/page.tsx');
 
     expect(page).toContain('getServerAuthSession');
-    expect(page).toContain("redirect('/login')");
+    expect(page).toContain('buildLoginRedirectForPath');
     expect(page).toContain('UserRole.STUDENT');
     expect(page).toContain('validateDocumentRubricGradingDraftInvariants');
     expect(page).toContain('&& valid');

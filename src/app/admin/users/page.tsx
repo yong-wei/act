@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 
 import { AdminDashboard } from '@/features/admin/admin-dashboard';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { normalizeAdminUsersQueryContract } from '@/lib/api-ui-contracts';
 
 export default async function AdminUsersPage({
@@ -22,7 +23,7 @@ export default async function AdminUsersPage({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.ADMIN) {

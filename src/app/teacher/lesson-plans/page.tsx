@@ -2,12 +2,13 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Plus, BookOpen, ArrowLeft } from 'lucide-react';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { redirect } from 'next/navigation';
 import { LessonPlanList } from '@/features/lesson-engine/lesson-plan-list';
 
 export default async function TeacherLessonPlansPage() {
   const session = await getServerAuthSession();
-  if (!session) redirect('/login');
+  if (!session) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== 'TEACHER') redirect('/');
 
   // 获取当前教师教案（不包含预置教案）
