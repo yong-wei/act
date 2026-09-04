@@ -717,9 +717,22 @@ export function adjudicateResidualDataGovernance(
     }
 
     const status: ResidualStatus = outcome === 'unresolved' || !owner ? 'unresolved' : 'qualified';
+    const ownerEvidence = member.currentOwnerEvidence ?? [`path:${member.path}`];
+    // Task 2.3: families split whenever caller classes, owner evidence, public
+    // boundary, authority, privacy, or outcome differ — never merge a
+    // heterogeneous group behind one familyId.
     const familyId = status === 'unresolved'
       ? `unresolved:${member.path}`
-      : `${outcome}:${owner}:${classified.outcome === 'unresolved' ? 'unresolved' : classified.slice}:${authorityFacts.join('|')}:${privacyFacts.join('|')}`;
+      : [
+        outcome,
+        owner,
+        classified.outcome === 'unresolved' ? 'unresolved' : classified.slice,
+        callerClasses.join(','),
+        authorityFacts.join('|'),
+        privacyFacts.join('|'),
+        classified.outcome === 'unresolved' ? 'unresolved' : classified.publicBoundary,
+        ownerEvidence.join('|'),
+      ].join(':');
 
     return {
       id: `residual:${member.path}`,
@@ -850,7 +863,14 @@ export function adjudicateResidualDataGovernance(
     predecessor1883: subject.predecessor1883,
     subject: subject.successorCaptureId,
     packageDigest: subject.packageDigest,
-    tool: input.tool.entryBundleDigest,
+    // The full tool checkpoint, not just the entry bundle: any identity change
+    // (commit, tree, versions, bundle) must yield a different decision identity.
+    tool: {
+      toolCommit: input.tool.toolCommit,
+      toolTree: input.tool.toolTree,
+      toolVersions: input.tool.toolVersions,
+      entryBundleDigest: input.tool.entryBundleDigest,
+    },
     memberSetDigest: subject.memberSetDigest,
     ledger: fullLedger.sha256,
   }));
@@ -1380,31 +1400,54 @@ export function verifyResidualProjectionArtifacts(params: {
   const recordsByPath = new Map(records.map((record) => [record.path ?? '', record]));
   const slices = readProjection('future-slices.md');
   if (typeof slices !== 'string') return { reconciled: false, reason: slices.error, fileDigests };
+  const packageQualifiedLine = summaries.split('\n').find((line) => line.startsWith('- packageQualified: ')) ?? '';
+  const packageQualified = packageQualifiedLine.includes('yes');
   const sections = slices.split('\n## ').slice(1);
   const nonEmission = slices.includes('No migration-input slice is emitted');
-  if (nonEmission && sections.length > 0) {
-    return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
-  }
-  for (const section of sections) {
-    const [title, ...rest] = section.split('\n');
-    const body = rest.join('\n');
-    const owner = /- accountableOwner: `([^`]+)`/u.exec(body)?.[1];
-    const outcome = /- outcome: `([^`]+)`/u.exec(body)?.[1];
-    const pathsLine = body.split('\n').find((line) => line.startsWith('- paths: ')) ?? '';
-    const listed = [...pathsLine.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
-    if (listed.length === 0 || listed.some((path) => !recordsByPath.has(path))) {
-      return { reconciled: false, reason: `slice-path-outside-ledger:${title ?? 'unknown'}`, fileDigests };
+  // Re-derive the expected migration-input path universe from the ledger: every
+  // record-qualified record belongs to exactly one slice family, so a qualified
+  // package must project all of them and a non-qualified package none.
+  const qualifiedPaths = records.filter((record) => record.status === 'qualified')
+    .map((record) => record.path ?? '')
+    .sort();
+  const listedPaths: string[] = [];
+  if (packageQualified) {
+    if (sections.length === 0 || nonEmission) {
+      return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
     }
-    for (const path of listed) {
-      const record = recordsByPath.get(path);
-      if (!record || record.status !== 'qualified' || record.accountableOwner !== owner || record.outcome !== outcome) {
-        return { reconciled: false, reason: `slice-identity-mismatch:${title ?? path}`, fileDigests };
+    for (const section of sections) {
+      const [title, ...rest] = section.split('\n');
+      const body = rest.join('\n');
+      const owner = /- accountableOwner: `([^`]+)`/u.exec(body)?.[1];
+      const outcome = /- outcome: `([^`]+)`/u.exec(body)?.[1];
+      const pathsLine = body.split('\n').find((line) => line.startsWith('- paths: ')) ?? '';
+      const listed = [...pathsLine.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
+      if (listed.length === 0 || listed.some((path) => !recordsByPath.has(path))) {
+        return { reconciled: false, reason: `slice-path-outside-ledger:${title ?? 'unknown'}`, fileDigests };
+      }
+      listedPaths.push(...listed);
+      for (const path of listed) {
+        const record = recordsByPath.get(path);
+        if (!record || record.status !== 'qualified' || record.accountableOwner !== owner || record.outcome !== outcome) {
+          return { reconciled: false, reason: `slice-identity-mismatch:${title ?? path}`, fileDigests };
+        }
       }
     }
+    const universe = [...listedPaths].sort();
+    if (universe.length !== qualifiedPaths.length
+      || universe.some((path, index) => path !== qualifiedPaths[index])) {
+      return { reconciled: false, reason: 'projection-slice-universe-mismatch', fileDigests };
+    }
+  } else if (!nonEmission || sections.length > 0) {
+    return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
   }
 
   const handoff = readProjection('handoff.md');
   if (typeof handoff !== 'string') return { reconciled: false, reason: handoff.error, fileDigests };
+  const statusLine = handoff.split('\n').find((line) => line.startsWith('- status: ')) ?? '';
+  if (statusLine.includes('COMPLETE-qualified') !== packageQualified) {
+    return { reconciled: false, reason: 'projection-status-inconsistent', fileDigests };
+  }
   if (!handoff.includes(`- fullLedger.sha256: \`${params.receipt.sha256}\``)
     || !handoff.includes(`- fullLedger.bytes: ${params.receipt.byteCount}`)
     || !handoff.includes(`- fullLedger.locator: \`${params.receipt.locator}\``)) {

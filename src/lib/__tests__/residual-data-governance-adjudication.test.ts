@@ -810,4 +810,86 @@ describe('residual data-governance adjudication', () => {
     expect(missingIdentity.qualified).toBe(false);
     expect(missingIdentity.futureSlices).toEqual([]);
   });
+
+  it('derives decision identity from the full tool checkpoint and splits families on heterogeneous caller evidence', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const base = runWithLedgerVerification({ members });
+
+    // Same entry bundle bytes but a different tool commit must change identity.
+    const sameBundleDifferentCommit = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      tool: { ...tool, toolCommit: '9'.repeat(40) },
+    }));
+    expect(sameBundleDifferentCommit.decisionIdentity).not.toBe(base.decisionIdentity);
+
+    // Same slice/owner but different caller classes must split families (task 2.3).
+    const pair: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/event-protocol.ts' },
+      { path: 'src/lib/data-governance/derived-learning-materialization.ts' },
+    ];
+    const heterogeneous = runWithLedgerVerification({
+      members: pair,
+      callers: [{
+        memberPath: 'src/lib/data-governance/event-protocol.ts',
+        callerPath: 'src/features/learning-record/ingestion/index.ts',
+        relationship: 'import',
+      }],
+    });
+    const familyIds = new Set(heterogeneous.records.map((record) => record.familyId));
+    expect(familyIds.size).toBe(heterogeneous.records.length);
+    const protocol = heterogeneous.records.find((record) => record.path.endsWith('event-protocol.ts'));
+    const derived = heterogeneous.records.find((record) => record.path.endsWith('derived-learning-materialization.ts'));
+    expect(protocol?.familyId).not.toBe(derived?.familyId);
+  });
+
+  it('rejects qualified projections that omit the ledger-derived migration-input universe', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    const pkg = buildFixedPointPackage({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/math-document-backfill.ts',
+        callerPath: 'scripts/db/backfill-demo.ts',
+        relationship: 'import',
+      }],
+    });
+    try {
+      expect(pkg.verification.reconciled).toBe(true);
+      const slicesPath = join(pkg.dir, 'future-slices.md');
+      const original = readFileSync(slicesPath, 'utf8');
+      const params = {
+        outputDir: pkg.dir,
+        ledgerAbsolutePath: pkg.ledgerPath,
+        receipt: pkg.ledgerReceipt,
+        receiptFlag: true,
+      } as const;
+
+      // Bare heading with no sections and no non-emission statement.
+      writeFileSync(slicesPath, '# Residual Data Governance future slices\n');
+      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
+        reconciled: false,
+        reason: 'projection-slice-inconsistent',
+      });
+
+      // Non-emission line forged while the package claims qualified.
+      writeFileSync(slicesPath, `${original.split('## ')[0]}No migration-input slice is emitted: forged.\n`);
+      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
+        reconciled: false,
+        reason: 'projection-slice-inconsistent',
+      });
+
+      // A path listing a member outside the ledger still fails fast.
+      writeFileSync(slicesPath, original.replace(
+        '`src/lib/data-governance/math-document-backfill.ts`',
+        '`src/lib/data-governance/not-in-ledger.ts`',
+      ));
+      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
+        reconciled: false,
+        reason: 'slice-path-outside-ledger:operator-backfill',
+      });
+
+      writeFileSync(slicesPath, original);
+    } finally {
+      rmSync(pkg.dir, { recursive: true, force: true });
+    }
+  });
 });
