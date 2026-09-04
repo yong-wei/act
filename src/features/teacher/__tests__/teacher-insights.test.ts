@@ -29,6 +29,10 @@ const classroomReviewSource = readFileSync(
   join(process.cwd(), 'src/app/classroom/teacher/[sessionId]/review/page.tsx'),
   'utf8',
 );
+const classStudentRosterSource = readFileSync(
+  join(process.cwd(), 'src/features/teacher/class-student-roster.tsx'),
+  'utf8',
+);
 const globalsSource = readFileSync(
   join(process.cwd(), 'src/app/globals.css'),
   'utf8',
@@ -166,7 +170,7 @@ describe('teacher-insights helpers', () => {
     expect(classAnalyticsSource).not.toContain('heatmapView');
     expect(classDetailSource).toContain('data-teacher-class-detail-status');
     expect(classDetailSource).toContain('data-teacher-class-visible-status');
-    expect(classDetailSource).toContain('data-teacher-mobile-cards="true"');
+    expect(classStudentRosterSource).toContain('data-teacher-mobile-cards="true"');
     expect(classDetailSource).toContain('data-teacher-finished-session-delete="available"');
     expect(classDetailSource).toContain('/api/teacher/sessions?id=');
     expect(classDetailSource).toContain('data-teacher-prep-pack-entry="class-detail"');
@@ -181,7 +185,7 @@ describe('teacher-insights helpers', () => {
     expect(teacherLauncherSource).toContain('launchElementRef.current.focus()');
     expect(teacherLauncherSource).toContain("role={conflict ? 'alert' : 'status'}");
     expect(teacherLauncherSource).toContain("aria-live={conflict ? 'assertive' : 'polite'}");
-    expect(classDetailSource).toContain('data-label="证据状态"');
+    expect(classStudentRosterSource).toContain('data-label="证据状态"');
     expect(globalsSource).toContain('table[data-teacher-mobile-cards="true"]');
     expect(globalsSource).toContain('content: attr(data-label)');
   });
