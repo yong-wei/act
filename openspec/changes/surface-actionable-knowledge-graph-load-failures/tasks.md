@@ -1,17 +1,17 @@
 ## 1. 呈现层失败投影
 
-- [ ] 1.1 确认/补齐服务端 shard 失败响应的稳定机器可读 `code` 透出（`pointer-absent`/`shard-absent`/`activation-absent`/`consumer-not-ready` 等，不含内部路径）
-- [ ] 1.2 客户端 `fetchAuthorityShard` 读取失败 `code`，错误态按「内容未就绪」与「暂时故障」两类投影差异化文案与行动（未就绪：说明发布未完成 + legacy 入口/联系教师；故障：重试）
-- [ ] 1.3 文案键补充（graph-interface-catalog），保持 zh/en 双语与既有风格；不泄露内部存储细节
-- [ ] 1.4 单元测试：失败码 → 用户文案投影映射；渲染契约测试：404 shard-absent 与 503 activation-absent 两态显示对应可行动文案
-- [ ] 1.5 运维文档补生产恢复路径条目（重物化带 coverage 收据的分片集或 cutover-aware 激活）
-- [ ] 1.6 typecheck 与相关测试通过；桌面与 320px 视口失败态验收
+- [x] 1.1 确认/补齐服务端 shard 失败响应的稳定机器可读 `code` 透出（`pointer-absent`/`shard-absent`/`activation-absent`/`consumer-not-ready` 等，不含内部路径）
+- [x] 1.2 客户端 `fetchAuthorityShard` 读取失败 `code`，错误态按「内容未就绪」与「暂时故障」两类投影差异化文案与行动（未就绪：说明发布未完成 + legacy 入口/联系教师；故障：重试）
+- [x] 1.3 文案键补充（graph-interface-catalog），保持 zh/en 双语与既有风格；不泄露内部存储细节
+- [x] 1.4 单元测试：失败码 → 用户文案投影映射；渲染契约测试：404 shard-absent 与 503 activation-absent 两态显示对应可行动文案
+- [x] 1.5 运维文档补生产恢复路径条目（重物化带 coverage 收据的分片集或 cutover-aware 激活）
+- [x] 1.6 typecheck 与相关测试通过；桌面与 320px 视口失败态验收
 
 ## 2. 英文资格包打包（代码）
 
-- [ ] 2.1 `Dockerfile` 增加 `locale-manifests/` 目录的 COPY（与 registry 单文件 COPY 同处）
-- [ ] 2.2 `Dockerfile` 既有构建断言段追加 v0.37 资格包存在性断言，缺包即构建失败
-- [ ] 2.3 核验断言在本地成立（资格包在构建上下文内存在）
+- [x] 2.1 `Dockerfile` 增加 `locale-manifests/` 目录的 COPY（与 registry 单文件 COPY 同处）
+- [x] 2.2 `Dockerfile` 既有构建断言段追加 v0.37 资格包存在性断言，缺包即构建失败
+- [x] 2.3 核验断言在本地成立（资格包在构建上下文内存在）
 
 ## 3. 生产图谱内容恢复（r4-c6 切换）
 

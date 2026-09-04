@@ -750,6 +750,76 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('重试当前图谱');
   });
 
+  it('projects a shard-absent root failure as content-not-ready with a legacy entry instead of a bare retry', async () => {
+    // 320px 视口失败态：错误卡片与 legacy 入口不依赖宽度条件渲染。
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: false, status: 404, json: async () => ({ error: '当前 Authority 分片暂时无法加载。', code: 'ACTIVE_SHARD_SHARD_ABSENT' }) };
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student',
+      candidateAllowed: false,
+      controlledVerification: false,
+      legacy: createElement('div', { 'data-legacy-marker': 'true' }, 'legacy graph'),
+    })));
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    expect(container.textContent).toContain('知识数据尚未发布完成');
+    expect(container.textContent).not.toContain('当前知识图谱暂时无法加载');
+    expect(container.textContent).not.toContain('重试当前图谱');
+    const legacyAction = container.querySelector<HTMLButtonElement>('[data-error-action="legacy"]');
+    expect(legacyAction).not.toBeNull();
+    expect(legacyAction!.textContent).toContain('查看旧版图谱');
+    expect(container.querySelector('[data-legacy-marker="true"]')?.closest('[hidden]')).not.toBeNull();
+
+    await act(async () => legacyAction!.click());
+    expect(container.querySelector('[data-knowledge-graph-mode="legacy"]')).not.toBeNull();
+    expect(container.querySelector('[data-legacy-marker="true"]')?.closest('[hidden]')).toBeNull();
+  });
+
+  it('projects an activation-absent root failure as content-not-ready', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: false, status: 503, json: async () => ({ error: '当前 Authority 激活证据不可用。', code: 'ACTIVE_GRAPH_ACTIVATION_ABSENT' }) };
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    expect(container.textContent).toContain('知识数据尚未发布完成');
+    expect(container.textContent).not.toContain('重试当前图谱');
+  });
+
+  it('keeps the retry guidance for transient root failures without a failure code', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) {
+        return { ok: false, status: 503, json: async () => ({ error: '当前 Authority 分片暂时无法加载。', code: 'ACTIVE_SHARD_UNAVAILABLE' }) };
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    expect(container.textContent).toContain('当前知识图谱暂时无法加载');
+    expect(container.textContent).toContain('重试当前图谱');
+    expect(container.querySelector('[data-error-action="legacy"]')).toBeNull();
+  });
+
   it('fails closed when a relation-family response reports identity drift without an envelope', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
