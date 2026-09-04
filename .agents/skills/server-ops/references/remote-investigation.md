@@ -61,6 +61,18 @@ rtk npx tsx scripts/knowledge-cutover/capture-active-runtime-observation.ts
 
 该脚本只在 `act-obe-app` 容器内读取已挂载的 v2/v1 manifest 与 active receipt，验证 receipt 与首选 manifest 身份一致，再将全量清单写入不可变的本地候选证据文件，并只输出 release、receipt、generation 与文件数摘要。复跑同一生产身份会校验既有捕获；身份漂移会拒绝覆盖。
 
+## 开发者网关（runtime-dev.adapt-learn.online）读取超时
+
+症状：合作者 `npm run startup:oss-runtime` 报“读取超时”；nginx `developer-gateway.access.log` 大量 heartbeat `499`；网关 journal 出现 `_send(204)` 的 `BrokenPipeError`（BrokenPipe 只是客户端已断开的结果，不是根因）。
+
+排查顺序：
+
+1. `systemctl status act-developer-runtime-gateway.service`、`top -p <pid>`、`ls /proc/<pid>/task | wc -l` 与 `cat /proc/<pid>/io`：持续高 CPU、`wchar` 达到 TB 级即指向租约持久化风暴。
+2. 租约库：`ls -la /var/lib/act-runtime-developer-gateway/leases.json`。每条租约内联约 3.7 万条 allowlist（约 5MB/条）；`heartbeat` 与每次 blob GET 都曾在全局锁内全量重写该文件，文件随重试僵尸租约膨胀到数百 MB 后所有请求排队超时。
+3. 挂载面排除：`timeout 8 ls /home/projects/act/data/runtime/ossfs/blobs` 正常说明 ossfs 不背锅。
+
+修复（2026-09-04 已落地 `scripts/runtime-release/developer-oss/gateway_service.py`）：持久化前驱逐死亡与超过心跳宽限的租约；heartbeat/blob 探测的持久化按 30 秒去抖；同 checkout 重新签发时取代旧活租约。运维配套：重启服务前用同样规则裁剪 `leases.json`（先备份），不要让数百 MB 级租约库随进程重启原样复活。远端该文件必须与仓库 sha256 一致，禁止只在远端改。
+
 常见模式：
 
 - `P1001`：应用到 PostgreSQL 不可达

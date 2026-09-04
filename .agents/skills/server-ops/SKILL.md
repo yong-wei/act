@@ -38,6 +38,12 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 若发现远端已有源码残留，应优先清理为最小运维壳层，再继续后续排障或部署。
 - 若需要更新部署逻辑，只能修改本地仓库中的运维脚本与文档，并通过既定的本机构建流程产出镜像，再按既定方式部署。
 
+## 发布分支流程
+
+- 部署时首先将集成分支 `integration` 合并到 `main`，之后从 `main` 发布新版本完成部署。
+- 部署过程中如果在 `main` 中进行了修改（如版本号提升、发布 hotfix），需要将修改同步到集成分支 `integration`。
+- 部署完成后回到集成分支 `integration`。
+
 ## When to Use
 
 - 用户明确要求将本项目发布或部署到服务器
