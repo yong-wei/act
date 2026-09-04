@@ -18,6 +18,7 @@ import {
   collectRelativeCallers,
   directoryPathReadCaller,
   deriveUpstreamQualificationEvidence,
+  UPSTREAM_PAYLOAD_IDENTITY,
   evaluateCoordinationGate,
   extractModuleSpecifiers,
   memberSetDigest,
@@ -964,17 +965,23 @@ describe('residual data-governance adjudication', () => {
       rmSync(pkg.dir, { recursive: true, force: true });
     }
   });
-  it('re-derives upstream qualification from cross-linked bytes and rejects isolated tampering', () => {
+  it('re-derives upstream qualification from cross-linked and pinned bytes and rejects tampering', () => {
     const index = {
       status: 'package-unqualified',
-      packageDigest: '6'.repeat(64),
+      packageDigest: UPSTREAM_PAYLOAD_IDENTITY.packageDigest,
       schemaVersion: 'act-repository-payload-classification/v2',
-      subjectIdentity: 'c'.repeat(64),
+      subjectIdentity: UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity,
       slices: [
         { discovered: 10, qualified: 8, unresolved: 2, 'justified-excluded': 0 },
         { discovered: 5, qualified: 5, unresolved: 0, 'justified-excluded': 0 },
       ],
-      inventoryVerification: { memberDenominator: 15, subjectIdentity: 'c'.repeat(64), projectionsReconciled: true },
+      inventoryVerification: {
+        byteCount: 100,
+        sha256: 'e'.repeat(64),
+        memberDenominator: 15,
+        subjectIdentity: UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity,
+        projectionsReconciled: true,
+      },
     };
     const summaryText = [
       '# Repository payload classification (current completion run)',
@@ -991,30 +998,37 @@ describe('residual data-governance adjudication', () => {
       '| course-content:unknown-privacy | 2 | member:a, member:b |',
       '',
     ].join('\n');
-    const base = { index, summaryText, unresolvedRegisterText };
-    expect(deriveUpstreamQualificationEvidence(base)).toMatchObject({
+    const inventoryBytes = { byteCount: 100, sha256: 'e'.repeat(64), memberCount: 15, unresolvedCount: 2 };
+    const base = { index, summaryText, unresolvedRegisterText, inventoryBytes };
+    const baseResult = deriveUpstreamQualificationEvidence(base);
+    if ('error' in baseResult) throw new Error(`base-error:${baseResult.error}`);
+    expect(baseResult).toMatchObject({
       status: 'package-unqualified',
       unresolvedMembers: 2,
     });
 
-    // Status flipped to qualified only in the index disagrees with the summary.
-    expect(deriveUpstreamQualificationEvidence({ ...base, index: { ...index, status: 'qualified' } }))
-      .toMatchObject({ error: 'upstream-status-disagrees-with-summary' });
-    // Zeroing slice counts breaks per-slice conservation.
+    // A zeroed or rewritten digest breaks the pinned immutable identity.
     expect(deriveUpstreamQualificationEvidence({
       ...base,
-      index: { ...index, slices: [{ discovered: 10, qualified: 10, unresolved: 0, 'justified-excluded': 0 }] },
-    })).toMatchObject({ error: 'upstream-inventory-receipt-inconsistent' });
-    // Register rows disagreeing with the slice counts fail.
+      index: { ...index, packageDigest: '0'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-identity-pinned-mismatch' });
+    // Self-consistent qualified forgery still fails the inventory recount.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: { ...index, status: 'qualified', slices: [{ discovered: 15, qualified: 15, unresolved: 0, 'justified-excluded': 0 }] },
+      summaryText: summaryText.replace('package-unqualified', 'qualified'),
+      unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 0 |'),
+      inventoryBytes,
+    })).toMatchObject({ error: 'upstream-inventory-count-mismatch' });
+    // Inventory bytes drifting from the receipt fail the byte gate.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      inventoryBytes: { ...inventoryBytes, sha256: 'f'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-inventory-bytes-unverified' });
+    // Register rows disagreeing with the recounted slices fail.
     expect(deriveUpstreamQualificationEvidence({
       ...base,
       unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 7 |'),
     })).toMatchObject({ error: 'upstream-unresolved-register-mismatch' });
-    // A qualified claim with any unresolved member fails.
-    expect(deriveUpstreamQualificationEvidence({
-      ...base,
-      index: { ...index, status: 'qualified' },
-      summaryText: summaryText.replace('package-unqualified', 'qualified'),
-    })).toMatchObject({ error: 'upstream-status-count-inconsistent' });
   });
 });

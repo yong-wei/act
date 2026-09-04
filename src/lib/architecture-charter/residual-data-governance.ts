@@ -19,6 +19,16 @@ export const UPSTREAM_PAYLOAD_CHANGE = {
   compactIndexLocator: 'docs/architecture/repository-payload-classification/current/index.json',
 } as const;
 
+/**
+ * Immutable identity of the archived #1916 package, pinned the same way as
+ * PREDECESSOR_1883: any upstream archive rewrite that changes its identity
+ * fails consumption before its status bytes are even read.
+ */
+export const UPSTREAM_PAYLOAD_IDENTITY = {
+  subjectIdentity: 'cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc',
+  packageDigest: '6f8f55538cb884fc728b1a63359ab3e6dbd814806360f9d1734948d57ba298d2',
+} as const;
+
 /** Immutable #1876/#1883 predecessor identities kept as comparison-only history. */
 export const PREDECESSOR_1883 = {
   decisionIdentity: 'f606e22c34eaa5f457e395fd476315c0cd2c7fd66c12c1763b4652f0a1894c13',
@@ -1320,6 +1330,13 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
  * lines, and the unresolved register's row counts. A status edited in one
  * place without the rest fails closed here.
  */
+export interface UpstreamInventoryByteEvidence {
+  readonly byteCount: number;
+  readonly sha256: string;
+  readonly memberCount: number;
+  readonly unresolvedCount: number;
+}
+
 export function deriveUpstreamQualificationEvidence(params: {
   readonly index: {
     status?: string;
@@ -1327,16 +1344,25 @@ export function deriveUpstreamQualificationEvidence(params: {
     schemaVersion?: string;
     subjectIdentity?: string;
     slices?: Array<{ discovered?: number; qualified?: number; unresolved?: number; 'justified-excluded'?: number }>;
-    inventoryVerification?: { memberDenominator?: number; subjectIdentity?: string; projectionsReconciled?: boolean };
+    inventoryVerification?: { byteCount?: number; sha256?: string; memberDenominator?: number; subjectIdentity?: string; projectionsReconciled?: boolean };
     tool?: { entryBundleDigest?: string };
   };
   readonly summaryText: string;
   readonly unresolvedRegisterText: string;
+  /** Independently hashed and counted bytes of the upstream full inventory artifact. */
+  readonly inventoryBytes: UpstreamInventoryByteEvidence;
 }): UpstreamPayloadEvidence | { error: string } {
-  const { index, summaryText, unresolvedRegisterText } = params;
-  if (!index.packageDigest || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity
+  const { index, summaryText, unresolvedRegisterText, inventoryBytes } = params;
+  if (!index.packageDigest || !/^[0-9a-f]{64}$/iu.test(index.packageDigest)
+    || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity
     || !index.status) {
     return { error: 'upstream-payload-identity-unreadable' };
+  }
+  // Pinned immutable identity: an archive rewrite cannot silently become the
+  // qualification input of this adjudication.
+  if (index.subjectIdentity !== UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity
+    || index.packageDigest !== UPSTREAM_PAYLOAD_IDENTITY.packageDigest) {
+    return { error: 'upstream-identity-pinned-mismatch' };
   }
   const slices = index.slices ?? [];
   const unresolvedMembers = slices.reduce((sum, slice) => sum + (slice.unresolved ?? 0), 0);
@@ -1350,6 +1376,17 @@ export function deriveUpstreamQualificationEvidence(params: {
     || inventory.subjectIdentity !== index.subjectIdentity
     || inventory.projectionsReconciled !== true) {
     return { error: 'upstream-inventory-receipt-inconsistent' };
+  }
+  // Qualification is re-derived from the actual inventory bytes, not from any
+  // self-reported status: the artifact must hash to the receipt and its
+  // per-member dispositions must recount the package's unresolved denominator.
+  if (inventoryBytes.byteCount !== inventory.byteCount
+    || inventoryBytes.sha256 !== inventory.sha256
+    || inventoryBytes.memberCount !== inventory.memberDenominator) {
+    return { error: 'upstream-inventory-bytes-unverified' };
+  }
+  if (inventoryBytes.unresolvedCount !== unresolvedMembers) {
+    return { error: 'upstream-inventory-count-mismatch' };
   }
   const summaryStatus = /^- status: `?([a-z-]+)`?$/mu.exec(summaryText)?.[1];
   if (summaryStatus !== index.status) return { error: 'upstream-status-disagrees-with-summary' };
@@ -1375,14 +1412,41 @@ export function deriveUpstreamQualificationEvidence(params: {
   };
 }
 
+/** Independently hashes the upstream full-inventory artifact and recounts dispositions. */
+export function loadUpstreamInventoryByteEvidence(absolutePath: string): UpstreamInventoryByteEvidence | { error: string } {
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(absolutePath);
+  } catch {
+    return { error: 'upstream-inventory-artifact-missing' };
+  }
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  let memberCount = 0;
+  let unresolvedCount = 0;
+  for (const line of bytes.toString('utf8').split('\n')) {
+    if (!line.trim()) continue;
+    memberCount += 1;
+    const disposition = /"memberDisposition":"([a-z-]+)"/u.exec(line)?.[1];
+    if (disposition === 'unresolved') unresolvedCount += 1;
+  }
+  return { byteCount: bytes.byteLength, sha256, memberCount, unresolvedCount };
+}
+
 /** Loads the upstream #1916 payload-eligibility compact index from its committed location. */
 export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEvidence {
   const indexDir = join(repoRoot, 'docs/architecture/repository-payload-classification/current');
-  const index = JSON.parse(readFileSync(join(indexDir, 'index.json'), 'utf8'));
+  const index = JSON.parse(readFileSync(join(indexDir, 'index.json'), 'utf8')) as {
+    inventoryVerification?: { locator?: string };
+  };
+  const inventoryBytes = loadUpstreamInventoryByteEvidence(
+    join(repoRoot, index.inventoryVerification?.locator ?? 'artifacts/architecture-census/unknown/payload-classification-inventory.ndjson'),
+  );
+  if ('error' in inventoryBytes) throw new Error(inventoryBytes.error);
   const derived = deriveUpstreamQualificationEvidence({
     index,
     summaryText: readFileSync(join(indexDir, 'summary.md'), 'utf8'),
     unresolvedRegisterText: readFileSync(join(indexDir, 'unresolved.md'), 'utf8'),
+    inventoryBytes,
   });
   if ('error' in derived) throw new Error(derived.error);
   return derived;
