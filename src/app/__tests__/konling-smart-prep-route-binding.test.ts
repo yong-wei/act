@@ -59,6 +59,7 @@ vi.mock('@/lib/course-ai-contexts', () => ({
     stepId,
     courseTitle: '受控课程',
   })),
+  resolveInteractiveLessonRegistryKey: vi.fn(() => null),
 }));
 vi.mock('@/lib/ai-context-resolver', () => ({
   resolveRegisteredAIContextFromPath: vi.fn(() => null),

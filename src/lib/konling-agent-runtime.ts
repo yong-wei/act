@@ -854,15 +854,10 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
   }),
 };
 
-const KONLING_TEACHING_ASSISTANT_MODE_ALIASES: Record<string, KonlingTeachingAssistantModeId> = {
-  'teacher-grading-assistant': 'grading-assistant',
-  'student-feedback-explainer': 'feedback-explainer',
-};
-
 function normalizeKonlingTeachingAssistantModeId(modeId?: string | null): KonlingTeachingAssistantModeId | null {
   if (!modeId) return 'generic-chat';
   if (modeId in KONLING_TEACHING_ASSISTANT_MODE_REGISTRY) return modeId as KonlingTeachingAssistantModeId;
-  return KONLING_TEACHING_ASSISTANT_MODE_ALIASES[modeId] ?? null;
+  return null;
 }
 
 export function resolveKonlingTeachingAssistantMode(
