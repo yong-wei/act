@@ -560,8 +560,10 @@ fn nomoto_quick_simulation_limits_actual_rudder_rate_when_requested() {
 #[test]
 fn semisub3dof_closed_loop_converges_under_default_dp() {
     // #1943 回归：semisub3dof 推力契约统一为 SI（N、N·m）后，默认 DP 参数
-    // （与前端 DRILLING_DEFAULT_DP 一致）在 level 3 代表性定常环境扰动下
-    // 60 s 内位置误差收敛至黄色警报内（< 3 m），全程不触发紧急解脱（10 m）。
+    // （与前端 DRILLING_DEFAULT_DP 一致）+ 默认 level 3 海况的完整默认链路
+    // （practice_drilling_environment 演化 + practice_dp_decoupled_control +
+    // practice_allocate_thrust 推力分配）60 s 内位置误差收敛至黄色警报内
+    // （< 3 m），全程不触发紧急解脱（10 m），且不持续饱和。
     let dt: f64 = 1.0 / 60.0;
     let mut controller = json!({
         "surge": {"integral": 0.0, "prevError": 0.0},
@@ -584,15 +586,60 @@ fn semisub3dof_closed_loop_converges_under_default_dp() {
         "positionError": 0.0, "headingError": 0.0,
         "thrusters": [], "decouplingEnabled": true
     });
-    // level 3 代表性环境扰动：横向 ~200 kN 定常力 + ~10 MN·m 扰动力矩
-    let env_force = [0.0, 2.0e5, 1.0e7];
-    // 8 × 800 kN 推进器容量（kN→N），力矩按布局力臂近似上限
-    let clamp_force_n = |kn: f64| (kn * 1000.0).clamp(-6.4e6, 6.4e6);
+    // 前端 getTypicalEnvironment(3) 的默认海况：流速 0.5 m/s、风速 10 m/s、浪高 1.5 m
+    let mut current = json!({
+        "speed": 0.5, "direction": 0.7854, "meanSpeed": 0.5, "meanDirection": 0.7854, "variability": 0.1
+    });
+    let mut wind = json!({ "speed": 10.0, "direction": 0.7854 });
+    // HYSY981_THRUSTER_LAYOUT：8 台全回转推进器（kN / kW）
+    let configs: Vec<Value> = [
+        (-45.0, 30.0), (-45.0, -30.0), (-30.0, 35.0), (-30.0, -35.0),
+        (45.0, 30.0), (45.0, -30.0), (30.0, 35.0), (30.0, -35.0),
+    ]
+    .iter()
+    .enumerate()
+    .map(|(index, &(x, y))| {
+        json!({
+            "id": index + 1, "positionX": x, "positionY": y,
+            "maxThrust": 800.0, "maxPower": 4500.0, "maxAzimuthRate": 15.0,
+            "forbiddenZones": []
+        })
+    })
+    .collect();
+    let mut thrusters: Vec<Value> = (1..=8)
+        .map(|id| json!({ "id": id, "thrust": 0.0, "azimuth": 0.0, "power": 0.0, "enabled": true, "failed": false }))
+        .collect();
+
+    let call = |request: Value| -> Value {
+        serde_json::from_str(
+            &compute_virtual_simulation_step_json(&request.to_string()).unwrap(),
+        )
+        .unwrap()
+    };
 
     let steps = (60.0 / dt).round() as usize;
     let mut max_position_error = 0.0f64;
-    for _ in 0..steps {
-        let dp_request = json!({
+    let mut saturated_steps = 0usize;
+    let mut consecutive_saturated_steps = 0usize;
+    let mut max_consecutive_saturated_steps = 0usize;
+    for _step in 0..steps {
+        let env = call(json!({
+            "modelId": "practice_drilling_environment",
+            "dt": dt,
+            "evolve": true,
+            "current": current.clone(),
+            "wind": wind.clone(),
+            "meanWindSpeed": 10.0,
+            "waveHeight": 1.5,
+            "waveDirection": 0.7854,
+            "psi": state["psi"].clone(),
+            "rngSamples": [0.5, 0.5, 0.5]
+        }));
+        current = env["current"].clone();
+        wind = env["wind"].clone();
+        let forces = &env["forces"];
+
+        let dp = call(json!({
             "modelId": "practice_dp_decoupled_control",
             "dt": dt,
             "platform": {
@@ -601,29 +648,48 @@ fn semisub3dof_closed_loop_converges_under_default_dp() {
             },
             "controllerState": controller.clone(),
             "config": config.clone()
-        });
-        let dp: Value = serde_json::from_str(
-            &compute_virtual_simulation_step_json(&dp_request.to_string()).unwrap(),
-        )
-        .unwrap();
+        }));
         controller = dp["newState"].clone();
         let output = &dp["output"];
+
+        let allocation = call(json!({
+            "modelId": "practice_allocate_thrust",
+            "dt": dt,
+            "tauCmd": [
+                output["decoupledTauX"].clone(),
+                output["decoupledTauY"].clone(),
+                output["decoupledTauN"].clone()
+            ],
+            "thrusters": thrusters.clone(),
+            "configs": configs.clone()
+        }));
+        thrusters = allocation["thrusters"].as_array().cloned().unwrap();
+        if allocation["saturated"].as_bool().unwrap_or(false) {
+            saturated_steps += 1;
+            consecutive_saturated_steps += 1;
+            max_consecutive_saturated_steps =
+                max_consecutive_saturated_steps.max(consecutive_saturated_steps);
+        } else {
+            consecutive_saturated_steps = 0;
+        }
+
+        // 分配结果 kN → N：semisub3dof 契约为 SI 单位，这里是唯一换算点
         let thrust = [
-            clamp_force_n(output["decoupledTauX"].as_f64().unwrap()),
-            clamp_force_n(output["decoupledTauY"].as_f64().unwrap()),
-            (output["decoupledTauN"].as_f64().unwrap() * 1000.0).clamp(-5.0e8, 5.0e8),
+            allocation["totalForceX"].as_f64().unwrap() * 1000.0,
+            allocation["totalForceY"].as_f64().unwrap() * 1000.0,
+            allocation["totalMomentN"].as_f64().unwrap() * 1000.0,
         ];
-        let step_request = json!({
+        state = call(json!({
             "modelId": "semisub3dof",
             "dt": dt,
             "thrusterForce": thrust,
-            "envForce": env_force,
+            "envForce": [
+                forces["forceX"].clone(),
+                forces["forceY"].clone(),
+                forces["momentN"].clone()
+            ],
             "state": state.clone()
-        });
-        state = serde_json::from_str(
-            &compute_virtual_simulation_step_json(&step_request.to_string()).unwrap(),
-        )
-        .unwrap();
+        }));
         let position_error = state["positionError"].as_f64().unwrap();
         assert!(position_error.is_finite());
         max_position_error = max_position_error.max(position_error);
@@ -637,5 +703,15 @@ fn semisub3dof_closed_loop_converges_under_default_dp() {
     assert!(
         max_position_error < 10.0,
         "全程不得触发紧急解脱阈值（10 m），峰值 {max_position_error:.3} m"
+    );
+    assert!(
+        saturated_steps * 10 < steps,
+        "不得持续饱和：{saturated_steps}/{steps} 步饱和"
+    );
+    // 阵风冲击允许瞬时饱和，但不得连续饱和（60 步 = 1 s）——那意味着
+    // 分配器容量被常态打满，闭环不再工作在线性区。
+    assert!(
+        max_consecutive_saturated_steps < 60,
+        "饱和不得持续超过 1 s，实际连续 {max_consecutive_saturated_steps} 步"
     );
 }
