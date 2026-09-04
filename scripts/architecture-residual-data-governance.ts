@@ -413,7 +413,16 @@ function runPostGuards(revokeOnFailure = false): void {
   }
   for (const [name, path] of readOnlyInputs) {
     const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
-    if (before && sha256Text(readFileSync(path, 'utf8')) !== before) fail(`read-only-input-mutated:${name}`);
+    if (!before) continue;
+    // An unreadable input is indistinguishable from a replaced one: both are
+    // drift, and both must revoke already-published outputs.
+    let currentDigest: string;
+    try {
+      currentDigest = sha256Text(readFileSync(path, 'utf8'));
+    } catch {
+      fail(`read-only-input-mutated:${name}`);
+    }
+    if (currentDigest !== before) fail(`read-only-input-mutated:${name}`);
   }
 }
 runPostGuards();
