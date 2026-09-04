@@ -1629,6 +1629,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
   private dpState: DPDecouplingState;
   private currentEnv!: CurrentEnvironment;
   private windEnv!: CurrentWindEnvironment;
+  private meanWindSpeed: number = 0;
   private performanceTracker: ReturnType<typeof createPerformanceTracker>;
 
   // 配置选项
@@ -1687,6 +1688,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
     if (!this.disturbanceEnabled) {
       this.currentEnv = createCurrentEnvironment(0, 0, 0);
       this.windEnv = createCurrentWindEnvironment(0, 0, 1.0);
+      this.meanWindSpeed = 0;
       this.waveHeight = 0;
       return;
     }
@@ -1694,6 +1696,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
     const env = getTypicalEnvironment(this.seaStateLevel);
     this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
     this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
+    this.meanWindSpeed = env.windSpeed;
     this.waveHeight = env.waveHeight;
   }
 
@@ -1738,7 +1741,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
     // 更新环境
     this.currentEnv = updateCurrentEnvironment(this.currentEnv, dt, this.currentRng);
-    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.windEnv.speed, this.windRng);
+    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.meanWindSpeed, this.windRng);
 
     // 计算环境力
     const envForces = computeTotalEnvironmentalForces(
@@ -1804,7 +1807,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
       this.state.thrusters = allocationResult.thrusters;
 
-      // 计算实际推力作用于平台的力 (kN -> N)
+      // 实际推力 kN → N：semisub3dof 契约为 SI 单位（N、N·m），内核不再换算（#1943）
       const thrusterForce: [number, number, number] = [
         allocationResult.totalForceX * 1000,
         allocationResult.totalForceY * 1000,

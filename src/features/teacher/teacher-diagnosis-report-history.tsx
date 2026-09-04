@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ClipboardList,
   FileClock,
+  GraduationCap,
   History,
   Loader2,
   RefreshCw,
@@ -35,6 +36,7 @@ interface TeacherDiagnosisReportHistoryProps {
   classId: string;
   targetStudentId?: string;
   subjectLabel: string;
+  currentStudentsEntry?: { href: string };
 }
 
 interface TeacherDiagnosisReportHistoryViewProps {
@@ -43,6 +45,7 @@ interface TeacherDiagnosisReportHistoryViewProps {
   reports: DiagnosisReportApiItem[];
   selectedReportId?: string | null;
   subjectLabel: string;
+  currentStudentsEntry?: { href: string };
   errorMessage?: string | null;
   onRefresh?: () => void;
   onSelectReport?: (reportId: string) => void;
@@ -88,6 +91,7 @@ export function TeacherDiagnosisReportHistory({
   classId,
   targetStudentId,
   subjectLabel,
+  currentStudentsEntry,
 }: TeacherDiagnosisReportHistoryProps) {
   const [state, setState] = useState<ReportHistoryState>('loading');
   const [reports, setReports] = useState<DiagnosisReportApiItem[]>([]);
@@ -207,6 +211,7 @@ export function TeacherDiagnosisReportHistory({
       reports={reports}
       selectedReportId={selectedReportId}
       subjectLabel={subjectLabel}
+      currentStudentsEntry={currentStudentsEntry}
       errorMessage={errorMessage}
       onRefresh={() => void loadReports()}
       onSelectReport={setSelectedReportId}
@@ -228,6 +233,7 @@ export function TeacherDiagnosisReportHistoryView({
   reports,
   selectedReportId,
   subjectLabel,
+  currentStudentsEntry,
   errorMessage,
   onRefresh,
   onSelectReport,
@@ -270,6 +276,16 @@ export function TeacherDiagnosisReportHistoryView({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {currentStudentsEntry ? (
+            <Link
+              href={currentStudentsEntry.href}
+              className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm"
+              data-teacher-current-students-entry
+            >
+              <GraduationCap className="h-4 w-4" />
+              查看当前学生学情
+            </Link>
+          ) : null}
           <button
             type="button"
             data-diagnosis-generation-action="generate"

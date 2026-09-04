@@ -1,0 +1,6 @@
+- [x] 1.1 统一 semisub3dof 推力单位契约（修正 `drilling-simulation.tsx` 与 `engine-factory.ts` 两处调用侧 ×1000，或改内核契约并同步），以注释/类型辅助固定单一换算点
+- [x] 1.2 Rust 闭环收敛回归测试：默认 DP 参数、level 3 海况、零初始/零目标下 60 s 内位置误差 < 3 m 且不触发紧急解脱阈值
+- [x] 1.3 单位修正后复测解耦矩阵系数（decoupledTauY）与推力分配方位角启发式（Mz 偏转）行为，按复测数据裁决是否需要调整
+- [x] 1.4 修正风环境均值传参（`updateWindEnvironment` 传均值而非当前值）
+- [x] 1.5 `wasm:build:control-engine` 重建；钻井平台页面默认开局 60 s 收敛浏览器验收（位置误差、功率、推进器、违规计数断言）
+- [x] 1.6 typecheck、相关单元测试与 Rust 测试套件通过

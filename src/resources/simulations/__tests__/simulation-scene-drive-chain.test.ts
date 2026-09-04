@@ -26,8 +26,16 @@ const R6_DRIVE_CHAIN_ALLOWLIST = new Set([
     .filter((relative) => DRIVE_CHAIN_PREFIXES.some((prefix) => relative.startsWith(prefix))),
 ]);
 
-// 显式授权的驱动链改动（各自 change 覆盖）：#1944 挖泥船 DP 执行链路接通，
-// 遗留 MMG3DOFEngine 的 DP 分支与活动 facade 路径同步修复（无新 TS stepper）。
+// #1943 fix-drilling-platform-thrust-unit-contract：修复 semisub3dof 推力单位双重
+// 换算（内核改 SI 契约）与风环境均值传参，提案 Impact 显式授权以下驱动链文件与
+// 重建的 Wasm 工件；仅豁免该单位修复所列文件，不扩大到其他驱动链改动。
+const THRUST_UNIT_FIX_ALLOWLIST = new Set([
+  'src/resources/simulations/physics/engine-factory.ts',
+  'rust/control-engine/src/virtual_simulation_runtime.rs',
+  'src/resources/control-system/wasm/control_engine/index_bg.wasm',
+]);
+// 显式授权的驱动链改动：#1944 挖泥船 DP 执行链路接通，遗留 MMG3DOFEngine
+// 的 DP 分支与活动 facade 路径同步修复（无新 TS stepper）。
 const AUTHORIZED_DRIVE_CHAIN_FILES = new Set([
   'src/resources/simulations/physics/engine-factory.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
@@ -57,7 +65,11 @@ function diffNameOnly(): string[] {
 describe('visual pipeline preserves the simulation drive chain', () => {
   it('leaves drive-chain files out of the change diff except R6 numeric retirement', () => {
     const changed = diffNameOnly();
-    const driveChainAllow = new Set([...R6_DRIVE_CHAIN_ALLOWLIST, ...AUTHORIZED_DRIVE_CHAIN_FILES]);
+    const driveChainAllow = new Set([
+      ...R6_DRIVE_CHAIN_ALLOWLIST,
+      ...THRUST_UNIT_FIX_ALLOWLIST,
+      ...AUTHORIZED_DRIVE_CHAIN_FILES,
+    ]);
     for (const prefix of DRIVE_CHAIN_PREFIXES) {
       const violations = changed.filter((file) => file.startsWith(prefix) && !driveChainAllow.has(file));
       expect(violations, `drive chain touched: ${violations.join(', ')}`).toEqual([]);

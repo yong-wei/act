@@ -74,7 +74,7 @@
 
 - 新增或改造仿真必须遵循 `docs/Simulation_Guidelines.md`。
 - 数值模型统一进入 `rust/control-engine`、浏览器 WASM 或服务端 WASM runtime；前端只保留固定步长调度、UI、图表和埋点。
-- 页面使用 `SimulationClock({ dt: 1 / 60, maxSubSteps: 6 })` 推进模型；禁止用 `setInterval` 或可变 `delta` 直接驱动物理模型。
+- 页面使用 `SimulationClock({ dt: 1 / 60, maxSubSteps: 120 })` 推进模型（`SIMULATION_FIXED_STEP_SECONDS`/`SIMULATION_MAX_SUB_STEPS`，见 `src/resources/simulations/lib/simulation-timing.ts`；教学页可用更小的 maxSubSteps）；禁止用 `setInterval` 或可变 `delta` 直接驱动物理模型。
 - 禁止新增 TypeScript 物理 stepper、传函离散化器、通用仿真 hook，或恢复旧的前端仿真主干。
 - 学生可见文案不要暴露 Rust、WASM、积分器等实现细节。
 

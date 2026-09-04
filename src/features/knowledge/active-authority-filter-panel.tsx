@@ -20,7 +20,7 @@ interface ActiveAuthorityFilterPanelProps {
   onToggleNodeType: (canonicalType: string) => void;
   enabledFamilies: readonly EngineeringRelationFamily[];
   onToggleFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, string>>>;
+  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, { message: string; retryable: boolean }>>>;
   onRetryFamily: (family: EngineeringRelationFamily) => void;
   /** 教学关系覆盖状态（不可用/未发布等）；null 表示无说明。 */
   teachingCoverageNote: string | null;
@@ -176,14 +176,16 @@ export function ActiveAuthorityFilterPanel({
                   data-authority-family-failure={family}
                   className="max-w-44 text-[11px] text-red-200"
                 >
-                  {failure}
-                  <button
-                    type="button"
-                    onClick={() => onRetryFamily(family)}
-                    aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
-                    data-authority-family-retry={family}
-                    className="ml-1 underline underline-offset-2"
-                  >{graphCopy(locale, 'filter.family.retry')}</button>
+                  {failure.message}
+                  {failure.retryable ? (
+                    <button
+                      type="button"
+                      onClick={() => onRetryFamily(family)}
+                      aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
+                      data-authority-family-retry={family}
+                      className="ml-1 underline underline-offset-2"
+                    >{graphCopy(locale, 'filter.family.retry')}</button>
+                  ) : null}
                 </span>
               ) : null}
             </span>
