@@ -36,6 +36,7 @@ export type KonlingAssignedCitation = {
   displayTitle: string;
   readonly displayNumber: number;
   readonly canonicalKey: string;
+  readonly verifiable: boolean;
   href: string | null;
   identity: KonlingCitationIdentity;
   confidence?: 'none' | 'low' | 'medium' | 'high';
@@ -45,8 +46,11 @@ export type KonlingAssignedCitation = {
 
 export type KonlingAssignableCitation = Omit<
   KonlingAssignedCitation,
-  'displayNumber' | 'canonicalKey'
->;
+  'displayNumber' | 'canonicalKey' | 'verifiable'
+> & {
+  /** 服务器声明该条目具备稳定来源身份与有效目标锚点；缺省视为可核验（#1949）。 */
+  verifiable?: boolean;
+};
 
 function keyPart(value: string | null | undefined) {
   return encodeURIComponent(String(value ?? '').normalize('NFKC').trim());
@@ -90,6 +94,7 @@ export function assignKonlingCitationDisplayNumbers(
     if (byKey.has(canonicalKey)) continue;
     const item: KonlingAssignedCitation = Object.freeze({
       ...citation,
+      verifiable: citation.verifiable !== false,
       canonicalKey,
       displayNumber: nextDisplayNumber,
     });
@@ -115,6 +120,7 @@ export function createKonlingCitationAllocator(
       if (existing) return existing;
       const item: KonlingAssignedCitation = Object.freeze({
         ...citation,
+        verifiable: citation.verifiable !== false,
         canonicalKey,
         displayNumber: nextDisplayNumber,
       });

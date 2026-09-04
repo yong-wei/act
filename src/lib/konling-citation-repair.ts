@@ -113,6 +113,12 @@ export function normalizeKonlingCitations(input: {
       if (!unresolvedMarkers.includes(raw)) unresolvedMarkers.push(raw);
       return '';
     }
+    // 表内解析成功但服务器声明不可核验（未核验/无目标锚点）的条目按未核验
+    // 处理：删除标记并降级，不得以已核验引用留在正文（#1949）
+    if (resolved.verifiable === false) {
+      if (!unresolvedMarkers.includes(raw)) unresolvedMarkers.push(raw);
+      return '';
+    }
     referencedNumbers.add(resolved.displayNumber);
     return `[${resolved.displayNumber}]`;
   });

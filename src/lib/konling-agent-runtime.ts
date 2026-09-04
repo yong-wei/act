@@ -3517,6 +3517,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         sourceType: 'textbook',
         displayTitle: candidate.title,
         href: candidate.href,
+        // 无锚点地址的教材候选不可核验，不得作为已核验引用（#1949）
+        verifiable: Boolean(candidate.href),
         confidence: 'high',
         evidenceBasis: 'source-pack:textbook-v2',
         limitation: candidate.limitation,
@@ -8916,6 +8918,9 @@ function toAssignableRuntimeCitation(citation: KonlingCitation) {
     sourceType: citation.sourceType,
     displayTitle: citation.displayTitle,
     href: citation.displayHref ?? citation.href,
+    // 与 isBindableAnswerUnitCitation 同一判定：未核验或无目标的条目不得
+    // 作为已核验引用进入正式回答（#1949）
+    verifiable: citation.verified === true && Boolean(citation.citationTargetId),
     identity,
     confidence: citation.confidence,
     evidenceBasis: citation.evidenceBasis,
@@ -9527,7 +9532,9 @@ export function buildKonlingCitationGuard(
       lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
     }
   }
-  const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
+  // 不可绑定编号的收集不限于学习问答：所有正式回答路径都需要这道
+  // 防线，非 study-question 路径由 strip 层据此剥离（#1949）
+  const unverifiedCitationMarkers = assistantMessage === undefined
     ? []
     : collectUnverifiedCitationMarkers(assistantMessage, citations);
   const normativeCompliance = assistantMessage !== undefined
@@ -9936,7 +9943,7 @@ export function stripUnverifiedKonlingCitationMarkers(
   guard: KonlingCitationGuard,
 ): string {
   const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
-  if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
+  if (invalidNumbers.length === 0) return assistantMessage;
   const invalidSet = new Set(invalidNumbers);
   const assignedNumbers = assignedCitationNumbers(guard.citations);
   const codeRanges = markdownCodeRanges(assistantMessage);

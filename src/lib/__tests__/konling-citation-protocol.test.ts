@@ -303,4 +303,80 @@ describe('Konling citation protocol', () => {
     expect(result.unresolvedMarkers).toEqual(['[content:not-assigned]']);
     expect(result.userNotice).toBe('部分引用未能核验');
   });
+
+  it('keeps verifiable citations with identity version and anchor fields persisted (#1949)', () => {
+    const result = normalizeKonlingCitations({
+      answer: '教材结论 [1]。',
+      assignedCitations: assignKonlingCitationDisplayNumbers(sources),
+    });
+
+    expect(result.body).toBe('教材结论 [1]。');
+    expect(result.citations).toHaveLength(1);
+    const persisted = result.citations[0]!;
+    expect(persisted.verifiable).toBe(true);
+    expect(persisted.identity.kind).toBe('textbook');
+    if (persisted.identity.kind !== 'textbook') throw new Error('unreachable');
+    expect(persisted.identity.sourceRevision).toBe('e8');
+    expect(persisted.identity.bookId).toBe('book-a');
+    expect(persisted.identity.unitId).toBe('unit-1');
+    expect(persisted.href).toBe('/textbooks/book-a/e8/chapter-3');
+  });
+
+  it('removes markers colliding with unverifiable entries instead of trusting the number (#1949)', () => {
+    const assigned = assignKonlingCitationDisplayNumbers([
+      sources[0]!,
+      {
+        ...sources[1]!,
+        // 服务器声明该证据条目未核验/无目标锚点
+        verifiable: false,
+      },
+    ]);
+    const result = normalizeKonlingCitations({
+      answer: '教材结论 [1]，占位证据 [2]。',
+      assignedCitations: assigned,
+    });
+
+    expect(result.body).toBe('教材结论 [1]，占位证据 。');
+    expect(result.unresolvedMarkers).toEqual(['[2]']);
+    expect(result.citations.map((item) => item.displayNumber)).toEqual([1]);
+    expect(result.verificationStatus).toBe('partial');
+    expect(result.userNotice).toBe('部分引用未能核验');
+  });
+
+  it('drops title-resolved markers when the target entry has no usable anchor (#1949)', () => {
+    const assigned = assignKonlingCitationDisplayNumbers([
+      {
+        ...sources[0]!,
+        href: null,
+        verifiable: false,
+      },
+      sources[1]!,
+    ]);
+    const result = normalizeKonlingCitations({
+      answer: '教材结论 [引用: 单位阶跃响应]，证据 [2]。',
+      assignedCitations: assigned,
+    });
+
+    expect(result.body).toBe('教材结论 ，证据 [2]。');
+    expect(result.unresolvedMarkers).toEqual(['[引用: 单位阶跃响应]']);
+    expect(result.citations.map((item) => item.displayNumber)).toEqual([2]);
+    expect(result.verificationStatus).toBe('partial');
+    expect(result.userNotice).toBe('部分引用未能核验');
+  });
+
+  it('downgrades to fully unverified when every marker resolves to unverifiable entries (#1949)', () => {
+    const assigned = assignKonlingCitationDisplayNumbers([
+      { ...sources[0]!, verifiable: false },
+      { ...sources[1]!, verifiable: false },
+    ]);
+    const result = normalizeKonlingCitations({
+      answer: '结论一 [1]，结论二 [2]。',
+      assignedCitations: assigned,
+    });
+
+    expect(result.body).toBe('结论一 ，结论二 。');
+    expect(result.verificationStatus).toBe('unverified');
+    expect(result.userNotice).toBe('引用未能核验');
+    expect(result.citations).toEqual([]);
+  });
 });
