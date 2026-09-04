@@ -147,6 +147,9 @@ export interface ResidualToolIdentity {
 
 export interface ResidualMemberInput {
   readonly path: string;
+  /** Frozen-subject blob identity and byte size captured from `git ls-tree -l`. */
+  readonly blobOid?: string;
+  readonly byteSize?: number;
   readonly currentOwnerEvidence?: readonly string[];
   readonly candidateOwnerIds?: readonly string[];
 }
@@ -186,6 +189,8 @@ export interface ResidualRecord {
   readonly id: string;
   readonly familyId: string;
   readonly path: string;
+  readonly blobOid: string | null;
+  readonly byteSize: number | null;
   readonly accountableOwner: OwnerId | null;
   readonly outcome: ResidualOutcome;
   readonly status: ResidualStatus;
@@ -212,6 +217,7 @@ export interface ResidualFamily {
 export interface FutureSlice {
   readonly slice: string;
   readonly accountableOwner: OwnerId;
+  readonly outcome: ResidualOutcome;
   readonly paths: readonly string[];
   readonly publicBoundary: string;
   readonly notTouched: readonly string[];
@@ -609,6 +615,11 @@ export function adjudicateResidualDataGovernance(
 
   const paths = input.members.map((member) => member.path);
   if (memberSetDigest(paths) !== subject.memberSetDigest) blockers.push('member-set-digest-mismatch');
+  // Task 2.1: every member must carry its frozen-subject blob identity and byte
+  // size; a member that cannot be bound to one blob stays unqualified.
+  if (input.members.some((member) => !member.blobOid || typeof member.byteSize !== 'number' || member.byteSize < 0)) {
+    blockers.push('member-blob-identity-missing');
+  }
   const seen = new Set<string>();
   for (const path of paths) {
     if (!path.startsWith(RESIDUAL_DENOMINATOR_PREFIX)) blockers.push(`out-of-denominator:${path}`);
@@ -681,6 +692,8 @@ export function adjudicateResidualDataGovernance(
       id: `residual:${member.path}`,
       familyId,
       path: member.path,
+      blobOid: member.blobOid ?? null,
+      byteSize: typeof member.byteSize === 'number' ? member.byteSize : null,
       accountableOwner: status === 'qualified' ? owner : null,
       outcome: status === 'qualified' ? outcome : 'unresolved',
       status,
@@ -911,23 +924,34 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
       rollback: 'reversible-compatibility-surface',
     },
   ];
-  // A migration-input slice must carry exactly one accountable owner: split
-  // mixed-owner slices per owner instead of forcing a slice-wide owner.
+  // Task 6.2: a migration-input slice carries exactly one accountable owner and
+  // one orthogonal outcome; mixed groups split per owner and per outcome instead
+  // of forcing a slice-wide identity.
   const slices: FutureSlice[] = [];
   for (const spec of specs) {
     const rows = (bySlice.get(spec.slice) ?? []).filter((record) => record.status === 'qualified' && record.accountableOwner);
-    const byOwner = new Map<string, string[]>();
+    const grouped = new Map<string, { owner: OwnerId; outcome: ResidualOutcome; paths: string[] }>();
     for (const record of rows) {
       const owner = record.accountableOwner as OwnerId;
-      const bucket = byOwner.get(owner) ?? [];
-      bucket.push(record.path);
-      byOwner.set(owner, bucket);
+      const key = `${owner}|${record.outcome}`;
+      const bucket = grouped.get(key) ?? { owner, outcome: record.outcome, paths: [] };
+      bucket.paths.push(record.path);
+      grouped.set(key, bucket);
     }
-    for (const [owner, paths] of [...byOwner.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    const entries = [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right));
+    const ownerOutcomeCounts = new Map<string, number>();
+    for (const [key] of entries) {
+      const owner = key.split('|')[0] ?? '';
+      ownerOutcomeCounts.set(owner, (ownerOutcomeCounts.get(owner) ?? 0) + 1);
+    }
+    for (const [key, group] of entries) {
+      const [owner, outcome] = key.split('|');
+      const ownerHasMixedOutcomes = (ownerOutcomeCounts.get(owner) ?? 0) > 1;
       slices.push({
-        slice: owner === spec.owner ? spec.slice : `${spec.slice}:${owner}`,
-        accountableOwner: owner,
-        paths: paths.sort(),
+        slice: `${spec.slice}${owner === spec.owner ? '' : `:${owner}`}${ownerHasMixedOutcomes ? `:${outcome}` : ''}`,
+        accountableOwner: group.owner,
+        outcome: group.outcome,
+        paths: group.paths.sort(),
         publicBoundary: spec.boundary,
         notTouched: spec.notTouched,
         deletionCondition: spec.deletion,
@@ -1007,6 +1031,7 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
         `## ${slice.slice}`,
         '',
         `- accountableOwner: \`${slice.accountableOwner}\``,
+        `- outcome: \`${slice.outcome}\``,
         `- publicBoundary: ${slice.publicBoundary}`,
         `- notTouched: ${slice.notTouched.join(', ')}`,
         `- deletionCondition: ${slice.deletionCondition}`,

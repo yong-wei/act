@@ -49,7 +49,9 @@ const TOOL_FILES = [
 ];
 
 function git(args: string[]): string {
-  return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }).trim();
+  // The whole-repo caller grep alone emits ~31MB; a buffer overflow here would
+  // be swallowed into an empty caller denominator, so keep ample headroom.
+  return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 }).trim();
 }
 
 function ghIssueSnapshot(number: number): { state: string; labels: string[]; blockedBy: { number: number; state: string }[] } {
@@ -78,11 +80,24 @@ function ghIssueSnapshot(number: number): { state: string; labels: string[]; blo
 }
 
 function loadMembers(subjectCommit: string, subjectTree: string): ResidualMemberInput[] {
-  return git(['ls-tree', '-r', '--name-only', '-z', subjectCommit, '--', 'src/lib/data-governance'])
+  // `ls-tree -l -z` binds every member to its frozen-subject blob identity and
+  // byte size (task 2.1); `-z` keeps unicode paths unquoted.
+  return git(['ls-tree', '-r', '-l', '-z', subjectCommit, '--', 'src/lib/data-governance'])
     .split('\0')
     .filter(Boolean)
-    .sort()
-    .map((path) => ({ path, currentOwnerEvidence: [`sourceTree:${subjectTree}`] }));
+    .map((entry) => {
+      const tabIndex = entry.indexOf('\t');
+      if (tabIndex < 0) throw new Error(`member-entry-unparseable:${entry.slice(0, 40)}`);
+      const path = entry.slice(tabIndex + 1);
+      const fields = entry.slice(0, tabIndex).trim().split(/\s+/u);
+      const [mode, type, blobOid, size] = fields;
+      if (!/^100(644|755)$/u.test(mode ?? '')
+        || type !== 'blob' || !blobOid || !/^[0-9a-f]{40}$/iu.test(blobOid) || size === undefined || size === '-') {
+        throw new Error(`member-blob-identity-unreadable:${path}`);
+      }
+      return { path, blobOid, byteSize: Number(size), currentOwnerEvidence: [`sourceTree:${subjectTree}`] };
+    })
+    .sort((left, right) => left.path.localeCompare(right.path));
 }
 
 function gitGrep(pattern: string, subjectCommit: string): string {
@@ -102,6 +117,7 @@ function gitGrep(pattern: string, subjectCommit: string): string {
       '*.js',
       '*.md',
       '*.json',
+      '*.jsonl',
     ]);
   } catch {
     return '';

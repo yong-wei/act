@@ -81,6 +81,8 @@ function subjectFor(members: readonly ResidualMemberInput[], verified = true): R
   };
 }
 
+const DEFAULT_BLOB_OID = `a1b2c3d4${'0'.repeat(32)}`;
+
 function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): ResidualAdjudicationInput {
   return {
     gate: closedGate,
@@ -89,6 +91,7 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
     callers: [],
     executionBranch: RESIDUAL_CLAIM_BRANCH,
     ...partial,
+    members: partial.members.map((member) => ({ blobOid: DEFAULT_BLOB_OID, byteSize: 128, ...member })),
     subject: partial.subject ?? subjectFor(partial.members, true),
   };
 }
@@ -640,5 +643,37 @@ describe('residual data-governance adjudication', () => {
       expect(foreign.qualified).toBe(false);
       expect(foreign.futureSlices).toEqual([]);
     }
+  });
+
+  it('binds members to frozen blob identities and keeps one outcome per migration-input slice', () => {
+    const members: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/index.ts' },
+      { path: 'src/lib/data-governance/__tests__/event-protocol.test.ts' },
+    ];
+    const qualified = runWithLedgerVerification({ members });
+    expect(qualified.blockers).not.toContain('member-blob-identity-missing');
+    for (const record of qualified.records) {
+      expect(record.blobOid).toBe(DEFAULT_BLOB_OID);
+      expect(record.byteSize).toBe(128);
+    }
+    // compatibility barrel and test fixtures must never share one slice, even
+    // under the same owner: each slice projects exactly one outcome.
+    const compatFamily = qualified.futureSlices.filter((slice) => slice.paths.some(
+      (path) => path.endsWith('data-governance/index.ts') || path.includes('__tests__'),
+    ));
+    expect(new Set(compatFamily.map((slice) => slice.outcome)).size).toBe(compatFamily.length);
+    expect(compatFamily.map((slice) => slice.outcome).sort()).toEqual(['compatibility', 'fixture-asset']);
+    const docs = projectResidualDocuments(qualified)['future-slices.md'] ?? '';
+    for (const slice of qualified.futureSlices) {
+      expect(docs).toContain(`## ${slice.slice}`);
+      expect(docs).toContain(`- outcome: \`${slice.outcome}\``);
+    }
+
+    const missingIdentity = asAdjudication(adjudicateResidualDataGovernance(input({
+      members: [{ path: 'src/lib/data-governance/event-protocol.ts', blobOid: undefined, byteSize: undefined }],
+    })));
+    expect(missingIdentity.blockers).toContain('member-blob-identity-missing');
+    expect(missingIdentity.qualified).toBe(false);
+    expect(missingIdentity.futureSlices).toEqual([]);
   });
 });
