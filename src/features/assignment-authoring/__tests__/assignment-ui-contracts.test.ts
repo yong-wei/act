@@ -81,10 +81,10 @@ describe('teacher assignment workspace contracts', () => {
     expect(student).toContain('附件已从本题草稿中移除');
     expect(student).toContain('disabled={uploadDisabled}');
     expect(student).toMatch(
-      /Math\.max\(\s*candidate\.version,\s*result\.answerVersion \?\? candidate\.version,\s*\)/,
+      /Math\.max\(\s*current\.version,\s*result\.answerVersion \?\? current\.version\s*\)/,
     );
     expect(student).toMatch(
-      /assets\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
+      /\(current\.assets \?\? \[\]\)\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
     );
   });
 
