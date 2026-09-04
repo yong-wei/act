@@ -14,6 +14,7 @@ export const DIAGNOSIS_CONFLICT_COMPARABLE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 const ASSIGNMENT_HIGH_ASSESSMENT_LOW = /作业[\s\S]{0,24}(?:得?分)?(?:较?高|偏高|更好)[\s\S]{0,32}(?:测评|测验|诊断测评)[\s\S]{0,16}(?:得?分)?(?:较?低|偏低|更差)/;
 const ASSESSMENT_LOW_THEN_ASSIGNMENT_HIGH = /(?:测评|测验|诊断测评)[\s\S]{0,16}(?:得?分)?(?:较?低|偏低|更差)[\s\S]{0,32}作业[\s\S]{0,24}(?:得?分)?(?:较?高|偏高|更好)/;
 const ASSIGNMENT_LOW_ASSESSMENT_HIGH = /作业[\s\S]{0,24}(?:得?分)?(?:较?低|偏低|更差)[\s\S]{0,32}(?:测评|测验|诊断测评)[\s\S]{0,16}(?:得?分)?(?:较?高|偏高|更好)/;
+const ASSESSMENT_HIGH_THEN_ASSIGNMENT_LOW = /(?:测评|测验|诊断测评)[\s\S]{0,16}(?:得?分)?(?:较?高|偏高|更好)[\s\S]{0,32}作业[\s\S]{0,24}(?:得?分)?(?:较?低|偏低|更差)/;
 
 type AssignmentRow = {
   id: string;
@@ -66,7 +67,7 @@ function claimedAssignmentHigh(text: string): boolean {
 }
 
 function claimedAssignmentLow(text: string): boolean {
-  return ASSIGNMENT_LOW_ASSESSMENT_HIGH.test(text);
+  return ASSIGNMENT_LOW_ASSESSMENT_HIGH.test(text) || ASSESSMENT_HIGH_THEN_ASSIGNMENT_LOW.test(text);
 }
 
 function assignmentPercent(row: AssignmentRow): number {
@@ -113,31 +114,51 @@ export function detectConflictEvidenceInconsistencies(
   let supportingPair = false;
 
   for (const userId of assignmentUsers) {
-    const assignment = assignments.find((row) => row.userId === userId);
-    const assessment = assessments.find((row) => row.userId === userId);
-    if (!assignment || !assessment) return ['conflict-evidence-cross-student'];
-    const assignmentAt = parseTime(assignment.reviewedAt);
-    const assessmentAt = parseTime(assessment.completedAt);
-    if (assignmentAt === null || assessmentAt === null
-      || Math.abs(assignmentAt - assessmentAt) > DIAGNOSIS_CONFLICT_COMPARABLE_WINDOW_MS) {
-      return ['conflict-evidence-time-window'];
+    const studentAssignments = assignments.filter((row) => row.userId === userId);
+    const studentAssessments = assessments.filter((row) => row.userId === userId);
+    if (studentAssignments.length === 0 || studentAssessments.length === 0) {
+      return ['conflict-evidence-cross-student'];
     }
-    const assignmentScore = assignmentPercent(assignment);
-    const assessmentScore = assessment.score;
-    if (wantAssignmentHigh) {
-      if (assignmentScore === assessmentScore) return ['conflict-evidence-equal-scores'];
-      if (assignmentScore < assessmentScore) return ['conflict-evidence-wrong-direction'];
-      supportingPair = true;
-    } else if (wantAssignmentLow) {
-      if (assignmentScore === assessmentScore) return ['conflict-evidence-equal-scores'];
-      if (assignmentScore > assessmentScore) return ['conflict-evidence-wrong-direction'];
-      supportingPair = true;
-    } else if (Math.abs(assignmentScore - assessmentScore) >= 1) {
-      supportingPair = true;
-    } else {
-      return ['conflict-evidence-equal-scores'];
+    for (const assignment of studentAssignments) {
+      for (const assessment of studentAssessments) {
+        const pairError = inspectCitedPair(
+          assignment,
+          assessment,
+          wantAssignmentHigh,
+          wantAssignmentLow,
+        );
+        if (pairError) return [pairError];
+        supportingPair = true;
+      }
     }
   }
 
   return supportingPair ? [] : ['conflict-evidence-unproved'];
+}
+
+function inspectCitedPair(
+  assignment: AssignmentRow,
+  assessment: AssessmentRow,
+  wantAssignmentHigh: boolean,
+  wantAssignmentLow: boolean,
+): string | null {
+  const assignmentAt = parseTime(assignment.reviewedAt);
+  const assessmentAt = parseTime(assessment.completedAt);
+  if (assignmentAt === null || assessmentAt === null
+    || Math.abs(assignmentAt - assessmentAt) > DIAGNOSIS_CONFLICT_COMPARABLE_WINDOW_MS) {
+    return 'conflict-evidence-time-window';
+  }
+  const assignmentScore = assignmentPercent(assignment);
+  const assessmentScore = assessment.score;
+  if (wantAssignmentHigh) {
+    if (assignmentScore === assessmentScore) return 'conflict-evidence-equal-scores';
+    if (assignmentScore < assessmentScore) return 'conflict-evidence-wrong-direction';
+    return null;
+  }
+  if (wantAssignmentLow) {
+    if (assignmentScore === assessmentScore) return 'conflict-evidence-equal-scores';
+    if (assignmentScore > assessmentScore) return 'conflict-evidence-wrong-direction';
+    return null;
+  }
+  return Math.abs(assignmentScore - assessmentScore) >= 1 ? null : 'conflict-evidence-equal-scores';
 }

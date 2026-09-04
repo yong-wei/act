@@ -2090,6 +2090,68 @@ describe('conflict cited-evidence consistency (Issue #1946)', () => {
     })).toEqual(['conflict-evidence-wrong-direction']);
   });
 
+  it('rejects reverse-order high-assessment claims that contradict cited scores', () => {
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '测评得分较高，作业得分较低。',
+      limitations: ['作业与测评成绩存在不一致。'],
+      findings: [{
+        title: '作业与测评冲突',
+        evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+      }],
+      evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+    }, conflictInput)).toEqual(['conflict-evidence-wrong-direction']);
+  });
+
+  it('rejects a second same-student pair that is equal-score even if the first pair is valid', () => {
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+      limitations: ['作业与测评成绩存在不一致。'],
+      findings: [{
+        title: '作业与测评冲突',
+        evidenceRefs: [
+          'assignment-submission:assignment-1',
+          'assignment-submission:assignment-extra',
+          'adaptive-assessment-session:assessment-1',
+          'adaptive-assessment-session:assessment-extra',
+        ],
+      }],
+      evidenceRefs: [
+        'assignment-submission:assignment-1',
+        'assignment-submission:assignment-extra',
+        'adaptive-assessment-session:assessment-1',
+        'adaptive-assessment-session:assessment-extra',
+      ],
+    }, {
+      ...conflictInput,
+      assignmentSubmissions: [
+        ...conflictInput.assignmentSubmissions,
+        {
+          id: 'assignment-extra',
+          userId: 'student-1',
+          assignmentRevisionId: 'revision-1',
+          contentHash: 'assignment-sha',
+          score: 50,
+          totalPoints: 100,
+          reviewedAt: now.toISOString(),
+        },
+      ],
+      assessmentSessions: [
+        { ...conflictInput.assessmentSessions[0], score: 50 },
+        conflictInput.assessmentSessions[1],
+        {
+          id: 'assessment-extra',
+          userId: 'student-1',
+          assessmentId: 'assessment-1',
+          contentDigest: 'assessment-sha',
+          itemCount: 10,
+          correctCount: 5,
+          score: 50,
+          completedAt: now.toISOString(),
+        },
+      ],
+    })).toEqual(['conflict-evidence-equal-scores']);
+  });
+
   it('rejects an incomparable time window', () => {
     const later = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString();
     expect(detectConflictEvidenceInconsistencies({
