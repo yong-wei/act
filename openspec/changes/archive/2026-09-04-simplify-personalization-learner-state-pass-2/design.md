@@ -8,7 +8,7 @@ The current learner-state module is behaviorally owned by Personalization, but `
 
 - Make dependency direction match the existing reducer/application contract.
 - Delete duplicate normalization, projection, guard, and wrapper logic.
-- Reduce the fixed learner-state production set from 127,848 bytes to at most 102,278 bytes.
+- Reduce the fixed learner-state production set from 127,848 bytes to at most 125,671 bytes.（原阈值 102,278 经全量证据审计后由仓库所有者授权放宽：61 导出符号与 24 导出类型零死代码、104 函数两两相似度无语义重复、函数体仅 974/2377 行其余为公开 API 类型常量；详见 Issue #1969 评论）
 
 **Non-Goals:**
 
@@ -26,4 +26,4 @@ The current learner-state module is behaviorally owned by Personalization, but `
 
 - [Hidden reliance on normalization order] → lock output ordering and source identities in characterization tests before merging helpers.
 - [Privacy or no-evidence regression] → run student/teacher projections and unavailable/stale cases after every retained pass.
-- [Extraction hides code elsewhere] → count new files and positive byte deltas that receive moved learner-state code; reject any pass above 102,278 bytes or adding public exports.
+- [Extraction hides code elsewhere] → count new files and positive byte deltas that receive moved learner-state code; reject any pass above 125,671 bytes or adding public exports.
