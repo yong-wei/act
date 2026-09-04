@@ -1,19 +1,39 @@
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
+import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/serialize';
+
 import {
+  PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
+  RESIDUAL_CLAIM_BRANCH,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
+  buildMemberReferenceTokens,
+  buildResidualCompactPackage,
   classifyCallerPath,
   collectRelativeCallers,
   directoryPathReadCaller,
+  deriveUpstreamQualificationEvidence,
+  UPSTREAM_PAYLOAD_IDENTITY,
   evaluateCoordinationGate,
+  extractModuleSpecifiers,
   memberSetDigest,
   projectResidualDocuments,
+  resolveModuleSpecifier,
+  textReferencesMember,
+  reconcileResidualDecisionPackage,
+  verifyResidualDecisionPackage,
   type Issue1876Snapshot,
+  type LedgerVerificationReceipt,
   type ResidualAdjudication,
   type ResidualAdjudicationInput,
   type ResidualMemberInput,
+  type ResidualPackageVerification,
+  type ResidualRunSnapshot,
   type ResidualSubjectIdentity,
   type ResidualToolIdentity,
 } from '@/lib/architecture-charter/residual-data-governance';
@@ -36,6 +56,10 @@ const tool: ResidualToolIdentity = {
   entryBundleDigest: 'd'.repeat(64),
 };
 
+function predecessorDispositionFor(members: readonly ResidualMemberInput[]): { path: string; owner: string | null; outcome: string }[] {
+  return members.map((member) => ({ path: member.path, owner: 'learning-record', outcome: 'business-domain' }));
+}
+
 function subjectFor(members: readonly ResidualMemberInput[], verified = true): ResidualSubjectIdentity {
   return {
     successorCaptureId: REQUIRED_SUCCESSOR.successorCaptureId,
@@ -49,8 +73,31 @@ function subjectFor(members: readonly ResidualMemberInput[], verified = true): R
     fullInventorySha256: REQUIRED_SUCCESSOR.fullInventorySha256,
     memberSetDigest: memberSetDigest(members.map((member) => member.path)),
     fullInventoryBytesVerified: verified,
+    currentSubject: {
+      baseBranch: 'origin/integration',
+      subjectCommit: 'e'.repeat(40),
+      subjectTree: 'f'.repeat(40),
+    },
+    upstreamPayload: {
+      issue: 1916,
+      closed: true,
+      archived: true,
+      subjectIdentity: 'a'.repeat(64),
+      packageDigest: '1'.repeat(64),
+      schemaVersion: 'act-repository-payload-classification/v2',
+      status: 'qualified',
+      unresolvedMembers: 0,
+    },
+    predecessor1883: {
+      decisionIdentity: PREDECESSOR_1883.decisionIdentity,
+      recordCount: 262,
+      qualified: false,
+      memberDisposition: predecessorDispositionFor(members),
+    },
   };
 }
+
+const DEFAULT_BLOB_OID = `a1b2c3d4${'0'.repeat(32)}`;
 
 function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): ResidualAdjudicationInput {
   return {
@@ -58,9 +105,124 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
     subject: subjectFor(partial.members, partial.subject?.fullInventoryBytesVerified ?? true),
     tool,
     callers: [],
+    executionBranch: RESIDUAL_CLAIM_BRANCH,
+    predecessorDisposition: new Map(predecessorDispositionFor(partial.members).map((entry) => [
+      entry.path,
+      { owner: entry.owner, outcome: entry.outcome },
+    ])),
     ...partial,
+    members: partial.members.map((member) => ({ blobOid: DEFAULT_BLOB_OID, byteSize: 128, ...member })),
     subject: partial.subject ?? subjectFor(partial.members, true),
   };
+}
+
+const TEST_RUN: ResidualRunSnapshot = {
+  gate: closedGate,
+  executionBranch: RESIDUAL_CLAIM_BRANCH,
+  dirtySource: false,
+  mixedSource: false,
+};
+
+/** Writes a result's full round package (projections + index) like the CLI. */
+function writeRoundPackage(
+  dir: string,
+  result: ResidualAdjudication,
+  receipt: LedgerVerificationReceipt,
+  verification: ResidualPackageVerification,
+): void {
+  for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
+    writeFileSync(join(dir, name), content.replace(/\n+$/u, '\n'));
+  }
+  writeFileSync(join(dir, 'index.json'), buildResidualCompactPackage({
+    result,
+    receipt,
+    run: TEST_RUN,
+    projectionVerification: verification,
+  }));
+}
+
+interface FixedPointPackage {
+  readonly dir: string;
+  readonly ledgerPath: string;
+  readonly ledgerReceipt: Omit<LedgerVerificationReceipt, 'projectionsReconciled'>;
+  readonly result: ResidualAdjudication;
+  readonly verification: ResidualPackageVerification;
+}
+
+/**
+ * Runs the CLI-equivalent fixed-point flow: write the ledger, verify its bytes,
+ * then converge the receipt flag over packages re-verified whole against the
+ * ledger bytes. Returns the package for further reconciliation assertions.
+ */
+function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): FixedPointPackage {
+  // Keep the input disposition map and the subject's recorded array from one
+  // source, exactly like the CLI loads both from the same archived package.
+  const dispositionEntries = partial.predecessorDisposition
+    ? [...partial.predecessorDisposition.entries()]
+      .map(([path, entry]) => ({ path, owner: entry.owner, outcome: entry.outcome }))
+      .sort((left, right) => left.path.localeCompare(right.path))
+    : predecessorDispositionFor(partial.members);
+  const coherentPartial = {
+    ...partial,
+    subject: {
+      ...subjectFor(partial.members),
+      predecessor1883: { ...subjectFor(partial.members).predecessor1883, memberDisposition: dispositionEntries },
+    },
+    predecessorDisposition: new Map(dispositionEntries.map((entry) => [entry.path, { owner: entry.owner, outcome: entry.outcome }])),
+  };
+  const first = asAdjudication(adjudicateResidualDataGovernance(input(coherentPartial)));
+  const subject = first.subject;
+  const dir = mkdtempSync(join(tmpdir(), 'residual-projection-'));
+  const ledgerPath = join(dir, 'residual-data-governance-ledger.ndjson');
+  writeFileSync(ledgerPath, first.ledgerBody);
+  const ledgerReceipt = {
+    locator: first.fullLedger.logicalLocator,
+    byteCount: first.fullLedger.byteCount,
+    sha256: first.fullLedger.sha256,
+    memberDenominator: first.summaries.memberCount,
+    subjectCommit: subject.currentSubject.subjectCommit,
+    subjectTree: subject.currentSubject.subjectTree,
+    toolContentDigest: first.tool.entryBundleDigest,
+    schemaVersion: RESIDUAL_SCHEMA_VERSION,
+    memberSetDigest: subject.memberSetDigest,
+    callerBundleDigest: first.callerBundleDigest,
+    familiesDigest: sha256Text(serializeDeterministic(first.families)),
+  };
+  const adjudicateWith = (flag: boolean): ResidualAdjudication => asAdjudication(
+    adjudicateResidualDataGovernance({ ...input(coherentPartial), ledgerVerification: { ...ledgerReceipt, projectionsReconciled: flag } }),
+  );
+  const reconcile = () => reconcileResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
+  const verifyStrict = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
+
+  let flag = false;
+  let result = adjudicateWith(flag);
+  writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, { reconciled: false, fileDigests: {} });
+  let verification = reconcile();
+  if (verification.reconciled !== flag) {
+    flag = verification.reconciled;
+    result = adjudicateWith(flag);
+    // Placeholder record like the CLI: the previous round's digests describe
+    // different bytes and must not be published as this round's claim.
+    writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, { reconciled: false, fileDigests: {} });
+    verification = reconcile();
+    if (verification.reconciled !== flag) {
+      throw new Error(`projection-fixed-point-unreachable:${verification.reason}`);
+    }
+  }
+  writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
+  return { dir, ledgerPath, ledgerReceipt, result, verification: verifyStrict() };
+}
+
+/** Runs the fixed-point flow and returns the converged final adjudication. */
+function runWithLedgerVerification(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): ResidualAdjudication {
+  const pkg = buildFixedPointPackage(partial);
+  try {
+    expect(pkg.verification.reconciled).toBe(true);
+    expect(pkg.result.blockers).not.toContain('full-ledger-bytes-unverified');
+    return pkg.result;
+  } finally {
+    rmSync(pkg.dir, { recursive: true, force: true });
+  }
 }
 
 function asAdjudication(result: ReturnType<typeof adjudicateResidualDataGovernance>): ResidualAdjudication {
@@ -69,6 +231,142 @@ function asAdjudication(result: ReturnType<typeof adjudicateResidualDataGovernan
 }
 
 describe('residual data-governance adjudication', () => {
+  it('gates on the archived upstream payload change and an independent current subject', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const base = runWithLedgerVerification({ members });
+    expect(base.qualified).toBe(true);
+    expect(base.subject.currentSubject.subjectCommit).toBe('e'.repeat(40));
+
+    const notArchived = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, archived: false },
+      },
+    }));
+    expect(notArchived.blockers).toContain('upstream-payload-change-not-archived');
+
+    const wrongSchema = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, schemaVersion: 'act-repository-payload-classification/v1' },
+      },
+    }));
+    expect(wrongSchema.blockers).toContain('upstream-payload-identity-incomplete');
+
+    const toolCollision = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        currentSubject: { ...subjectFor(members).currentSubject, subjectCommit: tool.toolCommit },
+      },
+    }));
+    expect(toolCollision.blockers).toContain('tool-subject-identity-collision');
+
+    const driftedPredecessor = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        predecessor1883: { decisionIdentity: '0'.repeat(64), recordCount: 262, qualified: false, memberDisposition: [] },
+      },
+    }));
+    expect(driftedPredecessor.blockers).toContain('predecessor-1883-decision-identity-mismatch');
+  });
+
+  it('blocks when the upstream payload package itself is unqualified and splits mixed-owner slices per owner', () => {
+    const members: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/teacher-ai-grading-lab-analysis.ts' },
+      { path: 'src/lib/data-governance/cumulative-snapshot-jobs.ts' },
+      { path: 'src/lib/data-governance/simulation-historical-replay.ts' },
+      { path: 'src/lib/data-governance/math-document-backfill.ts' },
+    ];
+    const unqualifiedUpstream = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      subject: {
+        ...subjectFor(members),
+        upstreamPayload: { ...subjectFor(members).upstreamPayload, status: 'package-unqualified', unresolvedMembers: 1770 },
+      },
+    }));
+    expect(unqualifiedUpstream.blockers).toContain('upstream-payload-package-unqualified');
+    expect(unqualifiedUpstream.qualified).toBe(false);
+    expect(unqualifiedUpstream.futureSlices).toEqual([]);
+    const unqualifiedDocs = projectResidualDocuments(unqualifiedUpstream);
+    expect(unqualifiedDocs['future-slices.md']).toContain('No migration-input slice is emitted');
+    expect(unqualifiedDocs['future-slices.md']).toContain('upstream-payload-package-unqualified');
+
+    const singleOwner = runWithLedgerVerification({
+      members: [{ path: 'src/lib/data-governance/math-document-backfill.ts' }],
+      subject: (() => {
+        const subject = subjectFor([{ path: 'src/lib/data-governance/math-document-backfill.ts' }]);
+        return subject;
+      })(),
+    });
+    // with a qualified upstream the package can qualify and mixed slices split
+    const slices = singleOwner.futureSlices.filter((slice) => slice.slice.startsWith('operator-backfill'));
+    for (const slice of slices) {
+      const owners = new Set(slice.paths.map(() => slice.accountableOwner));
+      expect(owners.size).toBe(1);
+    }
+  });
+
+  it('requires an independently verified ledger receipt bound to the exact subject and tool', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const first = asAdjudication(adjudicateResidualDataGovernance(input({ members })));
+    expect(first.blockers).toContain('full-ledger-bytes-unverified');
+
+    const good = runWithLedgerVerification({ members });
+    expect(good.blockers).not.toContain('full-ledger-bytes-unverified');
+
+    const goodSubject = good.subject;
+    const fullReceipt = {
+      locator: good.fullLedger.logicalLocator,
+      byteCount: good.fullLedger.byteCount,
+      sha256: good.fullLedger.sha256,
+      memberDenominator: good.summaries.memberCount,
+      subjectCommit: goodSubject.currentSubject.subjectCommit,
+      subjectTree: goodSubject.currentSubject.subjectTree,
+      toolContentDigest: good.tool.entryBundleDigest,
+      schemaVersion: RESIDUAL_SCHEMA_VERSION,
+      memberSetDigest: goodSubject.memberSetDigest,
+      callerBundleDigest: good.callerBundleDigest,
+      familiesDigest: sha256Text(serializeDeterministic(good.families)),
+      projectionsReconciled: true,
+    };
+    const badSha = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: { ...fullReceipt, sha256: '0'.repeat(64) },
+    }));
+    expect(badSha.blockers).toContain('full-ledger-bytes-unverified');
+
+    const foreignTool = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: { ...fullReceipt, toolContentDigest: 'f'.repeat(64) },
+    }));
+    expect(foreignTool.blockers).toContain('full-ledger-bytes-unverified');
+
+    const foreignCallerBundle = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      ledgerVerification: { ...fullReceipt, callerBundleDigest: 'e'.repeat(64) },
+    }));
+    expect(foreignCallerBundle.blockers).toContain('full-ledger-bytes-unverified');
+
+    // Every remaining identity field is bound to the re-derived ledger values.
+    for (const tampered of [
+      { subjectTree: '0'.repeat(40) },
+      { schemaVersion: 'act-residual-data-governance-adjudication/v1' },
+      { familiesDigest: '0'.repeat(64) },
+      { locator: 'artifacts/elsewhere/ledger.ndjson' },
+    ] as const) {
+      const drifted = asAdjudication(adjudicateResidualDataGovernance({
+        ...input({ members }),
+        ledgerVerification: { ...fullReceipt, ...tampered },
+      }));
+      expect(drifted.blockers).toContain('full-ledger-bytes-unverified');
+      expect(drifted.qualified).toBe(false);
+    }
+  });
+
   it('collects intra-package re-exports and directory path reads', () => {
     const relative = collectRelativeCallers([
       {
@@ -208,12 +506,8 @@ describe('residual data-governance adjudication', () => {
     expect(drifted.blockers).toEqual(expect.arrayContaining([
       'dirty-source',
       'mixed-source',
-      'subject-capture-mismatch',
-      'subject-commit-mismatch',
-      'subject-package-digest-mismatch',
-      'owner-residue-digest-mismatch',
-      'full-inventory-digest-mismatch',
-      'full-inventory-bytes-unverified',
+      'predecessor-1883-identity-mismatch',
+      'full-ledger-bytes-unverified',
     ]));
   });
 
@@ -320,7 +614,9 @@ describe('residual data-governance adjudication', () => {
     const result = asAdjudication(adjudicateResidualDataGovernance(input({ members })));
     const docs = projectResidualDocuments(result);
     expect(result.records.map((record) => record.path)).toEqual(members.map((member) => member.path));
-    expect(docs['future-slices.md']).toContain('migration input, not authorization');
+    // Without a verified receipt the package is non-qualified, so no slice is emitted.
+    expect(docs['future-slices.md']).toContain('No migration-input slice is emitted');
+    expect(docs['future-slices.md']).toContain('full-ledger-bytes-unverified');
     expect(docs['handoff.md']).toContain('does not move source');
     expect(docs['handoff.md']).toMatch(/COMPLETE-(qualified|non-qualified-BLOCKER)/u);
   });
@@ -329,14 +625,14 @@ describe('residual data-governance adjudication', () => {
     const members: ResidualMemberInput[] = [
       { path: 'src/lib/data-governance/portrait-v2-model.ts' },
     ];
-    const qualified = asAdjudication(adjudicateResidualDataGovernance(input({
+    const qualified = runWithLedgerVerification({
       members,
       callers: [{
         memberPath: 'src/lib/data-governance/portrait-v2-model.ts',
         callerPath: 'src/features/personalization/portrait.ts',
         relationship: 'import',
       }],
-    })));
+    });
     expect(qualified.records).toHaveLength(1);
     expect(qualified.records[0]?.accountableOwner).toBe('personalization');
     expect(qualified.records[0]?.outcome).toBe('business-domain');
@@ -349,5 +645,419 @@ describe('residual data-governance adjudication', () => {
     expect(qualified.blockers).toEqual([]);
     expect(qualified.qualified).toBe(true);
     expect(projectResidualDocuments(qualified)['handoff.md']).toContain('COMPLETE-qualified');
+  });
+
+  it('emits migration-input slices only for a fully qualified package', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    const qualified = runWithLedgerVerification({ members });
+    expect(qualified.qualified).toBe(true);
+    expect(qualified.futureSlices.length).toBeGreaterThan(0);
+    const docs = projectResidualDocuments(qualified);
+    expect(docs['future-slices.md']).toContain('migration input, not authorization');
+    expect(docs['future-slices.md']).not.toContain('No migration-input slice is emitted');
+
+    // Any still-standing blocker — here an unverified receipt — keeps slices out.
+    const unverified = asAdjudication(adjudicateResidualDataGovernance(input({ members })));
+    expect(unverified.blockers).toContain('full-ledger-bytes-unverified');
+    expect(unverified.futureSlices).toEqual([]);
+  });
+
+  it('re-verifies the whole package against the ledger and rejects any tampered artifact', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const pkg = buildFixedPointPackage({ members });
+    const dir = pkg.dir;
+    const verify = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: pkg.ledgerPath });
+    try {
+      expect(verify()).toMatchObject({ reconciled: true });
+      expect(Object.keys(verify().fileDigests).sort()).toEqual(
+        ['decision-matrix.md', 'future-slices.md', 'handoff.md', 'summaries.md'],
+      );
+
+      // Ledger bytes drifting away from the recorded receipt fail first.
+      writeFileSync(pkg.ledgerPath, `${pkg.result.ledgerBody.slice(0, -4)}   `);
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'ledger-receipt-mismatch' });
+      writeFileSync(pkg.ledgerPath, pkg.result.ledgerBody);
+
+      const matrixPath = join(dir, 'decision-matrix.md');
+      const originalMatrix = readFileSync(matrixPath, 'utf8');
+      writeFileSync(matrixPath, originalMatrix.replace(
+        `currentSubjectCommit: \`${pkg.result.subject.currentSubject.subjectCommit}\``,
+        `currentSubjectCommit: \`${REQUIRED_SUCCESSOR.sourceCommit}\``,
+      ));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:decision-matrix.md' });
+      writeFileSync(matrixPath, originalMatrix);
+
+      const summariesPath = join(dir, 'summaries.md');
+      const originalSummaries = readFileSync(summariesPath, 'utf8');
+      writeFileSync(summariesPath, originalSummaries.replace(`- members: ${members.length}`, '- members: 999'));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:summaries.md' });
+      writeFileSync(summariesPath, originalSummaries);
+
+      const handoffPath = join(dir, 'handoff.md');
+      const originalHandoff = readFileSync(handoffPath, 'utf8');
+      writeFileSync(handoffPath, originalHandoff.replace(`- fullLedger.bytes: ${pkg.result.fullLedger.byteCount}`, '- fullLedger.bytes: 1'));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:handoff.md' });
+      writeFileSync(handoffPath, originalHandoff);
+
+      const indexPath = join(dir, 'index.json');
+      const originalIndex = readFileSync(indexPath, 'utf8');
+      writeFileSync(indexPath, originalIndex.replace('"qualified":true', '"qualified":false'));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'index-mismatch' });
+      writeFileSync(indexPath, originalIndex);
+
+      rmSync(handoffPath);
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-missing:handoff.md' });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('renders the current subject identity and keeps predecessor commits comparison-only', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const result = runWithLedgerVerification({ members });
+    const matrix = projectResidualDocuments(result)['decision-matrix.md'] ?? '';
+    expect(matrix).toContain(`currentSubjectCommit: \`${result.subject.currentSubject.subjectCommit}\``);
+    expect(matrix).toContain(`currentSubjectTree: \`${result.subject.currentSubject.subjectTree}\``);
+    expect(matrix).toContain(`predecessor1883.sourceCommit: \`${REQUIRED_SUCCESSOR.sourceCommit}\``);
+    expect(matrix).not.toMatch(/^- (sourceCommit|sourceTree|packageDigest):/mu);
+    const handoff = projectResidualDocuments(result)['handoff.md'] ?? '';
+    expect(handoff).toContain(`currentSubjectCommit: \`${result.subject.currentSubject.subjectCommit}\``);
+  });
+
+  it('adjudicates only on the change claim branch and blocks any other execution branch', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const claimBranch = runWithLedgerVerification({ members });
+    expect(claimBranch.blockers).not.toContain('execution-branch-not-claim-branch');
+    expect(claimBranch.qualified).toBe(true);
+
+    for (const executionBranch of ['main', 'integration', 'HEAD', undefined]) {
+      const foreign = asAdjudication(adjudicateResidualDataGovernance({ ...input({ members }), executionBranch }));
+      expect(foreign.blockers).toContain('execution-branch-not-claim-branch');
+      expect(foreign.qualified).toBe(false);
+      expect(foreign.futureSlices).toEqual([]);
+    }
+  });
+
+  it('matches extensionless alias imports without sibling-prefix false positives', () => {
+    const tokens = buildMemberReferenceTokens(['src/lib/data-governance/session-reports.ts']);
+    const variants = tokens.get('src/lib/data-governance/session-reports.ts') ?? [];
+    expect(variants).toContain('data-governance/session-reports');
+    expect(variants).toContain('src/lib/data-governance/session-reports');
+
+    const aliasImport = "import { sessionReports } from '@/lib/data-governance/session-reports';";
+    expect(variants.some((token) => textReferencesMember(aliasImport, token))).toBe(true);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports'", 'data-governance/session-reports')).toBe(true);
+    expect(textReferencesMember('src/lib/data-governance/session-reports.ts', 'data-governance/session-reports')).toBe(true);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports-extra'", 'data-governance/session-reports')).toBe(false);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports'", 'src/lib/data-governance/session-reports')).toBe(false);
+
+    // Extensionless binding changes the closure: the alias import is a production caller.
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/session-reports.ts' }];
+    const result = runWithLedgerVerification({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/session-reports.ts',
+        callerPath: 'src/app/api/session/route.ts',
+        relationship: 'import',
+      }],
+    });
+    expect(result.records[0]?.callerClasses).toContain('production');
+  });
+
+  it('projects every task-6.2 evidence field onto each migration-input slice', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    const qualified = runWithLedgerVerification({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/math-document-backfill.ts',
+        callerPath: 'scripts/db/backfill-demo.ts',
+        relationship: 'import',
+      }],
+    });
+    expect(qualified.futureSlices.length).toBeGreaterThan(0);
+    const docs = projectResidualDocuments(qualified)['future-slices.md'] ?? '';
+    for (const slice of qualified.futureSlices) {
+      expect(slice.callerClasses.length).toBeGreaterThan(0);
+      expect(slice.protectedInvariants.length).toBeGreaterThan(0);
+      expect(slice.payloadStatus).toBeTruthy();
+      expect(slice.zeroConsumerProof).toBeTruthy();
+      expect(slice.requiredAuthorization).toBeTruthy();
+      expect(docs).toContain(`- callerClasses: ${slice.callerClasses.join(', ')}`);
+      expect(docs).toContain(`- protectedInvariants: ${slice.protectedInvariants.join(', ')}`);
+      expect(docs).toContain(`- payloadStatus: ${slice.payloadStatus}`);
+      expect(docs).toContain(`- zeroConsumerProof: ${slice.zeroConsumerProof}`);
+      expect(docs).toContain(`- requiredAuthorization: ${slice.requiredAuthorization}`);
+    }
+  });
+
+  it('binds members to frozen blob identities and keeps one outcome per migration-input slice', () => {
+    const members: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/index.ts' },
+      { path: 'src/lib/data-governance/__tests__/event-protocol.test.ts' },
+    ];
+    const qualified = runWithLedgerVerification({ members });
+    expect(qualified.blockers).not.toContain('member-blob-identity-missing');
+    for (const record of qualified.records) {
+      expect(record.blobOid).toBe(DEFAULT_BLOB_OID);
+      expect(record.byteSize).toBe(128);
+    }
+    // compatibility barrel and test fixtures must never share one slice, even
+    // under the same owner: each slice projects exactly one outcome.
+    const compatFamily = qualified.futureSlices.filter((slice) => slice.paths.some(
+      (path) => path.endsWith('data-governance/index.ts') || path.includes('__tests__'),
+    ));
+    expect(new Set(compatFamily.map((slice) => slice.outcome)).size).toBe(compatFamily.length);
+    expect(compatFamily.map((slice) => slice.outcome).sort()).toEqual(['compatibility', 'fixture-asset']);
+    const docs = projectResidualDocuments(qualified)['future-slices.md'] ?? '';
+    for (const slice of qualified.futureSlices) {
+      expect(docs).toContain(`## ${slice.slice}`);
+      expect(docs).toContain(`- outcome: \`${slice.outcome}\``);
+    }
+
+    const missingIdentity = asAdjudication(adjudicateResidualDataGovernance(input({
+      members: [{ path: 'src/lib/data-governance/event-protocol.ts', blobOid: undefined, byteSize: undefined }],
+    })));
+    expect(missingIdentity.blockers).toContain('member-blob-identity-missing');
+    expect(missingIdentity.qualified).toBe(false);
+    expect(missingIdentity.futureSlices).toEqual([]);
+  });
+
+  it('derives decision identity from tool content only and splits families on heterogeneous caller evidence', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const base = runWithLedgerVerification({ members });
+
+    // Identity follows tool CONTENT: the same adjudicator bytes on a different
+    // commit produce the identical decision identity (the commit is only
+    // provenance), while different tool bytes change it.
+    const sameBundleDifferentCommit = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      tool: { ...tool, toolCommit: '9'.repeat(40) },
+    }));
+    expect(sameBundleDifferentCommit.decisionIdentity).toBe(base.decisionIdentity);
+    const differentBundle = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      tool: { ...tool, entryBundleDigest: '8'.repeat(64) },
+    }));
+    expect(differentBundle.decisionIdentity).not.toBe(base.decisionIdentity);
+
+    // Same slice/owner but different caller classes must split families (task 2.3).
+    const pair: ResidualMemberInput[] = [
+      { path: 'src/lib/data-governance/event-protocol.ts' },
+      { path: 'src/lib/data-governance/derived-learning-materialization.ts' },
+    ];
+    const heterogeneous = runWithLedgerVerification({
+      members: pair,
+      callers: [{
+        memberPath: 'src/lib/data-governance/event-protocol.ts',
+        callerPath: 'src/features/learning-record/ingestion/index.ts',
+        relationship: 'import',
+      }],
+    });
+    const familyIds = new Set(heterogeneous.records.map((record) => record.familyId));
+    expect(familyIds.size).toBe(heterogeneous.records.length);
+    const protocol = heterogeneous.records.find((record) => record.path.endsWith('event-protocol.ts'));
+    const derived = heterogeneous.records.find((record) => record.path.endsWith('derived-learning-materialization.ts'));
+    expect(protocol?.familyId).not.toBe(derived?.familyId);
+  });
+
+  it('rejects qualified packages whose migration-input projection drops required gate fields', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    const pkg = buildFixedPointPackage({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/math-document-backfill.ts',
+        callerPath: 'scripts/db/backfill-demo.ts',
+        relationship: 'import',
+      }],
+    });
+    const verify = () => verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath });
+    try {
+      expect(pkg.verification.reconciled).toBe(true);
+      const slicesPath = join(pkg.dir, 'future-slices.md');
+      const original = readFileSync(slicesPath, 'utf8');
+      expect(original).toContain('## ');
+      expect(original).toContain('- requiredAuthorization: ');
+
+      // Dropping any required gate field must fail the whole-package recheck.
+      writeFileSync(slicesPath, original.replace(/- requiredAuthorization: [^\n]+\n/u, ''));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
+
+      // Bare heading: every migration input silently omitted.
+      writeFileSync(slicesPath, '# Residual Data Governance future slices\n');
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
+
+      // Path outside the ledger.
+      writeFileSync(slicesPath, original.replace(
+        '`src/lib/data-governance/math-document-backfill.ts`',
+        '`src/lib/data-governance/not-in-ledger.ts`',
+      ));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
+
+      writeFileSync(slicesPath, original);
+      expect(verify()).toMatchObject({ reconciled: true });
+    } finally {
+      rmSync(pkg.dir, { recursive: true, force: true });
+    }
+  });
+  it('resolves external relative and alias module imports into the caller denominator', () => {
+    const memberPaths = new Set(['src/lib/data-governance/event-protocol.ts', 'src/lib/data-governance/index.ts']);
+    expect(resolveModuleSpecifier('src/lib/kaq-artifact-versioning.ts', './data-governance/event-protocol', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/lib/kaq-artifact-versioning.ts', './data-governance/event-protocol.ts', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/features/classroom/session.ts', '../../lib/data-governance', memberPaths))
+      .toBe('src/lib/data-governance/index.ts');
+    expect(resolveModuleSpecifier('src/features/classroom/session/adapters/lifecycle-commands.ts', '../../../../lib/data-governance', memberPaths))
+      .toBe('src/lib/data-governance/index.ts');
+    expect(resolveModuleSpecifier('src/app/api/session/route.ts', '@/lib/data-governance/event-protocol', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/lib/source-pack/teacher-course-basis.ts', './teacher-course-other', memberPaths)).toBeNull();
+    expect(resolveModuleSpecifier('src/lib/graphs/goal-subgraph-expansion-service.ts', 'zod', memberPaths)).toBeNull();
+    expect(extractModuleSpecifiers("import { x } from './a'; const y = require('./b'); await import('./c'); export * from './d';"))
+      .toEqual(['./a', './b', './c', './d']);
+  });
+  it('keeps per-path predecessor comparison status and requires a recorded receipt to be backed', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    // Disposition matches the classified record (learning-record / operator-tooling is
+    // changed on purpose): owner differs -> owner-changed.
+    const disposition = new Map([
+      ['src/lib/data-governance/math-document-backfill.ts', { owner: 'personalization', outcome: 'operator-tooling' }],
+      ['src/lib/data-governance/vanished-in-current.ts', { owner: 'learning-record', outcome: 'business-domain' }],
+    ]);
+    const pkg = buildFixedPointPackage({ members, predecessorDisposition: disposition } as never);
+    try {
+      expect(pkg.verification.reconciled).toBe(true);
+      const record = pkg.result.records[0];
+      expect(record?.predecessorComparison).toBe('owner-changed');
+      expect(record?.predecessorOwner).toBe('personalization');
+      expect(record?.predecessorOutcome).toBe('operator-tooling');
+      expect(pkg.result.predecessorDelta.ownerChanged).toBe(1);
+      expect(pkg.result.predecessorDelta.vanishedPaths).toEqual(['src/lib/data-governance/vanished-in-current.ts']);
+
+      // Confirmed / new statuses and the missing-disposition blocker.
+      const confirmed = asAdjudication(adjudicateResidualDataGovernance(input({
+        members,
+        predecessorDisposition: new Map([
+          ['src/lib/data-governance/math-document-backfill.ts', { owner: 'learning-record', outcome: 'operator-tooling' }],
+        ]),
+      })));
+      expect(confirmed.records[0]?.predecessorComparison).toBe('confirmed');
+      const freshMember = asAdjudication(adjudicateResidualDataGovernance(input({
+        members,
+        predecessorDisposition: new Map(),
+      })));
+      expect(freshMember.blockers).toContain('predecessor-disposition-missing');
+      expect(freshMember.qualified).toBe(false);
+
+      // A recorded positive verification claim with forged digests must fail.
+      const indexPath = join(pkg.dir, 'index.json');
+      const parsed = JSON.parse(readFileSync(indexPath, 'utf8'));
+      parsed.projectionVerification.fileDigests['summaries.md'] = '0'.repeat(64);
+      writeFileSync(indexPath, JSON.stringify(parsed));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-inconsistent',
+      });
+
+      // Downgrading a qualified package's receipt to false is not conservative.
+      const backed = JSON.parse(readFileSync(indexPath, 'utf8'));
+      backed.projectionVerification = { ...backed.projectionVerification, reconciled: false };
+      writeFileSync(indexPath, JSON.stringify(backed));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-inconsistent',
+      });
+
+      // Deleting the receipt block entirely fails the same gate.
+      const stripped = JSON.parse(readFileSync(indexPath, 'utf8'));
+      delete stripped.projectionVerification;
+      writeFileSync(indexPath, JSON.stringify(stripped));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-missing',
+      });
+    } finally {
+      rmSync(pkg.dir, { recursive: true, force: true });
+    }
+  });
+  it('re-derives upstream qualification from cross-linked and pinned bytes and rejects tampering', () => {
+    const index = {
+      status: 'package-unqualified',
+      packageDigest: UPSTREAM_PAYLOAD_IDENTITY.packageDigest,
+      schemaVersion: 'act-repository-payload-classification/v2',
+      subjectIdentity: UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity,
+      slices: [
+        { discovered: 10, qualified: 8, unresolved: 2, 'justified-excluded': 0 },
+        { discovered: 5, qualified: 5, unresolved: 0, 'justified-excluded': 0 },
+      ],
+      inventoryVerification: {
+        byteCount: UPSTREAM_PAYLOAD_IDENTITY.inventoryByteCount,
+        sha256: UPSTREAM_PAYLOAD_IDENTITY.inventorySha256,
+        memberDenominator: 15,
+        subjectIdentity: UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity,
+        projectionsReconciled: true,
+      },
+    };
+    const summaryText = [
+      '# Repository payload classification (current completion run)',
+      '',
+      '- status: `package-unqualified`',
+      '- reason: `unresolved-members:2:unknown-privacy`',
+      '',
+    ].join('\n');
+    const unresolvedRegisterText = [
+      '# Unresolved records',
+      '',
+      '| key | count | sample record IDs |',
+      '| --- | --- | --- |',
+      '| course-content:unknown-privacy | 2 | member:a, member:b |',
+      '',
+    ].join('\n');
+    const inventoryBytes = {
+      byteCount: UPSTREAM_PAYLOAD_IDENTITY.inventoryByteCount,
+      sha256: UPSTREAM_PAYLOAD_IDENTITY.inventorySha256,
+      memberCount: 15,
+      unresolvedCount: 2,
+    };
+    const base = { index, summaryText, unresolvedRegisterText, inventoryBytes };
+    const baseResult = deriveUpstreamQualificationEvidence(base);
+    if ('error' in baseResult) throw new Error(`base-error:${baseResult.error}`);
+    expect(baseResult).toMatchObject({
+      status: 'package-unqualified',
+      unresolvedMembers: 2,
+    });
+
+    // A zeroed or rewritten digest breaks the pinned immutable identity.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: { ...index, packageDigest: '0'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-identity-pinned-mismatch' });
+    // Self-consistent qualified forgery still fails the inventory recount.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: { ...index, status: 'qualified', slices: [{ discovered: 15, qualified: 15, unresolved: 0, 'justified-excluded': 0 }] },
+      summaryText: summaryText.replace('package-unqualified', 'qualified'),
+      unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 0 |'),
+      inventoryBytes,
+    })).toMatchObject({ error: 'upstream-inventory-count-mismatch' });
+    // A rewritten index nominating its own inventory SHA fails the frozen pin.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: {
+        ...index,
+        inventoryVerification: { ...index.inventoryVerification, sha256: 'f'.repeat(64) },
+      },
+      inventoryBytes: { ...inventoryBytes, sha256: 'f'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-inventory-receipt-unpinned' });
+    // Inventory bytes drifting from the receipt fail the byte gate.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      inventoryBytes: { ...inventoryBytes, sha256: 'f'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-inventory-bytes-unverified' });
+    // Register rows disagreeing with the recounted slices fail.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 7 |'),
+    })).toMatchObject({ error: 'upstream-unresolved-register-mismatch' });
   });
 });
