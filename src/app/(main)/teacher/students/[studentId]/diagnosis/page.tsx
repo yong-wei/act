@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { prisma } from '@/lib/prisma';
 
 export default async function LegacyTeacherStudentDiagnosisPage(
@@ -9,16 +9,16 @@ export default async function LegacyTeacherStudentDiagnosisPage(
     params: Promise<{ studentId: string }>;
   }
 ) {
-  const { studentId } = await props.params;
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect(buildLoginRedirectForPath(`/teacher/students/${studentId}/diagnosis`));
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 
+  const { studentId } = await props.params;
   const studentProfile = await prisma.studentProfile.findUnique({
     where: { userId: studentId },
     select: {

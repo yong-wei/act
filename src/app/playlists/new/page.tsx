@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/platform/app-shell';
 import { PlaylistBuilder } from '@/features/knowledge/playlist-builder';
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 
@@ -14,8 +14,7 @@ interface NewPlaylistPageProps {
 export default async function NewPlaylistPage({ searchParams }: NewPlaylistPageProps) {
   const params = await searchParams;
   const session = await getServerAuthSession();
-  const nodeIdQuery = typeof params?.nodeId === 'string' && params.nodeId ? `?nodeId=${encodeURIComponent(params.nodeId)}` : '';
-  if (!session?.user?.id) redirect(buildLoginRedirectForPath(`/playlists/new${nodeIdQuery}`));
+  if (!session?.user?.id) redirect(await buildLoginRedirectFromRequest());
   if (!canCreatePlaylist(session.user.role)) redirect('/playlists');
 
   const initialNodeId = typeof params?.nodeId === 'string' ? params.nodeId : null;

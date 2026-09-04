@@ -3,7 +3,7 @@ import { UserRole } from '@prisma/client';
 
 import { SystemConfigDashboard } from '@/features/admin/system-config-dashboard';
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 
 export default async function AdminConfigPage({
   searchParams,
@@ -17,7 +17,7 @@ export default async function AdminConfigPage({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect(buildLoginRedirectForPath('/admin/config'));
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.ADMIN) {

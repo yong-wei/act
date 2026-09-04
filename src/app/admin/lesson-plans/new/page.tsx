@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 import { PresetTemplateCloneRedirect } from '@/features/lesson-engine/preset-template-clone-redirect';
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
 
@@ -13,7 +13,7 @@ interface PageProps {
 
 export default async function NewLessonPlanPage({ searchParams }: PageProps) {
   const session = await getServerAuthSession();
-  if (!session?.user) redirect(buildLoginRedirectForPath('/admin/lesson-plans/new'));
+  if (!session?.user) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== UserRole.ADMIN) redirect('/');
 
   const query = await searchParams;

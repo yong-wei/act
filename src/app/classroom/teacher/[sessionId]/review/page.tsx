@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain, Clipboard, Download } from 'lucide-react'
 import { getServerAuthSession } from '@/lib/auth'
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import {
   buildClassroomSessionStatistics,
   formatClassroomSessionDate,
@@ -492,7 +492,7 @@ export default async function TeacherSessionReviewPage(props: PageProps) {
   const params = await props.params;
   const auth = await getServerAuthSession()
   if (!auth?.user?.id) {
-    redirect(buildLoginRedirectForPath(`/classroom/teacher/${params.sessionId}/review`))
+    redirect(await buildLoginRedirectFromRequest())
   }
 
   if (auth.user.role !== 'TEACHER' && auth.user.role !== 'ADMIN') {

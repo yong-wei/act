@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { prisma } from '@/lib/prisma';
 import { resolveTeacherReturnTo } from '@/lib/teacher-report-grading-contracts';
 
@@ -19,16 +19,16 @@ export default async function LegacyTeacherStudentEvidencePage(
     }>;
   }
 ) {
-  const { studentId } = await props.params;
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect(buildLoginRedirectForPath(`/teacher/students/${studentId}/evidence`));
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 
+  const { studentId } = await props.params;
   const searchParams = await props.searchParams;
   const studentProfile = await prisma.studentProfile.findUnique({
     where: { userId: studentId },

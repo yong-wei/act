@@ -2,7 +2,7 @@ import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { TeacherDashboard } from '@/features/teacher/teacher-dashboard';
 import { loadTeacherDashboardData } from '@/features/teacher/teacher-dashboard-data';
 
@@ -12,7 +12,7 @@ export const revalidate = 0;
 export default async function TeacherPage() {
   const session = await getServerAuthSession();
   if (!session?.user) {
-    redirect(buildLoginRedirectForPath('/teacher'));
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== UserRole.TEACHER) {

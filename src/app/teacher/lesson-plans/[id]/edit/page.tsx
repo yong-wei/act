@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 import { LessonPlanMissingRecovery } from '@/features/lesson-engine/lesson-plan-missing-recovery';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
@@ -19,10 +19,11 @@ function getTeacherReturnLabel(returnTarget: string) {
 }
 
 export default async function TeacherEditLessonPlanPage({ params, searchParams }: PageProps) {
-  const { id } = await params;
   const session = await getServerAuthSession();
-  if (!session) redirect(buildLoginRedirectForPath(`/teacher/lesson-plans/${id}/edit`));
+  if (!session) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== 'TEACHER') redirect('/');
+
+  const { id } = await params;
   const query = await searchParams;
   const returnTarget = resolveScopedReturnTarget(query?.returnTo, '/teacher/lesson-plans', ['/teacher', '/playlists']);
 

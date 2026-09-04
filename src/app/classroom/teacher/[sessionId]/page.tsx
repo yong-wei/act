@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { TeacherPlayer } from '@/features/lesson-engine/teacher-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
@@ -19,7 +19,7 @@ export default async function TeacherSessionPage(props: PageProps) {
   const params = await props.params;
   const userSession = await getServerSession(authOptions);
   if (!userSession?.user?.id) {
-    redirect(buildLoginRedirectForPath(`/classroom/teacher/${params.sessionId}`));
+    redirect(await buildLoginRedirectFromRequest());
   }
   if (!isClassroomTeacherOrAdmin(userSession.user.role)) {
     notFound();

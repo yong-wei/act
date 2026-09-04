@@ -970,7 +970,7 @@ describe('platform UI contracts', () => {
     expect(teacherWaitingRouteSource).toContain("import { getServerSession } from 'next-auth';");
     expect(teacherWaitingRouteSource).toContain("import { redirect } from 'next/navigation';");
     expect(teacherWaitingRouteSource).toContain('getServerSession(authOptions)');
-    expect(teacherWaitingRouteSource).toContain('buildLoginRedirectForPath');
+    expect(teacherWaitingRouteSource).toContain('buildLoginRedirectFromRequest');
     expect(teacherWaitingRouteSource).toContain(
       'redirect(`/interactive-learning/courses/${routeSegment}/student/${sessionId}`)',
     );

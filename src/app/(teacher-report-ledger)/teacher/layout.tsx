@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { RoleWorkspaceShell } from '@/components/platform/role-workspace-shell';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { TeacherOperationsNav } from '@/features/teacher/teacher-operations-nav';
@@ -19,7 +19,7 @@ export default async function TeacherReportLedgerLayout({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect(buildLoginRedirectForPath('/teacher'));
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
