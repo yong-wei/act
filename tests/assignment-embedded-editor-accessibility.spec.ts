@@ -5,11 +5,18 @@ import path from 'node:path';
 const axeSourcePath = require.resolve('axe-core/axe.min.js');
 
 test('teacher and student embedded assignment hosts expose accessible bounded reading states', async ({ page }) => {
+  // tsx 默认走根 tsconfig（Next 保留 JSX）；示例渲染脚本需要 react-jsx 自动运行时。
   const markup = execFileSync(process.execPath, [
     '--import',
     'tsx',
     path.join(process.cwd(), 'scripts/tests/render-assignment-embedded-editor-example.ts'),
-  ], { encoding: 'utf8' });
+  ], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      TSX_TSCONFIG_PATH: path.join(process.cwd(), 'scripts/tests/tsconfig.render-example.json'),
+    },
+  });
   await page.setContent(`<!doctype html><html lang="zh-CN"><head><title>作业内容编辑器示例</title></head><body>${markup}</body></html>`);
   await page.addScriptTag({ path: axeSourcePath });
 
