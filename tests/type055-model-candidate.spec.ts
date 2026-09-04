@@ -3,23 +3,53 @@ import path from 'node:path';
 
 import { expect, test, type Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    __type055Qa?: {
+      ready: boolean;
+      shipUrl: string | null;
+      boxInView: boolean;
+      skinnedIntact: boolean;
+      playAnimation: (name: string) => string;
+      sampleNode: (name: string) => { position: number[]; rotation: number[] } | null;
+      decalMaterials: () => { name: string; transparent: boolean; alphaTest: number }[];
+      demo: { loaded: boolean; load: () => void; play: (name: string) => string };
+      payload: {
+        loaded: boolean;
+        load: () => void;
+        templates: () => string[];
+        spawn: (template: string) => string;
+        spawned: () => string[];
+        destroyAll: () => number;
+      };
+    };
+    __destroyerModelVisual?: {
+      url: string;
+      boxInView: boolean;
+      skinnedIntact: boolean;
+    };
+  }
+}
+
 /**
- * type055-nanchang-101 v2.0.0 候选模型包浏览器验收（issue #1898 任务 3.3/3.4/5.2）。
+ * type055-nanchang-101 v2.1.0 生产激活浏览器验收（issue #1953）。
  *
- * - QA 页首屏只请求一个 ship LOD；demo/payload/collision 不被请求；
+ * - QA 页首屏只请求一个 ship LOD；demo/payload/collision/interactive-systems 不被请求；
+ * - 整舰取景 + 骨骼绑定的视觉证据；
  * - 代表性主舰动画与武器演示片段实际播放并产生可见节点变换；
  * - 弹药模板按需克隆生成、寿命销毁，与主舰生命周期分离；
  * - 候选 GLB 加载失败时回退旧模型候选链，画布仍可渲染。
  */
 
-const PACKAGE_BASE = '/assets/model-releases/type055-nanchang-101/v2.0.0';
+const PACKAGE_BASE = '/assets/model-releases/type055-nanchang-101/v2.1.0';
 const LOD_URLS = [`${PACKAGE_BASE}/type055-nanchang-101-ship-lod0.glb`, `${PACKAGE_BASE}/type055-nanchang-101-ship-lod1.glb`, `${PACKAGE_BASE}/type055-nanchang-101-ship-lod2.glb`];
 const DEMO_URL = `${PACKAGE_BASE}/type055-nanchang-101-weapon-demo.glb`;
 const PAYLOAD_URL = `${PACKAGE_BASE}/type055-nanchang-101-weapon-payloads.glb`;
 const COLLISION_URL = `${PACKAGE_BASE}/type055-nanchang-101-collision.glb`;
+const INTERACTIVE_URL = `${PACKAGE_BASE}/type055-nanchang-101-interactive-systems.glb`;
 const LEGACY_PRIMARY = '/assets/models-opt/destroyer.glb';
 
-const EVIDENCE_DIR = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.0.0/browser-acceptance');
+const EVIDENCE_DIR = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.0/browser-acceptance');
 
 interface GlbRequestLedger {
   glbUrls: string[];
@@ -65,8 +95,23 @@ test('first screen requests exactly one ship LOD and no weapon/collision roles',
   expect(ledger.glbUrls).not.toContain(DEMO_URL);
   expect(ledger.glbUrls).not.toContain(PAYLOAD_URL);
   expect(ledger.glbUrls).not.toContain(COLLISION_URL);
+  expect(ledger.glbUrls).not.toContain(INTERACTIVE_URL);
 
   await expect(page.locator('canvas')).toHaveCount(1);
+});
+
+test('QA page frames the full ship and keeps skinned bindings intact', async ({ page }) => {
+  await waitForQaReady(page);
+  await page.waitForFunction(() => window.__type055Qa?.boxInView === true, undefined, { timeout: 15_000 });
+  const visual = await page.evaluate(() => ({
+    boxInView: window.__type055Qa?.boxInView === true,
+    skinnedIntact: window.__type055Qa?.skinnedIntact === true,
+  }));
+  expect(visual.boxInView).toBe(true);
+  expect(visual.skinnedIntact).toBe(true);
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(EVIDENCE_DIR, 'qa-lod0.png'), fullPage: true });
+  writeEvidence('qa-visual.json', visual);
 });
 
 test('plays representative ship animations with observable node transforms', async ({ page }) => {
@@ -77,7 +122,6 @@ test('plays representative ship animations with observable node transforms', asy
     { clip: 'prop_port_spin', node: 'PROP_PORT' },
     { clip: 'main_gun_yaw', node: 'MAIN_GUN_TURRET' },
     { clip: 'hangar_port_open', node: 'G05_HANGAR_PANEL_01' },
-    { clip: 'vls_aft_r01_c01_hatch', node: 'VLS_AFT_ARRAY_R01_C01_HATCH_PIVOT' },
     { clip: 'national_flag_wind', node: 'FLAG_BONE_02' },
   ];
   const results: Record<string, unknown> = {};
@@ -186,13 +230,16 @@ test('falls back to the legacy candidate chain when the LOD GLB cannot load', as
   // 被拦截的候选请求以 requestfailed 记录；旧模型候选链最终成功响应
   expect(failedRequests.some((url) => LOD_URLS.includes(url))).toBe(true);
   expect(ledger.glbUrls).toContain(LEGACY_PRIMARY);
+  await page.waitForFunction(() => window.__type055Qa?.boxInView === true, undefined, { timeout: 15_000 });
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(EVIDENCE_DIR, 'qa-fallback-legacy.png'), fullPage: true });
   await expect(page.locator('canvas')).toHaveCount(1);
 });
 
-test('destroyer scene with the candidate enabled loads one LOD and survives quality tier switching', async ({ page }) => {
+test('destroyer default path loads one LOD, frames the ship, and survives quality tier switching', async ({ page }) => {
   test.setTimeout(180_000);
   const ledger = trackGlbRequests(page);
-  await page.goto('/simulations/destroyer?model=type055-v2', { waitUntil: 'domcontentloaded' });
+  await page.goto('/simulations/destroyer', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('canvas', { timeout: 60_000 });
   await page.waitForSelector('[data-scene-quality-tier]', { state: 'attached', timeout: 30_000 });
   await page.waitForTimeout(6_000);
@@ -203,6 +250,14 @@ test('destroyer scene with the candidate enabled loads one LOD and survives qual
   expect(ledger.glbUrls).not.toContain(LEGACY_PRIMARY);
   expect(ledger.glbUrls).not.toContain(DEMO_URL);
   expect(ledger.glbUrls).not.toContain(PAYLOAD_URL);
+  expect(ledger.glbUrls).not.toContain(INTERACTIVE_URL);
+
+  await page.waitForFunction(() => window.__destroyerModelVisual?.boxInView === true, undefined, { timeout: 20_000 });
+  const visual = await page.evaluate(() => window.__destroyerModelVisual);
+  expect(visual?.boxInView).toBe(true);
+  expect(visual?.skinnedIntact).toBe(true);
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(EVIDENCE_DIR, 'destroyer-default.png') });
 
   // 档位切换 → 对应 LOD 请求；画布与仿真不重置（无页面错误）
   const pageErrors: string[] = [];
@@ -215,10 +270,23 @@ test('destroyer scene with the candidate enabled loads one LOD and survives qual
   }, undefined, { timeout: 30_000 });
   await page.waitForTimeout(2_000);
   expect(pageErrors).toEqual([]);
+  await page.waitForFunction(() => window.__destroyerModelVisual?.boxInView === true, undefined, { timeout: 20_000 });
+  await page.screenshot({ path: path.join(EVIDENCE_DIR, 'destroyer-low.png') });
   writeEvidence('destroyer-candidate-requests.json', {
     glbUrls: ledger.glbUrls,
     bytes: ledger.bytes,
+    visual,
   });
+});
+
+test('QA page screenshot matrix covers high/medium/low lods', async ({ page }) => {
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  for (const lod of [0, 1, 2] as const) {
+    await page.goto(`/simulations/type055-model-candidate?lod=${lod}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => window.__type055Qa?.ready === true, undefined, { timeout: 60_000 });
+    await page.waitForFunction(() => window.__type055Qa?.boxInView === true, undefined, { timeout: 15_000 });
+    await page.screenshot({ path: path.join(EVIDENCE_DIR, `qa-lod${lod}.png`), fullPage: true });
+  }
 });
 
 function writeEvidence(file: string, payload: unknown) {

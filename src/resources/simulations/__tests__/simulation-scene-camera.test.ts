@@ -8,9 +8,11 @@ import {
   captureOrbitOffset,
   createViewOffsetStore,
   resolveStayPutGoal,
+  shouldReanchorOnCameraIdentityChange,
   translateWithShip,
   ZERO_ORBIT_OFFSET,
 } from '../scene/camera/stay-put';
+import { boxProjectsInsideNdc, framePerspectiveCameraToBox } from '../scene/camera/frame-box';
 import { perspectiveTargetForScreenPoint, SCENE_CAMERA_SHOTS } from '../scene/camera/camera-shots';
 
 const CAMERA_DIR = path.join(process.cwd(), 'src/resources/simulations/scene/camera');
@@ -53,6 +55,67 @@ describe('stay-put goal resolution', () => {
     const goal = resolveStayPutGoal(base, offset);
     expect(goal.position.distanceTo(customized.position)).toBeCloseTo(0, 3);
     expect(goal.target.distanceTo(customized.target)).toBeCloseTo(0, 3);
+  });
+});
+
+describe('camera identity re-anchor', () => {
+  it('re-anchors a preset view when the default camera object is replaced after init', () => {
+    const first = { id: 'r3f-default' };
+    const replacement = { id: 'makeDefault' };
+    expect(shouldReanchorOnCameraIdentityChange({
+      previousCamera: first,
+      currentCamera: replacement,
+      initialized: true,
+      isPresetView: true,
+    })).toBe(true);
+  });
+
+  it('does not re-anchor free view, first init, or a stable camera identity', () => {
+    const camera = { id: 'same' };
+    expect(shouldReanchorOnCameraIdentityChange({
+      previousCamera: camera,
+      currentCamera: camera,
+      initialized: true,
+      isPresetView: true,
+    })).toBe(false);
+    expect(shouldReanchorOnCameraIdentityChange({
+      previousCamera: { id: 'old' },
+      currentCamera: { id: 'new' },
+      initialized: true,
+      isPresetView: false,
+    })).toBe(false);
+    expect(shouldReanchorOnCameraIdentityChange({
+      previousCamera: null,
+      currentCamera: { id: 'new' },
+      initialized: false,
+      isPresetView: true,
+    })).toBe(false);
+  });
+
+  it('tracks camera identity in the shared controller and re-anchors to the preset framing', () => {
+    const controller = readFileSync(path.join(CAMERA_DIR, 'stay-put-camera-controller.tsx'), 'utf8');
+    expect(controller).toContain('shouldReanchorOnCameraIdentityChange');
+    expect(controller).toContain('initializedRef.current = false');
+    expect(controller).toContain('resolveStayPutGoal(base, store.get(view))');
+  });
+});
+
+describe('box framing', () => {
+  it('places a perspective camera so the full box projects inside the viewport', () => {
+    const box = new THREE.Box3(new THREE.Vector3(-90, 0, -10), new THREE.Vector3(90, 16, 10));
+    const framing = framePerspectiveCameraToBox(box, 45, 16 / 9);
+    const camera = new THREE.PerspectiveCamera(45, 16 / 9, 1, 8000);
+    camera.position.copy(framing.position);
+    camera.lookAt(framing.target);
+    camera.updateMatrixWorld();
+    camera.updateProjectionMatrix();
+    expect(boxProjectsInsideNdc(camera, box)).toBe(true);
+    const stranded = new THREE.PerspectiveCamera(45, 16 / 9, 1, 8000);
+    stranded.position.set(0, 0, 0);
+    stranded.lookAt(0, 0, 1);
+    stranded.updateMatrixWorld();
+    stranded.updateProjectionMatrix();
+    expect(boxProjectsInsideNdc(stranded, box)).toBe(false);
   });
 });
 

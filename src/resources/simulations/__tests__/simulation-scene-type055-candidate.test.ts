@@ -4,12 +4,16 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { SIMULATION_MODEL_REGISTRY, resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { TYPE055_NANCHANG_101_V2 } from '../model-packages/type055-nanchang-101-v2';
+import {
+  SIMULATION_MODEL_REGISTRY,
+  resolveRegisteredSimulationModel,
+  resolveVersionedDefault,
+} from '@/lib/browser-delivery/client';
+import { TYPE055_NANCHANG_101_V2, matchActivatedType055Package } from '../model-packages/type055-nanchang-101-v2';
 
 /**
- * issue #1898 候选接入守卫：默认走旧模型、显式参数才启用候选、
- * 武器角色不进入首屏请求、受保护旧式场景与七模型 registry 不变。
+ * issue #1953 生产激活守卫：destroyer 默认走 v2.1.0 版本化模型包、
+ * 旧链仅作回退、武器/交互角色不进入首屏、七模型 registry 与受保护旧式场景不变。
  */
 
 const DESTROYER = path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx');
@@ -22,7 +26,7 @@ const LEGACY_DESTROYER_BASE_BLOB = '2237fa504b69f71ea3a0e566d4a982b1ec2eb5f8';
 
 const read = (file: string) => readFileSync(file, 'utf-8');
 
-describe('type055 candidate wiring keeps the legacy default', () => {
+describe('type055 production activation keeps legacy fallback', () => {
   it('keeps the seven-model registry resolution unchanged', () => {
     expect(Object.keys(SIMULATION_MODEL_REGISTRY).sort()).toEqual([
       'container', 'destroyer', 'dredger', 'drilling-rig', 'icebreaker', 'lng-carrier', 'luxury-liner',
@@ -35,12 +39,28 @@ describe('type055 candidate wiring keeps the legacy default', () => {
     expect(SIMULATION_MODEL_REGISTRY).not.toHaveProperty(TYPE055_NANCHANG_101_V2.packageId);
   });
 
-  it('gates the candidate behind an explicit query parameter with the legacy default path intact', () => {
+  it('resolves the destroyer default from the versioned activation pointer, not a scene hard-code', () => {
+    const activation = resolveVersionedDefault('destroyer');
+    expect(matchActivatedType055Package(activation)).toEqual(TYPE055_NANCHANG_101_V2);
+    expect(resolveVersionedDefault('icebreaker')).toBeNull();
+    expect(matchActivatedType055Package(null)).toBeNull();
+    expect(matchActivatedType055Package({
+      packageId: TYPE055_NANCHANG_101_V2.packageId,
+      modelVersion: '9.9.9',
+      baseUrl: TYPE055_NANCHANG_101_V2.baseUrl,
+    })).toBeNull();
+
     const source = read(DESTROYER);
-    expect(source).toContain('useType055V2CandidateEnabled');
-    expect(source).toContain('isType055V2CandidateSearch');
-    // 默认分支：现有候选链 + 既有渲染语义（保留 FallbackGltfModel 标记，驱动链测试也依赖）
-    expect(source).toContain("candidates={MODEL.candidates}\n        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}");
+    expect(source).toContain('resolveVersionedDefault');
+    expect(source).toContain('matchActivatedType055Package');
+    expect(source).toContain('<VersionedShipModel');
+    expect(source).toContain('legacyCandidates={MODEL.candidates}');
+    expect(source).toContain('FallbackGltfModel');
+    expect(source).not.toContain('descriptor={TYPE055_NANCHANG_101_V2}');
+    expect(source).not.toContain('useType055V2CandidateEnabled');
+    expect(source).not.toContain('isType055V2CandidateSearch');
+    expect(source).not.toContain('type055-v2');
+    expect(source).not.toContain('useGLTF.preload(MODEL.primary)');
   });
 
   it('applies the basis yaw only to package assets, never to legacy fallback candidates', () => {
@@ -61,18 +81,14 @@ describe('type055 candidate wiring keeps the legacy default', () => {
     expect(source).not.toMatch(/rotation\.set\([^)]*Math\.PI \/ 4/);
   });
 
-  it('does not eagerly request payload, demo, or collision roles from the destroyer scene', () => {
+  it('does not eagerly request payload, demo, collision, or interactive-systems roles from the destroyer scene', () => {
     const source = read(DESTROYER);
-    for (const role of ['payload', 'demo', 'collision'] as const) {
+    for (const role of ['payload', 'demo', 'collision', 'interactive-systems'] as const) {
       const url = TYPE055_NANCHANG_101_V2.roles[role].url;
       expect(source, `${role} must not appear in destroyer scene`).not.toContain(url);
     }
-    // 只有 ship LOD 参与档位选择（LOD 解析在共享 VersionedShipModel 内）
     expect(source).toContain('<VersionedShipModel');
-    expect(source).toContain('descriptor={TYPE055_NANCHANG_101_V2}');
-    // 预载仍指向旧 registry 主候选，但候选启用时跳过（首屏恰好一个 ship LOD）
-    expect(source).toContain('useGLTF.preload(MODEL.primary)');
-    expect(source).toContain('!isType055V2CandidateSearch(window.location.search)');
+    expect(source).toContain('descriptor={descriptor}');
     expect(source).not.toContain('useGLTF.preload(TYPE055');
   });
 

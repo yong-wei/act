@@ -11,14 +11,16 @@ import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/dr
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
+import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
   TYPE055_NANCHANG_101_V2,
   TYPE055_V2_BASIS_YAW_RAD,
-  isType055V2CandidateSearch,
+  matchActivatedType055Package,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
+import { boxProjectsInsideNdc } from '@/resources/simulations/scene/camera';
 import {
   Play,
   Pause,
@@ -442,30 +444,29 @@ function WakeTrailRig({
   );
 }
 
+declare global {
+  interface Window {
+    __destroyerModelVisual?: {
+      url: string;
+      boxInView: boolean;
+      skinnedIntact: boolean;
+    };
+  }
+}
+
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/**
- * 候选开关（issue #1898）：`?model=type055-v2` 显式启用南昌舰 v2.0.0 版本化模型包。
- * 默认不启用时走现有 browser-delivery 候选链，请求与渲染行为保持不变。
- */
-function useType055V2CandidateEnabled(): boolean {
-  const [enabled] = useState(() => (
-    typeof window !== 'undefined' && isType055V2CandidateSearch(window.location.search)
-  ));
-  return enabled;
-}
-
-/** 驱逐舰3D模型：候选模型包按质量档位选 LOD；默认/回退走 meshopt 压缩资产 + 原始 GLB。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败或回滚走旧 browser-delivery 链。 */
 function DestroyerModel({
   simRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
 }) {
-  const candidateEnabled = useType055V2CandidateEnabled();
   const { tier } = useSceneQuality();
+  const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
 
-  if (!candidateEnabled) {
+  if (!descriptor) {
     return (
       <FallbackGltfModel
         candidates={MODEL.candidates}
@@ -473,9 +474,10 @@ function DestroyerModel({
       />
     );
   }
+
   return (
     <VersionedShipModel
-      descriptor={TYPE055_NANCHANG_101_V2}
+      descriptor={descriptor}
       tier={tier}
       legacyCandidates={MODEL.candidates}
       renderScene={(url) => (
@@ -500,11 +502,12 @@ function DestroyerModelScene({
   /** 坐标基适配（唯一应用点）：v2 候选模型 +X 舰艏 → 场景 +Z 舰艏。 */
   basisYawRad?: number;
 }) {
+  const { camera } = useThree();
   const { scene } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
   const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
+    const cloned = cloneSkinnedScene(scene);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
@@ -540,6 +543,14 @@ function DestroyerModelScene({
       sim.position.z
     );
     groupRef.current.rotation.set(sim.wavePitch, -sim.headingRad + Math.PI / 2, sim.waveRoll);
+    if (typeof window !== 'undefined') {
+      const box = new THREE.Box3().setFromObject(groupRef.current);
+      window.__destroyerModelVisual = {
+        url,
+        boxInView: boxProjectsInsideNdc(camera, box),
+        skinnedIntact: skinnedBindingsIntact(model),
+      };
+    }
   });
 
   return (
@@ -551,11 +562,7 @@ function DestroyerModelScene({
   );
 }
 
-// 默认路径保持原有的旧模型模块级预载；候选启用时首屏只请求一个 ship LOD，
-// 不再预取旧模型（旧候选链仍作为运行时回退保留）。
-if (typeof window === 'undefined' || !isType055V2CandidateSearch(window.location.search)) {
-  useGLTF.preload(MODEL.primary);
-}
+
 
 
 /** 仿真物理引擎 */

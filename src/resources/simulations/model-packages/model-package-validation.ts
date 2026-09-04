@@ -1,7 +1,7 @@
 /**
  * 版本化模型包的 ACT 侧验证器。
  *
- * `validateReceivedModelPackage` 核验候选目录内的完整六文件分母（存在性、大小、
+ * `validateReceivedModelPackage` 核验候选目录内描述符声明的完整角色分母（存在性、大小、
  * SHA-256、角色唯一）；任一漂移拒绝整个包，不登记部分通过的子集。
  * `validateModelPackageInterface` 在解析 GLB JSON 后核验语义接口契约：
  * 动画数量/唯一性/目标节点可达、演示片段名、装填实例数与透明贴花。
@@ -52,7 +52,7 @@ export function validateReceivedModelPackage(
 ): PackageIntegrityReceipt {
   const roles = Object.values(descriptor.roles);
   const files = new Set(roles.map((artifact) => artifact.file));
-  if (roles.length !== 6 || files.size !== 6) throw new Error('incomplete-role-denominator');
+  if (roles.length === 0 || files.size !== roles.length) throw new Error('incomplete-role-denominator');
   if (!roles.every((artifact) => artifact.url.startsWith(`${descriptor.baseUrl}/`))) {
     throw new Error('artifact-outside-package-directory');
   }
@@ -65,7 +65,7 @@ export function validateReceivedModelPackage(
   }
   const manifestDigest = io.sha256('manifest.json');
   if (manifestDigest !== descriptor.releaseManifestSha256) throw new Error('manifest-sha-mismatch');
-  // 分母封闭：候选目录只允许 manifest + 六个已登记文件，防止夹带未登记资产。
+  // 分母封闭：候选目录只允许 manifest + 已登记角色文件，防止夹带未登记资产。
   const declared = new Set([...files, 'manifest.json']);
   for (const present of io.listFiles()) {
     if (!declared.has(present)) throw new Error(`undeclared-file:${present}`);

@@ -98,3 +98,22 @@ export function translateWithShip(frame: ShotFrame, shipDelta: THREE.Vector3): S
     target: frame.target.clone().add(shipDelta),
   };
 }
+
+/**
+ * 默认相机对象被替换后需要重新锚定：已初始化的预设视角，且新旧相机不是同一对象。
+ * 自由视角与尚未完成首次落位时不触发，避免覆盖用户取景或抢在 makeDefault 之前空转。
+ */
+export function shouldReanchorOnCameraIdentityChange(args: {
+  readonly previousCamera: unknown;
+  readonly currentCamera: unknown;
+  readonly initialized: boolean;
+  readonly isPresetView: boolean;
+}): boolean {
+  return (
+    args.initialized
+    && args.isPresetView
+    && args.previousCamera != null
+    && args.currentCamera != null
+    && args.previousCamera !== args.currentCamera
+  );
+}

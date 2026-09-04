@@ -9,6 +9,7 @@ import { orbitFrameAt, ORBIT_PERIOD_SECONDS, SCENE_CAMERA_SHOTS } from './camera
 import {
   createViewOffsetStore,
   resolveStayPutGoal,
+  shouldReanchorOnCameraIdentityChange,
   translateWithShip,
   ZERO_ORBIT_OFFSET,
   type ShotFrame,
@@ -63,6 +64,7 @@ export function StayPutCameraController({
   const prevResetSignalRef = useRef(resetSignal);
   const orbitAzimuthRef = useRef(0);
   const initializedRef = useRef(false);
+  const anchoredCameraRef = useRef<THREE.Camera | null>(null);
   const pointerActiveRef = useRef(false);
   const interactingRef = useRef(false);
   const wasInteractingRef = useRef(false);
@@ -174,6 +176,18 @@ export function StayPutCameraController({
 
   useFrame((_, delta) => {
     if (!enabled) return;
+    if (
+      shouldReanchorOnCameraIdentityChange({
+        previousCamera: anchoredCameraRef.current,
+        currentCamera: camera,
+        initialized: initializedRef.current,
+        isPresetView,
+      })
+    ) {
+      initializedRef.current = false;
+      prevBaseTargetRef.current = null;
+    }
+    anchoredCameraRef.current = camera;
     const controls = controlsRef.current;
     const ship = positionSampler();
 
