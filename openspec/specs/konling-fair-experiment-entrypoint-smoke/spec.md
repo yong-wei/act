@@ -1,14 +1,15 @@
 # konling-fair-experiment-entrypoint-smoke Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change issue-1947-live-runner. Update Purpose after archive.
+## Requirements
 ### Requirement: Fair experiment entrypoints load from a clean checkout
 
-The fair experiment CLI entrypoints (`run-fixture.ts`, `run-live.ts`, `replay-scoring.ts`) SHALL only import currently supported provider runtime public entrypoints and SHALL load without module resolution errors from a clean checkout of the integration branch.
+The fair experiment CLI entrypoints (`run-fixture.ts`, `run-live.ts`, `replay-scoring.ts`) and the blind audit live entrypoint SHALL only import currently supported provider runtime public entrypoints and SHALL load without module resolution errors from a clean checkout of the integration branch.
 
-#### Scenario: Live runner imports the supported provider runtime
+#### Scenario: Live runners import the supported provider runtime
 
-- **WHEN** the live runner module graph is loaded on a clean checkout
+- **WHEN** either the fair experiment or the blind audit live runner module graph is loaded on a clean checkout
 - **THEN** it resolves through `@/lib/ai/provider-runtime` and no longer references the deleted `@/lib/ai-client`
 
 #### Scenario: Fixture runner runs end-to-end without network
@@ -44,3 +45,4 @@ The repository SHALL provide a vitest smoke test that loads all three fair exper
 - **WHEN** the smoke test runs the fixture runner and then replays scoring on the produced run directory
 - **THEN** both subprocesses exit zero with complete status
 - **THEN** the manifest records non-empty generation revision and scorer revision fields
+

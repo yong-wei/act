@@ -6,7 +6,7 @@ PR #1866（C28 provider runtime 收敛）删除 `src/lib/ai-client.ts` 时漏改
 
 ## What Changes
 
-- 修复 `run-live.ts` 导入：`@/lib/ai-client` → `@/lib/ai/provider-runtime`（三个函数同名同签名，行为等价迁移）。
+- 修复 `run-live.ts` 导入：`@/lib/ai-client` → `@/lib/ai/provider-runtime`（三个函数同名同签名，行为等价迁移）。除 Issue 报告的 `scripts/konling-fair-experiment/run-live.ts` 外，同根因还包括新门禁立刻暴露的 sibling `scripts/konling-blind-audit/run-live.ts`（PR #1866 同批漏改），一并等价迁移。
 - 新增 `tsconfig.konling-scripts.json` 只圈 `scripts/konling-fair-experiment/**` 与 `scripts/konling-blind-audit/**`，以 `tsc --noEmit` 作为 `typecheck:konling-scripts` 命令挂进 `verify:commit` 与 `verify:push`，让入口漂移在提交门禁被发现。
 - 新增 vitest 冒烟测试 `konling-fair-experiment-entrypoints-smoke-1947.test.ts`：子进程 tsx 真实加载三入口——fixture runner 全量确定性运行（不联网、约 3 秒）、live runner 无 opt-in 环境变量时守卫退出（同时证明 provider runtime 模块图可加载）、replay-scoring 对 fixture 产物做真实回放；并断言 manifest 记录生成与评分器修订字段。
 - 不改变三臂组装、断点续跑、超时记录、fail-closed 汇总与回放语义。
