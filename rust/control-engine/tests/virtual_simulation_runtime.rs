@@ -675,12 +675,11 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
         assert!(position_error < 30.0, "unbounded drift at {time}s: {position_error}");
         max_error = max_error.max(position_error);
         final_error = position_error;
-        recent_errors.push(position_error);
+        // 页面告警在 mmg3dof 步进前以 dpMetrics.positionError 判定（review #1944），
+        // 验收采样同口径取步前 DP 误差。
+        recent_errors.push(dp["metrics"]["positionError"].as_f64().unwrap());
         if recent_errors.len() > 100 {
             recent_errors.remove(0);
-        }
-        if index % 100 == 0 {
-            println!("DBG t={} err={} psi={} r={} yawKNm={}", time, position_error, mmg["psi"].as_f64().unwrap().to_degrees(), mmg["r"].as_f64().unwrap(), dp["output"]["yawMoment"].as_f64().unwrap() / 1000.0);
         }
     }
     // 按页面告警语义验收（review #1944）：①末段不存在连续 100 步（10 s）全部
