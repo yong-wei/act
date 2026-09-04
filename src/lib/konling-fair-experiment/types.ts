@@ -181,6 +181,16 @@ export interface KonlingFairExperimentRateMetric {
   rate: number;
 }
 
+/** #1948：分类一致率的逐意图混淆分解，按题库标注意图分组。 */
+export interface KonlingFairExperimentIntentConfusion {
+  intent: StudyQuestionIntent;
+  n: number;
+  matched: number;
+  rate: number;
+  /** 实际路由意图 → 出现次数；键为路由层输出的意图字符串。 */
+  routedCounts: Record<string, number>;
+}
+
 export interface KonlingFairExperimentPairedDifference {
   metric: string;
   direction: 'higher-is-better';
@@ -205,7 +215,9 @@ export interface KonlingFairExperimentOfficialSummary {
     composite: Record<string, KonlingFairExperimentRateMetric & {
       components: { structure: KonlingFairExperimentRateMetric; audit: KonlingFairExperimentRateMetric | null };
     }>;
-    classificationAgreement: null | KonlingFairExperimentRateMetric;
+    classificationAgreement: null | (KonlingFairExperimentRateMetric & {
+      byIntent: readonly KonlingFairExperimentIntentConfusion[];
+    });
   }>;
   /** 生成行为差值：同口径、跨臂。 */
   generationDeltas: KonlingFairExperimentPairedDifference[];

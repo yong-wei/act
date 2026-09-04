@@ -1110,10 +1110,28 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
   'standard format', 'certification', 'certified', 'must not', 'shall not',
 ] as const;
 
+// #1948 组合信号：规范/要求/格式措辞 × 权威来源文档。两个词面都出现才判
+// 规范诉求，避免单独的「要求/格式」吞并普通课程问题；与单命中标记共享给主分
+// 类器与独立风险探测器，维持 #1901 平价不变量。来源词必须是权威出处本身
+// （报告/论文/学校/教务/大纲等），不含「课程」这类泛学习上下文（review：课
+// 程要求我们比较 A 和 B」不得触发规范门禁）。
+const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '模板', '书写', '排版'] as const;
+const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准'] as const;
+
+// #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
+// 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
+const KONLING_DEBUG_PHENOMENON_MARKERS = ['饱和', '超调', '振荡', '震荡', '发散', '不收敛', '抖动', '失稳', '畸变', '溢出', '崩溃', '卡死'] as const;
+const KONLING_DEBUG_RESOLUTION_MARKERS = ['定位', '修复', '排查', '排除', '解决', '怎么修', '如何修', '怎么办', '怎么处理', '如何处理', '找出原因'] as const;
+
+function hasNormativeComboSignal(normalized: string): boolean {
+  return includesAny(normalized, KONLING_NORMATIVE_COMBO_TERMS)
+    && includesAny(normalized, KONLING_NORMATIVE_SOURCE_TERMS);
+}
+
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)) {
+  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS) || hasNormativeComboSignal(normalized)) {
     return 'normative-content';
   }
   if (
@@ -1125,9 +1143,15 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
   ) {
     return 'formula-derivation';
   }
-  if (includesAny(normalized, [
-    '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
-  ])) {
+  if (
+    includesAny(normalized, [
+      '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
+    ])
+    || (
+      includesAny(normalized, KONLING_DEBUG_PHENOMENON_MARKERS)
+      && includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
+    )
+  ) {
     return 'code-debugging';
   }
   if (includesAny(normalized, [
@@ -1158,6 +1182,7 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
   if (!normalized) return false;
   return NORMATIVE_STANDARD_ID.test(normalized)
     || includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
+    || hasNormativeComboSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
 }
 

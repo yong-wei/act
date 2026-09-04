@@ -250,10 +250,37 @@ export function aggregateKonlingFairExperiment(input: {
     let classificationAgreement: KonlingFairExperimentOfficialSummary['perArm'][KonlingFairExperimentArm]['classificationAgreement'] = null;
     if (arm === 'full-feature') {
       const answers = answersByArm.get(arm) ?? [];
-      classificationAgreement = rateMetric(answers.map((record) => {
-        const item = input.bank.items.find((candidate) => candidate.itemId === record.itemId);
-        return record.contractIntent === (item?.intent ?? null);
-      }));
+      // #1948：总体一致率之外输出逐意图混淆分解，类别级失败不得被总体率掩盖。
+      // 按题库标注意图分组聚合：同意图多条目（真实批次可追加）必须汇入同一条
+      // 分解，不得按题项拆散（review finding：分组单位是意图，不是题项）。
+      const intents = [...new Set(input.bank.items.map((item) => item.intent))];
+      const byIntent = intents.map((intent) => {
+        const itemIds = new Set(
+          input.bank.items.filter((item) => item.intent === intent).map((item) => item.itemId),
+        );
+        const records = answers.filter((record) => itemIds.has(record.itemId));
+        const routedCounts: Record<string, number> = {};
+        let matched = 0;
+        for (const record of records) {
+          const routed = record.contractIntent ?? 'null';
+          routedCounts[routed] = (routedCounts[routed] ?? 0) + 1;
+          if (record.contractIntent === intent) matched += 1;
+        }
+        return {
+          intent,
+          n: records.length,
+          matched,
+          rate: records.length === 0 ? 0 : matched / records.length,
+          routedCounts,
+        };
+      });
+      classificationAgreement = {
+        ...rateMetric(answers.map((record) => {
+          const item = input.bank.items.find((candidate) => candidate.itemId === record.itemId);
+          return record.contractIntent === (item?.intent ?? null);
+        })),
+        byIntent,
+      };
     }
     perArm[arm] = {
       structure,
