@@ -145,15 +145,23 @@ describe('issue #1901 frozen normative status regression', () => {
   });
 
   it('keeps the independent gate at parity with the classifier vocabulary for non-generic modes', () => {
-    for (const modeId of ['resource-coach', 'generic-chat'] as const) {
-      const contract = buildKonlingTeachingAssistantRuntimeContract({
-        modeId,
-        runtimeContext: createRuntimeContext(),
-        scope: createScope(),
-        currentUserQuery: '请给出国家标准对控制实验报告封面的规范格式',
-      });
-      expect(contract.answerIntent, modeId).toBe(modeId === 'generic-chat' ? 'normative-content' : 'fact-explanation');
-      expect(contract.studyQuestion?.normativeGuidance, modeId).toBe('verification-required');
+    // #1948：第二条是组合信号措辞（规范/要求 × 权威文档），不含任何单命中
+    // 标记，独立门禁仍须与主分类器平价，非 generic 模式不得绕过 fail-closed。
+    const queries = [
+      '请给出国家标准对控制实验报告封面的规范格式',
+      '实验报告封面有哪些规范要求？',
+    ] as const;
+    for (const query of queries) {
+      for (const modeId of ['resource-coach', 'generic-chat'] as const) {
+        const contract = buildKonlingTeachingAssistantRuntimeContract({
+          modeId,
+          runtimeContext: createRuntimeContext(),
+          scope: createScope(),
+          currentUserQuery: query,
+        });
+        expect(contract.answerIntent, `${modeId}: ${query}`).toBe(modeId === 'generic-chat' ? 'normative-content' : 'fact-explanation');
+        expect(contract.studyQuestion?.normativeGuidance, `${modeId}: ${query}`).toBe('verification-required');
+      }
     }
   });
 });

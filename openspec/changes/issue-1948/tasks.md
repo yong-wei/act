@@ -1,6 +1,0 @@
-- [ ] 1.1 在 `konling-agent-runtime.ts` 新增共享组合信号常量与谓词：规范组合（规范/要求/格式/封面/模板/书写/排版 × 报告/论文/学校/教务/学院/课程/考核/大纲/官方/标准）与调试组合（饱和/超调/振荡/震荡/发散/不收敛/抖动/失稳/畸变/溢出/崩溃/卡死 × 定位/修复/排查/排除/解决/怎么修/如何修/怎么办/怎么处理/如何处理/找出原因）
-- [ ] 1.2 `classifyGenericStudyQuestionIntent`：normative 分支并入规范组合信号，code-debugging 分支并入调试组合信号，优先级序不变
-- [ ] 1.3 `hasIndependentNormativeRisk` 同步并入规范组合信号，保持 #1901 独立门禁平价不变量
-- [ ] 1.4 意图路由表驱动回归：新增组合措辞族用例覆盖六类意图与两条公平实验原始样本，扩展多意图优先级表（规范组合 > 调试组合、公式 > 调试组合，子句序无关）；既有 120 例冻结集与 58 例规范状态集门禁不降低
-- [ ] 1.5 公平实验摘要 `classificationAgreement` 增加逐意图混淆分解（`types.ts` 类型 + `aggregate.ts` 计算 + `konling-fair-experiment-1900.test.ts` 断言单一类别失败可见）
-- [ ] 1.6 `openspec validate issue-1948 --strict`、typecheck、相关 Vitest 套件通过

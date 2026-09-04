@@ -211,6 +211,24 @@ describe('端到端：断点续跑与 fail closed', () => {
     expect(agreement?.n).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length * 2);
     expect(agreement!.rate).toBeGreaterThanOrEqual(0);
     expect(agreement!.rate).toBeLessThanOrEqual(1);
+    // #1948：逐意图混淆分解完整枚举题库意图，类别级失败不被总体率掩盖。
+    const byIntent = agreement!.byIntent;
+    expect(byIntent).toHaveLength(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length);
+    expect(new Set(byIntent.map((entry) => entry.intent)).size).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length);
+    for (const entry of byIntent) {
+      expect(entry.n, entry.intent).toBe(2);
+      expect(
+        Object.values(entry.routedCounts).reduce((sum, count) => sum + count, 0),
+        entry.intent,
+      ).toBe(entry.n);
+    }
+    expect(byIntent.reduce((sum, entry) => sum + entry.matched, 0)).toBe(agreement!.passed);
+    // 验收：代码调试与规范内容的公平实验样本不再回落为开放讲解。
+    for (const intent of ['code-debugging', 'normative-content'] as const) {
+      const entry = byIntent.find((candidate) => candidate.intent === intent);
+      expect(entry?.matched, intent).toBe(entry?.n);
+      expect(entry?.routedCounts['open-ended-explanation'], intent).toBeUndefined();
+    }
   });
 
   it('续跑不重复生成，回答快照冻结', async () => {

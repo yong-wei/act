@@ -250,10 +250,31 @@ export function aggregateKonlingFairExperiment(input: {
     let classificationAgreement: KonlingFairExperimentOfficialSummary['perArm'][KonlingFairExperimentArm]['classificationAgreement'] = null;
     if (arm === 'full-feature') {
       const answers = answersByArm.get(arm) ?? [];
-      classificationAgreement = rateMetric(answers.map((record) => {
-        const item = input.bank.items.find((candidate) => candidate.itemId === record.itemId);
-        return record.contractIntent === (item?.intent ?? null);
-      }));
+      // #1948：总体一致率之外输出逐意图混淆分解，类别级失败不得被总体率掩盖。
+      const byIntent = input.bank.items.map((item) => {
+        const records = answers.filter((record) => record.itemId === item.itemId);
+        const routedCounts: Record<string, number> = {};
+        let matched = 0;
+        for (const record of records) {
+          const routed = record.contractIntent ?? 'null';
+          routedCounts[routed] = (routedCounts[routed] ?? 0) + 1;
+          if (record.contractIntent === item.intent) matched += 1;
+        }
+        return {
+          intent: item.intent,
+          n: records.length,
+          matched,
+          rate: records.length === 0 ? 0 : matched / records.length,
+          routedCounts,
+        };
+      });
+      classificationAgreement = {
+        ...rateMetric(answers.map((record) => {
+          const item = input.bank.items.find((candidate) => candidate.itemId === record.itemId);
+          return record.contractIntent === (item?.intent ?? null);
+        })),
+        byIntent,
+      };
     }
     perArm[arm] = {
       structure,

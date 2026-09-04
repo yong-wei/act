@@ -176,6 +176,45 @@ describe('issue #1903 per-phrasing intent routing gates', () => {
   }
 });
 
+describe('issue #1948 combo-signal intent routing', () => {
+  // 第三措辞族（#1948 公平实验暴露）：不含显式调试/规范关键词，信号来自
+  // 「异常现象＋定位/修复」与「规范/要求/格式＋权威来源」的组合。
+  const comboCases: Array<[string, StudyIntent]> = [
+    // code-debugging：现象 × 排障动作（含公平实验原始样本）
+    ['PID 输出持续饱和导致超调增大，如何定位和修复？', 'code-debugging'],
+    ['仿真曲线持续发散不收敛，怎么排查原因？', 'code-debugging'],
+    ['系统响应剧烈振荡，该怎么解决？', 'code-debugging'],
+    ['执行机构反复抖动，怎么排查？', 'code-debugging'],
+    ['数值溢出后曲线崩溃，如何修复？', 'code-debugging'],
+    ['控制器输出卡死在限幅，如何定位问题？', 'code-debugging'],
+    // normative-content：规范/要求/格式 × 权威来源（含公平实验原始样本）
+    ['实验报告封面有哪些规范要求？', 'normative-content'],
+    ['毕业论文封面模板有什么规范要求？', 'normative-content'],
+    ['实验数据记录表格的格式要求以课程大纲为准吗？', 'normative-content'],
+    ['课程报告的排版规范是什么？', 'normative-content'],
+    ['学校对实验报告的书写格式有要求吗？', 'normative-content'],
+    ['教务处发布的考核要求有哪些？', 'normative-content'],
+    // 其余四类在组合措辞族中保持既有行为
+    ['这个系统的开环传递函数是怎么得到的？', 'formula-derivation'],
+    ['证明该闭环系统稳定的充要条件', 'formula-derivation'],
+    ['PID 和 PI 控制该怎么选？', 'concept-comparison'],
+    ['开环控制和闭环控制有什么区别？', 'concept-comparison'],
+    ['用生活化例子解释超调，并说明适用边界。', 'open-ended-explanation'],
+    ['把积分作用讲得更直白一点', 'open-ended-explanation'],
+    ['帮我看看这个系统的稳态误差该怎么分析', 'open-ended-explanation'],
+    ['什么是超调量？', 'fact-explanation'],
+    ['奈奎斯特判据的含义是什么？', 'fact-explanation'],
+  ];
+
+  it('routes combo phrasings for all six intents without fallback capture', () => {
+    for (const [query, expected] of comboCases) {
+      expect(classify(query), query).toBe(expected);
+    }
+    const routed = comboCases.map(([query]) => classify(query));
+    expect(new Set(routed).size).toBe(STUDY_INTENTS.length);
+  });
+});
+
 describe('issue #1903 multi-intent primary-intent priority', () => {
   // Priority is fixed and clause-order independent: normative (safety) >
   // formula-derivation > code-debugging > concept-comparison >
@@ -193,6 +232,11 @@ describe('issue #1903 multi-intent primary-intent priority', () => {
     ['什么是超调量？请换一种更直白的说法解释', 'open-ended-explanation'],
     ['请换一种更直白的说法解释，什么是超调量？', 'open-ended-explanation'],
     ['帮我看看这个系统的稳态误差该怎么分析', 'open-ended-explanation'],
+    // #1948：组合信号子句同样服从固定优先级，且与子句顺序无关。
+    ['请推导闭环传递函数，另外 PID 输出持续饱和超调增大，如何定位和修复？', 'formula-derivation'],
+    ['PID 输出持续饱和超调增大，如何定位和修复？顺便推导闭环传递函数', 'formula-derivation'],
+    ['实验报告封面有哪些规范要求？另外这段 PID 代码为什么一直报错？', 'normative-content'],
+    ['这段 PID 代码为什么一直报错？另外实验报告封面有哪些规范要求？', 'normative-content'],
   ];
 
   it('resolves the higher-priority intent regardless of clause order', () => {
