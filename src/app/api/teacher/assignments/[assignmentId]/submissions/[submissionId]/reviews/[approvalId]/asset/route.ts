@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { requireAssignmentActor } from '@/lib/assignments/assignment-route-guards';
 import { AssignmentSubmissionGradeError, teacherReadReviewedAssignmentAsset } from '@/lib/assignments/public-api';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,7 @@ export async function GET(request: Request, context: { params: Promise<{ assignm
     if (!asset) return NextResponse.json({ error: 'reviewed-asset-not-found' }, { status: 404 });
     return new Response(asset.bytes, { headers: { 'content-type': asset.mimeType, 'content-length': String(asset.bytes.byteLength), 'content-disposition': `inline; filename="${asset.filename}"`, 'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff' } });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     if (error instanceof AssignmentSubmissionGradeError) return NextResponse.json({ error: error.code }, { status: error.status });
     return NextResponse.json({ error: 'reviewed-asset-unavailable' }, { status: 503 });
   }

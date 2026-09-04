@@ -1,7 +1,7 @@
 # student-micro-tutoring-eligibility-projection Specification
 
 ## Purpose
-为学生自适应练习返回题目阶段和微辅导资格投影，客户端只渲染服务端结果，不自行推断入口。
+为学生自适应练习返回题目阶段与微辅导资格投影；客户端只渲染服务端结果，不得依据 catalog 或审核状态自行推断入口，保证入口展示与服务端授权判定一致。
 ## Requirements
 ### Requirement: Server projects student-safe micro-tutoring eligibility
 

@@ -11,6 +11,9 @@ import {
   teacherReleaseAssignmentResult,
   teacherReturnAssignmentQuestion,
 } from '@/lib/assignments/public-api';
+import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+
+export const dynamic = 'force-dynamic';
 
 const requestSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('REFRESH'), snapshotId: z.string().trim().min(1).max(160) }).strict(),
@@ -30,6 +33,7 @@ export async function GET(request: Request, context: { params: Promise<{ assignm
     const query = querySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
     return NextResponse.json(await teacherGetAssignmentGradingClosure({ actor: auth.actor, assignmentId, submissionId, snapshotId: query.snapshotId }));
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     const status = error instanceof AssignmentSubmissionGradeError ? error.status : 422;
     const code = error instanceof AssignmentSubmissionGradeError ? error.code : 'assignment-result-invalid-request';
     const details = error instanceof AssignmentSubmissionGradeError ? error.details : undefined;
@@ -57,6 +61,7 @@ export async function POST(request: Request, context: { params: Promise<{ assign
             : await teacherReturnAssignmentQuestion({ ...base, snapshotItemId: body.snapshotItemId, reason: body.reason, newDeadlineAt: new Date(body.newDeadlineAt), idempotencyKey: body.idempotencyKey });
     return NextResponse.json({ submissionId, ...result }, { status: (result as any).replay ? 200 : 201 });
   } catch (error) {
+    rethrowIfNextDynamicError(error);
     const status = error instanceof AssignmentSubmissionGradeError ? error.status : 422;
     const code = error instanceof AssignmentSubmissionGradeError ? error.code : 'assignment-result-invalid-request';
     const details = error instanceof AssignmentSubmissionGradeError ? error.details : undefined;
