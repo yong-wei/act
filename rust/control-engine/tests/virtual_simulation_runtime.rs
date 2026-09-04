@@ -683,18 +683,14 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
             println!("DBG t={} err={} psi={} r={} yawKNm={}", time, position_error, mmg["psi"].as_f64().unwrap().to_degrees(), mmg["r"].as_f64().unwrap(), dp["output"]["yawMoment"].as_f64().unwrap() / 1000.0);
         }
     }
-    // 定位容差 0.1 m 的量级（含挖掘冲击与默认风流的工程余量）。终值采样可能
-    // 恰逢一次 500 kN 挖掘冲击的恢复瞬态，因此以最后 10 s 的窗口判定：
-    // 必须回到容差量级（min ≤ 0.5 m）且窗口均值保持工程稳态（< 3 m）。
+    // 定位容差 0.1 m 的量级（含挖掘冲击与默认风流的工程余量）。以最后 10 s
+    // 窗口整体判定：均值与最小值都必须处于容差量级（≤ 0.5 m），拒绝「窗口内
+    // 偶发回落、其余时间持续超限」的持续告警态（review #1944）。
     let recent_min = recent_errors.iter().cloned().fold(f64::INFINITY, f64::min);
     let recent_mean = recent_errors.iter().sum::<f64>() / recent_errors.len().max(1) as f64;
     assert!(
-        recent_min <= 0.5,
-        "60s 末段未回到定位容差量级: min={recent_min} mean={recent_mean} final={final_error}"
-    );
-    assert!(
-        recent_mean < 3.0,
-        "60s 末段均值未保持工程稳态: mean={recent_mean} final={final_error}"
+        recent_min <= 0.5 && recent_mean <= 0.5,
+        "60s 末段未整体收敛到定位容差量级: min={recent_min} mean={recent_mean} final={final_error}"
     );
     let heading_error_deg = (((mmg["psi"].as_f64().unwrap() - target_psi).to_degrees() + 180.0)
         % 360.0
