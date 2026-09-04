@@ -35,6 +35,7 @@ TRANSPORT_TTL_SECONDS = 900
 # transport TTL so a running checkout that is not fetching bodies stays valid,
 # and shorter than an unbounded window after kill -9 / crash without DELETE.
 HEARTBEAT_GRACE_SECONDS = 3600
+LEASE_PERSIST_INTERVAL_SECONDS = 30
 DENIED_BODY = b'{"error":"denied"}'
 NOT_FOUND_BODY = b'{"error":"not found"}'
 UNAVAILABLE_BODY = b'{"error":"unavailable"}'
@@ -298,6 +299,7 @@ class GatewayService:
         time_fn: Callable[[], float] | None = None,
         transport_ttl_seconds: int = TRANSPORT_TTL_SECONDS,
         heartbeat_grace_seconds: int = HEARTBEAT_GRACE_SECONDS,
+        persist_interval_seconds: float = LEASE_PERSIST_INTERVAL_SECONDS,
         token_fn: Callable[[], str] | None = None,
         lease_store: Path | None = None,
     ) -> None:
@@ -309,6 +311,8 @@ class GatewayService:
         self._time = time_fn or time.time
         self._transport_ttl = transport_ttl_seconds
         self._heartbeat_grace = heartbeat_grace_seconds
+        self._persist_interval = persist_interval_seconds
+        self._last_persist_at = 0.0
         self._lease_store = lease_store
         self._lock = threading.Lock()
         self._leases: dict[str, Lease] = {}
@@ -374,6 +378,10 @@ class GatewayService:
             still_active = require_identity(self._host.active_identity())
             if not identities_match(requested, still_active):
                 raise GatewayError(409, "denied", DENIED_BODY)
+            for existing in self._leases.values():
+                if existing.live and existing.checkout_id == checkout_id:
+                    existing.live = False
+                    existing.transport = None
             lease = Lease(
                 lease_id=secrets.token_urlsafe(24),
                 checkout_id=checkout_id,
@@ -396,7 +404,7 @@ class GatewayService:
             now = self._time()
             if lease.transport is not None and now < lease.transport.expires_at:
                 lease.heartbeat_at = now
-                self._persist_leases()
+                self._persist_leases_debounced()
                 return self._lease_payload(lease)
             lease.transport = self._mint_transport(now)
             lease.heartbeat_at = now
@@ -407,7 +415,7 @@ class GatewayService:
         with self._lock:
             lease = self._live_lease(lease_id)
             lease.heartbeat_at = self._time()
-            self._persist_leases()
+            self._persist_leases_debounced()
 
     def stop_checkout(self, lease_id: str) -> None:
         with self._lock:
@@ -464,7 +472,7 @@ class GatewayService:
             if stored is not None and stored.live:
                 stored.heartbeat_at = self._time()
                 stored.probed_blobs.add(digest)
-                self._persist_leases()
+                self._persist_leases_debounced()
         span = parse_range(range_header, len(data))
         if span is None:
             return data, 200, {"Content-Type": "application/octet-stream", "Accept-Ranges": "bytes"}
@@ -597,9 +605,27 @@ class GatewayService:
             restored[lease.lease_id] = lease
         self._leases = restored
 
+    def _prune_leases(self) -> None:
+        now = self._time()
+        stale = [
+            lease_id
+            for lease_id, lease in self._leases.items()
+            if not lease.live or now - lease.heartbeat_at > self._heartbeat_grace
+        ]
+        for lease_id in stale:
+            del self._leases[lease_id]
+
+    def _persist_leases_debounced(self) -> None:
+        if self._lease_store is None:
+            return
+        if self._time() - self._last_persist_at < self._persist_interval:
+            return
+        self._persist_leases()
+
     def _persist_leases(self) -> None:
         if self._lease_store is None:
             return
+        self._prune_leases()
         self._lease_store.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(self._lease_store.parent, 0o700)
         payload = {"schemaVersion": "act-runtime-dev-gateway-leases.v1", "leases": [self._lease_record(lease) for lease in self._leases.values()]}
@@ -613,3 +639,4 @@ class GatewayService:
             os.close(descriptor)
         os.replace(temporary, self._lease_store)
         os.chmod(self._lease_store, 0o600)
+        self._last_persist_at = self._time()

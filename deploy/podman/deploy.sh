@@ -1203,6 +1203,9 @@ fi
 if [ -n "${WOLFRAM_MCP_SERVICE_API_KEY:-}" ]; then
   WOLFRAM_ENV_ARGS+=(-e WOLFRAM_MCP_SERVICE_API_KEY="$WOLFRAM_MCP_SERVICE_API_KEY")
 fi
+if [ "${SKIP_WOLFRAM_READY_CHECK:-}" = "1" ]; then
+  WOLFRAM_ENV_ARGS+=(-e SKIP_WOLFRAM_READY_CHECK=1)
+fi
 GRADING_AUDIT_ENV_ARGS=()
 if [ -n "${GRADING_AUDIT_SECRET:-}" ]; then
   GRADING_AUDIT_ENV_ARGS=(-e GRADING_AUDIT_SECRET="$GRADING_AUDIT_SECRET")
@@ -1311,7 +1314,9 @@ for env_name in "${POLICY_SEED_ENV_NAMES[@]}"; do
   fi
 done
 
-if podman run --rm --entrypoint /bin/sh "$APP_IMAGE" -c 'test -x /app/scripts/math-calc/check-wolfram-ready.sh'; then
+if [ "${SKIP_WOLFRAM_READY_CHECK:-}" = "1" ]; then
+  echo "WARN: SKIP_WOLFRAM_READY_CHECK=1，跳过 Wolfram Cloud MCP smoke 预检（仅用于 Wolfram 云端计划维护窗口）" >&2
+elif podman run --rm --entrypoint /bin/sh "$APP_IMAGE" -c 'test -x /app/scripts/math-calc/check-wolfram-ready.sh'; then
   echo "- 校验 Wolfram Cloud MCP 真实 calc.wls smoke"
   podman run --rm \
     --entrypoint ./scripts/math-calc/check-wolfram-ready.sh \

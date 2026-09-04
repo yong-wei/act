@@ -706,6 +706,63 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
         body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
         self.assertEqual(body, b"a-only")
 
+    def test_stopped_lease_is_evicted_from_persisted_store(self):
+        clock = Clock()
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            store = Path(raw) / "leases.json"
+            service = GatewayService(TOKEN, host, time_fn=clock, lease_store=store)
+            issued = service.issue_lease(identity_a, "checkout-evict")
+            service.stop_checkout(issued["leaseId"])
+            payload = json.loads(store.read_text(encoding="utf-8"))
+            self.assertEqual(payload["leases"], [])
+            with self.assertRaises(GatewayError):
+                service.heartbeat(issued["leaseId"])
+
+    def test_expired_lease_is_evicted_from_persisted_store(self):
+        clock = Clock()
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            store = Path(raw) / "leases.json"
+            service = GatewayService(TOKEN, host, time_fn=clock, heartbeat_grace_seconds=30, lease_store=store)
+            expired = service.issue_lease(identity_a, "checkout-old")
+            clock.now += 31
+            service.issue_lease(identity_a, "checkout-new")
+            payload = json.loads(store.read_text(encoding="utf-8"))
+            remaining = {lease["leaseId"] for lease in payload["leases"]}
+            self.assertNotIn(expired["leaseId"], remaining)
+            self.assertEqual(len(payload["leases"]), 1)
+
+    def test_heartbeat_persist_is_debounced(self):
+        clock = Clock()
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            store = Path(raw) / "leases.json"
+            service = GatewayService(TOKEN, host, time_fn=clock, persist_interval_seconds=30, lease_store=store)
+            issued = service.issue_lease(identity_a, "checkout-debounce")
+            first_mtime = store.stat().st_mtime_ns
+            clock.now += 1
+            service.heartbeat(issued["leaseId"])
+            self.assertEqual(store.stat().st_mtime_ns, first_mtime)
+            clock.now += 31
+            service.heartbeat(issued["leaseId"])
+            self.assertNotEqual(store.stat().st_mtime_ns, first_mtime)
+
+    def test_issue_lease_supersedes_live_lease_for_same_checkout(self):
+        clock = Clock()
+        host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host, time_fn=clock)
+        first = service.issue_lease(identity_a, "checkout-shared")
+        other = service.issue_lease(identity_a, "checkout-other")
+        second = service.issue_lease(identity_a, "checkout-shared")
+        with self.assertRaises(GatewayError) as denied:
+            service.renew_transport(first["leaseId"])
+        self.assertEqual(denied.exception.status, 401)
+        renewed = service.renew_transport(second["leaseId"])
+        self.assertEqual(renewed["leaseId"], second["leaseId"])
+        renewed_other = service.renew_transport(other["leaseId"])
+        self.assertEqual(renewed_other["leaseId"], other["leaseId"])
+
     def test_checkout_fuse_heartbeats_its_own_lease(self):
         from gateway_fuse import heartbeat_session_leases
         with tempfile.TemporaryDirectory() as raw:
