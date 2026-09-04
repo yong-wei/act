@@ -1,18 +1,20 @@
 # Residual Data Governance decision matrix
 
 - schemaVersion: `act-residual-data-governance-adjudication/v2`
-- successorCaptureId: `fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02`
-- sourceCommit: `698cb2f4cd6d001bcbeee95bca9be58c56c1cca3`
-- sourceTree: `41d6b3f5966493911d6ce9c1f299015189778d53`
-- packageDigest: `259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12`
-- ownerResidueSha256: `faef106510d395af457f92f42dd89139e5612953625422d352fd3fa7f37d5bed`
-- fullInventoryLocator: `artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/full-inventory.ndjson`
-- fullInventorySha256: `0291c93d41de223f1698ee500cfe3b9024c4af42cfa04e4cc9a06d24b94bfc43`
+- currentSubjectCommit: `02ef2ed80564b3ad1acc1518fcdd6a89352d8ad4`
+- currentSubjectTree: `dab055db961d38b34c680ef3dd43621c0a018bcd`
 - memberSetDigest: `ae22cb75a43d821fbc29147f37337f00ddfaeab1044ff838dc1b85aa21008a88`
-- tool.entryBundleDigest: `20d7393248c72f074a00780f66e970506936b6d478959c71acf9e21f37d430fe`
+- tool.entryBundleDigest: `a1a6bbc2c14c42cc230b1f570fc89d19cfc54f8a30c995676dff0179769cb956`
+- predecessor1883.successorCaptureId: `fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02`
+- predecessor1883.sourceCommit: `698cb2f4cd6d001bcbeee95bca9be58c56c1cca3`
+- predecessor1883.sourceTree: `41d6b3f5966493911d6ce9c1f299015189778d53`
+- predecessor1883.packageDigest: `259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12`
+- predecessor1883.ownerResidueSha256: `faef106510d395af457f92f42dd89139e5612953625422d352fd3fa7f37d5bed`
+- predecessor1883.fullInventoryLocator: `artifacts/architecture-census/fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02/full-inventory.ndjson`
+- predecessor1883.fullInventorySha256: `0291c93d41de223f1698ee500cfe3b9024c4af42cfa04e4cc9a06d24b94bfc43`
 - predecessorBaseline.sourceCommit: `58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac`
 - qualified: `no`
-- decisionIdentity: `bc4e692cfeba99033ab9e703128a7618196a30b3c0c8a504b138cad885da6e89`
+- decisionIdentity: `c379c7c3d357c10694426781200d286253dd09a0fd5e01fe1f3fe376fce1ece2`
 
 | familyId | accountableOwner | outcome | count | memberIds |
 | --- | --- | --- | --- | --- |
