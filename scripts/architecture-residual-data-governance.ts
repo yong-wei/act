@@ -25,6 +25,7 @@ import {
   RESIDUAL_SCHEMA_VERSION,
   UPSTREAM_PAYLOAD_CHANGE,
   adjudicateResidualDataGovernance,
+  buildMemberReferenceTokens,
   collectRelativeCallers,
   directoryPathReadCaller,
   loadPredecessorComparison,
@@ -32,6 +33,7 @@ import {
   memberSetDigest,
   projectResidualDocuments,
   resolveResidualCurrentSubject,
+  textReferencesMember,
   verifyResidualLedgerArtifact,
   verifyResidualProjectionArtifacts,
   type Issue1876Snapshot,
@@ -145,15 +147,9 @@ function loadMemberFiles(members: readonly ResidualMemberInput[], subjectCommit:
 function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: string): ResidualCallerInput[] {
   const memberPaths = members.map((member) => member.path);
   const barrel = 'src/lib/data-governance/index.ts';
-  const tokens = new Map<string, string[]>();
-  for (const path of memberPaths) {
-    const relative = path.replace(/^src\/lib\//u, '');
-    for (const token of [path, relative]) {
-      const bucket = tokens.get(token) ?? [];
-      bucket.push(path);
-      tokens.set(token, bucket);
-    }
-  }
+  // Extensionless alias imports (`@/lib/data-governance/session-reports`) must
+  // still bind to their member, so tokens carry both suffixed and bare forms.
+  const tokens = buildMemberReferenceTokens(memberPaths);
   const grep = [gitGrep('lib/data-governance/', subjectCommit), gitGrep('src/lib/data-governance', subjectCommit)].join('\n');
   const callers: ResidualCallerInput[] = [];
   const seen = new Set<string>();
@@ -170,12 +166,8 @@ function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: str
     if (!callerPath) continue;
     const directory = directoryPathReadCaller(callerPath, text, barrel);
     if (directory && memberPaths.includes(barrel)) add(directory);
-    const hits = new Set<string>();
-    for (const [token, paths] of tokens) {
-      if (!text.includes(token)) continue;
-      for (const path of paths) hits.add(path);
-    }
-    for (const memberPath of hits) {
+    for (const [memberPath, variants] of tokens) {
+      if (!variants.some((token) => textReferencesMember(text, token))) continue;
       const relationship = callerPath.startsWith('openspec/changes/archive/')
         ? 'historical'
         : callerPath.startsWith('openspec/') || callerPath.startsWith('docs/')

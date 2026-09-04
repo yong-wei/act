@@ -12,12 +12,14 @@ import {
   RESIDUAL_CLAIM_BRANCH,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
+  buildMemberReferenceTokens,
   classifyCallerPath,
   collectRelativeCallers,
   directoryPathReadCaller,
   evaluateCoordinationGate,
   memberSetDigest,
   projectResidualDocuments,
+  textReferencesMember,
   verifyResidualProjectionArtifacts,
   type Issue1876Snapshot,
   type ResidualAdjudication,
@@ -642,6 +644,58 @@ describe('residual data-governance adjudication', () => {
       expect(foreign.blockers).toContain('execution-branch-not-claim-branch');
       expect(foreign.qualified).toBe(false);
       expect(foreign.futureSlices).toEqual([]);
+    }
+  });
+
+  it('matches extensionless alias imports without sibling-prefix false positives', () => {
+    const tokens = buildMemberReferenceTokens(['src/lib/data-governance/session-reports.ts']);
+    const variants = tokens.get('src/lib/data-governance/session-reports.ts') ?? [];
+    expect(variants).toContain('data-governance/session-reports');
+    expect(variants).toContain('src/lib/data-governance/session-reports');
+
+    const aliasImport = "import { sessionReports } from '@/lib/data-governance/session-reports';";
+    expect(variants.some((token) => textReferencesMember(aliasImport, token))).toBe(true);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports'", 'data-governance/session-reports')).toBe(true);
+    expect(textReferencesMember('src/lib/data-governance/session-reports.ts', 'data-governance/session-reports')).toBe(true);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports-extra'", 'data-governance/session-reports')).toBe(false);
+    expect(textReferencesMember("from '@/lib/data-governance/session-reports'", 'src/lib/data-governance/session-reports')).toBe(false);
+
+    // Extensionless binding changes the closure: the alias import is a production caller.
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/session-reports.ts' }];
+    const result = runWithLedgerVerification({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/session-reports.ts',
+        callerPath: 'src/app/api/session/route.ts',
+        relationship: 'import',
+      }],
+    });
+    expect(result.records[0]?.callerClasses).toContain('production');
+  });
+
+  it('projects every task-6.2 evidence field onto each migration-input slice', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    const qualified = runWithLedgerVerification({
+      members,
+      callers: [{
+        memberPath: 'src/lib/data-governance/math-document-backfill.ts',
+        callerPath: 'scripts/db/backfill-demo.ts',
+        relationship: 'import',
+      }],
+    });
+    expect(qualified.futureSlices.length).toBeGreaterThan(0);
+    const docs = projectResidualDocuments(qualified)['future-slices.md'] ?? '';
+    for (const slice of qualified.futureSlices) {
+      expect(slice.callerClasses.length).toBeGreaterThan(0);
+      expect(slice.protectedInvariants.length).toBeGreaterThan(0);
+      expect(slice.payloadStatus).toBeTruthy();
+      expect(slice.zeroConsumerProof).toBeTruthy();
+      expect(slice.requiredAuthorization).toBeTruthy();
+      expect(docs).toContain(`- callerClasses: ${slice.callerClasses.join(', ')}`);
+      expect(docs).toContain(`- protectedInvariants: ${slice.protectedInvariants.join(', ')}`);
+      expect(docs).toContain(`- payloadStatus: ${slice.payloadStatus}`);
+      expect(docs).toContain(`- zeroConsumerProof: ${slice.zeroConsumerProof}`);
+      expect(docs).toContain(`- requiredAuthorization: ${slice.requiredAuthorization}`);
     }
   });
 

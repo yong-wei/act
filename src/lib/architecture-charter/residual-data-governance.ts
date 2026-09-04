@@ -218,11 +218,16 @@ export interface FutureSlice {
   readonly slice: string;
   readonly accountableOwner: OwnerId;
   readonly outcome: ResidualOutcome;
+  readonly callerClasses: readonly CallerClass[];
   readonly paths: readonly string[];
   readonly publicBoundary: string;
   readonly notTouched: readonly string[];
+  readonly protectedInvariants: readonly string[];
+  readonly payloadStatus: string;
+  readonly zeroConsumerProof: string;
   readonly deletionCondition: string;
   readonly rollback: string;
+  readonly requiredAuthorization: string;
 }
 
 export interface GateRejection {
@@ -561,6 +566,34 @@ export function directoryPathReadCaller(callerPath: string, text: string, barrel
   return { memberPath: barrelPath, callerPath, relationship: 'path-read' };
 }
 
+const MODULE_EXTENSION_PATTERN = /\.(?:ts|tsx|mts|cts|js|mjs|cjs)$/u;
+
+/**
+ * Indexes every textual form a member can be referenced by: the tracked path,
+ * the `lib/`-relative form, and both without extension, because alias imports
+ * like `@/lib/data-governance/session-reports` carry no `.ts` suffix.
+ */
+export function buildMemberReferenceTokens(memberPaths: readonly string[]): ReadonlyMap<string, readonly string[]> {
+  const tokens = new Map<string, string[]>();
+  for (const path of memberPaths) {
+    const relative = path.replace(/^src\/lib\//u, '');
+    const base = path.replace(MODULE_EXTENSION_PATTERN, '');
+    const relativeBase = relative.replace(MODULE_EXTENSION_PATTERN, '');
+    tokens.set(path, [...new Set([path, relative, base, relativeBase])]
+      .sort((left, right) => right.length - left.length));
+  }
+  return tokens;
+}
+
+/**
+ * Boundary-aware reference test so `session-reports` matches the alias import
+ * and the `.ts` path but not sibling names like `session-reports-extra`.
+ */
+export function textReferencesMember(text: string, token: string): boolean {
+  const escaped = token.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return new RegExp(`${escaped}(?![\\w-])`, 'u').test(text);
+}
+
 export function adjudicateResidualDataGovernance(
   input: ResidualAdjudicationInput,
 ): ResidualAdjudicationResult {
@@ -858,70 +891,114 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
     bucket.push(record);
     bySlice.set(slice, bucket);
   }
-  const specs: Array<{ slice: string; owner: OwnerId; boundary: string; notTouched: string[]; deletion: string; rollback: string }> = [
+  interface SliceSpec {
+    readonly slice: string;
+    readonly owner: OwnerId;
+    readonly boundary: string;
+    readonly notTouched: readonly string[];
+    readonly protectedInvariants: readonly string[];
+    readonly payloadStatus: string;
+    readonly zeroConsumerProof: string;
+    readonly deletion: string;
+    readonly rollback: string;
+    readonly requiredAuthorization: string;
+  }
+  const specs: readonly SliceSpec[] = [
     {
       slice: 'learning-record-ingress',
       owner: 'learning-record',
       boundary: LEARNING_RECORD_WRITER,
       notTouched: ['writers', 'anchors', 'times', 'dedupe', 'outbox', 'pointer', 'watermark', 'schema', 'retention'],
+      protectedInvariants: ['sole-online-learning-record-writer', 'fact-identity-dedup-trusted-time', 'outbox-pointer-watermark'],
+      payloadStatus: 'governance-policies-no-raw-payload',
+      zeroConsumerProof: 'zero-direct-and-staged-callers-and-one-online-writer-proven',
       deletion: 'zero-direct-and-staged-callers-and-one-online-writer-proven',
       rollback: 'preserve-append-only-facts-and-original-anchors',
+      requiredAuthorization: 'future-openspec-change-with-explicit-writer-boundary-authorization',
     },
     {
       slice: 'assignment-evidence',
       owner: 'learning-record',
       boundary: 'Assignment public API plus approved-snapshot port',
       notTouched: ['C16-orchestration', 'LearningFact-from-routes', 'CAS', 'idempotency'],
+      protectedInvariants: ['approved-snapshots', 'CAS', 'idempotency', 'processing-derivative-outbox-boundaries'],
+      payloadStatus: 'no-raw-answers-no-contextJson',
+      zeroConsumerProof: 'zero-unclassified-callers-and-complete-snapshot-lineage',
       deletion: 'zero-unclassified-callers-and-complete-snapshot-lineage',
       rollback: 'preserve-approved-snapshots-CAS-idempotency-derivatives-outbox',
+      requiredAuthorization: 'future-assignment-owned-change-authorization',
     },
     {
       slice: 'portrait-profile',
       owner: 'personalization',
       boundary: 'Portrait V2/profile read and refresh ports',
       notTouched: ['portrait-algorithms', 'StudentCompetency-compatibility', 'freshness', 'current-pointers'],
+      protectedInvariants: ['portrait-v2-primary', 'current-pointer-freshness', 'student-competency-compatibility'],
+      payloadStatus: 'profile-redaction-required',
+      zeroConsumerProof: 'all-readers-use-governed-ports',
       deletion: 'all-readers-use-governed-ports',
       rollback: 'keep-last-qualified-generation',
+      requiredAuthorization: 'future-personalization-owned-change-authorization',
     },
     {
       slice: 'classroom-session',
       owner: 'classroom',
       boundary: 'authorized class/session read and finalization ports',
       notTouched: ['class-student-authorization', 'redaction', 'independent-learner-suppression', 'backfill-isolation'],
+      protectedInvariants: ['class-student-authorization', 'redaction', 'independent-learner-suppression', 'backfill-isolation-from-online-writer'],
+      payloadStatus: 'session-snapshots-no-raw-identity',
+      zeroConsumerProof: 'worker-scheduler-and-report-callers-closed',
       deletion: 'worker-scheduler-and-report-callers-closed',
       rollback: 'preserve-immutable-session-snapshots-and-receipts',
+      requiredAuthorization: 'future-classroom-owned-change-authorization',
     },
     {
       slice: 'simulation-arena',
       owner: 'practice-lab',
       boundary: 'official Arena submission and governed simulation-task evidence ports',
       notTouched: ['ArenaSubmission-scoring', 'preview-open-isolated-as-official', 'UI-as-writer'],
+      protectedInvariants: ['ArenaSubmission-official-scoring', 'context-only-LearningFacts', 'preview-isolated-as-official'],
+      payloadStatus: 'declared-context-only',
+      zeroConsumerProof: 'official-result-and-context-only-paths-proven',
       deletion: 'official-result-and-context-only-paths-proven',
       rollback: 'preserve-ArenaSubmission-and-fact-identity',
+      requiredAuthorization: 'future-practice-lab-owned-change-authorization',
     },
     {
       slice: 'knowledge-resource-sar',
       owner: 'knowledge',
       boundary: 'knowledge/resource/SAR public adapters',
       notTouched: ['knowledge-authority', 'release-selectors', 'resource-registry', 'teaching-admission'],
+      protectedInvariants: ['knowledge-authority', 'release-selectors', 'teaching-admission'],
+      payloadStatus: 'no-raw-corpus-payload',
+      zeroConsumerProof: 'public-adapters-and-privacy-scopes-singular',
       deletion: 'public-adapters-and-privacy-scopes-singular',
       rollback: 'leave-release-and-catalog-identities-unchanged',
+      requiredAuthorization: 'future-knowledge-owned-change-authorization',
     },
     {
       slice: 'operator-backfill',
       owner: 'learning-record',
       boundary: 'scripts/db/** scripts/ops/** scripts/data-governance/** worker/scheduler',
       notTouched: ['online-writer', 'current-pointer'],
+      protectedInvariants: ['online-writer-isolation', 'current-pointer-isolation', 'dry-run-or-frozen-input'],
+      payloadStatus: 'no-raw-payload-in-projection',
+      zeroConsumerProof: 'zero-production-consumers-proven',
       deletion: 'zero-production-consumers-and-rollback-rehearsal',
       rollback: 'operator-receipt-and-frozen-input',
+      requiredAuthorization: 'operator-runbook-and-frozen-input-authorization',
     },
     {
       slice: 'compatibility-assets-tests',
       owner: 'learning-record',
       boundary: 'index.ts, assets/**, __tests__/**',
       notTouched: ['barrel-deletion', 'fixture-deletion', 'asset-deletion'],
-      deletion: 'zero-consumers-and-regeneration-retention-evidence',
+      protectedInvariants: ['barrel-not-deleted-in-d', 'fixture-regeneration-retention'],
+      payloadStatus: 'synthetic-or-redacted-only',
+      zeroConsumerProof: 'zero-consumers-and-regeneration-retention-evidence',
+      deletion: 'zero-consumers-and-regeneration-evidence',
       rollback: 'reversible-compatibility-surface',
+      requiredAuthorization: 'future-compatibility-retirement-change-authorization',
     },
   ];
   // Task 6.2: a migration-input slice carries exactly one accountable owner and
@@ -930,12 +1007,13 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
   const slices: FutureSlice[] = [];
   for (const spec of specs) {
     const rows = (bySlice.get(spec.slice) ?? []).filter((record) => record.status === 'qualified' && record.accountableOwner);
-    const grouped = new Map<string, { owner: OwnerId; outcome: ResidualOutcome; paths: string[] }>();
+    const grouped = new Map<string, { owner: OwnerId; outcome: ResidualOutcome; paths: string[]; callerClasses: Set<CallerClass> }>();
     for (const record of rows) {
       const owner = record.accountableOwner as OwnerId;
       const key = `${owner}|${record.outcome}`;
-      const bucket = grouped.get(key) ?? { owner, outcome: record.outcome, paths: [] };
+      const bucket = grouped.get(key) ?? { owner, outcome: record.outcome, paths: [], callerClasses: new Set<CallerClass>() };
       bucket.paths.push(record.path);
+      for (const callerClass of record.callerClasses) bucket.callerClasses.add(callerClass);
       grouped.set(key, bucket);
     }
     const entries = [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right));
@@ -951,11 +1029,16 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
         slice: `${spec.slice}${owner === spec.owner ? '' : `:${owner}`}${ownerHasMixedOutcomes ? `:${outcome}` : ''}`,
         accountableOwner: group.owner,
         outcome: group.outcome,
+        callerClasses: [...group.callerClasses].sort(),
         paths: group.paths.sort(),
         publicBoundary: spec.boundary,
         notTouched: spec.notTouched,
+        protectedInvariants: spec.protectedInvariants,
+        payloadStatus: spec.payloadStatus,
+        zeroConsumerProof: spec.zeroConsumerProof,
         deletionCondition: spec.deletion,
         rollback: spec.rollback,
+        requiredAuthorization: spec.requiredAuthorization,
       });
     }
   }
@@ -1032,10 +1115,15 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
         '',
         `- accountableOwner: \`${slice.accountableOwner}\``,
         `- outcome: \`${slice.outcome}\``,
+        `- callerClasses: ${slice.callerClasses.join(', ') || 'none'}`,
         `- publicBoundary: ${slice.publicBoundary}`,
         `- notTouched: ${slice.notTouched.join(', ')}`,
+        `- protectedInvariants: ${slice.protectedInvariants.join(', ')}`,
+        `- payloadStatus: ${slice.payloadStatus}`,
+        `- zeroConsumerProof: ${slice.zeroConsumerProof}`,
         `- deletionCondition: ${slice.deletionCondition}`,
         `- rollback: ${slice.rollback}`,
+        `- requiredAuthorization: ${slice.requiredAuthorization}`,
         `- paths: ${slice.paths.length === 0 ? '_none_' : slice.paths.map((path) => `\`${path}\``).join(' ')}`,
         '',
       ]),
