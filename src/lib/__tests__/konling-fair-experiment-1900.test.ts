@@ -112,11 +112,13 @@ describe('评分口径（#1900 caliber）', () => {
     }).passed).toBe(true);
   });
 
-  it('默认参数与显式 alias 口径输出一致（产品行为不变）', () => {
+  it('默认参数与当前 alias 口径（v2）一致；v1 冻结且对无装饰输入等价（#1950）', () => {
     const answer = `${aliasAnswer('code-debugging')}\n## 假设与符号\n多余章节。`;
     const implicit = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging' });
-    const explicit = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v1' });
-    expect(implicit).toEqual(explicit);
+    const explicitV2 = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v2' });
+    const explicitV1 = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v1' });
+    expect(implicit).toEqual(explicitV2);
+    expect(explicitV1).toEqual(explicitV2);
   });
 });
 

@@ -89,7 +89,7 @@ async function main() {
         scoreVersion: 'rubric.v1',
       },
     },
-    calibers: ['structure-alias.v1'],
+    calibers: ['structure-alias.v2'],
     generateProvider: async (task) => {
       const started = Date.now();
       try {

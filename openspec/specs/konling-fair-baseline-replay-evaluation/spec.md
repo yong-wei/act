@@ -38,7 +38,7 @@ The system SHALL persist every generated answer as a frozen snapshot keyed by ba
 - **THEN** a completed snapshot is never replaced by a later failure record
 
 ### Requirement: Scorer-caliber replay on fixed answers
-The system SHALL score frozen snapshots deterministically under named scorer calibers and SHALL support replaying any saved batch of answers under additional calibers without invoking the generation model.
+The system SHALL score frozen snapshots deterministically under named scorer calibers and SHALL support replaying any saved batch of answers under additional calibers without invoking the generation model. Replay defaults SHALL pair the frozen previous alias caliber with the current alias caliber so the replay report separately presents the scorer-caliber delta between them.
 
 #### Scenario: Replay never regenerates
 - **WHEN** replay-scoring runs against an existing snapshot directory
@@ -49,9 +49,19 @@ The system SHALL score frozen snapshots deterministically under named scorer cal
 - **THEN** the alias caliber counts the section as present
 - **THEN** the strict-title caliber counts the same section as missing
 
+#### Scenario: Alias caliber versions disagree on decorated headings
+- **WHEN** an answer uses decorative-prefix headings such as `### 🔍 故障定位` and the frozen batch is replayed under the frozen and current alias calibers
+- **THEN** the current alias caliber passes the structure evaluation for that answer
+- **AND** the replay report SHALL contain a caliber delta comparing the frozen caliber with the current caliber on the same answers
+
 #### Scenario: Default caliber is unchanged
+- **WHEN** product code evaluates an undecorated answer without an explicit caliber
+- **THEN** evaluation is identical to the frozen `structure-alias.v1` behavior, because decorative-prefix stripping is idempotent for undecorated headings
+
+#### Scenario: Default caliber is the current alias caliber
 - **WHEN** product code evaluates structure without an explicit caliber
-- **THEN** evaluation is identical to the pre-existing alias behavior
+- **THEN** evaluation uses the current version of the alias caliber family
+- **AND** explicitly requesting the frozen previous alias caliber reproduces the pre-upgrade behavior
 
 ### Requirement: Paired difference reporting with components
 The system SHALL report, for each metric and arm pair, the absolute value per arm, the percentage-point difference, a paired 95% confidence interval computed deterministically from a recorded seed, and the applicable direction, and SHALL report composite metrics only together with their component results, and SHALL separate generation-behavior deltas from scorer-caliber deltas.

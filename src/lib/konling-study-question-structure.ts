@@ -11,6 +11,7 @@ export type StudyQuestionIntent = (typeof STUDY_QUESTION_INTENTS)[number];
 
 export const STUDY_QUESTION_SCORING_CALIBERS = [
   'structure-alias.v1',
+  'structure-alias.v2',
   'structure-strict-title.v0',
 ] as const;
 
@@ -82,32 +83,71 @@ export function findStudyQuestionSection(
 export function detectStudyQuestionSectionHeading(
   line: string,
   intent: StudyQuestionIntent,
+  caliber?: StudyQuestionScoringCaliber,
 ): StudyQuestionSection | null {
-  const heading = readHeading(line, STUDY_QUESTION_SECTIONS[intent]);
+  const normalize = normalizerForCaliber(caliber);
+  const heading = readHeading(line, STUDY_QUESTION_SECTIONS[intent], normalize);
   if (!heading) return null;
-  return STUDY_QUESTION_SECTIONS[intent].find((section) => headingMatchesSection(heading, section)) ?? null;
+  return STUDY_QUESTION_SECTIONS[intent].find((section) => headingMatchesSection(heading, section, normalize)) ?? null;
 }
 
 function normalizeHeading(value: string): string {
   return value.toLowerCase().normalize('NFKC').replace(/[\s:：#*【】\[\]()（）.-]/g, '');
 }
 
-function headingMatchesSection(heading: string, section: StudyQuestionSection): boolean {
-  const normalized = normalizeHeading(heading);
+/**
+ * v2 装饰前缀剥离（#1950）：确定性枚举的前导装饰 token——emoji 块（含
+ * VS16/ZWJ/keycap 组合）、编号 token、装饰标点块与空白。只作用于标题
+ * 前缀，不改变「=== canonical/alias 或前缀匹配」的匹配语义；无装饰
+ * 标题剥离为幂等。
+ */
+const DECORATIVE_HEADING_PREFIX
+  = /^(?:[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]+|\d{1,3}[.、)．:：]|[一二三四五六七八九十]{1,3}[.、)．:：]|[(（]\d{1,3}[)）]|[(（][一二三四五六七八九十]{1,3}[)）]|[*#>|·~—–-]+)\s*/u;
+
+function stripDecorativeHeadingPrefix(heading: string): string {
+  let rest = heading;
+  for (;;) {
+    const next = rest.replace(DECORATIVE_HEADING_PREFIX, '');
+    if (next === rest) return rest;
+    rest = next;
+  }
+}
+
+type HeadingNormalizer = (value: string) => string;
+
+function normalizerForCaliber(caliber: StudyQuestionScoringCaliber | undefined): HeadingNormalizer {
+  if (caliber === 'structure-alias.v1' || caliber === 'structure-strict-title.v0') return normalizeHeading;
+  return (value) => normalizeHeading(stripDecorativeHeadingPrefix(value));
+}
+
+function headingMatchesSection(
+  heading: string,
+  section: StudyQuestionSection,
+  normalize: HeadingNormalizer = normalizeHeading,
+): boolean {
+  const normalized = normalize(heading);
   if (!normalized) return false;
   return [section.title, ...section.aliases].some((label) => {
-    const expected = normalizeHeading(label);
+    const expected = normalize(label);
     return expected.length > 0 && (normalized === expected || normalized.startsWith(expected));
   });
 }
 
-function headingEqualsSection(heading: string, section: StudyQuestionSection): boolean {
-  const normalized = normalizeHeading(heading);
+function headingEqualsSection(
+  heading: string,
+  section: StudyQuestionSection,
+  normalize: HeadingNormalizer = normalizeHeading,
+): boolean {
+  const normalized = normalize(heading);
   if (!normalized) return false;
-  return [section.title, ...section.aliases].some((label) => normalizeHeading(label) === normalized);
+  return [section.title, ...section.aliases].some((label) => normalize(label) === normalized);
 }
 
-function readHeading(line: string, sections: readonly StudyQuestionSection[]): string | null {
+function readHeading(
+  line: string,
+  sections: readonly StudyQuestionSection[],
+  normalize: HeadingNormalizer = normalizeHeading,
+): string | null {
   const trimmed = line.trim();
   if (!trimmed) return null;
   const markdown = trimmed.match(/^#{1,3}\s+(.+)$/);
@@ -118,16 +158,18 @@ function readHeading(line: string, sections: readonly StudyQuestionSection[]): s
   if (!numbered) return null;
   const candidate = numbered[1].trim();
   if (candidate.length > 24) return null;
-  return sections.some((section) => headingEqualsSection(candidate, section)) ? candidate : null;
+  return sections.some((section) => headingEqualsSection(candidate, section, normalize)) ? candidate : null;
 }
 
 export function evaluateStudyQuestionStructure(input: {
   answer: string;
   intent: StudyQuestionIntent;
   /**
-   * 评分口径（#1900）：默认语义别名口径；`structure-strict-title.v0`
-   * 是旧式口径，只接受与 canonical 标题规范化后完全相等的标题行，
-   * 不接受别名与前缀匹配，仅用于固定回答的评分器回放。
+   * 评分口径（#1900/#1950）：默认 `structure-alias.v2`——在既有归一化前
+   * 对标题做确定性装饰前缀剥离（emoji/编号/装饰标点）；`structure-alias.v1`
+   * 冻结升级前行为，仅用于固定回答的评分器回放差值基线；
+   * `structure-strict-title.v0` 是旧式口径，只接受与 canonical 标题规范化后
+   * 完全相等的标题行，不接受别名与前缀匹配。
    */
   caliber?: StudyQuestionScoringCaliber;
 }): {
@@ -136,18 +178,19 @@ export function evaluateStudyQuestionStructure(input: {
   missingIds: string[];
 } {
   const sections = STUDY_QUESTION_SECTIONS[input.intent];
+  const normalize = normalizerForCaliber(input.caliber);
   const strictTitle = input.caliber === 'structure-strict-title.v0';
   const sectionPresent = strictTitle
     ? (heading: string, section: StudyQuestionSection) => {
         const normalized = normalizeHeading(heading);
         return normalized.length > 0 && normalized === normalizeHeading(section.title);
       }
-    : (heading: string, section: StudyQuestionSection) => headingMatchesSection(heading, section);
+    : (heading: string, section: StudyQuestionSection) => headingMatchesSection(heading, section, normalize);
   const lines = input.answer.split(/\r?\n/);
   const blocks: { heading: string; body: string }[] = [];
   let current: { heading: string; body: string } | null = null;
   for (const line of lines) {
-    const heading = readHeading(line, sections);
+    const heading = readHeading(line, sections, normalize);
     if (heading) {
       if (current) blocks.push(current);
       current = { heading, body: '' };

@@ -6,7 +6,7 @@
  *
  * 用法：
  *   npx tsx scripts/konling-fair-experiment/replay-scoring.ts --run-id demo \
- *     --calibers structure-alias.v1,structure-strict-title.v0
+ *     --calibers structure-alias.v1,structure-alias.v2
  */
 
 import {
@@ -25,7 +25,7 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  const requested = (values.calibers ?? 'structure-alias.v1,structure-strict-title.v0')
+  const requested = (values.calibers ?? 'structure-alias.v1,structure-alias.v2')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);

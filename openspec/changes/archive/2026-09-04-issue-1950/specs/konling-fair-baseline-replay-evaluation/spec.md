@@ -19,6 +19,10 @@ The system SHALL score frozen snapshots deterministically under named scorer cal
 - **THEN** the current alias caliber passes the structure evaluation for that answer
 - **AND** the replay report SHALL contain a caliber delta comparing the frozen caliber with the current caliber on the same answers
 
+#### Scenario: Default caliber is unchanged
+- **WHEN** product code evaluates an undecorated answer without an explicit caliber
+- **THEN** evaluation is identical to the frozen `structure-alias.v1` behavior, because decorative-prefix stripping is idempotent for undecorated headings
+
 #### Scenario: Default caliber is the current alias caliber
 - **WHEN** product code evaluates structure without an explicit caliber
 - **THEN** evaluation uses the current version of the alias caliber family

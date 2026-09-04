@@ -1,5 +1,18 @@
 # konling-study-question-structure-contract Delta
 
+## ADDED Requirements
+
+### Requirement: Product structure evaluation defaults to the current alias caliber
+Product code paths that evaluate study-question structure or attribute answer units to sections (structure evaluation and answer-unit section attribution) SHALL default to the current alias caliber of the versioned family, so decorative headings no longer cause false negatives in product scoring and section attribution. Callers MAY explicitly request a frozen caliber for replay baselines.
+
+#### Scenario: Decorated heading attributes answer units in product runtime
+- **WHEN** the product runtime scans an assistant answer whose section headings carry decorative prefixes
+- **THEN** answer units SHALL be attributed to the corresponding required sections under the default caliber
+
+#### Scenario: Undecorated answers are unchanged
+- **WHEN** an answer without decorative prefixes is evaluated under the default caliber
+- **THEN** the outcome SHALL be identical to the frozen `structure-alias.v1` caliber, because prefix stripping is idempotent for undecorated headings
+
 ## MODIFIED Requirements
 
 ### Requirement: Structure scoring accepts semantic headings and rejects unstructured prose
@@ -29,14 +42,3 @@ A deterministic scorer SHALL treat a required section as present only when a hea
 #### Scenario: Short list items remain section bodies
 - **WHEN** an answer uses Markdown or bold headings and a section body is a short numbered or bullet list that does not equal a required title or alias
 - **THEN** the scorer SHALL keep those list items as body text and SHALL count the section as present
-
-### Requirement: Product structure evaluation defaults to the current alias caliber
-Product code paths that evaluate study-question structure or attribute answer units to sections (structure evaluation and answer-unit section attribution) SHALL default to the current alias caliber of the versioned family, so decorative headings no longer cause false negatives in product scoring and section attribution. Callers MAY explicitly request a frozen caliber for replay baselines.
-
-#### Scenario: Decorated heading attributes answer units in product runtime
-- **WHEN** the product runtime scans an assistant answer whose section headings carry decorative prefixes
-- **THEN** answer units SHALL be attributed to the corresponding required sections under the default caliber
-
-#### Scenario: Undecorated answers are unchanged
-- **WHEN** an answer without decorative prefixes is evaluated under the default caliber
-- **THEN** the outcome SHALL be identical to the frozen `structure-alias.v1` caliber, because prefix stripping is idempotent for undecorated headings

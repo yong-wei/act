@@ -75,7 +75,7 @@ async function main() {
         scoreVersion: 'rubric.v1',
       },
     },
-    calibers: ['structure-alias.v1'],
+    calibers: ['structure-alias.v2'],
     generateProvider: async (task) => {
       const taskKey = [KONLING_FAIR_EXPERIMENT_BANK_V1.bankVersion, task.arm, task.item.itemId, String(task.replicate)].join('--');
       const injected = inject.get(taskKey);
