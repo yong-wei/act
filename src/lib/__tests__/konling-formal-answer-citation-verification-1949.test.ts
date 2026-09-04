@@ -6,7 +6,7 @@ import {
   stripUnverifiedKonlingCitationMarkers,
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
-import { assignKonlingCitationDisplayNumbers } from '@/lib/konling-citation-protocol';
+import { assignKonlingCitationDisplayNumbers, buildKonlingCitationCanonicalKey } from '@/lib/konling-citation-protocol';
 
 vi.mock('server-only', () => ({}));
 
@@ -106,29 +106,31 @@ describe('issue #1949 formal answer citation verification', () => {
   it('keeps textbook tool citations visible to the final guard so valid numbers survive stripping (#1949)', () => {
     const runtimeContext = { citationContext: createCitationContext() } as KonlingRuntimeContext;
     // 教材检索工具在回答期间分配的条目：只存在于 assigned 表，runtime
-    // citationContext 中没有它。
-    const assigned = assignKonlingCitationDisplayNumbers([
-      {
-        id: 'textbook-unit:hu8/chapter-3',
-        sourceType: 'textbook',
-        displayTitle: '胡寿松《自动控制原理》第三章',
-        href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-3',
-        verifiable: true,
-        identity: {
-          kind: 'textbook',
-          bookId: 'hu-shousong-auto-control-8th',
-          edition: '第八版',
-          sourceRevision: 'r1',
-          unitId: 'chapter-3',
-          fragmentId: null,
-        },
-      },
-    ]);
+    // citationContext 中没有它；allocator 已把 citationContext 的 #1/#2
+    // 计入编号空间，教材条目从 #3 开始。
+    const identity = {
+      kind: 'textbook',
+      bookId: 'hu-shousong-auto-control-8th',
+      edition: '第八版',
+      sourceRevision: 'r1',
+      unitId: 'chapter-3',
+      fragmentId: null,
+    } as const;
+    const assigned = [{
+      id: 'textbook-unit:hu8/chapter-3',
+      sourceType: 'textbook',
+      displayTitle: '胡寿松《自动控制原理》第三章',
+      href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-3',
+      verifiable: true,
+      identity,
+      displayNumber: 3,
+      canonicalKey: buildKonlingCitationCanonicalKey(identity),
+    }];
     const merged = mergeCandidateAssignedCitations(runtimeContext, assigned);
 
     expect(merged.citationContext.contentCitations).toHaveLength(3);
     // 投影条目在 runtime citation 分类里归一为 content，但保留教材身份
-    // （id/citationTargetId/identity/canonicalKey）。
+    // （id/citationTargetId/identity/canonicalKey）与原编号。
     const textbookCitation = merged.citationContext.contentCitations
       .find((citation) => citation.id === 'textbook-unit:hu8/chapter-3');
     expect(textbookCitation).toMatchObject({
@@ -168,5 +170,40 @@ describe('issue #1949 formal answer citation verification', () => {
     expect(merged.citationContext.contentCitations.map((citation) => citation.displayNumber))
       .toEqual([1, 2]);
     expect(merged.citationContext.contentCitations[0]?.id).toBe('content:evidence:primary');
+  });
+
+  it('preserves display-number gaps left by removed textbook optimization candidates (#1949)', () => {
+    const runtimeContext = { citationContext: createCitationContext() } as KonlingRuntimeContext;
+    // 后台优化删除了较早分配的教材候选 #3：final 表仍有缺口，正文与
+    // normalize 层都按原编号引用 [4]（allocator 编号空间：#1/#2 为
+    // citationContext 条目，#3/#4 为工具追加的教材候选）。
+    const keptIdentity = {
+      kind: 'textbook',
+      bookId: 'hu-shousong-auto-control-8th',
+      edition: '第八版',
+      sourceRevision: 'r1',
+      unitId: 'chapter-5',
+      fragmentId: null,
+    } as const;
+    const optimizedTable = [{
+      id: 'textbook-unit:hu8/chapter-5',
+      sourceType: 'textbook',
+      displayTitle: '胡寿松《自动控制原理》第五章',
+      href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-5',
+      verifiable: true,
+      identity: keptIdentity,
+      displayNumber: 4,
+      canonicalKey: buildKonlingCitationCanonicalKey(keptIdentity),
+    }];
+
+    const merged = mergeCandidateAssignedCitations(runtimeContext, optimizedTable);
+    const projected = merged.citationContext.contentCitations
+      .find((citation) => citation.id === 'textbook-unit:hu8/chapter-5');
+    expect(projected?.displayNumber).toBe(4);
+
+    const answer = '教材结论 [4]。';
+    const guard = buildKonlingCitationGuard(merged, answer);
+    expect(guard.unverifiedCitationMarkers).toEqual([]);
+    expect(stripUnverifiedKonlingCitationMarkers(answer, guard)).toBe(answer);
   });
 });

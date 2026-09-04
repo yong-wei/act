@@ -8880,20 +8880,19 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
       identity: citation.identity,
     }));
   if (toolCitations.length === 0) return context;
+  // assigned 表条目携带服务器分配的 displayNumber，与 normalize 层处于同一
+  // 编号空间，直接拼接保留原编号：后台优化移除中间教材候选时编号有缺口，
+  // 重新连续编号会让正文引用与 guard 视图错位而被误剥离（#1949 review）。
   const contentCitations = [
     ...context.citationContext.contentCitations,
     ...toolCitations,
   ];
-  const hydrated = assignKonlingRuntimeCitationDisplayNumbers(
-    contentCitations,
-    context.citationContext.evidenceCitations,
-  );
   return {
     ...context,
     citationContext: {
       ...context.citationContext,
-      contentCitations: hydrated.contentCitations,
-      evidenceCitations: hydrated.evidenceCitations,
+      contentCitations,
+      evidenceCitations: context.citationContext.evidenceCitations,
       missingCitationClasses: context.citationContext.missingCitationClasses
         .filter((item) => item !== 'content'),
       lowConfidenceReasons: context.citationContext.lowConfidenceReasons
