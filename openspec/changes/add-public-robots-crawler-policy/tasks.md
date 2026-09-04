@@ -1,4 +1,0 @@
-- [ ] 1.1 依据路由盘点整理公开表面与私有路径组（登录/个人/驾驶舱/教师/管理/课堂/API）清单
-- [ ] 1.2 新增 `public/robots.txt`：公开表面 Allow、私有路径组 Disallow，声明 User-agent 策略
-- [ ] 1.3 增加契约测试：`/robots.txt` 返回 200、`text/plain`，含私有路径 Disallow 断言
-- [ ] 1.4 typecheck 与相关测试通过

@@ -1,0 +1,16 @@
+# act.just.edu.cn crawler policy (Issue #1940)
+# 公开表面（/、/knowledge、/simulations、/interactive-learning、/ai、
+# /arena、/playlists、/review、/ethics 等）默认可抓取；以下私有与
+# 运营面路径禁止索引。robots.txt 是策略声明，访问控制仍由鉴权承担。
+
+User-agent: *
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /missions
+Disallow: /data-center
+Disallow: /teacher
+Disallow: /admin
+Disallow: /classroom
+Disallow: /api/
