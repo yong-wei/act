@@ -594,6 +594,56 @@ export function textReferencesMember(text: string, token: string): boolean {
   return new RegExp(`${escaped}(?![\\w-])`, 'u').test(text);
 }
 
+const MODULE_SPECIFIER_PATTERN = /(?:\bfrom\s+|\brequire\s*\(\s*|\bimport\s*\(?\s*)['"]([^'"]+)['"]/gu;
+
+/** Extracts every static/dynamic/require module specifier from source text. */
+export function extractModuleSpecifiers(text: string): string[] {
+  const specifiers: string[] = [];
+  for (const match of text.matchAll(MODULE_SPECIFIER_PATTERN)) {
+    const specifier = match[1];
+    if (specifier) specifiers.push(specifier);
+  }
+  return specifiers;
+}
+
+const MODULE_SUFFIX_CANDIDATES = ['', '.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '/index.ts', '/index.tsx'] as const;
+
+function normalizeModulePath(segments: readonly string[]): string {
+  const stack: string[] = [];
+  for (const segment of segments) {
+    if (segment === '' || segment === '.') continue;
+    if (segment === '..') stack.pop();
+    else stack.push(segment);
+  }
+  return stack.join('/');
+}
+
+/**
+ * Resolves one module specifier the way a bundler would — relative to the
+ * importer's directory, or through the `@/` alias to `src/` — against the
+ * frozen member set. Membership is decided by resolution, never by substring.
+ */
+export function resolveModuleSpecifier(
+  importerPath: string,
+  specifier: string,
+  memberPaths: ReadonlySet<string>,
+): string | null {
+  let base: string;
+  if (specifier.startsWith('@/')) {
+    base = normalizeModulePath(['src', specifier.slice(2)]);
+  } else if (specifier.startsWith('./') || specifier.startsWith('../')) {
+    const dir = importerPath.split('/').slice(0, -1);
+    base = normalizeModulePath([...dir, ...specifier.split('/')]);
+  } else {
+    return null;
+  }
+  for (const suffix of MODULE_SUFFIX_CANDIDATES) {
+    const candidate = `${base}${suffix}`;
+    if (memberPaths.has(candidate)) return candidate;
+  }
+  return null;
+}
+
 export function adjudicateResidualDataGovernance(
   input: ResidualAdjudicationInput,
 ): ResidualAdjudicationResult {

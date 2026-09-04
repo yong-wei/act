@@ -29,10 +29,12 @@ import {
   buildResidualCompactPackage,
   collectRelativeCallers,
   directoryPathReadCaller,
+  extractModuleSpecifiers,
   loadPredecessorComparison,
   loadUpstreamPayloadEvidence,
   memberSetDigest,
   projectResidualDocuments,
+  resolveModuleSpecifier,
   resolveResidualCurrentSubject,
   textReferencesMember,
   verifyResidualDecisionPackage,
@@ -108,7 +110,7 @@ function gitGrep(pattern: string, subjectCommit: string): string {
   try {
     return git([
       'grep',
-      '-F',
+      '-E',
       pattern,
       subjectCommit,
       '--',
@@ -148,11 +150,14 @@ function loadMemberFiles(members: readonly ResidualMemberInput[], subjectCommit:
 
 function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: string): ResidualCallerInput[] {
   const memberPaths = members.map((member) => member.path);
+  const memberPathSet = new Set(memberPaths);
   const barrel = 'src/lib/data-governance/index.ts';
-  // Extensionless alias imports (`@/lib/data-governance/session-reports`) must
-  // still bind to their member, so tokens carry both suffixed and bare forms.
+  // Code files are attributed by resolving actual module specifiers (relative
+  // or `@/` alias) against the frozen member set; text references in docs,
+  // JSON, and JSONL still use boundary-aware token matching.
   const tokens = buildMemberReferenceTokens(memberPaths);
-  const grep = [gitGrep('lib/data-governance/', subjectCommit), gitGrep('src/lib/data-governance', subjectCommit)].join('\n');
+  const importGrep = gitGrep('(^|[^A-Za-z0-9_])(from|require|import)[[:space:]]*\\(?[\'"]', subjectCommit);
+  const textGrep = [gitGrep('lib/data-governance/', subjectCommit), gitGrep('src/lib/data-governance', subjectCommit)].join('\n');
   const callers: ResidualCallerInput[] = [];
   const seen = new Set<string>();
   const add = (caller: ResidualCallerInput): void => {
@@ -161,7 +166,28 @@ function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: str
     seen.add(key);
     callers.push(caller);
   };
-  for (const line of grep.split('\n')) {
+  const classify = (callerPath: string, text: string): string => callerPath.startsWith('openspec/changes/archive/')
+    ? 'historical'
+    : callerPath.startsWith('openspec/') || callerPath.startsWith('docs/')
+      ? 'documentation'
+      : /export .* from/u.test(text)
+        ? 're-export'
+        : /import\s*\(/u.test(text)
+          ? 'dynamic'
+          : text.includes('cpSync') || text.includes('readFile') || text.includes('path.join')
+            ? 'path-read'
+            : 'import';
+  for (const line of importGrep.split('\n')) {
+    const parsed = parseGrepLine(line);
+    if (!parsed) continue;
+    const { callerPath, text } = parsed;
+    if (!callerPath || !/\.(?:ts|tsx|mts|cts|mjs|cjs|js)$/u.test(callerPath)) continue;
+    for (const specifier of extractModuleSpecifiers(text)) {
+      const memberPath = resolveModuleSpecifier(callerPath, specifier, memberPathSet);
+      if (memberPath) add({ memberPath, callerPath, relationship: classify(callerPath, text) });
+    }
+  }
+  for (const line of textGrep.split('\n')) {
     const parsed = parseGrepLine(line);
     if (!parsed) continue;
     const { callerPath, text } = parsed;
@@ -170,18 +196,7 @@ function loadCallers(members: readonly ResidualMemberInput[], subjectCommit: str
     if (directory && memberPaths.includes(barrel)) add(directory);
     for (const [memberPath, variants] of tokens) {
       if (!variants.some((token) => textReferencesMember(text, token))) continue;
-      const relationship = callerPath.startsWith('openspec/changes/archive/')
-        ? 'historical'
-        : callerPath.startsWith('openspec/') || callerPath.startsWith('docs/')
-          ? 'documentation'
-          : /export .* from/u.test(text)
-            ? 're-export'
-            : /import\s*\(/u.test(text)
-              ? 'dynamic'
-              : text.includes('cpSync') || text.includes('readFile') || text.includes('path.join')
-                ? 'path-read'
-                : 'import';
-      add({ memberPath, callerPath, relationship });
+      add({ memberPath, callerPath, relationship: classify(callerPath, text) });
     }
   }
   for (const caller of collectRelativeCallers(loadMemberFiles(members, subjectCommit), memberPaths)) add(caller);

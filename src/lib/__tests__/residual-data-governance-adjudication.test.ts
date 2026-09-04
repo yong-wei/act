@@ -18,8 +18,10 @@ import {
   collectRelativeCallers,
   directoryPathReadCaller,
   evaluateCoordinationGate,
+  extractModuleSpecifiers,
   memberSetDigest,
   projectResidualDocuments,
+  resolveModuleSpecifier,
   textReferencesMember,
   verifyResidualDecisionPackage,
   type Issue1876Snapshot,
@@ -841,5 +843,22 @@ describe('residual data-governance adjudication', () => {
     } finally {
       rmSync(pkg.dir, { recursive: true, force: true });
     }
+  });
+  it('resolves external relative and alias module imports into the caller denominator', () => {
+    const memberPaths = new Set(['src/lib/data-governance/event-protocol.ts', 'src/lib/data-governance/index.ts']);
+    expect(resolveModuleSpecifier('src/lib/kaq-artifact-versioning.ts', './data-governance/event-protocol', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/lib/kaq-artifact-versioning.ts', './data-governance/event-protocol.ts', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/features/classroom/session.ts', '../../lib/data-governance', memberPaths))
+      .toBe('src/lib/data-governance/index.ts');
+    expect(resolveModuleSpecifier('src/features/classroom/session/adapters/lifecycle-commands.ts', '../../../../lib/data-governance', memberPaths))
+      .toBe('src/lib/data-governance/index.ts');
+    expect(resolveModuleSpecifier('src/app/api/session/route.ts', '@/lib/data-governance/event-protocol', memberPaths))
+      .toBe('src/lib/data-governance/event-protocol.ts');
+    expect(resolveModuleSpecifier('src/lib/source-pack/teacher-course-basis.ts', './teacher-course-other', memberPaths)).toBeNull();
+    expect(resolveModuleSpecifier('src/lib/graphs/goal-subgraph-expansion-service.ts', 'zod', memberPaths)).toBeNull();
+    expect(extractModuleSpecifiers("import { x } from './a'; const y = require('./b'); await import('./c'); export * from './d';"))
+      .toEqual(['./a', './b', './c', './d']);
   });
 });
