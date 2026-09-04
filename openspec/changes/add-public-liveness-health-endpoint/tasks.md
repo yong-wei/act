@@ -1,0 +1,4 @@
+- [ ] 1.1 新增 `src/app/api/health/route.ts`：GET 返回 200 + `{ "status": "ok" }` 最小 JSON，无鉴权、无外部依赖调用，符合 route 契约（force-dynamic + rethrowIfNextDynamicError）
+- [ ] 1.2 路由契约测试：状态码、JSON 形状、无鉴权依赖；nextjs-dynamic-error 源码契约保持合规
+- [ ] 1.3 运维文档写明 liveness（/api/health）与 readiness（/api/readyz）分工
+- [ ] 1.4 typecheck 与相关测试通过

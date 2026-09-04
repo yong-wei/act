@@ -1,0 +1,6 @@
+- [ ] 1.1 确认/补齐服务端 shard 失败响应的稳定机器可读 `code` 透出（`pointer-absent`/`shard-absent`/`activation-absent`/`consumer-not-ready` 等，不含内部路径）
+- [ ] 1.2 客户端 `fetchAuthorityShard` 读取失败 `code`，错误态按「内容未就绪」与「暂时故障」两类投影差异化文案与行动（未就绪：说明发布未完成 + legacy 入口/联系教师；故障：重试）
+- [ ] 1.3 文案键补充（graph-interface-catalog），保持 zh/en 双语与既有风格；不泄露内部存储细节
+- [ ] 1.4 单元测试：失败码 → 用户文案投影映射；渲染契约测试：404 shard-absent 与 503 activation-absent 两态显示对应可行动文案
+- [ ] 1.5 运维文档补生产恢复路径条目（重物化带 coverage 收据的分片集或 cutover-aware 激活；不在本变更执行）
+- [ ] 1.6 typecheck 与相关测试通过；桌面与 320px 视口失败态验收
