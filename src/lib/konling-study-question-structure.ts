@@ -9,6 +9,13 @@ export const STUDY_QUESTION_INTENTS = [
 
 export type StudyQuestionIntent = (typeof STUDY_QUESTION_INTENTS)[number];
 
+export const STUDY_QUESTION_SCORING_CALIBERS = [
+  'structure-alias.v1',
+  'structure-strict-title.v0',
+] as const;
+
+export type StudyQuestionScoringCaliber = (typeof STUDY_QUESTION_SCORING_CALIBERS)[number];
+
 export type StudyQuestionSection = {
   id: string;
   title: string;
@@ -117,12 +124,25 @@ function readHeading(line: string, sections: readonly StudyQuestionSection[]): s
 export function evaluateStudyQuestionStructure(input: {
   answer: string;
   intent: StudyQuestionIntent;
+  /**
+   * 评分口径（#1900）：默认语义别名口径；`structure-strict-title.v0`
+   * 是旧式口径，只接受与 canonical 标题规范化后完全相等的标题行，
+   * 不接受别名与前缀匹配，仅用于固定回答的评分器回放。
+   */
+  caliber?: StudyQuestionScoringCaliber;
 }): {
   passed: boolean;
   matchedIds: string[];
   missingIds: string[];
 } {
   const sections = STUDY_QUESTION_SECTIONS[input.intent];
+  const strictTitle = input.caliber === 'structure-strict-title.v0';
+  const sectionPresent = strictTitle
+    ? (heading: string, section: StudyQuestionSection) => {
+        const normalized = normalizeHeading(heading);
+        return normalized.length > 0 && normalized === normalizeHeading(section.title);
+      }
+    : (heading: string, section: StudyQuestionSection) => headingMatchesSection(heading, section);
   const lines = input.answer.split(/\r?\n/);
   const blocks: { heading: string; body: string }[] = [];
   let current: { heading: string; body: string } | null = null;
@@ -143,7 +163,7 @@ export function evaluateStudyQuestionStructure(input: {
   const matchedIds: string[] = [];
   const missingIds: string[] = [];
   for (const section of sections) {
-    const hit = blocks.some((block) => headingMatchesSection(block.heading, section) && block.body.trim().length > 0);
+    const hit = blocks.some((block) => sectionPresent(block.heading, section) && block.body.trim().length > 0);
     if (hit) matchedIds.push(section.id);
     else missingIds.push(section.id);
   }

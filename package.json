@@ -275,7 +275,10 @@
     "diagnosis:benchmark:fixture": "tsx --import ./scripts/diagnosis-benchmark/server-only-shim.mjs scripts/diagnosis-benchmark/run-fixture.ts",
     "diagnosis:benchmark:live": "tsx --import ./scripts/diagnosis-benchmark/server-only-shim.mjs scripts/diagnosis-benchmark/run-live.ts",
     "konling:blind-audit:fixture": "tsx scripts/konling-blind-audit/run-fixture.ts",
-    "konling:blind-audit:live": "tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs scripts/konling-blind-audit/run-live.ts"
+    "konling:blind-audit:live": "tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs scripts/konling-blind-audit/run-live.ts",
+    "konling:fair-experiment:fixture": "tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs scripts/konling-fair-experiment/run-fixture.ts",
+    "konling:fair-experiment:live": "tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs scripts/konling-fair-experiment/run-live.ts",
+    "konling:fair-experiment:replay": "tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs scripts/konling-fair-experiment/replay-scoring.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",
