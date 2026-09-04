@@ -1710,6 +1710,25 @@ export default function CruiseSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const telemetryRunIdRef = useRef(createCruiseTraceRunId());
   const telemetryStartedAtRef = useRef(new Date().toISOString());
+  // 循环稳定化（#1945）：每帧变化的量走 ref，时钟真源在 timeRef，
+  // 循环回调与启动 effect 引用稳定，运行期间不 teardown 重建。
+  const controlRef = useRef({
+    isPaused: false,
+    targetHeading: 0,
+    controlMode: 'pid' as CruiseSimulationState['controlMode'],
+    manualRudder: 0,
+    speed: CRUISE_ADORA_PARAMS.CRUISE_SPEED,
+    seaState: 3,
+    waveDirection: 90,
+    finStabilizerEnabled: false,
+    notchFilterEnabled: false,
+    pidGains: { ...CRUISE_DEFAULT_PID } as CruiseSimulationState['pidGains'],
+    runDurationSec: CRUISE_EVALUATION_DURATION_SEC,
+  });
+  const speedScaleRef = useRef(1);
+  const virtualModeRef = useRef(true);
+  const timeRef = useRef(0);
+  const lastHudUpdateRef = useRef(0);
 
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -1789,13 +1808,13 @@ export default function CruiseSimulation() {
 
   // 仿真循环
   const simulate = useCallback((timestamp: number) => {
-    if (!engineRef.current || state.isPaused || !isVirtualSimulationRuntimeReady()) {
+    if (!engineRef.current || controlRef.current.isPaused || !isVirtualSimulationRuntimeReady()) {
       lastTimeRef.current = timestamp;
       animationRef.current = requestAnimationFrame(simulate);
       return;
     }
 
-    const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
+    const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
     lastTimeRef.current = timestamp;
 
     const engine = engineRef.current;
@@ -1804,12 +1823,13 @@ export default function CruiseSimulation() {
       return;
     }
 
-    let nextTime = state.time;
+    const control = controlRef.current;
+    let nextTime = timeRef.current;
     let simState = engine.getState(nextTime);
     let comfort = engine.getComfortMetrics();
     let finMetrics = engine.getFinStabilizerMetrics();
     let internalState = engine.getInternalState();
-    const runLimit = state.runDurationSec;
+    const runLimit = control.runDurationSec;
 
     clockRef.current.advance(frameDt, (dt) => {
       if (nextTime >= runLimit) {
@@ -1822,18 +1842,18 @@ export default function CruiseSimulation() {
       }
       nextTime = time;
 
-      engine.setSeaState(virtualModeEnabled ? state.seaState : 1, state.waveDirection);
-      engine.setFinStabilizerEnabled(state.finStabilizerEnabled);
-      engine.setNotchFilterEnabled(state.notchFilterEnabled);
-      engine.setPIDGains(state.pidGains);
+      engine.setSeaState(virtualModeRef.current ? control.seaState : 1, control.waveDirection);
+      engine.setFinStabilizerEnabled(control.finStabilizerEnabled);
+      engine.setNotchFilterEnabled(control.notchFilterEnabled);
+      engine.setPIDGains(control.pidGains);
 
       const missionTargetHeading = getCruiseMissionTargetHeading(simState.position);
       engine.step(
         missionTargetHeading,
         null,
-        state.controlMode,
-        state.controlMode === 'manual' ? state.manualRudder : 0,
-        state.speed,
+        control.controlMode,
+        control.controlMode === 'manual' ? control.manualRudder : 0,
+        control.speed,
         stepDt,
         time
       );
@@ -1868,6 +1888,7 @@ export default function CruiseSimulation() {
       }
     });
 
+    timeRef.current = nextTime;
     if (simState && comfort && finMetrics && internalState) {
       if (nextTime - lastTrajectoryTime.current > 0.5) {
         trajectoryRef.current.push({ ...simState.position });
@@ -1877,31 +1898,60 @@ export default function CruiseSimulation() {
         lastTrajectoryTime.current = nextTime;
       }
 
-      setState((prev) => ({
-        ...prev,
-        time: nextTime,
-        position: simState.position,
-        heading: simState.heading,
-        yawRate: simState.yawRate,
-        rudder: simState.rudder,
-        speed: simState.speed,
-        rollAngle: simState.waveRoll,
-        targetHeading: getCruiseMissionTargetHeading(simState.position),
-        comfort,
-        finPower: finMetrics.powerKW,
-        portFinAngle: internalState.fin.portFinAngleDeg,
-        starboardFinAngle: internalState.fin.starboardFinAngleDeg,
-        isCompleted: nextTime >= prev.runDurationSec - 1e-6 ? true : prev.isCompleted,
-        isRunning: nextTime >= prev.runDurationSec - 1e-6 ? false : prev.isRunning,
-        isPaused: nextTime >= prev.runDurationSec - 1e-6 ? true : prev.isPaused,
-      }));
+      // HUD setState 0.1s 节流（对齐 destroyer 口径）；完成边界帧强制
+      // 更新，避免节流跳过完成标志导致 UI 停留在运行态。
+      const completed = nextTime >= runLimit - 1e-6;
+      if (nextTime - lastHudUpdateRef.current > 0.1 || completed) {
+        lastHudUpdateRef.current = nextTime;
+        setState((prev) => ({
+          ...prev,
+          time: nextTime,
+          position: simState.position,
+          heading: simState.heading,
+          yawRate: simState.yawRate,
+          rudder: simState.rudder,
+          speed: simState.speed,
+          rollAngle: simState.waveRoll,
+          targetHeading: getCruiseMissionTargetHeading(simState.position),
+          comfort,
+          finPower: finMetrics.powerKW,
+          portFinAngle: internalState.fin.portFinAngleDeg,
+          starboardFinAngle: internalState.fin.starboardFinAngleDeg,
+          isCompleted: completed ? true : prev.isCompleted,
+          isRunning: completed ? false : prev.isRunning,
+          isPaused: completed ? true : prev.isPaused,
+        }));
+      }
     }
 
     if (nextTime >= runLimit - 1e-6) {
       return;
     }
     animationRef.current = requestAnimationFrame(simulate);
-  }, [speedScale, state.isPaused, state.time, state.controlMode, state.manualRudder, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains, state.runDurationSec, virtualModeEnabled]);
+  }, []);
+
+  // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
+  useEffect(() => {
+    controlRef.current = {
+      isPaused: state.isPaused,
+      targetHeading: state.targetHeading,
+      controlMode: state.controlMode,
+      manualRudder: state.manualRudder,
+      speed: state.speed,
+      seaState: state.seaState,
+      waveDirection: state.waveDirection,
+      finStabilizerEnabled: state.finStabilizerEnabled,
+      notchFilterEnabled: state.notchFilterEnabled,
+      pidGains: state.pidGains,
+      runDurationSec: state.runDurationSec,
+    };
+  }, [state.isPaused, state.targetHeading, state.controlMode, state.manualRudder, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains, state.runDurationSec]);
+  useEffect(() => {
+    speedScaleRef.current = speedScale;
+  }, [speedScale]);
+  useEffect(() => {
+    virtualModeRef.current = virtualModeEnabled;
+  }, [virtualModeEnabled]);
 
   // 统一启动/暂停循环行为，保持与其他仿真一致
   useEffect(() => {
@@ -1944,6 +1994,8 @@ export default function CruiseSimulation() {
     trajectoryRef.current = [];
     lastTrajectoryTime.current = 0;
     lastTimeRef.current = 0;
+    timeRef.current = 0;
+    lastHudUpdateRef.current = 0;
     turnStartTimeRef.current = null;
     maxHeadingAfterTurnRef.current = CRUISE_ROUTE_TURN_HEADING;
     settleWindowStartRef.current = null;

@@ -805,6 +805,17 @@ export default function ContainerSimulation() {
     })
   );
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  // 循环稳定化（#1945）：每帧变化的量走 ref，仿真时钟真源在 timeRef，
+  // 循环回调与启动 effect 引用稳定，运行期间不因状态更新 teardown 重建。
+  const controlRef = useRef({
+    isPaused: false,
+    targetHeading: 0,
+    controlMode: 'pid_scheduled' as ContainerSimulationState['controlMode'],
+    speed: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
+  });
+  const speedScaleRef = useRef(1);
+  const timeRef = useRef(0);
+  const lastHudUpdateRef = useRef(0);
 
   // 相机状态
   const [cameraMode, setCameraMode] = useState<string>('chase');
@@ -858,16 +869,17 @@ export default function ContainerSimulation() {
   // 仿真循环
   const simulationLoop = useCallback(() => {
     const engine = engineRef.current;
-    if (!engine || simState.isPaused || !isVirtualSimulationRuntimeReady()) {
+    const control = controlRef.current;
+    if (!engine || control.isPaused || !isVirtualSimulationRuntimeReady()) {
       frameRef.current = requestAnimationFrame(simulationLoop);
       return;
     }
 
     const now = performance.now();
-    const frameDt = getSimulationDeltaFromMilliseconds(now, lastTimeRef.current, speedScale);
+    const frameDt = getSimulationDeltaFromMilliseconds(now, lastTimeRef.current, speedScaleRef.current);
     lastTimeRef.current = now;
 
-    let nextTime = simState.time;
+    let nextTime = timeRef.current;
     let nextState: SimulationState | null = engine.getState(nextTime);
     let summary: ReturnType<typeof engine.getContainerShipSummary> =
       engine.getContainerShipSummary();
@@ -875,11 +887,11 @@ export default function ContainerSimulation() {
     clockRef.current.advance(frameDt, (dt) => {
       const stepTime = nextTime + dt;
       engine.step(
-        simState.targetHeading,
+        control.targetHeading,
         null,
-        simState.controlMode,
+        control.controlMode,
         0,
-        simState.speed,
+        control.speed,
         dt,
         stepTime
       );
@@ -895,25 +907,44 @@ export default function ContainerSimulation() {
       const nextRudder = nextState.rudder;
       const nextRollAngle = nextState.waveRoll;
 
-      if (Math.floor(simState.time) !== Math.floor(nextTime)) {
+      if (Math.floor(timeRef.current) !== Math.floor(nextTime)) {
         setTrajectory(prev => [...prev.slice(-300), nextPosition]);
       }
 
-      setSimState(prev => ({
-        ...prev,
-        time: nextTime,
-        position: nextPosition,
-        heading: nextHeading,
-        yawRate: nextYawRate,
-        rudder: nextRudder,
-        rollAngle: nextRollAngle,
-        currentK: summary.currentK,
-        currentT: summary.currentT,
-      }));
+      timeRef.current = nextTime;
+      // HUD/图表 setState 0.1s 节流（对齐 destroyer 口径）；被跳过的帧
+      // 仅推进 timeRef，不再触发整树渲染。
+      if (nextTime - lastHudUpdateRef.current > 0.1) {
+        lastHudUpdateRef.current = nextTime;
+        setSimState(prev => ({
+          ...prev,
+          time: nextTime,
+          position: nextPosition,
+          heading: nextHeading,
+          yawRate: nextYawRate,
+          rudder: nextRudder,
+          rollAngle: nextRollAngle,
+          currentK: summary.currentK,
+          currentT: summary.currentT,
+        }));
+      }
     }
 
     frameRef.current = requestAnimationFrame(simulationLoop);
-  }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed, simState.time, speedScale]);
+  }, []);
+
+  // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
+  useEffect(() => {
+    controlRef.current = {
+      isPaused: simState.isPaused,
+      targetHeading: simState.targetHeading,
+      controlMode: simState.controlMode,
+      speed: simState.speed,
+    };
+  }, [simState.isPaused, simState.targetHeading, simState.controlMode, simState.speed]);
+  useEffect(() => {
+    speedScaleRef.current = speedScale;
+  }, [speedScale]);
 
   // 启动/停止仿真
   useEffect(() => {
@@ -945,6 +976,8 @@ export default function ContainerSimulation() {
       engine.initialize(0, 0, 0);
       engine.setLoadRatio(0.5);
     }
+    timeRef.current = 0;
+    lastHudUpdateRef.current = 0;
     setTrajectory([]);
     setSimState({
       isRunning: false,
