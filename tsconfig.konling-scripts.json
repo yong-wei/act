@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "scripts/konling-fair-experiment/**/*.ts",
+    "scripts/konling-blind-audit/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

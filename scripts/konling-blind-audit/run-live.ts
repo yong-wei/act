@@ -16,7 +16,7 @@ import {
   getConfiguredAIModel,
   getConfiguredAIProviderBinding,
   isConfiguredAIServiceAvailable,
-} from '@/lib/ai-client';
+} from '@/lib/ai/provider-runtime';
 import {
   aggregateKonlingBlindAuditRun,
   KONLING_BLIND_AUDIT_BENCHMARK_V1,
