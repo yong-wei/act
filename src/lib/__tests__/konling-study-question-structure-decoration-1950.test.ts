@@ -78,6 +78,20 @@ describe('装饰前缀标题的口径行为（#1950）', () => {
     expect(evaluateStudyQuestionStructure({ answer, intent: 'code-debugging' }).passed).toBe(true);
   });
 
+  it('keycap 序列编号标题命中（数字+FE0F+20E3）', () => {
+    const answer = [
+      '## 1️⃣ 前提与符号',
+      'G(s) 为前向通道。',
+      '## 2️⃣ 关键变形',
+      '闭环为 G/(1+GH)。',
+      '## 3️⃣ 适用条件',
+      '单位负反馈。',
+      '## 10️⃣ 结果校验',
+      '分母次数不低于分子。',
+    ].join('\n');
+    expect(evaluateStudyQuestionStructure({ answer, intent: 'formula-derivation' }).passed).toBe(true);
+  });
+
   it('无装饰标题在 v1 与 v2 下输出恒等（剥离幂等）', () => {
     const answer = canonicalAnswer('formula-derivation');
     const v1 = evaluateStudyQuestionStructure({ answer, intent: 'formula-derivation', caliber: 'structure-alias.v1' });

@@ -102,7 +102,7 @@ function normalizeHeading(value: string): string {
  * 标题剥离为幂等。
  */
 const DECORATIVE_HEADING_PREFIX
-  = /^(?:[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]+|\d{1,3}[.、)．:：]|[一二三四五六七八九十]{1,3}[.、)．:：]|[(（]\d{1,3}[)）]|[(（][一二三四五六七八九十]{1,3}[)）]|[*#>|·~—–-]+)\s*/u;
+  = /^(?:[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]+|\d{1,3}(?:[.、)．:：]|\u{FE0F}\u{20E3})|[一二三四五六七八九十]{1,3}[.、)．:：]|[(（]\d{1,3}[)）]|[(（][一二三四五六七八九十]{1,3}[)）]|[*#>|·~—–-]+)\s*/u;
 
 function stripDecorativeHeadingPrefix(heading: string): string {
   let rest = heading;
