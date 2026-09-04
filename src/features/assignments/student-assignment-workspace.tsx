@@ -24,8 +24,7 @@ import {
 
 type Notice = { kind: 'success' | 'error'; message: string; controlId?: string } | null;
 export type PendingUpload = {
-  clientId: string;
-  intentId?: string; fileName: string; file: File;
+  clientId: string; intentId?: string; fileName: string; file: File;
   role: 'ATTACHMENT' | 'EMBEDDED_IMAGE';
   embeddedPosition?: string; idempotencyKey?: string; uploadUrl?: string;
   requiredHeaders?: Record<string, string>;
@@ -86,6 +85,12 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       .find(([, previewUrl]) => previewUrl === href);
     return entry?.[0] ?? href;
   }, []);
+  // 预览令牌是一次性的（/read 返回 no-store 且令牌 usedAt 只能为 null）：
+  // 进入编辑态、切换题目或保存后重新挂载渲染前，必须对当前引用续签。
+  const refreshQuestionAssetPreviews = useCallback(async (question: StudentAssignmentQuestion, markdown: string) => {
+    const references = embeddedAssetReferences(markdown, question.assets ?? []) ?? [];
+    await Promise.all(references.map((reference) => authorizeAssetPreview(question.id, reference.assetId)));
+  }, [authorizeAssetPreview]);
 
   const loadAssignment = useCallback(async (options?: { preserveLocalDrafts?: boolean }) => {
     setLoading(true);
@@ -96,12 +101,10 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       if (!response.ok || !payload.assignment) throw new Error(payload.error || '作业暂时无法加载');
       setAssignment(payload.assignment);
       setSelectedQuestionId((current) => current ?? payload.assignment?.questions[0]?.id ?? null);
-      const serverDrafts = Object.fromEntries(
-        payload.assignment.questions.map((question) => [question.id, {
-          text: question.textDraft ?? '',
-          save: (question.textDraft ? 'saved' : 'editing') as AssignmentEmbeddedSaveState,
-        }]),
-      );
+      const serverDrafts = Object.fromEntries(payload.assignment.questions.map((question) => [question.id, {
+        text: question.textDraft ?? '',
+        save: (question.textDraft ? 'saved' : 'editing') as AssignmentEmbeddedSaveState,
+      }]));
       setDrafts((current) =>
         options?.preserveLocalDrafts
           ? { ...serverDrafts, ...current }
@@ -137,6 +140,8 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   }, [assignment, assetPreviewUrls, assetReadPath, authorizeAssetPreview]);
 
   function selectQuestion(questionId: string) {
+    const question = assignment?.questions.find((candidate) => candidate.id === questionId);
+    if (question) void refreshQuestionAssetPreviews(question, drafts[question.id]?.text ?? '');
     setSelectedQuestionId(questionId);
     setHistoryQuestionId(null);
     setNotice(null);
@@ -151,22 +156,17 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   }
   function endAction(focusNotice = true) {
     setBusyAction(null);
-    if (focusNotice) focusNoticeAfterFrame(noticeRef);
+    if (focusNotice) requestAnimationFrame(() => noticeRef.current?.focus());
   }
-  function failureNotice(cause: unknown, fallback: string, controlId: string): Notice {
-    return { kind: 'error', message: errorMessage(cause, fallback), controlId };
+  function failureNotice(cause: unknown, fallback: string, controlId: string) {
+    return { kind: 'error' as const, message: errorMessage(cause, fallback), controlId };
   }
 
-  /** 同一资产 DELETE 端点：移除已确认资产、撤销意图共用。 */
-  async function deleteAnswerAsset(question: StudentAssignmentQuestion, assetId: string, answerVersion: number) {
-    const response = await fetch(
-      `${answerPath(question.id)}/assets/${encodeURIComponent(assetId)}`,
-      {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answerVersion }),
-      },
-    );
+    async function deleteAnswerAsset(question: StudentAssignmentQuestion, assetId: string, answerVersion: number) {
+    const response = await fetch(`${answerPath(question.id)}/assets/${encodeURIComponent(assetId)}`, {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answerVersion }),
+    });
     return {
       ok: response.ok,
       status: response.status,
@@ -190,6 +190,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     try {
       const currentDraft = drafts[question.id]?.text ?? '';
       await persistQuestionDraft(question, currentDraft);
+      await refreshQuestionAssetPreviews(question, currentDraft);
       setDrafts((current) => ({ ...current, [question.id]: { ...current[question.id]!, save: 'saved' } }));
       setNotice({ kind: 'success', message: '本题草稿已保存。' });
     } catch (cause) {
@@ -218,8 +219,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       assets = assets.filter((item) => item.id !== asset.id);
     }
     const response = await fetch(answerPath(question.id), {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ version, text, embeddedAssets: references }),
     });
     const payload = await response.json().catch(() => ({})) as StudentUploadErrorPayload & {
@@ -235,7 +235,6 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     return payload.answer;
   }
 
-  /** 未失败的上传任务（preflight 计数与提交阻断共用）。 */
   function activeUploadJobs(questionId: string) {
     return (pendingUploads[questionId] ?? []).filter((item) => item.status !== 'FAILED');
   }
@@ -261,8 +260,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   }
 
   async function uploadEmbeddedImage(
-    question: StudentAssignmentQuestion,
-    file: File,
+    question: StudentAssignmentQuestion, file: File,
   ): Promise<ProtectedEditorAssetReference> {
     const preflight = preflightAssignmentFiles([file], uploadBudget(question));
     const accepted = preflight.accepted[0] as File | undefined;
@@ -299,8 +297,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
           if (!shouldRenewUploadIntentAfterConfirmationError(cause)) throw cause;
           await revokeUploadIntent(question, job.intentId).catch(() => undefined);
           prepared = {
-            ...job,
-            intentId: undefined, uploadUrl: undefined, idempotencyKey: undefined,
+            ...job, intentId: undefined, uploadUrl: undefined, idempotencyKey: undefined,
             uploaded: false, status: 'WAITING', message: '正在重新准备上传。',
           };
           uploaded = false;
@@ -314,8 +311,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       if (refreshFailedUpload || !prepared.intentId || !prepared.uploadUrl || !prepared.idempotencyKey) {
         const checksum = await checksumFile(job.file);
         const signResponse = await fetch(`${answerPath(question.id)}/upload-sign`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fileName: job.file.name,
             mimeType: normalizeAssignmentAssetMimeType(job.file.name, job.file.type),
@@ -353,9 +349,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       requestAnimationFrame(() => uploadStatusRef.current?.focus());
       return await confirmUploadedAsset(question, pending);
     } catch (cause) {
-      const message = cause instanceof Error
-        ? cause.message
-        : '附件上传失败，请重试。';
+      const message = cause instanceof Error ? cause.message : '附件上传失败，请重试。';
       if (job.role === 'EMBEDDED_IMAGE') {
         if (prepared.intentId) await revokeUploadIntent(question, prepared.intentId).catch(() => undefined);
         removeUploadJob(question.id, job.clientId);
@@ -364,7 +358,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
         updateUploadJob(question.id, job.clientId, { status: 'FAILED', message, retryable, uploaded });
       }
       setNotice({ kind: 'error', message, controlId: job.role === 'EMBEDDED_IMAGE' ? `answer-${question.id}` : `upload-${job.clientId}` });
-      focusNoticeAfterFrame(noticeRef);
+      requestAnimationFrame(() => noticeRef.current?.focus());
       throw cause;
     }
   }
@@ -379,8 +373,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     };
     const finalize = async () => {
       const response = await fetch(`${answerPath(question.id)}/finalize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ intentId: pending.intentId, idempotencyKey: pending.idempotencyKey }),
       });
       const result = await response.json().catch(() => ({})) as FinalizeResult;
@@ -413,7 +406,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     }));
     removeUploadJob(question.id, pending.clientId);
     setNotice({ kind: 'success', message: `${pending.role === 'EMBEDDED_IMAGE' ? '正文图片' : '附件'}“${pending.fileName}”已上传完成。` });
-    focusNoticeAfterFrame(noticeRef);
+    requestAnimationFrame(() => noticeRef.current?.focus());
     return { asset: finalizedAsset, answerVersion: result.answerVersion };
   }
 
@@ -448,8 +441,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     beginAction(`reorder:${question.id}`);
     try {
       const response = await fetch(`${answerPath(question.id)}/reorder`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answerVersion: question.version, assetIds: nextIds }),
       });
       const payload = await response.json().catch(() => ({})) as StudentUploadErrorPayload & {
@@ -532,9 +524,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     try {
       const currentDraft = drafts[question.id]?.text ?? '';
       const activeUploads = activeUploadJobs(question.id);
-      const failedUpload = (pendingUploads[question.id] ?? []).find(
-        (item) => item.status === 'FAILED',
-      );
+      const failedUpload = (pendingUploads[question.id] ?? []).find((item) => item.status === 'FAILED');
       if (activeUploads.length > 0) {
         throw new StudentResponseMutationError('upload-incomplete', '仍有附件正在上传，请等待完成后再提交。', `upload-${activeUploads[0].clientId}`);
       }
@@ -552,16 +542,13 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       }
       setDrafts((current) => ({ ...current, [question.id]: { ...current[question.id]!, save: 'saved' } }));
       const response = await fetch(`${answerPath(question.id)}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answerVersion: persisted.version, idempotencyKey: crypto.randomUUID() }),
       });
       const payload = await response.json().catch(() => ({})) as {
         attempt?: { attemptNumber?: number };
-        assignmentState?: StudentAssignmentDetail['state'];
-        submittedRequiredCount?: number;
-        error?: string; message?: string;
-        metadata?: StudentUploadErrorPayload['metadata'];
+        assignmentState?: StudentAssignmentDetail['state']; submittedRequiredCount?: number;
+        error?: string; message?: string; metadata?: StudentUploadErrorPayload['metadata'];
       };
       if (!response.ok || !payload.attempt) {
         throw mutationError(payload, '本题提交失败，请重试。');
@@ -597,7 +584,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       requestAnimationFrame(() => historyHeadingRef.current?.focus());
     } catch (cause) {
       setNotice(failureNotice(cause, '提交历史加载失败', `history-${question.id}`));
-      focusNoticeAfterFrame(noticeRef);
+      requestAnimationFrame(() => noticeRef.current?.focus());
     } finally {
       endAction(false);
     }
@@ -619,9 +606,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
       const fileResponse = await fetch(accessUrl, { cache: 'no-store' });
       if (!fileResponse.ok) throw new Error('附件下载失败，请重试');
       const objectUrl = URL.createObjectURL(await fileResponse.blob());
-      const anchor = document.createElement('a');
-      anchor.href = objectUrl;
-      anchor.download = asset.displayName;
+      const anchor = Object.assign(document.createElement('a'), { href: objectUrl, download: asset.displayName });
       anchor.click();
       URL.revokeObjectURL(objectUrl);
       setNotice({ kind: 'success', message: `附件“${asset.displayName}”已开始下载。` });
@@ -658,11 +643,8 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
               <div className="shrink-0 rounded-xl bg-accent/60 px-4 py-3 text-sm text-subtle"><Clock3 className="mr-2 inline h-4 w-4" />截止 {formatAssignmentDeadline(assignment.dueAt)}</div>
             </div>
           </header>
-
           {(assignment.feedbackStatus === 'PUBLISHING' || assignment.feedbackStatus === 'BLOCKED') && <div role="status" className={assignment.feedbackStatus === 'BLOCKED' ? 'mb-5 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 text-sm text-amber-800 dark:text-amber-200' : 'mb-5 rounded-xl border border-blue-500/25 bg-blue-500/8 p-4 text-sm text-blue-800 dark:text-blue-200'}>{assignment.policyReason}</div>}
-
           {assignment.resultPackage ? <><StudentPublishedResult assignment={assignment} onSelectQuestion={selectQuestion} />{assignment.feedback && assignment.feedback.length > 0 ? <StudentApprovedFeedback assignment={assignment} onSelectQuestion={selectQuestion} /> : null}</> : assignment.feedback && assignment.feedback.length > 0 ? <StudentApprovedFeedback assignment={assignment} onSelectQuestion={selectQuestion} /> : null}
-
           <div className="grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
             <nav className="surface-card h-fit p-3" aria-label="作业题目">
               <p className="px-2 pb-2 text-xs font-medium text-subtle">题目导航</p>
@@ -670,7 +652,6 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
                 <button key={question.id} type="button" onClick={() => selectQuestion(question.id)} aria-current={selectedQuestionId === question.id ? 'step' : undefined} className={selectedQuestionId === question.id ? 'mb-1 flex w-full items-center justify-between rounded-lg bg-primary/12 px-3 py-3 text-left text-sm font-medium text-foreground' : 'mb-1 flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm text-subtle hover:bg-accent hover:text-foreground'}><span>第 {index + 1} 题</span><span className="text-xs">{questionStateLabels[question.state]}</span></button>
               ))}
             </nav>
-
             <main className="min-w-0">
               {selectedQuestion?.resubmission && <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/8 p-4 text-sm text-amber-800 dark:text-amber-200" role="status"><p className="font-medium">本题已由教师退回，请修改后重新提交</p><p className="mt-1">{selectedQuestion.resubmission.reason}</p><p className="mt-1 text-xs">重交截止 {new Date(selectedQuestion.resubmission.deadlineAt).toLocaleString('zh-CN')}</p></div>}
               {selectedQuestion && (
@@ -680,7 +661,9 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
                   draft={drafts[selectedQuestion.id]?.text ?? ''}
                   onDraftChange={(value) => setDrafts((current) => ({ ...current, [selectedQuestion.id]: { text: value, save: 'editing' } }))}
                   bodySaveState={drafts[selectedQuestion.id]?.save ?? 'editing'}
-                  onEditBody={() => setDrafts((current) => ({ ...current, [selectedQuestion.id]: { ...current[selectedQuestion.id]!, save: 'editing' } }))}
+                  onEditBody={() => {
+                    void refreshQuestionAssetPreviews(selectedQuestion, drafts[selectedQuestion.id]?.text ?? '').finally(() => setDrafts((current) => ({ ...current, [selectedQuestion.id]: { ...current[selectedQuestion.id]!, save: 'editing' } })));
+                  }}
                   onSave={() => void saveDraft(selectedQuestion)}
                   uploadImage={(file) => uploadEmbeddedImage(selectedQuestion, file)}
                   validateAssetReference={(asset) => {
@@ -711,7 +694,6 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
               </div>}
               {historyQuestionId && <HistoryPanel attempts={history} headingRef={historyHeadingRef} onClose={closeHistory} onDownload={(asset) => void downloadHistoryAsset(historyQuestionId, asset)} busyAction={busyAction} />}
             </main>
-
             <aside className="surface-card h-fit p-4 lg:sticky lg:top-20" aria-label="作业提交概览">
               <p className="text-sm font-semibold text-foreground">必答进度</p><p className="mt-3 text-3xl font-bold text-foreground">{assignment.submittedRequiredCount}<span className="text-base font-normal text-subtle"> / {assignment.requiredQuestionCount}</span></p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-accent" role="progressbar" aria-valuenow={assignment.submittedRequiredCount} aria-valuemin={0} aria-valuemax={assignment.requiredQuestionCount}><div className="h-full rounded-full bg-primary" style={{ width: `${assignment.requiredQuestionCount ? assignment.submittedRequiredCount / assignment.requiredQuestionCount * 100 : 0}%` }} /></div>
@@ -724,14 +706,9 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     </AppShell>
   );
 }
-
-/** 批准反馈与发布结果共用的评分项列表（逐字重复收敛，#1793）。 */
-function CriteriaScoreList({ criteria }: {
-  criteria: ReadonlyArray<{ criterionId?: string | null; score?: number | null; comment?: string | null }>;
-}) {
+function CriteriaScoreList({ criteria }: { criteria: ReadonlyArray<{ criterionId?: string | null; score?: number | null; comment?: string | null }> }) {
   return <dl className="mt-4 grid gap-3 sm:grid-cols-2">{criteria.map((criterion, index) => <div key={`${criterion.criterionId ?? 'criterion'}-${index}`} className="rounded-lg bg-accent/50 p-3"><dt className="text-xs font-medium text-subtle">评分项 {index + 1}</dt><dd className="mt-1 text-sm text-foreground">{criterion.score ?? 0} 分{criterion.comment ? ` · ${criterion.comment}` : ''}</dd></div>)}</dl>;
 }
-
 function StudentApprovedFeedback({ assignment, onSelectQuestion }: { assignment: StudentAssignmentDetail; onSelectQuestion: (questionId: string) => void }) {
   const feedback = assignment.feedback ?? [];
   return <section className="surface-card mb-5 p-5 sm:p-6" aria-labelledby="approved-feedback-heading" data-student-assignment-feedback="approved">
@@ -749,7 +726,6 @@ function StudentApprovedFeedback({ assignment, onSelectQuestion }: { assignment:
     </article>; })}</div>
   </section>;
 }
-
 function StudentPublishedResult({ assignment, onSelectQuestion }: { assignment: StudentAssignmentDetail; onSelectQuestion: (questionId: string) => void }) {
   const result = assignment.resultPackage;
   if (!result) return null;
@@ -757,26 +733,27 @@ function StudentPublishedResult({ assignment, onSelectQuestion }: { assignment: 
   const feedbackByQuestion = new Map((assignment.feedback ?? []).map((item) => [item.questionId, item]));
   return <section className="surface-card mb-5 p-5 sm:p-6" aria-labelledby="published-result-heading" data-student-assignment-result="published">
     <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-emerald-600 dark:text-emerald-300">教师已确认并发布</p><h2 id="published-result-heading" className="mt-1 text-xl font-semibold text-foreground">作业结果</h2><p className="mt-2 text-xs text-subtle">发布于 {new Date(result.releasedAt).toLocaleString('zh-CN')}</p></div><p className="rounded-xl bg-emerald-500/10 px-4 py-2 text-lg font-semibold text-emerald-700 dark:text-emerald-300">总分 {result.totalScore}</p></div>{result.overallComment ? <div className="mt-4 rounded-lg bg-accent/50 p-4"><p className="text-xs font-medium text-subtle">整份作业总体评价</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-subtle">{result.overallComment}</p></div> : null}
-    <div className="mt-5 space-y-4">{result.questions.map((question) => { const feedback = feedbackByQuestion.get(question.questionId); const reviewedPdfs = (feedback?.reviewedAssets ?? []).filter((asset) => asset.href && asset.mimeType === 'application/pdf'); return <article key={question.questionId} className="rounded-xl border border-border/70 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => onSelectQuestion(question.questionId)} className="text-left font-semibold text-foreground underline-offset-4 hover:underline">{titles.get(question.questionId) ?? '题目结果'}</button><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{question.score} 分</span></div>{question.comment ? <div className="mt-3"><p className="text-xs font-medium text-subtle">教师总体评价</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-subtle">{question.comment}</p></div> : null}{question.criteria.length ? <CriteriaScoreList criteria={question.criteria} /> : null}{reviewedPdfs.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{reviewedPdfs.map((asset, index) => <a key={asset.id ?? index} href={asset.href} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs" aria-label={`下载${titles.get(question.questionId) ?? '本题'}批注 PDF`}>下载{titles.get(question.questionId) ?? '本题'}批注 PDF</a>)}</div> : null}<ResultReference label="参考答案" value={question.referenceAnswer} /><ResultReference label="评分标准" value={question.scoringStandard} /></article>; })}</div>
+    <div className="mt-5 space-y-4">{result.questions.map((question) => {
+      const feedback = feedbackByQuestion.get(question.questionId);
+      const reviewedPdfs = (feedback?.reviewedAssets ?? []).filter((asset) => asset.href && asset.mimeType === 'application/pdf');
+      const title = titles.get(question.questionId) ?? '题目结果';
+      return <article key={question.questionId} className="rounded-xl border border-border/70 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => onSelectQuestion(question.questionId)} className="text-left font-semibold text-foreground underline-offset-4 hover:underline">{title}</button><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{question.score} 分</span></div>{question.comment ? <div className="mt-3"><p className="text-xs font-medium text-subtle">教师总体评价</p><p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-subtle">{question.comment}</p></div> : null}{question.criteria.length ? <CriteriaScoreList criteria={question.criteria} /> : null}{reviewedPdfs.length > 0 ? <div className="mt-4 flex flex-wrap gap-2">{reviewedPdfs.map((asset, index) => <a key={asset.id ?? index} href={asset.href} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs" aria-label={`下载${title}批注 PDF`}>下载{title}批注 PDF</a>)}</div> : null}<ResultReference label="参考答案" value={question.referenceAnswer} /><ResultReference label="评分标准" value={question.scoringStandard} /></article>;
+    })}</div>
   </section>;
 }
-
 function studentAssignmentDisplayState(assignment: StudentAssignmentDetail) {
   if (assignment.state === 'SUBMITTED' && assignment.dueAt && new Date(assignment.dueAt).getTime() > Date.now()) return '未到截止（已提交）';
   if (assignment.state === 'AWAITING_REVIEW' && assignment.questions.some((question) => (question.currentAttemptNumber ?? 0) > 1)) return '补交待批改';
   return assignmentStateLabels[assignment.state];
 }
-
 function ResultReference({ label, value }: { label: '参考答案' | '评分标准'; value: unknown }) {
   const text = label === '参考答案' ? presentStudentReferenceAnswer(value) : presentStudentScoringStandard(value);
   if (!text) return null;
   return <details className="mt-4 rounded-lg bg-accent/50 p-3"><summary className="cursor-pointer text-sm font-medium text-foreground">{label}</summary><p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-subtle">{text}</p></details>;
 }
-
 function studentAnchorPrecisionLabel(value: unknown) {
   return ({ BLOCK: '作答片段', SPAN: '作答片段', PAGE: '页面', DOCUMENT: '作答文档' } as Record<string, string>)[String(value ?? '')] ?? '相关位置';
 }
-
 export function QuestionEditor({
   question, index, draft, onDraftChange, bodySaveState, onEditBody, onSave,
   uploadImage, validateAssetReference, resolveAssetHref, canonicalizeAssetHref,
@@ -835,7 +812,6 @@ export function QuestionEditor({
                 ? '可提交'
                 : '未作答';
   const uploadDisabled = busy || submitted || readOnly || combinedCount >= SUBMISSION_LIMITS.assets;
-
   return (
     <article className="surface-card min-w-0 p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -847,7 +823,6 @@ export function QuestionEditor({
         </div>
         <span role="status" aria-live="polite" className="rounded-full bg-accent px-3 py-1 text-xs text-subtle">{responseStatus}</span>
       </div>
-
       <div id={`answer-${question.id}`} tabIndex={-1} className="mt-6 scroll-mt-24 outline-none">
         <AssignmentEmbeddedEditor
           hostRole="student" field="student-response" ariaLabel={`第 ${index + 1} 题答案正文`}
@@ -856,7 +831,6 @@ export function QuestionEditor({
           validateAssetReference={validateAssetReference} resolveAssetHref={resolveAssetHref} canonicalizeAssetHref={canonicalizeAssetHref}
         />
       </div>
-
       <section
         className={`mt-5 rounded-xl border border-dashed p-4 ${dropActive ? 'border-primary bg-primary/5' : 'border-border'}`}
         aria-labelledby={`attachments-${question.id}`}
@@ -883,11 +857,9 @@ export function QuestionEditor({
         <p className="mt-1 text-xs leading-5 text-subtle">Markdown 正文可插入 PNG/JPEG 图片；正文图片与独立附件合计最多 10 个。</p>
         <p className="mt-1 text-xs leading-5 text-subtle">自动评分按下列顺序读取独立附件，请按重要程度排列。正文图片 {embeddedCount} 个，独立附件 {attachments.length} 个，合计 {combinedCount} / {SUBMISSION_LIMITS.assets}。</p>
         <p className="mt-1 text-xs leading-5 text-subtle">允许格式：{STUDENT_ASSIGNMENT_ALLOWED_FORMATS}；单文件不超过 {SUBMISSION_LIMITS.file / 1024 / 1024} MB。</p>
-
         <ol className="mt-4 space-y-2" aria-label="按评分读取顺序排列的附件">
           {attachments.map((asset, assetIndex) => {
             const removing = busyAction === `remove:${question.id}:${asset.id}`;
-            const assetStatus = asset.state === 'QUARANTINED' ? '等待安全扫描' : '已上传完成';
             return (
               <li
                 id={`asset-${asset.id}`} key={asset.id}
@@ -906,7 +878,7 @@ export function QuestionEditor({
                   <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-xs font-semibold">{assetIndex + 1}</span>
                   <Paperclip className="h-4 w-4 shrink-0" />
                   <span className="min-w-0 break-all">{asset.displayName}</span>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-subtle">{removing ? '移除中' : assetStatus}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-subtle">{removing ? '移除中' : asset.state === 'QUARANTINED' ? '等待安全扫描' : '已上传完成'}</span>
                 </span>
                 {!submitted && !readOnly && (
                   <span className="flex shrink-0 gap-1">
@@ -927,13 +899,12 @@ export function QuestionEditor({
             );
           })}
         </ol>
-
         {attachmentUploads.length > 0 && (
           <div ref={uploadStatusRef} tabIndex={-1} role="status" aria-live="polite" className="mt-3 space-y-2 outline-none">
             {attachmentUploads.map((pending) => (
               <div id={`upload-${pending.clientId}`} key={pending.clientId} tabIndex={-1} className={`rounded-lg border p-3 text-sm ${pending.status === 'FAILED' ? 'border-red-500/30 bg-red-500/8 text-red-700 dark:text-red-300' : 'border-blue-500/25 bg-blue-500/8 text-blue-700 dark:text-blue-300'}`}>
                 <p className="break-all font-medium">{pending.fileName}</p>
-                <p className="mt-1 text-xs">{uploadStatusLabel(pending.status)}：{pending.message}</p>
+                <p className="mt-1 text-xs">{({ WAITING: '等待上传', UPLOADING: '上传中', SCANNING: '安全扫描中', RETRYING: '重试中', FAILED: '上传失败' } as const)[pending.status]}：{pending.message}</p>
                 {pending.status === 'FAILED' && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {pending.retryable !== false && (
@@ -951,7 +922,6 @@ export function QuestionEditor({
             ))}
           </div>
         )}
-
         {!submitted && !readOnly && (
           <label aria-disabled={uploadDisabled} className="btn-ghost-themed mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm aria-disabled:cursor-not-allowed aria-disabled:opacity-60">
             <FileUp className="h-4 w-4" />
@@ -964,7 +934,6 @@ export function QuestionEditor({
           </label>
         )}
       </section>
-
       <div className="mt-6 flex flex-wrap gap-3 border-t border-border/70 pt-5">
         {!submitted && !readOnly && (
           <button id={`submit-${question.id}`} type="button" disabled={busy} onClick={onSubmit} className="cta-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2.5 text-sm">
@@ -982,43 +951,30 @@ export function QuestionEditor({
     </article>
   );
 }
-
 function HistoryPanel({ attempts, headingRef, onClose, onDownload, busyAction }: { attempts: StudentAnswerAttempt[]; headingRef: React.RefObject<HTMLHeadingElement | null>; onClose: () => void; onDownload: (asset: NonNullable<StudentAnswerAttempt['assets']>[number]) => void; busyAction: string | null }) {
   return <section className="surface-card mt-4 p-5" aria-labelledby="answer-history-heading"><div className="flex items-start justify-between gap-4"><div><h2 id="answer-history-heading" ref={headingRef} tabIndex={-1} className="font-semibold text-foreground outline-none">本题提交历史</h2><p className="mt-1 text-xs text-subtle">历史尝试只读，不会覆盖当前草稿。</p></div><button type="button" onClick={onClose} className="btn-ghost-themed rounded-lg px-3 py-2 text-sm">返回本题</button></div>{attempts.length === 0 ? <p className="mt-5 text-sm text-subtle">尚无正式提交记录。</p> : <ol className="mt-5 space-y-3">{attempts.map((attempt) => <li key={attempt.id} className="rounded-xl border border-border/70 p-4"><p className="text-sm font-medium text-foreground">第 {attempt.attemptNumber} 次提交</p><p className="mt-1 text-xs text-subtle">{new Date(attempt.submittedAt).toLocaleString('zh-CN')}</p>{attempt.textSnapshot && <p className="mt-3 whitespace-pre-wrap text-sm text-subtle">{attempt.textSnapshot}</p>}{attempt.assets?.map((asset) => <button id={`download-${asset.id}`} key={asset.id} type="button" disabled={busyAction === `download:${asset.id}` || !asset.canDownload} onClick={() => onDownload(asset)} className="btn-ghost-themed mt-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs"><Paperclip className="h-3.5 w-3.5" />下载附件：{asset.displayName}</button>)}</li>)}</ol>}</section>;
 }
-
 function WorkspaceLoading() { return <div className="space-y-4" aria-busy="true" aria-label="正在加载作业"><div className="surface-card h-40 animate-pulse" /><div className="grid gap-4 lg:grid-cols-[14rem_1fr_16rem]"><div className="surface-card h-72 animate-pulse" /><div className="surface-card h-[32rem] animate-pulse" /><div className="surface-card h-52 animate-pulse" /></div></div>; }
 function WorkspaceMessage({ title, description, action, alert = false }: { title: string; description: string; action: React.ReactNode; alert?: boolean }) { return <div className="surface-card px-6 py-16 text-center" role={alert ? 'alert' : undefined}><AlertCircle className="mx-auto h-9 w-9 text-subtle" /><h1 className="mt-4 text-xl font-semibold text-foreground">{title}</h1><p className="mx-auto mt-2 max-w-xl text-sm text-subtle">{description}</p><div className="mt-6">{action}</div></div>; }
-
 /** 授权端点 URL 必须与本站同源，仅保留路径与查询串。 */
 function sameOriginPath(rawUrl: string): string | null {
   const url = new URL(rawUrl, window.location.origin);
   if (url.origin !== window.location.origin) return null;
   return `${url.pathname}${url.search}`;
 }
-
 async function checksumFile(file: File): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return `sha256:${[...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`;
 }
-
-function uploadStatusLabel(status: PendingUpload['status']) {
-  return ({ WAITING: '等待上传', UPLOADING: '上传中', SCANNING: '安全扫描中', RETRYING: '重试中', FAILED: '上传失败' })[status];
-}
-
 class StudentResponseMutationError extends Error {
   constructor(public readonly code: string, message: string, public readonly controlId?: string) {
     super(message);
     this.name = 'StudentResponseMutationError';
   }
 }
-
 function shouldRenewUploadIntentAfterConfirmationError(cause: unknown) {
-  return cause instanceof StudentResponseMutationError
-    && ['EXPIRED', 'FAILED', 'upload-intent-not-found', 'asset-not-ready', 'asset-finalization-verification-failed'].includes(cause.code);
+  return cause instanceof StudentResponseMutationError && ['EXPIRED', 'FAILED', 'upload-intent-not-found', 'asset-not-ready', 'asset-finalization-verification-failed'].includes(cause.code);
 }
-
-/** 按稳定 id 替换数组元素；不存在时原样返回。 */
 function patchById<T extends { id: string }>(
   items: readonly T[],
   id: string,
@@ -1026,17 +982,11 @@ function patchById<T extends { id: string }>(
 ): T[] {
   return items.map((item) => item.id === id ? (typeof patch === 'function' ? patch(item) : { ...item, ...patch }) : item);
 }
-/** 错误文案回退：Error 用自身消息，否则用动作 fallback。 */
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
-/** 答案版本冲突：需从服务器重载后再继续。 */
 function isAnswerVersionConflict(cause: unknown): boolean {
   return cause instanceof StudentResponseMutationError && cause.code === 'answer-version-conflict';
-}
-/** 动作后下一帧聚焦通知区（读屏会话不中断）。 */
-function focusNoticeAfterFrame(noticeRef: { current: HTMLElement | null }): void {
-  requestAnimationFrame(() => noticeRef.current?.focus());
 }
 function mutationError(payload: StudentUploadErrorPayload, fallback: string) {
   return new StudentResponseMutationError(
