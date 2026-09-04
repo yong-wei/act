@@ -125,6 +125,9 @@ describe('issue #1949 formal answer citation verification', () => {
     expect(delivered).not.toContain('[9]');
     expect(delivered).toContain('已移除 2 个未能核验的引用标记。');
     expect(delivered).toContain('证据限制');
+    // 学生可见文本不泄漏内部 reason code，降级原因以安全中文呈现
+    expect(delivered).not.toMatch(/[a-z]+-[a-z-]+/);
+    expect(delivered).toContain('存在未能核验的引用');
   });
 
   it('keeps the sessions fallback unchanged without unverified markers (#1949)', () => {
@@ -165,6 +168,16 @@ describe('issue #1949 formal answer citation verification', () => {
     expect(guard.unverifiedCitationMarkers).toEqual([9]);
     expect(guard.lowConfidenceReasons).toContain('assistant-unverified-citation-markers');
     expect(stripUnverifiedKonlingCitationMarkers('中文结论[9]。', guard)).toBe('中文结论。');
+  });
+
+  it('treats an unassigned number adjacent to English prose as a citation marker (#1949)', () => {
+    const guard = guardFor('The loop is stable[9].');
+    expect(guard.unverifiedCitationMarkers).toEqual([9]);
+    const stripped = stripUnverifiedKonlingCitationMarkers('The loop is stable[9].', guard);
+    expect(stripped).toBe('The loop is stable.');
+    // 集合词下标豁免保持
+    const valuesGuard = guardFor('检查 values[2] 与 items[0]。');
+    expect(valuesGuard.unverifiedCitationMarkers).toEqual([]);
   });
 
   it('serializes projected textbook citations with structured identity (#1949)', () => {

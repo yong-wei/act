@@ -9742,10 +9742,8 @@ function isCitationMarkerPosition(
   assignedNumbers: ReadonlySet<number>,
 ): boolean {
   if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
-  // Unassigned numbers keep the helper's wide technical-index reading (any
-  // identifier directly before the bracket, e.g. controller[2]); only
-  // server-assigned numbers use the narrow single-letter/collection reading
-  // so Chinese prose before a real citation still counts (#1819).
+  // 技术下标豁免统一为明确的变量/集合表达式读法（单字母或集合词），
+  // 中文或英文普通词紧邻的编号（含未分配编号）都按引用标记处理（#1949）。
   return !isTechnicalIndexContext(assistantMessage, offset, assignedNumbers.has(number));
 }
 
@@ -9985,6 +9983,23 @@ export function stripUnverifiedKonlingCitationMarkers(
     .replace(/\n{3,}/g, '\n\n');
 }
 
+// 学生可见的降级原因映射：未登记的内部 reason code 一律不进入「证据限制」
+// 文本，详细原因仅保留在开发诊断 metadata（#1949 review）。
+const CITATION_MISSING_CLASS_LABELS: Record<string, string> = {
+  content: '课程内容',
+  'learner-state': '学习证据',
+  'path-execution': '学习路径',
+  evidence: '学习证据',
+  simulation: '仿真记录',
+  arena: 'Arena',
+  intervention: '干预记录',
+  memory: '记忆摘要',
+};
+
+const CITATION_LOW_CONFIDENCE_LABELS: Record<string, string> = {
+  'assistant-unverified-citation-markers': '存在未能核验的引用',
+};
+
 export function applyKonlingCitationFallback(
   assistantMessage: string,
   guard: KonlingCitationGuard,
@@ -9993,8 +10008,16 @@ export function applyKonlingCitationFallback(
   const unverifiedMarkerCount = (guard.unverifiedCitationMarkers ?? []).length;
   if (!guard.fallbackRequired && unverifiedMarkerCount === 0) return sanitizedMessage;
   const limitation = [
-    ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
-    ...guard.lowConfidenceReasons,
+    ...guard.missingCitationClasses
+      .flatMap((item) => {
+        const label = CITATION_MISSING_CLASS_LABELS[item];
+        return label ? [`缺少${label}引用`] : [];
+      }),
+    ...guard.lowConfidenceReasons
+      .flatMap((reason) => {
+        const label = CITATION_LOW_CONFIDENCE_LABELS[reason];
+        return label ? [label] : [];
+      }),
   ].join('；');
   const citations = guard.citations.slice(0, 4)
     .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)

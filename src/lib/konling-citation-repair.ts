@@ -174,12 +174,9 @@ export function isTechnicalIndexContext(
     .slice(0, offset)
     .match(/[\p{L}_][\p{L}\p{N}_]*$/u)?.[0];
   if (!precedingToken) return false;
-  // 中日韩文不构成数学下标：中文正文无空格紧邻的 `结论[9]` 是引用标记，
-  // 不能因宽判定被当作技术下标而逃过清理（#1949 review）。
-  if (/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(precedingToken)) {
-    return false;
-  }
-  if (!hasAssignedCitation) return true;
+  // 技术下标豁免仅限明确的变量/集合表达式（单字母拉丁/希腊变量与常见
+  // 集合词）；多字符普通词（中文或英文正文的 stable[9]、controller[9]）
+  // 紧邻的未分配编号按引用标记处理，删除并降级（#1949 review）。
   return /^[\p{Script=Latin}\p{Script=Greek}]$/u.test(precedingToken)
     || /^(?:array|data|items?|samples?|values?|vectors?)$/iu.test(precedingToken);
 }

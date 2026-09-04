@@ -357,12 +357,15 @@ describe('issue #1819 answer-unit citation coverage', () => {
     ].join('\n');
     const { guard } = guardFor('code-debugging', answer, citationContext);
 
-    expect(guard.unverifiedCitationMarkers).toEqual([2]);
+    // controller[9] 的多字符变量名不再享有下标豁免：按 #1949 规范，
+    // 未分配编号无论前置词都按引用标记收集并剥离（正文保留）。
+    expect(guard.unverifiedCitationMarkers).toEqual([9, 2]);
     expect(guard.answerUnits).toEqual([]);
     const stripped = stripUnverifiedKonlingCitationMarkers(answer, guard);
     expect(stripped).toContain('items[0]');
-    expect(stripped).toContain('[9]');
-    expect(stripped).toContain('controller[9]');
+    expect(stripped).toContain('controller');
+    expect(stripped).not.toContain('controller[9]');
+    expect(stripped).toContain('// [9] 不是引用');
     expect(stripped).toContain('加长度检查');
     expect(stripped).not.toContain('加长度检查 [2]');
     expect(stripped).toContain('state[2]');
