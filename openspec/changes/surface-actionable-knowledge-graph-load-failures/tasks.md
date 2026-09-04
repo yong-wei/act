@@ -15,13 +15,13 @@
 
 ## 3. 生产图谱内容恢复（r4-c6 切换）
 
-- [ ] 3.1 核对生产当前身份与目标组合差异（shard set / catalog version / teaching projection / activation），确认目标以 composite registry v0.37 条目为准
-- [ ] 3.2 将 r4-c6 候选内容（分片集 `ads-294a0616…` 含 coverage 收据、projection `proj-eb4d2d63…` 等）按既有 blob-release 流程发布到生产 OSS blob 命名空间与视图
-- [ ] 3.3 切换控制面指针（authority-domain-catalog / authority-domain-shards / projection current.json）与 engineering-graph 激活选择到 r4-c6 组合，重算并核验身份一致
-- [ ] 3.4 验证生产根分片返回 200、领域分片可加载（demo 登录实测）
+- [x] 3.1 核对生产当前身份与目标组合差异（shard set / catalog version / teaching projection / activation），确认目标以 composite registry v0.37 条目为准
+- [x] 3.2 将 r4-c6 候选内容（分片集 `ads-294a0616…` 含 coverage 收据、projection `proj-eb4d2d63…` 等）按既有 blob-release 流程发布到生产 OSS blob 命名空间与视图
+- [x] 3.3 切换控制面指针（authority-domain-catalog / authority-domain-shards / projection current.json）与 engineering-graph 激活选择到 r4-c6 组合，重算并核验身份一致
+- [x] 3.4 验证生产根分片返回 200、领域分片可加载（demo 登录实测）
 
 ## 4. 生产验收
 
-- [ ] 4.1 `/knowledge` 图谱加载成功（视觉验证）
+- [x] 4.1 `/knowledge` 图谱加载成功（视觉验证）
 - [ ] 4.2 英文切换可用且图谱状态完整（视觉验证，依赖英文修复随下次镜像部署生效）
 - [ ] 4.3 验收证据回贴 #1942
