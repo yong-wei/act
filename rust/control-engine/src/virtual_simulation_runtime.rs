@@ -1439,6 +1439,9 @@ fn semisub_damping(u: f64, v: f64, r: f64) -> [f64; 3] {
     [-1.2e6 * u, -2.5e6 * v - 8.0e7 * r, -8.0e7 * v - 9.5e10 * r]
 }
 
+// 单位契约（#1943）：`thrust` 与 `env` 均为 SI 单位（N、N·m），调用方负责
+// kN→N 换算；内核不得再乘 1000（历史上调用侧已换算一次，内核再乘导致
+// 推力放大 1000 倍，默认 DP 开局即发散触发紧急解脱）。
 fn semisub_derivatives(
     _x: f64,
     _y: f64,
@@ -1454,9 +1457,9 @@ fn semisub_derivatives(
     let m22 = mass * 1.92;
     let m33 = 2.8e10 * 1.24;
     let [du_damp, dv_damp, dr_damp] = semisub_damping(u, v, r);
-    let u_dot = (thrust[0] * 1000.0 + env[0] + du_damp + m22 * v * r) / m11;
-    let v_dot = (thrust[1] * 1000.0 + env[1] + dv_damp - m11 * u * r) / m22;
-    let r_dot = (thrust[2] * 1000.0 + env[2] + dr_damp + (m11 - m22) * u * v) / m33;
+    let u_dot = (thrust[0] + env[0] + du_damp + m22 * v * r) / m11;
+    let v_dot = (thrust[1] + env[1] + dv_damp - m11 * u * r) / m22;
+    let r_dot = (thrust[2] + env[2] + dr_damp + (m11 - m22) * u * v) / m33;
     [
         u * psi.cos() - v * psi.sin(),
         u * psi.sin() + v * psi.cos(),

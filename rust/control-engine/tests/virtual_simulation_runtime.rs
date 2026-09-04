@@ -556,3 +556,86 @@ fn nomoto_quick_simulation_limits_actual_rudder_rate_when_requested() {
 
     assert!(result["metrics"]["maxRudderRate"].as_f64().unwrap() <= 5.0 + 1e-9);
 }
+
+#[test]
+fn semisub3dof_closed_loop_converges_under_default_dp() {
+    // #1943 回归：semisub3dof 推力契约统一为 SI（N、N·m）后，默认 DP 参数
+    // （与前端 DRILLING_DEFAULT_DP 一致）在 level 3 代表性定常环境扰动下
+    // 60 s 内位置误差收敛至黄色警报内（< 3 m），全程不触发紧急解脱（10 m）。
+    let dt: f64 = 1.0 / 60.0;
+    let mut controller = json!({
+        "surge": {"integral": 0.0, "prevError": 0.0},
+        "sway": {"integral": 0.0, "prevError": 0.0},
+        "yaw": {"integral": 0.0, "prevError": 0.0}
+    });
+    let config = json!({
+        "gains": {
+            "surge": {"kp": 500.0, "ki": 10.0, "kd": 2000.0},
+            "sway": {"kp": 800.0, "ki": 15.0, "kd": 3000.0},
+            "yaw": {"kp": 1e8, "ki": 1e6, "kd": 5e8}
+        },
+        "integralLimit": {"surge": 5000.0, "sway": 8000.0, "yaw": 1e9},
+        "deadband": {"position": 0.1, "heading": 0.5},
+        "decouplingEnabled": true
+    });
+    let mut state = json!({
+        "x": 0.0, "y": 0.0, "psi": 0.0, "u": 0.0, "v": 0.0, "r": 0.0,
+        "targetX": 0.0, "targetY": 0.0, "targetPsi": 0.0,
+        "positionError": 0.0, "headingError": 0.0,
+        "thrusters": [], "decouplingEnabled": true
+    });
+    // level 3 代表性环境扰动：横向 ~200 kN 定常力 + ~10 MN·m 扰动力矩
+    let env_force = [0.0, 2.0e5, 1.0e7];
+    // 8 × 800 kN 推进器容量（kN→N），力矩按布局力臂近似上限
+    let clamp_force_n = |kn: f64| (kn * 1000.0).clamp(-6.4e6, 6.4e6);
+
+    let steps = (60.0 / dt).round() as usize;
+    let mut max_position_error = 0.0f64;
+    for _ in 0..steps {
+        let dp_request = json!({
+            "modelId": "practice_dp_decoupled_control",
+            "dt": dt,
+            "platform": {
+                "x": state["x"].clone(), "y": state["y"].clone(), "psi": state["psi"].clone(),
+                "targetX": 0.0, "targetY": 0.0, "targetPsi": 0.0
+            },
+            "controllerState": controller.clone(),
+            "config": config.clone()
+        });
+        let dp: Value = serde_json::from_str(
+            &compute_virtual_simulation_step_json(&dp_request.to_string()).unwrap(),
+        )
+        .unwrap();
+        controller = dp["newState"].clone();
+        let output = &dp["output"];
+        let thrust = [
+            clamp_force_n(output["decoupledTauX"].as_f64().unwrap()),
+            clamp_force_n(output["decoupledTauY"].as_f64().unwrap()),
+            (output["decoupledTauN"].as_f64().unwrap() * 1000.0).clamp(-5.0e8, 5.0e8),
+        ];
+        let step_request = json!({
+            "modelId": "semisub3dof",
+            "dt": dt,
+            "thrusterForce": thrust,
+            "envForce": env_force,
+            "state": state.clone()
+        });
+        state = serde_json::from_str(
+            &compute_virtual_simulation_step_json(&step_request.to_string()).unwrap(),
+        )
+        .unwrap();
+        let position_error = state["positionError"].as_f64().unwrap();
+        assert!(position_error.is_finite());
+        max_position_error = max_position_error.max(position_error);
+    }
+
+    let final_error = state["positionError"].as_f64().unwrap();
+    assert!(
+        final_error < 3.0,
+        "60 s 后位置误差应在黄色警报内（< 3 m），实际 {final_error:.3} m"
+    );
+    assert!(
+        max_position_error < 10.0,
+        "全程不得触发紧急解脱阈值（10 m），峰值 {max_position_error:.3} m"
+    );
+}
