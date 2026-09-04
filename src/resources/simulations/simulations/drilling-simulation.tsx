@@ -870,6 +870,7 @@ export function DrillingSimulation() {
   const windEnvRef = useRef<WindEnvironment>(
     createWindEnvironment(10, 45, 1.2)
   );
+  const meanWindSpeedRef = useRef(10);
   const waveHeightRef = useRef(1.5);
   const timeRef = useRef(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -900,6 +901,7 @@ export function DrillingSimulation() {
     const env = getTypicalEnvironment(config.seaStateLevel);
     currentEnvRef.current = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
     windEnvRef.current = createWindEnvironment(env.windSpeed, 45, 1.2);
+    meanWindSpeedRef.current = env.windSpeed;
     waveHeightRef.current = env.waveHeight;
   }, [config.seaStateLevel]);
 
@@ -922,7 +924,7 @@ export function DrillingSimulation() {
 
       // 更新环境
       currentEnvRef.current = updateCurrentEnvironment(currentEnvRef.current, dt);
-      windEnvRef.current = updateWindEnvironment(windEnvRef.current, dt, windEnvRef.current.speed);
+      windEnvRef.current = updateWindEnvironment(windEnvRef.current, dt, meanWindSpeedRef.current);
 
       // 计算环境力
       const envForces = computeTotalEnvironmentalForces(
@@ -974,7 +976,7 @@ export function DrillingSimulation() {
 
       platformStateRef.current.thrusters = allocationResult.thrusters;
 
-      // 计算实际推力作用于平台的力 (kN -> N)
+      // 实际推力 kN → N：semisub3dof 契约为 SI 单位（N、N·m），内核不再换算（#1943）
       const thrusterForce: [number, number, number] = [
         allocationResult.totalForceX * 1000,
         allocationResult.totalForceY * 1000,
