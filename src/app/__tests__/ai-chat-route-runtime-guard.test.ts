@@ -177,6 +177,9 @@ describe('AI chat route Konling runtime guard', () => {
     expect(konlingRuntimeSource).toContain('set_simulation_params: tool');
     expect(konlingRuntimeSource).toContain('analyze_result: tool');
     expect(konlingRuntimeSource).not.toContain('setSimulationParamsTool.execute');
+    expect(konlingRuntimeSource).not.toContain('getSimulationStatusTool');
+    expect(konlingRuntimeSource).not.toContain('setSimulationParamsTool');
+    expect(konlingRuntimeSource).not.toContain('analyzeResultTool');
     expect(konlingRuntimeSource).toContain('inputSchema: setSimulationParamsInputSchema.extend');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });

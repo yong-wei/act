@@ -11,8 +11,6 @@ import {
 import {
   CANDIDATE_GRAPH_SUPPORT,
   CANDIDATE_RELEASE_SELECTOR,
-} from '@/features/knowledge/public-api';
-import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
 } from '@/features/knowledge/public-api';
@@ -44,6 +42,7 @@ import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-govern
 import {
   AdaptivePathCandidateBatchConflictError,
   assertAdaptivePathCandidateBatchMatchesInput,
+  authorizeAdaptivePathComparisonIdentity,
   buildAdaptivePathCandidateDifferenceSummary,
   persistAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatch,
@@ -54,8 +53,16 @@ import {
   persistLearningPathRound,
   recordPathChoiceEvidence,
   recordPathIntervention,
+  planLearningPath,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
+  getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathGraphContextInput,
+  type AdaptiveLearningPathConfigurationRequest,
+  type AdaptiveLearningPathPolicyFamily,
+  type AdaptiveLearningPathLearnerState,
+  type AdaptiveLearningPathPlan,
+  type AdaptiveLearningPathPlanNode,
 } from '@/features/personalization/path-planning/public-api';
-import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,
@@ -74,17 +81,6 @@ import {
   type StudyQuestionIntent,
 } from '@/lib/konling-study-question-structure';
 import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
-import {
-  planLearningPath,
-  buildAdaptiveLearningPathLearnerStateSnapshot,
-  getRegisteredAdaptiveLearningPathGoal,
-  type AdaptiveLearningPathGraphContextInput,
-  type AdaptiveLearningPathConfigurationRequest,
-  type AdaptiveLearningPathPolicyFamily,
-  type AdaptiveLearningPathLearnerState,
-  type AdaptiveLearningPathPlan,
-  type AdaptiveLearningPathPlanNode,
-} from '@/features/personalization/path-planning/public-api';
 import {
   collectionEventsFromGovernedFacts,
   previousPathFactsFromPlanOptions,
@@ -160,18 +156,19 @@ import {
   type ArenaCompanionContext,
   isClientAuthoredArenaCompanionScope,
 } from '@/features/ai/companion/arena-companion-context';
-import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
-import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
-  analyzeResultTool,
+  decideIntervention,
+  shouldIntervene,
+  type InterventionDecision,
+  type StudentState,
+} from '@/features/personalization/interventions/public-api';
+import {
   analyzeResultInputSchema,
   analyzeSimulationResult,
   buildSimulationParamChangeRequest,
   formatSimulationParamChangeResponse,
   getSimulationStatusInputSchema,
-  getSimulationStatusTool,
   setSimulationParamsInputSchema,
-  setSimulationParamsTool,
   type SimulationAnalysisInput,
   type SimulationParamChangeInput,
   type SimulationStateStore,
@@ -1178,7 +1175,7 @@ function buildKonlingStudyQuestionContract(input: {
 }): KonlingStudyQuestionContract | null {
   const independentRisk = hasIndependentNormativeRisk(input.currentUserQuery);
   let intent: KonlingStudyQuestionContract['intent'];
-  if (isStudyQuestionIntent(input.answerIntent)) {
+  if (isKnownStudyQuestionIntent(input.answerIntent)) {
     intent = input.answerIntent;
   } else if (independentRisk) {
     intent = 'open-ended-explanation';
@@ -1197,23 +1194,10 @@ function buildKonlingStudyQuestionContract(input: {
     : 'not-applicable';
   return {
     intent,
-    requiredSections: studyQuestionRequiredSections(intent),
+    requiredSections: studyQuestionSectionTitles(intent),
     normativeGuidance,
     preferences,
   };
-}
-
-function isStudyQuestionIntent(answerIntent: KonlingAnswerIntent): answerIntent is KonlingStudyQuestionContract['intent'] {
-  return answerIntent === 'fact-explanation'
-    || answerIntent === 'formula-derivation'
-    || answerIntent === 'code-debugging'
-    || answerIntent === 'concept-comparison'
-    || answerIntent === 'normative-content'
-    || answerIntent === 'open-ended-explanation';
-}
-
-function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['intent']): string[] {
-  return studyQuestionSectionTitles(intent);
 }
 
 function normalizeKonlingStudyAnswerPreferences(
