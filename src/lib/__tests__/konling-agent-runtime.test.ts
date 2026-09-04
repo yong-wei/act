@@ -3956,11 +3956,11 @@ describe('konling agent runtime', () => {
     expect(invalid.unavailableReasons).toContain('unknown-mode:unknown-mode');
     expect(invalid.permittedTools).toEqual([]);
 
-    const teacherGrading = resolveKonlingTeachingAssistantMode('teacher-grading-assistant');
+    const teacherGrading = resolveKonlingTeachingAssistantMode('grading-assistant');
     expect(teacherGrading.id).toBe('grading-assistant');
     expect(teacherGrading.outputContract.forbiddenActions).toContain('approve-grading');
 
-    const studentFeedback = resolveKonlingTeachingAssistantMode('student-feedback-explainer');
+    const studentFeedback = resolveKonlingTeachingAssistantMode('feedback-explainer');
     expect(studentFeedback.id).toBe('feedback-explainer');
     expect(studentFeedback.supportedRoles).toEqual(['student']);
   });
@@ -4404,7 +4404,7 @@ describe('konling agent runtime', () => {
   it('adds teaching-assistant mode privacy and output constraints to the system prompt', () => {
     const runtime = createRuntimeContext();
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({
-      modeId: 'teacher-grading-assistant',
+      modeId: 'grading-assistant',
       runtimeContext: runtime,
       scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', targetUserId: 'student-1', privacyScopes: ['teacher-scoped'] }),
     });
