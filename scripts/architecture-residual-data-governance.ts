@@ -407,9 +407,15 @@ function runPostGuards(revokeOnFailure = false): void {
     process.exit(1);
   };
   if (!replayPinnedSubject) {
-    execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
-    const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
-    if (subjectCommitAfter !== currentSubject.subjectCommit) fail('subject-drifted-during-run');
+    // A fetch or rev-parse failure leaves the subject unverifiable — the same
+    // fail-closed (and revoking) path as a confirmed drift.
+    try {
+      execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
+      const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
+      if (subjectCommitAfter !== currentSubject.subjectCommit) fail('subject-drifted-during-run');
+    } catch {
+      fail('subject-drift-check-unavailable');
+    }
   }
   for (const [name, path] of readOnlyInputs) {
     const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
