@@ -32,11 +32,13 @@ import {
   projectResidualDocuments,
   resolveResidualCurrentSubject,
   verifyResidualLedgerArtifact,
+  verifyResidualProjectionArtifacts,
   type Issue1876Snapshot,
   type ResidualAdjudication,
   type ResidualAdjudicationInput,
   type ResidualCallerInput,
   type ResidualMemberInput,
+  type ResidualProjectionVerification,
 } from '../src/lib/architecture-charter/residual-data-governance';
 
 const OUTPUT_DIR = 'docs/architecture/modular-monolith/post-convergence/residual-data-governance/current';
@@ -285,21 +287,50 @@ const ledgerDir = join(repoRoot, 'artifacts/architecture-census', currentSubject
 mkdirSync(ledgerDir, { recursive: true });
 const ledgerPath = join(ledgerDir, 'residual-data-governance-ledger.ndjson');
 writeFileSync(ledgerPath, firstPass.ledgerBody);
-const receipt = verifyResidualLedgerArtifact({
+const ledgerReceipt = verifyResidualLedgerArtifact({
   ledgerAbsolutePath: ledgerPath,
   expectedLocator: firstPass.fullLedger.logicalLocator,
   expectedSha256: firstPass.fullLedger.sha256,
   expectedByteCount: firstPass.fullLedger.byteCount,
   expectedMemberDenominator: firstPass.summaries.memberCount,
+  projectionsReconciled: false,
 });
-if ('error' in receipt) {
-  process.stderr.write(`ledger-verification:${receipt.error}\n`);
+if ('error' in ledgerReceipt) {
+  process.stderr.write(`ledger-verification:${ledgerReceipt.error}\n`);
   process.exit(1);
 }
 
+const outDir = join(repoRoot, OUTPUT_DIR);
+mkdirSync(outDir, { recursive: true });
+
+/** Writes one adjudication's compact projections, then reconciles the actual on-disk bytes. */
+function writeProjectionArtifacts(result: ResidualAdjudication): ResidualProjectionVerification {
+  for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
+    const normalized = content.replace(/\n+$/u, '\n');
+    const violation = privacyViolation(normalized);
+    if (violation) throw new Error(`privacy:${violation}:${name}`);
+    writeFileSync(join(outDir, name), normalized);
+  }
+  const verification = verifyResidualProjectionArtifacts({
+    outputDir: outDir,
+    result,
+    receiptSubjectCommit: ledgerReceipt.subjectCommit,
+  });
+  if (!verification.reconciled) {
+    process.stderr.write(`projection-verification:${verification.reason}\n`);
+    process.exit(1);
+  }
+  return verification;
+}
+
+// 6. Provisional projections from the still-unverified first pass are written and
+//    byte-reconciled, so the receipt's projectionsReconciled flag carries a real
+//    check result instead of an unconditional claim.
+const provisionalVerification = writeProjectionArtifacts(firstPass);
+const receipt = { ...ledgerReceipt, projectionsReconciled: provisionalVerification.reconciled };
 const result = adjudicate(receipt);
 
-// 6. Post guards run BEFORE any qualified projection is published, so a drifted
+// 7. Post guards run BEFORE the final projection is published, so a drifted
 //    run never leaves an apparently-qualified migration input behind.
 const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
 if (subjectCommitAfter !== currentSubject.subjectCommit) {
@@ -314,9 +345,9 @@ for (const [name, path] of readOnlyInputs) {
   }
 }
 
-// 7. Compact decision outputs under current/ (the archived #1883 files stay untouched).
-const outDir = join(repoRoot, OUTPUT_DIR);
-mkdirSync(outDir, { recursive: true });
+// 8. Final projections are re-reconciled against the final adjudication; the
+//    compact index is written only after every receipt claim it embeds is true.
+const finalVerification = writeProjectionArtifacts(result);
 const compact = serializeDeterministic({
   schemaVersion: result.schemaVersion,
   qualified: result.qualified,
@@ -328,17 +359,19 @@ const compact = serializeDeterministic({
   futureSlices: result.futureSlices,
   fullLedger: result.fullLedger,
   ledgerVerification: receipt,
+  projectionVerification: {
+    reconciled: finalVerification.reconciled,
+    fileDigests: finalVerification.fileDigests,
+  },
   decisionIdentity: result.decisionIdentity,
 });
 const compactPrivacy = privacyViolation(compact);
 if (compactPrivacy) throw new Error(`privacy:${compactPrivacy}:index.json`);
-writeFileSync(join(outDir, 'index.json'), compact);
-const documents = projectResidualDocuments(result);
-for (const [name, content] of Object.entries(documents)) {
-  const normalized = content.replace(/\n+$/u, '\n');
-  const violation = privacyViolation(normalized);
-  if (violation) throw new Error(`privacy:${violation}:${name}`);
-  writeFileSync(join(outDir, name), normalized);
+const compactPath = join(outDir, 'index.json');
+writeFileSync(compactPath, compact);
+if (readFileSync(compactPath, 'utf8') !== compact) {
+  process.stderr.write('index-write-verification-failed\n');
+  process.exit(1);
 }
 
 process.stdout.write(`${result.qualified ? 'qualified' : 'blocker'} ${result.decisionIdentity} members=${result.summaries.memberCount} unresolved=${result.summaries.unresolvedCount} subject=${currentSubject.subjectCommit.slice(0, 12)} blockers=${result.blockers.join(',') || 'none'}\n`);

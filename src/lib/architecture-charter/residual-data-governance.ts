@@ -723,7 +723,7 @@ export function adjudicateResidualDataGovernance(
   const unresolvedCount = records.filter((record) => record.status === 'unresolved').length;
   if (unresolvedCount > 0) blockers.push('unresolved-records');
 
-  const futureSlices = buildFutureSlices(records);
+  const candidateSlices = buildFutureSlices(records);
   const callerBundleDigest = sha256Text(serializeDeterministic(input.callers));
   const ledgerBody = serializeDeterministic({
     identity: {
@@ -763,7 +763,7 @@ export function adjudicateResidualDataGovernance(
   const privacyTarget = serializeDeterministic({
     summaries,
     families,
-    futureSlices,
+    futureSlices: candidateSlices,
     records: records.map(({ callers: _callers, ...rest }) => rest),
   });
   const privacy = residualPrivacyViolation(privacyTarget) ?? residualPrivacyViolation(ledgerBody);
@@ -777,6 +777,10 @@ export function adjudicateResidualDataGovernance(
       && QUALIFIED_OUTCOMES.has(record.outcome)
       && record.status === 'qualified'
     ));
+
+  // Task 6.1/6.3: a migration-input slice may exist only inside a fully
+  // qualified package; any global gate failure leaves a blocker-only projection.
+  const futureSlices = qualified ? candidateSlices : [];
 
   const decisionIdentity = sha256Text(serializeDeterministic({
     schemaVersion: RESIDUAL_SCHEMA_VERSION,
@@ -936,15 +940,17 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
       '# Residual Data Governance decision matrix',
       '',
       `- schemaVersion: \`${result.schemaVersion}\``,
-      `- successorCaptureId: \`${result.subject.successorCaptureId}\``,
-      `- sourceCommit: \`${result.subject.sourceCommit}\``,
-      `- sourceTree: \`${result.subject.sourceTree}\``,
-      `- packageDigest: \`${result.subject.packageDigest}\``,
-      `- ownerResidueSha256: \`${result.subject.ownerResidueSha256}\``,
-      `- fullInventoryLocator: \`${result.subject.fullInventoryLocator}\``,
-      `- fullInventorySha256: \`${result.subject.fullInventorySha256}\``,
+      `- currentSubjectCommit: \`${result.subject.currentSubject.subjectCommit}\``,
+      `- currentSubjectTree: \`${result.subject.currentSubject.subjectTree}\``,
       `- memberSetDigest: \`${result.subject.memberSetDigest}\``,
       `- tool.entryBundleDigest: \`${result.tool.entryBundleDigest}\``,
+      `- predecessor1883.successorCaptureId: \`${result.subject.successorCaptureId}\``,
+      `- predecessor1883.sourceCommit: \`${result.subject.sourceCommit}\``,
+      `- predecessor1883.sourceTree: \`${result.subject.sourceTree}\``,
+      `- predecessor1883.packageDigest: \`${result.subject.packageDigest}\``,
+      `- predecessor1883.ownerResidueSha256: \`${result.subject.ownerResidueSha256}\``,
+      `- predecessor1883.fullInventoryLocator: \`${result.subject.fullInventoryLocator}\``,
+      `- predecessor1883.fullInventorySha256: \`${result.subject.fullInventorySha256}\``,
       `- predecessorBaseline.sourceCommit: \`${REQUIRED_BASELINE.sourceCommit}\``,
       `- qualified: \`${result.qualified ? 'yes' : 'no'}\``,
       `- decisionIdentity: \`${result.decisionIdentity}\``,
@@ -977,8 +983,14 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
     'future-slices.md': [
       '# Residual Data Governance future slices',
       '',
-      'Each slice is a migration input, not authorization to act. Readers must verify subject/tool/schema identities.',
-      '',
+      ...(result.futureSlices.length === 0
+        ? [
+          'No migration-input slice is emitted: the whole package must qualify before any slice can become a migration input.',
+          `- packageQualified: \`${result.qualified ? 'yes' : 'no'}\``,
+          `- blockers: ${result.blockers.join(', ') || 'none'}`,
+          '',
+        ]
+        : ['Each slice is a migration input, not authorization to act. Readers must verify subject/tool/schema identities.', '']),
       ...result.futureSlices.flatMap((slice) => [
         `## ${slice.slice}`,
         '',
@@ -995,6 +1007,7 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
       '# Residual Data Governance handoff',
       '',
       `- status: \`${result.qualified ? 'COMPLETE-qualified' : 'COMPLETE-non-qualified-BLOCKER'}\``,
+      `- currentSubjectCommit: \`${result.subject.currentSubject.subjectCommit}\``,
       `- decisionIdentity: \`${result.decisionIdentity}\``,
       `- successorCaptureId: \`${result.subject.successorCaptureId}\``,
       `- packageDigest: \`${result.subject.packageDigest}\``,
@@ -1069,6 +1082,7 @@ export function verifyResidualLedgerArtifact(params: {
   readonly expectedSha256: string;
   readonly expectedByteCount: number;
   readonly expectedMemberDenominator: number;
+  readonly projectionsReconciled: boolean;
 }): LedgerVerificationReceipt | { error: string } {
   let bytes: Buffer;
   try {
@@ -1112,8 +1126,49 @@ export function verifyResidualLedgerArtifact(params: {
     memberSetDigest: identity.memberSetDigest,
     callerBundleDigest: identity.callerBundleDigest,
     familiesDigest,
-    projectionsReconciled: true,
+    projectionsReconciled: params.projectionsReconciled,
   };
+}
+
+export interface ResidualProjectionVerification {
+  readonly reconciled: boolean;
+  readonly reason?: string;
+  readonly fileDigests: Readonly<Record<string, string>>;
+}
+
+/**
+ * Re-reads the actually written compact projections and reconciles their bytes
+ * against a fresh render of the final adjudication plus the receipt-bound
+ * subject identity. The receipt may claim reconciliation only after this check.
+ */
+export function verifyResidualProjectionArtifacts(params: {
+  readonly outputDir: string;
+  readonly result: ResidualAdjudication;
+  readonly receiptSubjectCommit: string;
+}): ResidualProjectionVerification {
+  const expected = projectResidualDocuments(params.result);
+  const fileDigests: Record<string, string> = {};
+  for (const [name, content] of Object.entries(expected)) {
+    let written: string;
+    try {
+      written = readFileSync(join(params.outputDir, name), 'utf8');
+    } catch {
+      return { reconciled: false, reason: `projection-missing:${name}`, fileDigests };
+    }
+    if (normalizeProjection(written) !== normalizeProjection(content)) {
+      return { reconciled: false, reason: `projection-content-mismatch:${name}`, fileDigests };
+    }
+    fileDigests[name] = sha256Text(normalizeProjection(content));
+  }
+  const matrix = normalizeProjection(expected['decision-matrix.md'] ?? '');
+  if (!matrix.includes(`currentSubjectCommit: \`${params.receiptSubjectCommit}\``)) {
+    return { reconciled: false, reason: 'projection-subject-mismatch', fileDigests };
+  }
+  return { reconciled: true, fileDigests };
+}
+
+function normalizeProjection(text: string): string {
+  return text.replace(/\n+$/u, '\n');
 }
 
 /** Resolves the claim-time current adjudication subject from the frozen integration ref. */
