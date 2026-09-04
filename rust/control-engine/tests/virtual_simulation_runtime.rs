@@ -683,14 +683,27 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
             println!("DBG t={} err={} psi={} r={} yawKNm={}", time, position_error, mmg["psi"].as_f64().unwrap().to_degrees(), mmg["r"].as_f64().unwrap(), dp["output"]["yawMoment"].as_f64().unwrap() / 1000.0);
         }
     }
-    // 定位容差 0.1 m 的量级（含挖掘冲击与默认风流的工程余量）。以最后 10 s
-    // 窗口整体判定：均值与最小值都必须处于容差量级（≤ 0.5 m），拒绝「窗口内
-    // 偶发回落、其余时间持续超限」的持续告警态（review #1944）。
-    let recent_min = recent_errors.iter().cloned().fold(f64::INFINITY, f64::min);
+    // 按页面告警语义验收（review #1944）：定位告警在误差持续 >0.1 m 达 10 s
+    // 时触发，因此末段必须不存在连续 100 步（10 s）全部 >0.1 m 的游程——即
+    // 持续告警态无法通过；同时窗口整体处于容差量级（mean ≤ 0.5 m）。
     let recent_mean = recent_errors.iter().sum::<f64>() / recent_errors.len().max(1) as f64;
+    let mut streak = 0_usize;
+    let mut max_streak = 0_usize;
+    for error in &recent_errors {
+        if *error > 0.1 {
+            streak += 1;
+            max_streak = max_streak.max(streak);
+        } else {
+            streak = 0;
+        }
+    }
     assert!(
-        recent_min <= 0.5 && recent_mean <= 0.5,
-        "60s 末段未整体收敛到定位容差量级: min={recent_min} mean={recent_mean} final={final_error}"
+        max_streak < 100,
+        "60s 末段存在连续 10s 超过告警阈值的游程（持续告警态）: max_streak={max_streak} mean={recent_mean}"
+    );
+    assert!(
+        recent_mean <= 0.5,
+        "60s 末段均值未收敛到容差量级: mean={recent_mean} final={final_error}"
     );
     let heading_error_deg = (((mmg["psi"].as_f64().unwrap() - target_psi).to_degrees() + 180.0)
         % 360.0

@@ -545,9 +545,11 @@ export class MMG3DOFEngine implements SimulationEngine {
             severity: dpResult.metrics.positionError > 0.5 ? 'critical' : 'warning',
           });
         }
-      } else if (dpResult.metrics.positionError < 0.05) {
+      } else if (!this.positionAlarmActive || dpResult.metrics.positionError < 0.05) {
         this.positionAlarmSince = null;
-        this.positionAlarmActive = false;
+        if (this.positionAlarmActive && dpResult.metrics.positionError < 0.05) {
+          this.positionAlarmActive = false;
+        }
       }
     } else {
       this.dpThruster = undefined;

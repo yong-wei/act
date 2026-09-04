@@ -846,9 +846,11 @@ export function DredgerSimulation() {
               `定位误差持续超过 ${POSITION_ALARM_THRESHOLD_M} m 阈值达 ${POSITION_ALARM_HOLD_SECONDS} 秒，请检查扰动设置与控制模式`
             );
           }
-        } else if (dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
+        } else if (!alarm.active || dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
+          // 未激活时回到阈值内即重置连续计时（防止两段短超限拼接提前触发，
+          // review #1944）；已激活时保留 0.05m 清除滞回。
           alarm.since = null;
-          if (alarm.active) {
+          if (alarm.active && dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
             alarm.active = false;
             setPositionAlarm(null);
           }
