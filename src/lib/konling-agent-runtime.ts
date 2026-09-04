@@ -1873,6 +1873,9 @@ export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
     resolver: citation.resolver ?? null,
     displayNumber: citation.displayNumber ?? null,
     canonicalKey: citation.canonicalKey ?? null,
+    // 持久化引用必须携带结构化 identity（来源版本与目标锚点随 identity
+    // 输出），sessions 重载不能只依赖 opaque canonicalKey（#1949 review）。
+    identity: citation.identity ?? null,
     citationChip: jsonSafe(citation.citationChip),
   };
 }
@@ -3542,6 +3545,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         sourceType: 'textbook',
         displayTitle: candidate.title,
         href: candidate.href,
+        // 无锚点地址的教材候选不可核验，不得作为已核验引用（#1949）
+        verifiable: Boolean(candidate.href),
         confidence: 'high',
         evidenceBasis: 'source-pack:textbook-v2',
         limitation: candidate.limitation,
@@ -8871,45 +8876,51 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
   context: T,
   assignedCitations: readonly KonlingAssignedCitation[],
 ): T {
-  if (!context.pageContext.candidateGraph || !context.citationContext) return context;
-  const candidateCitations: KonlingCitation[] = assignedCitations
-    .filter((citation) => citation.evidenceBasis?.startsWith('candidate-canonical:'))
+  if (!context.citationContext) return context;
+  // 最终 guard 必须与 normalize 层共享同一 assigned 表视图：检索工具分配的
+  // 教材与 candidate 引用只存在于 assigned 表，不投影进 citationContext 时，
+  // collectUnverifiedCitationMarkers 会把有效工具编号误判为未分配而剥离（#1949）。
+  const existingByCanonicalKey = new Set([
+    ...context.citationContext.contentCitations,
+    ...context.citationContext.evidenceCitations,
+  ].flatMap((citation) => [citation.canonicalKey
+    ?? buildKonlingCitationCanonicalKey(toAssignableRuntimeCitation(citation).identity)]));
+  const toolCitations: KonlingCitation[] = assignedCitations
+    .filter((citation) => citation.verifiable !== false && !existingByCanonicalKey.has(citation.canonicalKey))
     .map((citation) => ({
       id: citation.id,
-      sourceType: 'content',
+      // runtime citation 的 sourceType 联合不含 textbook：投影条目归一为
+      // content 分类（guard 内部分类用），用户可见的教材标签以 assigned
+      // 表持久化投影（normalized.citations）为准。
+      sourceType: 'content' as const,
       displayTitle: citation.displayTitle,
       href: citation.href,
       confidence: citation.confidence ?? 'high',
-      evidenceBasis: citation.evidenceBasis
-        ?? `candidate-canonical:${context.pageContext.candidateGraph!.releaseSetId}:${context.pageContext.candidateGraph!.releaseId}`,
-      owner: 'answer',
-      citationTargetId: citation.identity.kind === 'content'
-        ? citation.identity.contentId
-        : citation.id,
+      evidenceBasis: citation.evidenceBasis ?? 'server-assigned-citation',
+      owner: 'answer' as const,
+      citationTargetId: assignedCitationTargetId(citation),
       verified: true,
-      resolver: 'candidate-authoritative-repository',
+      resolver: citation.evidenceBasis?.startsWith('candidate-canonical:')
+        ? 'candidate-authoritative-repository'
+        : null,
       displayNumber: citation.displayNumber,
       canonicalKey: citation.canonicalKey,
       identity: citation.identity,
     }));
-  if (candidateCitations.length === 0) return context;
-  const existingByCanonicalKey = new Set(
-    context.citationContext.contentCitations.map((citation) => citation.canonicalKey),
-  );
+  if (toolCitations.length === 0) return context;
+  // assigned 表条目携带服务器分配的 displayNumber，与 normalize 层处于同一
+  // 编号空间，直接拼接保留原编号：后台优化移除中间教材候选时编号有缺口，
+  // 重新连续编号会让正文引用与 guard 视图错位而被误剥离（#1949 review）。
   const contentCitations = [
     ...context.citationContext.contentCitations,
-    ...candidateCitations.filter((citation) => !existingByCanonicalKey.has(citation.canonicalKey)),
+    ...toolCitations,
   ];
-  const hydrated = assignKonlingRuntimeCitationDisplayNumbers(
-    contentCitations,
-    context.citationContext.evidenceCitations,
-  );
   return {
     ...context,
     citationContext: {
       ...context.citationContext,
-      contentCitations: hydrated.contentCitations,
-      evidenceCitations: hydrated.evidenceCitations,
+      contentCitations,
+      evidenceCitations: context.citationContext.evidenceCitations,
       missingCitationClasses: context.citationContext.missingCitationClasses
         .filter((item) => item !== 'content'),
       lowConfidenceReasons: context.citationContext.lowConfidenceReasons
@@ -8919,6 +8930,16 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
         )),
     },
   };
+}
+
+function assignedCitationTargetId(citation: KonlingAssignedCitation): string {
+  if (citation.identity.kind === 'textbook') {
+    return citation.identity.fragmentId ?? citation.identity.unitId;
+  }
+  if (citation.identity.kind === 'content') {
+    return citation.identity.contentId;
+  }
+  return citation.identity.evidenceId;
 }
 
 function toAssignableRuntimeCitation(citation: KonlingCitation) {
@@ -8941,6 +8962,9 @@ function toAssignableRuntimeCitation(citation: KonlingCitation) {
     sourceType: citation.sourceType,
     displayTitle: citation.displayTitle,
     href: citation.displayHref ?? citation.href,
+    // 与 isBindableAnswerUnitCitation 同一判定：未核验或无目标的条目不得
+    // 作为已核验引用进入正式回答（#1949）
+    verifiable: citation.verified === true && Boolean(citation.citationTargetId),
     identity,
     confidence: citation.confidence,
     evidenceBasis: citation.evidenceBasis,
@@ -9552,9 +9576,16 @@ export function buildKonlingCitationGuard(
       lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
     }
   }
-  const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
+  // 不可绑定编号的收集不限于学习问答：所有正式回答路径都需要这道
+  // 防线，非 study-question 路径由 strip 层据此剥离（#1949）
+  const unverifiedCitationMarkers = assistantMessage === undefined
     ? []
     : collectUnverifiedCitationMarkers(assistantMessage, citations);
+  if (unverifiedCitationMarkers.length > 0) {
+    // 未核验编号本身构成降级原因：上下文完整时也不能在静默删除标记后
+    // 仍以 verified 状态交付（#1949 review）
+    lowConfidenceReasons.push('assistant-unverified-citation-markers');
+  }
   const normativeCompliance = assistantMessage !== undefined
     && modeContract?.studyQuestion?.normativeGuidance === 'verification-required'
     ? scanKonlingNormativeCompliance(assistantMessage)
@@ -9736,10 +9767,8 @@ function isCitationMarkerPosition(
   assignedNumbers: ReadonlySet<number>,
 ): boolean {
   if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
-  // Unassigned numbers keep the helper's wide technical-index reading (any
-  // identifier directly before the bracket, e.g. controller[2]); only
-  // server-assigned numbers use the narrow single-letter/collection reading
-  // so Chinese prose before a real citation still counts (#1819).
+  // 技术下标豁免统一为明确的变量/集合表达式读法（单字母或集合词），
+  // 中文或英文普通词紧邻的编号（含未分配编号）都按引用标记处理（#1949）。
   return !isTechnicalIndexContext(assistantMessage, offset, assignedNumbers.has(number));
 }
 
@@ -9961,7 +9990,7 @@ export function stripUnverifiedKonlingCitationMarkers(
   guard: KonlingCitationGuard,
 ): string {
   const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
-  if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
+  if (invalidNumbers.length === 0) return assistantMessage;
   const invalidSet = new Set(invalidNumbers);
   const assignedNumbers = assignedCitationNumbers(guard.citations);
   const codeRanges = markdownCodeRanges(assistantMessage);
@@ -9979,15 +10008,41 @@ export function stripUnverifiedKonlingCitationMarkers(
     .replace(/\n{3,}/g, '\n\n');
 }
 
+// 学生可见的降级原因映射：未登记的内部 reason code 一律不进入「证据限制」
+// 文本，详细原因仅保留在开发诊断 metadata（#1949 review）。
+const CITATION_MISSING_CLASS_LABELS: Record<string, string> = {
+  content: '课程内容',
+  'learner-state': '学习证据',
+  'path-execution': '学习路径',
+  evidence: '学习证据',
+  simulation: '仿真记录',
+  arena: 'Arena',
+  intervention: '干预记录',
+  memory: '记忆摘要',
+};
+
+const CITATION_LOW_CONFIDENCE_LABELS: Record<string, string> = {
+  'assistant-unverified-citation-markers': '存在未能核验的引用',
+};
+
 export function applyKonlingCitationFallback(
   assistantMessage: string,
   guard: KonlingCitationGuard,
 ): string {
   const sanitizedMessage = stripUnverifiedKonlingCitationMarkers(assistantMessage, guard);
-  if (!guard.fallbackRequired) return sanitizedMessage;
+  const unverifiedMarkerCount = (guard.unverifiedCitationMarkers ?? []).length;
+  if (!guard.fallbackRequired && unverifiedMarkerCount === 0) return sanitizedMessage;
   const limitation = [
-    ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
-    ...guard.lowConfidenceReasons,
+    ...guard.missingCitationClasses
+      .flatMap((item) => {
+        const label = CITATION_MISSING_CLASS_LABELS[item];
+        return label ? [`缺少${label}引用`] : [];
+      }),
+    ...guard.lowConfidenceReasons
+      .flatMap((reason) => {
+        const label = CITATION_LOW_CONFIDENCE_LABELS[reason];
+        return label ? [label] : [];
+      }),
   ].join('；');
   const citations = guard.citations.slice(0, 4)
     .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)
@@ -9996,6 +10051,9 @@ export function applyKonlingCitationFallback(
     sanitizedMessage.trim(),
     '',
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
+    unverifiedMarkerCount > 0
+      ? `已移除 ${unverifiedMarkerCount} 个未能核验的引用标记。`
+      : '',
     citations ? `可用引用：${citations}` : '',
   ].filter(Boolean).join('\n');
 }
