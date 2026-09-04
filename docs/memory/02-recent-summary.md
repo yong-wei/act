@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-08-31
-摘要: 生产知识面已切到 Authority v0.37 + 应用 `v0.6.1`。`latestCutover` 为 successor/ready；合格领域有非空教学关系。Runtime 仍为 `runtime-150a505a…`。#1683 产品验收已完成，待 archive 与关 Issue。
+最后更新: 2026-09-04
+摘要: 生产应用已发布 `v0.7.1-51ed935`（main `51ed935b8d`），`v0.7.2` 发布进行中。Wolfram Cloud 仍维护 503，部署期跳过门禁已收敛为仓库受控的 `SKIP_WOLFRAM_READY_CHECK` 透传。开发者网关（runtime-dev）租约风暴超时已修复并上线。生产知识面维持 Authority v0.37；Runtime 仍为 `runtime-150a505a…`。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,9 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-09-04 开发者网关（runtime-dev.adapt-learn.online）读取超时已修复并重启上线：根因是租约持久化风暴——每条租约内联 3.7 万条 allowlist（约 5MB），heartbeat 与每次 blob GET 都在全局锁内全量重写 `leases.json`（实测 399MB/82 租约、累计 1.2TB 磁盘写），所有请求排队超过客户端 30s 超时。修复在 `scripts/runtime-release/developer-oss/gateway_service.py`：持久化前驱逐死亡/超宽限租约、心跳类持久化 30s 去抖、同 checkout 重签发取代旧活租约。运维配套：重启前按同规则裁剪租约库（备份 `.bak-lease-storm`）。修复后 heartbeat 2ms、issue 5.3s（3.7 万文件清单校验）。排障方法已沉淀到 `.agents/skills/server-ops/references/remote-investigation.md`。
+- 2026-09-04 生产应用 `v0.7.1-51ed935`（`deploymentScope=app-only`，app/worker OCI revision `51ed935b8d…`，tar SHA256 `e712a399…`）已完成部署与验收：25 个 Prisma 迁移应用，ActKG/CourseCoverage/资源绑定影子 verify-only 通过，知识图谱 seed 838 节点/16571 关系，readyz app/db/redis 全 true。部署时 Wolfram Cloud 计划维护全站 503，当时经用户授权对远端 `4-deploy.sh`、`5-configure-service.sh` 打了三处临时补丁。该跳过机制已收敛为仓库受控实现：`deploy/podman/deploy.sh` 在 `SKIP_WOLFRAM_READY_CHECK=1` 时透传容器并跳过 smoke 预检，标志放在远端 `.env.server`，v0.7.2 部署重同步脚本后临时补丁自动失效。Wolfram 恢复后从远端 `.env.server` 移除该标志即恢复完整门禁；在此之前公式计算功能不可用。
+- 2026-09-04 驱逐舰 v2 模型调查结论：默认界面显示旧模型是 #1898 既定范围（候选接入，`?model=type055-v2` 显式启用，生产激活为独立授权变更）。两个真实缺陷待修：① QA 页 `/simulations/type055-model-candidate` 的 Canvas 无相机取景（默认相机在 180m 舰体内部，只看到舰底）；② 冷加载时 `StayPutCameraController` 存在相机对象竞态——v2 路径无模块级预载，GLB 挂起期间控制器在 R3F 初始默认相机上完成一次性初始化，drei `PerspectiveCamera makeDefault` 随后替换相机对象，`initialized` 已置位导致机位永远钉在 `[0,200,500]`（距船 6.5km），船不可见；热缓存刷新后正常。修复方向：控制器跟踪相机对象身份变化时重新锚定。另发现 4 个 skinned 网格（机库门×2、国旗×2）经 `clone(true)` 后骨骼绑定断裂，需 `SkeletonUtils.clone`。验收测试只断言数据层（请求账本、节点变换），未断言视觉可见性，导致两类问题漏出。
 - 2026-08-31 #1683 生产应用 `v0.6.1-93a70ae`（`deploymentScope=app-only`）已 `deploy:app --skip-build`。successor Teaching/domain-fragments overlay 已安装；密封 shard set 未重物化。公网 `/knowledge` 合格领域不再显示「教学关系暂不可用」。独立 Runtime receipt generation=30。不要再 apply overlay，不要 `deploy:runtime`，不要重跑 10.7。
 - 2026-08-27 #1554 纠正：PR 质量门禁是本地可审计证据，不是 GitHub Actions PR CI。`integration` PR 不增加 `pull_request` 触发器，也不要求 GitHub status check。GitHub Actions 只保留现有 `main` push、明确授权的 `workflow_dispatch`，以及后续单独授权的发布验证。已删除 `.github/workflows/quality-gates.yml`，并恢复 `ci.yml` 的 main 基线。
 - 2026-08-18 31 课导入片已增量发布到生产 v2 blob-view。active `runtime-7b907428f…`（source `71bbc2db4`），rollback `runtime-3dcc716…`；v0.18 选择器通过 parent overlay 保留。公网媒体走 `/api/course-runtime/assets/lessons/<unit>/media/<unit>-intro-video.mp4`，验收为 307。`remote-deploy.sh` 的 `legacy-rsync` 已退役，不得再 rsync `course-content/runtime`。
