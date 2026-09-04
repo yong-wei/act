@@ -58,12 +58,12 @@ describe('konling fair experiment entrypoint smoke (#1947)', () => {
   }, 60_000);
 
   it('replay-scoring replays the frozen fixture run without generation', () => {
-    const result = runEntrypoint('replay-scoring.ts', [
-      '--run-id', runId,
-      '--calibers', 'structure-alias.v1,structure-strict-title.v0',
-    ]);
+    // 不传 --calibers：默认口径串为冻结 v1 + 当前 v2（#1950），
+    // 回放产出 v1→v2 口径差值（fixture 无装饰标题，差值为 0）。
+    const result = runEntrypoint('replay-scoring.ts', ['--run-id', runId]);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('status:');
+    expect(result.stdout).toContain('caliberDeltas:');
   }, 60_000);
 
   it('live runner loads its module graph and refuses without explicit opt-in', () => {
