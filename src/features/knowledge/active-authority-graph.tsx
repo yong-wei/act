@@ -198,6 +198,18 @@ function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
   return isPublicAuthorityLearnerShard(value) && value.shardClass === shardClass;
 }
 
+async function readShardErrorCode(response: Response): Promise<string | null> {
+  try {
+    const body: unknown = await response.json();
+    if (body && typeof body === 'object' && typeof (body as { code?: unknown }).code === 'string') {
+      return (body as { code: string }).code;
+    }
+  } catch {
+    // 非 JSON 错误体（网关/代理错误页）没有失败码，按暂时故障处理。
+  }
+  return null;
+}
+
 async function fetchAuthorityShard(
   url: string,
   shardClass: IncomingAuthorityShard['shardClass'],
@@ -205,16 +217,7 @@ async function fetchAuthorityShard(
 ): Promise<IncomingAuthorityShard> {
   const response = await fetch(url, { signal, headers: { accept: 'application/json' } });
   if (!response.ok) {
-    let code: string | null = null;
-    try {
-      const body: unknown = await response.json();
-      if (body && typeof body === 'object' && typeof (body as { code?: unknown }).code === 'string') {
-        code = (body as { code: string }).code;
-      }
-    } catch {
-      // 非 JSON 错误体（网关/代理错误页）没有失败码，按暂时故障处理。
-    }
-    throw new AuthorityShardFetchError(response.status, code);
+    throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
   }
   const payload: unknown = await response.json();
   if (!isShardClass(payload, shardClass)) {
@@ -570,7 +573,9 @@ function useActiveAuthorityWorkspace(
         }));
         setFamilyFailures((currentFailures) => ({
           ...currentFailures,
-          [family]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
+          [family]: isContentNotReadyFailure(error)
+            ? graphCopy(localeRef.current, 'error.contentNotReady')
+            : error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -615,7 +620,9 @@ function useActiveAuthorityWorkspace(
         }
         setNeighborhoodFailures((currentFailures) => ({
           ...currentFailures,
-          [nodeId]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
+          [nodeId]: isContentNotReadyFailure(error)
+            ? graphCopy(localeRef.current, 'error.contentNotReady')
+            : error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -681,7 +688,7 @@ function useActiveNodeDetail(
       .then(async (response) => {
         if (!response.ok) {
           if (!controller.signal.aborted && response.status === 409) onIdentityFailureRef.current?.();
-          throw new AuthorityShardFetchError(response.status);
+          throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
         }
         const candidate: unknown = await response.json();
         if (!isShardClass(candidate, 'node-detail')) {
@@ -732,7 +739,11 @@ function useActiveNodeDetail(
       .then(setDetail)
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setFailure(error instanceof Error ? error.message : '节点详情暂时无法加载。');
+          setFailure(
+            isContentNotReadyFailure(error)
+              ? graphCopy(locale, 'error.contentNotReady')
+              : error instanceof Error ? error.message : '节点详情暂时无法加载。',
+          );
         }
       })
       .finally(() => {

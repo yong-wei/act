@@ -801,6 +801,33 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).not.toContain('重试当前图谱');
   });
 
+  it('projects a relation-family shard-absent failure as content-not-ready', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        return { ok: false, status: 404, json: async () => ({ error: '当前 Authority 分片暂时无法加载。', code: 'ACTIVE_SHARD_SHARD_ABSENT' }) };
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const familyButton = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(familyButton).not.toBeNull();
+    await act(async () => familyButton!.click());
+    await act(async () => Promise.resolve());
+
+    const failure = container.querySelector('[data-authority-family-failure="association"]');
+    expect(failure).not.toBeNull();
+    expect(failure!.textContent).toContain('知识数据尚未发布完成');
+    expect(failure!.textContent).not.toContain('暂时无法加载');
+  });
+
   it('keeps the retry guidance for transient root failures without a failure code', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
