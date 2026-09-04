@@ -31,6 +31,7 @@ const R6_DRIVE_CHAIN_ALLOWLIST = new Set([
 const AUTHORIZED_DRIVE_CHAIN_FILES = new Set([
   'src/resources/simulations/physics/engine-factory.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
+  'rust/control-engine/src/practice_live.rs',
   'rust/control-engine/tests/virtual_simulation_runtime.rs',
   'src/resources/control-system/wasm/control_engine/index_bg.wasm',
 ]);

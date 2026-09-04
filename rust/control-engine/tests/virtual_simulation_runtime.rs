@@ -604,6 +604,13 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
             .unwrap()
     };
 
+    // 默认环境风流（与页面默认配置一致）走同一 Rust 环境载荷契约（review #1944）。
+    let environment = step(json!({
+        "modelId": "practice_environment_load",
+        "currentSpeed": 0.5, "currentDirection": 45.0,
+        "windSpeed": 8.0, "windDirection": 45.0,
+        "shipLength": 127.5, "shipDraft": 6.2
+    }));
     let mut max_error = 0.0_f64;
     let mut final_error = 0.0_f64;
     let steps = (60.0 / dt) as usize;
@@ -617,7 +624,12 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
             "rngSamples": rng_samples
         }));
         dredge_state = dredge["newState"].clone();
-        let disturbance = dredge["disturbance"].clone();
+        let d = &dredge["disturbance"];
+        let disturbance = json!({
+            "forceX": d["forceX"].as_f64().unwrap() + environment["forceX"].as_f64().unwrap(),
+            "forceY": d["forceY"].as_f64().unwrap() + environment["forceY"].as_f64().unwrap(),
+            "momentN": d["momentN"].as_f64().unwrap() + environment["momentN"].as_f64().unwrap()
+        });
 
         let dp = step(json!({
             "modelId": "practice_dp_control",
@@ -656,12 +668,13 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
         }
         let position_error =
             (mmg["x"].as_f64().unwrap().powi(2) + mmg["y"].as_f64().unwrap().powi(2)).sqrt();
-        assert!(position_error < 50.0, "unbounded drift at {time}s: {position_error}");
+        assert!(position_error < 30.0, "unbounded drift at {time}s: {position_error}");
         max_error = max_error.max(position_error);
         final_error = position_error;
     }
+    // 定位容差 0.1 m 的量级（含挖掘冲击与默认风流的工程余量），远低于页面 QA 观测的发散。
     assert!(
-        final_error < 5.0,
-        "60s 后位置误差未收敛到 tolerance 量级: {final_error} (max {max_error})"
+        final_error <= 0.5,
+        "60s 后位置误差未收敛到定位容差量级: {final_error} (max {max_error})"
     );
 }

@@ -80,6 +80,7 @@ import {
   createMMG3DOFState,
   mmg3dofStep,
   type MmgThrusterCommand,
+  computeEnvironmentLoad,
   mmgToSimulationState,
   dpControl,
   dpControlWithFeedforward,
@@ -135,11 +136,7 @@ const POSITION_ALARM_CLEAR_M = 0.05;
 const POSITION_ALARM_HOLD_SECONDS = 10;
 /** DP 三通道功率份额（kW，对齐钻井平台 P=maxPower×(F/Fmax)^1.5 口径）。 */
 const DP_CHANNEL_MAX_POWER_KW = { surge: 8000, sway: 6000, yaw: 6000 } as const;
-/** 风与流的定常环境力（#1944 死控件接通）：近似受风/受流面积 × 动压。 */
-const environmentForce = {
-  current: (speed: number) => 0.5 * 1025 * 127.5 * 6.2 * 0.08 * speed * speed,
-  wind: (speed: number) => 0.5 * 1.225 * 127.5 * 12 * speed * speed,
-};
+
 
 // ============ 着色器材质 ============
 
@@ -768,16 +765,22 @@ export function DredgerSimulation() {
     const stepSimulation = (dt: number) => {
       timeRef.current += dt;
 
-      // 扰动 = 挖掘冲击 + 流（全局 +x）+ 风（45° 斜向，含艏摇力矩）
+      // 扰动 = 挖掘冲击 + 风流定常环境载荷（Rust 统一契约 #1944，含方向分解）
       const dredging = config.dredgingEnabled
         ? dredgingModelRef.current.compute(timeRef.current)
         : { forceX: 0, forceY: 0, momentN: 0 };
-      const currentForce = environmentForce.current(config.currentSpeed);
-      const windForce = environmentForce.wind(config.windSpeed);
+      const environmentLoad = computeEnvironmentLoad({
+        currentSpeed: config.currentSpeed,
+        currentDirection: config.currentDirection,
+        windSpeed: config.windSpeed,
+        windDirection: config.windDirection,
+        shipLength: profile.dimensions.length,
+        shipDraft: profile.dimensions.draft,
+      });
       const disturbance: DisturbanceVector = {
-        forceX: dredging.forceX + currentForce + windForce * Math.SQRT1_2,
-        forceY: dredging.forceY + windForce * Math.SQRT1_2,
-        momentN: dredging.momentN + windForce * Math.SQRT1_2 * 20,
+        forceX: dredging.forceX + environmentLoad.forceX,
+        forceY: dredging.forceY + environmentLoad.forceY,
+        momentN: dredging.momentN + environmentLoad.momentN,
       };
 
       // 控制计算
@@ -849,6 +852,13 @@ export function DredgerSimulation() {
             alarm.active = false;
             setPositionAlarm(null);
           }
+        }
+      } else {
+        // 切离 DP 模式（review #1944）：告警仅对 DP 定位语义有效，离开即复位
+        const alarm = positionAlarmRef.current;
+        if (alarm.since !== null || alarm.active) {
+          positionAlarmRef.current = { since: null, active: false };
+          setPositionAlarm(null);
         }
       }
 
