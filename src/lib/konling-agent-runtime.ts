@@ -9553,6 +9553,11 @@ export function buildKonlingCitationGuard(
   const unverifiedCitationMarkers = assistantMessage === undefined
     ? []
     : collectUnverifiedCitationMarkers(assistantMessage, citations);
+  if (unverifiedCitationMarkers.length > 0) {
+    // 未核验编号本身构成降级原因：上下文完整时也不能在静默删除标记后
+    // 仍以 verified 状态交付（#1949 review）
+    lowConfidenceReasons.push('assistant-unverified-citation-markers');
+  }
   const normativeCompliance = assistantMessage !== undefined
     && modeContract?.studyQuestion?.normativeGuidance === 'verification-required'
     ? scanKonlingNormativeCompliance(assistantMessage)
@@ -9982,7 +9987,8 @@ export function applyKonlingCitationFallback(
   guard: KonlingCitationGuard,
 ): string {
   const sanitizedMessage = stripUnverifiedKonlingCitationMarkers(assistantMessage, guard);
-  if (!guard.fallbackRequired) return sanitizedMessage;
+  const unverifiedMarkerCount = (guard.unverifiedCitationMarkers ?? []).length;
+  if (!guard.fallbackRequired && unverifiedMarkerCount === 0) return sanitizedMessage;
   const limitation = [
     ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
     ...guard.lowConfidenceReasons,
@@ -9994,6 +10000,9 @@ export function applyKonlingCitationFallback(
     sanitizedMessage.trim(),
     '',
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
+    unverifiedMarkerCount > 0
+      ? `已移除 ${unverifiedMarkerCount} 个未能核验的引用标记。`
+      : '',
     citations ? `可用引用：${citations}` : '',
   ].filter(Boolean).join('\n');
 }

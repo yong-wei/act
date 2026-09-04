@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  applyKonlingCitationFallback,
   buildKonlingCitationGuard,
   mergeCandidateAssignedCitations,
   stripUnverifiedKonlingCitationMarkers,
@@ -101,6 +102,34 @@ describe('issue #1949 formal answer citation verification', () => {
 
     expect(guard.unverifiedCitationMarkers).toEqual([]);
     expect(stripUnverifiedKonlingCitationMarkers(answer, guard)).toBe(answer);
+  });
+
+  it('downgrades the guard when unverified markers are the only defect (#1949)', () => {
+    const guard = guardFor('闭环能抑制扰动 [1]，占位结论 [2]，越界引用 [9]。');
+
+    expect(guard.status).toBe('low-confidence');
+    expect(guard.fallbackRequired).toBe(true);
+    expect(guard.lowConfidenceReasons).toContain('assistant-unverified-citation-markers');
+    expect(guard.missingCitationClasses).toEqual([]);
+  });
+
+  it('surfaces a safe notice when the sessions fallback strips unverified markers (#1949)', () => {
+    const answer = '闭环能抑制扰动 [1]，占位结论 [2]，越界引用 [9]。';
+    const guard = guardFor(answer);
+    const delivered = applyKonlingCitationFallback(answer, guard);
+
+    expect(delivered).toContain('[1]');
+    expect(delivered).not.toContain('[2]');
+    expect(delivered).not.toContain('[9]');
+    expect(delivered).toContain('已移除 2 个未能核验的引用标记。');
+    expect(delivered).toContain('证据限制');
+  });
+
+  it('keeps the sessions fallback unchanged without unverified markers (#1949)', () => {
+    const guard = guardFor('闭环能抑制扰动 [1]。');
+    const delivered = applyKonlingCitationFallback('闭环能抑制扰动 [1]。', guard);
+
+    expect(delivered).toBe('闭环能抑制扰动 [1]。');
   });
 
   it('keeps textbook tool citations visible to the final guard so valid numbers survive stripping (#1949)', () => {
