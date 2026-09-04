@@ -683,10 +683,15 @@ fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
             println!("DBG t={} err={} psi={} r={} yawKNm={}", time, position_error, mmg["psi"].as_f64().unwrap().to_degrees(), mmg["r"].as_f64().unwrap(), dp["output"]["yawMoment"].as_f64().unwrap() / 1000.0);
         }
     }
-    // 按页面告警语义验收（review #1944）：定位告警在误差持续 >0.1 m 达 10 s
-    // 时触发，因此末段必须不存在连续 100 步（10 s）全部 >0.1 m 的游程——即
-    // 持续告警态无法通过；同时窗口整体处于容差量级（mean ≤ 0.5 m）。
+    // 按页面告警语义验收（review #1944）：①末段不存在连续 100 步（10 s）全部
+    // >0.1 m 的游程——持续告警态无法通过；②末段有样本回到清除阈值 0.05 m 内
+    // ——已触发的告警在末段必然被清除；③窗口整体处于容差量级（mean ≤ 0.5 m）。
+    let recent_min = recent_errors.iter().cloned().fold(f64::INFINITY, f64::min);
     let recent_mean = recent_errors.iter().sum::<f64>() / recent_errors.len().max(1) as f64;
+    assert!(
+        recent_min < 0.05,
+        "60s 末段未回到告警清除阈值内（告警未清除）: min={recent_min}"
+    );
     let mut streak = 0_usize;
     let mut max_streak = 0_usize;
     for error in &recent_errors {
