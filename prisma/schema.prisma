@@ -628,6 +628,10 @@ model User {
   // 控灵AI助手会话
   konlingSessions KonlingSession[]
 
+  // 控灵主动陪伴（隐私边界：仅控灵运行时与策略评估，不进画像/教师端/LearningFact）
+  konlingCompanionEvents     KonlingCompanionEvent[]
+  konlingCompanionDeliveries KonlingCompanionDelivery[]
+
   // Data governance
   riskFlags                             StudentRiskFlag[]
   createdDiagnosisReports               DiagnosisReport[]                      @relation("DiagnosisReportCreator")
@@ -5208,6 +5212,42 @@ model KonlingSession {
   @@index([expiresAt])
   @@index([userId, updatedAt])
   @@index([userId, libraryVisible, pinnedAt, lastActivityAt])
+}
+
+// 控灵主动陪伴：触发事件（两阶段停顿确认状态机）
+// 隐私边界：仅供控灵运行时与策略评估，不写 LearningFact、不进学生画像、不进教师投影。
+model KonlingCompanionEvent {
+  id          String    @id @default(cuid())
+  userId      String
+  pageKind    String // resource-textbook | adaptive-practice
+  pageRef     String // 页面标识（resourceId / practiceSessionId 等）
+  eventType   String // pause-candidate | wrong-answer | progress-milestone | resource-completed
+  evidence    Json // 粗粒度决策摘要：停顿时长档、操作计数等，不含原始答案或内容载荷
+  status      String // candidate | confirmed | delivered | suppressed | expired
+  confirmedAt DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delivery     KonlingCompanionDelivery?
+
+  @@index([userId, status, createdAt])
+  @@index([userId, eventType, createdAt])
+}
+
+// 控灵主动陪伴：会话投递记录（含治理资源快照，事件级展示去重真源）
+model KonlingCompanionDelivery {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  userId    String
+  sessionId String // KonlingSession.id
+  resources Json // [{ resourceId, versionHash, reason, kind }] 治理资源卡快照
+  createdAt DateTime @default(now())
+
+  event KonlingCompanionEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 // ========== Data Governance Tables ==========
