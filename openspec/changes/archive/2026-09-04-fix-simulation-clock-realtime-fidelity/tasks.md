@@ -1,0 +1,6 @@
+- [x] 1.1 container/lng/cruise 三页仿真循环稳定化：时间、速度等每帧变化量走 ref，`simulationLoop` 与启动 effect deps 稳定，移除每帧 `clock.reset()` 与 `lastTimeRef` 重定基线路径
+- [x] 1.2 container HUD/图表 setState 节流（对齐 destroyer 0.1s 口径），遥测轨迹等重计算不再每帧全量触发
+- [x] 1.3 调度契约测试：仿真运行期间循环 effect 不因时间状态重建；accumulator 跨帧守恒（无 reset 丢弃）
+- [x] 1.4 浏览器验收：`/simulations/container` 1.0x 下 60 s 墙钟 vs 仿真时钟偏差 < 5%（正常帧率）；lng/cruise 抽查同口径
+- [x] 1.5 更新 AGENTS.md `SimulationClock` maxSubSteps 描述（6 → 实际 120），仿真指南文档化 <4fps 时钟按 clamp 退化的既有行为
+- [x] 1.6 typecheck 与相关测试通过
