@@ -174,6 +174,11 @@ export function isTechnicalIndexContext(
     .slice(0, offset)
     .match(/[\p{L}_][\p{L}\p{N}_]*$/u)?.[0];
   if (!precedingToken) return false;
+  // 中日韩文不构成数学下标：中文正文无空格紧邻的 `结论[9]` 是引用标记，
+  // 不能因宽判定被当作技术下标而逃过清理（#1949 review）。
+  if (/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(precedingToken)) {
+    return false;
+  }
   if (!hasAssignedCitation) return true;
   return /^[\p{Script=Latin}\p{Script=Greek}]$/u.test(precedingToken)
     || /^(?:array|data|items?|samples?|values?|vectors?)$/iu.test(precedingToken);

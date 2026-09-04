@@ -4,10 +4,12 @@ import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
   mergeCandidateAssignedCitations,
+  serializeKonlingCitationMetadata,
   stripUnverifiedKonlingCitationMarkers,
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
 import { assignKonlingCitationDisplayNumbers, buildKonlingCitationCanonicalKey } from '@/lib/konling-citation-protocol';
+import { normalizeKonlingCitations } from '@/lib/konling-citation-repair';
 
 vi.mock('server-only', () => ({}));
 
@@ -130,6 +132,74 @@ describe('issue #1949 formal answer citation verification', () => {
     const delivered = applyKonlingCitationFallback('闭环能抑制扰动 [1]。', guard);
 
     expect(delivered).toBe('闭环能抑制扰动 [1]。');
+  });
+
+  it('treats an unassigned number adjacent to CJK prose as a citation marker (#1949)', () => {
+    const answer = '结论[9]。离散序列 y[1] 保持下标。';
+    const normalized = normalizeKonlingCitations({
+      answer,
+      assignedCitations: assignKonlingCitationDisplayNumbers([
+        {
+          id: 'content:evidence:primary',
+          sourceType: 'content',
+          displayTitle: '闭环控制教材片段',
+          href: '/course-runtime/resources/closed-loop.md',
+          identity: {
+            kind: 'content',
+            sourceType: 'content',
+            contentId: 'content:closed-loop',
+          },
+        },
+      ]),
+    });
+
+    expect(normalized.body).not.toContain('结论[9]');
+    expect(normalized.body).toContain('结论');
+    expect(normalized.unresolvedMarkers).toEqual(['[9]']);
+    expect(normalized.verificationStatus).toBe('unverified');
+    expect(normalized.userNotice).toBe('引用未能核验');
+    // 拉丁单字母下标保护不变
+    expect(normalized.body).toContain('y[1]');
+
+    const guard = guardFor('中文结论[9]。');
+    expect(guard.unverifiedCitationMarkers).toEqual([9]);
+    expect(guard.lowConfidenceReasons).toContain('assistant-unverified-citation-markers');
+    expect(stripUnverifiedKonlingCitationMarkers('中文结论[9]。', guard)).toBe('中文结论。');
+  });
+
+  it('serializes projected textbook citations with structured identity (#1949)', () => {
+    const runtimeContext = { citationContext: createCitationContext() } as KonlingRuntimeContext;
+    const identity = {
+      kind: 'textbook',
+      bookId: 'hu-shousong-auto-control-8th',
+      edition: '第八版',
+      sourceRevision: 'r1',
+      unitId: 'chapter-3',
+      fragmentId: null,
+    } as const;
+    const merged = mergeCandidateAssignedCitations(runtimeContext, [{
+      id: 'textbook-unit:hu8/chapter-3',
+      sourceType: 'textbook',
+      displayTitle: '胡寿松《自动控制原理》第三章',
+      href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-3',
+      verifiable: true,
+      identity,
+      displayNumber: 3,
+      canonicalKey: buildKonlingCitationCanonicalKey(identity),
+    }]);
+
+    const persisted = serializeKonlingCitationMetadata(
+      merged.citationContext.contentCitations
+        .find((citation) => citation.id === 'textbook-unit:hu8/chapter-3')!,
+    );
+    expect(persisted.identity).toMatchObject({
+      kind: 'textbook',
+      bookId: 'hu-shousong-auto-control-8th',
+      sourceRevision: 'r1',
+      unitId: 'chapter-3',
+    });
+    expect(persisted.verified).toBe(true);
+    expect(persisted.href).toBe('/textbooks/hu-shousong-auto-control-8th/r1/chapter-3');
   });
 
   it('keeps textbook tool citations visible to the final guard so valid numbers survive stripping (#1949)', () => {

@@ -1848,6 +1848,9 @@ export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
     resolver: citation.resolver ?? null,
     displayNumber: citation.displayNumber ?? null,
     canonicalKey: citation.canonicalKey ?? null,
+    // 持久化引用必须携带结构化 identity（来源版本与目标锚点随 identity
+    // 输出），sessions 重载不能只依赖 opaque canonicalKey（#1949 review）。
+    identity: citation.identity ?? null,
     citationChip: jsonSafe(citation.citationChip),
   };
 }
