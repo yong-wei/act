@@ -991,8 +991,8 @@ describe('residual data-governance adjudication', () => {
         { discovered: 5, qualified: 5, unresolved: 0, 'justified-excluded': 0 },
       ],
       inventoryVerification: {
-        byteCount: 100,
-        sha256: 'e'.repeat(64),
+        byteCount: UPSTREAM_PAYLOAD_IDENTITY.inventoryByteCount,
+        sha256: UPSTREAM_PAYLOAD_IDENTITY.inventorySha256,
         memberDenominator: 15,
         subjectIdentity: UPSTREAM_PAYLOAD_IDENTITY.subjectIdentity,
         projectionsReconciled: true,
@@ -1013,7 +1013,12 @@ describe('residual data-governance adjudication', () => {
       '| course-content:unknown-privacy | 2 | member:a, member:b |',
       '',
     ].join('\n');
-    const inventoryBytes = { byteCount: 100, sha256: 'e'.repeat(64), memberCount: 15, unresolvedCount: 2 };
+    const inventoryBytes = {
+      byteCount: UPSTREAM_PAYLOAD_IDENTITY.inventoryByteCount,
+      sha256: UPSTREAM_PAYLOAD_IDENTITY.inventorySha256,
+      memberCount: 15,
+      unresolvedCount: 2,
+    };
     const base = { index, summaryText, unresolvedRegisterText, inventoryBytes };
     const baseResult = deriveUpstreamQualificationEvidence(base);
     if ('error' in baseResult) throw new Error(`base-error:${baseResult.error}`);
@@ -1035,6 +1040,15 @@ describe('residual data-governance adjudication', () => {
       unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 0 |'),
       inventoryBytes,
     })).toMatchObject({ error: 'upstream-inventory-count-mismatch' });
+    // A rewritten index nominating its own inventory SHA fails the frozen pin.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: {
+        ...index,
+        inventoryVerification: { ...index.inventoryVerification, sha256: 'f'.repeat(64) },
+      },
+      inventoryBytes: { ...inventoryBytes, sha256: 'f'.repeat(64) },
+    })).toMatchObject({ error: 'upstream-inventory-receipt-unpinned' });
     // Inventory bytes drifting from the receipt fail the byte gate.
     expect(deriveUpstreamQualificationEvidence({
       ...base,

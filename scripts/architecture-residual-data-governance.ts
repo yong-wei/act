@@ -249,8 +249,22 @@ const worktreeDirty = git([
 ]).length > 0;
 
 // 1. Freeze the claim-time current subject (independent from #1876/#1883 history).
+//    RESIDUAL_SUBJECT_COMMIT pins an explicit frozen commit so any consumer can
+//    deterministically replay the ledger of an already-published package; when
+//    replaying, the moving-ref drift guard is skipped by design.
 execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
-const currentSubject = resolveResidualCurrentSubject(repoRoot);
+const subjectOverride = process.env.RESIDUAL_SUBJECT_COMMIT ?? '';
+const replayPinnedSubject = /^[0-9a-f]{40}$/iu.test(subjectOverride);
+if (replayPinnedSubject) {
+  execFileSync('git', ['-C', repoRoot, 'cat-file', '-e', `${subjectOverride}^{commit}`], { stdio: 'ignore' });
+}
+const currentSubject: { baseBranch: 'origin/integration'; subjectCommit: string; subjectTree: string } = replayPinnedSubject
+  ? {
+    baseBranch: 'origin/integration',
+    subjectCommit: subjectOverride,
+    subjectTree: git(['rev-parse', `${subjectOverride}^{tree}`]),
+  }
+  : resolveResidualCurrentSubject(repoRoot);
 
 // 2. Native dependency gate: the upstream payload-eligibility change must be archived.
 const upstreamIssue = ghIssueSnapshot(UPSTREAM_PAYLOAD_CHANGE.issue);
@@ -268,10 +282,18 @@ if (openUpstreamBlockers.length > 0) {
 const upstreamPayload = { ...loadUpstreamPayloadEvidence(repoRoot), closed: true, archived: true };
 const predecessor = loadPredecessorComparison(repoRoot);
 
-// 3. Read-only comparison evidence: the archived #1883 identity must stay byte-stable.
+// 3. Read-only comparison evidence: every consumed archived/upstream byte is
+//    snapshotted and re-verified before publication, not just the indexes.
+const upstreamIndexRaw = readFileSync(join(repoRoot, UPSTREAM_PAYLOAD_CHANGE.compactIndexLocator), 'utf8');
+const upstreamInventoryLocator = (JSON.parse(upstreamIndexRaw) as {
+  inventoryVerification?: { locator?: string };
+}).inventoryVerification?.locator ?? 'artifacts/architecture-census/unknown/payload-classification-inventory.ndjson';
 const readOnlyInputs = [
   ['owner-residue.md', join(repoRoot, 'docs/architecture/modular-monolith/post-convergence/owner-residue.md')],
   ['upstream-index.json', join(repoRoot, UPSTREAM_PAYLOAD_CHANGE.compactIndexLocator)],
+  ['upstream-summary.md', join(repoRoot, 'docs/architecture/repository-payload-classification/current/summary.md')],
+  ['upstream-unresolved.md', join(repoRoot, 'docs/architecture/repository-payload-classification/current/unresolved.md')],
+  ['upstream-inventory.ndjson', join(repoRoot, upstreamInventoryLocator)],
   ['predecessor-index.json', join(repoRoot, PREDECESSOR_1883.compactIndexLocator)],
 ] as const;
 const readOnlySnapshots = readOnlyInputs.map(([name, path]) => [name, sha256Text(readFileSync(path, 'utf8'))] as const);
@@ -360,12 +382,15 @@ if ('error' in ledgerReceipt) {
 // 6. Post guards run BEFORE any package is published, so a drifted run never
 //    leaves an apparently-qualified migration input behind. The remote-tracking
 //    ref is re-fetched first: rev-parse alone would compare stale against stale
-//    if the remote advanced during the run.
-execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
-const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
-if (subjectCommitAfter !== currentSubject.subjectCommit) {
-  process.stderr.write('subject-drifted-during-run\n');
-  process.exit(1);
+//    if the remote advanced during the run. A pinned replay skips the moving-ref
+//    guard — its subject is frozen by definition.
+if (!replayPinnedSubject) {
+  execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
+  const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
+  if (subjectCommitAfter !== currentSubject.subjectCommit) {
+    process.stderr.write('subject-drifted-during-run\n');
+    process.exit(1);
+  }
 }
 for (const [name, path] of readOnlyInputs) {
   const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];

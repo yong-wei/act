@@ -27,6 +27,9 @@ export const UPSTREAM_PAYLOAD_CHANGE = {
 export const UPSTREAM_PAYLOAD_IDENTITY = {
   subjectIdentity: 'cbb59abc7df9cf438bf80309c7eb09f59dd8d687fa1fcc41f16fee2de0977ffc',
   packageDigest: '6f8f55538cb884fc728b1a63359ab3e6dbd814806360f9d1734948d57ba298d2',
+  /** Frozen full-inventory receipt: the artifact bytes this package was built from. */
+  inventorySha256: 'e722624d575a991c48363b44d17e738e618b0ae3cab92fa698b6d4a1c99e2338',
+  inventoryByteCount: 78052050,
 } as const;
 
 /** Immutable #1876/#1883 predecessor identities kept as comparison-only history. */
@@ -1383,6 +1386,12 @@ export function deriveUpstreamQualificationEvidence(params: {
     || inventory.subjectIdentity !== index.subjectIdentity
     || inventory.projectionsReconciled !== true) {
     return { error: 'upstream-inventory-receipt-inconsistent' };
+  }
+  // The recorded receipt must itself be the frozen receipt of the pinned
+  // package — a rewritten index cannot nominate its own inventory SHA.
+  if (inventory.byteCount !== UPSTREAM_PAYLOAD_IDENTITY.inventoryByteCount
+    || inventory.sha256 !== UPSTREAM_PAYLOAD_IDENTITY.inventorySha256) {
+    return { error: 'upstream-inventory-receipt-unpinned' };
   }
   // Qualification is re-derived from the actual inventory bytes, not from any
   // self-reported status: the artifact must hash to the receipt and its
