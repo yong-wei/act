@@ -863,13 +863,15 @@ export function adjudicateResidualDataGovernance(
     predecessor1883: subject.predecessor1883,
     subject: subject.successorCaptureId,
     packageDigest: subject.packageDigest,
-    // The full tool checkpoint, not just the entry bundle: any identity change
-    // (commit, tree, versions, bundle) must yield a different decision identity.
+    // The tool enters the identity by CONTENT only (exact adjudicator file
+    // bytes, tool versions, schema). The producing commit/tree stay in the
+    // tool block as provenance and deliberately do not enter the identity: a
+    // squash-merged delivery revision cannot resolve pre-merge commits, so
+    // every identity must be recomputable from the delivery revision itself.
     tool: {
-      toolCommit: input.tool.toolCommit,
-      toolTree: input.tool.toolTree,
-      toolVersions: input.tool.toolVersions,
       entryBundleDigest: input.tool.entryBundleDigest,
+      toolVersions: input.tool.toolVersions,
+      schemaVersion: input.tool.schemaVersion,
     },
     memberSetDigest: subject.memberSetDigest,
     ledger: fullLedger.sha256,
@@ -903,7 +905,17 @@ function residualPrivacyViolation(text: string): string | null {
   return null;
 }
 
-function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
+/** Minimal record shape needed to rebuild migration-input slices from a ledger. */
+export interface SliceRecordInput {
+  readonly familyId: string;
+  readonly path: string;
+  readonly status: ResidualStatus;
+  readonly accountableOwner: OwnerId | null;
+  readonly outcome: ResidualOutcome;
+  readonly callerClasses: readonly CallerClass[];
+}
+
+export function buildFutureSlices(records: readonly SliceRecordInput[]): FutureSlice[] {
   const bySlice = new Map<string, ResidualRecord[]>();
   for (const record of records) {
     const slice = record.familyId.split(':')[2] ?? 'unresolved';
@@ -1065,6 +1077,43 @@ function buildFutureSlices(records: readonly ResidualRecord[]): FutureSlice[] {
   return slices;
 }
 
+/** Renders future-slices.md exactly; shared by projection and verification. */
+export function renderFutureSlicesDocument(params: {
+  readonly qualified: boolean;
+  readonly blockers: readonly string[];
+  readonly futureSlices: readonly FutureSlice[];
+}): string {
+  return [
+    '# Residual Data Governance future slices',
+    '',
+    ...(params.futureSlices.length === 0
+      ? [
+        'No migration-input slice is emitted: the whole package must qualify before any slice can become a migration input.',
+        `- packageQualified: \`${params.qualified ? 'yes' : 'no'}\``,
+        `- blockers: ${params.blockers.join(', ') || 'none'}`,
+        '',
+      ]
+      : ['Each slice is a migration input, not authorization to act. Readers must verify subject/tool/schema identities.', '']),
+    ...params.futureSlices.flatMap((slice) => [
+      `## ${slice.slice}`,
+      '',
+      `- accountableOwner: \`${slice.accountableOwner}\``,
+      `- outcome: \`${slice.outcome}\``,
+      `- callerClasses: ${slice.callerClasses.join(', ') || 'none'}`,
+      `- publicBoundary: ${slice.publicBoundary}`,
+      `- notTouched: ${slice.notTouched.join(', ')}`,
+      `- protectedInvariants: ${slice.protectedInvariants.join(', ')}`,
+      `- payloadStatus: ${slice.payloadStatus}`,
+      `- zeroConsumerProof: ${slice.zeroConsumerProof}`,
+      `- deletionCondition: ${slice.deletionCondition}`,
+      `- rollback: ${slice.rollback}`,
+      `- requiredAuthorization: ${slice.requiredAuthorization}`,
+      `- paths: ${slice.paths.length === 0 ? '_none_' : slice.paths.map((path) => `\`${path}\``).join(' ')}`,
+      '',
+    ]),
+  ].join('\n');
+}
+
 export function projectResidualDocuments(result: ResidualAdjudication): Record<string, string> {
   const byOutcome = result.summaries.byOutcome;
   const matrixRows = result.families.map((family) => [
@@ -1119,35 +1168,11 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
       'Owner and outcome are serialized separately. Unresolved records block scoped and global charter qualification.',
       '',
     ].join('\n'),
-    'future-slices.md': [
-      '# Residual Data Governance future slices',
-      '',
-      ...(result.futureSlices.length === 0
-        ? [
-          'No migration-input slice is emitted: the whole package must qualify before any slice can become a migration input.',
-          `- packageQualified: \`${result.qualified ? 'yes' : 'no'}\``,
-          `- blockers: ${result.blockers.join(', ') || 'none'}`,
-          '',
-        ]
-        : ['Each slice is a migration input, not authorization to act. Readers must verify subject/tool/schema identities.', '']),
-      ...result.futureSlices.flatMap((slice) => [
-        `## ${slice.slice}`,
-        '',
-        `- accountableOwner: \`${slice.accountableOwner}\``,
-        `- outcome: \`${slice.outcome}\``,
-        `- callerClasses: ${slice.callerClasses.join(', ') || 'none'}`,
-        `- publicBoundary: ${slice.publicBoundary}`,
-        `- notTouched: ${slice.notTouched.join(', ')}`,
-        `- protectedInvariants: ${slice.protectedInvariants.join(', ')}`,
-        `- payloadStatus: ${slice.payloadStatus}`,
-        `- zeroConsumerProof: ${slice.zeroConsumerProof}`,
-        `- deletionCondition: ${slice.deletionCondition}`,
-        `- rollback: ${slice.rollback}`,
-        `- requiredAuthorization: ${slice.requiredAuthorization}`,
-        `- paths: ${slice.paths.length === 0 ? '_none_' : slice.paths.map((path) => `\`${path}\``).join(' ')}`,
-        '',
-      ]),
-    ].join('\n'),
+    'future-slices.md': renderFutureSlicesDocument({
+      qualified: result.qualified,
+      blockers: result.blockers,
+      futureSlices: result.futureSlices,
+    }),
     'handoff.md': [
       '# Residual Data Governance handoff',
       '',
@@ -1275,27 +1300,92 @@ export function verifyResidualLedgerArtifact(params: {
   };
 }
 
-export interface ResidualProjectionVerification {
+export interface ResidualPackageVerification {
   readonly reconciled: boolean;
   readonly reason?: string;
   readonly fileDigests: Readonly<Record<string, string>>;
 }
 
+/** Claim-time execution snapshot recorded in the package for exact replay. */
+export interface ResidualRunSnapshot {
+  readonly gate: Issue1876Snapshot;
+  readonly executionBranch: string;
+  readonly dirtySource: boolean;
+  readonly mixedSource: boolean;
+}
+
 /**
- * Reconciles the actually written compact projections against the full-ledger
- * bytes on disk — never against in-memory state. Counts, family rows, slice
- * paths and identities, the handoff ledger digest, and the receipt-bound
- * subject must all re-derive from the ledger before a receipt may claim
- * reconciliation for the projections it is published with.
+ * The one compact-package builder shared by the CLI writer and the verifier, so
+ * generation and verification can never drift into two implementations.
  */
-export function verifyResidualProjectionArtifacts(params: {
+export function buildResidualCompactPackage(params: {
+  readonly result: ResidualAdjudication;
+  readonly receipt: LedgerVerificationReceipt;
+  readonly run: ResidualRunSnapshot;
+  readonly projectionVerification: ResidualPackageVerification;
+}): string {
+  const { result, receipt, run, projectionVerification } = params;
+  return serializeDeterministic({
+    schemaVersion: result.schemaVersion,
+    qualified: result.qualified,
+    blockers: result.blockers,
+    subject: result.subject,
+    tool: result.tool,
+    run,
+    summaries: result.summaries,
+    families: result.families,
+    futureSlices: result.futureSlices,
+    fullLedger: result.fullLedger,
+    ledgerVerification: receipt,
+    projectionVerification: {
+      reconciled: projectionVerification.reconciled,
+      fileDigests: projectionVerification.fileDigests,
+    },
+    decisionIdentity: result.decisionIdentity,
+  });
+}
+
+/**
+ * Verifies the delivered decision package as a whole. The index, every compact
+ * projection, and the external ledger must together equal the deterministic
+ * re-adjudication rebuilt from the ledger bytes plus the identities and run
+ * snapshot recorded in the package itself. One invariant, one check: any field
+ * of any artifact — present or added in the future — that does not re-derive
+ * from the ledger fails this verification. There is deliberately no per-field
+ * checklist to keep patching.
+ */
+export function verifyResidualDecisionPackage(params: {
   readonly outputDir: string;
   readonly ledgerAbsolutePath: string;
-  readonly receipt: LedgerVerificationReceipt;
-  /** The projectionsReconciled flag the current adjudication round assumed. */
-  readonly receiptFlag: boolean;
-}): ResidualProjectionVerification {
+}): ResidualPackageVerification {
   const fileDigests: Record<string, string> = {};
+  const readText = (path: string): string | null => {
+    try {
+      return readFileSync(path, 'utf8');
+    } catch {
+      return null;
+    }
+  };
+
+  const indexRaw = readText(join(params.outputDir, 'index.json'));
+  if (indexRaw === null) return { reconciled: false, reason: 'package-unreadable:index.json', fileDigests };
+  let index: {
+    subject?: ResidualSubjectIdentity;
+    tool?: ResidualToolIdentity;
+    run?: ResidualRunSnapshot;
+    ledgerVerification?: LedgerVerificationReceipt;
+    projectionVerification?: { reconciled?: boolean; fileDigests?: Record<string, string> };
+  };
+  try {
+    index = JSON.parse(indexRaw) as typeof index;
+  } catch {
+    return { reconciled: false, reason: 'package-unparseable:index.json', fileDigests };
+  }
+  const { subject, tool, run, ledgerVerification: receipt } = index;
+  if (!subject || !tool || !run || !receipt) {
+    return { reconciled: false, reason: 'package-identity-missing', fileDigests };
+  }
+
   let ledgerBytes: Buffer;
   try {
     ledgerBytes = readFileSync(params.ledgerAbsolutePath);
@@ -1303,155 +1393,86 @@ export function verifyResidualProjectionArtifacts(params: {
     return { reconciled: false, reason: 'ledger-unreadable', fileDigests };
   }
   const ledgerSha256 = createHash('sha256').update(ledgerBytes).digest('hex');
-  if (ledgerSha256 !== params.receipt.sha256 || ledgerBytes.byteLength !== params.receipt.byteCount) {
+  if (ledgerSha256 !== receipt.sha256 || ledgerBytes.byteLength !== receipt.byteCount) {
     return { reconciled: false, reason: 'ledger-receipt-mismatch', fileDigests };
   }
-  const parsed = JSON.parse(ledgerBytes.toString('utf8')) as {
-    identity?: { subjectCommit?: string; memberSetDigest?: string };
-    records?: Array<{ path?: string; status?: string; outcome?: string; accountableOwner?: string | null }>;
-    families?: Array<{ familyId?: string; accountableOwner?: string | null; outcome?: string; memberIds?: string[] }>;
+  const parsedLedger = JSON.parse(ledgerBytes.toString('utf8')) as {
+    identity?: { subjectCommit?: string; subjectTree?: string; toolCommit?: string; schemaVersion?: string; memberSetDigest?: string; callerBundleDigest?: string };
+    records?: Array<{
+      path?: string; blobOid?: string | null; byteSize?: number | null;
+      currentOwnerEvidence?: string[]; status?: string; outcome?: string;
+      accountableOwner?: string | null; familyId?: string; callerClasses?: string[];
+      callers?: Array<{ path?: string; relationship?: string }>;
+    }>;
   };
-  const records = parsed.records ?? [];
-  const families = parsed.families ?? [];
-  if (parsed.identity?.subjectCommit !== params.receipt.subjectCommit
-    || parsed.identity?.memberSetDigest !== params.receipt.memberSetDigest) {
+  const ledgerRecords = parsedLedger.records ?? [];
+  const ledgerIdentity = parsedLedger.identity;
+  if (!ledgerIdentity?.subjectCommit
+    || ledgerIdentity.subjectCommit !== subject.currentSubject?.subjectCommit
+    || ledgerIdentity.subjectTree !== subject.currentSubject?.subjectTree
+    || ledgerIdentity.schemaVersion !== RESIDUAL_SCHEMA_VERSION
+    || ledgerIdentity.memberSetDigest !== subject.memberSetDigest
+    || ledgerRecords.length !== receipt.memberDenominator) {
     return { reconciled: false, reason: 'ledger-identity-mismatch', fileDigests };
   }
 
-  const readProjection = (name: string): string | { error: string } => {
-    try {
-      const text = readFileSync(join(params.outputDir, name), 'utf8');
-      fileDigests[name] = sha256Text(normalizeProjection(text));
-      return normalizeProjection(text);
-    } catch {
-      return { error: `projection-missing:${name}` };
+  // Rebuild the adjudication purely from the ledger bytes plus the recorded
+  // identities and run snapshot, through the very same decision function.
+  const members: ResidualMemberInput[] = ledgerRecords.map((record) => ({
+    path: record.path ?? '',
+    blobOid: record.blobOid ?? undefined,
+    byteSize: record.byteSize ?? undefined,
+    currentOwnerEvidence: record.currentOwnerEvidence,
+  }));
+  const callers: ResidualCallerInput[] = [];
+  for (const record of ledgerRecords) {
+    for (const caller of record.callers ?? []) {
+      callers.push({
+        memberPath: record.path ?? '',
+        callerPath: caller.path ?? '',
+        relationship: caller.relationship ?? '',
+      });
     }
-  };
+  }
+  const rebuilt = adjudicateResidualDataGovernance({
+    gate: run.gate,
+    subject,
+    tool,
+    members,
+    callers,
+    ledgerVerification: receipt,
+    dirtySource: run.dirtySource,
+    mixedSource: run.mixedSource,
+    executionBranch: run.executionBranch,
+  });
+  if (rebuilt.kind !== 'residual-adjudication') {
+    return { reconciled: false, reason: 'package-gate-rejection', fileDigests };
+  }
 
-  const matrix = readProjection('decision-matrix.md');
-  if (typeof matrix !== 'string') return { reconciled: false, reason: matrix.error, fileDigests };
-  if (!matrix.includes(`currentSubjectCommit: \`${params.receipt.subjectCommit}\``)) {
-    return { reconciled: false, reason: 'projection-subject-mismatch', fileDigests };
-  }
-  if (!matrix.includes(`- memberSetDigest: \`${params.receipt.memberSetDigest}\``)) {
-    return { reconciled: false, reason: 'projection-digest-mismatch:decision-matrix.md', fileDigests };
-  }
-  const escapeCell = (cell: string): string => cell.replaceAll('|', '\\|');
-  const expectedFamilyRows = [...families]
-    .sort((left, right) => (left.familyId ?? '').localeCompare(right.familyId ?? ''))
-    .map((family) => `| ${[
-      family.familyId ?? '',
-      family.accountableOwner ?? 'none',
-      family.outcome ?? '',
-      String(family.memberIds?.length ?? 0),
-      (family.memberIds ?? []).join(' '),
-    ].map(escapeCell).join(' | ')} |`);
-  const matrixRows = matrix.split('\n').filter((line) => line.startsWith('| ') && !line.startsWith('| familyId') && !line.startsWith('| ---'));
-  if (matrixRows.length !== expectedFamilyRows.length
-    || expectedFamilyRows.some((row, index) => matrixRows[index] !== row)) {
-    return { reconciled: false, reason: 'projection-family-mismatch', fileDigests };
-  }
-
-  const memberCount = records.length;
-  const unresolvedCount = records.filter((record) => record.status !== 'qualified').length;
-  const byOutcome = new Map<string, number>();
-  const byOwner = new Map<string, number>();
-  for (const record of records) {
-    byOutcome.set(record.outcome ?? '', (byOutcome.get(record.outcome ?? '') ?? 0) + 1);
-    const ownerKey = record.accountableOwner ?? 'none';
-    byOwner.set(ownerKey, (byOwner.get(ownerKey) ?? 0) + 1);
-  }
-  const summaries = readProjection('summaries.md');
-  if (typeof summaries !== 'string') return { reconciled: false, reason: summaries.error, fileDigests };
-  if (!summaries.includes(`- members: ${memberCount}`)
-    || !summaries.includes(`- recordQualified: ${memberCount - unresolvedCount}`)
-    || !summaries.includes(`- unresolved: ${unresolvedCount}`)) {
-    return { reconciled: false, reason: 'projection-count-mismatch:summaries.md', fileDigests };
-  }
-  const blockersLine = summaries.split('\n').find((line) => line.startsWith('- blockers: ')) ?? '';
-  const ledgerBlockerExpected = !params.receiptFlag;
-  if (blockersLine.includes('full-ledger-bytes-unverified') !== ledgerBlockerExpected) {
-    return { reconciled: false, reason: 'projection-blocker-inconsistent', fileDigests };
-  }
-  const summaryDocRows = new Map<string, number>();
-  for (const line of summaries.split('\n')) {
-    if (!line.startsWith('| ') || line.startsWith('| outcome') || line.startsWith('| accountableOwner') || line.startsWith('| ---')) continue;
-    const cells = line.split('|').map((cell) => cell.trim());
-    const key = cells[1] ?? '';
-    const count = Number(cells[2]);
-    if (!key || !Number.isInteger(count)) {
-      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
-    }
-    summaryDocRows.set(key, count);
-  }
-  const recomputedCounts = [...byOutcome.entries(), ...byOwner.entries()];
-  for (const [key, count] of summaryDocRows) {
-    const expected = byOutcome.get(key) ?? byOwner.get(key) ?? 0;
-    if (expected !== count) {
-      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
-    }
-  }
-  for (const [key, count] of recomputedCounts) {
-    if (count > 0 && !summaryDocRows.has(key)) {
-      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
+  // Every projection must equal the rebuilt render byte-for-byte.
+  for (const [name, content] of Object.entries(projectResidualDocuments(rebuilt))) {
+    const actual = readText(join(params.outputDir, name));
+    if (actual === null) return { reconciled: false, reason: `projection-missing:${name}`, fileDigests };
+    fileDigests[name] = sha256Text(normalizeProjection(actual));
+    if (normalizeProjection(actual) !== normalizeProjection(content)) {
+      return { reconciled: false, reason: `projection-mismatch:${name}`, fileDigests };
     }
   }
 
-  const recordsByPath = new Map(records.map((record) => [record.path ?? '', record]));
-  const slices = readProjection('future-slices.md');
-  if (typeof slices !== 'string') return { reconciled: false, reason: slices.error, fileDigests };
-  const packageQualifiedLine = summaries.split('\n').find((line) => line.startsWith('- packageQualified: ')) ?? '';
-  const packageQualified = packageQualifiedLine.includes('yes');
-  const sections = slices.split('\n## ').slice(1);
-  const nonEmission = slices.includes('No migration-input slice is emitted');
-  // Re-derive the expected migration-input path universe from the ledger: every
-  // record-qualified record belongs to exactly one slice family, so a qualified
-  // package must project all of them and a non-qualified package none.
-  const qualifiedPaths = records.filter((record) => record.status === 'qualified')
-    .map((record) => record.path ?? '')
-    .sort();
-  const listedPaths: string[] = [];
-  if (packageQualified) {
-    if (sections.length === 0 || nonEmission) {
-      return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
-    }
-    for (const section of sections) {
-      const [title, ...rest] = section.split('\n');
-      const body = rest.join('\n');
-      const owner = /- accountableOwner: `([^`]+)`/u.exec(body)?.[1];
-      const outcome = /- outcome: `([^`]+)`/u.exec(body)?.[1];
-      const pathsLine = body.split('\n').find((line) => line.startsWith('- paths: ')) ?? '';
-      const listed = [...pathsLine.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
-      if (listed.length === 0 || listed.some((path) => !recordsByPath.has(path))) {
-        return { reconciled: false, reason: `slice-path-outside-ledger:${title ?? 'unknown'}`, fileDigests };
-      }
-      listedPaths.push(...listed);
-      for (const path of listed) {
-        const record = recordsByPath.get(path);
-        if (!record || record.status !== 'qualified' || record.accountableOwner !== owner || record.outcome !== outcome) {
-          return { reconciled: false, reason: `slice-identity-mismatch:${title ?? path}`, fileDigests };
-        }
-      }
-    }
-    const universe = [...listedPaths].sort();
-    if (universe.length !== qualifiedPaths.length
-      || universe.some((path, index) => path !== qualifiedPaths[index])) {
-      return { reconciled: false, reason: 'projection-slice-universe-mismatch', fileDigests };
-    }
-  } else if (!nonEmission || sections.length > 0) {
-    return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
-  }
-
-  const handoff = readProjection('handoff.md');
-  if (typeof handoff !== 'string') return { reconciled: false, reason: handoff.error, fileDigests };
-  const statusLine = handoff.split('\n').find((line) => line.startsWith('- status: ')) ?? '';
-  if (statusLine.includes('COMPLETE-qualified') !== packageQualified) {
-    return { reconciled: false, reason: 'projection-status-inconsistent', fileDigests };
-  }
-  if (!handoff.includes(`- fullLedger.sha256: \`${params.receipt.sha256}\``)
-    || !handoff.includes(`- fullLedger.bytes: ${params.receipt.byteCount}`)
-    || !handoff.includes(`- fullLedger.locator: \`${params.receipt.locator}\``)) {
-    return { reconciled: false, reason: 'projection-ledger-mismatch:handoff.md', fileDigests };
+  // The index must equal the rebuilt compact package; the projectionVerification
+  // block is exempted because it records THIS verification run, whose result the
+  // caller consumes instead of trusting the recorded copy.
+  const expectedIndex = JSON.parse(buildResidualCompactPackage({
+    result: rebuilt,
+    receipt,
+    run,
+    projectionVerification: { reconciled: true, fileDigests },
+  })) as Record<string, unknown>;
+  const actualIndex = JSON.parse(indexRaw) as Record<string, unknown>;
+  delete expectedIndex.projectionVerification;
+  delete actualIndex.projectionVerification;
+  if (serializeDeterministic(actualIndex) !== serializeDeterministic(expectedIndex)) {
+    return { reconciled: false, reason: 'index-mismatch', fileDigests };
   }
   return { reconciled: true, fileDigests };
 }

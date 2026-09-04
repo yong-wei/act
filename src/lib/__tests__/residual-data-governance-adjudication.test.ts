@@ -13,6 +13,7 @@ import {
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
   buildMemberReferenceTokens,
+  buildResidualCompactPackage,
   classifyCallerPath,
   collectRelativeCallers,
   directoryPathReadCaller,
@@ -20,12 +21,14 @@ import {
   memberSetDigest,
   projectResidualDocuments,
   textReferencesMember,
-  verifyResidualProjectionArtifacts,
+  verifyResidualDecisionPackage,
   type Issue1876Snapshot,
   type LedgerVerificationReceipt,
   type ResidualAdjudication,
   type ResidualAdjudicationInput,
   type ResidualMemberInput,
+  type ResidualPackageVerification,
+  type ResidualRunSnapshot,
   type ResidualSubjectIdentity,
   type ResidualToolIdentity,
 } from '@/lib/architecture-charter/residual-data-governance';
@@ -99,11 +102,29 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
   };
 }
 
-/** Writes a result's projections to a directory exactly like the CLI. */
-function writeProjectionsTo(dir: string, result: ResidualAdjudication): void {
+const TEST_RUN: ResidualRunSnapshot = {
+  gate: closedGate,
+  executionBranch: RESIDUAL_CLAIM_BRANCH,
+  dirtySource: false,
+  mixedSource: false,
+};
+
+/** Writes a result's full round package (projections + index) like the CLI. */
+function writeRoundPackage(
+  dir: string,
+  result: ResidualAdjudication,
+  receipt: LedgerVerificationReceipt,
+  verification: ResidualPackageVerification,
+): void {
   for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
     writeFileSync(join(dir, name), content.replace(/\n+$/u, '\n'));
   }
+  writeFileSync(join(dir, 'index.json'), buildResidualCompactPackage({
+    result,
+    receipt,
+    run: TEST_RUN,
+    projectionVerification: verification,
+  }));
 }
 
 interface FixedPointPackage {
@@ -111,12 +132,12 @@ interface FixedPointPackage {
   readonly ledgerPath: string;
   readonly ledgerReceipt: Omit<LedgerVerificationReceipt, 'projectionsReconciled'>;
   readonly result: ResidualAdjudication;
-  readonly verification: ReturnType<typeof verifyResidualProjectionArtifacts>;
+  readonly verification: ResidualPackageVerification;
 }
 
 /**
  * Runs the CLI-equivalent fixed-point flow: write the ledger, verify its bytes,
- * then converge the receipt flag over projections reconciled against those
+ * then converge the receipt flag over packages re-verified whole against the
  * ledger bytes. Returns the package for further reconciliation assertions.
  */
 function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): FixedPointPackage {
@@ -141,24 +162,20 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
   const adjudicateWith = (flag: boolean): ResidualAdjudication => asAdjudication(
     adjudicateResidualDataGovernance({ ...input(partial), ledgerVerification: { ...ledgerReceipt, projectionsReconciled: flag } }),
   );
-  const reconcile = (flag: boolean) => verifyResidualProjectionArtifacts({
-    outputDir: dir,
-    ledgerAbsolutePath: ledgerPath,
-    receipt: ledgerReceipt,
-    receiptFlag: flag,
-  });
+  const reconcile = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
 
   let flag = false;
   let result = adjudicateWith(flag);
-  writeProjectionsTo(dir, result);
-  let verification = reconcile(flag);
+  writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, { reconciled: false, fileDigests: {} });
+  let verification = reconcile();
   if (verification.reconciled !== flag) {
     flag = verification.reconciled;
     result = adjudicateWith(flag);
-    writeProjectionsTo(dir, result);
-    verification = reconcile(flag);
+    writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
+    verification = reconcile();
   }
-  return { dir, ledgerPath, ledgerReceipt, result, verification };
+  writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
+  return { dir, ledgerPath, ledgerReceipt, result, verification: reconcile() };
 }
 
 /** Runs the fixed-point flow and returns the converged final adjudication. */
@@ -595,109 +612,53 @@ describe('residual data-governance adjudication', () => {
     expect(unverified.futureSlices).toEqual([]);
   });
 
-  it('reconciles projections against ledger bytes and rejects tampered, stale, drifted, or missing artifacts', () => {
+  it('re-verifies the whole package against the ledger and rejects any tampered artifact', () => {
     const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
     const pkg = buildFixedPointPackage({ members });
     const dir = pkg.dir;
+    const verify = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: pkg.ledgerPath });
     try {
-      const params = {
-        outputDir: dir,
-        ledgerAbsolutePath: pkg.ledgerPath,
-        receipt: pkg.ledgerReceipt,
-        receiptFlag: true,
-      } as const;
-      // Converged package: the final projections reconcile under flag=true.
-      expect(verifyResidualProjectionArtifacts(params).reconciled).toBe(true);
-      expect(Object.keys(verifyResidualProjectionArtifacts(params).fileDigests).sort()).toEqual(
+      expect(verify()).toMatchObject({ reconciled: true });
+      expect(Object.keys(verify().fileDigests).sort()).toEqual(
         ['decision-matrix.md', 'future-slices.md', 'handoff.md', 'summaries.md'],
       );
 
-      // Ledger bytes drifting away from the receipt fail before projections load.
+      // Ledger bytes drifting away from the recorded receipt fail first.
       writeFileSync(pkg.ledgerPath, `${pkg.result.ledgerBody.slice(0, -4)}   `);
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({ reconciled: false, reason: 'ledger-receipt-mismatch' });
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'ledger-receipt-mismatch' });
       writeFileSync(pkg.ledgerPath, pkg.result.ledgerBody);
 
-      // A receipt bound to a foreign subject fails at the ledger identity layer.
-      expect(verifyResidualProjectionArtifacts({
-        ...params,
-        receipt: { ...pkg.ledgerReceipt, subjectCommit: REQUIRED_SUCCESSOR.sourceCommit },
-      })).toMatchObject({ reconciled: false, reason: 'ledger-identity-mismatch' });
-
-      // A decision matrix carrying a stale subject while the receipt is valid
-      // fails the projection subject check.
       const matrixPath = join(dir, 'decision-matrix.md');
       const originalMatrix = readFileSync(matrixPath, 'utf8');
       writeFileSync(matrixPath, originalMatrix.replace(
         `currentSubjectCommit: \`${pkg.result.subject.currentSubject.subjectCommit}\``,
         `currentSubjectCommit: \`${REQUIRED_SUCCESSOR.sourceCommit}\``,
       ));
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-subject-mismatch',
-      });
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:decision-matrix.md' });
       writeFileSync(matrixPath, originalMatrix);
-
-      // Blocker line must match the receipt flag the projections were made under.
-      expect(verifyResidualProjectionArtifacts({ ...params, receiptFlag: false })).toMatchObject({
-        reconciled: false,
-        reason: 'projection-blocker-inconsistent',
-      });
 
       const summariesPath = join(dir, 'summaries.md');
       const originalSummaries = readFileSync(summariesPath, 'utf8');
       writeFileSync(summariesPath, originalSummaries.replace(`- members: ${members.length}`, '- members: 999'));
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-count-mismatch:summaries.md',
-      });
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:summaries.md' });
       writeFileSync(summariesPath, originalSummaries);
 
       const handoffPath = join(dir, 'handoff.md');
       const originalHandoff = readFileSync(handoffPath, 'utf8');
       writeFileSync(handoffPath, originalHandoff.replace(`- fullLedger.bytes: ${pkg.result.fullLedger.byteCount}`, '- fullLedger.bytes: 1'));
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-ledger-mismatch:handoff.md',
-      });
-
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:handoff.md' });
       writeFileSync(handoffPath, originalHandoff);
-      rmSync(join(dir, 'handoff.md'));
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-missing:handoff.md',
-      });
+
+      const indexPath = join(dir, 'index.json');
+      const originalIndex = readFileSync(indexPath, 'utf8');
+      writeFileSync(indexPath, originalIndex.replace('"qualified":true', '"qualified":false'));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'index-mismatch' });
+      writeFileSync(indexPath, originalIndex);
+
+      rmSync(handoffPath);
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-missing:handoff.md' });
     } finally {
       rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  it('rejects migration slices whose paths fall outside the ledger', () => {
-    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
-    const pkg = buildFixedPointPackage({
-      members,
-      callers: [{
-        memberPath: 'src/lib/data-governance/math-document-backfill.ts',
-        callerPath: 'scripts/db/backfill-demo.ts',
-        relationship: 'import',
-      }],
-    });
-    try {
-      expect(pkg.verification.reconciled).toBe(true);
-      const slicesPath = join(pkg.dir, 'future-slices.md');
-      const original = readFileSync(slicesPath, 'utf8');
-      expect(original).toContain('## ');
-      writeFileSync(slicesPath, original.replace(
-        '`src/lib/data-governance/math-document-backfill.ts`',
-        '`src/lib/data-governance/not-in-ledger.ts`',
-      ));
-      expect(verifyResidualProjectionArtifacts({
-        outputDir: pkg.dir,
-        ledgerAbsolutePath: pkg.ledgerPath,
-        receipt: pkg.ledgerReceipt,
-        receiptFlag: true,
-      })).toMatchObject({ reconciled: false, reason: 'slice-path-outside-ledger:operator-backfill' });
-    } finally {
-      rmSync(pkg.dir, { recursive: true, force: true });
     }
   });
 
@@ -842,7 +803,7 @@ describe('residual data-governance adjudication', () => {
     expect(protocol?.familyId).not.toBe(derived?.familyId);
   });
 
-  it('rejects qualified projections that omit the ledger-derived migration-input universe', () => {
+  it('rejects qualified packages whose migration-input projection drops required gate fields', () => {
     const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
     const pkg = buildFixedPointPackage({
       members,
@@ -852,42 +813,31 @@ describe('residual data-governance adjudication', () => {
         relationship: 'import',
       }],
     });
+    const verify = () => verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath });
     try {
       expect(pkg.verification.reconciled).toBe(true);
       const slicesPath = join(pkg.dir, 'future-slices.md');
       const original = readFileSync(slicesPath, 'utf8');
-      const params = {
-        outputDir: pkg.dir,
-        ledgerAbsolutePath: pkg.ledgerPath,
-        receipt: pkg.ledgerReceipt,
-        receiptFlag: true,
-      } as const;
+      expect(original).toContain('## ');
+      expect(original).toContain('- requiredAuthorization: ');
 
-      // Bare heading with no sections and no non-emission statement.
+      // Dropping any required gate field must fail the whole-package recheck.
+      writeFileSync(slicesPath, original.replace(/- requiredAuthorization: [^\n]+\n/u, ''));
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
+
+      // Bare heading: every migration input silently omitted.
       writeFileSync(slicesPath, '# Residual Data Governance future slices\n');
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-slice-inconsistent',
-      });
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
 
-      // Non-emission line forged while the package claims qualified.
-      writeFileSync(slicesPath, `${original.split('## ')[0]}No migration-input slice is emitted: forged.\n`);
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'projection-slice-inconsistent',
-      });
-
-      // A path listing a member outside the ledger still fails fast.
+      // Path outside the ledger.
       writeFileSync(slicesPath, original.replace(
         '`src/lib/data-governance/math-document-backfill.ts`',
         '`src/lib/data-governance/not-in-ledger.ts`',
       ));
-      expect(verifyResidualProjectionArtifacts(params)).toMatchObject({
-        reconciled: false,
-        reason: 'slice-path-outside-ledger:operator-backfill',
-      });
+      expect(verify()).toMatchObject({ reconciled: false, reason: 'projection-mismatch:future-slices.md' });
 
       writeFileSync(slicesPath, original);
+      expect(verify()).toMatchObject({ reconciled: true });
     } finally {
       rmSync(pkg.dir, { recursive: true, force: true });
     }

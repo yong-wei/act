@@ -26,6 +26,7 @@ import {
   UPSTREAM_PAYLOAD_CHANGE,
   adjudicateResidualDataGovernance,
   buildMemberReferenceTokens,
+  buildResidualCompactPackage,
   collectRelativeCallers,
   directoryPathReadCaller,
   loadPredecessorComparison,
@@ -34,14 +35,15 @@ import {
   projectResidualDocuments,
   resolveResidualCurrentSubject,
   textReferencesMember,
+  verifyResidualDecisionPackage,
   verifyResidualLedgerArtifact,
-  verifyResidualProjectionArtifacts,
   type Issue1876Snapshot,
   type ResidualAdjudication,
   type ResidualAdjudicationInput,
   type ResidualCallerInput,
   type ResidualMemberInput,
-  type ResidualProjectionVerification,
+  type ResidualPackageVerification,
+  type ResidualRunSnapshot,
 } from '../src/lib/architecture-charter/residual-data-governance';
 
 const OUTPUT_DIR = 'docs/architecture/modular-monolith/post-convergence/residual-data-governance/current';
@@ -256,9 +258,18 @@ const members = loadMembers(currentSubject.subjectCommit, currentSubject.subject
 const callers = loadCallers(members, currentSubject.subjectCommit);
 const tool = toolIdentity();
 
+// Claim-time execution snapshot, frozen once and published inside the package
+// so the verifier can replay the exact adjudication from the ledger bytes.
+const run: ResidualRunSnapshot = {
+  gate: { number: 1876, ...ghIssueSnapshot(1876) },
+  executionBranch: currentBranch,
+  dirtySource: worktreeDirty,
+  mixedSource: isMixedWorktree(repoRoot),
+};
+
 function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerification']): ResidualAdjudication {
   const result = adjudicateResidualDataGovernance({
-    gate: { number: 1876, ...ghIssueSnapshot(1876) },
+    gate: run.gate,
     subject: {
       successorCaptureId: REQUIRED_SUCCESSOR.successorCaptureId,
       sourceCommit: REQUIRED_SUCCESSOR.sourceCommit,
@@ -288,9 +299,9 @@ function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerific
     members,
     callers,
     ledgerVerification,
-    dirtySource: worktreeDirty,
-    mixedSource: isMixedWorktree(repoRoot),
-    executionBranch: currentBranch,
+    dirtySource: run.dirtySource,
+    mixedSource: run.mixedSource,
+    executionBranch: run.executionBranch,
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
     process.stderr.write(`${JSON.stringify(result)}\n`);
@@ -319,51 +330,8 @@ if ('error' in ledgerReceipt) {
   process.exit(1);
 }
 
-const outDir = join(repoRoot, OUTPUT_DIR);
-mkdirSync(outDir, { recursive: true });
-
-/** Writes one adjudication round's compact projections with privacy guards. */
-function writeProjectionArtifacts(result: ResidualAdjudication): void {
-  for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
-    const normalized = content.replace(/\n+$/u, '\n');
-    const violation = privacyViolation(normalized);
-    if (violation) throw new Error(`privacy:${violation}:${name}`);
-    writeFileSync(join(outDir, name), normalized);
-  }
-}
-
-/** Reconciles the written projections against the actual ledger bytes and flag. */
-function reconcileProjectionArtifacts(flag: boolean): ResidualProjectionVerification {
-  return verifyResidualProjectionArtifacts({
-    outputDir: outDir,
-    ledgerAbsolutePath: ledgerPath,
-    receipt: ledgerReceipt,
-    receiptFlag: flag,
-  });
-}
-
-// 6. Fixed-point convergence: each round's projections are reconciled against
-//    the ledger bytes with the round's assumed receipt flag; the flag may only
-//    be published as true when the projections generated under it actually
-//    reconcile, so the receipt always describes the final artifacts.
-let receiptFlag = false;
-let result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
-writeProjectionArtifacts(result);
-let verification = reconcileProjectionArtifacts(receiptFlag);
-if (verification.reconciled !== receiptFlag) {
-  receiptFlag = verification.reconciled;
-  result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
-  writeProjectionArtifacts(result);
-  verification = reconcileProjectionArtifacts(receiptFlag);
-  if (verification.reconciled !== receiptFlag) {
-    process.stderr.write(`projection-fixed-point-unreachable:${verification.reason}\n`);
-    process.exit(1);
-  }
-}
-const receipt = { ...ledgerReceipt, projectionsReconciled: receiptFlag };
-
-// 7. Post guards run BEFORE the final projection is published, so a drifted
-//    run never leaves an apparently-qualified migration input behind.
+// 6. Post guards run BEFORE any package is published, so a drifted run never
+//    leaves an apparently-qualified migration input behind.
 const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
 if (subjectCommitAfter !== currentSubject.subjectCommit) {
   process.stderr.write('subject-drifted-during-run\n');
@@ -377,31 +345,60 @@ for (const [name, path] of readOnlyInputs) {
   }
 }
 
-// 8. Compact index is written only after its embedded receipt claims are backed
-//    by the completed projection reconciliation of the exact artifacts on disk.
-const compact = serializeDeterministic({
-  schemaVersion: result.schemaVersion,
-  qualified: result.qualified,
-  blockers: result.blockers,
-  subject: result.subject,
-  tool: result.tool,
-  summaries: result.summaries,
-  families: result.families,
-  futureSlices: result.futureSlices,
-  fullLedger: result.fullLedger,
-  ledgerVerification: receipt,
-  projectionVerification: {
-    reconciled: verification.reconciled,
-    fileDigests: verification.fileDigests,
-  },
-  decisionIdentity: result.decisionIdentity,
-});
-const compactPrivacy = privacyViolation(compact);
-if (compactPrivacy) throw new Error(`privacy:${compactPrivacy}:index.json`);
-const compactPath = join(outDir, 'index.json');
-writeFileSync(compactPath, compact);
-if (readFileSync(compactPath, 'utf8') !== compact) {
-  process.stderr.write('index-write-verification-failed\n');
+const outDir = join(repoRoot, OUTPUT_DIR);
+mkdirSync(outDir, { recursive: true });
+
+/** Writes one adjudication round's full package: projections plus the index. */
+function writeRoundPackage(
+  result: ResidualAdjudication,
+  flag: boolean,
+  verification: ResidualPackageVerification,
+): void {
+  for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
+    const normalized = content.replace(/\n+$/u, '\n');
+    const violation = privacyViolation(normalized);
+    if (violation) throw new Error(`privacy:${violation}:${name}`);
+    writeFileSync(join(outDir, name), normalized);
+  }
+  const compact = buildResidualCompactPackage({
+    result,
+    receipt: { ...ledgerReceipt, projectionsReconciled: flag },
+    run,
+    projectionVerification: verification,
+  });
+  const compactPrivacy = privacyViolation(compact);
+  if (compactPrivacy) throw new Error(`privacy:${compactPrivacy}:index.json`);
+  writeFileSync(join(outDir, 'index.json'), compact);
+}
+
+/** Reconciles the whole on-disk package against the ledger bytes. */
+function reconcileRoundPackage(): ResidualPackageVerification {
+  return verifyResidualDecisionPackage({ outputDir: outDir, ledgerAbsolutePath: ledgerPath });
+}
+
+// 6. Fixed-point convergence: each round publishes its full package, which is
+//    then re-adjudicated from the ledger bytes and compared byte-for-byte. The
+//    receipt flag may only be published as true when the package generated
+//    under it re-derives exactly, so the receipt always describes the final
+//    artifacts on disk.
+let receiptFlag = false;
+let result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
+writeRoundPackage(result, receiptFlag, { reconciled: false, fileDigests: {} });
+let verification = reconcileRoundPackage();
+if (verification.reconciled !== receiptFlag) {
+  receiptFlag = verification.reconciled;
+  result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
+  writeRoundPackage(result, receiptFlag, verification);
+  verification = reconcileRoundPackage();
+  if (verification.reconciled !== receiptFlag) {
+    process.stderr.write(`projection-fixed-point-unreachable:${verification.reason}\n`);
+    process.exit(1);
+  }
+}
+// Publish the final index carrying the verification that actually passed.
+writeRoundPackage(result, receiptFlag, verification);
+if (!reconcileRoundPackage().reconciled) {
+  process.stderr.write(`final-package-unverified:${reconcileRoundPackage().reason}\n`);
   process.exit(1);
 }
 
