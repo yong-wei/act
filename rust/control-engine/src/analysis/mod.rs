@@ -892,6 +892,27 @@ mod tests {
         );
     }
 
+    #[test]
+    fn constant_minus_three_db_gain_does_not_report_bandwidth() {
+        let request: ControlAnalysisRequest = serde_json::from_value(serde_json::json!({
+            "runtimeMode": "analysis",
+            "plant": {
+                "numerator": [0.707_945_784_384_137_9],
+                "denominator": [1.0],
+                "coefficientOrder": "descending"
+            },
+            "structures": [],
+            "outputs": ["bode"],
+            "timeRange": { "start": 0.0, "end": 1.0, "samples": 8 },
+            "frequencyRange": { "min": 0.1, "max": 10.0, "samples": 32 },
+            "rootLocus": { "minGain": 0.0, "maxGain": 2.0, "samples": 2, "currentGain": 1.0 }
+        }))
+        .expect("constant-gain request should deserialize");
+
+        let result = compute_analysis_inner(&request);
+        assert!(result.metrics.bandwidth_rad_per_sec.is_none());
+    }
+
     fn unit_1_5_gain_request(gain: f64) -> ControlAnalysisRequest {
         serde_json::from_value(serde_json::json!({
             "runtimeMode": "analysis",

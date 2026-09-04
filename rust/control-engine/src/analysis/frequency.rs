@@ -776,7 +776,18 @@ pub(super) fn margins(
     let wg = interpolate_zero_cross(phase, -180.0);
     let pm = wc.and_then(|cross| interp_curve(phase, cross).map(|value| 180.0 + value));
     let gm_db = wg.and_then(|cross| interp_curve(magnitude, cross).map(|value| -value));
-    let bandwidth = interpolate_zero_cross(magnitude, -3.0);
+    // 整段贴合阈值时 signum(0)==signum(0)，不得当成穿越（Issue #1957 review）。
+    let bandwidth = magnitude.windows(2).find_map(|window| {
+        let left = &window[0];
+        let right = &window[1];
+        let left_offset = left.y + 3.0;
+        let right_offset = right.y + 3.0;
+        if left_offset.signum() == right_offset.signum() {
+            return None;
+        }
+        let ratio = left_offset.abs() / (left_offset.abs() + right_offset.abs());
+        Some(left.x + (right.x - left.x) * ratio)
+    });
     (pm, gm_db, wc, wg, bandwidth)
 }
 
