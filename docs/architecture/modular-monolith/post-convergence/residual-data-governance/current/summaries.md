@@ -4,7 +4,7 @@
 - recordQualified: 262
 - packageQualified: no
 - unresolved: 0
-- blockers: dirty-source, upstream-payload-package-unqualified
+- blockers: upstream-payload-package-unqualified
 
 | outcome | count |
 | --- | --- |
