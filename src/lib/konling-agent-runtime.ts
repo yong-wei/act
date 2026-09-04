@@ -8848,34 +8848,41 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
   context: T,
   assignedCitations: readonly KonlingAssignedCitation[],
 ): T {
-  if (!context.pageContext.candidateGraph || !context.citationContext) return context;
-  const candidateCitations: KonlingCitation[] = assignedCitations
-    .filter((citation) => citation.evidenceBasis?.startsWith('candidate-canonical:'))
+  if (!context.citationContext) return context;
+  // 最终 guard 必须与 normalize 层共享同一 assigned 表视图：检索工具分配的
+  // 教材与 candidate 引用只存在于 assigned 表，不投影进 citationContext 时，
+  // collectUnverifiedCitationMarkers 会把有效工具编号误判为未分配而剥离（#1949）。
+  const existingByCanonicalKey = new Set([
+    ...context.citationContext.contentCitations,
+    ...context.citationContext.evidenceCitations,
+  ].flatMap((citation) => [citation.canonicalKey
+    ?? buildKonlingCitationCanonicalKey(toAssignableRuntimeCitation(citation).identity)]));
+  const toolCitations: KonlingCitation[] = assignedCitations
+    .filter((citation) => citation.verifiable !== false && !existingByCanonicalKey.has(citation.canonicalKey))
     .map((citation) => ({
       id: citation.id,
-      sourceType: 'content',
+      // runtime citation 的 sourceType 联合不含 textbook：投影条目归一为
+      // content 分类（guard 内部分类用），用户可见的教材标签以 assigned
+      // 表持久化投影（normalized.citations）为准。
+      sourceType: 'content' as const,
       displayTitle: citation.displayTitle,
       href: citation.href,
       confidence: citation.confidence ?? 'high',
-      evidenceBasis: citation.evidenceBasis
-        ?? `candidate-canonical:${context.pageContext.candidateGraph!.releaseSetId}:${context.pageContext.candidateGraph!.releaseId}`,
-      owner: 'answer',
-      citationTargetId: citation.identity.kind === 'content'
-        ? citation.identity.contentId
-        : citation.id,
+      evidenceBasis: citation.evidenceBasis ?? 'server-assigned-citation',
+      owner: 'answer' as const,
+      citationTargetId: assignedCitationTargetId(citation),
       verified: true,
-      resolver: 'candidate-authoritative-repository',
+      resolver: citation.evidenceBasis?.startsWith('candidate-canonical:')
+        ? 'candidate-authoritative-repository'
+        : null,
       displayNumber: citation.displayNumber,
       canonicalKey: citation.canonicalKey,
       identity: citation.identity,
     }));
-  if (candidateCitations.length === 0) return context;
-  const existingByCanonicalKey = new Set(
-    context.citationContext.contentCitations.map((citation) => citation.canonicalKey),
-  );
+  if (toolCitations.length === 0) return context;
   const contentCitations = [
     ...context.citationContext.contentCitations,
-    ...candidateCitations.filter((citation) => !existingByCanonicalKey.has(citation.canonicalKey)),
+    ...toolCitations,
   ];
   const hydrated = assignKonlingRuntimeCitationDisplayNumbers(
     contentCitations,
@@ -8896,6 +8903,16 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
         )),
     },
   };
+}
+
+function assignedCitationTargetId(citation: KonlingAssignedCitation): string {
+  if (citation.identity.kind === 'textbook') {
+    return citation.identity.fragmentId ?? citation.identity.unitId;
+  }
+  if (citation.identity.kind === 'content') {
+    return citation.identity.contentId;
+  }
+  return citation.identity.evidenceId;
 }
 
 function toAssignableRuntimeCitation(citation: KonlingCitation) {

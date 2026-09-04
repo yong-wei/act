@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   buildKonlingCitationGuard,
+  mergeCandidateAssignedCitations,
   stripUnverifiedKonlingCitationMarkers,
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';
+import { assignKonlingCitationDisplayNumbers } from '@/lib/konling-citation-protocol';
 
 vi.mock('server-only', () => ({}));
 
@@ -99,5 +101,72 @@ describe('issue #1949 formal answer citation verification', () => {
 
     expect(guard.unverifiedCitationMarkers).toEqual([]);
     expect(stripUnverifiedKonlingCitationMarkers(answer, guard)).toBe(answer);
+  });
+
+  it('keeps textbook tool citations visible to the final guard so valid numbers survive stripping (#1949)', () => {
+    const runtimeContext = { citationContext: createCitationContext() } as KonlingRuntimeContext;
+    // 教材检索工具在回答期间分配的条目：只存在于 assigned 表，runtime
+    // citationContext 中没有它。
+    const assigned = assignKonlingCitationDisplayNumbers([
+      {
+        id: 'textbook-unit:hu8/chapter-3',
+        sourceType: 'textbook',
+        displayTitle: '胡寿松《自动控制原理》第三章',
+        href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-3',
+        verifiable: true,
+        identity: {
+          kind: 'textbook',
+          bookId: 'hu-shousong-auto-control-8th',
+          edition: '第八版',
+          sourceRevision: 'r1',
+          unitId: 'chapter-3',
+          fragmentId: null,
+        },
+      },
+    ]);
+    const merged = mergeCandidateAssignedCitations(runtimeContext, assigned);
+
+    expect(merged.citationContext.contentCitations).toHaveLength(3);
+    // 投影条目在 runtime citation 分类里归一为 content，但保留教材身份
+    // （id/citationTargetId/identity/canonicalKey）。
+    const textbookCitation = merged.citationContext.contentCitations
+      .find((citation) => citation.id === 'textbook-unit:hu8/chapter-3');
+    expect(textbookCitation).toMatchObject({
+      displayNumber: 3,
+      citationTargetId: 'chapter-3',
+      verified: true,
+      href: '/textbooks/hu-shousong-auto-control-8th/r1/chapter-3',
+    });
+
+    const answer = '教材结论 [3]。';
+    const guard = buildKonlingCitationGuard(merged, answer);
+    expect(guard.unverifiedCitationMarkers).toEqual([]);
+    expect(stripUnverifiedKonlingCitationMarkers(answer, guard)).toBe(answer);
+  });
+
+  it('does not duplicate runtime citations already present in the citation context (#1949)', () => {
+    const runtimeContext = { citationContext: createCitationContext() } as KonlingRuntimeContext;
+    // assigned 表与 citationContext 含相同 canonicalKey 的条目：不重复投影。
+    const assigned = assignKonlingCitationDisplayNumbers([
+      {
+        id: 'content:evidence:primary',
+        sourceType: 'content',
+        displayTitle: '闭环控制教材片段',
+        href: '/course-runtime/resources/closed-loop.md',
+        identity: {
+          kind: 'content',
+          sourceType: 'content',
+          contentId: 'content:closed-loop',
+        },
+      },
+    ]);
+    const merged = mergeCandidateAssignedCitations(runtimeContext, assigned);
+
+    // fixture 的 #1（canonicalKey 等价）不被重复投影，#2 原样保留：
+    // 投影只追加 assigned 表中新增的条目。
+    expect(merged.citationContext.contentCitations).toHaveLength(2);
+    expect(merged.citationContext.contentCitations.map((citation) => citation.displayNumber))
+      .toEqual([1, 2]);
+    expect(merged.citationContext.contentCitations[0]?.id).toBe('content:evidence:primary');
   });
 });
