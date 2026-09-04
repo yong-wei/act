@@ -2,13 +2,13 @@
 
 - status: `COMPLETE-non-qualified-BLOCKER`
 - currentSubjectCommit: `e70b936ec04a6cf228a330985ff9a6ae27b6bfab`
-- decisionIdentity: `66f9de46cfcf0de7205df692863e67d01d664cc8cd2c1e401d0d7730fad6dcdf`
+- decisionIdentity: `a0adef80d73083d3a38a60a5a1ac928ef7f17e130508b5d1881b1901a40f8d37`
 - successorCaptureId: `fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02`
 - packageDigest: `259ce5259694268d25d9b91825f070acf46b78ec0b34d26a0f4bb7686579ab12`
-- tool.entryBundleDigest: `32be8be55976dacc503d81873cc0655d08d93fcb46a0aa0ccdd3682f9fa96697`
+- tool.entryBundleDigest: `94cb27a471b1291a33a951f456ac216f1879073cb171178188288459d74a4f97`
 - fullLedger.locator: `artifacts/architecture-census/e70b936ec04a6cf228a330985ff9a6ae27b6bfab/residual-data-governance-ledger.ndjson`
 - fullLedger.bytes: 819617
-- fullLedger.sha256: `e7a9f71243499890ae48cc38857e9ed3d276a41a1343a062272d7b84541b01ac`
+- fullLedger.sha256: `ccdcccf560d4c9ea283b16a8988238a8f15a177270dfe84e5b1cab982c2b9525`
 - unresolvedCount: 0
 - blockers: upstream-payload-package-unqualified
 
