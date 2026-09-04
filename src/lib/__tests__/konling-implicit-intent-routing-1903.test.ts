@@ -160,11 +160,17 @@ describe('issue #1903 per-phrasing intent routing gates', () => {
           byPredicted.set(predicted, (byPredicted.get(predicted) ?? 0) + 1);
         }
         for (const [predicted, count] of byPredicted) {
-          expect(count, predicted).toBeLessThanOrEqual(Math.ceil(misclassified.length / 2));
+          // “Not more than half” means strictly count*2 <= total; Math.ceil
+          // would admit 2-of-3 concentration on an odd total.
+          expect(count * 2, predicted).toBeLessThanOrEqual(misclassified.length);
         }
         console.info(
           `[issue #1903] ${phrasing}: accuracy=${report.accuracy.toFixed(3)} macroF1=${report.macroF1.toFixed(3)} misclassified=${misclassified.length}`,
         );
+        console.info(`[issue #1903] ${phrasing} per-class recall:`, Object.fromEntries(
+          STUDY_INTENTS.map((intent) => [intent, report.perClass[intent].recall.toFixed(2)]),
+        ));
+        console.info(`[issue #1903] ${phrasing} confusion matrix:`, report.matrix);
       });
     });
   }
