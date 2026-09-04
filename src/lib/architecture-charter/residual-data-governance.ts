@@ -113,11 +113,19 @@ export interface LedgerVerificationReceipt {
   readonly projectionsReconciled: boolean;
 }
 
+export interface PredecessorMemberDisposition {
+  readonly path: string;
+  readonly owner: string | null;
+  readonly outcome: string;
+}
+
 /** Immutable #1876/#1883 comparison identity; current evidence may confirm or reject it. */
 export interface PredecessorComparison {
   readonly decisionIdentity: string;
   readonly recordCount: number;
   readonly qualified: boolean;
+  /** Per-path historical disposition, sorted by path, kept comparison-only. */
+  readonly memberDisposition: readonly PredecessorMemberDisposition[];
 }
 
 export interface ResidualSubjectIdentity {
@@ -177,6 +185,7 @@ export interface ResidualAdjudicationInput {
   readonly dirtySource?: boolean;
   readonly mixedSource?: boolean;
   readonly executionBranch?: string;
+  readonly predecessorDisposition?: ReadonlyMap<string, { owner: string | null; outcome: string }>;
 }
 
 export interface ResidualCaller {
@@ -185,12 +194,22 @@ export interface ResidualCaller {
   readonly relationship: string;
 }
 
+export type PredecessorPathComparison
+  = 'confirmed'
+  | 'owner-changed'
+  | 'outcome-changed'
+  | 'diverged'
+  | 'new';
+
 export interface ResidualRecord {
   readonly id: string;
   readonly familyId: string;
   readonly path: string;
   readonly blobOid: string | null;
   readonly byteSize: number | null;
+  readonly predecessorComparison: PredecessorPathComparison;
+  readonly predecessorOwner: string | null;
+  readonly predecessorOutcome: string | null;
   readonly accountableOwner: OwnerId | null;
   readonly outcome: ResidualOutcome;
   readonly status: ResidualStatus;
@@ -253,6 +272,14 @@ export interface ResidualAdjudication {
     readonly byOwner: Readonly<Record<string, number>>;
   };
   readonly futureSlices: readonly FutureSlice[];
+  readonly predecessorDelta: {
+    readonly confirmed: number;
+    readonly ownerChanged: number;
+    readonly outcomeChanged: number;
+    readonly diverged: number;
+    readonly added: number;
+    readonly vanishedPaths: readonly string[];
+  };
   readonly fullLedger: {
     readonly logicalLocator: string;
     readonly byteCount: number;
@@ -658,6 +685,11 @@ export function adjudicateResidualDataGovernance(
   // Task 1.3: adjudication may only execute on this change's claim branch; a
   // named non-claim branch (e.g. main) must not publish qualified projections.
   if (input.executionBranch !== RESIDUAL_CLAIM_BRANCH) blockers.push('execution-branch-not-claim-branch');
+  // Tasks 1.2/2.1: per-path historical comparison needs the predecessor's
+  // path-level dispositions; a summary-only predecessor cannot support it.
+  if (!input.predecessorDisposition || input.predecessorDisposition.size === 0) {
+    blockers.push('predecessor-disposition-missing');
+  }
 
   const subject = input.subject;
   // Upstream dependency: the current payload-eligibility change must be archived.
@@ -784,12 +816,31 @@ export function adjudicateResidualDataGovernance(
         ownerEvidence.join('|'),
       ].join(':');
 
+    const predecessorEntry = input.predecessorDisposition?.get(member.path) ?? null;
+    const predecessorOwner = predecessorEntry?.owner ?? null;
+    const predecessorOutcome = predecessorEntry?.outcome ?? null;
+    const currentOwnerKey = status === 'qualified' ? owner : null;
+    const ownerConfirmed = predecessorEntry !== null && predecessorOwner === currentOwnerKey;
+    const outcomeConfirmed = predecessorEntry !== null && predecessorOutcome === outcome;
+    const predecessorComparison: PredecessorPathComparison = predecessorEntry === null
+      ? 'new'
+      : ownerConfirmed && outcomeConfirmed
+        ? 'confirmed'
+        : ownerConfirmed
+          ? 'outcome-changed'
+          : outcomeConfirmed
+            ? 'owner-changed'
+            : 'diverged';
+
     return {
       id: `residual:${member.path}`,
       familyId,
       path: member.path,
       blobOid: member.blobOid ?? null,
       byteSize: typeof member.byteSize === 'number' ? member.byteSize : null,
+      predecessorComparison,
+      predecessorOwner,
+      predecessorOutcome,
       accountableOwner: status === 'qualified' ? owner : null,
       outcome: status === 'qualified' ? outcome : 'unresolved',
       status,
@@ -903,6 +954,21 @@ export function adjudicateResidualDataGovernance(
   // qualified package; any global gate failure leaves a blocker-only projection.
   const futureSlices = qualified ? candidateSlices : [];
 
+  const predecessorDelta = (() => {
+    const counts = { confirmed: 0, ownerChanged: 0, outcomeChanged: 0, diverged: 0, added: 0 };
+    for (const record of records) {
+      if (record.predecessorComparison === 'confirmed') counts.confirmed += 1;
+      else if (record.predecessorComparison === 'owner-changed') counts.ownerChanged += 1;
+      else if (record.predecessorComparison === 'outcome-changed') counts.outcomeChanged += 1;
+      else if (record.predecessorComparison === 'diverged') counts.diverged += 1;
+      else counts.added += 1;
+    }
+    const vanishedPaths = [...(input.predecessorDisposition?.keys() ?? [])]
+      .filter((predecessorPath) => !seen.has(predecessorPath))
+      .sort();
+    return { ...counts, vanishedPaths };
+  })();
+
   const decisionIdentity = sha256Text(serializeDeterministic({
     schemaVersion: RESIDUAL_SCHEMA_VERSION,
     currentSubject: subject.currentSubject,
@@ -939,6 +1005,7 @@ export function adjudicateResidualDataGovernance(
     families,
     summaries,
     futureSlices,
+    predecessorDelta,
     fullLedger,
     ledgerBody,
     callerBundleDigest,
@@ -1277,7 +1344,7 @@ export function loadPredecessorComparison(repoRoot: string): PredecessorComparis
   const raw = readFileSync(join(repoRoot, PREDECESSOR_1883.compactIndexLocator), 'utf8');
   const index = JSON.parse(raw) as {
     decisionIdentity?: string;
-    families?: unknown[];
+    families?: Array<{ familyId?: string; accountableOwner?: string | null; outcome?: string; memberIds?: string[] }>;
     records?: unknown[];
     qualified?: boolean;
   };
@@ -1288,10 +1355,23 @@ export function loadPredecessorComparison(repoRoot: string): PredecessorComparis
     }, 0)
     : 0;
   if (!index.decisionIdentity) throw new Error('predecessor-1883-unreadable');
+  const dispositions: PredecessorMemberDisposition[] = [];
+  for (const family of index.families ?? []) {
+    const segments = (family.familyId ?? '').split(':');
+    const isUnresolved = segments[0] === 'unresolved';
+    const outcome = isUnresolved ? 'unresolved' : segments[0] ?? 'unresolved';
+    const owner = isUnresolved ? null : (family.accountableOwner ?? segments[1] ?? null);
+    for (const memberId of family.memberIds ?? []) {
+      const memberPath = memberId.replace(/^residual:/u, '');
+      dispositions.push({ path: memberPath, owner, outcome });
+    }
+  }
+  dispositions.sort((left, right) => left.path.localeCompare(right.path));
   return {
     decisionIdentity: index.decisionIdentity,
     recordCount,
     qualified: index.qualified === true,
+    memberDisposition: dispositions,
   };
 }
 
@@ -1385,6 +1465,7 @@ export function buildResidualCompactPackage(params: {
     summaries: result.summaries,
     families: result.families,
     futureSlices: result.futureSlices,
+    predecessorDelta: result.predecessorDelta,
     fullLedger: result.fullLedger,
     ledgerVerification: receipt,
     projectionVerification: {
@@ -1484,6 +1565,12 @@ export function verifyResidualDecisionPackage(params: {
       });
     }
   }
+  const predecessorDisposition = new Map<string, { owner: string | null; outcome: string }>(
+    (subject.predecessor1883?.memberDisposition ?? []).map((entry) => [
+      entry.path,
+      { owner: entry.owner, outcome: entry.outcome },
+    ]),
+  );
   const rebuilt = adjudicateResidualDataGovernance({
     gate: run.gate,
     subject,
@@ -1494,6 +1581,7 @@ export function verifyResidualDecisionPackage(params: {
     dirtySource: run.dirtySource,
     mixedSource: run.mixedSource,
     executionBranch: run.executionBranch,
+    predecessorDisposition,
   });
   if (rebuilt.kind !== 'residual-adjudication') {
     return { reconciled: false, reason: 'package-gate-rejection', fileDigests };
@@ -1523,6 +1611,16 @@ export function verifyResidualDecisionPackage(params: {
   delete actualIndex.projectionVerification;
   if (serializeDeterministic(actualIndex) !== serializeDeterministic(expectedIndex)) {
     return { reconciled: false, reason: 'index-mismatch', fileDigests };
+  }
+  // A recorded POSITIVE verification claim must be backed by exactly the
+  // digests this run recomputed from the artifacts on disk. A recorded
+  // negative claim only makes the package more conservative and is allowed.
+  const recordedVerification = index.projectionVerification;
+  if (recordedVerification?.reconciled === true) {
+    const recorded = serializeDeterministic(recordedVerification.fileDigests ?? {});
+    if (recorded !== serializeDeterministic(fileDigests)) {
+      return { reconciled: false, reason: 'projection-verification-inconsistent', fileDigests };
+    }
   }
   return { reconciled: true, fileDigests };
 }

@@ -317,6 +317,10 @@ function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerific
     dirtySource: run.dirtySource,
     mixedSource: run.mixedSource,
     executionBranch: run.executionBranch,
+    predecessorDisposition: new Map(predecessor.memberDisposition.map((entry) => [
+      entry.path,
+      { owner: entry.owner, outcome: entry.outcome },
+    ])),
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
     process.stderr.write(`${JSON.stringify(result)}\n`);
@@ -346,7 +350,10 @@ if ('error' in ledgerReceipt) {
 }
 
 // 6. Post guards run BEFORE any package is published, so a drifted run never
-//    leaves an apparently-qualified migration input behind.
+//    leaves an apparently-qualified migration input behind. The remote-tracking
+//    ref is re-fetched first: rev-parse alone would compare stale against stale
+//    if the remote advanced during the run.
+execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
 const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
 if (subjectCommitAfter !== currentSubject.subjectCommit) {
   process.stderr.write('subject-drifted-during-run\n');
@@ -403,17 +410,19 @@ let verification = reconcileRoundPackage();
 if (verification.reconciled !== receiptFlag) {
   receiptFlag = verification.reconciled;
   result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
-  writeRoundPackage(result, receiptFlag, verification);
+  writeRoundPackage(result, receiptFlag, { reconciled: false, fileDigests: {} });
   verification = reconcileRoundPackage();
   if (verification.reconciled !== receiptFlag) {
     process.stderr.write(`projection-fixed-point-unreachable:${verification.reason}\n`);
     process.exit(1);
   }
 }
-// Publish the final index carrying the verification that actually passed.
+// Publish the final index embedding the verification computed against exactly
+// these final bytes, then confirm the recorded claim is backed.
 writeRoundPackage(result, receiptFlag, verification);
-if (!reconcileRoundPackage().reconciled) {
-  process.stderr.write(`final-package-unverified:${reconcileRoundPackage().reason}\n`);
+const finalVerification = reconcileRoundPackage();
+if (!finalVerification.reconciled) {
+  process.stderr.write(`final-package-unverified:${finalVerification.reason}\n`);
   process.exit(1);
 }
 

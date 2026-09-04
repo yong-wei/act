@@ -53,6 +53,10 @@ const tool: ResidualToolIdentity = {
   entryBundleDigest: 'd'.repeat(64),
 };
 
+function predecessorDispositionFor(members: readonly ResidualMemberInput[]): { path: string; owner: string | null; outcome: string }[] {
+  return members.map((member) => ({ path: member.path, owner: 'learning-record', outcome: 'business-domain' }));
+}
+
 function subjectFor(members: readonly ResidualMemberInput[], verified = true): ResidualSubjectIdentity {
   return {
     successorCaptureId: REQUIRED_SUCCESSOR.successorCaptureId,
@@ -85,6 +89,7 @@ function subjectFor(members: readonly ResidualMemberInput[], verified = true): R
       decisionIdentity: PREDECESSOR_1883.decisionIdentity,
       recordCount: 262,
       qualified: false,
+      memberDisposition: predecessorDispositionFor(members),
     },
   };
 }
@@ -98,6 +103,10 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
     tool,
     callers: [],
     executionBranch: RESIDUAL_CLAIM_BRANCH,
+    predecessorDisposition: new Map(predecessorDispositionFor(partial.members).map((entry) => [
+      entry.path,
+      { owner: entry.owner, outcome: entry.outcome },
+    ])),
     ...partial,
     members: partial.members.map((member) => ({ blobOid: DEFAULT_BLOB_OID, byteSize: 128, ...member })),
     subject: partial.subject ?? subjectFor(partial.members, true),
@@ -143,7 +152,22 @@ interface FixedPointPackage {
  * ledger bytes. Returns the package for further reconciliation assertions.
  */
 function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudicationInput, 'members'>): FixedPointPackage {
-  const first = asAdjudication(adjudicateResidualDataGovernance(input(partial)));
+  // Keep the input disposition map and the subject's recorded array from one
+  // source, exactly like the CLI loads both from the same archived package.
+  const dispositionEntries = partial.predecessorDisposition
+    ? [...partial.predecessorDisposition.entries()]
+      .map(([path, entry]) => ({ path, owner: entry.owner, outcome: entry.outcome }))
+      .sort((left, right) => left.path.localeCompare(right.path))
+    : predecessorDispositionFor(partial.members);
+  const coherentPartial = {
+    ...partial,
+    subject: {
+      ...subjectFor(partial.members),
+      predecessor1883: { ...subjectFor(partial.members).predecessor1883, memberDisposition: dispositionEntries },
+    },
+    predecessorDisposition: new Map(dispositionEntries.map((entry) => [entry.path, { owner: entry.owner, outcome: entry.outcome }])),
+  };
+  const first = asAdjudication(adjudicateResidualDataGovernance(input(coherentPartial)));
   const subject = first.subject;
   const dir = mkdtempSync(join(tmpdir(), 'residual-projection-'));
   const ledgerPath = join(dir, 'residual-data-governance-ledger.ndjson');
@@ -162,7 +186,7 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
     familiesDigest: sha256Text(serializeDeterministic(first.families)),
   };
   const adjudicateWith = (flag: boolean): ResidualAdjudication => asAdjudication(
-    adjudicateResidualDataGovernance({ ...input(partial), ledgerVerification: { ...ledgerReceipt, projectionsReconciled: flag } }),
+    adjudicateResidualDataGovernance({ ...input(coherentPartial), ledgerVerification: { ...ledgerReceipt, projectionsReconciled: flag } }),
   );
   const reconcile = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
 
@@ -173,8 +197,13 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
   if (verification.reconciled !== flag) {
     flag = verification.reconciled;
     result = adjudicateWith(flag);
-    writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
+    // Placeholder record like the CLI: the previous round's digests describe
+    // different bytes and must not be published as this round's claim.
+    writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, { reconciled: false, fileDigests: {} });
     verification = reconcile();
+    if (verification.reconciled !== flag) {
+      throw new Error(`projection-fixed-point-unreachable:${verification.reason}`);
+    }
   }
   writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
   return { dir, ledgerPath, ledgerReceipt, result, verification: reconcile() };
@@ -235,7 +264,7 @@ describe('residual data-governance adjudication', () => {
       ...input({ members }),
       subject: {
         ...subjectFor(members),
-        predecessor1883: { decisionIdentity: '0'.repeat(64), recordCount: 262, qualified: false },
+        predecessor1883: { decisionIdentity: '0'.repeat(64), recordCount: 262, qualified: false, memberDisposition: [] },
       },
     }));
     expect(driftedPredecessor.blockers).toContain('predecessor-1883-decision-identity-mismatch');
@@ -860,5 +889,51 @@ describe('residual data-governance adjudication', () => {
     expect(resolveModuleSpecifier('src/lib/graphs/goal-subgraph-expansion-service.ts', 'zod', memberPaths)).toBeNull();
     expect(extractModuleSpecifiers("import { x } from './a'; const y = require('./b'); await import('./c'); export * from './d';"))
       .toEqual(['./a', './b', './c', './d']);
+  });
+  it('keeps per-path predecessor comparison status and requires a recorded receipt to be backed', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/math-document-backfill.ts' }];
+    // Disposition matches the classified record (learning-record / operator-tooling is
+    // changed on purpose): owner differs -> owner-changed.
+    const disposition = new Map([
+      ['src/lib/data-governance/math-document-backfill.ts', { owner: 'personalization', outcome: 'operator-tooling' }],
+      ['src/lib/data-governance/vanished-in-current.ts', { owner: 'learning-record', outcome: 'business-domain' }],
+    ]);
+    const pkg = buildFixedPointPackage({ members, predecessorDisposition: disposition } as never);
+    try {
+      expect(pkg.verification.reconciled).toBe(true);
+      const record = pkg.result.records[0];
+      expect(record?.predecessorComparison).toBe('owner-changed');
+      expect(record?.predecessorOwner).toBe('personalization');
+      expect(record?.predecessorOutcome).toBe('operator-tooling');
+      expect(pkg.result.predecessorDelta.ownerChanged).toBe(1);
+      expect(pkg.result.predecessorDelta.vanishedPaths).toEqual(['src/lib/data-governance/vanished-in-current.ts']);
+
+      // Confirmed / new statuses and the missing-disposition blocker.
+      const confirmed = asAdjudication(adjudicateResidualDataGovernance(input({
+        members,
+        predecessorDisposition: new Map([
+          ['src/lib/data-governance/math-document-backfill.ts', { owner: 'learning-record', outcome: 'operator-tooling' }],
+        ]),
+      })));
+      expect(confirmed.records[0]?.predecessorComparison).toBe('confirmed');
+      const freshMember = asAdjudication(adjudicateResidualDataGovernance(input({
+        members,
+        predecessorDisposition: new Map(),
+      })));
+      expect(freshMember.blockers).toContain('predecessor-disposition-missing');
+      expect(freshMember.qualified).toBe(false);
+
+      // A recorded positive verification claim with forged digests must fail.
+      const indexPath = join(pkg.dir, 'index.json');
+      const parsed = JSON.parse(readFileSync(indexPath, 'utf8'));
+      parsed.projectionVerification.fileDigests['summaries.md'] = '0'.repeat(64);
+      writeFileSync(indexPath, JSON.stringify(parsed));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-inconsistent',
+      });
+    } finally {
+      rmSync(pkg.dir, { recursive: true, force: true });
+    }
   });
 });
