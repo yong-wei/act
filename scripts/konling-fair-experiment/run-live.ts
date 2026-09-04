@@ -17,7 +17,7 @@ import {
   getConfiguredAIModel,
   getConfiguredAIProviderBinding,
   isConfiguredAIServiceAvailable,
-} from '@/lib/ai-client';
+} from '@/lib/ai/provider-runtime';
 import {
   KONLING_FAIR_EXPERIMENT_BANK_V1,
   parseKonlingFairExperimentJudgeVerdict,
