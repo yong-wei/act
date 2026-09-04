@@ -11,12 +11,14 @@ import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/dr
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
+import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
   TYPE055_NANCHANG_101_V2,
   TYPE055_V2_BASIS_YAW_RAD,
+  matchActivatedType055Package,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
 import { boxProjectsInsideNdc } from '@/resources/simulations/scene/camera';
 import {
@@ -455,17 +457,27 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：默认挂载 v2.1.0 版本化模型包，失败沿旧 browser-delivery 链回退。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败或回滚走旧 browser-delivery 链。 */
 function DestroyerModel({
   simRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
 }) {
   const { tier } = useSceneQuality();
+  const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
+
+  if (!descriptor) {
+    return (
+      <FallbackGltfModel
+        candidates={MODEL.candidates}
+        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+      />
+    );
+  }
 
   return (
     <VersionedShipModel
-      descriptor={TYPE055_NANCHANG_101_V2}
+      descriptor={descriptor}
       tier={tier}
       legacyCandidates={MODEL.candidates}
       renderScene={(url) => (

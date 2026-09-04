@@ -134,3 +134,18 @@ export function shipLodUrlForQualityTier(
  * 只允许在模型挂载组件处应用一次；场景组件不得追加补偿旋转。
  */
 export const TYPE055_V2_BASIS_YAW_RAD = -Math.PI / 2;
+
+/** 把 registry 激活指针对上已接收描述符；未知包 fail closed，不半切换。 */
+export function matchActivatedType055Package(
+  activation: { readonly packageId: string; readonly modelVersion: string; readonly baseUrl: string } | null,
+): VersionedModelPackageDescriptor | null {
+  if (!activation) return null;
+  if (
+    activation.packageId === TYPE055_NANCHANG_101_V2.packageId
+    && activation.modelVersion === TYPE055_NANCHANG_101_V2.modelVersion
+    && activation.baseUrl === TYPE055_NANCHANG_101_V2.baseUrl
+  ) {
+    return TYPE055_NANCHANG_101_V2;
+  }
+  return null;
+}

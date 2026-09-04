@@ -4,8 +4,12 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { SIMULATION_MODEL_REGISTRY, resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { TYPE055_NANCHANG_101_V2 } from '../model-packages/type055-nanchang-101-v2';
+import {
+  SIMULATION_MODEL_REGISTRY,
+  resolveRegisteredSimulationModel,
+  resolveVersionedDefault,
+} from '@/lib/browser-delivery/client';
+import { TYPE055_NANCHANG_101_V2, matchActivatedType055Package } from '../model-packages/type055-nanchang-101-v2';
 
 /**
  * issue #1953 生产激活守卫：destroyer 默认走 v2.1.0 版本化模型包、
@@ -35,11 +39,24 @@ describe('type055 production activation keeps legacy fallback', () => {
     expect(SIMULATION_MODEL_REGISTRY).not.toHaveProperty(TYPE055_NANCHANG_101_V2.packageId);
   });
 
-  it('uses the versioned package as the destroyer default and drops the candidate query switch', () => {
+  it('resolves the destroyer default from the versioned activation pointer, not a scene hard-code', () => {
+    const activation = resolveVersionedDefault('destroyer');
+    expect(matchActivatedType055Package(activation)).toEqual(TYPE055_NANCHANG_101_V2);
+    expect(resolveVersionedDefault('icebreaker')).toBeNull();
+    expect(matchActivatedType055Package(null)).toBeNull();
+    expect(matchActivatedType055Package({
+      packageId: TYPE055_NANCHANG_101_V2.packageId,
+      modelVersion: '9.9.9',
+      baseUrl: TYPE055_NANCHANG_101_V2.baseUrl,
+    })).toBeNull();
+
     const source = read(DESTROYER);
+    expect(source).toContain('resolveVersionedDefault');
+    expect(source).toContain('matchActivatedType055Package');
     expect(source).toContain('<VersionedShipModel');
-    expect(source).toContain('descriptor={TYPE055_NANCHANG_101_V2}');
     expect(source).toContain('legacyCandidates={MODEL.candidates}');
+    expect(source).toContain('FallbackGltfModel');
+    expect(source).not.toContain('descriptor={TYPE055_NANCHANG_101_V2}');
     expect(source).not.toContain('useType055V2CandidateEnabled');
     expect(source).not.toContain('isType055V2CandidateSearch');
     expect(source).not.toContain('type055-v2');
@@ -71,7 +88,7 @@ describe('type055 production activation keeps legacy fallback', () => {
       expect(source, `${role} must not appear in destroyer scene`).not.toContain(url);
     }
     expect(source).toContain('<VersionedShipModel');
-    expect(source).toContain('descriptor={TYPE055_NANCHANG_101_V2}');
+    expect(source).toContain('descriptor={descriptor}');
     expect(source).not.toContain('useGLTF.preload(TYPE055');
   });
 
