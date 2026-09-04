@@ -300,7 +300,7 @@ function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerific
 }
 
 // 5. First pass writes the external full ledger, then an independent read-and-hash
-//    receipt gates the final compact decision package.
+//    receipt gates the compact decision package.
 const firstPass = adjudicate(null);
 const ledgerDir = join(repoRoot, 'artifacts/architecture-census', currentSubject.subjectCommit);
 mkdirSync(ledgerDir, { recursive: true });
@@ -322,32 +322,45 @@ if ('error' in ledgerReceipt) {
 const outDir = join(repoRoot, OUTPUT_DIR);
 mkdirSync(outDir, { recursive: true });
 
-/** Writes one adjudication's compact projections, then reconciles the actual on-disk bytes. */
-function writeProjectionArtifacts(result: ResidualAdjudication): ResidualProjectionVerification {
+/** Writes one adjudication round's compact projections with privacy guards. */
+function writeProjectionArtifacts(result: ResidualAdjudication): void {
   for (const [name, content] of Object.entries(projectResidualDocuments(result))) {
     const normalized = content.replace(/\n+$/u, '\n');
     const violation = privacyViolation(normalized);
     if (violation) throw new Error(`privacy:${violation}:${name}`);
     writeFileSync(join(outDir, name), normalized);
   }
-  const verification = verifyResidualProjectionArtifacts({
-    outputDir: outDir,
-    result,
-    receiptSubjectCommit: ledgerReceipt.subjectCommit,
-  });
-  if (!verification.reconciled) {
-    process.stderr.write(`projection-verification:${verification.reason}\n`);
-    process.exit(1);
-  }
-  return verification;
 }
 
-// 6. Provisional projections from the still-unverified first pass are written and
-//    byte-reconciled, so the receipt's projectionsReconciled flag carries a real
-//    check result instead of an unconditional claim.
-const provisionalVerification = writeProjectionArtifacts(firstPass);
-const receipt = { ...ledgerReceipt, projectionsReconciled: provisionalVerification.reconciled };
-const result = adjudicate(receipt);
+/** Reconciles the written projections against the actual ledger bytes and flag. */
+function reconcileProjectionArtifacts(flag: boolean): ResidualProjectionVerification {
+  return verifyResidualProjectionArtifacts({
+    outputDir: outDir,
+    ledgerAbsolutePath: ledgerPath,
+    receipt: ledgerReceipt,
+    receiptFlag: flag,
+  });
+}
+
+// 6. Fixed-point convergence: each round's projections are reconciled against
+//    the ledger bytes with the round's assumed receipt flag; the flag may only
+//    be published as true when the projections generated under it actually
+//    reconcile, so the receipt always describes the final artifacts.
+let receiptFlag = false;
+let result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
+writeProjectionArtifacts(result);
+let verification = reconcileProjectionArtifacts(receiptFlag);
+if (verification.reconciled !== receiptFlag) {
+  receiptFlag = verification.reconciled;
+  result = adjudicate({ ...ledgerReceipt, projectionsReconciled: receiptFlag });
+  writeProjectionArtifacts(result);
+  verification = reconcileProjectionArtifacts(receiptFlag);
+  if (verification.reconciled !== receiptFlag) {
+    process.stderr.write(`projection-fixed-point-unreachable:${verification.reason}\n`);
+    process.exit(1);
+  }
+}
+const receipt = { ...ledgerReceipt, projectionsReconciled: receiptFlag };
 
 // 7. Post guards run BEFORE the final projection is published, so a drifted
 //    run never leaves an apparently-qualified migration input behind.
@@ -364,9 +377,8 @@ for (const [name, path] of readOnlyInputs) {
   }
 }
 
-// 8. Final projections are re-reconciled against the final adjudication; the
-//    compact index is written only after every receipt claim it embeds is true.
-const finalVerification = writeProjectionArtifacts(result);
+// 8. Compact index is written only after its embedded receipt claims are backed
+//    by the completed projection reconciliation of the exact artifacts on disk.
 const compact = serializeDeterministic({
   schemaVersion: result.schemaVersion,
   qualified: result.qualified,
@@ -379,8 +391,8 @@ const compact = serializeDeterministic({
   fullLedger: result.fullLedger,
   ledgerVerification: receipt,
   projectionVerification: {
-    reconciled: finalVerification.reconciled,
-    fileDigests: finalVerification.fileDigests,
+    reconciled: verification.reconciled,
+    fileDigests: verification.fileDigests,
   },
   decisionIdentity: result.decisionIdentity,
 });

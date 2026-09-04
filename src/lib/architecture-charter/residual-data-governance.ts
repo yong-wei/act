@@ -1262,32 +1262,153 @@ export interface ResidualProjectionVerification {
 }
 
 /**
- * Re-reads the actually written compact projections and reconciles their bytes
- * against a fresh render of the final adjudication plus the receipt-bound
- * subject identity. The receipt may claim reconciliation only after this check.
+ * Reconciles the actually written compact projections against the full-ledger
+ * bytes on disk — never against in-memory state. Counts, family rows, slice
+ * paths and identities, the handoff ledger digest, and the receipt-bound
+ * subject must all re-derive from the ledger before a receipt may claim
+ * reconciliation for the projections it is published with.
  */
 export function verifyResidualProjectionArtifacts(params: {
   readonly outputDir: string;
-  readonly result: ResidualAdjudication;
-  readonly receiptSubjectCommit: string;
+  readonly ledgerAbsolutePath: string;
+  readonly receipt: LedgerVerificationReceipt;
+  /** The projectionsReconciled flag the current adjudication round assumed. */
+  readonly receiptFlag: boolean;
 }): ResidualProjectionVerification {
-  const expected = projectResidualDocuments(params.result);
   const fileDigests: Record<string, string> = {};
-  for (const [name, content] of Object.entries(expected)) {
-    let written: string;
-    try {
-      written = readFileSync(join(params.outputDir, name), 'utf8');
-    } catch {
-      return { reconciled: false, reason: `projection-missing:${name}`, fileDigests };
-    }
-    if (normalizeProjection(written) !== normalizeProjection(content)) {
-      return { reconciled: false, reason: `projection-content-mismatch:${name}`, fileDigests };
-    }
-    fileDigests[name] = sha256Text(normalizeProjection(content));
+  let ledgerBytes: Buffer;
+  try {
+    ledgerBytes = readFileSync(params.ledgerAbsolutePath);
+  } catch {
+    return { reconciled: false, reason: 'ledger-unreadable', fileDigests };
   }
-  const matrix = normalizeProjection(expected['decision-matrix.md'] ?? '');
-  if (!matrix.includes(`currentSubjectCommit: \`${params.receiptSubjectCommit}\``)) {
+  const ledgerSha256 = createHash('sha256').update(ledgerBytes).digest('hex');
+  if (ledgerSha256 !== params.receipt.sha256 || ledgerBytes.byteLength !== params.receipt.byteCount) {
+    return { reconciled: false, reason: 'ledger-receipt-mismatch', fileDigests };
+  }
+  const parsed = JSON.parse(ledgerBytes.toString('utf8')) as {
+    identity?: { subjectCommit?: string; memberSetDigest?: string };
+    records?: Array<{ path?: string; status?: string; outcome?: string; accountableOwner?: string | null }>;
+    families?: Array<{ familyId?: string; accountableOwner?: string | null; outcome?: string; memberIds?: string[] }>;
+  };
+  const records = parsed.records ?? [];
+  const families = parsed.families ?? [];
+  if (parsed.identity?.subjectCommit !== params.receipt.subjectCommit
+    || parsed.identity?.memberSetDigest !== params.receipt.memberSetDigest) {
+    return { reconciled: false, reason: 'ledger-identity-mismatch', fileDigests };
+  }
+
+  const readProjection = (name: string): string | { error: string } => {
+    try {
+      const text = readFileSync(join(params.outputDir, name), 'utf8');
+      fileDigests[name] = sha256Text(normalizeProjection(text));
+      return normalizeProjection(text);
+    } catch {
+      return { error: `projection-missing:${name}` };
+    }
+  };
+
+  const matrix = readProjection('decision-matrix.md');
+  if (typeof matrix !== 'string') return { reconciled: false, reason: matrix.error, fileDigests };
+  if (!matrix.includes(`currentSubjectCommit: \`${params.receipt.subjectCommit}\``)) {
     return { reconciled: false, reason: 'projection-subject-mismatch', fileDigests };
+  }
+  if (!matrix.includes(`- memberSetDigest: \`${params.receipt.memberSetDigest}\``)) {
+    return { reconciled: false, reason: 'projection-digest-mismatch:decision-matrix.md', fileDigests };
+  }
+  const escapeCell = (cell: string): string => cell.replaceAll('|', '\\|');
+  const expectedFamilyRows = [...families]
+    .sort((left, right) => (left.familyId ?? '').localeCompare(right.familyId ?? ''))
+    .map((family) => `| ${[
+      family.familyId ?? '',
+      family.accountableOwner ?? 'none',
+      family.outcome ?? '',
+      String(family.memberIds?.length ?? 0),
+      (family.memberIds ?? []).join(' '),
+    ].map(escapeCell).join(' | ')} |`);
+  const matrixRows = matrix.split('\n').filter((line) => line.startsWith('| ') && !line.startsWith('| familyId') && !line.startsWith('| ---'));
+  if (matrixRows.length !== expectedFamilyRows.length
+    || expectedFamilyRows.some((row, index) => matrixRows[index] !== row)) {
+    return { reconciled: false, reason: 'projection-family-mismatch', fileDigests };
+  }
+
+  const memberCount = records.length;
+  const unresolvedCount = records.filter((record) => record.status !== 'qualified').length;
+  const byOutcome = new Map<string, number>();
+  const byOwner = new Map<string, number>();
+  for (const record of records) {
+    byOutcome.set(record.outcome ?? '', (byOutcome.get(record.outcome ?? '') ?? 0) + 1);
+    const ownerKey = record.accountableOwner ?? 'none';
+    byOwner.set(ownerKey, (byOwner.get(ownerKey) ?? 0) + 1);
+  }
+  const summaries = readProjection('summaries.md');
+  if (typeof summaries !== 'string') return { reconciled: false, reason: summaries.error, fileDigests };
+  if (!summaries.includes(`- members: ${memberCount}`)
+    || !summaries.includes(`- recordQualified: ${memberCount - unresolvedCount}`)
+    || !summaries.includes(`- unresolved: ${unresolvedCount}`)) {
+    return { reconciled: false, reason: 'projection-count-mismatch:summaries.md', fileDigests };
+  }
+  const blockersLine = summaries.split('\n').find((line) => line.startsWith('- blockers: ')) ?? '';
+  const ledgerBlockerExpected = !params.receiptFlag;
+  if (blockersLine.includes('full-ledger-bytes-unverified') !== ledgerBlockerExpected) {
+    return { reconciled: false, reason: 'projection-blocker-inconsistent', fileDigests };
+  }
+  const summaryDocRows = new Map<string, number>();
+  for (const line of summaries.split('\n')) {
+    if (!line.startsWith('| ') || line.startsWith('| outcome') || line.startsWith('| accountableOwner') || line.startsWith('| ---')) continue;
+    const cells = line.split('|').map((cell) => cell.trim());
+    const key = cells[1] ?? '';
+    const count = Number(cells[2]);
+    if (!key || !Number.isInteger(count)) {
+      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
+    }
+    summaryDocRows.set(key, count);
+  }
+  const recomputedCounts = [...byOutcome.entries(), ...byOwner.entries()];
+  for (const [key, count] of summaryDocRows) {
+    const expected = byOutcome.get(key) ?? byOwner.get(key) ?? 0;
+    if (expected !== count) {
+      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
+    }
+  }
+  for (const [key, count] of recomputedCounts) {
+    if (count > 0 && !summaryDocRows.has(key)) {
+      return { reconciled: false, reason: 'projection-summary-mismatch', fileDigests };
+    }
+  }
+
+  const recordsByPath = new Map(records.map((record) => [record.path ?? '', record]));
+  const slices = readProjection('future-slices.md');
+  if (typeof slices !== 'string') return { reconciled: false, reason: slices.error, fileDigests };
+  const sections = slices.split('\n## ').slice(1);
+  const nonEmission = slices.includes('No migration-input slice is emitted');
+  if (nonEmission && sections.length > 0) {
+    return { reconciled: false, reason: 'projection-slice-inconsistent', fileDigests };
+  }
+  for (const section of sections) {
+    const [title, ...rest] = section.split('\n');
+    const body = rest.join('\n');
+    const owner = /- accountableOwner: `([^`]+)`/u.exec(body)?.[1];
+    const outcome = /- outcome: `([^`]+)`/u.exec(body)?.[1];
+    const pathsLine = body.split('\n').find((line) => line.startsWith('- paths: ')) ?? '';
+    const listed = [...pathsLine.matchAll(/`([^`]+)`/gu)].map((match) => match[1]);
+    if (listed.length === 0 || listed.some((path) => !recordsByPath.has(path))) {
+      return { reconciled: false, reason: `slice-path-outside-ledger:${title ?? 'unknown'}`, fileDigests };
+    }
+    for (const path of listed) {
+      const record = recordsByPath.get(path);
+      if (!record || record.status !== 'qualified' || record.accountableOwner !== owner || record.outcome !== outcome) {
+        return { reconciled: false, reason: `slice-identity-mismatch:${title ?? path}`, fileDigests };
+      }
+    }
+  }
+
+  const handoff = readProjection('handoff.md');
+  if (typeof handoff !== 'string') return { reconciled: false, reason: handoff.error, fileDigests };
+  if (!handoff.includes(`- fullLedger.sha256: \`${params.receipt.sha256}\``)
+    || !handoff.includes(`- fullLedger.bytes: ${params.receipt.byteCount}`)
+    || !handoff.includes(`- fullLedger.locator: \`${params.receipt.locator}\``)) {
+    return { reconciled: false, reason: 'projection-ledger-mismatch:handoff.md', fileDigests };
   }
   return { reconciled: true, fileDigests };
 }
