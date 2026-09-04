@@ -98,7 +98,9 @@ describe('platform entrypoint smoke contracts', () => {
     expect(lockupSource).toContain('alt="智控深蓝"');
     expect(lockupSource).toContain('基于学科垂类大模型的船舶智控教学平台');
     expect(layoutSource).toContain("title: '智控深蓝'");
+    expect(layoutSource).toContain("description: '智控深蓝：基于学科垂类大模型的船舶智控教学平台'");
     expect(layoutSource).not.toContain('AI-OBE船舶控制平台');
+    expect(layoutSource).not.toContain('AI-OBE船舶智控平台');
     expect(metadata).toMatchObject({
       brand: '智控深蓝',
       asset: '/assets/platform-brand/deepblue-smart-control-logo-small.png',
@@ -114,6 +116,29 @@ describe('platform entrypoint smoke contracts', () => {
     expect(metadata.lightDarkTreatment?.dark).toContain('dark');
     expect(metadata.fallbackBehavior?.textAlternative).toBe('智控深蓝');
     expect(metadata.fallbackBehavior?.componentFallback).toContain('visible Chinese platform description');
+  });
+
+  it('unifies login and homepage public brand copy to 智控深蓝', () => {
+    const authLayoutSource = readSource('src/app/(auth)/layout.tsx');
+    const homepageSource = readSource('src/app/page.tsx');
+    const layoutSource = readSource('src/app/layout.tsx');
+    const publicSurfaces = [
+      authLayoutSource,
+      homepageSource,
+      layoutSource,
+      readSource('src/components/shared/platform-brand-lockup.tsx'),
+      readSource('src/app/simulations/dredger/page.tsx'),
+      readSource('src/app/simulations/icebreaker/page.tsx'),
+    ];
+
+    expect(authLayoutSource).toContain('PlatformBrandLockup');
+    expect(homepageSource).toContain('PlatformBrandLockup');
+    expect(layoutSource).toContain("title: '智控深蓝'");
+    expect(layoutSource).toContain('智控深蓝：基于学科垂类大模型的船舶智控教学平台');
+    for (const source of publicSurfaces) {
+      expect(source).not.toContain('AI-OBE船舶智控平台');
+      expect(source).not.toContain('Mission Control for Maritime Education');
+    }
   });
 
   it('reuses one credential login form for page and embedded login', () => {

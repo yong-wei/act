@@ -11,7 +11,7 @@ import { GlobalAISidebar } from '@/components/ai/global-ai-sidebar'
 
 export const metadata: Metadata = {
   title: '智控深蓝',
-  description: '基于学科垂类大模型的船舶智控教学平台',
+  description: '智控深蓝：基于学科垂类大模型的船舶智控教学平台',
 }
 
 export const dynamic = 'force-dynamic'
