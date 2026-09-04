@@ -116,10 +116,13 @@ describe('issue #1971 preview token lifecycle', () => {
     expect(readAuthorizations).toHaveLength(1);
 
     await act(async () => {
-      (container.querySelector('button') as HTMLButtonElement).click();
+      const editButton = [...container.querySelectorAll('button')]
+        .find((button) => button.textContent === '编辑');
+      if (!editButton) throw new Error('编辑按钮未渲染');
+      editButton.click();
     });
     await act(async () => { await Promise.resolve(); });
-    // 进入编辑态前对当前引用续签一次性令牌
+    // 进入编辑态前对当前引用续签一次性令牌（而非仅切换题目的续签）
     expect(readAuthorizations).toHaveLength(2);
   });
 });
