@@ -379,29 +379,35 @@ if ('error' in ledgerReceipt) {
   process.exit(1);
 }
 
-// 6. Post guards run BEFORE any package is published, so a drifted run never
-//    leaves an apparently-qualified migration input behind. The remote-tracking
-//    ref is re-fetched first: rev-parse alone would compare stale against stale
-//    if the remote advanced during the run. A pinned replay skips the moving-ref
-//    guard — its subject is frozen by definition.
-if (!replayPinnedSubject) {
-  execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
-  const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
-  if (subjectCommitAfter !== currentSubject.subjectCommit) {
-    process.stderr.write('subject-drifted-during-run\n');
-    process.exit(1);
-  }
-}
-for (const [name, path] of readOnlyInputs) {
-  const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
-  if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
-    process.stderr.write(`read-only-input-mutated:${name}\n`);
-    process.exit(1);
-  }
-}
-
 const outDir = join(repoRoot, OUTPUT_DIR);
 mkdirSync(outDir, { recursive: true });
+
+/**
+ * Post guards: the subject must not have drifted (re-fetched, not just
+ * rev-parsed — a pinned replay skips the moving-ref check by definition) and
+ * every consumed read-only byte must still hash to its snapshot. Invoked both
+ * before generation begins and again at the publication boundary, after the
+ * fixed-point loop, so drift during generation fails closed before the final
+ * package is written.
+ */
+function runPostGuards(): void {
+  if (!replayPinnedSubject) {
+    execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
+    const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
+    if (subjectCommitAfter !== currentSubject.subjectCommit) {
+      process.stderr.write('subject-drifted-during-run\n');
+      process.exit(1);
+    }
+  }
+  for (const [name, path] of readOnlyInputs) {
+    const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
+    if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
+      process.stderr.write(`read-only-input-mutated:${name}\n`);
+      process.exit(1);
+    }
+  }
+}
+runPostGuards();
 
 /** Writes one adjudication round's full package: projections plus the index. */
 function writeRoundPackage(
@@ -450,6 +456,9 @@ if (verification.reconciled !== receiptFlag) {
     process.exit(1);
   }
 }
+// Publication boundary: re-run every guard after generation so drift during
+// the fixed-point loop fails closed before the final package is written.
+runPostGuards();
 // Publish the final index embedding the verification computed against exactly
 // these final bytes, then confirm the recorded claim is backed.
 writeRoundPackage(result, receiptFlag, verification);
