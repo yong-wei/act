@@ -305,4 +305,30 @@ describe('TeacherDiagnosisReportHistoryView', () => {
 
     expect(html).toContain('缺少风险等级，未计算风险升级、降级或改善。');
   });
+
+  it('renders the current students entry only when the anchor is provided', () => {
+    const withoutEntry = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[report]}
+        selectedReportId={report.id}
+        subjectLabel="控制 1 班 · 班级范围"
+      />,
+    );
+    expect(withoutEntry).not.toContain('查看当前学生学情');
+    expect(withoutEntry).not.toContain('data-teacher-current-students-entry');
+
+    const withEntry = renderToStaticMarkup(
+      <TeacherDiagnosisReportHistoryView
+        state="ready"
+        reports={[report]}
+        selectedReportId={report.id}
+        subjectLabel="控制 1 班 · 班级范围"
+        currentStudentsEntry={{ href: '#students' }}
+      />,
+    );
+    expect(withEntry).toContain('查看当前学生学情');
+    expect(withEntry).toContain('href="#students"');
+    expect(withEntry).toContain('data-teacher-current-students-entry');
+  });
 });

@@ -605,6 +605,10 @@ describe('teacher evidence governance insights', () => {
       join(process.cwd(), 'src/app/teacher/classes/[classId]/page.tsx'),
       'utf8',
     );
+    const classStudentRosterSource = readFileSync(
+      join(process.cwd(), 'src/features/teacher/class-student-roster.tsx'),
+      'utf8',
+    );
     const studentPage = readFileSync(
       join(process.cwd(), 'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx'),
       'utf8',
@@ -615,11 +619,11 @@ describe('teacher evidence governance insights', () => {
     );
 
     expect(classPage).toContain('累计能力达成指数');
-    expect(classPage).toContain('累计证据状态');
-    expect(classPage).toContain('最后累计趋势');
-    expect(classPage).toContain('formatTeacherEvidenceState');
+    expect(classStudentRosterSource).toContain('累计证据状态');
+    expect(classStudentRosterSource).toContain('最后累计趋势');
+    expect(classStudentRosterSource).toContain('formatTeacherEvidenceState');
     expect(classPage).toContain("insights.overview.overallIndex ?? '不可用'");
-    expect(classPage).toContain("insight.overallScore ?? '不可用'");
+    expect(classStudentRosterSource).toContain("insight.overallScore ?? '不可用'");
     expect(studentPage).toContain('累计能力达成');
     expect(studentPage).toContain('最后证据状态');
     expect(studentPage).toContain('七维累计能力与班级对比');
