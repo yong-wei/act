@@ -54,6 +54,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
   const historyTriggerRef = useRef<HTMLButtonElement>(null);
   const uploadStatusRef = useRef<HTMLDivElement>(null);
   const previewAuthorizationRef = useRef(new Set<string>());
+  const assetPreviewUrlsRef = useRef<Record<string, string>>({});
 
   const answerPath = useCallback(
     (questionId: string) =>
@@ -75,14 +76,16 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     if (!response.ok || !payload.access?.url) return null;
     const previewUrl = sameOriginPath(payload.access.url);
     if (!previewUrl) return null;
+    // ref 提供同步反查：编辑器同渲染周期回传预览 URL 时 state 尚未提交（#1971 review）。
+    assetPreviewUrlsRef.current[stablePath] = previewUrl;
     setAssetPreviewUrls((current) => ({ ...current, [stablePath]: previewUrl }));
     return previewUrl;
   }, [assetReadPath]);
   const canonicalizeAssetPreviewHref = useCallback((href: string) => {
-    const entry = Object.entries(assetPreviewUrls)
+    const entry = Object.entries(assetPreviewUrlsRef.current)
       .find(([, previewUrl]) => previewUrl === href);
     return entry?.[0] ?? href;
-  }, [assetPreviewUrls]);
+  }, []);
 
   const loadAssignment = useCallback(async (options?: { preserveLocalDrafts?: boolean }) => {
     setLoading(true);
@@ -141,8 +144,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     requestAnimationFrame(() => editorHeadingRef.current?.focus());
   }
 
-  // busy/notice 生命周期在各 mutation 间行为一致（同置位、同清理、同聚焦），
-  // 收敛为状态表示；请求执行流仍由各端点专属函数显式持有（无通用执行器）。
+  // busy/notice 生命周期收敛为状态表示；请求流仍由端点专属函数显式持有（无通用执行器）。
   function beginAction(key: string) {
     setBusyAction(key);
     setNotice(null);
@@ -155,7 +157,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     return { kind: 'error', message: errorMessage(cause, fallback), controlId };
   }
 
-  /** 同一答案资产 DELETE 端点：移除已确认资产、撤销上传意图共用。 */
+  /** 同一资产 DELETE 端点：移除已确认资产、撤销意图共用。 */
   async function deleteAnswerAsset(question: StudentAssignmentQuestion, assetId: string, answerVersion: number) {
     const response = await fetch(
       `${answerPath(question.id)}/assets/${encodeURIComponent(assetId)}`,
@@ -233,7 +235,7 @@ export function StudentAssignmentWorkspace({ assignmentId, revisionId }: { assig
     return payload.answer;
   }
 
-  /** 未失败的上传任务（preflight 计数与提交阻断共用同一判定）。 */
+  /** 未失败的上传任务（preflight 计数与提交阻断共用）。 */
   function activeUploadJobs(questionId: string) {
     return (pendingUploads[questionId] ?? []).filter((item) => item.status !== 'FAILED');
   }
@@ -802,7 +804,7 @@ export function QuestionEditor({
   pendingUploads: PendingUpload[]; uploadStatusRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const submitted = question.state === 'SUBMITTED';
-  // busyAction 协议的 verb 后第一段恒为目标题 id（download 除外，不经题目态）。
+  // busyAction 协议 verb 后第一段恒为题目 id（download 不经题目态）。
   const busy = busyAction?.split(':')[1] === question.id;
   const submitting = busyAction === `submit:${question.id}`;
   const confirmingAsset = busyAction?.startsWith(`confirm:${question.id}:`) ?? false;
@@ -988,7 +990,7 @@ function HistoryPanel({ attempts, headingRef, onClose, onDownload, busyAction }:
 function WorkspaceLoading() { return <div className="space-y-4" aria-busy="true" aria-label="正在加载作业"><div className="surface-card h-40 animate-pulse" /><div className="grid gap-4 lg:grid-cols-[14rem_1fr_16rem]"><div className="surface-card h-72 animate-pulse" /><div className="surface-card h-[32rem] animate-pulse" /><div className="surface-card h-52 animate-pulse" /></div></div>; }
 function WorkspaceMessage({ title, description, action, alert = false }: { title: string; description: string; action: React.ReactNode; alert?: boolean }) { return <div className="surface-card px-6 py-16 text-center" role={alert ? 'alert' : undefined}><AlertCircle className="mx-auto h-9 w-9 text-subtle" /><h1 className="mt-4 text-xl font-semibold text-foreground">{title}</h1><p className="mx-auto mt-2 max-w-xl text-sm text-subtle">{description}</p><div className="mt-6">{action}</div></div>; }
 
-/** 同源受信地址：授权端点返回的 URL 必须与本站同源，仅保留路径与查询串。 */
+/** 授权端点 URL 必须与本站同源，仅保留路径与查询串。 */
 function sameOriginPath(rawUrl: string): string | null {
   const url = new URL(rawUrl, window.location.origin);
   if (url.origin !== window.location.origin) return null;
@@ -1024,15 +1026,15 @@ function patchById<T extends { id: string }>(
 ): T[] {
   return items.map((item) => item.id === id ? (typeof patch === 'function' ? patch(item) : { ...item, ...patch }) : item);
 }
-/** 统一的错误文案回退：Error 用自身消息，否则用动作专属 fallback。 */
+/** 错误文案回退：Error 用自身消息，否则用动作 fallback。 */
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
-/** 答案版本冲突：需要从服务器重载后再继续的信号。 */
+/** 答案版本冲突：需从服务器重载后再继续。 */
 function isAnswerVersionConflict(cause: unknown): boolean {
   return cause instanceof StudentResponseMutationError && cause.code === 'answer-version-conflict';
 }
-/** 动作完成后下一帧聚焦通知区（屏幕阅读器会话不中断）。 */
+/** 动作后下一帧聚焦通知区（读屏会话不中断）。 */
 function focusNoticeAfterFrame(noticeRef: { current: HTMLElement | null }): void {
   requestAnimationFrame(() => noticeRef.current?.focus());
 }
