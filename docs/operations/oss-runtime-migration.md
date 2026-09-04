@@ -168,3 +168,17 @@ v2 将相同 SHA-256 内容存为 `runtime/blobs/sha256/<sha256>`，每个逻辑
 5. 只对 disposable local mirror 演练 `runtime-blob-release-gc.py plan` 与 `execute`。真实 OSS 回收必须另有经审查的 bridge deletion adapter、同一 lifecycle lock、完整 continuation-safe object index、generation fence、逐对象 readback 和删除 receipt；普通 GC 不删除 manifest 或 receipt。
 
 候选完成证据至少包含：发布/读取 receipt、manifest/blob closure、物化目录全量校验、课程/媒体/检索 smoke、cold/warm/concurrent benchmark、lifecycle crash/recovery、GC dry-run，以及 v1 rollback projection。满足这些条件后，才可单独请求 v2 production selection 授权。
+
+## 知识图谱根入口 404（coverage 收据缺失）恢复路径（#1942）
+
+症状：已登录用户访问 `/knowledge` 显示「知识数据尚未发布完成」（2026-09-04 之前为「当前知识图谱暂时无法加载」），根分片 API 返回 404 `ACTIVE_SHARD_SHARD_ABSENT`。
+
+根因：blob 视图中激活的 `knowledge/authority-domain-shards` 分片集是 #1738 之前的物化产物，缺少密封 `coverage.json` 收据；根入口 `loadRootShardWithCoverage` 按规格 fail-closed。不得放松该门禁，也不得在视图中手工补写 `coverage.json`——收据必须与分片集同一次物化产生并计入 manifest 封印。
+
+恢复路径：
+
+1. 目标身份以 composite registry 的 v0.37 条目为唯一真源（shard set、catalog、activation 五元组），不接受手工拼装。
+2. 以包含目标分片集的 Git commit（必须是 `origin/integration` 祖先）按上文 v2 Blob Release 候选流程发布新 release 并 select；或由 cutover 控制面脚本在同一事务内上传分片集 blob、写入 `sets/<shard-set-id>/` 链接并切换 `knowledge/authority-domain-shards/current.json` 指针。
+3. 切换后核验：根分片 API 返回 200；容器日志不再出现 locale-qualification historical fallback 警告；`/knowledge` 已登录视觉验收通过。
+
+英文切换伴随条件：运行时镜像必须打包 `course-content/authoring/knowledge/cutover/envelopes/locale-manifests/`（Dockerfile 与 `.dockerignore` 同时放行，#1942 已修）；资格包内的 `interfaceCatalogDigest` 绑定编译期文案目录，新增界面文案键后必须用 `scripts/knowledge-cutover/build-v037-r5-locale-qualification.ts` 重封资格包。

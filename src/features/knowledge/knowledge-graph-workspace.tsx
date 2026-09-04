@@ -178,6 +178,7 @@ export function KnowledgeGraphWorkspace({
           dimension={dimension}
           onDimensionChange={selectActiveDimension}
           onActiveDomainChange={setActiveDomainId}
+          onShowLegacy={() => selectMode('legacy')}
           returnToRootRef={returnToRootRef}
           chromeHostRef={chromeHostRef}
           runtimeControlsRef={runtimeControlsRef}

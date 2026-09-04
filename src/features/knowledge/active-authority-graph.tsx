@@ -104,6 +104,7 @@ interface ActiveAuthorityGraphProps {
   dimension?: GraphDimension;
   onDimensionChange?: (dimension: GraphDimension) => void;
   onActiveDomainChange?: (domainId: string | null) => void;
+  onShowLegacy?: () => void;
   returnToRootRef?: MutableRefObject<(() => void) | null>;
   chromeHostRef?: { current: HTMLElement | null };
   runtimeControlsRef?: { current: {
@@ -116,7 +117,13 @@ interface ActiveAuthorityGraphProps {
 type WorkspaceLoadState =
   | { status: 'loading' }
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
-  | { status: 'error'; message: string; unauthenticated?: boolean };
+  | { status: 'error'; message: string; unauthenticated?: boolean; contentNotReady?: boolean };
+
+/** 次级分片失败条目：内容未就绪类失败不提供重试（重试必然复现同一缺失）。 */
+interface ShardFailureEntry {
+  message: string;
+  retryable: boolean;
+}
 
 /** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
@@ -144,11 +151,13 @@ function errorMessage(status: number, locale: AdmittedLocale = 'zh-CN'): string 
 
 class AuthorityShardFetchError extends Error {
   readonly status: number;
+  readonly code: string | null;
 
-  constructor(status: number) {
+  constructor(status: number, code: string | null = null) {
     super(errorMessage(status));
     this.name = 'AuthorityShardFetchError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -160,11 +169,65 @@ function isUnauthenticatedError(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError && error.status === 401;
 }
 
+// 内容未就绪类失败码（#1942）：分片/分片集/指针/激活缺失或消费者未就绪，
+// 属于「发布未完成」而非暂时故障。身份失配（MISMATCH/TAMPER）不匹配此模式。
+const CONTENT_NOT_READY_CODE = /(?:ABSENT|NOT_READY)/u;
+
+export function isContentNotReadyFailure(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError
+    && error.code !== null
+    && CONTENT_NOT_READY_CODE.test(error.code);
+}
+
+function shardErrorState(
+  error: unknown,
+  locale: AdmittedLocale,
+  fallbackKey: 'error.generic' | 'error.domainShard' = 'error.generic',
+): WorkspaceLoadState {
+  const contentNotReady = isContentNotReadyFailure(error);
+  return {
+    status: 'error',
+    message: contentNotReady
+      ? graphCopy(locale, 'error.contentNotReady')
+      : error instanceof AuthorityShardFetchError
+        ? errorMessage(error.status, locale)
+        : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
+    contentNotReady,
+    unauthenticated: isUnauthenticatedError(error) || undefined,
+  };
+}
+
+function shardFailureEntry(
+  error: unknown,
+  locale: AdmittedLocale,
+  fallbackKey: 'error.familyShard' | 'error.neighborhoodShard',
+): ShardFailureEntry {
+  const contentNotReady = isContentNotReadyFailure(error);
+  return {
+    message: contentNotReady
+      ? graphCopy(locale, 'error.contentNotReady')
+      : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
+    retryable: !contentNotReady,
+  };
+}
+
 function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
   value: unknown,
   shardClass: T,
 ): value is Extract<IncomingAuthorityShard, { shardClass: T }> {
   return isPublicAuthorityLearnerShard(value) && value.shardClass === shardClass;
+}
+
+async function readShardErrorCode(response: Response): Promise<string | null> {
+  try {
+    const body: unknown = await response.json();
+    if (body && typeof body === 'object' && typeof (body as { code?: unknown }).code === 'string') {
+      return (body as { code: string }).code;
+    }
+  } catch {
+    // 非 JSON 错误体（网关/代理错误页）没有失败码，按暂时故障处理。
+  }
+  return null;
 }
 
 async function fetchAuthorityShard(
@@ -173,7 +236,9 @@ async function fetchAuthorityShard(
   signal: AbortSignal,
 ): Promise<IncomingAuthorityShard> {
   const response = await fetch(url, { signal, headers: { accept: 'application/json' } });
-  if (!response.ok) throw new AuthorityShardFetchError(response.status);
+  if (!response.ok) {
+    throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
+  }
   const payload: unknown = await response.json();
   if (!isShardClass(payload, shardClass)) {
     throw new Error('当前知识图谱响应身份校验失败，已停止显示。');
@@ -192,9 +257,9 @@ function useActiveAuthorityWorkspace(
   enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
   disableFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
+  familyFailures: Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>;
   requestNeighborhood: (nodeId: string) => void;
-  neighborhoodFailures: Record<string, string>;
+  neighborhoodFailures: Record<string, ShardFailureEntry>;
   localeRefreshFailure: string | null;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
@@ -202,8 +267,8 @@ function useActiveAuthorityWorkspace(
 } {
   const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
-  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
-  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>>({});
+  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, ShardFailureEntry>>({});
   const [localeRefreshFailure, setLocaleRefreshFailure] = useState<string | null>(null);
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
@@ -258,11 +323,7 @@ function useActiveAuthorityWorkspace(
           onIdentityFailure();
           return false;
         }
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.domainShard'),
-          unauthenticated: isUnauthenticatedError(error) || undefined,
-        });
+        setState(shardErrorState(error, localeRef.current, 'error.domainShard'));
         return false;
       })
       .finally(() => {
@@ -336,11 +397,7 @@ function useActiveAuthorityWorkspace(
           onIdentityFailure();
           return;
         }
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.generic'),
-          unauthenticated: isUnauthenticatedError(error) || undefined,
-        });
+        setState(shardErrorState(error, localeRef.current));
       });
     return () => {
       controller.abort();
@@ -536,7 +593,7 @@ function useActiveAuthorityWorkspace(
         }));
         setFamilyFailures((currentFailures) => ({
           ...currentFailures,
-          [family]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
+          [family]: shardFailureEntry(error, localeRef.current, 'error.familyShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -581,7 +638,7 @@ function useActiveAuthorityWorkspace(
         }
         setNeighborhoodFailures((currentFailures) => ({
           ...currentFailures,
-          [nodeId]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
+          [nodeId]: shardFailureEntry(error, localeRef.current, 'error.neighborhoodShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -647,7 +704,7 @@ function useActiveNodeDetail(
       .then(async (response) => {
         if (!response.ok) {
           if (!controller.signal.aborted && response.status === 409) onIdentityFailureRef.current?.();
-          throw new AuthorityShardFetchError(response.status);
+          throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
         }
         const candidate: unknown = await response.json();
         if (!isShardClass(candidate, 'node-detail')) {
@@ -698,7 +755,11 @@ function useActiveNodeDetail(
       .then(setDetail)
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setFailure(error instanceof Error ? error.message : '节点详情暂时无法加载。');
+          setFailure(
+            isContentNotReadyFailure(error)
+              ? graphCopy(locale, 'error.contentNotReady')
+              : error instanceof Error ? error.message : '节点详情暂时无法加载。',
+          );
         }
       })
       .finally(() => {
@@ -1337,6 +1398,7 @@ export function ActiveAuthorityGraph({
   viewerRole: _viewerRole,
   dimension: dimensionProp,
   onActiveDomainChange,
+  onShowLegacy,
   returnToRootRef,
   chromeHostRef,
   runtimeControlsRef,
@@ -1938,8 +2000,16 @@ export function ActiveAuthorityGraph({
           <div className="max-w-md rounded-xl border border-red-400/35 bg-red-400/10 p-5 text-center" role="alert">
             <AlertTriangle className="mx-auto h-6 w-6 text-red-200" aria-hidden="true" />
             <p className="mt-3 text-sm text-red-50">{state.message}</p>
-            <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
-            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
+            {state.contentNotReady ? (
+              onShowLegacy ? (
+                <button type="button" onClick={onShowLegacy} data-error-action="legacy" className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10">{graphCopy(locale, 'error.viewLegacy')}</button>
+              ) : null
+            ) : (
+              <>
+                <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
+                <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
+              </>
+            )}
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
@@ -2082,13 +2152,15 @@ export function ActiveAuthorityGraph({
             </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
-                <span>{neighborhoodFailures[selectedNodeKey]}</span>
-                <button
-                  type="button"
-                  onClick={() => requestNeighborhood(selectedNodeKey)}
-                  data-authority-neighborhood-retry={selectedNodeKey}
-                  className="shrink-0 underline underline-offset-2"
-                >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                <span>{neighborhoodFailures[selectedNodeKey].message}</span>
+                {neighborhoodFailures[selectedNodeKey].retryable ? (
+                  <button
+                    type="button"
+                    onClick={() => requestNeighborhood(selectedNodeKey)}
+                    data-authority-neighborhood-retry={selectedNodeKey}
+                    className="shrink-0 underline underline-offset-2"
+                  >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                ) : null}
               </div>
             ) : null}
             {authorityView ? (
