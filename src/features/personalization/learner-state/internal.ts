@@ -7,28 +7,20 @@ import {
 } from '@/lib/data-governance/competency-model';
 
 import { getArenaEvaluationProtocolVersion } from '@/features/arena/evaluation/protocol';
-import {
-  readStudentEvidenceFeatures,
-  type StudentEvidenceCoverageState,
-  type StudentEvidenceFeatureReadResult,
-  type StudentEvidenceStatusMarker,
-  type StudentEvidenceWindow,
+import type {
+  StudentEvidenceCoverageState,
+  StudentEvidenceFeatureReadResult,
+  StudentEvidenceStatusMarker,
+  StudentEvidenceWindow,
 } from '@/lib/data-governance/student-evidence-feature-cache';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '@/features/personalization/plugins/control-correction/capability-targets';
 import type { AdaptiveLearningCapabilityTarget } from '@/features/personalization/path-planning/contracts';
 import { isRegisteredAdaptiveLearningPathGoal } from '@/features/personalization/path-planning/registered-goal-ids';
-import { readArenaSubmissionEvidenceWritebacks } from '@/features/arena/evidence-writeback-persistence';
-import {
-  resolvePrimaryPortraitV2,
-  type PortraitV2ConsumerDb,
-  type PortraitV2Consumer,
-  type PortraitV2LegacyCompatibility,
+import type {
+  PortraitV2ConsumerDb,
+  PortraitV2Consumer,
+  PortraitV2LegacyCompatibility,
 } from '@/lib/data-governance/portrait-v2-consumer';
-import {
-  isAuthoritativeConsumerRead,
-  readAuthorizedCumulativePortrait,
-  viewerForPortraitConsumer,
-} from '@/features/learning-record/consumers/public-api';
 import {
   mapAdaptiveGoalSliceDimensionToPortraitV2,
   mapLegacyCompetencyDimensionToPortraitV2,
@@ -42,7 +34,6 @@ import {
   projectStudentSafeEvidenceSource,
   type StudentSafeEvidenceEventReference,
 } from '@/lib/data-governance/evidence-timeline';
-import { isLearningFactEligibleForPersonalization } from '@/lib/data-governance/learning-fact-quality-weight';
 import {
   CONTROL_CORRECTION_GOAL_DIMENSIONS as CONTROL_CORRECTION_GOAL_DIMENSION_IDS,
   CONTROL_CORRECTION_GOAL_ID as CONTROL_CORRECTION_GOAL_ID_VALUE,
@@ -94,7 +85,6 @@ export type ControlCorrectionDimensionId =
 
 export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = CONTROL_CORRECTION_GOAL_ID_VALUE;
 export { CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION };
-const LEARNER_STATE_FACT_TAKE = 100;
 export const CONTROL_CORRECTION_TARGET_LEVELS: ControlCorrectionTargetLevel[] = [
   ...CONTROL_CORRECTION_TARGET_LEVEL_VALUES,
 ];
@@ -609,104 +599,10 @@ export const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['pri
   ...CONTROL_CORRECTION_PRIVACY_CLASSES_VALUE,
 };
 
-const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
-  firstStartedAt: null,
-  lastStartedAt: null,
-  daysCovered: 0,
-};
-
 export function isAdaptiveLearnerStateServiceEnabled(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
   return env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED === 'true';
-}
-
-export async function readEligibleLearnerStateFacts(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-): Promise<Array<Record<string, unknown>>> {
-  const findMany = db.learningFact?.findMany;
-  if (!findMany) return [];
-
-  const facts: Array<Record<string, unknown>> = [];
-  let cursorId: string | null = null;
-  while (facts.length < LEARNER_STATE_FACT_TAKE) {
-    const rows = await findMany({
-      where: { userId },
-      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-      take: LEARNER_STATE_FACT_TAKE,
-      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-    });
-    facts.push(...rows
-      .filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson))
-      .slice(0, LEARNER_STATE_FACT_TAKE - facts.length));
-
-    const nextCursorId = readString(rows.at(-1)?.id);
-    if (rows.length < LEARNER_STATE_FACT_TAKE || !nextCursorId || nextCursorId === cursorId) {
-      break;
-    }
-    cursorId = nextCursorId;
-  }
-
-  return facts;
-}
-
-export async function resolveFencedAdaptivePortrait(
-  db: AdaptiveLearnerStateDb,
-  input: {
-    userId: string;
-    consumer: PortraitV2Consumer;
-    now: Date;
-    legacySnapshot: any;
-  },
-): Promise<PortraitResolution> {
-  const currentRead = await readAuthorizedCumulativePortrait({
-    db,
-    viewer: viewerForPortraitConsumer(input.consumer, input.userId),
-    targetUserId: input.userId,
-    consumer: input.consumer,
-  });
-  const current = currentRead.portrait;
-  // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: the legacy vector is retained only as non-authoritative compatibility output.
-  const legacyVector = input.legacySnapshot?.competencyVector &&
-    typeof input.legacySnapshot.competencyVector === 'object'
-    ? input.legacySnapshot.competencyVector as CompetencyVector
-    : createEmptyCompetencyVector();
-  const authoritative = isAuthoritativeConsumerRead(currentRead);
-  const primaryPortrait = authoritative && current.stateKind === 'SNAPSHOT' && current.payload
-    ? current.payload
-    : null;
-  const primaryPortraitState = authoritative && current.stateKind === 'SNAPSHOT'
-    ? 'SNAPSHOT' as const
-    : currentRead.knownZero || current.stateKind === 'NO_EVIDENCE'
-      ? 'NO_EVIDENCE' as const
-      : 'UNAVAILABLE' as const;
-  const primaryPortraitAvailability = authoritative && current.stateKind === 'SNAPSHOT'
-    ? 'available'
-    : currentRead.reason ?? current.availabilityReason;
-  return {
-    primaryPortrait,
-    primaryPortraitState,
-    primaryPortraitAvailability,
-    // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: this source label documents non-authoritative legacy provenance.
-    legacyCompatibility: {
-      authority: 'legacy-compatibility-only' as const,
-      source: input.legacySnapshot ? 'StudentCompetencySnapshot' as const : 'fallback-empty' as const,
-      vector: legacyVector,
-      snapshotId: typeof input.legacySnapshot?.id === 'string' ? input.legacySnapshot.id : null,
-      snapshotAt: input.legacySnapshot?.snapshotAt instanceof Date
-        ? input.legacySnapshot.snapshotAt.toISOString()
-        : input.now.toISOString(),
-    },
-    limitations: authoritative && current.stateKind === 'SNAPSHOT'
-      ? []
-      : [
-        `cumulative-portrait-${current.availabilityReason}`,
-        ...(currentRead.reason && currentRead.reason !== current.availabilityReason
-          ? [`projection-${currentRead.reason}`]
-          : []),
-      ],
-  };
 }
 
 function portraitConsumerForRole(role: AdaptiveLearnerStateRole): PortraitV2Consumer {
@@ -718,41 +614,6 @@ function portraitConsumerForRole(role: AdaptiveLearnerStateRole): PortraitV2Cons
 
 export function portraitConsumerForInput(input: AdaptiveLearnerStateInput): PortraitV2Consumer {
   return input.portraitConsumer ?? portraitConsumerForRole(input.role);
-}
-
-export async function readFeatureCache(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-  now: Date,
-): Promise<StudentEvidenceFeatureReadResult> {
-  if (!db.studentEvidenceFeatureCache?.findUnique) {
-    return {
-      state: 'missing',
-      cache: null,
-      rawReadExceptions: ['audit', 'debug', 'drilldown', 'migration'],
-    };
-  }
-  return readStudentEvidenceFeatures(db as Parameters<typeof readStudentEvidenceFeatures>[0], userId, { now });
-}
-
-export async function attachPersistedArenaWritebacks(
-  db: AdaptiveLearnerStateDb,
-  submissions: Array<Record<string, unknown>>,
-): Promise<Array<Record<string, unknown>>> {
-  const submissionIds = submissions
-    .map((submission) => readString(submission.id))
-    .filter((id): id is string => Boolean(id));
-  if (!submissionIds.length || typeof db.evidenceOutbox?.findMany !== 'function') {
-    return submissions;
-  }
-
-  const writebacks = await readArenaSubmissionEvidenceWritebacks(db, submissionIds, 'service');
-  if (writebacks.size === 0) return submissions;
-  return submissions.map((submission) => {
-    const id = readString(submission.id);
-    const evidenceWriteback = id ? writebacks.get(id) : null;
-    return evidenceWriteback ? { ...submission, evidenceWriteback } : submission;
-  });
 }
 
 export function buildSecondaryDimensions(vector: CompetencyVector): AdaptiveLearnerState['secondaryDimensions'] { // PORTRAIT_V2_LEGACY_COMPATIBILITY_ADAPTER: derive secondary scores from the compatibility vector.
@@ -946,14 +807,14 @@ function buildControlCorrectionGoalSlice(input: {
     masteryTraceability: input.masteryTraceability,
     simulationArena,
   });
+  const evidenceProvenance = buildControlCorrectionEvidenceProvenance(sourceEvidence);
   const dimensions = CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => {
     const primary = input.usePrimaryPortrait
       ? deriveControlCorrectionDimensionFromPortrait(input.primaryPortrait, id, input.now)
         ?? emptyVector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]]
       : emptyVector[CONTROL_CORRECTION_DIMENSION_PRIMARY[id]];
     const sourceCoverage = buildControlCorrectionDimensionSourceCoverage(id, sourceEvidence);
-    const evidenceCount = buildControlCorrectionDimensionEvidenceCount(id, primary.evidenceCount, sourceEvidence);
-    const evidenceProvenance = buildControlCorrectionEvidenceProvenance(sourceEvidence);
+    const evidenceCount = buildControlCorrectionDimensionEvidenceCount(id, sourceEvidence);
     const fallbackMarkers = buildControlCorrectionFallbackMarkers(
       id,
       sourceCoverage,
@@ -1118,26 +979,23 @@ function projectStudentSafeEventReferences(
     .slice(0, 3);
 }
 
+const OBSERVABLE_EVIDENCE_COUNT_KEYS: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'],
+  'assessmentCount' | 'simulationCount' | 'officialArenaCount' | 'reflectionCount' | 'aiCollaborationCount'>
+> = {
+  'question': 'assessmentCount',
+  'simulation-run': 'simulationCount',
+  'arena-official-evaluation': 'officialArenaCount',
+  'reflection': 'reflectionCount',
+  'agent-interaction': 'aiCollaborationCount',
+};
+
 function countControlCorrectionCapabilityObservableEvidence(
   target: AdaptiveLearningCapabilityTarget,
   sourceEvidence: ControlCorrectionSourceEvidence,
 ): number {
-  if (target.observableEvidenceType === 'question') {
-    return sourceEvidence.assessmentCount;
-  }
-  if (target.observableEvidenceType === 'simulation-run') {
-    return sourceEvidence.simulationCount;
-  }
-  if (target.observableEvidenceType === 'arena-official-evaluation') {
-    return sourceEvidence.officialArenaCount;
-  }
-  if (target.observableEvidenceType === 'reflection') {
-    return sourceEvidence.reflectionCount;
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return sourceEvidence.aiCollaborationCount;
-  }
-  return 0;
+  const countKey = OBSERVABLE_EVIDENCE_COUNT_KEYS[target.observableEvidenceType];
+  return countKey ? sourceEvidence[countKey] : 0;
 }
 
 function controlCorrectionCapabilityObservableEvidenceConfidence(
@@ -1181,23 +1039,19 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
     const target = asRecord(item.target);
     const observedEvidence = asRecord(item.observedEvidence);
     const registeredTarget = registeredCapabilityTargets.get(readString(target.id) ?? '');
+    const targetStringFields = [
+      'id', 'knowledgeNodeRef', 'capabilityLevel', 'behaviorVerb', 'observableEvidenceType', 'evaluationMethod',
+    ] as const;
     if (
-      typeof target.id !== 'string' ||
-      typeof target.knowledgeNodeRef !== 'string' ||
-      typeof target.capabilityLevel !== 'string' ||
-      typeof target.behaviorVerb !== 'string' ||
-      !Array.isArray(target.successCriteria) ||
-      typeof target.observableEvidenceType !== 'string' ||
-      typeof target.evaluationMethod !== 'string'
+      targetStringFields.some((field) => typeof target[field] !== 'string') ||
+      !Array.isArray(target.successCriteria)
     ) {
       throw new Error('control-correction capability target missing required metadata');
     }
     if (
       !registeredTarget ||
-      target.knowledgeNodeRef !== registeredTarget.knowledgeNodeRef ||
-      target.capabilityLevel !== registeredTarget.capabilityLevel ||
-      target.observableEvidenceType !== registeredTarget.observableEvidenceType ||
-      target.goalSliceId !== registeredTarget.goalSliceId
+      (['knowledgeNodeRef', 'capabilityLevel', 'observableEvidenceType', 'goalSliceId'] as const)
+        .some((field) => target[field] !== registeredTarget[field])
     ) {
       throw new Error('control-correction goal slice missing capability targets');
     }
@@ -1250,7 +1104,7 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
     const sourceCoverage = asRecord(dimension.sourceCoverage);
     const freshness = readString(dimension.freshness);
     if (
-      !isControlCorrectionConfidenceState(confidence.state) ||
+      !['none', 'low', 'medium', 'high'].includes(confidence.state as string) ||
       !Number.isFinite(confidence.score) ||
       !Number.isFinite(confidence.evidenceCount) ||
       !Number.isFinite(confidence.sourceCompleteness)
@@ -1258,21 +1112,23 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
       throw new Error('control-correction dimension missing confidence metadata');
     }
     if (
-      !isCoverageState(sourceCoverage.assessment) ||
-      !isCoverageState(sourceCoverage.simulation) ||
-      !isCoverageState(sourceCoverage.arena) ||
-      !isCoverageState(sourceCoverage.reflection) ||
-      !isCoverageState(sourceCoverage.aiCollaboration)
+      !(['assessment', 'simulation', 'arena', 'reflection', 'aiCollaboration'] as const)
+        .every((key) => isCoverageState(sourceCoverage[key]))
     ) {
       throw new Error('control-correction dimension missing source coverage metadata');
     }
     if (freshness !== 'current' && freshness !== 'partial' && freshness !== 'stale' && freshness !== 'missing') {
       throw new Error('control-correction dimension missing freshness metadata');
     }
-    if (privacy.score !== 'student-visible' || privacy.sourceCoverage !== 'student-visible' || privacy.confidence !== 'student-visible') {
-      throw new Error('control-correction dimension missing privacy metadata');
-    }
-    if (privacy.teacherExplanation !== 'teacher-scoped' || privacy.auditRefs !== 'audit-only' || privacy.rawPayloads !== 'system-internal') {
+    const requiredDimensionPrivacy = {
+      score: 'student-visible',
+      sourceCoverage: 'student-visible',
+      confidence: 'student-visible',
+      teacherExplanation: 'teacher-scoped',
+      auditRefs: 'audit-only',
+      rawPayloads: 'system-internal',
+    };
+    if (Object.entries(requiredDimensionPrivacy).some(([field, expected]) => privacy[field] !== expected)) {
       throw new Error('control-correction dimension missing privacy metadata');
     }
   }
@@ -1342,49 +1198,6 @@ export function buildKnowledgeMastery(
     coverage: Object.keys(tags).length > 0 ? 'available' : 'missing',
     tags,
   };
-}
-
-export async function readAdaptiveMasteryLearningFacts(
-  db: AdaptiveLearnerStateDb,
-  userId: string,
-  masteryUpdates: Array<Record<string, unknown>>,
-): Promise<Array<Record<string, unknown>>> {
-  if (!db.learningFact?.findMany) {
-    return [];
-  }
-
-  const answerIds = latestMasteryAnswerIds(masteryUpdates);
-  if (answerIds.length === 0) {
-    return [];
-  }
-
-  const facts = await db.learningFact.findMany({
-    where: {
-      userId,
-      sourceEventId: {
-        in: answerIds.map((answerId) => `adaptive-assessment:${answerId}`),
-      },
-    },
-    orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-  });
-  return facts.filter((fact) => isLearningFactEligibleForPersonalization(fact.contextJson));
-}
-
-function latestMasteryAnswerIds(rows: Array<Record<string, unknown>>): string[] {
-  const seenKnowledgeTags = new Set<string>();
-  const answerIds = new Set<string>();
-  for (const row of rows) {
-    const knowledgeTag = readString(row.knowledgeTag);
-    if (!knowledgeTag || seenKnowledgeTags.has(knowledgeTag)) {
-      continue;
-    }
-    seenKnowledgeTags.add(knowledgeTag);
-    const answerId = readString(row.answerId);
-    if (answerId) {
-      answerIds.add(answerId);
-    }
-  }
-  return [...answerIds];
 }
 
 function adaptiveAssessmentAnswerIdFromFact(fact: Record<string, unknown>): string | undefined {
@@ -1508,6 +1321,16 @@ function buildRoleFilteredMasteryLimitations(
   ]);
 }
 
+const OBSERVABLE_EVIDENCE_FACT_MODALITIES: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'], readonly string[]>
+> = {
+  'question': ['assessment'],
+  'simulation-run': ['simulation'],
+  'arena-official-evaluation': [],
+  'reflection': ['reflection'],
+  'agent-interaction': ['ai', 'ai-collaboration', 'konling'],
+};
+
 function refsForCapabilityTarget(
   target: AdaptiveLearningCapabilityTarget,
   input: {
@@ -1519,12 +1342,7 @@ function refsForCapabilityTarget(
 ): MasteryEvidenceReference[] {
   const featureRefs = refsFromFeatureCache(target, input.featureRead);
   const agentToolRunRefs = refsFromAgentToolRunsForTarget(input.agentToolRuns, target);
-  if (target.observableEvidenceType === 'question') {
-    return [...refsFromFacts(input.facts, ['assessment']), ...agentToolRunRefs, ...featureRefs];
-  }
-  if (target.observableEvidenceType === 'simulation-run') {
-    return [...refsFromFacts(input.facts, ['simulation']), ...agentToolRunRefs, ...featureRefs];
-  }
+  const factRefs = refsFromFacts(input.facts, OBSERVABLE_EVIDENCE_FACT_MODALITIES[target.observableEvidenceType] ?? []);
   if (target.observableEvidenceType === 'arena-official-evaluation') {
     return [
       ...input.arenaSubmissions
@@ -1535,17 +1353,7 @@ function refsForCapabilityTarget(
       ...featureRefs,
     ];
   }
-  if (target.observableEvidenceType === 'reflection') {
-    return [...refsFromFacts(input.facts, ['reflection']), ...agentToolRunRefs, ...featureRefs];
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return [
-      ...refsFromFacts(input.facts, ['ai', 'ai-collaboration', 'konling']),
-      ...agentToolRunRefs,
-      ...featureRefs,
-    ].filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
-  }
-  return [...agentToolRunRefs, ...featureRefs];
+  return [...factRefs, ...agentToolRunRefs, ...featureRefs];
 }
 
 function refsFromAgentToolRunsForTarget(
@@ -1586,6 +1394,16 @@ function refsFromFeatureCache(
     .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
 }
 
+const OBSERVABLE_EVIDENCE_RESOURCE_TYPES: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'], readonly string[]>
+> = {
+  'simulation-run': ['simulation', 'control_workbench'],
+  'arena-official-evaluation': ['arena_task'],
+  'question': ['quiz', 'adaptive_quiz', 'checkpoint'],
+  'reflection': ['reflection'],
+  'agent-interaction': ['ai_intervention', 'konling'],
+};
+
 function pathExecutionReferenceMatchesCapability(
   reference: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1598,23 +1416,8 @@ function pathExecutionReferenceMatchesCapability(
     terminalValidationState === 'completed';
   if (!completed) return false;
   if (!pathExecutionReferenceMatchesGoal(reference, target)) return false;
-  const resourceType = readString(reference.resourceType);
-  if (target.observableEvidenceType === 'simulation-run') {
-    return resourceType === 'simulation' || resourceType === 'control_workbench';
-  }
-  if (target.observableEvidenceType === 'arena-official-evaluation') {
-    return resourceType === 'arena_task';
-  }
-  if (target.observableEvidenceType === 'question') {
-    return resourceType === 'quiz' || resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
-  }
-  if (target.observableEvidenceType === 'reflection') {
-    return resourceType === 'reflection';
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return resourceType === 'ai_intervention' || resourceType === 'konling';
-  }
-  return false;
+  const allowedResourceTypes = OBSERVABLE_EVIDENCE_RESOURCE_TYPES[target.observableEvidenceType];
+  return allowedResourceTypes?.includes(readString(reference.resourceType) ?? '') ?? false;
 }
 
 function pathExecutionReferenceMatchesGoal(
@@ -1625,28 +1428,13 @@ function pathExecutionReferenceMatchesGoal(
   if (goalId !== target.goalSliceId) return false;
   const goalSliceId = readString(reference.goalSliceId);
   if (goalSliceId !== null && goalSliceId !== target.goalSliceId) return false;
-  if (pathExecutionReferenceHasStructuredTarget(reference)) {
+  if (containerHasStructuredTarget(reference)) {
     return structuredContainerTargetsCapability(reference, target);
   }
   return true;
 }
 
-function pathExecutionReferenceHasStructuredTarget(reference: Record<string, unknown>): boolean {
-  return [
-    reference.capabilityTargetRef,
-    reference.capabilityTargetRefs,
-    reference.capabilityTargetId,
-    reference.capabilityTargetIds,
-    reference.targetCapabilityId,
-    reference.targetCapabilityIds,
-    reference.knowledgeNodeRef,
-    reference.knowledgeNodeRefs,
-    reference.knowledgeTag,
-    reference.knowledgeTags,
-  ].some((value) => typeof value === 'string' || Array.isArray(value));
-}
-
-function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: string[]): MasteryEvidenceReference[] {
+function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: readonly string[]): MasteryEvidenceReference[] {
   return facts
     .filter((fact) => {
       const modality = factTypeToModality(readString(fact.factType));
@@ -1656,7 +1444,13 @@ function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: string
       }
       return true;
     })
-    .map((fact) => masteryEvidenceRef('LearningFact', readString(fact.id), fact.startedAt, 'student-visible', confidenceFromFact(fact)))
+    .map((fact) => masteryEvidenceRef(
+      'LearningFact',
+      readString(fact.id),
+      fact.startedAt,
+      'student-visible',
+      confidenceLevel(finiteNumber(fact.score) ?? (readString(fact.outcome) === 'success' ? 0.8 : 0.45)),
+    ))
     .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
 }
 
@@ -1730,10 +1524,6 @@ function freshnessForMastery(
   if (limitations.includes('stale-evidence')) return 'stale';
   if (limitations.some((limitation) => limitation !== 'restricted-evidence-hidden')) return 'partial';
   return 'current';
-}
-
-function confidenceFromFact(fact: Record<string, unknown>): MasteryEvidenceReference['confidence'] {
-  return confidenceLevel(finiteNumber(fact.score) ?? (readString(fact.outcome) === 'success' ? 0.8 : 0.45));
 }
 
 function confidenceForVisibleRefs(refs: MasteryEvidenceReference[], fallback: number): number {
@@ -1814,27 +1604,6 @@ function agentToolRunHasGovernedEvidenceSummary(run: Record<string, unknown>): b
   );
 }
 
-function agentToolRunHasStructuredTarget(run: Record<string, unknown>): boolean {
-  const structuredContainers = [
-    run,
-    asRecord(run.outputSummary),
-    asRecord(asRecord(run.outputSummary).evidenceSummary),
-    asRecord(asRecord(run.outputSummary).materializedEvidence),
-  ];
-  return structuredContainers.some((container) => [
-    container.capabilityTargetRef,
-    container.capabilityTargetRefs,
-    container.capabilityTargetId,
-    container.capabilityTargetIds,
-    container.targetCapabilityId,
-    container.targetCapabilityIds,
-    container.knowledgeNodeRef,
-    container.knowledgeNodeRefs,
-    container.knowledgeTag,
-    container.knowledgeTags,
-  ].some((value) => typeof value === 'string' || Array.isArray(value)));
-}
-
 function agentToolRunTargetsCapability(
   run: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1848,6 +1617,20 @@ function agentToolRunTargetsCapability(
   return structuredContainers.some((container) => structuredContainerTargetsCapability(container, target));
 }
 
+const STRUCTURED_TARGET_FIELDS = [
+  'capabilityTargetRef', 'capabilityTargetRefs',
+  'capabilityTargetId', 'capabilityTargetIds',
+  'targetCapabilityId', 'targetCapabilityIds',
+  'knowledgeNodeRef', 'knowledgeNodeRefs',
+  'knowledgeTag', 'knowledgeTags',
+] as const;
+
+function containerHasStructuredTarget(container: Record<string, unknown>): boolean {
+  return STRUCTURED_TARGET_FIELDS.some((field) => (
+    typeof container[field] === 'string' || Array.isArray(container[field])
+  ));
+}
+
 function structuredContainerTargetsCapability(
   value: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1857,33 +1640,18 @@ function structuredContainerTargetsCapability(
     target.knowledgeNodeRef,
     `capability:${target.knowledgeNodeRef.replace(/^control-correction:/, '')}`,
   ]);
-  const structuredValues = [
-    value.capabilityTargetRef,
-    value.capabilityTargetRefs,
-    value.capabilityTargetId,
-    value.capabilityTargetIds,
-    value.targetCapabilityId,
-    value.targetCapabilityIds,
-    value.knowledgeNodeRef,
-    value.knowledgeNodeRefs,
-    value.knowledgeTag,
-    value.knowledgeTags,
-  ];
-  return structuredValues.some((entry) => structuredTargetValueMatches(entry, targetValues));
+  return STRUCTURED_TARGET_FIELDS.map((field) => value[field])
+    .some((entry) => structuredTargetValueMatches(entry, targetValues));
 }
 
 function structuredTargetValueMatches(value: unknown, targetValues: Set<string>): boolean {
   if (typeof value === 'string') {
-    return targetValues.has(normalizeCapabilityTargetRef(value));
+    return targetValues.has(value.trim());
   }
   if (Array.isArray(value)) {
     return value.some((entry) => structuredTargetValueMatches(entry, targetValues));
   }
   return false;
-}
-
-function normalizeCapabilityTargetRef(value: string): string {
-  return value.trim();
 }
 
 function isStaleEvidenceRef(ref: MasteryEvidenceReference, now: Date): boolean {
@@ -2131,19 +1899,10 @@ interface ControlCorrectionScopedFactSummary {
   counts: ControlCorrectionFactCounts;
 }
 
-function isOfficialArenaLearningFact(fact: Record<string, unknown>): boolean {
-  const arena = asRecord(asRecord(fact.contextJson).arena);
-  return arena.official === true || arena.evaluationMode === 'official';
-}
-
-function hasArenaTaskContext(fact: Record<string, unknown>): boolean {
-  const arena = asRecord(asRecord(fact.contextJson).arena);
-  return Boolean(readString(arena.taskId));
-}
-
 function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>): ControlCorrectionScopedFactSummary {
   const counts = facts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
-    if (isOfficialArenaLearningFact(fact) || hasArenaTaskContext(fact)) {
+    const arenaContext = asRecord(asRecord(fact.contextJson).arena);
+    if (arenaContext.official === true || arenaContext.evaluationMode === 'official' || Boolean(readString(arenaContext.taskId))) {
       counts.arena += 1;
       counts.previewArena += 1;
       return counts;
@@ -2183,10 +1942,6 @@ export function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Re
   return result;
 }
 
-function countOfficialControlCorrectionArenaSubmissions(submissions: Array<Record<string, unknown>>): number {
-  return submissions.filter(isOfficialControlCorrectionArenaSubmission).length;
-}
-
 function isOfficialControlCorrectionArenaSubmission(submission: Record<string, unknown>): boolean {
   if (submission.valid !== true) return false;
   if (submission.isLate === true) return false;
@@ -2215,7 +1970,7 @@ function buildControlCorrectionSourceEvidence(input: {
 }): ControlCorrectionSourceEvidence {
   const factSummary = summarizeControlCorrectionFacts(input.facts);
   const factCounts = factSummary.counts;
-  const officialArenaCount = countOfficialControlCorrectionArenaSubmissions(input.arenaSubmissions);
+  const officialArenaCount = input.arenaSubmissions.filter(isOfficialControlCorrectionArenaSubmission).length;
   const agentToolRunCount = countVisibleAgentToolRunRefs(input.masteryTraceability);
   const simulationArenaCoverage = asRecord(input.simulationArena.sourceCoverage);
   return {
@@ -2225,7 +1980,11 @@ function buildControlCorrectionSourceEvidence(input: {
     simulationCount: factCounts.simulation,
     arenaCoverage: officialArenaCount > 0
       ? 'available'
-      : factCounts.arena > 0 ? previewArenaCoverage(simulationArenaCoverage.arena) : 'missing',
+      : factCounts.arena > 0
+        ? (normalizeCoverageState(simulationArenaCoverage.arena) === 'missing'
+          ? 'partial'
+          : normalizeCoverageState(simulationArenaCoverage.arena))
+        : 'missing',
     officialArenaCount,
     previewArenaCount: factCounts.previewArena,
     simulationArenaQualityMarkers: arrayOfStrings(input.simulationArena.qualityMarkers),
@@ -2244,11 +2003,6 @@ function countVisibleAgentToolRunRefs(masteryTraceability: AdaptiveLearnerState[
     }
   }
   return sourceIds.size;
-}
-
-function previewArenaCoverage(value: unknown): StudentEvidenceCoverageState {
-  const coverage = normalizeCoverageState(value);
-  return coverage === 'missing' ? 'partial' : coverage;
 }
 
 function buildControlCorrectionDimensionSourceCoverage(
@@ -2271,18 +2025,16 @@ function buildControlCorrectionDimensionSourceCoverage(
 
 function buildControlCorrectionDimensionEvidenceCount(
   id: ControlCorrectionDimensionId,
-  _primaryEvidenceCount: number,
   sourceEvidence: ControlCorrectionSourceEvidence,
 ): number {
-  return CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id].reduce((count, source) => {
-    if (source === 'assessment') return count + sourceEvidence.assessmentCount;
-    if (source === 'simulation') return count + sourceEvidence.simulationCount;
-    if (source === 'arena') return count + (sourceEvidence.officialArenaCount > 0
-      ? sourceEvidence.officialArenaCount
-      : sourceEvidence.previewArenaCount);
-    if (source === 'reflection') return count + sourceEvidence.reflectionCount;
-    return count + sourceEvidence.aiCollaborationCount;
-  }, 0);
+  const evidenceCounts = {
+    assessment: sourceEvidence.assessmentCount,
+    simulation: sourceEvidence.simulationCount,
+    arena: sourceEvidence.officialArenaCount > 0 ? sourceEvidence.officialArenaCount : sourceEvidence.previewArenaCount,
+    reflection: sourceEvidence.reflectionCount,
+    aiCollaboration: sourceEvidence.aiCollaborationCount,
+  };
+  return CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id].reduce((count, source) => count + evidenceCounts[source], 0);
 }
 
 function buildControlCorrectionEvidenceProvenance(
@@ -2477,10 +2229,6 @@ function isCoverageState(value: unknown): value is StudentEvidenceCoverageState 
   return value === 'available' || value === 'partial' || value === 'missing';
 }
 
-function isControlCorrectionConfidenceState(value: unknown): value is ControlCorrectionGoalSliceDimension['confidence']['state'] {
-  return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
-}
-
 function normalizeConfidence(value: unknown): AdaptiveLearnerState['evidence']['confidence'] {
   const confidence = asRecord(value);
   const level = confidence.level;
@@ -2518,7 +2266,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function readString(value: unknown): string | null {
+export function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 

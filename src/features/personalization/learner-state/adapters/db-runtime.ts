@@ -6,13 +6,15 @@ import { resolvePrimaryPortraitV2 } from '@/lib/data-governance/portrait-v2-cons
 import {
   CONTROL_CORRECTION_GOAL_ID,
   isAdaptiveLearnerStateServiceEnabled,
+  type AdaptiveLearnerStateDb,
+  type PortraitResolution,
+} from '../internal';
+import {
   readAdaptiveMasteryLearningFacts,
   readEligibleLearnerStateFacts,
   readFeatureCache,
   resolveFencedAdaptivePortrait,
-  type AdaptiveLearnerStateDb,
-  type PortraitResolution,
-} from '../internal';
+} from '../effectful-reads';
 import type {
   AssessmentReadPort,
   LearnerStateRuntime,

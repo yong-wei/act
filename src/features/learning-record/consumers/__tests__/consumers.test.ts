@@ -230,7 +230,7 @@ describe('learning-record consumers', () => {
 
   it('does not advertise a stale SNAPSHOT as current personalization evidence', async () => {
     const { resolveFencedAdaptivePortrait } = await import(
-      '@/features/personalization/learner-state/internal'
+      '@/features/personalization/learner-state/effectful-reads'
     );
     mocks.readCurrentCumulativePortrait.mockResolvedValue(snapshotPortrait());
     const resolved = await resolveFencedAdaptivePortrait({
@@ -411,7 +411,7 @@ describe('learning-record consumers', () => {
       'src/app/api/teacher/classes/[classId]/heatmap/route.ts',
       'src/app/api/teacher/classes/[classId]/students/[studentId]/insights/route.ts',
       'src/app/api/user/profile/route.ts',
-      'src/features/personalization/learner-state/internal.ts',
+      'src/features/personalization/learner-state/effectful-reads.ts',
       'src/app/teacher/smart-prep/page.tsx',
       'src/lib/smart-lesson-plan/service.ts',
     ];
