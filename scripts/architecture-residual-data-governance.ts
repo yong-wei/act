@@ -12,7 +12,7 @@
  * no file moves, no import rewrites, no compatibility retirement.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { privacyViolation } from '../src/lib/architecture-census/privacy';
@@ -390,21 +390,30 @@ mkdirSync(outDir, { recursive: true });
  * fixed-point loop, so drift during generation fails closed before the final
  * package is written.
  */
-function runPostGuards(): void {
+function runPostGuards(revokeOnFailure = false): void {
+  const fail = (message: string): never => {
+    if (revokeOnFailure) {
+      // A drift detected after publication invalidates the written package:
+      // revoke every output so no unverified revision remains consumable.
+      for (const name of ['index.json', 'decision-matrix.md', 'summaries.md', 'future-slices.md', 'handoff.md']) {
+        try {
+          rmSync(join(outDir, name));
+        } catch {
+          // already absent
+        }
+      }
+    }
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+  };
   if (!replayPinnedSubject) {
     execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
     const subjectCommitAfter = git(['rev-parse', 'origin/integration^{commit}']);
-    if (subjectCommitAfter !== currentSubject.subjectCommit) {
-      process.stderr.write('subject-drifted-during-run\n');
-      process.exit(1);
-    }
+    if (subjectCommitAfter !== currentSubject.subjectCommit) fail('subject-drifted-during-run');
   }
   for (const [name, path] of readOnlyInputs) {
     const before = readOnlySnapshots.find(([snapshotName]) => snapshotName === name)?.[1];
-    if (before && sha256Text(readFileSync(path, 'utf8')) !== before) {
-      process.stderr.write(`read-only-input-mutated:${name}\n`);
-      process.exit(1);
-    }
+    if (before && sha256Text(readFileSync(path, 'utf8')) !== before) fail(`read-only-input-mutated:${name}`);
   }
 }
 runPostGuards();
@@ -467,5 +476,8 @@ if (!finalVerification.reconciled) {
   process.stderr.write(`final-package-unverified:${finalVerification.reason}\n`);
   process.exit(1);
 }
+// Post-publication drift check closes the write-window TOCTOU: if any consumed
+// input moved while the five artifacts were being written, revoke them all.
+runPostGuards(true);
 
 process.stdout.write(`${result.qualified ? 'qualified' : 'blocker'} ${result.decisionIdentity} members=${result.summaries.memberCount} unresolved=${result.summaries.unresolvedCount} subject=${currentSubject.subjectCommit.slice(0, 12)} blockers=${result.blockers.join(',') || 'none'}\n`);
