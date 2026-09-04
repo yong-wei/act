@@ -15,6 +15,6 @@ export default function DredgerSimulationPage() {
 }
 
 export const metadata = {
-  title: '天鲸号挖泥船动力定位仿真 - AI-OBE船舶智控平台',
+  title: '天鲸号挖泥船动力定位仿真 - 智控深蓝',
   description: '使用MMG三自由度高保真模型的挖泥船动力定位仿真，体验精确定位控制技术',
 };
