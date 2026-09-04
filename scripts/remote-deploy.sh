@@ -789,8 +789,12 @@ remote "podman ps --format '{{.Names}}' | grep -qx '${REDIS_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}' | grep -qx '${WORKER_NAME_HINT}'"
 remote "podman ps --format '{{.Names}}\t{{.Status}}' | grep -E '^${DB_NAME_HINT}[[:space:]].*healthy'"
 
-log "- 校验容器内 Wolfram Cloud MCP 就绪"
-remote "podman exec '${APP_NAME_HINT}' ./scripts/math-calc/check-wolfram-ready.sh"
+if remote "bash -lc 'set -a; [ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \"${REMOTE_PROJECT_DIR}/.env.server\"; set +a; [ \"\${SKIP_WOLFRAM_READY_CHECK:-}\" = \"1\" ]'"; then
+  log "- SKIP_WOLFRAM_READY_CHECK=1，跳过容器内 Wolfram Cloud MCP 就绪校验（Wolfram 云端计划维护窗口）"
+else
+  log "- 校验容器内 Wolfram Cloud MCP 就绪"
+  remote "podman exec '${APP_NAME_HINT}' ./scripts/math-calc/check-wolfram-ready.sh"
+fi
 
 if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
   if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
