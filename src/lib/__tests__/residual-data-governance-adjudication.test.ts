@@ -17,6 +17,7 @@ import {
   classifyCallerPath,
   collectRelativeCallers,
   directoryPathReadCaller,
+  deriveUpstreamQualificationEvidence,
   evaluateCoordinationGate,
   extractModuleSpecifiers,
   memberSetDigest,
@@ -180,7 +181,7 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
     memberDenominator: first.summaries.memberCount,
     subjectCommit: subject.currentSubject.subjectCommit,
     subjectTree: subject.currentSubject.subjectTree,
-    toolCommit: first.tool.toolCommit,
+    toolContentDigest: first.tool.entryBundleDigest,
     schemaVersion: RESIDUAL_SCHEMA_VERSION,
     memberSetDigest: subject.memberSetDigest,
     callerBundleDigest: first.callerBundleDigest,
@@ -324,7 +325,7 @@ describe('residual data-governance adjudication', () => {
       memberDenominator: good.summaries.memberCount,
       subjectCommit: goodSubject.currentSubject.subjectCommit,
       subjectTree: goodSubject.currentSubject.subjectTree,
-      toolCommit: good.tool.toolCommit,
+      toolContentDigest: good.tool.entryBundleDigest,
       schemaVersion: RESIDUAL_SCHEMA_VERSION,
       memberSetDigest: goodSubject.memberSetDigest,
       callerBundleDigest: good.callerBundleDigest,
@@ -339,7 +340,7 @@ describe('residual data-governance adjudication', () => {
 
     const foreignTool = asAdjudication(adjudicateResidualDataGovernance({
       ...input({ members }),
-      ledgerVerification: { ...fullReceipt, toolCommit: 'f'.repeat(40) },
+      ledgerVerification: { ...fullReceipt, toolContentDigest: 'f'.repeat(64) },
     }));
     expect(foreignTool.blockers).toContain('full-ledger-bytes-unverified');
 
@@ -805,16 +806,23 @@ describe('residual data-governance adjudication', () => {
     expect(missingIdentity.futureSlices).toEqual([]);
   });
 
-  it('derives decision identity from the full tool checkpoint and splits families on heterogeneous caller evidence', () => {
+  it('derives decision identity from tool content only and splits families on heterogeneous caller evidence', () => {
     const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
     const base = runWithLedgerVerification({ members });
 
-    // Same entry bundle bytes but a different tool commit must change identity.
+    // Identity follows tool CONTENT: the same adjudicator bytes on a different
+    // commit produce the identical decision identity (the commit is only
+    // provenance), while different tool bytes change it.
     const sameBundleDifferentCommit = asAdjudication(adjudicateResidualDataGovernance({
       ...input({ members }),
       tool: { ...tool, toolCommit: '9'.repeat(40) },
     }));
-    expect(sameBundleDifferentCommit.decisionIdentity).not.toBe(base.decisionIdentity);
+    expect(sameBundleDifferentCommit.decisionIdentity).toBe(base.decisionIdentity);
+    const differentBundle = asAdjudication(adjudicateResidualDataGovernance({
+      ...input({ members }),
+      tool: { ...tool, entryBundleDigest: '8'.repeat(64) },
+    }));
+    expect(differentBundle.decisionIdentity).not.toBe(base.decisionIdentity);
 
     // Same slice/owner but different caller classes must split families (task 2.3).
     const pair: ResidualMemberInput[] = [
@@ -955,5 +963,58 @@ describe('residual data-governance adjudication', () => {
     } finally {
       rmSync(pkg.dir, { recursive: true, force: true });
     }
+  });
+  it('re-derives upstream qualification from cross-linked bytes and rejects isolated tampering', () => {
+    const index = {
+      status: 'package-unqualified',
+      packageDigest: '6'.repeat(64),
+      schemaVersion: 'act-repository-payload-classification/v2',
+      subjectIdentity: 'c'.repeat(64),
+      slices: [
+        { discovered: 10, qualified: 8, unresolved: 2, 'justified-excluded': 0 },
+        { discovered: 5, qualified: 5, unresolved: 0, 'justified-excluded': 0 },
+      ],
+      inventoryVerification: { memberDenominator: 15, subjectIdentity: 'c'.repeat(64), projectionsReconciled: true },
+    };
+    const summaryText = [
+      '# Repository payload classification (current completion run)',
+      '',
+      '- status: `package-unqualified`',
+      '- reason: `unresolved-members:2:unknown-privacy`',
+      '',
+    ].join('\n');
+    const unresolvedRegisterText = [
+      '# Unresolved records',
+      '',
+      '| key | count | sample record IDs |',
+      '| --- | --- | --- |',
+      '| course-content:unknown-privacy | 2 | member:a, member:b |',
+      '',
+    ].join('\n');
+    const base = { index, summaryText, unresolvedRegisterText };
+    expect(deriveUpstreamQualificationEvidence(base)).toMatchObject({
+      status: 'package-unqualified',
+      unresolvedMembers: 2,
+    });
+
+    // Status flipped to qualified only in the index disagrees with the summary.
+    expect(deriveUpstreamQualificationEvidence({ ...base, index: { ...index, status: 'qualified' } }))
+      .toMatchObject({ error: 'upstream-status-disagrees-with-summary' });
+    // Zeroing slice counts breaks per-slice conservation.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: { ...index, slices: [{ discovered: 10, qualified: 10, unresolved: 0, 'justified-excluded': 0 }] },
+    })).toMatchObject({ error: 'upstream-inventory-receipt-inconsistent' });
+    // Register rows disagreeing with the slice counts fail.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      unresolvedRegisterText: unresolvedRegisterText.replace('| 2 |', '| 7 |'),
+    })).toMatchObject({ error: 'upstream-unresolved-register-mismatch' });
+    // A qualified claim with any unresolved member fails.
+    expect(deriveUpstreamQualificationEvidence({
+      ...base,
+      index: { ...index, status: 'qualified' },
+      summaryText: summaryText.replace('package-unqualified', 'qualified'),
+    })).toMatchObject({ error: 'upstream-status-count-inconsistent' });
   });
 });

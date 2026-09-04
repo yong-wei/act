@@ -105,7 +105,8 @@ export interface LedgerVerificationReceipt {
   readonly memberDenominator: number;
   readonly subjectCommit: string;
   readonly subjectTree: string;
-  readonly toolCommit: string;
+  /** Content checkpoint of the adjudicator files (entryBundleDigest); never a commit SHA, which a squash-merged delivery revision cannot resolve. */
+  readonly toolContentDigest: string;
   readonly schemaVersion: string;
   readonly memberSetDigest: string;
   readonly callerBundleDigest: string;
@@ -901,7 +902,7 @@ export function adjudicateResidualDataGovernance(
     identity: {
       subjectCommit: subject.currentSubject.subjectCommit,
       subjectTree: subject.currentSubject.subjectTree,
-      toolCommit: input.tool.toolCommit,
+      toolContentDigest: input.tool.entryBundleDigest,
       schemaVersion: RESIDUAL_SCHEMA_VERSION,
       memberSetDigest: subject.memberSetDigest,
       callerBundleDigest,
@@ -920,7 +921,7 @@ export function adjudicateResidualDataGovernance(
     && receipt.byteCount === fullLedger.byteCount
     && receipt.memberDenominator === records.length
     && receipt.subjectCommit === subject.currentSubject.subjectCommit
-    && receipt.toolCommit === input.tool.toolCommit
+    && receipt.toolContentDigest === input.tool.entryBundleDigest
     && receipt.callerBundleDigest === callerBundleDigest
     && receipt.memberSetDigest === subject.memberSetDigest
     && receipt.projectionsReconciled === true;
@@ -1312,21 +1313,56 @@ export function projectResidualDocuments(result: ResidualAdjudication): Record<s
 }
 
 
-/** Loads the upstream #1916 payload-eligibility compact index from its committed location. */
-export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEvidence {
-  const raw = readFileSync(join(repoRoot, UPSTREAM_PAYLOAD_CHANGE.compactIndexLocator), 'utf8');
-  const index = JSON.parse(raw) as {
+/**
+ * Re-derives the upstream package's qualification status from its own
+ * cross-linked bytes: per-slice count conservation, denominator agreement with
+ * the inventory verification receipt, the summary document's status/reason
+ * lines, and the unresolved register's row counts. A status edited in one
+ * place without the rest fails closed here.
+ */
+export function deriveUpstreamQualificationEvidence(params: {
+  readonly index: {
+    status?: string;
     packageDigest?: string;
     schemaVersion?: string;
     subjectIdentity?: string;
-    status?: string;
-    slices?: { unresolved?: number }[];
+    slices?: Array<{ discovered?: number; qualified?: number; unresolved?: number; 'justified-excluded'?: number }>;
+    inventoryVerification?: { memberDenominator?: number; subjectIdentity?: string; projectionsReconciled?: boolean };
+    tool?: { entryBundleDigest?: string };
   };
+  readonly summaryText: string;
+  readonly unresolvedRegisterText: string;
+}): UpstreamPayloadEvidence | { error: string } {
+  const { index, summaryText, unresolvedRegisterText } = params;
   if (!index.packageDigest || index.schemaVersion !== 'act-repository-payload-classification/v2' || !index.subjectIdentity
     || !index.status) {
-    throw new Error('upstream-payload-identity-unreadable');
+    return { error: 'upstream-payload-identity-unreadable' };
   }
-  const unresolvedMembers = (index.slices ?? []).reduce((sum, slice) => sum + (slice.unresolved ?? 0), 0);
+  const slices = index.slices ?? [];
+  const unresolvedMembers = slices.reduce((sum, slice) => sum + (slice.unresolved ?? 0), 0);
+  for (const slice of slices) {
+    const parts = (slice.discovered ?? 0) - (slice.qualified ?? 0) - (slice.unresolved ?? 0) - (slice['justified-excluded'] ?? 0);
+    if (parts !== 0) return { error: 'upstream-slice-conservation-broken' };
+  }
+  const denominator = slices.reduce((sum, slice) => sum + (slice.discovered ?? 0), 0);
+  const inventory = index.inventoryVerification;
+  if (!inventory || inventory.memberDenominator !== denominator
+    || inventory.subjectIdentity !== index.subjectIdentity
+    || inventory.projectionsReconciled !== true) {
+    return { error: 'upstream-inventory-receipt-inconsistent' };
+  }
+  const summaryStatus = /^- status: `?([a-z-]+)`?$/mu.exec(summaryText)?.[1];
+  if (summaryStatus !== index.status) return { error: 'upstream-status-disagrees-with-summary' };
+  const reasonCount = /^- reason: `?unresolved-members:(\d+):/mu.exec(summaryText)?.[1];
+  if (reasonCount !== undefined && Number(reasonCount) !== unresolvedMembers) {
+    return { error: 'upstream-reason-count-mismatch' };
+  }
+  const registerTotal = [...unresolvedRegisterText.matchAll(/^\| [^|]+ \| (\d+) \|/gmu)]
+    .reduce((sum, match) => sum + Number(match[1]), 0);
+  if (registerTotal !== unresolvedMembers) return { error: 'upstream-unresolved-register-mismatch' };
+  if (index.status === 'qualified' && unresolvedMembers > 0) {
+    return { error: 'upstream-status-count-inconsistent' };
+  }
   return {
     issue: UPSTREAM_PAYLOAD_CHANGE.issue,
     closed: true,
@@ -1337,6 +1373,19 @@ export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEv
     status: index.status,
     unresolvedMembers,
   };
+}
+
+/** Loads the upstream #1916 payload-eligibility compact index from its committed location. */
+export function loadUpstreamPayloadEvidence(repoRoot: string): UpstreamPayloadEvidence {
+  const indexDir = join(repoRoot, 'docs/architecture/repository-payload-classification/current');
+  const index = JSON.parse(readFileSync(join(indexDir, 'index.json'), 'utf8'));
+  const derived = deriveUpstreamQualificationEvidence({
+    index,
+    summaryText: readFileSync(join(indexDir, 'summary.md'), 'utf8'),
+    unresolvedRegisterText: readFileSync(join(indexDir, 'unresolved.md'), 'utf8'),
+  });
+  if ('error' in derived) throw new Error(derived.error);
+  return derived;
 }
 
 /** Loads the immutable #1883 predecessor comparison identity from its archived compact index. */
@@ -1397,7 +1446,7 @@ export function verifyResidualLedgerArtifact(params: {
     identity?: {
       subjectCommit?: string;
       subjectTree?: string;
-      toolCommit?: string;
+      toolContentDigest?: string;
       schemaVersion?: string;
       memberSetDigest?: string;
       callerBundleDigest?: string;
@@ -1408,7 +1457,8 @@ export function verifyResidualLedgerArtifact(params: {
   const memberDenominator = Array.isArray(parsed.records) ? parsed.records.length : -1;
   if (memberDenominator !== params.expectedMemberDenominator) return { error: 'ledger-member-mismatch' };
   const identity = parsed.identity;
-  if (!identity?.subjectCommit || !identity.subjectTree || !identity.toolCommit
+  if (!identity?.subjectCommit || !identity.subjectTree || !identity.toolContentDigest
+    || !/^[0-9a-f]{64}$/iu.test(identity.toolContentDigest)
     || !identity.schemaVersion || !identity.memberSetDigest || !identity.callerBundleDigest) {
     return { error: 'ledger-identity-missing' };
   }
@@ -1421,7 +1471,7 @@ export function verifyResidualLedgerArtifact(params: {
     memberDenominator,
     subjectCommit: identity.subjectCommit,
     subjectTree: identity.subjectTree,
-    toolCommit: identity.toolCommit,
+    toolContentDigest: identity.toolContentDigest,
     schemaVersion: identity.schemaVersion,
     memberSetDigest: identity.memberSetDigest,
     callerBundleDigest: identity.callerBundleDigest,
