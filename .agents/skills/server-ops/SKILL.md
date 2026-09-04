@@ -61,6 +61,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - OSS 不可变运行时发布与 ossfs 兼容挂载: `references/oss-runtime-releases.md`
 - 数据库导出/下载/本地恢复: `references/database-sync.md`
 - 测试账号核对与修复: `references/test-accounts.md`
+- 部署期磁盘清理辅助脚本（孤儿 overlay 层扫描 / `layers.json` 元数据联动修复）: `scripts/overlay-orphan-scan.py`、`scripts/fix-stale-layer-records.py`，用法见 `references/remote-investigation.md` 的“部署期磁盘耗尽”一节
 
 ## Operating Rules
 

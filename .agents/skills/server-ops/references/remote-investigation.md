@@ -61,6 +61,25 @@ rtk npx tsx scripts/knowledge-cutover/capture-active-runtime-observation.ts
 
 该脚本只在 `act-obe-app` 容器内读取已挂载的 v2/v1 manifest 与 active receipt，验证 receipt 与首选 manifest 身份一致，再将全量清单写入不可变的本地候选证据文件，并只输出 release、receipt、generation 与文件数摘要。复跑同一生产身份会校验既有捕获；身份漂移会拒绝覆盖。
 
+## 部署期磁盘耗尽（podman 装载失败）
+
+症状：`remote-deploy.sh` 在远端 Step 2/7 装载镜像阶段失败，报错为 `no space left on device`（写入 `/var/tmp/container_images_*` 或 overlay 层内文件），或 SSH 在装载中途被远端断开（磁盘写满时 sshd 连带受影响）。
+
+关键事实（2026-09-04 v0.7.2 部署实证）：
+
+- 远端 `scripts/2-load-images.sh` 会装载 `images/` 目录下**全部** `.tar`，不只是本次目标镜像。已删除的旧镜像若有 tar 残留会被重新载回，白吃磁盘。部署前保持该目录只含目标 tar；旧版本 tar 本地均有副本，需要时可重传。
+- `podman load` 峰值空间约为镜像的 2 倍：OCI 暂存先落 `/var/tmp`（约等于压缩 tar 体积），再解压写入 `/var/lib/containers/storage/overlay`。中断的装载会在 `/var/tmp` 留下数 GB 暂存残余（`container_images_oci*` / `container_images_storage*`），可直接删除。
+- 不同构建机/时间产出的镜像层几乎不共享（v0.7.1→v0.7.2 有 44/51 层哈希不同），不要用"只差一个应用层"估计空间需求；精确方法是在本地对比两个 tar 的 `manifest.json` 层列表。
+
+排查顺序：
+
+1. `df -h /`；`du -sh /var/tmp/*`、`du -sh /var/lib/containers/storage/*`。
+2. `podman system df` 的 Images SIZE 与 `overlay/` 实际体积可能相差很大（共享层记账），差异部分主要是中断装载留下的孤儿层。
+3. 孤儿层清理必须用 `scripts/overlay-orphan-scan.py`（stdin 传远端 `python3 -`，远端为 Python 3.6）：先 dry-run 确认 `live_layers + orphans == overlay_dirs` 且无 `live layers missing` 告警，再 `--delete`。**不能只删目录**：中断装载在 `overlay-layers/layers.json` 里登记的层记录若失去目录，后续 `podman load` 会复用幽灵层报 `Stat .../diff: no such file or directory`；删过目录后必须用 `scripts/fix-stale-layer-records.py --write` 同步剔除元数据（自动备份 `.bak-orphan-fix` 并做父层完整性校验）。
+4. 2026-09-04 起服务器云盘已从 49G 扩容到 99G，正常发布不再需要上述极限清理；但该流程仍是磁盘告警时的标准处置。
+
+Wolfram 维护窗口部署：`SKIP_WOLFRAM_READY_CHECK=1` 放在远端 `.env.server`，生效于三处——`docker-entrypoint.sh` 启动迁移前探针、`deploy/podman/deploy.sh` 的 smoke 预检、`scripts/remote-deploy.sh` 部署验证段。Wolfram 恢复后从 `.env.server` 删除该行即恢复完整门禁，无需改代码。
+
 ## 开发者网关（runtime-dev.adapt-learn.online）读取超时
 
 症状：合作者 `npm run startup:oss-runtime` 报“读取超时”；nginx `developer-gateway.access.log` 大量 heartbeat `499`；网关 journal 出现 `_send(204)` 的 `BrokenPipeError`（BrokenPipe 只是客户端已断开的结果，不是根因）。
