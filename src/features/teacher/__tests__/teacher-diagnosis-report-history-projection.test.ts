@@ -565,12 +565,28 @@ describe('sparse risk-flag conflict projection (Issue #1755)', () => {
         ...completeCoverageReport.reportBody,
         summary: '班级诊断完成，node-06 弱势学生作业与测评方向相反。',
         limitations: ['同一批学生（node-06 的 26 名弱势学生，同一时间窗）作业高分、测评低分，存在来源间冲突。'],
+        conflictEvidenceVerified: true,
       },
     });
 
     expect(projection.availability).toMatchObject({ label: '证据存在冲突' });
     expect(projection.availability.recoveryAction).toContain('教师复核');
     expect(JSON.stringify(projection.confidenceReasons)).not.toContain('补充可核验证据');
+  });
+
+  it('marks unverifiable historical conflict wording as needing regeneration (Issue #1946)', () => {
+    const projection = projectReportHistoryCard({
+      ...completeCoverageReport,
+      reportBody: {
+        ...completeCoverageReport.reportBody,
+        summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+        limitations: ['作业与测评成绩存在不一致。'],
+      },
+    });
+
+    expect(projection.availability).toMatchObject({ label: '报告需重新生成' });
+    expect(projection.availability.description).toContain('无法验证');
+    expect(projection.availability.label).not.toBe('证据存在冲突');
   });
 
   it('presents complete-coverage boundary-only reports as needing review instead of partial availability (Issue #1904)', () => {

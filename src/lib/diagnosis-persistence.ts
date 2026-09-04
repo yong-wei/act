@@ -64,6 +64,7 @@ export const diagnosisReportBodySchema = z.object({
   sourceCoverage: diagnosisSourceCoverageSchema,
   confidence: z.enum(['high', 'medium', 'low', 'unavailable']),
   limitations: z.array(z.string().trim().min(1).max(500)).default([]),
+  conflictEvidenceVerified: z.boolean().optional(),
 }).strict();
 
 /**
