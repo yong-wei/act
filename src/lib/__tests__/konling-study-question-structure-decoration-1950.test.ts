@@ -92,6 +92,20 @@ describe('装饰前缀标题的口径行为（#1950）', () => {
     expect(evaluateStudyQuestionStructure({ answer, intent: 'formula-derivation' }).passed).toBe(true);
   });
 
+  it('肤色修饰与旗帜 emoji 序列前缀命中', () => {
+    const emojiOnly = [
+      '## 👩🏽‍💻 前提与符号',
+      'G(s) 为前向通道。',
+      '## 🇨🇳 关键变形',
+      '闭环为 G/(1+GH)。',
+      '## ✅ 适用条件',
+      '单位负反馈。',
+      '## 🔍 结果校验',
+      '分母次数不低于分子。',
+    ].join('\n');
+    expect(evaluateStudyQuestionStructure({ answer: emojiOnly, intent: 'formula-derivation' }).passed).toBe(true);
+  });
+
   it('无装饰标题在 v1 与 v2 下输出恒等（剥离幂等）', () => {
     const answer = canonicalAnswer('formula-derivation');
     const v1 = evaluateStudyQuestionStructure({ answer, intent: 'formula-derivation', caliber: 'structure-alias.v1' });

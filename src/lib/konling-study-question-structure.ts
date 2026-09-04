@@ -96,13 +96,14 @@ function normalizeHeading(value: string): string {
 }
 
 /**
- * v2 装饰前缀剥离（#1950）：确定性枚举的前导装饰 token——emoji 块（含
- * VS16/ZWJ/keycap 组合）、编号 token、装饰标点块与空白。只作用于标题
- * 前缀，不改变「=== canonical/alias 或前缀匹配」的匹配语义；无装饰
- * 标题剥离为幂等。
+ * v2 装饰前缀剥离（#1950）：确定性枚举的前导装饰 token——完整 emoji
+ * 序列块（Extended_Pictographic 加肤色修饰符、旗帜 Regional_Indicator、
+ * tag 序列、VS16/ZWJ/keycap 后缀）、编号 token、装饰标点块与空白。只
+ * 作用于标题前缀，不改变「=== canonical/alias 或前缀匹配」的匹配语义；
+ * 无装饰标题剥离为幂等。
  */
 const DECORATIVE_HEADING_PREFIX
-  = /^(?:[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]+|\d{1,3}(?:[.、)．:：]|\u{FE0F}\u{20E3})|[一二三四五六七八九十]{1,3}[.、)．:：]|[(（]\d{1,3}[)）]|[(（][一二三四五六七八九十]{1,3}[)）]|[*#>|·~—–-]+)\s*/u;
+  = /^(?:[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{E0020}-\u{E007F}\u{FE0F}\u{200D}\u{20E3}]+|\d{1,3}(?:[.、)．:：]|\u{FE0F}\u{20E3})|[一二三四五六七八九十]{1,3}[.、)．:：]|[(（]\d{1,3}[)）]|[(（][一二三四五六七八九十]{1,3}[)）]|[*#>|·~—–-]+)\s*/u;
 
 function stripDecorativeHeadingPrefix(heading: string): string {
   let rest = heading;
