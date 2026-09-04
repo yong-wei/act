@@ -577,6 +577,38 @@ export {
   type MMG3DOFState,
 };
 
+export interface EnvironmentLoadInput {
+  currentSpeed: number;
+  currentDirection: number;
+  windSpeed: number;
+  windDirection: number;
+  shipLength: number;
+  shipDraft: number;
+}
+
+export interface EnvironmentLoad {
+  forceX: number;
+  forceY: number;
+  momentN: number;
+}
+
+/** #1944：风/流定常环境载荷统一契约——Rust 单一实现，组件与回归复用。 */
+export function computeEnvironmentLoad(
+  input: EnvironmentLoadInput,
+): EnvironmentLoad {
+  return computeVirtualSimulationStep<EnvironmentLoad>({
+    modelId: 'practice_environment_load',
+    ...input,
+  });
+}
+
+/** mmg3dof 可选直接执行器输入（#1944 方案 A）：kN/kN·m 契约，与 rpm 推进路径互斥。 */
+export interface MmgThrusterCommand {
+  surgeKN: number;
+  swayKN: number;
+  yawMomentKNm: number;
+}
+
 export function mmg3dofStep(
   state: MMG3DOFState,
   rudderCommand: number,
@@ -586,6 +618,8 @@ export function mmg3dofStep(
   shipLength = 127.5,
   shipDraft = 6.2,
   disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 },
+  thruster?: MmgThrusterCommand,
+  disturbanceInWorld = false,
 ): MMG3DOFState {
   return computeVirtualSimulationStep<MMG3DOFState>({
     modelId: 'mmg3dof',
@@ -597,6 +631,14 @@ export function mmg3dofStep(
     shipLength,
     shipDraft,
     disturbance,
+    disturbanceInWorld,
+    ...(thruster
+      ? {
+          surgeThrustKN: thruster.surgeKN,
+          swayThrustKN: thruster.swayKN,
+          yawMomentKNm: thruster.yawMomentKNm,
+        }
+      : {}),
   });
 }
 

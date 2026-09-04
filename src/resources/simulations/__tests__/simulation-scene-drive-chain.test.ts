@@ -32,6 +32,14 @@ const R6_DRIVE_CHAIN_ALLOWLIST = new Set([
 const THRUST_UNIT_FIX_ALLOWLIST = new Set([
   'src/resources/simulations/physics/engine-factory.ts',
   'rust/control-engine/src/virtual_simulation_runtime.rs',
+  'src/resources/control-system/wasm/control_engine/index_bg.wasm',
+]);
+// 显式授权的驱动链改动：#1944 挖泥船 DP 执行链路接通，遗留 MMG3DOFEngine
+// 的 DP 分支与活动 facade 路径同步修复（无新 TS stepper）。
+const AUTHORIZED_DRIVE_CHAIN_FILES = new Set([
+  'src/resources/simulations/physics/engine-factory.ts',
+  'rust/control-engine/src/virtual_simulation_runtime.rs',
+  'rust/control-engine/src/practice_live.rs',
   'rust/control-engine/tests/virtual_simulation_runtime.rs',
   'src/resources/control-system/wasm/control_engine/index_bg.wasm',
 ]);
@@ -57,12 +65,13 @@ function diffNameOnly(): string[] {
 describe('visual pipeline preserves the simulation drive chain', () => {
   it('leaves drive-chain files out of the change diff except R6 numeric retirement', () => {
     const changed = diffNameOnly();
+    const driveChainAllow = new Set([
+      ...R6_DRIVE_CHAIN_ALLOWLIST,
+      ...THRUST_UNIT_FIX_ALLOWLIST,
+      ...AUTHORIZED_DRIVE_CHAIN_FILES,
+    ]);
     for (const prefix of DRIVE_CHAIN_PREFIXES) {
-      const violations = changed.filter(
-        (file) => file.startsWith(prefix)
-          && !R6_DRIVE_CHAIN_ALLOWLIST.has(file)
-          && !THRUST_UNIT_FIX_ALLOWLIST.has(file),
-      );
+      const violations = changed.filter((file) => file.startsWith(prefix) && !driveChainAllow.has(file));
       expect(violations, `drive chain touched: ${violations.join(', ')}`).toEqual([]);
     }
     for (const relative of RETIRED_TS_STEPPER_MODULES) {

@@ -79,6 +79,8 @@ import { dredgerTianjingProfile, getDredgerDefaultConfig } from '../profiles/dre
 import {
   createMMG3DOFState,
   mmg3dofStep,
+  type MmgThrusterCommand,
+  computeEnvironmentLoad,
   mmgToSimulationState,
   dpControl,
   dpControlWithFeedforward,
@@ -93,7 +95,7 @@ import {
   type DPCurrentState,
   type DPErrorMetrics,
 } from '../physics/simulation-engine-facade';
-import type { ControlMode, EthicalViolation, Vector2, DisturbanceVector } from '../core/types';
+import type { ControlMode, Vector2, DisturbanceVector } from '../core/types';
 import { toRadians, toDegrees, clamp, TIANJING_DREDGER_PARAMS } from '../core/constants';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
@@ -122,7 +124,19 @@ interface SimulationMetrics {
   speed: number;
   rudderAngle: number;
   time: number;
+  totalPowerKW: number;
 }
+
+/**
+ * 定位精度告警（#1944）：与伦理红线解耦的独立告警通道——误差持续超限才触发，
+ * 恢复到清理阈值后自动解除（滞回），HUD 不再显示「伦理违规」。
+ */
+const POSITION_ALARM_THRESHOLD_M = 0.1;
+const POSITION_ALARM_CLEAR_M = 0.05;
+const POSITION_ALARM_HOLD_SECONDS = 10;
+/** DP 三通道功率份额（kW，对齐钻井平台 P=maxPower×(F/Fmax)^1.5 口径）。 */
+const DP_CHANNEL_MAX_POWER_KW = { surge: 8000, sway: 6000, yaw: 6000 } as const;
+
 
 // ============ 着色器材质 ============
 
@@ -325,11 +339,11 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
 /** HUD 显示 */
 function HUD({
   metrics,
-  violations,
+  positionAlarm,
   isRunning,
 }: {
   metrics: SimulationMetrics;
-  violations: EthicalViolation[];
+  positionAlarm: string | null;
   isRunning: boolean;
 }) {
   return (
@@ -373,24 +387,28 @@ function HUD({
             <span>舵角:</span>
             <span>{metrics.rudderAngle.toFixed(1)}°</span>
           </div>
+          <div className="flex justify-between">
+            <span>总功率:</span>
+            <span className={metrics.totalPowerKW > 14000 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
+              {(metrics.totalPowerKW / 1000).toFixed(1)} MW
+            </span>
+          </div>
         </CardContent>
       </Card>
 
-      {/* 违规警告 */}
-      {violations.length > 0 && (
-        <Card className={`w-64 border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] ${simulationUi.panel}`}>
+      {/* 定位精度告警（与伦理红线解耦，#1944） */}
+      {positionAlarm && (
+        <Card className={`w-64 border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.12)] ${simulationUi.panel}`}>
           <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-danger))]">
+            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-evidence))]">
               <AlertTriangle className="h-4 w-4" />
-              伦理违规
+              定位精度告警
             </CardTitle>
           </CardHeader>
           <CardContent className="py-2">
-            {violations.slice(-3).map((v, i) => (
-              <div key={i} className="text-xs text-[hsl(var(--platform-brand-danger))]">
-                {v.description}
-              </div>
-            ))}
+            <div className="text-xs text-[hsl(var(--platform-brand-evidence))]">
+              {positionAlarm}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -696,12 +714,14 @@ export function DredgerSimulation() {
     speed: 0,
     rudderAngle: 0,
     time: 0,
+    totalPowerKW: 0,
   });
   const [trajectory, setTrajectory] = useState<Vector2[]>([]);
-  const [violations, setViolations] = useState<EthicalViolation[]>([]);
+  const [positionAlarm, setPositionAlarm] = useState<string | null>(null);
+  const positionAlarmRef = useRef({ since: null as number | null, active: false });
 
   // 引用
-  const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 2));
+  const mmgStateRef = useRef<MMG3DOFState>(createMMG3DOFState(0, 0, 0, 0));
   const dpStateRef = useRef<DPState>(createDPState());
   const dredgingModelRef = useRef<DredgingImpactModel>(new DredgingImpactModel());
   const timeRef = useRef(0);
@@ -745,11 +765,23 @@ export function DredgerSimulation() {
     const stepSimulation = (dt: number) => {
       timeRef.current += dt;
 
-      // 计算扰动
-      let disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 };
-      if (config.dredgingEnabled) {
-        disturbance = dredgingModelRef.current.compute(timeRef.current);
-      }
+      // 扰动 = 挖掘冲击 + 风流定常环境载荷（Rust 统一契约 #1944，含方向分解）
+      const dredging = config.dredgingEnabled
+        ? dredgingModelRef.current.compute(timeRef.current)
+        : { forceX: 0, forceY: 0, momentN: 0 };
+      const environmentLoad = computeEnvironmentLoad({
+        currentSpeed: config.currentSpeed,
+        currentDirection: config.currentDirection,
+        windSpeed: config.windSpeed,
+        windDirection: config.windDirection,
+        shipLength: profile.dimensions.length,
+        shipDraft: profile.dimensions.draft,
+      });
+      const disturbance: DisturbanceVector = {
+        forceX: dredging.forceX + environmentLoad.forceX,
+        forceY: dredging.forceY + environmentLoad.forceY,
+        momentN: dredging.momentN + environmentLoad.momentN,
+      };
 
       // 控制计算
       const target: DPTarget = {
@@ -774,6 +806,8 @@ export function DredgerSimulation() {
         surgeError: 0,
         swayError: 0,
       };
+      let thruster: MmgThrusterCommand | undefined;
+      let totalPowerKW = 0;
 
       if (config.controlMode === 'dp') {
         const dpResult = dpControlWithFeedforward(
@@ -787,34 +821,63 @@ export function DredgerSimulation() {
         dpStateRef.current = dpResult.newState;
         rudderCommand = dpResult.output.rudderCommand;
         dpMetrics = dpResult.metrics;
+        // 四通道执行（#1944）：DP 推力经 mmg3dof 可选入口直接驱动被控对象
+        //（含倒车/反向推力），rpm 路径置零避免螺旋桨推力重复计入。
+        thruster = {
+          surgeKN: dpResult.output.surgeThrust / 1000,
+          swayKN: dpResult.output.swayThrust / 1000,
+          yawMomentKNm: dpResult.output.yawMoment / 1000,
+        };
+        totalPowerKW =
+          DP_CHANNEL_MAX_POWER_KW.surge
+            * (Math.abs(dpResult.output.surgeThrust) / 2_000_000) ** 1.5
+          + DP_CHANNEL_MAX_POWER_KW.sway
+            * (Math.abs(dpResult.output.swayThrust) / 1_500_000) ** 1.5
+          + DP_CHANNEL_MAX_POWER_KW.yaw
+            * (Math.abs(dpResult.output.yawMoment) / 5e8) ** 1.5;
 
-        // 检测定位精度违规
-        if (dpResult.metrics.positionError > 0.1) {
-          setViolations((prev) => [
-            ...prev.slice(-9),
-            {
-              type: 'SAFETY_VIOLATION',
-              thresholdValue: 0.1,
-              actualValue: dpResult.metrics.positionError,
-              timestamp: timeRef.current,
-              description: `定位误差: ${dpResult.metrics.positionError.toFixed(3)}m`,
-              severity: 'warning',
-            },
-          ]);
+        // 定位精度告警滞回：持续超限 10s 触发一次，恢复到 0.05m 内解除
+        const alarm = positionAlarmRef.current;
+        if (dpMetrics.positionError > POSITION_ALARM_THRESHOLD_M) {
+          alarm.since ??= timeRef.current;
+          if (!alarm.active && timeRef.current - alarm.since >= POSITION_ALARM_HOLD_SECONDS) {
+            alarm.active = true;
+            setPositionAlarm(
+              `定位误差持续超过 ${POSITION_ALARM_THRESHOLD_M} m 阈值达 ${POSITION_ALARM_HOLD_SECONDS} 秒，请检查扰动设置与控制模式`
+            );
+          }
+        } else if (!alarm.active || dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
+          // 未激活时回到阈值内即重置连续计时（防止两段短超限拼接提前触发，
+          // review #1944）；已激活时保留 0.05m 清除滞回。
+          alarm.since = null;
+          if (alarm.active && dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
+            alarm.active = false;
+            setPositionAlarm(null);
+          }
+        }
+      } else {
+        // 切离 DP 模式（review #1944）：告警仅对 DP 定位语义有效，离开即复位
+        const alarm = positionAlarmRef.current;
+        if (alarm.since !== null || alarm.active) {
+          positionAlarmRef.current = { since: null, active: false };
+          setPositionAlarm(null);
         }
       }
 
-      // MMG 步进
+      // MMG 步进（DP 模式走四通道推力入口；非 DP 模式无推力自由漂浮）
       const mmgParams = profile.dynamics.mmg!;
       mmgStateRef.current = mmg3dofStep(
         mmgStateRef.current,
         rudderCommand,
-        80,
+        0,
         dt,
         mmgParams,
         profile.dimensions.length,
         profile.dimensions.draft,
-        disturbance
+        disturbance,
+        thruster,
+        // 扰动按世界系表达传入（挖掘+风流），由 Rust 契约旋入船体系（review #1944）
+        true
       );
 
       // 更新指标
@@ -830,6 +893,7 @@ export function DredgerSimulation() {
         speed,
         rudderAngle: toDegrees(mmgStateRef.current.rudderAngle),
         time: timeRef.current,
+        totalPowerKW,
       });
 
       // 记录轨迹
@@ -871,14 +935,16 @@ export function DredgerSimulation() {
   const handlePause = () => setIsRunning(false);
   const handleReset = () => {
     setIsRunning(false);
-    mmgStateRef.current = createMMG3DOFState(0, 0, 0, 2);
+    // DP 定位从静止开始（#1944）：不再带 2 m/s 前进初速
+    mmgStateRef.current = createMMG3DOFState(0, 0, 0, 0);
     dpStateRef.current = createDPState();
     dredgingModelRef.current.reset();
     timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
     setTrajectory([]);
-    setViolations([]);
+    positionAlarmRef.current = { since: null, active: false };
+    setPositionAlarm(null);
     setMetrics({
       positionError: 0,
       headingError: 0,
@@ -887,6 +953,7 @@ export function DredgerSimulation() {
       speed: 0,
       rudderAngle: 0,
       time: 0,
+      totalPowerKW: 0,
     });
     setResetCount((previous) => previous + 1);
   };
@@ -895,6 +962,11 @@ export function DredgerSimulation() {
     setConfig((prev) => ({ ...prev, ...updates }));
     if ('dredgingEnabled' in updates) {
       dredgingModelRef.current.setEnabled(updates.dredgingEnabled ?? true);
+    }
+    // 告警只对 DP 定位语义有效：模式切换即时复位（含暂停状态，review #1944）
+    if (updates.controlMode && updates.controlMode !== 'dp') {
+      positionAlarmRef.current = { since: null, active: false };
+      setPositionAlarm(null);
     }
   };
 
@@ -1006,7 +1078,7 @@ export function DredgerSimulation() {
           {
             id: 'status',
             label: '总览',
-            content: <HUD metrics={metrics} violations={violations} isRunning={isRunning} />,
+            content: <HUD metrics={metrics} positionAlarm={positionAlarm} isRunning={isRunning} />,
           },
         ]}
       />

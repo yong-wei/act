@@ -557,6 +557,292 @@ fn nomoto_quick_simulation_limits_actual_rudder_rate_when_requested() {
     assert!(result["metrics"]["maxRudderRate"].as_f64().unwrap() <= 5.0 + 1e-9);
 }
 
+/// #1944：挖泥船 DP 闭环回归。默认参数 + 默认挖掘扰动（含横向分量与艏摇力矩）
+/// 下，天鲸号从零初速原点保持定位：四通道 DP 输出经 mmg3dof 可选推力入口驱动，
+/// 60 s 内位置误差必须收敛到 tolerance 量级且全程有界。
+#[test]
+fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
+    let dt = 0.1;
+    let mut mmg = json!({
+        "x": 0.0, "y": 0.0, "psi": 0.0, "u": 0.0, "v": 0.0, "r": 0.0, "rudderAngle": 0.0
+    });
+    let mut dp_state = json!({
+        "surge": { "integral": 0.0, "prevError": 0.0 },
+        "sway": { "integral": 0.0, "prevError": 0.0 },
+        "yaw": { "integral": 0.0, "prevError": 0.0 }
+    });
+    let mut dredge_state = json!({
+        "lastImpactTime": 0.0, "nextInterval": 5.0, "isImpactActive": false
+    });
+    let mmg_params = json!({
+        "massInertia": { "m": 17_000_000.0, "Iz": 2.5e9, "mx": 0.05, "my": 0.90, "Jz": 0.15 },
+        "hydro": {
+            "Xuu": -0.025, "Xvv": -0.045, "Xrr": 0.002, "Xvr": 0.003,
+            "Yv": -0.350, "Yr": 0.095, "Yvvv": -1.800, "Yrrr": 0.010,
+            "Yvvr": 0.420, "Yvrr": -0.430,
+            "Nv": -0.150, "Nr": -0.055, "Nvvv": -0.035, "Nrrr": -0.015,
+            "Nvvr": -0.320, "Nvrr": 0.060
+        },
+        "rudder": { "maxAngle": 0.6108652382, "maxRate": 0.0436332313, "tR": 0.45, "aH": 0.35, "xR": -63.75 },
+        "propeller": { "Dp": 4.5, "wp": 0.28, "tp": 0.18 }
+    });
+    let gains = json!({
+        "surge": { "kp": 100_000.0, "ki": 5_000.0, "kd": 50_000.0 },
+        "sway": { "kp": 150_000.0, "ki": 8_000.0, "kd": 70_000.0 },
+        "yaw": { "kp": 1e9, "ki": 3e7, "kd": 4e8 }
+    });
+    let limits = json!({
+        "maxSurgeThrust": 2_000_000.0, "maxSwayThrust": 1_500_000.0,
+        "maxYawMoment": 5e8, "maxRudderAngle": 35.0,
+        "integralLimit": { "surge": 50.0, "sway": 50.0, "yaw": 1.0 }
+    });
+    // 固定 rng 样本：0.7（mixed 冲击）、方向与间隔参数，超出样本数后 rng_at 回落 0.5。
+    let rng_samples: Vec<f64> = (0..24).map(|i| 0.7 - (i % 7) as f64 * 0.03).collect();
+
+    let step = |request: Value| -> Value {
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap()
+    };
+
+    // 默认环境风流（与页面默认配置一致）走同一 Rust 环境载荷契约（review #1944）。
+    let environment = step(json!({
+        "modelId": "practice_environment_load",
+        "currentSpeed": 0.5, "currentDirection": 45.0,
+        "windSpeed": 8.0, "windDirection": 45.0,
+        "shipLength": 127.5, "shipDraft": 6.2
+    }));
+    // 默认开局语义：0° 目标航向（与页面默认一致），含挖掘冲击。
+    let target_psi = 0.0_f64;
+    let mut max_error = 0.0_f64;
+    let mut final_error = 0.0_f64;
+    let mut recent_errors: Vec<f64> = Vec::new();
+    let steps = (60.0 / dt) as usize;
+    for index in 0..steps {
+        let time = index as f64 * dt;
+        let dredge = step(json!({
+            "modelId": "practice_dredging_disturbance",
+            "time": time,
+            "config": { "maxForce": 500_000.0, "minInterval": 5.0, "maxInterval": 15.0 },
+            "state": dredge_state,
+            "rngSamples": rng_samples
+        }));
+        dredge_state = dredge["newState"].clone();
+        let d = &dredge["disturbance"];
+        let disturbance = json!({
+            "forceX": d["forceX"].as_f64().unwrap() + environment["forceX"].as_f64().unwrap(),
+            "forceY": d["forceY"].as_f64().unwrap() + environment["forceY"].as_f64().unwrap(),
+            "momentN": d["momentN"].as_f64().unwrap() + environment["momentN"].as_f64().unwrap()
+        });
+
+        let dp = step(json!({
+            "modelId": "practice_dp_control",
+            "dt": dt,
+            "current": {
+                "x": mmg["x"], "y": mmg["y"], "psi": mmg["psi"],
+                "u": mmg["u"], "v": mmg["v"], "r": mmg["r"]
+            },
+            "target": { "x": 0.0, "y": 0.0, "psi": target_psi },
+            "dpState": dp_state,
+            "gains": gains,
+            "limits": limits,
+            "disturbance": disturbance,
+            "feedforward": true
+        }));
+        dp_state = dp["newState"].clone();
+        let output = &dp["output"];
+        assert!(output["surgeThrust"].as_f64().unwrap().is_finite());
+
+        mmg = step(json!({
+            "modelId": "mmg3dof",
+            "dt": dt,
+            "state": mmg,
+            "params": mmg_params,
+            "shipLength": 127.5,
+            "shipDraft": 6.2,
+            "disturbance": disturbance,
+            "disturbanceInWorld": true,
+            "rudderCommand": output["rudderCommand"],
+            "propellerRPM": 0.0,
+            "surgeThrustKN": output["surgeThrust"].as_f64().unwrap() / 1000.0,
+            "swayThrustKN": output["swayThrust"].as_f64().unwrap() / 1000.0,
+            "yawMomentKNm": output["yawMoment"].as_f64().unwrap() / 1000.0
+        }));
+        for field in ["x", "y", "psi", "u", "v", "r"] {
+            assert!(mmg[field].as_f64().unwrap().is_finite(), "{field} at {time}");
+        }
+        let position_error =
+            (mmg["x"].as_f64().unwrap().powi(2) + mmg["y"].as_f64().unwrap().powi(2)).sqrt();
+        assert!(position_error < 30.0, "unbounded drift at {time}s: {position_error}");
+        max_error = max_error.max(position_error);
+        final_error = position_error;
+        // 页面告警在 mmg3dof 步进前以 dpMetrics.positionError 判定（review #1944），
+        // 验收采样同口径取步前 DP 误差。
+        recent_errors.push(dp["metrics"]["positionError"].as_f64().unwrap());
+        if recent_errors.len() > 100 {
+            recent_errors.remove(0);
+        }
+    }
+    // 按页面告警语义验收（review #1944）：①末段不存在连续 100 步（10 s）全部
+    // >0.1 m 的游程——持续告警态无法通过；②末段有样本回到清除阈值 0.05 m 内
+    // ——已触发的告警在末段必然被清除；③窗口整体处于容差量级（mean ≤ 0.5 m）。
+    let recent_min = recent_errors.iter().cloned().fold(f64::INFINITY, f64::min);
+    let recent_mean = recent_errors.iter().sum::<f64>() / recent_errors.len().max(1) as f64;
+    assert!(
+        recent_min < 0.05,
+        "60s 末段未回到告警清除阈值内（告警未清除）: min={recent_min}"
+    );
+    let mut streak = 0_usize;
+    let mut max_streak = 0_usize;
+    for error in &recent_errors {
+        if *error > 0.1 {
+            streak += 1;
+            max_streak = max_streak.max(streak);
+        } else {
+            streak = 0;
+        }
+    }
+    assert!(
+        max_streak < 100,
+        "60s 末段存在连续 10s 超过告警阈值的游程（持续告警态）: max_streak={max_streak} mean={recent_mean}"
+    );
+    assert!(
+        recent_mean <= 0.5,
+        "60s 末段均值未收敛到容差量级: mean={recent_mean} final={final_error}"
+    );
+    let heading_error_deg = (((mmg["psi"].as_f64().unwrap() - target_psi).to_degrees() + 180.0)
+        % 360.0
+        + 360.0)
+        % 360.0
+        - 180.0;
+    assert!(
+        heading_error_deg.abs() <= 1.0,
+        "60s 后航向误差未收敛: {heading_error_deg}°"
+    );
+}
+
+/// #1944 review P1：世界系扰动契约验证——`disturbanceInWorld: true` 路径必须与
+/// 「测试内参考矩阵按当前 psi 预旋转到船体系 + body 语义」逐点等价。30° 目标
+/// 航向 + 45° 来风下转向过程持续改变 psi，任何旋转矩阵或坐标系混用都会立刻放大。
+#[test]
+fn dredger_dp_world_frame_load_matches_reference_body_rotation() {
+    let dt = 0.1;
+    let mmg_params = json!({
+        "massInertia": { "m": 17_000_000.0, "Iz": 2.5e9, "mx": 0.05, "my": 0.90, "Jz": 0.15 },
+        "hydro": {
+            "Xuu": -0.025, "Xvv": -0.045, "Xrr": 0.002, "Xvr": 0.003,
+            "Yv": -0.350, "Yr": 0.095, "Yvvv": -1.800, "Yrrr": 0.010,
+            "Yvvr": 0.420, "Yvrr": -0.430,
+            "Nv": -0.150, "Nr": -0.055, "Nvvv": -0.035, "Nrrr": -0.015,
+            "Nvvr": -0.320, "Nvrr": 0.060
+        },
+        "rudder": { "maxAngle": 0.6108652382, "maxRate": 0.0436332313, "tR": 0.45, "aH": 0.35, "xR": -63.75 },
+        "propeller": { "Dp": 4.5, "wp": 0.28, "tp": 0.18 }
+    });
+    let gains = json!({
+        "surge": { "kp": 100_000.0, "ki": 5_000.0, "kd": 50_000.0 },
+        "sway": { "kp": 150_000.0, "ki": 8_000.0, "kd": 70_000.0 },
+        "yaw": { "kp": 1e9, "ki": 3e7, "kd": 4e8 }
+    });
+    let limits = json!({
+        "maxSurgeThrust": 2_000_000.0, "maxSwayThrust": 1_500_000.0,
+        "maxYawMoment": 5e8, "maxRudderAngle": 35.0,
+        "integralLimit": { "surge": 50.0, "sway": 50.0, "yaw": 1.0 }
+    });
+    let step = |request: Value| -> Value {
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap()
+    };
+    let target_psi = (30.0_f64).to_radians();
+    let initial = json!({
+        "x": 0.0, "y": 0.0, "psi": 0.0, "u": 0.0, "v": 0.0, "r": 0.0, "rudderAngle": 0.0
+    });
+    let initial_dp = json!({
+        "surge": { "integral": 0.0, "prevError": 0.0 },
+        "sway": { "integral": 0.0, "prevError": 0.0 },
+        "yaw": { "integral": 0.0, "prevError": 0.0 }
+    });
+    let environment = step(json!({
+        "modelId": "practice_environment_load",
+        "currentSpeed": 0.5, "currentDirection": 45.0,
+        "windSpeed": 8.0, "windDirection": 45.0,
+        "shipLength": 127.5, "shipDraft": 6.2
+    }));
+    let mut world = (initial.clone(), initial_dp.clone());
+    let mut reference = (initial, initial_dp);
+    for index in 0..(60.0 / dt) as usize {
+        let time = index as f64 * dt;
+        for (model, in_world) in [(&mut world, true), (&mut reference, false)] {
+            let (state, dp_state) = model;
+            // 参考路径：按当前 psi 用测试内矩阵把世界系载荷旋入船体系后以 body 语义传入。
+            let psi = state["psi"].as_f64().unwrap();
+            let fx = environment["forceX"].as_f64().unwrap();
+            let fy = environment["forceY"].as_f64().unwrap();
+            let body_disturbance = if in_world {
+                environment.clone()
+            } else {
+                json!({
+                    "forceX": psi.cos() * fx + psi.sin() * fy,
+                    "forceY": -psi.sin() * fx + psi.cos() * fy,
+                    "momentN": environment["momentN"]
+                })
+            };
+            let dp = step(json!({
+                "modelId": "practice_dp_control",
+                "dt": dt,
+                "current": {
+                    "x": state["x"], "y": state["y"], "psi": state["psi"],
+                    "u": state["u"], "v": state["v"], "r": state["r"]
+                },
+                "target": { "x": 0.0, "y": 0.0, "psi": target_psi },
+                "dpState": dp_state,
+                "gains": gains,
+                "limits": limits,
+                "disturbance": environment,
+                "feedforward": true
+            }));
+            *dp_state = dp["newState"].clone();
+            let output = &dp["output"];
+            *state = step(json!({
+                "modelId": "mmg3dof",
+                "dt": dt,
+                "state": state,
+                "params": mmg_params,
+                "shipLength": 127.5,
+                "shipDraft": 6.2,
+                "disturbance": body_disturbance,
+                "disturbanceInWorld": in_world,
+                "rudderCommand": output["rudderCommand"],
+                "propellerRPM": 0.0,
+                "surgeThrustKN": output["surgeThrust"].as_f64().unwrap() / 1000.0,
+                "swayThrustKN": output["swayThrust"].as_f64().unwrap() / 1000.0,
+                "yawMomentKNm": output["yawMoment"].as_f64().unwrap() / 1000.0
+            }));
+        }
+        for field in ["x", "y", "psi", "u", "v", "r"] {
+            let delta =
+                (world.0[field].as_f64().unwrap() - reference.0[field].as_f64().unwrap()).abs();
+            assert!(
+                delta < 0.1,
+                "世界系旋转路径与参考 body 预旋转不一致 at {time}s {field}: {delta}"
+            );
+        }
+        let position_error = (world.0["x"].as_f64().unwrap().powi(2)
+            + world.0["y"].as_f64().unwrap().powi(2))
+        .sqrt();
+        assert!(position_error < 30.0, "unbounded drift at {time}s: {position_error}");
+    }
+    let heading_error_deg = (((world.0["psi"].as_f64().unwrap() - target_psi).to_degrees()
+        + 180.0)
+        % 360.0
+        + 360.0)
+        % 360.0
+        - 180.0;
+    assert!(
+        heading_error_deg.abs() <= 1.0,
+        "航向误差未收敛: {heading_error_deg}°"
+    );
+}
+
 #[test]
 fn semisub3dof_closed_loop_converges_under_default_dp() {
     // #1943 回归：semisub3dof 推力契约统一为 SI（N、N·m）后，默认 DP 参数
