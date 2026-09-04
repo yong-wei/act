@@ -704,6 +704,52 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('当前知识图谱身份发生漂移');
   });
 
+  it('renders a single-semantic login wall with callback CTA when the root shard returns 401', async () => {
+    window.history.replaceState({}, '', '/knowledge');
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return { ok: false, status: 401, json: async () => ({}) };
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    const wall = container.querySelector('[data-graph-login-wall="true"]');
+    expect(wall).not.toBeNull();
+    expect(container.textContent).toContain('请先登录后查看知识图谱');
+    expect(container.textContent).not.toContain('当前知识图谱不可用');
+    expect(container.textContent).not.toContain('未请求另一套图谱数据');
+    expect(container.textContent).not.toContain('重试当前图谱');
+    const cta = wall!.querySelector<HTMLAnchorElement>('a[href]');
+    expect(cta).not.toBeNull();
+    expect(cta!.getAttribute('href')).toBe('/login?callbackUrl=%2Fknowledge');
+    expect(cta!.textContent).toBe('前往登录');
+  });
+
+  it('keeps the retry error state without a login wall when the root shard fails with 503', async () => {
+    window.history.replaceState({}, '', '/knowledge');
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/api/knowledge/shards/active')) return { ok: false, status: 503, json: async () => ({}) };
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+
+    expect(container.querySelector('[data-graph-login-wall="true"]')).toBeNull();
+    expect(container.textContent).not.toContain('请先登录后查看知识图谱');
+    expect(container.textContent).not.toContain('前往登录');
+    expect(container.textContent).toContain('当前知识图谱暂时无法加载');
+    expect(container.textContent).toContain('当前知识图谱不可用');
+    expect(container.textContent).toContain('重试当前图谱');
+  });
+
   it('fails closed when a relation-family response reports identity drift without an envelope', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);

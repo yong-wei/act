@@ -116,7 +116,7 @@ interface ActiveAuthorityGraphProps {
 type WorkspaceLoadState =
   | { status: 'loading' }
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
-  | { status: 'error'; message: string };
+  | { status: 'error'; message: string; unauthenticated?: boolean };
 
 /** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
@@ -154,6 +154,10 @@ class AuthorityShardFetchError extends Error {
 
 function isIdentityFailure(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError && error.status === 409;
+}
+
+function isUnauthenticatedError(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError && error.status === 401;
 }
 
 function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
@@ -257,6 +261,7 @@ function useActiveAuthorityWorkspace(
         setState({
           status: 'error',
           message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.domainShard'),
+          unauthenticated: isUnauthenticatedError(error) || undefined,
         });
         return false;
       })
@@ -334,6 +339,7 @@ function useActiveAuthorityWorkspace(
         setState({
           status: 'error',
           message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.generic'),
+          unauthenticated: isUnauthenticatedError(error) || undefined,
         });
       });
     return () => {
@@ -1914,6 +1920,18 @@ export function ActiveAuthorityGraph({
       {state.status === 'loading' ? (
         <div className="flex flex-1 items-center justify-center" role="status">
           <div className="text-center text-sm text-platform-fg-secondary"><Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />{graphCopy(locale, 'loading.graph')}</div>
+        </div>
+      ) : state.status === 'error' && state.unauthenticated ? (
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="max-w-md rounded-xl border border-platform-border bg-platform-canvas-muted p-5 text-center" role="alert" data-graph-login-wall="true">
+            <p className="text-sm text-platform-fg-primary">{state.message}</p>
+            <a
+              href={`/login?callbackUrl=${encodeURIComponent(typeof window === 'undefined' ? '/knowledge' : `${window.location.pathname}${window.location.search}`)}`}
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-platform-action-primary px-4 py-2 text-sm text-platform-fg-inverse hover:opacity-90"
+            >
+              {graphCopy(locale, 'error.loginCta')}
+            </a>
+          </div>
         </div>
       ) : state.status === 'error' ? (
         <div className="flex flex-1 items-center justify-center p-6">
