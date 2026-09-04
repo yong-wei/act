@@ -556,3 +556,112 @@ fn nomoto_quick_simulation_limits_actual_rudder_rate_when_requested() {
 
     assert!(result["metrics"]["maxRudderRate"].as_f64().unwrap() <= 5.0 + 1e-9);
 }
+
+/// #1944：挖泥船 DP 闭环回归。默认参数 + 默认挖掘扰动（含横向分量与艏摇力矩）
+/// 下，天鲸号从零初速原点保持定位：四通道 DP 输出经 mmg3dof 可选推力入口驱动，
+/// 60 s 内位置误差必须收敛到 tolerance 量级且全程有界。
+#[test]
+fn dredger_dp_closed_loop_holds_position_under_dredging_impacts() {
+    let dt = 0.1;
+    let mut mmg = json!({
+        "x": 0.0, "y": 0.0, "psi": 0.0, "u": 0.0, "v": 0.0, "r": 0.0, "rudderAngle": 0.0
+    });
+    let mut dp_state = json!({
+        "surge": { "integral": 0.0, "prevError": 0.0 },
+        "sway": { "integral": 0.0, "prevError": 0.0 },
+        "yaw": { "integral": 0.0, "prevError": 0.0 }
+    });
+    let mut dredge_state = json!({
+        "lastImpactTime": 0.0, "nextInterval": 5.0, "isImpactActive": false
+    });
+    let mmg_params = json!({
+        "massInertia": { "m": 17_000_000.0, "Iz": 2.5e9, "mx": 0.05, "my": 0.90, "Jz": 0.15 },
+        "hydro": {
+            "Xuu": -0.025, "Xvv": -0.045, "Xrr": 0.002, "Xvr": 0.003,
+            "Yv": -0.350, "Yr": 0.095, "Yvvv": -1.800, "Yrrr": 0.010,
+            "Yvvr": 0.420, "Yvrr": -0.430,
+            "Nv": -0.150, "Nr": -0.055, "Nvvv": -0.035, "Nrrr": -0.015,
+            "Nvvr": -0.320, "Nvrr": 0.060
+        },
+        "rudder": { "maxAngle": 0.6108652382, "maxRate": 0.0436332313, "tR": 0.45, "aH": 0.35, "xR": -63.75 },
+        "propeller": { "Dp": 4.5, "wp": 0.28, "tp": 0.18 }
+    });
+    let gains = json!({
+        "surge": { "kp": 100_000.0, "ki": 5_000.0, "kd": 50_000.0 },
+        "sway": { "kp": 150_000.0, "ki": 8_000.0, "kd": 70_000.0 },
+        "yaw": { "kp": 1e9, "ki": 3e7, "kd": 4e8 }
+    });
+    let limits = json!({
+        "maxSurgeThrust": 2_000_000.0, "maxSwayThrust": 1_500_000.0,
+        "maxYawMoment": 5e8, "maxRudderAngle": 35.0,
+        "integralLimit": { "surge": 50.0, "sway": 50.0, "yaw": 1.0 }
+    });
+    // 固定 rng 样本：0.7（mixed 冲击）、方向与间隔参数，超出样本数后 rng_at 回落 0.5。
+    let rng_samples: Vec<f64> = (0..24).map(|i| 0.7 - (i % 7) as f64 * 0.03).collect();
+
+    let step = |request: Value| -> Value {
+        serde_json::from_str(&compute_virtual_simulation_step_json(&request.to_string()).unwrap())
+            .unwrap()
+    };
+
+    let mut max_error = 0.0_f64;
+    let mut final_error = 0.0_f64;
+    let steps = (60.0 / dt) as usize;
+    for index in 0..steps {
+        let time = index as f64 * dt;
+        let dredge = step(json!({
+            "modelId": "practice_dredging_disturbance",
+            "time": time,
+            "config": { "maxForce": 500_000.0, "minInterval": 5.0, "maxInterval": 15.0 },
+            "state": dredge_state,
+            "rngSamples": rng_samples
+        }));
+        dredge_state = dredge["newState"].clone();
+        let disturbance = dredge["disturbance"].clone();
+
+        let dp = step(json!({
+            "modelId": "practice_dp_control",
+            "dt": dt,
+            "current": {
+                "x": mmg["x"], "y": mmg["y"], "psi": mmg["psi"],
+                "u": mmg["u"], "v": mmg["v"], "r": mmg["r"]
+            },
+            "target": { "x": 0.0, "y": 0.0, "psi": 0.0 },
+            "dpState": dp_state,
+            "gains": gains,
+            "limits": limits,
+            "disturbance": disturbance,
+            "feedforward": true
+        }));
+        dp_state = dp["newState"].clone();
+        let output = &dp["output"];
+        assert!(output["surgeThrust"].as_f64().unwrap().is_finite());
+
+        mmg = step(json!({
+            "modelId": "mmg3dof",
+            "dt": dt,
+            "state": mmg,
+            "params": mmg_params,
+            "shipLength": 127.5,
+            "shipDraft": 6.2,
+            "disturbance": disturbance,
+            "rudderCommand": output["rudderCommand"],
+            "propellerRPM": 0.0,
+            "surgeThrustKN": output["surgeThrust"].as_f64().unwrap() / 1000.0,
+            "swayThrustKN": output["swayThrust"].as_f64().unwrap() / 1000.0,
+            "yawMomentKNm": output["yawMoment"].as_f64().unwrap() / 1000.0
+        }));
+        for field in ["x", "y", "psi", "u", "v", "r"] {
+            assert!(mmg[field].as_f64().unwrap().is_finite(), "{field} at {time}");
+        }
+        let position_error =
+            (mmg["x"].as_f64().unwrap().powi(2) + mmg["y"].as_f64().unwrap().powi(2)).sqrt();
+        assert!(position_error < 50.0, "unbounded drift at {time}s: {position_error}");
+        max_error = max_error.max(position_error);
+        final_error = position_error;
+    }
+    assert!(
+        final_error < 5.0,
+        "60s 后位置误差未收敛到 tolerance 量级: {final_error} (max {max_error})"
+    );
+}

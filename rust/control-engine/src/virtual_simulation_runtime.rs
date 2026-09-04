@@ -1269,6 +1269,9 @@ struct MmgDerivatives {
     dr: f64,
 }
 
+/// `thruster`: 可选直接执行器输入（#1944 方案 A）——[surge N, sway N, yaw N·m]，
+/// 由 DP 四通道输出换算而来，与螺旋桨推力（rpm 路径）互斥使用；缺省 [0;3]
+/// 保持既有纯 rpm 行为。
 fn mmg_forces(
     state: MmgState,
     params: &Value,
@@ -1276,6 +1279,7 @@ fn mmg_forces(
     draft: f64,
     disturbance: &Value,
     rpm: f64,
+    thruster: [f64; 3],
 ) -> [f64; 3] {
     let speed = (state.u * state.u + state.v * state.v).sqrt().max(0.001);
     let vp = state.v / speed;
@@ -1326,9 +1330,9 @@ fn mmg_forces(
     let nr = -(x_r + num(rudder, "aH", 0.3) * length * 0.25) * normal * state.rudder.cos();
 
     [
-        xh + xp + xr + num(disturbance, "forceX", 0.0),
-        yh + yr + num(disturbance, "forceY", 0.0),
-        nh + nr + num(disturbance, "momentN", 0.0),
+        xh + xp + xr + thruster[0] + num(disturbance, "forceX", 0.0),
+        yh + yr + thruster[1] + num(disturbance, "forceY", 0.0),
+        nh + nr + thruster[2] + num(disturbance, "momentN", 0.0),
     ]
 }
 
@@ -1339,8 +1343,10 @@ fn mmg_derivatives(
     draft: f64,
     disturbance: &Value,
     rpm: f64,
+    thruster: [f64; 3],
 ) -> MmgDerivatives {
-    let [x_force, y_force, n_force] = mmg_forces(state, params, length, draft, disturbance, rpm);
+    let [x_force, y_force, n_force] =
+        mmg_forces(state, params, length, draft, disturbance, rpm, thruster);
     let mass = path_num(params, &["massInertia", "m"], 17_000_000.0);
     let mx = mass * path_num(params, &["massInertia", "mx"], 0.05);
     let my = mass * path_num(params, &["massInertia", "my"], 0.9);
@@ -1388,6 +1394,12 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
     let current_rudder = num(state_value, "rudderAngle", 0.0);
     let rudder = current_rudder + clamp(target_rudder - current_rudder, -max_change, max_change);
     let rpm = num(request, "propellerRPM", 80.0);
+    // #1944：可选推力输入按 kN/kN·m 契约传入，这里唯一一次 ×1000 换算为 N。
+    let thruster = [
+        num(request, "surgeThrustKN", 0.0) * 1000.0,
+        num(request, "swayThrustKN", 0.0) * 1000.0,
+        num(request, "yawMomentKNm", 0.0) * 1000.0,
+    ];
     let base = MmgState {
         x: num(state_value, "x", 0.0),
         y: num(state_value, "y", 0.0),
@@ -1397,7 +1409,7 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
         r: num(state_value, "r", 0.0),
         rudder,
     };
-    let k1 = mmg_derivatives(base, params, length, draft, disturbance, rpm);
+    let k1 = mmg_derivatives(base, params, length, draft, disturbance, rpm, thruster);
     let k2 = mmg_derivatives(
         add_mmg(base, k1, 0.5 * dt),
         params,
@@ -1405,6 +1417,7 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
         draft,
         disturbance,
         rpm,
+        thruster,
     );
     let k3 = mmg_derivatives(
         add_mmg(base, k2, 0.5 * dt),
@@ -1413,6 +1426,7 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
         draft,
         disturbance,
         rpm,
+        thruster,
     );
     let k4 = mmg_derivatives(
         add_mmg(base, k3, dt),
@@ -1421,6 +1435,7 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
         draft,
         disturbance,
         rpm,
+        thruster,
     );
     serde_json::to_string(&json!({
         "x": base.x + dt * (k1.dx + 2.0 * k2.dx + 2.0 * k3.dx + k4.dx) / 6.0,

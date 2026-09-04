@@ -28,6 +28,7 @@ import {
 } from './simulation-engine-facade';
 import {
   mmg3dofStep,
+  type MmgThrusterCommand,
   createMMG3DOFState,
   mmgToSimulationState,
   type MMG3DOFState,
@@ -415,6 +416,9 @@ export class MMG3DOFEngine implements SimulationEngine {
   private maxRudderRate: number = 0;
   private maxPositionError: number = 0;
   private violations: EthicalViolation[] = [];
+  private dpThruster?: MmgThrusterCommand;
+  private positionAlarmSince: number | null = null;
+  private positionAlarmActive = false;
   private runContext?: SimulationRunContext;
 
   constructor(profile: ShipProfile, options: SimulationEngineOptions = {}) {
@@ -511,24 +515,42 @@ export class MMG3DOFEngine implements SimulationEngine {
 
       this.dpState = dpResult.newState;
       rudderCommand = dpResult.output.rudderCommand;
+      // 四通道执行（#1944 同步修复）：DP 推力直接驱动 mmg3dof，rpm 置零避免重复推力
+      propellerRPM = 0;
+      this.dpThruster = {
+        surgeKN: dpResult.output.surgeThrust / 1000,
+        swayKN: dpResult.output.swayThrust / 1000,
+        yawMomentKNm: dpResult.output.yawMoment / 1000,
+      };
 
       // 记录位置误差
       if (dpResult.metrics.positionError > this.maxPositionError) {
         this.maxPositionError = dpResult.metrics.positionError;
       }
 
-      // 检测定位精度违规
-      if (dpResult.metrics.positionError > 0.1) {  // 0.1m 精度要求
-        this.violations.push({
-          type: 'SAFETY_VIOLATION',
-          thresholdValue: 0.1,
-          actualValue: dpResult.metrics.positionError,
-          timestamp: time,
-          description: `定位误差过大: ${dpResult.metrics.positionError.toFixed(3)}m`,
-          severity: dpResult.metrics.positionError > 0.5 ? 'critical' : 'warning',
-        });
+      // 定位精度告警滞回（#1944 解耦：持续超限 10s 记录一次，恢复后清除）
+      if (dpResult.metrics.positionError > 0.1) {
+        this.positionAlarmSince ??= time;
+        if (
+          !this.positionAlarmActive
+          && time - this.positionAlarmSince >= 10
+        ) {
+          this.positionAlarmActive = true;
+          this.violations.push({
+            type: 'SAFETY_VIOLATION',
+            thresholdValue: 0.1,
+            actualValue: dpResult.metrics.positionError,
+            timestamp: time,
+            description: `定位误差持续超限 10 秒: ${dpResult.metrics.positionError.toFixed(3)}m`,
+            severity: dpResult.metrics.positionError > 0.5 ? 'critical' : 'warning',
+          });
+        }
+      } else if (dpResult.metrics.positionError < 0.05) {
+        this.positionAlarmSince = null;
+        this.positionAlarmActive = false;
       }
     } else {
+      this.dpThruster = undefined;
       // 航向控制
       this.pidMode = controlMode;
       const currentHeading = toDegrees(this.state.psi);
@@ -567,7 +589,8 @@ export class MMG3DOFEngine implements SimulationEngine {
       mmgParams,
       shipLength,
       shipDraft,
-      disturbance
+      disturbance,
+      this.dpThruster
     );
 
     // 累计误差

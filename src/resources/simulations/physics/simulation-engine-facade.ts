@@ -577,6 +577,13 @@ export {
   type MMG3DOFState,
 };
 
+/** mmg3dof 可选直接执行器输入（#1944 方案 A）：kN/kN·m 契约，与 rpm 推进路径互斥。 */
+export interface MmgThrusterCommand {
+  surgeKN: number;
+  swayKN: number;
+  yawMomentKNm: number;
+}
+
 export function mmg3dofStep(
   state: MMG3DOFState,
   rudderCommand: number,
@@ -586,6 +593,7 @@ export function mmg3dofStep(
   shipLength = 127.5,
   shipDraft = 6.2,
   disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 },
+  thruster?: MmgThrusterCommand,
 ): MMG3DOFState {
   return computeVirtualSimulationStep<MMG3DOFState>({
     modelId: 'mmg3dof',
@@ -597,6 +605,13 @@ export function mmg3dofStep(
     shipLength,
     shipDraft,
     disturbance,
+    ...(thruster
+      ? {
+          surgeThrustKN: thruster.surgeKN,
+          swayThrustKN: thruster.swayKN,
+          yawMomentKNm: thruster.yawMomentKNm,
+        }
+      : {}),
   });
 }
 
