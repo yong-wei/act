@@ -34,8 +34,12 @@ maxSubSteps，如 lesson-13 的 6）：
 ```ts
 const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 120 }));
 
+import { getSimulationDeltaFromMilliseconds } from '@/resources/simulations/lib/simulation-timing';
+
 const loop = (timestamp: number) => {
-  const frameDelta = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+  // 统一经 simulation-timing 取帧 delta：含 250ms clamp 与倍速换算，
+  // 不要在页面手写 Math.min 截断（上限与文档口径一致才不会在低帧率欠计）。
+  const frameDelta = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
   lastTimeRef.current = timestamp;
 
   clockRef.current.advance(frameDelta, (dt) => {
