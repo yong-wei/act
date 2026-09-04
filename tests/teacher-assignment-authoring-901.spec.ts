@@ -621,7 +621,8 @@ test('autosave 400 prevents publish and focuses the blocker', async ({ page, con
   await fillPublicationSchedule(page);
   await expect(page.getByText('自动保存：保存失败')).toBeVisible({ timeout: 5_000 });
   await expect(page.getByRole('button', { name: '发布' })).toBeDisabled();
-  await expect(page.locator('#assignment-publication-state')).toContainText('保存失败');
+  // invalid-payload 的 sr-only 公告是具体保存失败文案（SAVE_FAILURE_MESSAGES），不是通用恢复提示。
+  await expect(page.locator('#assignment-publication-state')).toContainText('作业内容未通过保存校验');
   expect(publishCount).toBe(0);
 });
 
