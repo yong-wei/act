@@ -576,7 +576,7 @@ function main() {
   );
 
   assert.equal(
-    script.includes('podman exec \\"${APP_NAME_HINT}\\" npm run seed:knowledge'),
+    script.includes('podman exec \\"${APP_NAME_HINT}\\" node scripts/db/seed-all-knowledge.mjs'),
     true,
     'Git-free 生产 runner 必须在挂载不可变 runtime 后走 apply-gated 知识图谱导入入口',
   );
