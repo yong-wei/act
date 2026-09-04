@@ -1,10 +1,10 @@
 # Residual Data Governance decision matrix
 
 - schemaVersion: `act-residual-data-governance-adjudication/v2`
-- currentSubjectCommit: `02ef2ed80564b3ad1acc1518fcdd6a89352d8ad4`
-- currentSubjectTree: `dab055db961d38b34c680ef3dd43621c0a018bcd`
+- currentSubjectCommit: `98e0c472a538566d95ca0b3dec019bcf0b51c187`
+- currentSubjectTree: `092962003255f580b9d9f24cc6e248c519002ba0`
 - memberSetDigest: `ae22cb75a43d821fbc29147f37337f00ddfaeab1044ff838dc1b85aa21008a88`
-- tool.entryBundleDigest: `a1a6bbc2c14c42cc230b1f570fc89d19cfc54f8a30c995676dff0179769cb956`
+- tool.entryBundleDigest: `3f031f8cb9e29c223585f6581caf6e9350abe216b1112aedee11fc1368a733a5`
 - predecessor1883.successorCaptureId: `fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02`
 - predecessor1883.sourceCommit: `698cb2f4cd6d001bcbeee95bca9be58c56c1cca3`
 - predecessor1883.sourceTree: `41d6b3f5966493911d6ce9c1f299015189778d53`
@@ -14,7 +14,7 @@
 - predecessor1883.fullInventorySha256: `0291c93d41de223f1698ee500cfe3b9024c4af42cfa04e4cc9a06d24b94bfc43`
 - predecessorBaseline.sourceCommit: `58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac`
 - qualified: `no`
-- decisionIdentity: `c379c7c3d357c10694426781200d286253dd09a0fd5e01fe1f3fe376fce1ece2`
+- decisionIdentity: `9d68446bcfafc36521822a61757fe0285a9b9945436ede32f71f7b7932aaed01`
 
 | familyId | accountableOwner | outcome | count | memberIds |
 | --- | --- | --- | --- | --- |
