@@ -2,20 +2,20 @@
 
 ## 1. 批 1：数据模型与决策核心
 
-- [ ] 1.1 `prisma/schema.prisma` 新增 `KonlingCompanionEvent`、`KonlingCompanionDelivery`（含索引与 Delivery.eventId 唯一约束），生成迁移并补回填/验证脚本
-- [ ] 1.2 新增 `src/features/ai/companion/trigger-engine.ts`：事件状态机（candidate/confirmed/delivered/suppressed/expired）、按页面类型证据加权、两阶段停顿确认窗口、优先级队列、冷却、过期与投递去重纯函数
-- [ ] 1.3 单测 `trigger-engine.test.ts`：两阶段确认、返回页面重新满足条件、媒体播放/隐藏/失焦抑制、冷却、过期、优先级抢占、多标签去重语义
+- [x] 1.1 `prisma/schema.prisma` 新增 `KonlingCompanionEvent`、`KonlingCompanionDelivery`（含索引与 Delivery.eventId 唯一约束），生成迁移并补回填/验证脚本
+- [x] 1.2 新增 `src/features/ai/companion/trigger-engine.ts`：事件状态机（candidate/confirmed/delivered/suppressed/expired）、按页面类型证据加权、两阶段停顿确认窗口、优先级队列、冷却、过期与投递去重纯函数
+- [x] 1.3 单测 `trigger-engine.test.ts`：两阶段确认、返回页面重新满足条件、媒体播放/隐藏/失焦抑制、冷却、过期、优先级抢占、多标签去重语义
 
 ## 2. 批 2：陪伴 API 与隐私边界
 
-- [ ] 2.1 新增陪伴 API 路由：事件上报（POST）、二次确认（PATCH）、投递（POST）；仅认证学生本人，服务端时间戳权威
+- [x] 2.1 新增陪伴 API 路由：事件上报（POST）、二次确认（PATCH）、投递（POST）；仅认证学生本人，服务端时间戳权威
 - [ ] 2.2 投递路径接入 konling-agent-runtime：复用或创建学生私有会话、写入 companion-origin 助手消息并执行一次主动回合（不伪造用户消息）
 - [ ] 2.3 隐私边界测试：陪伴表不写 `LearningFact`、教师端投影与学生画像计算不读取陪伴数据、API 越权访问拒绝
 
 ## 3. 批 3：Provider 采集与气泡
 
 - [ ] 3.1 `global-ai-provider.tsx` 扩展：可见性/焦点/最近有效操作/媒体状态采集、`isStreamingOrComposing`、companion entry 通道与 flag 门控
-- [ ] 3.2 新增类型化上报 Hook `useKonlingCompanionReporter`（题目、互动步骤、资源、播放状态粗粒度事件）
+- [x] 3.2 新增类型化上报 Hook `useKonlingCompanionReporter`（题目、互动步骤、资源、播放状态粗粒度事件）
 - [ ] 3.3 新增 `KonlingCompanionBubble`：非模态、10–15 秒自动收起、同事件不重复（会话级 Set + localStorage）、流式/输入期间抑制、点击打开侧栏并定位会话；多标签 localStorage 租约
 - [ ] 3.4 组件测试：自动收起、去重、抑制条件、租约互斥与设计 token 使用
 
