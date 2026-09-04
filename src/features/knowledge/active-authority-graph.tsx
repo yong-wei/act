@@ -119,6 +119,12 @@ type WorkspaceLoadState =
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
   | { status: 'error'; message: string; unauthenticated?: boolean; contentNotReady?: boolean };
 
+/** 次级分片失败条目：内容未就绪类失败不提供重试（重试必然复现同一缺失）。 */
+interface ShardFailureEntry {
+  message: string;
+  retryable: boolean;
+}
+
 /** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
   memberships: readonly AuthorityShardMembership[],
@@ -191,6 +197,20 @@ function shardErrorState(
   };
 }
 
+function shardFailureEntry(
+  error: unknown,
+  locale: AdmittedLocale,
+  fallbackKey: 'error.familyShard' | 'error.neighborhoodShard',
+): ShardFailureEntry {
+  const contentNotReady = isContentNotReadyFailure(error);
+  return {
+    message: contentNotReady
+      ? graphCopy(locale, 'error.contentNotReady')
+      : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
+    retryable: !contentNotReady,
+  };
+}
+
 function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
   value: unknown,
   shardClass: T,
@@ -237,9 +257,9 @@ function useActiveAuthorityWorkspace(
   enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
   disableFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
+  familyFailures: Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>;
   requestNeighborhood: (nodeId: string) => void;
-  neighborhoodFailures: Record<string, string>;
+  neighborhoodFailures: Record<string, ShardFailureEntry>;
   localeRefreshFailure: string | null;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
@@ -247,8 +267,8 @@ function useActiveAuthorityWorkspace(
 } {
   const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
-  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
-  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>>({});
+  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, ShardFailureEntry>>({});
   const [localeRefreshFailure, setLocaleRefreshFailure] = useState<string | null>(null);
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
@@ -573,9 +593,7 @@ function useActiveAuthorityWorkspace(
         }));
         setFamilyFailures((currentFailures) => ({
           ...currentFailures,
-          [family]: isContentNotReadyFailure(error)
-            ? graphCopy(localeRef.current, 'error.contentNotReady')
-            : error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
+          [family]: shardFailureEntry(error, localeRef.current, 'error.familyShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -620,9 +638,7 @@ function useActiveAuthorityWorkspace(
         }
         setNeighborhoodFailures((currentFailures) => ({
           ...currentFailures,
-          [nodeId]: isContentNotReadyFailure(error)
-            ? graphCopy(localeRef.current, 'error.contentNotReady')
-            : error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
+          [nodeId]: shardFailureEntry(error, localeRef.current, 'error.neighborhoodShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -2136,13 +2152,15 @@ export function ActiveAuthorityGraph({
             </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
-                <span>{neighborhoodFailures[selectedNodeKey]}</span>
-                <button
-                  type="button"
-                  onClick={() => requestNeighborhood(selectedNodeKey)}
-                  data-authority-neighborhood-retry={selectedNodeKey}
-                  className="shrink-0 underline underline-offset-2"
-                >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                <span>{neighborhoodFailures[selectedNodeKey].message}</span>
+                {neighborhoodFailures[selectedNodeKey].retryable ? (
+                  <button
+                    type="button"
+                    onClick={() => requestNeighborhood(selectedNodeKey)}
+                    data-authority-neighborhood-retry={selectedNodeKey}
+                    className="shrink-0 underline underline-offset-2"
+                  >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                ) : null}
               </div>
             ) : null}
             {authorityView ? (

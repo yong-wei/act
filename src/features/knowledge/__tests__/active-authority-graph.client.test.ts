@@ -826,6 +826,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(failure).not.toBeNull();
     expect(failure!.textContent).toContain('知识数据尚未发布完成');
     expect(failure!.textContent).not.toContain('暂时无法加载');
+    expect(container.querySelector('[data-authority-family-retry="association"]')).toBeNull();
   });
 
   it('keeps the retry guidance for transient root failures without a failure code', async () => {
