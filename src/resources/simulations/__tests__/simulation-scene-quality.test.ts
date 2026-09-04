@@ -143,7 +143,7 @@ describe('model optimization pipeline', () => {
     );
     expect(destroyer).toContain("resolveRegisteredSimulationModel('destroyer')");
     expect(destroyer).toContain('useGLTF(url, true, true)');
-    expect(destroyer).toContain('FallbackGltfModel');
+    expect(destroyer).toContain('VersionedShipModel');
   });
 
   it('keeps the original GLB as a documented fallback when optimization fails', () => {

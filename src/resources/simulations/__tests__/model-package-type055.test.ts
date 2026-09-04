@@ -17,10 +17,11 @@ import {
   TYPE055_V2_BASIS_YAW_RAD,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
+import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
 import { findAnimationIndex, listLoadedInstanceNames, listMunitionTemplateNames } from '../model-packages/model-interface';
 
-const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.0.0');
-const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.0.0/receipt.json');
+const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.0');
+const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.0/receipt.json');
 
 function realIo(): ModelPackageFileIo {
   return {
@@ -44,21 +45,36 @@ function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void)
   };
 }
 
-describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
-  it('verifies the complete six-file denominator, hashes, sizes and manifest identity', () => {
+describe('type055-nanchang-101 v2.1.0 received package integrity', () => {
+  it('verifies the complete seven-role denominator, hashes, sizes and manifest identity', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.packageId).toBe('type055-nanchang-101');
-    expect(receipt.modelVersion).toBe('2.0.0');
-    expect(Object.keys(receipt.roles)).toHaveLength(6);
+    expect(receipt.modelVersion).toBe('2.1.0');
+    expect(Object.keys(receipt.roles)).toHaveLength(7);
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
   });
 
-  it('registers each role exactly once with unique files', () => {
+  it('registers each role exactly once with unique files including interactive-systems', () => {
     const roleFiles = Object.values(TYPE055_NANCHANG_101_V2.roles).map((role) => role.file);
-    expect(new Set(roleFiles).size).toBe(6);
+    expect(new Set(roleFiles).size).toBe(7);
     expect(Object.keys(TYPE055_NANCHANG_101_V2.roles).sort()).toEqual(
-      ['collision', 'demo', 'payload', 'ship-lod0', 'ship-lod1', 'ship-lod2'],
+      ['collision', 'demo', 'interactive-systems', 'payload', 'ship-lod0', 'ship-lod1', 'ship-lod2'],
     );
+  });
+
+  it('rejects a duplicate-role denominator and a missing role', () => {
+    const duplicate = {
+      ...TYPE055_NANCHANG_101_V2,
+      roles: {
+        ...TYPE055_NANCHANG_101_V2.roles,
+        demo: TYPE055_NANCHANG_101_V2.roles.payload,
+      },
+    };
+    expect(() => validateReceivedModelPackage(duplicate, realIo())).toThrow('incomplete-role-denominator');
+    const io = tamperedIo((files) => {
+      files.delete(TYPE055_NANCHANG_101_V2.roles['interactive-systems'].file);
+    });
+    expect(() => validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, io)).toThrow('missing-file');
   });
 
   it('binds a receive receipt with the same identities as the descriptor on a clean revision', () => {
@@ -71,19 +87,24 @@ describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
     expect(receipt.sourceBlendSha256).toBe(TYPE055_NANCHANG_101_V2.sourceBlendSha256);
     // 收据的可验证主绑定：候选包目录 tree digest（任意克隆/squash 后仍可复核）
     expect(receipt.packageTreeDigest).toMatch(/^[0-9a-f]{40}$/);
-    const headTree = execSync(
-      'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.0.0',
-      { encoding: 'utf-8' },
-    ).trim();
-    expect(headTree, 'receipt packageTreeDigest must equal the committed package tree').toBe(receipt.packageTreeDigest);
-    // digest 语义钉死：由文件直接构造（mktree）与提交后 tree 完全一致——
-    // 证明首次接收（包目录尚未提交）产出的收据与提交后重跑等价
     const entries = readdirSync(PACKAGE_DIR).sort().map((file) => {
       const blob = execSync(`git hash-object '${path.join(PACKAGE_DIR, file)}'`, { encoding: 'utf-8' }).trim();
       return `100644 blob ${blob}\t${file}`;
     });
     const mktree = execSync('git mktree', { input: `${entries.join('\n')}\n`, encoding: 'utf-8' }).trim();
-    expect(mktree).toBe(headTree);
+    expect(mktree, 'receipt packageTreeDigest must equal the working package tree').toBe(receipt.packageTreeDigest);
+    let headTree = '';
+    try {
+      headTree = execSync(
+        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.0',
+        { encoding: 'utf-8' },
+      ).trim();
+    } catch {
+      headTree = '';
+    }
+    if (headTree) {
+      expect(headTree, 'committed package tree must match the receipt once the directory is in HEAD').toBe(receipt.packageTreeDigest);
+    }
     // 捕获时工作区必须干净（脏收据 fail closed）
     expect(receipt.packageDirty).toBe(false);
     for (const [role, artifact] of Object.entries(TYPE055_NANCHANG_101_V2.roles)) {
@@ -122,7 +143,7 @@ describe('type055-nanchang-101 v2.0.0 received package integrity', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.0.0 semantic interface contract', () => {
+describe('type055-nanchang-101 v2.1.0 semantic interface contract', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     return parseGlb(bytes);
@@ -147,7 +168,7 @@ describe('type055-nanchang-101 v2.0.0 semantic interface contract', () => {
 
   it('detects a wrong ship animation count and an unreachable animation target', () => {
     const ship = glbJsonOf(TYPE055_NANCHANG_101_V2.roles['ship-lod2'].file);
-    const truncated = { ...ship, animations: (ship.animations as unknown[]).slice(0, 100) };
+    const truncated = { ...ship, animations: (ship.animations as unknown[]).slice(0, 8) };
     const violations = validateModelPackageInterface(TYPE055_NANCHANG_101_V2, { 'ship-lod2': truncated });
     expect(violations.map((item) => item.kind)).toContain('ship-animation-count');
 
@@ -201,5 +222,23 @@ describe('quality tier to LOD mapping and coordinate basis adapter', () => {
     // 右舷（forward × up = +Z local）→ 场景 -X；左舷 → 场景 +X（与旧模型档案一致）
     expect(apply([0, 0, 1]).angleTo(new THREE.Vector3(-1, 0, 0))).toBeLessThan(1e-9);
     expect(apply([0, 0, -1]).angleTo(new THREE.Vector3(1, 0, 0))).toBeLessThan(1e-9);
+  });
+});
+
+describe('skeleton-aware scene cloning', () => {
+  it('keeps skinned mesh bones inside the cloned tree', () => {
+    const bone = new THREE.Bone();
+    bone.name = 'flag-bone';
+    const geometry = new THREE.BoxGeometry(1, 2, 0.1);
+    const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshBasicMaterial());
+    mesh.add(bone);
+    mesh.bind(new THREE.Skeleton([bone]));
+    const root = new THREE.Group();
+    root.add(mesh);
+
+    expect(skinnedBindingsIntact(root.clone(true))).toBe(false);
+    const cloned = cloneSkinnedScene(root);
+    expect(skinnedBindingsIntact(cloned)).toBe(true);
+    expect(cloned).not.toBe(root);
   });
 });
