@@ -21,6 +21,7 @@ import { isMixedWorktree } from '../src/lib/architecture-census/identity';
 import {
   PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
+  RESIDUAL_CLAIM_BRANCH,
   RESIDUAL_SCHEMA_VERSION,
   UPSTREAM_PAYLOAD_CHANGE,
   adjudicateResidualDataGovernance,
@@ -203,11 +204,13 @@ function toolIdentity(): { toolCommit: string; toolTree: string; entryBundleDige
 
 const repoRoot = process.cwd();
 
-// 0. Execution-checkpoint guards: a real branch (not detached) and a clean work
-//    tree are required before any adjudication input is read.
+// 0. Execution-checkpoint guards: this adjudicator may only run on its own
+//    claim branch (= change id) with a clean work tree. Detached HEAD, `main`,
+//    `integration`, or any other named branch is rejected before any input is
+//    read, so a foreign branch HEAD can never become the tool identity.
 const currentBranch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
-if (currentBranch === 'HEAD') {
-  process.stderr.write('detached-worktree-rejected\n');
+if (currentBranch !== RESIDUAL_CLAIM_BRANCH) {
+  process.stderr.write(`execution-branch-rejected:${currentBranch}\n`);
   process.exit(2);
 }
 const worktreeDirty = git(['status', '--porcelain']).length > 0;
@@ -272,6 +275,7 @@ function adjudicate(ledgerVerification: ResidualAdjudicationInput['ledgerVerific
     ledgerVerification,
     dirtySource: worktreeDirty,
     mixedSource: isMixedWorktree(repoRoot),
+    executionBranch: currentBranch,
   });
   if (result.kind === 'parent-coordination-gate-rejection') {
     process.stderr.write(`${JSON.stringify(result)}\n`);

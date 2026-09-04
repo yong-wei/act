@@ -27,6 +27,14 @@ export const PREDECESSOR_1883 = {
 
 export const RESIDUAL_CURRENT_SUBJECT_BASE = 'origin/integration' as const;
 
+/**
+ * Buddy claim branch (= change id) this adjudicator is allowed to run on. The
+ * tool code only exists on the claim branch before merge, and task 1.4 keeps
+ * the tool identity independent from the subject, so any other execution
+ * branch — `main`, `integration`, or another feature branch — is rejected.
+ */
+export const RESIDUAL_CLAIM_BRANCH = 'requalify-current-residual-data-governance-owner-migration-inputs' as const;
+
 export const REQUIRED_SUCCESSOR = {
   schemaVersion: 'act-architecture-post-convergence-successor/v1',
   successorCaptureId: 'fa6e618d7a875412e975a14259dfac37c4cfed1bc6ca48095184f72bb0946d02',
@@ -165,6 +173,7 @@ export interface ResidualAdjudicationInput {
   readonly ledgerVerification?: LedgerVerificationReceipt | null;
   readonly dirtySource?: boolean;
   readonly mixedSource?: boolean;
+  readonly executionBranch?: string;
 }
 
 export interface ResidualCaller {
@@ -557,6 +566,9 @@ export function adjudicateResidualDataGovernance(
   const blockers: string[] = [];
   if (input.dirtySource) blockers.push('dirty-source');
   if (input.mixedSource) blockers.push('mixed-source');
+  // Task 1.3: adjudication may only execute on this change's claim branch; a
+  // named non-claim branch (e.g. main) must not publish qualified projections.
+  if (input.executionBranch !== RESIDUAL_CLAIM_BRANCH) blockers.push('execution-branch-not-claim-branch');
 
   const subject = input.subject;
   // Upstream dependency: the current payload-eligibility change must be archived.

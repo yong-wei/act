@@ -9,6 +9,7 @@ import { serializeDeterministic, sha256Text } from '@/lib/architecture-census/se
 import {
   PREDECESSOR_1883,
   REQUIRED_SUCCESSOR,
+  RESIDUAL_CLAIM_BRANCH,
   RESIDUAL_SCHEMA_VERSION,
   adjudicateResidualDataGovernance,
   classifyCallerPath,
@@ -86,6 +87,7 @@ function input(partial: Partial<ResidualAdjudicationInput> & Pick<ResidualAdjudi
     subject: subjectFor(partial.members, partial.subject?.fullInventoryBytesVerified ?? true),
     tool,
     callers: [],
+    executionBranch: RESIDUAL_CLAIM_BRANCH,
     ...partial,
     subject: partial.subject ?? subjectFor(partial.members, true),
   };
@@ -624,5 +626,19 @@ describe('residual data-governance adjudication', () => {
     expect(matrix).not.toMatch(/^- (sourceCommit|sourceTree|packageDigest):/mu);
     const handoff = projectResidualDocuments(result)['handoff.md'] ?? '';
     expect(handoff).toContain(`currentSubjectCommit: \`${result.subject.currentSubject.subjectCommit}\``);
+  });
+
+  it('adjudicates only on the change claim branch and blocks any other execution branch', () => {
+    const members: ResidualMemberInput[] = [{ path: 'src/lib/data-governance/event-protocol.ts' }];
+    const claimBranch = runWithLedgerVerification({ members });
+    expect(claimBranch.blockers).not.toContain('execution-branch-not-claim-branch');
+    expect(claimBranch.qualified).toBe(true);
+
+    for (const executionBranch of ['main', 'integration', 'HEAD', undefined]) {
+      const foreign = asAdjudication(adjudicateResidualDataGovernance({ ...input({ members }), executionBranch }));
+      expect(foreign.blockers).toContain('execution-branch-not-claim-branch');
+      expect(foreign.qualified).toBe(false);
+      expect(foreign.futureSlices).toEqual([]);
+    }
   });
 });
