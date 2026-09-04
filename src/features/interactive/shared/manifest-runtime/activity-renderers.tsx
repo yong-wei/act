@@ -674,6 +674,8 @@ function DragMatchAnswerInput({
     draggedValueRef.current = null;
     setDraggedValue(null);
   };
+  const resolveDroppedOptionValue = (event: { dataTransfer: DataTransfer }) =>
+    event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
 
   if (!items.length || !options.length) {
     return (
@@ -712,8 +714,7 @@ function DragMatchAnswerInput({
                 onDrop={(event) => {
                   if (disabled) return;
                   event.preventDefault();
-                  const droppedValue = event.dataTransfer.getData('text/plain') || draggedValueRef.current || draggedValue;
-                  assignToSlot(index, droppedValue);
+                  assignToSlot(index, resolveDroppedOptionValue(event));
                 }}
                 onMouseUp={() => {
                   if (disabled) return;
