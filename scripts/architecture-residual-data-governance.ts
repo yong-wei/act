@@ -229,7 +229,14 @@ if (currentBranch !== RESIDUAL_CLAIM_BRANCH) {
   process.stderr.write(`execution-branch-rejected:${currentBranch}\n`);
   process.exit(2);
 }
-const worktreeDirty = git(['status', '--porcelain']).length > 0;
+// Dirty-source observes everything except this tool's own output surfaces: a
+// rerun naturally sees its previous projections as modified, and their
+// integrity is enforced by the byte-level projection verification instead.
+const worktreeDirty = git([
+  'status', '--porcelain', '--', ':/',
+  `:(exclude)${OUTPUT_DIR}`,
+  ':(exclude)artifacts/architecture-census',
+]).length > 0;
 
 // 1. Freeze the claim-time current subject (independent from #1876/#1883 history).
 execFileSync('git', ['-C', repoRoot, 'fetch', 'origin', 'integration'], { stdio: 'ignore' });
