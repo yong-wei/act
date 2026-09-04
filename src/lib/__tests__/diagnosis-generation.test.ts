@@ -38,6 +38,7 @@ import {
   DiagnosisGenerationFindingAttributionError,
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
+  DiagnosisConflictEvidenceError,
   DiagnosisLimitationCoverageError,
   DiagnosisPseudoConflictError,
   DiagnosisRiskFlagCoverageError,
@@ -53,6 +54,7 @@ import {
 } from '@/lib/diagnosis-generation-provider';
 import { processDiagnosisGenerationJob } from '@/lib/diagnosis-generation-worker';
 import { DIAGNOSIS_BENCHMARK_SCENARIOS } from '@/lib/diagnosis-benchmark/scenarios';
+import { detectConflictEvidenceInconsistencies } from '@/lib/diagnosis-conflict-evidence';
 import { detectOverallSubgroupPseudoConflict } from '@/lib/diagnosis-pseudo-conflict';
 import { SmartLessonPlanError } from '@/lib/smart-lesson-plan/domain';
 import {
@@ -2005,6 +2007,209 @@ describe('overall-vs-subgroup pseudo conflicts (Issue #1872)', () => {
     expect(conflictScenario?.description).toContain('同一批学生');
     expect(conflictScenario?.description).toContain('同一时间窗');
     expect(sparseScenario?.description).toContain('同批学生');
+  });
+});
+
+describe('conflict cited-evidence consistency (Issue #1946)', () => {
+  const conflictInput = {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1' as const,
+    classId: 'class-1',
+    studentIds: ['student-1', 'student-2'],
+    assignmentSubmissions: [
+      {
+        id: 'assignment-1',
+        userId: 'student-1',
+        assignmentRevisionId: 'revision-1',
+        contentHash: 'assignment-sha',
+        score: 85,
+        totalPoints: 100,
+        reviewedAt: now.toISOString(),
+      },
+      {
+        id: 'assignment-2',
+        userId: 'student-2',
+        assignmentRevisionId: 'revision-1',
+        contentHash: 'assignment-sha',
+        score: 55,
+        totalPoints: 100,
+        reviewedAt: now.toISOString(),
+      },
+    ],
+    assessmentSessions: [
+      {
+        id: 'assessment-1',
+        userId: 'student-1',
+        assessmentId: 'assessment-1',
+        contentDigest: 'assessment-sha',
+        itemCount: 10,
+        correctCount: 5,
+        score: 55,
+        completedAt: now.toISOString(),
+      },
+      {
+        id: 'assessment-2',
+        userId: 'student-2',
+        assessmentId: 'assessment-1',
+        contentDigest: 'assessment-sha',
+        itemCount: 10,
+        correctCount: 5,
+        score: 55,
+        completedAt: now.toISOString(),
+      },
+    ],
+    riskFlags: [],
+    competencySnapshots: [],
+    knowledgeProgress: [],
+  };
+
+  it.each([
+    ['cross-student mismatch', ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-2'], 'conflict-evidence-cross-student'],
+    ['equal scores', ['assignment-submission:assignment-2', 'adaptive-assessment-session:assessment-2'], 'conflict-evidence-equal-scores'],
+  ] as const)('rejects %s', (_name, evidenceRefs, code) => {
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+      limitations: ['作业与测评成绩存在不一致。'],
+      findings: [{ title: '作业与测评冲突', summary: '部分学生作业高分、测评低分。', evidenceRefs: [...evidenceRefs] }],
+      evidenceRefs: [...evidenceRefs],
+    }, conflictInput)).toEqual([code]);
+  });
+
+  it('rejects wrong-direction scores', () => {
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+      limitations: ['作业与测评成绩存在不一致。'],
+      findings: [{
+        title: '作业与测评冲突',
+        evidenceRefs: ['assignment-submission:assignment-2', 'adaptive-assessment-session:assessment-1'],
+      }],
+      evidenceRefs: ['assignment-submission:assignment-2', 'adaptive-assessment-session:assessment-1'],
+    }, {
+      ...conflictInput,
+      assignmentSubmissions: [{ ...conflictInput.assignmentSubmissions[1], userId: 'student-1' }],
+      assessmentSessions: [{ ...conflictInput.assessmentSessions[0], score: 90 }],
+    })).toEqual(['conflict-evidence-wrong-direction']);
+  });
+
+  it('rejects an incomparable time window', () => {
+    const later = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString();
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+      limitations: ['作业与测评成绩存在不一致。'],
+      findings: [{
+        title: '作业与测评冲突',
+        evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+      }],
+      evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+    }, {
+      ...conflictInput,
+      assessmentSessions: [{ ...conflictInput.assessmentSessions[0], completedAt: later }],
+    })).toEqual(['conflict-evidence-time-window']);
+  });
+
+  it('accepts same-student close-window opposite-direction evidence', () => {
+    expect(detectConflictEvidenceInconsistencies({
+      summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+      limitations: ['同一学生作业高分、测评低分，存在证据冲突。'],
+      findings: [{
+        title: '作业与测评冲突',
+        evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+      }],
+      evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+    }, conflictInput)).toEqual([]);
+  });
+
+  it('declares cited-evidence constraints in the production system prompt', () => {
+    const prompt = buildDiagnosisProviderSystemPrompt(now.toISOString());
+    expect(prompt).toContain('相差不超过 14 天');
+    expect(prompt).toContain('跨学生误配、同分、方向不符');
+  });
+
+  it('rejects a generated report whose cited conflict evidence is cross-student', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+        findings: [{
+          title: '作业与测评冲突',
+          summary: '部分学生作业高分、测评低分。',
+          evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-2'],
+        }],
+        evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-2'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 2 },
+        confidence: 'medium',
+        limitations: ['作业与测评成绩存在不一致。'],
+      },
+      normalizedResponseId: 'provider-response-conflict-mismatch',
+    });
+
+    await expect(generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-conflict-mismatch',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: conflictInput,
+      inputDigest: digestDiagnosisGovernedInput(conflictInput),
+    })).rejects.toMatchObject({
+      name: 'DiagnosisConflictEvidenceError',
+    });
+  });
+
+  it('stamps a verified comparable conflict before persistence', async () => {
+    providerGenerate.mockResolvedValueOnce({
+      output: {
+        summary: '部分学生在作业中得分较高，但在诊断测评中得分较低。',
+        findings: [{
+          title: '作业与测评冲突',
+          summary: '同一学生作业高分、测评低分。',
+          evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+        }],
+        evidenceRefs: ['assignment-submission:assignment-1', 'adaptive-assessment-session:assessment-1'],
+        evidenceCutoff: now.toISOString(),
+        sourceCoverage: { classMembers: 2 },
+        confidence: 'medium',
+        limitations: ['同一学生作业高分、测评低分，存在证据冲突。'],
+      },
+      normalizedResponseId: 'provider-response-conflict-valid',
+    });
+
+    const generated = await generateGovernedDiagnosisReport({} as never, {
+      jobId: 'job-1',
+      attemptId: 'attempt-conflict-valid',
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: null,
+      evidenceCutoff: now,
+      generatorVersion: 'teacher-diagnosis.v1',
+      governedInput: conflictInput,
+      inputDigest: digestDiagnosisGovernedInput(conflictInput),
+    });
+
+    expect(generated.reportBody.conflictEvidenceVerified).toBe(true);
+  });
+
+  it('records inconsistent conflict evidence as retryable instead of terminal validation', async () => {
+    const conflictError = new DiagnosisConflictEvidenceError(['conflict-evidence-cross-student']);
+    const { db, tx } = workerDbFixture();
+
+    await expect(processDiagnosisGenerationJob(
+      db as never,
+      'job-1',
+      { attemptsMade: 0, opts: { attempts: 3 } } as never,
+      async () => { throw conflictError; },
+    )).rejects.toBe(conflictError);
+
+    expect(tx.diagnosisGenerationAttempt.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        state: 'FAILED',
+        errorCode: 'diagnosis-conflict-evidence-inconsistent',
+      }),
+    }));
+    expect(tx.diagnosisGenerationJob.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: { state: 'QUEUED', startedAt: null },
+    }));
   });
 });
 

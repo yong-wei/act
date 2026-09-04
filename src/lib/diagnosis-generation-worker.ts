@@ -17,6 +17,7 @@ import {
   DiagnosisGenerationProviderEmptyOutputError,
   DiagnosisGenerationProviderLanguageError,
   DiagnosisGenerationValidationError,
+  DiagnosisConflictEvidenceError,
   DiagnosisLimitationCoverageError,
   DiagnosisPseudoConflictError, DiagnosisRiskFlagCoverageError,
   generateGovernedDiagnosisReport,
@@ -96,6 +97,14 @@ function classifyDiagnosisGenerationFailure(error: unknown) {
     return {
       validation: false,
       code: 'diagnosis-limitation-coverage-contradiction',
+      message: error.message,
+    };
+  }
+  // 冲突引用无法证明声明（Issue #1946）：与伪冲突同语义（模型行为缺陷）。
+  if (error instanceof DiagnosisConflictEvidenceError) {
+    return {
+      validation: false,
+      code: 'diagnosis-conflict-evidence-inconsistent',
       message: error.message,
     };
   }

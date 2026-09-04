@@ -21,6 +21,10 @@ import {
   resolveSmartLessonStructuredProvider,
   TextJsonFallbackOutputError,
 } from '@/lib/smart-lesson-plan/provider-runtime';
+import {
+  detectConflictEvidenceInconsistencies,
+  diagnosisReportDeclaresConflict,
+} from './diagnosis-conflict-evidence';
 import { detectOverallSubgroupPseudoConflict, splitDiagnosisClauses } from './diagnosis-pseudo-conflict';
 
 const DIAGNOSIS_TOOLS = [
@@ -159,6 +163,16 @@ export class DiagnosisPseudoConflictError extends Error {
   constructor(violations: string[]) {
     super('诊断模型把班级总体表现与部分学生进度的总体—子群信号误述为证据冲突。');
     this.name = 'DiagnosisPseudoConflictError';
+    this.violations = violations;
+  }
+}
+
+export class DiagnosisConflictEvidenceError extends Error {
+  readonly violations: string[];
+
+  constructor(violations: string[]) {
+    super('诊断模型声明的证据冲突未被引用的作业与测评记录证明。');
+    this.name = 'DiagnosisConflictEvidenceError';
     this.violations = violations;
   }
 }
@@ -654,6 +668,18 @@ export async function generateGovernedDiagnosisReport(
   if (limitationCoverageViolations.length > 0) {
     throw new DiagnosisLimitationCoverageError(limitationCoverageViolations);
   }
+  // 冲突引用语义（Issue #1946）：声明冲突必须由同一学生、14 天时间窗、
+  // 方向正确的作业/测评引用证明；命中按模型行为缺陷拒绝重试。
+  const conflictEvidenceViolations = detectConflictEvidenceInconsistencies(
+    reportBody,
+    governedInput.data,
+  );
+  if (conflictEvidenceViolations.length > 0) {
+    throw new DiagnosisConflictEvidenceError(conflictEvidenceViolations);
+  }
+  if (diagnosisReportDeclaresConflict(reportBody)) {
+    reportBody.conflictEvidenceVerified = true;
+  }
   return {
     reportBody,
     agentSessionId: agentSession.id,
@@ -676,6 +702,7 @@ const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
   '全部知识节点均处于正常范围时，findings 应为空或只含非知识点发现，并在 summary 明确说明未发现明确薄弱节点；不得为了生成结论而强制选取最低节点。',
   '作业与测评证据冲突时不得单方面下强结论：写入 limitations 并降低 confidence；知识进度数据缺失影响判定时，必须在 limitations 说明覆盖情况。',
   '证据冲突声明必须满足可比性：只有相同学生范围、相近时间窗内方向相反的证据（如同一批学生作业高分、测评低分）才可声明冲突；「班级/整体/总体表现正常」与「部分/少数/个别学生薄弱」学生范围不同、可以同时成立，绝不可声明为证据冲突，应分别作为总体发现与子群发现呈现。',
+  '引用作业与测评声明冲突时，evidenceRefs 必须属于同一学生，或每个被引用学生都同时具备作业与测评；作业 reviewedAt 与测评 completedAt 相差不超过 14 天；分值方向必须支持声明。跨学生误配、同分、方向不符或时间窗不可比不得声明冲突。',
   '逐人结果仅为确定性代表样本；聚合指标和 sourceCoverage 覆盖完整固定证据。',
   'sourceCoverage 覆盖完整（coverage 为 1 且各证据组纳入齐全）时，不得生成「若部分学生数据缺失」等假设性学生证据缺失限制；数据确有缺失时才能在 limitations 声明缺失。',
   '风险标志是稀疏命中集合：governedToolResults.riskFlags.hitSummary.flaggedStudentCount 是当前命中风险的学生数，不是风险数据的覆盖人数；未命中风险的学生不缺少任何证据，不得据此生成“风险数据仅覆盖 N 名学生”或等价覆盖比例限制。',

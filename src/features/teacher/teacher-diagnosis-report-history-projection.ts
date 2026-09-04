@@ -325,11 +325,18 @@ function buildAvailability(
         report.reportBody.summary,
         ...report.reportBody.limitations,
       ].some((text) => splitDiagnosisClauses(text).some(diagnosisClauseDeclaresConflict));
-      if (conflictDeclared) {
+      if (conflictDeclared && report.reportBody.conflictEvidenceVerified === true) {
         return {
           label: '证据存在冲突',
           description: '各来源证据覆盖完整，但报告声明了影响结论强度的来源间冲突。',
           recoveryAction: confidenceReasons[0]?.recoveryAction ?? '教师复核声明的证据冲突；如需更新结论，重新生成诊断。',
+        };
+      }
+      if (conflictDeclared) {
+        return {
+          label: '报告需重新生成',
+          description: '该报告声明了证据冲突，但引用证据无法验证同一学生、近时间窗与分值方向，不能作为已确认冲突。',
+          recoveryAction: '重新生成诊断以获得可核验的冲突判定。',
         };
       }
       // 完整覆盖 + 非冲突 + medium（Issue #1904）：知识节点归因缺失如实
