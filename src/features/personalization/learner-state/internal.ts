@@ -609,12 +609,6 @@ export const CONTROL_CORRECTION_PRIVACY_CLASSES: ControlCorrectionGoalSlice['pri
   ...CONTROL_CORRECTION_PRIVACY_CLASSES_VALUE,
 };
 
-const DEFAULT_EVIDENCE_WINDOW: StudentEvidenceWindow = {
-  firstStartedAt: null,
-  lastStartedAt: null,
-  daysCovered: 0,
-};
-
 export function isAdaptiveLearnerStateServiceEnabled(
   env: Record<string, string | undefined> = process.env,
 ): boolean {
@@ -1118,26 +1112,23 @@ function projectStudentSafeEventReferences(
     .slice(0, 3);
 }
 
+const OBSERVABLE_EVIDENCE_COUNT_KEYS: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'],
+  'assessmentCount' | 'simulationCount' | 'officialArenaCount' | 'reflectionCount' | 'aiCollaborationCount'>
+> = {
+  'question': 'assessmentCount',
+  'simulation-run': 'simulationCount',
+  'arena-official-evaluation': 'officialArenaCount',
+  'reflection': 'reflectionCount',
+  'agent-interaction': 'aiCollaborationCount',
+};
+
 function countControlCorrectionCapabilityObservableEvidence(
   target: AdaptiveLearningCapabilityTarget,
   sourceEvidence: ControlCorrectionSourceEvidence,
 ): number {
-  if (target.observableEvidenceType === 'question') {
-    return sourceEvidence.assessmentCount;
-  }
-  if (target.observableEvidenceType === 'simulation-run') {
-    return sourceEvidence.simulationCount;
-  }
-  if (target.observableEvidenceType === 'arena-official-evaluation') {
-    return sourceEvidence.officialArenaCount;
-  }
-  if (target.observableEvidenceType === 'reflection') {
-    return sourceEvidence.reflectionCount;
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return sourceEvidence.aiCollaborationCount;
-  }
-  return 0;
+  const countKey = OBSERVABLE_EVIDENCE_COUNT_KEYS[target.observableEvidenceType];
+  return countKey ? sourceEvidence[countKey] : 0;
 }
 
 function controlCorrectionCapabilityObservableEvidenceConfidence(
@@ -1508,6 +1499,16 @@ function buildRoleFilteredMasteryLimitations(
   ]);
 }
 
+const OBSERVABLE_EVIDENCE_FACT_MODALITIES: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'], readonly string[]>
+> = {
+  'question': ['assessment'],
+  'simulation-run': ['simulation'],
+  'arena-official-evaluation': [],
+  'reflection': ['reflection'],
+  'agent-interaction': ['ai', 'ai-collaboration', 'konling'],
+};
+
 function refsForCapabilityTarget(
   target: AdaptiveLearningCapabilityTarget,
   input: {
@@ -1519,12 +1520,7 @@ function refsForCapabilityTarget(
 ): MasteryEvidenceReference[] {
   const featureRefs = refsFromFeatureCache(target, input.featureRead);
   const agentToolRunRefs = refsFromAgentToolRunsForTarget(input.agentToolRuns, target);
-  if (target.observableEvidenceType === 'question') {
-    return [...refsFromFacts(input.facts, ['assessment']), ...agentToolRunRefs, ...featureRefs];
-  }
-  if (target.observableEvidenceType === 'simulation-run') {
-    return [...refsFromFacts(input.facts, ['simulation']), ...agentToolRunRefs, ...featureRefs];
-  }
+  const factRefs = refsFromFacts(input.facts, OBSERVABLE_EVIDENCE_FACT_MODALITIES[target.observableEvidenceType] ?? []);
   if (target.observableEvidenceType === 'arena-official-evaluation') {
     return [
       ...input.arenaSubmissions
@@ -1535,17 +1531,7 @@ function refsForCapabilityTarget(
       ...featureRefs,
     ];
   }
-  if (target.observableEvidenceType === 'reflection') {
-    return [...refsFromFacts(input.facts, ['reflection']), ...agentToolRunRefs, ...featureRefs];
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return [
-      ...refsFromFacts(input.facts, ['ai', 'ai-collaboration', 'konling']),
-      ...agentToolRunRefs,
-      ...featureRefs,
-    ].filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
-  }
-  return [...agentToolRunRefs, ...featureRefs];
+  return [...factRefs, ...agentToolRunRefs, ...featureRefs];
 }
 
 function refsFromAgentToolRunsForTarget(
@@ -1586,6 +1572,16 @@ function refsFromFeatureCache(
     .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
 }
 
+const OBSERVABLE_EVIDENCE_RESOURCE_TYPES: Partial<
+  Record<AdaptiveLearningCapabilityTarget['observableEvidenceType'], readonly string[]>
+> = {
+  'simulation-run': ['simulation', 'control_workbench'],
+  'arena-official-evaluation': ['arena_task'],
+  'question': ['quiz', 'adaptive_quiz', 'checkpoint'],
+  'reflection': ['reflection'],
+  'agent-interaction': ['ai_intervention', 'konling'],
+};
+
 function pathExecutionReferenceMatchesCapability(
   reference: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1598,23 +1594,8 @@ function pathExecutionReferenceMatchesCapability(
     terminalValidationState === 'completed';
   if (!completed) return false;
   if (!pathExecutionReferenceMatchesGoal(reference, target)) return false;
-  const resourceType = readString(reference.resourceType);
-  if (target.observableEvidenceType === 'simulation-run') {
-    return resourceType === 'simulation' || resourceType === 'control_workbench';
-  }
-  if (target.observableEvidenceType === 'arena-official-evaluation') {
-    return resourceType === 'arena_task';
-  }
-  if (target.observableEvidenceType === 'question') {
-    return resourceType === 'quiz' || resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
-  }
-  if (target.observableEvidenceType === 'reflection') {
-    return resourceType === 'reflection';
-  }
-  if (target.observableEvidenceType === 'agent-interaction') {
-    return resourceType === 'ai_intervention' || resourceType === 'konling';
-  }
-  return false;
+  const allowedResourceTypes = OBSERVABLE_EVIDENCE_RESOURCE_TYPES[target.observableEvidenceType];
+  return allowedResourceTypes?.includes(readString(reference.resourceType) ?? '') ?? false;
 }
 
 function pathExecutionReferenceMatchesGoal(
@@ -1625,28 +1606,13 @@ function pathExecutionReferenceMatchesGoal(
   if (goalId !== target.goalSliceId) return false;
   const goalSliceId = readString(reference.goalSliceId);
   if (goalSliceId !== null && goalSliceId !== target.goalSliceId) return false;
-  if (pathExecutionReferenceHasStructuredTarget(reference)) {
+  if (containerHasStructuredTarget(reference)) {
     return structuredContainerTargetsCapability(reference, target);
   }
   return true;
 }
 
-function pathExecutionReferenceHasStructuredTarget(reference: Record<string, unknown>): boolean {
-  return [
-    reference.capabilityTargetRef,
-    reference.capabilityTargetRefs,
-    reference.capabilityTargetId,
-    reference.capabilityTargetIds,
-    reference.targetCapabilityId,
-    reference.targetCapabilityIds,
-    reference.knowledgeNodeRef,
-    reference.knowledgeNodeRefs,
-    reference.knowledgeTag,
-    reference.knowledgeTags,
-  ].some((value) => typeof value === 'string' || Array.isArray(value));
-}
-
-function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: string[]): MasteryEvidenceReference[] {
+function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: readonly string[]): MasteryEvidenceReference[] {
   return facts
     .filter((fact) => {
       const modality = factTypeToModality(readString(fact.factType));
@@ -1814,27 +1780,6 @@ function agentToolRunHasGovernedEvidenceSummary(run: Record<string, unknown>): b
   );
 }
 
-function agentToolRunHasStructuredTarget(run: Record<string, unknown>): boolean {
-  const structuredContainers = [
-    run,
-    asRecord(run.outputSummary),
-    asRecord(asRecord(run.outputSummary).evidenceSummary),
-    asRecord(asRecord(run.outputSummary).materializedEvidence),
-  ];
-  return structuredContainers.some((container) => [
-    container.capabilityTargetRef,
-    container.capabilityTargetRefs,
-    container.capabilityTargetId,
-    container.capabilityTargetIds,
-    container.targetCapabilityId,
-    container.targetCapabilityIds,
-    container.knowledgeNodeRef,
-    container.knowledgeNodeRefs,
-    container.knowledgeTag,
-    container.knowledgeTags,
-  ].some((value) => typeof value === 'string' || Array.isArray(value)));
-}
-
 function agentToolRunTargetsCapability(
   run: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1848,6 +1793,24 @@ function agentToolRunTargetsCapability(
   return structuredContainers.some((container) => structuredContainerTargetsCapability(container, target));
 }
 
+const STRUCTURED_TARGET_FIELDS = [
+  'capabilityTargetRef', 'capabilityTargetRefs',
+  'capabilityTargetId', 'capabilityTargetIds',
+  'targetCapabilityId', 'targetCapabilityIds',
+  'knowledgeNodeRef', 'knowledgeNodeRefs',
+  'knowledgeTag', 'knowledgeTags',
+] as const;
+
+function containerHasStructuredTarget(container: Record<string, unknown>): boolean {
+  return STRUCTURED_TARGET_FIELDS.some((field) => (
+    typeof container[field] === 'string' || Array.isArray(container[field])
+  ));
+}
+
+function containerStructuredTargetValues(container: Record<string, unknown>): unknown[] {
+  return STRUCTURED_TARGET_FIELDS.map((field) => container[field]);
+}
+
 function structuredContainerTargetsCapability(
   value: Record<string, unknown>,
   target: AdaptiveLearningCapabilityTarget,
@@ -1857,19 +1820,7 @@ function structuredContainerTargetsCapability(
     target.knowledgeNodeRef,
     `capability:${target.knowledgeNodeRef.replace(/^control-correction:/, '')}`,
   ]);
-  const structuredValues = [
-    value.capabilityTargetRef,
-    value.capabilityTargetRefs,
-    value.capabilityTargetId,
-    value.capabilityTargetIds,
-    value.targetCapabilityId,
-    value.targetCapabilityIds,
-    value.knowledgeNodeRef,
-    value.knowledgeNodeRefs,
-    value.knowledgeTag,
-    value.knowledgeTags,
-  ];
-  return structuredValues.some((entry) => structuredTargetValueMatches(entry, targetValues));
+  return containerStructuredTargetValues(value).some((entry) => structuredTargetValueMatches(entry, targetValues));
 }
 
 function structuredTargetValueMatches(value: unknown, targetValues: Set<string>): boolean {
