@@ -873,7 +873,9 @@ export function DredgerSimulation() {
         profile.dimensions.length,
         profile.dimensions.draft,
         disturbance,
-        thruster
+        thruster,
+        // 扰动按世界系表达传入（挖掘+风流），由 Rust 契约旋入船体系（review #1944）
+        true
       );
 
       // 更新指标
@@ -958,6 +960,11 @@ export function DredgerSimulation() {
     setConfig((prev) => ({ ...prev, ...updates }));
     if ('dredgingEnabled' in updates) {
       dredgingModelRef.current.setEnabled(updates.dredgingEnabled ?? true);
+    }
+    // 告警只对 DP 定位语义有效：模式切换即时复位（含暂停状态，review #1944）
+    if (updates.controlMode && updates.controlMode !== 'dp') {
+      positionAlarmRef.current = { since: null, active: false };
+      setPositionAlarm(null);
     }
   };
 

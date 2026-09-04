@@ -619,6 +619,7 @@ export function mmg3dofStep(
   shipDraft = 6.2,
   disturbance: DisturbanceVector = { forceX: 0, forceY: 0, momentN: 0 },
   thruster?: MmgThrusterCommand,
+  disturbanceInWorld = false,
 ): MMG3DOFState {
   return computeVirtualSimulationStep<MMG3DOFState>({
     modelId: 'mmg3dof',
@@ -630,6 +631,7 @@ export function mmg3dofStep(
     shipLength,
     shipDraft,
     disturbance,
+    disturbanceInWorld,
     ...(thruster
       ? {
           surgeThrustKN: thruster.surgeKN,

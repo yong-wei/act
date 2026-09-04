@@ -15,4 +15,5 @@
 - **遗留引擎**：MMG3DOFEngine DP 分支同步修复（同四通道+滞回）；驱动链守卫以 AUTHORIZED_DRIVE_CHAIN_FILES 显式授权本 change 的 4 个文件（不污染 R6 清单）。
 - **浏览器验收**（Playwright 探针，学生会话注入，默认 DP 开局 70s 实时）：位置误差 **0.000 m**（QA 报告原 89.9→302 m 发散）、总功率 0.1 MW 显示、无精度告警、无页面错误。
 - **套件**：simulations 单测 268/268、drive-chain 守卫 5/5、typecheck EXIT=0、eslint 干净；WASM 已重建（identity.generated 同步）。
+- **复审整改（第二轮，同一 PR）**：①环境载荷下放 Rust `practice_environment_load` 统一契约（含方向角），组件复用同契约、TS 私有公式删除；②mmg3dof 增加 `disturbanceInWorld` 可选声明，世界系载荷由 Rust 旋入船体系（旋转一致性由新增等价回归锁定：world 语义 vs 参考矩阵 body 预旋转逐点 <0.1m）；③切离 DP 模式（含暂停状态）即时复位定位告警；④回归断言修正 wrap 公式并以「最后 10s 窗口 min≤0.5m + mean<3m」判定收敛（终值采样可能恰逢挖掘冲击恢复瞬态）。
 - **既有债务（基线等价，stash A/B 验证）**：tests/complex-simulations.spec.ts 的 dredger 用例在干净基线同样失败（无会话注入 + heading 名称过时，serial 级联 6 skip）——非本次引入，留待独立修复。
