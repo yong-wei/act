@@ -204,6 +204,9 @@ describe('issue #1948 combo-signal intent routing', () => {
     ['帮我看看这个系统的稳态误差该怎么分析', 'open-ended-explanation'],
     ['什么是超调量？', 'fact-explanation'],
     ['奈奎斯特判据的含义是什么？', 'fact-explanation'],
+    // review finding：「课程」是泛学习上下文而非权威出处，不得触发规范组合。
+    ['课程要求我们比较 PID 和 PI，我该怎么选？', 'concept-comparison'],
+    ['课程要求先推导闭环传递函数', 'formula-derivation'],
   ];
 
   it('routes combo phrasings for all six intents without fallback capture', () => {

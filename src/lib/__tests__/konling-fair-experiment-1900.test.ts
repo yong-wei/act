@@ -29,7 +29,7 @@ import {
   STUDY_QUESTION_INTENTS,
   STUDY_QUESTION_SECTIONS,
 } from '@/lib/konling-study-question-structure';
-import type { KonlingFairExperimentConfig } from '@/lib/konling-fair-experiment';
+import type { KonlingFairExperimentBank, KonlingFairExperimentConfig } from '@/lib/konling-fair-experiment';
 
 let root: string;
 
@@ -211,12 +211,14 @@ describe('端到端：断点续跑与 fail closed', () => {
     expect(agreement?.n).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length * 2);
     expect(agreement!.rate).toBeGreaterThanOrEqual(0);
     expect(agreement!.rate).toBeLessThanOrEqual(1);
-    // #1948：逐意图混淆分解完整枚举题库意图，类别级失败不被总体率掩盖。
+    // #1948：逐意图混淆分解按题库唯一意图枚举，类别级失败不被总体率掩盖。
     const byIntent = agreement!.byIntent;
-    expect(byIntent).toHaveLength(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length);
-    expect(new Set(byIntent.map((entry) => entry.intent)).size).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length);
+    const expectedIntents = [...new Set(KONLING_FAIR_EXPERIMENT_BANK_V1.items.map((item) => item.intent))];
+    expect(byIntent.map((entry) => entry.intent)).toEqual(expectedIntents);
     for (const entry of byIntent) {
-      expect(entry.n, entry.intent).toBe(2);
+      const support = KONLING_FAIR_EXPERIMENT_BANK_V1.items
+        .filter((item) => item.intent === entry.intent).length;
+      expect(entry.n, entry.intent).toBe(support * 2);
       expect(
         Object.values(entry.routedCounts).reduce((sum, count) => sum + count, 0),
         entry.intent,
@@ -229,6 +231,34 @@ describe('端到端：断点续跑与 fail closed', () => {
       expect(entry?.matched, intent).toBe(entry?.n);
       expect(entry?.routedCounts['open-ended-explanation'], intent).toBeUndefined();
     }
+  });
+
+  it('逐意图混淆按意图聚合：同意图多条目汇入同一条分解（#1948 review）', async () => {
+    // 真实批次可同结构追加条目（bank.ts）；两条 fact-explanation 题项必须聚合
+    // 为一条按意图分组的分解，不得按题项拆散。
+    const factItem = KONLING_FAIR_EXPERIMENT_BANK_V1.items
+      .find((item) => item.intent === 'fact-explanation')!;
+    const duplicateIntentBank: KonlingFairExperimentBank = {
+      bankVersion: 'fair-experiment-v1-dup',
+      replicates: 2,
+      items: [
+        factItem,
+        { ...factItem, itemId: 'fact-dup-2', question: '什么是稳态误差？' },
+      ],
+    };
+    const summary = await runKonlingFairExperiment({
+      root, runId: 'dup-intent', bank: duplicateIntentBank,
+      config: fixtureConfig(), calibers: ['structure-alias.v1'],
+      generateProvider, auditProvider,
+    });
+    expect(summary.aggregateStatus).toBe('complete');
+    const agreement = summary.aggregate.officialSummary!.perArm['full-feature'].classificationAgreement!;
+    expect(agreement.n).toBe(4);
+    expect(agreement.byIntent).toHaveLength(1);
+    expect(agreement.byIntent[0].intent).toBe('fact-explanation');
+    expect(agreement.byIntent[0].n).toBe(4);
+    expect(agreement.byIntent[0].matched).toBe(4);
+    expect(agreement.byIntent[0].routedCounts['fact-explanation']).toBe(4);
   });
 
   it('续跑不重复生成，回答快照冻结', async () => {
