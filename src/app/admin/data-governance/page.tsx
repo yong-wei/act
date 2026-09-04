@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 
 import { DataGovernanceDashboard } from '@/features/admin/data-governance-dashboard';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 
 export default async function AdminDataGovernancePage({
   searchParams,
@@ -22,7 +23,7 @@ export default async function AdminDataGovernancePage({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(buildLoginRedirectForPath('/admin/data-governance'));
   }
 
   if (session.user.role !== UserRole.ADMIN) {

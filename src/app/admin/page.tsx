@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import { AdminConsoleHome } from '@/features/admin/admin-console-home';
 
@@ -11,7 +12,7 @@ export default async function AdminPage() {
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(buildLoginRedirectForPath('/admin'));
   }
 
   if (session.user.role !== UserRole.ADMIN) {

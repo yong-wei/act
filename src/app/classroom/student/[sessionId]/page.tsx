@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { StudentPlayer } from '@/features/lesson-engine/student-player';
 import { buildSessionParticipantHref } from '@/lib/classroom-session-route';
 import { buildClassroomIdentityPayload } from '@/lib/classroom-lifecycle-contract';
@@ -17,7 +18,7 @@ export default async function StudentSessionPage(props: PageProps) {
   const params = await props.params;
   const userSession = await getServerSession(authOptions);
   if (!userSession?.user?.id) {
-    redirect('/login');
+    redirect(buildLoginRedirectForPath(`/classroom/student/${params.sessionId}`));
   }
 
   const session = await prisma.classSession.findUnique({

@@ -8,6 +8,7 @@ import {
 } from '@/features/assessment/document-rubric-grading-ui';
 import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { prisma } from '@/lib/prisma';
 import {
   buildTeacherGradingWorkbenchView,
@@ -54,7 +55,7 @@ export default async function TeacherGradingWorkbenchPage({
 }) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect(buildLoginRedirectForPath('/teacher/grading-workbench'));
   }
   if (session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN) {
     redirect('/dashboard');

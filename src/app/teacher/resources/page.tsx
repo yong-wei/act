@@ -2,13 +2,14 @@ import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { prisma } from '@/lib/prisma';
 import { TeacherResourceManager } from '@/features/teacher/teacher-resource-manager';
 
 export default async function ResourcesPage() {
   const session = await getServerAuthSession();
   if (!session?.user) {
-    redirect('/login');
+    redirect(buildLoginRedirectForPath('/teacher/resources'));
   }
 
   if (session.user.role !== UserRole.TEACHER) {

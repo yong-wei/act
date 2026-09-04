@@ -6,6 +6,7 @@ import {
   SmartCoursewareProjectionEditor,
 } from '@/features/teacher/smart-courseware-editor';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { prisma } from '@/lib/prisma';
 import {
   buildSmartCoursewareDraftCreationKey,
@@ -27,11 +28,12 @@ export default async function SmartCoursewareEditorPage({
   params: Promise<{ draftId: string }>;
   searchParams: Promise<{ planRevisionId?: string; creationIntentId?: string }>;
 }) {
+  const { draftId } = await params;
   const session = await getServerAuthSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) redirect(buildLoginRedirectForPath(`/teacher/smart-prep/courseware/${draftId}`));
   if (session.user.role !== UserRole.TEACHER) redirect(session.user.role === UserRole.ADMIN ? '/admin' : '/dashboard');
 
-  const [{ draftId }, query] = await Promise.all([params, searchParams]);
+  const query = await searchParams;
   const actor = { id: session.user.id, role: 'TEACHER' as const };
   const planRevisionId = query.planRevisionId?.trim() || null;
   if (draftId === 'new') {

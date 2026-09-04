@@ -4,6 +4,7 @@ import { UserRole } from '@prisma/client';
 import { SmartPreparationWorkspace } from '@/features/teacher/smart-preparation-workspace';
 import { publicTask, publicTaskSummary } from '@/app/api/teacher/smart-lesson-tasks/_shared';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
 import { listCourseBases } from '@/lib/course-basis';
 import { prisma } from '@/lib/prisma';
 import { getSmartLessonTask, listSmartLessonTaskSummaries } from '@/lib/smart-lesson-plan';
@@ -18,7 +19,7 @@ export default async function SmartPrepPage({
   searchParams: Promise<{ taskId?: string; view?: string; courseBasisId?: string }>;
 }) {
   const session = await getServerAuthSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) redirect(buildLoginRedirectForPath('/teacher/smart-prep'));
   if (session.user.role !== UserRole.TEACHER) redirect(session.user.role === UserRole.ADMIN ? '/admin' : '/dashboard');
 
   const actor = { id: session.user.id, role: 'TEACHER' as const };
