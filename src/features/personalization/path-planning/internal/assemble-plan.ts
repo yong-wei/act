@@ -2392,7 +2392,12 @@ function assembleAdaptiveLearningPathPlanInternal(
     evaluateNodeReadiness(entry.node, input.learnerState, input.constraints, completedNodeIds),
   ]));
   let currentNodeId = plannedEntries.length > 0
-    ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId, input.constraints.currentNodeId)
+    ? firstReadyCurrentNodeId(
+      plannedEntries.map((entry) => entry.node.id),
+      completedNodeIds,
+      (nodeId) => (readinessByNodeId.get(nodeId)?.state ?? 'ready') === 'ready',
+      input.constraints.currentNodeId,
+    )
     : null;
   let mainPath = plannedEntries.length > 0
     ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)!))
@@ -2529,7 +2534,12 @@ export function recordLearningPathFeedback(
   if (safeEvent.type === 'completion' && safeEvent.nodeId && plan.mainPath.some((node) => node.nodeId === safeEvent.nodeId)) {
     const completedNodeIds = unique([...executionStatus.completedNodeIds, safeEvent.nodeId]);
     const refreshedPath = refreshPathReadinessAfterFeedback(mainPath, completedNodeIds, safeEvent.context);
-    currentNodeId = resolveCurrentPlanNodeId(refreshedPath, completedNodeIds);
+    const readyById = new Map(refreshedPath.map((node) => [node.nodeId, (node.readiness?.state ?? 'ready') === 'ready']));
+    currentNodeId = firstReadyCurrentNodeId(
+      refreshedPath.map((node) => node.nodeId),
+      completedNodeIds,
+      (nodeId) => readyById.get(nodeId) ?? true,
+    );
     mainPath = refreshedPath.map((node) => ({
       ...node,
       status: completedNodeIds.includes(node.nodeId)
@@ -2666,9 +2676,7 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
   }
   if (plan.mainPath.length === 0) return [];
   const estimatedMinutes = remainingEstimatedMinutes(plan.mainPath);
-  const terminalValidationNodeIds = plan.mainPath
-    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-    .map((node) => node.nodeId);
+  const terminalValidationNodeIds = pathTerminalValidationNodeIds(plan.mainPath);
   const resourceMix = buildModalityMix(plan.mainPath);
   const targetDeficits = deficitsForPath(
     plan.mainPath,
@@ -3421,9 +3429,10 @@ interface AdaptiveLearningPathPreferenceContext {
 }
 
 function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPreferenceContext {
-  const usesExplicitResourcePreferences = input.resourcePreferenceSource
-    ? input.resourcePreferenceSource !== 'fallback'
-    : input.resourcePreferences !== undefined;
+  const usesExplicitResourcePreferences = hasExplicitPlannerChoice(
+    input.resourcePreferenceSource,
+    input.resourcePreferences,
+  );
   const resourceTypes = unique(usesExplicitResourcePreferences
     ? input.resourcePreferences ?? []
     : [
@@ -3437,12 +3446,8 @@ function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput):
     difficultyRhythm: input.difficultyRhythm ?? 'steady',
     checkpointPreference: input.checkpointPreference ?? 'standard',
     usesExplicitResourcePreferences,
-    usesExplicitDifficultyRhythm: input.difficultyRhythmSource
-      ? input.difficultyRhythmSource !== 'fallback'
-      : input.difficultyRhythm !== undefined,
-    usesExplicitCheckpointPreference: input.checkpointPreferenceSource
-      ? input.checkpointPreferenceSource !== 'fallback'
-      : input.checkpointPreference !== undefined,
+    usesExplicitDifficultyRhythm: hasExplicitPlannerChoice(input.difficultyRhythmSource, input.difficultyRhythm),
+    usesExplicitCheckpointPreference: hasExplicitPlannerChoice(input.checkpointPreferenceSource, input.checkpointPreference),
   };
 }
 
@@ -4132,38 +4137,24 @@ function prerequisiteDepth(node: ResourceNode, nodesById: Map<string, ResourceNo
   );
 }
 
-function resolveCurrentNodeId(
-  entries: ScoredNode[],
-  completedNodeIds: string[],
-  readinessByNodeId: Map<string, AdaptiveLearningPathNodeReadiness>,
+function firstReadyCurrentNodeId(
+  nodeIds: readonly string[],
+  completedNodeIds: readonly string[],
+  isReady: (nodeId: string) => boolean,
   preferredCurrentNodeId?: string | null,
 ): string | null {
   const completed = new Set(completedNodeIds);
   if (
     preferredCurrentNodeId &&
     !completed.has(preferredCurrentNodeId) &&
-    entries.some((entry) => entry.node.id === preferredCurrentNodeId) &&
-    (readinessByNodeId.get(preferredCurrentNodeId)?.state ?? 'ready') === 'ready'
+    nodeIds.includes(preferredCurrentNodeId) &&
+    isReady(preferredCurrentNodeId)
   ) {
     return preferredCurrentNodeId;
   }
-  for (const entry of entries) {
-    if (completed.has(entry.node.id)) continue;
-    return (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
-      ? entry.node.id
-      : null;
-  }
-  return null;
-}
-
-function resolveCurrentPlanNodeId(
-  nodes: AdaptiveLearningPathPlanNode[],
-  completedNodeIds: string[],
-): string | null {
-  const completed = new Set(completedNodeIds);
-  for (const node of nodes) {
-    if (completed.has(node.nodeId)) continue;
-    return (node.readiness?.state ?? 'ready') === 'ready' ? node.nodeId : null;
+  for (const nodeId of nodeIds) {
+    if (completed.has(nodeId)) continue;
+    return isReady(nodeId) ? nodeId : null;
   }
   return null;
 }
@@ -5007,6 +4998,15 @@ function differentiablePolicyModalityMix(
   return buildModalityMix(corePolicyTeachingPlanNodes(mainPath, registry));
 }
 
+const POLICY_FAMILY_STYLE: Record<AdaptiveLearningPathPolicyFamily, { id: AdaptiveLearningPathStyleId; label: string }> = {
+  'foundation-remediation': { id: 'foundation-remediation', label: '基础补救' },
+  'simulation-driven': { id: 'arena-simulation-sprint', label: '仿真与 Arena 冲刺' },
+  'preference-matched': { id: 'preference-matched-route', label: '偏好匹配路线' },
+  'sprint-correction': { id: 'sprint-correction-route', label: '短程纠偏' },
+  'teacher-assigned': { id: 'teacher-assigned-route', label: '教师指定路线' },
+  'rules-plus-graph-search': { id: 'rules-graph-search-route', label: '推荐路线' },
+};
+
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
   primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
@@ -5140,15 +5140,14 @@ function buildPolicyBundle(
         avoidedDifferentiableCoreRefs.add(ref);
       });
       const modalityMix = buildModalityMix(mainPath);
-      const terminalValidationNodeIds = mainPath
-        .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-        .map((node) => node.nodeId);
+      const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
+      const estimatedMinutes = remainingTeachingEstimatedMinutes(mainPath);
       const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
       const targetDeficits = deficitsForPath(mainPath, deficits);
       basePaths.push({
-        styleId: styleIdForPolicyFamily(policyFamily),
+        styleId: POLICY_FAMILY_STYLE[policyFamily].id,
         policyFamily,
-        label: styleLabelForPolicyFamily(policyFamily),
+        label: POLICY_FAMILY_STYLE[policyFamily].label,
         nodeIds: mainPath.map((node) => node.nodeId),
         activeNodeIds: activePolicyNodeIds(mainPath),
         lockedNodeIds: lockedPolicyNodeIds(mainPath),
@@ -5164,15 +5163,15 @@ function buildPolicyBundle(
           learnerStateSnapshot: plan.visualization?.evidence?.learnerStateSnapshot,
         }),
         evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
-        estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
+        estimatedMinutes,
         modalityMix,
         resourceMix: modalityMix,
         overlap: {
           maxWithOtherOptions: 0,
         },
         effort: {
-          estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
-          relative: effortLabel(remainingTeachingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
+          estimatedMinutes,
+          relative: effortLabel(estimatedMinutes, input.constraints.timeBudgetMinutes),
         },
         expectedTargetLift: round(plan.score.objectives.learningGain, 3),
         terminalValidationNodeIds,
@@ -5562,14 +5561,18 @@ function toPathOptionNodeSummary(node: AdaptiveLearningPathPlanNode): AdaptiveLe
   };
 }
 
+function pathTerminalValidationNodeIds(mainPath: AdaptiveLearningPathPlanNode[]): string[] {
+  return mainPath
+    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+    .map((node) => node.nodeId);
+}
+
 function selectCheckpointNodeIds(
   mainPath: AdaptiveLearningPathPlanNode[],
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): string[] {
   if (mainPath.length === 0) return [];
-  const terminalValidationNodeIds = mainPath
-    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-    .map((node) => node.nodeId);
+  const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
   if (terminalValidationNodeIds.length > 0) return terminalValidationNodeIds;
   const policy = registeredGoal?.checkpointPolicy;
   const preferred = policy
@@ -5591,22 +5594,8 @@ function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<stri
   }, {});
 }
 
-function styleIdForPolicyFamily(policyFamily: AdaptiveLearningPathPolicyFamily): AdaptiveLearningPathStyleId {
-  if (policyFamily === 'foundation-remediation') return 'foundation-remediation';
-  if (policyFamily === 'simulation-driven') return 'arena-simulation-sprint';
-  if (policyFamily === 'preference-matched') return 'preference-matched-route';
-  if (policyFamily === 'sprint-correction') return 'sprint-correction-route';
-  if (policyFamily === 'teacher-assigned') return 'teacher-assigned-route';
-  return 'rules-graph-search-route';
-}
-
-function styleLabelForPolicyFamily(policyFamily: AdaptiveLearningPathPolicyFamily): string {
-  if (policyFamily === 'foundation-remediation') return '基础补救';
-  if (policyFamily === 'simulation-driven') return '仿真与 Arena 冲刺';
-  if (policyFamily === 'preference-matched') return '偏好匹配路线';
-  if (policyFamily === 'sprint-correction') return '短程纠偏';
-  if (policyFamily === 'teacher-assigned') return '教师指定路线';
-  return '推荐路线';
+function hasExplicitPlannerChoice(source: string | undefined, value: unknown): boolean {
+  return source ? source !== 'fallback' : value !== undefined;
 }
 
 function deficitsForPath(
@@ -6093,9 +6082,7 @@ function buildTimelinePayload(
       return {
         days,
         nodeIds,
-        estimatedMinutes: mainPath
-          .filter((node) => nodeIds.includes(node.nodeId) && node.status !== 'completed')
-          .reduce((sum, node) => sum + node.estimatedTimeMinutes, 0),
+        estimatedMinutes: remainingEstimatedMinutes(mainPath.filter((node) => nodeIds.includes(node.nodeId))),
       };
     }),
   };
