@@ -1477,15 +1477,17 @@ export function buildResidualCompactPackage(params: {
 }
 
 /**
- * Verifies the delivered decision package as a whole. The index, every compact
- * projection, and the external ledger must together equal the deterministic
- * re-adjudication rebuilt from the ledger bytes plus the identities and run
- * snapshot recorded in the package itself. One invariant, one check: any field
- * of any artifact — present or added in the future — that does not re-derive
- * from the ledger fails this verification. There is deliberately no per-field
- * checklist to keep patching.
+ * Content-level reconciliation of the delivered decision package. The index,
+ * every compact projection, and the external ledger must together equal the
+ * deterministic re-adjudication rebuilt from the ledger bytes plus the
+ * identities and run snapshot recorded in the package itself. One invariant,
+ * one check: any field of any artifact — present or added in the future — that
+ * does not re-derive from the ledger fails. The recorded projection
+ * verification receipt is NOT judged here; that is the strict publication gate
+ * in verifyResidualDecisionPackage, so convergence rounds may carry a
+ * placeholder receipt while their content reconciles.
  */
-export function verifyResidualDecisionPackage(params: {
+export function reconcileResidualDecisionPackage(params: {
   readonly outputDir: string;
   readonly ledgerAbsolutePath: string;
 }): ResidualPackageVerification {
@@ -1612,17 +1614,38 @@ export function verifyResidualDecisionPackage(params: {
   if (serializeDeterministic(actualIndex) !== serializeDeterministic(expectedIndex)) {
     return { reconciled: false, reason: 'index-mismatch', fileDigests };
   }
-  // A recorded POSITIVE verification claim must be backed by exactly the
-  // digests this run recomputed from the artifacts on disk. A recorded
-  // negative claim only makes the package more conservative and is allowed.
-  const recordedVerification = index.projectionVerification;
-  if (recordedVerification?.reconciled === true) {
-    const recorded = serializeDeterministic(recordedVerification.fileDigests ?? {});
-    if (recorded !== serializeDeterministic(fileDigests)) {
-      return { reconciled: false, reason: 'projection-verification-inconsistent', fileDigests };
-    }
-  }
   return { reconciled: true, fileDigests };
+}
+
+/**
+ * Strict publication gate: on top of whole-package reconciliation, a delivered
+ * package MUST carry a recorded projection-verification receipt that exists,
+ * claims true, and whose file digests equal exactly what this run recomputed
+ * from the artifacts on disk. A missing or downgraded receipt fails even when
+ * the content itself reconciles, because a qualified package without its
+ * digest-bound receipt is not a valid decision package (tasks 3.2/8.1).
+ */
+export function verifyResidualDecisionPackage(params: {
+  readonly outputDir: string;
+  readonly ledgerAbsolutePath: string;
+}): ResidualPackageVerification {
+  const reconciliation = reconcileResidualDecisionPackage(params);
+  if (!reconciliation.reconciled) return reconciliation;
+  let indexRaw: string;
+  try {
+    indexRaw = readFileSync(join(params.outputDir, 'index.json'), 'utf8');
+  } catch {
+    return { reconciled: false, reason: 'package-unreadable:index.json', fileDigests: reconciliation.fileDigests };
+  }
+  const recorded = (JSON.parse(indexRaw) as { projectionVerification?: { reconciled?: boolean; fileDigests?: Record<string, string> } }).projectionVerification;
+  if (!recorded || typeof recorded !== 'object') {
+    return { reconciled: false, reason: 'projection-verification-missing', fileDigests: reconciliation.fileDigests };
+  }
+  if (recorded.reconciled !== true
+    || serializeDeterministic(recorded.fileDigests ?? {}) !== serializeDeterministic(reconciliation.fileDigests)) {
+    return { reconciled: false, reason: 'projection-verification-inconsistent', fileDigests: reconciliation.fileDigests };
+  }
+  return reconciliation;
 }
 
 function normalizeProjection(text: string): string {

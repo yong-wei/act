@@ -37,6 +37,7 @@ import {
   resolveModuleSpecifier,
   resolveResidualCurrentSubject,
   textReferencesMember,
+  reconcileResidualDecisionPackage,
   verifyResidualDecisionPackage,
   verifyResidualLedgerArtifact,
   type Issue1876Snapshot,
@@ -393,9 +394,9 @@ function writeRoundPackage(
   writeFileSync(join(outDir, 'index.json'), compact);
 }
 
-/** Reconciles the whole on-disk package against the ledger bytes. */
+/** Content-level reconciliation of the whole on-disk package against the ledger bytes. */
 function reconcileRoundPackage(): ResidualPackageVerification {
-  return verifyResidualDecisionPackage({ outputDir: outDir, ledgerAbsolutePath: ledgerPath });
+  return reconcileResidualDecisionPackage({ outputDir: outDir, ledgerAbsolutePath: ledgerPath });
 }
 
 // 6. Fixed-point convergence: each round publishes its full package, which is
@@ -420,7 +421,7 @@ if (verification.reconciled !== receiptFlag) {
 // Publish the final index embedding the verification computed against exactly
 // these final bytes, then confirm the recorded claim is backed.
 writeRoundPackage(result, receiptFlag, verification);
-const finalVerification = reconcileRoundPackage();
+const finalVerification = verifyResidualDecisionPackage({ outputDir: outDir, ledgerAbsolutePath: ledgerPath });
 if (!finalVerification.reconciled) {
   process.stderr.write(`final-package-unverified:${finalVerification.reason}\n`);
   process.exit(1);

@@ -23,6 +23,7 @@ import {
   projectResidualDocuments,
   resolveModuleSpecifier,
   textReferencesMember,
+  reconcileResidualDecisionPackage,
   verifyResidualDecisionPackage,
   type Issue1876Snapshot,
   type LedgerVerificationReceipt,
@@ -188,7 +189,8 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
   const adjudicateWith = (flag: boolean): ResidualAdjudication => asAdjudication(
     adjudicateResidualDataGovernance({ ...input(coherentPartial), ledgerVerification: { ...ledgerReceipt, projectionsReconciled: flag } }),
   );
-  const reconcile = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
+  const reconcile = () => reconcileResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
+  const verifyStrict = () => verifyResidualDecisionPackage({ outputDir: dir, ledgerAbsolutePath: ledgerPath });
 
   let flag = false;
   let result = adjudicateWith(flag);
@@ -206,7 +208,7 @@ function buildFixedPointPackage(partial: Partial<ResidualAdjudicationInput> & Pi
     }
   }
   writeRoundPackage(dir, result, { ...ledgerReceipt, projectionsReconciled: flag }, verification);
-  return { dir, ledgerPath, ledgerReceipt, result, verification: reconcile() };
+  return { dir, ledgerPath, ledgerReceipt, result, verification: verifyStrict() };
 }
 
 /** Runs the fixed-point flow and returns the converged final adjudication. */
@@ -931,6 +933,24 @@ describe('residual data-governance adjudication', () => {
       expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
         reconciled: false,
         reason: 'projection-verification-inconsistent',
+      });
+
+      // Downgrading a qualified package's receipt to false is not conservative.
+      const backed = JSON.parse(readFileSync(indexPath, 'utf8'));
+      backed.projectionVerification = { ...backed.projectionVerification, reconciled: false };
+      writeFileSync(indexPath, JSON.stringify(backed));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-inconsistent',
+      });
+
+      // Deleting the receipt block entirely fails the same gate.
+      const stripped = JSON.parse(readFileSync(indexPath, 'utf8'));
+      delete stripped.projectionVerification;
+      writeFileSync(indexPath, JSON.stringify(stripped));
+      expect(verifyResidualDecisionPackage({ outputDir: pkg.dir, ledgerAbsolutePath: pkg.ledgerPath })).toMatchObject({
+        reconciled: false,
+        reason: 'projection-verification-missing',
       });
     } finally {
       rmSync(pkg.dir, { recursive: true, force: true });
