@@ -926,14 +926,21 @@ export function adjudicateResidualDataGovernance(
     sha256: sha256Text(ledgerBody),
   };
   const receipt = input.ledgerVerification ?? null;
+  // Every receipt identity field is compared against a value re-derived from
+  // this adjudication's own ledger and subject, so no field of a recorded
+  // receipt can drift unverified.
   const receiptValid = receipt
     && receipt.sha256 === fullLedger.sha256
     && receipt.byteCount === fullLedger.byteCount
     && receipt.memberDenominator === records.length
     && receipt.subjectCommit === subject.currentSubject.subjectCommit
+    && receipt.subjectTree === subject.currentSubject.subjectTree
+    && receipt.schemaVersion === RESIDUAL_SCHEMA_VERSION
+    && receipt.locator === fullLedger.logicalLocator
     && receipt.toolContentDigest === input.tool.entryBundleDigest
     && receipt.callerBundleDigest === callerBundleDigest
     && receipt.memberSetDigest === subject.memberSetDigest
+    && receipt.familiesDigest === sha256Text(serializeDeterministic(families))
     && receipt.projectionsReconciled === true;
   if (!receiptValid) blockers.push('full-ledger-bytes-unverified');
   const summaries = {

@@ -258,6 +258,13 @@ if (String(upstreamIssue.state).toUpperCase() !== 'CLOSED' || !upstreamIssue.lab
   process.stderr.write(`upstream-payload-change-not-archived:${UPSTREAM_PAYLOAD_CHANGE.issue}:${upstreamIssue.state}:${upstreamIssue.labels.join(',')}\n`);
   process.exit(2);
 }
+// Task 1.1: the upstream dependency must also have its native blockedBy
+// relationships resolved before this adjudication may consume it.
+const openUpstreamBlockers = upstreamIssue.blockedBy.filter((item) => String(item.state).toUpperCase() !== 'CLOSED');
+if (openUpstreamBlockers.length > 0) {
+  process.stderr.write(`upstream-payload-blockedBy-unresolved:${UPSTREAM_PAYLOAD_CHANGE.issue}:${openUpstreamBlockers.map((item) => item.number).join(',')}\n`);
+  process.exit(2);
+}
 const upstreamPayload = { ...loadUpstreamPayloadEvidence(repoRoot), closed: true, archived: true };
 const predecessor = loadPredecessorComparison(repoRoot);
 

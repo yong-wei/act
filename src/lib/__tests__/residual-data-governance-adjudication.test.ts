@@ -350,6 +350,21 @@ describe('residual data-governance adjudication', () => {
       ledgerVerification: { ...fullReceipt, callerBundleDigest: 'e'.repeat(64) },
     }));
     expect(foreignCallerBundle.blockers).toContain('full-ledger-bytes-unverified');
+
+    // Every remaining identity field is bound to the re-derived ledger values.
+    for (const tampered of [
+      { subjectTree: '0'.repeat(40) },
+      { schemaVersion: 'act-residual-data-governance-adjudication/v1' },
+      { familiesDigest: '0'.repeat(64) },
+      { locator: 'artifacts/elsewhere/ledger.ndjson' },
+    ] as const) {
+      const drifted = asAdjudication(adjudicateResidualDataGovernance({
+        ...input({ members }),
+        ledgerVerification: { ...fullReceipt, ...tampered },
+      }));
+      expect(drifted.blockers).toContain('full-ledger-bytes-unverified');
+      expect(drifted.qualified).toBe(false);
+    }
   });
 
   it('collects intra-package re-exports and directory path reads', () => {
