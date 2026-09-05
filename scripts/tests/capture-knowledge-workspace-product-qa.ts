@@ -1482,8 +1482,9 @@ async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: str
   await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
   if (mode === 'legacy') {
     await page.waitForFunction(() => {
+      // active 与 legacy 视图都携带 data-knowledge-canvas-primary；legacy 就绪判据须 scope 到 legacy 视图。
       const view = document.querySelector('[data-knowledge-legacy-view="true"]');
-      const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      const canvas = view?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
       return Boolean(view && canvas && Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0') > 0);
     }, undefined, { timeout: 30000 });
   } else if (mode === 'candidate') {
@@ -2630,10 +2631,11 @@ async function captureAuthenticatedRoleEvidence(
         await probe.readSensitiveTokens(),
       );
       const legacyCanvas = await page.evaluate(() => {
-        const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+        const legacyView = document.querySelector('[data-knowledge-legacy-view="true"]');
+        const canvas = legacyView?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
         return {
           visibleNodeCount: Number(canvas?.dataset.knowledgeVisibleNodeCount ?? '0'),
-          legacyView: Boolean(document.querySelector('[data-knowledge-legacy-view="true"]')),
+          legacyView: Boolean(legacyView),
         };
       });
       if (!legacyCanvas.legacyView || legacyCanvas.visibleNodeCount <= 0) {
