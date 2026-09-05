@@ -1347,7 +1347,8 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       surfaceValues: scannedValues,
     };
   });
-  const internalIdentityLeakCount = rawScan.surfaceValues.filter((value) => sensitiveMatcher.matches(value)).length;
+  const identityLeakSamples = rawScan.surfaceValues.filter((value) => sensitiveMatcher.matches(value)).slice(0, 8);
+  const internalIdentityLeakCount = identityLeakSamples.length;
   return {
     graphPresent: rawScan.graphPresent,
     scannedSurfaceCount: rawScan.surfaceValues.length,
@@ -1355,6 +1356,7 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
     forbiddenEnumCount: rawScan.forbiddenEnumCount,
     forbiddenLocatorCount: rawScan.forbiddenLocatorCount,
     internalIdentityLeakCount,
+    identityLeakSamples,
     copyEntryCount: rawScan.copyEntryCount,
     copyEntryPresent: rawScan.copyEntryPresent,
     passed: rawScan.forbiddenTokenCount === 0
@@ -2995,6 +2997,7 @@ async function captureActiveAuthorityVisualMatrix(
               forbiddenEnumCount: surfaceScan.forbiddenEnumCount,
               forbiddenLocatorCount: surfaceScan.forbiddenLocatorCount,
               internalIdentityLeakCount: surfaceScan.internalIdentityLeakCount,
+              identityLeakSamples: surfaceScan.identityLeakSamples,
               copyEntryCount: surfaceScan.copyEntryCount,
               surfaceScanPassed: surfaceScan.passed === true,
             })}`,
