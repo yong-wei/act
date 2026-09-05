@@ -38,6 +38,7 @@ function citation(overrides: Partial<KonlingFairExperimentCitationSnapshot> & { 
     displayNumber: 1,
     sourceType: 'knowledge-graph',
     href: 'https://act.example/kb/target',
+    answerRelevanceMatch: 'query-exact',
     ...overrides,
   };
 }
@@ -103,6 +104,30 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(noTarget.coveredUnitCount).toBe(0);
   });
 
+  it('inaccessible citations (empty href) fall into the no-target bucket and never cover units', () => {
+    const record = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', href: null })],
+    );
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.citationClasses.citationNoTarget).toBe(1);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+    expect(record.requiredUnitCount).toBeGreaterThan(0);
+  });
+
+  it('related-only citations without direct-support evidence never count toward precision or coverage', () => {
+    const record = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', answerRelevanceMatch: null })],
+    );
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.citationClasses.citationNoDirectSupport).toBe(1);
+    expect(record.citationClasses.realVerifiedSupporting).toBe(0);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+  });
+
   it('model-derived sections never enter the coverage denominator', () => {
     const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
       STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section)?.citationPolicy === 'model-derived' ? ' [1]' : ''
@@ -114,7 +139,9 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.requiredUnitCount).toBe(evidenceCount);
     expect(record.coveredUnitCount).toBe(0);
     expect(record.verifiedSupportingCount).toBe(0);
-    expect(record.driftedMarkerCount).toBeGreaterThan(0);
+    // 唯一编号口径：同一编号在多个 model-derived 章节出现也只计一次，
+    // 不得与 scan 的出现次数口径叠加（#1992 review P2 回归）。
+    expect(record.driftedMarkerCount).toBe(1);
   });
 });
 

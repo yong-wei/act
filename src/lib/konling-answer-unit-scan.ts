@@ -60,6 +60,12 @@ export interface KonlingAnswerUnitRecord {
   bound: boolean;
   substantive: boolean;
   missReason: KonlingAnswerUnitMissReason | null;
+  /**
+   * #1951：该单元行内可绑定标记（verified 且有锚点）对应的 citation id，
+   * 供公平实验覆盖分子做绑定级判定（可访问性/直接支撑在审计侧核验）；
+   * 生产 guard 不消费此字段。
+   */
+  bindingCitationIds?: readonly string[];
 }
 
 export function assignedCitationNumbers(citations: readonly KonlingAnswerUnitScannableCitation[]): ReadonlySet<number> {
@@ -176,6 +182,7 @@ export function scanKonlingAnswerUnits(
       const substantive = !isStructuralAnswerUnitLine(trimmedUnit);
       const trustedMarkers: number[] = [];
       const perLineNumberCounts = new Map<number, number>();
+      const perUnitCitationIds = new Set<string>();
       let bound = false;
       for (const match of line.matchAll(marker)) {
         const markerNumber = Number(match[1]);
@@ -186,6 +193,7 @@ export function scanKonlingAnswerUnits(
         perLineNumberCounts.set(markerNumber, (perLineNumberCounts.get(markerNumber) ?? 0) + 1);
         const citation = citations.find((candidate) => candidate.displayNumber === markerNumber);
         if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
+        perUnitCitationIds.add(citation.id);
         // 可绑定 marker 出现在 model-derived 章节或无章节区域时不服务于任何
         // 需证据单元的覆盖，计为漂移（#1902）
         if (intent && (!currentSection
@@ -218,6 +226,7 @@ export function scanKonlingAnswerUnits(
         bound,
         substantive,
         missReason: bound || !substantive ? null : resolveAnswerUnitMissReason(trustedMarkers, citations),
+        bindingCitationIds: [...perUnitCitationIds],
       });
     } finally {
       lineStart += line.length + 1;

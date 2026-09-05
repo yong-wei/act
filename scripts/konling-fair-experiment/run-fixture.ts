@@ -35,9 +35,13 @@ import { STUDY_QUESTION_SECTIONS } from '@/lib/konling-study-question-structure'
 import { defaultRunId, gitRevision, parseCliFlags } from '../konling-blind-audit/cli';
 
 /**
- * #1951 fixture citation 快照：cit-1 已核验可绑定，cit-2 未核验。
+ * #1951 fixture citation 快照：cit-1 已核验、可访问且冻结了答案相关性
+ * 匹配证据（直接支撑）；cit-2 未核验；cit-3 已核验可访问但无直接支撑
+ * 证据（仅相关）；cit-4 已核验有锚点但 href 为空（不可访问）。
  * full-feature 臂每个 evidence-required 章节末行以 [1] 绑定 cit-1；
- * itemId 确定性奇偶决定最后一个证据章节改标 [2]（未核验路径）。
+ * itemId 确定性奇偶决定最后一个证据章节改标 [2]（未核验）或 [3]
+ * （仅相关）；偶数条目的第一个证据章节同时标 [1] [4]（同单元绑定
+ * 直接支撑与不可访问引用，覆盖由 [1] 达成、[4] 落不可访问桶）。
  */
 const FIXTURE_CITATIONS: readonly KonlingFairExperimentCitationSnapshot[] = [
   {
@@ -47,6 +51,7 @@ const FIXTURE_CITATIONS: readonly KonlingFairExperimentCitationSnapshot[] = [
     displayNumber: 1,
     sourceType: 'knowledge-graph',
     href: 'https://act.example/kb/fixture-primary',
+    answerRelevanceMatch: 'query-exact',
   },
   {
     id: 'cit-2',
@@ -55,6 +60,23 @@ const FIXTURE_CITATIONS: readonly KonlingFairExperimentCitationSnapshot[] = [
     displayNumber: 2,
     sourceType: 'knowledge-graph',
     href: null,
+  },
+  {
+    id: 'cit-3',
+    citationTargetId: 'kb:fixture-related-only',
+    verified: true,
+    displayNumber: 3,
+    sourceType: 'knowledge-graph',
+    href: 'https://act.example/kb/fixture-related-only',
+  },
+  {
+    id: 'cit-4',
+    citationTargetId: 'kb:fixture-inaccessible',
+    verified: true,
+    displayNumber: 4,
+    sourceType: 'knowledge-graph',
+    href: null,
+    answerRelevanceMatch: 'token:keyword',
   },
 ];
 
@@ -97,7 +119,10 @@ function fixtureAnswer(
         }
         evidenceIndex += 1;
         const isLastEvidence = evidenceIndex === evidenceSections.length;
-        const marker = useUnverifiedOnLast && isLastEvidence ? ' [2]' : ' [1]';
+        let marker = ' [1]';
+        if (isLastEvidence && useUnverifiedOnLast) marker = ' [2]';
+        if (isLastEvidence && !useUnverifiedOnLast) marker = ' [3]';
+        if (!useUnverifiedOnLast && evidenceIndex === 1 && evidenceSections.length > 1) marker = ' [1] [4]';
         return `## ${headingOf(section)}\n按参考材料作答${suffix}。${marker}`;
       })
       .join('\n'),

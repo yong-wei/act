@@ -114,6 +114,12 @@ export interface KonlingFairExperimentCitationSnapshot {
   displayNumber: number | null;
   sourceType: string;
   href: string | null;
+  /**
+   * 生产 KonlingCitation 的答案相关性匹配证据（非空＝生产端判定该来源
+   * 直接支撑回答）。缺失时审计按「仅相关/判据缺失」处理，不计入精确率
+   * 分子与单元覆盖（spec：仅相关但不直接支撑的来源不得计为覆盖）。
+   */
+  answerRelevanceMatch?: string | null;
 }
 
 export interface KonlingFairExperimentAnswerRecord {
@@ -252,7 +258,10 @@ export interface KonlingFairExperimentCitationAuditRecord {
     realVerifiedSupporting: number;
     markerUnassigned: number;
     citationUnverified: number;
+    /** 引用无锚点，或有锚点但 href 为空（不可访问，scan 的 unavailable-address）。 */
     citationNoTarget: number;
+    /** 已核验且可访问，但快照未冻结答案相关性匹配证据（仅相关不直接支撑/判据缺失）。 */
+    citationNoDirectSupport: number;
   };
   missReasons: Partial<Record<string, number>>;
   driftedMarkerCount: number;

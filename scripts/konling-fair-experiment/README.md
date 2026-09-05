@@ -43,9 +43,12 @@ npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
   plain/enhanced 臂无引用功能，空数组是如实快照。
 - 指标：每臂结构通过率（按口径）、盲审判定率与均分、综合（结构∧盲审，
   必列分项）、引用精确率（已核验直接支撑数 / 已呈现引用数）与答案单元
-  追溯覆盖率（已覆盖单元数 / 应引用单元数，model-derived 章节不入分母；
-  逐回答输出四类失败分桶：无标记/标记未分配/引用未核验/引用无锚点）；
-  臂间差值输出绝对值、百分点差、配对 bootstrap 95% CI
+  追溯覆盖率（已覆盖单元数 / 应引用单元数，model-derived 章节不入分母）。
+  直接支撑判据＝已核验 + 有锚点 + href 可访问 + 快照冻结答案相关性匹配
+  证据（`answerRelevanceMatch` 非空）；逐回答输出失败分桶：无标记/
+  标记未分配/引用未核验/引用无锚点或不可访问/仅相关无直接支撑证据，
+  漂移计数为唯一编号口径（不与出现次数口径叠加）；臂间差值输出绝对值、
+  百分点差、配对 bootstrap 95% CI
   （种子记入 manifest，结果可复现）与方向；生成行为差值与评分器口径
   差值分节报告。
 - 盲审阶段产物落在 `artifacts/konling-blind-audit/<runId>--audit--<arm>--r<n>/`，

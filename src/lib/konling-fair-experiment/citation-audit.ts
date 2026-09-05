@@ -6,10 +6,7 @@
  * `scanKonlingAnswerUnits`，本模块只做计数与分类，不引入第二套口径。
  */
 
-import {
-  scanKonlingAnswerUnits,
-  type KonlingAnswerUnitScannableCitation,
-} from '@/lib/konling-answer-unit-scan';
+import { scanKonlingAnswerUnits } from '@/lib/konling-answer-unit-scan';
 import {
   STUDY_QUESTION_SECTIONS,
   type StudyQuestionIntent,
@@ -38,6 +35,7 @@ export interface KonlingFairExperimentCitationInput {
   displayNumber: number | null;
   sourceType: string;
   href: string | null;
+  answerRelevanceMatch?: string | null;
 }
 
 function ratio(numerator: number, denominator: number): KonlingFairExperimentRatioMetric {
@@ -45,16 +43,29 @@ function ratio(numerator: number, denominator: number): KonlingFairExperimentRat
 }
 
 /**
- * 单条回答的确定性审计。占位符（未分配编号）、未核验引用、无锚点引用
- * 与 model-derived 章节标记分别统计；只有绑定到 evidence-required
- * substantive 单元的已核验引用计入精确率分子，任何单元覆盖只认可绑定
- * 标记（`scanKonlingAnswerUnits` 的 bound 语义）。
+ * 直接支撑判据（spec：占位符、未知编号、无法访问的目标与仅相关但不
+ * 直接支撑的来源不得计入分子/覆盖）：已核验 + 有锚点 + href 可访问 +
+ * 快照冻结了答案相关性匹配证据（answerRelevanceMatch 非空）。任一信号
+ * 缺失即降级到对应失败桶，宁可低估也不高估（#1992 review P1）。
+ */
+function isDirectVerifiedSupport(citation: KonlingFairExperimentCitationInput): boolean {
+  return citation.verified === true
+    && Boolean(citation.citationTargetId)
+    && Boolean(citation.href)
+    && Boolean(citation.answerRelevanceMatch);
+}
+
+/**
+ * 单条回答的确定性审计。占位符（未分配编号）、未核验引用、无锚点或
+ * 不可访问引用、仅相关无直接支撑证据引用与 model-derived 章节标记分别
+ * 统计；只有通过 `isDirectVerifiedSupport` 且绑定到 evidence-required
+ * substantive 单元的引用计入精确率分子，单元覆盖只认可绑定标记中的
+ * 直接支撑引用（`scanKonlingAnswerUnits` 的绑定语义 + 审计侧核验）。
  */
 export function auditKonlingFairCitationRecord(
   input: KonlingFairCitationAuditInput,
 ): KonlingFairExperimentCitationAuditRecord {
-  const scannable: readonly KonlingAnswerUnitScannableCitation[] = input.citations;
-  const scan = scanKonlingAnswerUnits(input.answer, scannable, input.intent);
+  const scan = scanKonlingAnswerUnits(input.answer, input.citations, input.intent);
 
   // 已呈现引用 = scan 判定处于有效引用标记位置的唯一编号（代码块与
   // 技术下标位置已在 scan 内排除，口径与生产 guard 一致）。
@@ -66,21 +77,30 @@ export function auditKonlingFairCitationRecord(
     && unit.sectionId !== null
     && sections.some((section) => section.id === unit.sectionId && section.citationPolicy === 'evidence-required')
   ));
-  const coveredUnits = requiredUnits.filter((unit) => unit.bound);
+  // 单元覆盖只认可「该单元行内可绑定标记中存在直接支撑引用」的单元；
+  // 绑定到不可访问/仅相关引用的单元仍 bound（#1902 语义）但不计覆盖。
+  const directSupportIds = new Set(input.citations.filter(isDirectVerifiedSupport).map((citation) => citation.id));
+  const coveredUnits = requiredUnits.filter((unit) => (
+    (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id))
+  ));
 
-  // 只有绑定落在 evidence-required 章节的引用才算「直接支撑」；
-  // model-derived / 无章节区域的绑定计为漂移，不入精确率分子。
+  // 只有绑定落在 evidence-required 章节且通过直接支撑判据的引用才算
+  // 「已核验直接支撑」；model-derived / 无章节区域的绑定计为漂移，
+  // 不入精确率分子。
   const bindingCitationIds = new Set(
     scan.bindings
       .filter((binding) => binding.sectionId !== null
-        && sections.some((section) => section.id === binding.sectionId && section.citationPolicy === 'evidence-required'))
-      .map((binding) => binding.citationId),
+        && sections.some((section) => section.id === binding.sectionId && section.citationPolicy === 'evidence-required')
+        && binding.limitation === null)
+      .map((binding) => binding.citationId)
+      .filter((id) => directSupportIds.has(id)),
   );
   const citationClasses = {
     realVerifiedSupporting: 0,
     markerUnassigned: 0,
     citationUnverified: 0,
     citationNoTarget: 0,
+    citationNoDirectSupport: 0,
   };
   let verifiedDrifted = 0;
   for (const number of presentedNumbers) {
@@ -93,8 +113,12 @@ export function auditKonlingFairCitationRecord(
       citationClasses.citationUnverified += 1;
       continue;
     }
-    if (!citation.citationTargetId) {
+    if (!citation.citationTargetId || !citation.href) {
       citationClasses.citationNoTarget += 1;
+      continue;
+    }
+    if (!citation.answerRelevanceMatch) {
+      citationClasses.citationNoDirectSupport += 1;
       continue;
     }
     if (bindingCitationIds.has(citation.id)) {
@@ -122,7 +146,11 @@ export function auditKonlingFairCitationRecord(
     coveredUnitCount: coveredUnits.length,
     citationClasses,
     missReasons,
-    driftedMarkerCount: scan.driftedMarkerCount + verifiedDrifted,
+    // 唯一编号口径：已核验、可访问、有直接支撑证据、已呈现，但未绑定
+    // 任何 evidence-required 单元的引用数（多数落在 model-derived 章节）。
+    // 不叠加 scan.driftedMarkerCount（出现次数口径，供生产 guard）——
+    // 同一标记会被双计（#1992 review P2）。
+    driftedMarkerCount: verifiedDrifted,
   };
 }
 
