@@ -205,9 +205,13 @@ describe('auditKonlingFairCitationRecord', () => {
   });
 
   it('a citation supporting evidence units and also shown in model-derived sections is counted in both', () => {
-    const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
-      STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section) ? ' [1]' : ''
-    ));
+    // model-derived 章节用不同单元文本：scan 的绑定按（单元文本 × 引用）
+    // 去重，相同文本不会产生第二条绑定。
+    const answer = STUDY_QUESTION_SECTIONS['formula-derivation']
+      .map((section) => section.citationPolicy === 'model-derived'
+        ? `## ${section.title}\n按推导另作说明${section.id}。 [1]`
+        : `## ${section.title}\n按参考材料作答。 [1]`)
+      .join('\n');
     const record = audited(answer, [citation({ id: 'cit-1' })]);
 
     const evidenceCount = STUDY_QUESTION_SECTIONS['formula-derivation']
