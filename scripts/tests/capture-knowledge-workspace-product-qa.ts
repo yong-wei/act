@@ -645,7 +645,11 @@ function collectKnowledgeApiSensitiveValues(
   field = '',
 ) {
   if (typeof value === 'string') {
-    if (knowledgeApiSensitiveKeyPattern.test(field) && !knowledgeApiSemanticEnumKeyPattern.test(field)) {
+    // *Label 字段是学生可见的本地化展示文本（如 predicateLabel「关联」），不是内部身份；
+    // 记忆它们会让普通文案全部误报为身份泄漏。
+    if (knowledgeApiSensitiveKeyPattern.test(field)
+      && !knowledgeApiSemanticEnumKeyPattern.test(field)
+      && !/[a-z]label$/iu.test(field)) {
       rememberToken(value);
     }
     return;
