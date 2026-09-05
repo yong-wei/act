@@ -148,7 +148,7 @@ export class PortraitV2SnapshotValidationError extends Error {
 }
 
 type PortraitV2DimensionInput = Omit<PortraitV2DimensionState, 'label'> & { label?: string };
-type PortraitV2ClockOptions = { now?: Date | string };
+type PortraitV2ClockOptions = { now?: Date | string; snapshotAtLte?: Date };
 
 const LABELS = new Map(PORTRAIT_V2_DIMENSIONS.map((dimension) => [dimension.id, dimension.label]));
 const EVIDENCE_FAMILIES = new Set<string>(PORTRAIT_V2_EVIDENCE_FAMILIES);
@@ -431,7 +431,11 @@ export async function readLatestValidNativePortraitV2Snapshots(
   const uniqueUserIds = [...new Set(userIds)].sort();
   if (!findMany || uniqueUserIds.length === 0) return new Map();
   const rows = await findMany({
-    where: { userId: { in: uniqueUserIds }, derivationKind: 'native' },
+    where: {
+      userId: { in: uniqueUserIds },
+      derivationKind: 'native',
+      ...(options.snapshotAtLte ? { snapshotAt: { lte: options.snapshotAtLte } } : {}),
+    },
     orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'desc' }],
   });
   const selected = new Map<string, PortraitV2ProjectedPayload>();

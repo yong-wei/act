@@ -24,6 +24,7 @@ import type {
 } from '@/features/teacher/diagnosis/public-api';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
+import { DiagnosisReportEvolutionBoard } from '@/features/teacher/diagnosis-report-evolution-board';
 import {
   projectReportHistoryCard,
   type EvidenceCoverageGroup,
@@ -205,6 +206,7 @@ export function TeacherDiagnosisReportHistory({
   }, [generationJob, loadReports]);
 
   return (
+    <>
       <TeacherDiagnosisReportHistoryView
         classId={classId}
       state={state}
@@ -223,7 +225,13 @@ export function TeacherDiagnosisReportHistory({
       onClosePreflight={() => setGenerationPreflight(null)}
       onConfirmGeneration={(forceReason) => void submitGeneration(false, forceReason)}
       onRetryGeneration={() => void submitGeneration(true)}
-    />
+      />
+      {!targetStudentId ? (
+        // 历史列表有 20 条上限，长度达到上限后数量不再变化，因此以最新
+        // 报告 id 作为重挂载信号，保证新报告生成后演变板块重新读取。
+        <DiagnosisReportEvolutionBoard key={reports[0]?.id ?? 'empty'} classId={classId} />
+      ) : null}
+    </>
   );
 }
 

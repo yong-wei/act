@@ -412,6 +412,7 @@ export async function completeDiagnosisGenerationJob(
       previousReportId: job.previousReportId,
       inputSummary: job.inputSummary,
       inputDigest: job.inputDigest,
+      governedInput: job.governedInput,
     }, tx as never);
     await tx.diagnosisGenerationAttempt.update({
       where: { id: input.attemptId },
