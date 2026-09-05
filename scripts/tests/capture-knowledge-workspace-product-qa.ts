@@ -1487,7 +1487,8 @@ async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: str
   if (!(await button.isVisible().catch(() => false))) {
     throw new Error(`${mode} mode control unavailable in ${context}`);
   }
-  await button.click();
+  // 模式按钮可能位于视口外的工具栏滚动区；用 DOM click 保证触发。
+  await button.evaluate((element) => (element as HTMLButtonElement).click());
   await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
   if (mode === 'legacy') {
     await page.waitForFunction(() => {
