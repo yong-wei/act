@@ -352,10 +352,12 @@ export function normalizeTeacherReviewDetail(
   payload: unknown,
 ): TeacherReviewDetail | null {
   const root = asRecord(payload);
+  // GET/PATCH 路由把 buildTeacherAssignmentReviewApiProjection 的投影包装为
+  // { review }：submission/assignment/gradingRun 都在 review 内部。
   const review = asRecord(root.review);
   const gradingRun = asRecord(review.gradingRun);
   const questionSnapshot = asRecord(gradingRun.questionSnapshot);
-  const submission = asRecord(root.submission);
+  const submission = asRecord(review.submission);
   const student = asRecord(submission.student);
   const studentProfile = asRecord(student.profile);
   const question = asRecord(gradingRun.question);
@@ -400,7 +402,7 @@ export function normalizeTeacherReviewDetail(
   return {
     reviewId,
     assignmentTitle: stringFrom(
-      asRecord(root.assignment).title,
+      asRecord(review.assignment).title,
       "作业批阅",
     ),
     version: Math.max(0, Math.trunc(finiteNumber(review.version, 0))),

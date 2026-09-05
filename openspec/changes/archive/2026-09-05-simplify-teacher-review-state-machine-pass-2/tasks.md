@@ -11,4 +11,6 @@
 
 ## 完成说明（任务 2.3）
 
-三个生产文件总量：83,947 → 82,589 bytes（净减 1,358 bytes），另 workspace 新增 `applyReviewSnapshot` 抽取亦计入。已删除项清单见任务 1.1/1.2；测试侧删除人工构造的根级旧形状 fixture，改用真实投影形状。OpenSpec strict 通过。
+三个生产文件总量：83,947 → 82,754 bytes（净减 1,193 bytes），另 workspace 新增 `applyReviewSnapshot` 抽取亦计入。已删除项清单见任务 1.1/1.2；测试侧删除人工构造的根级旧形状 fixture，改用真实投影形状（`{ review }` 包装内含 submission/assignment/gradingRun，与 buildTeacherAssignmentReviewApiProjection 输出一致）。OpenSpec strict 通过。
+
+Codex review P1 整改：submission/assignment 读取层级修正为 review 内部（路由包装 `{ review }` 后投影字段不在根级），fixture 扩展为全字段真实投影并断言 reviewId/submissionId/assignmentTitle/studentName/studentNumber/questionId 全链非空。
