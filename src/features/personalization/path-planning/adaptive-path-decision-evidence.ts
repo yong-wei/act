@@ -23,6 +23,8 @@ export interface PersonalizedPathDecisionSnapshot {
     value: number;
     confidence: number;
     evidenceCount: number;
+    // 降级态 discriminator：区分真实 0 分薄弱项与无画像证据降级项（competency-no-portrait-evidence）。
+    reasonCode: string;
   }>;
   preferredModalities: string[];
   preferredModalityConfidence: string;
@@ -178,6 +180,7 @@ export function buildPersonalizedPathDecisionSnapshot(input: {
       value: deficit.value,
       confidence: deficit.confidence,
       evidenceCount: deficit.evidenceCount,
+      reasonCode: deficit.reasonCode,
     })),
     preferredModalities: [...(snapshot?.preferredModalities ?? [])],
     preferredModalityConfidence: snapshot?.preferredModalityConfidence ?? 'none',

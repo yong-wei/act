@@ -9084,6 +9084,10 @@ describe('portrait-driven path personalization availability (#1984)', () => {
           confidence: { level: 'medium', score: 0.7, evidenceCount: 8, sourceCompleteness: 0.6 },
         },
       },
+      policyBundle: {
+        families: ['foundation-remediation', 'simulation-driven'],
+        overlapThreshold: 0.6,
+      },
     }));
     const persisted = serializeLearningPathPlan(plan);
     const options = persisted.payload.pathOptions ?? [];
@@ -9102,6 +9106,13 @@ describe('portrait-driven path personalization availability (#1984)', () => {
       expect(provenance?.entries.every((entry) => entry.targetKind !== 'competency')).toBe(true);
       expect(provenance?.limitations.join(' ')).toContain('migration-in-progress');
       expect(JSON.stringify(option)).not.toContain('matches-competency-deficit');
+    }
+    const bundleDecision = (persisted.payload.policyBundle as Record<string, unknown> | undefined)?.decisionEvidence as Record<string, unknown> | undefined;
+    const decisionSnapshot = (bundleDecision?.snapshot ?? bundleDecision) as Record<string, unknown> | undefined;
+    const decisionWeakTargets = (decisionSnapshot?.weakTargets ?? []) as Array<Record<string, unknown>>;
+    expect(decisionWeakTargets.length).toBeGreaterThan(0);
+    for (const weakTarget of decisionWeakTargets.filter((item) => item.kind === 'competency')) {
+      expect(weakTarget.reasonCode).toBe('competency-no-portrait-evidence');
     }
   });
 
