@@ -10,7 +10,13 @@ import { Line } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 
 import { useSceneQuality } from '../quality';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GERSTNER_WATER_BASE_Y } from '../water';
+import {
+  DEFAULT_GERSTNER_SEA_STATE,
+  gerstnerAmplitudeScale,
+  GERSTNER_WAVE_SETS,
+  GERSTNER_WATER_BASE_Y,
+  sampleVisibleWaterHeight,
+} from '../water';
 
 export interface WaterHuggingLineProps {
   /** 世界 XZ 顶点序列（顺序即连线顺序）。 */
@@ -24,6 +30,8 @@ export interface WaterHuggingLineProps {
   readonly transparent?: boolean;
   /** 波面以上的抬升量（米），避免与水面共面闪烁。 */
   readonly epsilon?: number;
+  /** 水面网格跟随原点（舰位）采样：提供后按与可见水面同一坐标基准抬升。 */
+  readonly waterOriginSampler?: () => { readonly x: number; readonly z: number };
 }
 
 /** 顶点经 Gerstner 采样贴波面的折线；低档抽稀采样，隔帧更新控制开销。 */
@@ -37,6 +45,7 @@ export function WaterHuggingLine({
   opacity,
   transparent,
   epsilon = 0.3,
+  waterOriginSampler,
 }: WaterHuggingLineProps) {
   const { params } = useSceneQuality();
   const [lifted, setLifted] = useState<readonly [number, number, number][]>([]);
@@ -47,11 +56,13 @@ export function WaterHuggingLine({
     if (frameCountRef.current % 3 !== 0) return;
     const time = frameState.clock.getElapsedTime();
     const waveSet = GERSTNER_WAVE_SETS[params.waterTier];
+    const origin = waterOriginSampler?.() ?? { x: 0, z: 0 };
+    const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
     const stride = params.waterTier === 'low' ? 2 : 1;
     let lastY = GERSTNER_WATER_BASE_Y + epsilon;
     const next: [number, number, number][] = points.map((point, index) => {
       if (index % stride === 0) {
-        lastY = GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement(waveSet, point.x, point.z, time).y + epsilon;
+        lastY = sampleVisibleWaterHeight(waveSet, amplitudeScale, origin.x, origin.z, point.x, point.z, time) + epsilon;
       }
       return [point.x, lastY, point.z];
     });

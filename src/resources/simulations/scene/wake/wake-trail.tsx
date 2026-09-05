@@ -45,6 +45,8 @@ export interface WakeTrailProps {
   readonly waterYSampler?: (x?: number, z?: number) => number;
   /** 显式航速采样（米/秒，模型语义）：提供时替代位姿差分，保证播放倍率不改变 Froude 活跃度。 */
   readonly worldSpeedSampler?: () => number;
+  /** 逐帧发射器世界位置（语义推进器节点）：提供且非 null 时优先于 profile 手填锚点。 */
+  readonly emitterWorldSampler?: () => readonly [number, number, number] | null;
   /** 是否发射开尔文臂粒子（源默认模式为含开尔文）。 */
   readonly includeKelvin?: boolean;
   /** 样式覆盖：挂载时定型，运行期变更不生效（切档重建除外）。 */
@@ -125,6 +127,44 @@ const anchorToWorld = (
   position[2] - local[0] * sinH + local[2] * cosH,
 ];
 
+export interface WakeEmitterAnchors {
+  readonly stern: [number, number, number];
+  readonly portShoulder: [number, number, number];
+  readonly starboardShoulder: [number, number, number];
+}
+
+/**
+ * 发射锚点解析：提供 emitterOverride（语义推进器节点的逐帧世界位置）时以其为
+ * 发射点、肩部按航向对称外推；否则回退 profile 手填锚点。
+ */
+export function resolveEmitterAnchors(
+  profile: SceneShipVisualProfile,
+  position: readonly [number, number, number],
+  heading: number,
+  emitterOverride?: readonly [number, number, number] | null,
+): WakeEmitterAnchors {
+  const sinH = Math.sin(heading);
+  const cosH = Math.cos(heading);
+  if (emitterOverride) {
+    const stern: [number, number, number] = [emitterOverride[0], emitterOverride[1], emitterOverride[2]];
+    const shoulder = (lateral: number, forward: number): [number, number, number] => [
+      stern[0] + lateral * cosH + forward * sinH,
+      stern[1],
+      stern[2] - lateral * sinH + forward * cosH,
+    ];
+    return {
+      stern,
+      portShoulder: shoulder(6, 30),
+      starboardShoulder: shoulder(-6, 30),
+    };
+  }
+  return {
+    stern: anchorToWorld(profile.wakeAnchors.stern, position, sinH, cosH),
+    portShoulder: anchorToWorld(profile.wakeAnchors.portShoulder, position, sinH, cosH),
+    starboardShoulder: anchorToWorld(profile.wakeAnchors.starboardShoulder, position, sinH, cosH),
+  };
+}
+
 export function WakeTrail({
   profile,
   shipTransform,
@@ -134,6 +174,7 @@ export function WakeTrail({
   waterY,
   waterYSampler,
   worldSpeedSampler,
+  emitterWorldSampler,
   includeKelvin = true,
   style,
 }: WakeTrailProps) {
@@ -211,16 +252,14 @@ export function WakeTrail({
     state.emitAccumulator += dt;
     if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
       state.emitAccumulator = 0;
-      const sinH = Math.sin(heading);
-      const cosH = Math.cos(heading);
-      const stern = anchorToWorld(profile.wakeAnchors.stern, position, sinH, cosH);
+      const anchors = resolveEmitterAnchors(profile, [position[0], position[1], position[2]], heading, emitterWorldSampler?.() ?? null);
       const snapshot: WakeAnchorSnapshot = {
-        stern,
-        portShoulder: anchorToWorld(profile.wakeAnchors.portShoulder, position, sinH, cosH),
-        starboardShoulder: anchorToWorld(profile.wakeAnchors.starboardShoulder, position, sinH, cosH),
-        forwardX: sinH,
-        forwardZ: cosH,
-        waterY: waterYSampler?.() ?? waterY ?? stern[1],
+        stern: anchors.stern,
+        portShoulder: anchors.portShoulder,
+        starboardShoulder: anchors.starboardShoulder,
+        forwardX: Math.sin(heading),
+        forwardZ: Math.cos(heading),
+        waterY: waterYSampler?.() ?? waterY ?? anchors.stern[1],
         worldShipLength: worldShipLength ?? profile.shipLengthMeters,
         pathLength: state.pathLength,
       };
