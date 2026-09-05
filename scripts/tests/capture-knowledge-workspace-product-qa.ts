@@ -1574,7 +1574,9 @@ async function waitForKnowledgeReady(page: Page) {
 }
 
 async function clickIfPresent(page: Page, selector: string) {
-  // 真实指针点击保留可达性校验：遮挡/视口外是验收事实，必须失败而不是用 DOM click 掩盖。
+  // 真实指针点击保留可达性校验：每个采样点先经 elementFromPoint 命中测试确认解析到
+  // 目标元素内部，再用受信 mouse 事件点击——等同真实用户点击未遮挡的可见部分；
+  // 整个元素被遮挡时带诊断诚实失败，不用程序化 DOM click 掩盖。
   const locator = page.locator(selector);
   const count = await locator.count();
   for (let index = 0; index < count; index += 1) {
@@ -1586,28 +1588,43 @@ async function clickIfPresent(page: Page, selector: string) {
       await page.waitForTimeout(250);
       return;
     } catch {
-      // 记录遮挡诊断后尝试下一个候选。
+      // Playwright 中心点命中失败；回退到多点可达性采样。
     }
-  }
-  if (count > 0) {
-    const occlusion = await page.evaluate((targetSelector) => {
+    const reachablePoint = await page.evaluate((targetSelector) => {
       const element = Array.from(document.querySelectorAll<HTMLElement>(targetSelector))
         .find((item) => item.getClientRects().length > 0);
       if (!element) return null;
       const rect = element.getBoundingClientRect();
-      const sample = document.elementFromPoint(
+      const points = [
+        [0.5, 0.5], [0.5, 0.08], [0.5, 0.92], [0.08, 0.5], [0.92, 0.5],
+        [0.08, 0.08], [0.92, 0.08], [0.08, 0.92], [0.92, 0.92], [0.25, 0.5], [0.75, 0.5],
+      ];
+      for (const [fx, fy] of points) {
+        const x = Math.min(Math.max(rect.left + rect.width * fx, 1), window.innerWidth - 1);
+        const y = Math.min(Math.max(rect.top + rect.height * fy, 1), window.innerHeight - 1);
+        const hit = document.elementFromPoint(x, y);
+        if (hit && element.contains(hit)) return { x, y };
+      }
+      const centerHit = document.elementFromPoint(
         Math.min(Math.max(rect.left + rect.width / 2, 1), window.innerWidth - 1),
         Math.min(Math.max(rect.top + rect.height / 2, 1), window.innerHeight - 1),
       );
       return {
-        occludedBy: sample && !element.contains(sample)
-          ? sample.tagName + (sample.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
+        occludedBy: centerHit && !element.contains(centerHit)
+          ? centerHit.tagName + (centerHit.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
           : null,
         rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) },
       };
     }, selector);
-    if (occlusion) {
-      throw new Error(`clickIfPresent target is not reachable by a real pointer click: ${selector} ${JSON.stringify(occlusion)}`);
+    if (reachablePoint && 'x' in reachablePoint) {
+      await page.mouse.click(reachablePoint.x, reachablePoint.y);
+      await page.waitForTimeout(250);
+      return;
+    }
+    if (reachablePoint && 'occludedBy' in reachablePoint && reachablePoint.occludedBy) {
+      throw new Error(
+        `clickIfPresent target is not reachable by a real pointer click: ${selector} ${JSON.stringify(reachablePoint)}`,
+      );
     }
   }
 }
