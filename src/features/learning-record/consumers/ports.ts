@@ -29,6 +29,26 @@ import type {
   TeacherStudentEvidencePortResult,
 } from './types';
 
+// 每个事实的最终治理状态由其最大 sequence 的 transition 决定；
+// 最终操作为 REVOKE 的事实不再视为有效治理事实，不得触发画像过期。
+async function readRevokedFactIds(db: unknown, userId: string): Promise<string[]> {
+  const transitions = (db as {
+    learnerFactTransition?: {
+      findMany?: (args: unknown) => Promise<Array<{ factId?: string | null; operation?: string | null }>>;
+    };
+  }).learnerFactTransition;
+  if (typeof transitions?.findMany !== 'function') return [];
+  const rows = await transitions.findMany({
+    where: { userId },
+    orderBy: [{ factId: 'asc' }, { sequence: 'desc' }],
+    distinct: ['factId'],
+    select: { factId: true, operation: true },
+  });
+  return rows
+    .filter((row) => row.operation === 'REVOKE' && typeof row.factId === 'string' && row.factId)
+    .map((row) => row.factId as string);
+}
+
 async function readLatestGovernedFactAt(db: unknown, userId: string): Promise<string | null> {
   const learningFact = (db as {
     learningFact?: {
@@ -36,8 +56,12 @@ async function readLatestGovernedFactAt(db: unknown, userId: string): Promise<st
     };
   }).learningFact;
   if (typeof learningFact?.findFirst !== 'function') return null;
+  const revokedFactIds = await readRevokedFactIds(db, userId);
   const latest = await learningFact.findFirst({
-    where: { userId },
+    where: {
+      userId,
+      ...(revokedFactIds.length > 0 ? { id: { notIn: revokedFactIds } } : {}),
+    },
     orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
     select: { startedAt: true },
   });

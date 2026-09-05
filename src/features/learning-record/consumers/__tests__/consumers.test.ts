@@ -202,6 +202,92 @@ describe('learning-record consumers', () => {
     expect(db.learningFact.findMany).not.toHaveBeenCalled();
   });
 
+  it('keeps a qualified portrait when the only newer fact is revoked', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn(),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-revoked', operation: 'REVOKE' },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    const read = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(read.status).toBe(PROJECTION_STATUS.qualified);
+    expect(read.reason).toBeNull();
+    expect(db.learningFact.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1', id: { notIn: ['fact-revoked'] } },
+    }));
+    expect(db.interactionLog.findMany).not.toHaveBeenCalled();
+  });
+
+  it('marks a qualified portrait stale when the newer fact has a valid final operation', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn().mockResolvedValue({ startedAt: '2026-08-21T00:00:00.000Z' }),
+        findMany: vi.fn(),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-active', operation: 'UPSERT' },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1' },
+    }));
+  });
+
+  it('compares mixed facts on the latest valid fact only', async () => {
+    const db = {
+      learningFact: {
+        // fact-revoked 最新但已撤销被排除；fact-active 次新且有效 → 以有效事实时间判定
+        findFirst: vi.fn().mockImplementation(({ where }: { where?: { id?: { notIn?: string[] } } }) => {
+          const excluded = where?.id?.notIn ?? [];
+          return excluded.includes('fact-revoked')
+            ? Promise.resolve({ startedAt: '2026-08-19T00:00:00.000Z' })
+            : Promise.resolve({ startedAt: '2026-08-21T00:00:00.000Z' });
+        }),
+        findMany: vi.fn(),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-active', operation: 'UPSERT' },
+          { factId: 'fact-revoked', operation: 'REVOKE' },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      evidenceAsOf: '2026-08-18T00:00:00.000Z',
+    }));
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1', id: { notIn: ['fact-revoked'] } },
+    }));
+  });
+
   it('passes current pointer publication through the consumer envelope', async () => {
     mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
       publication: {
