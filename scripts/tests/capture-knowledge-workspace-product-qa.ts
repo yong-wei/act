@@ -1182,13 +1182,17 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     );
   }, undefined, { timeout: 30000 });
   const completedLog = await probe.readLog();
-  if (completedLog.some((entry) => (
+  const forbiddenLegacyRequests = completedLog.filter((entry) => (
     entry.path === '/api/knowledge/graph/active'
     || entry.path === '/api/knowledge/graph/v2'
     // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；域展开与候选 API 仍被禁止。
     || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root'))
-  ))) {
-    throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
+  ));
+  if (forbiddenLegacyRequests.length > 0) {
+    const observed = forbiddenLegacyRequests
+      .map((entry) => `${entry.path}${entry.search}`)
+      .join(', ');
+    throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}: ${observed}`);
   }
   return active;
 }
