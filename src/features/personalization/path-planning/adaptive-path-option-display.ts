@@ -182,9 +182,14 @@ export function buildAdaptivePathOptionDisplays(
     checkpoints: formatCheckpoints(option),
     readiness: formatReadiness(option),
     scenario: formatScenario(option.evidenceBasis, option.recommendationProvenance?.confidence),
-    reason: option.targetDeficits.length > 0
-      ? `面向 ${option.targetDeficits.length} 个当前薄弱项安排资源。`
-      : '按当前学习证据安排资源组合。',
+    reason: (() => {
+      const citedDeficits = option.targetDeficits.filter(
+        (deficit) => deficit.reasonCode !== 'competency-no-portrait-evidence',
+      );
+      if (citedDeficits.length > 0) return `面向 ${citedDeficits.length} 个当前薄弱项安排资源。`;
+      if (option.targetDeficits.length > 0) return '能力画像暂不可用，按通用学习路线安排资源。';
+      return '按当前学习证据安排资源组合。';
+    })(),
     outcome: option.terminalValidationNodeIds.length > 0
       ? '完成后进入检查节点并更新路径推荐。'
       : '完成后更新后续路径推荐。',

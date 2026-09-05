@@ -396,6 +396,8 @@ export interface AdaptiveLearningPathLearnerStateSnapshot {
   missingEvidence: string[];
   preferredModalities: string[];
   preferredModalityConfidence: 'none' | 'low' | 'medium';
+  primaryPortraitState: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE' | null;
+  primaryPortraitAvailability: string | null;
 }
 
 export function buildAdaptiveLearningPathLearnerStateSnapshot(
@@ -436,6 +438,8 @@ export function buildAdaptiveLearningPathLearnerStateSnapshot(
     preferredModalities: [...(learnerState.resourcePreference?.preferredModalities ?? [])],
     preferredModalityConfidence: learnerState.resourcePreference?.confidence
       ?? preferredModalityConfidenceFromCount(learnerState.resourcePreference?.preferredModalities?.length ?? 0),
+    primaryPortraitState: learnerState.primaryPortraitState ?? null,
+    primaryPortraitAvailability: learnerState.primaryPortraitAvailability ?? null,
   };
 }
 
@@ -868,6 +872,7 @@ export interface AdaptiveLearningPathRecommendationProvenance {
   confidence: 'low' | 'medium' | 'high';
   entries: AdaptiveLearningPathRecommendationProvenanceEntry[];
   personalizationNotes?: string[];
+  personalizationState?: 'portrait-unavailable';
   evidenceReviewHref: '/profile/evidence';
   limitations: string[];
   nextAction: string | null;
@@ -2789,15 +2794,21 @@ function inferDeficits(
       .map((targetId) => {
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
-        const value = portraitScores.length > 0
-          ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : 0;
-        const confidence = portraitScores.length > 0
-          ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
-          : 0;
-        const evidenceCount = portraitScores.length > 0
-          ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
-          : 0;
+        if (portraitScores.length === 0) {
+          return {
+            targetId,
+            kind: 'competency' as const,
+            value: 0,
+            confidence: 0,
+            evidenceCount: 0,
+            reasonCode: 'competency-no-portrait-evidence',
+            portraitDimensionIds,
+            eventReferences: eventReferencesForDeficit(undefined),
+          };
+        }
+        const value = normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length);
+        const confidence = portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length;
+        const evidenceCount = Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount));
         return {
           targetId,
           kind: 'competency' as const,
@@ -2809,7 +2820,7 @@ function inferDeficits(
           eventReferences: eventReferencesForDeficit(undefined),
         };
       })
-      .filter((item) => item.value < 0.85),
+      .filter((item) => item.reasonCode === 'competency-no-portrait-evidence' || item.value < 0.85),
   ];
 }
 
@@ -3388,11 +3399,14 @@ function scoreNode(
   }, 0);
   const competencyTargets = new Set(
     deficits
-      .filter((item) => item.kind === 'competency')
+      .filter((item) => item.kind === 'competency' && item.reasonCode !== 'competency-no-portrait-evidence')
       .map((item) => item.targetId),
   );
   const abilityGain = Object.entries(planningUnit.abilityImpact).reduce((sum, [dimension, impact]) => {
-    const deficit = deficits.find((item) => item.kind === 'competency' && item.targetId === dimension);
+    const deficit = deficits.find((item) =>
+      item.kind === 'competency'
+      && item.targetId === dimension
+      && item.reasonCode !== 'competency-no-portrait-evidence');
     if (!deficit || !competencyTargets.has(dimension)) return sum;
     return sum + impact * (1 - deficit.value);
   }, 0);
@@ -5638,9 +5652,13 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   confidence: AdaptiveLearningPathPlan['confidence']['level'];
   learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
 }): AdaptiveLearningPathRecommendationProvenance {
-  const snapshotDegraded = Boolean(input.learnerStateSnapshot)
-    && listPersonalizedPathDegradationReasons(input.learnerStateSnapshot).length > 0;
-  const entries = input.deficits.slice(0, 3).map((deficit) => {
+  const degradationReasons = listPersonalizedPathDegradationReasons(input.learnerStateSnapshot);
+  const snapshotDegraded = Boolean(input.learnerStateSnapshot) && degradationReasons.length > 0;
+  const portraitUnavailable = degradationReasons.includes('portrait-unavailable');
+  const entries = input.deficits
+    .filter((deficit) => deficit.reasonCode !== 'competency-no-portrait-evidence')
+    .slice(0, 3)
+    .map((deficit) => {
     const confidence = snapshotDegraded ? 'low' : recommendationEntryConfidence(deficit);
     const affectedNodes = confidence === 'low'
       ? []
@@ -5685,7 +5703,10 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     );
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
-    snapshotDegraded ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。' : null,
+    portraitUnavailable
+      ? `当前无法个性化推荐：能力画像暂不可用（${input.learnerStateSnapshot?.primaryPortraitAvailability ?? '未知原因'}），本路径按通用学习路线生成。`
+      : null,
+    snapshotDegraded && !portraitUnavailable ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
@@ -5695,14 +5716,17 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     ? [`根据你的学习方式偏好，优先安排${appliedPreferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
     : [];
   return {
-    summary: confidence === 'low'
-      ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
-      : entries.length === 1
-        ? `依据 ${entries[0].targetLabel} 的学习证据安排本路径。`
-        : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
+    summary: portraitUnavailable
+      ? '当前无法个性化推荐：能力画像暂不可用，本路径按通用学习路线生成。'
+      : confidence === 'low'
+        ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
+        : entries.length === 1
+          ? `依据 ${entries[0].targetLabel} 的学习证据安排本路径。`
+          : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
     confidence,
     entries,
     personalizationNotes,
+    ...(portraitUnavailable ? { personalizationState: 'portrait-unavailable' as const } : {}),
     evidenceReviewHref: '/profile/evidence',
     limitations,
     nextAction: confidence === 'low' || hasLowConfidenceDeficit

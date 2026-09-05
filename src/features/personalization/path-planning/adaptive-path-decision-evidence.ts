@@ -118,6 +118,8 @@ export function listPersonalizedPathDegradationReasons(
     !snapshot || snapshot.confidence.level === 'none' || snapshot.confidence.level === 'low'
       ? 'insufficient-evidence'
       : null,
+    snapshot?.primaryPortraitState === 'UNAVAILABLE' ? 'portrait-unavailable' : null,
+    snapshot?.primaryPortraitState === 'NO_EVIDENCE' ? 'no-portrait-evidence' : null,
     snapshot?.freshness === 'stale' ? 'stale-evidence' : null,
     snapshot?.freshness === 'partial' ? 'partial-evidence' : null,
     snapshot?.missingEvidence.length ? 'missing-evidence' : null,
@@ -136,6 +138,8 @@ function nodeCoversDeficit(
 }
 
 export function degradationStudentText(reason: string): string {
+  if (reason === 'portrait-unavailable') return '能力画像暂不可用（画像更新或证据收集中），暂时不能据此给出个性化判断。';
+  if (reason === 'no-portrait-evidence') return '能力画像还没有足够证据，暂时不能据此给出个性化判断。';
   if (reason === 'stale-evidence') return '部分学习证据已经过期，暂时不能据此给出个性化判断。';
   if (reason === 'partial-evidence') return '部分学习证据仍然不完整，暂时不能据此给出个性化判断。';
   if (reason === 'missing-evidence') return '部分学习证据仍然缺失，暂时不能据此给出个性化判断。';
@@ -152,6 +156,8 @@ export function buildPersonalizedPathDecisionSnapshot(input: {
   const degradationReasons = listPersonalizedPathDegradationReasons(snapshot);
   const limitations = unique([
     ...degradationReasons.map((reason) => {
+      if (reason === 'portrait-unavailable') return '能力画像暂不可用（画像更新或证据收集中），能力类薄弱项判断已降级。';
+      if (reason === 'no-portrait-evidence') return '能力画像还没有足够证据，能力类薄弱项判断已降级。';
       if (reason === 'insufficient-evidence') return '当前没有足够的有效学习证据支持个性化判断。';
       if (reason === 'stale-evidence') return '部分学习证据已经过期。';
       if (reason === 'partial-evidence') return '部分学习证据仍然不完整。';
