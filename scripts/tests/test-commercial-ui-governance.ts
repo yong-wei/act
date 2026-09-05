@@ -2434,8 +2434,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
   const knowledgeWorkspaceSourcePath = 'src/features/knowledge/knowledge-graph-workspace.tsx';
   const activeAuthorityGraphSourcePath = 'src/features/knowledge/active-authority-graph.tsx';
-  const activeAuthorityForceCanvasSourcePath = 'src/features/knowledge/active-authority-force-canvas.tsx';
-  const activeAuthorityRootCanvasSourcePath = 'src/features/knowledge/active-authority-root-canvas.tsx';
+  const activeAuthorityRuntimeViewSourcePath = 'src/features/knowledge/active-authority-runtime-view.tsx';
+  const knowledgeGraphRuntimeCanvasSourcePath = 'src/features/knowledge/graph/knowledge-graph-runtime-canvas.tsx';
   const activeAuthorityShardStoreSourcePath = 'src/features/knowledge/active-authority-shard-store.ts';
   const activeAuthorityPresentationSourcePath = 'src/features/knowledge/active-authority-presentation.ts';
   const activeAuthorityGraphContractsSourcePath = 'src/features/knowledge/active-authority-graph-contracts.ts';
@@ -2471,8 +2471,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     graphSourcePath,
     knowledgeWorkspaceSourcePath,
     activeAuthorityGraphSourcePath,
-    activeAuthorityForceCanvasSourcePath,
-    activeAuthorityRootCanvasSourcePath,
+    activeAuthorityRuntimeViewSourcePath,
+    knowledgeGraphRuntimeCanvasSourcePath,
     activeAuthorityShardStoreSourcePath,
     activeAuthorityPresentationSourcePath,
     activeAuthorityGraphContractsSourcePath,
@@ -2514,8 +2514,11 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const activeAuthorityGraphSource = existsSync(path.join(repoRoot, activeAuthorityGraphSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityGraphSourcePath), 'utf8')
     : '';
-  const activeAuthorityForceCanvasSource = existsSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath))
-    ? readFileSync(path.join(repoRoot, activeAuthorityForceCanvasSourcePath), 'utf8')
+  const activeAuthorityRuntimeViewSource = existsSync(path.join(repoRoot, activeAuthorityRuntimeViewSourcePath))
+    ? readFileSync(path.join(repoRoot, activeAuthorityRuntimeViewSourcePath), 'utf8')
+    : '';
+  const knowledgeGraphRuntimeCanvasSource = existsSync(path.join(repoRoot, knowledgeGraphRuntimeCanvasSourcePath))
+    ? readFileSync(path.join(repoRoot, knowledgeGraphRuntimeCanvasSourcePath), 'utf8')
     : '';
   const activeAuthorityPresentationSource = existsSync(path.join(repoRoot, activeAuthorityPresentationSourcePath))
     ? readFileSync(path.join(repoRoot, activeAuthorityPresentationSourcePath), 'utf8')
@@ -3174,7 +3177,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       ? null
       : 'active-workspace:mode-controls-missing',
     activeAuthorityGraphSource.includes('data-active-authority-graph="true"')
-      && activeAuthorityForceCanvasSource.includes('data-active-graph-stage="authority"')
+      && activeAuthorityRuntimeViewSource.includes('stageAttr="authority"')
+      && knowledgeGraphRuntimeCanvasSource.includes('data-active-graph-stage={stageAttr}')
       ? null
       : 'active-graph:stable-dom-contract-missing',
     activeAuthorityPresentationSource.includes('createActiveAuthorityGraphModel')

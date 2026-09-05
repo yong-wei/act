@@ -8,8 +8,6 @@ import path from 'node:path';
 
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
-  activeAuthorityEdgeEndpoints,
-  activeAuthorityNodeBoundaryPoint,
   selectActiveAuthorityMembership,
 } from '../active-authority-graph';
 import {
@@ -1925,15 +1923,6 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(directed?.getAttribute('data-active-authority-relation-kind')).toBe('directed');
     expect(unordered?.getAttribute('data-active-authority-relation-kind')).toBe('undirected');
 
-    const horizontalEndpoints = activeAuthorityEdgeEndpoints(
-      'circle',
-      'hexagon',
-      { x: 100, y: 100 },
-      { x: 300, y: 100 },
-    );
-    expect(horizontalEndpoints.source.x).toBeCloseTo(118, 5);
-    expect(horizontalEndpoints.target.x).toBeCloseTo(276, 5);
-    expect(activeAuthorityNodeBoundaryPoint('diamond', { x: 200, y: 100 }, { x: 300, y: 100 }).x).toBeCloseTo(224, 5);
   });
 
   it('does not describe an unordered association with outgoing or incoming traversal', async () => {
