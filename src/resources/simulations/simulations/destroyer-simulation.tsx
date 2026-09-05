@@ -566,6 +566,11 @@ declare global {
       url: string;
       boxInView: boolean;
       skinnedIntact: boolean;
+      /** 仿真推进门控（QA 观测面）：false 时桨/天线/尾迹发射全部静止。 */
+      advancing?: boolean;
+      /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
+      propPortQuat?: [number, number, number, number] | null;
+      propStarboardQuat?: [number, number, number, number] | null;
     };
   }
 }
@@ -573,7 +578,7 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.0 → 旧 browser-delivery 链有序回退。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.2 → v2.1.1 → v2.1.0 → 旧 browser-delivery 链有序回退。 */
 function DestroyerModel({
   simRef,
   resetToken,
@@ -727,6 +732,13 @@ function DestroyerModelScene({
         url,
         boxInView: boxProjectsInsideNdc(camera, box),
         skinnedIntact: skinnedBindingsIntact(model),
+        advancing: sim.advancing,
+        propPortQuat: propNodes.port
+          ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
+          : null,
+        propStarboardQuat: propNodes.starboard
+          ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
+          : null,
       };
     }
   });

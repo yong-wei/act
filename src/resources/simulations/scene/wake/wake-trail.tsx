@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
@@ -15,6 +15,15 @@ import { simulationColorWithAlpha, simulationScenePalette } from '../../componen
  * 只更新 geometry 属性并置 needsUpdate（不重建 BufferGeometry）。
  * 材质与源实现一致：meshBasicMaterial + Canvas alphaMap + 顶点色 + 加法混合。
  */
+
+declare global {
+  interface Window {
+    /** QA 观测面（默认关闭）：页面置为 {} 后，各尾迹实例每帧写入活跃粒子数。 */
+    __wakeTrailLiveCounts?: Record<string, number>;
+  }
+}
+
+let wakeTrailDebugSeq = 0;
 
 /** 质量档位粒子缩放：高档全量、中档减半、低档四分之一（change 设计第 6 节）。 */
 const PARTICLE_SCALE_BY_TIER = {
@@ -219,6 +228,12 @@ export function WakeTrail({
     lastX: null as number | null,
     lastZ: null as number | null,
   });
+  const debugId = useMemo(() => `trail-${wakeTrailDebugSeq++}`, []);
+  useEffect(() => () => {
+    if (typeof window !== 'undefined' && window.__wakeTrailLiveCounts) {
+      delete window.__wakeTrailLiveCounts[debugId];
+    }
+  }, [debugId]);
 
   useFrame((_, delta) => {
     if (!buffer.style.enabled) {
@@ -272,6 +287,9 @@ export function WakeTrail({
     // 老化与几何刷新不受播放门控：停发后存量粒子走完生命周期并完全消散。
     buffer.update(state.simTime, state.pathLength);
     updateWakeTrailGeometry(handle, buffer, state.simTime, waterYSampler);
+    if (typeof window !== 'undefined' && window.__wakeTrailLiveCounts) {
+      window.__wakeTrailLiveCounts[debugId] = buffer.liveCount();
+    }
   });
 
   if (!buffer.style.enabled) {
