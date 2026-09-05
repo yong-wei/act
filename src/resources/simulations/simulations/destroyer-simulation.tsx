@@ -19,6 +19,7 @@ import {
   TYPE055_NANCHANG_101_V2,
   TYPE055_NANCHANG_101_V2_1_0,
   TYPE055_NANCHANG_101_V2_1_1,
+  TYPE055_NANCHANG_101_V2_1_2,
   TYPE055_V2_BASIS_YAW_RAD,
   isType055VersionedAssetUrl,
   matchActivatedType055Package,
@@ -170,6 +171,12 @@ interface SimulationState {
   waveRoll: number;
   /** 视觉层彩蛋计数：任务达标次数（只读遥测派生，不回写驱动链）。 */
   attainedCount: number;
+  /**
+   * 仿真时钟是否在推进（运行中且未播完）：视觉层推进绑定（桨转速/天线倾角/
+   * 尾迹发射航速）的唯一门控。物理 speedMps 为定速模型语义，暂停与播完后不归零，
+   * 视觉绑定一律以 advancing × speedMps 为有效航速，禁止直接消费 speedMps。
+   */
+  advancing: boolean;
 }
 
 // ============ 常量 ============
@@ -529,7 +536,7 @@ function WakeTrailRig({
             qualityTier={tier}
             playing={playing}
             waterYSampler={waterYSampler}
-            worldSpeedSampler={() => simRef.current.speedMps}
+            worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
             emitterWorldSampler={() => {
               const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
               return world ? [world.x, world.y, world.z] : null;
@@ -548,7 +555,7 @@ function WakeTrailRig({
       qualityTier={tier}
       playing={playing}
       waterYSampler={waterYSampler}
-      worldSpeedSampler={() => simRef.current.speedMps}
+      worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
     />
   );
 }
@@ -559,6 +566,11 @@ declare global {
       url: string;
       boxInView: boolean;
       skinnedIntact: boolean;
+      /** 仿真推进门控（QA 观测面）：false 时桨/天线/尾迹发射全部静止。 */
+      advancing?: boolean;
+      /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
+      propPortQuat?: [number, number, number, number] | null;
+      propStarboardQuat?: [number, number, number, number] | null;
     };
   }
 }
@@ -566,7 +578,7 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.0 → 旧 browser-delivery 链有序回退。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.2 → v2.1.1 → v2.1.0 → 旧 browser-delivery 链有序回退。 */
 function DestroyerModel({
   simRef,
   resetToken,
@@ -588,8 +600,9 @@ function DestroyerModel({
     );
   }
 
-  // 有序回退：激活版（v2.1.2）→ v2.1.1 → v2.1.0 → 旧单文件链。
+  // 有序回退：激活版（v2.1.3）→ v2.1.2 → v2.1.1 → v2.1.0 → 旧单文件链。
   const orderedFallback = [
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier),
     shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier),
     shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier),
     ...MODEL.candidates,
@@ -610,9 +623,10 @@ function DestroyerModel({
           basisYawRad={isType055VersionedAssetUrl(url) ? TYPE055_V2_BASIS_YAW_RAD : 0}
           descriptor={
             url.startsWith(descriptor.baseUrl) ? descriptor
-              : url.startsWith(TYPE055_NANCHANG_101_V2_1_1.baseUrl) ? TYPE055_NANCHANG_101_V2_1_1
-                : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
-                  : null
+              : url.startsWith(TYPE055_NANCHANG_101_V2_1_2.baseUrl) ? TYPE055_NANCHANG_101_V2_1_2
+                : url.startsWith(TYPE055_NANCHANG_101_V2_1_1.baseUrl) ? TYPE055_NANCHANG_101_V2_1_1
+                  : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
+                    : null
           }
         />
       )}
@@ -718,6 +732,13 @@ function DestroyerModelScene({
         url,
         boxInView: boxProjectsInsideNdc(camera, box),
         skinnedIntact: skinnedBindingsIntact(model),
+        advancing: sim.advancing,
+        propPortQuat: propNodes.port
+          ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
+          : null,
+        propStarboardQuat: propNodes.starboard
+          ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
+          : null,
       };
     }
   });
@@ -793,6 +814,8 @@ function SimulationEngine({
   const errorSampleCountRef = useRef(0);
   const rustStateRef = useRef<DestroyerHifiState | null>(null);
   const attainmentRef = useRef<AttainmentState>(createAttainmentState());
+  /** 仿真时钟播完（simTime 超过 duration）：视觉推进门控随之为假。 */
+  const finishedRef = useRef(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
 
   useEffect(() => {
@@ -818,6 +841,7 @@ function SimulationEngine({
     errorSampleCountRef.current = 0;
     rustStateRef.current = null;
     attainmentRef.current = createAttainmentState();
+    finishedRef.current = false;
     clockRef.current.reset();
   }, [resetToken]);
 
@@ -844,6 +868,8 @@ function SimulationEngine({
   );
 
   useFrame((state) => {
+    // 视觉推进门控每帧重算：暂停、未就绪、播完均为不推进（桨停转、尾迹停发）。
+    simRef.current.advancing = isRunning && runtimeReady && !finishedRef.current;
     if (!isRunning || !runtimeReady) {
       lastFrameTimeRef.current = state.clock.getElapsedTime();
       return;
@@ -859,7 +885,11 @@ function SimulationEngine({
       const previousTime = simTimeRef.current;
       const simTime = previousTime + dt;
 
-      if (simTime > duration) return;
+      if (simTime > duration) {
+        finishedRef.current = true;
+        simRef.current.advancing = false;
+        return;
+      }
 
       const sim = simRef.current;
       const targetHeading = interpolateHeading(simTime);
@@ -1407,6 +1437,7 @@ export default function DestroyerSimulation() {
     wavePitch: 0,
     waveRoll: 0,
     attainedCount: 0,
+    advancing: false,
   });
   const shipRef = useRef<THREE.Group | null>(null);
   // 双桨尾迹发射锚点：模型侧逐帧写入桨节点世界位置，尾迹侧逐帧读取。
@@ -1450,6 +1481,7 @@ export default function DestroyerSimulation() {
       wavePitch: 0,
       waveRoll: 0,
       attainedCount: 0,
+      advancing: false,
     };
 
     setHudState({

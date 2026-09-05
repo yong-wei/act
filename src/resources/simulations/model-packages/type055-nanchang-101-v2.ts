@@ -6,10 +6,11 @@
  * `artifacts/model-releases/type055-nanchang-101-v<version>/receipt.json`。
  * 本模块只登记已验证事实；ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
- * v2.1.2（当前激活）：剔除 `national_flag_wind` 根骨骼 FLAG_BONE_00 的伪
- * (-1,-1,-1) scale 轨道（Blender 5.2 多骨架导出缺陷，上游管线 sanitize），
- * 国旗恢复向 -X 舰艉飘动；几何、材质与接口合同同 v2.1.1。
- * v2.1.1、v2.1.0 保留为运行时有序回退（接口合同一致，仅动画字节/材质归属不同）。
+ * v2.1.3（当前激活）：裁减 `prop_port_spin`/`prop_starboard_spin` 的常量
+ * 尾部保持段（G05 四键布局对 continuous 关节产生 second_limit→home_end
+ * 1s 静止尾，上游管线 trim_continuous_spin_hold），clip 以整圈终点收尾
+ * （720°≡0°），循环播放连续无停顿；几何、材质与接口合同同 v2.1.2。
+ * v2.1.2、v2.1.1、v2.1.0 保留为运行时有序回退（接口合同一致，仅动画字节/材质归属不同）。
  */
 
 export type VersionedModelRole =
@@ -103,7 +104,7 @@ function artifact(baseUrl: string, role: VersionedModelRole, file: string, sha25
   return { role, file, url: `${baseUrl}/${file}`, sha256, bytes };
 }
 
-/** v2.1.x 共用的接口合同（v2.1.1 仅改材质归属、v2.1.2 仅剔除伪 scale 轨道，接口不变）。 */
+/** v2.1.x 共用的接口合同（v2.1.1 仅改材质归属、v2.1.2 仅剔除伪 scale 轨道、v2.1.3 仅裁减 spin clip 保持尾，接口不变）。 */
 const V2_INTERFACE_CONTRACT: VersionedModelInterfaceContract = {
   shipAnimationCount: 15,
   shipInterfaceAnimations: [
@@ -196,19 +197,19 @@ const V2_EASTER_EGG = {
   ],
 } as const;
 
-const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.1.2';
+const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.1.3';
 
 export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.2',
-  releaseManifestSha256: 'e56460aae95234157fb738b36ba5e09e0165353e68f53e70c093f7f325989eb5',
+  modelVersion: '2.1.3',
+  releaseManifestSha256: '7119609d278fa74faf1dc0dc9e97b501d14aefa5c39486859f18e92dd0ea093d',
   sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
   baseUrl: BASE_URL,
   roles: {
-    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '9b59b3185681586a76af1b6c94522cbe99dca675c52132dde674468c9b568fd3', 3527132),
-    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '2cbfe9dd6800b88304a2887835ccd695d3fa15a784a876260b409b9e037b3df0', 1729084),
-    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'eb7c551d177b78b619d1d4b6c35a02008a60248f89ad358114ad4033dab70327', 1138920),
+    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', 'a6af851eb6239e626e35b78cda24c3ffc3ea7b1d466da53a42079fb35b972bc6', 3527712),
+    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', 'aae54a087ecbb7c096065f8cc77a6d970950816dc75b7364a54c5fd81136afab', 1726372),
+    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'd272cb7772d95d4a46fadb4edf9111214cce12fa68f912d156949d05bb368a78', 1145904),
     collision: artifact(BASE_URL, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
     payload: artifact(BASE_URL, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
     demo: artifact(BASE_URL, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
@@ -224,9 +225,38 @@ export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   easterEgg: V2_EASTER_EGG,
 };
 
+const BASE_URL_V2_1_2 = '/assets/model-releases/type055-nanchang-101/v2.1.2';
+
+/** v2.1.2 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
+export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
+  packageId: 'type055-nanchang-101',
+  shipId: 'type_055_destroyer_101_nanchang',
+  modelVersion: '2.1.2',
+  releaseManifestSha256: 'e56460aae95234157fb738b36ba5e09e0165353e68f53e70c093f7f325989eb5',
+  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+  baseUrl: BASE_URL_V2_1_2,
+  roles: {
+    'ship-lod0': artifact(BASE_URL_V2_1_2, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '9b59b3185681586a76af1b6c94522cbe99dca675c52132dde674468c9b568fd3', 3527132),
+    'ship-lod1': artifact(BASE_URL_V2_1_2, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '2cbfe9dd6800b88304a2887835ccd695d3fa15a784a876260b409b9e037b3df0', 1729084),
+    'ship-lod2': artifact(BASE_URL_V2_1_2, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'eb7c551d177b78b619d1d4b6c35a02008a60248f89ad358114ad4033dab70327', 1138920),
+    collision: artifact(BASE_URL_V2_1_2, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
+    payload: artifact(BASE_URL_V2_1_2, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
+    demo: artifact(BASE_URL_V2_1_2, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
+    'interactive-systems': artifact(BASE_URL_V2_1_2, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  interfaceContract: V2_INTERFACE_CONTRACT,
+  verticalAnchor: V2_VERTICAL_ANCHOR,
+  modelLengthMeters: V2_MODEL_LENGTH_METERS,
+  propulsors: V2_PROPULSORS,
+  telemetryScale: V2_TELEMETRY_SCALE,
+  semanticBindings: V2_SEMANTIC_BINDINGS,
+  easterEgg: V2_EASTER_EGG,
+};
+
 const BASE_URL_V2_1_1 = '/assets/model-releases/type055-nanchang-101/v2.1.1';
 
-/** v2.1.1 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.2）。 */
+/** v2.1.1 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
 export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
@@ -312,6 +342,7 @@ export const TYPE055_V2_BASIS_YAW_RAD = -Math.PI / 2;
 /** 已接收的 type055 版本化包 baseUrl 集合（激活版 + 有序回退版）。 */
 export const TYPE055_VERSIONED_PACKAGE_BASE_URLS: readonly string[] = [
   TYPE055_NANCHANG_101_V2.baseUrl,
+  TYPE055_NANCHANG_101_V2_1_2.baseUrl,
   TYPE055_NANCHANG_101_V2_1_1.baseUrl,
   TYPE055_NANCHANG_101_V2_1_0.baseUrl,
 ];

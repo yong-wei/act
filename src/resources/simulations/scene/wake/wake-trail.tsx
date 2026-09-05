@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
@@ -15,6 +15,15 @@ import { simulationColorWithAlpha, simulationScenePalette } from '../../componen
  * 只更新 geometry 属性并置 needsUpdate（不重建 BufferGeometry）。
  * 材质与源实现一致：meshBasicMaterial + Canvas alphaMap + 顶点色 + 加法混合。
  */
+
+declare global {
+  interface Window {
+    /** QA 观测面（默认关闭）：页面置为 {} 后，各尾迹实例每帧写入活跃粒子数。 */
+    __wakeTrailLiveCounts?: Record<string, number>;
+  }
+}
+
+let wakeTrailDebugSeq = 0;
 
 /** 质量档位粒子缩放：高档全量、中档减半、低档四分之一（change 设计第 6 节）。 */
 const PARTICLE_SCALE_BY_TIER = {
@@ -35,7 +44,8 @@ export interface WakeTrailProps {
   };
   /** 质量档位：决定粒子容量上限。 */
   readonly qualityTier: WakeQualityTier;
-  /** 播放状态：暂停时冻结发射与老化（尾迹静止）。 */
+  /** 播放状态：暂停时停止发射（活跃度数零即不再产生新粒子）；
+   * 老化时钟持续推进，存量粒子经各自生命周期后完全消散。 */
   readonly playing: boolean;
   /** 世界坐标中的船长：默认取档案船长（1:1 世界）。 */
   readonly worldShipLength?: number;
@@ -218,56 +228,68 @@ export function WakeTrail({
     lastX: null as number | null,
     lastZ: null as number | null,
   });
+  const debugId = useMemo(() => `trail-${wakeTrailDebugSeq++}`, []);
+  useEffect(() => () => {
+    if (typeof window !== 'undefined' && window.__wakeTrailLiveCounts) {
+      delete window.__wakeTrailLiveCounts[debugId];
+    }
+  }, [debugId]);
 
   useFrame((_, delta) => {
-    if (!playing || !buffer.style.enabled) {
+    if (!buffer.style.enabled) {
       return;
     }
     const state = frameState.current;
     const dt = Math.max(0, delta);
     state.simTime += dt;
 
-    const { position, heading } = shipTransform;
-    let worldSpeed = worldSpeedSampler?.() ?? 0;
-    if (worldSpeedSampler === undefined) {
+    if (playing) {
+      const { position, heading } = shipTransform;
+      let worldSpeed = worldSpeedSampler?.() ?? 0;
+      if (worldSpeedSampler === undefined) {
+        if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
+          const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
+          worldSpeed = distance / dt;
+        }
+      }
       if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
-        const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
-        worldSpeed = distance / dt;
+        state.pathLength += Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
+      }
+      state.lastX = position[0];
+      state.lastZ = position[2];
+
+      const activity = computeWakeSpeedActivity({
+        worldSpeed,
+        worldShipLength: worldShipLength ?? profile.shipLengthMeters,
+        profile,
+        speedCoupling: buffer.style.speedCoupling,
+        minLifetimeScale: buffer.style.minLifetimeScale,
+      });
+
+      state.emitAccumulator += dt;
+      if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
+        state.emitAccumulator = 0;
+        const anchors = resolveEmitterAnchors(profile, [position[0], position[1], position[2]], heading, emitterWorldSampler?.() ?? null);
+        const snapshot: WakeAnchorSnapshot = {
+          stern: anchors.stern,
+          portShoulder: anchors.portShoulder,
+          starboardShoulder: anchors.starboardShoulder,
+          forwardX: Math.sin(heading),
+          forwardZ: Math.cos(heading),
+          waterY: waterYSampler?.() ?? waterY ?? anchors.stern[1],
+          worldShipLength: worldShipLength ?? profile.shipLengthMeters,
+          pathLength: state.pathLength,
+        };
+        buffer.emit({ now: state.simTime, activity, anchors: snapshot, includeKelvin });
       }
     }
-    if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
-      state.pathLength += Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
-    }
-    state.lastX = position[0];
-    state.lastZ = position[2];
 
-    const activity = computeWakeSpeedActivity({
-      worldSpeed,
-      worldShipLength: worldShipLength ?? profile.shipLengthMeters,
-      profile,
-      speedCoupling: buffer.style.speedCoupling,
-      minLifetimeScale: buffer.style.minLifetimeScale,
-    });
-
-    state.emitAccumulator += dt;
-    if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
-      state.emitAccumulator = 0;
-      const anchors = resolveEmitterAnchors(profile, [position[0], position[1], position[2]], heading, emitterWorldSampler?.() ?? null);
-      const snapshot: WakeAnchorSnapshot = {
-        stern: anchors.stern,
-        portShoulder: anchors.portShoulder,
-        starboardShoulder: anchors.starboardShoulder,
-        forwardX: Math.sin(heading),
-        forwardZ: Math.cos(heading),
-        waterY: waterYSampler?.() ?? waterY ?? anchors.stern[1],
-        worldShipLength: worldShipLength ?? profile.shipLengthMeters,
-        pathLength: state.pathLength,
-      };
-      buffer.emit({ now: state.simTime, activity, anchors: snapshot, includeKelvin });
-    }
-
+    // 老化与几何刷新不受播放门控：停发后存量粒子走完生命周期并完全消散。
     buffer.update(state.simTime, state.pathLength);
     updateWakeTrailGeometry(handle, buffer, state.simTime, waterYSampler);
+    if (typeof window !== 'undefined' && window.__wakeTrailLiveCounts) {
+      window.__wakeTrailLiveCounts[debugId] = buffer.liveCount();
+    }
   });
 
   if (!buffer.style.enabled) {

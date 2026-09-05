@@ -18,6 +18,7 @@ import { resolveEmitterAnchors } from '../scene/wake/wake-trail';
 import {
   TYPE055_NANCHANG_101_V2_1_0,
   TYPE055_NANCHANG_101_V2_1_1,
+  TYPE055_NANCHANG_101_V2_1_2,
   isType055VersionedAssetUrl,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
@@ -30,7 +31,7 @@ import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
  * F1 共享波面坐标/振幅基准；F2 达标门（机动段才评估）；F3 双桨逐帧节点绑定；
  * F4 v2.1.0 运行时有序回退；F5 水面网格轴约定（复审 P1）；F6 达标门 maxSettlingTime（复审 P2）；
  * F7 L0 clip 绑定进 useEffect（用户报告：螺旋桨不转）；F8 v2.1.2 红旗伪 scale 轨道剔除；
- * F9 shader 相位改用不可变原始坐标（复审 P1）。
+ * F9 shader 相位改用不可变原始坐标（复审 P1）；F10 v2.1.3 螺旋桨 clip 裁净常量保持尾。
  */
 
 describe('F1: visible water sampling shares the mesh-local coordinate basis', () => {
@@ -210,14 +211,17 @@ describe('F4: v2.1.0 stays in the runtime ordered fallback chain', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf-8');
     const fallbackBlock = source.match(/orderedFallback = \[[\s\S]*?\];/);
     expect(fallbackBlock).not.toBeNull();
+    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier)');
     expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier)');
     expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
     expect(fallbackBlock![0]).toContain('MODEL.candidates');
+    expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, 'high')).toContain('/v2.1.2/');
     expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, 'high')).toContain('/v2.1.1/');
     expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, 'high')).toContain('/v2.1.0/');
   });
 
   it('applies the coordinate basis to every received package asset url', () => {
+    expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.3/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.2/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.1/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.0/type055-nanchang-101-ship-lod0.glb')).toBe(true);
@@ -485,4 +489,56 @@ describe('F9: shader phase uses immutable original coordinates (CPU/GPU same fie
     expect(source).toContain('phase = k * (dx * basePos.x + dz * basePos.z)');
     expect(source).not.toContain('phase = k * (dx * pos.x + dz * pos.z)');
   });
+});
+
+describe('F10: v2.1.3 prop spin clips rotate continuously without a hold tail', () => {
+  const V213_PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.3');
+
+  function glbJsonOf(file: string) {
+    const bytes = readFileSync(path.join(V213_PACKAGE_DIR, file));
+    const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
+    return JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength))) as {
+      animations?: {
+        name?: string;
+        channels: { target: { node: number; path: string }; sampler: number }[];
+        samplers: { input: number }[];
+      }[];
+      accessors?: { count: number; max?: number[] }[];
+      nodes?: { name?: string }[];
+    };
+  }
+
+  // 上游 G05 四键布局对 continuous 关节产生 second_limit→home_end 常量保持段
+  // （v2.1.2 clip 3.042s：2s 旋转 + 1s 静止尾，循环播放呈分段停顿）；
+  // v2.1.3 管线 trim_continuous_spin_hold 裁净后 clip 以整圈终点（49 帧 ≈ 2.042s）收尾。
+  it.each(['type055-nanchang-101-ship-lod0.glb', 'type055-nanchang-101-ship-lod1.glb', 'type055-nanchang-101-ship-lod2.glb'])(
+    'prop spin clips in %s end at the full-turn frame with no constant tail',
+    (file) => {
+      const json = glbJsonOf(file);
+      for (const clipName of ['prop_port_spin', 'prop_starboard_spin']) {
+        const clip = (json.animations ?? []).find((animation) => animation.name === clipName);
+        expect(clip, `${clipName} clip missing`).toBeDefined();
+        const rotationChannel = clip!.channels.find((channel) => channel.target.path === 'rotation');
+        expect(rotationChannel, `${clipName} rotation channel missing`).toBeDefined();
+        const input = json.accessors?.[clip!.samplers[rotationChannel!.sampler].input];
+        expect(input).toBeDefined();
+        expect(input!.count).toBe(49);
+        expect(input!.max?.[0]).toBeCloseTo(49 / 24, 3);
+      }
+    },
+  );
+
+  it.each(['type055-nanchang-101-ship-lod0.glb', 'type055-nanchang-101-ship-lod1.glb', 'type055-nanchang-101-ship-lod2.glb'])(
+    'keeps the v2.1.2 flag fix: no FLAG_BONE scale channels in %s',
+    (file) => {
+      const json = glbJsonOf(file);
+      const clip = (json.animations ?? []).find((animation) => animation.name === 'national_flag_wind');
+      expect(clip, 'national_flag_wind clip missing').toBeDefined();
+      const flagScaleChannels = clip!.channels.filter(
+        (channel) => channel.target.path === 'scale'
+          && (json.nodes?.[channel.target.node]?.name ?? '').startsWith('FLAG_BONE'),
+      );
+      expect(flagScaleChannels).toHaveLength(0);
+    },
+  );
 });
