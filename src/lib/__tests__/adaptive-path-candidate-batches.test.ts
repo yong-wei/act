@@ -197,6 +197,28 @@ describe('adaptive path candidate batches', () => {
     ]);
   });
 
+  it('records policy bundle fallback state in batch metadata for below-target derivations', async () => {
+    const { db, create } = dbFixture();
+    const derived = plan();
+    derived.policyBundle!.families = ['foundation-remediation', 'sprint-correction'];
+    derived.policyBundle!.status = 'low-resource-fallback';
+    derived.policyBundle!.fallbackReasons = ['policy-option-count-below-target'];
+    derived.policyBundle!.paths = [
+      candidate('foundation-remediation', 'foundation-remediation', '稳步掌握', ['node-1']),
+      candidate('sprint-correction-route', 'sprint-correction', '短程纠偏', ['node-2']),
+    ];
+
+    await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'request-derived',
+      plan: derived,
+    });
+
+    const metadata = create.mock.calls[0][0].data.metadata;
+    expect(create.mock.calls[0][0].data.candidateCount).toBe(2);
+    expect(metadata.policyBundleStatus).toBe('low-resource-fallback');
+    expect(metadata.policyBundleFallbackReasons).toEqual(['policy-option-count-below-target']);
+  });
+
   it('freezes generation-time decision evidence onto batch metadata and candidate snapshots', async () => {
     const { db } = dbFixture();
     const generated = plan();
