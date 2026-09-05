@@ -39,6 +39,11 @@ export function konlingFairExperimentBankHash(bank: KonlingFairExperimentBank): 
       intent: item.intent,
       question: item.question,
       referenceAnswer: item.referenceAnswer,
+      // 分层标注进哈希（#1952）：V1 条目 undefined 字段被 JSON.stringify 丢弃，
+      // V1 哈希不变；V2 冻结含分层标注。
+      difficulty: item.difficulty,
+      topic: item.topic,
+      riskType: item.riskType,
     })),
   });
   return createHash('sha256').update(canonical).digest('hex');

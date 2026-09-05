@@ -41,6 +41,7 @@ afterAll(() => {
 
 describe('konling fair experiment entrypoint smoke (#1947)', () => {
   it('fixture runner completes deterministically and records manifest revisions', () => {
+    // #1952 起默认题库为分层 V2 + 分级盲审 rubric。
     const result = runEntrypoint('run-fixture.ts', ['--run-id', runId]);
     expect(result.status).toBe(0);
 
@@ -55,11 +56,30 @@ describe('konling fair experiment entrypoint smoke (#1947)', () => {
     expect(config.gitRevision.length).toBeGreaterThan(0);
     expect(typeof config.scorerRevision).toBe('string');
     expect(config.scorerRevision.length).toBeGreaterThan(0);
+    expect(manifest.payload.bank.version).toBe('fair-experiment-v2');
+    expect(manifest.payload.bank.itemCount).toBe(18);
+    expect(config.audit.promptVersion).toBe('konling-blind-audit-graded.v2');
+    expect(config.audit.scoreVersion).toBe('rubric-graded.v2');
+  }, 60_000);
+
+  it('fixture runner keeps the frozen v1 bank selectable (#1952)', () => {
+    const result = runEntrypoint('run-fixture.ts', ['--run-id', `${runId}-v1`, '--bank', 'v1']);
+    expect(result.status).toBe(0);
+    const manifest = JSON.parse(
+      readFileSync(
+        path.join(workDir, 'artifacts', 'konling-fair-experiment', `${runId}-v1`, 'manifest.snapshot.json'),
+        'utf8',
+      ),
+    );
+    expect(manifest.payload.bank.version).toBe('fair-experiment-v1');
+    expect(manifest.payload.bank.itemCount).toBe(6);
+    expect(manifest.payload.config.audit.promptVersion).toBe('konling-blind-audit.v1');
+    expect(manifest.payload.config.audit.scoreVersion).toBe('rubric.v1');
   }, 60_000);
 
   it('replay-scoring replays the frozen fixture run without generation', () => {
-    // 不传 --calibers：默认口径串为冻结 v1 + 当前 v2（#1950），
-    // 回放产出 v1→v2 口径差值（fixture 无装饰标题，差值为 0）。
+    // 不传 --calibers/--bank：默认口径串为冻结 v1 + 当前 v2（#1950）、
+    // 默认题库 V2 与 fixture 运行一致（#1952），哈希门禁通过。
     const result = runEntrypoint('replay-scoring.ts', ['--run-id', runId]);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('status:');

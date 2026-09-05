@@ -22,7 +22,8 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-function derivedSeed(...parts: string[]): number {
+/** 身份派生种子（#1952 起导出：专家复核抽样等确定性选择复用同一派生）。 */
+export function derivedSeed(...parts: string[]): number {
   const digest = createHash('sha256').update(parts.join('\u0000')).digest();
   return digest.readUInt32BE(0);
 }

@@ -16,6 +16,10 @@ import {
 } from './bank';
 import { buildPairedDifference, rateMetric } from './metrics';
 import {
+  buildKonlingFairExperimentExpertReviewReport,
+  selectKonlingFairExperimentExpertSubset,
+} from './expert-review';
+import {
   konlingFairExperimentRunDir,
   loadKonlingFairExperimentAnswers,
   loadKonlingFairExperimentScores,
@@ -29,13 +33,23 @@ import type {
   KonlingFairExperimentAggregateStatus,
   KonlingFairExperimentAnswerRecord,
   KonlingFairExperimentArm,
+  KonlingFairExperimentAuditDimension,
   KonlingFairExperimentBank,
   KonlingFairExperimentConfig,
+  KonlingFairExperimentGradedAuditResult,
+  KonlingFairExperimentGradedVerdictName,
   KonlingFairExperimentManifest,
   KonlingFairExperimentOfficialSummary,
   KonlingFairExperimentScoreRecord,
 } from './types';
-import { buildKonlingFairExperimentTaskKey } from './types';
+import {
+  KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS,
+  KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES,
+  KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS,
+  KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER,
+  isKonlingFairExperimentGradedAuditResult,
+  buildKonlingFairExperimentTaskKey,
+} from './types';
 
 const EXPERIMENT_VERSION = 'konling-fair-experiment.v1';
 
@@ -91,10 +105,21 @@ function configMismatch(
 }
 
 interface AuditArmEvidence {
-  /** key = `${itemId}--r${replicate}` → 盲审判定是否 pass。 */
+  /** key = `${itemId}--r${replicate}` → 盲审判定 pass 等价（graded：非 major-error）。 */
   verdicts: Map<string, boolean>;
   ruleScores: number[];
+  /** #1952：graded 记录（rubric-graded.v2）；二元 rubric 运行为 null。 */
+  graded: Map<string, KonlingFairExperimentGradedAuditResult> | null;
   complete: boolean;
+}
+
+/**
+ * manifest 声明的 rubric 家族：`rubric-graded.*` 要求全部记录为分级形态，
+ * 其余（rubric.v1）要求二元形态。记录形态与配置不符（例如 graded 配置
+ * 误接二元评审器）按 parse-failure 语义 fail closed，不得进入正式指标。
+ */
+function expectsGradedRubric(config: KonlingFairExperimentConfig): boolean {
+  return config.audit.scoreVersion.startsWith('rubric-graded');
 }
 
 function auditArmEvidence(
@@ -103,9 +128,12 @@ function auditArmEvidence(
   bank: KonlingFairExperimentBank,
   arm: KonlingFairExperimentArm,
   answers: readonly KonlingFairExperimentAnswerRecord[],
+  expectedGraded: boolean,
 ): AuditArmEvidence {
   const verdicts = new Map<string, boolean>();
   const ruleScores: number[] = [];
+  const graded = new Map<string, KonlingFairExperimentGradedAuditResult>();
+  let rubricMismatch = false;
   for (let replicate = 1; replicate <= bank.replicates; replicate += 1) {
     const derivedRunId = derivedAuditRunId(runId, arm, replicate);
     const derivedManifest = buildKonlingFairExperimentDerivedAuditManifest({
@@ -118,16 +146,62 @@ function auditArmEvidence(
       mode: 'blind-audit',
     });
     if (aggregate.status !== 'complete') {
-      return { verdicts, ruleScores, complete: false };
+      return { verdicts, ruleScores, graded: null, complete: false };
     }
     const records = loadKonlingBlindAuditRecords(konlingBlindAuditRunDir(root, derivedRunId), 'blind-audit');
     for (const record of records) {
-      const result = record.result as { verdict?: unknown; ruleScore?: unknown } | undefined;
-      verdicts.set(`${record.itemId}--r${replicate}`, result?.verdict === 'pass');
-      if (typeof result?.ruleScore === 'number') ruleScores.push(result.ruleScore);
+      const auditKey = `${record.itemId}--r${replicate}`;
+      const gradedResult = isKonlingFairExperimentGradedAuditResult(record.result)
+        ? record.result
+        : null;
+      if ((gradedResult !== null) !== expectedGraded) {
+        rubricMismatch = true;
+        continue;
+      }
+      if (gradedResult) {
+        graded.set(auditKey, gradedResult);
+        // graded rubric 的 pass 等价：仅 major-error 视为不通过——correct 与
+        // minor-flaw 都是可接受回答，三级区分进入 verdictDistribution 与子分。
+        verdicts.set(auditKey, gradedResult.verdict !== 'major-error');
+        ruleScores.push(gradedResult.ruleScore);
+      } else {
+        const result = record.result as { verdict?: unknown; ruleScore?: unknown } | undefined;
+        verdicts.set(auditKey, result?.verdict === 'pass');
+        if (typeof result?.ruleScore === 'number') ruleScores.push(result.ruleScore);
+      }
     }
   }
-  return { verdicts, ruleScores, complete: verdicts.size >= bank.items.length * bank.replicates };
+  return {
+    verdicts,
+    ruleScores,
+    graded: graded.size > 0 && !rubricMismatch ? graded : null,
+    complete: !rubricMismatch && verdicts.size >= bank.items.length * bank.replicates,
+  };
+}
+
+/** #1952：per arm 五子分均值、verdict 分布与天花板/地板比例。 */
+function gradedAuditDimensions(
+  graded: Map<string, KonlingFairExperimentGradedAuditResult>,
+): NonNullable<KonlingFairExperimentOfficialSummary['perArm'][KonlingFairExperimentArm]['auditDimensions']> {
+  const results = [...graded.values()];
+  const verdictDistribution = Object.fromEntries(
+    KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS.map((verdict) => [
+      verdict,
+      results.filter((result) => result.verdict === verdict).length,
+    ]),
+  ) as Record<KonlingFairExperimentGradedVerdictName, number>;
+  const meanSubscores = Object.fromEntries(
+    KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS.map((dimension) => [
+      dimension,
+      results.reduce((sum, result) => sum + result.subscores[dimension], 0) / results.length,
+    ]),
+  ) as Record<KonlingFairExperimentAuditDimension, number>;
+  return {
+    verdictDistribution,
+    meanSubscores,
+    ceilingProportion: results.filter((result) => result.ruleScore >= 0.95).length / results.length,
+    floorProportion: results.filter((result) => result.ruleScore <= 0.05).length / results.length,
+  };
 }
 
 /**
@@ -210,7 +284,10 @@ export function aggregateKonlingFairExperiment(input: {
     }
 
     if (input.config.audit.enabled) {
-      const evidence = auditArmEvidence(input.root, input.runId, input.bank, arm, records);
+      const evidence = auditArmEvidence(
+        input.root, input.runId, input.bank, arm, records,
+        expectsGradedRubric(input.config),
+      );
       if (!evidence.complete) {
         return incomplete({ phase: 'audit', arm });
       }
@@ -294,6 +371,8 @@ export function aggregateKonlingFairExperiment(input: {
         : null,
       composite,
       classificationAgreement,
+      // #1952：graded rubric 记录才产出判别力维度；二元 rubric 保持 null。
+      auditDimensions: audit?.graded ? gradedAuditDimensions(audit.graded) : null,
     };
     if (audit) {
       auditOutcomes.set(arm, [...audit.verdicts.entries()]
@@ -309,6 +388,72 @@ export function aggregateKonlingFairExperiment(input: {
     ['plain-baseline', 'full-feature'],
     ['enhanced-baseline', 'full-feature'],
   ];
+
+  // —— #1952：难度×意图分层结果与分层配对差值；V1 题库（无分层标注）为空 ——
+  // 层内通过率为三臂合并口径（臂间比较见 stratifiedDeltas）；层样本量
+  // = 条目 × replicates × 臂数，CI 宽属预期（design 已注明）。
+  const stratifiedLayers: KonlingFairExperimentOfficialSummary['stratified']['layers'] = [];
+  const stratifiedDeltas: KonlingFairExperimentOfficialSummary['stratified']['stratifiedDeltas'] = [];
+  const difficultiesPresent = KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES.filter((difficulty) =>
+    input.bank.items.some((item) => item.difficulty === difficulty));
+  const intentsPresent = [...new Set(input.bank.items.map((item) => item.intent))];
+  for (const difficulty of difficultiesPresent) {
+    for (const intent of intentsPresent) {
+      const layerItems = input.bank.items.filter((item) =>
+        item.intent === intent && item.difficulty === difficulty);
+      if (layerItems.length === 0) continue;
+      const layerItemIds = new Set(layerItems.map((item) => item.itemId));
+      const structure: Record<string, ReturnType<typeof rateMetric>> = {};
+      for (const caliber of input.calibers) {
+        const pooled: boolean[] = [];
+        for (const arm of input.arms) {
+          pooled.push(...(scoresByCaliberArm.get(`${caliber}--${arm}`) ?? [])
+            .filter((score) => layerItemIds.has(score.itemId))
+            .map((score) => score.passed));
+        }
+        structure[caliber] = rateMetric(pooled);
+      }
+      const layerGraded: KonlingFairExperimentGradedAuditResult[] = [];
+      for (const evidence of auditsByArm.values()) {
+        if (!evidence.graded) continue;
+        for (const item of layerItems) {
+          for (let replicate = 1; replicate <= input.bank.replicates; replicate += 1) {
+            const result = evidence.graded.get(`${item.itemId}--r${replicate}`);
+            if (result) layerGraded.push(result);
+          }
+        }
+      }
+      const meanSubscores = layerGraded.length === 0
+        ? null
+        : Object.fromEntries(KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS.map((dimension) => [
+          dimension,
+          layerGraded.reduce((sum, result) => sum + result.subscores[dimension], 0) / layerGraded.length,
+        ])) as Record<KonlingFairExperimentAuditDimension, number>;
+      stratifiedLayers.push({ difficulty, intent, itemCount: layerItems.length, structure, meanSubscores });
+
+      for (const caliber of input.calibers) {
+        for (const [baselineArm, comparisonArm] of armPairs) {
+          // 两臂评分记录同源排序（taskKey 字典序），过滤后配对对齐。
+          const baselineOutcomes = (scoresByCaliberArm.get(`${caliber}--${baselineArm}`) ?? [])
+            .filter((score) => layerItemIds.has(score.itemId))
+            .map((score) => score.passed);
+          const comparisonOutcomes = (scoresByCaliberArm.get(`${caliber}--${comparisonArm}`) ?? [])
+            .filter((score) => layerItemIds.has(score.itemId))
+            .map((score) => score.passed);
+          const delta = buildPairedDifference({
+            metric: `stratified-structure@${caliber}:${difficulty}/${intent}`,
+            baselineLabel: baselineArm,
+            comparisonLabel: comparisonArm,
+            baselineOutcomes,
+            comparisonOutcomes,
+            seedParts: [seed, 'stratified-structure', caliber, difficulty, intent, baselineArm, comparisonArm],
+            iterations,
+          });
+          if (delta) stratifiedDeltas.push(delta);
+        }
+      }
+    }
+  }
   const generationDeltas: KonlingFairExperimentOfficialSummary['generationDeltas'] = [];
   for (const caliber of input.calibers) {
     for (const [baselineArm, comparisonArm] of armPairs) {
@@ -378,6 +523,14 @@ export function aggregateKonlingFairExperiment(input: {
     arms: input.arms,
     config: input.config,
   });
+  // #1952：教师双人复核校准——确定性子集 + 可选人工记录；缺失 pending 不阻塞。
+  const expertReview = buildKonlingFairExperimentExpertReviewReport({
+    runDir,
+    subsetItemIds: selectKonlingFairExperimentExpertSubset({
+      bank: input.bank,
+      seed: input.config.sampling.seed,
+    }),
+  });
   const officialSummary: KonlingFairExperimentOfficialSummary = {
     runId: input.runId,
     experimentVersion: EXPERIMENT_VERSION,
@@ -386,6 +539,9 @@ export function aggregateKonlingFairExperiment(input: {
     config: input.config,
     calibers: [...input.calibers],
     perArm,
+    stratified: { layers: stratifiedLayers, stratifiedDeltas },
+    expertReview,
+    syntheticDisclaimer: KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER,
     generationDeltas,
     caliberDeltas,
   };
