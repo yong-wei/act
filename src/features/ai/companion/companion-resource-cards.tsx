@@ -27,6 +27,7 @@ interface VerifyResult {
 const KIND_LABELS: Record<string, string> = {
   'textbook-unit': '教材单元',
   'interactive-resource': '互动资源',
+  'governed-registry-resource': '治理资源',
 };
 
 function kindLabel(kind: string): string {

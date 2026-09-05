@@ -5,6 +5,9 @@ const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   runCompanionProactiveTurn: vi.fn(),
   readAdaptiveAttemptContext: vi.fn(),
+  registry: {
+    getRegisteredResourceMetadataByNodeId: vi.fn(),
+  },
   prisma: {
     $transaction: vi.fn(),
     konlingCompanionEvent: {
@@ -38,6 +41,11 @@ vi.mock('@/features/ai/companion/proactive-turn', () => ({
 vi.mock('@/features/assessment/adaptive-attempt-context', () => ({
   readAdaptiveAttemptContext: mocks.readAdaptiveAttemptContext,
 }));
+vi.mock('@/lib/resource-registry-metadata', () => ({
+  getRegisteredResourceMetadataByNodeId: mocks.registry.getRegisteredResourceMetadataByNodeId,
+}));
+
+const registryMock = mocks.registry;
 
 import { PATCH, POST as postEvent } from '@/app/api/ai/companion/events/route';
 import { POST as postDelivery } from '@/app/api/ai/companion/delivery/route';
@@ -315,16 +323,16 @@ describe('POST /api/ai/companion/delivery', () => {
     mocks.readAdaptiveAttemptContext.mockResolvedValueOnce({
       question: {
         remediationResources: [
-          { id: 'res-gov-1', title: '拉普拉斯变换专项练习', href: '/x', governanceState: 'reviewed' },
-          { id: 'res-gone', title: '已下架资源', href: '/y', governanceState: 'reviewed' },
+          { id: 'registry:valid-remediation', title: '拉普拉斯变换专项练习', href: '/x', governanceState: 'reviewed' },
+          { id: 'registry:removed', title: '已下架资源', href: '/y', governanceState: 'reviewed' },
         ],
       },
     });
-    const updatedAt = new Date('2026-09-01T00:00:00.000Z');
-    mocks.prisma.teachingResource.findUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
-      if (where.id === 'res-gov-1') return { updatedAt, teacherOnly: false };
-      if (where.id === 'res-gone') return { updatedAt, teacherOnly: true };
-      return null;
+    registryMock.getRegisteredResourceMetadataByNodeId.mockImplementation((nodeId: string) => {
+      if (nodeId === 'registry:valid-remediation') {
+        return { id: 'valid-remediation', label: '拉普拉斯变换专项练习', type: 'INTERACTIVE_COMP' };
+      }
+      return undefined;
     });
     mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(null);
     mocks.prisma.konlingSession.create.mockResolvedValue({ id: 'session-gov' });
@@ -342,12 +350,12 @@ describe('POST /api/ai/companion/delivery', () => {
       expect.objectContaining({ authenticatedUserId: 'student-1', answerId: 'answer-9' }),
     );
     const createCall = mocks.prisma.konlingSession.create.mock.calls[0][0];
-    // 服务端解析为准：学生可见的治理资源保留，教师专属/缺失资源被过滤。
+    // 注册表身份解析为准：注册表仍存在的治理资源保留，已下架（无法解析）的被剔除。
     expect(createCall.data.messages[0].companionContext.resources).toEqual([{
-      resourceId: 'res-gov-1',
-      versionHash: updatedAt.toISOString(),
+      resourceId: 'registry:valid-remediation',
+      versionHash: 'registry:valid-remediation',
       reason: '拉普拉斯变换专项练习',
-      kind: 'interactive-resource',
+      kind: 'governed-registry-resource',
     }]);
     expect(mocks.runCompanionProactiveTurn).toHaveBeenCalledWith(
       expect.objectContaining({ reasons: ['拉普拉斯变换专项练习'] }),

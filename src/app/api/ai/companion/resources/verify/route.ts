@@ -6,6 +6,7 @@ import {
   buildTextbookReaderHref,
   loadTextbookCitationUnits,
 } from '@/lib/textbook-reader';
+import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
 import { hashTextbookMarkdown } from '@/lib/textbook-resource-coach/identity';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -77,6 +78,16 @@ async function verifyInteractiveResource(resourceId: string, versionHash: string
   return { status: 'available', href: `/interactive-learning/resources/${resourceId}` };
 }
 
+/** 静态治理注册表身份（registry: 与 arena-task: 前缀）：注册表条目存在即可用，规范身份即版本口径。 */
+function verifyGovernedRegistryResource(resourceId: string, versionHash: string): CompanionResourceVerifyResult {
+  const metadata = getRegisteredResourceMetadataByNodeId(resourceId);
+  if (!metadata) return { status: 'unavailable', reason: 'not-found' };
+  if (versionHash !== `registry:${metadata.id}`) return { status: 'unavailable', reason: 'hash-drift' };
+  const href = metadata.launchTarget ?? metadata.renderTarget;
+  if (!href) return { status: 'unavailable', reason: 'not-found' };
+  return { status: 'available', href };
+}
+
 /** 会话内资源卡打开/恢复校验：按 resourceId + versionHash 重查权限与版本，失效仅降级对应卡片。 */
 export async function GET(request: NextRequest) {
   try {
@@ -98,6 +109,8 @@ export async function GET(request: NextRequest) {
 
     const result = kind === 'textbook-unit'
       ? await verifyTextbookUnit(resourceId, versionHash)
+      : kind === 'governed-registry-resource'
+      ? verifyGovernedRegistryResource(resourceId, versionHash)
       : await verifyInteractiveResource(resourceId, versionHash);
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
