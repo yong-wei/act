@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import { TEXTBOOK_COURSE_ID, type TextbookReaderProjection } from '@/lib/textbook-reader-contracts';
 import { STRUCTURED_TEXTBOOK_UNIT_KIND } from '@/lib/textbook-resource-coach/types';
 
@@ -24,6 +25,23 @@ export function TextbookReaderCoachingSurface({
   const { data: session } = useSession();
   const { isOpen, updatePageContext } = useGlobalAI();
   const canCoach = session?.user?.role === 'STUDENT' || session?.user?.role === 'TEACHER';
+  const isStudent = session?.user?.role === 'STUDENT';
+  // 控灵主动陪伴布点（Issue #1966）：教材页停顿提醒；flag 关闭时 Hook 静默停用。
+  const { reportActivity } = useKonlingCompanionReporter({
+    enabled: isStudent,
+    pageKind: 'resource-textbook',
+    pageRef: projection.unit.id,
+    delivery: {
+      courseId: TEXTBOOK_COURSE_ID,
+      resources: [{
+        resourceId: projection.unit.id,
+        versionHash: projection.unit.contentHash,
+        reason: `《${projection.book.title}》${projection.unit.title}`,
+        kind: 'textbook-unit',
+        caption: '回到当前单元继续阅读，预计 3 分钟。',
+      }],
+    },
+  });
   const rootRef = useRef<HTMLDivElement>(null);
   const openSnapshotRef = useRef<{ scrollTop: number; unitId: string } | null>(null);
   const userMovedRef = useRef(false);
@@ -35,7 +53,8 @@ export function TextbookReaderCoachingSurface({
 
   const recordUserMove = useCallback(() => {
     userMovedRef.current = true;
-  }, []);
+    if (isStudent) reportActivity();
+  }, [isStudent, reportActivity]);
 
   useEffect(() => {
     const onHash = () => {

@@ -122,6 +122,9 @@ export function GlobalAISidebar() {
     pendingAssistantRequest,
     completeAssistantRequest,
     failAssistantRequest,
+    setStreamingOrComposing,
+    pendingKonlingConversationId,
+    clearPendingKonlingConversation,
   } = useGlobalAI();
 
   useEffect(() => {
@@ -329,6 +332,22 @@ export function GlobalAISidebar() {
   });
 
   const chatFailure = error ? normalizeKonlingChatFailure(error) : null;
+
+  // 陪伴气泡抑制信号：侧栏流式生成或用户输入期间回写 Provider，气泡不弹出/收起。
+  const isComposingText = input.trim().length > 0;
+  useEffect(() => {
+    setStreamingOrComposing(isLoading || isComposingText);
+  }, [isLoading, isComposingText, setStreamingOrComposing]);
+
+  // 陪伴气泡点击后的会话定位：定位请求不依赖当前列表过滤，直接按 ID 拉取会话；
+  // 列表并行刷新一次，让新建的陪伴会话出现在历史列表中。
+  useEffect(() => {
+    if (!pendingKonlingConversationId || !mounted || !enabled) return;
+    const targetId = pendingKonlingConversationId;
+    clearPendingKonlingConversation();
+    void refreshConversations().catch(() => undefined);
+    selectConversation(targetId);
+  }, [pendingKonlingConversationId, mounted, enabled, clearPendingKonlingConversation, refreshConversations, selectConversation]);
 
   // 资源辅导入口：会话库水合完成后，按服务端验证的完整资源身份恢复精确匹配会话；
   // 无匹配时保持未落库空白态，首个问题提交时才创建并绑定会话。

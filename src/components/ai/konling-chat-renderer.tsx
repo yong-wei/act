@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { AIMessageContent } from './ai-message-content';
 import { KonlingCitationPanel, extractKonlingCitationMetadata } from './konling-citation-presentation';
+import { CompanionResourceCards } from '@/features/ai/companion/companion-resource-cards';
 import { summarizeAiToolResult } from '@/lib/ai-task-boundary-contracts';
 import type { useAIThemeStyles } from '@/lib/ai-theme-styles';
 
@@ -106,6 +107,7 @@ export function KonlingMessageBubble({
             {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
           </div>
         ) : null}
+        {!isUser ? <CompanionResourceCards message={message} /> : null}
         {!isUser && optimizationActive ? (
           <p
             className="mt-2 text-xs text-platform-evidence-context"

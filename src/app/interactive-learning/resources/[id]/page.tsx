@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { TeachingResource } from '@prisma/client';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
+import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
 import {
   buildAdaptivePathCompletionRequest,
@@ -43,6 +45,25 @@ export default function InteractiveResourcePage() {
   const [resource, setResource] = useState<TeachingResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const isStudent = session?.user?.role === 'STUDENT';
+
+  // 控灵主动陪伴布点（Issue #1966）：停顿提醒 + 资源完成建议；flag 关闭时 Hook 静默停用。
+  const { reportActivity, reportMediaState } = useKonlingCompanionReporter({
+    enabled: Boolean(resourceId) && isStudent,
+    pageKind: 'resource-textbook',
+    pageRef: resourceId ?? '',
+    delivery: resource ? {
+      courseId: 'interactive',
+      resources: [{
+        resourceId: resource.id,
+        versionHash: new Date(resource.updatedAt).toISOString(),
+        reason: resource.title || '当前互动资源',
+        kind: 'interactive-resource',
+        caption: '完成本次互动练习，预计 10 分钟。',
+      }],
+    } : undefined,
+  });
 
   const sourceContext = pathLaunchContext
     ? {
@@ -152,7 +173,10 @@ export default function InteractiveResourcePage() {
 
   const resourceCompletionHandler = selectResourceCompletionHandler(
     resource?.registryId,
-    continuePathAfterResourceComplete,
+    async (result?: WidgetResult) => {
+      reportActivity('resource-completed');
+      await continuePathAfterResourceComplete(result);
+    },
   );
 
   return (
@@ -200,7 +224,11 @@ export default function InteractiveResourcePage() {
             />
           </div>
         ) : resource ? (
-          <ResourceRenderer resource={resource} onComplete={resourceCompletionHandler} />
+          <ResourceRenderer
+            resource={resource}
+            onComplete={resourceCompletionHandler}
+            onMediaStateChange={isStudent ? reportMediaState : undefined}
+          />
         ) : (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
             资源未加载
