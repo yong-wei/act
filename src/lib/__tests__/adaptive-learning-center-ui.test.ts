@@ -339,6 +339,7 @@ describe('adaptive learning center UI contracts', () => {
       .configurationFulfillment?.[0]).toEqual({
       key: 'resource-preferences',
       status: 'applied',
+      source: 'request',
       effect: '已优先选择匹配的资源类型。',
       message: '已优先选择匹配的资源类型。',
     });

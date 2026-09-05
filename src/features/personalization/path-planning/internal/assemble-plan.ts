@@ -2068,7 +2068,12 @@ function withCollectionBackedPlanningInput(
     goalId: input.goal.id,
     mode: 'new',
   });
-  if (projection.records.length === 0) return input;
+  // #1985：下落系统默认（fallback）时，画像偏好已被运行时门槛判定不可用或未达门槛，
+  // 其原始模态不得再参与排序加权；冷启动试学模态在下方另行合并，不受影响。
+  const suppressedLearnerState = input.resourcePreferenceSource === 'fallback'
+    ? withoutLearnerStateResourceModalities(input.learnerState)
+    : input.learnerState;
+  if (projection.records.length === 0) return { ...input, learnerState: suppressedLearnerState };
   const extraModalities = collectionPreferredModalities(projection.records)
     .filter((type): type is ResourceNode['type'] => input.registry.supportedTypes.includes(type as ResourceNode['type']));
   const checkpointPreference = input.checkpointPreferenceSource === 'request'
@@ -2080,16 +2085,16 @@ function withCollectionBackedPlanningInput(
   const applyPreference = extraModalities.length > 0 && input.resourcePreferenceSource !== 'request';
   const learnerState = applyPreference
     ? {
-      ...input.learnerState,
+      ...suppressedLearnerState,
       resourcePreference: {
         preferredModalities: unique([
           ...extraModalities,
-          ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+          ...(suppressedLearnerState?.resourcePreference?.preferredModalities ?? []),
         ]),
         confidence: 'medium' as const,
       },
     }
-    : input.learnerState;
+    : suppressedLearnerState;
   return {
     ...input,
     learnerState,

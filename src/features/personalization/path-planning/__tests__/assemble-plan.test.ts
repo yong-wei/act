@@ -4139,6 +4139,28 @@ describe('adaptive learning path planner', () => {
       .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
   });
 
+  it('stops judged-unavailable portrait modalities from altering the system-default fallback mix', () => {
+    const registryInput = plannerInput();
+    const fallbackOverrides = (modalities: string[]) => ({
+      resourcePreferenceSource: 'fallback' as const,
+      learnerState: {
+        ...plannerInput().learnerState,
+        resourcePreference: { preferredModalities: modalities, confidence: 'medium' as const },
+      },
+    });
+    const withUnavailablePortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides(['simulation'])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides([])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withUnavailablePortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
   it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
     const registeredGoal = {
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
