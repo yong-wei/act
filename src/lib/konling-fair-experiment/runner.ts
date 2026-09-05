@@ -40,6 +40,7 @@ import { KONLING_FAIR_EXPERIMENT_ARMS } from './types';
 import {
   enforceAnswerUnitCitationCoverage,
   enforceKonlingCitationNumberWhitelist,
+  isDirectVerifiedSupportCitation,
 } from './citation-whitelist-enforcement';
 import { scanKonlingAnswerUnits } from '@/lib/konling-answer-unit-scan';
 import { STUDY_QUESTION_SECTIONS, type StudyQuestionIntent } from '@/lib/konling-study-question-structure';
@@ -160,10 +161,14 @@ export async function runKonlingFairExperiment(input: {
             // 编号删除标记并降级；再按覆盖缺口执行一次有界修复说明。
             let finalAnswer = response.result.answer;
             let finalCitations = response.result.citations;
-            if (arm === 'full-feature') {
+            if (arm === 'full-feature' && finalCitations !== undefined) {
+              // 引用快照不可得（undefined，如 live 未接 citationContext）时
+              // 跳过执行：快照缺失≠「未分配任何引用」，按空白名单改写会把
+              // 全部合法 [n] 删掉并污染不可重生成的冻结快照（#1992/#2017 P1）。
+              // undefined 时聚合层按 citation-audit incomplete fail closed。
               const whitelist = enforceKonlingCitationNumberWhitelist({
                 answer: response.result.answer,
-                citations: response.result.citations ?? [],
+                citations: finalCitations,
               });
               finalAnswer = whitelist.body;
               if (whitelist.downgraded) {
@@ -174,14 +179,22 @@ export async function runKonlingFairExperiment(input: {
               // 答案单元覆盖：用与审计同一 scan 口径计算必需/已覆盖数，
               // 缺口时执行一次有界修复（显式证据缺口说明，不伪造引用）。
               const intent = item.intent as StudyQuestionIntent;
-              const scan = scanKonlingAnswerUnits(whitelist.body, response.result.citations ?? [], intent);
+              const scan = scanKonlingAnswerUnits(whitelist.body, finalCitations, intent);
               const sections = STUDY_QUESTION_SECTIONS[intent];
               const requiredUnits = scan.units.filter((unit) => (
                 unit.substantive
                 && unit.sectionId !== null
                 && sections.some((section) => section.id === unit.sectionId && section.citationPolicy === 'evidence-required')
               ));
-              const coveredUnits = requiredUnits.filter((unit) => unit.bound);
+              // 覆盖口径与审计一致（#2017 review P1）：只认可绑定标记中
+              // 存在直接支撑引用的单元；bound 但仅 semantic-score 的引用
+              // 不计覆盖，使执行与审计对同一单元判定一致。
+              const directSupportIds = new Set(
+                finalCitations.filter(isDirectVerifiedSupportCitation).map((citation) => citation.id),
+              );
+              const coveredUnits = requiredUnits.filter((unit) => (
+                (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id))
+              ));
               const coverage = enforceAnswerUnitCitationCoverage({
                 answer: whitelist.body,
                 requiredUnitCount: requiredUnits.length,

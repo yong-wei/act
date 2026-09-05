@@ -126,3 +126,30 @@ describe('enforceAnswerUnitCitationCoverage (#2017)', () => {
     expect(result.body).toContain('不构成核验');
   });
 });
+
+describe('snapshot-missing fail-open guard (#2017 review)', () => {
+  it('documents the runner contract: undefined citations snapshot skips enforcement', async () => {
+    // runner 契约由源码断言守护：citations === undefined 时不得改写答案。
+    const { readFileSync } = await import('node:fs');
+    const source = readFileSync('src/lib/konling-fair-experiment/runner.ts', 'utf8');
+    expect(source).toContain("arm === 'full-feature' && finalCitations !== undefined");
+    expect(source).not.toContain('citations: response.result.citations ?? []');
+  });
+
+  it('coverage uses the audit direct-support predicate, not raw bound state', async () => {
+    const { isDirectVerifiedSupportCitation } = await import(
+      '@/lib/konling-fair-experiment/citation-whitelist-enforcement'
+    );
+    // verified+target 但 href 缺失或仅 semantic-score：不构成直接支撑，
+    // 与 citation-audit 的覆盖口径一致。
+    expect(isDirectVerifiedSupportCitation({
+      citationTargetId: 't1', verified: true, href: null, answerRelevanceBasis: 'query-exact',
+    })).toBe(false);
+    expect(isDirectVerifiedSupportCitation({
+      citationTargetId: 't1', verified: true, href: '/x', answerRelevanceBasis: 'semantic-score',
+    })).toBe(false);
+    expect(isDirectVerifiedSupportCitation({
+      citationTargetId: 't1', verified: true, href: '/x', answerRelevanceBasis: 'query-exact',
+    })).toBe(true);
+  });
+});
