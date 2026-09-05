@@ -202,6 +202,153 @@ describe('learning-record consumers', () => {
     expect(db.learningFact.findMany).not.toHaveBeenCalled();
   });
 
+  it('keeps a qualified portrait when the only newer fact is revoked', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-revoked', operation: 'REVOKE', transitionPayload: null },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    const read = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(read.status).toBe(PROJECTION_STATUS.qualified);
+    expect(read.reason).toBeNull();
+    // 全部事实已撤销 → 无较新事实；不得回退到未过滤的 findFirst
+    expect(db.learningFact.findFirst).not.toHaveBeenCalled();
+    expect(db.interactionLog.findMany).not.toHaveBeenCalled();
+  });
+
+  it('marks a qualified portrait stale when the newer fact has a valid final operation', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'fact-active', startedAt: '2026-08-21T00:00:00.000Z' },
+        ]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-active', operation: 'UPSERT', transitionPayload: null },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1' },
+    }));
+  });
+
+  it('compares mixed facts on the latest valid fact only', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'fact-active', startedAt: '2026-08-19T00:00:00.000Z' },
+        ]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-active', operation: 'UPSERT', transitionPayload: null },
+          { factId: 'fact-revoked', operation: 'REVOKE', transitionPayload: null },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      evidenceAsOf: '2026-08-18T00:00:00.000Z',
+    }));
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1', id: { notIn: ['fact-revoked'] } },
+    }));
+  });
+
+  it('keeps facts without transitions in the latest governed fact window', async () => {
+    // ingestion 先写 LearningFact、transition 由画像 worker 异步补建；
+    // 窗口期无 transition 的事实仍是有效事实，不得被 in-active 过滤漏掉。
+    const db = {
+      learningFact: {
+        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'fact-window', startedAt: '2026-08-21T00:00:00.000Z' },
+        ]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-old-revoked', operation: 'REVOKE', transitionPayload: null },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      evidenceAsOf: '2026-08-18T00:00:00.000Z',
+    }));
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1', id: { notIn: ['fact-old-revoked'] } },
+    }));
+  });
+
+  it('uses the corrected startedAt for CORRECT transitions when comparing fact times', async () => {
+    const db = {
+      learningFact: {
+        findFirst: vi.fn(),
+        // 原始 startedAt 早于画像；修正后的 startedAt 晚于画像 → 应 stale
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'fact-corrected', startedAt: '2026-08-10T00:00:00.000Z' },
+        ]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            factId: 'fact-corrected',
+            operation: 'CORRECT',
+            transitionPayload: { fact: { startedAt: '2026-08-21T00:00:00.000Z', outcome: 'mastered', score: 0.9, createdAt: '2026-08-21T00:00:00.000Z' } },
+          },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      evidenceAsOf: '2026-08-18T00:00:00.000Z',
+    }));
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+  });
+
   it('passes current pointer publication through the consumer envelope', async () => {
     mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
       publication: {
