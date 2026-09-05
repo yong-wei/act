@@ -20,12 +20,14 @@ import {
   buildPortraitV2Dimensions,
   buildProfileActivityFeed,
   getCompetencyLevelLabel,
+  mapRecommendationsToResourceCards,
   summarizePortraitForProfile,
   type AdaptivePracticeSummary,
   type PersonalizedResourceCard,
   type ProfileActivityGroup,
   type ProfileActivityItem,
 } from '@/lib/data-governance/profile-center';
+import { recommendLearning } from '@/features/personalization/recommendations/public-api';
 import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
 import type {
   CumulativePortraitAvailabilityReason,
@@ -138,6 +140,8 @@ export interface UserProfileResponse {
   };
   personalizedReinforcement: {
     resources: PersonalizedResourceCard[];
+    availability: 'ready' | 'unavailable';
+    ownerUserId: string;
     adaptivePractice: AdaptivePracticeSummary;
   };
   arenaPortfolio: ArenaStudentPortfolio;
@@ -366,6 +370,37 @@ function inferInteractionHref(
   }
 
   return '/interactive-learning';
+}
+
+interface GovernedReinforcementRead {
+  resources: PersonalizedResourceCard[];
+  availability: 'ready' | 'unavailable';
+  ownerUserId: string;
+}
+
+async function readGovernedReinforcementResources(
+  userId: string,
+  role: string,
+): Promise<GovernedReinforcementRead> {
+  try {
+    const result = await recommendLearning({
+      actorUserId: userId,
+      subjectUserId: userId,
+      role,
+    });
+    if (result.ownerUserId !== userId) {
+      console.error('个性化补强推荐归属不一致:', result.ownerUserId, userId);
+      return { resources: [], availability: 'unavailable', ownerUserId: userId };
+    }
+    return {
+      resources: mapRecommendationsToResourceCards(result.recommendations),
+      availability: 'ready',
+      ownerUserId: result.ownerUserId,
+    };
+  } catch (error) {
+    console.error('读取个性化补强推荐失败:', error);
+    return { resources: [], availability: 'unavailable', ownerUserId: userId };
+  }
 }
 
 function describeSimulationEvidence(item: {
@@ -642,8 +677,11 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = await readAbilityReport(userId);
-    const adaptiveDiagnostic = await readDiagnostic(userId);
+    const [adaptiveReport, adaptiveDiagnostic, reinforcementResources] = await Promise.all([
+      readAbilityReport(userId),
+      readDiagnostic(userId),
+      readGovernedReinforcementResources(userId, user.role),
+    ]);
 
     const response: UserProfileResponse = {
       user: {
@@ -704,7 +742,9 @@ export async function GET() {
         locked: totalMissions - missionProgress.length,
       },
       personalizedReinforcement: {
-        resources: [],
+        resources: reinforcementResources.resources,
+        availability: reinforcementResources.availability,
+        ownerUserId: reinforcementResources.ownerUserId,
         adaptivePractice: buildAdaptivePracticeSummary({
           estimatedAbility: adaptiveReport?.estimatedAbility ?? null,
           confidenceInterval: adaptiveReport?.confidenceInterval ?? null,

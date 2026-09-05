@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CompetencyVector } from '@/lib/data-governance/competency-model';
 import { buildMigratedPortraitPayload } from '@/lib/data-governance/portrait-v2-migration';
+import { MANIFEST_COURSE_ROUTE_SEGMENTS } from '@/features/interactive/shared/manifest-course-route-segments';
 
 const mocks = vi.hoisted(() => ({
   prisma: {
@@ -1604,5 +1605,54 @@ describe('generateRecommendations', () => {
 
     expect(recommendations.map((item) => item.title)).not.toContain('提升迁移整合与应用能力');
     expect(recommendations.map((item) => item.title)).toContain('挑战专家级任务');
+  });
+});
+
+describe('recommendation launch routes', () => {
+  it('every engine actionUrl resolves to a real app page route', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const { readdirSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const engineSource = await readFile(
+      join(process.cwd(), 'src/features/personalization/recommendations/engine.ts'),
+      'utf8',
+    );
+    const actionUrls = [...engineSource.matchAll(/actionUrl: '([^']+)'/g)].map((match) => match[1]);
+    expect(actionUrls.length).toBeGreaterThanOrEqual(10);
+
+    const pagePathnames = new Set<string>();
+    const walk = (dir: string, prefix: string[]) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name.startsWith('_')) continue;
+        const fullPath = join(dir, entry.name);
+        if (!entry.isDirectory()) {
+          if (entry.name.startsWith('page.')) pagePathnames.add(`/${prefix.join('/')}`);
+          continue;
+        }
+        if (/^\([^)]+\)$/.test(entry.name)) {
+          walk(fullPath, prefix);
+          continue;
+        }
+        walk(fullPath, [...prefix, /\[.*\]/.test(entry.name) ? '*' : entry.name]);
+      }
+    };
+    walk(join(process.cwd(), 'src/app'), []);
+
+    const dynamicRouteMatches = (pathname: string) =>
+      [...pagePathnames].some(
+        (route) => route.endsWith('/*') && pathname.startsWith(route.slice(0, -1)),
+      );
+    const missing: string[] = [];
+    for (const url of new Set(actionUrls)) {
+      const pathname = url.split('?')[0];
+      if (!pagePathnames.has(pathname) && !dynamicRouteMatches(pathname)) missing.push(pathname);
+      if (pathname.startsWith('/interactive-learning/courses/')) {
+        expect(MANIFEST_COURSE_ROUTE_SEGMENTS).toContain(
+          pathname.replace('/interactive-learning/courses/', ''),
+        );
+      }
+    }
+    expect(missing).toEqual([]);
+    expect(existsSync(join(process.cwd(), 'src/app'))).toBe(true);
   });
 });

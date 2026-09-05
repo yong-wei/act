@@ -170,6 +170,8 @@ interface UserProfile {
       tags: string[];
       rationale?: RecommendationRationale;
     }>;
+    availability?: 'ready' | 'unavailable';
+    ownerUserId?: string;
     adaptivePractice: {
       estimatedAbility: number | null;
       confidenceInterval: [number, number] | null;
@@ -794,9 +796,15 @@ export default function ProfilePage() {
 
             <div className="mt-5 space-y-3">
               {profile.personalizedReinforcement.resources.length === 0 ? (
-                <div className="surface-card-soft p-4 text-sm text-subtle">
-                  暂无新的补强资源，建议先完成一次课堂或自适应练习以刷新推荐。
-                </div>
+                profile.personalizedReinforcement.availability === 'unavailable' ? (
+                  <div className="surface-card-soft p-4 text-sm text-subtle">
+                    补强推荐暂时不可用，你仍可以继续自适应练习，稍后回来查看。
+                  </div>
+                ) : (
+                  <div className="surface-card-soft p-4 text-sm text-subtle">
+                    暂无新的补强资源，建议先完成一次课堂或自适应练习以刷新推荐。
+                  </div>
+                )
               ) : (
                 profile.personalizedReinforcement.resources.map((resource) => (
                   <Link

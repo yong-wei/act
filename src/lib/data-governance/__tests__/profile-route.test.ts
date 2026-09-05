@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const getServerAuthSession = vi.fn();
   const generateRecommendations = vi.fn();
+  const recommendLearning = vi.fn();
   const getAbilityReport = vi.fn();
   const getDiagnostic = vi.fn();
   const requestCumulativeLearnerReconciliation = vi.fn();
@@ -13,6 +14,7 @@ const mocks = vi.hoisted(() => {
   return {
     getServerAuthSession,
     generateRecommendations,
+    recommendLearning,
     getAbilityReport,
     getDiagnostic,
     requestCumulativeLearnerReconciliation,
@@ -143,6 +145,7 @@ vi.mock('@/lib/competency', () => ({
 
 vi.mock('@/features/personalization/recommendations/public-api', () => ({
   generateRecommendations: mocks.generateRecommendations,
+  recommendLearning: mocks.recommendLearning,
 }));
 
 vi.mock('@/features/assessment/adaptive-engine', () => ({
@@ -687,32 +690,57 @@ describe('GET /api/user/profile', () => {
       },
     ]);
 
-    mocks.generateRecommendations.mockResolvedValue([
-      {
-        id: 'rec-1',
-        type: 'immediate',
-        title: '补强跨域迁移',
-        description: '建议先完成三域联动模块，再进行 2 道自适应题。',
-        reason: '跨域迁移偏弱',
-        actionUrl: '/interactive-learning/courses/l2d-three-domain-linkage-practice',
-        actionLabel: '进入三域联动',
-        priority: 88,
-        estimatedTime: '25分钟',
-        tags: ['跨域迁移', '互动模块'],
-      },
-      {
-        id: 'rec-2',
-        type: 'weekly',
-        title: '复习频域稳定卡片',
-        description: '补看稳定裕度知识卡片，巩固频域判读。',
-        reason: '频域稳定相关题目波动较大',
-        actionUrl: '/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment',
-        actionLabel: '打开知识卡片',
-        priority: 72,
-        estimatedTime: '12分钟',
-        tags: ['知识卡片', '频域稳定'],
-      },
-    ]);
+    mocks.recommendLearning.mockResolvedValue({
+      recommendations: [
+        {
+          id: 'rec-1',
+          type: 'immediate',
+          title: '补强跨域迁移',
+          description: '建议先完成三域联动模块，再进行 2 道自适应题。',
+          reason: '跨域迁移偏弱',
+          actionUrl: '/interactive-learning/courses/l2d-three-domain-linkage-practice',
+          actionLabel: '进入三域联动',
+          priority: 88,
+          estimatedTime: '25分钟',
+          tags: ['跨域迁移', '互动模块'],
+          rationale: {
+            reasonCode: 'weak-dimension',
+            evidenceWindow: {
+              firstStartedAt: '2026-05-01T00:00:00.000Z',
+              lastStartedAt: '2026-05-18T00:00:00.000Z',
+            },
+            evidenceCount: 7,
+            sourceCoverage: { LearningFact: 'available' },
+            confidence: { state: 'ready', level: 'medium', score: 0.62 },
+          },
+        },
+        {
+          id: 'rec-2',
+          type: 'weekly',
+          title: '复习频域稳定卡片',
+          description: '补看稳定裕度知识卡片，巩固频域判读。',
+          reason: '频域稳定相关题目波动较大',
+          actionUrl: '/knowledge',
+          actionLabel: '打开知识卡片',
+          priority: 72,
+          estimatedTime: '12分钟',
+          tags: ['知识卡片', '频域稳定'],
+          rationale: {
+            reasonCode: 'fluctuating-topic',
+            evidenceWindow: {
+              firstStartedAt: '2026-05-03T00:00:00.000Z',
+              lastStartedAt: '2026-05-16T00:00:00.000Z',
+            },
+            evidenceCount: 4,
+            sourceCoverage: { LearningFact: 'partial' },
+            confidence: { state: 'partial', level: 'low', score: 0.41 },
+          },
+        },
+      ],
+      policyRevision: 'personalization-recommendations.v1',
+      ownerUserId: 'student-1',
+      grantsMastery: false,
+    });
 
     mocks.getDiagnostic.mockReturnValue({
       knowledgeDimensions: {
@@ -865,7 +893,41 @@ describe('GET /api/user/profile', () => {
         }),
       ])
     );
-    expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.resources).toEqual([
+      expect.objectContaining({
+        id: 'rec-1',
+        type: 'interactive',
+        title: '补强跨域迁移',
+        reason: '跨域迁移偏弱',
+        actionUrl: '/interactive-learning/courses/l2d-three-domain-linkage-practice',
+        actionLabel: '进入三域联动',
+        priority: 88,
+        rationale: expect.objectContaining({
+          reasonCode: 'weak-dimension',
+          evidenceCount: 7,
+          confidence: { state: 'ready', level: 'medium', score: 0.62 },
+        }),
+      }),
+      expect.objectContaining({
+        id: 'rec-2',
+        type: 'knowledge',
+        title: '复习频域稳定卡片',
+        reason: '频域稳定相关题目波动较大',
+        actionUrl: '/knowledge',
+        priority: 72,
+        rationale: expect.objectContaining({
+          reasonCode: 'fluctuating-topic',
+          confidence: { state: 'partial', level: 'low', score: 0.41 },
+        }),
+      }),
+    ]);
+    expect(mocks.recommendLearning).toHaveBeenCalledWith({
+      actorUserId: 'student-1',
+      subjectUserId: 'student-1',
+      role: 'STUDENT',
+    });
+    expect(body.personalizedReinforcement.availability).toBe('ready');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
     expect(body.personalizedReinforcement.adaptivePractice).toMatchObject({
       estimatedAbility: 0.64,
       weakAreas: ['phase-margin', 'controller-tuning'],
@@ -976,6 +1038,71 @@ describe('GET /api/user/profile', () => {
     expect(mocks.prisma.studentProfileSummary.findUnique).not.toHaveBeenCalled();
     expect(mocks.prisma.studentEvidenceFeatureCache.findUnique).not.toHaveBeenCalled();
     expect(mocks.generateRecommendations).not.toHaveBeenCalled();
+  });
+
+  it('returns empty reinforcement resources when the governed recommendation policy yields no usable result', async () => {
+    mocks.recommendLearning.mockResolvedValue({
+      recommendations: [],
+      policyRevision: 'personalization-recommendations.v1',
+      ownerUserId: 'student-1',
+      grantsMastery: false,
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('ready');
+    expect(body.personalizedReinforcement.adaptivePractice.actionUrl).toBe(
+      '/assessment/adaptive-practice?intent=practice',
+    );
+  });
+
+  it('degrades to empty reinforcement resources without breaking the profile when recommendations fail', async () => {
+    mocks.recommendLearning.mockRejectedValue(new Error('recommendation store unavailable'));
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('unavailable');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
+    expect(body.statistics).toMatchObject({
+      totalSimulations: expect.any(Number),
+      completedMissions: expect.any(Number),
+    });
+    expect(body.competency.model).toBe('portrait-v2-cumulative');
+  });
+
+  it('degrades to unavailable when the governed recommendation owner does not match the student', async () => {
+    mocks.recommendLearning.mockResolvedValue({
+      recommendations: [
+        {
+          id: 'rec-foreign',
+          type: 'immediate',
+          title: '他人推荐',
+          description: '不应进入当前学生画像。',
+          reason: '归属不一致',
+          actionUrl: '/missions',
+          actionLabel: '进入',
+          priority: 50,
+          tags: [],
+        },
+      ],
+      policyRevision: 'personalization-recommendations.v1',
+      ownerUserId: 'student-other',
+      grantsMastery: false,
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('unavailable');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
   });
 
   it('reads Arena training count and bounded runs from one RepeatableRead transaction snapshot', async () => {
