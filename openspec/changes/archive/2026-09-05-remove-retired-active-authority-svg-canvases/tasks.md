@@ -32,3 +32,9 @@ QA/治理脚本对齐现役运行时的修订（同一 change 范围）：
 - `adaptive-path-product-qa` / `compact-spacing` 证据不完整：基线既有。
 
 残余风险与建议 follow-up：上述三项基线缺口建议另立 issue 治理（485 需重建捕获链或退役校验；487 需核实移动端 inspector Escape 行为是否符合设计）。
+
+Codex review P1 处理补充：
+
+- 可达性校验恢复：`clickIfPresent`/`switchKnowledgeMode` 真实指针点击 + 多点 elementFromPoint 采样；整元素遮挡诚实失败。诚实失败暴露现役产品缺陷：移动端 (≤320px) legacy 模式按钮被页面容器完全遮挡（无滚动路径），受影响 5 个移动端 legacy 状态以 `result: 'blocked'` + occludedBy 诊断记录，不伪造通过。
+- 身份泄漏扫描只记录计数，命中样本不写入公开证据或异常日志。
+- 移动端节点可读性门禁保留在治理端（`node-label-unreadable` 拒绝项）：重捕获证据如实记录 320px 视图 `visibleNodeLabelCount: 0`（#1742 移除可见目录后画布未绘制可读节点名），该状态不被认证为通过，作为治理失败项暴露给 follow-up 修复。

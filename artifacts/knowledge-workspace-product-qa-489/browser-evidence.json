@@ -7121,7 +7121,6 @@
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
         "internalIdentityLeakCount": 0,
-        "identityLeakSamples": [],
         "copyEntryCount": 0,
         "copyEntryPresent": false,
         "passed": true
@@ -7148,7 +7147,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -7160,7 +7158,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -7377,7 +7374,6 @@
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
         "internalIdentityLeakCount": 0,
-        "identityLeakSamples": [],
         "copyEntryCount": 0,
         "copyEntryPresent": false,
         "passed": true
@@ -7590,7 +7586,6 @@
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
         "internalIdentityLeakCount": 0,
-        "identityLeakSamples": [],
         "copyEntryCount": 0,
         "copyEntryPresent": false,
         "passed": true
@@ -7803,7 +7798,6 @@
         "forbiddenEnumCount": 0,
         "forbiddenLocatorCount": 0,
         "internalIdentityLeakCount": 0,
-        "identityLeakSamples": [],
         "copyEntryCount": 0,
         "copyEntryPresent": false,
         "passed": true
@@ -7849,7 +7843,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -7876,7 +7869,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -7888,7 +7880,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -7954,7 +7945,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -7981,7 +7971,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -7993,7 +7982,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8085,7 +8073,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -8112,7 +8099,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8124,7 +8110,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8190,7 +8175,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -8217,7 +8201,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8229,7 +8212,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8321,7 +8303,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -8348,7 +8329,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8360,7 +8340,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8426,7 +8405,6 @@
           "forbiddenEnumCount": 0,
           "forbiddenLocatorCount": 0,
           "internalIdentityLeakCount": 0,
-          "identityLeakSamples": [],
           "copyEntryCount": 0,
           "copyEntryPresent": false,
           "passed": true
@@ -8453,7 +8431,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
@@ -8465,7 +8442,6 @@
             "forbiddenEnumCount": 0,
             "forbiddenLocatorCount": 0,
             "internalIdentityLeakCount": 0,
-            "identityLeakSamples": [],
             "copyEntryCount": 0,
             "copyEntryPresent": false,
             "passed": true
