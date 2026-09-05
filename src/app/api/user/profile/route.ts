@@ -20,12 +20,14 @@ import {
   buildPortraitV2Dimensions,
   buildProfileActivityFeed,
   getCompetencyLevelLabel,
+  mapRecommendationsToResourceCards,
   summarizePortraitForProfile,
   type AdaptivePracticeSummary,
   type PersonalizedResourceCard,
   type ProfileActivityGroup,
   type ProfileActivityItem,
 } from '@/lib/data-governance/profile-center';
+import { recommendLearning } from '@/features/personalization/recommendations/public-api';
 import { getCompetencyLevel } from '@/lib/data-governance/competency-model';
 import type {
   CumulativePortraitAvailabilityReason,
@@ -363,6 +365,23 @@ function inferInteractionHref(
   return '/interactive-learning';
 }
 
+async function readGovernedReinforcementResources(
+  userId: string,
+  role: string,
+): Promise<PersonalizedResourceCard[]> {
+  try {
+    const { recommendations } = await recommendLearning({
+      actorUserId: userId,
+      subjectUserId: userId,
+      role,
+    });
+    return mapRecommendationsToResourceCards(recommendations);
+  } catch (error) {
+    console.error('读取个性化补强推荐失败:', error);
+    return [];
+  }
+}
+
 export async function GET() {
   try {
     const session = await getServerAuthSession();
@@ -647,8 +666,11 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
-    const adaptiveReport = await readAbilityReport(userId);
-    const adaptiveDiagnostic = await readDiagnostic(userId);
+    const [adaptiveReport, adaptiveDiagnostic, reinforcementResources] = await Promise.all([
+      readAbilityReport(userId),
+      readDiagnostic(userId),
+      readGovernedReinforcementResources(userId, user.role),
+    ]);
 
     const response: UserProfileResponse = {
       user: {
@@ -708,7 +730,7 @@ export async function GET() {
         locked: totalMissions - missionProgress.length,
       },
       personalizedReinforcement: {
-        resources: [],
+        resources: reinforcementResources,
         adaptivePractice: buildAdaptivePracticeSummary({
           estimatedAbility: adaptiveReport?.estimatedAbility ?? null,
           confidenceInterval: adaptiveReport?.confidenceInterval ?? null,
