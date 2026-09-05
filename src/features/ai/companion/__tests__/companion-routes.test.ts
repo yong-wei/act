@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   runCompanionProactiveTurn: vi.fn(),
   readAdaptiveAttemptContext: vi.fn(),
   registry: {
-    getRegisteredResourceMetadataByNodeId: vi.fn(),
+    resolveGovernedRegistryCard: vi.fn(),
   },
   prisma: {
     $transaction: vi.fn(),
@@ -41,8 +41,8 @@ vi.mock('@/features/ai/companion/proactive-turn', () => ({
 vi.mock('@/features/assessment/adaptive-attempt-context', () => ({
   readAdaptiveAttemptContext: mocks.readAdaptiveAttemptContext,
 }));
-vi.mock('@/lib/resource-registry-metadata', () => ({
-  getRegisteredResourceMetadataByNodeId: mocks.registry.getRegisteredResourceMetadataByNodeId,
+vi.mock('@/features/ai/companion/governed-registry-card', () => ({
+  resolveGovernedRegistryCard: mocks.registry.resolveGovernedRegistryCard,
 }));
 
 const registryMock = mocks.registry;
@@ -328,11 +328,16 @@ describe('POST /api/ai/companion/delivery', () => {
         ],
       },
     });
-    registryMock.getRegisteredResourceMetadataByNodeId.mockImplementation((nodeId: string) => {
+    registryMock.resolveGovernedRegistryCard.mockImplementation((nodeId: string) => {
       if (nodeId === 'registry:valid-remediation') {
-        return { id: 'valid-remediation', label: '拉普拉斯变换专项练习', type: 'INTERACTIVE_COMP' };
+        return {
+          resourceId: 'registry:valid-remediation',
+          versionHash: 'registry-sha256:abc',
+          reason: '拉普拉斯变换专项练习',
+          kind: 'governed-registry-resource',
+        };
       }
-      return undefined;
+      return null;
     });
     mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(null);
     mocks.prisma.konlingSession.create.mockResolvedValue({ id: 'session-gov' });
@@ -353,7 +358,7 @@ describe('POST /api/ai/companion/delivery', () => {
     // 注册表身份解析为准：注册表仍存在的治理资源保留，已下架（无法解析）的被剔除。
     expect(createCall.data.messages[0].companionContext.resources).toEqual([{
       resourceId: 'registry:valid-remediation',
-      versionHash: 'registry:valid-remediation',
+      versionHash: 'registry-sha256:abc',
       reason: '拉普拉斯变换专项练习',
       kind: 'governed-registry-resource',
     }]);

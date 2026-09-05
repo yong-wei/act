@@ -6,7 +6,7 @@ import {
   buildTextbookReaderHref,
   loadTextbookCitationUnits,
 } from '@/lib/textbook-reader';
-import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
+import { verifyGovernedRegistryCard } from '@/features/ai/companion/governed-registry-card';
 import { hashTextbookMarkdown } from '@/lib/textbook-resource-coach/identity';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -78,14 +78,12 @@ async function verifyInteractiveResource(resourceId: string, versionHash: string
   return { status: 'available', href: `/interactive-learning/resources/${resourceId}` };
 }
 
-/** 静态治理注册表身份（registry: 与 arena-task: 前缀）：注册表条目存在即可用，规范身份即版本口径。 */
+/** 静态治理注册表身份（registry: 与 arena-task: 前缀）：按当前治理元数据内容哈希重校验。 */
 function verifyGovernedRegistryResource(resourceId: string, versionHash: string): CompanionResourceVerifyResult {
-  const metadata = getRegisteredResourceMetadataByNodeId(resourceId);
-  if (!metadata) return { status: 'unavailable', reason: 'not-found' };
-  if (versionHash !== `registry:${metadata.id}`) return { status: 'unavailable', reason: 'hash-drift' };
-  const href = metadata.launchTarget ?? metadata.renderTarget;
-  if (!href) return { status: 'unavailable', reason: 'not-found' };
-  return { status: 'available', href };
+  const result = verifyGovernedRegistryCard(resourceId, versionHash);
+  return result.status === 'available'
+    ? { status: 'available', href: result.href }
+    : { status: 'unavailable', reason: result.reason };
 }
 
 /** 会话内资源卡打开/恢复校验：按 resourceId + versionHash 重查权限与版本，失效仅降级对应卡片。 */

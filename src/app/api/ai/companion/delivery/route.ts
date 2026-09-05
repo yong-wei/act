@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-turn';
 import { isExpired, type CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
 import { readAdaptiveAttemptContext, type AdaptiveAttemptContextDb } from '@/features/assessment/adaptive-attempt-context';
-import { getRegisteredResourceMetadataByNodeId } from '@/lib/resource-registry-metadata';
+import { resolveGovernedRegistryCard } from '@/features/ai/companion/governed-registry-card';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -60,8 +60,8 @@ function parseContextHints(value: unknown): { knowledgePoints: string[]; answerI
 /**
  * 错题场景的治理资源由服务端从 answer-time 固化快照解析（不信任客户端直传）：
  * 答题时 catalog reviewDecision 已把治理注册表资源节点（registry: 与 arena-task: 前缀）
- * 固化为 remediationResources，这里按注册表身份重新解析治理元数据；注册表条目缺失即降级剔除。
- * 静态注册表随部署原子更新，规范身份即版本口径；解析失败降级为空卡列表。
+ * 固化为 remediationResources，这里按注册表身份重新解析治理元数据与内容哈希；
+ * 注册表条目缺失即降级剔除，解析失败降级为空卡列表。
  */
 async function resolveWrongAnswerResourceCards(input: {
   userId: string;
@@ -79,14 +79,8 @@ async function resolveWrongAnswerResourceCards(input: {
     if (!Array.isArray(resources) || resources.length === 0) return [];
     const cards: CompanionResourceCard[] = [];
     for (const resource of resources.slice(0, MAX_RESOURCE_CARDS)) {
-      const metadata = getRegisteredResourceMetadataByNodeId(resource.id);
-      if (!metadata) continue;
-      cards.push({
-        resourceId: resource.id,
-        versionHash: `registry:${metadata.id}`,
-        reason: metadata.label || resource.title || '错题相关的治理资源',
-        kind: 'governed-registry-resource',
-      });
+      const card = resolveGovernedRegistryCard(resource.id);
+      if (card) cards.push(card);
     }
     return cards;
   } catch {
