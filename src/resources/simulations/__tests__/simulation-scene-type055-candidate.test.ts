@@ -12,7 +12,7 @@ import {
 import { TYPE055_NANCHANG_101_V2, matchActivatedType055Package } from '../model-packages/type055-nanchang-101-v2';
 
 /**
- * issue #1953 生产激活守卫：destroyer 默认走 v2.1.0 版本化模型包、
+ * issue #1996 生产切换守卫：destroyer 默认走 v2.1.1 版本化模型包、
  * 旧链仅作回退、武器/交互角色不进入首屏、七模型 registry 与受保护旧式场景不变。
  */
 
