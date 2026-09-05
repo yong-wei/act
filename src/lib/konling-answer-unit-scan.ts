@@ -24,6 +24,12 @@ export interface KonlingAnswerUnitCitationBinding {
   sectionTitle?: string | null;
 }
 
+/** #1951：可绑定标记的章节出现记录（按 citationId × sectionId 去重），不受绑定按单元文本去重影响。 */
+export interface KonlingAnswerUnitCitationSectionUsage {
+  citationId: string;
+  sectionId: string | null;
+}
+
 export type KonlingAnswerUnitMissReason =
   | 'no-marker'
   | 'marker-unassigned'
@@ -147,9 +153,12 @@ export function scanKonlingAnswerUnits(
   stackedMarkerCount: number;
   /** #1951：处于有效引用标记位置的唯一编号（按首次出现序），供公平实验引用精确率审计。 */
   presentedNumbers: number[];
+  /** #1951：可绑定标记的章节出现记录——同一引用在多章节出现时每章节各记一次，供 model-derived 统计等绑定级之外的口径使用。 */
+  citationSectionUsage: KonlingAnswerUnitCitationSectionUsage[];
 } {
   const bindings: KonlingAnswerUnitCitationBinding[] = [];
   const units: KonlingAnswerUnitRecord[] = [];
+  const citationSectionUsage: KonlingAnswerUnitCitationSectionUsage[] = [];
   let driftedMarkerCount = 0;
   let stackedMarkerCount = 0;
   const presentedNumberSet = new Set<number>();
@@ -207,6 +216,13 @@ export function scanKonlingAnswerUnits(
         // 只有标记前存在可绑定文本（形成实质绑定）才计入单元的绑定引用，
         // 行首标记（空前缀）不支撑任何主张（#1992 review P1）。
         perUnitCitationIds.add(citation.id);
+        // 章节出现记录按（引用 × 章节）去重：绑定去重键含单元文本，同一
+        // 文本跨章节的第二次出现不产生绑定，但章节使用事实仍需可查
+        // （#1992 review）。
+        const sectionId = currentSection?.id ?? null;
+        if (!citationSectionUsage.some((usage) => usage.citationId === citation.id && usage.sectionId === sectionId)) {
+          citationSectionUsage.push({ citationId: citation.id, sectionId });
+        }
         if (!bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) {
           bindings.push({
             unit,
@@ -240,5 +256,6 @@ export function scanKonlingAnswerUnits(
     driftedMarkerCount,
     stackedMarkerCount,
     presentedNumbers: [...presentedNumberSet],
+    citationSectionUsage,
   };
 }

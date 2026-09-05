@@ -147,12 +147,13 @@ export function auditKonlingFairCitationRecord(
       continue;
     }
     // 「是否支撑证据单元」与「是否（同时）出现在 model-derived 章节」是
-    // 正交事实：同一编号两边都出现时分别统计，不得由前者短路后者
-    // （#1992 review）。
-    const touchesModelDerived = scan.bindings.some((binding) => (
-      binding.citationId === citation.id
-      && binding.sectionId != null
-      && modelDerivedSectionIds.has(binding.sectionId)
+    // 正交事实：同一编号两边都出现时分别统计，不得由前者短路后者。
+    // 章节出现记录用 scan 的 citationSectionUsage（按引用×章节去重），
+    // 不受绑定按单元文本去重的影响（#1992 review）。
+    const touchesModelDerived = scan.citationSectionUsage.some((usage) => (
+      usage.citationId === citation.id
+      && usage.sectionId !== null
+      && modelDerivedSectionIds.has(usage.sectionId)
     ));
     if (bindingCitationIds.has(citation.id)) {
       citationClasses.realVerifiedSupporting += 1;

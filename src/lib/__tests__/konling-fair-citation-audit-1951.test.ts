@@ -205,12 +205,11 @@ describe('auditKonlingFairCitationRecord', () => {
   });
 
   it('a citation supporting evidence units and also shown in model-derived sections is counted in both', () => {
-    // model-derived 章节用不同单元文本：scan 的绑定按（单元文本 × 引用）
-    // 去重，相同文本不会产生第二条绑定。
+    // 相同文本跨章节：绑定按（单元文本 × 引用）去重会吃掉 model-derived
+    // 章节的第二条绑定，但章节出现记录（citationSectionUsage）不丢——
+    // model-derived 统计仍应命中。
     const answer = STUDY_QUESTION_SECTIONS['formula-derivation']
-      .map((section) => section.citationPolicy === 'model-derived'
-        ? `## ${section.title}\n按推导另作说明${section.id}。 [1]`
-        : `## ${section.title}\n按参考材料作答。 [1]`)
+      .map((section) => `## ${section.title}\n按参考材料作答。 [1]`)
       .join('\n');
     const record = audited(answer, [citation({ id: 'cit-1' })]);
 
