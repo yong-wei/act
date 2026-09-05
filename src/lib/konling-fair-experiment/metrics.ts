@@ -158,6 +158,10 @@ export function buildPairedRatioDifference(input: {
   });
   const baselinePooled = pooled(input.baselinePairedRatios);
   const comparisonPooled = pooled(input.comparisonPairedRatios);
+  // 任一臂池化分母为零（如无引用功能臂的精确率恒为 0/0）时指标不可
+  // 定义，不得当作 0% 参与百分点差与 CI 比较——不产出该差值
+  // （#1992 review P1）。
+  if (baselinePooled.denominator === 0 || comparisonPooled.denominator === 0) return null;
   const ratio = ({ numerator, denominator }: { numerator: number; denominator: number }) => (
     denominator === 0 ? 0 : numerator / denominator
   );

@@ -94,16 +94,13 @@ export function auditKonlingFairCitationRecord(
     (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id))
   ));
 
-  // 只有绑定落在 evidence-required 章节且通过直接支撑判据的引用才算
-  // 「已核验直接支撑」；model-derived / 无章节区域的绑定计为漂移，
-  // 不入精确率分子。
+  // 精确率分子与覆盖分子同源：只有支撑了至少一个 evidence-required
+  // substantive 单元的直接引用才算「已核验直接支撑」。仅标在结构行
+  // （引导头/过渡语等 substantive=false）上的绑定不支撑任何实质主张，
+  // 不入分子（#1992 review P1）；model-derived / 无章节区域的绑定计为
+  // 漂移，同样不入分子。
   const bindingCitationIds = new Set(
-    scan.bindings
-      .filter((binding) => binding.sectionId !== null
-        && sections.some((section) => section.id === binding.sectionId && section.citationPolicy === 'evidence-required')
-        && binding.limitation === null)
-      .map((binding) => binding.citationId)
-      .filter((id) => directSupportIds.has(id)),
+    requiredUnits.flatMap((unit) => (unit.bindingCitationIds ?? []).filter((id) => directSupportIds.has(id))),
   );
   const citationClasses = {
     realVerifiedSupporting: 0,

@@ -139,6 +139,25 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.coveredUnitCount).toBe(0);
   });
 
+  it('structural-line markers never enter the precision numerator', () => {
+    const answer = STUDY_QUESTION_SECTIONS['formula-derivation']
+      .map((section) => section.citationPolicy === 'evidence-required'
+        ? `## ${section.title}\n下面给出依据： [1]\n按参考材料作答。`
+        : `## ${section.title}\n按推导作答。`)
+      .join('\n');
+    const record = audited(answer, [citation({ id: 'cit-1' })]);
+
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.citationClasses.realVerifiedSupporting).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+    expect(record.requiredUnitCount).toBeGreaterThan(0);
+    expect(record.missReasons['no-marker']).toBe(record.requiredUnitCount);
+    // 已核验可访问有直接证据，但只标在结构行上——未支撑任何实质单元，
+    // 按漂移计（唯一编号口径）。
+    expect(record.driftedMarkerCount).toBe(1);
+  });
+
   it('model-derived sections never enter the coverage denominator', () => {
     const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
       STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section)?.citationPolicy === 'model-derived' ? ' [1]' : ''
@@ -229,13 +248,10 @@ describe('端到端：official 汇总与同源导出', () => {
     expect(official.perArm['plain-baseline'].citationAudit.precision.denominator).toBe(0);
 
     expect(official.citationAuditRecords.length).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length * KONLING_FAIR_EXPERIMENT_BANK_V1.replicates * 3);
-    const delta = official.citationAuditDeltas.find(
-      (entry) => entry.metric === 'citation-coverage' && entry.comparison.label === 'full-feature',
-    );
-    expect(delta).toBeDefined();
-    expect(delta!.percentagePointDifference).toBeGreaterThan(0);
-    expect(delta!.pairedCi95.low).toBeLessThanOrEqual(delta!.percentagePointDifference + 1e-9);
-    expect(delta!.pairedCi95.high).toBeGreaterThanOrEqual(delta!.percentagePointDifference - 1e-9);
+    // 基线臂无引用功能（精确率恒 0/0）且其回答无章节结构（coverage 分母
+    // 也为 0）：两指标的配对差都不可定义，均不产出——不得报告「0% 对
+    // X%」的百分点差与 CI（#1992 review P1）。
+    expect(official.citationAuditDeltas).toEqual([]);
   });
 
   it('冻结回答缺失 citation 快照时 fail closed', async () => {
@@ -339,6 +355,20 @@ describe('buildPairedRatioDifference：CI 与点估计同为池化口径', () =>
     expect(delta!.pairedCi95.low).toBeLessThanOrEqual(delta!.percentagePointDifference + 1e-9);
     expect(delta!.pairedCi95.high).toBeGreaterThanOrEqual(delta!.percentagePointDifference - 1e-9);
     expect(delta!.pairedCi95.high).toBeGreaterThan(50);
+  });
+
+  it('任一臂池化分母为零（无引用功能臂的精确率）不产出配对差（N/A）', async () => {
+    const { buildPairedRatioDifference } = await import('@/lib/konling-fair-experiment');
+    const delta = buildPairedRatioDifference({
+      metric: 'citation-precision',
+      baselineLabel: 'plain-baseline',
+      comparisonLabel: 'full-feature',
+      baselinePairedRatios: Array.from({ length: 4 }, () => ({ numerator: 0, denominator: 0 })),
+      comparisonPairedRatios: Array.from({ length: 4 }, () => ({ numerator: 1, denominator: 1 })),
+      seedParts: ['test', 'citation-precision'],
+      iterations: 100,
+    });
+    expect(delta).toBeNull();
   });
 
   it('同种子同数据 CI 可复现', async () => {
