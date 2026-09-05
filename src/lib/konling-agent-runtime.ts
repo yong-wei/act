@@ -1137,9 +1137,11 @@ const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '
 // 教材规定的验收结论等），不含「课程」这类泛学习上下文。
 const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准', '教材'] as const;
 
-// #2015 组合信号：代码片段 ×（排障动作或缺陷词）。存在代码围栏或显式代码
-// 指称，且要求定位/修复/找缺陷时判代码调试（覆盖标定/单位缺陷等无经典异
-// 常现象词的输入）；无排障动作的「缺陷/代码」类概念问题不被该信号吞并。
+// #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
+// 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
+// 时必须搭配排障动作——「代码设计缺陷是什么意思」这类无围栏无动作的概念题
+// 不得被吞并（review P2）。
+const KONLING_DEBUG_CODE_FENCE_MARKER = '```';
 const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
 const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
 
@@ -1165,9 +1167,10 @@ function hasNormativeCurrencySignal(normalized: string): boolean {
 }
 
 function hasCodeFenceDebugSignal(normalized: string): boolean {
-  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
-    && (includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
-      || includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS));
+  const hasResolution = includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
+  const hasDefect = includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS);
+  if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) return hasResolution || hasDefect;
+  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS) && hasResolution;
 }
 
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {

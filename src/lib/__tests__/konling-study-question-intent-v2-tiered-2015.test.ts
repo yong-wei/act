@@ -125,36 +125,42 @@ describe('konling study question intent routing on the V2 tiered bank (#2015)', 
       byDifficulty.set(item.difficulty, difficultyRow);
     }
 
-    // 按意图报告混淆矩阵。
+    // 按意图报告混淆矩阵、按难度报告一致率：无条件输出，保证任何回归
+    // 失败时都能看到完整混淆方向（review P2：报告不得放在不可达分支）。
     const report: Record<string, Record<string, number>> = {};
     for (const intent of STUDY_INTENTS) {
       const row = matrix.get(intent) ?? new Map();
       report[intent] = Object.fromEntries(row);
     }
-    // 按难度报告一致率。
     const difficultyReport = Object.fromEntries(
       [...byDifficulty.entries()].map(([difficulty, row]) => [
         difficulty,
         `${row.matched}/${row.total}`,
       ]),
     );
+    console.log('intent confusion matrix:', JSON.stringify(report));
+    console.log('difficulty report:', JSON.stringify(difficultyReport));
+    console.log('intent misses:', JSON.stringify(misses));
 
-    expect(matched / items.length).toBeGreaterThanOrEqual(OVERALL_HIT_GATE);
+    const gateFailures: string[] = [];
+    if (matched / items.length < OVERALL_HIT_GATE) {
+      gateFailures.push(`overall ${(matched / items.length).toFixed(3)} < ${OVERALL_HIT_GATE}`);
+    }
     for (const intent of STUDY_INTENTS) {
-      const row = matrix.get(intent) ?? new Map();
-      const hits = row.get(intent) ?? 0;
-      expect(hits / 3).toBeGreaterThanOrEqual(INTENT_HIT_GATES[intent]);
-      expect(report[intent]).toBeDefined();
+      const hits = (matrix.get(intent) ?? new Map()).get(intent) ?? 0;
+      if (hits / 3 < INTENT_HIT_GATES[intent]) {
+        gateFailures.push(`${intent} ${(hits / 3).toFixed(2)} < ${INTENT_HIT_GATES[intent]}`);
+      }
     }
-    for (const [, row] of byDifficulty) {
-      expect(row.matched / row.total).toBeGreaterThanOrEqual(OVERALL_HIT_GATE);
+    for (const [difficulty, row] of byDifficulty) {
+      if (row.matched / row.total < OVERALL_HIT_GATE) {
+        gateFailures.push(`difficulty ${difficulty} ${row.matched}/${row.total} < ${OVERALL_HIT_GATE}`);
+      }
     }
-    // 失败明细留在断言消息里，便于后续轮次定位。
     if (misses.length > 0) {
-      console.log('intent misses:', JSON.stringify(misses));
-      console.log('difficulty report:', JSON.stringify(difficultyReport));
+      gateFailures.push(`misses: ${JSON.stringify(misses)}`);
     }
-    expect(misses).toEqual([]);
+    expect(gateFailures).toEqual([]);
   });
 
   it('routes synthetic composite signals without relying on frozen bank wording', () => {
@@ -163,6 +169,8 @@ describe('konling study question intent routing on the V2 tiered bank (#2015)', 
     expect(classify('请说明依据 ISO 13849 给出安全功能等级结论的当前做法。')).toBe('normative-content');
     expect(classify('比较一下教材里的两种整定方法。')).toBe('concept-comparison');
     expect(classify('这个设计的缺陷在哪里？')).toBe('open-ended-explanation');
+    // review P2 反例：无围栏、无排障动作的「缺陷」概念题不得判为代码调试。
+    expect(classify('代码设计缺陷是什么意思？')).toBe('fact-explanation');
     expect(classify('帮我看看这段贴出来的代码为什么 compensator 输出一直不变，找出缺陷并修复。')).toBe('code-debugging');
   });
 
