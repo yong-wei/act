@@ -1,0 +1,23 @@
+{
+  "contract": "act-authority-learning-content-manifest/v2",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+  "authoritySnapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+  "authoritySnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+  "teachingProjectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+  "teachingProjectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+  "nodes": [
+    {
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "safeId": "ctc_modeling-865eb1c8824e157c2f05a903",
+      "card": {
+        "state": "available",
+        "sha256": "f3d33a3bc11ee015969dd0001ed245796a8c8248de0ec86aa17c48b7e0feb510"
+      },
+      "infograph": {
+        "state": "available",
+        "sha256": "585c98ce051caa4d21a1dd53f20140a29319d4a1a53e4a397970e422bc37b14e"
+      }
+    }
+  ]
+}
