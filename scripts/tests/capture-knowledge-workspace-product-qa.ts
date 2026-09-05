@@ -128,6 +128,7 @@ interface CaptureState {
 
 type KnowledgeApiSummary = {
   path: string;
+  search: string;
   status: number;
   nodeCount: number | null;
   relationCount: number | null;
@@ -842,15 +843,18 @@ function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
         rememberToken,
       );
       if (summary.responseNodeKey) rememberToken(summary.responseNodeKey);
-      log.push(summary);
+      log.push({ ...summary, search: responseUrl.search });
     })().catch(() => {
-      log.push(summarizeKnowledgeApiResponse(
-        safePath,
-        response.status(),
-        {},
-        requestedNodeKey,
-        rememberToken,
-      ));
+      log.push({
+        ...summarizeKnowledgeApiResponse(
+          safePath,
+          response.status(),
+          {},
+          requestedNodeKey,
+          rememberToken,
+        ),
+        search: responseUrl.search,
+      });
     });
     pendingResponses.push(task);
   };
@@ -1180,8 +1184,9 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
   const completedLog = await probe.readLog();
   if (completedLog.some((entry) => (
     entry.path === '/api/knowledge/graph/active'
-    || entry.path === '/api/knowledge/graph'
     || entry.path === '/api/knowledge/graph/v2'
+    // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；域展开与候选 API 仍被禁止。
+    || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root'))
   ))) {
     throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
   }
