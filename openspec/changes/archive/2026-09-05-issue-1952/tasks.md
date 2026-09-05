@@ -17,4 +17,4 @@
 
 ## 4. 验证与交付
 
-- [ ] 4.1 bank V2 fixture 端到端（三臂跑通 + 分层报告非退化）；`typecheck`、konling 域相关测试通过；openspec strict validate 后按流程 archive 与 PR 交付。
+- [x] 4.1 bank V2 fixture 端到端（三臂跑通 + 分层报告非退化）；`typecheck`、konling 域相关测试通过；openspec strict validate 后按流程 archive 与 PR 交付。
