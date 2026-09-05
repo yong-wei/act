@@ -35,8 +35,10 @@ import {
 } from '@/lib/platform-role-navigation';
 import {
   buildSecondaryRouteGovernanceMatrixFromEvidence,
+  explicitRelayoutStabilityProblems,
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
+  interactionStabilityProblems,
   knowledgeWorkspaceProductQaCaptureRevisionProblems,
   knowledgeWorkspaceProductQaVisualReviewHashProblems,
   knowledgeWorkspaceProductQaSourceHashProblems,
@@ -4941,6 +4943,57 @@ describe('commercial UI governance', () => {
       revision: captureCommitSha,
       currentSourceSha256: { [sourcePath]: committedHash },
     })).toEqual([]);
+  });
+
+  it('accepts complete graph interaction observations and rejects missing, reset, or flag-only evidence', () => {
+    const selectedNode = 'node-knowledge-graph-core';
+    const validEvidence = {
+      beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, inspectorOpen: false },
+      drag: { pinned: true, method: 'pointer-drag', selectedNodeId: selectedNode },
+      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterInspectorOpen: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: true },
+      afterInspectorClose: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+    };
+
+    expect(interactionStabilityProblems(validEvidence, selectedNode)).toEqual([]);
+
+    expect(interactionStabilityProblems({}, selectedNode)).not.toHaveLength(0);
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, layoutVersion: '4' },
+    }, selectedNode)).toContain('hover-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, pinnedLayoutSignature: '' },
+    }, selectedNode)).toContain('hover-pinned-signature-changed');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, pinnedLayoutSignature: 'pin:reset' },
+      afterDrag: { ...validEvidence.afterDrag, pinnedLayoutSignature: `pin:${selectedNode}` },
+    }, selectedNode)).toContain('inspector-close-pinned-signature-changed');
+
+    expect(interactionStabilityProblems({
+      hoverDoesNotRelayout: true,
+      beforeDrag: validEvidence.beforeDrag,
+    }, selectedNode)).toContain('inspector-open-not-observed');
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+    })).toEqual([]);
+
+    expect(explicitRelayoutStabilityProblems({})).not.toHaveLength(0);
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: '' },
+    })).toEqual(
+      expect.arrayContaining(['relayout-version-not-incremented', 'relayout-pinned-count-not-cleared', 'relayout-selection-lost']),
+    );
   });
 
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {

@@ -1709,8 +1709,6 @@ type JsonRecord = Record<string, unknown>;
 
 const KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH =
   'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json';
-const KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH =
-  'artifacts/knowledge-graph-interaction-state-485/browser-evidence.json';
 const KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH =
   'artifacts/knowledge-graph-semantic-map-486/browser-evidence.json';
 const KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH =
@@ -1985,122 +1983,6 @@ function evidenceRectsOverlap(a: unknown, b: unknown) {
     && rectA.right > rectB.left
     && rectA.top < rectB.bottom
     && rectA.bottom > rectB.top;
-}
-
-function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanceViolation[] {
-  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH);
-  if (!evidence) {
-    return [knowledgeGraphGovernanceViolation('Knowledge graph interaction-state evidence file is missing.', [
-      KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH,
-    ])];
-  }
-
-  const screenshots = objectRecord(evidence.screenshots);
-  const screenshotProblems = [
-    'initial',
-    'hover',
-    'selected',
-    'dragged',
-    'inspectorClosed',
-    'relayout',
-  ].flatMap((key) => {
-    const pathname = artifactPathFromEvidence(screenshots[key]);
-    const artifact = simulationViewportArtifact(pathname);
-    if (!pathname || !artifact) return [`${key}:missing-screenshot`];
-    return artifact.width === 1425 && artifact.height === 900 ? [] : [`${key}:invalid-png-dimensions`];
-  });
-
-  const states = objectRecord(evidence.states);
-  const initial = objectRecord(states.initial);
-  const hover = objectRecord(states.hover);
-  const rapidHover = objectRecord(states.rapidHover);
-  const selected = objectRecord(states.selected);
-  const dragged = objectRecord(states.dragged);
-  const hoverAfterDrag = objectRecord(states.hoverAfterDrag);
-  const inspectorClosed = objectRecord(states.inspectorClosed);
-  const relayout = objectRecord(states.relayout);
-  const currentRun = objectRecord(evidence.currentRun);
-  const currentRunBaseline = objectRecord(currentRun.baseline);
-  const currentRunRelayout = objectRecord(currentRun.explicitRelayout);
-  const currentRunRelayoutBefore = objectRecord(currentRunRelayout.before);
-  const currentRunRelayoutAfter = objectRecord(currentRunRelayout.after);
-  const currentRunInteractionHarness = objectRecord(currentRun.interactionHarness);
-  const currentRunHarnessSelected = objectRecord(currentRunInteractionHarness.selected);
-  const currentRunHarnessDragged = objectRecord(currentRunInteractionHarness.dragged);
-  const currentRunHarnessHoverAfterDrag = objectRecord(currentRunInteractionHarness.hoverAfterDrag);
-  const currentRunHarnessRendererSync = objectRecord(currentRunInteractionHarness.rendererSync);
-
-  const initialNodeCount = numberFromEvidence(initial.visibleNodeCount);
-  const initialLinkCount = numberFromEvidence(initial.visibleLinkCount);
-  const currentRunNodeCount = numberFromEvidence(currentRunBaseline.visibleNodeCount);
-  const currentRunLinkCount = numberFromEvidence(currentRunBaseline.visibleLinkCount);
-  const draggedSignature = typeof dragged.pinnedLayoutSignature === 'string'
-    ? dragged.pinnedLayoutSignature
-    : '';
-  const selectedNodeId = typeof selected.selectedNodeId === 'string' ? selected.selectedNodeId : '';
-  const stateProblems = [
-    initial.layoutVersion === '0' ? null : 'initial:layout-version',
-    initial.pinnedNodeCount === '0' ? null : 'initial:pinned-count',
-    hover.layoutVersion === '0' ? null : 'hover:layout-version-changed',
-    rapidHover.layoutVersion === '0' ? null : 'rapid-hover:layout-version-changed',
-    numberFromEvidence(hover.visibleNodeCount) === initialNodeCount ? null : 'hover:visible-node-count-changed',
-    numberFromEvidence(hover.visibleLinkCount) === initialLinkCount ? null : 'hover:visible-link-count-changed',
-    numberFromEvidence(rapidHover.visibleNodeCount) === initialNodeCount ? null : 'rapid-hover:visible-node-count-changed',
-    numberFromEvidence(rapidHover.visibleLinkCount) === initialLinkCount ? null : 'rapid-hover:visible-link-count-changed',
-    hover.hoverPreviewVisible === true ? null : 'hover:preview-not-visible',
-    selected.inspectorOpen === true ? null : 'selected:inspector-not-open',
-    selected.layoutVersion === '0' ? null : 'selected:layout-version-changed',
-    selectedNodeId.length > 0 ? null : 'selected:selected-node-missing',
-    numberFromEvidence(selected.visibleNodeCount) === initialNodeCount ? null : 'selected:visible-node-count-changed',
-    numberFromEvidence(selected.visibleLinkCount) === initialLinkCount ? null : 'selected:visible-link-count-changed',
-    dragged.pinnedNodeCount === '1' ? null : 'dragged:pinned-count',
-    draggedSignature.includes(selectedNodeId) ? null : 'dragged:pinned-signature-missing-selected-node',
-    hoverAfterDrag.pinnedLayoutSignature === draggedSignature ? null : 'hover-after-drag:pinned-signature-changed',
-    hoverAfterDrag.pinnedNodeCount === '1' ? null : 'hover-after-drag:pinned-count',
-    inspectorClosed.inspectorOpen === false ? null : 'inspector-closed:inspector-still-open',
-    inspectorClosed.pinnedLayoutSignature === draggedSignature ? null : 'inspector-closed:pinned-signature-changed',
-    relayout.pinnedNodeCount === '0' ? null : 'relayout:pinned-count-not-cleared',
-    numberFromEvidence(relayout.layoutVersion)! > numberFromEvidence(dragged.layoutVersion)! ? null : 'relayout:layout-version-not-incremented',
-    currentRunNodeCount === initialNodeCount ? null : 'current-run:visible-node-count-changed',
-    currentRunLinkCount === initialLinkCount ? null : 'current-run:visible-link-count-changed',
-    currentRunBaseline.pinnedNodeCount === 0 ? null : 'current-run:pinned-count',
-    numberFromEvidence(currentRunRelayoutAfter.layoutVersion)! > numberFromEvidence(currentRunRelayoutBefore.layoutVersion)! ? null : 'current-run:relayout-version-not-incremented',
-    numberFromEvidence(currentRunRelayoutAfter.visibleNodeCount) === currentRunNodeCount ? null : 'current-run:relayout-node-count-changed',
-    numberFromEvidence(currentRunRelayoutAfter.visibleLinkCount) === currentRunLinkCount ? null : 'current-run:relayout-link-count-changed',
-    currentRunInteractionHarness.kind === 'deterministic-layout-state-harness' ? null : 'current-run:harness-missing',
-    typeof currentRunHarnessSelected.selectedNodeId === 'string' && currentRunHarnessSelected.selectedNodeId.length > 0 ? null : 'current-run:harness-selected-node-missing',
-    currentRunHarnessDragged.pinnedNodeCount === 1 ? null : 'current-run:harness-dragged-pinned-count',
-    typeof currentRunHarnessDragged.pinnedLayoutSignature === 'string'
-      && currentRunHarnessDragged.pinnedLayoutSignature.includes(String(currentRunHarnessSelected.selectedNodeId ?? ''))
-      ? null
-      : 'current-run:harness-dragged-signature-missing-selected-node',
-    currentRunHarnessHoverAfterDrag.pinnedLayoutSignature === currentRunHarnessDragged.pinnedLayoutSignature
-      ? null
-      : 'current-run:harness-hover-pinned-signature-changed',
-    currentRunHarnessRendererSync.preservedAutomaticAnchors === true ? null : 'current-run:harness-automatic-anchors-not-preserved',
-    currentRunHarnessRendererSync.preservedZAxisAnchorFor2DPin === true ? null : 'current-run:harness-z-axis-anchor-not-preserved',
-  ].filter((entry): entry is string => Boolean(entry));
-
-  const layoutControls = [
-    ...new Set([
-      ...stringArray(initial.layoutControls),
-      ...stringArray(currentRunBaseline.layoutControls),
-    ]),
-  ];
-  const missingControls = ['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins'].filter(
-    (control) => !layoutControls.includes(control),
-  );
-
-  if (screenshotProblems.length > 0 || stateProblems.length > 0 || missingControls.length > 0) {
-    return [knowledgeGraphGovernanceViolation('Knowledge graph interaction-state evidence is incomplete.', [
-      `screenshots=${screenshotProblems.join(',') || 'none'}`,
-      `states=${stateProblems.join(',') || 'none'}`,
-      `controls=${missingControls.join(',') || 'none'}`,
-      KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH,
-    ])];
-  }
-
-  return [];
 }
 
 function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViolation[] {
@@ -2427,6 +2309,52 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
   }
 
   return [];
+}
+
+// #2024：图谱交互稳定性并入当前产品 QA 状态——只比较同次捕获的实际前后观测，
+// 不再读取旧 #485 证据格式；缺失、重置或仅写成功标志都按问题返回。
+export function interactionStabilityProblems(evidence: JsonRecord, selectedNode: unknown): string[] {
+  const beforeDrag = objectRecord(evidence.beforeDrag);
+  const afterInspectorOpen = objectRecord(evidence.afterInspectorOpen);
+  const afterInspectorClose = objectRecord(evidence.afterInspectorClose);
+  const afterDrag = objectRecord(evidence.afterDrag);
+  const afterHover = objectRecord(evidence.afterHover);
+  const selectedNodeId = String(selectedNode ?? '');
+  return [
+    String(beforeDrag.selectedNodeId ?? '') === selectedNodeId && selectedNodeId.length > 0
+      ? null
+      : 'before-drag-selection-missing',
+    afterInspectorOpen.inspectorOpen === true ? null : 'inspector-open-not-observed',
+    afterInspectorOpen.layoutVersion !== '' && afterInspectorOpen.layoutVersion === afterDrag.layoutVersion
+      ? null
+      : 'inspector-open-layout-reset',
+    afterInspectorClose.inspectorOpen === false ? null : 'inspector-close-not-observed',
+    afterInspectorClose.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
+      ? null
+      : 'inspector-close-pinned-signature-changed',
+    afterDrag.layoutVersion !== '' && afterHover.layoutVersion === afterDrag.layoutVersion
+      ? null
+      : 'hover-layout-reset',
+    afterHover.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
+      ? null
+      : 'hover-pinned-signature-changed',
+    afterHover.selectedNodeId === afterDrag.selectedNodeId ? null : 'hover-selection-lost',
+  ].filter((entry): entry is string => Boolean(entry));
+}
+
+export function explicitRelayoutStabilityProblems(evidence: JsonRecord): string[] {
+  const beforeRelayout = objectRecord(evidence.beforeRelayout);
+  const afterRelayout = objectRecord(evidence.afterRelayout);
+  return [
+    beforeRelayout.layoutVersion !== '' && afterRelayout.layoutVersion !== ''
+      ? null
+      : 'relayout-observations-missing',
+    numberFromEvidence(afterRelayout.layoutVersion)! > numberFromEvidence(beforeRelayout.layoutVersion)!
+      ? null
+      : 'relayout-version-not-incremented',
+    afterRelayout.pinnedNodeCount === '0' ? null : 'relayout-pinned-count-not-cleared',
+    afterRelayout.selectedNodeId === beforeRelayout.selectedNodeId ? null : 'relayout-selection-lost',
+  ].filter((entry): entry is string => Boolean(entry));
 }
 
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
@@ -3018,6 +2946,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:layout-persistence-interaction-proof-missing`
           )
         : null,
+      name === 'desktop-hover-click-drag-dark'
+        ? interactionStabilityProblems(objectRecord(state.interactionEvidence), state.selectedNode)
+          .map((problem) => `${name}:${problem}`)
+        : null,
+      name === 'desktop-explicit-relayout-dark'
+        ? explicitRelayoutStabilityProblems(objectRecord(state.interactionEvidence))
+          .map((problem) => `${name}:${problem}`)
+        : null,
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (typeof inspectorTop === 'number' ? null : `${name}:inspector-rect-missing`)
         : null,
@@ -3492,7 +3428,6 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
     ]));
   }
 
-  violations.push(...validateKnowledgeGraphInteractionStateEvidence());
   violations.push(...validateKnowledgeGraphSemanticMapEvidence());
   violations.push(...validateKnowledgeWorkspaceToolsInspectorEvidence());
   violations.push(...validateKnowledgeWorkspaceProductQaEvidence());

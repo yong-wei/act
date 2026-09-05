@@ -1728,7 +1728,8 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
     await page.mouse.move(x + 80, y + 36, { steps: 8 });
     await page.mouse.up();
     await page.waitForTimeout(350);
-    const canvas = page.locator('[data-knowledge-canvas-primary]').first();
+    // 钉住状态从 legacy 视图画布读取；active 隐藏画布同名会掩盖属性。
+    const canvas = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]').first();
     const pinned = await canvas.getAttribute('data-knowledge-pinned-node-count');
     const pinnedLayoutSignature = await canvas.getAttribute('data-knowledge-pinned-layout-signature') ?? '';
     if (pinned === '1' && pinnedLayoutSignature.includes(expectedNodeId)) {
@@ -1750,13 +1751,17 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
 
 async function captureMarkerSnapshot(page: Page) {
   return page.evaluate(`(() => {
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
+    const inspector = document.querySelector('[data-knowledge-inspector]');
     return {
       layoutVersion: canvas?.dataset.knowledgeLayoutVersion ?? '',
       pinnedNodeCount: canvas?.dataset.knowledgePinnedNodeCount ?? '',
       pinnedLayoutSignature: canvas?.dataset.knowledgePinnedLayoutSignature ?? '',
       selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? '',
+      inspectorOpen: Boolean(inspector),
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null
     };
@@ -2199,7 +2204,9 @@ async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-graph-mode]');
     const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
     const teachingCoverage = document.querySelector('[data-authority-teaching-coverage="true"]');
     const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
@@ -3639,12 +3646,18 @@ async function main() {
         const afterDrag = await captureMarkerSnapshot(page);
         await page.mouse.move(720, 360);
         const afterHover = await captureMarkerSnapshot(page);
+        await openSelectedNodeInspector(page, dragNodeId);
+        const afterInspectorOpen = await captureMarkerSnapshot(page);
+        await closeInspectorIfPresent(page);
+        const afterInspectorClose = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
           beforeDrag,
           drag,
           afterDrag,
           afterHover,
+          afterInspectorOpen,
+          afterInspectorClose,
         };
       },
     },
@@ -3677,7 +3690,15 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        const beforeRelayout = await captureMarkerSnapshot(page);
         await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
+        await page.waitForTimeout(500);
+        const afterRelayout = await captureMarkerSnapshot(page);
+        return {
+          kind: 'explicit-relayout-stability',
+          beforeRelayout,
+          afterRelayout,
+        };
       },
     },
     {
