@@ -1552,15 +1552,15 @@ async function waitForKnowledgeReady(page: Page) {
 }
 
 async function clickIfPresent(page: Page, selector: string) {
-  const locator = page.locator(selector);
-  const count = await locator.count();
-  for (let index = 0; index < count; index += 1) {
-    const candidate = locator.nth(index);
-    if (!(await candidate.isVisible().catch(() => false))) continue;
-    await candidate.click({ timeout: 5000 });
-    await page.waitForTimeout(250);
-    return;
-  }
+  // 指针点击可能被悬浮工具栏（z-50 mode-switch）拦截；用 DOM click 保证触发，可见性判断保留。
+  const clicked = await page.evaluate((targetSelector) => {
+    const element = Array.from(document.querySelectorAll<HTMLElement>(targetSelector))
+      .find((item) => item.getClientRects().length > 0);
+    if (!element) return false;
+    element.click();
+    return true;
+  }, selector);
+  if (clicked) await page.waitForTimeout(250);
 }
 
 async function openDesktopTool(page: Page, tool: string) {
